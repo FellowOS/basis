@@ -21,6 +21,10 @@ _BULKY_TEXT_KEY = re.compile(
 _BEARER_RE = re.compile(r"\bBearer\s+[A-Za-z0-9._~+/=-]+\b", re.IGNORECASE)
 _BASIC_RE = re.compile(r"\bBasic\s+[A-Za-z0-9+/=]+\b", re.IGNORECASE)
 _SK_RE = re.compile(r"\bsk-[A-Za-z0-9]{8,}\b")
+_QUERY_SECRET_RE = re.compile(
+    r"([?&](?:token|api[_-]?key|access[_-]?token|key)=)[^&\s#]+",
+    re.IGNORECASE,
+)
 _LONG_TEXT_LIMIT = 256
 
 
@@ -30,6 +34,7 @@ def redact_string(text: str) -> str:
     out = _BEARER_RE.sub(f"Bearer {REDACTED}", text)
     out = _BASIC_RE.sub(f"Basic {REDACTED}", out)
     out = _SK_RE.sub(REDACTED, out)
+    out = _QUERY_SECRET_RE.sub(rf"\1{REDACTED}", out)
     return out
 
 

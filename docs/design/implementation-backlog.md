@@ -282,7 +282,7 @@ Acceptance:
 - eviction/reload preserves graph and search;
 - memory/cache limits are configurable.
 
-**Status:** partial — registry + idle eviction; WS tickets; `access_revoked` on member removal, role change, and user deactivation. Pending: graph split on merge revert.
+**Status:** done (baseline) — registry + idle eviction; WS tickets; `access_revoked` on member removal, role change, and user deactivation; ledger merge revert rebuilds projection, invalidates Explorer cache, and re-wraps Explorer when `sema.graph` is replaced (`test_revert_entity_merge_refreshes_explorer_nodes`).
 
 ### M4-03 — Add Sema graph read adapters
 
@@ -379,7 +379,7 @@ Work:
 - connect realtime updates and revision refetch;
 - respect viewer permissions.
 
-**Status:** partial — Explorer `GraphWorkspace` embedded when `explorer_runtime`; timeline + search/focus; `projection_updated` WS triggers full graph reload + dock notice; KB switch remounts workspace (`key={kbId}`); inspector evidence links resolve ledger `chunk_id` / document neighbors; merge/import gated via review; backend WS/viewer tests; graph read-only UX; unit tests for projection refresh. Manual gate: `docs/ops/smoke-test.md`. Remaining: optional Playwright automation of that checklist.
+**Status:** partial — Explorer `GraphWorkspace` embedded when `explorer_runtime`; timeline + search/focus; `projection_updated` WS triggers full graph reload + dock notice; KB switch remounts workspace (`key={kbId}`); inspector evidence links resolve ledger `chunk_id` / document neighbors; merge/import gated via review; backend WS/viewer tests; graph read-only UX; unit tests for projection refresh. Manual gate: `docs/ops/smoke-test.md`. Playwright baseline: `packages/web/e2e` (login shell + onboarding: register → paste text → pattern ingest on `/sources`); extend for graph when stable selectors exist.
 
 Acceptance:
 
@@ -403,7 +403,7 @@ Acceptance:
 - request/job/projection IDs in logs and audit;
 - redact authorization, API keys, document content, and model secrets.
 
-**Status:** done (baseline) — `X-Request-ID` middleware; `detail.request_id` on API errors; Web correlation headers + user-facing reference IDs; `record_audit` + ingest logs use `correlation_log_extra`; async ingest threads bind `trigger_request_id`; processing jobs store `options.request_id`; `SEMA_LOG_JSON=1` enables JSON lines on `sema.*`; `redact_for_log` / `redact_string` for secrets and bulky text. Follow-up: wire redaction into any ad-hoc debug logs; optional uvicorn access JSON.
+**Status:** done (baseline) — `X-Request-ID` middleware; `detail.request_id` on API errors; Web correlation headers + user-facing reference IDs; `record_audit` + ingest logs use `correlation_log_extra`; async ingest threads bind `trigger_request_id`; processing jobs store `options.request_id`; `SEMA_LOG_JSON=1` enables JSON on `sema.*` and uvicorn access/error (`UvicornAccessJsonFormatter`); `redact_for_log` / `redact_string` for secrets and bulky text. Follow-up: cancel in-flight LLM work on extract timeout.
 
 ### X-03 — Backup/recovery baseline
 
@@ -452,8 +452,10 @@ introduce a second source of truth.
 
 **Automated coverage (partial):** `tests/test_release_gate.py`, `tests/test_graph_page_limits.py`,
 `tests/test_runtime_limits.py`, `tests/test_observability.py`, `tests/test_request_id.py`,
-`tests/test_legacy_graph_migration.py`, `tests/test_ws_hub.py`, `tests/test_realtime_ws.py`, and
-`packages/web/src/explorer/host/explorerHttp.test.ts` (+ `api-error-message.test.ts`).
+`tests/test_legacy_graph_migration.py`, `tests/test_entity_merges.py` (merge revert + Explorer),
+`tests/test_explorer_registry.py`, `tests/test_ws_hub.py`, `tests/test_realtime_ws.py`,
+`packages/web/src/explorer/host/explorerHttp.test.ts` (+ `api-error-message.test.ts`), and
+`packages/web/e2e` (Playwright login + register smoke; CI job `e2e`).
 
 ## 10. Engineering debt (post graph-closure)
 

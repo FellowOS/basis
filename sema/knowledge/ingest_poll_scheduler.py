@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 from fastapi import FastAPI
 
 from sema.knowledge.ingest_source_service import execute_ingest_source_sync, is_ingest_poll_due
+from sema.observability.log_context import correlation_log_extra
 
 logger = logging.getLogger(__name__)
 
@@ -32,5 +33,6 @@ def run_due_http_polls(app: FastAPI) -> int:
                 kb_id,
                 source_id,
                 source.get("kind"),
+                extra=correlation_log_extra(kb_id=kb_id, source_id=source_id),
             )
     return ran

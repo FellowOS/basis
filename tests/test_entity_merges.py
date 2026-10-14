@@ -120,6 +120,88 @@ def test_revert_entity_merge(tmp_path: Path) -> None:
     assert len(store.list_entity_merges(kb_id, active_only=False)) == 1
 
 
+def test_revert_entity_merge_refreshes_explorer_nodes(tmp_path: Path) -> None:
+    if not explorer_available():
+        pytest.skip("explorer extra not installed")
+
+    settings = Settings(data_dir=tmp_path)
+    app = create_app(settings)
+    client = TestClient(app)
+    admin = client.post(
+        "/api/auth/register",
+        json={"email": "revx@example.com", "password": "password1", "display_name": "Rev"},
+    ).json()
+    headers = {"Authorization": f"Bearer {admin['token']}"}
+    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    knowledge: KnowledgeStore = app.state.knowledge_store
+
+    _, version_id, _, _ = knowledge.store_upload_bytes(
+        kb_id,
+        title="t.txt",
+        mime_type="text/plain",
+        data=b"x",
+        created_by=None,
+        external_key="doc-revert-explorer",
+    )
+    chunk_id = knowledge.create_chunk(kb_id, version_id, ordinal=0, text="Alice knows Bob.")
+    knowledge.set_version_status(kb_id, version_id, "ready")
+    alice = knowledge.create_entity(kb_id, canonical_label="Alice")
+    bob = knowledge.create_entity(kb_id, canonical_label="Bob")
+    knowledge.add_open_statement(
+        kb_id,
+        subject_id=alice,
+        surface_phrase="knows",
+        object_entity_id=bob,
+        object_value=None,
+        status="confirmed",
+        proposed_by="test",
+        chunk_id=chunk_id,
+        quote="knows Bob",
+    )
+    session = rebuild_graph_from_ledger(knowledge, kb_id)
+    ledger = knowledge.get_projection_state(kb_id)
+    app.state.graph_persistence.save(
+        kb_id,
+        session,
+        projection_revision=ledger["revision"],
+        schema_version=ledger["schema_version"],
+    )
+    app.state.graphs[kb_id] = session
+
+    merge_row = knowledge.record_entity_merge(
+        kb_id,
+        source_entity_id=bob,
+        target_entity_id=alice,
+        actor_id=admin["user"]["id"],
+    )
+    rebuild = client.post(f"/api/kbs/{kb_id}/graph/rebuild", headers=headers)
+    assert rebuild.status_code == 200
+
+    def entity_node_ids() -> set[str]:
+        resp = client.get(
+            f"/api/kbs/{kb_id}/graph/nodes",
+            headers=headers,
+            params={"node_type": "entity", "limit": 100},
+        )
+        assert resp.status_code == 200
+        return {n["id"] for n in resp.json()["nodes"]}
+
+    merged_ids = entity_node_ids()
+    assert alice in merged_ids
+    assert bob not in merged_ids
+    # Warm Explorer registry cache (same revision as post-rebuild).
+    assert entity_node_ids() == merged_ids
+
+    revert = client.post(
+        f"/api/kbs/{kb_id}/ledger/entity-merges/{merge_row['id']}/revert",
+        headers=headers,
+    )
+    assert revert.status_code == 200
+
+    split_ids = entity_node_ids()
+    assert alice in split_ids and bob in split_ids
+
+
 def test_revert_entity_merge_http(tmp_path: Path) -> None:
     settings = Settings(data_dir=tmp_path)
     app = create_app(settings)

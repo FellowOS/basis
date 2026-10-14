@@ -9,6 +9,10 @@ build/
 packages/web/.env
 packages/web/.env.local
 data/
+data-e2e/
+packages/web/test-results/
+packages/web/playwright-report/
+packages/web/blob-report/
 node_modules/
 dist/
 .DS_Store

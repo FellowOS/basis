@@ -14,6 +14,24 @@ if TYPE_CHECKING:
     from fastapi import Request
 
 
+def _rebuild_explorer_wrapper(sema_session: GraphSession) -> Any | None:
+    if not explorer_available():
+        return None
+    from semantica.explorer.session import GraphSession as ExplorerGraphSession
+
+    explorer_session = ExplorerGraphSession(sema_session.graph)
+    rebuild = getattr(explorer_session, "rebuild_search_index", None)
+    if callable(rebuild):
+        rebuild()
+    return explorer_session
+
+
+def _explorer_wrapped_graph(explorer: Any | None) -> Any | None:
+    if explorer is None:
+        return None
+    return getattr(explorer, "graph", None)
+
+
 @dataclass
 class KbExplorerRuntime:
     kb_id: str
@@ -44,6 +62,8 @@ class ExplorerSessionRegistry:
         with self._guard:
             cached = self._cache.get(kb_id)
             if cached is not None and cached.projection_revision == revision:
+                if _explorer_wrapped_graph(cached.explorer) is not cached.sema.graph:
+                    cached.explorer = _rebuild_explorer_wrapper(cached.sema)
                 cached.touch()
                 return cached
 
@@ -52,18 +72,13 @@ class ExplorerSessionRegistry:
             with self._guard:
                 cached = self._cache.get(kb_id)
                 if cached is not None and cached.projection_revision == revision:
+                    if _explorer_wrapped_graph(cached.explorer) is not cached.sema.graph:
+                        cached.explorer = _rebuild_explorer_wrapper(cached.sema)
                     cached.touch()
                     return cached
 
             sema_session = graph_for(request, kb_id)
-            explorer_session = None
-            if explorer_available():
-                from semantica.explorer.session import GraphSession as ExplorerGraphSession
-
-                explorer_session = ExplorerGraphSession(sema_session.graph)
-                rebuild = getattr(explorer_session, "rebuild_search_index", None)
-                if callable(rebuild):
-                    rebuild()
+            explorer_session = _rebuild_explorer_wrapper(sema_session)
 
             runtime = KbExplorerRuntime(
                 kb_id=kb_id,

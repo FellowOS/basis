@@ -8,6 +8,7 @@ import sys
 import uvicorn
 
 from sema.config import Settings
+from sema.observability.logging_setup import uvicorn_log_config
 
 
 def _cmd_serve(settings: Settings) -> None:
@@ -16,6 +17,7 @@ def _cmd_serve(settings: Settings) -> None:
         host=settings.host,
         port=settings.port,
         factory=True,
+        log_config=uvicorn_log_config(settings),
     )
 
 

@@ -9,6 +9,7 @@
   "scripts": {
     "dev": "pnpm --filter @sema/web dev",
     "build": "pnpm --filter @sema/web build",
-    "typecheck": "pnpm --filter @sema/web typecheck"
+    "typecheck": "pnpm --filter @sema/web typecheck",
+    "test:e2e": "pnpm --filter @sema/web test:e2e"
   }
 }

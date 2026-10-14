@@ -26,7 +26,7 @@ Failed ingest jobs surface codes such as `upload_too_large`, `extract_text_too_l
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
-| `SEMA_LOG_JSON` | off | JSON log lines on `sema.*` loggers |
+| `SEMA_LOG_JSON` | off | JSON log lines on `sema.*` and uvicorn access/error loggers |
 
 HTTP responses include `X-Request-ID`; processing jobs may store `options.request_id` from the triggering request.
 

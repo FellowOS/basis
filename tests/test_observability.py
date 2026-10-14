@@ -4,6 +4,7 @@ import json
 import logging
 
 from sema.observability.json_logging import JsonLogFormatter
+from sema.observability.uvicorn_logging import UvicornAccessJsonFormatter
 from sema.observability.log_context import correlation_log_extra
 from sema.observability.redaction import REDACTED, redact_for_log, redact_string
 from sema.observability.request_context import (
@@ -34,6 +35,12 @@ def test_redact_string_masks_bearer_and_sk_tokens() -> None:
     assert REDACTED in out
 
 
+def test_redact_string_masks_sensitive_query_params() -> None:
+    out = redact_string("/api/kbs?token=secret-value&page=1")
+    assert "secret-value" not in out
+    assert "page=1" in out
+
+
 def test_redact_for_log_masks_sensitive_keys_and_long_text() -> None:
     payload = {
         "api_key": "secret-value",
@@ -46,6 +53,25 @@ def test_redact_for_log_masks_sensitive_keys_and_long_text() -> None:
     assert out["metadata"]["authorization"] == REDACTED
     assert str(out["content"]).startswith(REDACTED)
     assert out["title"] == "short"
+
+
+def test_uvicorn_access_json_formatter_structures_request() -> None:
+    record = logging.LogRecord(
+        name="uvicorn.access",
+        level=logging.INFO,
+        pathname=__file__,
+        lineno=1,
+        msg='%s - "%s %s HTTP/%s" %d',
+        args=("127.0.0.1:12345", "GET", "/api/kbs?token=secret", "1.1", 200),
+        exc_info=None,
+    )
+    record.request_id = "trace-access"
+    data = json.loads(UvicornAccessJsonFormatter().format(record))
+    assert data["event"] == "http_access"
+    assert data["method"] == "GET"
+    assert data["status_code"] == 200
+    assert data["request_id"] == "trace-access"
+    assert "secret" not in data["path"]
 
 
 def test_json_log_formatter_emits_parseable_line_with_extras() -> None:

@@ -197,6 +197,7 @@ def graph_for(request: Request, kb_id: str) -> GraphSession:
 
 def rebuild_kb_projection(request: Request, kb_id: str) -> dict:
     """Rebuild in-memory graph from ledger (including typed_facts) and persist."""
+    get_explorer_registry(request).invalidate(kb_id)
     session = graph_for(request, kb_id)
     meta = apply_rebuild_to_session(get_knowledge_store(request), kb_id, session)
     save_graph(request, kb_id)

@@ -143,4 +143,11 @@ pnpm --filter @sema/web build
 pnpm --filter @sema/web test
 ```
 
-推送 `main` 时 GitHub Actions 会跑 pytest 与 web build/test（`.github/workflows/ci.yml`）。
+可选浏览器冒烟（登录壳 + 注册进 `/kbs`，见 [docs/ops/smoke-test.md](docs/ops/smoke-test.md)）：
+
+```bash
+pnpm --filter @sema/web exec playwright install chromium
+pnpm test:e2e
+```
+
+推送 `main` 时 GitHub Actions 会跑 pytest、web build/test，以及 Playwright 冒烟（`.github/workflows/ci.yml`）。

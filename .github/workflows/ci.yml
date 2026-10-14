@@ -44,3 +44,37 @@ jobs:
 
       - name: Unit tests
         run: pnpm --filter @sema/web test
+
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Sync Python dependencies
+        run: uv sync --extra dev
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright Chromium
+        run: pnpm --filter @sema/web exec playwright install chromium --with-deps
+
+      - name: Playwright smoke
+        run: CI=1 pnpm test:e2e
+        env:
+          SEMA_E2E_API_PORT: 8091
+          SEMA_E2E_WEB_PORT: 5174

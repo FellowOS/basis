@@ -27,4 +27,23 @@ uv run pytest tests/test_release_gate.py tests/test_realtime_ws.py -q
 pnpm --filter @sema/web test
 ```
 
-Playwright e2e remains optional; this checklist is the release fallback.
+### Playwright (optional)
+
+Starts a disposable API (SQLite under `data-e2e/`, port **8091**, `SEMA_INGEST_INLINE=1`; `SEMA_DATABASE_URL` is cleared so `.env` Postgres is not used) and Vite (**5174**) unless servers are already up:
+
+```bash
+cd fellowos/sema
+pnpm install
+pnpm --filter @sema/web exec playwright install chromium
+pnpm test:e2e
+```
+
+Reuse your own `uv run sema` + `pnpm dev` on the default ports:
+
+```bash
+SEMA_E2E_SKIP_SERVERS=1 SEMA_E2E_WEB_PORT=5173 pnpm --filter @sema/web test:e2e
+```
+
+(`SEMA_API_URL` for Vite must still point at the running API.)
+
+Manual checklist above remains the release fallback when e2e is not run.
