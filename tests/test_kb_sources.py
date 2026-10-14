@@ -170,3 +170,50 @@ def test_http_poll_sync(tmp_path) -> None:
     detail = client.get(f"/api/kbs/{kb_id}/sources/{source_id}", headers=headers).json()["source"]
     events = detail["config"].get("sync_events") or []
     assert events and events[0]["status"] == "succeeded"
+
+
+def test_git_source_sync(tmp_path) -> None:
+    client = TestClient(create_app(_test_settings(tmp_path)))
+    admin = client.post(
+        "/api/auth/register",
+        json={"email": "git@example.com", "password": "password1", "display_name": "Git"},
+    ).json()
+    headers = {"Authorization": f"Bearer {admin['token']}"}
+    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    created = client.post(
+        f"/api/kbs/{kb_id}/sources",
+        headers=headers,
+        json={
+            "kind": "git",
+            "name": "Docs repo",
+            "config": {
+                "repo_url": "https://github.com/org/repo",
+                "branch": "main",
+                "paths": ["README.md"],
+            },
+        },
+    )
+    assert created.status_code == 200
+    source_id = created.json()["source"]["id"]
+
+    mock_response = MagicMock()
+    mock_response.content = b"# Hello from git"
+    mock_response.encoding = "utf-8"
+    mock_response.raise_for_status = MagicMock()
+
+    mock_http = MagicMock()
+    mock_http.get.return_value = mock_response
+    mock_http.__enter__ = MagicMock(return_value=mock_http)
+    mock_http.__exit__ = MagicMock(return_value=False)
+
+    with patch("sema.knowledge.ingest_source_service.httpx.Client", return_value=mock_http):
+        synced = client.post(f"/api/kbs/{kb_id}/sources/{source_id}/sync", headers=headers, json={})
+
+    assert synced.status_code == 200
+    mock_http.get.assert_called_once()
+    called_url = mock_http.get.call_args[0][0]
+    assert "raw.githubusercontent.com/org/repo/main/README.md" in called_url
+
+    detail = client.get(f"/api/kbs/{kb_id}/sources/{source_id}", headers=headers).json()["source"]
+    assert detail["config"]["sync_events"][0]["status"] == "succeeded"
+    assert detail["config"]["sync_events"][0]["mode"] == "git"

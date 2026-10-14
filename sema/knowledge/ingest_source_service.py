@@ -17,6 +17,11 @@ from sema.pipeline.document import TextIngestOptions
 _HTTP_POLL_TIMEOUT = 30.0
 _HTTP_POLL_MAX_BYTES = 5 * 1024 * 1024
 
+_GITHUB_REPO_RE = re.compile(
+    r"^https?://(?:www\.)?github\.com/([^/]+)/([^/]+?)(?:\.git)?/?$",
+    re.IGNORECASE,
+)
+
 _DEFAULT_PROCESSING_OPTIONS = {
     "chunk": True,
     "chunk_size": 1800,
@@ -40,7 +45,7 @@ def _doc_id_from_external_key(external_key: str | None, title: str) -> str:
     return stem or f"ingest-{uuid.uuid4().hex[:12]}"
 
 
-def is_http_poll_due(source: dict[str, Any], now: datetime) -> bool:
+def is_ingest_poll_due(source: dict[str, Any], now: datetime) -> bool:
     config = source.get("config") or {}
     interval = int(config.get("poll_interval_minutes") or 0)
     if interval <= 0:
@@ -56,6 +61,30 @@ def is_http_poll_due(source: dict[str, Any], now: datetime) -> bool:
         return True
     elapsed = (now - last_dt).total_seconds()
     return elapsed >= interval * 60
+
+
+is_http_poll_due = is_ingest_poll_due
+
+
+def git_raw_urls(repo_url: str, branch: str, paths: list[str]) -> list[str]:
+    match = _GITHUB_REPO_RE.match(repo_url.strip())
+    if not match:
+        raise AdminError(422, "unsupported_repo", "仅支持 GitHub HTTPS 仓库 URL")
+    org, repo = match.group(1), match.group(2)
+    ref = (branch or "main").strip() or "main"
+    urls: list[str] = []
+    for path in paths:
+        rel = str(path).strip().lstrip("/")
+        if rel:
+            urls.append(f"https://raw.githubusercontent.com/{org}/{repo}/{ref}/{rel}")
+    if not urls:
+        raise AdminError(422, "bad_paths", "至少配置一个仓库内文件路径")
+    return urls
+
+
+def fetch_git_sync_text(repo_url: str, branch: str, paths: list[str]) -> str:
+    chunks = [fetch_http_poll_text(url) for url in git_raw_urls(repo_url, branch, paths)]
+    return "\n\n---\n\n".join(chunks)
 
 
 def record_ingest_source_event(
@@ -217,3 +246,92 @@ def execute_http_poll_sync(
         },
     )
     return result
+
+
+def execute_git_sync(
+    app: FastAPI,
+    knowledge: KnowledgeStore,
+    kb_id: str,
+    source_id: str,
+    *,
+    auto_process: bool,
+) -> dict[str, Any]:
+    source = knowledge.get_ingest_source(kb_id, source_id)
+    if source["kind"] != "git" or not source["enabled"]:
+        raise AdminError(403, "forbidden", "来源未启用")
+    config = source.get("config") or {}
+    repo_url = str(config.get("repo_url") or "").strip()
+    branch = str(config.get("branch") or "main")
+    paths = config.get("paths") or []
+    if not isinstance(paths, list):
+        paths = [str(paths)]
+    at = _now_iso()
+    try:
+        text = fetch_git_sync_text(repo_url, branch, [str(p) for p in paths])
+    except AdminError:
+        record_ingest_source_event(
+            knowledge,
+            kb_id,
+            source_id,
+            {"at": at, "status": "failed", "mode": "git", "repo_url": repo_url},
+        )
+        raise
+    except Exception as exc:
+        record_ingest_source_event(
+            knowledge,
+            kb_id,
+            source_id,
+            {
+                "at": at,
+                "status": "failed",
+                "mode": "git",
+                "repo_url": repo_url,
+                "error": str(exc)[:500],
+            },
+        )
+        raise
+
+    prefix = str(config.get("external_key_prefix") or "git").strip() or "git"
+    doc_id = _doc_id_from_external_key(f"{prefix}-{uuid.uuid4().hex[:10]}", repo_url)
+    title = str(config.get("title") or source["name"] or "Git sync")
+    result = enqueue_text_from_source(
+        app,
+        knowledge,
+        kb_id,
+        source_id,
+        title=title,
+        text=text,
+        doc_id=doc_id,
+        auto_process=auto_process,
+    )
+    record_ingest_source_event(
+        knowledge,
+        kb_id,
+        source_id,
+        {
+            "at": at,
+            "status": "succeeded",
+            "mode": "git",
+            "repo_url": repo_url,
+            "doc_id": result.get("doc_id"),
+            "job_id": result.get("job_id"),
+        },
+    )
+    return result
+
+
+def execute_ingest_source_sync(
+    app: FastAPI,
+    knowledge: KnowledgeStore,
+    kb_id: str,
+    source_id: str,
+    *,
+    auto_process: bool,
+) -> dict[str, Any]:
+    source = knowledge.get_ingest_source(kb_id, source_id)
+    kind = source["kind"]
+    if kind == "http_poll":
+        return execute_http_poll_sync(app, knowledge, kb_id, source_id, auto_process=auto_process)
+    if kind == "git":
+        return execute_git_sync(app, knowledge, kb_id, source_id, auto_process=auto_process)
+    raise AdminError(422, "not_syncable", "该来源类型不支持手动同步")

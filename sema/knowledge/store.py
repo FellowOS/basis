@@ -2514,19 +2514,22 @@ class KnowledgeStore:
         if row["kb_id"] != kb_id:
             raise AdminError(403, "forbidden", "记录不属于该知识库")
 
-    _INGEST_SOURCE_KINDS = frozenset({"webhook", "http_poll"})
+    _INGEST_SOURCE_KINDS = frozenset({"webhook", "http_poll", "git"})
 
-    def list_http_poll_sources_global(self) -> list[dict[str, Any]]:
+    def list_scheduled_ingest_sources_global(self) -> list[dict[str, Any]]:
         with self._lock:
             rows = self._conn.execute(
                 """
                 SELECT id, kb_id, kind, name, config_json, enabled, created_by, created_at, updated_at
                 FROM ingest_sources
-                WHERE deleted_at IS NULL AND enabled = 1 AND kind = 'http_poll'
+                WHERE deleted_at IS NULL AND enabled = 1 AND kind IN ('http_poll', 'git')
                 ORDER BY kb_id, created_at ASC
                 """,
             ).fetchall()
         return [self._ingest_source_row_to_dict(row) for row in rows]
+
+    def list_http_poll_sources_global(self) -> list[dict[str, Any]]:
+        return [s for s in self.list_scheduled_ingest_sources_global() if s["kind"] == "http_poll"]
 
     def list_ingest_sources(self, kb_id: str) -> list[dict[str, Any]]:
         with self._lock:
@@ -2563,6 +2566,13 @@ class KnowledgeStore:
             url = str(config_payload.get("url") or "").strip()
             if not url.startswith(("http://", "https://")):
                 raise AdminError(422, "bad_url", "http_poll 需要有效的 http(s) URL")
+        if kind == "git":
+            repo = str(config_payload.get("repo_url") or "").strip()
+            if not repo:
+                raise AdminError(422, "bad_repo", "git 需要 repo_url")
+            paths = config_payload.get("paths")
+            if not isinstance(paths, list) or not any(str(p).strip() for p in paths):
+                raise AdminError(422, "bad_paths", "git 需要至少一个 paths 文件路径")
         source_id = str(uuid.uuid4())
         now = _now()
         secret_ref: str | None = None

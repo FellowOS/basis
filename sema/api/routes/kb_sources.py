@@ -16,7 +16,7 @@ from sema.api.deps import get_current_user, get_knowledge_store, get_store, get_
 from sema.knowledge.graph_audit import audit_kb_graph
 from sema.knowledge.ingest_source_service import (
     enqueue_text_from_source,
-    execute_http_poll_sync,
+    execute_ingest_source_sync,
     record_ingest_source_event,
 )
 from sema.knowledge.store import KnowledgeStore
@@ -25,7 +25,7 @@ router = APIRouter(prefix="/api/kbs", tags=["knowledge-bases"])
 
 
 class CreateIngestSourceRequest(BaseModel):
-    kind: Literal["webhook", "http_poll"] = "webhook"
+    kind: Literal["webhook", "http_poll", "git"] = "webhook"
     name: str = Field(min_length=1, max_length=128)
     config: dict[str, Any] = Field(default_factory=dict)
     enabled: bool = True
@@ -226,7 +226,7 @@ async def sync_ingest_source(
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> dict[str, Any]:
     get_kb_for_editor(request, user, kb_id, store)
-    result = execute_http_poll_sync(
+    result = execute_ingest_source_sync(
         request.app,
         knowledge,
         kb_id,

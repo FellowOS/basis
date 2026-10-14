@@ -29,7 +29,10 @@ type IngestSource = {
   webhook_path?: string;
   config?: {
     url?: string;
-    sync_events?: { at: string; status: string; mode?: string; doc_id?: string }[];
+    repo_url?: string;
+    branch?: string;
+    paths?: string[];
+    sync_events?: { at: string; status: string; mode?: string; doc_id?: string; error?: string }[];
     last_sync_at?: string;
     last_sync_status?: string;
   };
@@ -41,7 +44,7 @@ type CreateResponse = {
   webhook_path?: string;
 };
 
-type SourceKind = 'webhook' | 'http_poll';
+type SourceKind = 'webhook' | 'http_poll' | 'git';
 
 export function KbIngestSourcesDialog({
   kbId,
@@ -60,6 +63,9 @@ export function KbIngestSourcesDialog({
   const [kind, setKind] = useState<SourceKind>('webhook');
   const [pollUrl, setPollUrl] = useState('');
   const [pollIntervalMinutes, setPollIntervalMinutes] = useState('');
+  const [gitRepoUrl, setGitRepoUrl] = useState('');
+  const [gitBranch, setGitBranch] = useState('main');
+  const [gitPaths, setGitPaths] = useState('');
   const [createdSecret, setCreatedSecret] = useState<CreateResponse | null>(null);
   const [rotatedSecret, setRotatedSecret] = useState<CreateResponse | null>(null);
 
@@ -90,6 +96,16 @@ export function KbIngestSourcesDialog({
       toast.error(zh ? '请输入有效的 URL' : 'Enter a valid URL');
       return;
     }
+    if (kind === 'git') {
+      if (!gitRepoUrl.trim().includes('github.com')) {
+        toast.error(zh ? '请输入 GitHub 仓库 HTTPS URL' : 'Enter a GitHub HTTPS repo URL');
+        return;
+      }
+      if (!gitPaths.trim()) {
+        toast.error(zh ? '请输入至少一个文件路径' : 'Enter at least one file path');
+        return;
+      }
+    }
     setLoading(true);
     try {
       const data = await api<CreateResponse>(`/api/kbs/${kbId}/sources`, {
@@ -105,17 +121,40 @@ export function KbIngestSourcesDialog({
                     ? { poll_interval_minutes: Number(pollIntervalMinutes) }
                     : {}),
                 }
-              : {},
+              : kind === 'git'
+                ? {
+                    repo_url: gitRepoUrl.trim(),
+                    branch: gitBranch.trim() || 'main',
+                    paths: gitPaths
+                      .split(/[\n,]+/)
+                      .map((p) => p.trim())
+                      .filter(Boolean),
+                    ...(pollIntervalMinutes.trim()
+                      ? { poll_interval_minutes: Number(pollIntervalMinutes) }
+                      : {}),
+                  }
+                : {},
         }),
       });
       if (data.ingest_token) {
         setCreatedSecret(data);
       } else {
-        toast.success(zh ? '已创建 URL 拉取来源' : 'HTTP poll source created');
+        toast.success(
+          kind === 'git'
+            ? zh
+              ? '已创建 Git 来源'
+              : 'Git source created'
+            : zh
+              ? '已创建 URL 拉取来源'
+              : 'HTTP poll source created',
+        );
       }
       setName('');
       setPollUrl('');
       setPollIntervalMinutes('');
+      setGitRepoUrl('');
+      setGitBranch('main');
+      setGitPaths('');
       await load();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : zh ? '创建失败' : 'Create failed');
@@ -184,8 +223,8 @@ export function KbIngestSourcesDialog({
           <DialogTitle>{zh ? '摄入来源（连接器）' : 'Ingest sources'}</DialogTitle>
           <DialogDescription>
             {zh
-              ? 'Webhook 推送或 HTTP 拉取文本，进入资料与处理流水线。'
-              : 'Webhook push or HTTP URL pull into documents and processing.'}
+              ? 'Webhook、HTTP 或 GitHub 文件拉取，进入资料与处理流水线。'
+              : 'Webhook, HTTP URL, or GitHub file pull into documents and processing.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -213,6 +252,7 @@ export function KbIngestSourcesDialog({
               <SelectContent>
                 <SelectItem value="webhook">Webhook</SelectItem>
                 <SelectItem value="http_poll">{zh ? 'HTTP 拉取' : 'HTTP poll'}</SelectItem>
+                <SelectItem value="git">{zh ? 'Git（GitHub）' : 'Git (GitHub)'}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -226,35 +266,66 @@ export function KbIngestSourcesDialog({
             />
           </div>
           {kind === 'http_poll' ? (
+            <div className="space-y-2">
+              <Label htmlFor="poll-url">URL</Label>
+              <Input
+                id="poll-url"
+                value={pollUrl}
+                onChange={(e) => setPollUrl(e.target.value)}
+                placeholder="https://…"
+              />
+            </div>
+          ) : null}
+          {kind === 'git' ? (
             <>
               <div className="space-y-2">
-                <Label htmlFor="poll-url">URL</Label>
+                <Label htmlFor="git-repo">{zh ? '仓库 URL' : 'Repository URL'}</Label>
                 <Input
-                  id="poll-url"
-                  value={pollUrl}
-                  onChange={(e) => setPollUrl(e.target.value)}
-                  placeholder="https://…"
+                  id="git-repo"
+                  value={gitRepoUrl}
+                  onChange={(e) => setGitRepoUrl(e.target.value)}
+                  placeholder="https://github.com/org/repo"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="poll-interval">
-                  {zh ? '自动拉取间隔（分钟，0=仅手动）' : 'Auto poll interval (minutes, 0=manual)'}
-                </Label>
+                <Label htmlFor="git-branch">{zh ? '分支' : 'Branch'}</Label>
                 <Input
-                  id="poll-interval"
-                  type="number"
-                  min={0}
-                  value={pollIntervalMinutes}
-                  onChange={(e) => setPollIntervalMinutes(e.target.value)}
-                  placeholder="0"
+                  id="git-branch"
+                  value={gitBranch}
+                  onChange={(e) => setGitBranch(e.target.value)}
+                  placeholder="main"
                 />
-                <p className="text-[10px] text-muted-foreground">
-                  {zh
-                    ? '服务端需设置 SEMA_HTTP_POLL_TICK_SECONDS>0 才会定时执行。'
-                    : 'Set SEMA_HTTP_POLL_TICK_SECONDS>0 on the server to enable scheduling.'}
-                </p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="git-paths">{zh ? '文件路径（逗号或换行）' : 'File paths (comma or newline)'}</Label>
+                <Input
+                  id="git-paths"
+                  value={gitPaths}
+                  onChange={(e) => setGitPaths(e.target.value)}
+                  placeholder="README.md, docs/guide.md"
+                />
               </div>
             </>
+          ) : null}
+          {kind === 'http_poll' || kind === 'git' ? (
+            <div className="space-y-2">
+              <Label htmlFor="poll-interval">
+                {zh ? '自动拉取间隔（分钟，0=仅手动）' : 'Auto poll interval (minutes, 0=manual)'}
+              </Label>
+              <Input
+                id="poll-interval"
+                type="number"
+                min={0}
+                value={pollIntervalMinutes}
+                onChange={(e) => setPollIntervalMinutes(e.target.value)}
+                placeholder="0"
+              />
+              <p className="text-[10px] text-muted-foreground">
+                {zh
+                  ? '服务端需设置 SEMA_HTTP_POLL_TICK_SECONDS>0 才会定时执行。'
+                  : 'Set SEMA_HTTP_POLL_TICK_SECONDS>0 on the server to enable scheduling.'}
+              </p>
+            </div>
           ) : null}
           <Button type="button" onClick={() => void createSource()} disabled={loading || !name.trim()}>
             {loading ? <Spinner className="size-4" /> : zh ? '创建' : 'Create'}
@@ -289,9 +360,17 @@ export function KbIngestSourcesDialog({
                       {s.kind === 'http_poll' && s.config?.url ? (
                         <p className="mt-1 break-all text-[10px] text-muted-foreground">{s.config.url}</p>
                       ) : null}
+                      {s.kind === 'git' && s.config?.repo_url ? (
+                        <p className="mt-1 break-all text-[10px] text-muted-foreground">
+                          {s.config.repo_url}
+                          {s.config.branch ? `@${s.config.branch}` : ''}
+                          {s.config.paths?.length ? ` · ${s.config.paths.join(', ')}` : ''}
+                        </p>
+                      ) : null}
                       {last ? (
                         <p className="mt-1 text-[10px] text-muted-foreground">
                           {zh ? '最近同步' : 'Last sync'}: {last.status} · {last.at}
+                          {last.error ? ` · ${last.error}` : ''}
                         </p>
                       ) : null}
                     </div>

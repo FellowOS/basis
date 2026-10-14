@@ -393,7 +393,7 @@ semantica SDK（parse, kg, ontology, reasoning, embeddings, …）
 | F-KB-01–03,05 | KB、成员 | **已有** |
 | F-KB-04,06 | KB 扩展设置、导出 | **部分**（设置/图投影；全量导出 **未**） |
 | F-SRC-01–02, F-EXT-01 | 上传、抽取 | **已有**（资料 + 处理任务） |
-| F-SRC-03–08, F-EXT-02 | 文档详情、连接器、job | **部分**（处理 job、webhook/http_poll 连接器；Git/定时同步 **未**） |
+| F-SRC-03–08, F-EXT-02 | 文档详情、连接器、job | **部分**（处理 job、webhook/http_poll/**git**（GitHub raw）连接器与定时 tick；完整 git clone **未**） |
 | F-SRCH-* | 检索 | **部分**（混合检索、重建；高级时间过滤待补） |
 | F-GRAPH-01–05 | 图读/WS | **已有**（Explorer 适配 + 图页） |
 | F-GRAPH-06–08, F-UI-* | 图写/Overview/Timeline UI | **部分**（读为主；合并走审核；Timeline 在 Explorer） |
