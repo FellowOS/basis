@@ -156,7 +156,7 @@ def enqueue_text_from_source(
             "status": "uploaded",
         }
     options = TextIngestOptions(**_DEFAULT_PROCESSING_OPTIONS)
-    job = knowledge.create_processing_job(
+    job, _ = knowledge.create_processing_job(
         kb_id,
         version_id=outcome.version_id,
         options=_DEFAULT_PROCESSING_OPTIONS,

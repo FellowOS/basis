@@ -126,6 +126,7 @@ export class ExplorerClient {
       relation_method?: string;
       extract_relations?: boolean;
       extract_triplets?: boolean;
+      idempotency_key?: string;
     }) =>
       this.request<{ job_id?: string; accepted?: boolean; ledger_status?: string }>(
         'processing/jobs',

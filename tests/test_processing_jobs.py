@@ -83,7 +83,7 @@ def test_active_job_conflict_and_retry_attempt(tmp_path: Path) -> None:
         "extract_relations": True,
         "extract_triplets": False,
     }
-    first = app.state.knowledge_store.create_processing_job(
+    first, _ = app.state.knowledge_store.create_processing_job(
         kb_id,
         version_id=source["version_id"],
         options=options,
@@ -107,3 +107,40 @@ def test_active_job_conflict_and_retry_attempt(tmp_path: Path) -> None:
     jobs = client.get(f"/api/kbs/{kb_id}/processing/jobs", headers=headers).json()["jobs"]
     assert jobs[0]["attempt"] == 2
     assert jobs[0]["status"] == "succeeded"
+
+
+def test_processing_job_idempotency_key_replay(tmp_path: Path) -> None:
+    app = create_app(Settings(data_dir=tmp_path))
+    client = TestClient(app)
+    admin = client.post(
+        "/api/auth/register",
+        json={"email": "idem@example.com", "password": "password1", "display_name": "Idem"},
+    ).json()
+    headers = _auth(admin["token"])
+    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    source = client.post(
+        f"/api/kbs/{kb_id}/documents",
+        headers=headers,
+        json={"doc_id": "idem-doc", "text": "repeat me"},
+    ).json()
+
+    payload = {
+        "version_id": source["version_id"],
+        "wait": True,
+        "chunk": False,
+        "extract": False,
+        "ner_method": "pattern",
+        "relation_method": "pattern",
+        "idempotency_key": "process-once",
+    }
+    first = client.post(f"/api/kbs/{kb_id}/processing/jobs", headers=headers, json=payload)
+    assert first.status_code == 200
+    first_job_id = first.json()["job_id"]
+
+    second = client.post(f"/api/kbs/{kb_id}/processing/jobs", headers=headers, json=payload)
+    assert second.status_code == 200
+    assert second.json()["idempotent_replay"] is True
+    assert second.json()["job_id"] == first_job_id
+
+    jobs = client.get(f"/api/kbs/{kb_id}/processing/jobs", headers=headers).json()["jobs"]
+    assert len(jobs) == 1

@@ -108,7 +108,7 @@ class KnowledgeStore:
             original_filename=original_filename,
             external_key=external_key,
         )
-        job = self.create_processing_job(kb_id, version_id=outcome.version_id, options={})
+        job, _ = self.create_processing_job(kb_id, version_id=outcome.version_id, options={})
         return outcome.document_id, outcome.version_id, job["id"], outcome.blob
 
     def store_document_bytes(
@@ -321,14 +321,99 @@ class KnowledgeStore:
             (version_id, kb_id),
         )
 
+    def _processing_job_dict(
+        self,
+        *,
+        job_id: str,
+        kb_id: str,
+        version_id: str,
+        attempt: int,
+        now: str,
+        options: dict[str, Any],
+    ) -> dict[str, Any]:
+        return {
+            "id": job_id,
+            "kb_id": kb_id,
+            "kind": "ingest",
+            "subject_type": "document_version",
+            "subject_id": version_id,
+            "status": "queued",
+            "attempt": attempt,
+            "progress": 0,
+            "options": dict(options),
+            "result": None,
+            "created_at": now,
+            "started_at": None,
+            "finished_at": None,
+            "error_code": None,
+            "error_detail": None,
+        }
+
+    @staticmethod
+    def _processing_job_from_db_row(row: sqlite3.Row) -> dict[str, Any]:
+        return {
+            "id": row["id"],
+            "kb_id": row["kb_id"],
+            "kind": row["kind"],
+            "subject_type": row["subject_type"],
+            "subject_id": row["subject_id"],
+            "status": row["status"],
+            "attempt": int(row["attempt"] or 1),
+            "progress": row["progress"],
+            "options": json.loads(row["options_json"]) if row["options_json"] else {},
+            "result": json.loads(row["result_json"]) if row["result_json"] else None,
+            "created_at": row["created_at"],
+            "started_at": row["started_at"],
+            "finished_at": row["finished_at"],
+            "error_code": row["error_code"],
+            "error_detail": (
+                json.loads(row["error_detail_json"]) if row["error_detail_json"] else None
+            ),
+        }
+
+    def find_processing_job_by_idempotency_key(
+        self,
+        kb_id: str,
+        idempotency_key: str,
+    ) -> dict[str, Any] | None:
+        key = idempotency_key.strip()
+        if not key:
+            return None
+        with self._lock:
+            row = self._conn.execute(
+                """
+                SELECT id, kb_id, kind, subject_type, subject_id, status, attempt,
+                       progress, error_code, error_detail_json, options_json, result_json,
+                       created_at, started_at, finished_at
+                FROM jobs
+                WHERE kb_id = ? AND kind = 'ingest' AND idempotency_key = ?
+                LIMIT 1
+                """,
+                (kb_id, key),
+            ).fetchone()
+        if row is None:
+            return None
+        return self._processing_job_from_db_row(row)
+
     def create_processing_job(
         self,
         kb_id: str,
         *,
         version_id: str,
         options: dict[str, Any],
-    ) -> dict[str, Any]:
-        """Create one immutable processing attempt for a document version."""
+        idempotency_key: str | None = None,
+    ) -> tuple[dict[str, Any], bool]:
+        """Create one immutable processing attempt for a document version.
+
+        Returns ``(job, created)``. When ``idempotency_key`` matches an existing
+        ingest job in this KB, returns that job with ``created=False``.
+        """
+        normalized_key = (idempotency_key or "").strip() or None
+        if normalized_key:
+            existing = self.find_processing_job_by_idempotency_key(kb_id, normalized_key)
+            if existing is not None:
+                return existing, False
+
         job_id = str(uuid.uuid4())
         now = _now()
         with self._lock:
@@ -354,24 +439,42 @@ class KnowledgeStore:
                 (kb_id, version_id),
             ).fetchone()
             attempt = int(attempt_row["value"] or 0) + 1
-            self._conn.execute(
-                """
-                INSERT INTO jobs(
-                    id, kb_id, kind, subject_type, subject_id, status, attempt,
-                    progress, error_code, error_detail_json, idempotency_key,
-                    created_at, started_at, finished_at, options_json, result_json
-                ) VALUES (?, ?, 'ingest', 'document_version', ?, 'queued', ?,
-                    0, NULL, NULL, NULL, ?, NULL, NULL, ?, NULL)
-                """,
-                (
-                    job_id,
-                    kb_id,
-                    version_id,
-                    attempt,
-                    now,
-                    json.dumps(options, ensure_ascii=False, sort_keys=True),
-                ),
-            )
+            try:
+                self._conn.execute(
+                    """
+                    INSERT INTO jobs(
+                        id, kb_id, kind, subject_type, subject_id, status, attempt,
+                        progress, error_code, error_detail_json, idempotency_key,
+                        created_at, started_at, finished_at, options_json, result_json
+                    ) VALUES (?, ?, 'ingest', 'document_version', ?, 'queued', ?,
+                        0, NULL, NULL, ?, ?, NULL, NULL, ?, NULL)
+                    """,
+                    (
+                        job_id,
+                        kb_id,
+                        version_id,
+                        attempt,
+                        normalized_key,
+                        now,
+                        json.dumps(options, ensure_ascii=False, sort_keys=True),
+                    ),
+                )
+            except sqlite3.IntegrityError:
+                if normalized_key:
+                    row = self._conn.execute(
+                        """
+                        SELECT id, kb_id, kind, subject_type, subject_id, status, attempt,
+                               progress, error_code, error_detail_json, options_json, result_json,
+                               created_at, started_at, finished_at
+                        FROM jobs
+                        WHERE kb_id = ? AND kind = 'ingest' AND idempotency_key = ?
+                        LIMIT 1
+                        """,
+                        (kb_id, normalized_key),
+                    ).fetchone()
+                    if row is not None:
+                        return self._processing_job_from_db_row(row), False
+                raise
             self._conn.execute(
                 """
                 UPDATE document_versions
@@ -381,23 +484,17 @@ class KnowledgeStore:
                 (version_id, kb_id),
             )
             self._conn.commit()
-        return {
-            "id": job_id,
-            "kb_id": kb_id,
-            "kind": "ingest",
-            "subject_type": "document_version",
-            "subject_id": version_id,
-            "status": "queued",
-            "attempt": attempt,
-            "progress": 0,
-            "options": dict(options),
-            "result": None,
-            "created_at": now,
-            "started_at": None,
-            "finished_at": None,
-            "error_code": None,
-            "error_detail": None,
-        }
+        return (
+            self._processing_job_dict(
+                job_id=job_id,
+                kb_id=kb_id,
+                version_id=version_id,
+                attempt=attempt,
+                now=now,
+                options=options,
+            ),
+            True,
+        )
 
     def get_version(self, kb_id: str, version_id: str) -> DocumentVersionRow:
         with self._lock:

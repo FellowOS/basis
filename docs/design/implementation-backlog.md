@@ -152,7 +152,7 @@ Acceptance:
 - retry with the same idempotency key does not duplicate statements;
 - no graph mutation occurs before the canonical transaction commits.
 
-**Status:** partial — `ledger_extract` + per-chunk writes on upload ingest; graph still updated after ledger in-process (full txn ordering deferred); job idempotency key not wired.
+**Status:** partial — `ledger_extract` + per-chunk writes on upload ingest; graph still updated after ledger in-process (full txn ordering deferred); processing `POST .../processing/jobs` accepts optional `idempotency_key` (replay without duplicate enqueue).
 
 ### M2-03 — Separate source upload from processing
 

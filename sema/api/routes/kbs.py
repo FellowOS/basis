@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any, Literal
 
 from fastapi import APIRouter, Depends, File, Form, Request, UploadFile
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 from sema.admin.errors import AdminError
@@ -40,7 +41,7 @@ from sema.graph.export import graph_snapshot
 from sema.graph.projector import apply_rebuild_to_session
 from sema.knowledge.graph_audit import audit_kb_graph
 from sema.ontology.service import OntologyService
-from sema.api.routes.ingest_helpers import respond_ingest
+from sema.api.routes.ingest_helpers import ingest_accept_payload, respond_ingest
 from sema.capabilities import kb_capabilities
 from sema.realtime.access import revoke_kb_member_realtime
 from sema.pipeline import TextIngestOptions
@@ -115,6 +116,7 @@ class StartProcessingRequest(BaseModel):
     relation_method: str = Field(default="pattern", min_length=1, max_length=40)
     extract_relations: bool = True
     extract_triplets: bool = False
+    idempotency_key: str | None = Field(default=None, max_length=128)
 
 
 class RetryProcessingRequest(BaseModel):
@@ -774,6 +776,83 @@ def _document_store_payload(
     }
 
 
+async def _await_terminal_processing_job(
+    knowledge: KnowledgeStore,
+    kb_id: str,
+    job_id: str,
+    *,
+    timeout_sec: float = 600,
+) -> Any:
+    deadline = asyncio.get_running_loop().time() + timeout_sec
+    while asyncio.get_running_loop().time() < deadline:
+        job = knowledge.get_job(kb_id, job_id)
+        if job.status in {"succeeded", "failed", "cancelled"}:
+            return job
+        await asyncio.sleep(0.25)
+    raise AdminError(504, "job_timeout", "处理任务等待超时")
+
+
+async def _respond_idempotent_processing_job(
+    knowledge: KnowledgeStore,
+    kb_id: str,
+    job: dict[str, Any],
+    body: StartProcessingRequest,
+    context: dict[str, Any],
+) -> Any:
+    if job["subject_id"] != body.version_id:
+        raise AdminError(409, "idempotency_key_mismatch", "幂等键已用于其他文档版本")
+    if job["status"] == "failed":
+        raise AdminError(
+            409,
+            "idempotency_replay_failed",
+            "幂等键对应任务已失败，请使用新幂等键重试",
+        )
+    if job["status"] == "cancelled":
+        raise AdminError(409, "idempotency_replay_cancelled", "幂等键对应任务已取消")
+
+    replay_meta = {"idempotent_replay": True, "job_id": job["id"]}
+
+    if body.wait:
+        terminal = (
+            knowledge.get_job(kb_id, job["id"])
+            if job["status"] in {"succeeded", "failed", "cancelled"}
+            else await _await_terminal_processing_job(knowledge, kb_id, job["id"])
+        )
+        if terminal.status == "failed":
+            raise AdminError(
+                409,
+                "idempotency_replay_failed",
+                "幂等键对应任务已失败，请使用新幂等键重试",
+            )
+        if terminal.status == "cancelled":
+            raise AdminError(409, "idempotency_replay_cancelled", "幂等键对应任务已取消")
+        if terminal.result:
+            return {
+                **terminal.result,
+                **replay_meta,
+                "filename": context["filename"],
+                "doc_id": context["doc_id"],
+                "document_id": context["document_id"],
+                "version_id": body.version_id,
+            }
+        return {**replay_meta, "status": terminal.status}
+
+    if job["status"] == "succeeded" and job.get("result"):
+        return {**job["result"], **replay_meta, "version_id": body.version_id}
+
+    payload = ingest_accept_payload(
+        job_id=job["id"],
+        version_id=body.version_id,
+        ledger_document_id=context["document_id"],
+        doc_id=context["doc_id"],
+        filename=context["filename"],
+    )
+    payload.update(replay_meta)
+    payload["status"] = job["status"]
+    status_code = 202 if job["status"] in {"queued", "running"} else 200
+    return JSONResponse(status_code=status_code, content=payload)
+
+
 def _processing_options(body: StartProcessingRequest) -> tuple[TextIngestOptions, dict[str, Any]]:
     if body.chunk and body.chunk_overlap >= body.chunk_size:
         raise AdminError(422, "bad_chunk_options", "切分重叠必须小于块大小")
@@ -824,11 +903,20 @@ async def start_processing_job(
     get_kb_for_editor(request, user, kb_id, store)
     context = knowledge.get_processing_context(kb_id, body.version_id)
     options, options_payload = _processing_options(body)
-    job = knowledge.create_processing_job(
+    job, created = knowledge.create_processing_job(
         kb_id,
         version_id=body.version_id,
         options=options_payload,
+        idempotency_key=body.idempotency_key,
     )
+    if not created:
+        return await _respond_idempotent_processing_job(
+            knowledge,
+            kb_id,
+            job,
+            body,
+            context,
+        )
     session = graph_for(request, kb_id) if body.wait else None
 
     def _run() -> Any:
