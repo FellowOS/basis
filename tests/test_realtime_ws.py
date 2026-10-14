@@ -38,6 +38,29 @@ def test_realtime_ticket_and_websocket_connect(tmp_path) -> None:
             reuse.receive_json()
 
 
+def test_rebuild_emits_projection_updated_on_websocket(tmp_path) -> None:
+    client = TestClient(create_app(Settings(data_dir=tmp_path, ingest_inline=True)))
+    admin = client.post(
+        "/api/auth/register",
+        json={"email": "wsb@example.com", "password": "password1", "display_name": "U"},
+    ).json()
+    headers = _auth(admin["token"])
+    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    ticket = client.post(f"/api/kbs/{kb_id}/realtime-ticket", headers=headers).json()["ticket"]
+
+    with client.websocket_connect(f"/api/kbs/{kb_id}/ws/graph-updates?ticket={ticket}") as ws:
+        assert ws.receive_json()["type"] == "connected"
+        client.post(
+            f"/api/kbs/{kb_id}/documents",
+            headers=headers,
+            json={"doc_id": "ws-doc", "text": "x", "extract": False},
+        )
+        assert client.post(f"/api/kbs/{kb_id}/graph/rebuild", headers=headers).status_code == 200
+        event = ws.receive_json()
+        assert event["type"] == "projection_updated"
+        assert event["kb_id"] == kb_id
+
+
 def test_wrong_kb_ticket_rejected(tmp_path) -> None:
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
     admin = client.post(

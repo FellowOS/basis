@@ -14,8 +14,14 @@ if [[ ! -d "$DATA_DIR" ]]; then
   exit 1
 fi
 
+if [[ -f "$DATA_DIR/sema.db" ]] && command -v sqlite3 >/dev/null 2>&1; then
+  sqlite3 "$DATA_DIR/sema.db" "PRAGMA wal_checkpoint(TRUNCATE);"
+fi
+
 FILES=()
 [[ -f "$DATA_DIR/sema.db" ]] && FILES+=("sema.db")
+[[ -f "$DATA_DIR/sema.db-wal" ]] && FILES+=("sema.db-wal")
+[[ -f "$DATA_DIR/sema.db-shm" ]] && FILES+=("sema.db-shm")
 [[ -d "$DATA_DIR/blobs" ]] && FILES+=("blobs")
 [[ -d "$DATA_DIR/graphs" ]] && FILES+=("graphs")
 

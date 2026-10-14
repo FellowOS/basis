@@ -1,5 +1,10 @@
 """Vertical-slice release gate checks (implementation-backlog §9)."""
 
+from __future__ import annotations
+
+import sqlite3
+import tarfile
+
 import pytest
 
 pytest.importorskip("semantica")
@@ -107,3 +112,55 @@ def test_rebuild_is_idempotent_for_empty_ledger_change(tmp_path) -> None:
 
     snap = client.get(f"/api/kbs/{kb_id}/graph/snapshot", headers=headers).json()
     assert "rb-doc" in {n["id"] for n in snap["nodes"]}
+
+
+def _checkpoint_sqlite(data_dir) -> None:
+    db = data_dir / "sema.db"
+    if not db.is_file():
+        return
+    conn = sqlite3.connect(db)
+    conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+    conn.close()
+
+
+def _tar_data_dir(data_dir, archive) -> None:
+    _checkpoint_sqlite(data_dir)
+    with tarfile.open(archive, "w:gz") as tar:
+        for path in sorted(data_dir.iterdir()):
+            if path.name == "sema.db" or path.name.startswith("sema.db-") or path.name in {
+                "blobs",
+                "graphs",
+            }:
+                tar.add(path, arcname=path.name)
+
+
+def test_backup_tar_roundtrip_preserves_ledger(tmp_path) -> None:
+    """§9.8 — tar backup/restore of data_dir keeps ledger readable in a new process."""
+    data_dir = tmp_path / "live"
+    data_dir.mkdir()
+    settings = _settings(data_dir)
+    client = TestClient(create_app(settings))
+    headers = _register(client, "backup@example.com")
+    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    client.post(
+        f"/api/kbs/{kb_id}/documents",
+        headers=headers,
+        json={"doc_id": "backup-doc", "text": "keep", "extract": False},
+    )
+    client.close()
+
+    archive = tmp_path / "sema-backup.tar.gz"
+    _tar_data_dir(data_dir, archive)
+
+    restore_dir = tmp_path / "restored"
+    restore_dir.mkdir()
+    with tarfile.open(archive, "r:gz") as tar:
+        tar.extractall(restore_dir, filter="data")
+
+    client2 = TestClient(create_app(_settings(restore_dir)))
+    headers2 = _register(client2, "backup2@example.com")
+    kb_id2 = client2.get("/api/kbs", headers=headers2).json()["kbs"][0]["id"]
+    assert kb_id2 == kb_id
+
+    docs = client2.get(f"/api/kbs/{kb_id}/documents", headers=headers2).json()["documents"]
+    assert any(d.get("doc_id") == "backup-doc" for d in docs)
