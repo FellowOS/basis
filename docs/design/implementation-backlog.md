@@ -323,7 +323,7 @@ Acceptance:
 - mutation in KB A never reaches KB B;
 - revision gap event causes documented refetch behavior.
 
-**Status:** partial — ticketed `WS .../ws/graph-updates`; `projection_updated` on save/ingest/rebuild; revoke on member removal and user deactivation; tests in `test_ws_hub.py` / `test_realtime_ws.py`. Ops: `docs/ops/realtime-websocket.md` (single-process hub; multi-replica pub/sub not done).
+**Status:** partial (single-process) — ticketed `WS .../ws/graph-updates`; `projection_updated` on save/ingest/rebuild; revoke on member removal and user deactivation; tests in `test_ws_hub.py` / `test_realtime_ws.py`. Ops: `docs/ops/realtime-websocket.md`. **Deferred:** Redis / cross-instance WS pub/sub (use one API worker or LB sticky sessions instead).
 
 ## 6. Milestone M5 — Graph workspace in Sema Web
 

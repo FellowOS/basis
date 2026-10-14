@@ -19,14 +19,21 @@ Explorer in Sema Web uses `openGraphUpdatesSocket` from `ExplorerHostProvider` (
 - Broadcasts reach only sockets connected to **that** API process.
 - Suitable for `uv run sema`, Docker single replica, or dev.
 
-## Multi-replica gap
+## Multi-replica (out of scope for now)
 
-Running **multiple API workers** (e.g. several Uvicorn workers or horizontal pods) without sticky sessions means:
+Running **multiple API workers** without sticky sessions (e.g. round-robin across Uvicorn workers or pods) is **not supported** for realtime graph updates:
 
 - Tickets issued on worker A are invalid on worker B.
-- `projection_updated` emitted on worker A does not reach clients on worker B.
+- `projection_updated` on worker A does not reach WebSockets on worker B.
 
-**Not implemented yet:** shared ticket store (Redis) + cross-instance pub/sub for WS fan-out. Until then, use **one** API process per deployment or terminate TLS at a sticky load balancer and accept per-node fan-out.
+**Product decision:** we are **not** building Redis (or other) cross-instance ticket store / WS pub/sub in the near term.
+
+**Supported patterns:**
+
+- **One API process** per environment (`uv run sema`, single container replica, `workers=1`).
+- **Sticky sessions** at the load balancer so HTTP + WS stay on the same instance (each instance still has its own in-memory hub; scale only helps HTTP, not shared WS fan-out across nodes).
+
+If realtime breaks after enabling multiple workers, reduce to a single process or enable stickiness—do not expect a shared Redis layer.
 
 ## Verification
 
