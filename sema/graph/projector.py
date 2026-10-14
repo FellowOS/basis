@@ -66,6 +66,7 @@ def rebuild_graph_from_ledger(
     kb_id: str,
     *,
     preserve_from: GraphSession | None = None,
+    include_version_ids: tuple[str, ...] | None = None,
 ) -> GraphSession:
     """Full rebuild of KB graph content from ledger rows (ontology nodes may be preserved)."""
     knowledge.ensure_projection_state(kb_id)
@@ -76,7 +77,9 @@ def rebuild_graph_from_ledger(
         if preserve_from is not None:
             _copy_preserved_nodes(preserve_from, session)
 
-        for doc in knowledge.list_ready_documents_for_projection(kb_id):
+        for doc in knowledge.list_ready_documents_for_projection(
+            kb_id, include_version_ids=include_version_ids
+        ):
             graph_doc_id = doc["graph_doc_id"]
             text = doc["text"]
             session.add_node(
@@ -207,9 +210,16 @@ def apply_rebuild_to_session(
     knowledge: KnowledgeStore,
     kb_id: str,
     session: GraphSession,
+    *,
+    include_version_ids: tuple[str, ...] | None = None,
 ) -> dict[str, Any]:
     """Replace session graph from ledger; returns build metadata."""
-    rebuilt = rebuild_graph_from_ledger(knowledge, kb_id, preserve_from=session)
+    rebuilt = rebuild_graph_from_ledger(
+        knowledge,
+        kb_id,
+        preserve_from=session,
+        include_version_ids=include_version_ids,
+    )
     session.graph = rebuilt.graph
     state = knowledge.get_projection_state(kb_id)
     return {

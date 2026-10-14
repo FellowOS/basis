@@ -123,8 +123,10 @@ def run_version_ingest(
                 for key in ledger_stats:
                     ledger_stats[key] += part_stats.get(key, 0)
 
+        projection_meta = apply_rebuild_to_session(
+            knowledge, kb_id, graph, include_version_ids=(version_id,)
+        )
         knowledge.set_version_status(kb_id, version_id, "ready")
-        projection_meta = apply_rebuild_to_session(knowledge, kb_id, graph)
 
         graph_result: dict[str, Any] = {
             **projection_meta,
@@ -155,4 +157,7 @@ def run_version_ingest(
         message = str(exc) or "ingest_failed"
         knowledge.fail_version(kb_id, version_id, "ingest_failed", message)
         knowledge.fail_job(kb_id, job_id, "ingest_failed", message)
+        projection = knowledge.get_projection_state(kb_id)
+        if projection["status"] != "failed":
+            knowledge.set_projection_status(kb_id, "dirty", error_code="ingest_incomplete")
         raise

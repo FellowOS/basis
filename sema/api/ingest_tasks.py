@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+import logging
 import threading
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 from fastapi import FastAPI
 
@@ -61,6 +64,14 @@ def run_version_ingest_for_app(
                 chunk_search=chunk_search,
             )
         except FileParseError:
+            return None
+        except Exception:
+            logger.exception(
+                "version ingest failed kb_id=%s version_id=%s job_id=%s",
+                kb_id,
+                version_id,
+                job_id,
+            )
             return None
         ledger = knowledge.get_projection_state(kb_id)
         persistence.save(

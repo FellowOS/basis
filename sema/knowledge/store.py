@@ -1251,17 +1251,30 @@ class KnowledgeStore:
             self._conn.commit()
         return int(row["revision"])
 
-    def list_ready_documents_for_projection(self, kb_id: str) -> list[dict[str, Any]]:
+    def list_ready_documents_for_projection(
+        self,
+        kb_id: str,
+        *,
+        include_version_ids: tuple[str, ...] | None = None,
+    ) -> list[dict[str, Any]]:
         with self._lock:
+            extra = tuple(v for v in (include_version_ids or ()) if v)
+            if extra:
+                placeholders = ", ".join("?" for _ in extra)
+                status_clause = f"(dv.status = 'ready' OR dv.id IN ({placeholders}))"
+                params: tuple[Any, ...] = (kb_id, *extra)
+            else:
+                status_clause = "dv.status = 'ready'"
+                params = (kb_id,)
             rows = self._conn.execute(
-                """
+                f"""
                 SELECT d.id AS document_id, d.external_key, dv.id AS version_id
                 FROM documents d
                 INNER JOIN document_versions dv ON dv.id = d.current_version_id
-                WHERE d.kb_id = ? AND d.deleted_at IS NULL AND dv.status = 'ready'
+                WHERE d.kb_id = ? AND d.deleted_at IS NULL AND {status_clause}
                 ORDER BY d.created_at ASC
                 """,
-                (kb_id,),
+                params,
             ).fetchall()
             items: list[dict[str, Any]] = []
             for row in rows:

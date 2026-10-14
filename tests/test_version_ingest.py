@@ -1,6 +1,7 @@
 from io import BytesIO
 from pathlib import Path
 import time
+from unittest.mock import patch
 
 import pytest
 
@@ -56,6 +57,44 @@ def test_run_version_ingest_chunks_and_marks_ready(tmp_path: Path) -> None:
     assert knowledge.get_version(kb_id, version_id).status == "ready"
     assert knowledge.get_job(kb_id, job_id).status == "succeeded"
     assert graph.stats()["node_count"] >= 1
+    knowledge.close()
+
+
+def test_ingest_failure_before_rebuild_marks_projection_dirty(tmp_path: Path) -> None:
+    kb_id = _kb_id(tmp_path)
+    blobs = BlobStore(tmp_path)
+    knowledge = KnowledgeStore(tmp_path / "sema.db", blobs)
+    _, version_id, job_id, _ = knowledge.store_upload_bytes(
+        kb_id,
+        title="dirty.txt",
+        mime_type="text/plain",
+        data=b"Alice knows Bob.",
+        created_by=None,
+        external_key="dirty-doc",
+    )
+    graph = GraphSession()
+    knowledge.set_projection_status(kb_id, "clean")
+
+    with patch(
+        "sema.pipeline.version_ingest.apply_rebuild_to_session",
+        side_effect=RuntimeError("rebuild unavailable"),
+    ):
+        with pytest.raises(RuntimeError, match="rebuild unavailable"):
+            run_version_ingest(
+                knowledge,
+                graph,
+                kb_id,
+                version_id,
+                job_id,
+                filename="dirty.txt",
+                graph_doc_id="dirty-doc",
+                options=TextIngestOptions(extract=False, chunk=True),
+            )
+
+    assert knowledge.get_version(kb_id, version_id).status == "failed"
+    assert knowledge.get_job(kb_id, job_id).status == "failed"
+    assert knowledge.get_projection_state(kb_id)["status"] == "dirty"
+    assert knowledge.get_projection_state(kb_id)["last_error_code"] == "ingest_incomplete"
     knowledge.close()
 
 
