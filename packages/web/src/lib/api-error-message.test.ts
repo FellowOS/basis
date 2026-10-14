@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { formatUserFacingApiError } from './api-error-message.js';
+import { formatUserFacingApiError, messageForApiErrorCode } from './api-error-message.js';
 
 describe('formatUserFacingApiError', () => {
   it('maps known processing codes', () => {
@@ -11,5 +11,12 @@ describe('formatUserFacingApiError', () => {
 
   it('falls back to error message', () => {
     expect(formatUserFacingApiError(new Error('Custom'), 'zh')).toBe('Custom');
+  });
+
+  it('maps projection error codes by code only', () => {
+    expect(messageForApiErrorCode('build_failed', 'en')).toContain('projection');
+    const err = new Error('server raw');
+    (err as Error & { code?: string }).code = 'ingest_incomplete';
+    expect(formatUserFacingApiError(err, 'zh')).toContain('过期');
   });
 });

@@ -26,6 +26,7 @@ import {
   explorerFetch,
   openGraphUpdatesWebSocket,
 } from "../../host/explorerHttp";
+import { explorerApiErrorMessage } from "../../lib/explorer-api-error";
 import { batchMergeEdges, batchMergeNodes, graph } from "../../store/graphStore";
 import { logEvent } from "../../store/registryStore";
 import type { EdgeAttributes, NodeAttributes } from "../../store/graphStore";
@@ -1154,7 +1155,7 @@ export function GraphWorkspace({
   });
 
   const graphLoadErrorMessage = isGraphLoadError
-    ? (graphLoadError instanceof Error ? graphLoadError.message : "Unknown error while loading the graph.")
+    ? explorerApiErrorMessage(graphLoadError, "en")
     : null;
 
   const handleRetryGraphLoad = useCallback(() => {

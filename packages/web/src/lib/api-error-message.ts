@@ -95,12 +95,68 @@ const MESSAGES: Record<string, { zh: string; en: string }> = {
     zh: '审核项数据无效，无法继续。',
     en: 'Invalid review item payload.',
   },
+  build_failed: {
+    zh: '图谱投影构建失败，请在设置中重建或查看审计日志。',
+    en: 'Graph projection build failed. Rebuild from settings or check the audit log.',
+  },
+  ingest_incomplete: {
+    zh: '资料处理未完成，图谱投影可能已过期，请重试处理或重建投影。',
+    en: 'Ingest did not finish; the graph projection may be stale. Retry processing or rebuild the projection.',
+  },
+  ingest_failed: {
+    zh: '资料处理失败，请查看任务详情后重试。',
+    en: 'Document processing failed. Check the job details and try again.',
+  },
+  merge_requires_review: {
+    zh: '图节点合并需经审核队列批准后再应用。',
+    en: 'Graph node merges must go through the review queue before they are applied.',
+  },
+  import_requires_review: {
+    zh: '图导入需经审核队列批准后再应用。',
+    en: 'Graph import must go through the review queue before it is applied.',
+  },
+  mcp_busy: {
+    zh: 'MCP 请求过多，请稍后重试。',
+    en: 'Too many MCP requests. Try again in a moment.',
+  },
+  mcp_timeout: {
+    zh: 'MCP 工具执行超时。',
+    en: 'MCP tool execution timed out.',
+  },
+  no_current_version: {
+    zh: '该文档没有可用版本。',
+    en: 'This document has no current version.',
+  },
+  mapping_invalidated: {
+    zh: '该映射已失效。',
+    en: 'This mapping is no longer valid.',
+  },
+  mapping_exists: {
+    zh: '已存在相同签名的已确认映射。',
+    en: 'A confirmed mapping with this signature already exists.',
+  },
 };
 
 export type ApiErrorLike = {
   message?: string;
   code?: string;
 };
+
+export function messageForApiErrorCode(
+  code: string | null | undefined,
+  locale: 'zh' | 'en',
+): string | null {
+  if (!code?.trim()) {
+    return null;
+  }
+  const mapped = MESSAGES[code.trim()];
+  if (mapped) {
+    return mapped[locale];
+  }
+  return locale === 'zh'
+    ? `错误（${code}）`
+    : `Error (${code})`;
+}
 
 export function formatUserFacingApiError(
   err: unknown,
@@ -114,6 +170,9 @@ export function formatUserFacingApiError(
   const code = (err as Error & ApiErrorLike).code;
   if (code && MESSAGES[code]) {
     return MESSAGES[code][locale];
+  }
+  if (code?.trim()) {
+    return messageForApiErrorCode(code, locale) ?? fallback;
   }
   if (err.message.trim()) {
     return err.message;

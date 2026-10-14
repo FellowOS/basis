@@ -22,6 +22,7 @@ import {
   resolveNodeLayoutPosition,
 } from "./smallGraphLayout";
 import type { GraphLoadProgress, GraphLoadSummary } from "./types";
+import { throwIfExplorerNotOk } from "../../lib/explorer-api-error";
 import { buildExplorerGraphApiPath, explorerFetch } from "../../host/explorerHttp";
 
 const SEMANTIC_COLOR_FIELDS = [
@@ -341,18 +342,8 @@ function maxEdgesForGraphLoad(kbId?: string): number | null {
   return kbId ? SEMA_GRAPH_MAX_EDGES : null;
 }
 
-/** Surface the server's `detail` message (e.g. auth/setup guidance) on non-OK responses. */
-async function fetchErrorDetail(response: Response): Promise<string> {
-  try {
-    const body: unknown = await response.json();
-    const detail = (body as { detail?: unknown } | null)?.detail;
-    if (typeof detail === "string" && detail.trim()) {
-      return ` — ${detail.trim()}`;
-    }
-  } catch {
-    // Non-JSON or unreadable body: fall back to the status-only message.
-  }
-  return "";
+async function ensureGraphFetchOk(response: Response): Promise<void> {
+  await throwIfExplorerNotOk(response, `Fetch failed (${response.status})`);
 }
 
 async function fetchAllNodes(
@@ -376,9 +367,7 @@ async function fetchAllNodes(
     }
 
     const response = await explorerFetch(url.toString(), { signal });
-    if (!response.ok) {
-      throw new Error(`Fetch failed: ${response.status}${await fetchErrorDetail(response)}`);
-    }
+    await ensureGraphFetchOk(response);
 
     const data: NodeListResponse = await response.json();
     if (!data.nodes?.length) {
@@ -443,9 +432,7 @@ async function fetchAllEdges(
     }
 
     const response = await explorerFetch(url.toString(), { signal });
-    if (!response.ok) {
-      throw new Error(`Fetch failed: ${response.status}${await fetchErrorDetail(response)}`);
-    }
+    await ensureGraphFetchOk(response);
 
     const data: EdgeListResponse = await response.json();
     if (!data.edges?.length) {

@@ -1,3 +1,4 @@
+import { parseExplorerJson } from "../../lib/explorer-api-error";
 import { explorerFetch } from "../../host/explorerHttp";
 import type {
   AlignmentRelation,
@@ -44,17 +45,10 @@ export type OntologyEntityOwner = {
 };
 
 async function parseResponse<T>(response: Response): Promise<T> {
-  if (!response.ok) {
-    let detail = `Request failed with status ${response.status}`;
-    try {
-      const body = await response.json();
-      detail = body.detail || detail;
-    } catch {
-      // Keep the generic HTTP detail.
-    }
-    throw new Error(detail);
-  }
-  const data = await response.json();
+  const data = await parseExplorerJson<T & { message?: string }>(
+    response,
+    `Request failed (${response.status})`,
+  );
   if (response.status === 207) {
     console.warn("Partial Success:", data.message || "Warning: 207 Multi-Status");
   }

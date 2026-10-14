@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { explorerApiErrorMessage, parseExplorerJson } from "../../lib/explorer-api-error";
 import { explorerFetch } from "../../host/explorerHttp";
 import {
   AlertCircle,
@@ -196,15 +197,13 @@ function URLImportPanel({ onLoaded }: { onLoaded: () => void }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: url.trim(), format: format || undefined }),
       });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ detail: "Unknown error" }));
-        throw new Error(err.detail || "Preview failed");
-      }
-      setPreview(await res.json());
+      setPreview(
+        await parseExplorerJson<OntologyPreview>(res, "Preview failed"),
+      );
       setPreviewState("idle");
     } catch (e) {
       setPreviewState("error");
-      setErrorMsg(e instanceof Error ? e.message : "Could not fetch preview");
+      setErrorMsg(explorerApiErrorMessage(e, "en"));
     }
   };
 
@@ -223,10 +222,7 @@ function URLImportPanel({ onLoaded }: { onLoaded: () => void }) {
           tags: tags ? tags.split(",").map((t) => t.trim()).filter(Boolean) : [],
         }),
       });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ detail: "Load failed" }));
-        throw new Error(err.detail || "Load failed");
-      }
+      await parseExplorerJson(res, "Load failed");
       setLoadState("success");
       setTimeout(() => {
         setLoadState("idle");
@@ -234,7 +230,7 @@ function URLImportPanel({ onLoaded }: { onLoaded: () => void }) {
       }, 1200);
     } catch (e) {
       setLoadState("error");
-      setErrorMsg(e instanceof Error ? e.message : "Load failed");
+      setErrorMsg(explorerApiErrorMessage(e, "en"));
     }
   };
 
@@ -395,10 +391,7 @@ function FileUploadPanel({ onLoaded }: { onLoaded: () => void }) {
         // Omit format when empty so the backend _detect_format() runs
         body: JSON.stringify({ content, ...(format ? { format } : {}) }),
       });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ detail: "Load failed" }));
-        throw new Error(err.detail || "Load failed");
-      }
+      await parseExplorerJson(res, "Load failed");
       setLoadState("success");
       setTimeout(() => {
         setLoadState("idle");
@@ -406,7 +399,7 @@ function FileUploadPanel({ onLoaded }: { onLoaded: () => void }) {
       }, 1200);
     } catch (e) {
       setLoadState("error");
-      setErrorMsg(e instanceof Error ? e.message : "Load failed");
+      setErrorMsg(explorerApiErrorMessage(e, "en"));
     }
   };
 
@@ -531,10 +524,7 @@ function CreateNewPanel({ onLoaded }: { onLoaded: () => void }) {
           schema_text: createMode === "text" ? schemaText : undefined,
         }),
       });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ detail: "Create failed" }));
-        throw new Error(err.detail || "Create failed");
-      }
+      await parseExplorerJson(res, "Create failed");
       setCreateState("success");
       setTimeout(() => {
         setCreateState("idle");
@@ -542,7 +532,7 @@ function CreateNewPanel({ onLoaded }: { onLoaded: () => void }) {
       }, 1200);
     } catch (e) {
       setCreateState("error");
-      setErrorMsg(e instanceof Error ? e.message : "Create failed");
+      setErrorMsg(explorerApiErrorMessage(e, "en"));
     }
   };
 

@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
 import { api } from '@/lib/api.js';
-import { formatUserFacingApiError } from '@/lib/api-error-message.js';
+import { formatUserFacingApiError, messageForApiErrorCode } from '@/lib/api-error-message.js';
 import { kbPath } from '@/lib/nav-config.js';
 
 type GraphProjectionStatus = {
@@ -121,7 +121,12 @@ export function KbGraphProjectionPanel({
             {status.last_error_code ? (
               <div className="sm:col-span-2">
                 <dt className="text-muted-foreground">{zh ? '最近错误' : 'Last error'}</dt>
-                <dd className="font-mono text-destructive">{status.last_error_code}</dd>
+                <dd className="text-destructive">
+                  {messageForApiErrorCode(
+                    status.last_error_code,
+                    zh ? 'zh' : 'en',
+                  ) ?? status.last_error_code}
+                </dd>
               </div>
             ) : null}
           </dl>
