@@ -21,10 +21,11 @@ const OP_META: Record<
   delete:       { label: "DELETE",       color: "#ff7b72", bg: "rgba(255,123,114,0.12)", border: "rgba(255,123,114,0.28)" },
   infer:        { label: "INFER",        color: "#d2a8ff", bg: "rgba(210,168,255,0.12)", border: "rgba(210,168,255,0.28)" },
   "vocab-import": { label: "VOCAB",      color: "#79c0ff", bg: "rgba(121,192,255,0.12)", border: "rgba(121,192,255,0.28)" },
+  review:       { label: "REVIEW",       color: "#e3b341", bg: "rgba(227,179,65,0.12)",  border: "rgba(227,179,65,0.28)" },
 };
 
 const ALL_OPS: (RegistryEntryOp | "all")[] = [
-  "all", "import", "export", "merge", "add-node", "update-node", "add-edge", "infer", "delete", "vocab-import",
+  "all", "import", "export", "merge", "add-node", "update-node", "add-edge", "infer", "delete", "vocab-import", "review",
 ];
 
 function formatTimestamp(date: Date): string {

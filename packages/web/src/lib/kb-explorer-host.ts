@@ -4,9 +4,10 @@ import { getToken } from '@/lib/api.js';
 export function buildKbExplorerHttpConfig(kbId: string): ExplorerHttpConfig {
   return {
     apiRoot: `/api/kbs/${kbId}`,
-    getAuthHeaders: () => {
+    getAuthHeaders: (): Record<string, string> => {
       const token = getToken();
-      return token ? { Authorization: `Bearer ${token}` } : {};
+      if (!token) return {};
+      return { Authorization: `Bearer ${token}` };
     },
     openGraphUpdatesSocket: async () => {
       const token = getToken();

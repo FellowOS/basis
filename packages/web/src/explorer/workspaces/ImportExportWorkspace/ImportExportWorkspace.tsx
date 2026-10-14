@@ -49,7 +49,8 @@ export function ImportExportWorkspace({
   }
 
   const onDrop = useCallback((accepted: File[]) => {
-    if (accepted.length > 0) setFile(accepted[0]);
+    const picked = accepted[0];
+    if (picked) setFile(picked);
   }, []);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({

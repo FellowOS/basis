@@ -19,7 +19,8 @@ export type RegistryEntryOp =
   | "add-edge"
   | "delete"
   | "infer"
-  | "vocab-import";
+  | "vocab-import"
+  | "review";
 
 export interface RegistryEntry {
   id: string;

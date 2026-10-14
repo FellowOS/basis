@@ -10,8 +10,8 @@ export const ImportDropzone: React.FC = () => {
   const importMutation = useImportVocabulary();
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
-    if (acceptedFiles.length > 0) {
-      const selectedFile = acceptedFiles[0];
+    const selectedFile = acceptedFiles[0];
+    if (selectedFile) {
       setFile(selectedFile);
       setImportResult(null);
 
