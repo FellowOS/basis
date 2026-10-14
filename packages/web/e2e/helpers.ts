@@ -36,3 +36,18 @@ export async function defaultKbId(page: Page): Promise<string> {
   }
   return editable.id;
 }
+
+export async function fetchGraphStats(
+  page: Page,
+  kbId: string,
+): Promise<{ node_count: number; edge_count: number }> {
+  const token = await page.evaluate(() => localStorage.getItem('sema_token'));
+  if (!token) {
+    throw new Error('Missing sema_token after login');
+  }
+  const response = await page.request.get(`/api/kbs/${kbId}/graph/stats`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  expect(response.ok()).toBeTruthy();
+  return (await response.json()) as { node_count: number; edge_count: number };
+}

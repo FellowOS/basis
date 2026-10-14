@@ -379,7 +379,7 @@ Work:
 - connect realtime updates and revision refetch;
 - respect viewer permissions.
 
-**Status:** partial — Explorer `GraphWorkspace` embedded when `explorer_runtime`; timeline + search/focus; `projection_updated` WS triggers full graph reload + dock notice; KB switch remounts workspace (`key={kbId}`); inspector evidence links resolve ledger `chunk_id` / document neighbors; merge/import gated via review; backend WS/viewer tests; graph read-only UX; unit tests for projection refresh. Manual gate: `docs/ops/smoke-test.md`. Playwright baseline: `packages/web/e2e` (login shell + onboarding: register → paste text → pattern ingest on `/sources`); extend for graph when stable selectors exist.
+**Status:** partial — Explorer `GraphWorkspace` embedded when `explorer_runtime`; timeline + search/focus; `projection_updated` WS triggers full graph reload + dock notice; KB switch remounts workspace (`key={kbId}`); inspector evidence links resolve ledger `chunk_id` / document neighbors; merge/import gated via review; backend WS/viewer tests; graph read-only UX; unit tests for projection refresh. Manual gate: `docs/ops/smoke-test.md`. Playwright baseline: `packages/web/e2e` (login shell + onboarding: register → paste text → pattern ingest → `graph/stats` + Graph page shell); extend for canvas/focus when stable selectors exist.
 
 Acceptance:
 

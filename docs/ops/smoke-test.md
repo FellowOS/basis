@@ -46,4 +46,6 @@ SEMA_E2E_SKIP_SERVERS=1 SEMA_E2E_WEB_PORT=5173 pnpm --filter @sema/web test:e2e
 
 (`SEMA_API_URL` for Vite must still point at the running API.)
 
+`e2e/onboarding.spec.ts` covers register → paste text → pattern ingest → `graph/stats` and opening the Graph workspace shell (not canvas interaction).
+
 Manual checklist above remains the release fallback when e2e is not run.
