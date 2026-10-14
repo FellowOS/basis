@@ -419,7 +419,7 @@ Acceptance:
   parse/LLM timeout;
 - reject before allocating unbounded memory where possible.
 
-**Status:** done (baseline) — `RuntimeLimits` + `SEMA_*` for graph/search/import/upload/ingest; ingest thread pool; job wait timeout; ingest size/chunk caps; `SEMA_INGEST_EXTRACT_TIMEOUT_SECONDS` wraps `GraphBuilder.build` per segment (`extract_timeout`, HTTP 504 on sync wait). Follow-up: cancel in-flight LLM on timeout, per-model timeouts.
+**Status:** done (baseline) — `RuntimeLimits` + `SEMA_*` for graph/search/import/upload/ingest; ingest thread pool; job wait timeout; ingest size/chunk caps; `SEMA_INGEST_EXTRACT_TIMEOUT_SECONDS` wraps `GraphBuilder.build` per segment (`extract_timeout`, HTTP 504 on sync wait). Ops reference: `docs/ops/runtime-limits.md`. Follow-up: cancel in-flight LLM on timeout, per-model timeouts.
 
 ## 8. Task dependency graph
 

@@ -36,6 +36,7 @@ import { Spinner } from '@/components/ui/spinner.js';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs.js';
 import { Textarea } from '@/components/ui/textarea.js';
 import { useI18n } from '@/i18n/context.js';
+import { messageForApiErrorCode } from '@/lib/api-error-message.js';
 import { useKbCatalog } from '@/lib/kb-context.js';
 import { useKbCapabilities } from '@/lib/kb-capabilities.js';
 import { useExplorerClient } from '@/lib/explorer-context.js';
@@ -65,6 +66,7 @@ type ProcessingJob = {
   version_status: string;
   attempt: number;
   error_code: string | null;
+  error_detail?: { message?: string } | null;
   options: Record<string, unknown>;
   created_at: string;
 };
@@ -481,7 +483,9 @@ export function KnowledgePage() {
                 return (
                   <span>
                     attempt {rowJob.attempt}
-                    {rowJob.error_code ? ` · ${rowJob.error_code}` : ''}
+                    {rowJob.error_code
+                      ? ` · ${messageForApiErrorCode(rowJob.error_code, locale) ?? rowJob.error_code}`
+                      : ''}
                   </span>
                 );
               })() : null}
@@ -964,6 +968,16 @@ export function KnowledgePage() {
                   <summary className="cursor-pointer font-medium">
                     {job.document_title || job.doc_id} · {job.status} · attempt {job.attempt}
                   </summary>
+                  {job.error_code ? (
+                    <p className="mt-2 text-xs text-destructive">
+                      {messageForApiErrorCode(job.error_code, locale) ?? job.error_code}
+                    </p>
+                  ) : null}
+                  {typeof job.options?.request_id === 'string' && job.options.request_id ? (
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {zh ? '参考 ID' : 'Reference ID'}: {job.options.request_id}
+                    </p>
+                  ) : null}
                   {graphEnabled && id && job.status === 'succeeded' && job.doc_id ? (
                     <div className="mt-2">
                       <Button type="button" variant="outline" size="sm" asChild>

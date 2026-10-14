@@ -34,6 +34,10 @@ pg_dump "$SEMA_DATABASE_URL" -Fc -f sema-$(date +%Y%m%d).dump
 
 Restore with `pg_restore` into an empty database, then restore blobs from tar as above. Rebuild graph projections per KB.
 
+## Related
+
+- Runtime caps and ingest env vars: [runtime-limits.md](./runtime-limits.md)
+
 ## Verification
 
 After restore + rebuild:

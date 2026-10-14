@@ -1,8 +1,9 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
   buildExplorerGraphApiPath,
   buildExplorerKbApiPath,
+  explorerFetchJson,
   resolveExplorerApiUrl,
   setActiveExplorerHttpConfig,
 } from './explorerHttp.js';
@@ -37,5 +38,41 @@ describe('explorerHttp KB injection (§9.6)', () => {
     expect(resolveExplorerApiUrl('/api/kbs/other-kb/graph/stats')).toBe(
       '/api/kbs/other-kb/graph/stats',
     );
+  });
+});
+
+describe('explorerFetchJson', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    setActiveExplorerHttpConfig({});
+  });
+
+  it('throws coded errors from API detail', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () =>
+        new Response(JSON.stringify({ detail: { code: 'not_found', message: 'x' } }), {
+          status: 404,
+          headers: { 'content-type': 'application/json' },
+        }),
+      ),
+    );
+    await expect(explorerFetchJson('/api/graph/stats')).rejects.toMatchObject({
+      code: 'not_found',
+    });
+  });
+
+  it('returns JSON on success', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () =>
+        new Response(JSON.stringify({ node_count: 3 }), {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        }),
+      ),
+    );
+    const data = await explorerFetchJson<{ node_count: number }>('/api/graph/stats');
+    expect(data.node_count).toBe(3);
   });
 });
