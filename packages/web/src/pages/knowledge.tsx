@@ -39,6 +39,7 @@ import { useI18n } from '@/i18n/context.js';
 import { useKbCatalog } from '@/lib/kb-context.js';
 import { useKbCapabilities } from '@/lib/kb-capabilities.js';
 import { useExplorerClient } from '@/lib/explorer-context.js';
+import { KbIngestSourcesDialog } from '@/components/kb-ingest-sources-dialog.js';
 import { kbPath } from '@/lib/nav-config.js';
 
 const PAGE_SIZE = 10;
@@ -129,6 +130,7 @@ export function KnowledgePage() {
 
   const [addOpen, setAddOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [sourcesOpen, setSourcesOpen] = useState(false);
   const [updateTarget, setUpdateTarget] = useState<{
     document_id: string;
     doc_id: string;
@@ -623,6 +625,16 @@ export function KnowledgePage() {
           >
             {zh ? '任务历史' : 'Job history'}
           </Button>
+          {canEdit ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setSourcesOpen(true)}
+            >
+              {zh ? '连接器' : 'Sources'}
+            </Button>
+          ) : null}
           <Button
             type="button"
             variant="outline"
@@ -952,6 +964,15 @@ export function KnowledgePage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {id ? (
+        <KbIngestSourcesDialog
+          kbId={id}
+          open={sourcesOpen}
+          onOpenChange={setSourcesOpen}
+          zh={zh}
+        />
+      ) : null}
     </div>
   );
 }

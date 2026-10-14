@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import secrets
 import sqlite3
 import threading
 import uuid
@@ -121,6 +122,7 @@ class KnowledgeStore:
         original_filename: str | None = None,
         external_key: str | None = None,
         document_id: str | None = None,
+        source_id: str | None = None,
     ) -> StoreDocumentOutcome:
         """Persist a source document/version without starting processing.
 
@@ -159,9 +161,9 @@ class KnowledgeStore:
                 INSERT INTO documents(
                     id, kb_id, source_id, external_key, title, mime_type,
                     current_version_id, created_by, created_at, deleted_at
-                ) VALUES (?, ?, NULL, ?, ?, ?, NULL, ?, ?, NULL)
+                ) VALUES (?, ?, ?, ?, ?, ?, NULL, ?, ?, NULL)
                 """,
-                (new_document_id, kb_id, external_key, title, mime_type, created_by, now),
+                (new_document_id, kb_id, source_id, external_key, title, mime_type, created_by, now),
             )
             self._conn.execute(
                 """
@@ -2486,6 +2488,167 @@ class KnowledgeStore:
             raise AdminError(404, "not_found", "记录不存在")
         if row["kb_id"] != kb_id:
             raise AdminError(403, "forbidden", "记录不属于该知识库")
+
+    _INGEST_SOURCE_KINDS = frozenset({"webhook"})
+
+    def list_ingest_sources(self, kb_id: str) -> list[dict[str, Any]]:
+        with self._lock:
+            self._assert_kb_exists(kb_id)
+            rows = self._conn.execute(
+                """
+                SELECT id, kb_id, kind, name, config_json, enabled, created_by, created_at, updated_at
+                FROM ingest_sources
+                WHERE kb_id = ? AND deleted_at IS NULL
+                ORDER BY created_at DESC
+                """,
+                (kb_id,),
+            ).fetchall()
+        return [self._ingest_source_row_to_dict(row) for row in rows]
+
+    def create_ingest_source(
+        self,
+        kb_id: str,
+        actor_id: str,
+        *,
+        kind: str,
+        name: str,
+        config: dict[str, Any] | None = None,
+        enabled: bool = True,
+    ) -> tuple[dict[str, Any], str | None]:
+        """Returns (source, one_time_secret) for kinds that issue ingest tokens."""
+        name = name.strip()
+        if not name:
+            raise AdminError(422, "bad_name", "来源名称不能为空")
+        if kind not in self._INGEST_SOURCE_KINDS:
+            raise AdminError(422, "bad_kind", "不支持的来源类型")
+        source_id = str(uuid.uuid4())
+        now = _now()
+        config_payload = dict(config or {})
+        secret_ref: str | None = None
+        one_time_secret: str | None = None
+        if kind == "webhook":
+            one_time_secret = secrets.token_urlsafe(32)
+            secret_ref = one_time_secret
+        with self._lock:
+            self._assert_kb_exists(kb_id)
+            self._conn.execute(
+                """
+                INSERT INTO ingest_sources (
+                    id, kb_id, kind, name, config_json, secret_ref, enabled,
+                    created_by, created_at, updated_at, deleted_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)
+                """,
+                (
+                    source_id,
+                    kb_id,
+                    kind,
+                    name,
+                    json.dumps(config_payload),
+                    secret_ref,
+                    1 if enabled else 0,
+                    actor_id,
+                    now,
+                    now,
+                ),
+            )
+            self._conn.commit()
+        return self.get_ingest_source(kb_id, source_id), one_time_secret
+
+    def get_ingest_source(self, kb_id: str, source_id: str) -> dict[str, Any]:
+        with self._lock:
+            self._assert_kb_exists(kb_id)
+            row = self._conn.execute(
+                """
+                SELECT id, kb_id, kind, name, config_json, enabled, created_by, created_at, updated_at
+                FROM ingest_sources
+                WHERE kb_id = ? AND id = ? AND deleted_at IS NULL
+                """,
+                (kb_id, source_id),
+            ).fetchone()
+        if row is None:
+            raise AdminError(404, "not_found", "来源不存在")
+        return self._ingest_source_row_to_dict(row)
+
+    def get_ingest_source_secret(self, kb_id: str, source_id: str) -> str | None:
+        with self._lock:
+            row = self._conn.execute(
+                """
+                SELECT secret_ref FROM ingest_sources
+                WHERE kb_id = ? AND id = ? AND deleted_at IS NULL
+                """,
+                (kb_id, source_id),
+            ).fetchone()
+        if row is None:
+            return None
+        return row["secret_ref"]
+
+    def update_ingest_source(
+        self,
+        kb_id: str,
+        source_id: str,
+        *,
+        name: str | None = None,
+        enabled: bool | None = None,
+        config: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        with self._lock:
+            self._assert_kb_exists(kb_id)
+            row = self._conn.execute(
+                """
+                SELECT name, config_json, enabled FROM ingest_sources
+                WHERE kb_id = ? AND id = ? AND deleted_at IS NULL
+                """,
+                (kb_id, source_id),
+            ).fetchone()
+            if row is None:
+                raise AdminError(404, "not_found", "来源不存在")
+            new_name = name.strip() if name is not None else row["name"]
+            if not new_name:
+                raise AdminError(422, "bad_name", "来源名称不能为空")
+            merged_config = json.loads(row["config_json"])
+            if config is not None:
+                merged_config.update(config)
+            new_enabled = (1 if enabled else 0) if enabled is not None else row["enabled"]
+            now = _now()
+            self._conn.execute(
+                """
+                UPDATE ingest_sources
+                SET name = ?, config_json = ?, enabled = ?, updated_at = ?
+                WHERE kb_id = ? AND id = ?
+                """,
+                (new_name, json.dumps(merged_config), new_enabled, now, kb_id, source_id),
+            )
+            self._conn.commit()
+        return self.get_ingest_source(kb_id, source_id)
+
+    def delete_ingest_source(self, kb_id: str, source_id: str) -> None:
+        now = _now()
+        with self._lock:
+            self._assert_kb_exists(kb_id)
+            cur = self._conn.execute(
+                """
+                UPDATE ingest_sources SET deleted_at = ?, updated_at = ?, enabled = 0
+                WHERE kb_id = ? AND id = ? AND deleted_at IS NULL
+                """,
+                (now, now, kb_id, source_id),
+            )
+            self._conn.commit()
+            if cur.rowcount == 0:
+                raise AdminError(404, "not_found", "来源不存在")
+
+    @staticmethod
+    def _ingest_source_row_to_dict(row: sqlite3.Row) -> dict[str, Any]:
+        return {
+            "id": row["id"],
+            "kb_id": row["kb_id"],
+            "kind": row["kind"],
+            "name": row["name"],
+            "config": json.loads(row["config_json"]),
+            "enabled": bool(row["enabled"]),
+            "created_by": row["created_by"],
+            "created_at": row["created_at"],
+            "updated_at": row["updated_at"],
+        }
 
     def _validate_quote_in_chunk(
         self, chunk_id: str, quote: str, quote_start: int, quote_end: int
