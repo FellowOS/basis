@@ -93,7 +93,10 @@ function SearchCommandBar({
         signal: controller.signal,
       })
         .then(async (response) =>
-          parseExplorerJson<{ results?: GraphSearchResult[] }>(response, "Search failed"),
+          parseExplorerJson<{ results?: GraphSearchResult[] }>(
+            response,
+            graphCopy(locale, "apiSearchFailed"),
+          ),
         )
         .then((data) => {
           setSuggestions(data.results ?? []);

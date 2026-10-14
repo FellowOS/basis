@@ -54,11 +54,13 @@ import {
   graphGroupedSummaryAvailable,
   graphGroupedSummaryDrillIn,
   graphNeighborSummary,
+  type GraphWorkspaceLocale,
 } from "./graphWorkspaceCopy";
 import { inspectorCopy } from "./graphInspectorCopy";
 import { createGraphLoadProgress } from "./graphLoading";
 import { Badge } from "@/components/ui/badge.js";
 import { Button } from "@/components/ui/button.js";
+import { useI18n } from "@/i18n/context.js";
 import { useTheme } from "@/lib/theme.js";
 import { GRAPH_THEME, withAlpha } from "./graphTheme";
 import { syncSemaGraphTheme } from "./semaGraphThemeSync";
@@ -992,7 +994,7 @@ interface GraphWorkspaceProps {
   /** When false, node Markdown editing is hidden (Sema viewer role). */
   graphWriteEnabled?: boolean;
   decisionsEnabled?: boolean;
-  /** Maps API `detail.code` to localized copy when embedded in Sema KB UI. */
+  /** Overrides graph copy/API error locale; defaults to the app i18n locale. */
   apiErrorLocale?: "zh" | "en";
 }
 
@@ -1005,11 +1007,14 @@ export function GraphWorkspace({
   graphDataActions,
   graphWriteEnabled = true,
   decisionsEnabled = false,
-  apiErrorLocale = "en",
+  apiErrorLocale,
 }: GraphWorkspaceProps = {}) {
+  const { locale: i18nLocale } = useI18n();
+  const copyLocale: GraphWorkspaceLocale =
+    apiErrorLocale ?? (i18nLocale === "zh" ? "zh" : "en");
   const formatApiError = useCallback(
-    (err: unknown) => explorerApiErrorMessage(err, apiErrorLocale),
-    [apiErrorLocale],
+    (err: unknown) => explorerApiErrorMessage(err, copyLocale),
+    [copyLocale],
   );
   const { theme } = useTheme();
   const hudCss = useMemo(() => {
@@ -1156,13 +1161,13 @@ export function GraphWorkspace({
       nodesTotal: graphSummary.nodeCount,
       edgesLoaded: graphSummary.edgeCount,
       edgesTotal: graphSummary.edgeCount,
-      locale: apiErrorLocale,
-      message: graphCopy(apiErrorLocale, "loadSettlingLayout"),
+      locale: copyLocale,
+      message: graphCopy(copyLocale, "loadSettlingLayout"),
       showGraphBehind: true,
       layoutSource: graphSummary.layoutSource,
       layoutState: "bootstrapping",
     }));
-  }, [apiErrorLocale]);
+  }, [copyLocale]);
 
   const {
     data: summary,
@@ -1174,7 +1179,7 @@ export function GraphWorkspace({
   } = useLoadGraph({
     kbId,
     enabled: true,
-    copyLocale: apiErrorLocale,
+    copyLocale: copyLocale,
     onGraphReady: applyGraphReadySummary,
     onProgress: handleLoadProgress,
   });
@@ -1424,10 +1429,10 @@ export function GraphWorkspace({
   const confirmDiscardMarkdownDraft = useCallback(() => {
     if (!markdownDraftDirty) return true;
     const discard = window.confirm(
-      graphCopy(apiErrorLocale, "discardMarkdownDraft"),
+      graphCopy(copyLocale, "discardMarkdownDraft"),
     );
     return discard;
-  }, [apiErrorLocale, markdownDraftDirty]);
+  }, [copyLocale, markdownDraftDirty]);
 
 
   const enterLocalGraph = useCallback((nodeId: string) => {
@@ -1590,13 +1595,13 @@ export function GraphWorkspace({
       });
       const data = await parseExplorerJson<{ results?: GraphSearchResult[] }>(
         response,
-        "Search failed",
+        graphCopy(copyLocale, "apiSearchFailed"),
       );
       setSearchResults(data.results || []);
     } catch (searchFetchError) {
       setSearchError(formatApiError(searchFetchError));
     }
-  }, [formatApiError, kbId, searchQuery]);
+  }, [copyLocale, formatApiError, kbId, searchQuery]);
 
   const handleClearSearchResults = useCallback(() => {
     setSearchResults([]);
@@ -1619,7 +1624,7 @@ export function GraphWorkspace({
       });
       const data = await parseExplorerJson<{ predictions?: LinkPrediction[] }>(
         response,
-        "Link prediction failed",
+        graphCopy(copyLocale, "apiLinkPredictionFailed"),
       );
       setPredictions(data.predictions || []);
     } catch (predictionError) {
@@ -1628,7 +1633,7 @@ export function GraphWorkspace({
     } finally {
       setIsRunningPredictions(false);
     }
-  }, [inspectableNodeId, kbId, predictionType]);
+  }, [copyLocale, inspectableNodeId, kbId, predictionType]);
 
   const handleTracePath = useCallback(async () => {
     if (!inspectableNodeId || !pathTargetId.trim()) return;
@@ -1641,7 +1646,10 @@ export function GraphWorkspace({
       const response = await explorerFetch(
         buildExplorerGraphApiPath(`path?${pathParams.toString()}`, kbId),
       );
-      const data = await parseExplorerJson<PathResponse>(response, "Path lookup failed");
+      const data = await parseExplorerJson<PathResponse>(
+        response,
+        graphCopy(copyLocale, "apiPathLookupFailed"),
+      );
       setPathResult(data);
       if (data.path?.length) {
         const lastStep = data.path[data.path.length - 1];
@@ -1653,7 +1661,7 @@ export function GraphWorkspace({
       console.error("[GraphWorkspace] path trace failed", pathError);
       setPathResult(null);
     }
-  }, [inspectableNodeId, kbId, pathTargetId]);
+  }, [copyLocale, inspectableNodeId, kbId, pathTargetId]);
 
   const handleDownloadProvenance = useCallback(async (format: "json" | "markdown") => {
     if (!inspectableNodeId) return;
@@ -1664,7 +1672,7 @@ export function GraphWorkspace({
         kbId,
       ),
     );
-    await throwIfExplorerNotOk(response, "Provenance report failed");
+    await throwIfExplorerNotOk(response, graphCopy(copyLocale, "apiProvenanceReportFailed"));
     const blob = await response.blob();
     const url = window.URL.createObjectURL(blob);
     const anchor = document.createElement("a");
@@ -1674,7 +1682,7 @@ export function GraphWorkspace({
     anchor.click();
     window.URL.revokeObjectURL(url);
     document.body.removeChild(anchor);
-  }, [inspectableNodeId, kbId]);
+  }, [copyLocale, inspectableNodeId, kbId]);
 
   const handleMarkdownApplied = useCallback((result: MarkdownApplyResult) => {
     if (result.resource.kind !== "context-node") return;
@@ -1876,7 +1884,7 @@ export function GraphWorkspace({
         count: 0,
         status: distanceMode === "semantic" ? "unavailable" : "idle",
         error: distanceMode === "semantic"
-          ? graphCopy(apiErrorLocale, "semanticSelectFullGraphNode")
+          ? graphCopy(copyLocale, "semanticSelectFullGraphNode")
           : null,
       });
       return;
@@ -1906,9 +1914,9 @@ export function GraphWorkspace({
         if (!response.ok) {
           const data = await response.json().catch(() => ({}));
           const fallback = response.status === 503
-            ? graphCopy(apiErrorLocale, "semanticUnavailable")
+            ? graphCopy(copyLocale, "semanticUnavailable")
             : response.status === 404
-              ? graphCopy(apiErrorLocale, "semanticNodeNotFound")
+              ? graphCopy(copyLocale, "semanticNodeNotFound")
               : `Semantic distance failed (${response.status})`;
           const err = errorFromApiResponse(response.status, data, fallback);
           if (response.status === 503 && !(err as Error & { code?: string }).code) {
@@ -1935,7 +1943,7 @@ export function GraphWorkspace({
           status: Object.keys(scores).length > 0 ? "ready" : "unavailable",
           error: Object.keys(scores).length > 0
             ? null
-            : graphCopy(apiErrorLocale, "semanticNoNeighbors"),
+            : graphCopy(copyLocale, "semanticNoNeighbors"),
         });
       } catch (error) {
         if (cancelled) {
@@ -1955,7 +1963,7 @@ export function GraphWorkspace({
     return () => {
       cancelled = true;
     };
-  }, [apiErrorLocale, distanceAnchorNodeId, distanceMode, formatApiError, kbId]);
+  }, [copyLocale, distanceAnchorNodeId, distanceMode, formatApiError, kbId]);
 
   const distanceVisualState = useMemo<GraphDistanceVisualState>(() => {
     if (activeDistanceMode === "off") {
@@ -1994,7 +2002,7 @@ export function GraphWorkspace({
         heatmapSaturationMode: undefined,
         semanticNeighborCount: 0,
         status: "unavailable",
-        error: graphCopy(apiErrorLocale, "distanceFullGraphOnly"),
+        error: graphCopy(copyLocale, "distanceFullGraphOnly"),
       };
     }
 
@@ -2014,7 +2022,7 @@ export function GraphWorkspace({
         heatmapSaturationMode: undefined,
         semanticNeighborCount: 0,
         status: "unavailable",
-        error: graphCopy(apiErrorLocale, "distanceSelectNode"),
+        error: graphCopy(copyLocale, "distanceSelectNode"),
       };
     }
 
@@ -2065,7 +2073,7 @@ export function GraphWorkspace({
     };
   }, [
     activeDistanceMode,
-    apiErrorLocale,
+    copyLocale,
     distanceAnchorLabel,
     distanceAnchorNodeId,
     distanceCounts,
@@ -2082,7 +2090,7 @@ export function GraphWorkspace({
   const hasGraphContent = Boolean(summary?.nodeCount);
   const graphLoadInfoMessage =
     summary?.loadTruncated && kbId
-      ? graphCopy(apiErrorLocale, "graphLoadTruncated")
+      ? graphCopy(copyLocale, "graphLoadTruncated")
       : undefined;
   const showEmptyKbGraphHint = Boolean(
     kbId && graphReady && summary && summary.nodeCount === 0 && !showLoadingOverlay,
@@ -2211,9 +2219,9 @@ export function GraphWorkspace({
     if (!selectedNodeId || !graph.hasNode(selectedNodeId)) {
       if (viewMode === "grouped") {
         return displayState.groupedViewAvailable
-          ? graphGroupedSummaryAvailable(apiErrorLocale)
-          : (groupedViewReasonText(displayState.groupedViewReason, apiErrorLocale)
-            ?? groupedViewReasonText({ code: "communities-undetected" }, apiErrorLocale));
+          ? graphGroupedSummaryAvailable(copyLocale)
+          : (groupedViewReasonText(displayState.groupedViewReason, copyLocale)
+            ?? groupedViewReasonText({ code: "communities-undetected" }, copyLocale));
       }
       return null;
     }
@@ -2221,23 +2229,23 @@ export function GraphWorkspace({
     const localNeighborCount = graph.neighbors(selectedNodeId).length;
     if (viewMode === "focused") {
       const visibleNeighbors = displayState.selectedVisibleNeighborIds.length || Math.min(localNeighborCount, 16);
-      return graphFocusedViewSummary(apiErrorLocale, visibleNeighbors);
+      return graphFocusedViewSummary(copyLocale, visibleNeighbors);
     }
 
     if (viewMode === "grouped") {
-      return graphGroupedSummaryDrillIn(apiErrorLocale);
+      return graphGroupedSummaryDrillIn(copyLocale);
     }
 
     if (displayState.selectedCollapsedNeighborIds.length > 0) {
       return graphNeighborSummary(
-        apiErrorLocale,
+        copyLocale,
         displayState.selectedVisibleNeighborIds.length,
         displayState.selectedCollapsedNeighborIds.length,
       );
     }
 
-    return graphDirectNeighborsSummary(apiErrorLocale, localNeighborCount);
-  }, [apiErrorLocale, displayState, selectedNodeId, viewMode]);
+    return graphDirectNeighborsSummary(copyLocale, localNeighborCount);
+  }, [copyLocale, displayState, selectedNodeId, viewMode]);
   const graphSummary = summary as GraphLoadSummary | null;
   const selectedNodeState = useMemo(
     () => buildSelectedNodeState(selectedNodeId, displayState),
@@ -2258,8 +2266,8 @@ export function GraphWorkspace({
       {
         id: "exploration-effects",
         panelId: "effects-panel",
-        label: graphCopy(apiErrorLocale, "pluginEffects"),
-        title: graphCopy(apiErrorLocale, "pluginEffectsTitle"),
+        label: graphCopy(copyLocale, "pluginEffects"),
+        title: graphCopy(copyLocale, "pluginEffectsTitle"),
         order: 18,
         load: loadExplorationEffectsPlugin,
         shouldLoad: explorationEffectsShouldLoad,
@@ -2267,8 +2275,8 @@ export function GraphWorkspace({
       {
         id: "neighborhood-panel",
         panelId: "neighborhood-panel",
-        label: graphCopy(apiErrorLocale, "pluginNeighbors"),
-        title: graphCopy(apiErrorLocale, "pluginNeighborsTitle"),
+        label: graphCopy(copyLocale, "pluginNeighbors"),
+        title: graphCopy(copyLocale, "pluginNeighborsTitle"),
         order: 30,
         load: loadNeighborhoodPanelPlugin,
         shouldLoad: neighborhoodPanelShouldLoad,
@@ -2276,14 +2284,14 @@ export function GraphWorkspace({
       {
         id: "temporal-overlay",
         panelId: "temporal-panel",
-        label: graphCopy(apiErrorLocale, "pluginTemporal"),
-        title: graphCopy(apiErrorLocale, "pluginTemporalTitle"),
+        label: graphCopy(copyLocale, "pluginTemporal"),
+        title: graphCopy(copyLocale, "pluginTemporalTitle"),
         order: 40,
         load: loadTemporalOverlayPlugin,
         shouldLoad: temporalOverlayShouldLoad,
       },
     ],
-    [apiErrorLocale],
+    [copyLocale],
   );
   const activePlugins = useMemo(
     () => pluginRegistry.map((entry) => loadedPlugins[entry.id]).filter((plugin): plugin is GraphPlugin => Boolean(plugin)),
@@ -2628,19 +2636,19 @@ export function GraphWorkspace({
     return [
       {
         id: "view-full",
-        label: graphCopy(apiErrorLocale, "viewFullGraph"),
-        title: graphCopy(apiErrorLocale, "viewFullGraphTitle"),
+        label: graphCopy(copyLocale, "viewFullGraph"),
+        title: graphCopy(copyLocale, "viewFullGraphTitle"),
         icon: Layers3,
         active: viewMode === "full",
         onClick: () => setLayoutViewMode("full"),
       },
       {
         id: "view-grouped",
-        label: graphCopy(apiErrorLocale, "viewGrouped"),
+        label: graphCopy(copyLocale, "viewGrouped"),
         title: displayState.groupedViewAvailable
-          ? graphCopy(apiErrorLocale, "viewGroupedTitle")
-          : (groupedViewReasonText(displayState.groupedViewReason, apiErrorLocale)
-            ?? groupedViewReasonText({ code: "communities-undetected" }, apiErrorLocale)
+          ? graphCopy(copyLocale, "viewGroupedTitle")
+          : (groupedViewReasonText(displayState.groupedViewReason, copyLocale)
+            ?? groupedViewReasonText({ code: "communities-undetected" }, copyLocale)
             ?? undefined),
         icon: GitBranch,
         active: viewMode === "grouped",
@@ -2649,10 +2657,10 @@ export function GraphWorkspace({
       },
       {
         id: "view-focused",
-        label: graphCopy(apiErrorLocale, "viewFocus"),
+        label: graphCopy(copyLocale, "viewFocus"),
         title: canActivateFocusedMode
-          ? graphCopy(apiErrorLocale, "viewFocusTitle")
-          : (focusedUnavailableReasonText(focusedSelectionResolution.reason, apiErrorLocale) ?? undefined),
+          ? graphCopy(copyLocale, "viewFocusTitle")
+          : (focusedUnavailableReasonText(focusedSelectionResolution.reason, copyLocale) ?? undefined),
         icon: Focus,
         active: viewMode === "focused",
         disabled: viewMode !== "focused" && !canActivateFocusedMode,
@@ -2665,7 +2673,7 @@ export function GraphWorkspace({
       },
     ];
   }, [
-    apiErrorLocale,
+    copyLocale,
     canActivateFocusedMode,
     displayState.groupedViewAvailable,
     displayState.groupedViewReason,
@@ -2680,49 +2688,49 @@ export function GraphWorkspace({
   const cameraToolbarItems = useMemo<GraphToolbarItem[]>(() => [
     {
       id: "zoom-in",
-      label: graphCopy(apiErrorLocale, "zoomIn"),
-      title: graphCopy(apiErrorLocale, "zoomInTitle"),
-      ariaLabel: graphCopy(apiErrorLocale, "zoomIn"),
+      label: graphCopy(copyLocale, "zoomIn"),
+      title: graphCopy(copyLocale, "zoomInTitle"),
+      ariaLabel: graphCopy(copyLocale, "zoomIn"),
       icon: ZoomIn,
       compact: true,
       onClick: () => sceneRef.current?.zoomIn(),
     },
     {
       id: "zoom-out",
-      label: graphCopy(apiErrorLocale, "zoomOut"),
-      title: graphCopy(apiErrorLocale, "zoomOutTitle"),
-      ariaLabel: graphCopy(apiErrorLocale, "zoomOut"),
+      label: graphCopy(copyLocale, "zoomOut"),
+      title: graphCopy(copyLocale, "zoomOutTitle"),
+      ariaLabel: graphCopy(copyLocale, "zoomOut"),
       icon: ZoomOut,
       compact: true,
       onClick: () => sceneRef.current?.zoomOut(),
     },
     {
       id: "fit-view",
-      label: graphCopy(apiErrorLocale, "fitView"),
-      title: graphCopy(apiErrorLocale, "fitViewTitle"),
-      ariaLabel: graphCopy(apiErrorLocale, "fitView"),
+      label: graphCopy(copyLocale, "fitView"),
+      title: graphCopy(copyLocale, "fitViewTitle"),
+      ariaLabel: graphCopy(copyLocale, "fitView"),
       icon: Maximize2,
       compact: true,
       onClick: () => sceneRef.current?.fitView(),
     },
-  ], [apiErrorLocale]);
+  ], [copyLocale]);
 
   const layoutToolbarItems = useMemo<GraphToolbarItem[]>(() => [
     {
       id: "layout-toggle",
       label: isLayoutRunning
-        ? graphCopy(apiErrorLocale, "layoutPause")
-        : graphCopy(apiErrorLocale, "layoutRun"),
-      title: graphCopy(apiErrorLocale, "layoutToggleTitle"),
+        ? graphCopy(copyLocale, "layoutPause")
+        : graphCopy(copyLocale, "layoutRun"),
+      title: graphCopy(copyLocale, "layoutToggleTitle"),
       icon: isLayoutRunning ? Pause : Play,
       active: isLayoutRunning,
       disabled: showLoadingOverlay,
       onClick: () => setIsLayoutRunning((value) => !value),
     },
-  ], [apiErrorLocale, isLayoutRunning, showLoadingOverlay]);
+  ], [copyLocale, isLayoutRunning, showLoadingOverlay]);
 
   const localToolbarItems = useMemo<GraphToolbarItem[]>(() => {
-    const selectNodeHint = graphCopy(apiErrorLocale, "selectNodeFirst");
+    const selectNodeHint = graphCopy(copyLocale, "selectNodeFirst");
     if (!selectedNodeState) {
       if (!hasGraphContent) {
         return [];
@@ -2730,7 +2738,7 @@ export function GraphWorkspace({
       return [
         {
           id: "collapse-neighborhood",
-          label: graphCopy(apiErrorLocale, "collapse"),
+          label: graphCopy(copyLocale, "collapse"),
           title: selectNodeHint,
           icon: Eye,
           disabled: true,
@@ -2738,7 +2746,7 @@ export function GraphWorkspace({
         },
         {
           id: "expand-neighborhood",
-          label: graphCopy(apiErrorLocale, "expand"),
+          label: graphCopy(copyLocale, "expand"),
           title: selectNodeHint,
           icon: Users,
           disabled: true,
@@ -2750,22 +2758,22 @@ export function GraphWorkspace({
     return [
       {
         id: "collapse-neighborhood",
-        label: graphCopy(apiErrorLocale, "collapse"),
-        title: graphCopy(apiErrorLocale, "collapseNeighborhoodTitle"),
+        label: graphCopy(copyLocale, "collapse"),
+        title: graphCopy(copyLocale, "collapseNeighborhoodTitle"),
         icon: Eye,
         disabled: !selectedNodeState.canCollapseNeighborhood || selectedNodeState.isNeighborhoodCollapsed,
         onClick: () => handlePluginAction({ type: "collapseNeighborhood" }),
       },
       {
         id: "expand-neighborhood",
-        label: graphCopy(apiErrorLocale, "expand"),
-        title: graphCopy(apiErrorLocale, "expandNeighborhoodTitle"),
+        label: graphCopy(copyLocale, "expand"),
+        title: graphCopy(copyLocale, "expandNeighborhoodTitle"),
         icon: Users,
         disabled: !selectedNodeState.isNeighborhoodCollapsed,
         onClick: () => handlePluginAction({ type: "expandNeighborhood" }),
       },
     ];
-  }, [apiErrorLocale, handlePluginAction, hasGraphContent, selectedNodeState]);
+  }, [copyLocale, handlePluginAction, hasGraphContent, selectedNodeState]);
 
   const analysisToolbarItems = useMemo<GraphToolbarItem[]>(
     () => pluginToolbarItems.map((item) => ({
@@ -2787,15 +2795,15 @@ export function GraphWorkspace({
     }
 
     const nodeReady = Boolean(selectedNodeId && graph.hasNode(selectedNodeId));
-    const selectNodeHint = graphCopy(apiErrorLocale, "selectNodeFirst");
+    const selectNodeHint = graphCopy(copyLocale, "selectNodeFirst");
 
     return [
       {
         id: "ego-mode",
-        label: graphEgoModeLabel(apiErrorLocale, egoModeEnabled, egoMaxHops),
+        label: graphEgoModeLabel(copyLocale, egoModeEnabled, egoMaxHops),
         icon: Radar,
         title: nodeReady
-          ? graphEgoModeTitle(apiErrorLocale, egoModeEnabled, egoMaxHops)
+          ? graphEgoModeTitle(copyLocale, egoModeEnabled, egoMaxHops)
           : selectNodeHint,
         active: egoModeEnabled,
         disabled: !nodeReady,
@@ -2808,12 +2816,12 @@ export function GraphWorkspace({
       },
       {
         id: "heatmap",
-        label: graphCopy(apiErrorLocale, "heatmap"),
+        label: graphCopy(copyLocale, "heatmap"),
         icon: Flame,
         title: nodeReady
           ? heatmapEnabled
-            ? graphCopy(apiErrorLocale, "heatmapActiveTitle")
-            : graphCopy(apiErrorLocale, "heatmapTitleOff")
+            ? graphCopy(copyLocale, "heatmapActiveTitle")
+            : graphCopy(copyLocale, "heatmapTitleOff")
           : selectNodeHint,
         active: heatmapEnabled,
         disabled: !nodeReady,
@@ -2826,10 +2834,10 @@ export function GraphWorkspace({
       },
       {
         id: "dist-structural",
-        label: graphCopy(apiErrorLocale, "distStructural"),
+        label: graphCopy(copyLocale, "distStructural"),
         icon: Route,
         title: nodeReady
-          ? graphCopy(apiErrorLocale, "distStructuralTitle")
+          ? graphCopy(copyLocale, "distStructuralTitle")
           : selectNodeHint,
         active: distanceMode === "structural",
         disabled: !nodeReady,
@@ -2842,10 +2850,10 @@ export function GraphWorkspace({
       },
       {
         id: "dist-semantic",
-        label: graphCopy(apiErrorLocale, "distSemantic"),
+        label: graphCopy(copyLocale, "distSemantic"),
         icon: Sparkles,
         title: nodeReady
-          ? graphCopy(apiErrorLocale, "distSemanticTitle")
+          ? graphCopy(copyLocale, "distSemanticTitle")
           : selectNodeHint,
         active: distanceMode === "semantic",
         disabled: !nodeReady,
@@ -2858,7 +2866,7 @@ export function GraphWorkspace({
       },
     ];
   }, [
-    apiErrorLocale,
+    copyLocale,
     distanceMode,
     egoMaxHops,
     egoModeEnabled,
@@ -2871,21 +2879,21 @@ export function GraphWorkspace({
   const leftToolbarClusters = useMemo<GraphToolbarGroup[]>(() => [
     {
       id: "camera",
-      label: graphCopy(apiErrorLocale, "toolbarCamera"),
+      label: graphCopy(copyLocale, "toolbarCamera"),
       items: cameraToolbarItems,
     },
     {
       id: "layout",
-      label: graphCopy(apiErrorLocale, "toolbarLayout"),
+      label: graphCopy(copyLocale, "toolbarLayout"),
       items: layoutToolbarItems,
     },
     {
       id: "local-structure",
-      label: graphCopy(apiErrorLocale, "toolbarLocal"),
+      label: graphCopy(copyLocale, "toolbarLocal"),
       items: localToolbarItems,
     },
   ].filter((group) => group.items.length > 0), [
-    apiErrorLocale,
+    copyLocale,
     cameraToolbarItems,
     layoutToolbarItems,
     localToolbarItems,
@@ -2894,15 +2902,15 @@ export function GraphWorkspace({
   const rightToolbarClusters = useMemo<GraphToolbarGroup[]>(() => [
     {
       id: "distance",
-      label: graphCopy(apiErrorLocale, "toolbarDistance"),
+      label: graphCopy(copyLocale, "toolbarDistance"),
       items: distanceToolbarItems,
     },
     {
       id: "analysis",
-      label: graphCopy(apiErrorLocale, "toolbarAnalysis"),
+      label: graphCopy(copyLocale, "toolbarAnalysis"),
       items: analysisToolbarItems,
     },
-  ].filter((group) => group.items.length > 0), [analysisToolbarItems, apiErrorLocale, distanceToolbarItems]);
+  ].filter((group) => group.items.length > 0), [analysisToolbarItems, copyLocale, distanceToolbarItems]);
 
   const sceneAdapterProps = {
     onNodeSelect: focusNode,
@@ -2955,7 +2963,7 @@ export function GraphWorkspace({
                     {...sceneAdapterProps}
                   />
                   <GraphLoadingOverlay
-                    locale={apiErrorLocale}
+                    locale={copyLocale}
                     progress={loadingProgress}
                     visible={showLoadingOverlay}
                     showGraphBehind={hasGraphContent || Boolean(loadingProgress?.showGraphBehind)}
@@ -2969,16 +2977,16 @@ export function GraphWorkspace({
                     >
                       <div className="pointer-events-auto max-w-md rounded-lg border bg-background/95 p-5 text-center shadow-sm">
                         <p className="text-sm font-medium text-foreground">
-                          {graphCopy(apiErrorLocale, "emptyGraphTitle")}
+                          {graphCopy(copyLocale, "emptyGraphTitle")}
                         </p>
                         <p className="mt-2 text-xs text-muted-foreground">
-                          {graphCopy(apiErrorLocale, "emptyGraphBody")}
+                          {graphCopy(copyLocale, "emptyGraphBody")}
                         </p>
                         <a
                           className="mt-4 inline-flex text-sm font-medium text-primary underline-offset-4 hover:underline"
                           href={`/kbs/${kbId}/sources`}
                         >
-                          {graphCopy(apiErrorLocale, "emptyGraphLink")}
+                          {graphCopy(copyLocale, "emptyGraphLink")}
                         </a>
                       </div>
                     </div>
@@ -2988,7 +2996,7 @@ export function GraphWorkspace({
 
               {showTimelinePanel && temporalBounds?.min ? (
                 <div className="explore-scene-footer">
-                  <Suspense fallback={<div style={timelineFallbackStyle}>{graphCopy(apiErrorLocale, "timelineLoading")}</div>}>
+                  <Suspense fallback={<div style={timelineFallbackStyle}>{graphCopy(copyLocale, "timelineLoading")}</div>}>
                     <LazyTimelinePanel
                       onTimeChange={onTimeChange}
                       minDate={temporalBounds.min}
@@ -3007,12 +3015,12 @@ export function GraphWorkspace({
                   <Suspense
                     fallback={
                       <div style={inspectorFallbackStyle}>
-                        {inspectorCopy(apiErrorLocale, "loadingInspector")}
+                        {inspectorCopy(copyLocale, "loadingInspector")}
                       </div>
                     }
                   >
                     <LazyGraphInspectorPanel
-                      locale={apiErrorLocale}
+                      locale={copyLocale}
                       kbId={kbId}
                       graphWriteEnabled={graphWriteEnabled}
                       decisionsEnabled={decisionsEnabled}
@@ -3045,7 +3053,7 @@ export function GraphWorkspace({
         <div className="explore-hud-layer">
           <section className="explore-search-dock" aria-label="Graph search">
             <GraphSearchDock
-              locale={apiErrorLocale}
+              locale={copyLocale}
               kbId={kbId}
               query={searchQuery}
               onQueryChange={setSearchQuery}
@@ -3072,7 +3080,7 @@ export function GraphWorkspace({
 
           <section className="explore-status-dock" aria-label="Graph status">
             <GraphStatusDock
-              locale={apiErrorLocale}
+              locale={copyLocale}
               showLoadingStatus={(showLoadingOverlay || showSettlingStatus) && Boolean(loadingProgress)}
               loadingPhase={loadingProgress?.phase}
               summary={summary ?? null}

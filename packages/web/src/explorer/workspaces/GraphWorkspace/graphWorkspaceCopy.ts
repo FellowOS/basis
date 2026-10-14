@@ -144,6 +144,10 @@ const MESSAGES = {
   searchReloadTitle: { zh: "重新加载图谱数据", en: "Reload graph data" },
   searchDismiss: { zh: "关闭", en: "Dismiss" },
   searchDismissAria: { zh: "关闭搜索结果", en: "Dismiss search results" },
+  apiSearchFailed: { zh: "搜索失败", en: "Search failed" },
+  apiLinkPredictionFailed: { zh: "链路预测失败", en: "Link prediction failed" },
+  apiPathLookupFailed: { zh: "路径查询失败", en: "Path lookup failed" },
+  apiProvenanceReportFailed: { zh: "溯源报告失败", en: "Provenance report failed" },
 } satisfies Record<string, CopyPair>;
 
 export function graphEgoModeLabel(

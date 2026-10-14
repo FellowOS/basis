@@ -396,7 +396,7 @@ Acceptance:
 - localize messages in Web;
 - stop exposing raw server strings.
 
-**Status:** partial — coded `detail` no longer surfaces raw server `message` in clients; KB graph embed uses `apiErrorLocale` for API errors, `graphWorkspaceCopy` / `graphViewCopy` for workspace chrome, and `graphInspectorCopy` for the lazy inspector (path intel, actions, decisions fetch errors); Ontology + shell covered; remaining: more backend 4xx codes, standalone Explorer default locale vs i18n provider.
+**Status:** partial — coded `detail` no longer surfaces raw server `message` in clients; graph workspace copy/API fallbacks use `graphWorkspaceCopy` / `graphViewCopy` / `graphInspectorCopy` with locale from `apiErrorLocale` override or app i18n; Ontology + shell covered; remaining: more backend 4xx codes.
 
 ### X-02 — Request IDs and structured logging
 
