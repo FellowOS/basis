@@ -135,7 +135,7 @@ uv sync --extra dev
 uv run pytest -q
 ```
 
-图谱 Explorer 相关 UI 闭环与手测清单见 [docs/design/graph-workspace-closure.md](docs/design/graph-workspace-closure.md)。
+图谱 Explorer 相关 UI 闭环见 [docs/design/graph-workspace-closure.md](docs/design/graph-workspace-closure.md)；发布前手测见 [docs/ops/smoke-test.md](docs/ops/smoke-test.md)。Realtime WS 部署说明见 [docs/ops/realtime-websocket.md](docs/ops/realtime-websocket.md)。
 
 ```bash
 pnpm install

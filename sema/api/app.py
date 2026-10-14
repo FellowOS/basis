@@ -91,7 +91,8 @@ async def _app_lifespan(app: FastAPI):
                 pass
         executor = getattr(app.state, "ingest_executor", None)
         if executor is not None:
-            executor.shutdown(wait=False, cancel_futures=True)
+            # Let in-flight ingest finish while the process still has DB handles open.
+            executor.shutdown(wait=True, cancel_futures=False)
 
 
 def create_app(app_settings: Settings | None = None) -> FastAPI:
