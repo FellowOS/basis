@@ -54,8 +54,6 @@ export function KbMappingsPage() {
   const navigate = useNavigate();
   const { getKb } = useKbCatalog();
   const kb = id ? getKb(id) : undefined;
-  const canEdit = ['owner', 'admin', 'editor'].includes(kb?.my_role ?? '');
-
   const [rows, setRows] = useState<MappingRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
