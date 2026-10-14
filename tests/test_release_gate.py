@@ -171,6 +171,9 @@ def test_viewer_cannot_upload_or_create_documents(tmp_path) -> None:
     )
     assert denied_upload.status_code == 403
 
+    denied_rebuild = client.post(f"/api/kbs/{kb_id}/graph/rebuild", headers=viewer_headers)
+    assert denied_rebuild.status_code == 403
+
 
 def test_ledger_and_projection_survive_app_restart(tmp_path) -> None:
     """§9.3 / §9.8 — canonical data on disk survives a new API process."""

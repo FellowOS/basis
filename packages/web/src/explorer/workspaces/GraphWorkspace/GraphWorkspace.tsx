@@ -2083,6 +2083,13 @@ export function GraphWorkspace({
   const showLoadingOverlay = !graphReady && (isLoading || isFetching || Boolean(loadingProgress) || isGraphLoadError);
   const showSettlingStatus = graphReady && loadingProgress?.phase === "stabilizing_layout";
   const hasGraphContent = Boolean(summary?.nodeCount);
+  const graphLoadInfoMessage =
+    summary?.loadTruncated && kbId
+      ? "Showing the first 200 nodes and 400 edges for this knowledge base. Rebuild or use search to focus on specific entities."
+      : undefined;
+  const showEmptyKbGraphHint = Boolean(
+    kbId && graphReady && summary && summary.nodeCount === 0 && !showLoadingOverlay,
+  );
   const activePath = pathResult?.path ?? EMPTY_PATH;
   const activePathEdgeIds = pathResult?.edge_ids ?? EMPTY_PATH;
   const structuralSelectedNodeId = useMemo(() => {
@@ -2940,6 +2947,25 @@ export function GraphWorkspace({
                     error={graphLoadErrorMessage}
                     onRetry={handleRetryGraphLoad}
                   />
+                  {showEmptyKbGraphHint ? (
+                    <div
+                      className="pointer-events-none absolute inset-0 flex items-center justify-center p-6"
+                      role="status"
+                    >
+                      <div className="pointer-events-auto max-w-md rounded-lg border bg-background/95 p-5 text-center shadow-sm">
+                        <p className="text-sm font-medium text-foreground">No graph nodes yet</p>
+                        <p className="mt-2 text-xs text-muted-foreground">
+                          Upload documents and run processing, then rebuild the projection if needed.
+                        </p>
+                        <a
+                          className="mt-4 inline-flex text-sm font-medium text-primary underline-offset-4 hover:underline"
+                          href={`/kbs/${kbId}/sources`}
+                        >
+                          Go to library
+                        </a>
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
               </div>
 
@@ -3048,6 +3074,7 @@ export function GraphWorkspace({
             onReload={reload}
             reloadDisabled={showLoadingOverlay}
             trailingActions={graphDataActions}
+            infoMessage={graphLoadInfoMessage}
           />
         </section>
 

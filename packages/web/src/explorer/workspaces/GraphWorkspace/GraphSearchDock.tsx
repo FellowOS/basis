@@ -234,6 +234,7 @@ export function GraphSearchDock({
   searchResults,
   onClearResults,
   onSelectResult,
+  infoMessage,
 }: {
   kbId?: string;
   query: string;
@@ -248,6 +249,7 @@ export function GraphSearchDock({
   searchResults: GraphSearchResult[];
   onClearResults: () => void;
   onSelectResult: (result: GraphSearchResult) => void;
+  infoMessage?: string;
 }) {
   return (
     <div className="flex w-full min-w-0 flex-col gap-2">
@@ -275,6 +277,10 @@ export function GraphSearchDock({
           {trailingActions}
         </div>
       </div>
+
+      {infoMessage ? (
+        <div className="text-xs text-muted-foreground" role="status">{infoMessage}</div>
+      ) : null}
 
       {searchError ? <div className="text-xs text-destructive">{searchError}</div> : null}
 

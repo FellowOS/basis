@@ -379,7 +379,7 @@ Work:
 - connect realtime updates and revision refetch;
 - respect viewer permissions.
 
-**Status:** partial — Explorer `GraphWorkspace` embedded when `explorer_runtime`; timeline + search/focus; direct graph merge/import blocked (`409` → review queue). Remaining: polish empty/error states; unbounded fetch guards (X-04).
+**Status:** partial — Explorer `GraphWorkspace` embedded when `explorer_runtime`; timeline + search/focus; direct graph merge/import blocked (`409` → review queue); KB embed caps initial node/edge fetch (200/400) with UI notice when truncated; empty-graph hint links to library. Remaining: richer error copy (X-01).
 
 Acceptance:
 
@@ -444,6 +444,10 @@ The slice is complete only when:
 
 Review, mappings, SPARQL, Decision, chat, and ontology editing follow this foundation and must not
 introduce a second source of truth.
+
+**Automated coverage (partial):** `tests/test_release_gate.py`, `tests/test_graph_page_limits.py`,
+`tests/test_legacy_graph_migration.py`, `tests/test_ws_hub.py`, `tests/test_realtime_ws.py`, and
+`packages/web/src/explorer/host/explorerHttp.test.ts`.
 
 ## 10. Engineering debt (post graph-closure)
 

@@ -359,13 +359,14 @@ async function fetchAllNodes(
   signal: AbortSignal,
   kbId?: string,
   onProgress?: (progress: GraphLoadProgress) => void,
-): Promise<ApiNode[]> {
+): Promise<{ nodes: ApiNode[]; truncated: boolean }> {
   let cursor: string | null = null;
   const collected: ApiNode[] = [];
   let total: number | null = null;
 
   const pageLimit = pageLimitForGraphLoad(kbId);
   const maxNodes = maxNodesForGraphLoad(kbId);
+  let truncated = false;
 
   while (true) {
     const url = new URL(buildExplorerGraphApiPath("nodes", kbId), window.location.origin);
@@ -388,6 +389,9 @@ async function fetchAllNodes(
     const remaining = maxNodes === null ? data.nodes.length : Math.max(0, maxNodes - collected.length);
     collected.push(...data.nodes.slice(0, remaining));
     if (maxNodes !== null && collected.length >= maxNodes) {
+      if (data.next_cursor || (total !== null && total > collected.length)) {
+        truncated = true;
+      }
       break;
     }
     onProgress?.(createGraphLoadProgress({
@@ -411,7 +415,7 @@ async function fetchAllNodes(
     await yieldToMain();
   }
 
-  return collected;
+  return { nodes: collected, truncated };
 }
 
 async function fetchAllEdges(
@@ -420,7 +424,7 @@ async function fetchAllEdges(
   nodeProgress: { loaded: number; total: number | null },
   kbId?: string,
   onProgress?: (progress: GraphLoadProgress) => void,
-): Promise<ApiEdge[]> {
+): Promise<{ edges: ApiEdge[]; truncated: boolean }> {
   let cursor: string | null = null;
   const collected: ApiEdge[] = [];
   const seenEdgeIds = new Set<string>();
@@ -429,6 +433,7 @@ async function fetchAllEdges(
 
   const pageLimit = pageLimitForGraphLoad(kbId);
   const maxEdges = maxEdgesForGraphLoad(kbId);
+  let truncated = false;
 
   while (true) {
     const url = new URL(buildExplorerGraphApiPath("edges", kbId), window.location.origin);
@@ -461,6 +466,9 @@ async function fetchAllEdges(
     const room = maxEdges === null ? validEdges.length : Math.max(0, maxEdges - collected.length);
     collected.push(...validEdges.slice(0, room));
     if (maxEdges !== null && collected.length >= maxEdges) {
+      if (data.next_cursor || (total !== null && total > collected.length)) {
+        truncated = true;
+      }
       break;
     }
     const safeLoaded = total ? Math.min(seenEdgeIds.size, total) : seenEdgeIds.size;
@@ -492,7 +500,7 @@ async function fetchAllEdges(
     await yieldToMain();
   }
 
-  return collected;
+  return { edges: collected, truncated };
 }
 
 function yieldToMain(): Promise<void> {
@@ -529,15 +537,17 @@ export function useLoadGraph(options: UseLoadGraphOptions = {}) {
         message: "Preparing graph session",
       }));
 
-      const fetchedNodes = await fetchAllNodes(signal, kbId, onProgress);
+      const nodeFetch = await fetchAllNodes(signal, kbId, onProgress);
+      const fetchedNodes = nodeFetch.nodes;
       const nodeIds = new Set(fetchedNodes.map((node) => node.id));
-      const fetchedEdges = await fetchAllEdges(
+      const edgeFetch = await fetchAllEdges(
         signal,
         nodeIds,
         { loaded: fetchedNodes.length, total: fetchedNodes.length },
         kbId,
         onProgress,
       );
+      const fetchedEdges = edgeFetch.edges;
 
       const degreeByNode = new Map<string, number>();
       for (const nodeId of nodeIds) {
@@ -755,6 +765,7 @@ export function useLoadGraph(options: UseLoadGraphOptions = {}) {
         hasCoordinates: useProvidedCoordinates,
         layoutSource: useProvidedCoordinates ? "provided" : "runtime",
         layoutReady,
+        loadTruncated: Boolean(kbId && (nodeFetch.truncated || edgeFetch.truncated)),
       } satisfies GraphLoadSummary;
 
       onProgress?.(createGraphLoadProgress({
