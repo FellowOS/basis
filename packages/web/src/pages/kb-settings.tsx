@@ -28,7 +28,7 @@ import { KbGraphProjectionPanel } from '@/components/kb-graph-projection-panel.j
 import { useKbCatalog } from '@/lib/kb-context.js';
 import { useKbCapabilities } from '@/lib/kb-capabilities.js';
 import { api } from '@/lib/api.js';
-import { formatUserFacingApiError } from '@/lib/api-error-message.js';
+import { useApiErrorMessage } from '@/lib/use-api-error-message.js';
 
 type Member = {
   user_id: string;
@@ -84,10 +84,7 @@ export function KbSettingsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { t, locale } = useI18n();
   const zh = locale === 'zh';
-  const apiError = useCallback(
-    (err: unknown) => formatUserFacingApiError(err, zh ? 'zh' : 'en'),
-    [zh],
-  );
+  const apiError = useApiErrorMessage();
   const { getKb, refresh: refreshKbs } = useKbCatalog();
   const { caps } = useKbCapabilities();
   const tab = searchParams.get('tab') ?? 'general';

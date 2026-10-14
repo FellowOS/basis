@@ -13,6 +13,7 @@ pytest.importorskip("semantica")
 from fastapi.testclient import TestClient
 
 from sema.api.app import create_app
+from sema.capabilities import explorer_available
 from sema.config import Settings
 
 
@@ -173,6 +174,41 @@ def test_viewer_cannot_upload_or_create_documents(tmp_path) -> None:
 
     denied_rebuild = client.post(f"/api/kbs/{kb_id}/graph/rebuild", headers=viewer_headers)
     assert denied_rebuild.status_code == 403
+
+
+def test_viewer_cannot_apply_reasoning_to_graph(tmp_path) -> None:
+    """§9.4 — viewers may run dry-run reasoning but not mutate the graph."""
+    if not explorer_available():
+        pytest.skip("explorer extra not installed")
+
+    client = TestClient(create_app(_settings(tmp_path)))
+    owner_headers = _register(client, "owner-reason@example.com")
+    kb_id = client.get("/api/kbs", headers=owner_headers).json()["kbs"][0]["id"]
+    viewer_headers = _viewer_headers(client, owner_headers, kb_id)
+
+    dry_run = client.post(
+        f"/api/kbs/{kb_id}/reasoning/run",
+        headers=viewer_headers,
+        json={
+            "facts": ["inhibits(A, B)"],
+            "rules": ["IF inhibits(A, B) THEN related(A, B)"],
+            "mode": "forward",
+            "apply_to_graph": False,
+        },
+    )
+    assert dry_run.status_code == 200
+
+    denied_apply = client.post(
+        f"/api/kbs/{kb_id}/reasoning/run",
+        headers=viewer_headers,
+        json={
+            "facts": ["inhibits(A, B)"],
+            "rules": ["IF inhibits(A, B) THEN related(A, B)"],
+            "mode": "forward",
+            "apply_to_graph": True,
+        },
+    )
+    assert denied_apply.status_code == 403
 
 
 def test_ledger_and_projection_survive_app_restart(tmp_path) -> None:

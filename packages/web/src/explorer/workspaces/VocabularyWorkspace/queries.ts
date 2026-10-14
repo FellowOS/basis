@@ -1,17 +1,24 @@
 // queries.ts
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { explorerFetch } from '../../host/explorerHttp';
+import { errorFromApiResponse } from '@/lib/api-error.js';
 import type { VocabularyScheme, ConceptNode, ImportResponse } from './types';
+
+async function throwIfExplorerNotOk(res: Response, fallback: string): Promise<void> {
+  if (res.ok) return;
+  const body = await res.json().catch(() => ({}));
+  throw errorFromApiResponse(res.status, body, fallback);
+}
 
 const fetchSchemes = async (): Promise<VocabularyScheme[]> => {
   const res = await explorerFetch('/api/vocabulary/schemes');
-  if (!res.ok) throw new Error('Failed to fetch vocabularies');
+  await throwIfExplorerNotOk(res, 'Failed to fetch vocabularies');
   return res.json();
 };
 
 const fetchHierarchy = async (schemeUri: string): Promise<ConceptNode[]> => {
   const res = await explorerFetch(`/api/vocabulary/hierarchy?scheme=${encodeURIComponent(schemeUri)}`);
-  if (!res.ok) throw new Error('Failed to fetch hierarchy');
+  await throwIfExplorerNotOk(res, 'Failed to fetch hierarchy');
   return res.json();
 };
 
@@ -23,8 +30,8 @@ const importVocabulary = async (file: File): Promise<ImportResponse> => {
     method: 'POST',
     body: formData,
   });
-  if (!res.ok) throw new Error('Failed to import vocabulary');
-  return res.json(); 
+  await throwIfExplorerNotOk(res, 'Failed to import vocabulary');
+  return res.json();
 };
 
 export const useVocabularies = () => {

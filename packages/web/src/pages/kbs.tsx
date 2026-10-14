@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input.js';
 import { Label } from '@/components/ui/label.js';
 import { api } from '@/lib/api.js';
 import { useKbCatalog } from '@/lib/kb-context.js';
+import { useApiErrorMessage } from '@/lib/use-api-error-message.js';
 
 type Kb = {
   id: string;
@@ -24,13 +25,14 @@ type Kb = {
 };
 
 export function KbsPage() {
+  const apiError = useApiErrorMessage();
   const { kbs, refresh } = useKbCatalog();
   const [name, setName] = useState('');
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    void refresh().catch((err) => setError(err instanceof Error ? err.message : '加载失败'));
-  }, [refresh]);
+    void refresh().catch((err) => setError(apiError(err)));
+  }, [refresh, apiError]);
 
   async function onCreate(event: FormEvent) {
     event.preventDefault();
@@ -43,7 +45,7 @@ export function KbsPage() {
       setName('');
       await refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : '创建失败');
+      setError(apiError(err));
     }
   }
 

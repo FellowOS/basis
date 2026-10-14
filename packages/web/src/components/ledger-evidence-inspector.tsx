@@ -7,6 +7,7 @@ import { useI18n } from '@/i18n/context.js';
 import { api } from '@/lib/api.js';
 import { useKbNodeLabels } from '@/lib/kb-node-labels.js';
 import { kbPath } from '@/lib/nav-config.js';
+import { useApiErrorMessage } from '@/lib/use-api-error-message.js';
 
 type ChunkSummary = { id: string; ordinal: number; text: string };
 
@@ -30,6 +31,7 @@ type ChunkStatement = {
 
 export function LedgerEvidenceInspector({ kbId }: { kbId: string }) {
   const { locale } = useI18n();
+  const apiError = useApiErrorMessage();
   const [searchParams, setSearchParams] = useSearchParams();
   const docRef = searchParams.get('doc')?.trim() || null;
   const chunkId = searchParams.get('chunk')?.trim() || null;
@@ -79,7 +81,7 @@ export function LedgerEvidenceInspector({ kbId }: { kbId: string }) {
       })
       .catch((err) => {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : 'Failed to load');
+          setError(apiError(err));
           setDocChunks([]);
         }
       })
@@ -89,7 +91,7 @@ export function LedgerEvidenceInspector({ kbId }: { kbId: string }) {
     return () => {
       cancelled = true;
     };
-  }, [kbId, docRef, chunkId]);
+  }, [kbId, docRef, chunkId, apiError]);
 
   useEffect(() => {
     if (!chunkId) {
@@ -111,7 +113,7 @@ export function LedgerEvidenceInspector({ kbId }: { kbId: string }) {
       })
       .catch((err) => {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : 'Failed to load');
+          setError(apiError(err));
           setChunk(null);
           setStatements([]);
         }
@@ -122,7 +124,7 @@ export function LedgerEvidenceInspector({ kbId }: { kbId: string }) {
     return () => {
       cancelled = true;
     };
-  }, [kbId, chunkId]);
+  }, [kbId, chunkId, apiError]);
 
   function clearEvidenceParams() {
     const next = new URLSearchParams(searchParams);

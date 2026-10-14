@@ -152,6 +152,10 @@ const MESSAGES = {
     zh: "图谱投影已更新，正在重新加载…",
     en: "Graph projection updated — reloading…",
   },
+  viewerReadOnly: {
+    zh: "只读浏览",
+    en: "View only",
+  },
 } satisfies Record<string, CopyPair>;
 
 export function graphEgoModeLabel(

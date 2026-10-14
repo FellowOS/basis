@@ -16,6 +16,7 @@ import {
 import { Switch } from '@/components/ui/switch.js';
 import { useI18n } from '@/i18n/context.js';
 import { api } from '@/lib/api.js';
+import { useApiErrorMessage } from '@/lib/use-api-error-message.js';
 import { cn } from '@/lib/utils.js';
 
 export type ConfiguredModel = {
@@ -37,6 +38,7 @@ type Props = {
 
 export function ModelCatalogTab({ kind, title, subtitle }: Props) {
   const { t } = useI18n();
+  const apiError = useApiErrorMessage();
   const m = t.models;
   const [models, setModels] = useState<ConfiguredModel[]>([]);
   const [loading, setLoading] = useState(true);
@@ -49,12 +51,12 @@ export function ModelCatalogTab({ kind, title, subtitle }: Props) {
       const body = await api<{ models: ConfiguredModel[] }>(`/api/models?kind=${kind}`);
       setModels(body.models);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : m.loadFailed);
+      toast.error(apiError(err));
       setModels([]);
     } finally {
       setLoading(false);
     }
-  }, [kind, m.loadFailed]);
+  }, [kind, apiError]);
 
   useEffect(() => {
     void load();
@@ -73,7 +75,7 @@ export function ModelCatalogTab({ kind, title, subtitle }: Props) {
       });
       setModels((prev) => prev.map((row) => (row.id === model.id ? body.model : row)));
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : m.saveFailed);
+      toast.error(apiError(err));
     } finally {
       setBusyId(null);
     }
@@ -86,7 +88,7 @@ export function ModelCatalogTab({ kind, title, subtitle }: Props) {
       toast.success(m.removedToast);
       await load();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : m.saveFailed);
+      toast.error(apiError(err));
     } finally {
       setBusyId(null);
     }

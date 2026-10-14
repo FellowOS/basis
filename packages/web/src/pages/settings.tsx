@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button.js';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card.js';
 import { useI18n } from '@/i18n/context.js';
 import { api } from '@/lib/api.js';
+import { useApiErrorMessage } from '@/lib/use-api-error-message.js';
 
 type Settings = {
   open_registration: boolean;
@@ -11,14 +12,15 @@ type Settings = {
 
 export function SettingsPage() {
   const { t } = useI18n();
+  const apiError = useApiErrorMessage();
   const [settings, setSettings] = useState<Settings | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     api<Settings & Record<string, unknown>>('/api/settings')
       .then((body) => setSettings({ open_registration: body.open_registration }))
-      .catch((err) => setError(err instanceof Error ? err.message : '加载失败'));
-  }, []);
+      .catch((err) => setError(apiError(err)));
+  }, [apiError]);
 
   async function onSave(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -33,7 +35,7 @@ export function SettingsPage() {
       });
       setSettings({ open_registration: body.open_registration });
     } catch (err) {
-      setError(err instanceof Error ? err.message : '保存失败');
+      setError(apiError(err));
     }
   }
 

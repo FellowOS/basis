@@ -2,6 +2,8 @@ import { useState, useRef } from "react";
 import Editor, { useMonaco } from "@monaco-editor/react";
 import { Play, Copy, Download, Table2, AlertCircle, FileCode2 } from "lucide-react";
 import { buildExplorerKbApiPath, explorerFetch } from "../../host/explorerHttp";
+import { errorFromApiResponse } from "@/lib/api-error.js";
+import { useApiErrorMessage } from "@/lib/use-api-error-message.js";
 
 const TEMPLATES: { label: string; query: string }[] = [
   { label: "All triples", query: "SELECT ?s ?p ?o\nWHERE {\n  ?s ?p ?o\n}\nLIMIT 20" },
@@ -11,6 +13,7 @@ const TEMPLATES: { label: string; query: string }[] = [
 ];
 
 export function SparqlWorkspace({ kbId }: { kbId?: string } = {}) {
+  const apiError = useApiErrorMessage();
   const monaco = useMonaco();
   const editorRef = useRef<unknown>(null);
   const [query, setQuery] = useState(TEMPLATES[0].query);
@@ -75,9 +78,16 @@ export function SparqlWorkspace({ kbId }: { kbId?: string } = {}) {
       });
       if (!res.headers.get("content-type")?.includes("application/json")) {
         const text = await res.text();
-        throw new Error(`HTTP ${res.status}: ${text.substring(0, 100)}`);
+        throw errorFromApiResponse(
+          res.status,
+          { detail: { message: text.substring(0, 200) } },
+          `HTTP ${res.status}`,
+        );
       }
       const data = await res.json();
+      if (!res.ok) {
+        throw errorFromApiResponse(res.status, data, `HTTP ${res.status}`);
+      }
       if (res.status === 207) {
         data.error = data.message || "Warning: Partial success running query.";
       }
@@ -96,8 +106,7 @@ export function SparqlWorkspace({ kbId }: { kbId?: string } = {}) {
       }
       setResult(data);
     } catch (e) {
-      const msg = e instanceof Error ? e.message : "Network error — could not reach the SPARQL endpoint.";
-      setResult({ error: msg });
+      setResult({ error: apiError(e) });
     } finally {
       setIsLoading(false);
     }

@@ -6,6 +6,8 @@
  */
 import { useState, useEffect, useCallback } from "react";
 import { Network, RefreshCw, Loader2 } from "lucide-react";
+import { errorFromApiResponse } from "@/lib/api-error.js";
+import { useApiErrorMessage } from "@/lib/use-api-error-message.js";
 
 interface KGStats {
   node_count: number;
@@ -66,6 +68,7 @@ function buildTypeMap(nodes: NodeItem[], key: keyof NodeItem): Record<string, nu
 }
 
 export function KGOverviewTab() {
+  const apiError = useApiErrorMessage();
   const [stats, setStats] = useState<KGStats | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -81,20 +84,32 @@ export function KGOverviewTab() {
         fetch("/api/graph/nodes?limit=500"),
       ]);
 
-      if (!statsRes.ok) throw new Error(`Stats fetch failed (${statsRes.status})`);
-      if (!nodesRes.ok) throw new Error(`Nodes fetch failed (${nodesRes.status})`);
+      const statsData = (await statsRes.json().catch(() => ({}))) as KGStats;
+      if (!statsRes.ok) {
+        throw errorFromApiResponse(
+          statsRes.status,
+          statsData,
+          `Stats fetch failed (${statsRes.status})`,
+        );
+      }
+      const nodesData = (await nodesRes.json().catch(() => ({}))) as NodeListResponse;
+      if (!nodesRes.ok) {
+        throw errorFromApiResponse(
+          nodesRes.status,
+          nodesData,
+          `Nodes fetch failed (${nodesRes.status})`,
+        );
+      }
 
-      const statsData: KGStats = await statsRes.json();
       setStats(statsData);
       if (statsRes.status === 207) {
         setError((statsData as any).message || "Warning: Partial success loading stats.");
       }
 
-      const nodesData: NodeListResponse = await nodesRes.json();
       const nodes = nodesData.nodes ?? [];
       setNodeTypeMap(buildTypeMap(nodes, "type"));
       if (nodesRes.status === 207) {
-        const nodesMessage = (nodesData as any).message || "Warning: Partial success loading nodes.";
+        const nodesMessage = (nodesData as { message?: string }).message || "Warning: Partial success loading nodes.";
         setError((prev) => (prev ? `${prev} ${nodesMessage}` : nodesMessage));
       }
 
@@ -115,11 +130,11 @@ export function KGOverviewTab() {
         setTopNodes(sorted);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load graph overview. Ensure the server is running.");
+      setError(apiError(err));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [apiError]);
 
   useEffect(() => {
     let ignore = false;
@@ -134,18 +149,29 @@ export function KGOverviewTab() {
           fetch("/api/graph/nodes?limit=500"),
         ]);
 
-        if (!statsRes.ok) throw new Error(`Stats fetch failed (${statsRes.status})`);
-        if (!nodesRes.ok) throw new Error(`Nodes fetch failed (${nodesRes.status})`);
+        const statsData = (await statsRes.json().catch(() => ({}))) as KGStats;
+        if (!statsRes.ok) {
+          throw errorFromApiResponse(
+            statsRes.status,
+            statsData,
+            `Stats fetch failed (${statsRes.status})`,
+          );
+        }
+        const nodesData = (await nodesRes.json().catch(() => ({}))) as NodeListResponse;
+        if (!nodesRes.ok) {
+          throw errorFromApiResponse(
+            nodesRes.status,
+            nodesData,
+            `Nodes fetch failed (${nodesRes.status})`,
+          );
+        }
 
-        const statsData: KGStats = await statsRes.json();
         if (!ignore) {
           setStats(statsData);
           if (statsRes.status === 207) {
             setError((statsData as { message?: string }).message || "Warning: Partial success loading stats.");
           }
         }
-
-        const nodesData: NodeListResponse = await nodesRes.json();
         const nodes = nodesData.nodes ?? [];
         if (!ignore) {
           setNodeTypeMap(buildTypeMap(nodes, "type"));
@@ -172,14 +198,14 @@ export function KGOverviewTab() {
           if (!ignore) setTopNodes(sorted);
         }
       } catch (err) {
-        if (!ignore) setError(err instanceof Error ? err.message : "Failed to load graph overview. Ensure the server is running.");
+        if (!ignore) setError(apiError(err));
       } finally {
         if (!ignore) setLoading(false);
       }
     }
     void fetchInitial();
     return () => { ignore = true; };
-  }, []);
+  }, [apiError]);
 
   const nodeTypeEntries = Object.entries(nodeTypeMap).sort((a, b) => b[1] - a[1]);
   const edgeTypeEntries = stats?.edge_types

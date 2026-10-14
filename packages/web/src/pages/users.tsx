@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input.js';
 import { Label } from '@/components/ui/label.js';
 import { Spinner } from '@/components/ui/spinner.js';
 import { api } from '@/lib/api.js';
+import { useApiErrorMessage } from '@/lib/use-api-error-message.js';
 
 type UserRow = {
   id: string;
@@ -22,6 +23,7 @@ type UserRow = {
 };
 
 export function UsersPage() {
+  const apiError = useApiErrorMessage();
   const [users, setUsers] = useState<UserRow[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -37,8 +39,8 @@ export function UsersPage() {
   }
 
   useEffect(() => {
-    load().catch((err) => setError(err instanceof Error ? err.message : '加载失败'));
-  }, []);
+    load().catch((err) => setError(apiError(err)));
+  }, [apiError]);
 
   async function onCreate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -57,7 +59,7 @@ export function UsersPage() {
       event.currentTarget.reset();
       await load();
     } catch (err) {
-      setError(err instanceof Error ? err.message : '创建失败');
+      setError(apiError(err));
     }
   }
 

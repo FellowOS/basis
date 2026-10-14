@@ -20,6 +20,7 @@ import {
   TableRow,
 } from '@/components/ui/table.js';
 import { api } from '@/lib/api.js';
+import { useApiErrorMessage } from '@/lib/use-api-error-message.js';
 
 type Member = {
   user_id: string;
@@ -31,6 +32,7 @@ type Member = {
 type UserRow = { id: string; email: string; display_name: string };
 
 export function KbDetailPage() {
+  const apiError = useApiErrorMessage();
   const { id } = useParams();
   const [kb, setKb] = useState<{ name: string; my_role: string } | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
@@ -51,8 +53,8 @@ export function KbDetailPage() {
         setMembers(membersBody.members);
         setUsers(usersBody.users);
       })
-      .catch((err) => setError(err instanceof Error ? err.message : '加载失败'));
-  }, [id]);
+      .catch((err) => setError(apiError(err)));
+  }, [id, apiError]);
 
   async function addMember() {
     if (!id || !targetUser) return;
@@ -65,7 +67,7 @@ export function KbDetailPage() {
       const body = await api<{ members: Member[] }>(`/api/kbs/${id}/members`);
       setMembers(body.members);
     } catch (err) {
-      setError(err instanceof Error ? err.message : '更新失败');
+      setError(apiError(err));
     }
   }
 

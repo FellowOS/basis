@@ -167,6 +167,12 @@ short-lived one-time ticket:
 4. ticket is consumed once; the accepted connection remains bound to user + KB;
 5. role/KB deletion closes matching sockets.
 
+After ingest or `POST .../graph/rebuild`, the hub broadcasts
+`{"type":"projection_updated","kb_id":"...","projection_revision":N}`. The embedded
+`GraphWorkspace` treats this as a full graph reload (same path as manual reload), with revision
+dedup so duplicate events are ignored. Contract tests: `tests/test_realtime_ws.py` (server) and
+`graphRealtimeMessages.test.ts` + `graphProjectionRefresh.test.ts` (web).
+
 Do not put a reusable JWT or API token in a WebSocket query string.
 
 ## 5. Sema HTTP and WebSocket contract

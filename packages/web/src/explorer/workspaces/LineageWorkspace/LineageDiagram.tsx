@@ -2,6 +2,8 @@
  * src/workspaces/LineageWorkspace/LineageDiagram.tsx
  */
 import { useEffect, useState } from "react";
+import { errorFromApiResponse } from "@/lib/api-error.js";
+import { useApiErrorMessage } from "@/lib/use-api-error-message.js";
 import { Link2 } from "lucide-react";
 import { ReactFlow, Background, Controls } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
@@ -29,6 +31,7 @@ const THEME_CSS = `
 `;
 
 export function LineageDiagram() {
+  const apiError = useApiErrorMessage();
   const [nodes, setNodes] = useState<any[]>([]);
   const [edges, setEdges] = useState<any[]>([]);
   const [searchId, setSearchId] = useState("");
@@ -76,8 +79,12 @@ export function LineageDiagram() {
         const res = await fetch("/api/provenance?node_id=" + encodeURIComponent(activeId));
 
         if (!res.ok) {
-          const text = await res.text();
-          throw new Error(`HTTP ${res.status}: API Route missing or failed. ${text.substring(0, 100)}`);
+          const body = await res.json().catch(() => ({}));
+          throw errorFromApiResponse(
+            res.status,
+            body,
+            `Lineage fetch failed (${res.status})`,
+          );
         }
 
         const contentType = res.headers.get("content-type");
@@ -119,12 +126,12 @@ export function LineageDiagram() {
           setEdges(mappedEdges);
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load lineage.");
+        setError(apiError(err));
       }
     };
     void fetchLineage();
     return () => { ignore = true; };
-  }, [activeId]);
+  }, [activeId, apiError]);
 
   return (
     <div style={{ width: "100%", height: "100%", position: "relative", background: "var(--ws-bg, #060d1a)" }}>

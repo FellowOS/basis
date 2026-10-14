@@ -1,3 +1,5 @@
+from io import BytesIO
+
 import pytest
 
 pytest.importorskip("semantica")
@@ -59,6 +61,32 @@ def test_rebuild_emits_projection_updated_on_websocket(tmp_path) -> None:
         event = ws.receive_json()
         assert event["type"] == "projection_updated"
         assert event["kb_id"] == kb_id
+
+
+def test_ingest_emits_projection_updated_on_websocket(tmp_path) -> None:
+    """M5 — inline ingest completion should notify graph subscribers."""
+    client = TestClient(create_app(Settings(data_dir=tmp_path, ingest_inline=True)))
+    admin = client.post(
+        "/api/auth/register",
+        json={"email": "wsc@example.com", "password": "password1", "display_name": "U"},
+    ).json()
+    headers = _auth(admin["token"])
+    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    ticket = client.post(f"/api/kbs/{kb_id}/realtime-ticket", headers=headers).json()["ticket"]
+
+    with client.websocket_connect(f"/api/kbs/{kb_id}/ws/graph-updates?ticket={ticket}") as ws:
+        assert ws.receive_json()["type"] == "connected"
+        uploaded = client.post(
+            f"/api/kbs/{kb_id}/documents/upload",
+            headers=headers,
+            files={"file": ("rt.txt", BytesIO(b"realtime ingest body"), "text/plain")},
+            data={"extract": "false", "wait": "true"},
+        )
+        assert uploaded.status_code == 200
+        event = ws.receive_json()
+        assert event["type"] == "projection_updated"
+        assert event["kb_id"] == kb_id
+        assert isinstance(event.get("projection_revision"), int)
 
 
 def test_wrong_kb_ticket_rejected(tmp_path) -> None:

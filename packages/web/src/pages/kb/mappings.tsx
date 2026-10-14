@@ -23,7 +23,7 @@ import {
 import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
 import { api } from '@/lib/api.js';
-import { formatUserFacingApiError } from '@/lib/api-error-message.js';
+import { useApiErrorMessage } from '@/lib/use-api-error-message.js';
 import { useKbCatalog } from '@/lib/kb-context.js';
 import { EntityRefLine } from '@/components/entity-ref-line.js';
 import { useKbNodeLabels } from '@/lib/kb-node-labels.js';
@@ -72,10 +72,7 @@ export function KbMappingsPage() {
   const entityLabels = useKbNodeLabels(id, entityIdsForLabels);
 
   const zh = locale === 'zh';
-  const apiError = useCallback(
-    (err: unknown) => formatUserFacingApiError(err, zh ? 'zh' : 'en'),
-    [zh],
-  );
+  const apiError = useApiErrorMessage();
 
   const load = useCallback(async () => {
     if (!id) return;

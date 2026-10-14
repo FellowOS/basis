@@ -3,12 +3,11 @@ import { toast } from 'sonner';
 import { useI18n } from '@/i18n/context.js';
 import type { ApiTokenRow, McpIntegrationInfo } from '@/components/kb-mcp-integration-panel.js';
 import { api } from '@/lib/api.js';
-import { formatUserFacingApiError } from '@/lib/api-error-message.js';
+import { useApiErrorMessage } from '@/lib/use-api-error-message.js';
 
 export function useKbMcpIntegration(kbId: string | undefined, canManageTokens: boolean) {
-  const { t, locale } = useI18n();
-  const apiError = (err: unknown) =>
-    formatUserFacingApiError(err, locale === 'zh' ? 'zh' : 'en');
+  const { t } = useI18n();
+  const apiError = useApiErrorMessage();
   const [mcpInfo, setMcpInfo] = useState<McpIntegrationInfo | null>(null);
   const [apiTokens, setApiTokens] = useState<ApiTokenRow[]>([]);
   const [tokenName, setTokenName] = useState('');

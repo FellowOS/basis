@@ -58,6 +58,8 @@ import {
 } from "./graphWorkspaceCopy";
 import { inspectorCopy } from "./graphInspectorCopy";
 import { createGraphLoadProgress } from "./graphLoading";
+import { shouldApplyProjectionRevision } from "./graphProjectionRefresh";
+import { parseGraphRealtimeServerMessage } from "./graphRealtimeMessages";
 import { Badge } from "@/components/ui/badge.js";
 import { Button } from "@/components/ui/button.js";
 import { useI18n } from "@/i18n/context.js";
@@ -1154,13 +1156,12 @@ export function GraphWorkspace({
 
   const handleProjectionRevisionBump = useCallback(
     (revision?: number) => {
+      if (
+        !shouldApplyProjectionRevision(lastProjectionRevisionRef.current, revision)
+      ) {
+        return;
+      }
       if (typeof revision === "number") {
-        if (
-          lastProjectionRevisionRef.current !== null
-          && revision <= lastProjectionRevisionRef.current
-        ) {
-          return;
-        }
         lastProjectionRevisionRef.current = revision;
       }
       appliedGraphSummarySignatureRef.current = null;
@@ -1668,7 +1669,7 @@ export function GraphWorkspace({
   }, []);
 
   const handleRunPredictions = useCallback(async () => {
-    if (!inspectableNodeId) return;
+    if (!graphWriteEnabled || !inspectableNodeId) return;
     setIsRunningPredictions(true);
     try {
       const response = await explorerFetch(buildExplorerKbApiPath("enrich/links", kbId), {
@@ -1692,7 +1693,7 @@ export function GraphWorkspace({
     } finally {
       setIsRunningPredictions(false);
     }
-  }, [copyLocale, inspectableNodeId, kbId, predictionType]);
+  }, [copyLocale, graphWriteEnabled, inspectableNodeId, kbId, predictionType]);
 
   const handleTracePath = useCallback(async () => {
     if (!inspectableNodeId || !pathTargetId.trim()) return;
@@ -1782,76 +1783,102 @@ export function GraphWorkspace({
       socket = activeSocket;
       activeSocket.onmessage = (event) => {
       try {
-        const message = JSON.parse(event.data);
-        if (message.type === "projection_updated") {
-          handleProjectionRevisionBump(
-            typeof message.projection_revision === "number"
-              ? message.projection_revision
-              : undefined,
-          );
+        const parsed = parseGraphRealtimeServerMessage(JSON.parse(event.data));
+        if (parsed.type === "projection_updated") {
+          handleProjectionRevisionBump(parsed.projectionRevision);
           return;
         }
-        if (message.type === "access_revoked") {
+        if (parsed.type === "access_revoked") {
           activeSocket.close();
           return;
         }
-        if (message.type === "connected") {
-          if (typeof message.projection_revision === "number") {
-            lastProjectionRevisionRef.current = message.projection_revision;
+        if (parsed.type === "connected") {
+          if (typeof parsed.projectionRevision === "number") {
+            lastProjectionRevisionRef.current = parsed.projectionRevision;
           }
           return;
         }
-        if (message.event === "connection_ack") {
+        if (parsed.type === "connection_ack" || parsed.type === "unknown") {
           return;
         }
-        if (message.event !== "graph_mutation") {
+        if (parsed.type !== "graph_mutation") {
           return;
         }
-        const eventType = message.data?.event_type;
-        const payload = message.data?.payload;
+        type WsMutationPayload = {
+          id?: string;
+          label?: string;
+          nodeType?: string;
+          type?: string;
+          properties?: Record<string, unknown>;
+          familyId?: string;
+          source_id?: string;
+          target_id?: string;
+          edgeType?: string;
+        };
+        const eventType = parsed.eventType;
+        const payload = parsed.payload as WsMutationPayload | undefined;
         if (eventType === "ADD_NODE" && payload?.id) {
+          const nodeId = payload.id;
           batchMergeNodes([
             {
-              id: payload.id,
-              attributes: buildRealtimeNodeAttributes(payload),
+              id: nodeId,
+              attributes: buildRealtimeNodeAttributes({
+                id: nodeId,
+                type: payload.type,
+                properties: payload.properties,
+              }),
             },
           ]);
           if (graph.order > SMALL_GRAPH_MAX_NODES) {
             smallGraphModeRef.current = false;
           }
           synchronizeRealtimeSmallGraphEdges(smallGraphModeRef.current);
-          logEvent("add-node", `Added node ${payload.label ?? payload.id}${payload.nodeType ? ` (${payload.nodeType})` : ""} via realtime ws`, { nodeId: payload.id, nodeType: payload.nodeType });
+          logEvent("add-node", `Added node ${payload.label ?? nodeId}${payload.nodeType ? ` (${payload.nodeType})` : ""} via realtime ws`, { nodeId, nodeType: payload.nodeType });
           setGraphVersion((current) => current + 1);
           sceneRef.current?.getRuntime()?.requestRender();
         }
         if (eventType === "UPDATE_NODE" && payload?.id && graph.hasNode(payload.id)) {
-          markdownRefreshGuard.invalidate(payload.id);
+          const nodeId = payload.id;
+          markdownRefreshGuard.invalidate(nodeId);
           const properties = payload.properties ?? {};
-          const current = graph.getNodeAttributes(payload.id) as NodeAttributes;
+          const current = graph.getNodeAttributes(nodeId) as NodeAttributes;
           const content = typeof properties.content === "string" ? properties.content : "";
-          graph.mergeNodeAttributes(payload.id, {
-            ...buildNodeMarkdownAttributeUpdate(payload.id, content, properties),
+          const validFrom =
+            typeof properties.valid_from === "string" ? properties.valid_from : null;
+          const validUntil =
+            typeof properties.valid_until === "string" ? properties.valid_until : null;
+          graph.mergeNodeAttributes(nodeId, {
+            ...buildNodeMarkdownAttributeUpdate(nodeId, content, properties),
             nodeType: payload.type ?? current.nodeType,
-            valid_from: properties.valid_from ?? null,
-            valid_until: properties.valid_until ?? null,
+            valid_from: validFrom,
+            valid_until: validUntil,
           });
           logEvent(
             "update-node",
-            `Updated node ${payload.id} via realtime ws`,
-            { nodeId: payload.id, nodeType: payload.type },
+            `Updated node ${nodeId} via realtime ws`,
+            { nodeId, nodeType: payload.type },
           );
           setGraphVersion((version) => version + 1);
           sceneRef.current?.getRuntime()?.requestRender();
         }
-        if (eventType === "ADD_EDGE") {
+        if (eventType === "ADD_EDGE" && payload?.source_id && payload?.target_id) {
           const isSmallGraph = smallGraphModeRef.current;
+          const edgeId = String(payload.id ?? `${payload.source_id}-${payload.target_id}`);
           batchMergeEdges([
             {
-              id: String(payload.id),
-              familyId: payload.familyId ? String(payload.familyId) : String(payload.id),
+              id: edgeId,
+              familyId: payload.familyId ? String(payload.familyId) : edgeId,
               source: payload.source_id,
               target: payload.target_id,
-              attributes: buildRealtimeEdgeAttributes(payload, {
+              attributes: buildRealtimeEdgeAttributes(
+                {
+                  id: edgeId,
+                  source_id: payload.source_id,
+                  target_id: payload.target_id,
+                  type: payload.edgeType ?? payload.type,
+                  familyId: payload.familyId,
+                },
+                {
                 isBidirectional: graph.hasDirectedEdge(payload.target_id, payload.source_id),
                 isSmallGraph,
               }),
@@ -3149,6 +3176,7 @@ export function GraphWorkspace({
               summary={summary ?? null}
               activeNodeCount={activeNodeCount}
               focusedSummary={focusedSummary}
+              readOnly={!graphWriteEnabled}
             />
           </section>
 

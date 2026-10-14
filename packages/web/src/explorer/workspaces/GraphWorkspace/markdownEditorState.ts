@@ -14,6 +14,7 @@ export type EditorStatus =
 export interface MarkdownEditorError {
   kind: "validation" | "conflict" | "save" | "network";
   message: string;
+  code?: string;
   field?: string;
   currentRevision?: string;
 }

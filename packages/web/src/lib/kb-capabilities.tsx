@@ -79,8 +79,12 @@ export function KbCapabilitiesProvider({ children }: { children: ReactNode }) {
   );
 }
 
+export function useKbCapabilitiesOptional(): KbCapabilitiesContextValue | null {
+  return useContext(KbCapabilitiesContext);
+}
+
 export function useKbCapabilities(): KbCapabilitiesContextValue {
-  const ctx = useContext(KbCapabilitiesContext);
+  const ctx = useKbCapabilitiesOptional();
   if (!ctx) {
     throw new Error('useKbCapabilities requires KbCapabilitiesProvider');
   }

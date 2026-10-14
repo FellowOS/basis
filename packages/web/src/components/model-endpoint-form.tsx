@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/select.js';
 import { useI18n } from '@/i18n/context.js';
 import { api } from '@/lib/api.js';
+import { useApiErrorMessage } from '@/lib/use-api-error-message.js';
 import { cn } from '@/lib/utils.js';
 import type { ModelKind } from '@/components/model-endpoint-panel.js';
 
@@ -44,6 +45,7 @@ type Props = {
 
 export function ModelEndpointForm({ kind, onCreated, onCancel }: Props) {
   const { t } = useI18n();
+  const apiError = useApiErrorMessage();
   const m = t.models;
   const [providers, setProviders] = useState<ProviderInfo[]>([]);
   const [providerId, setProviderId] = useState('openai');
@@ -82,10 +84,8 @@ export function ModelEndpointForm({ kind, onCreated, onCancel }: Props) {
           setApiBase(first.default_api_base);
         }
       })
-      .catch((err) =>
-        setLoadError(err instanceof Error ? err.message : m.loadFailed),
-      );
-  }, [kind, m.loadFailed]);
+      .catch((err) => setLoadError(apiError(err)));
+  }, [kind, apiError]);
 
   useEffect(() => {
     if (modelOptions.length > 0 && !modelSelect) {
@@ -134,7 +134,7 @@ export function ModelEndpointForm({ kind, onCreated, onCancel }: Props) {
       setRemoteModels(data.models ?? []);
       toast.success(m.probeSuccess);
     } catch (err) {
-      setLoadError(err instanceof Error ? err.message : m.probeFailed);
+      setLoadError(apiError(err));
     } finally {
       setFetching(false);
     }
@@ -169,7 +169,7 @@ export function ModelEndpointForm({ kind, onCreated, onCancel }: Props) {
       toast.success(m.addedToast);
       onCreated();
     } catch (err) {
-      const message = err instanceof Error ? err.message : m.saveFailed;
+      const message = apiError(err);
       setLoadError(message);
       toast.error(message);
     } finally {

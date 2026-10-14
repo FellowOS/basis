@@ -1,7 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { BrainCircuit, Play, RotateCcw, CheckCircle2, AlertCircle, Zap, GitBranch, Info } from "lucide-react";
 import { buildExplorerKbApiPath, explorerFetch } from "../host/explorerHttp";
+import { errorFromApiResponse } from "@/lib/api-error.js";
+import { useApiErrorMessage } from "@/lib/use-api-error-message.js";
+import { useKbCapabilitiesOptional } from "@/lib/kb-capabilities.js";
 
 const SAMPLE_FACTS = `inhibits(Metformin, mTOR)
 causes(mTOR, Neurodegeneration)
@@ -28,10 +31,21 @@ const TEMPLATES = [
 ];
 
 export function ReasoningWorkspace({ kbId }: { kbId?: string } = {}) {
+  const apiError = useApiErrorMessage();
+  const capsCtx = useKbCapabilitiesOptional();
+  const canWriteGraph = kbId
+    ? !capsCtx?.loading && Boolean(capsCtx?.caps?.graph_write)
+    : true;
   const queryClient = useQueryClient();
   const [facts, setFacts] = useState(SAMPLE_FACTS);
   const [rules, setRules] = useState(SAMPLE_RULE);
   const [applyToGraph, setApplyToGraph] = useState(true);
+
+  useEffect(() => {
+    if (!canWriteGraph) {
+      setApplyToGraph(false);
+    }
+  }, [canWriteGraph]);
   const [result, setResult] = useState<{
     inferred_facts?: string[];
     rules_fired?: number;
@@ -57,11 +71,13 @@ export function ReasoningWorkspace({ kbId }: { kbId?: string } = {}) {
           facts: facts.split(/\r?\n/).map((l) => l.trim()).filter(Boolean),
           rules: rules.split(/\r?\n/).map((l) => l.trim()).filter(Boolean),
           mode: "forward",
-          apply_to_graph: applyToGraph,
+          apply_to_graph: applyToGraph && canWriteGraph,
         }),
       });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.detail || `Status ${response.status}`);
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw errorFromApiResponse(response.status, data, `Status ${response.status}`);
+      }
       if (response.status === 207) setError(data.message || "Warning: Partial success reasoning.");
       setResult(data);
       if (data.mutated) {
@@ -70,7 +86,7 @@ export function ReasoningWorkspace({ kbId }: { kbId?: string } = {}) {
         });
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Reasoning failed");
+      setError(apiError(e));
     } finally {
       setIsRunning(false);
     }
@@ -146,20 +162,37 @@ export function ReasoningWorkspace({ kbId }: { kbId?: string } = {}) {
           </div>
 
           {/* Apply toggle */}
-          <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", padding: "10px 12px", borderRadius: "var(--ws-radius-sm)", border: "1px solid var(--ws-border)", background: applyToGraph ? "var(--ws-green-soft)" : "var(--ws-surface)" }}>
+          <label
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              cursor: canWriteGraph ? "pointer" : "not-allowed",
+              padding: "10px 12px",
+              borderRadius: "var(--ws-radius-sm)",
+              border: "1px solid var(--ws-border)",
+              background: applyToGraph && canWriteGraph ? "var(--ws-green-soft)" : "var(--ws-surface)",
+              opacity: canWriteGraph ? 1 : 0.65,
+            }}
+          >
             <div style={{ position: "relative", width: 36, height: 20, flexShrink: 0 }}>
               <input
                 type="checkbox"
-                checked={applyToGraph}
+                checked={applyToGraph && canWriteGraph}
+                disabled={!canWriteGraph}
                 onChange={(e) => setApplyToGraph(e.target.checked)}
-                style={{ opacity: 0, position: "absolute", inset: 0, cursor: "pointer", margin: 0 }}
+                style={{ opacity: 0, position: "absolute", inset: 0, cursor: canWriteGraph ? "pointer" : "not-allowed", margin: 0 }}
               />
-              <div style={{ position: "absolute", inset: 0, borderRadius: 999, background: applyToGraph ? "var(--ws-green)" : "rgba(255,255,255,0.12)", transition: "background 180ms ease" }} />
-              <div style={{ position: "absolute", top: 3, left: applyToGraph ? 19 : 3, width: 14, height: 14, borderRadius: 999, background: "#fff", transition: "left 180ms ease", boxShadow: "0 1px 4px rgba(0,0,0,0.4)" }} />
+              <div style={{ position: "absolute", inset: 0, borderRadius: 999, background: applyToGraph && canWriteGraph ? "var(--ws-green)" : "rgba(255,255,255,0.12)", transition: "background 180ms ease" }} />
+              <div style={{ position: "absolute", top: 3, left: applyToGraph && canWriteGraph ? 19 : 3, width: 14, height: 14, borderRadius: 999, background: "#fff", transition: "left 180ms ease", boxShadow: "0 1px 4px rgba(0,0,0,0.4)" }} />
             </div>
             <div>
-              <div style={{ fontSize: 13, fontWeight: 700, color: applyToGraph ? "#6ee7b7" : "var(--ws-text-muted)" }}>Write inferred facts to graph</div>
-              <div style={{ fontSize: 11, color: "var(--ws-text-dim)" }}>Inferred binary facts are added as edges</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: applyToGraph && canWriteGraph ? "#6ee7b7" : "var(--ws-text-muted)" }}>Write inferred facts to graph</div>
+              <div style={{ fontSize: 11, color: "var(--ws-text-dim)" }}>
+                {canWriteGraph
+                  ? "Inferred binary facts are added as edges"
+                  : "View-only — run inference without mutating the graph"}
+              </div>
             </div>
           </label>
 

@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { GitMerge, ArrowRight, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 import { logEvent } from "../../store/registryStore";
+import { errorFromApiResponse } from "@/lib/api-error.js";
+import { useApiErrorMessage } from "@/lib/use-api-error-message.js";
 
 interface FieldRow { label: string; primary: string; duplicate: string; differs: boolean }
 
@@ -12,6 +14,7 @@ const MOCK_FIELDS: FieldRow[] = [
 ];
 
 export function DiffMergeWorkspace() {
+  const apiError = useApiErrorMessage();
   const [primaryId, setPrimaryId]   = useState("n-primary-1");
   const [duplicateId, setDuplicateId] = useState("n-dup-2");
   const [status, setStatus]   = useState<"idle" | "loading" | "success" | "error">("idle");
@@ -26,7 +29,10 @@ export function DiffMergeWorkspace() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ primary_id: primaryId, duplicate_ids: [duplicateId] }),
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw errorFromApiResponse(res.status, data, "Merge failed");
+      }
       if (data.merged_into) {
         setStatus("success");
         setMsg(`Merged → ${data.merged_into} · ${data.edges_updated ?? 0} edges redirected`);
@@ -38,7 +44,7 @@ export function DiffMergeWorkspace() {
       }
     } catch (e: unknown) {
       setStatus("error");
-      setMsg(e instanceof Error ? e.message : "Merge failed");
+      setMsg(apiError(e));
     }
   }
 

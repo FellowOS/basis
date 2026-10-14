@@ -3,8 +3,10 @@ import { useDropzone } from 'react-dropzone';
 import { UploadCloud, CheckCircle2, Loader2 } from 'lucide-react';
 import { useImportVocabulary } from './queries';
 import type { ImportResponse } from './types';
+import { useApiErrorMessage } from '@/lib/use-api-error-message.js';
 
 export const ImportDropzone: React.FC = () => {
+  const apiError = useApiErrorMessage();
   const [file, setFile] = useState<File | null>(null);
   const [importResult, setImportResult] = useState<ImportResponse | null>(null);
   const importMutation = useImportVocabulary();
@@ -81,7 +83,7 @@ export const ImportDropzone: React.FC = () => {
       </div>
       {importMutation.isError && (
         <p style={{ color: 'var(--destructive)', fontSize: 11, marginTop: 6, textAlign: 'center' }}>
-          Upload failed. Check console.
+          {apiError(importMutation.error)}
         </p>
       )}
     </div>

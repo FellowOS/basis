@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { Scale, Search, ArrowRight, Info } from "lucide-react";
 import { buildExplorerKbApiPath, explorerFetch } from "../../host/explorerHttp";
+import { errorFromApiResponse } from "@/lib/api-error.js";
+import { useApiErrorMessage } from "@/lib/use-api-error-message.js";
 
 type OutcomeKind = "approved" | "rejected" | "deferred" | "pending" | string;
 
@@ -95,6 +97,7 @@ export function DecisionWorkspace({
   initialFilter?: string;
   selectDecisionId?: string;
 } = {}) {
+  const apiError = useApiErrorMessage();
   const [decisions, setDecisions] = useState<{ decision_id: string; category?: string; outcome?: string }[]>([]);
   const [selected, setSelected] = useState<{ decision_id: string; category?: string; outcome?: string } | null>(null);
   const [chain, setChain] = useState<ChainStep[]>([]);
@@ -117,8 +120,8 @@ export function DecisionWorkspace({
     const listPath = kbId ? buildExplorerKbApiPath("decisions", kbId) : "/api/decisions";
     explorerFetch(listPath, { signal: ctrl.signal })
       .then(async (r) => {
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        const data = await r.json();
+        const data = await r.json().catch(() => ({}));
+        if (!r.ok) throw errorFromApiResponse(r.status, data, `HTTP ${r.status}`);
         if (r.status === 207) setError(data.message || "Warning: Partial success loading decisions.");
         return data;
       })
@@ -133,7 +136,7 @@ export function DecisionWorkspace({
       })
       .catch((e) => {
         if (e?.name !== "AbortError") {
-          setError(e instanceof Error ? e.message : "Failed to load decisions.");
+          setError(apiError(e));
         }
       })
       .finally(() => {
@@ -141,7 +144,7 @@ export function DecisionWorkspace({
       });
     return () => ctrl.abort();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [kbId, selectDecisionId]);
+  }, [kbId, selectDecisionId, apiError]);
 
   // Cancel any in-flight chain request when the workspace unmounts.
   useEffect(() => () => { chainCtrlRef.current?.abort(); }, []);
@@ -160,15 +163,15 @@ export function DecisionWorkspace({
         ? buildExplorerKbApiPath(`decisions/${encodeURIComponent(d.decision_id)}/chain`, kbId)
         : `/api/decisions/${encodeURIComponent(d.decision_id)}/chain`;
       const res = await explorerFetch(chainPath, { signal: ctrl.signal });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw errorFromApiResponse(res.status, data, `HTTP ${res.status}`);
       if (res.status === 207 && !ctrl.signal.aborted) {
         setError(data.message || "Warning: Partial success loading chain.");
       }
       if (!ctrl.signal.aborted) setChain(data.chain || []);
     } catch (e) {
       if (e instanceof Error && e.name !== "AbortError") {
-        setError(e.message);
+        setError(apiError(e));
       }
     } finally {
       if (!ctrl.signal.aborted) setChainLoading(false);

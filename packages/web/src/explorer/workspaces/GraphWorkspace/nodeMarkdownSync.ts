@@ -1,4 +1,5 @@
 import { buildExplorerGraphApiPath, explorerFetch, resolveExplorerApiUrl } from "../../host/explorerHttp";
+import { errorFromApiResponse } from "@/lib/api-error.js";
 
 export interface NodeMarkdownAttributeUpdate {
   label: string;
@@ -62,11 +63,16 @@ export async function readNodeMarkdownAttributeUpdate(
     ? buildExplorerGraphApiPath(`nodes/${encodeURIComponent(nodeId)}`, kbId)
     : resolveExplorerApiUrl(`/api/graph/node?node_id=${encodeURIComponent(nodeId)}`);
   const response = await explorerFetch(url);
+  const payload = (await response.json().catch(() => ({}))) as
+    | GraphNodeMarkdownSnapshot
+    | { node: GraphNodeMarkdownSnapshot };
   if (!response.ok) {
-    throw new Error(`Graph node refresh failed (${response.status}).`);
+    throw errorFromApiResponse(
+      response.status,
+      payload,
+      `Graph node refresh failed (${response.status}).`,
+    );
   }
-
-  const payload = await response.json() as GraphNodeMarkdownSnapshot | { node: GraphNodeMarkdownSnapshot };
   const node = ("node" in payload && payload.node ? payload.node : payload) as GraphNodeMarkdownSnapshot;
   if (node.id !== nodeId) {
     throw new Error("Graph node refresh returned a different resource.");

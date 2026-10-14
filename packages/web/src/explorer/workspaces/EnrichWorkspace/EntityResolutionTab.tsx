@@ -8,18 +8,9 @@ import { useState, useCallback } from "react";
 import { ScanSearch, GitMerge, X, ChevronDown, ChevronRight, Loader2 } from "lucide-react";
 import { buildExplorerKbApiPath, explorerFetch } from "../../host/explorerHttp";
 import { fetchKbNodeLabels } from "@/lib/kb-node-labels.js";
+import { errorFromApiResponse } from "@/lib/api-error.js";
+import { useApiErrorMessage } from "@/lib/use-api-error-message.js";
 import { logEvent, useRegistry } from "../../store/registryStore";
-
-function readApiErrorMessage(body: unknown, fallback: string): string {
-  if (!body || typeof body !== "object") return fallback;
-  const detail = (body as { detail?: unknown }).detail;
-  if (typeof detail === "string" && detail.trim()) return detail;
-  if (detail && typeof detail === "object") {
-    const message = (detail as { message?: string }).message;
-    if (typeof message === "string" && message.trim()) return message;
-  }
-  return fallback;
-}
 
 interface DedupPair {
   a: { id: string; label: string; type: string };
@@ -203,6 +194,7 @@ function PairRow({
 }
 
 export function EntityResolutionTab({ kbId }: { kbId?: string } = {}) {
+  const apiError = useApiErrorMessage();
   const [threshold, setThreshold] = useState(0.82);
   const [scanning, setScanning] = useState(false);
   const [pairs, setPairs] = useState<DedupPair[]>([]);
@@ -221,8 +213,8 @@ export function EntityResolutionTab({ kbId }: { kbId?: string } = {}) {
         body: JSON.stringify({ threshold }),
       });
       if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(readApiErrorMessage(err, `Scan failed (${res.status})`));
+        const body = await res.json().catch(() => ({}));
+        throw errorFromApiResponse(res.status, body, `Scan failed (${res.status})`);
       }
       const data = await res.json();
       const rawDuplicates: RawDuplicateItem[] = Array.isArray(data.duplicates)
@@ -238,11 +230,11 @@ export function EntityResolutionTab({ kbId }: { kbId?: string } = {}) {
         flagged: parsed.length,
       });
     } catch (err) {
-      setScanError(err instanceof Error ? err.message : "Scan failed");
+      setScanError(apiError(err));
     } finally {
       setScanning(false);
     }
-  }, [kbId, threshold]);
+  }, [kbId, threshold, apiError]);
 
   const handleMerge = useCallback(async (primaryId: string, duplicateId: string) => {
     setScanError("");
@@ -253,8 +245,8 @@ export function EntityResolutionTab({ kbId }: { kbId?: string } = {}) {
         body: JSON.stringify({ primary_id: primaryId, duplicate_ids: [duplicateId] }),
       });
       if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(readApiErrorMessage(err, `Merge failed (${res.status})`));
+        const body = await res.json().catch(() => ({}));
+        throw errorFromApiResponse(res.status, body, `Merge failed (${res.status})`);
       }
       const data = await res.json();
       if (res.status === 207) {
@@ -267,9 +259,9 @@ export function EntityResolutionTab({ kbId }: { kbId?: string } = {}) {
       });
       setPairs((prev) => prev.filter((p) => !(p.a.id === primaryId && p.b.id === duplicateId)));
     } catch (err) {
-      setScanError(err instanceof Error ? err.message : "Merge failed");
+      setScanError(apiError(err));
     }
-  }, [kbId]);
+  }, [kbId, apiError]);
 
   const handleQueueMerge = useCallback(
     async (primaryId: string, duplicateId: string) => {
@@ -285,8 +277,8 @@ export function EntityResolutionTab({ kbId }: { kbId?: string } = {}) {
           },
         );
         if (!res.ok) {
-          const err = await res.json().catch(() => ({}));
-          throw new Error(readApiErrorMessage(err, `Queue failed (${res.status})`));
+          const body = await res.json().catch(() => ({}));
+          throw errorFromApiResponse(res.status, body, `Queue failed (${res.status})`);
         }
         setPairs((prev) => prev.filter((p) => !(p.a.id === primaryId && p.b.id === duplicateId)));
         logEvent("review", `Queued merge ${duplicateId} → ${primaryId}`, {
@@ -294,10 +286,10 @@ export function EntityResolutionTab({ kbId }: { kbId?: string } = {}) {
           duplicate: duplicateId,
         });
       } catch (err) {
-        setScanError(err instanceof Error ? err.message : "Queue failed");
+        setScanError(apiError(err));
       }
     },
-    [kbId],
+    [kbId, apiError],
   );
 
   const handleDismiss = useCallback((index: number) => {

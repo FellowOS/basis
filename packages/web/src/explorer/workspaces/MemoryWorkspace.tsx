@@ -7,6 +7,8 @@ import {
   type MarkdownApplyResult,
 } from "./GraphWorkspace/markdownResourceClient";
 import { GRAPH_THEME } from "./GraphWorkspace/graphTheme";
+import { errorFromApiResponse } from "@/lib/api-error.js";
+import { useApiErrorMessage } from "@/lib/use-api-error-message.js";
 
 interface MemorySummary {
   id: string;
@@ -28,21 +30,17 @@ interface MemoryWorkspaceProps {
 const MEMORY_PAGE_SIZE = 100;
 
 
-function responseMessage(payload: unknown, fallback: string): string {
-  if (!payload || typeof payload !== "object" || !("detail" in payload)) {
-    return fallback;
-  }
-  return typeof payload.detail === "string" ? payload.detail : fallback;
-}
-
-
 async function fetchMemoryList(skip = 0): Promise<MemoryListResponse> {
   const response = await fetch(`/api/memories?skip=${skip}&limit=${MEMORY_PAGE_SIZE}`);
+  const payload = await response.json().catch(() => ({}));
   if (!response.ok) {
-    const payload = await response.json().catch(() => null);
-    throw new Error(responseMessage(payload, `Memory list failed (${response.status}).`));
+    throw errorFromApiResponse(
+      response.status,
+      payload,
+      `Memory list failed (${response.status}).`,
+    );
   }
-  return response.json() as Promise<MemoryListResponse>;
+  return payload as MemoryListResponse;
 }
 
 async function fetchLoadedMemoryPages(endOffset: number): Promise<{
@@ -67,6 +65,7 @@ async function fetchLoadedMemoryPages(endOffset: number): Promise<{
 }
 
 export function MemoryWorkspace({ onDirtyChange }: MemoryWorkspaceProps = {}) {
+  const apiError = useApiErrorMessage();
   const [items, setItems] = useState<MemorySummary[]>([]);
   const [total, setTotal] = useState(0);
   const [nextOffset, setNextOffset] = useState(0);
@@ -119,7 +118,7 @@ export function MemoryWorkspace({ onDirtyChange }: MemoryWorkspaceProps = {}) {
         setSelectedBody(document.body);
       } catch (failure) {
         if (isCurrent()) {
-          setError(failure instanceof Error ? failure.message : "Memories could not be loaded.");
+          setError(apiError(failure));
         }
       } finally {
         if (isCurrent()) setLoading(false);
@@ -131,7 +130,7 @@ export function MemoryWorkspace({ onDirtyChange }: MemoryWorkspaceProps = {}) {
       listGenerationRef.current += 1;
       selectionGenerationRef.current += 1;
     };
-  }, [reloadToken]);
+  }, [reloadToken, apiError]);
 
   const selectMemory = async (memoryId: string) => {
     if (memoryId === selectedId) return;
@@ -152,7 +151,7 @@ export function MemoryWorkspace({ onDirtyChange }: MemoryWorkspaceProps = {}) {
       setSelectedBody(document.body);
     } catch (failure) {
       if (selectionGeneration === selectionGenerationRef.current) {
-        setError(failure instanceof Error ? failure.message : "The memory could not be loaded.");
+        setError(apiError(failure));
       }
     } finally {
       if (selectionGeneration === selectionGenerationRef.current) {
@@ -180,14 +179,14 @@ export function MemoryWorkspace({ onDirtyChange }: MemoryWorkspaceProps = {}) {
       setNextOffset(payload.skip + payload.items.length);
     } catch (failure) {
       if (listGeneration === listGenerationRef.current) {
-        setError(failure instanceof Error ? failure.message : "More memories could not be loaded.");
+        setError(apiError(failure));
       }
     } finally {
       if (listGeneration === listGenerationRef.current) {
         setLoadingMore(false);
       }
     }
-  }, [loadingMore, nextOffset, total]);
+  }, [loadingMore, nextOffset, total, apiError]);
 
   const refreshMemorySummaries = useCallback(async () => {
     const listGeneration = ++listGenerationRef.current;

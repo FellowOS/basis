@@ -27,6 +27,8 @@ import type { MarkdownApplyResult } from "./markdownResourceClient";
 import type { MarkdownResourceRef } from "./markdownEditorState";
 import { isSafeUrl } from "./markdownUrlSafety";
 import { useMarkdownEditor } from "./useMarkdownEditor";
+import type { MarkdownEditorError } from "./markdownEditorState";
+import { useApiErrorMessage } from "@/lib/use-api-error-message.js";
 
 export interface MarkdownContentViewerProps {
   kbId?: string;
@@ -60,6 +62,19 @@ export function resolveTabNavigation(
   }
 }
 
+function markdownErrorText(
+  editorError: MarkdownEditorError,
+  apiError: (err: unknown) => string,
+): string {
+  if (editorError.code) {
+    const err = new Error("");
+    (err as Error & { code?: string }).code = editorError.code;
+    const mapped = apiError(err);
+    if (mapped.trim()) return mapped;
+  }
+  return editorError.message;
+}
+
 export function MarkdownContentViewer({
   kbId,
   content,
@@ -70,6 +85,7 @@ export function MarkdownContentViewer({
   defaultMode = "preview",
   allowEdit = true,
 }: MarkdownContentViewerProps) {
+  const apiError = useApiErrorMessage();
   const [activeMode, setActiveMode] = useState<"preview" | "source">(defaultMode);
   const [copied, setCopied] = useState(false);
   const modeBeforeEditRef = useRef<"preview" | "source">(defaultMode);
@@ -343,7 +359,7 @@ export function MarkdownContentViewer({
 
       {error ? (
         <div id="markdown-editor-error" role="alert" style={errorStyle}>
-          <span>{error.message}</span>
+          <span>{markdownErrorText(error, apiError)}</span>
           {error.kind === "conflict" ? (
             <button type="button" onClick={() => void editor.reloadLatest()} style={errorActionStyle}>
               <RefreshCw size={12} style={{ marginRight: 4 }} aria-hidden="true" />

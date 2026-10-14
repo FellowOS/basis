@@ -1,5 +1,6 @@
 import type { ExplorerHttpConfig } from '@/explorer/host/explorerHttp.js';
 import { getToken } from '@/lib/api.js';
+import { errorFromApiResponse } from '@/lib/api-error.js';
 
 export function buildKbExplorerHttpConfig(kbId: string): ExplorerHttpConfig {
   return {
@@ -17,7 +18,12 @@ export function buildKbExplorerHttpConfig(kbId: string): ExplorerHttpConfig {
         headers,
       });
       if (!ticketResp.ok) {
-        throw new Error(`realtime ticket failed (${ticketResp.status})`);
+        const body = await ticketResp.json().catch(() => ({}));
+        throw errorFromApiResponse(
+          ticketResp.status,
+          body,
+          `realtime ticket failed (${ticketResp.status})`,
+        );
       }
       const body = (await ticketResp.json()) as { ticket: string };
       const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';

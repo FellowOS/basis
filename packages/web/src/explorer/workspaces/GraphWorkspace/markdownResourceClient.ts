@@ -25,6 +25,7 @@ type ErrorDetail = {
 
 export class MarkdownClientError extends Error implements MarkdownEditorError {
   readonly kind: MarkdownEditorError["kind"];
+  readonly code?: string;
   readonly field?: string;
   readonly currentRevision?: string;
 
@@ -32,8 +33,12 @@ export class MarkdownClientError extends Error implements MarkdownEditorError {
     super(error.message);
     this.name = "MarkdownClientError";
     this.kind = error.kind;
+    this.code = error.code;
     this.field = error.field;
     this.currentRevision = error.currentRevision;
+    if (error.code) {
+      (this as Error & { code?: string }).code = error.code;
+    }
   }
 }
 
@@ -62,9 +67,12 @@ async function responseError(response: Response): Promise<MarkdownClientError> {
       : response.status === 409
         ? "conflict"
         : "save";
+  const fallback = `Markdown request failed (${response.status}).`;
+  const message = detail.code ? "" : (detail.message?.trim() || fallback);
   return new MarkdownClientError({
     kind,
-    message: detail.message || `Markdown request failed (${response.status}).`,
+    code: detail.code?.trim() || undefined,
+    message,
     field: detail.field,
     currentRevision: detail.current_revision,
   });

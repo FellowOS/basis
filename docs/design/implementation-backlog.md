@@ -379,7 +379,7 @@ Work:
 - connect realtime updates and revision refetch;
 - respect viewer permissions.
 
-**Status:** partial — Explorer `GraphWorkspace` embedded when `explorer_runtime`; timeline + search/focus; `projection_updated` WS triggers full graph reload + dock notice; KB switch remounts workspace (`key={kbId}`); inspector evidence links resolve ledger `chunk_id` / document neighbors; merge/import gated via review. Remaining: viewer write gates on graph mutations, KB-switch audit in E2E.
+**Status:** partial — Explorer `GraphWorkspace` embedded when `explorer_runtime`; timeline + search/focus; `projection_updated` WS triggers full graph reload + dock notice; KB switch remounts workspace (`key={kbId}`); inspector evidence links resolve ledger `chunk_id` / document neighbors; merge/import gated via review; backend `test_rebuild_emits_projection_updated_on_websocket` and `test_ingest_emits_projection_updated_on_websocket` cover WS events; `test_viewer_cannot_apply_reasoning_to_graph` guards graph apply; graph UI shows read-only badge and blocks link-prediction when `graph_write` is false; `graphProjectionRefresh.test.ts` covers revision dedup. Remaining: optional Playwright smoke (login → graph → rebuild → dock “projection updated” copy); WS reload contract covered by unit + `test_realtime_ws.py`.
 
 Acceptance:
 
@@ -396,7 +396,7 @@ Acceptance:
 - localize messages in Web;
 - stop exposing raw server strings.
 
-**Status:** partial — AdminError `detail.code` on KB routes; Explorer/ontology adapters use `invoke_explorer`; Web `api-error-message` covers processing, graph, mappings, auth, members, models, and realtime tickets; login uses coded errors. Remaining: audit remaining shell pages for raw `err.message`.
+**Status:** partial — AdminError `detail.code` on KB routes; Explorer/ontology adapters use `invoke_explorer`; Web `api-error-message` + `useApiErrorMessage()` on shell pages and Explorer workspaces (graph uses `explorerApiErrorMessage` / coded `errorFromApiResponse` on fetch paths). Remaining: audit low-level debug strings (e.g. GraphCanvas runtime logs) and any legacy `fetch` without coded `detail`.
 
 ### X-02 — Request IDs and structured logging
 

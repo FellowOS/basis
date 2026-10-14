@@ -15,6 +15,7 @@ import { useI18n } from '@/i18n/context.js';
 import { api } from '@/lib/api.js';
 import { useKbNodeLabels } from '@/lib/kb-node-labels.js';
 import { kbPath } from '@/lib/nav-config.js';
+import { useApiErrorMessage } from '@/lib/use-api-error-message.js';
 
 export type LedgerEntityHit = {
   id?: string;
@@ -188,6 +189,7 @@ export function LedgerEntityBrowser({
   loadRecentOnMount?: boolean;
 }) {
   const { locale } = useI18n();
+  const apiError = useApiErrorMessage();
   const [query, setQuery] = useState('');
   const [entities, setEntities] = useState<LedgerEntityHit[]>([]);
   const [loading, setLoading] = useState(false);
@@ -199,8 +201,6 @@ export function LedgerEntityBrowser({
   const searching = locale === 'zh' ? '加载中…' : 'Loading…';
   const noResults = locale === 'zh' ? '无实体' : 'No entities';
   const countLabel = locale === 'zh' ? `共 ${entities.length} 个实体` : `${entities.length} entities`;
-  const searchFailed = locale === 'zh' ? '加载失败' : 'Failed to load';
-
   async function fetchEntities(q: string) {
     setLoading(true);
     setError(null);
@@ -212,7 +212,7 @@ export function LedgerEntityBrowser({
       );
       setEntities(data.entities ?? []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : searchFailed);
+      setError(apiError(err));
       setEntities([]);
     } finally {
       setLoading(false);

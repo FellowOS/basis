@@ -6,6 +6,7 @@ import { getGraphLoadTitle } from "./graphLoading";
 import {
   type GraphWorkspaceLocale,
   graphActiveCountLabel,
+  graphCopy,
   graphStatusCounts,
 } from "./graphWorkspaceCopy";
 
@@ -32,6 +33,7 @@ export function GraphStatusDock({
   summary,
   activeNodeCount,
   focusedSummary,
+  readOnly = false,
 }: {
   locale?: GraphWorkspaceLocale;
   showLoadingStatus: boolean;
@@ -39,18 +41,22 @@ export function GraphStatusDock({
   summary: GraphStatusSummary | null | undefined;
   activeNodeCount: number | null;
   focusedSummary: string | null;
+  readOnly?: boolean;
 }) {
   const hasLoading = showLoadingStatus && loadingPhase;
   const hasSummary = Boolean(summary);
   const hasActive = activeNodeCount !== null;
   const hasFocused = Boolean(focusedSummary);
 
-  if (!hasLoading && !hasSummary && !hasActive && !hasFocused) {
+  if (!hasLoading && !hasSummary && !hasActive && !hasFocused && !readOnly) {
     return null;
   }
 
   return (
     <div className="flex flex-wrap items-center justify-end gap-2">
+      {readOnly ? (
+        <StatusBadge tone="warm">{graphCopy(locale, "viewerReadOnly")}</StatusBadge>
+      ) : null}
       {hasLoading && loadingPhase ? (
         <StatusBadge>{getGraphLoadTitle(loadingPhase, locale)}</StatusBadge>
       ) : null}
