@@ -444,3 +444,11 @@ The slice is complete only when:
 
 Review, mappings, SPARQL, Decision, chat, and ontology editing follow this foundation and must not
 introduce a second source of truth.
+
+## 10. Engineering debt (post graph-closure)
+
+| Item | Notes |
+| --- | --- |
+| Web strict indexed access | `noUncheckedIndexedAccess` disabled in `packages/web/tsconfig.json` for Explorer graph code; re-enable incrementally if desired. |
+| `vitest` for `packages/web` | Wired in CI (`pnpm --filter @sema/web test`). |
+| Git remote | Local `main` has CI workflow; push after `git remote add origin …`. |

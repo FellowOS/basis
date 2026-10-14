@@ -25,12 +25,12 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+  override componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error("ErrorBoundary caught an error:", error, errorInfo);
     this.clearSettleTimer();
   }
 
-  componentWillUnmount() {
+  override componentWillUnmount() {
     this.clearSettleTimer();
   }
 
@@ -58,7 +58,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     }, RETRY_SETTLE_MS);
   };
 
-  render() {
+  override render() {
     if (this.state.hasError) {
       const maxRetriesReached = this.state.retryCount >= 3;
 

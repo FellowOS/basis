@@ -10,14 +10,6 @@ import type {
 import { curveGroupForPair, pairRegistryKey } from "./edgePairKeys.js";
 
 
-export const graph = new Graph({ 
-  type: "directed", 
-  multi: true, 
-  allowSelfLoops: false 
-});
-
-
-
 export interface NodeAttributes {
 
   label: string;
@@ -46,6 +38,7 @@ export interface NodeAttributes {
   haloColor?: string;
   labelVisibilityPolicy?: GraphLabelVisibilityPolicy;
   highlighted?: boolean;
+  hidden?: boolean;
   communityId?: string;
   isCommunityGroup?: boolean;
   memberCount?: number;
@@ -95,6 +88,12 @@ export interface EdgeAttributes {
   weight: number;
   properties: Record<string, any>;
 }
+
+export const graph: Graph<NodeAttributes, EdgeAttributes> = new Graph({
+  type: "directed",
+  multi: true,
+  allowSelfLoops: false,
+});
 
 function normalizeParallelMetadataForPair(source: string, target: string): void {
   const edgeIds: string[] = [];

@@ -133,4 +133,12 @@ uv sync --extra dev
 uv run pytest -q
 ```
 
-图谱 Explorer 相关 UI 闭环与手测清单见 [docs/design/graph-workspace-closure.md](docs/design/graph-workspace-closure.md)。推送 `main` 时 GitHub Actions 会跑同一套 pytest（`.github/workflows/ci.yml`）。
+图谱 Explorer 相关 UI 闭环与手测清单见 [docs/design/graph-workspace-closure.md](docs/design/graph-workspace-closure.md)。
+
+```bash
+pnpm install
+pnpm --filter @sema/web build
+pnpm --filter @sema/web test
+```
+
+推送 `main` 时 GitHub Actions 会跑 pytest 与 web build/test（`.github/workflows/ci.yml`）。

@@ -72,13 +72,13 @@ async function responseError(response: Response): Promise<MarkdownClientError> {
 
 async function request<T>(input: RequestInfo | URL, init?: RequestInit): Promise<T> {
   try {
-    const url =
+    const resolved =
       typeof input === "string"
         ? resolveExplorerApiUrl(input)
         : input instanceof URL
           ? resolveExplorerApiUrl(input.toString())
-          : input;
-    const response = await explorerFetch(url, init);
+          : resolveExplorerApiUrl(input.url);
+    const response = await explorerFetch(resolved, init);
     if (!response.ok) {
       throw await responseError(response);
     }

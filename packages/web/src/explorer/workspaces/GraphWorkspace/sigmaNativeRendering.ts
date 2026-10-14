@@ -233,9 +233,9 @@ class EntityTokenNodeProgram extends NodeProgram<(typeof ENTITY_TOKEN_UNIFORMS)[
   static readonly ANGLE_2 = (2 * Math.PI) / 3;
   static readonly ANGLE_3 = (4 * Math.PI) / 3;
 
-  drawLabel = drawSemanticaNodeLabel;
+  override drawLabel = drawSemanticaNodeLabel;
 
-  drawHover = drawSemanticaNodeHover;
+  override drawHover = drawSemanticaNodeHover;
 
   getDefinition() {
     return {
