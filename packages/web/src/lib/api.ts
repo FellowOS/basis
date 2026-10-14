@@ -1,3 +1,5 @@
+import { errorFromApiResponse } from '@/lib/api-error.js';
+
 const TOKEN_KEY = 'sema_token';
 
 export function getToken(): string | null {
@@ -28,8 +30,11 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
   const response = await fetch(path, { ...init, headers });
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
-    const detail = (data as { detail?: { message?: string } }).detail;
-    throw new Error(detail?.message ?? `请求失败 (${response.status})`);
+    throw errorFromApiResponse(
+      response.status,
+      data,
+      `请求失败 (${response.status})`,
+    );
   }
   return data as T;
 }

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button.js';
 import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
 import { api } from '@/lib/api.js';
+import { formatUserFacingApiError } from '@/lib/api-error-message.js';
 
 type GraphRebuildMeta = {
   projection_revision?: number;
@@ -43,13 +44,7 @@ export function KbGraphRebuildButton({
       );
       onRebuilt?.();
     } catch (err) {
-      toast.error(
-        err instanceof Error
-          ? err.message
-          : zh
-            ? '重建失败'
-            : 'Rebuild failed',
-      );
+      toast.error(formatUserFacingApiError(err, zh ? 'zh' : 'en'));
     } finally {
       setBusy(false);
     }

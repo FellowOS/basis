@@ -1,3 +1,4 @@
+import { errorFromApiResponse } from '@/lib/api-error.js';
 import { getToken } from '@/lib/api.js';
 
 export type ExplorerCapabilities = {
@@ -47,10 +48,7 @@ export class ExplorerClient {
     });
     const data = await response.json().catch(() => ({}));
     if (!response.ok) {
-      const detail = (data as { detail?: { message?: string; code?: string } }).detail;
-      const err = new Error(detail?.message ?? `请求失败 (${response.status})`);
-      (err as Error & { code?: string }).code = detail?.code;
-      throw err;
+      throw errorFromApiResponse(response.status, data, `请求失败 (${response.status})`);
     }
     return { data: data as T, status: response.status };
   }
@@ -69,10 +67,7 @@ export class ExplorerClient {
     });
     const data = await response.json().catch(() => ({}));
     if (!response.ok) {
-      const detail = (data as { detail?: { message?: string; code?: string } }).detail;
-      const err = new Error(detail?.message ?? `请求失败 (${response.status})`);
-      (err as Error & { code?: string }).code = detail?.code;
-      throw err;
+      throw errorFromApiResponse(response.status, data, `请求失败 (${response.status})`);
     }
     return data as T;
   }

@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
 import { api } from '@/lib/api.js';
+import { formatUserFacingApiError } from '@/lib/api-error-message.js';
 import { kbPath } from '@/lib/nav-config.js';
 
 type GraphProjectionStatus = {
@@ -50,7 +51,7 @@ export function KbGraphProjectionPanel({
       const body = await api<GraphProjectionStatus>(`/api/kbs/${kbId}/graph/projection`);
       setStatus(body);
     } catch (err) {
-      setError(err instanceof Error ? err.message : zh ? '加载失败' : 'Load failed');
+      setError(formatUserFacingApiError(err, zh ? 'zh' : 'en'));
       setStatus(null);
     } finally {
       setLoading(false);

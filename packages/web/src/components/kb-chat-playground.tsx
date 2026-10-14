@@ -6,6 +6,7 @@ import { ScrollArea } from '@/components/ui/scroll-area.js';
 import { Textarea } from '@/components/ui/textarea.js';
 import { useI18n } from '@/i18n/context.js';
 import { api } from '@/lib/api.js';
+import { formatUserFacingApiError } from '@/lib/api-error-message.js';
 import {
   chatCitationHref,
   extractChatCitationLinks,
@@ -96,7 +97,7 @@ export function KbChatPlayground({
       ]);
       bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
     } catch (err) {
-      setError(err instanceof Error ? err.message : t.chat.sendFailed);
+      setError(formatUserFacingApiError(err, zh ? 'zh' : 'en'));
       setMessages(next);
     } finally {
       setLoading(false);

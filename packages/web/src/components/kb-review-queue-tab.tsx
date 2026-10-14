@@ -4,6 +4,8 @@ import { Check, Clock, Loader2, X } from 'lucide-react';
 import { buildExplorerKbApiPath, explorerFetch } from '@/explorer/host/explorerHttp.js';
 import { useI18n } from '@/i18n/context.js';
 import { useKbCapabilities } from '@/lib/kb-capabilities.js';
+import { throwIfApiNotOk } from '@/lib/api-error.js';
+import { formatUserFacingApiError } from '@/lib/api-error-message.js';
 import { formatGraphAuditAction } from '@/lib/kb-graph-audit.js';
 import { formatNodeRef, formatNodeRefDetail } from '@/lib/format-node-ref.js';
 import { fetchKbNodeLabels } from '@/lib/kb-node-labels.js';
@@ -180,6 +182,10 @@ function mergeTimeline(
 
 export function KbReviewQueueTab({ kbId }: { kbId: string }) {
   const { locale } = useI18n();
+  const apiError = useCallback(
+    (err: unknown) => formatUserFacingApiError(err, locale === 'zh' ? 'zh' : 'en'),
+    [locale],
+  );
   const { caps } = useKbCapabilities();
   const queryClient = useQueryClient();
   const [items, setItems] = useState<ReviewItem[]>([]);
@@ -203,7 +209,7 @@ export function KbReviewQueueTab({ kbId }: { kbId: string }) {
         ),
         explorerFetch(`${buildExplorerKbApiPath('ledger/entity-merges', kbId)}?active_only=false`),
       ]);
-      if (!queueRes.ok) throw new Error(`Queue HTTP ${queueRes.status}`);
+      await throwIfApiNotOk(queueRes);
       const queueData = (await queueRes.json()) as { items?: ReviewItem[] };
       setItems(queueData.items ?? []);
 
@@ -240,14 +246,14 @@ export function KbReviewQueueTab({ kbId }: { kbId: string }) {
         .then((next) => setLabels((prev) => ({ ...prev, ...next })))
         .catch(() => {});
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load');
+      setError(apiError(err));
       setItems([]);
       setEvents([]);
       setMerges([]);
     } finally {
       setLoading(false);
     }
-  }, [kbId]);
+  }, [apiError, kbId]);
 
   useEffect(() => {
     void load();
@@ -262,18 +268,11 @@ export function KbReviewQueueTab({ kbId }: { kbId: string }) {
         buildExplorerKbApiPath(`ledger/entity-merges/${encodeURIComponent(mergeId)}/revert`, kbId),
         { method: 'POST' },
       );
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        const message =
-          typeof body?.detail === 'object' && body.detail?.message
-            ? String(body.detail.message)
-            : `HTTP ${res.status}`;
-        throw new Error(message);
-      }
+      await throwIfApiNotOk(res);
       void queryClient.invalidateQueries({ queryKey: ['graph', 'full-load', kbId] });
       void load();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Revert failed');
+      setError(apiError(err));
     } finally {
       setBusyMergeId(null);
     }
@@ -291,21 +290,14 @@ export function KbReviewQueueTab({ kbId }: { kbId: string }) {
           body: JSON.stringify({}),
         },
       );
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        const message =
-          typeof body?.detail === 'object' && body.detail?.message
-            ? String(body.detail.message)
-            : `HTTP ${res.status}`;
-        throw new Error(message);
-      }
+      await throwIfApiNotOk(res);
       setItems((prev) => prev.filter((row) => row.id !== itemId));
       if (action === 'approve') {
         void queryClient.invalidateQueries({ queryKey: ['graph', 'full-load', kbId] });
       }
       void load();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Action failed');
+      setError(apiError(err));
     } finally {
       setBusyId(null);
     }

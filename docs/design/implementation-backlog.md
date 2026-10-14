@@ -396,7 +396,7 @@ Acceptance:
 - localize messages in Web;
 - stop exposing raw server strings.
 
-**Status:** partial — KB Sources (`knowledge.tsx`) maps common processing/job `detail.code` values via `api-error-message.ts`; other surfaces still use raw messages.
+**Status:** partial — `api.ts` / `explorer-client` attach `detail.code`; `api-error-message.ts` maps codes for Sources, Review queue, Chat, Mappings, and graph projection/rebuild UI.
 
 ### X-02 — Request IDs and structured logging
 

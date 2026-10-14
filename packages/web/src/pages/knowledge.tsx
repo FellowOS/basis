@@ -307,7 +307,7 @@ export function KnowledgePage() {
         setAddOpen(false);
       });
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : zh ? '保存失败' : 'Save failed');
+      toast.error(apiErrorMessage(err));
     } finally {
       setUploading(false);
     }
@@ -327,7 +327,7 @@ export function KnowledgePage() {
         setAddOpen(false);
       });
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : zh ? '上传失败' : 'Upload failed');
+      toast.error(apiErrorMessage(err));
     } finally {
       setUploading(false);
     }
@@ -346,7 +346,7 @@ export function KnowledgePage() {
         closeUpdate();
       });
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : zh ? '更新失败' : 'Update failed');
+      toast.error(apiErrorMessage(err));
     } finally {
       setUploading(false);
     }
@@ -362,7 +362,7 @@ export function KnowledgePage() {
       const data = await client.documents.uploadVersion(updateTarget.document_id, form);
       await afterStore(data, () => closeUpdate());
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : zh ? '更新失败' : 'Update failed');
+      toast.error(apiErrorMessage(err));
     } finally {
       setUploading(false);
     }

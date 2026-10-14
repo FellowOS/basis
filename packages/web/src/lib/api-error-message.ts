@@ -39,6 +39,30 @@ const MESSAGES: Record<string, { zh: string; en: string }> = {
     zh: '需要登录。',
     en: 'Sign in required.',
   },
+  forbidden: {
+    zh: '没有权限执行此操作。',
+    en: 'You do not have permission for this action.',
+  },
+  review_closed: {
+    zh: '该审核项已处理，无法再次操作。',
+    en: 'This review item is already closed.',
+  },
+  merge_reverted: {
+    zh: '该合并已回滚。',
+    en: 'This merge was already reverted.',
+  },
+  conflict: {
+    zh: '操作冲突，请刷新后重试。',
+    en: 'Conflict — refresh and try again.',
+  },
+  payload_too_large: {
+    zh: '内容过大，请缩小后重试。',
+    en: 'Payload too large. Try a smaller file or URL.',
+  },
+  fetch_failed: {
+    zh: '拉取远程内容失败。',
+    en: 'Failed to fetch remote content.',
+  },
 };
 
 export type ApiErrorLike = {
