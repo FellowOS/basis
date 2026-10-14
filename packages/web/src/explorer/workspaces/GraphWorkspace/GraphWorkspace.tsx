@@ -321,13 +321,26 @@ function buildGraphHudCss(): string {
     top: 0;
     left: 0;
     z-index: 30;
-    width: min(380px, calc(100% - 24px));
+    width: max-content;
+    max-width: min(100% - 24px, calc(100% - 200px));
     pointer-events: none;
     padding: 10px 0 0 12px;
     overflow: visible;
   }
   .explore-search-dock > * {
     pointer-events: auto;
+  }
+  .explore-search-dock-toolbar {
+    min-width: 0;
+    max-width: 100%;
+  }
+  .explore-search-dock-search {
+    flex: 0 0 auto;
+    width: 240px;
+    max-width: min(240px, 38vw);
+  }
+  .explore-search-dock-actions {
+    flex-wrap: nowrap;
   }
   .explore-status-dock {
     position: absolute;
@@ -766,7 +779,7 @@ function buildGraphHudCss(): string {
   }
   @container (max-width: 980px) {
     .explore-search-dock {
-      width: min(380px, calc(100% - 24px));
+      max-width: calc(100% - 24px);
     }
     .explore-shell[data-inspector="true"] .explore-status-dock,
     .explore-shell[data-inspector="true"] .explore-toolbar-rail-right {
@@ -785,8 +798,18 @@ function buildGraphHudCss(): string {
   }
   @container (max-width: 760px) {
     .explore-search-dock {
-      width: calc(100% - 24px);
-      max-width: 420px;
+      max-width: calc(100% - 24px);
+    }
+    .explore-search-dock-search {
+      width: min(200px, 32vw);
+      max-width: 200px;
+    }
+    .explore-search-dock-actions {
+      gap: 4px;
+    }
+    .explore-search-dock-actions :is(button, a) {
+      padding-left: 0.5rem;
+      padding-right: 0.5rem;
     }
     .explore-status-dock {
       max-width: calc(100% - 200px);

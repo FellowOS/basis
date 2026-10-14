@@ -81,20 +81,67 @@ def get_api_token_record(request: Request) -> ApiTokenRecord | None:
     return getattr(request.state, "api_token", None)
 
 
+def _check_api_token_kb_access(
+    request: Request,
+    store: AdminStore,
+    kb_id: str,
+    *,
+    write: bool = False,
+) -> None:
+    api_record = get_api_token_record(request)
+    if api_record is None:
+        return
+    if not store.api_token_allows_kb(api_record, kb_id):
+        raise HTTPException(
+            status_code=403,
+            detail={"code": "forbidden", "message": "令牌未授权此知识库"},
+        )
+    if write and api_record.scope != "write":
+        raise HTTPException(
+            status_code=403,
+            detail={"code": "forbidden", "message": "令牌无写权限"},
+        )
+
+
+def get_kb_for_viewer(
+    request: Request,
+    user: User,
+    kb_id: str,
+    store: AdminStore,
+):
+    _check_api_token_kb_access(request, store, kb_id)
+    return store.get_kb_for(user, kb_id, "viewer")
+
+
+def get_kb_for_editor(
+    request: Request,
+    user: User,
+    kb_id: str,
+    store: AdminStore,
+):
+    _check_api_token_kb_access(request, store, kb_id, write=True)
+    return store.get_kb_for(user, kb_id, "editor")
+
+
+def get_kb_for_role(
+    request: Request,
+    user: User,
+    kb_id: str,
+    store: AdminStore,
+    role: str,
+):
+    if role == "editor":
+        return get_kb_for_editor(request, user, kb_id, store)
+    return get_kb_for_viewer(request, user, kb_id, store)
+
+
 def ensure_kb_viewer(
     request: Request,
     user: User,
     kb_id: str,
     store: AdminStore,
 ) -> None:
-    api_record = get_api_token_record(request)
-    if api_record is not None:
-        if not store.api_token_allows_kb(api_record, kb_id):
-            raise HTTPException(
-                status_code=403,
-                detail={"code": "forbidden", "message": "令牌未授权此知识库"},
-            )
-    store.get_kb_for(user, kb_id, "viewer")
+    get_kb_for_viewer(request, user, kb_id, store)
 
 
 def require_system_admin(user: User) -> User:

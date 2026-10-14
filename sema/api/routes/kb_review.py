@@ -13,6 +13,8 @@ from sema.api.deps import (
     get_blob_store,
     get_current_user,
     get_explorer_registry,
+    get_kb_for_editor,
+    get_kb_for_viewer,
     get_knowledge_store,
     get_store,
     rebuild_kb_projection,
@@ -63,7 +65,7 @@ async def list_review_items(
     store: AdminStore = Depends(get_store),
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> dict[str, Any]:
-    store.get_kb_for(user, kb_id, "viewer")
+    get_kb_for_viewer(request, user, kb_id, store)
     items = knowledge.list_review_items(kb_id, status=status, kind=kind, limit=limit)
     return {"items": items}
 
@@ -71,12 +73,13 @@ async def list_review_items(
 @router.post("/{kb_id}/review/items/entity-merge")
 async def propose_entity_merge(
     kb_id: str,
+    request: Request,
     body: CreateEntityMergeReviewRequest,
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> dict[str, Any]:
-    store.get_kb_for(user, kb_id, "editor")
+    get_kb_for_editor(request, user, kb_id, store)
     subject_id = KnowledgeStore.merge_review_subject_key(body.primary_id, body.duplicate_ids)
     item = knowledge.create_review_item(
         kb_id,
@@ -105,13 +108,14 @@ async def propose_entity_merge(
 @router.post("/{kb_id}/review/items/graph-import")
 async def propose_graph_import(
     kb_id: str,
+    request: Request,
     file: UploadFile = File(...),
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
     blob_store=Depends(get_blob_store),  # noqa: B008
 ) -> dict[str, Any]:
-    store.get_kb_for(user, kb_id, "editor")
+    get_kb_for_editor(request, user, kb_id, store)
     raw = await file.read()
     staged = stage_import_blob(blob_store, kb_id, raw, file.filename or "import.json")
     subject_id = f"import:{staged['sha256']}"
@@ -143,7 +147,7 @@ async def approve_review_item(
     store: AdminStore = Depends(get_store),
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> dict[str, Any]:
-    store.get_kb_for(user, kb_id, "editor")
+    get_kb_for_editor(request, user, kb_id, store)
     item = knowledge.get_review_item(kb_id, item_id)
     if item["status"] != "open":
         raise AdminError(409, "review_closed", "审核项已处理")
@@ -295,7 +299,7 @@ async def reject_review_item(
     store: AdminStore = Depends(get_store),
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> dict[str, Any]:
-    store.get_kb_for(user, kb_id, "editor")
+    get_kb_for_editor(request, user, kb_id, store)
     item = knowledge.get_review_item(kb_id, item_id)
     if item.get("kind") == "graph_import":
         discard_staged_import(get_blob_store(request), kb_id, item.get("payload") or {})
@@ -340,12 +344,13 @@ async def reject_review_item(
 @router.get("/{kb_id}/audit/graph-mutations")
 async def list_kb_graph_audit(
     kb_id: str,
+    request: Request,
     limit: int = Query(50, ge=1, le=200),
     action_prefix: str = Query("kb.graph."),
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> dict[str, Any]:
-    store.get_kb_for(user, kb_id, "viewer")
+    get_kb_for_viewer(request, user, kb_id, store)
     prefix = action_prefix.strip() or "kb.graph."
     events = store.list_audit_for_kb(kb_id, action_prefix=prefix, limit=limit)
     return {"events": events}

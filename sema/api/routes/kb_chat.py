@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel, Field
 
 from sema.admin.store import AdminStore, User
-from sema.api.deps import get_current_user, get_store
+from sema.api.deps import get_current_user, get_store, get_kb_for_viewer
 from sema.chat.playground import run_kb_playground
 
 router = APIRouter(prefix="/api/kbs", tags=["knowledge-bases"])
@@ -32,6 +32,6 @@ async def kb_chat_playground(
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> dict[str, Any]:
-    store.get_kb_for(user, kb_id, "viewer")
+    get_kb_for_viewer(request, user, kb_id, store)
     payload = [{"role": m.role, "content": m.content} for m in body.messages]
     return await asyncio.to_thread(run_kb_playground, request, kb_id, user, payload)

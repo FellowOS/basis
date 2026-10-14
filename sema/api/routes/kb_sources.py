@@ -12,7 +12,7 @@ from pydantic import BaseModel, Field
 
 from sema.admin.errors import AdminError
 from sema.admin.store import AdminStore, User
-from sema.api.deps import get_current_user, get_knowledge_store, get_store
+from sema.api.deps import get_current_user, get_knowledge_store, get_store, get_kb_for_viewer, get_kb_for_editor
 from sema.knowledge.graph_audit import audit_kb_graph
 from sema.knowledge.ingest_source_service import (
     enqueue_text_from_source,
@@ -75,11 +75,12 @@ def _now_iso() -> str:
 @router.get("/{kb_id}/sources")
 async def list_ingest_sources(
     kb_id: str,
+    request: Request,
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> dict[str, Any]:
-    store.get_kb_for(user, kb_id, "viewer")
+    get_kb_for_viewer(request, user, kb_id, store)
     sources = knowledge.list_ingest_sources(kb_id)
     for source in sources:
         if source["kind"] == "webhook":
@@ -90,12 +91,13 @@ async def list_ingest_sources(
 @router.post("/{kb_id}/sources")
 async def create_ingest_source(
     kb_id: str,
+    request: Request,
     body: CreateIngestSourceRequest,
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> dict[str, Any]:
-    store.get_kb_for(user, kb_id, "editor")
+    get_kb_for_editor(request, user, kb_id, store)
     source, token = knowledge.create_ingest_source(
         kb_id,
         user.id,
@@ -121,12 +123,13 @@ async def create_ingest_source(
 @router.get("/{kb_id}/sources/{source_id}")
 async def get_ingest_source(
     kb_id: str,
+    request: Request,
     source_id: str,
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> dict[str, Any]:
-    store.get_kb_for(user, kb_id, "viewer")
+    get_kb_for_viewer(request, user, kb_id, store)
     source = knowledge.get_ingest_source(kb_id, source_id)
     if source["kind"] == "webhook":
         source["webhook_path"] = _webhook_path(kb_id, source_id)
@@ -136,13 +139,14 @@ async def get_ingest_source(
 @router.patch("/{kb_id}/sources/{source_id}")
 async def update_ingest_source(
     kb_id: str,
+    request: Request,
     source_id: str,
     body: UpdateIngestSourceRequest,
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> dict[str, Any]:
-    store.get_kb_for(user, kb_id, "editor")
+    get_kb_for_editor(request, user, kb_id, store)
     if body.config is not None:
         source = knowledge.get_ingest_source(kb_id, source_id)
         if source["kind"] == "http_poll":
@@ -169,12 +173,13 @@ async def update_ingest_source(
 @router.delete("/{kb_id}/sources/{source_id}")
 async def delete_ingest_source(
     kb_id: str,
+    request: Request,
     source_id: str,
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> dict[str, Any]:
-    store.get_kb_for(user, kb_id, "editor")
+    get_kb_for_editor(request, user, kb_id, store)
     knowledge.delete_ingest_source(kb_id, source_id)
     audit_kb_graph(
         store,
@@ -189,12 +194,13 @@ async def delete_ingest_source(
 @router.post("/{kb_id}/sources/{source_id}/rotate-token")
 async def rotate_ingest_source_token(
     kb_id: str,
+    request: Request,
     source_id: str,
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> dict[str, Any]:
-    store.get_kb_for(user, kb_id, "editor")
+    get_kb_for_editor(request, user, kb_id, store)
     token = knowledge.rotate_ingest_source_token(kb_id, source_id)
     audit_kb_graph(
         store,
@@ -219,7 +225,7 @@ async def sync_ingest_source(
     store: AdminStore = Depends(get_store),
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> dict[str, Any]:
-    store.get_kb_for(user, kb_id, "editor")
+    get_kb_for_editor(request, user, kb_id, store)
     result = execute_http_poll_sync(
         request.app,
         knowledge,

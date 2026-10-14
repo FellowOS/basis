@@ -7,7 +7,7 @@ from typing import Any, Optional
 from fastapi import APIRouter, Depends, File, Form, Query, Request, UploadFile
 
 from sema.admin.store import AdminStore, User
-from sema.api.deps import get_current_user, get_explorer_registry, get_store, save_graph
+from sema.api.deps import get_current_user, get_explorer_registry, get_store, save_graph, get_kb_for_viewer, get_kb_for_editor
 from sema.explorer.kb_scoped_ontology_state import KbOntologyState
 from sema.explorer.session_guard import require_explorer_graph_session
 from sema.knowledge.graph_audit import audit_kb_graph
@@ -28,7 +28,7 @@ async def kb_vocabulary_schemes(
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> Any:
-    store.get_kb_for(user, kb_id, "viewer")
+    get_kb_for_viewer(request, user, kb_id, store)
     from semantica.explorer.routes.vocabulary import list_schemes
 
     session = _session(request, kb_id)
@@ -44,7 +44,7 @@ async def kb_vocabulary_concepts(
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> Any:
-    store.get_kb_for(user, kb_id, "viewer")
+    get_kb_for_viewer(request, user, kb_id, store)
     from semantica.explorer.routes.vocabulary import list_concepts
 
     session = _session(request, kb_id)
@@ -59,7 +59,7 @@ async def kb_vocabulary_hierarchy(
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> Any:
-    store.get_kb_for(user, kb_id, "viewer")
+    get_kb_for_viewer(request, user, kb_id, store)
     from semantica.explorer.routes.vocabulary import get_hierarchy
 
     session = _session(request, kb_id)
@@ -76,7 +76,7 @@ async def kb_vocabulary_import(
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> Any:
-    store.get_kb_for(user, kb_id, "editor")
+    get_kb_for_editor(request, user, kb_id, store)
     from semantica.explorer.routes.vocabulary import import_vocabulary
 
     session = _session(request, kb_id)
@@ -97,7 +97,7 @@ async def kb_ontology_registry(
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> Any:
-    store.get_kb_for(user, kb_id, "viewer")
+    get_kb_for_viewer(request, user, kb_id, store)
     from semantica.explorer.routes.ontology import list_registry
 
     session = _session(request, kb_id)
@@ -113,7 +113,7 @@ async def kb_list_alignments(
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> Any:
-    store.get_kb_for(user, kb_id, "viewer")
+    get_kb_for_viewer(request, user, kb_id, store)
 
     with KbOntologyState(request, kb_id):
         align_store = request.app.state.kb_ontology_alignments[kb_id]
@@ -137,7 +137,7 @@ async def kb_upsert_alignment(
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> Any:
-    store.get_kb_for(user, kb_id, "editor")
+    get_kb_for_editor(request, user, kb_id, store)
     from semantica.explorer.routes.ontology import upsert_alignment
     from semantica.explorer.routes.ontology import OntologyAlignmentRequest
 
@@ -156,7 +156,7 @@ async def kb_delete_alignment(
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> Any:
-    store.get_kb_for(user, kb_id, "editor")
+    get_kb_for_editor(request, user, kb_id, store)
     from semantica.explorer.routes.ontology import delete_alignment
 
     with KbOntologyState(request, kb_id):
@@ -170,7 +170,7 @@ async def kb_suggest_alignments(
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> Any:
-    store.get_kb_for(user, kb_id, "viewer")
+    get_kb_for_viewer(request, user, kb_id, store)
     from semantica.explorer.routes.ontology import suggest_alignments
     from semantica.explorer.routes.ontology import AlignmentSuggestionRequest
 

@@ -14,6 +14,8 @@ from sema.api.deps import (
     get_chunk_search,
     get_current_user,
     get_explorer_registry,
+    get_kb_for_editor,
+    get_kb_for_viewer,
     get_knowledge_store,
     get_store,
     graph_for,
@@ -154,10 +156,11 @@ async def create_kb(
 @router.get("/{kb_id}")
 async def get_kb(
     kb_id: str,
+    request: Request,
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> dict:
-    kb, role = store.get_kb_for(user, kb_id, "viewer")
+    kb, role = get_kb_for_viewer(request, user, kb_id, store)
     item = kb.public()
     item["my_role"] = role
     return item
@@ -166,10 +169,11 @@ async def get_kb(
 @router.get("/{kb_id}/capabilities")
 async def get_kb_capabilities(
     kb_id: str,
+    request: Request,
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> dict[str, Any]:
-    kb, role = store.get_kb_for(user, kb_id, "viewer")
+    kb, role = get_kb_for_viewer(request, user, kb_id, store)
     return {"kb_id": kb.id, "role": role, **kb_capabilities(role)}
 
 
@@ -248,7 +252,7 @@ async def rebuild_graph(
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> dict[str, Any]:
-    store.get_kb_for(user, kb_id, "editor")
+    get_kb_for_editor(request, user, kb_id, store)
     session = graph_for(request, kb_id)
     meta = await asyncio.to_thread(
         apply_rebuild_to_session,
@@ -279,7 +283,7 @@ async def graph_projection_status(
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> dict[str, Any]:
-    store.get_kb_for(user, kb_id, "viewer")
+    get_kb_for_viewer(request, user, kb_id, store)
     knowledge = get_knowledge_store(request)
     projection = knowledge.get_projection_state(kb_id)
     session = graph_for(request, kb_id)
@@ -298,7 +302,7 @@ async def graph_stats(
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> dict[str, int]:
-    store.get_kb_for(user, kb_id, "viewer")
+    get_kb_for_viewer(request, user, kb_id, store)
     return graph_for(request, kb_id).stats()
 
 
@@ -313,7 +317,7 @@ async def graph_nodes_route(
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> dict[str, Any]:
-    store.get_kb_for(user, kb_id, "viewer")
+    get_kb_for_viewer(request, user, kb_id, store)
     runtime = get_explorer_registry(request).get(request, kb_id)
     page_limit = min(max(1, limit), GRAPH_PAGE_MAX_NODES)
     if runtime.explorer is not None:
@@ -346,7 +350,7 @@ async def resolve_graph_node_labels(
     store: AdminStore = Depends(get_store),
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> dict[str, Any]:
-    store.get_kb_for(user, kb_id, "viewer")
+    get_kb_for_viewer(request, user, kb_id, store)
     ids = [str(i).strip() for i in body.ids if str(i).strip()]
     labels = knowledge.entity_labels_by_ids(kb_id, ids)
     runtime = get_explorer_registry(request).get(request, kb_id)
@@ -371,7 +375,7 @@ async def graph_node_route(
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> dict[str, Any]:
-    store.get_kb_for(user, kb_id, "viewer")
+    get_kb_for_viewer(request, user, kb_id, store)
     runtime = get_explorer_registry(request).get(request, kb_id)
     node = await asyncio.to_thread(get_node, runtime, node_id)
     if node is None:
@@ -388,7 +392,7 @@ async def graph_neighbors_route(
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> dict[str, Any]:
-    store.get_kb_for(user, kb_id, "viewer")
+    get_kb_for_viewer(request, user, kb_id, store)
     runtime = get_explorer_registry(request).get(request, kb_id)
     neighbors = await asyncio.to_thread(list_neighbors, runtime, node_id, depth=depth)
     return {"node_id": node_id, "depth": min(max(1, depth), 5), "neighbors": neighbors}
@@ -405,7 +409,7 @@ async def graph_path_route(
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> dict[str, Any]:
-    store.get_kb_for(user, kb_id, "viewer")
+    get_kb_for_viewer(request, user, kb_id, store)
     runtime = get_explorer_registry(request).get(request, kb_id)
     if algorithm not in {"bfs", "dijkstra"}:
         raise AdminError(422, "bad_algorithm", "algorithm 须为 bfs 或 dijkstra")
@@ -431,7 +435,7 @@ async def graph_edges_route(
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> dict[str, Any]:
-    store.get_kb_for(user, kb_id, "viewer")
+    get_kb_for_viewer(request, user, kb_id, store)
     runtime = get_explorer_registry(request).get(request, kb_id)
     return await asyncio.to_thread(
         paginate_edges,
@@ -457,7 +461,7 @@ async def chunk_search_route(
     store: AdminStore = Depends(get_store),
     chunk_search: ChunkSearchService = Depends(get_chunk_search),
 ) -> dict[str, Any]:
-    store.get_kb_for(user, kb_id, "viewer")
+    get_kb_for_viewer(request, user, kb_id, store)
     capped_limit = min(max(1, limit), CHUNK_SEARCH_MAX_LIMIT)
     knowledge = get_knowledge_store(request)
     resolved_document_id = document_id
@@ -479,12 +483,13 @@ async def chunk_search_route(
 @router.get("/{kb_id}/search/config")
 async def get_chunk_search_config_route(
     kb_id: str,
+    request: Request,
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
     chunk_search: ChunkSearchService = Depends(get_chunk_search),
 ) -> dict[str, Any]:
-    store.get_kb_for(user, kb_id, "viewer")
+    get_kb_for_viewer(request, user, kb_id, store)
     config = knowledge.get_search_config(kb_id)
     postgres = knowledge.database.backend == "postgres"
     return {
@@ -543,12 +548,13 @@ class SearchReindexRequest(BaseModel):
 @router.post("/{kb_id}/search/reindex")
 async def chunk_search_reindex_route(
     kb_id: str,
+    request: Request,
     body: SearchReindexRequest | None = None,
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
     chunk_search: ChunkSearchService = Depends(get_chunk_search),
 ) -> dict[str, Any]:
-    store.get_kb_for(user, kb_id, "editor")
+    get_kb_for_editor(request, user, kb_id, store)
     body = body or SearchReindexRequest()
 
     def _reindex() -> dict[str, Any]:
@@ -567,7 +573,7 @@ async def graph_search_route(
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> dict[str, Any]:
-    store.get_kb_for(user, kb_id, "viewer")
+    get_kb_for_viewer(request, user, kb_id, store)
     runtime = get_explorer_registry(request).get(request, kb_id)
     results = await asyncio.to_thread(
         search_nodes,
@@ -588,7 +594,7 @@ async def graph_snapshot_route(
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> dict[str, Any]:
-    store.get_kb_for(user, kb_id, "viewer")
+    get_kb_for_viewer(request, user, kb_id, store)
     session = graph_for(request, kb_id)
     capped_nodes = min(max(1, limit_nodes), GRAPH_PAGE_MAX_NODES)
     capped_edges = min(max(1, limit_edges), GRAPH_PAGE_MAX_EDGES)
@@ -603,7 +609,7 @@ async def ingest_document(
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> Any:
-    store.get_kb_for(user, kb_id, "editor")
+    get_kb_for_editor(request, user, kb_id, store)
     doc_id = body.doc_id.strip()
     filename = f"{doc_id}.txt"
     knowledge = get_knowledge_store(request)
@@ -670,7 +676,7 @@ async def append_document_version_text(
     store: AdminStore = Depends(get_store),
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> Any:
-    store.get_kb_for(user, kb_id, "editor")
+    get_kb_for_editor(request, user, kb_id, store)
     context = knowledge.resolve_document_ref(kb_id, document_id)
     if context is None:
         raise AdminError(404, "not_found", "文档不存在")
@@ -703,7 +709,7 @@ async def append_document_version_upload(
     store: AdminStore = Depends(get_store),
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> Any:
-    store.get_kb_for(user, kb_id, "editor")
+    get_kb_for_editor(request, user, kb_id, store)
     context = knowledge.resolve_document_ref(kb_id, document_id)
     if context is None:
         raise AdminError(404, "not_found", "文档不存在")
@@ -735,7 +741,7 @@ async def list_kb_documents(
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> dict[str, Any]:
-    store.get_kb_for(user, kb_id, "viewer")
+    get_kb_for_viewer(request, user, kb_id, store)
     graph_docs = list_documents(graph_for(request, kb_id))
     merged: dict[str, dict[str, Any]] = {d["doc_id"]: dict(d) for d in graph_docs}
     for row in get_knowledge_store(request).list_documents(kb_id):
@@ -787,13 +793,14 @@ def _processing_options(body: StartProcessingRequest) -> tuple[TextIngestOptions
 @router.get("/{kb_id}/processing/jobs")
 async def list_processing_jobs(
     kb_id: str,
+    request: Request,
     status: str | None = None,
     limit: int = 100,
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> dict[str, Any]:
-    store.get_kb_for(user, kb_id, "viewer")
+    get_kb_for_viewer(request, user, kb_id, store)
     if status and status not in {"queued", "running", "succeeded", "failed", "cancelled"}:
         raise AdminError(422, "bad_status", "任务状态无效")
     return {
@@ -814,7 +821,7 @@ async def start_processing_job(
     store: AdminStore = Depends(get_store),
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> Any:
-    store.get_kb_for(user, kb_id, "editor")
+    get_kb_for_editor(request, user, kb_id, store)
     context = knowledge.get_processing_context(kb_id, body.version_id)
     options, options_payload = _processing_options(body)
     job = knowledge.create_processing_job(
@@ -850,12 +857,13 @@ async def start_processing_job(
 @router.get("/{kb_id}/processing/jobs/{job_id}")
 async def get_processing_job(
     kb_id: str,
+    request: Request,
     job_id: str,
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> dict[str, Any]:
-    store.get_kb_for(user, kb_id, "viewer")
+    get_kb_for_viewer(request, user, kb_id, store)
     job = knowledge.get_job(kb_id, job_id)
     return {
         "job": {
@@ -888,7 +896,7 @@ async def retry_processing_job(
     store: AdminStore = Depends(get_store),
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> Any:
-    store.get_kb_for(user, kb_id, "editor")
+    get_kb_for_editor(request, user, kb_id, store)
     previous = knowledge.get_job(kb_id, job_id)
     if previous.status not in {"failed", "cancelled"}:
         raise AdminError(409, "job_not_retryable", "仅失败或已取消任务可重试")
@@ -915,7 +923,7 @@ async def get_ingest_job(
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> dict[str, Any]:
-    store.get_kb_for(user, kb_id, "viewer")
+    get_kb_for_viewer(request, user, kb_id, store)
     knowledge = get_knowledge_store(request)
     job = knowledge.get_job(kb_id, job_id)
     payload: dict[str, Any] = {
@@ -970,7 +978,7 @@ async def upload_document(
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> Any:
-    store.get_kb_for(user, kb_id, "editor")
+    get_kb_for_editor(request, user, kb_id, store)
     raw = await file.read()
     filename = file.filename or "upload.txt"
     resolved_id = (doc_id or _doc_id_from_filename(filename)).strip()

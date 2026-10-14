@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, Query, Request
 from pydantic import BaseModel, Field
 
 from sema.admin.store import AdminStore, User
-from sema.api.deps import get_current_user, get_knowledge_store, get_store
+from sema.api.deps import get_current_user, get_knowledge_store, get_store, get_kb_for_viewer, get_kb_for_editor
 from sema.knowledge.graph_audit import audit_kb_graph
 from sema.knowledge.mapping_service import apply_mapping_status_change, ensure_mapping_review_item
 from sema.knowledge.store import KnowledgeStore
@@ -33,13 +33,14 @@ class UpdateMappingStatusRequest(BaseModel):
 @router.get("/{kb_id}/mappings")
 async def list_kb_mappings(
     kb_id: str,
+    request: Request,
     status: str | None = Query(None),
     limit: int = Query(100, ge=1, le=200),
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> dict[str, Any]:
-    store.get_kb_for(user, kb_id, "viewer")
+    get_kb_for_viewer(request, user, kb_id, store)
     mappings = knowledge.list_mappings(kb_id, status=status, limit=limit)
     return {"mappings": mappings}
 
@@ -100,7 +101,7 @@ async def update_kb_mapping_status(
     store: AdminStore = Depends(get_store),
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> dict[str, Any]:
-    store.get_kb_for(user, kb_id, "editor")
+    get_kb_for_editor(request, user, kb_id, store)
     return apply_mapping_status_change(
         request,
         kb_id,

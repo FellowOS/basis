@@ -5,7 +5,6 @@ import { buildExplorerGraphApiPath, explorerFetch } from "../../host/explorerHtt
 import { Button } from "@/components/ui/button.js";
 import {
   InputGroup,
-  InputGroupAddon,
   InputGroupButton,
   InputGroupInput,
 } from "@/components/ui/input-group.js";
@@ -127,7 +126,7 @@ function SearchCommandBar({
 
   return (
     <form
-      className="relative min-w-0 flex-1"
+      className="explore-search-dock-search relative min-w-0"
       role="combobox"
       aria-expanded={suggestionsOpen && suggestions.length > 0}
       aria-haspopup="listbox"
@@ -144,9 +143,6 @@ function SearchCommandBar({
       }}
     >
       <InputGroup className="h-9">
-        <InputGroupAddon>
-          <Search aria-hidden />
-        </InputGroupAddon>
         <InputGroupInput
           ref={inputRef}
           value={value}
@@ -179,8 +175,13 @@ function SearchCommandBar({
           aria-controls={listboxId}
           aria-activedescendant={highlightedIndex >= 0 ? `${listboxId}-${highlightedIndex}` : undefined}
         />
-        <InputGroupButton type="submit" disabled={disabled} aria-label="Search for the current query">
-          Search
+        <InputGroupButton
+          type="submit"
+          size="icon-sm"
+          disabled={disabled}
+          aria-label="Search for the current query"
+        >
+          <Search aria-hidden />
         </InputGroupButton>
       </InputGroup>
 
@@ -250,7 +251,7 @@ export function GraphSearchDock({
 }) {
   return (
     <div className="flex w-full min-w-0 flex-col gap-2">
-      <div className="flex min-w-0 items-center gap-2">
+      <div className="explore-search-dock-toolbar flex w-full min-w-0 items-center gap-2">
         <SearchCommandBar
           kbId={kbId}
           value={query}
@@ -259,18 +260,20 @@ export function GraphSearchDock({
           onSubmit={onSearch}
           onSelectSuggestion={onSelectSuggestion}
         />
-        <Button
-          type="button"
-          variant="outline"
-          size="icon-sm"
-          disabled={reloadDisabled}
-          title="Reload graph data"
-          aria-label="Reload graph data"
-          onClick={onReload}
-        >
-          <RefreshCw aria-hidden />
-        </Button>
-        {trailingActions}
+        <div className="explore-search-dock-actions flex shrink-0 items-center gap-1.5">
+          <Button
+            type="button"
+            variant="outline"
+            size="icon-sm"
+            disabled={reloadDisabled}
+            title="Reload graph data"
+            aria-label="Reload graph data"
+            onClick={onReload}
+          >
+            <RefreshCw aria-hidden />
+          </Button>
+          {trailingActions}
+        </div>
       </div>
 
       {searchError ? <div className="text-xs text-destructive">{searchError}</div> : null}

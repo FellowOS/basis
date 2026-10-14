@@ -9,7 +9,7 @@ from fastapi.responses import Response
 
 from sema.admin.errors import AdminError
 from sema.admin.store import AdminStore, User
-from sema.api.deps import get_current_user, get_explorer_registry, get_store, save_graph
+from sema.api.deps import get_current_user, get_explorer_registry, get_store, save_graph, get_kb_for_viewer, get_kb_for_editor
 from sema.explorer.session_guard import require_explorer_graph_session
 from sema.limits import EXPLORER_DECISIONS_MAX_LIMIT
 from sema.knowledge.graph_audit import audit_kb_graph
@@ -24,7 +24,7 @@ async def kb_temporal_bounds(
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> Any:
-    store.get_kb_for(user, kb_id, "viewer")
+    get_kb_for_viewer(request, user, kb_id, store)
     runtime = get_explorer_registry(request).get(request, kb_id)
     session = require_explorer_graph_session(runtime)
     from semantica.explorer.routes.temporal import temporal_bounds
@@ -40,7 +40,7 @@ async def kb_temporal_snapshot(
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> Any:
-    store.get_kb_for(user, kb_id, "viewer")
+    get_kb_for_viewer(request, user, kb_id, store)
     runtime = get_explorer_registry(request).get(request, kb_id)
     session = require_explorer_graph_session(runtime)
     from semantica.explorer.routes.temporal import temporal_snapshot
@@ -55,7 +55,7 @@ async def kb_enrich_links(
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> Any:
-    store.get_kb_for(user, kb_id, "viewer")
+    get_kb_for_viewer(request, user, kb_id, store)
     runtime = get_explorer_registry(request).get(request, kb_id)
     session = require_explorer_graph_session(runtime)
     from semantica.explorer.routes.enrich import predict_links
@@ -73,7 +73,7 @@ async def kb_enrich_dedup(
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> Any:
-    store.get_kb_for(user, kb_id, "viewer")
+    get_kb_for_viewer(request, user, kb_id, store)
     runtime = get_explorer_registry(request).get(request, kb_id)
     session = require_explorer_graph_session(runtime)
     from semantica.explorer.routes.enrich import detect_duplicates
@@ -87,11 +87,12 @@ async def kb_enrich_dedup(
 @router.post("/{kb_id}/enrich/merge")
 async def kb_enrich_merge(
     kb_id: str,
+    request: Request,
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> Any:
     """Direct graph merge is disabled; use the review queue (Gate D)."""
-    store.get_kb_for(user, kb_id, "editor")
+    get_kb_for_editor(request, user, kb_id, store)
     raise AdminError(
         409,
         "merge_requires_review",
@@ -108,7 +109,7 @@ async def kb_provenance_report(
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> Response:
-    store.get_kb_for(user, kb_id, "viewer")
+    get_kb_for_viewer(request, user, kb_id, store)
     runtime = get_explorer_registry(request).get(request, kb_id)
     session = require_explorer_graph_session(runtime)
     from semantica.explorer.routes.provenance import export_provenance_report
@@ -123,7 +124,7 @@ async def kb_sparql_execute(
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> Any:
-    store.get_kb_for(user, kb_id, "viewer")
+    get_kb_for_viewer(request, user, kb_id, store)
     runtime = get_explorer_registry(request).get(request, kb_id)
     session = require_explorer_graph_session(runtime)
     from semantica.explorer.routes.sparql import SparqlRequest, execute_sparql
@@ -143,7 +144,7 @@ async def kb_graph_semantic_neighborhood(
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> Any:
-    store.get_kb_for(user, kb_id, "viewer")
+    get_kb_for_viewer(request, user, kb_id, store)
     runtime = get_explorer_registry(request).get(request, kb_id)
     session = require_explorer_graph_session(runtime)
     from semantica.explorer.routes.graph import semantic_neighborhood_by_query
@@ -166,7 +167,7 @@ async def kb_list_decisions(
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> Any:
-    store.get_kb_for(user, kb_id, "viewer")
+    get_kb_for_viewer(request, user, kb_id, store)
     runtime = get_explorer_registry(request).get(request, kb_id)
     session = require_explorer_graph_session(runtime)
     from semantica.explorer.routes.decisions import list_decisions
@@ -188,7 +189,7 @@ async def kb_decision_chain(
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> Any:
-    store.get_kb_for(user, kb_id, "viewer")
+    get_kb_for_viewer(request, user, kb_id, store)
     runtime = get_explorer_registry(request).get(request, kb_id)
     session = require_explorer_graph_session(runtime)
     from semantica.explorer.routes.decisions import get_causal_chain
@@ -232,10 +233,11 @@ async def kb_reasoning_run(
 @router.post("/{kb_id}/import")
 async def kb_import_graph(
     kb_id: str,
+    request: Request,
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> Any:
-    store.get_kb_for(user, kb_id, "editor")
+    get_kb_for_editor(request, user, kb_id, store)
     raise AdminError(
         409,
         "import_requires_review",
@@ -250,7 +252,7 @@ async def kb_export_graph(
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> Response:
-    store.get_kb_for(user, kb_id, "viewer")
+    get_kb_for_viewer(request, user, kb_id, store)
     runtime = get_explorer_registry(request).get(request, kb_id)
     session = require_explorer_graph_session(runtime)
     from semantica.explorer.routes.export_import import export_graph

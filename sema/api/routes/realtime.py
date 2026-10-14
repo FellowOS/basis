@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends, Request, WebSocket, WebSocketDisconnect
 
 from sema.admin.errors import AdminError
 from sema.admin.store import AdminStore, User
-from sema.api.deps import get_current_user, get_knowledge_store, get_store
+from sema.api.deps import get_current_user, get_knowledge_store, get_store, get_kb_for_viewer
 
 router = APIRouter(prefix="/api/kbs", tags=["realtime"])
 
@@ -36,7 +36,7 @@ async def create_realtime_ticket(
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> dict[str, Any]:
-    store.get_kb_for(user, kb_id, "viewer")
+    get_kb_for_viewer(request, user, kb_id, store)
     ticket, expires_at = request.app.state.realtime_tickets.issue(kb_id, user.id)
     revision = get_knowledge_store(request).get_projection_state(kb_id)["revision"]
     return {

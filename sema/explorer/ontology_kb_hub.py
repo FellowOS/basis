@@ -9,7 +9,7 @@ from pydantic_core import PydanticUndefined
 import semantica.explorer.routes.ontology  # noqa: F401 — annotations on generated handlers
 
 from sema.admin.store import AdminStore, User
-from sema.api.deps import get_current_user, get_explorer_registry, get_store, save_graph
+from sema.api.deps import get_current_user, get_explorer_registry, get_kb_for_role, get_store, save_graph
 from sema.explorer.kb_scoped_ontology_state import KbOntologyState
 from sema.explorer.session_guard import require_explorer_graph_session
 
@@ -35,7 +35,7 @@ def register_kb_ontology_hub_routes(router: APIRouter) -> None:
         user: User = Depends(get_current_user),
         store: AdminStore = Depends(get_store),
     ) -> Any:
-        store.get_kb_for(user, kb_id, _min_role("POST"))
+        get_kb_for_role(request, user, kb_id, store, _min_role("POST"))
         session = _session(request, kb_id)
         with KbOntologyState(request, kb_id):
             result = await ont.preview_ontology(request=request, session=session, body=body)
@@ -51,7 +51,7 @@ def register_kb_ontology_hub_routes(router: APIRouter) -> None:
         user: User = Depends(get_current_user),
         store: AdminStore = Depends(get_store),
     ) -> Any:
-        store.get_kb_for(user, kb_id, _min_role("POST"))
+        get_kb_for_role(request, user, kb_id, store, _min_role("POST"))
         session = _session(request, kb_id)
         with KbOntologyState(request, kb_id):
             result = await ont.load_ontology(request=request, session=session, body=body)
@@ -67,7 +67,7 @@ def register_kb_ontology_hub_routes(router: APIRouter) -> None:
         user: User = Depends(get_current_user),
         store: AdminStore = Depends(get_store),
     ) -> Any:
-        store.get_kb_for(user, kb_id, _min_role("POST"))
+        get_kb_for_role(request, user, kb_id, store, _min_role("POST"))
         session = _session(request, kb_id)
         with KbOntologyState(request, kb_id):
             result = await ont.create_ontology(request=request, session=session, body=body)
@@ -85,7 +85,7 @@ def register_kb_ontology_hub_routes(router: APIRouter) -> None:
         user: User = Depends(get_current_user),
         store: AdminStore = Depends(get_store),
     ) -> Any:
-        store.get_kb_for(user, kb_id, _min_role("GET"))
+        get_kb_for_role(request, user, kb_id, store, _min_role("GET"))
         session = _session(request, kb_id)
         with KbOntologyState(request, kb_id):
             result = await ont.search_entities(request=request, session=session, q=q, entity_type=entity_type, limit=limit)
@@ -100,7 +100,7 @@ def register_kb_ontology_hub_routes(router: APIRouter) -> None:
         user: User = Depends(get_current_user),
         store: AdminStore = Depends(get_store),
     ) -> Any:
-        store.get_kb_for(user, kb_id, _min_role("GET"))
+        get_kb_for_role(request, user, kb_id, store, _min_role("GET"))
         session = _session(request, kb_id)
         with KbOntologyState(request, kb_id):
             result = await ont.get_ontology_graph(request=request, session=session, uri=uri)
@@ -115,7 +115,7 @@ def register_kb_ontology_hub_routes(router: APIRouter) -> None:
         user: User = Depends(get_current_user),
         store: AdminStore = Depends(get_store),
     ) -> Any:
-        store.get_kb_for(user, kb_id, _min_role("GET"))
+        get_kb_for_role(request, user, kb_id, store, _min_role("GET"))
         session = _session(request, kb_id)
         with KbOntologyState(request, kb_id):
             result = await ont.get_entity_detail(request=request, session=session, entity_uri=entity_uri)
@@ -129,7 +129,7 @@ def register_kb_ontology_hub_routes(router: APIRouter) -> None:
         user: User = Depends(get_current_user),
         store: AdminStore = Depends(get_store),
     ) -> Any:
-        store.get_kb_for(user, kb_id, _min_role("GET"))
+        get_kb_for_role(request, user, kb_id, store, _min_role("GET"))
         session = _session(request, kb_id)
         with KbOntologyState(request, kb_id):
             result = await ont.list_skos_schemes(request=request, session=session)
@@ -144,7 +144,7 @@ def register_kb_ontology_hub_routes(router: APIRouter) -> None:
         user: User = Depends(get_current_user),
         store: AdminStore = Depends(get_store),
     ) -> Any:
-        store.get_kb_for(user, kb_id, _min_role("POST"))
+        get_kb_for_role(request, user, kb_id, store, _min_role("POST"))
         session = _session(request, kb_id)
         with KbOntologyState(request, kb_id):
             result = await ont.search_skos_concepts(request=request, session=session, body=body)
@@ -160,7 +160,7 @@ def register_kb_ontology_hub_routes(router: APIRouter) -> None:
         user: User = Depends(get_current_user),
         store: AdminStore = Depends(get_store),
     ) -> Any:
-        store.get_kb_for(user, kb_id, _min_role("GET"))
+        get_kb_for_role(request, user, kb_id, store, _min_role("GET"))
         session = _session(request, kb_id)
         with KbOntologyState(request, kb_id):
             result = await ont.get_skos_concept(request=request, session=session, concept_uri=concept_uri)
@@ -175,7 +175,7 @@ def register_kb_ontology_hub_routes(router: APIRouter) -> None:
         user: User = Depends(get_current_user),
         store: AdminStore = Depends(get_store),
     ) -> Any:
-        store.get_kb_for(user, kb_id, _min_role("GET"))
+        get_kb_for_role(request, user, kb_id, store, _min_role("GET"))
         session = _session(request, kb_id)
         with KbOntologyState(request, kb_id):
             result = await ont.ontology_health(request=request, session=session, uri=uri)
@@ -190,7 +190,7 @@ def register_kb_ontology_hub_routes(router: APIRouter) -> None:
         user: User = Depends(get_current_user),
         store: AdminStore = Depends(get_store),
     ) -> Any:
-        store.get_kb_for(user, kb_id, _min_role("POST"))
+        get_kb_for_role(request, user, kb_id, store, _min_role("POST"))
         session = _session(request, kb_id)
         with KbOntologyState(request, kb_id):
             result = await ont.generate_shacl(request=request, session=session, body=body)
@@ -206,7 +206,7 @@ def register_kb_ontology_hub_routes(router: APIRouter) -> None:
         user: User = Depends(get_current_user),
         store: AdminStore = Depends(get_store),
     ) -> Any:
-        store.get_kb_for(user, kb_id, _min_role("GET"))
+        get_kb_for_role(request, user, kb_id, store, _min_role("GET"))
         session = _session(request, kb_id)
         with KbOntologyState(request, kb_id):
             result = await ont.list_shacl_shapes(request=request, session=session, uri=uri)
@@ -221,7 +221,7 @@ def register_kb_ontology_hub_routes(router: APIRouter) -> None:
         user: User = Depends(get_current_user),
         store: AdminStore = Depends(get_store),
     ) -> Any:
-        store.get_kb_for(user, kb_id, _min_role("POST"))
+        get_kb_for_role(request, user, kb_id, store, _min_role("POST"))
         session = _session(request, kb_id)
         with KbOntologyState(request, kb_id):
             result = await ont.validate_shacl(request=request, session=session, body=body)
@@ -237,7 +237,7 @@ def register_kb_ontology_hub_routes(router: APIRouter) -> None:
         user: User = Depends(get_current_user),
         store: AdminStore = Depends(get_store),
     ) -> Any:
-        store.get_kb_for(user, kb_id, _min_role("DELETE"))
+        get_kb_for_role(request, user, kb_id, store, _min_role("DELETE"))
         session = _session(request, kb_id)
         with KbOntologyState(request, kb_id):
             result = await ont.remove_ontology(request=request, session=session, ontology_uri=ontology_uri)
@@ -253,7 +253,7 @@ def register_kb_ontology_hub_routes(router: APIRouter) -> None:
         user: User = Depends(get_current_user),
         store: AdminStore = Depends(get_store),
     ) -> Any:
-        store.get_kb_for(user, kb_id, _min_role("PATCH"))
+        get_kb_for_role(request, user, kb_id, store, _min_role("PATCH"))
         session = _session(request, kb_id)
         with KbOntologyState(request, kb_id):
             result = await ont.toggle_ontology(request=request, session=session, ontology_uri=ontology_uri)
@@ -269,7 +269,7 @@ def register_kb_ontology_hub_routes(router: APIRouter) -> None:
         user: User = Depends(get_current_user),
         store: AdminStore = Depends(get_store),
     ) -> Any:
-        store.get_kb_for(user, kb_id, _min_role("POST"))
+        get_kb_for_role(request, user, kb_id, store, _min_role("POST"))
         session = _session(request, kb_id)
         with KbOntologyState(request, kb_id):
             result = await ont.refresh_ontology(request=request, session=session, ontology_uri=ontology_uri)
@@ -285,7 +285,7 @@ def register_kb_ontology_hub_routes(router: APIRouter) -> None:
         user: User = Depends(get_current_user),
         store: AdminStore = Depends(get_store),
     ) -> Any:
-        store.get_kb_for(user, kb_id, _min_role("PATCH"))
+        get_kb_for_role(request, user, kb_id, store, _min_role("PATCH"))
         session = _session(request, kb_id)
         with KbOntologyState(request, kb_id):
             result = await ont.save_draft(request=request, session=session, body=body)
@@ -301,7 +301,7 @@ def register_kb_ontology_hub_routes(router: APIRouter) -> None:
         user: User = Depends(get_current_user),
         store: AdminStore = Depends(get_store),
     ) -> Any:
-        store.get_kb_for(user, kb_id, _min_role("GET"))
+        get_kb_for_role(request, user, kb_id, store, _min_role("GET"))
         session = _session(request, kb_id)
         with KbOntologyState(request, kb_id):
             result = await ont.list_drafts(request=request, session=session, ontology_uri=ontology_uri)
@@ -316,7 +316,7 @@ def register_kb_ontology_hub_routes(router: APIRouter) -> None:
         user: User = Depends(get_current_user),
         store: AdminStore = Depends(get_store),
     ) -> Any:
-        store.get_kb_for(user, kb_id, _min_role("GET"))
+        get_kb_for_role(request, user, kb_id, store, _min_role("GET"))
         session = _session(request, kb_id)
         with KbOntologyState(request, kb_id):
             result = await ont.get_draft(request=request, session=session, draft_id=draft_id)
@@ -331,7 +331,7 @@ def register_kb_ontology_hub_routes(router: APIRouter) -> None:
         user: User = Depends(get_current_user),
         store: AdminStore = Depends(get_store),
     ) -> Any:
-        store.get_kb_for(user, kb_id, _min_role("POST"))
+        get_kb_for_role(request, user, kb_id, store, _min_role("POST"))
         session = _session(request, kb_id)
         with KbOntologyState(request, kb_id):
             result = await ont.submit_proposal(request=request, session=session, body=body)
@@ -348,7 +348,7 @@ def register_kb_ontology_hub_routes(router: APIRouter) -> None:
         user: User = Depends(get_current_user),
         store: AdminStore = Depends(get_store),
     ) -> Any:
-        store.get_kb_for(user, kb_id, _min_role("GET"))
+        get_kb_for_role(request, user, kb_id, store, _min_role("GET"))
         session = _session(request, kb_id)
         with KbOntologyState(request, kb_id):
             result = await ont.list_proposals(request=request, session=session, ontology_uri=ontology_uri, state=state)
@@ -363,7 +363,7 @@ def register_kb_ontology_hub_routes(router: APIRouter) -> None:
         user: User = Depends(get_current_user),
         store: AdminStore = Depends(get_store),
     ) -> Any:
-        store.get_kb_for(user, kb_id, _min_role("GET"))
+        get_kb_for_role(request, user, kb_id, store, _min_role("GET"))
         session = _session(request, kb_id)
         with KbOntologyState(request, kb_id):
             result = await ont.get_proposal(request=request, session=session, proposal_id=proposal_id)
@@ -378,7 +378,7 @@ def register_kb_ontology_hub_routes(router: APIRouter) -> None:
         user: User = Depends(get_current_user),
         store: AdminStore = Depends(get_store),
     ) -> Any:
-        store.get_kb_for(user, kb_id, _min_role("POST"))
+        get_kb_for_role(request, user, kb_id, store, _min_role("POST"))
         session = _session(request, kb_id)
         with KbOntologyState(request, kb_id):
             result = await ont.approve_proposal(request=request, session=session, proposal_id=proposal_id)
@@ -394,7 +394,7 @@ def register_kb_ontology_hub_routes(router: APIRouter) -> None:
         user: User = Depends(get_current_user),
         store: AdminStore = Depends(get_store),
     ) -> Any:
-        store.get_kb_for(user, kb_id, _min_role("POST"))
+        get_kb_for_role(request, user, kb_id, store, _min_role("POST"))
         session = _session(request, kb_id)
         with KbOntologyState(request, kb_id):
             result = await ont.reject_proposal(request=request, session=session, proposal_id=proposal_id)
@@ -410,7 +410,7 @@ def register_kb_ontology_hub_routes(router: APIRouter) -> None:
         user: User = Depends(get_current_user),
         store: AdminStore = Depends(get_store),
     ) -> Any:
-        store.get_kb_for(user, kb_id, _min_role("POST"))
+        get_kb_for_role(request, user, kb_id, store, _min_role("POST"))
         session = _session(request, kb_id)
         with KbOntologyState(request, kb_id):
             result = await ont.publish_proposal(request=request, session=session, proposal_id=proposal_id)
@@ -427,7 +427,7 @@ def register_kb_ontology_hub_routes(router: APIRouter) -> None:
         user: User = Depends(get_current_user),
         store: AdminStore = Depends(get_store),
     ) -> Any:
-        store.get_kb_for(user, kb_id, _min_role("POST"))
+        get_kb_for_role(request, user, kb_id, store, _min_role("POST"))
         session = _session(request, kb_id)
         with KbOntologyState(request, kb_id):
             result = await ont.add_comment(request=request, session=session, proposal_id=proposal_id, body=body)
@@ -443,7 +443,7 @@ def register_kb_ontology_hub_routes(router: APIRouter) -> None:
         user: User = Depends(get_current_user),
         store: AdminStore = Depends(get_store),
     ) -> Any:
-        store.get_kb_for(user, kb_id, _min_role("GET"))
+        get_kb_for_role(request, user, kb_id, store, _min_role("GET"))
         session = _session(request, kb_id)
         with KbOntologyState(request, kb_id):
             result = await ont.list_versions(request=request, session=session, ontology_uri=ontology_uri)
@@ -459,7 +459,7 @@ def register_kb_ontology_hub_routes(router: APIRouter) -> None:
         user: User = Depends(get_current_user),
         store: AdminStore = Depends(get_store),
     ) -> Any:
-        store.get_kb_for(user, kb_id, _min_role("POST"))
+        get_kb_for_role(request, user, kb_id, store, _min_role("POST"))
         session = _session(request, kb_id)
         with KbOntologyState(request, kb_id):
             result = await ont.compare_versions(request=request, session=session, ontology_uri=ontology_uri, body=body)

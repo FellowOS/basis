@@ -5,13 +5,13 @@ from __future__ import annotations
 import asyncio
 from typing import Any
 
-from fastapi import APIRouter, Header, HTTPException, Request
+from fastapi import APIRouter, Header, Request
 
 from sema.admin.store import User
 from sema.api.deps import (
-    ensure_kb_viewer,
     get_chunk_search,
     get_explorer_registry,
+    get_kb_for_viewer,
     get_knowledge_store,
     get_store,
     resolve_bearer,
@@ -28,16 +28,9 @@ async def mcp_integration_info(
     request: Request,
     authorization: str | None = Header(default=None),
 ) -> dict[str, Any]:
-    user, auth_kind = resolve_bearer(request, authorization)
+    user, _auth_kind = resolve_bearer(request, authorization)
     store = get_store(request)
-    kb, _role = store.get_kb_for(user, kb_id, "viewer")
-    if auth_kind == "api_token":
-        api_record = request.state.api_token
-        if api_record is not None and not store.api_token_allows_kb(api_record, kb_id):
-            raise HTTPException(
-                status_code=403,
-                detail={"code": "forbidden", "message": "令牌未授权此知识库"},
-            )
+    kb, _role = get_kb_for_viewer(request, user, kb_id, store)
     base = str(request.base_url).rstrip("/")
     mcp_url = f"{base}/api/kbs/{kb_id}/mcp"
     return {
@@ -67,8 +60,7 @@ async def mcp_jsonrpc(
 ) -> Any:
     user, _auth_kind = resolve_bearer(request, authorization)
     store = get_store(request)
-    ensure_kb_viewer(request, user, kb_id, store)
-    kb, _role = store.get_kb_for(user, kb_id, "viewer")
+    kb, _role = get_kb_for_viewer(request, user, kb_id, store)
     body = await request.json()
     knowledge = get_knowledge_store(request)
     ctx = KbToolContext(
