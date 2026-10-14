@@ -48,7 +48,7 @@ export class ExplorerClient {
     });
     const data = await response.json().catch(() => ({}));
     if (!response.ok) {
-      throw errorFromApiResponse(response.status, data, `请求失败 (${response.status})`);
+      throw errorFromApiResponse(response.status, data, `Request failed (${response.status})`);
     }
     return { data: data as T, status: response.status };
   }
@@ -67,7 +67,7 @@ export class ExplorerClient {
     });
     const data = await response.json().catch(() => ({}));
     if (!response.ok) {
-      throw errorFromApiResponse(response.status, data, `请求失败 (${response.status})`);
+      throw errorFromApiResponse(response.status, data, `Request failed (${response.status})`);
     }
     return data as T;
   }

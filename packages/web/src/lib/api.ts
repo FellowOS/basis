@@ -33,7 +33,7 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
     throw errorFromApiResponse(
       response.status,
       data,
-      `请求失败 (${response.status})`,
+      `Request failed (${response.status})`,
     );
   }
   return data as T;
