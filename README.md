@@ -93,7 +93,7 @@ uv run sema migrate-postgres \
 uv run pytest tests/
 ```
 
-发布门禁子集：`uv run pytest tests/test_release_gate.py tests/test_runtime_limits.py -q`。可调上限与环境变量见 [docs/ops/runtime-limits.md](docs/ops/runtime-limits.md)。
+发布门禁子集：`uv run pytest tests/test_release_gate.py tests/test_runtime_limits.py -q`。可调上限与环境变量见 [docs/ops/runtime-limits.md](docs/ops/runtime-limits.md)。备份与恢复见 [docs/ops/backup-and-restore.md](docs/ops/backup-and-restore.md)（`scripts/backup_sema_data.sh` / `backup_sema_postgres.sh`）。
 
 本地 Semantica 源码：`pyproject.toml` 里 `tool.uv.sources` 指向 `../../semantica`。
 
