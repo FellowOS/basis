@@ -2282,8 +2282,6 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(
       }
     }, [isLayoutRunning, viewMode]);
 
-    const drawOverlayFrameRef = useRef<() => boolean>(() => false);
-
     const drawOverlayFrame = useCallback(() => {
       const sigma = sigmaRef.current;
       const overlay = overlayRef.current;
@@ -2291,8 +2289,6 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(
       if (!sigma || !overlay || !container) {
         return false;
       }
-
-      const interactionState = interactionStateRef.current;
 
       const { width: viewportWidth, height: viewportHeight } = syncGraphOverlayCanvas(overlay, sigma);
       const pixelRatio = window.devicePixelRatio || 1;
@@ -2433,9 +2429,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(
 
       drawPathEffectsLayer(context, pathSegments, effectsState, effectAvailability, now);
       return effectAvailability.pathPulse.available || effectAvailability.pathFlow.available;
-    }, [analyticsSnapshot, displayGraph, effectsState, isLayoutRunning, temporalState]);
-
-    drawOverlayFrameRef.current = drawOverlayFrame;
+    }, [analyticsSnapshot, displayGraph, effectsState, interactionState, isLayoutRunning, temporalState]);
 
     useEffect(() => {
       const sigma = sigmaRef.current;
@@ -2447,14 +2441,12 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(
       let frame = 0;
       let disposed = false;
 
-      const paintOverlay = () => drawOverlayFrameRef.current();
-
       const render = () => {
         if (disposed) {
           return;
         }
 
-        const animated = paintOverlay();
+        const animated = drawOverlayFrame();
         if (animated) {
           frame = window.requestAnimationFrame(render);
         } else {
@@ -2462,27 +2454,28 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(
         }
       };
 
-      const redrawOverlay = () => {
-        paintOverlay();
+      const redrawStatic = () => {
+        if (frame !== 0) {
+          return;
+        }
+        drawOverlayFrame();
       };
 
       const camera = sigma.getCamera();
-      const resizeObserver = new ResizeObserver(redrawOverlay);
+      const resizeObserver = new ResizeObserver(redrawStatic);
       resizeObserver.observe(container);
-      camera.on("updated", redrawOverlay);
-      sigma.on("afterRender", redrawOverlay);
+      camera.on("updated", redrawStatic);
 
       render();
       return () => {
         disposed = true;
         resizeObserver.disconnect();
-        camera.off("updated", redrawOverlay);
-        sigma.off("afterRender", redrawOverlay);
+        camera.off("updated", redrawStatic);
         if (frame !== 0) {
           window.cancelAnimationFrame(frame);
         }
       };
-    }, [graphReady]);
+    }, [drawOverlayFrame, graphReady]);
 
     useEffect(() => {
       const sigma = sigmaRef.current;
