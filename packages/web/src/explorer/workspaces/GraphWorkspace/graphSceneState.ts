@@ -1016,6 +1016,10 @@ export function isEdgeInteractable(
   return Number(attrs.visualPriority ?? 0) >= GRAPH_THEME.zoomTiers[interactionState.zoomTier].edgePriorityThreshold;
 }
 
+function nodePaintState(state: GraphNodeVisualState): GraphNodeVisualState {
+  return state === "hovered" ? "default" : state;
+}
+
 function resolveNodeColor(
   theme: GraphTheme,
   zoomTier: GraphZoomTier,
@@ -1023,6 +1027,7 @@ function resolveNodeColor(
   attrs: NodeAttributes,
   cameraRatio: number,
 ) {
+  const paintState = nodePaintState(state);
   const semanticColor = getSemanticNodeColor(attrs, theme);
   const isCommunityGroup = Boolean(attrs.isCommunityGroup);
   const entityShapeConfig = theme.nodes.entityShapes[resolveEntityShape(attrs)];
@@ -1035,7 +1040,7 @@ function resolveNodeColor(
     Math.min(0.74, theme.palette.overview.nodeCoreMix + overviewTint),
   );
 
-  switch (theme.nodes.states[state].color) {
+  switch (theme.nodes.states[paintState].color) {
     case "selected":
       return theme.palette.accent.selected;
     case "hovered":
@@ -1071,6 +1076,7 @@ function resolveNodeShellColor(
   attrs: NodeAttributes,
   cameraRatio: number,
 ) {
+  const paintState = nodePaintState(state);
   const semanticColor = getSemanticNodeColor(attrs, theme);
   const isCommunityGroup = Boolean(attrs.isCommunityGroup);
   const entityShapeConfig = theme.nodes.entityShapes[resolveEntityShape(attrs)];
@@ -1079,24 +1085,24 @@ function resolveNodeShellColor(
 
   if (zoomTier !== "overview") {
     return withAlpha(
-      blendHex(semanticColor, theme.ui.text.strong, state === "default" ? 0.26 : 0.42),
+      blendHex(semanticColor, theme.ui.text.strong, paintState === "default" ? 0.26 : 0.42),
       isCommunityGroup ? theme.grouped.style.shellAlpha : Math.min(0.72, entityShapeConfig.shellAlpha + 0.12),
     );
   }
 
-  if (state === "selected") {
+  if (paintState === "selected") {
     return withAlpha(blendHex(theme.palette.accent.selected, theme.ui.text.strong, 0.24), 0.92);
   }
 
-  if (state === "hovered") {
+  if (paintState === "hovered") {
     return withAlpha(blendHex(theme.palette.accent.hovered, theme.ui.text.strong, 0.22), 0.9);
   }
 
-  if (state === "path") {
+  if (paintState === "path") {
     return withAlpha(blendHex(theme.palette.accent.path, theme.ui.text.strong, 0.22), 0.9);
   }
 
-  if (state === "muted" || state === "inactive") {
+  if (paintState === "muted" || paintState === "inactive") {
     return withAlpha(theme.palette.overview.nodeBorder, 0.16);
   }
 
@@ -1319,13 +1325,14 @@ function resolveNodeRingColor(
   state: GraphNodeVisualState,
   attrs: NodeAttributes,
 ) {
-  if (state === "selected") {
+  const paintState = nodePaintState(state);
+  if (paintState === "selected") {
     return attrs.ringColor || theme.nodes.selectedRing.color;
   }
-  if (state === "hovered") {
+  if (paintState === "hovered") {
     return theme.palette.accent.hovered;
   }
-  if (state === "path") {
+  if (paintState === "path") {
     return theme.palette.accent.path;
   }
 
@@ -1337,13 +1344,14 @@ function resolveNodeRingSize(
   state: GraphNodeVisualState,
   zoomTier: GraphZoomTier,
 ) {
-  if (state === "selected" && zoomTierAtLeast(zoomTier, theme.nodes.selectedRing.visibleFrom)) {
+  const paintState = nodePaintState(state);
+  if (paintState === "selected" && zoomTierAtLeast(zoomTier, theme.nodes.selectedRing.visibleFrom)) {
     return theme.nodes.selectedRing.nativeSize;
   }
-  if (state === "hovered") {
+  if (paintState === "hovered") {
     return Math.max(1.45, theme.nodes.selectedRing.nativeSize - 0.35);
   }
-  if (state === "path") {
+  if (paintState === "path") {
     return Math.max(1.2, theme.nodes.selectedRing.nativeSize - 0.55);
   }
 
@@ -1571,6 +1579,10 @@ export function shouldForceNodeLabel(
   attrs: NodeAttributes,
   labelPriority: number,
 ): boolean {
+  if (state === "hovered") {
+    return false;
+  }
+
   const tierConfig = theme.zoomTiers[zoomTier];
   const forceVisibleState = theme.labels.forceVisibleStates.includes(state);
   const policy = attrs.labelVisibilityPolicy || "priority";
@@ -1600,16 +1612,17 @@ function resolveNodeBorderColor(
   attrs: NodeAttributes,
   baseColor: string,
 ) {
-  if (state === "selected" || variant === "selected") {
+  const paintState = nodePaintState(state);
+  if (paintState === "selected" || variant === "selected") {
     return attrs.ringColor || theme.nodes.selectedRing.color;
   }
-  if (state === "hovered") {
+  if (paintState === "hovered") {
     return theme.palette.accent.hovered;
   }
-  if (state === "path") {
+  if (paintState === "path") {
     return theme.palette.accent.path;
   }
-  if (state === "muted" || state === "inactive") {
+  if (paintState === "muted" || paintState === "inactive") {
     return withAlpha(
       attrs.strokeColor || attrs.borderColor || theme.palette.overview.nodeBorder || theme.palette.background.nodeBorder,
       zoomTier === "overview" ? 0.26 : 0.7,
@@ -1644,8 +1657,10 @@ export function resolveNodeElementStyle(
   label: string,
   cameraRatio = 1,
 ): ResolvedNodeStyle {
+  const paintState = nodePaintState(state);
   const tierConfig = theme.zoomTiers[zoomTier];
-  const stateConfig = theme.nodes.states[state];
+  const stateConfig = theme.nodes.states[paintState];
+  const interactionStateConfig = theme.nodes.states[state];
   const nodeVariant = resolveNodeVariant(state, attrs);
   const variantConfig = theme.nodes.variants[nodeVariant];
   const entityShape = resolveEntityShape(attrs);
@@ -1655,7 +1670,7 @@ export function resolveNodeElementStyle(
   const labelPriority = Number(attrs.labelPriority ?? 0);
   const color = resolveNodeColor(theme, zoomTier, state, attrs, cameraRatio);
   const shellColor = resolveNodeShellColor(theme, zoomTier, state, attrs, cameraRatio);
-  const sizeMultiplier = (state === "default" ? tierConfig.nodeScale : stateConfig.sizeMultiplier)
+  const sizeMultiplier = (paintState === "default" ? tierConfig.nodeScale : stateConfig.sizeMultiplier)
     * variantConfig.sizeMultiplier
     * (isCommunityGroup ? theme.grouped.style.nodeSizeScale : 1);
   const overviewPresence = zoomTier === "overview" ? 1 + getOverviewPresenceBoost(cameraRatio) * 1.2 : 1;
@@ -1671,13 +1686,13 @@ export function resolveNodeElementStyle(
   const ringSize = resolveNodeRingSize(theme, state, zoomTier);
   const ringColor = resolveNodeRingColor(theme, state, attrs);
   const showRing = ringSize > 0;
-  const showHalo = state === "hovered" || state === "selected" || state === "path";
+  const showHalo = state === "selected" || state === "path";
   const strokeBase = state === "muted" || state === "inactive"
     ? theme.nodes.strokeHierarchy[zoomTier].muted
     : forceVisibleState
       ? theme.nodes.strokeHierarchy[zoomTier].emphasis
       : theme.nodes.strokeHierarchy[zoomTier].base;
-  const rawCoreScale = resolveNodeCoreScale(zoomTier, state, cameraRatio) * entityShapeConfig.coreScale;
+  const rawCoreScale = resolveNodeCoreScale(zoomTier, paintState, cameraRatio) * entityShapeConfig.coreScale;
   const shouldShowGlyphHint = zoomTier !== "overview"
     || state === "hovered"
     || state === "selected"
@@ -1689,8 +1704,9 @@ export function resolveNodeElementStyle(
     coreScale: shouldShowGlyphHint ? clamp(0.06, rawCoreScale, 0.5) : 0,
     size: Math.max(baseSize * sizeMultiplier * overviewPresence, stateConfig.minSize, entityShapeConfig.minSize),
     forceLabel,
-    label: forceLabel ? label : "",
-    zIndex: forceLabel && stateConfig.zIndex === 0 ? 1 : stateConfig.zIndex,
+    // Keep text for Sigma hover renderer; `forceLabel` only gates the chip (`drawSemanticaNodeLabel`).
+    label,
+    zIndex: forceLabel && interactionStateConfig.zIndex === 0 ? 1 : interactionStateConfig.zIndex,
     hidden: false,
     borderColor: resolveNodeBorderColor(theme, zoomTier, state, nodeVariant, attrs, color),
     borderSize: Math.max(

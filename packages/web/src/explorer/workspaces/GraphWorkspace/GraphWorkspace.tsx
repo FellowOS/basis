@@ -316,6 +316,19 @@ function buildGraphHudCss(): string {
     container-type: inline-size;
     overflow: hidden;
   }
+  .explore-hud-layer {
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    pointer-events: none;
+    overflow: visible;
+  }
+  .explore-hud-layer :is(.explore-search-dock, .explore-status-dock, .explore-legend-dock, .explore-toolbar-rail, .explore-toolbar-rail-right) {
+    pointer-events: none;
+  }
+  .explore-hud-layer :is(.explore-search-dock, .explore-status-dock, .explore-legend-dock, .explore-toolbar-rail, .explore-toolbar-rail-right) > * {
+    pointer-events: auto;
+  }
   .explore-search-dock {
     position: absolute;
     top: 0;
@@ -323,12 +336,8 @@ function buildGraphHudCss(): string {
     z-index: 30;
     width: max-content;
     max-width: min(100% - 24px, calc(100% - 200px));
-    pointer-events: none;
     padding: 10px 0 0 12px;
     overflow: visible;
-  }
-  .explore-search-dock > * {
-    pointer-events: auto;
   }
   .explore-search-dock-toolbar {
     min-width: 0;
@@ -347,7 +356,6 @@ function buildGraphHudCss(): string {
     top: 0;
     right: 0;
     z-index: 22;
-    pointer-events: none;
     padding: 10px 12px 0 0;
     max-width: min(520px, calc(100% - 24px));
     display: flex;
@@ -356,15 +364,11 @@ function buildGraphHudCss(): string {
   .explore-shell[data-inspector="true"] .explore-status-dock {
     right: min(340px, 38vw);
   }
-  .explore-status-dock > * {
-    pointer-events: auto;
-  }
   .explore-legend-dock {
     position: absolute;
     bottom: 12px;
     left: 0;
     z-index: 9;
-    pointer-events: none;
     padding: 0 12px;
     max-width: min(520px, calc(100% - 24px));
     max-height: 28vh;
@@ -374,31 +378,23 @@ function buildGraphHudCss(): string {
   .explore-shell[data-timeline="true"] .explore-legend-dock {
     bottom: calc(90px + 12px);
   }
-  .explore-legend-dock > * {
-    pointer-events: auto;
-  }
   .explore-toolbar-rail {
     position: absolute;
     top: 50%;
     left: 0;
-    z-index: 23;
-    transform: translateY(-50%);
-    pointer-events: none;
+    z-index: 24;
+    transform: translateY(-50%) translateZ(0);
     padding-left: 12px;
     max-height: min(70vh, 100%);
     overflow-y: auto;
     overscroll-behavior: contain;
   }
-  .explore-toolbar-rail > * {
-    pointer-events: auto;
-  }
   .explore-toolbar-rail-right {
     position: absolute;
     top: 50%;
     right: 0;
-    z-index: 23;
-    transform: translateY(-50%);
-    pointer-events: none;
+    z-index: 24;
+    transform: translateY(-50%) translateZ(0);
     padding-right: 12px;
     max-height: min(70vh, 100%);
     overflow-y: auto;
@@ -407,13 +403,11 @@ function buildGraphHudCss(): string {
   .explore-shell[data-inspector="true"] .explore-toolbar-rail-right {
     right: min(340px, 38vw);
   }
-  .explore-toolbar-rail-right > * {
-    pointer-events: auto;
-  }
   .explore-main-grid {
     position: absolute;
     inset: 0;
-    z-index: 1;
+    z-index: 0;
+    isolation: isolate;
     min-height: 0;
     display: flex;
     min-width: 0;
@@ -446,7 +440,7 @@ function buildGraphHudCss(): string {
   }
   .explore-scene-stage {
     position: relative;
-    z-index: 3;
+    z-index: 0;
     width: 100%;
     height: 100%;
   }
@@ -2985,64 +2979,66 @@ export function GraphWorkspace({
           ) : null}
         </div>
 
-        <section className="explore-search-dock" aria-label="Graph search">
-          <GraphSearchDock
-            kbId={kbId}
-            query={searchQuery}
-            onQueryChange={setSearchQuery}
-            searchDisabled={searchDisabled}
-            onSearch={() => void handleSearch()}
-            onSelectSuggestion={(result) => {
-              setSearchQuery("");
-              focusNode(result.node.id);
-            }}
-            searchError={searchError}
-            searchResults={searchResults}
-            onClearResults={handleClearSearchResults}
-            onSelectResult={(result) => {
-              setSearchQuery("");
-              handleClearSearchResults();
-              focusNode(result.node.id);
-            }}
-            onReload={reload}
-            reloadDisabled={showLoadingOverlay}
-            trailingActions={graphDataActions}
-            infoMessage={graphLoadInfoMessage}
-          />
-        </section>
-
-        <section className="explore-status-dock" aria-label="Graph status">
-          <GraphStatusDock
-            showLoadingStatus={(showLoadingOverlay || showSettlingStatus) && Boolean(loadingProgress)}
-            loadingPhase={loadingProgress?.phase}
-            summary={summary ?? null}
-            activeNodeCount={activeNodeCount}
-            focusedSummary={focusedSummary}
-          />
-        </section>
-
-        {!showDistanceStatus && colorLegendItems.length > 0 ? (
-          <section className="explore-legend-dock" aria-label="Node color legend">
-            <GraphColorLegendDock items={colorLegendItems} />
+        <div className="explore-hud-layer">
+          <section className="explore-search-dock" aria-label="Graph search">
+            <GraphSearchDock
+              kbId={kbId}
+              query={searchQuery}
+              onQueryChange={setSearchQuery}
+              searchDisabled={searchDisabled}
+              onSearch={() => void handleSearch()}
+              onSelectSuggestion={(result) => {
+                setSearchQuery("");
+                focusNode(result.node.id);
+              }}
+              searchError={searchError}
+              searchResults={searchResults}
+              onClearResults={handleClearSearchResults}
+              onSelectResult={(result) => {
+                setSearchQuery("");
+                handleClearSearchResults();
+                focusNode(result.node.id);
+              }}
+              onReload={reload}
+              reloadDisabled={showLoadingOverlay}
+              trailingActions={graphDataActions}
+              infoMessage={graphLoadInfoMessage}
+            />
           </section>
-        ) : null}
 
-        <section className="explore-toolbar-rail" aria-label="Graph tools">
-          <GraphToolbarRail
-            groups={[
-              ...(viewModeItems.length > 0
-                ? [{ id: "view-mode", label: "View", items: viewModeItems }]
-                : []),
-              ...leftToolbarClusters,
-            ]}
-          />
-        </section>
-
-        {rightToolbarClusters.length > 0 ? (
-          <section className="explore-toolbar-rail-right" aria-label="Distance and analysis tools">
-            <GraphToolbarRail groups={rightToolbarClusters} expandLabels="left" />
+          <section className="explore-status-dock" aria-label="Graph status">
+            <GraphStatusDock
+              showLoadingStatus={(showLoadingOverlay || showSettlingStatus) && Boolean(loadingProgress)}
+              loadingPhase={loadingProgress?.phase}
+              summary={summary ?? null}
+              activeNodeCount={activeNodeCount}
+              focusedSummary={focusedSummary}
+            />
           </section>
-        ) : null}
+
+          {!showDistanceStatus && colorLegendItems.length > 0 ? (
+            <section className="explore-legend-dock" aria-label="Node color legend">
+              <GraphColorLegendDock items={colorLegendItems} />
+            </section>
+          ) : null}
+
+          <section className="explore-toolbar-rail" aria-label="Graph tools">
+            <GraphToolbarRail
+              groups={[
+                ...(viewModeItems.length > 0
+                  ? [{ id: "view-mode", label: "View", items: viewModeItems }]
+                  : []),
+                ...leftToolbarClusters,
+              ]}
+            />
+          </section>
+
+          {rightToolbarClusters.length > 0 ? (
+            <section className="explore-toolbar-rail-right" aria-label="Distance and analysis tools">
+              <GraphToolbarRail groups={rightToolbarClusters} expandLabels="left" />
+            </section>
+          ) : null}
+        </div>
 
         <GraphPluginPanelDialog
           panels={openDockPanels}

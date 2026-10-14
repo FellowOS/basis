@@ -37,6 +37,33 @@ function isPointNearViewport(point: ViewportPoint, width: number, height: number
     && point.y <= height + padding;
 }
 
+/** Match Sigma stage dimensions so overlay draws align with WebGL nodes. */
+export function syncGraphOverlayCanvas(overlay: HTMLCanvasElement, sigma: Sigma): { width: number; height: number } {
+  const { width, height } = sigma.getDimensions();
+  const pixelRatio = window.devicePixelRatio || 1;
+  const bufferWidth = Math.floor(width * pixelRatio);
+  const bufferHeight = Math.floor(height * pixelRatio);
+  if (overlay.width !== bufferWidth || overlay.height !== bufferHeight) {
+    overlay.width = bufferWidth;
+    overlay.height = bufferHeight;
+    overlay.style.width = `${width}px`;
+    overlay.style.height = `${height}px`;
+  }
+  return { width, height };
+}
+
+export function getNodeViewportPoint(sigma: Sigma, nodeId: string): ViewportPoint | null {
+  const displayData = sigma.getNodeDisplayData(nodeId);
+  if (!displayData) {
+    return null;
+  }
+  return sigma.graphToViewport({ x: displayData.x, y: displayData.y });
+}
+
+export function getViewportNodeSize(sigma: Sigma, graphSize: number): number {
+  return sigma.scaleSize(graphSize);
+}
+
 function drawGlowHalo(
   context: CanvasRenderingContext2D,
   x: number,
@@ -414,15 +441,15 @@ export function collectVisibleNodeSamples(
       return;
     }
 
-    const point = sigma.graphToViewport({ x: displayData.x, y: displayData.y });
-    if (!isPointNearViewport(point, viewportWidth, viewportHeight, 84)) {
+    const point = getNodeViewportPoint(sigma, nodeId);
+    if (!point || !isPointNearViewport(point, viewportWidth, viewportHeight, 84)) {
       return;
     }
 
     samples.push({
       nodeId,
       point,
-      size: displayData.size,
+      size: getViewportNodeSize(sigma, displayData.size),
       attrs: attrs as NodeAttributes,
     });
   });
@@ -678,7 +705,10 @@ export function drawLensLayer(
     return;
   }
 
-  const center = sigma.graphToViewport({ x: primaryData.x, y: primaryData.y });
+  const center = getNodeViewportPoint(sigma, primaryNodeId);
+  if (!center) {
+    return;
+  }
   drawGlowHalo(
     context,
     center.x,
@@ -704,7 +734,10 @@ export function drawLensLayer(
       return;
     }
 
-    const neighborPoint = sigma.graphToViewport({ x: neighborData.x, y: neighborData.y });
+    const neighborPoint = getNodeViewportPoint(sigma, neighborId);
+    if (!neighborPoint) {
+      return;
+    }
     context.strokeStyle = withAlpha(GRAPH_THEME.palette.accent.hovered, GRAPH_THEME.effects.lens.edgeAlpha * 0.38);
     context.lineWidth = GRAPH_THEME.effects.lens.edgeLineWidth + 3.2;
     context.lineCap = "round";

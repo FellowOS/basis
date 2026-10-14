@@ -251,12 +251,17 @@ export function syncSemaGraphTheme(mode: Theme): void {
   GRAPH_THEME.labels.chip.background = rgbaFromRgb(card, isDark ? 0.94 : 0.96);
   GRAPH_THEME.labels.chip.borderColor = rgbaFromRgb(border, isDark ? 0.55 : 0.4);
   GRAPH_THEME.labels.chip.textColor = foreground;
-  GRAPH_THEME.labels.chip.shadowColor = isDark ? 'rgba(0, 0, 0, 0.55)' : 'rgba(20, 24, 40, 0.12)';
+  GRAPH_THEME.labels.chip.shadowColor = isDark ? 'rgba(0, 0, 0, 0.38)' : 'rgba(20, 24, 40, 0.08)';
+  GRAPH_THEME.labels.chip.shadowAlpha = isDark ? 0.1 : 0.07;
+  GRAPH_THEME.labels.chip.shadowBlur = isDark ? 7 : 5;
 
   GRAPH_THEME.labels.hoverCard.background = rgbaFromRgb(card, isDark ? 0.96 : 0.98);
   GRAPH_THEME.labels.hoverCard.borderColor = rgbaFromRgb(border, isDark ? 0.5 : 0.38);
   GRAPH_THEME.labels.hoverCard.textColor = foreground;
   GRAPH_THEME.labels.hoverCard.metaColor = mutedForeground;
+  GRAPH_THEME.labels.hoverCard.shadowColor = isDark ? 'rgba(0, 0, 0, 0.32)' : 'rgba(20, 24, 40, 0.06)';
+  GRAPH_THEME.labels.hoverCard.shadowAlpha = isDark ? 0.08 : 0.06;
+  GRAPH_THEME.labels.hoverCard.shadowBlur = 6;
 }
 
 /** Sigma label colors — decouple edge text from faint edge stroke colors. */

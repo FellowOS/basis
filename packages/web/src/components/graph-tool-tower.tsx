@@ -16,7 +16,7 @@ export function GraphToolTower({
   return (
     <div
       className={cn(
-        "graph-tool-tower group flex flex-col overflow-hidden rounded-md border border-border",
+        "graph-tool-tower group flex flex-col overflow-hidden rounded-md border border-border bg-background/95 shadow-sm backdrop-blur-sm",
         expandLabels === "left" && "graph-tool-tower--expand-left",
         className,
       )}

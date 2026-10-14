@@ -42,6 +42,9 @@ import {
   drawPathEffectsLayer,
   drawSemanticRegionsLayer,
   drawTemporalEmphasisLayer,
+  getNodeViewportPoint,
+  getViewportNodeSize,
+  syncGraphOverlayCanvas,
   type PathSegmentOverlay,
   type ViewportPoint,
 } from "./graphSceneLayers";
@@ -1143,6 +1146,7 @@ function applySceneState(
         size: resolvedStyle.size,
         forceLabel: resolvedStyle.forceLabel,
         label: resolvedStyle.label,
+        suppressNodeChip: state === "hovered",
         zIndex: resolvedStyle.zIndex,
         hidden: resolvedStyle.hidden,
         borderColor: resolvedStyle.borderColor,
@@ -2278,6 +2282,8 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(
       }
     }, [isLayoutRunning, viewMode]);
 
+    const drawOverlayFrameRef = useRef<() => boolean>(() => false);
+
     const drawOverlayFrame = useCallback(() => {
       const sigma = sigmaRef.current;
       const overlay = overlayRef.current;
@@ -2286,14 +2292,10 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(
         return false;
       }
 
-      const rect = container.getBoundingClientRect();
+      const interactionState = interactionStateRef.current;
+
+      const { width: viewportWidth, height: viewportHeight } = syncGraphOverlayCanvas(overlay, sigma);
       const pixelRatio = window.devicePixelRatio || 1;
-      if (overlay.width !== Math.floor(rect.width * pixelRatio) || overlay.height !== Math.floor(rect.height * pixelRatio)) {
-        overlay.width = Math.floor(rect.width * pixelRatio);
-        overlay.height = Math.floor(rect.height * pixelRatio);
-        overlay.style.width = `${rect.width}px`;
-        overlay.style.height = `${rect.height}px`;
-      }
 
       const context = overlay.getContext("2d");
       if (!context) {
@@ -2301,7 +2303,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(
       }
 
       context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
-      context.clearRect(0, 0, rect.width, rect.height);
+      context.clearRect(0, 0, viewportWidth, viewportHeight);
 
       const primaryNodeId = interactionState.hoveredNodeId || interactionState.selectedNodeId;
       const focusIds = primaryNodeId && displayGraph.hasNode(primaryNodeId)
@@ -2314,10 +2316,10 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(
         interactionState.activePath,
         interactionState.activePathEdgeIds,
         interactionState.zoomTier,
-        rect.width,
-        rect.height,
+        viewportWidth,
+        viewportHeight,
       );
-      const visibleNodeSamples = collectVisibleNodeSamples(sigma, displayGraph, rect.width, rect.height);
+      const visibleNodeSamples = collectVisibleNodeSamples(sigma, displayGraph, viewportWidth, viewportHeight);
       const effectAvailability = buildEffectAvailability(
         interactionState,
         effectsState,
@@ -2325,8 +2327,8 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(
         analyticsSnapshot,
         isLayoutRunning,
         sigma,
-        rect.width,
-        rect.height,
+        viewportWidth,
+        viewportHeight,
       );
       const cameraRatio = sigma.getCamera().getState().ratio;
       const nodesToDecorate = new Set<string>([
@@ -2386,10 +2388,14 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(
           attrs.label,
           cameraRatio,
         );
-        const point = sigma.graphToViewport({ x: displayData.x, y: displayData.y });
+        const point = getNodeViewportPoint(sigma, nodeId);
+        if (!point) {
+          return;
+        }
         if (style.showHalo) {
+          const viewportSize = getViewportNodeSize(sigma, displayData.size);
           const radius = Math.max(
-            displayData.size * GRAPH_THEME.overlays.glowRadiusMultiplier * (style.nodeVariant === "selected" ? 1.08 : 1),
+            viewportSize * GRAPH_THEME.overlays.glowRadiusMultiplier * (style.nodeVariant === "selected" ? 1.08 : 1),
             GRAPH_THEME.overlays.minGlowRadius,
           );
           drawGlowHalo(
@@ -2405,17 +2411,31 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(
         }
 
         if (style.showBadge && style.badgeKind) {
-          drawNodeBadge(context, point.x, point.y, displayData.size, style.badgeKind, style.badgeCount);
+          drawNodeBadge(
+            context,
+            point.x,
+            point.y,
+            getViewportNodeSize(sigma, displayData.size),
+            style.badgeKind,
+            style.badgeCount,
+          );
         }
       });
 
-      if (!isLayoutRunning && primaryNodeId && effectAvailability.lens.available) {
-        drawLensLayer(context, sigma, primaryNodeId, lensFocusIds);
+      if (
+        !isLayoutRunning
+        && !interactionState.hoveredNodeId
+        && interactionState.selectedNodeId
+        && effectAvailability.lens.available
+      ) {
+        drawLensLayer(context, sigma, interactionState.selectedNodeId, lensFocusIds);
       }
 
       drawPathEffectsLayer(context, pathSegments, effectsState, effectAvailability, now);
       return effectAvailability.pathPulse.available || effectAvailability.pathFlow.available;
-    }, [analyticsSnapshot, displayGraph, effectsState, interactionState, isLayoutRunning, temporalState]);
+    }, [analyticsSnapshot, displayGraph, effectsState, isLayoutRunning, temporalState]);
+
+    drawOverlayFrameRef.current = drawOverlayFrame;
 
     useEffect(() => {
       const sigma = sigmaRef.current;
@@ -2427,39 +2447,42 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(
       let frame = 0;
       let disposed = false;
 
+      const paintOverlay = () => drawOverlayFrameRef.current();
+
       const render = () => {
         if (disposed) {
           return;
         }
 
-        const animated = drawOverlayFrame();
+        const animated = paintOverlay();
         if (animated) {
           frame = window.requestAnimationFrame(render);
+        } else {
+          frame = 0;
         }
       };
 
-      const redrawStatic = () => {
-        if (frame !== 0) {
-          return;
-        }
-        drawOverlayFrame();
+      const redrawOverlay = () => {
+        paintOverlay();
       };
 
       const camera = sigma.getCamera();
-      const resizeObserver = new ResizeObserver(redrawStatic);
+      const resizeObserver = new ResizeObserver(redrawOverlay);
       resizeObserver.observe(container);
-      camera.on("updated", redrawStatic);
+      camera.on("updated", redrawOverlay);
+      sigma.on("afterRender", redrawOverlay);
 
       render();
       return () => {
         disposed = true;
         resizeObserver.disconnect();
-        camera.off("updated", redrawStatic);
+        camera.off("updated", redrawOverlay);
+        sigma.off("afterRender", redrawOverlay);
         if (frame !== 0) {
           window.cancelAnimationFrame(frame);
         }
       };
-    }, [drawOverlayFrame, graphReady]);
+    }, [graphReady]);
 
     useEffect(() => {
       const sigma = sigmaRef.current;
@@ -2624,11 +2647,11 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(
     }, [fitCurrentView]);
 
     return (
-      <div style={{ position: "relative", width: "100%", height: "100%" }}>
+      <div style={{ position: "relative", zIndex: 0, width: "100%", height: "100%" }}>
         <div
           ref={containerRef}
           className={className}
-          style={{ width: "100%", height: "100%", background: "transparent" }}
+          style={{ position: "relative", zIndex: 0, width: "100%", height: "100%", background: "transparent" }}
         />
         <canvas
           ref={overlayRef}

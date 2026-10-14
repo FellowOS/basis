@@ -539,7 +539,8 @@ export const GRAPH_THEME: GraphTheme = {
     },
   },
   labels: {
-    forceVisibleStates: ["hovered", "selected", "path"],
+    // Hovered nodes use `drawSemanticaNodeHover` only — avoid duplicate chip + hover card.
+    forceVisibleStates: ["selected", "path"],
     policies: {
       none: { minZoomTier: "inspection" },
       priority: { minZoomTier: "overview" },
@@ -561,9 +562,9 @@ export const GRAPH_THEME: GraphTheme = {
       borderColor: "rgba(154, 181, 212, 0.16)",
       borderAlpha: 0.28,
       textColor: "#EAF3FF",
-      shadowColor: "rgba(0, 0, 0, 0.6)",
-      shadowAlpha: 0.26,
-      shadowBlur: 12,
+      shadowColor: "rgba(0, 0, 0, 0.45)",
+      shadowAlpha: 0.14,
+      shadowBlur: 8,
     },
     hoverCard: {
       fontFamily: "\"IBM Plex Sans\", Inter, system-ui, sans-serif",
@@ -582,9 +583,9 @@ export const GRAPH_THEME: GraphTheme = {
       borderAlpha: 0.32,
       textColor: "#F6FBFF",
       metaColor: "rgba(184, 214, 255, 0.58)",
-      shadowColor: "rgba(0, 0, 0, 0.62)",
-      shadowAlpha: 0.34,
-      shadowBlur: 15,
+      shadowColor: "rgba(0, 0, 0, 0.35)",
+      shadowAlpha: 0.08,
+      shadowBlur: 6,
     },
   },
   nodes: {
@@ -597,7 +598,7 @@ export const GRAPH_THEME: GraphTheme = {
     },
     states: {
       default: { color: "base", sizeMultiplier: 0.7, minSize: 0.64, forceLabel: false, zIndex: 0, borderBoost: -0.46 },
-      hovered: { color: "hovered", sizeMultiplier: 1.08, minSize: 10.4, forceLabel: true, zIndex: 4, borderBoost: 0.2 },
+      hovered: { color: "hovered", sizeMultiplier: 1.08, minSize: 10.4, forceLabel: false, zIndex: 4, borderBoost: 0.2 },
       selected: { color: "selected", sizeMultiplier: 1.02, minSize: 9.2, forceLabel: true, zIndex: 3, borderBoost: 0.22 },
       neighbor: { color: "base", sizeMultiplier: 0.76, minSize: 4, forceLabel: false, zIndex: 2, borderBoost: -0.08 },
       path: { color: "path", sizeMultiplier: 0.96, minSize: 5.6, forceLabel: true, zIndex: 2, borderBoost: 0.08 },

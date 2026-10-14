@@ -23,6 +23,8 @@ type SemanticaNodeDrawData = {
   entityShapeKind?: number;
   entityAspectRatio?: number;
   nodeType?: string;
+  /** When true, skip chip label (hover card still renders). */
+  suppressNodeChip?: boolean;
 };
 
 const ENTITY_TOKEN_UNIFORMS = ["u_sizeRatio", "u_correctionRatio", "u_matrix"] as const;
@@ -332,7 +334,7 @@ function drawRoundedRect(
 
 export const drawSemanticaNodeLabel: NodeLabelDrawingFunction = (context, rawData) => {
   const data = rawData as typeof rawData & SemanticaNodeDrawData;
-  if (!data.label) {
+  if (data.suppressNodeChip || !data.label) {
     return;
   }
 
