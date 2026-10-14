@@ -2,6 +2,11 @@ import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { RefreshCw, Search, X } from "lucide-react";
 
 import { parseExplorerJson } from "../../lib/explorer-api-error";
+import {
+  type GraphWorkspaceLocale,
+  graphCopy,
+  graphSearchResultsLabel,
+} from "./graphWorkspaceCopy";
 import { buildExplorerGraphApiPath, explorerFetch } from "../../host/explorerHttp";
 import { Button } from "@/components/ui/button.js";
 import {
@@ -25,6 +30,7 @@ const SUGGESTION_DEBOUNCE_MS = 250;
 const SUGGESTION_LIMIT = 6;
 
 function SearchCommandBar({
+  locale,
   kbId,
   value,
   disabled,
@@ -32,6 +38,7 @@ function SearchCommandBar({
   onSubmit,
   onSelectSuggestion,
 }: {
+  locale: GraphWorkspaceLocale;
   kbId?: string;
   value: string;
   disabled: boolean;
@@ -166,7 +173,7 @@ function SearchCommandBar({
               closeSuggestions();
             }
           }}
-          placeholder="Search nodes"
+          placeholder={graphCopy(locale, "searchPlaceholder")}
           aria-label="Search graph nodes"
           aria-keyshortcuts="/"
           aria-autocomplete="list"
@@ -219,6 +226,7 @@ function SearchCommandBar({
 }
 
 export function GraphSearchDock({
+  locale = "en",
   kbId,
   query,
   onQueryChange,
@@ -234,6 +242,7 @@ export function GraphSearchDock({
   onSelectResult,
   infoMessage,
 }: {
+  locale?: GraphWorkspaceLocale;
   kbId?: string;
   query: string;
   onQueryChange: (value: string) => void;
@@ -253,6 +262,7 @@ export function GraphSearchDock({
     <div className="flex w-full min-w-0 flex-col gap-2">
       <div className="explore-search-dock-toolbar flex w-full min-w-0 items-center gap-2">
         <SearchCommandBar
+          locale={locale}
           kbId={kbId}
           value={query}
           disabled={searchDisabled}
@@ -266,8 +276,8 @@ export function GraphSearchDock({
             variant="outline"
             size="icon-sm"
             disabled={reloadDisabled}
-            title="Reload graph data"
-            aria-label="Reload graph data"
+            title={graphCopy(locale, "searchReloadTitle")}
+            aria-label={graphCopy(locale, "searchReloadTitle")}
             onClick={onReload}
           >
             <RefreshCw aria-hidden />
@@ -286,17 +296,17 @@ export function GraphSearchDock({
         <div className="explore-search-results flex flex-col gap-2 rounded-md border bg-popover p-2 text-popover-foreground shadow-md">
           <div className="flex items-center justify-between gap-2">
             <span className="text-xs text-muted-foreground">
-              {searchResults.length} result{searchResults.length === 1 ? "" : "s"}
+              {graphSearchResultsLabel(locale, searchResults.length)}
             </span>
             <Button
               type="button"
               variant="ghost"
               size="xs"
               onClick={onClearResults}
-              aria-label="Dismiss search results"
+              aria-label={graphCopy(locale, "searchDismissAria")}
             >
               <X size={12} strokeWidth={2.4} />
-              Dismiss
+              {graphCopy(locale, "searchDismiss")}
             </Button>
           </div>
           <div className="flex max-h-48 flex-col gap-1.5 overflow-y-auto hud-scrollbar">

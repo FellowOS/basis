@@ -3,6 +3,11 @@ import type { ReactNode } from "react";
 import { Badge } from "@/components/ui/badge.js";
 import type { GraphLoadPhase } from "./types";
 import { getGraphLoadTitle } from "./graphLoading";
+import {
+  type GraphWorkspaceLocale,
+  graphActiveCountLabel,
+  graphStatusCounts,
+} from "./graphWorkspaceCopy";
 
 function StatusBadge({
   children,
@@ -21,12 +26,14 @@ export type GraphStatusSummary = {
 };
 
 export function GraphStatusDock({
+  locale = "en",
   showLoadingStatus,
   loadingPhase,
   summary,
   activeNodeCount,
   focusedSummary,
 }: {
+  locale?: GraphWorkspaceLocale;
   showLoadingStatus: boolean;
   loadingPhase?: GraphLoadPhase;
   summary: GraphStatusSummary | null | undefined;
@@ -45,15 +52,15 @@ export function GraphStatusDock({
   return (
     <div className="flex flex-wrap items-center justify-end gap-2">
       {hasLoading && loadingPhase ? (
-        <StatusBadge>{getGraphLoadTitle(loadingPhase)}</StatusBadge>
+        <StatusBadge>{getGraphLoadTitle(loadingPhase, locale)}</StatusBadge>
       ) : null}
       {summary ? (
         <StatusBadge>
-          {summary.nodeCount.toLocaleString()} nodes · {summary.edgeCount.toLocaleString()} edges
+          {graphStatusCounts(locale, summary.nodeCount, summary.edgeCount)}
         </StatusBadge>
       ) : null}
       {hasActive ? (
-        <StatusBadge tone="success">{activeNodeCount!.toLocaleString()} active</StatusBadge>
+        <StatusBadge tone="success">{graphActiveCountLabel(locale, activeNodeCount!)}</StatusBadge>
       ) : null}
       {focusedSummary ? <StatusBadge tone="warm">{focusedSummary}</StatusBadge> : null}
     </div>

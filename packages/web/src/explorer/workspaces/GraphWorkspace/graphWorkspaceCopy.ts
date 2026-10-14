@@ -79,7 +79,159 @@ const MESSAGES = {
     zh: "稳定运行时布局",
     en: "Settling runtime layout",
   },
+  viewFullGraph: { zh: "全图", en: "Full Graph" },
+  viewFullGraphTitle: { zh: "返回全图上下文", en: "Return to the full graph context" },
+  viewGrouped: { zh: "分组", en: "Grouped View" },
+  viewGroupedTitle: {
+    zh: "将密集结构压缩为检测到的社区",
+    en: "Compress dense structure into detected communities",
+  },
+  viewFocus: { zh: "聚焦", en: "Focus" },
+  viewFocusTitle: {
+    zh: "在局部子图中查看所选节点",
+    en: "Inspect the selected node in a focused local graph",
+  },
+  zoomIn: { zh: "放大", en: "Zoom In" },
+  zoomInTitle: { zh: "放大（或在画布上向上滚动）", en: "Zoom in (or scroll up on the canvas)" },
+  zoomOut: { zh: "缩小", en: "Zoom Out" },
+  zoomOutTitle: { zh: "缩小（或在画布上向下滚动）", en: "Zoom out (or scroll down on the canvas)" },
+  fitView: { zh: "适配", en: "Fit" },
+  fitViewTitle: { zh: "重置相机以适配整张图", en: "Reset the camera to fit the whole graph" },
+  layoutPause: { zh: "暂停", en: "Pause" },
+  layoutRun: { zh: "运行", en: "Run" },
+  layoutToggleTitle: { zh: "切换布局计算", en: "Toggle the layout worker" },
+  collapse: { zh: "折叠", en: "Collapse" },
+  expand: { zh: "展开", en: "Expand" },
+  collapseNeighborhoodTitle: {
+    zh: "隐藏所选节点周围较低优先级的扇出",
+    en: "Hide lower-priority fanout around the selected node",
+  },
+  expandNeighborhoodTitle: {
+    zh: "恢复已折叠的局部邻域",
+    en: "Restore the collapsed local neighborhood",
+  },
+  pluginEffects: { zh: "效果", en: "Effects" },
+  pluginEffectsTitle: { zh: "打开探索效果控制", en: "Open exploration effects controls" },
+  pluginNeighbors: { zh: "邻域", en: "Neighbors" },
+  pluginNeighborsTitle: { zh: "切换邻域面板", en: "Toggle neighborhood panel" },
+  pluginTemporal: { zh: "时间", en: "Temporal" },
+  pluginTemporalTitle: { zh: "切换时间上下文面板", en: "Toggle temporal context panel" },
+  toolbarCamera: { zh: "视图", en: "Camera" },
+  toolbarLayout: { zh: "布局", en: "Layout" },
+  toolbarLocal: { zh: "局部", en: "Local" },
+  toolbarDistance: { zh: "距离", en: "Distance" },
+  toolbarAnalysis: { zh: "分析", en: "Analysis" },
+  egoMode: { zh: "自我中心", en: "Ego Mode" },
+  egoModeActive: { zh: "自我中心", en: "Ego" },
+  egoModeTitleOff: {
+    zh: "以所选节点为中心显示景深淡化",
+    en: "Show depth-of-field fading around the selected node",
+  },
+  heatmap: { zh: "热力图", en: "Heatmap" },
+  heatmapActiveTitle: { zh: "距离热力图已开启（点击关闭）", en: "Distance heatmap active (click to toggle off)" },
+  heatmapTitleOff: {
+    zh: "按跳数距离为节点着色",
+    en: "Color nodes by hop distance from selected node",
+  },
+  distStructural: { zh: "结构", en: "Structural" },
+  distStructuralTitle: { zh: "按结构（跳数）距离为边着色", en: "Color edges by structural (hop) distance" },
+  distSemantic: { zh: "语义", en: "Semantic" },
+  distSemanticTitle: {
+    zh: "按与所选节点的语义相似度为边着色",
+    en: "Color edges by semantic similarity to selected node",
+  },
+  searchPlaceholder: { zh: "搜索节点", en: "Search nodes" },
+  searchReloadTitle: { zh: "重新加载图谱数据", en: "Reload graph data" },
+  searchDismiss: { zh: "关闭", en: "Dismiss" },
+  searchDismissAria: { zh: "关闭搜索结果", en: "Dismiss search results" },
 } satisfies Record<string, CopyPair>;
+
+export function graphEgoModeLabel(
+  locale: GraphWorkspaceLocale,
+  enabled: boolean,
+  hops: number,
+): string {
+  if (!enabled) {
+    return graphCopy(locale, "egoMode");
+  }
+  return locale === "zh" ? `自我中心 (${hops}跳)` : `Ego (${hops}h)`;
+}
+
+export function graphEgoModeTitle(
+  locale: GraphWorkspaceLocale,
+  enabled: boolean,
+  hops: number,
+): string {
+  if (!enabled) {
+    return graphCopy(locale, "egoModeTitleOff");
+  }
+  return locale === "zh"
+    ? `自我中心视图：${hops} 跳深度（点击关闭）`
+    : `Egocentric view: ${hops} hops depth (click to toggle off)`;
+}
+
+export function graphStatusCounts(
+  locale: GraphWorkspaceLocale,
+  nodes: number,
+  edges: number,
+): string {
+  const n = nodes.toLocaleString();
+  const e = edges.toLocaleString();
+  return locale === "zh" ? `${n} 节点 · ${e} 边` : `${n} nodes · ${e} edges`;
+}
+
+export function graphActiveCountLabel(locale: GraphWorkspaceLocale, count: number): string {
+  const formatted = count.toLocaleString();
+  return locale === "zh" ? `${formatted} 活跃` : `${formatted} active`;
+}
+
+export function graphSearchResultsLabel(locale: GraphWorkspaceLocale, count: number): string {
+  if (locale === "zh") {
+    return `${count} 条结果`;
+  }
+  return `${count} result${count === 1 ? "" : "s"}`;
+}
+
+export function graphFocusedViewSummary(
+  locale: GraphWorkspaceLocale,
+  visibleNeighbors: number,
+): string {
+  const total = visibleNeighbors + 1;
+  return locale === "zh"
+    ? `聚焦视图中有 ${total} 个节点`
+    : `${total} nodes in focused view`;
+}
+
+export function graphGroupedSummaryAvailable(locale: GraphWorkspaceLocale): string {
+  return locale === "zh"
+    ? "社区已压缩为分组结构视图"
+    : "Communities compressed into grouped structure view";
+}
+
+export function graphGroupedSummaryDrillIn(locale: GraphWorkspaceLocale): string {
+  return locale === "zh"
+    ? "分组结构视图，可直接钻取社区"
+    : "Grouped structure view with direct community drill-in";
+}
+
+export function graphNeighborSummary(
+  locale: GraphWorkspaceLocale,
+  visible: number,
+  collapsed: number,
+): string {
+  return locale === "zh"
+    ? `${visible} 个可见邻居，${collapsed} 个已折叠`
+    : `${visible} visible neighbors, ${collapsed} collapsed`;
+}
+
+export function graphDirectNeighborsSummary(
+  locale: GraphWorkspaceLocale,
+  count: number,
+): string {
+  return locale === "zh"
+    ? `已高亮 ${count} 个直接邻居`
+    : `${count} direct neighbors highlighted`;
+}
 
 export function graphCopy(
   locale: GraphWorkspaceLocale,

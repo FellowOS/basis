@@ -45,7 +45,16 @@ import { GraphStatusDock } from "./GraphStatusDock";
 import { GraphColorLegendDock } from "./GraphColorLegendDock";
 import { GraphPluginPanelDialog } from "./GraphPluginPanelDialog";
 import { GraphToolbarRail } from "./GraphToolbarRail";
-import { graphCopy } from "./graphWorkspaceCopy";
+import {
+  graphCopy,
+  graphDirectNeighborsSummary,
+  graphEgoModeLabel,
+  graphEgoModeTitle,
+  graphFocusedViewSummary,
+  graphGroupedSummaryAvailable,
+  graphGroupedSummaryDrillIn,
+  graphNeighborSummary,
+} from "./graphWorkspaceCopy";
 import { createGraphLoadProgress } from "./graphLoading";
 import { Badge } from "@/components/ui/badge.js";
 import { Button } from "@/components/ui/button.js";
@@ -2201,8 +2210,9 @@ export function GraphWorkspace({
     if (!selectedNodeId || !graph.hasNode(selectedNodeId)) {
       if (viewMode === "grouped") {
         return displayState.groupedViewAvailable
-          ? "Communities compressed into grouped structure view"
-          : (groupedViewReasonText(displayState.groupedViewReason) ?? groupedViewReasonText({ code: "communities-undetected" }));
+          ? graphGroupedSummaryAvailable(apiErrorLocale)
+          : (groupedViewReasonText(displayState.groupedViewReason, apiErrorLocale)
+            ?? groupedViewReasonText({ code: "communities-undetected" }, apiErrorLocale));
       }
       return null;
     }
@@ -2210,19 +2220,23 @@ export function GraphWorkspace({
     const localNeighborCount = graph.neighbors(selectedNodeId).length;
     if (viewMode === "focused") {
       const visibleNeighbors = displayState.selectedVisibleNeighborIds.length || Math.min(localNeighborCount, 16);
-      return `${visibleNeighbors + 1} nodes in focused view`;
+      return graphFocusedViewSummary(apiErrorLocale, visibleNeighbors);
     }
 
     if (viewMode === "grouped") {
-      return "Grouped structure view with direct community drill-in";
+      return graphGroupedSummaryDrillIn(apiErrorLocale);
     }
 
     if (displayState.selectedCollapsedNeighborIds.length > 0) {
-      return `${displayState.selectedVisibleNeighborIds.length} visible neighbors, ${displayState.selectedCollapsedNeighborIds.length} collapsed`;
+      return graphNeighborSummary(
+        apiErrorLocale,
+        displayState.selectedVisibleNeighborIds.length,
+        displayState.selectedCollapsedNeighborIds.length,
+      );
     }
 
-    return `${localNeighborCount} direct neighbors highlighted`;
-  }, [displayState, selectedNodeId, viewMode]);
+    return graphDirectNeighborsSummary(apiErrorLocale, localNeighborCount);
+  }, [apiErrorLocale, displayState, selectedNodeId, viewMode]);
   const graphSummary = summary as GraphLoadSummary | null;
   const selectedNodeState = useMemo(
     () => buildSelectedNodeState(selectedNodeId, displayState),
@@ -2243,8 +2257,8 @@ export function GraphWorkspace({
       {
         id: "exploration-effects",
         panelId: "effects-panel",
-        label: "Effects",
-        title: "Open exploration effects controls",
+        label: graphCopy(apiErrorLocale, "pluginEffects"),
+        title: graphCopy(apiErrorLocale, "pluginEffectsTitle"),
         order: 18,
         load: loadExplorationEffectsPlugin,
         shouldLoad: explorationEffectsShouldLoad,
@@ -2252,8 +2266,8 @@ export function GraphWorkspace({
       {
         id: "neighborhood-panel",
         panelId: "neighborhood-panel",
-        label: "Neighbors",
-        title: "Toggle neighborhood panel",
+        label: graphCopy(apiErrorLocale, "pluginNeighbors"),
+        title: graphCopy(apiErrorLocale, "pluginNeighborsTitle"),
         order: 30,
         load: loadNeighborhoodPanelPlugin,
         shouldLoad: neighborhoodPanelShouldLoad,
@@ -2261,14 +2275,14 @@ export function GraphWorkspace({
       {
         id: "temporal-overlay",
         panelId: "temporal-panel",
-        label: "Temporal",
-        title: "Toggle temporal context panel",
+        label: graphCopy(apiErrorLocale, "pluginTemporal"),
+        title: graphCopy(apiErrorLocale, "pluginTemporalTitle"),
         order: 40,
         load: loadTemporalOverlayPlugin,
         shouldLoad: temporalOverlayShouldLoad,
       },
     ],
-    [],
+    [apiErrorLocale],
   );
   const activePlugins = useMemo(
     () => pluginRegistry.map((entry) => loadedPlugins[entry.id]).filter((plugin): plugin is GraphPlugin => Boolean(plugin)),
@@ -2613,19 +2627,19 @@ export function GraphWorkspace({
     return [
       {
         id: "view-full",
-        label: "Full Graph",
-        title: "Return to the full graph context",
+        label: graphCopy(apiErrorLocale, "viewFullGraph"),
+        title: graphCopy(apiErrorLocale, "viewFullGraphTitle"),
         icon: Layers3,
         active: viewMode === "full",
         onClick: () => setLayoutViewMode("full"),
       },
       {
         id: "view-grouped",
-        label: "Grouped View",
+        label: graphCopy(apiErrorLocale, "viewGrouped"),
         title: displayState.groupedViewAvailable
-          ? "Compress dense structure into detected communities"
-          : (groupedViewReasonText(displayState.groupedViewReason)
-            ?? groupedViewReasonText({ code: "communities-undetected" })
+          ? graphCopy(apiErrorLocale, "viewGroupedTitle")
+          : (groupedViewReasonText(displayState.groupedViewReason, apiErrorLocale)
+            ?? groupedViewReasonText({ code: "communities-undetected" }, apiErrorLocale)
             ?? undefined),
         icon: GitBranch,
         active: viewMode === "grouped",
@@ -2634,10 +2648,10 @@ export function GraphWorkspace({
       },
       {
         id: "view-focused",
-        label: "Focus",
+        label: graphCopy(apiErrorLocale, "viewFocus"),
         title: canActivateFocusedMode
-          ? "Inspect the selected node in a focused local graph"
-          : (focusedUnavailableReasonText(focusedSelectionResolution.reason) ?? undefined),
+          ? graphCopy(apiErrorLocale, "viewFocusTitle")
+          : (focusedUnavailableReasonText(focusedSelectionResolution.reason, apiErrorLocale) ?? undefined),
         icon: Focus,
         active: viewMode === "focused",
         disabled: viewMode !== "focused" && !canActivateFocusedMode,
@@ -2650,6 +2664,7 @@ export function GraphWorkspace({
       },
     ];
   }, [
+    apiErrorLocale,
     canActivateFocusedMode,
     displayState.groupedViewAvailable,
     displayState.groupedViewReason,
@@ -2664,44 +2679,46 @@ export function GraphWorkspace({
   const cameraToolbarItems = useMemo<GraphToolbarItem[]>(() => [
     {
       id: "zoom-in",
-      label: "Zoom In",
-      title: "Zoom in (or scroll up on the canvas)",
-      ariaLabel: "Zoom in",
+      label: graphCopy(apiErrorLocale, "zoomIn"),
+      title: graphCopy(apiErrorLocale, "zoomInTitle"),
+      ariaLabel: graphCopy(apiErrorLocale, "zoomIn"),
       icon: ZoomIn,
       compact: true,
       onClick: () => sceneRef.current?.zoomIn(),
     },
     {
       id: "zoom-out",
-      label: "Zoom Out",
-      title: "Zoom out (or scroll down on the canvas)",
-      ariaLabel: "Zoom out",
+      label: graphCopy(apiErrorLocale, "zoomOut"),
+      title: graphCopy(apiErrorLocale, "zoomOutTitle"),
+      ariaLabel: graphCopy(apiErrorLocale, "zoomOut"),
       icon: ZoomOut,
       compact: true,
       onClick: () => sceneRef.current?.zoomOut(),
     },
     {
       id: "fit-view",
-      label: "Fit",
-      title: "Reset the camera to fit the whole graph",
-      ariaLabel: "Fit view",
+      label: graphCopy(apiErrorLocale, "fitView"),
+      title: graphCopy(apiErrorLocale, "fitViewTitle"),
+      ariaLabel: graphCopy(apiErrorLocale, "fitView"),
       icon: Maximize2,
       compact: true,
       onClick: () => sceneRef.current?.fitView(),
     },
-  ], []);
+  ], [apiErrorLocale]);
 
   const layoutToolbarItems = useMemo<GraphToolbarItem[]>(() => [
     {
       id: "layout-toggle",
-      label: isLayoutRunning ? "Pause" : "Run",
-      title: "Toggle the layout worker",
+      label: isLayoutRunning
+        ? graphCopy(apiErrorLocale, "layoutPause")
+        : graphCopy(apiErrorLocale, "layoutRun"),
+      title: graphCopy(apiErrorLocale, "layoutToggleTitle"),
       icon: isLayoutRunning ? Pause : Play,
       active: isLayoutRunning,
       disabled: showLoadingOverlay,
       onClick: () => setIsLayoutRunning((value) => !value),
     },
-  ], [isLayoutRunning, showLoadingOverlay]);
+  ], [apiErrorLocale, isLayoutRunning, showLoadingOverlay]);
 
   const localToolbarItems = useMemo<GraphToolbarItem[]>(() => {
     const selectNodeHint = graphCopy(apiErrorLocale, "selectNodeFirst");
@@ -2712,7 +2729,7 @@ export function GraphWorkspace({
       return [
         {
           id: "collapse-neighborhood",
-          label: "Collapse",
+          label: graphCopy(apiErrorLocale, "collapse"),
           title: selectNodeHint,
           icon: Eye,
           disabled: true,
@@ -2720,7 +2737,7 @@ export function GraphWorkspace({
         },
         {
           id: "expand-neighborhood",
-          label: "Expand",
+          label: graphCopy(apiErrorLocale, "expand"),
           title: selectNodeHint,
           icon: Users,
           disabled: true,
@@ -2732,22 +2749,22 @@ export function GraphWorkspace({
     return [
       {
         id: "collapse-neighborhood",
-        label: "Collapse",
-        title: "Hide lower-priority fanout around the selected node",
+        label: graphCopy(apiErrorLocale, "collapse"),
+        title: graphCopy(apiErrorLocale, "collapseNeighborhoodTitle"),
         icon: Eye,
         disabled: !selectedNodeState.canCollapseNeighborhood || selectedNodeState.isNeighborhoodCollapsed,
         onClick: () => handlePluginAction({ type: "collapseNeighborhood" }),
       },
       {
         id: "expand-neighborhood",
-        label: "Expand",
-        title: "Restore the collapsed local neighborhood",
+        label: graphCopy(apiErrorLocale, "expand"),
+        title: graphCopy(apiErrorLocale, "expandNeighborhoodTitle"),
         icon: Users,
         disabled: !selectedNodeState.isNeighborhoodCollapsed,
         onClick: () => handlePluginAction({ type: "expandNeighborhood" }),
       },
     ];
-  }, [handlePluginAction, hasGraphContent, selectedNodeState]);
+  }, [apiErrorLocale, handlePluginAction, hasGraphContent, selectedNodeState]);
 
   const analysisToolbarItems = useMemo<GraphToolbarItem[]>(
     () => pluginToolbarItems.map((item) => ({
@@ -2774,12 +2791,10 @@ export function GraphWorkspace({
     return [
       {
         id: "ego-mode",
-        label: egoModeEnabled ? `Ego (${egoMaxHops}h)` : "Ego Mode",
+        label: graphEgoModeLabel(apiErrorLocale, egoModeEnabled, egoMaxHops),
         icon: Radar,
         title: nodeReady
-          ? egoModeEnabled
-            ? `Egocentric view: ${egoMaxHops} hops depth (click to toggle off)`
-            : "Show depth-of-field fading around the selected node"
+          ? graphEgoModeTitle(apiErrorLocale, egoModeEnabled, egoMaxHops)
           : selectNodeHint,
         active: egoModeEnabled,
         disabled: !nodeReady,
@@ -2792,12 +2807,12 @@ export function GraphWorkspace({
       },
       {
         id: "heatmap",
-        label: "Heatmap",
+        label: graphCopy(apiErrorLocale, "heatmap"),
         icon: Flame,
         title: nodeReady
           ? heatmapEnabled
-            ? "Distance heatmap active (click to toggle off)"
-            : "Color nodes by hop distance from selected node"
+            ? graphCopy(apiErrorLocale, "heatmapActiveTitle")
+            : graphCopy(apiErrorLocale, "heatmapTitleOff")
           : selectNodeHint,
         active: heatmapEnabled,
         disabled: !nodeReady,
@@ -2810,9 +2825,11 @@ export function GraphWorkspace({
       },
       {
         id: "dist-structural",
-        label: "Structural",
+        label: graphCopy(apiErrorLocale, "distStructural"),
         icon: Route,
-        title: nodeReady ? "Color edges by structural (hop) distance" : selectNodeHint,
+        title: nodeReady
+          ? graphCopy(apiErrorLocale, "distStructuralTitle")
+          : selectNodeHint,
         active: distanceMode === "structural",
         disabled: !nodeReady,
         onClick: () => {
@@ -2824,10 +2841,10 @@ export function GraphWorkspace({
       },
       {
         id: "dist-semantic",
-        label: "Semantic",
+        label: graphCopy(apiErrorLocale, "distSemantic"),
         icon: Sparkles,
         title: nodeReady
-          ? "Color edges by semantic similarity to selected node"
+          ? graphCopy(apiErrorLocale, "distSemanticTitle")
           : selectNodeHint,
         active: distanceMode === "semantic",
         disabled: !nodeReady,
@@ -2839,25 +2856,35 @@ export function GraphWorkspace({
         },
       },
     ];
-  }, [distanceMode, egoMaxHops, egoModeEnabled, hasGraphContent, heatmapEnabled, selectedNodeId, viewMode]);
+  }, [
+    apiErrorLocale,
+    distanceMode,
+    egoMaxHops,
+    egoModeEnabled,
+    hasGraphContent,
+    heatmapEnabled,
+    selectedNodeId,
+    viewMode,
+  ]);
 
   const leftToolbarClusters = useMemo<GraphToolbarGroup[]>(() => [
     {
       id: "camera",
-      label: "Camera",
+      label: graphCopy(apiErrorLocale, "toolbarCamera"),
       items: cameraToolbarItems,
     },
     {
       id: "layout",
-      label: "Layout",
+      label: graphCopy(apiErrorLocale, "toolbarLayout"),
       items: layoutToolbarItems,
     },
     {
       id: "local-structure",
-      label: "Local",
+      label: graphCopy(apiErrorLocale, "toolbarLocal"),
       items: localToolbarItems,
     },
   ].filter((group) => group.items.length > 0), [
+    apiErrorLocale,
     cameraToolbarItems,
     layoutToolbarItems,
     localToolbarItems,
@@ -2866,15 +2893,15 @@ export function GraphWorkspace({
   const rightToolbarClusters = useMemo<GraphToolbarGroup[]>(() => [
     {
       id: "distance",
-      label: "Distance",
+      label: graphCopy(apiErrorLocale, "toolbarDistance"),
       items: distanceToolbarItems,
     },
     {
       id: "analysis",
-      label: "Analysis",
+      label: graphCopy(apiErrorLocale, "toolbarAnalysis"),
       items: analysisToolbarItems,
     },
-  ].filter((group) => group.items.length > 0), [analysisToolbarItems, distanceToolbarItems]);
+  ].filter((group) => group.items.length > 0), [analysisToolbarItems, apiErrorLocale, distanceToolbarItems]);
 
   const sceneAdapterProps = {
     onNodeSelect: focusNode,
@@ -3010,6 +3037,7 @@ export function GraphWorkspace({
         <div className="explore-hud-layer">
           <section className="explore-search-dock" aria-label="Graph search">
             <GraphSearchDock
+              locale={apiErrorLocale}
               kbId={kbId}
               query={searchQuery}
               onQueryChange={setSearchQuery}
@@ -3036,6 +3064,7 @@ export function GraphWorkspace({
 
           <section className="explore-status-dock" aria-label="Graph status">
             <GraphStatusDock
+              locale={apiErrorLocale}
               showLoadingStatus={(showLoadingOverlay || showSettlingStatus) && Boolean(loadingProgress)}
               loadingPhase={loadingProgress?.phase}
               summary={summary ?? null}

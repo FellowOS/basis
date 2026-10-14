@@ -396,7 +396,7 @@ Acceptance:
 - localize messages in Web;
 - stop exposing raw server strings.
 
-**Status:** partial — coded `detail` no longer surfaces raw server `message` in clients; KB graph embed uses `apiErrorLocale` for API errors and `graphWorkspaceCopy` for load/distance/empty-state chrome; Ontology + shell covered; remaining: standalone Explorer toolbar labels, more backend codes.
+**Status:** partial — coded `detail` no longer surfaces raw server `message` in clients; KB graph embed uses `apiErrorLocale` for API errors and `graphWorkspaceCopy` for load, toolbars, search/status docks, and view-mode copy; Ontology + shell covered; remaining: inspector panel strings, more backend codes.
 
 ### X-02 — Request IDs and structured logging
 
