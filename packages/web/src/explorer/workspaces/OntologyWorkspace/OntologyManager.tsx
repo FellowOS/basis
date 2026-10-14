@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { explorerFetch } from "../../host/explorerHttp";
 import {
   AlertCircle,
   BookMarked,
@@ -266,7 +267,7 @@ export function OntologyManager() {
     try {
       const params = new URLSearchParams();
       if (searchQ) params.set("q", searchQ);
-      const res = await fetch(`/api/ontology/registry?${params}`);
+      const res = await explorerFetch(`/api/ontology/registry?${params}`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setEntries(data);
@@ -285,7 +286,7 @@ export function OntologyManager() {
       try {
         const params = new URLSearchParams();
         if (searchQ) params.set("q", searchQ);
-        const res = await fetch(`/api/ontology/registry?${params}`);
+        const res = await explorerFetch(`/api/ontology/registry?${params}`);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         if (ignore) return;
@@ -306,7 +307,7 @@ export function OntologyManager() {
 
   const handleToggle = useCallback(async (uri: string) => {
     try {
-      const res = await fetch(`/api/ontology/${encodeURIComponent(uri)}/toggle`, {
+      const res = await explorerFetch(`/api/ontology/${encodeURIComponent(uri)}/toggle`, {
         method: "PATCH",
       });
       if (!res.ok) throw new Error("Toggle failed");
@@ -321,7 +322,7 @@ export function OntologyManager() {
 
   const handleRefresh = useCallback(async (uri: string) => {
     try {
-      const res = await fetch(`/api/ontology/${encodeURIComponent(uri)}/refresh`, {
+      const res = await explorerFetch(`/api/ontology/${encodeURIComponent(uri)}/refresh`, {
         method: "POST",
       });
       if (!res.ok) throw new Error("Refresh failed");
@@ -334,7 +335,7 @@ export function OntologyManager() {
 
   const handleRemove = useCallback(async (uri: string) => {
     try {
-      const res = await fetch(`/api/ontology/${encodeURIComponent(uri)}`, {
+      const res = await explorerFetch(`/api/ontology/${encodeURIComponent(uri)}`, {
         method: "DELETE",
       });
       if (!res.ok) throw new Error("Remove failed");

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { explorerFetch } from "../../host/explorerHttp";
 import {
   AlertCircle,
   BookOpen,
@@ -188,7 +189,7 @@ function DetailPanel({
 
   useEffect(() => {
     let ignore = false;
-    fetch(`/api/ontology/entity/${encodeURIComponent(uri)}`)
+    explorerFetch(`/api/ontology/entity/${encodeURIComponent(uri)}`)
       .then(async (r) => {
         if (!r.ok) throw new Error("Not found");
         const data = await r.json();
@@ -324,7 +325,7 @@ export function OntologySearch() {
     try {
       const params = new URLSearchParams({ q: q.trim(), limit: "80" });
       if (type !== "all") params.set("entity_type", type);
-      const res = await fetch(`/api/ontology/search?${params}`);
+      const res = await explorerFetch(`/api/ontology/search?${params}`);
       if (!res.ok) throw new Error("Search failed");
       setResults(await res.json());
     } catch {

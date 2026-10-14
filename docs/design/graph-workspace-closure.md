@@ -21,6 +21,16 @@ lifecycle. See [explorer-integration.md](./explorer-integration.md) for API cont
 | KB audit (members) | Settings panel + review timeline | `GET .../audit/graph-mutations` |
 | Platform audit (admin) | `/audit` filters `kb_id`, `action_prefix` | Includes `kb.graph.projection_rebuild` |
 
+## Ontology / SPARQL / mappings (Phase 3, partial)
+
+| Surface | Route | Status |
+| --- | --- | --- |
+| Ontology Hub (registry, editor, SHACL, versions) | `/kbs/:id/ontology` → tab **Ontology hub** | KB adapters in `ontology_kb_hub.py`; Explorer `OntologyWorkspace` |
+| SPARQL + reasoning | same page, tabs | `POST .../sparql`, reasoning via `kb_explorer` |
+| SKOS + alignments | `/kbs/:id/vocabulary` | `kb_ontology` vocabulary routes |
+| Phrase → type mappings | `/kbs/:id/mappings` | `kb_mappings` ledger |
+| Connectors (Git, webhook, …) | `ingest_sources` table only | **Not started** — F-SRC-06/07 |
+
 ## Intentionally out of scope (design)
 
 - Canvas **direct merge** (`direct_graph_merge: false`) — use review / entity resolution.

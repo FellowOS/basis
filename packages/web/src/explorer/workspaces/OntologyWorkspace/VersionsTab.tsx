@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { explorerFetch } from "../../host/explorerHttp";
 import {
   Layers,
   GitMerge,
@@ -53,7 +54,7 @@ export function VersionsTab() {
     if (!ontologyUri) return;
     setError("");
     try {
-      const response = await fetch(`/api/ontology/versions/${encodeURIComponent(ontologyUri)}`);
+      const response = await explorerFetch(`/api/ontology/versions/${encodeURIComponent(ontologyUri)}`);
       if (response.ok) {
         const data = await response.json();
         setVersions(data);
@@ -69,7 +70,7 @@ export function VersionsTab() {
   const loadProposals = useCallback(async () => {
     setError("");
     try {
-      const response = await fetch("/api/ontology/proposals");
+      const response = await explorerFetch("/api/ontology/proposals");
       if (response.ok) {
         const data = await response.json();
         setProposals(data);
@@ -87,7 +88,7 @@ export function VersionsTab() {
     async function fetchInitial() {
       if (!ignore) setError("");
       try {
-        const propRes = await fetch("/api/ontology/proposals");
+        const propRes = await explorerFetch("/api/ontology/proposals");
         if (propRes.ok) {
           const propData = await propRes.json();
           if (!ignore) {
@@ -103,7 +104,7 @@ export function VersionsTab() {
 
       if (!ontologyUri) return;
       try {
-        const verRes = await fetch(`/api/ontology/versions/${encodeURIComponent(ontologyUri)}`);
+        const verRes = await explorerFetch(`/api/ontology/versions/${encodeURIComponent(ontologyUri)}`);
         if (verRes.ok) {
           const verData = await verRes.json();
           if (!ignore) {
@@ -124,7 +125,7 @@ export function VersionsTab() {
   const approveProposal = useCallback(async (proposalId: string) => {
     setError("");
     try {
-      const response = await fetch(`/api/ontology/proposals/${proposalId}/approve`, {
+      const response = await explorerFetch(`/api/ontology/proposals/${proposalId}/approve`, {
         method: "POST",
       });
       if (response.ok) {
@@ -146,7 +147,7 @@ export function VersionsTab() {
   const rejectProposal = useCallback(async (proposalId: string) => {
     setError("");
     try {
-      const response = await fetch(`/api/ontology/proposals/${proposalId}/reject`, {
+      const response = await explorerFetch(`/api/ontology/proposals/${proposalId}/reject`, {
         method: "POST",
       });
       if (response.ok) {
@@ -168,7 +169,7 @@ export function VersionsTab() {
   const publishProposal = useCallback(async (proposalId: string) => {
     setError("");
     try {
-      const response = await fetch(`/api/ontology/proposals/${proposalId}/publish`, {
+      const response = await explorerFetch(`/api/ontology/proposals/${proposalId}/publish`, {
         method: "POST",
       });
       if (response.ok) {
@@ -193,7 +194,7 @@ export function VersionsTab() {
     setIsLoading(true);
     setError("");
     try {
-      const response = await fetch(`/api/ontology/versions/${encodeURIComponent(ontologyUri)}/compare`, {
+      const response = await explorerFetch(`/api/ontology/versions/${encodeURIComponent(ontologyUri)}/compare`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

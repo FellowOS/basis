@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { explorerFetch } from "../../host/explorerHttp";
 import {
   AlertCircle,
   CheckCircle2,
@@ -190,7 +191,7 @@ function URLImportPanel({ onLoaded }: { onLoaded: () => void }) {
     setPreview(null);
     setErrorMsg("");
     try {
-      const res = await fetch("/api/ontology/preview", {
+      const res = await explorerFetch("/api/ontology/preview", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: url.trim(), format: format || undefined }),
@@ -211,7 +212,7 @@ function URLImportPanel({ onLoaded }: { onLoaded: () => void }) {
     if (!url.trim()) return;
     setLoadState("loading");
     try {
-      const res = await fetch("/api/ontology/load", {
+      const res = await explorerFetch("/api/ontology/load", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -388,7 +389,7 @@ function FileUploadPanel({ onLoaded }: { onLoaded: () => void }) {
     if (!content) return;
     setLoadState("loading");
     try {
-      const res = await fetch("/api/ontology/load", {
+      const res = await explorerFetch("/api/ontology/load", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         // Omit format when empty so the backend _detect_format() runs
@@ -517,7 +518,7 @@ function CreateNewPanel({ onLoaded }: { onLoaded: () => void }) {
     if (!name.trim() || !namespace.trim()) return;
     setCreateState("loading");
     try {
-      const res = await fetch("/api/ontology/create", {
+      const res = await explorerFetch("/api/ontology/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

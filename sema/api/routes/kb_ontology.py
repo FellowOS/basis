@@ -11,6 +11,7 @@ from sema.api.deps import get_current_user, get_explorer_registry, get_store, sa
 from sema.explorer.kb_scoped_ontology_state import KbOntologyState
 from sema.explorer.session_guard import require_explorer_graph_session
 from sema.knowledge.graph_audit import audit_kb_graph
+from sema.explorer.ontology_kb_hub import register_kb_ontology_hub_routes
 
 router = APIRouter(prefix="/api/kbs", tags=["knowledge-bases"])
 
@@ -177,3 +178,6 @@ async def kb_suggest_alignments(
     body = AlignmentSuggestionRequest.model_validate(raw)
     session = _session(request, kb_id)
     return await suggest_alignments(body=body, session=session)
+
+
+register_kb_ontology_hub_routes(router)

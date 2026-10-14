@@ -134,13 +134,13 @@ export async function suggestAlignments(payload: {
 
 export async function loadOntologyHealth(uri: string): Promise<OntologyHealthResponse> {
   return parseResponse<OntologyHealthResponse>(
-    await fetch(`/api/ontology/health?uri=${encodeURIComponent(uri)}`),
+    await explorerFetch(`/api/ontology/health?uri=${encodeURIComponent(uri)}`),
   );
 }
 
 export async function generateShacl(uri: string, qualityTier: "standard" | "strict" = "strict"): Promise<ShaclGenerateResponse> {
   return parseResponse<ShaclGenerateResponse>(
-    await fetch("/api/ontology/shacl/generate", {
+    await explorerFetch("/api/ontology/shacl/generate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ uri, quality_tier: qualityTier }),
@@ -150,13 +150,13 @@ export async function generateShacl(uri: string, qualityTier: "standard" | "stri
 
 export async function loadShaclShapes(uri: string): Promise<ShaclShapesResponse> {
   return parseResponse<ShaclShapesResponse>(
-    await fetch(`/api/ontology/shacl/shapes?uri=${encodeURIComponent(uri)}`),
+    await explorerFetch(`/api/ontology/shacl/shapes?uri=${encodeURIComponent(uri)}`),
   );
 }
 
 export async function validateShacl(uri: string, shaclTurtle: string): Promise<ShaclValidationResponse> {
   return parseResponse<ShaclValidationResponse>(
-    await fetch("/api/ontology/shacl/validate", {
+    await explorerFetch("/api/ontology/shacl/validate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ uri, shacl_turtle: shaclTurtle }),

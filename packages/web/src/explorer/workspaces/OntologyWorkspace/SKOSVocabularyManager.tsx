@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { explorerFetch } from "../../host/explorerHttp";
 import {
   AlertCircle,
   BookOpen,
@@ -87,7 +88,7 @@ function ConceptDetailPanel({
 
   useEffect(() => {
     let ignore = false;
-    fetch(`/api/ontology/skos/concept/${encodeURIComponent(uri)}`)
+    explorerFetch(`/api/ontology/skos/concept/${encodeURIComponent(uri)}`)
       .then(async (r) => {
         if (!r.ok) throw new Error("Concept not found");
         const data = await r.json();
@@ -360,7 +361,7 @@ function SchemePanel({
   useEffect(() => {
     let ignore = false;
     if (!expanded) return;
-    fetch(`/api/vocabulary/hierarchy?scheme=${encodeURIComponent(scheme.uri)}`)
+    explorerFetch(`/api/vocabulary/hierarchy?scheme=${encodeURIComponent(scheme.uri)}`)
       .then(async (r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         const data = await r.json();
@@ -461,7 +462,7 @@ export function SKOSVocabularyManager({ schemeUri }: Props) {
   const [selectedUri, setSelectedUri] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("/api/ontology/skos/schemes")
+    explorerFetch("/api/ontology/skos/schemes")
       .then(async (r) => {
         if (!r.ok) throw new Error(`Failed to load schemes (${r.status})`);
         const data = await r.json();

@@ -1,0 +1,470 @@
+"""KB-scoped adapters for Semantica Explorer ontology hub routes."""
+from __future__ import annotations
+
+from typing import Any, Optional
+
+from fastapi import APIRouter, Depends, Query, Request
+from pydantic_core import PydanticUndefined
+
+import semantica.explorer.routes.ontology  # noqa: F401 — annotations on generated handlers
+
+from sema.admin.store import AdminStore, User
+from sema.api.deps import get_current_user, get_explorer_registry, get_store, save_graph
+from sema.explorer.kb_scoped_ontology_state import KbOntologyState
+from sema.explorer.session_guard import require_explorer_graph_session
+
+WRITE_METHODS = frozenset({"POST", "PUT", "PATCH", "DELETE"})
+
+
+def _session(request: Request, kb_id: str):
+    runtime = get_explorer_registry(request).get(request, kb_id)
+    return require_explorer_graph_session(runtime)
+
+
+def _min_role(method: str) -> str:
+    return "editor" if method in WRITE_METHODS else "viewer"
+
+
+def register_kb_ontology_hub_routes(router: APIRouter) -> None:
+    from semantica.explorer.routes import ontology as ont
+
+    async def _kb_ont_1_preview_ontology(
+        kb_id: str,
+        request: Request,
+        body: semantica.explorer.routes.ontology.PreviewOntologyRequest,
+        user: User = Depends(get_current_user),
+        store: AdminStore = Depends(get_store),
+    ) -> Any:
+        store.get_kb_for(user, kb_id, _min_role("POST"))
+        session = _session(request, kb_id)
+        with KbOntologyState(request, kb_id):
+            result = await ont.preview_ontology(request=request, session=session, body=body)
+            save_graph(request, kb_id)
+            return result
+
+    router.add_api_route("/{kb_id}/ontology/preview", _kb_ont_1_preview_ontology, methods=["POST"], name="_kb_ont_1_preview_ontology")
+
+    async def _kb_ont_2_load_ontology(
+        kb_id: str,
+        request: Request,
+        body: semantica.explorer.routes.ontology.LoadOntologyRequest,
+        user: User = Depends(get_current_user),
+        store: AdminStore = Depends(get_store),
+    ) -> Any:
+        store.get_kb_for(user, kb_id, _min_role("POST"))
+        session = _session(request, kb_id)
+        with KbOntologyState(request, kb_id):
+            result = await ont.load_ontology(request=request, session=session, body=body)
+            save_graph(request, kb_id)
+            return result
+
+    router.add_api_route("/{kb_id}/ontology/load", _kb_ont_2_load_ontology, methods=["POST"], name="_kb_ont_2_load_ontology")
+
+    async def _kb_ont_3_create_ontology(
+        kb_id: str,
+        request: Request,
+        body: semantica.explorer.routes.ontology.CreateOntologyRequest,
+        user: User = Depends(get_current_user),
+        store: AdminStore = Depends(get_store),
+    ) -> Any:
+        store.get_kb_for(user, kb_id, _min_role("POST"))
+        session = _session(request, kb_id)
+        with KbOntologyState(request, kb_id):
+            result = await ont.create_ontology(request=request, session=session, body=body)
+            save_graph(request, kb_id)
+            return result
+
+    router.add_api_route("/{kb_id}/ontology/create", _kb_ont_3_create_ontology, methods=["POST"], name="_kb_ont_3_create_ontology")
+
+    async def _kb_ont_4_search_entities(
+        kb_id: str,
+        request: Request,
+        q: str = Query(PydanticUndefined),
+        entity_type: Optional[str] = Query(None),
+        limit: int = Query(50),
+        user: User = Depends(get_current_user),
+        store: AdminStore = Depends(get_store),
+    ) -> Any:
+        store.get_kb_for(user, kb_id, _min_role("GET"))
+        session = _session(request, kb_id)
+        with KbOntologyState(request, kb_id):
+            result = await ont.search_entities(request=request, session=session, q=q, entity_type=entity_type, limit=limit)
+            return result
+
+    router.add_api_route("/{kb_id}/ontology/search", _kb_ont_4_search_entities, methods=["GET"], name="_kb_ont_4_search_entities")
+
+    async def _kb_ont_5_get_ontology_graph(
+        kb_id: str,
+        request: Request,
+        uri: str = Query(PydanticUndefined),
+        user: User = Depends(get_current_user),
+        store: AdminStore = Depends(get_store),
+    ) -> Any:
+        store.get_kb_for(user, kb_id, _min_role("GET"))
+        session = _session(request, kb_id)
+        with KbOntologyState(request, kb_id):
+            result = await ont.get_ontology_graph(request=request, session=session, uri=uri)
+            return result
+
+    router.add_api_route("/{kb_id}/ontology/graph", _kb_ont_5_get_ontology_graph, methods=["GET"], name="_kb_ont_5_get_ontology_graph")
+
+    async def _kb_ont_6_get_entity_detail(
+        kb_id: str,
+        request: Request,
+        entity_uri: str,
+        user: User = Depends(get_current_user),
+        store: AdminStore = Depends(get_store),
+    ) -> Any:
+        store.get_kb_for(user, kb_id, _min_role("GET"))
+        session = _session(request, kb_id)
+        with KbOntologyState(request, kb_id):
+            result = await ont.get_entity_detail(request=request, session=session, entity_uri=entity_uri)
+            return result
+
+    router.add_api_route("/{kb_id}/ontology/entity/{entity_uri:path}", _kb_ont_6_get_entity_detail, methods=["GET"], name="_kb_ont_6_get_entity_detail")
+
+    async def _kb_ont_7_list_skos_schemes(
+        kb_id: str,
+        request: Request,
+        user: User = Depends(get_current_user),
+        store: AdminStore = Depends(get_store),
+    ) -> Any:
+        store.get_kb_for(user, kb_id, _min_role("GET"))
+        session = _session(request, kb_id)
+        with KbOntologyState(request, kb_id):
+            result = await ont.list_skos_schemes(request=request, session=session)
+            return result
+
+    router.add_api_route("/{kb_id}/ontology/skos/schemes", _kb_ont_7_list_skos_schemes, methods=["GET"], name="_kb_ont_7_list_skos_schemes")
+
+    async def _kb_ont_8_search_skos_concepts(
+        kb_id: str,
+        request: Request,
+        body: semantica.explorer.routes.ontology.SKOSConceptSearchRequest,
+        user: User = Depends(get_current_user),
+        store: AdminStore = Depends(get_store),
+    ) -> Any:
+        store.get_kb_for(user, kb_id, _min_role("POST"))
+        session = _session(request, kb_id)
+        with KbOntologyState(request, kb_id):
+            result = await ont.search_skos_concepts(request=request, session=session, body=body)
+            save_graph(request, kb_id)
+            return result
+
+    router.add_api_route("/{kb_id}/ontology/skos/search", _kb_ont_8_search_skos_concepts, methods=["POST"], name="_kb_ont_8_search_skos_concepts")
+
+    async def _kb_ont_9_get_skos_concept(
+        kb_id: str,
+        request: Request,
+        concept_uri: str,
+        user: User = Depends(get_current_user),
+        store: AdminStore = Depends(get_store),
+    ) -> Any:
+        store.get_kb_for(user, kb_id, _min_role("GET"))
+        session = _session(request, kb_id)
+        with KbOntologyState(request, kb_id):
+            result = await ont.get_skos_concept(request=request, session=session, concept_uri=concept_uri)
+            return result
+
+    router.add_api_route("/{kb_id}/ontology/skos/concept/{concept_uri:path}", _kb_ont_9_get_skos_concept, methods=["GET"], name="_kb_ont_9_get_skos_concept")
+
+    async def _kb_ont_10_ontology_health(
+        kb_id: str,
+        request: Request,
+        uri: str = Query(PydanticUndefined),
+        user: User = Depends(get_current_user),
+        store: AdminStore = Depends(get_store),
+    ) -> Any:
+        store.get_kb_for(user, kb_id, _min_role("GET"))
+        session = _session(request, kb_id)
+        with KbOntologyState(request, kb_id):
+            result = await ont.ontology_health(request=request, session=session, uri=uri)
+            return result
+
+    router.add_api_route("/{kb_id}/ontology/health", _kb_ont_10_ontology_health, methods=["GET"], name="_kb_ont_10_ontology_health")
+
+    async def _kb_ont_11_generate_shacl(
+        kb_id: str,
+        request: Request,
+        body: semantica.explorer.routes.ontology.ShaclGenerateRequest,
+        user: User = Depends(get_current_user),
+        store: AdminStore = Depends(get_store),
+    ) -> Any:
+        store.get_kb_for(user, kb_id, _min_role("POST"))
+        session = _session(request, kb_id)
+        with KbOntologyState(request, kb_id):
+            result = await ont.generate_shacl(request=request, session=session, body=body)
+            save_graph(request, kb_id)
+            return result
+
+    router.add_api_route("/{kb_id}/ontology/shacl/generate", _kb_ont_11_generate_shacl, methods=["POST"], name="_kb_ont_11_generate_shacl")
+
+    async def _kb_ont_12_list_shacl_shapes(
+        kb_id: str,
+        request: Request,
+        uri: str = Query(PydanticUndefined),
+        user: User = Depends(get_current_user),
+        store: AdminStore = Depends(get_store),
+    ) -> Any:
+        store.get_kb_for(user, kb_id, _min_role("GET"))
+        session = _session(request, kb_id)
+        with KbOntologyState(request, kb_id):
+            result = await ont.list_shacl_shapes(request=request, session=session, uri=uri)
+            return result
+
+    router.add_api_route("/{kb_id}/ontology/shacl/shapes", _kb_ont_12_list_shacl_shapes, methods=["GET"], name="_kb_ont_12_list_shacl_shapes")
+
+    async def _kb_ont_13_validate_shacl(
+        kb_id: str,
+        request: Request,
+        body: semantica.explorer.routes.ontology.ShaclValidateRequest,
+        user: User = Depends(get_current_user),
+        store: AdminStore = Depends(get_store),
+    ) -> Any:
+        store.get_kb_for(user, kb_id, _min_role("POST"))
+        session = _session(request, kb_id)
+        with KbOntologyState(request, kb_id):
+            result = await ont.validate_shacl(request=request, session=session, body=body)
+            save_graph(request, kb_id)
+            return result
+
+    router.add_api_route("/{kb_id}/ontology/shacl/validate", _kb_ont_13_validate_shacl, methods=["POST"], name="_kb_ont_13_validate_shacl")
+
+    async def _kb_ont_14_remove_ontology(
+        kb_id: str,
+        request: Request,
+        ontology_uri: str,
+        user: User = Depends(get_current_user),
+        store: AdminStore = Depends(get_store),
+    ) -> Any:
+        store.get_kb_for(user, kb_id, _min_role("DELETE"))
+        session = _session(request, kb_id)
+        with KbOntologyState(request, kb_id):
+            result = await ont.remove_ontology(request=request, session=session, ontology_uri=ontology_uri)
+            save_graph(request, kb_id)
+            return result
+
+    router.add_api_route("/{kb_id}/ontology/{ontology_uri:path}", _kb_ont_14_remove_ontology, methods=["DELETE"], name="_kb_ont_14_remove_ontology")
+
+    async def _kb_ont_15_toggle_ontology(
+        kb_id: str,
+        request: Request,
+        ontology_uri: str,
+        user: User = Depends(get_current_user),
+        store: AdminStore = Depends(get_store),
+    ) -> Any:
+        store.get_kb_for(user, kb_id, _min_role("PATCH"))
+        session = _session(request, kb_id)
+        with KbOntologyState(request, kb_id):
+            result = await ont.toggle_ontology(request=request, session=session, ontology_uri=ontology_uri)
+            save_graph(request, kb_id)
+            return result
+
+    router.add_api_route("/{kb_id}/ontology/{ontology_uri:path}/toggle", _kb_ont_15_toggle_ontology, methods=["PATCH"], name="_kb_ont_15_toggle_ontology")
+
+    async def _kb_ont_16_refresh_ontology(
+        kb_id: str,
+        request: Request,
+        ontology_uri: str,
+        user: User = Depends(get_current_user),
+        store: AdminStore = Depends(get_store),
+    ) -> Any:
+        store.get_kb_for(user, kb_id, _min_role("POST"))
+        session = _session(request, kb_id)
+        with KbOntologyState(request, kb_id):
+            result = await ont.refresh_ontology(request=request, session=session, ontology_uri=ontology_uri)
+            save_graph(request, kb_id)
+            return result
+
+    router.add_api_route("/{kb_id}/ontology/{ontology_uri:path}/refresh", _kb_ont_16_refresh_ontology, methods=["POST"], name="_kb_ont_16_refresh_ontology")
+
+    async def _kb_ont_17_save_draft(
+        kb_id: str,
+        request: Request,
+        body: semantica.explorer.routes.ontology.DraftRequest,
+        user: User = Depends(get_current_user),
+        store: AdminStore = Depends(get_store),
+    ) -> Any:
+        store.get_kb_for(user, kb_id, _min_role("PATCH"))
+        session = _session(request, kb_id)
+        with KbOntologyState(request, kb_id):
+            result = await ont.save_draft(request=request, session=session, body=body)
+            save_graph(request, kb_id)
+            return result
+
+    router.add_api_route("/{kb_id}/ontology/draft", _kb_ont_17_save_draft, methods=["PATCH"], name="_kb_ont_17_save_draft")
+
+    async def _kb_ont_18_list_drafts(
+        kb_id: str,
+        request: Request,
+        ontology_uri: str,
+        user: User = Depends(get_current_user),
+        store: AdminStore = Depends(get_store),
+    ) -> Any:
+        store.get_kb_for(user, kb_id, _min_role("GET"))
+        session = _session(request, kb_id)
+        with KbOntologyState(request, kb_id):
+            result = await ont.list_drafts(request=request, session=session, ontology_uri=ontology_uri)
+            return result
+
+    router.add_api_route("/{kb_id}/ontology/drafts/{ontology_uri:path}", _kb_ont_18_list_drafts, methods=["GET"], name="_kb_ont_18_list_drafts")
+
+    async def _kb_ont_19_get_draft(
+        kb_id: str,
+        request: Request,
+        draft_id: str,
+        user: User = Depends(get_current_user),
+        store: AdminStore = Depends(get_store),
+    ) -> Any:
+        store.get_kb_for(user, kb_id, _min_role("GET"))
+        session = _session(request, kb_id)
+        with KbOntologyState(request, kb_id):
+            result = await ont.get_draft(request=request, session=session, draft_id=draft_id)
+            return result
+
+    router.add_api_route("/{kb_id}/ontology/draft/{draft_id}", _kb_ont_19_get_draft, methods=["GET"], name="_kb_ont_19_get_draft")
+
+    async def _kb_ont_20_submit_proposal(
+        kb_id: str,
+        request: Request,
+        body: semantica.explorer.routes.ontology.ProposalRequest,
+        user: User = Depends(get_current_user),
+        store: AdminStore = Depends(get_store),
+    ) -> Any:
+        store.get_kb_for(user, kb_id, _min_role("POST"))
+        session = _session(request, kb_id)
+        with KbOntologyState(request, kb_id):
+            result = await ont.submit_proposal(request=request, session=session, body=body)
+            save_graph(request, kb_id)
+            return result
+
+    router.add_api_route("/{kb_id}/ontology/propose", _kb_ont_20_submit_proposal, methods=["POST"], name="_kb_ont_20_submit_proposal")
+
+    async def _kb_ont_21_list_proposals(
+        kb_id: str,
+        request: Request,
+        ontology_uri: Optional[str] = Query(None),
+        state: Optional[str] = Query(None),
+        user: User = Depends(get_current_user),
+        store: AdminStore = Depends(get_store),
+    ) -> Any:
+        store.get_kb_for(user, kb_id, _min_role("GET"))
+        session = _session(request, kb_id)
+        with KbOntologyState(request, kb_id):
+            result = await ont.list_proposals(request=request, session=session, ontology_uri=ontology_uri, state=state)
+            return result
+
+    router.add_api_route("/{kb_id}/ontology/proposals", _kb_ont_21_list_proposals, methods=["GET"], name="_kb_ont_21_list_proposals")
+
+    async def _kb_ont_22_get_proposal(
+        kb_id: str,
+        request: Request,
+        proposal_id: str,
+        user: User = Depends(get_current_user),
+        store: AdminStore = Depends(get_store),
+    ) -> Any:
+        store.get_kb_for(user, kb_id, _min_role("GET"))
+        session = _session(request, kb_id)
+        with KbOntologyState(request, kb_id):
+            result = await ont.get_proposal(request=request, session=session, proposal_id=proposal_id)
+            return result
+
+    router.add_api_route("/{kb_id}/ontology/proposals/{proposal_id}", _kb_ont_22_get_proposal, methods=["GET"], name="_kb_ont_22_get_proposal")
+
+    async def _kb_ont_23_approve_proposal(
+        kb_id: str,
+        request: Request,
+        proposal_id: str,
+        user: User = Depends(get_current_user),
+        store: AdminStore = Depends(get_store),
+    ) -> Any:
+        store.get_kb_for(user, kb_id, _min_role("POST"))
+        session = _session(request, kb_id)
+        with KbOntologyState(request, kb_id):
+            result = await ont.approve_proposal(request=request, session=session, proposal_id=proposal_id)
+            save_graph(request, kb_id)
+            return result
+
+    router.add_api_route("/{kb_id}/ontology/proposals/{proposal_id}/approve", _kb_ont_23_approve_proposal, methods=["POST"], name="_kb_ont_23_approve_proposal")
+
+    async def _kb_ont_24_reject_proposal(
+        kb_id: str,
+        request: Request,
+        proposal_id: str,
+        user: User = Depends(get_current_user),
+        store: AdminStore = Depends(get_store),
+    ) -> Any:
+        store.get_kb_for(user, kb_id, _min_role("POST"))
+        session = _session(request, kb_id)
+        with KbOntologyState(request, kb_id):
+            result = await ont.reject_proposal(request=request, session=session, proposal_id=proposal_id)
+            save_graph(request, kb_id)
+            return result
+
+    router.add_api_route("/{kb_id}/ontology/proposals/{proposal_id}/reject", _kb_ont_24_reject_proposal, methods=["POST"], name="_kb_ont_24_reject_proposal")
+
+    async def _kb_ont_25_publish_proposal(
+        kb_id: str,
+        request: Request,
+        proposal_id: str,
+        user: User = Depends(get_current_user),
+        store: AdminStore = Depends(get_store),
+    ) -> Any:
+        store.get_kb_for(user, kb_id, _min_role("POST"))
+        session = _session(request, kb_id)
+        with KbOntologyState(request, kb_id):
+            result = await ont.publish_proposal(request=request, session=session, proposal_id=proposal_id)
+            save_graph(request, kb_id)
+            return result
+
+    router.add_api_route("/{kb_id}/ontology/proposals/{proposal_id}/publish", _kb_ont_25_publish_proposal, methods=["POST"], name="_kb_ont_25_publish_proposal")
+
+    async def _kb_ont_26_add_comment(
+        kb_id: str,
+        request: Request,
+        proposal_id: str,
+        body: semantica.explorer.routes.ontology.CommentRequest,
+        user: User = Depends(get_current_user),
+        store: AdminStore = Depends(get_store),
+    ) -> Any:
+        store.get_kb_for(user, kb_id, _min_role("POST"))
+        session = _session(request, kb_id)
+        with KbOntologyState(request, kb_id):
+            result = await ont.add_comment(request=request, session=session, proposal_id=proposal_id, body=body)
+            save_graph(request, kb_id)
+            return result
+
+    router.add_api_route("/{kb_id}/ontology/proposals/{proposal_id}/comment", _kb_ont_26_add_comment, methods=["POST"], name="_kb_ont_26_add_comment")
+
+    async def _kb_ont_27_list_versions(
+        kb_id: str,
+        request: Request,
+        ontology_uri: str,
+        user: User = Depends(get_current_user),
+        store: AdminStore = Depends(get_store),
+    ) -> Any:
+        store.get_kb_for(user, kb_id, _min_role("GET"))
+        session = _session(request, kb_id)
+        with KbOntologyState(request, kb_id):
+            result = await ont.list_versions(request=request, session=session, ontology_uri=ontology_uri)
+            return result
+
+    router.add_api_route("/{kb_id}/ontology/versions/{ontology_uri:path}", _kb_ont_27_list_versions, methods=["GET"], name="_kb_ont_27_list_versions")
+
+    async def _kb_ont_28_compare_versions(
+        kb_id: str,
+        request: Request,
+        ontology_uri: str,
+        body: semantica.explorer.routes.ontology.VersionCompareRequest,
+        user: User = Depends(get_current_user),
+        store: AdminStore = Depends(get_store),
+    ) -> Any:
+        store.get_kb_for(user, kb_id, _min_role("POST"))
+        session = _session(request, kb_id)
+        with KbOntologyState(request, kb_id):
+            result = await ont.compare_versions(request=request, session=session, ontology_uri=ontology_uri, body=body)
+            save_graph(request, kb_id)
+            return result
+
+    router.add_api_route("/{kb_id}/ontology/versions/{ontology_uri:path}/compare", _kb_ont_28_compare_versions, methods=["POST"], name="_kb_ont_28_compare_versions")
+

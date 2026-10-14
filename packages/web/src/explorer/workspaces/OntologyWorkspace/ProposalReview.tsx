@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { explorerFetch } from "../../host/explorerHttp";
 import {
   GitMerge,
   CheckCircle,
@@ -64,7 +65,7 @@ export function ProposalReview({ proposalId }: { proposalId: string }) {
 
   const loadProposal = useCallback(async () => {
     try {
-      const response = await fetch(`/api/ontology/proposals/${proposalId}`);
+      const response = await explorerFetch(`/api/ontology/proposals/${proposalId}`);
       if (response.ok) {
         const data = await response.json();
         setProposal(data);
@@ -79,7 +80,7 @@ export function ProposalReview({ proposalId }: { proposalId: string }) {
     let ignore = false;
     async function fetchInitial() {
       try {
-        const response = await fetch(`/api/ontology/proposals/${proposalId}`);
+        const response = await explorerFetch(`/api/ontology/proposals/${proposalId}`);
         if (response.ok) {
           const data = await response.json();
           if (!ignore) {
@@ -98,7 +99,7 @@ export function ProposalReview({ proposalId }: { proposalId: string }) {
   const addComment = useCallback(async () => {
     if (!selectedElement || !commentText || !proposal) return;
     try {
-      const response = await fetch(`/api/ontology/proposals/${proposal.proposal_id}/comment`, {
+      const response = await explorerFetch(`/api/ontology/proposals/${proposal.proposal_id}/comment`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -120,7 +121,7 @@ export function ProposalReview({ proposalId }: { proposalId: string }) {
   const approveProposal = useCallback(async () => {
     if (!proposal) return;
     try {
-      const response = await fetch(`/api/ontology/proposals/${proposal.proposal_id}/approve`, {
+      const response = await explorerFetch(`/api/ontology/proposals/${proposal.proposal_id}/approve`, {
         method: "POST",
       });
       if (response.ok) {
@@ -136,7 +137,7 @@ export function ProposalReview({ proposalId }: { proposalId: string }) {
   const rejectProposal = useCallback(async () => {
     if (!proposal) return;
     try {
-      const response = await fetch(`/api/ontology/proposals/${proposal.proposal_id}/reject`, {
+      const response = await explorerFetch(`/api/ontology/proposals/${proposal.proposal_id}/reject`, {
         method: "POST",
       });
       if (response.ok) {
@@ -152,7 +153,7 @@ export function ProposalReview({ proposalId }: { proposalId: string }) {
   const publishProposal = useCallback(async () => {
     if (!proposal) return;
     try {
-      const response = await fetch(`/api/ontology/proposals/${proposal.proposal_id}/publish`, {
+      const response = await explorerFetch(`/api/ontology/proposals/${proposal.proposal_id}/publish`, {
         method: "POST",
       });
       if (response.ok) {

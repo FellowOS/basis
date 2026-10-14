@@ -1,4 +1,5 @@
 import { lazy, Suspense, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ExplorerHostProvider } from '@/explorer/host/explorerHttp.js';
 import { buildKbExplorerHttpConfig } from '@/lib/kb-explorer-host.js';
@@ -7,8 +8,15 @@ import { KbExplorerUnavailable } from '@/components/kb-explorer-unavailable.js';
 import { KbExplorerZoneTabs } from '@/components/kb-explorer-zone-tabs.js';
 import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
+import { kbPath } from '@/lib/nav-config.js';
 import { cn } from '@/lib/utils.js';
 import '@/explorer/ui/primitives.css';
+
+const OntologyWorkspace = lazy(() =>
+  import('@/explorer/workspaces/OntologyWorkspace/index.js').then((module) => ({
+    default: module.OntologyWorkspace,
+  })),
+);
 
 const SparqlWorkspace = lazy(() =>
   import('@/explorer/workspaces/SparqlWorkspace/SparqlWorkspace.js').then((module) => ({
@@ -28,7 +36,7 @@ const ontologyQueryClient = new QueryClient({
   },
 });
 
-type AnalyzeTab = 'sparql' | 'reasoning';
+type OntologyZoneTab = 'hub' | 'sparql' | 'reasoning';
 
 export function KbOntologyWorkspace({
   kbId,
@@ -38,21 +46,35 @@ export function KbOntologyWorkspace({
   className?: string;
 }) {
   const { locale } = useI18n();
+  const navigate = useNavigate();
   const { caps, loading: capsLoading } = useKbCapabilities();
   const config = useMemo(() => buildKbExplorerHttpConfig(kbId), [kbId]);
+  const [tab, setTab] = useState<OntologyZoneTab>('hub');
 
-  if (!capsLoading && caps && !caps.sparql && !caps.reasoning) {
+  const explorerReady = caps?.explorer_runtime && caps.graph;
+
+  if (!capsLoading && caps && !explorerReady) {
     return <KbExplorerUnavailable kbId={kbId} feature="sparql" />;
   }
-  const [tab, setTab] = useState<AnalyzeTab>('sparql');
 
   const tabs = useMemo(
     () => [
+      {
+        id: 'hub' as const,
+        label: locale === 'zh' ? '本体 Hub' : 'Ontology hub',
+      },
       { id: 'sparql' as const, label: 'SPARQL' },
       { id: 'reasoning' as const, label: locale === 'zh' ? '推理' : 'Reasoning' },
     ],
     [locale],
   );
+
+  const onJumpToGraphNode = (nodeId: string) => {
+    navigate(`${kbPath(kbId, 'graph')}?focus=${encodeURIComponent(nodeId)}`);
+  };
+
+  const loadingLabel =
+    locale === 'zh' ? '加载本体与分析工作台…' : 'Loading ontology & analysis…';
 
   return (
     <div
@@ -68,18 +90,30 @@ export function KbOntologyWorkspace({
             variant="console"
             tabs={tabs}
             activeId={tab}
-            onChange={(id) => setTab(id as AnalyzeTab)}
+            onChange={(id) => setTab(id as OntologyZoneTab)}
           />
           <Suspense
             fallback={
               <div className="flex flex-1 items-center justify-center gap-2 text-sm text-muted-foreground">
                 <Spinner className="size-4" />
-                {locale === 'zh' ? '加载分析工作台…' : 'Loading analysis workspace…'}
+                {loadingLabel}
               </div>
             }
           >
             <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-              {tab === 'sparql' ? <SparqlWorkspace kbId={kbId} /> : <ReasoningWorkspace kbId={kbId} />}
+              {tab === 'hub' ? (
+                <OntologyWorkspace onJumpToGraphNode={onJumpToGraphNode} />
+              ) : tab === 'sparql' ? (
+                caps?.sparql ? (
+                  <SparqlWorkspace kbId={kbId} />
+                ) : (
+                  <KbExplorerUnavailable kbId={kbId} feature="sparql" />
+                )
+              ) : caps?.reasoning ? (
+                <ReasoningWorkspace kbId={kbId} />
+              ) : (
+                <KbExplorerUnavailable kbId={kbId} feature="sparql" />
+              )}
             </div>
           </Suspense>
         </ExplorerHostProvider>

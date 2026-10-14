@@ -63,3 +63,32 @@ def test_alignments_isolated_between_kbs(tmp_path) -> None:
     list_b = client.get(f"/api/kbs/{kb_b}/ontology/alignments", headers=headers)
     assert list_b.status_code == 200
     assert list_b.json() == []
+
+
+def test_ontology_graph_requires_uri(tmp_path) -> None:
+    if not explorer_available():
+        pytest.skip("explorer extra not installed")
+
+    client = TestClient(create_app(Settings(data_dir=tmp_path)))
+    admin = client.post(
+        "/api/auth/register",
+        json={"email": "ogr@example.com", "password": "password1", "display_name": "Ogr"},
+    ).json()
+    headers = {"Authorization": f"Bearer {admin['token']}"}
+    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+
+    missing = client.get(f"/api/kbs/{kb_id}/ontology/graph", headers=headers)
+    assert missing.status_code == 422
+
+    client.post(
+        f"/api/kbs/{kb_id}/ontology",
+        headers=headers,
+        json={"name": "Demo", "namespace": "http://example.org/demo"},
+    )
+    graph = client.get(
+        f"/api/kbs/{kb_id}/ontology/graph",
+        headers=headers,
+        params={"uri": "http://example.org/demo#ontology"},
+    )
+    assert graph.status_code == 200
+    assert graph.json()["uri"] == "http://example.org/demo#ontology"

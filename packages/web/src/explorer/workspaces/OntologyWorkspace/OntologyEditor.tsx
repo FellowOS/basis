@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { explorerFetch } from "../../host/explorerHttp";
 import {
   ReactFlow,
   Background,
@@ -253,7 +254,7 @@ export function OntologyEditor() {
     let cancelled = false;
     const requested = requestedEntityUri();
     Promise.all([
-      fetch("/api/ontology/registry").then((response) => (response.ok ? response.json() : [])),
+      explorerFetch("/api/ontology/registry").then((response) => (response.ok ? response.json() : [])),
       requested
         ? loadOntologyEntityOwner(requested).catch(() => undefined)
         : Promise.resolve(undefined),
@@ -405,7 +406,7 @@ export function OntologyEditor() {
     }
     setIsSaving(true);
     try {
-      const response = await fetch("/api/ontology/draft", {
+      const response = await explorerFetch("/api/ontology/draft", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
