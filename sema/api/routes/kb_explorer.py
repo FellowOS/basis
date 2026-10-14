@@ -4,13 +4,13 @@ from __future__ import annotations
 
 from typing import Any, Optional
 
-from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile
+from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import Response
 
 from sema.admin.errors import AdminError
 from sema.admin.store import AdminStore, User
 from sema.api.deps import get_current_user, get_explorer_registry, get_store, save_graph, get_kb_for_viewer, get_kb_for_editor
-from sema.api.explorer_route_errors import admin_error_from_explorer_http
+from sema.api.explorer_route_errors import invoke_explorer
 from sema.explorer.session_guard import require_explorer_graph_session
 from sema.limits import EXPLORER_DECISIONS_MAX_LIMIT
 from sema.knowledge.graph_audit import audit_kb_graph
@@ -30,7 +30,7 @@ async def kb_temporal_bounds(
     session = require_explorer_graph_session(runtime)
     from semantica.explorer.routes.temporal import temporal_bounds
 
-    return await temporal_bounds(session=session)
+    return await invoke_explorer(temporal_bounds(session=session), context="temporal")
 
 
 @router.get("/{kb_id}/temporal/snapshot")
@@ -46,7 +46,7 @@ async def kb_temporal_snapshot(
     session = require_explorer_graph_session(runtime)
     from semantica.explorer.routes.temporal import temporal_snapshot
 
-    return await temporal_snapshot(at=at, session=session)
+    return await invoke_explorer(temporal_snapshot(at=at, session=session), context="temporal")
 
 
 @router.post("/{kb_id}/enrich/links")
@@ -64,7 +64,7 @@ async def kb_enrich_links(
 
     raw = await request.json()
     payload = LinkPredictionRequest.model_validate(raw)
-    return await predict_links(payload, session=session)
+    return await invoke_explorer(predict_links(payload, session=session), context="enrich")
 
 
 @router.post("/{kb_id}/enrich/dedup")
@@ -82,7 +82,7 @@ async def kb_enrich_dedup(
 
     raw = await request.json()
     payload = DedupRequest.model_validate(raw)
-    return await detect_duplicates(payload, session=session)
+    return await invoke_explorer(detect_duplicates(payload, session=session), context="enrich")
 
 
 @router.post("/{kb_id}/enrich/merge")
@@ -115,7 +115,10 @@ async def kb_provenance_report(
     session = require_explorer_graph_session(runtime)
     from semantica.explorer.routes.provenance import export_provenance_report
 
-    return await export_provenance_report(node_id=node_id, format=format, session=session)
+    return await invoke_explorer(
+        export_provenance_report(node_id=node_id, format=format, session=session),
+        context="provenance",
+    )
 
 
 @router.post("/{kb_id}/sparql")
@@ -132,7 +135,7 @@ async def kb_sparql_execute(
 
     raw = await request.json()
     payload = SparqlRequest.model_validate(raw)
-    return await execute_sparql(payload, session=session)
+    return await invoke_explorer(execute_sparql(payload, session=session), context="sparql")
 
 
 @router.get("/{kb_id}/graph/semantic-neighborhood")
@@ -150,15 +153,15 @@ async def kb_graph_semantic_neighborhood(
     session = require_explorer_graph_session(runtime)
     from semantica.explorer.routes.graph import semantic_neighborhood_by_query
 
-    try:
-        return await semantic_neighborhood_by_query(
+    return await invoke_explorer(
+        semantic_neighborhood_by_query(
             node_id=node_id,
             top_k=top_k,
             min_similarity=min_similarity,
             session=session,
-        )
-    except HTTPException as exc:
-        raise admin_error_from_explorer_http(exc, context="semantic_neighborhood") from exc
+        ),
+        context="semantic_neighborhood",
+    )
 
 
 @router.get("/{kb_id}/decisions")
@@ -177,11 +180,14 @@ async def kb_list_decisions(
     from semantica.explorer.routes.decisions import list_decisions
 
     capped = min(max(1, limit), EXPLORER_DECISIONS_MAX_LIMIT)
-    return await list_decisions(
-        category=category,
-        skip=skip,
-        limit=capped,
-        session=session,
+    return await invoke_explorer(
+        list_decisions(
+            category=category,
+            skip=skip,
+            limit=capped,
+            session=session,
+        ),
+        context="decisions",
     )
 
 
@@ -198,7 +204,10 @@ async def kb_decision_chain(
     session = require_explorer_graph_session(runtime)
     from semantica.explorer.routes.decisions import get_causal_chain
 
-    return await get_causal_chain(decision_id=decision_id, session=session)
+    return await invoke_explorer(
+        get_causal_chain(decision_id=decision_id, session=session),
+        context="decisions",
+    )
 
 
 @router.post("/{kb_id}/reasoning/run")
@@ -217,7 +226,7 @@ async def kb_reasoning_run(
     store.get_kb_for(user, kb_id, role)
     runtime = get_explorer_registry(request).get(request, kb_id)
     session = require_explorer_graph_session(runtime)
-    result = await run_reasoning(payload, session=session)
+    result = await invoke_explorer(run_reasoning(payload, session=session), context="reasoning")
     if payload.apply_to_graph and getattr(result, "mutated", False):
         save_graph(request, kb_id)
         summary = result.model_dump() if hasattr(result, "model_dump") else dict(result)
@@ -264,7 +273,7 @@ async def kb_export_graph(
 
     raw = await request.json()
     payload = ExportRequest.model_validate(raw)
-    response = await export_graph(payload, session=session)
+    response = await invoke_explorer(export_graph(payload, session=session), context="export")
     audit_kb_graph(
         store,
         user,

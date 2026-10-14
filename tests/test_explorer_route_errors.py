@@ -17,3 +17,20 @@ def test_semantic_neighborhood_503_maps_to_code() -> None:
     admin = admin_error_from_explorer_http(exc, context="semantic_neighborhood")
     assert admin.status == 503
     assert admin.code == "semantic_unavailable"
+
+
+def test_dict_detail_with_code_passthrough() -> None:
+    exc = HTTPException(
+        status_code=400,
+        detail={"code": "bad_sparql", "message": "Malformed query"},
+    )
+    admin = admin_error_from_explorer_http(exc)
+    assert admin.status == 400
+    assert admin.code == "bad_sparql"
+    assert admin.message == "Malformed query"
+
+
+def test_generic_explorer_404_maps_to_not_found() -> None:
+    exc = HTTPException(status_code=404, detail="Decision missing")
+    admin = admin_error_from_explorer_http(exc, context="decisions")
+    assert admin.code == "not_found"

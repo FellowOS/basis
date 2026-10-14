@@ -211,6 +211,10 @@ const MESSAGES: Record<string, { zh: string; en: string }> = {
     zh: '请求参数无效。',
     en: 'Invalid request parameters.',
   },
+  bad_sparql: {
+    zh: 'SPARQL 查询无效。',
+    en: 'Invalid SPARQL query.',
+  },
 };
 
 export type ApiErrorLike = {

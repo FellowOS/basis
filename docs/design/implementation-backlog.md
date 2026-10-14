@@ -396,7 +396,7 @@ Acceptance:
 - localize messages in Web;
 - stop exposing raw server strings.
 
-**Status:** partial — coded `detail` on AdminError + selected Explorer adapters (e.g. semantic neighborhood → `semantic_node_not_found` / `semantic_unavailable`); Web `api-error-message` registry covers mappings, search, explorer, and projection codes; graph copy localized; remaining: broader Explorer route normalization and auth/platform codes in the registry.
+**Status:** partial — AdminError `detail.code` on KB routes; all `kb_explorer` semantica delegates go through `invoke_explorer` (HTTPException → stable codes, semantic neighborhood special-cased); Web registry covers mappings, search, explorer, projection; remaining: ontology hub adapters, auth/platform codes in the registry.
 
 ### X-02 — Request IDs and structured logging
 
