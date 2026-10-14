@@ -120,7 +120,21 @@ def _run_version_ingest_for_app(
             )
         except FileParseError:
             return None
-        except (ExtractTextTooLargeError, TooManyChunksError, ExtractionTimeoutError):
+        except (ExtractTextTooLargeError, TooManyChunksError):
+            raise
+        except ExtractionTimeoutError as exc:
+            logger.warning(
+                "version ingest extract timeout kb_id=%s version_id=%s job_id=%s timeout_sec=%s",
+                kb_id,
+                version_id,
+                job_id,
+                exc.timeout_seconds,
+                extra=correlation_log_extra(
+                    kb_id=kb_id,
+                    version_id=version_id,
+                    job_id=job_id,
+                ),
+            )
             raise
         except Exception:
             logger.exception(

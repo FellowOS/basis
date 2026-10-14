@@ -56,9 +56,14 @@ uv run sema migrate-postgres --database-url "$SEMA_DATABASE_URL"   # first time 
 
 1. Stop the API.
 2. Create an empty database (or drop/recreate `sema`).
-3. `pg_restore --clean --if-exists -d "$SEMA_DATABASE_URL" backups/sema-pg-….dump`
-4. Extract `sema-blobs-*.tar.gz` into `SEMA_DATA_DIR`.
-5. Start the API; `POST /api/kbs/{kb_id}/graph/rebuild` per KB as an editor (unless you restored `graphs/` and trust revision alignment).
+3. Run (destructive):
+
+```bash
+SEMA_RESTORE_CONFIRM=yes ./scripts/restore_sema_postgres.sh backups/sema-pg-….dump backups/sema-blobs-….tar.gz
+```
+
+Or manually: `pg_restore --clean --if-exists -d "$SEMA_DATABASE_URL" …` and extract blobs into `SEMA_DATA_DIR`.
+4. Start the API; `POST /api/kbs/{kb_id}/graph/rebuild` per KB as an editor (unless you restored `graphs/` and trust revision alignment).
 
 Vector indexes after `migrate-postgres` may need a reindex pass per [search-storage-architecture.md](../design/search-storage-architecture.md).
 
