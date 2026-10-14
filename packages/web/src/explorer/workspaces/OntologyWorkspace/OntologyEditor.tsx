@@ -25,7 +25,11 @@ import {
   Pencil,
   Trash2,
 } from "lucide-react";
-import { loadOntologyEntityOwner, loadOntologyGraph } from "./api";
+import {
+  explorerApiErrorMessage,
+  parseExplorerJson,
+} from "../../lib/explorer-api-error";
+import { loadOntologyEntityOwner, loadOntologyGraph, loadOntologyRegistry } from "./api";
 import type { OntologyGraphEdge, OntologyGraphNode } from "./api";
 import {
   isEditableEntityType,
@@ -254,7 +258,7 @@ export function OntologyEditor() {
     let cancelled = false;
     const requested = requestedEntityUri();
     Promise.all([
-      explorerFetch("/api/ontology/registry").then((response) => (response.ok ? response.json() : [])),
+      loadOntologyRegistry().catch(() => [] as RegistryEntry[]),
       requested
         ? loadOntologyEntityOwner(requested).catch(() => undefined)
         : Promise.resolve(undefined),
@@ -307,7 +311,7 @@ export function OntologyEditor() {
         setNodes([]);
         setEdges([]);
         setSelectedElement(null);
-        setGraphError(error instanceof Error ? error.message : "Failed to load ontology graph");
+        setGraphError(explorerApiErrorMessage(error));
       })
       .finally(() => {
         if (!controller.signal.aborted) setIsLoadingGraph(false);
@@ -416,13 +420,11 @@ export function OntologyEditor() {
           summary: "Visual editor changes",
         }),
       });
-      if (response.ok) {
-        const data = await response.json();
-        alert(`Draft saved: ${data.draft_id}`);
-      }
+      const data = await parseExplorerJson<{ draft_id: string }>(response, "Failed to save draft");
+      alert(`Draft saved: ${data.draft_id}`);
     } catch (error) {
       console.error("Failed to save draft:", error);
-      alert("Failed to save draft");
+      alert(explorerApiErrorMessage(error));
     } finally {
       setIsSaving(false);
     }

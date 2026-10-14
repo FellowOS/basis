@@ -396,7 +396,7 @@ Acceptance:
 - localize messages in Web;
 - stop exposing raw server strings.
 
-**Status:** partial — `api.ts` / `explorer-client` attach `detail.code`; `api-error-message.ts` + `explorer-api-error.ts` cover KB shell, graph load, import/export, and Ontology workspace tabs (versions, manager, SKOS, search, alignments, SHACL, proposals).
+**Status:** partial — `api-error-message.ts` + `explorer-api-error.ts` cover KB shell, graph load/search/path/semantic (locale via `apiErrorLocale`), import/export, Ontology editor + workspace tabs; remaining: standalone Explorer pages without KB i18n, plus backend codes still growing.
 
 ### X-02 — Request IDs and structured logging
 

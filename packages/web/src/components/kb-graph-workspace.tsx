@@ -136,6 +136,7 @@ export function KbGraphWorkspace({
                 graphWriteEnabled={!capsLoading && (caps?.graph_write ?? false)}
                 decisionsEnabled={!capsLoading && (caps?.decisions ?? false)}
                 externalReloadToken={reloadToken}
+                apiErrorLocale={zh ? "zh" : "en"}
               />
             </Suspense>
           </div>

@@ -26,7 +26,12 @@ import {
   explorerFetch,
   openGraphUpdatesWebSocket,
 } from "../../host/explorerHttp";
-import { explorerApiErrorMessage } from "../../lib/explorer-api-error";
+import { errorFromApiResponse } from "@/lib/api-error.js";
+import {
+  explorerApiErrorMessage,
+  parseExplorerJson,
+  throwIfExplorerNotOk,
+} from "../../lib/explorer-api-error";
 import { batchMergeEdges, batchMergeNodes, graph } from "../../store/graphStore";
 import { logEvent } from "../../store/registryStore";
 import type { EdgeAttributes, NodeAttributes } from "../../store/graphStore";
@@ -976,6 +981,8 @@ interface GraphWorkspaceProps {
   /** When false, node Markdown editing is hidden (Sema viewer role). */
   graphWriteEnabled?: boolean;
   decisionsEnabled?: boolean;
+  /** Maps API `detail.code` to localized copy when embedded in Sema KB UI. */
+  apiErrorLocale?: "zh" | "en";
 }
 
 export function GraphWorkspace({
@@ -987,7 +994,12 @@ export function GraphWorkspace({
   graphDataActions,
   graphWriteEnabled = true,
   decisionsEnabled = false,
+  apiErrorLocale = "en",
 }: GraphWorkspaceProps = {}) {
+  const formatApiError = useCallback(
+    (err: unknown) => explorerApiErrorMessage(err, apiErrorLocale),
+    [apiErrorLocale],
+  );
   const { theme } = useTheme();
   const hudCss = useMemo(() => {
     syncSemaGraphTheme(theme);
@@ -1155,7 +1167,7 @@ export function GraphWorkspace({
   });
 
   const graphLoadErrorMessage = isGraphLoadError
-    ? explorerApiErrorMessage(graphLoadError, "en")
+    ? formatApiError(graphLoadError)
     : null;
 
   const handleRetryGraphLoad = useCallback(() => {
@@ -1563,15 +1575,15 @@ export function GraphWorkspace({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query: searchQuery, limit: 8 }),
       });
-      if (!response.ok) {
-        throw new Error(`Search failed with status ${response.status}`);
-      }
-      const data = await response.json();
+      const data = await parseExplorerJson<{ results?: GraphSearchResult[] }>(
+        response,
+        "Search failed",
+      );
       setSearchResults(data.results || []);
     } catch (searchFetchError) {
-      setSearchError(searchFetchError instanceof Error ? searchFetchError.message : "Search failed");
+      setSearchError(formatApiError(searchFetchError));
     }
-  }, [kbId, searchQuery]);
+  }, [formatApiError, kbId, searchQuery]);
 
   const handleClearSearchResults = useCallback(() => {
     setSearchResults([]);
@@ -1592,10 +1604,10 @@ export function GraphWorkspace({
           min_score: 0,
         }),
       });
-      if (!response.ok) {
-        throw new Error(`Link prediction failed with status ${response.status}`);
-      }
-      const data = await response.json();
+      const data = await parseExplorerJson<{ predictions?: LinkPrediction[] }>(
+        response,
+        "Link prediction failed",
+      );
       setPredictions(data.predictions || []);
     } catch (predictionError) {
       console.error("[GraphWorkspace] prediction failed", predictionError);
@@ -1616,10 +1628,7 @@ export function GraphWorkspace({
       const response = await explorerFetch(
         buildExplorerGraphApiPath(`path?${pathParams.toString()}`, kbId),
       );
-      if (!response.ok) {
-        throw new Error(`Path lookup failed with status ${response.status}`);
-      }
-      const data: PathResponse = await response.json();
+      const data = await parseExplorerJson<PathResponse>(response, "Path lookup failed");
       setPathResult(data);
       if (data.path?.length) {
         const lastStep = data.path[data.path.length - 1];
@@ -1642,9 +1651,7 @@ export function GraphWorkspace({
         kbId,
       ),
     );
-    if (!response.ok) {
-      throw new Error(`Provenance report failed with status ${response.status}`);
-    }
+    await throwIfExplorerNotOk(response, "Provenance report failed");
     const blob = await response.blob();
     const url = window.URL.createObjectURL(blob);
     const anchor = document.createElement("a");
@@ -1882,11 +1889,17 @@ export function GraphWorkspace({
           return;
         }
         if (!response.ok) {
-          throw new Error(response.status === 503
+          const data = await response.json().catch(() => ({}));
+          const fallback = response.status === 503
             ? "Semantic similarity is unavailable for this graph."
             : response.status === 404
               ? "Selected node was not found by the semantic distance API."
-            : `Semantic distance failed with status ${response.status}`);
+              : `Semantic distance failed (${response.status})`;
+          const err = errorFromApiResponse(response.status, data, fallback);
+          if (response.status === 503 && !(err as Error & { code?: string }).code) {
+            (err as Error & { code?: string }).code = "semantic_unavailable";
+          }
+          throw err;
         }
 
         const data: SemanticNeighborhoodResponse = await response.json();
@@ -1913,7 +1926,7 @@ export function GraphWorkspace({
           scores: EMPTY_DISTANCE_RECORD,
           count: 0,
           status: "error",
-          error: error instanceof Error ? error.message : "Semantic distance could not be loaded.",
+          error: formatApiError(error),
         });
       }
     };
@@ -1922,7 +1935,7 @@ export function GraphWorkspace({
     return () => {
       cancelled = true;
     };
-  }, [distanceAnchorNodeId, distanceMode, kbId]);
+  }, [distanceAnchorNodeId, distanceMode, formatApiError, kbId]);
 
   const distanceVisualState = useMemo<GraphDistanceVisualState>(() => {
     if (activeDistanceMode === "off") {

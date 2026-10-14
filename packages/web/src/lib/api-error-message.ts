@@ -135,6 +135,14 @@ const MESSAGES: Record<string, { zh: string; en: string }> = {
     zh: '已存在相同签名的已确认映射。',
     en: 'A confirmed mapping with this signature already exists.',
   },
+  bad_algorithm: {
+    zh: '路径算法无效，请使用 bfs 或 dijkstra。',
+    en: 'Invalid path algorithm. Use bfs or dijkstra.',
+  },
+  semantic_unavailable: {
+    zh: '当前图谱不支持语义相似度。',
+    en: 'Semantic similarity is unavailable for this graph.',
+  },
 };
 
 export type ApiErrorLike = {

@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { RefreshCw, Search, X } from "lucide-react";
 
+import { parseExplorerJson } from "../../lib/explorer-api-error";
 import { buildExplorerGraphApiPath, explorerFetch } from "../../host/explorerHttp";
 import { Button } from "@/components/ui/button.js";
 import {
@@ -84,13 +85,10 @@ function SearchCommandBar({
         body: JSON.stringify({ query, limit: SUGGESTION_LIMIT }),
         signal: controller.signal,
       })
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error(`Search failed with status ${response.status}`);
-          }
-          return response.json();
-        })
-        .then((data: { results?: GraphSearchResult[] }) => {
+        .then(async (response) =>
+          parseExplorerJson<{ results?: GraphSearchResult[] }>(response, "Search failed"),
+        )
+        .then((data) => {
           setSuggestions(data.results ?? []);
           setSuggestionsOpen(document.activeElement === inputRef.current);
           setHighlightedIndex(-1);
