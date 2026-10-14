@@ -215,6 +215,126 @@ const MESSAGES: Record<string, { zh: string; en: string }> = {
     zh: 'SPARQL 查询无效。',
     en: 'Invalid SPARQL query.',
   },
+  invalid_credentials: {
+    zh: '邮箱或密码不正确。',
+    en: 'Incorrect email or password.',
+  },
+  registration_closed: {
+    zh: '注册已关闭。',
+    en: 'Registration is closed.',
+  },
+  email_taken: {
+    zh: '该邮箱已被注册。',
+    en: 'This email is already registered.',
+  },
+  password_too_short: {
+    zh: '密码至少 8 位。',
+    en: 'Password must be at least 8 characters.',
+  },
+  bad_email: {
+    zh: '邮箱格式不正确。',
+    en: 'Invalid email address.',
+  },
+  bad_name: {
+    zh: '名称长度须在 1 到 64 个字符之间。',
+    en: 'Name must be between 1 and 64 characters.',
+  },
+  bad_role: {
+    zh: '角色无效，须为 owner、admin、editor 或 viewer。',
+    en: 'Invalid role. Use owner, admin, editor, or viewer.',
+  },
+  bad_visibility: {
+    zh: '可见性须为 open 或 restricted。',
+    en: 'Visibility must be open or restricted.',
+  },
+  last_admin: {
+    zh: '不能移除或停用最后一个管理员。',
+    en: 'Cannot remove or deactivate the last admin.',
+  },
+  last_owner: {
+    zh: '不能移除或降级最后一个所有者。',
+    en: 'Cannot remove or demote the last owner.',
+  },
+  cannot_deactivate_self: {
+    zh: '不能停用自己的账号。',
+    en: 'You cannot deactivate your own account.',
+  },
+  bad_scope: {
+    zh: '令牌 scope 须为 read 或 write。',
+    en: 'Token scope must be read or write.',
+  },
+  bad_kb_ids: {
+    zh: '请至少选择一个知识库。',
+    en: 'Select at least one knowledge base.',
+  },
+  model_required: {
+    zh: '请填写模型 ID。',
+    en: 'Model ID is required.',
+  },
+  api_base_required: {
+    zh: '请填写 API Base URL。',
+    en: 'API base URL is required.',
+  },
+  model_not_found: {
+    zh: '模型不存在。',
+    en: 'Model not found.',
+  },
+  embedding_model_not_found: {
+    zh: '指定的嵌入模型不存在。',
+    en: 'The specified embedding model was not found.',
+  },
+  forbidden_origin: {
+    zh: '来源不被允许。',
+    en: 'Origin is not allowed.',
+  },
+  invalid_ticket: {
+    zh: '实时连接票据无效。',
+    en: 'Realtime ticket is invalid.',
+  },
+  ticket_used: {
+    zh: '实时连接票据已使用。',
+    en: 'Realtime ticket was already used.',
+  },
+  ticket_expired: {
+    zh: '实时连接票据已过期。',
+    en: 'Realtime ticket has expired.',
+  },
+  wrong_kb: {
+    zh: '票据与知识库不匹配。',
+    en: 'Ticket does not match this knowledge base.',
+  },
+  vector_backend_unavailable: {
+    zh: '向量存储后端不可用。',
+    en: 'Vector storage backend is unavailable.',
+  },
+  openai_missing: {
+    zh: '未安装 OpenAI 依赖。',
+    en: 'OpenAI dependency is not installed.',
+  },
+  tool_loop_limit: {
+    zh: '工具调用次数过多，请简化问题后重试。',
+    en: 'Too many tool calls. Simplify the question and try again.',
+  },
+  bad_entity: {
+    zh: '实体名称无效。',
+    en: 'Invalid entity name.',
+  },
+  bad_entity_kind: {
+    zh: '实体类型无效。',
+    en: 'Invalid entity kind.',
+  },
+  bad_statement: {
+    zh: '陈述须指定对象实体或对象值之一。',
+    en: 'A statement must have an object entity or object value.',
+  },
+  bad_kind: {
+    zh: '不支持的类型。',
+    en: 'Unsupported kind.',
+  },
+  bad_doc_id: {
+    zh: '文档 ID 无效。',
+    en: 'Invalid document ID.',
+  },
 };
 
 export type ApiErrorLike = {

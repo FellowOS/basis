@@ -24,4 +24,11 @@ describe('formatUserFacingApiError', () => {
     expect(messageForApiErrorCode('semantic_unavailable', 'en')).toContain('Semantic');
     expect(messageForApiErrorCode('bad_path', 'zh')).toContain('source');
   });
+
+  it('maps auth codes without surfacing raw server text', () => {
+    const err = new Error('');
+    (err as Error & { code?: string }).code = 'invalid_credentials';
+    expect(formatUserFacingApiError(err, 'zh')).toContain('密码');
+    expect(formatUserFacingApiError(err, 'en')).toContain('password');
+  });
 });

@@ -7,10 +7,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input.js';
 import { Label } from '@/components/ui/label.js';
 import { useI18n } from '@/i18n/context.js';
+import { formatUserFacingApiError } from '@/lib/api-error-message.js';
 import { useSemaSession } from '@/lib/sema-session.js';
 
 export function LoginPage() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const { ready, user, homePath, login, register } = useSemaSession();
   const [searchParams] = useSearchParams();
   const initialMode = searchParams.get('mode') === 'register' ? 'register' : 'login';
@@ -35,7 +36,8 @@ export function LoginPage() {
       if (mode === 'login') await login(email, password);
       else await register(email, password, displayName);
     } catch (err) {
-      setError(err instanceof Error ? err.message : t.login.loginFailed);
+      const message = formatUserFacingApiError(err, locale === 'zh' ? 'zh' : 'en');
+      setError(message || t.login.loginFailed);
     } finally {
       setBusy(false);
     }

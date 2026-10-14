@@ -396,7 +396,7 @@ Acceptance:
 - localize messages in Web;
 - stop exposing raw server strings.
 
-**Status:** partial — AdminError `detail.code` on KB routes; `kb_explorer`, `kb_ontology`, and generated ontology hub routes use `invoke_explorer`; Web registry covers mappings, search, explorer, projection; remaining: auth/platform codes in the registry.
+**Status:** partial — AdminError `detail.code` on KB routes; Explorer/ontology adapters use `invoke_explorer`; Web `api-error-message` covers processing, graph, mappings, auth, members, models, and realtime tickets; login uses coded errors. Remaining: audit remaining shell pages for raw `err.message`.
 
 ### X-02 — Request IDs and structured logging
 
