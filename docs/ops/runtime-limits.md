@@ -20,6 +20,8 @@ Sema reads these from the environment (see `.env.example`). Defaults match `sema
 | `SEMA_INGEST_MAX_CHUNKS` | 2000 | Chunks per version after split |
 | `SEMA_INGEST_EXTRACT_TIMEOUT_SECONDS` | 300 | Per-segment `GraphBuilder.build` wall clock (`0` = off) |
 
+On timeout the API fails the job with `extract_timeout` and returns without waiting for the worker thread to finish. That thread is not cooperatively cancelled inside Semantica (no LLM abort hook yet); under heavy timeouts you may see extra CPU until the thread completes. Lower `SEMA_INGEST_MAX_INFLIGHT` if many timed-out extractions overlap.
+
 Failed ingest jobs surface codes such as `upload_too_large`, `extract_text_too_large`, `too_many_chunks`, and `extract_timeout` (API `detail.code`; Web maps them in `api-error-message.ts`).
 
 ## Correlation and logs (X-02)

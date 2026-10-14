@@ -19,10 +19,14 @@ class ExtractionTimeoutError(Exception):
 def run_sync_with_timeout(fn: Callable[[], T], timeout_seconds: float) -> T:
     if timeout_seconds <= 0:
         return fn()
-    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
-        future = pool.submit(fn)
-        try:
-            return future.result(timeout=timeout_seconds)
-        except concurrent.futures.TimeoutError:
-            future.cancel()
-            raise ExtractionTimeoutError(timeout_seconds) from None
+    pool = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+    future = pool.submit(fn)
+    try:
+        result = future.result(timeout=timeout_seconds)
+    except concurrent.futures.TimeoutError:
+        future.cancel()
+        # Do not wait for in-flight Semantica work; the thread may run until process exit.
+        pool.shutdown(wait=False, cancel_futures=True)
+        raise ExtractionTimeoutError(timeout_seconds) from None
+    pool.shutdown(wait=True)
+    return result

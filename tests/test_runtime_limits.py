@@ -273,3 +273,14 @@ def test_async_ingest_fails_with_ingest_overloaded_when_pending_full(
     jobs = client.get(f"/api/kbs/{kb_id}/processing/jobs", headers=headers).json()["jobs"]
     overloaded = [j for j in jobs if j.get("error_code") == "ingest_overloaded"]
     assert len(overloaded) == 1
+
+
+def test_run_sync_with_timeout_returns_without_waiting_on_worker() -> None:
+    import pytest
+
+    from sema.pipeline.extract_timeout import ExtractionTimeoutError, run_sync_with_timeout
+
+    start = time.monotonic()
+    with pytest.raises(ExtractionTimeoutError):
+        run_sync_with_timeout(lambda: time.sleep(5), 0.15)
+    assert time.monotonic() - start < 1.5

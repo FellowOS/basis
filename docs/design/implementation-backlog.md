@@ -419,7 +419,7 @@ Acceptance:
   parse/LLM timeout;
 - reject before allocating unbounded memory where possible.
 
-**Status:** done (baseline) — `RuntimeLimits` + `SEMA_*` for graph/search/import/upload/ingest; ingest thread pool + `SEMA_INGEST_MAX_PENDING` backpressure (`ingest_overloaded`); job wait timeout; ingest size/chunk caps; extract wall-clock timeout. Ops: `docs/ops/runtime-limits.md`. Follow-up: cancel in-flight LLM on timeout, per-model timeouts.
+**Status:** done (baseline) — `RuntimeLimits` + `SEMA_*` for graph/search/import/upload/ingest; ingest thread pool + `SEMA_INGEST_MAX_PENDING` backpressure (`ingest_overloaded`); job wait timeout; ingest size/chunk caps; extract wall-clock timeout (`run_sync_with_timeout` releases the pool without waiting on timeout). Ops: `docs/ops/runtime-limits.md`. Follow-up: cooperative LLM abort inside Semantica, per-model timeouts.
 
 ## 8. Task dependency graph
 
