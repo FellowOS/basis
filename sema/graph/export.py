@@ -76,6 +76,7 @@ def graph_snapshot(
                 "target": edge.target_id,
                 "type": edge.edge_type,
                 "statement_id": props.get("statement_id"),
+                "evidence_id": props.get("evidence_id"),
                 "projection_layer": props.get("projection_layer"),
             }
         )

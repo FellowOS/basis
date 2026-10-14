@@ -324,6 +324,23 @@ interface EdgeListResponse {
 
 const PAGE_LIMIT = 1000;
 
+/** Match `sema.limits` — bound paginated fetches when GraphWorkspace runs inside Sema (`kbId` set). */
+const SEMA_GRAPH_MAX_NODES = 200;
+const SEMA_GRAPH_MAX_EDGES = 400;
+const SEMA_PAGE_LIMIT = 200;
+
+function pageLimitForGraphLoad(kbId?: string): number {
+  return kbId ? SEMA_PAGE_LIMIT : PAGE_LIMIT;
+}
+
+function maxNodesForGraphLoad(kbId?: string): number | null {
+  return kbId ? SEMA_GRAPH_MAX_NODES : null;
+}
+
+function maxEdgesForGraphLoad(kbId?: string): number | null {
+  return kbId ? SEMA_GRAPH_MAX_EDGES : null;
+}
+
 /** Surface the server's `detail` message (e.g. auth/setup guidance) on non-OK responses. */
 async function fetchErrorDetail(response: Response): Promise<string> {
   try {
@@ -347,9 +364,12 @@ async function fetchAllNodes(
   const collected: ApiNode[] = [];
   let total: number | null = null;
 
+  const pageLimit = pageLimitForGraphLoad(kbId);
+  const maxNodes = maxNodesForGraphLoad(kbId);
+
   while (true) {
     const url = new URL(buildExplorerGraphApiPath("nodes", kbId), window.location.origin);
-    url.searchParams.set("limit", String(PAGE_LIMIT));
+    url.searchParams.set("limit", String(pageLimit));
     if (cursor) {
       url.searchParams.set("cursor", cursor);
     }
@@ -365,7 +385,11 @@ async function fetchAllNodes(
     }
 
     total = data.total ?? total;
-    collected.push(...data.nodes);
+    const remaining = maxNodes === null ? data.nodes.length : Math.max(0, maxNodes - collected.length);
+    collected.push(...data.nodes.slice(0, remaining));
+    if (maxNodes !== null && collected.length >= maxNodes) {
+      break;
+    }
     onProgress?.(createGraphLoadProgress({
       phase: "fetching_nodes",
       progressKind: total ? "determinate" : "indeterminate",
@@ -403,9 +427,12 @@ async function fetchAllEdges(
   let total: number | null = null;
   let warnedOverTotal = false;
 
+  const pageLimit = pageLimitForGraphLoad(kbId);
+  const maxEdges = maxEdgesForGraphLoad(kbId);
+
   while (true) {
     const url = new URL(buildExplorerGraphApiPath("edges", kbId), window.location.origin);
-    url.searchParams.set("limit", String(PAGE_LIMIT));
+    url.searchParams.set("limit", String(pageLimit));
     if (cursor) {
       url.searchParams.set("cursor", cursor);
     }
@@ -431,7 +458,11 @@ async function fetchAllEdges(
       seenEdgeIds.add(edge.id);
       return true;
     });
-    collected.push(...validEdges);
+    const room = maxEdges === null ? validEdges.length : Math.max(0, maxEdges - collected.length);
+    collected.push(...validEdges.slice(0, room));
+    if (maxEdges !== null && collected.length >= maxEdges) {
+      break;
+    }
     const safeLoaded = total ? Math.min(seenEdgeIds.size, total) : seenEdgeIds.size;
     if (!warnedOverTotal && total !== null && seenEdgeIds.size > total) {
       warnedOverTotal = true;

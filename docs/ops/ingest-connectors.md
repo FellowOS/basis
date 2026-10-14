@@ -1,5 +1,7 @@
 # Ingest connectors (KB sources)
 
+中文说明：[ingest-connectors.zh.md](./ingest-connectors.zh.md)
+
 Connectors push or pull **text** into a knowledge base’s document + processing pipeline. Manage them in the console: **Documents → Connectors**, or via `/api/kbs/{kb_id}/sources`.
 
 ## Types

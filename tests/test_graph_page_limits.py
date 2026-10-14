@@ -6,7 +6,7 @@ from fastapi.testclient import TestClient
 
 from sema.api.app import create_app
 from sema.config import Settings
-from sema.limits import GRAPH_PAGE_MAX_NODES
+from sema.limits import GRAPH_PAGE_MAX_EDGES, GRAPH_PAGE_MAX_NODES
 
 
 def test_graph_nodes_limit_capped(tmp_path: Path) -> None:
@@ -27,3 +27,25 @@ def test_graph_nodes_limit_capped(tmp_path: Path) -> None:
     # Empty graph still returns; cap is applied inside paginator (no over-fetch crash).
     assert res.json()["engine"] in ("explorer", "snapshot")
     assert GRAPH_PAGE_MAX_NODES == 200
+
+
+def test_graph_snapshot_limits_capped(tmp_path: Path) -> None:
+    settings = Settings(data_dir=tmp_path)
+    client = TestClient(create_app(settings))
+    admin = client.post(
+        "/api/auth/register",
+        json={"email": "snap@example.com", "password": "password1", "display_name": "Snap"},
+    ).json()
+    headers = {"Authorization": f"Bearer {admin['token']}"}
+    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+
+    res = client.get(
+        f"/api/kbs/{kb_id}/graph/snapshot?limit_nodes=99999&limit_edges=99999",
+        headers=headers,
+    )
+    assert res.status_code == 200
+    body = res.json()
+    assert len(body["nodes"]) <= GRAPH_PAGE_MAX_NODES
+    assert len(body["edges"]) <= GRAPH_PAGE_MAX_EDGES
+    assert body["truncated"]["nodes"] is False
+    assert body["truncated"]["edges"] is False

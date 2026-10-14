@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import io
 import sqlite3
 import tarfile
 
@@ -29,6 +30,146 @@ def _register(client: TestClient, email: str) -> dict[str, str]:
         json={"email": email, "password": "password1", "display_name": "U"},
     ).json()
     return _auth(body["token"])
+
+
+def _minimal_docx_bytes() -> bytes:
+    docx = pytest.importorskip("docx")
+    document = docx.Document()
+    document.add_paragraph("Alice knows Bob.")
+    buffer = io.BytesIO()
+    document.save(buffer)
+    return buffer.getvalue()
+
+
+def _viewer_headers(client: TestClient, owner_headers: dict[str, str], kb_id: str) -> dict[str, str]:
+    viewer = client.post(
+        "/api/auth/register",
+        json={"email": "viewer-gate@example.com", "password": "password1", "display_name": "V"},
+    ).json()
+    users = client.get("/api/users", headers=owner_headers).json()["users"]
+    viewer_user = next(u for u in users if u["email"] == "viewer-gate@example.com")
+    client.post(
+        f"/api/kbs/{kb_id}/members",
+        headers=owner_headers,
+        json={"user_id": viewer_user["id"], "role": "viewer"},
+    )
+    return _auth(viewer["token"])
+
+
+def test_docx_upload_creates_document_chunks_and_statements(tmp_path) -> None:
+    """§9.1 — DOCX upload produces canonical document, version, chunks, and statements."""
+    docx_bytes = _minimal_docx_bytes()
+    client = TestClient(create_app(_settings(tmp_path)))
+    headers = _register(client, "docx@example.com")
+    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+
+    upload = client.post(
+        f"/api/kbs/{kb_id}/documents/upload",
+        headers=headers,
+        files={
+            "file": (
+                "gate.docx",
+                docx_bytes,
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            )
+        },
+        data={"doc_id": "gate-docx", "extract": "true", "wait": "true"},
+    )
+    assert upload.status_code == 200
+    body = upload.json()
+    assert body["doc_id"] == "gate-docx"
+    assert body["chunk_count"] >= 1
+    assert body["ledger_statement_count"] >= 1
+    assert body["ledger_statements_written"] >= 1
+
+    docs = client.get(f"/api/kbs/{kb_id}/documents", headers=headers).json()["documents"]
+    assert any(d.get("doc_id") == "gate-docx" for d in docs)
+
+    chunks = client.get(
+        f"/api/kbs/{kb_id}/ledger/documents/gate-docx/chunks",
+        headers=headers,
+    ).json()["chunks"]
+    assert len(chunks) >= 1
+    chunk_id = chunks[0]["id"]
+
+    detail = client.get(f"/api/kbs/{kb_id}/ledger/chunks/{chunk_id}", headers=headers).json()
+    assert "Alice" in detail["chunk"]["text"]
+    statements = detail["statements"]
+    assert len(statements) >= 1
+    assert statements[0]["statement_id"]
+    assert statements[0].get("quote")
+
+
+def test_extracted_graph_edges_carry_statement_and_evidence_refs(tmp_path) -> None:
+    """§9.2 — open-layer extracted relations expose stable statement/evidence ids on the graph."""
+    docx_bytes = _minimal_docx_bytes()
+    client = TestClient(create_app(_settings(tmp_path)))
+    headers = _register(client, "refs@example.com")
+    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+
+    client.post(
+        f"/api/kbs/{kb_id}/documents/upload",
+        headers=headers,
+        files={
+            "file": (
+                "gate.docx",
+                docx_bytes,
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            )
+        },
+        data={"doc_id": "gate-docx", "extract": "true", "wait": "true"},
+    )
+
+    snap = client.get(f"/api/kbs/{kb_id}/graph/snapshot", headers=headers).json()
+    open_edges = [
+        e
+        for e in snap["edges"]
+        if e.get("projection_layer") == "open" and e.get("statement_id")
+    ]
+    assert open_edges, "expected at least one open projection edge with statement_id"
+    for edge in open_edges:
+        assert edge["statement_id"]
+        assert edge.get("evidence_id")
+
+
+def test_graph_page_api_is_kb_scoped_not_global(tmp_path) -> None:
+    """§9.6 — graph HTTP surface is per-KB (Sema graph page uses injected KB apiRoot)."""
+    client = TestClient(create_app(_settings(tmp_path)))
+    headers = _register(client, "scope@example.com")
+    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+
+    scoped = client.get(f"/api/kbs/{kb_id}/graph/stats", headers=headers)
+    assert scoped.status_code == 200
+    assert "node_count" in scoped.json()
+
+    global_graph = client.get("/api/graph/stats", headers=headers)
+    assert global_graph.status_code in (404, 405)
+
+
+def test_viewer_cannot_upload_or_create_documents(tmp_path) -> None:
+    """§9.4 — viewers may browse but cannot mutate KB content."""
+    client = TestClient(create_app(_settings(tmp_path)))
+    owner_headers = _register(client, "owner-gate@example.com")
+    kb_id = client.get("/api/kbs", headers=owner_headers).json()["kbs"][0]["id"]
+    viewer_headers = _viewer_headers(client, owner_headers, kb_id)
+
+    browse = client.get(f"/api/kbs/{kb_id}/documents", headers=viewer_headers)
+    assert browse.status_code == 200
+
+    denied_json = client.post(
+        f"/api/kbs/{kb_id}/documents",
+        headers=viewer_headers,
+        json={"doc_id": "viewer-doc", "text": "nope", "extract": False},
+    )
+    assert denied_json.status_code == 403
+
+    denied_upload = client.post(
+        f"/api/kbs/{kb_id}/documents/upload",
+        headers=viewer_headers,
+        files={"file": ("x.txt", b"hello", "text/plain")},
+        data={"extract": "false"},
+    )
+    assert denied_upload.status_code == 403
 
 
 def test_ledger_and_projection_survive_app_restart(tmp_path) -> None:
