@@ -10,7 +10,7 @@ from fastapi import UploadFile
 from sema.admin.errors import AdminError
 from sema.knowledge.blob_store import BlobStore
 
-_IMPORT_MAX_BYTES = 50 * 1024 * 1024
+from sema.limits import IMPORT_MAX_BYTES as _DEFAULT_IMPORT_MAX_BYTES
 _ALLOWED_EXTENSIONS = frozenset({".json", ".csv"})
 
 
@@ -26,12 +26,20 @@ def validate_import_filename(filename: str | None) -> str:
     return base
 
 
-def stage_import_blob(blob_store: BlobStore, kb_id: str, data: bytes, filename: str) -> dict[str, Any]:
-    if len(data) > _IMPORT_MAX_BYTES:
+def stage_import_blob(
+    blob_store: BlobStore,
+    kb_id: str,
+    data: bytes,
+    filename: str,
+    *,
+    max_bytes: int = _DEFAULT_IMPORT_MAX_BYTES,
+) -> dict[str, Any]:
+    cap = max(1, max_bytes)
+    if len(data) > cap:
         raise AdminError(
             413,
             "import_too_large",
-            f"导入文件超过 {_IMPORT_MAX_BYTES // (1024 * 1024)} MB 限制",
+            f"导入文件超过 {cap // (1024 * 1024)} MB 限制",
         )
     safe_name = validate_import_filename(filename)
     ref = blob_store.put(kb_id, data)

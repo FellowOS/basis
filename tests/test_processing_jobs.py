@@ -58,6 +58,41 @@ def test_upload_then_process_with_immutable_options(tmp_path: Path) -> None:
     assert jobs[0]["result"]["ledger_status"] == "ready"
 
 
+def test_processing_job_persists_request_id_in_options(tmp_path: Path) -> None:
+    client = TestClient(create_app(Settings(data_dir=tmp_path)))
+    admin = client.post(
+        "/api/auth/register",
+        json={"email": "rid@example.com", "password": "password1", "display_name": "Rid"},
+    ).json()
+    headers = _auth(admin["token"])
+    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    source = client.post(
+        f"/api/kbs/{kb_id}/documents",
+        headers=headers,
+        json={"doc_id": "rid-doc", "text": "trace me"},
+    ).json()
+    trace = "proc-job-trace-99"
+    accepted = client.post(
+        f"/api/kbs/{kb_id}/processing/jobs",
+        headers={**headers, "X-Request-ID": trace},
+        json={
+            "version_id": source["version_id"],
+            "wait": False,
+            "chunk": False,
+            "extract": False,
+            "ner_method": "pattern",
+            "relation_method": "pattern",
+        },
+    )
+    assert accepted.status_code == 202
+    job_id = accepted.json()["job_id"]
+    detail = client.get(
+        f"/api/kbs/{kb_id}/processing/jobs/{job_id}",
+        headers=headers,
+    ).json()
+    assert detail["job"]["options"]["request_id"] == trace
+
+
 def test_active_job_conflict_and_retry_attempt(tmp_path: Path) -> None:
     app = create_app(Settings(data_dir=tmp_path))
     client = TestClient(app)

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+from concurrent.futures import ThreadPoolExecutor
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Request
@@ -35,6 +36,7 @@ from sema.api.routes import (
 )
 from sema.api.routes import settings as settings_routes
 from sema.config import Settings
+from sema.limits import RuntimeLimits
 from sema.database import get_database
 from sema.graph.persistence import GraphPersistence
 from sema.knowledge.blob_store import BlobStore
@@ -47,8 +49,8 @@ from sema.capabilities import explorer_available
 from sema.api.request_id import (
     RequestIdMiddleware,
     attach_request_id_to_detail,
-    install_request_id_logging,
 )
+from sema.observability.logging_setup import configure_sema_logging
 
 
 @asynccontextmanager
@@ -86,13 +88,21 @@ async def _app_lifespan(app: FastAPI):
                 await task
             except asyncio.CancelledError:
                 pass
+        executor = getattr(app.state, "ingest_executor", None)
+        if executor is not None:
+            executor.shutdown(wait=False, cancel_futures=True)
 
 
 def create_app(app_settings: Settings | None = None) -> FastAPI:
-    install_request_id_logging()
     app_settings = app_settings or Settings.from_env()
+    configure_sema_logging(app_settings)
     app = FastAPI(title="Sema API", version=__version__, lifespan=_app_lifespan)
     app.state.settings = app_settings
+    app.state.limits = RuntimeLimits.from_settings(app_settings)
+    app.state.ingest_executor = ThreadPoolExecutor(
+        max_workers=max(1, app_settings.ingest_max_inflight),
+        thread_name_prefix="ingest",
+    )
     app.state.database = get_database(
         app_settings.effective_database_url,
         pool_size=app_settings.db_pool_size,

@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from sema.graph.session import GraphSession
+from sema.pipeline.extract_timeout import run_sync_with_timeout
 from sema.pipeline.kg_apply import apply_kg_to_session
 
 
@@ -33,7 +34,13 @@ def _normalize_text(text: str) -> str:
     return normalize_text(cleaned, method="default")
 
 
-def build_kg_from_text(doc_id: str, text: str, options: TextIngestOptions) -> dict[str, Any]:
+def build_kg_from_text(
+    doc_id: str,
+    text: str,
+    options: TextIngestOptions,
+    *,
+    extract_timeout_seconds: float | None = None,
+) -> dict[str, Any]:
     """Run Semantica GraphBuilder on plain text segments.
 
     ``doc_id`` is Sema's graph/ledger document key only — it must not be passed as a
@@ -68,8 +75,16 @@ def build_kg_from_text(doc_id: str, text: str, options: TextIngestOptions) -> di
     }
 
     merged: dict[str, Any] = {"entities": [], "relationships": [], "metadata": {}}
+    timeout = float(extract_timeout_seconds or 0)
     for segment in segments:
-        kg_part = builder.build(segment, **build_kwargs)
+        def _build_segment() -> dict[str, Any]:
+            return builder.build(segment, **build_kwargs)
+
+        kg_part = (
+            run_sync_with_timeout(_build_segment, timeout)
+            if timeout > 0
+            else _build_segment()
+        )
         merged["entities"].extend(kg_part.get("entities") or [])
         merged["relationships"].extend(kg_part.get("relationships") or [])
     return merged

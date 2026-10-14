@@ -396,14 +396,14 @@ Acceptance:
 - localize messages in Web;
 - stop exposing raw server strings.
 
-**Status:** partial — AdminError `detail.code` on KB routes; Explorer/ontology adapters use `invoke_explorer`; Web `api-error-message` + `useApiErrorMessage()` on shell pages and Explorer workspaces (graph uses `explorerApiErrorMessage` / coded `errorFromApiResponse` on fetch paths). Remaining: audit low-level debug strings (e.g. GraphCanvas runtime logs) and any legacy `fetch` without coded `detail`.
+**Status:** partial — coded API errors on KB + Explorer routes; `explorerFetch` / `explorerFetchJson` (auth, `X-Request-ID`, KB path rewrite) used across graph workspaces and Manage/Memory/Lineage/DiffMerge tabs; ingest limit codes localized. Remaining: optional routes without Sema KB host (standalone-only APIs).
 
 ### X-02 — Request IDs and structured logging
 
 - request/job/projection IDs in logs and audit;
 - redact authorization, API keys, document content, and model secrets.
 
-**Status:** partial — `X-Request-ID` middleware; `detail.request_id` on API errors; Web correlation headers + user-facing reference IDs; all `record_audit` rows get `request_id` when in HTTP context; ingest completion logs include `job_id` and `projection_revision` (`correlation_log_extra`). Remaining: propagate request_id into async ingest threads, JSON log format, redaction helpers.
+**Status:** done (baseline) — `X-Request-ID` middleware; `detail.request_id` on API errors; Web correlation headers + user-facing reference IDs; `record_audit` + ingest logs use `correlation_log_extra`; async ingest threads bind `trigger_request_id`; processing jobs store `options.request_id`; `SEMA_LOG_JSON=1` enables JSON lines on `sema.*`; `redact_for_log` / `redact_string` for secrets and bulky text. Follow-up: wire redaction into any ad-hoc debug logs; optional uvicorn access JSON.
 
 ### X-03 — Backup/recovery baseline
 
@@ -411,14 +411,15 @@ Acceptance:
 - restore test;
 - projections may rebuild, canonical DB/blobs may not.
 
+**Status:** done (SQLite dev baseline) — `scripts/backup_sema_data.sh`, `docs/ops/backup-and-restore.md`; `test_backup_tar_roundtrip_preserves_ledger` restores tar, drops `graphs/`, rebuilds projection from ledger. Follow-up: PostgreSQL restore runbook automation.
+
 ### X-04 — Limits
 
 - configure upload bytes, extracted characters, chunk count, graph page size, worker concurrency,
   parse/LLM timeout;
 - reject before allocating unbounded memory where possible.
 
-**Status:** partial — graph nodes/edges/snapshot capped via `sema.limits` (200/400); import blob 50MB;
-entity/chunk ledger reads bounded. Remaining: env tuning, chunk search limits, worker concurrency.
+**Status:** done (baseline) — `RuntimeLimits` + `SEMA_*` for graph/search/import/upload/ingest; ingest thread pool; job wait timeout; ingest size/chunk caps; `SEMA_INGEST_EXTRACT_TIMEOUT_SECONDS` wraps `GraphBuilder.build` per segment (`extract_timeout`, HTTP 504 on sync wait). Follow-up: cancel in-flight LLM on timeout, per-model timeouts.
 
 ## 8. Task dependency graph
 

@@ -8,7 +8,7 @@ from typing import Any
 from sema.admin.errors import AdminError
 from sema.explorer.registry import KbExplorerRuntime
 from sema.graph.export import _iter_edges
-from sema.limits import GRAPH_PAGE_MAX_EDGES, GRAPH_PAGE_MAX_NODES
+from sema.limits import GRAPH_NODE_SEARCH_MAX_LIMIT, GRAPH_PAGE_MAX_EDGES
 
 
 def _normalize_neighbor(raw: dict[str, Any]) -> dict[str, Any]:
@@ -119,11 +119,13 @@ def search_nodes(
     *,
     query: str,
     limit: int = 20,
+    max_limit: int = GRAPH_NODE_SEARCH_MAX_LIMIT,
 ) -> list[dict[str, Any]]:
     query = query.strip()
     if not query:
         return []
-    limit = min(max(1, limit), 50)
+    cap = max(1, max_limit)
+    limit = min(max(1, limit), cap)
     if runtime.explorer is not None:
         return runtime.explorer.search(query, limit=limit)
     q = query.lower()
@@ -154,8 +156,10 @@ def paginate_edges(
     target: str | None = None,
     limit: int = 100,
     cursor: str | None = None,
+    max_limit: int = GRAPH_PAGE_MAX_EDGES,
 ) -> dict[str, Any]:
-    page_limit = min(max(1, limit), GRAPH_PAGE_MAX_EDGES)
+    cap = max(1, max_limit)
+    page_limit = min(max(1, limit), cap)
     if runtime.explorer is not None:
         edges, total, next_cursor = runtime.explorer.paginate_edges(
             edge_type=edge_type,

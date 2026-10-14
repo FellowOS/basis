@@ -5,6 +5,7 @@ import {
   useMemo,
   type ReactNode,
 } from "react";
+import { errorFromApiResponse } from "@/lib/api-error.js";
 import { ensureRequestIdHeader } from "@/lib/request-id.js";
 
 export type ExplorerHttpConfig = {
@@ -118,6 +119,27 @@ export async function explorerFetch(
     });
   }
   return fetch(url, { ...init, headers });
+}
+
+/** KB-scoped fetch with auth, request ID, and coded API errors (X-01). */
+export async function explorerFetchJson<T = unknown>(
+  input: string | URL,
+  init?: RequestInit,
+  fallbackMessage?: string,
+): Promise<T> {
+  const response = await explorerFetch(input, init);
+  const contentType = response.headers.get("content-type") ?? "";
+  const payload = contentType.includes("application/json")
+    ? await response.json().catch(() => ({}))
+    : await response.text().catch(() => "");
+  if (!response.ok) {
+    throw errorFromApiResponse(
+      response.status,
+      payload,
+      fallbackMessage ?? `Request failed (${response.status})`,
+    );
+  }
+  return payload as T;
 }
 
 export async function openGraphUpdatesWebSocket(): Promise<WebSocket> {

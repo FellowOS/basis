@@ -91,6 +91,22 @@ const MESSAGES: Record<string, { zh: string; en: string }> = {
     zh: '导入文件超过大小限制。',
     en: 'Import file exceeds the size limit.',
   },
+  upload_too_large: {
+    zh: '上传文件或文本超过大小限制。',
+    en: 'Upload exceeds the size limit.',
+  },
+  extract_text_too_large: {
+    zh: '文档提取文本超过长度限制，请缩短内容或拆分版本。',
+    en: 'Extracted text exceeds the length limit. Shorten the document or split into versions.',
+  },
+  too_many_chunks: {
+    zh: '切分块数超过限制，请增大块大小或减少内容。',
+    en: 'Too many chunks after splitting. Increase chunk size or reduce content.',
+  },
+  extract_timeout: {
+    zh: '知识抽取超时，请稍后重试或改用更快的抽取方式。',
+    en: 'Knowledge extraction timed out. Retry later or use a faster extraction method.',
+  },
   bad_review_payload: {
     zh: '审核项数据无效，无法继续。',
     en: 'Invalid review item payload.',

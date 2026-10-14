@@ -9,6 +9,13 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 
+def _bounded_int(name: str, default: int, *, lo: int, hi: int) -> int:
+    raw = os.environ.get(name)
+    if raw is None or not str(raw).strip():
+        return default
+    return max(lo, min(hi, int(raw)))
+
+
 @dataclass(frozen=True)
 class Settings:
     host: str = "127.0.0.1"
@@ -24,6 +31,19 @@ class Settings:
     mcp_timeout_seconds: int = 60
     ingest_inline: bool = False
     http_poll_tick_seconds: int = 0
+    log_json: bool = False
+    graph_page_max_nodes: int = 200
+    graph_page_max_edges: int = 400
+    chunk_search_max_limit: int = 50
+    explorer_decisions_max_limit: int = 200
+    graph_node_search_max_limit: int = 50
+    import_max_bytes: int = 50 * 1024 * 1024
+    upload_max_bytes: int = 50 * 1024 * 1024
+    ingest_max_inflight: int = 4
+    processing_job_timeout_seconds: int = 600
+    ingest_max_extract_chars: int = 2_000_000
+    ingest_max_chunks: int = 2_000
+    ingest_extract_timeout_seconds: int = 300
 
     @property
     def db_path(self) -> Path:
@@ -58,4 +78,52 @@ class Settings:
             mcp_timeout_seconds=int(os.environ.get("SEMA_MCP_TIMEOUT_SECONDS", "60")),
             ingest_inline=os.environ.get("SEMA_INGEST_INLINE", "").lower() in ("1", "true", "yes"),
             http_poll_tick_seconds=int(os.environ.get("SEMA_HTTP_POLL_TICK_SECONDS", "0")),
+            log_json=os.environ.get("SEMA_LOG_JSON", "").lower() in ("1", "true", "yes"),
+            graph_page_max_nodes=_bounded_int(
+                "SEMA_GRAPH_PAGE_MAX_NODES", 200, lo=1, hi=5000
+            ),
+            graph_page_max_edges=_bounded_int(
+                "SEMA_GRAPH_PAGE_MAX_EDGES", 400, lo=1, hi=10000
+            ),
+            chunk_search_max_limit=_bounded_int(
+                "SEMA_CHUNK_SEARCH_MAX_LIMIT", 50, lo=1, hi=500
+            ),
+            explorer_decisions_max_limit=_bounded_int(
+                "SEMA_EXPLORER_DECISIONS_MAX_LIMIT", 200, lo=1, hi=2000
+            ),
+            graph_node_search_max_limit=_bounded_int(
+                "SEMA_GRAPH_NODE_SEARCH_MAX_LIMIT", 50, lo=1, hi=500
+            ),
+            import_max_bytes=_bounded_int(
+                "SEMA_IMPORT_MAX_BYTES",
+                50 * 1024 * 1024,
+                lo=1024,
+                hi=200 * 1024 * 1024,
+            ),
+            upload_max_bytes=_bounded_int(
+                "SEMA_UPLOAD_MAX_BYTES",
+                50 * 1024 * 1024,
+                lo=1024,
+                hi=200 * 1024 * 1024,
+            ),
+            ingest_max_inflight=_bounded_int("SEMA_INGEST_MAX_INFLIGHT", 4, lo=1, hi=64),
+            processing_job_timeout_seconds=_bounded_int(
+                "SEMA_PROCESSING_JOB_TIMEOUT_SECONDS",
+                600,
+                lo=30,
+                hi=7200,
+            ),
+            ingest_max_extract_chars=_bounded_int(
+                "SEMA_INGEST_MAX_EXTRACT_CHARS",
+                2_000_000,
+                lo=10_000,
+                hi=20_000_000,
+            ),
+            ingest_max_chunks=_bounded_int("SEMA_INGEST_MAX_CHUNKS", 2_000, lo=1, hi=50_000),
+            ingest_extract_timeout_seconds=_bounded_int(
+                "SEMA_INGEST_EXTRACT_TIMEOUT_SECONDS",
+                300,
+                lo=0,
+                hi=7200,
+            ),
         )

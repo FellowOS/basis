@@ -7,8 +7,8 @@ import {
   type MarkdownApplyResult,
 } from "./GraphWorkspace/markdownResourceClient";
 import { GRAPH_THEME } from "./GraphWorkspace/graphTheme";
-import { errorFromApiResponse } from "@/lib/api-error.js";
 import { useApiErrorMessage } from "@/lib/use-api-error-message.js";
+import { explorerFetchJson } from "../host/explorerHttp";
 
 interface MemorySummary {
   id: string;
@@ -31,16 +31,11 @@ const MEMORY_PAGE_SIZE = 100;
 
 
 async function fetchMemoryList(skip = 0): Promise<MemoryListResponse> {
-  const response = await fetch(`/api/memories?skip=${skip}&limit=${MEMORY_PAGE_SIZE}`);
-  const payload = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    throw errorFromApiResponse(
-      response.status,
-      payload,
-      `Memory list failed (${response.status}).`,
-    );
-  }
-  return payload as MemoryListResponse;
+  return explorerFetchJson<MemoryListResponse>(
+    `/api/memories?skip=${skip}&limit=${MEMORY_PAGE_SIZE}`,
+    undefined,
+    `Memory list failed.`,
+  );
 }
 
 async function fetchLoadedMemoryPages(endOffset: number): Promise<{

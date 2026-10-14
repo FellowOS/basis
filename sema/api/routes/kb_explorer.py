@@ -9,10 +9,18 @@ from fastapi.responses import Response
 
 from sema.admin.errors import AdminError
 from sema.admin.store import AdminStore, User
-from sema.api.deps import get_current_user, get_explorer_registry, get_store, save_graph, get_kb_for_viewer, get_kb_for_editor
+from sema.api.deps import (
+    get_current_user,
+    get_explorer_registry,
+    get_kb_for_editor,
+    get_kb_for_viewer,
+    get_runtime_limits,
+    get_store,
+    save_graph,
+)
 from sema.api.explorer_route_errors import invoke_explorer
 from sema.explorer.session_guard import require_explorer_graph_session
-from sema.limits import EXPLORER_DECISIONS_MAX_LIMIT
+from sema.limits import RuntimeLimits
 from sema.knowledge.graph_audit import audit_kb_graph
 
 router = APIRouter(prefix="/api/kbs", tags=["knowledge-bases"])
@@ -170,16 +178,17 @@ async def kb_list_decisions(
     request: Request,
     category: Optional[str] = Query(None),
     skip: int = Query(0, ge=0),
-    limit: int = Query(50, ge=1, le=EXPLORER_DECISIONS_MAX_LIMIT),
+    limit: int = Query(50, ge=1),
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
+    limits: RuntimeLimits = Depends(get_runtime_limits),
 ) -> Any:
     get_kb_for_viewer(request, user, kb_id, store)
     runtime = get_explorer_registry(request).get(request, kb_id)
     session = require_explorer_graph_session(runtime)
     from semantica.explorer.routes.decisions import list_decisions
 
-    capped = min(max(1, limit), EXPLORER_DECISIONS_MAX_LIMIT)
+    capped = min(max(1, limit), limits.explorer_decisions_max_limit)
     return await invoke_explorer(
         list_decisions(
             category=category,

@@ -9,9 +9,26 @@ from sema.graph.session import GraphSession
 from sema.knowledge.chunk_search import ChunkSearchService
 from sema.knowledge.store import KnowledgeStore
 from sema.pipeline.document import TextIngestOptions, _normalize_text, build_kg_from_text
+from sema.pipeline.extract_timeout import ExtractionTimeoutError
 from sema.pipeline.file_ingest import FileParseError, text_from_bytes
 from sema.graph.projector import apply_rebuild_to_session
 from sema.pipeline.ledger_extract import apply_kg_to_ledger
+
+
+class ExtractTextTooLargeError(Exception):
+    def __init__(self, char_count: int, max_chars: int) -> None:
+        self.char_count = char_count
+        self.max_chars = max_chars
+        self.message = f"提取文本超过 {max_chars} 字符限制"
+        super().__init__(self.message)
+
+
+class TooManyChunksError(Exception):
+    def __init__(self, chunk_count: int, max_chunks: int) -> None:
+        self.chunk_count = chunk_count
+        self.max_chunks = max_chunks
+        self.message = f"切分块数超过 {max_chunks} 限制"
+        super().__init__(self.message)
 
 
 @dataclass(frozen=True)
@@ -56,6 +73,9 @@ def run_version_ingest(
     graph_doc_id: str,
     options: TextIngestOptions | None = None,
     chunk_search: ChunkSearchService | None = None,
+    max_extract_chars: int | None = None,
+    max_chunks: int | None = None,
+    extract_timeout_seconds: float | None = None,
 ) -> dict[str, Any]:
     """Run the ingest pipeline for one version. Updates job/version status in the ledger."""
     options = options or TextIngestOptions(chunk=True)
@@ -65,11 +85,17 @@ def run_version_ingest(
     try:
         raw = knowledge.read_version_bytes(kb_id, version_id)
         parsed = parse_uploaded_bytes(filename, raw)
+        if max_extract_chars is not None and max_extract_chars > 0:
+            char_count = len(parsed.full_text)
+            if char_count > max_extract_chars:
+                raise ExtractTextTooLargeError(char_count, max_extract_chars)
         knowledge.set_version_status(kb_id, version_id, "chunking")
 
         chunk_texts = _chunk_texts(parsed.full_text, options)
         if not chunk_texts and parsed.full_text.strip():
             chunk_texts = [parsed.full_text]
+        if max_chunks is not None and max_chunks > 0 and len(chunk_texts) > max_chunks:
+            raise TooManyChunksError(len(chunk_texts), max_chunks)
 
         existing_chunks = knowledge.list_chunks_for_version(kb_id, version_id)
         if existing_chunks:
@@ -109,7 +135,12 @@ def run_version_ingest(
                     if len(chunk_rows) == 1
                     else f"{graph_doc_id}::chunk_{row['ordinal']}"
                 )
-                part = build_kg_from_text(chunk_doc_id, row["text"], options)
+                part = build_kg_from_text(
+                    chunk_doc_id,
+                    row["text"],
+                    options,
+                    extract_timeout_seconds=extract_timeout_seconds,
+                )
                 part_stats = apply_kg_to_ledger(
                     knowledge,
                     kb_id,
@@ -152,6 +183,18 @@ def run_version_ingest(
     except FileParseError as exc:
         knowledge.fail_version(kb_id, version_id, "parse_failed", exc.message)
         knowledge.fail_job(kb_id, job_id, "parse_failed", exc.message)
+        raise
+    except ExtractTextTooLargeError as exc:
+        knowledge.fail_version(kb_id, version_id, "extract_text_too_large", exc.message)
+        knowledge.fail_job(kb_id, job_id, "extract_text_too_large", exc.message)
+        raise
+    except TooManyChunksError as exc:
+        knowledge.fail_version(kb_id, version_id, "too_many_chunks", exc.message)
+        knowledge.fail_job(kb_id, job_id, "too_many_chunks", exc.message)
+        raise
+    except ExtractionTimeoutError as exc:
+        knowledge.fail_version(kb_id, version_id, "extract_timeout", exc.message)
+        knowledge.fail_job(kb_id, job_id, "extract_timeout", exc.message)
         raise
     except Exception as exc:
         message = str(exc) or "ingest_failed"

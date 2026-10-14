@@ -23,8 +23,8 @@ Creates `backups/sema-data-YYYYMMDD-HHMMSS.tar.gz` containing `sema.db`, `blobs/
 
 1. Stop the API process.
 2. Extract the archive into `SEMA_DATA_DIR` (or replace the directory).
-3. Start the API.
-4. For each KB (or via automation), call `POST /api/kbs/{kb_id}/graph/rebuild` as an **editor** to refresh projections from the ledger.
+3. Start the API and sign in with the **same accounts** that existed when the backup was taken (user rows live in `sema.db`).
+4. For each KB (or via automation), call `POST /api/kbs/{kb_id}/graph/rebuild` as an **editor** to refresh projections from the ledger. This is required if `graphs/` was omitted from the archive or was deleted after restore.
 
 ## PostgreSQL
 

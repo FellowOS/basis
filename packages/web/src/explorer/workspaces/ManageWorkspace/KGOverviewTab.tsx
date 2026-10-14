@@ -8,6 +8,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Network, RefreshCw, Loader2 } from "lucide-react";
 import { errorFromApiResponse } from "@/lib/api-error.js";
 import { useApiErrorMessage } from "@/lib/use-api-error-message.js";
+import { explorerFetch } from "../../host/explorerHttp";
 
 interface KGStats {
   node_count: number;
@@ -80,8 +81,8 @@ export function KGOverviewTab() {
     setError("");
     try {
       const [statsRes, nodesRes] = await Promise.all([
-        fetch("/api/graph/stats"),
-        fetch("/api/graph/nodes?limit=500"),
+        explorerFetch("/api/graph/stats"),
+        explorerFetch("/api/graph/nodes?limit=500"),
       ]);
 
       const statsData = (await statsRes.json().catch(() => ({}))) as KGStats;
@@ -114,7 +115,7 @@ export function KGOverviewTab() {
       }
 
       // Simulate neighbor counts via edges fetch for top-N
-      const edgesRes = await fetch("/api/graph/edges?limit=2000");
+      const edgesRes = await explorerFetch("/api/graph/edges?limit=2000");
       if (edgesRes.ok) {
         const edgesData = await edgesRes.json();
         const edges: { source: string; target: string }[] = edgesData.edges ?? [];
@@ -145,8 +146,8 @@ export function KGOverviewTab() {
       }
       try {
         const [statsRes, nodesRes] = await Promise.all([
-          fetch("/api/graph/stats"),
-          fetch("/api/graph/nodes?limit=500"),
+          explorerFetch("/api/graph/stats"),
+          explorerFetch("/api/graph/nodes?limit=500"),
         ]);
 
         const statsData = (await statsRes.json().catch(() => ({}))) as KGStats;
@@ -182,7 +183,7 @@ export function KGOverviewTab() {
         }
 
         // Simulate neighbor counts via edges fetch for top-N
-        const edgesRes = await fetch("/api/graph/edges?limit=2000");
+        const edgesRes = await explorerFetch("/api/graph/edges?limit=2000");
         if (edgesRes.ok) {
           const edgesData = await edgesRes.json();
           const edges: { source: string; target: string }[] = edgesData.edges ?? [];

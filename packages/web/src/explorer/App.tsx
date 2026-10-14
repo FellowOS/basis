@@ -19,6 +19,7 @@ import {
 import { ErrorBoundary } from './ErrorBoundary';
 import { ExploreWorkspaceTabs, type ExploreView } from './ExploreWorkspaceTabs';
 import { fetchAgentMemoryAvailability } from './explorerCapabilities';
+import { explorerFetch } from './host/explorerHttp';
 import { hasOntologyUrlState } from './workspaces/OntologyWorkspace/ontologyUrlState';
 
 const DecisionWorkspace = lazy(() => import('./workspaces/DecisionWorkspace/DecisionWorkspace').then((module) => ({ default: module.DecisionWorkspace })));
@@ -1533,7 +1534,7 @@ function WelcomeScreen({
   useEffect(() => {
     const controller = new AbortController();
 
-    fetch('/api/graph/stats', { signal: controller.signal })
+    explorerFetch('/api/graph/stats', { signal: controller.signal })
       .then((response) => (response.ok ? response.json() as Promise<GraphStatsPayload> : null))
       .then((payload) => {
         if (!payload) {

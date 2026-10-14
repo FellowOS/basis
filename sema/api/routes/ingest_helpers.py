@@ -44,8 +44,10 @@ def run_ingest_blocking(
     graph_doc_id: str,
     options: TextIngestOptions,
     graph_session: GraphSession | None = None,
+    trigger_request_id: str | None = None,
 ) -> dict[str, Any]:
     knowledge: KnowledgeStore = app.state.knowledge_store
+    limits = app.state.limits
     if graph_session is not None:
         return run_version_ingest(
             knowledge,
@@ -57,6 +59,9 @@ def run_ingest_blocking(
             graph_doc_id=graph_doc_id,
             options=options,
             chunk_search=app.state.chunk_search,
+            max_extract_chars=limits.ingest_max_extract_chars,
+            max_chunks=limits.ingest_max_chunks,
+            extract_timeout_seconds=limits.ingest_extract_timeout_seconds,
         )
     result = run_version_ingest_for_app(
         app,
@@ -66,6 +71,7 @@ def run_ingest_blocking(
         filename=filename,
         graph_doc_id=graph_doc_id,
         options=options,
+        trigger_request_id=trigger_request_id,
     )
     if result is None:
         raise FileParseError("parse_failed")
@@ -84,6 +90,7 @@ def respond_ingest(
     graph_doc_id: str,
     options: TextIngestOptions,
     graph_session: GraphSession | None = None,
+    trigger_request_id: str | None = None,
 ) -> JSONResponse | dict[str, Any]:
     if not wait:
         enqueue_version_ingest(
@@ -94,6 +101,7 @@ def respond_ingest(
             filename=filename,
             graph_doc_id=graph_doc_id,
             options=options,
+            trigger_request_id=trigger_request_id,
         )
         return JSONResponse(
             status_code=202,
@@ -114,6 +122,7 @@ def respond_ingest(
         graph_doc_id=graph_doc_id,
         options=options,
         graph_session=graph_session,
+        trigger_request_id=trigger_request_id,
     )
     return {
         **result,

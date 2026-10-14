@@ -18,16 +18,13 @@ from sema.api.deps import (
     get_kb_for_editor,
     get_kb_for_viewer,
     get_knowledge_store,
+    get_runtime_limits,
     get_store,
     graph_for,
     save_graph,
 )
 from sema.knowledge.chunk_search import ChunkSearchService
-from sema.limits import (
-    CHUNK_SEARCH_MAX_LIMIT,
-    GRAPH_PAGE_MAX_EDGES,
-    GRAPH_PAGE_MAX_NODES,
-)
+from sema.limits import RuntimeLimits
 from sema.knowledge.store import KnowledgeStore, StoreDocumentOutcome
 from sema.graph.documents import list_documents
 from sema.explorer.graph_read import (
@@ -46,6 +43,10 @@ from sema.capabilities import kb_capabilities
 from sema.realtime.access import revoke_kb_member_realtime
 from sema.pipeline import TextIngestOptions
 from sema.pipeline.file_ingest import FileParseError
+from sema.pipeline.extract_timeout import ExtractionTimeoutError
+from sema.pipeline.version_ingest import ExtractTextTooLargeError, TooManyChunksError
+from sema.observability.request_context import current_request_id
+from sema.api.upload_bounds import ensure_payload_bytes, read_bounded_upload
 
 router = APIRouter(prefix="/api/kbs", tags=["knowledge-bases"])
 _ontology = OntologyService()
@@ -318,10 +319,11 @@ async def graph_nodes_route(
     cursor: str | None = None,
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
+    limits: RuntimeLimits = Depends(get_runtime_limits),
 ) -> dict[str, Any]:
     get_kb_for_viewer(request, user, kb_id, store)
     runtime = get_explorer_registry(request).get(request, kb_id)
-    page_limit = min(max(1, limit), GRAPH_PAGE_MAX_NODES)
+    page_limit = min(max(1, limit), limits.graph_page_max_nodes)
     if runtime.explorer is not None:
         nodes, total, next_cursor = runtime.explorer.paginate_nodes(
             node_type=node_type,
@@ -436,6 +438,7 @@ async def graph_edges_route(
     cursor: str | None = None,
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
+    limits: RuntimeLimits = Depends(get_runtime_limits),
 ) -> dict[str, Any]:
     get_kb_for_viewer(request, user, kb_id, store)
     runtime = get_explorer_registry(request).get(request, kb_id)
@@ -447,6 +450,7 @@ async def graph_edges_route(
         target=target,
         limit=limit,
         cursor=cursor,
+        max_limit=limits.graph_page_max_edges,
     )
 
 
@@ -462,9 +466,10 @@ async def chunk_search_route(
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
     chunk_search: ChunkSearchService = Depends(get_chunk_search),
+    limits: RuntimeLimits = Depends(get_runtime_limits),
 ) -> dict[str, Any]:
     get_kb_for_viewer(request, user, kb_id, store)
-    capped_limit = min(max(1, limit), CHUNK_SEARCH_MAX_LIMIT)
+    capped_limit = min(max(1, limit), limits.chunk_search_max_limit)
     knowledge = get_knowledge_store(request)
     resolved_document_id = document_id
     if document_id:
@@ -574,6 +579,7 @@ async def graph_search_route(
     request: Request,
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
+    limits: RuntimeLimits = Depends(get_runtime_limits),
 ) -> dict[str, Any]:
     get_kb_for_viewer(request, user, kb_id, store)
     runtime = get_explorer_registry(request).get(request, kb_id)
@@ -582,6 +588,7 @@ async def graph_search_route(
         runtime,
         query=body.query,
         limit=body.limit,
+        max_limit=limits.graph_node_search_max_limit,
     )
     engine = "explorer" if runtime.explorer is not None else "snapshot"
     return {"results": results, "engine": engine}
@@ -595,11 +602,12 @@ async def graph_snapshot_route(
     limit_edges: int = 400,
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
+    limits: RuntimeLimits = Depends(get_runtime_limits),
 ) -> dict[str, Any]:
     get_kb_for_viewer(request, user, kb_id, store)
     session = graph_for(request, kb_id)
-    capped_nodes = min(max(1, limit_nodes), GRAPH_PAGE_MAX_NODES)
-    capped_edges = min(max(1, limit_edges), GRAPH_PAGE_MAX_EDGES)
+    capped_nodes = min(max(1, limit_nodes), limits.graph_page_max_nodes)
+    capped_edges = min(max(1, limit_edges), limits.graph_page_max_edges)
     return graph_snapshot(session, limit_nodes=capped_nodes, limit_edges=capped_edges)
 
 
@@ -610,16 +618,19 @@ async def ingest_document(
     request: Request,
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
+    limits: RuntimeLimits = Depends(get_runtime_limits),
 ) -> Any:
     get_kb_for_editor(request, user, kb_id, store)
     doc_id = body.doc_id.strip()
     filename = f"{doc_id}.txt"
     knowledge = get_knowledge_store(request)
+    text_bytes = body.text.encode("utf-8")
+    ensure_payload_bytes(len(text_bytes), limits.upload_max_bytes, label="文本上传")
     outcome = knowledge.store_document_bytes(
         kb_id,
         title=filename,
         mime_type="text/plain",
-        data=body.text.encode("utf-8"),
+        data=text_bytes,
         created_by=user.id,
         original_filename=filename,
         external_key=doc_id,
@@ -677,6 +688,7 @@ async def append_document_version_text(
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
+    limits: RuntimeLimits = Depends(get_runtime_limits),
 ) -> Any:
     get_kb_for_editor(request, user, kb_id, store)
     context = knowledge.resolve_document_ref(kb_id, document_id)
@@ -684,12 +696,14 @@ async def append_document_version_text(
         raise AdminError(404, "not_found", "文档不存在")
     doc_id = context["external_key"] or context["document_id"]
     filename = f"{doc_id}.txt"
+    text_bytes = body.text.encode("utf-8")
+    ensure_payload_bytes(len(text_bytes), limits.upload_max_bytes, label="文本上传")
     outcome = knowledge.append_document_version(
         kb_id,
         context["document_id"],
         title=filename,
         mime_type="text/plain",
-        data=body.text.encode("utf-8"),
+        data=text_bytes,
         created_by=user.id,
     )
     return _document_store_payload(
@@ -710,12 +724,13 @@ async def append_document_version_upload(
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
+    limits: RuntimeLimits = Depends(get_runtime_limits),
 ) -> Any:
     get_kb_for_editor(request, user, kb_id, store)
     context = knowledge.resolve_document_ref(kb_id, document_id)
     if context is None:
         raise AdminError(404, "not_found", "文档不存在")
-    raw = await file.read()
+    raw = await read_bounded_upload(file, limits.upload_max_bytes)
     filename = file.filename or "upload.txt"
     doc_id = context["external_key"] or context["document_id"]
     mime_type = file.content_type or mimetypes.guess_type(filename)[0] or "application/octet-stream"
@@ -798,6 +813,8 @@ async def _respond_idempotent_processing_job(
     job: dict[str, Any],
     body: StartProcessingRequest,
     context: dict[str, Any],
+    *,
+    timeout_sec: float = 600,
 ) -> Any:
     if job["subject_id"] != body.version_id:
         raise AdminError(409, "idempotency_key_mismatch", "幂等键已用于其他文档版本")
@@ -816,7 +833,12 @@ async def _respond_idempotent_processing_job(
         terminal = (
             knowledge.get_job(kb_id, job["id"])
             if job["status"] in {"succeeded", "failed", "cancelled"}
-            else await _await_terminal_processing_job(knowledge, kb_id, job["id"])
+            else await _await_terminal_processing_job(
+                knowledge,
+                kb_id,
+                job["id"],
+                timeout_sec=timeout_sec,
+            )
         )
         if terminal.status == "failed":
             raise AdminError(
@@ -903,12 +925,16 @@ async def start_processing_job(
     get_kb_for_editor(request, user, kb_id, store)
     context = knowledge.get_processing_context(kb_id, body.version_id)
     options, options_payload = _processing_options(body)
+    trigger_rid = current_request_id()
+    if trigger_rid:
+        options_payload = {**options_payload, "request_id": trigger_rid}
     job, created = knowledge.create_processing_job(
         kb_id,
         version_id=body.version_id,
         options=options_payload,
         idempotency_key=body.idempotency_key,
     )
+    job_timeout = float(request.app.state.limits.processing_job_timeout_seconds)
     if not created:
         return await _respond_idempotent_processing_job(
             knowledge,
@@ -916,6 +942,7 @@ async def start_processing_job(
             job,
             body,
             context,
+            timeout_sec=job_timeout,
         )
     session = graph_for(request, kb_id) if body.wait else None
 
@@ -931,12 +958,19 @@ async def start_processing_job(
             graph_doc_id=context["doc_id"],
             options=options,
             graph_session=session,
+            trigger_request_id=trigger_rid,
         )
 
     try:
         result = await asyncio.to_thread(_run)
     except FileParseError as exc:
         raise AdminError(422, "parse_failed", exc.message) from exc
+    except ExtractTextTooLargeError as exc:
+        raise AdminError(413, "extract_text_too_large", exc.message) from exc
+    except TooManyChunksError as exc:
+        raise AdminError(413, "too_many_chunks", exc.message) from exc
+    except ExtractionTimeoutError as exc:
+        raise AdminError(504, "extract_timeout", exc.message) from exc
     if body.wait:
         save_graph(request, kb_id)
     return result
@@ -1065,9 +1099,10 @@ async def upload_document(
     relation_method: str | None = Form(default=None),
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
+    limits: RuntimeLimits = Depends(get_runtime_limits),
 ) -> Any:
     get_kb_for_editor(request, user, kb_id, store)
-    raw = await file.read()
+    raw = await read_bounded_upload(file, limits.upload_max_bytes)
     filename = file.filename or "upload.txt"
     resolved_id = (doc_id or _doc_id_from_filename(filename)).strip()
     if not resolved_id:

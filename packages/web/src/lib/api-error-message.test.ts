@@ -25,6 +25,12 @@ describe('formatUserFacingApiError', () => {
     expect(messageForApiErrorCode('bad_path', 'zh')).toContain('source');
   });
 
+  it('maps ingest limit codes', () => {
+    expect(messageForApiErrorCode('upload_too_large', 'zh')).toContain('大小');
+    expect(messageForApiErrorCode('extract_timeout', 'en')).toContain('timed out');
+    expect(messageForApiErrorCode('too_many_chunks', 'zh')).toContain('块数');
+  });
+
   it('maps auth codes without surfacing raw server text', () => {
     const err = new Error('');
     (err as Error & { code?: string }).code = 'invalid_credentials';

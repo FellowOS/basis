@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { GitMerge, ArrowRight, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 import { logEvent } from "../../store/registryStore";
-import { errorFromApiResponse } from "@/lib/api-error.js";
 import { useApiErrorMessage } from "@/lib/use-api-error-message.js";
+import { explorerFetchJson } from "../../host/explorerHttp";
 
 interface FieldRow { label: string; primary: string; duplicate: string; differs: boolean }
 
@@ -24,15 +24,19 @@ export function DiffMergeWorkspace() {
     setStatus("loading");
     setMsg("");
     try {
-      const res = await fetch("/api/enrich/merge", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ primary_id: primaryId, duplicate_ids: [duplicateId] }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        throw errorFromApiResponse(res.status, data, "Merge failed");
-      }
+      const data = await explorerFetchJson<{
+        merged_into?: string;
+        edges_updated?: number;
+        detail?: string;
+      }>(
+        "/api/enrich/merge",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ primary_id: primaryId, duplicate_ids: [duplicateId] }),
+        },
+        "Merge failed",
+      );
       if (data.merged_into) {
         setStatus("success");
         setMsg(`Merged → ${data.merged_into} · ${data.edges_updated ?? 0} edges redirected`);

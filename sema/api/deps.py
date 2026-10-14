@@ -12,6 +12,7 @@ from sema.graph.session import GraphSession
 from sema.knowledge.blob_store import BlobStore
 from sema.knowledge.chunk_search import ChunkSearchService
 from sema.knowledge.store import KnowledgeStore
+from sema.limits import RuntimeLimits
 
 
 def get_store(request: Request) -> AdminStore:
@@ -32,6 +33,10 @@ def get_knowledge_store(request: Request) -> KnowledgeStore:
 
 def get_chunk_search(request: Request) -> ChunkSearchService:
     return request.app.state.chunk_search
+
+
+def get_runtime_limits(request: Request) -> RuntimeLimits:
+    return request.app.state.limits
 
 
 def get_explorer_registry(request: Request):

@@ -4,6 +4,7 @@
 import { useEffect, useState } from "react";
 import { errorFromApiResponse } from "@/lib/api-error.js";
 import { useApiErrorMessage } from "@/lib/use-api-error-message.js";
+import { explorerFetch, explorerFetchJson } from "../../host/explorerHttp";
 import { Link2 } from "lucide-react";
 import { ReactFlow, Background, Controls } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
@@ -40,9 +41,12 @@ export function LineageDiagram() {
 
   const downloadReport = async (format: "json" | "markdown") => {
     if (!activeId) return;
-    const response = await fetch(`/api/provenance/report?node_id=${encodeURIComponent(activeId)}&format=${format}`);
+    const response = await explorerFetch(
+      `/api/provenance/report?node_id=${encodeURIComponent(activeId)}&format=${format}`,
+    );
     if (!response.ok) {
-      return;
+      const body = await response.json().catch(() => ({}));
+      throw errorFromApiResponse(response.status, body, "Provenance report download failed");
     }
     const blob = await response.blob();
     const url = window.URL.createObjectURL(blob);
@@ -76,30 +80,22 @@ export function LineageDiagram() {
     const fetchLineage = async () => {
       setError("");
       try {
-        const res = await fetch("/api/provenance?node_id=" + encodeURIComponent(activeId));
-
-        if (!res.ok) {
-          const body = await res.json().catch(() => ({}));
-          throw errorFromApiResponse(
-            res.status,
-            body,
-            `Lineage fetch failed (${res.status})`,
-          );
-        }
-
-        const contentType = res.headers.get("content-type");
-        if (!contentType || !contentType.includes("application/json")) {
-          throw new Error("Backend returned non-JSON response (likely an HTML fallback).");
-        }
-
-        const data = await res.json();
-        if (res.status === 207) {
-          setError(data.message || "Warning: Partial success loading lineage.");
+        const data = await explorerFetchJson<{
+          nodes: Array<{ id: string; parent_id: string; label: string; prov_type: string }>;
+          edges: Array<{ id: string; source: string; target: string; label: string }>;
+          message?: string;
+        }>(
+          "/api/provenance?node_id=" + encodeURIComponent(activeId),
+          undefined,
+          "Lineage fetch failed",
+        );
+        if (data.message) {
+          setError(data.message);
         }
 
         const counters: Record<string, number> = { "group_agent": 0, "group_activity": 0, "group_entity": 0 };
 
-        const mappedNodes = data.nodes.map((n: any) => {
+        const mappedNodes = data.nodes.map((n) => {
           const c = counters[n.parent_id] || 0;
           counters[n.parent_id] = c + 1;
           return {
@@ -112,7 +108,7 @@ export function LineageDiagram() {
           };
         });
 
-        const mappedEdges = data.edges.map((e: any) => ({
+        const mappedEdges = data.edges.map((e) => ({
           id: e.id,
           source: e.source,
           target: e.target,

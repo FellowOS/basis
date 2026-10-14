@@ -16,10 +16,12 @@ from sema.api.deps import (
     get_kb_for_editor,
     get_kb_for_viewer,
     get_knowledge_store,
+    get_runtime_limits,
     get_store,
     rebuild_kb_projection,
     save_graph,
 )
+from sema.limits import RuntimeLimits
 from sema.explorer.session_guard import require_explorer_graph_session
 from sema.knowledge.graph_audit import audit_kb_graph
 from sema.knowledge.import_review import discard_staged_import, stage_import_blob, upload_file_from_staged
@@ -114,10 +116,17 @@ async def propose_graph_import(
     store: AdminStore = Depends(get_store),
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
     blob_store=Depends(get_blob_store),  # noqa: B008
+    limits: RuntimeLimits = Depends(get_runtime_limits),
 ) -> dict[str, Any]:
     get_kb_for_editor(request, user, kb_id, store)
     raw = await file.read()
-    staged = stage_import_blob(blob_store, kb_id, raw, file.filename or "import.json")
+    staged = stage_import_blob(
+        blob_store,
+        kb_id,
+        raw,
+        file.filename or "import.json",
+        max_bytes=limits.import_max_bytes,
+    )
     subject_id = f"import:{staged['sha256']}"
     item = knowledge.create_review_item(
         kb_id,

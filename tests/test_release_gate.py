@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import io
+import shutil
 import sqlite3
 import tarfile
 
@@ -315,7 +316,7 @@ def _tar_data_dir(data_dir, archive) -> None:
 
 
 def test_backup_tar_roundtrip_preserves_ledger(tmp_path) -> None:
-    """§9.8 — tar backup/restore of data_dir keeps ledger readable in a new process."""
+    """§9.8 / X-03 — tar backup/restore keeps ledger; projection rebuilds without graph files."""
     data_dir = tmp_path / "live"
     data_dir.mkdir()
     settings = _settings(data_dir)
@@ -327,6 +328,7 @@ def test_backup_tar_roundtrip_preserves_ledger(tmp_path) -> None:
         headers=headers,
         json={"doc_id": "backup-doc", "text": "keep", "extract": False},
     )
+    client.post(f"/api/kbs/{kb_id}/graph/rebuild", headers=headers)
     client.close()
 
     archive = tmp_path / "sema-backup.tar.gz"
@@ -337,10 +339,21 @@ def test_backup_tar_roundtrip_preserves_ledger(tmp_path) -> None:
     with tarfile.open(archive, "r:gz") as tar:
         tar.extractall(restore_dir, filter="data")
 
+    graphs_dir = restore_dir / "graphs"
+    if graphs_dir.is_dir():
+        shutil.rmtree(graphs_dir)
+
     client2 = TestClient(create_app(_settings(restore_dir)))
-    headers2 = _register(client2, "backup2@example.com")
-    kb_id2 = client2.get("/api/kbs", headers=headers2).json()["kbs"][0]["id"]
-    assert kb_id2 == kb_id
+    owner = client2.post(
+        "/api/auth/login",
+        json={"email": "backup@example.com", "password": "password1"},
+    ).json()
+    headers2 = _auth(owner["token"])
 
     docs = client2.get(f"/api/kbs/{kb_id}/documents", headers=headers2).json()["documents"]
     assert any(d.get("doc_id") == "backup-doc" for d in docs)
+
+    rebuild = client2.post(f"/api/kbs/{kb_id}/graph/rebuild", headers=headers2)
+    assert rebuild.status_code == 200
+    snap = client2.get(f"/api/kbs/{kb_id}/graph/snapshot", headers=headers2).json()
+    assert "backup-doc" in {n["id"] for n in snap["nodes"]}

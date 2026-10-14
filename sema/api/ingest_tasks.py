@@ -16,7 +16,13 @@ from sema.knowledge.store import KnowledgeStore
 from sema.pipeline.document import TextIngestOptions
 from sema.pipeline.file_ingest import FileParseError
 from sema.observability.log_context import correlation_log_extra
-from sema.pipeline.version_ingest import run_version_ingest
+from sema.observability.request_context import reset_request_id, set_request_id
+from sema.pipeline.extract_timeout import ExtractionTimeoutError
+from sema.pipeline.version_ingest import (
+    ExtractTextTooLargeError,
+    TooManyChunksError,
+    run_version_ingest,
+)
 
 _kb_locks: dict[str, threading.Lock] = {}
 _lock_guard = threading.Lock()
@@ -40,8 +46,37 @@ def run_version_ingest_for_app(
     filename: str,
     graph_doc_id: str,
     options: TextIngestOptions,
+    trigger_request_id: str | None = None,
 ) -> dict[str, Any] | None:
     """Load graph, run ingest, persist. Returns result dict or None if parse failed."""
+    bind_token = None
+    if trigger_request_id and trigger_request_id.strip():
+        bind_token = set_request_id(trigger_request_id.strip())
+    try:
+        return _run_version_ingest_for_app(
+            app,
+            kb_id,
+            version_id,
+            job_id,
+            filename=filename,
+            graph_doc_id=graph_doc_id,
+            options=options,
+        )
+    finally:
+        if bind_token is not None:
+            reset_request_id(bind_token)
+
+
+def _run_version_ingest_for_app(
+    app: FastAPI,
+    kb_id: str,
+    version_id: str,
+    job_id: str,
+    *,
+    filename: str,
+    graph_doc_id: str,
+    options: TextIngestOptions,
+) -> dict[str, Any] | None:
     knowledge: KnowledgeStore = app.state.knowledge_store
     chunk_search: ChunkSearchService = app.state.chunk_search
     persistence: GraphPersistence = app.state.graph_persistence
@@ -53,6 +88,7 @@ def run_version_ingest_for_app(
             session = persistence.load(kb_id)
             graphs[kb_id] = session
         try:
+            limits = app.state.limits
             result = run_version_ingest(
                 knowledge,
                 session,
@@ -63,9 +99,14 @@ def run_version_ingest_for_app(
                 graph_doc_id=graph_doc_id,
                 options=options,
                 chunk_search=chunk_search,
+                max_extract_chars=limits.ingest_max_extract_chars,
+                max_chunks=limits.ingest_max_chunks,
+                extract_timeout_seconds=limits.ingest_extract_timeout_seconds,
             )
         except FileParseError:
             return None
+        except (ExtractTextTooLargeError, TooManyChunksError, ExtractionTimeoutError):
+            raise
         except Exception:
             logger.exception(
                 "version ingest failed kb_id=%s version_id=%s job_id=%s",
@@ -120,6 +161,7 @@ def enqueue_version_ingest(
     filename: str,
     graph_doc_id: str,
     options: TextIngestOptions,
+    trigger_request_id: str | None = None,
 ) -> None:
     """Fire-and-forget ingest on a worker thread (same process)."""
 
@@ -132,9 +174,14 @@ def enqueue_version_ingest(
             filename=filename,
             graph_doc_id=graph_doc_id,
             options=options,
+            trigger_request_id=trigger_request_id,
         )
 
     if getattr(app.state.settings, "ingest_inline", False):
         _work()
+        return
+    executor = getattr(app.state, "ingest_executor", None)
+    if executor is not None:
+        executor.submit(_work)
         return
     threading.Thread(target=_work, name=f"ingest-{job_id[:8]}", daemon=True).start()
