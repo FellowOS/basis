@@ -15,6 +15,7 @@ from sema.knowledge.chunk_search import ChunkSearchService
 from sema.knowledge.store import KnowledgeStore
 from sema.pipeline.document import TextIngestOptions
 from sema.pipeline.file_ingest import FileParseError
+from sema.observability.log_context import correlation_log_extra
 from sema.pipeline.version_ingest import run_version_ingest
 
 _kb_locks: dict[str, threading.Lock] = {}
@@ -71,9 +72,27 @@ def run_version_ingest_for_app(
                 kb_id,
                 version_id,
                 job_id,
+                extra=correlation_log_extra(
+                    kb_id=kb_id,
+                    version_id=version_id,
+                    job_id=job_id,
+                ),
             )
             return None
         ledger = knowledge.get_projection_state(kb_id)
+        logger.info(
+            "version ingest completed kb_id=%s version_id=%s job_id=%s projection_revision=%s",
+            kb_id,
+            version_id,
+            job_id,
+            ledger["revision"],
+            extra=correlation_log_extra(
+                kb_id=kb_id,
+                version_id=version_id,
+                job_id=job_id,
+                projection_revision=ledger["revision"],
+            ),
+        )
         persistence.save(
             kb_id,
             session,

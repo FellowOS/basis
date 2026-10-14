@@ -913,8 +913,14 @@ class AdminStore:
         target_id: str | None,
         detail: dict[str, Any] | None = None,
     ) -> None:
+        payload = dict(detail or {})
+        from sema.observability.request_context import current_request_id
+
+        rid = current_request_id()
+        if rid and "request_id" not in payload:
+            payload["request_id"] = rid
         with self._lock:
-            self._audit(actor_id, action, target_type, target_id, detail or {})
+            self._audit(actor_id, action, target_type, target_id, payload)
             self._conn.commit()
 
     @staticmethod

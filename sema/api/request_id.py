@@ -1,26 +1,34 @@
-"""Per-request correlation IDs (X-02)."""
+"""HTTP middleware for X-Request-ID (X-02)."""
 
 from __future__ import annotations
 
-import contextvars
 import logging
-import uuid
 from typing import Callable
 
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response
 
-REQUEST_ID_HEADER = "X-Request-ID"
-
-_request_id_ctx: contextvars.ContextVar[str | None] = contextvars.ContextVar(
-    "request_id",
-    default=None,
+from sema.observability.request_context import (
+    current_request_id,
+    new_request_id,
+    reset_request_id,
+    set_request_id,
 )
 
+REQUEST_ID_HEADER = "X-Request-ID"
 
-def new_request_id() -> str:
-    return uuid.uuid4().hex
+# Re-export for callers that already import from sema.api.request_id.
+__all__ = [
+    "REQUEST_ID_HEADER",
+    "RequestIdLogFilter",
+    "RequestIdMiddleware",
+    "attach_request_id_to_detail",
+    "current_request_id",
+    "get_request_id",
+    "install_request_id_logging",
+    "new_request_id",
+]
 
 
 def get_request_id(request: Request) -> str | None:
@@ -28,10 +36,6 @@ def get_request_id(request: Request) -> str | None:
     if isinstance(rid, str) and rid.strip():
         return rid.strip()
     return None
-
-
-def current_request_id() -> str | None:
-    return _request_id_ctx.get()
 
 
 def attach_request_id_to_detail(request: Request, detail: dict[str, object]) -> dict[str, object]:
@@ -45,7 +49,7 @@ class RequestIdLogFilter(logging.Filter):
     """Adds request_id to log records when inside a request context."""
 
     def filter(self, record: logging.LogRecord) -> bool:
-        rid = _request_id_ctx.get()
+        rid = current_request_id()
         if rid:
             record.request_id = rid  # type: ignore[attr-defined]
         return True
@@ -56,11 +60,11 @@ class RequestIdMiddleware(BaseHTTPMiddleware):
         incoming = request.headers.get(REQUEST_ID_HEADER)
         request_id = incoming.strip() if incoming and incoming.strip() else new_request_id()
         request.state.request_id = request_id
-        token = _request_id_ctx.set(request_id)
+        token = set_request_id(request_id)
         try:
             response = await call_next(request)
         finally:
-            _request_id_ctx.reset(token)
+            reset_request_id(token)
         response.headers[REQUEST_ID_HEADER] = request_id
         return response
 

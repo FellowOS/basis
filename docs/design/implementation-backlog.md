@@ -403,7 +403,7 @@ Acceptance:
 - request/job/projection IDs in logs and audit;
 - redact authorization, API keys, document content, and model secrets.
 
-**Status:** partial — `X-Request-ID` middleware; `detail.request_id` on API errors; Web sends header via `api`/`explorerFetch` and appends reference ID to user-facing errors; `audit_kb_graph` records `request_id` when in request context. Remaining: job/projection IDs on background ingest, structured JSON logs, redaction helpers.
+**Status:** partial — `X-Request-ID` middleware; `detail.request_id` on API errors; Web correlation headers + user-facing reference IDs; all `record_audit` rows get `request_id` when in HTTP context; ingest completion logs include `job_id` and `projection_revision` (`correlation_log_extra`). Remaining: propagate request_id into async ingest threads, JSON log format, redaction helpers.
 
 ### X-03 — Backup/recovery baseline
 
