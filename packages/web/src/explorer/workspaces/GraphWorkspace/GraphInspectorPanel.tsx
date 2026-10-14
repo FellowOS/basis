@@ -549,17 +549,19 @@ export function GraphInspectorPanel({
       <section className={inspectorSectionClass}>
         <h3 className={inspectorSectionTitleClass}>{inspectorCopy(loc, "actions")}</h3>
         <div className="flex flex-col gap-2.5">
-          <Button
-            type="button"
-            className="w-full"
-            onClick={onRunPredictions}
-            disabled={isRunningPredictions || !actionNodeId}
-          >
-            {isRunningPredictions ? <Loader2 size={14} className="animate-spin" /> : null}
-            {isRunningPredictions
-              ? inspectorCopy(loc, "running")
-              : inspectorCopy(loc, "runPrediction")}
-          </Button>
+          {graphWriteEnabled ? (
+            <Button
+              type="button"
+              className="w-full"
+              onClick={onRunPredictions}
+              disabled={isRunningPredictions || !actionNodeId}
+            >
+              {isRunningPredictions ? <Loader2 size={14} className="animate-spin" /> : null}
+              {isRunningPredictions
+                ? inspectorCopy(loc, "running")
+                : inspectorCopy(loc, "runPrediction")}
+            </Button>
+          ) : null}
           <div className="flex flex-wrap gap-2">
             <Button type="button" variant="outline" size="sm" onClick={() => onDownloadProvenance("json")} disabled={!actionNodeId}>
               {inspectorCopy(loc, "provenanceJson")}
@@ -569,12 +571,14 @@ export function GraphInspectorPanel({
             </Button>
           </div>
         </div>
-        <Input
-          value={predictionType}
-          onChange={(event) => onPredictionTypeChange(event.target.value)}
-          placeholder={inspectorCopy(loc, "predictionTypePlaceholder")}
-          className="h-9 bg-background"
-        />
+        {graphWriteEnabled ? (
+          <Input
+            value={predictionType}
+            onChange={(event) => onPredictionTypeChange(event.target.value)}
+            placeholder={inspectorCopy(loc, "predictionTypePlaceholder")}
+            className="h-9 bg-background"
+          />
+        ) : null}
       </section>
 
       <section className={inspectorSectionClass}>

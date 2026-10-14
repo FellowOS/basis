@@ -396,7 +396,7 @@ Acceptance:
 - localize messages in Web;
 - stop exposing raw server strings.
 
-**Status:** partial — AdminError `detail.code` on KB routes; all `kb_explorer` semantica delegates go through `invoke_explorer` (HTTPException → stable codes, semantic neighborhood special-cased); Web registry covers mappings, search, explorer, projection; remaining: ontology hub adapters, auth/platform codes in the registry.
+**Status:** partial — AdminError `detail.code` on KB routes; `kb_explorer`, `kb_ontology`, and generated ontology hub routes use `invoke_explorer`; Web registry covers mappings, search, explorer, projection; remaining: auth/platform codes in the registry.
 
 ### X-02 — Request IDs and structured logging
 
