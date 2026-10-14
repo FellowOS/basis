@@ -148,6 +148,10 @@ const MESSAGES = {
   apiLinkPredictionFailed: { zh: "链路预测失败", en: "Link prediction failed" },
   apiPathLookupFailed: { zh: "路径查询失败", en: "Path lookup failed" },
   apiProvenanceReportFailed: { zh: "溯源报告失败", en: "Provenance report failed" },
+  projectionRefreshed: {
+    zh: "图谱投影已更新，正在重新加载…",
+    en: "Graph projection updated — reloading…",
+  },
 } satisfies Record<string, CopyPair>;
 
 export function graphEgoModeLabel(

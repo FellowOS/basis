@@ -379,7 +379,7 @@ Work:
 - connect realtime updates and revision refetch;
 - respect viewer permissions.
 
-**Status:** partial — Explorer `GraphWorkspace` embedded when `explorer_runtime`; timeline + search/focus; direct graph merge/import blocked (`409` → review queue); KB embed caps initial node/edge fetch (200/400) with UI notice when truncated; empty-graph hint links to library; graph inspector UI copy localized via `graphInspectorCopy` (KB embed `apiErrorLocale`). Remaining: standalone Explorer locale alignment, more X-01 backend codes.
+**Status:** partial — Explorer `GraphWorkspace` embedded when `explorer_runtime`; timeline + search/focus; `projection_updated` WS triggers full graph reload + dock notice; KB switch remounts workspace (`key={kbId}`); inspector evidence links resolve ledger `chunk_id` / document neighbors; merge/import gated via review. Remaining: viewer write gates on graph mutations, KB-switch audit in E2E.
 
 Acceptance:
 

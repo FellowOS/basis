@@ -1103,6 +1103,8 @@ export function GraphWorkspace({
   const sceneRef = useRef<GraphSceneHandle>(null);
   const lastExternalFocusTokenRef = useRef<number | undefined>(undefined);
   const lastExternalReloadTokenRef = useRef<number | undefined>(undefined);
+  const lastProjectionRevisionRef = useRef<number | null>(null);
+  const [projectionRefreshPending, setProjectionRefreshPending] = useState(false);
   const pluginRuntimeRef = useRef<GraphSceneRuntime | null>(null);
   const appliedGraphSummarySignatureRef = useRef<string | null>(null);
   const smallGraphModeRef = useRef(false);
@@ -1118,6 +1120,63 @@ export function GraphWorkspace({
     isLayoutRunning: false,
   });
   const reload = useReloadGraph();
+
+  const resetInteractiveGraphState = useCallback(() => {
+    setSelectedNodeId("");
+    setFocusedNodeId("");
+    setLastGroupedSelectedNodeId("");
+    setSelectedEdgeId("");
+    setSearchQuery("");
+    setSearchResults([]);
+    setSearchError("");
+    setPredictionType("");
+    setPredictions([]);
+    setIsRunningPredictions(false);
+    setPathTargetId("");
+    setPathResult(null);
+    setCollapsedNeighborhoodNodeIds([]);
+    setViewMode("full");
+    setEgoModeEnabled(false);
+    setDistanceMode("off");
+    setHeatmapEnabled(false);
+    setSemanticDistanceState({
+      anchorNodeId: null,
+      scores: EMPTY_DISTANCE_RECORD,
+      count: 0,
+      status: "idle",
+      error: null,
+    });
+    setScrubberTime(null);
+    lastScrubberMsRef.current = null;
+    setTemporalBounds(null);
+    setActiveNodeCount(null);
+  }, []);
+
+  const handleProjectionRevisionBump = useCallback(
+    (revision?: number) => {
+      if (typeof revision === "number") {
+        if (
+          lastProjectionRevisionRef.current !== null
+          && revision <= lastProjectionRevisionRef.current
+        ) {
+          return;
+        }
+        lastProjectionRevisionRef.current = revision;
+      }
+      appliedGraphSummarySignatureRef.current = null;
+      resetInteractiveGraphState();
+      setGraphReady(false);
+      setProjectionRefreshPending(true);
+      reload();
+    },
+    [reload, resetInteractiveGraphState],
+  );
+
+  useEffect(() => {
+    if (graphReady) {
+      setProjectionRefreshPending(false);
+    }
+  }, [graphReady]);
 
   useEffect(() => {
     syncSemaGraphTheme(theme);
@@ -1725,14 +1784,24 @@ export function GraphWorkspace({
       try {
         const message = JSON.parse(event.data);
         if (message.type === "projection_updated") {
-          void queryClient.invalidateQueries({ queryKey: ["graph", "full-load"] });
+          handleProjectionRevisionBump(
+            typeof message.projection_revision === "number"
+              ? message.projection_revision
+              : undefined,
+          );
           return;
         }
         if (message.type === "access_revoked") {
           activeSocket.close();
           return;
         }
-        if (message.type === "connected" || message.event === "connection_ack") {
+        if (message.type === "connected") {
+          if (typeof message.projection_revision === "number") {
+            lastProjectionRevisionRef.current = message.projection_revision;
+          }
+          return;
+        }
+        if (message.event === "connection_ack") {
           return;
         }
         if (message.event !== "graph_mutation") {
@@ -1814,7 +1883,7 @@ export function GraphWorkspace({
       cancelled = true;
       socket?.close();
     };
-  }, [queryClient]);
+  }, [handleProjectionRevisionBump, kbId]);
 
   useEffect(() => {
     setCollapsedNeighborhoodNodeIds([]);
@@ -2081,8 +2150,9 @@ export function GraphWorkspace({
   const showLoadingOverlay = !graphReady && (isLoading || isFetching || Boolean(loadingProgress) || isGraphLoadError);
   const showSettlingStatus = graphReady && loadingProgress?.phase === "stabilizing_layout";
   const hasGraphContent = Boolean(summary?.nodeCount);
-  const graphLoadInfoMessage =
-    summary?.loadTruncated && kbId
+  const graphLoadInfoMessage = projectionRefreshPending
+    ? graphCopy(copyLocale, "projectionRefreshed")
+    : summary?.loadTruncated && kbId
       ? graphCopy(copyLocale, "graphLoadTruncated")
       : undefined;
   const showEmptyKbGraphHint = Boolean(

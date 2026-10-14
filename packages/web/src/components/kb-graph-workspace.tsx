@@ -129,6 +129,7 @@ export function KbGraphWorkspace({
               }
             >
               <GraphWorkspace
+                key={kbId}
                 kbId={kbId}
                 externalFocusNodeId={focusNodeId ?? undefined}
                 externalFocusToken={focusToken}
