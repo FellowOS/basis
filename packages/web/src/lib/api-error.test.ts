@@ -17,4 +17,12 @@ describe('errorFromApiResponse', () => {
     const err = errorFromApiResponse(400, { detail: 'Bad input' });
     expect(err.message).toBe('Bad input');
   });
+
+  it('attaches request_id and surfaces it in formatted copy', () => {
+    const err = errorFromApiResponse(401, {
+      detail: { code: 'unauthorized', message: 'x', request_id: 'trace-99' },
+    });
+    expect((err as Error & { requestId?: string }).requestId).toBe('trace-99');
+    expect(formatUserFacingApiError(err, 'en')).toContain('trace-99');
+  });
 });

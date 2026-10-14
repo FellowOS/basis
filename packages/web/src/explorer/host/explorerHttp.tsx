@@ -5,6 +5,7 @@ import {
   useMemo,
   type ReactNode,
 } from "react";
+import { ensureRequestIdHeader } from "@/lib/request-id.js";
 
 export type ExplorerHttpConfig = {
   /**
@@ -107,6 +108,7 @@ export async function explorerFetch(
       ? resolveExplorerApiUrl(input)
       : resolveExplorerApiUrl(input.toString());
   const headers = new Headers(init?.headers);
+  ensureRequestIdHeader(headers);
   const auth = activeConfig.getAuthHeaders?.();
   if (auth) {
     new Headers(auth).forEach((value, key) => {

@@ -403,7 +403,7 @@ Acceptance:
 - request/job/projection IDs in logs and audit;
 - redact authorization, API keys, document content, and model secrets.
 
-**Status:** partial — `X-Request-ID` middleware (`sema/api/request_id.py`), echoed on responses; `detail.request_id` on `AdminError` and `HTTPException`; `RequestIdLogFilter` on `sema` logger. Remaining: job/projection IDs in audit rows, log format/JSON, redaction helpers.
+**Status:** partial — `X-Request-ID` middleware; `detail.request_id` on API errors; Web sends header via `api`/`explorerFetch` and appends reference ID to user-facing errors; `audit_kb_graph` records `request_id` when in request context. Remaining: job/projection IDs on background ingest, structured JSON logs, redaction helpers.
 
 ### X-03 — Backup/recovery baseline
 

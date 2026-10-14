@@ -340,7 +340,22 @@ const MESSAGES: Record<string, { zh: string; en: string }> = {
 export type ApiErrorLike = {
   message?: string;
   code?: string;
+  requestId?: string;
 };
+
+function withRequestIdSuffix(
+  text: string,
+  requestId: string | undefined,
+  locale: 'zh' | 'en',
+): string {
+  const id = requestId?.trim();
+  if (!id) {
+    return text;
+  }
+  return locale === 'zh'
+    ? `${text}（参考 ID：${id}）`
+    : `${text} (Reference ID: ${id})`;
+}
 
 export function messageForApiErrorCode(
   code: string | null | undefined,
@@ -367,15 +382,18 @@ export function formatUserFacingApiError(
   if (!(err instanceof Error)) {
     return fallback;
   }
-  const code = (err as Error & ApiErrorLike).code;
+  const meta = err as Error & ApiErrorLike;
+  const code = meta.code;
+  const requestId = meta.requestId;
   if (code && MESSAGES[code]) {
-    return MESSAGES[code][locale];
+    return withRequestIdSuffix(MESSAGES[code][locale], requestId, locale);
   }
   if (code?.trim()) {
-    return messageForApiErrorCode(code, locale) ?? fallback;
+    const mapped = messageForApiErrorCode(code, locale) ?? fallback;
+    return withRequestIdSuffix(mapped, requestId, locale);
   }
   if (err.message.trim()) {
-    return err.message;
+    return withRequestIdSuffix(err.message, requestId, locale);
   }
-  return fallback;
+  return withRequestIdSuffix(fallback, requestId, locale);
 }

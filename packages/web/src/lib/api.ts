@@ -1,4 +1,5 @@
 import { errorFromApiResponse } from '@/lib/api-error.js';
+import { ensureRequestIdHeader } from '@/lib/request-id.js';
 
 const TOKEN_KEY = 'sema_token';
 
@@ -22,6 +23,7 @@ export function setToken(token: string | null): void {
 /** 所有请求只打 Sema API（Python，进程内使用 Semantica SDK）。 */
 export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
   const headers = new Headers(init.headers);
+  ensureRequestIdHeader(headers);
   const token = getToken();
   if (token) headers.set('Authorization', `Bearer ${token}`);
   if (init.body && !headers.has('Content-Type')) {

@@ -23,6 +23,37 @@ def test_client_may_supply_request_id(tmp_path) -> None:
     assert rid == "client-trace-abc"
 
 
+def _auth(token: str) -> dict[str, str]:
+    return {"Authorization": f"Bearer {token}"}
+
+
+def test_graph_rebuild_audit_includes_request_id(tmp_path) -> None:
+    client = TestClient(create_app(Settings(data_dir=tmp_path)))
+    admin = client.post(
+        "/api/auth/register",
+        json={"email": "aud@example.com", "password": "password1", "display_name": "U"},
+    ).json()
+    headers = _auth(admin["token"])
+    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    trace = "rebuild-audit-trace"
+
+    client.post(
+        f"/api/kbs/{kb_id}/graph/rebuild",
+        headers={**headers, "X-Request-ID": trace},
+    )
+
+    audit = client.get(
+        f"/api/kbs/{kb_id}/audit/graph-mutations?action_prefix=kb.graph.",
+        headers=headers,
+    )
+    assert audit.status_code == 200
+    events = audit.json()["events"]
+    rebuild = next(
+        e for e in events if e["action"] == "kb.graph.projection_rebuild"
+    )
+    assert rebuild["detail"]["request_id"] == trace
+
+
 def test_unauthorized_includes_request_id_in_detail(tmp_path) -> None:
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
     response = client.get(
