@@ -123,6 +123,10 @@ const MESSAGES: Record<string, { zh: string; en: string }> = {
     zh: '资料处理失败，请查看任务详情后重试。',
     en: 'Document processing failed. Check the job details and try again.',
   },
+  ingest_overloaded: {
+    zh: '处理队列已满，请稍后重试。',
+    en: 'The processing queue is full. Try again in a moment.',
+  },
   merge_requires_review: {
     zh: '图节点合并需经审核队列批准后再应用。',
     en: 'Graph node merges must go through the review queue before they are applied.',

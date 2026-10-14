@@ -16,6 +16,7 @@ _DEFAULT_GRAPH_NODE_SEARCH_MAX_LIMIT = 50
 _DEFAULT_IMPORT_MAX_BYTES = 50 * 1024 * 1024
 _DEFAULT_UPLOAD_MAX_BYTES = 50 * 1024 * 1024
 _DEFAULT_INGEST_MAX_INFLIGHT = 4
+_DEFAULT_INGEST_MAX_PENDING = 32
 _DEFAULT_PROCESSING_JOB_TIMEOUT_SECONDS = 600
 _DEFAULT_INGEST_MAX_EXTRACT_CHARS = 2_000_000
 _DEFAULT_INGEST_MAX_CHUNKS = 2_000
@@ -32,6 +33,7 @@ class RuntimeLimits:
     import_max_bytes: int = _DEFAULT_IMPORT_MAX_BYTES
     upload_max_bytes: int = _DEFAULT_UPLOAD_MAX_BYTES
     ingest_max_inflight: int = _DEFAULT_INGEST_MAX_INFLIGHT
+    ingest_max_pending: int = _DEFAULT_INGEST_MAX_PENDING
     processing_job_timeout_seconds: int = _DEFAULT_PROCESSING_JOB_TIMEOUT_SECONDS
     ingest_max_extract_chars: int = _DEFAULT_INGEST_MAX_EXTRACT_CHARS
     ingest_max_chunks: int = _DEFAULT_INGEST_MAX_CHUNKS
@@ -48,6 +50,7 @@ class RuntimeLimits:
             import_max_bytes=settings.import_max_bytes,
             upload_max_bytes=settings.upload_max_bytes,
             ingest_max_inflight=settings.ingest_max_inflight,
+            ingest_max_pending=settings.ingest_max_pending,
             processing_job_timeout_seconds=settings.processing_job_timeout_seconds,
             ingest_max_extract_chars=settings.ingest_max_extract_chars,
             ingest_max_chunks=settings.ingest_max_chunks,

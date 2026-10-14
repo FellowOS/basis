@@ -379,7 +379,7 @@ Work:
 - connect realtime updates and revision refetch;
 - respect viewer permissions.
 
-**Status:** partial — Explorer `GraphWorkspace` embedded when `explorer_runtime`; timeline + search/focus; `projection_updated` WS triggers full graph reload + dock notice; KB switch remounts workspace (`key={kbId}`); inspector evidence links resolve ledger `chunk_id` / document neighbors; merge/import gated via review; backend `test_rebuild_emits_projection_updated_on_websocket` and `test_ingest_emits_projection_updated_on_websocket` cover WS events; `test_viewer_cannot_apply_reasoning_to_graph` guards graph apply; graph UI shows read-only badge and blocks link-prediction when `graph_write` is false; `graphProjectionRefresh.test.ts` covers revision dedup. Remaining: optional Playwright smoke (login → graph → rebuild → dock “projection updated” copy); WS reload contract covered by unit + `test_realtime_ws.py`.
+**Status:** partial — Explorer `GraphWorkspace` embedded when `explorer_runtime`; timeline + search/focus; `projection_updated` WS triggers full graph reload + dock notice; KB switch remounts workspace (`key={kbId}`); inspector evidence links resolve ledger `chunk_id` / document neighbors; merge/import gated via review; backend WS/viewer tests; graph read-only UX; unit tests for projection refresh. Manual gate: `docs/ops/smoke-test.md`. Remaining: optional Playwright automation of that checklist.
 
 Acceptance:
 
@@ -419,7 +419,7 @@ Acceptance:
   parse/LLM timeout;
 - reject before allocating unbounded memory where possible.
 
-**Status:** done (baseline) — `RuntimeLimits` + `SEMA_*` for graph/search/import/upload/ingest; ingest thread pool; job wait timeout; ingest size/chunk caps; `SEMA_INGEST_EXTRACT_TIMEOUT_SECONDS` wraps `GraphBuilder.build` per segment (`extract_timeout`, HTTP 504 on sync wait). Ops reference: `docs/ops/runtime-limits.md`. Follow-up: cancel in-flight LLM on timeout, per-model timeouts.
+**Status:** done (baseline) — `RuntimeLimits` + `SEMA_*` for graph/search/import/upload/ingest; ingest thread pool + `SEMA_INGEST_MAX_PENDING` backpressure (`ingest_overloaded`); job wait timeout; ingest size/chunk caps; extract wall-clock timeout. Ops: `docs/ops/runtime-limits.md`. Follow-up: cancel in-flight LLM on timeout, per-model timeouts.
 
 ## 8. Task dependency graph
 
@@ -461,4 +461,4 @@ introduce a second source of truth.
 | --- | --- |
 | Web strict indexed access | `noUncheckedIndexedAccess` disabled in `packages/web/tsconfig.json` for Explorer graph code; re-enable incrementally if desired. |
 | `vitest` for `packages/web` | Wired in CI (`pnpm --filter @sema/web test`). |
-| Ingest executor queue | `ThreadPoolExecutor` may queue unbounded tasks; consider `ingest_overloaded` when saturated. |
+| Ingest slot tuning | `SEMA_INGEST_MAX_PENDING` semaphore; raise if operators see frequent `ingest_overloaded`. |

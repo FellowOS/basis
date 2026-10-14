@@ -14,6 +14,7 @@ Sema reads these from the environment (see `.env.example`). Defaults match `sema
 | `SEMA_IMPORT_MAX_BYTES` | 52428800 | Graph import review upload |
 | `SEMA_UPLOAD_MAX_BYTES` | 52428800 | Document upload / JSON text ingest |
 | `SEMA_INGEST_MAX_INFLIGHT` | 4 | Background ingest thread pool size |
+| `SEMA_INGEST_MAX_PENDING` | 32 | Max concurrent + queued ingest jobs (`ingest_overloaded` when full) |
 | `SEMA_PROCESSING_JOB_TIMEOUT_SECONDS` | 600 | Idempotent `wait=true` job poll timeout |
 | `SEMA_INGEST_MAX_EXTRACT_CHARS` | 2000000 | Parsed text length before chunking |
 | `SEMA_INGEST_MAX_CHUNKS` | 2000 | Chunks per version after split |

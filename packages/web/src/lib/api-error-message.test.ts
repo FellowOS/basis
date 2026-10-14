@@ -29,6 +29,7 @@ describe('formatUserFacingApiError', () => {
     expect(messageForApiErrorCode('upload_too_large', 'zh')).toContain('大小');
     expect(messageForApiErrorCode('extract_timeout', 'en')).toContain('timed out');
     expect(messageForApiErrorCode('too_many_chunks', 'zh')).toContain('块数');
+    expect(messageForApiErrorCode('ingest_overloaded', 'zh')).toContain('队列');
   });
 
   it('maps auth codes without surfacing raw server text', () => {

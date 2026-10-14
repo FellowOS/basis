@@ -27,6 +27,21 @@ from sema.pipeline.version_ingest import (
 _kb_locks: dict[str, threading.Lock] = {}
 _lock_guard = threading.Lock()
 
+_INGEST_OVERLOADED_MESSAGE = "处理队列已满，请稍后重试"
+
+
+def _fail_ingest_overloaded(
+    app: FastAPI,
+    kb_id: str,
+    version_id: str,
+    job_id: str,
+) -> None:
+    knowledge: KnowledgeStore = app.state.knowledge_store
+    knowledge.fail_version(
+        kb_id, version_id, "ingest_overloaded", _INGEST_OVERLOADED_MESSAGE
+    )
+    knowledge.fail_job(kb_id, job_id, "ingest_overloaded", _INGEST_OVERLOADED_MESSAGE)
+
 
 def _kb_lock(kb_id: str) -> threading.Lock:
     with _lock_guard:
@@ -165,17 +180,26 @@ def enqueue_version_ingest(
 ) -> None:
     """Fire-and-forget ingest on a worker thread (same process)."""
 
+    pending_slot = getattr(app.state, "ingest_pending_slot", None)
+    if pending_slot is not None and not pending_slot.acquire(blocking=False):
+        _fail_ingest_overloaded(app, kb_id, version_id, job_id)
+        return
+
     def _work() -> None:
-        run_version_ingest_for_app(
-            app,
-            kb_id,
-            version_id,
-            job_id,
-            filename=filename,
-            graph_doc_id=graph_doc_id,
-            options=options,
-            trigger_request_id=trigger_request_id,
-        )
+        try:
+            run_version_ingest_for_app(
+                app,
+                kb_id,
+                version_id,
+                job_id,
+                filename=filename,
+                graph_doc_id=graph_doc_id,
+                options=options,
+                trigger_request_id=trigger_request_id,
+            )
+        finally:
+            if pending_slot is not None:
+                pending_slot.release()
 
     if getattr(app.state.settings, "ingest_inline", False):
         _work()

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import threading
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import asynccontextmanager
 
@@ -102,6 +103,9 @@ def create_app(app_settings: Settings | None = None) -> FastAPI:
     app.state.ingest_executor = ThreadPoolExecutor(
         max_workers=max(1, app_settings.ingest_max_inflight),
         thread_name_prefix="ingest",
+    )
+    app.state.ingest_pending_slot = threading.Semaphore(
+        max(1, app_settings.ingest_max_pending)
     )
     app.state.database = get_database(
         app_settings.effective_database_url,

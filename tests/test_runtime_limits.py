@@ -1,5 +1,6 @@
 """Runtime request limits from Settings (X-04)."""
 
+import time
 from pathlib import Path
 
 from fastapi.testclient import TestClient
@@ -213,3 +214,62 @@ def test_processing_fails_when_extraction_times_out(tmp_path: Path, monkeypatch)
     )
     assert failed.status_code == 504
     assert failed.json()["detail"]["code"] == "extract_timeout"
+
+
+def test_async_ingest_fails_with_ingest_overloaded_when_pending_full(
+    tmp_path: Path, monkeypatch
+) -> None:
+    from sema.pipeline import version_ingest as vi
+
+    original = vi.run_version_ingest
+
+    def slow_ingest(*args, **kwargs):
+        time.sleep(2)
+        return original(*args, **kwargs)
+
+    monkeypatch.setattr(vi, "run_version_ingest", slow_ingest)
+
+    settings = Settings(
+        data_dir=tmp_path,
+        ingest_max_pending=1,
+        ingest_max_inflight=1,
+    )
+    client = TestClient(create_app(settings))
+    admin = client.post(
+        "/api/auth/register",
+        json={"email": "q@example.com", "password": "password1", "display_name": "Q"},
+    ).json()
+    headers = {"Authorization": f"Bearer {admin['token']}"}
+    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    a = client.post(
+        f"/api/kbs/{kb_id}/documents",
+        headers=headers,
+        json={"doc_id": "qa", "text": "one"},
+    ).json()
+    b = client.post(
+        f"/api/kbs/{kb_id}/documents",
+        headers=headers,
+        json={"doc_id": "qb", "text": "two"},
+    ).json()
+    payload = {
+        "wait": False,
+        "chunk": False,
+        "extract": False,
+        "ner_method": "pattern",
+        "relation_method": "pattern",
+    }
+    first = client.post(
+        f"/api/kbs/{kb_id}/processing/jobs",
+        headers=headers,
+        json={**payload, "version_id": a["version_id"]},
+    )
+    assert first.status_code == 202
+    second = client.post(
+        f"/api/kbs/{kb_id}/processing/jobs",
+        headers=headers,
+        json={**payload, "version_id": b["version_id"]},
+    )
+    assert second.status_code == 202
+    jobs = client.get(f"/api/kbs/{kb_id}/processing/jobs", headers=headers).json()["jobs"]
+    overloaded = [j for j in jobs if j.get("error_code") == "ingest_overloaded"]
+    assert len(overloaded) == 1

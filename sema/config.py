@@ -40,6 +40,7 @@ class Settings:
     import_max_bytes: int = 50 * 1024 * 1024
     upload_max_bytes: int = 50 * 1024 * 1024
     ingest_max_inflight: int = 4
+    ingest_max_pending: int = 32
     processing_job_timeout_seconds: int = 600
     ingest_max_extract_chars: int = 2_000_000
     ingest_max_chunks: int = 2_000
@@ -107,6 +108,7 @@ class Settings:
                 hi=200 * 1024 * 1024,
             ),
             ingest_max_inflight=_bounded_int("SEMA_INGEST_MAX_INFLIGHT", 4, lo=1, hi=64),
+            ingest_max_pending=_bounded_int("SEMA_INGEST_MAX_PENDING", 32, lo=1, hi=10_000),
             processing_job_timeout_seconds=_bounded_int(
                 "SEMA_PROCESSING_JOB_TIMEOUT_SECONDS",
                 600,
