@@ -19,4 +19,9 @@ describe('formatUserFacingApiError', () => {
     (err as Error & { code?: string }).code = 'ingest_incomplete';
     expect(formatUserFacingApiError(err, 'zh')).toContain('过期');
   });
+
+  it('maps explorer semantic codes', () => {
+    expect(messageForApiErrorCode('semantic_unavailable', 'en')).toContain('Semantic');
+    expect(messageForApiErrorCode('bad_path', 'zh')).toContain('source');
+  });
 });

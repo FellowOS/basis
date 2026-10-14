@@ -201,3 +201,57 @@ def test_graph_import_export_roundtrip(tmp_path) -> None:
     actions = [e["action"] for e in audit.json()["events"]]
     assert "kb.graph.import" in actions or "kb.graph.import_proposed" in actions
     assert "kb.graph.export" in actions
+
+
+def test_semantic_neighborhood_unknown_node_returns_coded_detail(tmp_path) -> None:
+    if not explorer_available():
+        pytest.skip("explorer extra not installed")
+
+    client = TestClient(create_app(Settings(data_dir=tmp_path)))
+    admin = client.post(
+        "/api/auth/register",
+        json={"email": "sem@example.com", "password": "password1", "display_name": "Sem"},
+    ).json()
+    headers = {"Authorization": f"Bearer {admin['token']}"}
+
+    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    client.post(
+        f"/api/kbs/{kb_id}/documents",
+        headers=headers,
+        json={"doc_id": "s1", "text": "Alice knows Bob.", "wait": True, "extract": True},
+    )
+
+    missing = client.get(
+        f"/api/kbs/{kb_id}/graph/semantic-neighborhood",
+        headers=headers,
+        params={"node_id": "definitely-missing-node-id"},
+    )
+    assert missing.status_code == 404
+    assert missing.json()["detail"]["code"] == "semantic_node_not_found"
+
+
+def test_graph_path_requires_source_and_target(tmp_path) -> None:
+    if not explorer_available():
+        pytest.skip("explorer extra not installed")
+
+    client = TestClient(create_app(Settings(data_dir=tmp_path)))
+    admin = client.post(
+        "/api/auth/register",
+        json={"email": "path@example.com", "password": "password1", "display_name": "Path"},
+    ).json()
+    headers = {"Authorization": f"Bearer {admin['token']}"}
+
+    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    client.post(
+        f"/api/kbs/{kb_id}/documents",
+        headers=headers,
+        json={"doc_id": "p1", "text": "Alice knows Bob.", "wait": True, "extract": True},
+    )
+
+    bad = client.get(
+        f"/api/kbs/{kb_id}/graph/path",
+        headers=headers,
+        params={"source": "", "target": "x", "algorithm": "bfs"},
+    )
+    assert bad.status_code == 422
+    assert bad.json()["detail"]["code"] == "bad_path"

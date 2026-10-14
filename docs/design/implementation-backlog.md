@@ -396,7 +396,7 @@ Acceptance:
 - localize messages in Web;
 - stop exposing raw server strings.
 
-**Status:** partial — coded `detail` no longer surfaces raw server `message` in clients; graph workspace copy/API fallbacks use `graphWorkspaceCopy` / `graphViewCopy` / `graphInspectorCopy` with locale from `apiErrorLocale` override or app i18n; Ontology + shell covered; remaining: more backend 4xx codes.
+**Status:** partial — coded `detail` on AdminError + selected Explorer adapters (e.g. semantic neighborhood → `semantic_node_not_found` / `semantic_unavailable`); Web `api-error-message` registry covers mappings, search, explorer, and projection codes; graph copy localized; remaining: broader Explorer route normalization and auth/platform codes in the registry.
 
 ### X-02 — Request IDs and structured logging
 

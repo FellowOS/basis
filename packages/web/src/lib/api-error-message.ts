@@ -147,6 +147,70 @@ const MESSAGES: Record<string, { zh: string; en: string }> = {
     zh: '语义距离接口未找到所选节点。',
     en: 'Selected node was not found by the semantic distance API.',
   },
+  explorer_unavailable: {
+    zh: 'Explorer 图会话不可用，请确认依赖已安装并重启服务。',
+    en: 'Explorer graph session is unavailable. Check dependencies and restart the server.',
+  },
+  explorer_graph_error: {
+    zh: 'Explorer 图接口返回错误。',
+    en: 'The Explorer graph API returned an error.',
+  },
+  bad_path: {
+    zh: '路径查询须同时提供 source 与 target。',
+    en: 'Path lookup requires both source and target node IDs.',
+  },
+  bad_signature: {
+    zh: '映射签名不能为空。',
+    en: 'Mapping signature cannot be empty.',
+  },
+  bad_target_kind: {
+    zh: '映射目标类型无效。',
+    en: 'Invalid mapping target kind.',
+  },
+  bad_direction: {
+    zh: '映射方向无效。',
+    en: 'Invalid mapping direction.',
+  },
+  unsupported_review_kind: {
+    zh: '不支持的审核类型。',
+    en: 'Unsupported review item type.',
+  },
+  document_not_found: {
+    zh: '文档不存在。',
+    en: 'Document not found.',
+  },
+  chunk_not_found: {
+    zh: '片段不存在。',
+    en: 'Chunk not found.',
+  },
+  search_mode_disabled: {
+    zh: '该知识库未启用此搜索模式。',
+    en: 'This search mode is disabled for the knowledge base.',
+  },
+  bad_status: {
+    zh: '状态无效。',
+    en: 'Invalid status.',
+  },
+  same_entity: {
+    zh: '不能合并同一实体。',
+    en: 'Cannot merge an entity with itself.',
+  },
+  quote_not_in_chunk: {
+    zh: '引用与分块文本不匹配。',
+    en: 'The quote does not match the chunk text.',
+  },
+  bad_repo: {
+    zh: 'Git 来源须配置有效的仓库 URL。',
+    en: 'Git sources require a valid repository URL.',
+  },
+  bad_quote: {
+    zh: '引用偏移无效。',
+    en: 'Invalid quote offset.',
+  },
+  validation_error: {
+    zh: '请求参数无效。',
+    en: 'Invalid request parameters.',
+  },
 };
 
 export type ApiErrorLike = {

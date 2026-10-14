@@ -1917,15 +1917,8 @@ export function GraphWorkspace({
             ? graphCopy(copyLocale, "semanticUnavailable")
             : response.status === 404
               ? graphCopy(copyLocale, "semanticNodeNotFound")
-              : `Semantic distance failed (${response.status})`;
-          const err = errorFromApiResponse(response.status, data, fallback);
-          if (response.status === 503 && !(err as Error & { code?: string }).code) {
-            (err as Error & { code?: string }).code = "semantic_unavailable";
-          }
-          if (response.status === 404 && !(err as Error & { code?: string }).code) {
-            (err as Error & { code?: string }).code = "semantic_node_not_found";
-          }
-          throw err;
+              : graphCopy(copyLocale, "loadErrorTitle");
+          throw errorFromApiResponse(response.status, data, fallback);
         }
 
         const data: SemanticNeighborhoodResponse = await response.json();

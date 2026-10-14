@@ -4,12 +4,13 @@ from __future__ import annotations
 
 from typing import Any, Optional
 
-from fastapi import APIRouter, Depends, File, Query, Request, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile
 from fastapi.responses import Response
 
 from sema.admin.errors import AdminError
 from sema.admin.store import AdminStore, User
 from sema.api.deps import get_current_user, get_explorer_registry, get_store, save_graph, get_kb_for_viewer, get_kb_for_editor
+from sema.api.explorer_route_errors import admin_error_from_explorer_http
 from sema.explorer.session_guard import require_explorer_graph_session
 from sema.limits import EXPLORER_DECISIONS_MAX_LIMIT
 from sema.knowledge.graph_audit import audit_kb_graph
@@ -149,12 +150,15 @@ async def kb_graph_semantic_neighborhood(
     session = require_explorer_graph_session(runtime)
     from semantica.explorer.routes.graph import semantic_neighborhood_by_query
 
-    return await semantic_neighborhood_by_query(
-        node_id=node_id,
-        top_k=top_k,
-        min_similarity=min_similarity,
-        session=session,
-    )
+    try:
+        return await semantic_neighborhood_by_query(
+            node_id=node_id,
+            top_k=top_k,
+            min_similarity=min_similarity,
+            session=session,
+        )
+    except HTTPException as exc:
+        raise admin_error_from_explorer_http(exc, context="semantic_neighborhood") from exc
 
 
 @router.get("/{kb_id}/decisions")
