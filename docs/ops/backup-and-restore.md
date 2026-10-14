@@ -28,11 +28,39 @@ Creates `backups/sema-data-YYYYMMDD-HHMMSS.tar.gz` containing `sema.db`, `blobs/
 
 ## PostgreSQL
 
+With `SEMA_DATABASE_URL` set (and `pg_dump` on your PATH):
+
 ```bash
-pg_dump "$SEMA_DATABASE_URL" -Fc -f sema-$(date +%Y%m%d).dump
+./scripts/backup_sema_postgres.sh
 ```
 
-Restore with `pg_restore` into an empty database, then restore blobs from tar as above. Rebuild graph projections per KB.
+Writes `backups/sema-pg-YYYYMMDD-HHMMSS.dump` (custom format) plus `sema-blobs-*.tar.gz` when `blobs/` exists. Graph JSON is optional (`sema-graphs-*.tar.gz`); omit graphs and rebuild per KB after restore.
+
+Manual equivalent:
+
+```bash
+pg_dump "$SEMA_DATABASE_URL" -Fc -f sema-$(date +%Y%m%d).dump
+tar -czf sema-blobs-$(date +%Y%m%d).tar.gz -C "$SEMA_DATA_DIR" blobs
+```
+
+### Local Docker (`compose.postgres.yml`)
+
+```bash
+docker compose -f compose.postgres.yml up -d
+export SEMA_DATABASE_URL=postgresql://sema:sema@127.0.0.1:5432/sema
+uv run sema migrate-postgres --database-url "$SEMA_DATABASE_URL"   # first time from SQLite
+./scripts/backup_sema_postgres.sh
+```
+
+### Restore (PostgreSQL)
+
+1. Stop the API.
+2. Create an empty database (or drop/recreate `sema`).
+3. `pg_restore --clean --if-exists -d "$SEMA_DATABASE_URL" backups/sema-pg-….dump`
+4. Extract `sema-blobs-*.tar.gz` into `SEMA_DATA_DIR`.
+5. Start the API; `POST /api/kbs/{kb_id}/graph/rebuild` per KB as an editor (unless you restored `graphs/` and trust revision alignment).
+
+Vector indexes after `migrate-postgres` may need a reindex pass per [search-storage-architecture.md](../design/search-storage-architecture.md).
 
 ## Related
 
