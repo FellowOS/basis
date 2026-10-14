@@ -29,7 +29,7 @@ lifecycle. See [explorer-integration.md](./explorer-integration.md) for API cont
 | SPARQL + reasoning | same page, tabs | `POST .../sparql`, reasoning via `kb_explorer` |
 | SKOS + alignments | `/kbs/:id/vocabulary` | `kb_ontology` vocabulary routes |
 | Phrase → type mappings | `/kbs/:id/mappings` | `kb_mappings` ledger |
-| Connectors (Git, webhook, …) | `ingest_sources` table only | **Not started** — F-SRC-06/07 |
+| Connectors | `ingest_sources` + `/sources` API | **Partial** — webhook + `http_poll` sync, token rotate, sync history in source `config` |
 
 ## Intentionally out of scope (design)
 

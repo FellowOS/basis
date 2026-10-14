@@ -2514,7 +2514,7 @@ class KnowledgeStore:
         if row["kb_id"] != kb_id:
             raise AdminError(403, "forbidden", "记录不属于该知识库")
 
-    _INGEST_SOURCE_KINDS = frozenset({"webhook"})
+    _INGEST_SOURCE_KINDS = frozenset({"webhook", "http_poll"})
 
     def list_ingest_sources(self, kb_id: str) -> list[dict[str, Any]]:
         with self._lock:
@@ -2546,9 +2546,13 @@ class KnowledgeStore:
             raise AdminError(422, "bad_name", "来源名称不能为空")
         if kind not in self._INGEST_SOURCE_KINDS:
             raise AdminError(422, "bad_kind", "不支持的来源类型")
+        config_payload = dict(config or {})
+        if kind == "http_poll":
+            url = str(config_payload.get("url") or "").strip()
+            if not url.startswith(("http://", "https://")):
+                raise AdminError(422, "bad_url", "http_poll 需要有效的 http(s) URL")
         source_id = str(uuid.uuid4())
         now = _now()
-        config_payload = dict(config or {})
         secret_ref: str | None = None
         one_time_secret: str | None = None
         if kind == "webhook":
@@ -2660,6 +2664,26 @@ class KnowledgeStore:
             self._conn.commit()
             if cur.rowcount == 0:
                 raise AdminError(404, "not_found", "来源不存在")
+
+    def rotate_ingest_source_token(self, kb_id: str, source_id: str) -> str:
+        source = self.get_ingest_source(kb_id, source_id)
+        if source["kind"] != "webhook":
+            raise AdminError(422, "bad_kind", "仅 Webhook 来源可轮换令牌")
+        new_token = secrets.token_urlsafe(32)
+        now = _now()
+        with self._lock:
+            cur = self._conn.execute(
+                """
+                UPDATE ingest_sources
+                SET secret_ref = ?, updated_at = ?
+                WHERE kb_id = ? AND id = ? AND deleted_at IS NULL
+                """,
+                (new_token, now, kb_id, source_id),
+            )
+            self._conn.commit()
+            if cur.rowcount == 0:
+                raise AdminError(404, "not_found", "来源不存在")
+        return new_token
 
     @staticmethod
     def _ingest_source_row_to_dict(row: sqlite3.Row) -> dict[str, Any]:

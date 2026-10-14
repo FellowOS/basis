@@ -1,5 +1,7 @@
 """KB ingest source connectors."""
 
+from unittest.mock import MagicMock, patch
+
 from fastapi.testclient import TestClient
 
 from sema.api.app import create_app
@@ -84,3 +86,83 @@ def test_sources_kb_isolation(tmp_path) -> None:
 
     denied = client.get(f"/api/kbs/{kb_b}/sources/{source_id}", headers=headers)
     assert denied.status_code == 404
+
+
+def test_webhook_token_rotation(tmp_path) -> None:
+    client = TestClient(create_app(Settings(data_dir=tmp_path)))
+    admin = client.post(
+        "/api/auth/register",
+        json={"email": "rot@example.com", "password": "password1", "display_name": "Rot"},
+    ).json()
+    headers = {"Authorization": f"Bearer {admin['token']}"}
+    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    created = client.post(
+        f"/api/kbs/{kb_id}/sources",
+        headers=headers,
+        json={"kind": "webhook", "name": "Rot"},
+    ).json()
+    source_id = created["source"]["id"]
+    old_token = created["ingest_token"]
+
+    rotated = client.post(f"/api/kbs/{kb_id}/sources/{source_id}/rotate-token", headers=headers)
+    assert rotated.status_code == 200
+    new_token = rotated.json()["ingest_token"]
+    assert new_token != old_token
+
+    assert (
+        client.post(
+            f"/api/kbs/{kb_id}/sources/{source_id}/webhook",
+            headers={"Authorization": f"Bearer {old_token}"},
+            json={"text": "x"},
+        ).status_code
+        == 401
+    )
+    assert (
+        client.post(
+            f"/api/kbs/{kb_id}/sources/{source_id}/webhook",
+            headers={"Authorization": f"Bearer {new_token}"},
+            json={"text": "ok"},
+        ).status_code
+        == 200
+    )
+
+
+def test_http_poll_sync(tmp_path) -> None:
+    client = TestClient(create_app(Settings(data_dir=tmp_path)))
+    admin = client.post(
+        "/api/auth/register",
+        json={"email": "poll@example.com", "password": "password1", "display_name": "Poll"},
+    ).json()
+    headers = {"Authorization": f"Bearer {admin['token']}"}
+    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    created = client.post(
+        f"/api/kbs/{kb_id}/sources",
+        headers=headers,
+        json={
+            "kind": "http_poll",
+            "name": "Feed",
+            "config": {"url": "https://example.com/feed.txt"},
+        },
+    )
+    assert created.status_code == 200
+    source_id = created.json()["source"]["id"]
+
+    mock_response = MagicMock()
+    mock_response.content = b"Poll document body"
+    mock_response.encoding = "utf-8"
+    mock_response.raise_for_status = MagicMock()
+
+    mock_http = MagicMock()
+    mock_http.get.return_value = mock_response
+    mock_http.__enter__ = MagicMock(return_value=mock_http)
+    mock_http.__exit__ = MagicMock(return_value=False)
+
+    with patch("sema.api.routes.kb_sources.httpx.Client", return_value=mock_http):
+        synced = client.post(f"/api/kbs/{kb_id}/sources/{source_id}/sync", headers=headers, json={})
+
+    assert synced.status_code == 200
+    assert synced.json()["result"]["status"] == "queued"
+
+    detail = client.get(f"/api/kbs/{kb_id}/sources/{source_id}", headers=headers).json()["source"]
+    events = detail["config"].get("sync_events") or []
+    assert events and events[0]["status"] == "succeeded"
