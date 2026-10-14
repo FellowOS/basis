@@ -19,6 +19,9 @@ export const AuditPage = lazy(() =>
 export const UsersPage = lazy(() =>
   import('@/pages/users').then((m) => ({ default: m.UsersPage })),
 );
+export const PlatformTokensPage = lazy(() =>
+  import('@/pages/platform-tokens').then((m) => ({ default: m.PlatformTokensPage })),
+);
 
 export const KbGraphPage = lazy(() =>
   import('@/pages/kb/graph').then((m) => ({ default: m.KbGraphPage })),
