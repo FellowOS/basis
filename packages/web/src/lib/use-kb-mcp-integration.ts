@@ -3,9 +3,12 @@ import { toast } from 'sonner';
 import { useI18n } from '@/i18n/context.js';
 import type { ApiTokenRow, McpIntegrationInfo } from '@/components/kb-mcp-integration-panel.js';
 import { api } from '@/lib/api.js';
+import { formatUserFacingApiError } from '@/lib/api-error-message.js';
 
 export function useKbMcpIntegration(kbId: string | undefined, canManageTokens: boolean) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
+  const apiError = (err: unknown) =>
+    formatUserFacingApiError(err, locale === 'zh' ? 'zh' : 'en');
   const [mcpInfo, setMcpInfo] = useState<McpIntegrationInfo | null>(null);
   const [apiTokens, setApiTokens] = useState<ApiTokenRow[]>([]);
   const [tokenName, setTokenName] = useState('');
@@ -56,7 +59,7 @@ export function useKbMcpIntegration(kbId: string | undefined, canManageTokens: b
         await reloadTokens();
         toast.success(t.menu.kbMcp.secretOnce);
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : t.common.operationFailed);
+        toast.error(apiError(err));
       }
     },
     [kbId, tokenName, reloadTokens, t],
@@ -70,7 +73,7 @@ export function useKbMcpIntegration(kbId: string | undefined, canManageTokens: b
         await reloadTokens();
         toast.success(t.common.deleteSuccess);
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : t.common.deleteFailed);
+        toast.error(apiError(err));
       }
     },
     [kbId, reloadTokens, t],

@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input.js';
 import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
 import { api } from '@/lib/api.js';
+import { formatUserFacingApiError } from '@/lib/api-error-message.js';
 import { useKbCatalog } from '@/lib/kb-context.js';
 import { useKbCapabilities } from '@/lib/kb-capabilities.js';
 import { useExplorerClient } from '@/lib/explorer-context.js';
@@ -105,7 +106,7 @@ export function KbSearchPage() {
         setEntityResults([]);
         setEngine(null);
       } catch (err) {
-        setError(err instanceof Error ? err.message : locale === 'zh' ? '搜索失败' : 'Search failed');
+        setError(formatUserFacingApiError(err, locale === 'zh' ? 'zh' : 'en'));
         setChunkResults([]);
       } finally {
         setLoading(false);
@@ -152,7 +153,7 @@ export function KbSearchPage() {
         setEngine(null);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : locale === 'zh' ? '搜索失败' : 'Search failed');
+      setError(formatUserFacingApiError(err, locale === 'zh' ? 'zh' : 'en'));
       setGraphResults([]);
       setChunkResults([]);
       setEntityResults([]);

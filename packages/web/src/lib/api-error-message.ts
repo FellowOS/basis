@@ -83,6 +83,18 @@ const MESSAGES: Record<string, { zh: string; en: string }> = {
     zh: '远程 URL 返回空内容。',
     en: 'The remote URL returned empty content.',
   },
+  bad_import_format: {
+    zh: '仅支持 JSON 或 CSV 图导入文件。',
+    en: 'Graph import accepts JSON or CSV files only.',
+  },
+  import_too_large: {
+    zh: '导入文件超过大小限制。',
+    en: 'Import file exceeds the size limit.',
+  },
+  bad_review_payload: {
+    zh: '审核项数据无效，无法继续。',
+    en: 'Invalid review item payload.',
+  },
 };
 
 export type ApiErrorLike = {

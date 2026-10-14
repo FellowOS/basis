@@ -97,6 +97,7 @@ export function KbImportExportDialog({
                 <ImportExportWorkspace
                   kbId={kbId}
                   focusSection={focus}
+                  locale={zh ? 'zh' : 'en'}
                   onImportQueued={goToReviewQueue}
                   importQueuedActionLabel={zh ? '前往审核队列' : 'Open review queue'}
                 />

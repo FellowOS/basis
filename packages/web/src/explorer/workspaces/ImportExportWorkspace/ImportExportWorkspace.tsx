@@ -2,6 +2,8 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useDropzone } from "react-dropzone";
 import { UploadCloud, Download, FileJson, FileText, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
+import { errorFromApiResponse } from "@/lib/api-error.js";
+import { formatUserFacingApiError } from "@/lib/api-error-message.js";
 import { buildExplorerKbApiPath, explorerFetch } from "../../host/explorerHttp";
 import { logEvent } from "../../store/registryStore";
 
@@ -17,11 +19,13 @@ export function ImportExportWorkspace({
   focusSection,
   onImportQueued,
   importQueuedActionLabel = "Open review queue",
+  locale = "en",
 }: {
   kbId?: string;
   focusSection?: "import" | "export";
   onImportQueued?: () => void;
   importQueuedActionLabel?: string;
+  locale?: "zh" | "en";
 } = {}) {
   const importRef = useRef<HTMLDivElement>(null);
   const exportRef = useRef<HTMLDivElement>(null);
@@ -71,14 +75,7 @@ export function ImportExportWorkspace({
       const res = await explorerFetch(importPath, { method: "POST", body: fd });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        const detail = data?.detail;
-        const message =
-          typeof detail === "object" && detail?.message
-            ? String(detail.message)
-            : typeof detail === "string"
-              ? detail
-              : "Import failed";
-        throw new Error(message);
+        throw errorFromApiResponse(res.status, data, "Import failed");
       }
       if (kbId) {
         const reviewAction = onImportQueued
@@ -99,7 +96,7 @@ export function ImportExportWorkspace({
       }
       setFile(null);
     } catch (e: unknown) {
-      showToast("error", e instanceof Error ? e.message : "Import failed");
+      showToast("error", formatUserFacingApiError(e, locale));
     } finally { setIsUploading(false); }
   }
 
@@ -112,7 +109,10 @@ export function ImportExportWorkspace({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ format: exportFormat }),
       });
-      if (!res.ok) { const e = await res.json(); throw new Error(e.detail || "Export failed"); }
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw errorFromApiResponse(res.status, data, "Export failed");
+      }
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -125,7 +125,7 @@ export function ImportExportWorkspace({
       showToast("success", `Export ready — semantica_export.${exportFormat}`);
       logEvent("export", `Exported graph as ${exportFormat.toUpperCase()}`, { format: exportFormat });
     } catch (e: unknown) {
-      showToast("error", e instanceof Error ? e.message : "Export failed");
+      showToast("error", formatUserFacingApiError(e, locale));
     } finally { setIsExporting(false); }
   }
 
