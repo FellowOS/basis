@@ -1,0 +1,125 @@
+from io import BytesIO
+from pathlib import Path
+import time
+
+import pytest
+
+pytest.importorskip("semantica")
+
+from fastapi.testclient import TestClient
+
+from sema.api.app import create_app
+from sema.config import Settings
+from sema.graph.session import GraphSession
+from sema.knowledge.blob_store import BlobStore
+from sema.knowledge.store import KnowledgeStore
+from sema.pipeline.document import TextIngestOptions
+from sema.pipeline.version_ingest import run_version_ingest
+
+
+def _kb_id(tmp_path: Path) -> str:
+    from sema.admin.store import AdminStore
+
+    admin = AdminStore(tmp_path / "sema.db")
+    user, _ = admin.register("ingest@example.com", "password1", "U")
+    kb = admin.create_kb(user, "KB", None, "restricted")
+    admin.close()
+    return kb.id
+
+
+def test_run_version_ingest_chunks_and_marks_ready(tmp_path: Path) -> None:
+    kb_id = _kb_id(tmp_path)
+    blobs = BlobStore(tmp_path)
+    knowledge = KnowledgeStore(tmp_path / "sema.db", blobs)
+    text = b"Line one.\nLine two about contracts."
+    _, version_id, job_id, _ = knowledge.store_upload_bytes(
+        kb_id,
+        title="clause.txt",
+        mime_type="text/plain",
+        data=text,
+        created_by=None,
+        external_key="clause",
+    )
+    graph = GraphSession()
+    result = run_version_ingest(
+        knowledge,
+        graph,
+        kb_id,
+        version_id,
+        job_id,
+        filename="clause.txt",
+        graph_doc_id="clause",
+        options=TextIngestOptions(extract=False, chunk=True, chunk_size=20, chunk_overlap=0),
+    )
+    assert result["ledger_status"] == "ready"
+    assert result["chunk_count"] >= 1
+    assert knowledge.get_version(kb_id, version_id).status == "ready"
+    assert knowledge.get_job(kb_id, job_id).status == "succeeded"
+    assert graph.stats()["node_count"] >= 1
+    knowledge.close()
+
+
+def test_upload_api_async_accept_and_polls_succeeded(tmp_path: Path) -> None:
+    client = TestClient(create_app(Settings(data_dir=tmp_path)))
+    admin = client.post(
+        "/api/auth/register",
+        json={"email": "async@example.com", "password": "password1", "display_name": "U"},
+    ).json()
+    headers = {"Authorization": f"Bearer {admin['token']}"}
+    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+
+    files = {"file": ("async.txt", BytesIO(b"async ingest body"), "text/plain")}
+    uploaded = client.post(
+        f"/api/kbs/{kb_id}/documents/upload",
+        headers=headers,
+        files=files,
+        data={"extract": "false", "wait": "false"},
+    )
+    assert uploaded.status_code == 202
+    body = uploaded.json()
+    assert body.get("accepted") is True
+    assert body.get("job_id") and body.get("version_id")
+
+    for _ in range(60):
+        job = client.get(
+            f"/api/kbs/{kb_id}/ingest/jobs/{body['job_id']}",
+            headers=headers,
+        )
+        assert job.status_code == 200
+        status = job.json()["job"]["status"]
+        if status in {"succeeded", "failed"}:
+            assert status == "succeeded"
+            break
+        time.sleep(0.1)
+    else:
+        raise AssertionError("job did not finish")
+
+
+def test_upload_api_returns_job_and_polls_succeeded(tmp_path: Path) -> None:
+    client = TestClient(create_app(Settings(data_dir=tmp_path)))
+    admin = client.post(
+        "/api/auth/register",
+        json={"email": "up@example.com", "password": "password1", "display_name": "U"},
+    ).json()
+    headers = {"Authorization": f"Bearer {admin['token']}"}
+    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+
+    files = {"file": ("demo.txt", BytesIO(b"payment terms and delivery"), "text/plain")}
+    uploaded = client.post(
+        f"/api/kbs/{kb_id}/documents/upload",
+        headers=headers,
+        files=files,
+        data={"extract": "false"},
+    )
+    assert uploaded.status_code == 200
+    body = uploaded.json()
+    assert body.get("job_id") and body.get("version_id") and body.get("document_id")
+    assert body.get("ledger_status") == "ready"
+
+    job = client.get(
+        f"/api/kbs/{kb_id}/ingest/jobs/{body['job_id']}",
+        headers=headers,
+    )
+    assert job.status_code == 200
+    assert job.json()["job"]["status"] == "succeeded"
+    assert job.json()["version"]["status"] == "ready"

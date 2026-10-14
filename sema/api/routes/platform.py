@@ -1,0 +1,25 @@
+"""Runtime info: Sema API + embedded Semantica SDK (not a separate Semantica HTTP server)."""
+
+from fastapi import APIRouter
+
+from sema import __version__
+from sema.capabilities import platform_capabilities
+
+router = APIRouter(prefix="/api/platform", tags=["platform"])
+
+
+@router.get("")
+async def platform_info() -> dict:
+    try:
+        import semantica
+
+        sdk_version = semantica.__version__
+    except ImportError:
+        sdk_version = None
+    return {
+        "sema_version": __version__,
+        "semantica_sdk_version": sdk_version,
+        "mode": "embedded_sdk",
+        "capabilities": platform_capabilities(),
+        "note": "图谱与推理在本 API 进程内通过 semantica Python 库执行，无需 semantica server start。",
+    }

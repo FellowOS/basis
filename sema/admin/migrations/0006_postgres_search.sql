@@ -1,0 +1,2 @@
+-- PostgreSQL adds a GiST trigram index for nearest-neighbor text ranking.
+-- SQLite keyword search continues to use the FTS5 projection from migration 0005.

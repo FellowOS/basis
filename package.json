@@ -1,0 +1,14 @@
+{
+  "name": "sema-workspace",
+  "private": true,
+  "packageManager": "pnpm@10.2.1",
+  "engines": {
+    "node": ">=22.0.0",
+    "pnpm": ">=10.0.0"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @sema/web dev",
+    "build": "pnpm --filter @sema/web build",
+    "typecheck": "pnpm --filter @sema/web typecheck"
+  }
+}

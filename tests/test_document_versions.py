@@ -1,0 +1,113 @@
+"""Document version append and external_key reuse."""
+
+from pathlib import Path
+
+from fastapi.testclient import TestClient
+
+from sema.api.app import create_app
+from sema.config import Settings
+
+
+def _auth(token: str) -> dict[str, str]:
+    return {"Authorization": f"Bearer {token}"}
+
+
+def test_same_doc_id_appends_version_and_supersedes_ready(tmp_path: Path) -> None:
+    app = create_app(Settings(data_dir=tmp_path))
+    client = TestClient(app)
+    admin = client.post(
+        "/api/auth/register",
+        json={"email": "ver@example.com", "password": "password1", "display_name": "Ver"},
+    ).json()
+    headers = _auth(admin["token"])
+    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+
+    first = client.post(
+        f"/api/kbs/{kb_id}/documents",
+        headers=headers,
+        json={"doc_id": "policy", "text": "Version one content."},
+    )
+    assert first.status_code == 200
+    body = first.json()
+    assert body["version_no"] == 1
+    assert body["new_document"] is True
+    document_id = body["document_id"]
+
+    processed = client.post(
+        f"/api/kbs/{kb_id}/processing/jobs",
+        headers=headers,
+        json={"version_id": body["version_id"], "wait": True, "chunk": False, "extract": False},
+    )
+    assert processed.status_code == 200
+    assert processed.json()["ledger_status"] == "ready"
+
+    second = client.post(
+        f"/api/kbs/{kb_id}/documents",
+        headers=headers,
+        json={"doc_id": "policy", "text": "Version two content."},
+    )
+    assert second.status_code == 200
+    second_body = second.json()
+    assert second_body["document_id"] == document_id
+    assert second_body["version_no"] == 2
+    assert second_body["new_document"] is False
+    assert second_body["new_version"] is True
+    assert second_body["status"] == "uploaded"
+
+    docs = client.get(f"/api/kbs/{kb_id}/documents", headers=headers).json()["documents"]
+    policy_rows = [d for d in docs if d.get("doc_id") == "policy"]
+    assert len(policy_rows) == 1
+    assert policy_rows[0]["version_no"] == 2
+
+
+def test_unchanged_content_skips_new_version(tmp_path: Path) -> None:
+    app = create_app(Settings(data_dir=tmp_path))
+    client = TestClient(app)
+    admin = client.post(
+        "/api/auth/register",
+        json={"email": "same@example.com", "password": "password1", "display_name": "Same"},
+    ).json()
+    headers = _auth(admin["token"])
+    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    text = "Identical bytes."
+    first = client.post(
+        f"/api/kbs/{kb_id}/documents",
+        headers=headers,
+        json={"doc_id": "stable", "text": text},
+    ).json()
+    again = client.post(
+        f"/api/kbs/{kb_id}/documents",
+        headers=headers,
+        json={"doc_id": "stable", "text": text},
+    )
+    assert again.status_code == 200
+    payload = again.json()
+    assert payload["unchanged"] is True
+    assert payload["new_version"] is False
+    assert payload["version_id"] == first["version_id"]
+    assert payload["version_no"] == 1
+
+
+def test_explicit_version_upload_route(tmp_path: Path) -> None:
+    app = create_app(Settings(data_dir=tmp_path))
+    client = TestClient(app)
+    admin = client.post(
+        "/api/auth/register",
+        json={"email": "up@example.com", "password": "password1", "display_name": "Up"},
+    ).json()
+    headers = _auth(admin["token"])
+    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    created = client.post(
+        f"/api/kbs/{kb_id}/documents",
+        headers=headers,
+        json={"doc_id": "manual", "text": "first"},
+    ).json()
+
+    updated = client.post(
+        f"/api/kbs/{kb_id}/documents/{created['document_id']}/versions",
+        headers=headers,
+        json={"text": "second"},
+    )
+    assert updated.status_code == 200
+    assert updated.json()["version_no"] == 2
+    assert updated.json()["new_version"] is True

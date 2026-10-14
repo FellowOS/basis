@@ -1,0 +1,191 @@
+import pytest
+
+pytest.importorskip("semantica")
+
+from fastapi.testclient import TestClient
+
+from sema.api.app import create_app
+from sema.config import Settings
+
+
+def _auth(token: str) -> dict[str, str]:
+    return {"Authorization": f"Bearer {token}"}
+
+
+def test_realtime_ticket_and_websocket_connect(tmp_path) -> None:
+    client = TestClient(create_app(Settings(data_dir=tmp_path)))
+    admin = client.post(
+        "/api/auth/register",
+        json={"email": "ws@example.com", "password": "password1", "display_name": "U"},
+    ).json()
+    headers = _auth(admin["token"])
+    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+
+    ticket_resp = client.post(f"/api/kbs/{kb_id}/realtime-ticket", headers=headers)
+    assert ticket_resp.status_code == 200
+    ticket = ticket_resp.json()["ticket"]
+
+    with client.websocket_connect(
+        f"/api/kbs/{kb_id}/ws/graph-updates?ticket={ticket}"
+    ) as ws:
+        hello = ws.receive_json()
+        assert hello["type"] == "connected"
+        assert hello["kb_id"] == kb_id
+
+    reuse = client.websocket_connect(f"/api/kbs/{kb_id}/ws/graph-updates?ticket={ticket}")
+    with pytest.raises(Exception):
+        with reuse:
+            reuse.receive_json()
+
+
+def test_wrong_kb_ticket_rejected(tmp_path) -> None:
+    client = TestClient(create_app(Settings(data_dir=tmp_path)))
+    admin = client.post(
+        "/api/auth/register",
+        json={"email": "w2@example.com", "password": "password1", "display_name": "U"},
+    ).json()
+    headers = _auth(admin["token"])
+    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    other = client.post(
+        "/api/kbs",
+        headers=headers,
+        json={"name": "Other", "visibility": "restricted"},
+    ).json()["id"]
+
+    ticket = client.post(f"/api/kbs/{kb_id}/realtime-ticket", headers=headers).json()["ticket"]
+    with pytest.raises(Exception):
+        with client.websocket_connect(f"/api/kbs/{other}/ws/graph-updates?ticket={ticket}"):
+            pass
+
+
+def test_member_removed_revokes_open_websocket(tmp_path) -> None:
+    client = TestClient(create_app(Settings(data_dir=tmp_path)))
+    owner = client.post(
+        "/api/auth/register",
+        json={"email": "own@example.com", "password": "password1", "display_name": "Owner"},
+    ).json()
+    member = client.post(
+        "/api/auth/register",
+        json={"email": "mem@example.com", "password": "password1", "display_name": "Member"},
+    ).json()
+    owner_headers = _auth(owner["token"])
+    member_headers = _auth(member["token"])
+    member_id = member["user"]["id"]
+
+    kb_id = client.post(
+        "/api/kbs",
+        headers=owner_headers,
+        json={"name": "Team", "visibility": "restricted"},
+    ).json()["id"]
+    client.put(
+        f"/api/kbs/{kb_id}/members/{member_id}",
+        headers=owner_headers,
+        json={"role": "viewer"},
+    )
+
+    ticket = client.post(
+        f"/api/kbs/{kb_id}/realtime-ticket",
+        headers=member_headers,
+    ).json()["ticket"]
+
+    with client.websocket_connect(
+        f"/api/kbs/{kb_id}/ws/graph-updates?ticket={ticket}"
+    ) as ws:
+        assert ws.receive_json()["type"] == "connected"
+        removed = client.delete(
+            f"/api/kbs/{kb_id}/members/{member_id}",
+            headers=owner_headers,
+        )
+        assert removed.status_code == 200
+        revoked = ws.receive_json()
+        assert revoked["type"] == "access_revoked"
+        assert revoked["kb_id"] == kb_id
+
+
+def test_member_role_change_revokes_websocket(tmp_path) -> None:
+    client = TestClient(create_app(Settings(data_dir=tmp_path)))
+    owner = client.post(
+        "/api/auth/register",
+        json={"email": "own2@example.com", "password": "password1", "display_name": "Owner"},
+    ).json()
+    member = client.post(
+        "/api/auth/register",
+        json={"email": "mem2@example.com", "password": "password1", "display_name": "Member"},
+    ).json()
+    owner_headers = _auth(owner["token"])
+    member_headers = _auth(member["token"])
+    member_id = member["user"]["id"]
+
+    kb_id = client.post(
+        "/api/kbs",
+        headers=owner_headers,
+        json={"name": "Role KB", "visibility": "restricted"},
+    ).json()["id"]
+    client.put(
+        f"/api/kbs/{kb_id}/members/{member_id}",
+        headers=owner_headers,
+        json={"role": "editor"},
+    )
+
+    ticket = client.post(
+        f"/api/kbs/{kb_id}/realtime-ticket",
+        headers=member_headers,
+    ).json()["ticket"]
+
+    with client.websocket_connect(
+        f"/api/kbs/{kb_id}/ws/graph-updates?ticket={ticket}"
+    ) as ws:
+        assert ws.receive_json()["type"] == "connected"
+        changed = client.put(
+            f"/api/kbs/{kb_id}/members/{member_id}",
+            headers=owner_headers,
+            json={"role": "viewer"},
+        )
+        assert changed.status_code == 200
+        revoked = ws.receive_json()
+        assert revoked["type"] == "access_revoked"
+        assert revoked["kb_id"] == kb_id
+
+
+def test_deactivate_user_revokes_all_websockets(tmp_path) -> None:
+    client = TestClient(create_app(Settings(data_dir=tmp_path)))
+    admin = client.post(
+        "/api/auth/register",
+        json={"email": "adm@example.com", "password": "password1", "display_name": "Admin"},
+    ).json()
+    member = client.post(
+        "/api/auth/register",
+        json={"email": "deact@example.com", "password": "password1", "display_name": "Gone"},
+    ).json()
+    admin_headers = _auth(admin["token"])
+    member_headers = _auth(member["token"])
+    member_id = member["user"]["id"]
+
+    kb_id = client.post(
+        "/api/kbs",
+        headers=admin_headers,
+        json={"name": "Shared", "visibility": "restricted"},
+    ).json()["id"]
+    client.put(
+        f"/api/kbs/{kb_id}/members/{member_id}",
+        headers=admin_headers,
+        json={"role": "viewer"},
+    )
+
+    ticket = client.post(
+        f"/api/kbs/{kb_id}/realtime-ticket",
+        headers=member_headers,
+    ).json()["ticket"]
+
+    with client.websocket_connect(
+        f"/api/kbs/{kb_id}/ws/graph-updates?ticket={ticket}"
+    ) as ws:
+        assert ws.receive_json()["type"] == "connected"
+        deactivated = client.post(
+            f"/api/admin/users/{member_id}/deactivate",
+            headers=admin_headers,
+        )
+        assert deactivated.status_code == 200
+        revoked = ws.receive_json()
+        assert revoked["type"] == "access_revoked"
+        assert revoked.get("reason") == "user_deactivated"

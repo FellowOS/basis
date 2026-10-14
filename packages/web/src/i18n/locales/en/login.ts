@@ -1,0 +1,20 @@
+export const login = {
+  title: 'Sign in to Sema',
+  subtitle:
+    'The web app talks only to the Sema API; graph and reasoning run in-process via the Semantica SDK.',
+  registerTitle: 'Create your account',
+  registerSubtitle: 'The first registered user becomes a platform admin and can create knowledge bases.',
+  emailLabel: 'Email',
+  passwordLabel: 'Password',
+  displayNameLabel: 'Display name',
+  emailPlaceholder: 'you@company.com',
+  passwordPlaceholder: 'At least 8 characters',
+  displayNamePlaceholder: 'Your name',
+  submit: 'Sign in',
+  registerSubmit: 'Create account',
+  submitting: 'Working…',
+  loginFailed: 'Sign in failed',
+  switchToRegister: 'Register',
+  switchToLogin: 'Sign in',
+  backHome: 'Back to home',
+} as const;

@@ -1,0 +1,93 @@
+"""Graph import review staging and rejection."""
+
+import json
+
+import pytest
+
+pytest.importorskip("semantica")
+
+from fastapi.testclient import TestClient
+
+from sema.api.app import create_app
+from sema.capabilities import explorer_available
+from sema.config import Settings
+
+
+def test_reject_graph_import_deletes_staged_blob(tmp_path) -> None:
+    if not explorer_available():
+        pytest.skip("explorer extra not installed")
+
+    client = TestClient(create_app(Settings(data_dir=tmp_path)))
+    admin = client.post(
+        "/api/auth/register",
+        json={"email": "rej@example.com", "password": "password1", "display_name": "Rej"},
+    ).json()
+    headers = {"Authorization": f"Bearer {admin['token']}"}
+    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+
+    payload = {"nodes": [{"id": "n1", "type": "entity", "properties": {"content": "x"}}], "edges": []}
+    files = {"file": ("graph.json", json.dumps(payload), "application/json")}
+    proposed = client.post(
+        f"/api/kbs/{kb_id}/review/items/graph-import",
+        headers=headers,
+        files=files,
+    )
+    assert proposed.status_code == 200
+    item = proposed.json()["item"]
+    blob_key = item["payload"]["blob_key"]
+
+    rejected = client.post(
+        f"/api/kbs/{kb_id}/review/items/{item['id']}/reject",
+        headers=headers,
+        json={"rationale": "no"},
+    )
+    assert rejected.status_code == 200
+
+    from sema.knowledge.blob_store import BlobStore
+
+    blobs = BlobStore(tmp_path)
+    try:
+        blobs.read(kb_id, blob_key)
+        assert False, "staged blob should be removed after reject"
+    except Exception:
+        pass
+
+
+def test_approve_graph_import_deletes_staged_blob(tmp_path) -> None:
+    if not explorer_available():
+        pytest.skip("explorer extra not installed")
+
+    client = TestClient(create_app(Settings(data_dir=tmp_path)))
+    admin = client.post(
+        "/api/auth/register",
+        json={"email": "app@example.com", "password": "password1", "display_name": "App"},
+    ).json()
+    headers = {"Authorization": f"Bearer {admin['token']}"}
+    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+
+    payload = {"nodes": [{"id": "n1", "type": "entity", "properties": {"content": "x"}}], "edges": []}
+    files = {"file": ("graph.json", json.dumps(payload), "application/json")}
+    proposed = client.post(
+        f"/api/kbs/{kb_id}/review/items/graph-import",
+        headers=headers,
+        files=files,
+    )
+    assert proposed.status_code == 200
+    item = proposed.json()["item"]
+    blob_key = item["payload"]["blob_key"]
+
+    approved = client.post(
+        f"/api/kbs/{kb_id}/review/items/{item['id']}/approve",
+        headers=headers,
+        json={"rationale": "ok"},
+    )
+    assert approved.status_code == 200
+
+    from sema.knowledge.blob_store import BlobStore
+
+    blobs = BlobStore(tmp_path)
+    try:
+        blobs.read(kb_id, blob_key)
+        assert False, "staged blob should be removed after approve"
+    except Exception:
+        pass

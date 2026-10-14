@@ -1,0 +1,52 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sema"
+version = "0.1.0"
+description = "Knowledge application framework built on the Semantica SDK"
+readme = "README.md"
+requires-python = ">=3.10,<3.14"
+license = { text = "Apache-2.0" }
+dependencies = [
+  # Semantica SDK — Sema 运行时推荐组合（见 README「Semantica 依赖」）
+  "semantica[documents,parse-pdf,nlp-spacy,nlp-langdetect,llm-openai,embeddings-local,vectorstore-faiss,vectorstore-sqlite,shacl,split-tiktoken,ingest-git]",
+  "fastapi>=0.115",
+  "uvicorn[standard]>=0.32",
+  "pydantic>=2",
+  "python-dotenv>=1.0",
+  "python-multipart>=0.0.9",
+  "sqlalchemy>=2.0",
+  "alembic>=1.14",
+  "psycopg[binary,pool]>=3.2",
+  "pgvector>=0.3",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8",
+  "httpx>=0.27",
+]
+# 扫描件 PDF、更多向量后端、多 LLM 网关（体积大，按需装）
+heavy = [
+  "semantica[parse-docling,vectorstore-pgvector,llm-litellm,graph-neo4j]",
+]
+explorer = [
+  "semantica[explorer]",
+]
+
+[project.scripts]
+sema = "sema.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["sema*"]
+
+[tool.setuptools.package-data]
+sema = ["admin/migrations/*.sql"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.uv.sources]
+semantica = { path = "../../semantica", editable = true }

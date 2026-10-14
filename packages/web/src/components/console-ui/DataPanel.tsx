@@ -1,0 +1,84 @@
+import type { Icon } from '@phosphor-icons/react';
+import type { ReactNode } from 'react';
+import { Card, CardSubtitle } from '@/components/console-ui/Card.js';
+import { PHOSPHOR_ICON_WEIGHT } from '@/lib/phosphor-icon.js';
+import { getPublicIconComponent } from '@/lib/public-icon-map.js';
+import { cn } from '@/lib/utils.js';
+
+export function DataPanel({ className, children }: { className?: string; children: ReactNode }) {
+  return <div className={cn('flex flex-col gap-2', className)}>{children}</div>;
+}
+
+export function DataPanelHeader({
+  icon,
+  iconName,
+  title,
+  subtitle,
+  meta,
+  actions,
+  className,
+}: {
+  icon?: Icon;
+  iconName?: string;
+  title?: ReactNode;
+  subtitle?: ReactNode;
+  meta?: ReactNode;
+  actions?: ReactNode;
+  className?: string;
+}) {
+  if (!icon && !iconName && !title && !subtitle && !meta && !actions) return null;
+
+  const hasSubtitle = Boolean(subtitle);
+  const HeaderIcon = icon ?? (iconName ? getPublicIconComponent(iconName) : null);
+
+  return (
+    <div
+      className={cn(
+        'flex justify-between gap-3',
+        hasSubtitle ? 'items-start' : 'items-center',
+        className,
+      )}
+    >
+      <div className="min-w-0">
+        <div className="flex items-center gap-2 leading-none">
+          {HeaderIcon ? (
+            <HeaderIcon
+              size={16}
+              weight={PHOSPHOR_ICON_WEIGHT}
+              aria-hidden
+              className="size-4 shrink-0 text-signal [&_svg]:block"
+            />
+          ) : null}
+          {title ? (
+            <span className="font-['Noto_Sans_SC',sans-serif] text-sm font-bold leading-none text-foreground">
+              {title}
+            </span>
+          ) : null}
+        </div>
+        {subtitle ? <CardSubtitle className="mt-1 text-[11px]">{subtitle}</CardSubtitle> : null}
+      </div>
+      {meta || actions ? (
+        <div className="flex shrink-0 items-center gap-3">
+          {meta}
+          {actions}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+export function DataPanelBody({
+  children,
+  className,
+  padded = true,
+}: {
+  children: ReactNode;
+  className?: string;
+  padded?: boolean;
+}) {
+  return (
+    <Card padding="none">
+      <div className={cn(padded && 'p-4', className)}>{children}</div>
+    </Card>
+  );
+}

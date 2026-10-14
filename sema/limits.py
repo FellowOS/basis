@@ -1,0 +1,6 @@
+"""Server-side bounds for unbounded client requests (X-04)."""
+
+GRAPH_PAGE_MAX_NODES = 200
+GRAPH_PAGE_MAX_EDGES = 400
+CHUNK_SEARCH_MAX_LIMIT = 50
+EXPLORER_DECISIONS_MAX_LIMIT = 200
