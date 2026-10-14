@@ -109,6 +109,7 @@ export function KbGraphWorkspace({
     <div
       className="kb-graph-workspace relative flex min-h-0 w-full flex-1 flex-col overflow-hidden bg-background text-foreground"
       data-kb-id={kbId}
+      data-testid="kb-graph-workspace"
     >
       <KbImportExportDialog
         kbId={kbId}

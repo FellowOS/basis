@@ -1,5 +1,13 @@
 import { expect, type Page } from '@playwright/test';
 
+async function bearerToken(page: Page): Promise<string> {
+  const token = await page.evaluate(() => localStorage.getItem('sema_token'));
+  if (!token) {
+    throw new Error('Missing sema_token after login');
+  }
+  return token;
+}
+
 export async function registerFreshUser(page: Page): Promise<{ email: string; password: string }> {
   const stamp = Date.now();
   const email = `e2e-${stamp}@example.com`;
@@ -16,10 +24,7 @@ export async function registerFreshUser(page: Page): Promise<{ email: string; pa
 }
 
 export async function defaultKbId(page: Page): Promise<string> {
-  const token = await page.evaluate(() => localStorage.getItem('sema_token'));
-  if (!token) {
-    throw new Error('Missing sema_token after login');
-  }
+  const token = await bearerToken(page);
   const response = await page.request.get('/api/kbs', {
     headers: { Authorization: `Bearer ${token}` },
   });
@@ -41,13 +46,30 @@ export async function fetchGraphStats(
   page: Page,
   kbId: string,
 ): Promise<{ node_count: number; edge_count: number }> {
-  const token = await page.evaluate(() => localStorage.getItem('sema_token'));
-  if (!token) {
-    throw new Error('Missing sema_token after login');
-  }
+  const token = await bearerToken(page);
   const response = await page.request.get(`/api/kbs/${kbId}/graph/stats`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   expect(response.ok()).toBeTruthy();
   return (await response.json()) as { node_count: number; edge_count: number };
+}
+
+export async function searchGraphNodes(
+  page: Page,
+  kbId: string,
+  query: string,
+): Promise<Array<{ node: { id: string; content?: string; label?: string } }>> {
+  const token = await bearerToken(page);
+  const response = await page.request.post(`/api/kbs/${kbId}/graph/search`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    data: { query, limit: 20 },
+  });
+  expect(response.ok()).toBeTruthy();
+  const body = (await response.json()) as {
+    results?: Array<{ node: { id: string; content?: string; label?: string } }>;
+  };
+  return body.results ?? [];
 }
