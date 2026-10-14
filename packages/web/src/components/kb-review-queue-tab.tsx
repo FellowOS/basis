@@ -17,6 +17,11 @@ type ReviewItem = {
     duplicate_ids?: string[];
     filename?: string;
     byte_size?: number;
+    mapping_id?: string;
+    signature?: string;
+    target_uri?: string | null;
+    target_kind?: string;
+    direction?: string;
   };
   created_at: string;
 };
@@ -339,8 +344,8 @@ export function KbReviewQueueTab({ kbId }: { kbId: string }) {
           <h2 className="text-base font-semibold">{title}</h2>
           <p className="mt-1 text-xs text-muted-foreground">
             {locale === 'zh'
-              ? '合并与图导入均需编辑者批准后才会写入图投影。'
-              : 'Merges and graph imports apply to the projection only after editor approval.'}
+              ? '合并、图导入与本体映射需编辑者批准后才会生效。'
+              : 'Merges, graph imports, and ontology mappings apply only after editor approval.'}
           </p>
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
@@ -357,13 +362,18 @@ export function KbReviewQueueTab({ kbId }: { kbId: string }) {
             <ul className="flex flex-col gap-3">
               {items.map((item) => {
                 const isImport = item.kind === 'graph_import';
+                const isMapping = item.kind === 'ontology_mapping';
                 const primaryId = item.payload.primary_id ?? '—';
                 const duplicateIds = item.payload.duplicate_ids ?? [];
                 const approveLabelForItem = isImport
                   ? locale === 'zh'
                     ? '批准导入'
                     : 'Approve import'
-                  : approveLabel;
+                  : isMapping
+                    ? locale === 'zh'
+                      ? '批准映射'
+                      : 'Approve mapping'
+                    : approveLabel;
                 return (
                   <li
                     key={item.id}
@@ -373,7 +383,16 @@ export function KbReviewQueueTab({ kbId }: { kbId: string }) {
                     <div className="mt-2 font-medium">
                       {isImport
                         ? `${item.payload.filename ?? 'import'} (${item.payload.byte_size ?? '?'} B)`
-                        : (
+                        : isMapping
+                          ? (
+                            <span className="flex flex-col gap-1 font-mono text-xs">
+                              <span>{item.payload.signature ?? '—'}</span>
+                              <span className="text-muted-foreground">
+                                → {item.payload.target_uri ?? '—'} ({item.payload.target_kind ?? '?'})
+                              </span>
+                            </span>
+                          )
+                          : (
                           <span className="flex flex-col gap-1">
                             <span className="text-muted-foreground text-xs font-normal">
                               {locale === 'zh' ? '主节点' : 'Primary'}
@@ -394,7 +413,7 @@ export function KbReviewQueueTab({ kbId }: { kbId: string }) {
                           </span>
                         )}
                     </div>
-                    {!isImport ? (
+                    {!isImport && !isMapping ? (
                       <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">{graphOnlyMergeHint}</p>
                     ) : null}
                     <div className="mt-3 flex gap-2">

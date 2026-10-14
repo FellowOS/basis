@@ -114,3 +114,48 @@ def test_mapping_materializes_typed_facts_after_confirm(tmp_path) -> None:
 
     facts = client.get(f"/api/kbs/{kb_id}/ledger/typed-facts", headers=headers).json()["facts"]
     assert any(f["mapping_id"] == created["id"] for f in facts)
+
+
+def test_proposed_mapping_opens_review_queue(tmp_path) -> None:
+    client = TestClient(create_app(Settings(data_dir=tmp_path)))
+    admin = client.post(
+        "/api/auth/register",
+        json={"email": "rev@example.com", "password": "password1", "display_name": "Rev"},
+    ).json()
+    headers = {"Authorization": f"Bearer {admin['token']}"}
+    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+
+    created = client.post(
+        f"/api/kbs/{kb_id}/mappings",
+        headers=headers,
+        json={
+            "signature": "surface:test_phrase",
+            "target_uri": "http://example.org/p",
+            "target_kind": "property",
+            "direction": "forward",
+            "status": "proposed",
+        },
+    ).json()["mapping"]
+
+    queue = client.get(
+        f"/api/kbs/{kb_id}/review/items",
+        headers=headers,
+        params={"kind": "ontology_mapping"},
+    )
+    assert queue.status_code == 200
+    items = queue.json()["items"]
+    assert len(items) == 1
+    assert items[0]["payload"]["mapping_id"] == created["id"]
+
+    approved = client.post(
+        f"/api/kbs/{kb_id}/review/items/{items[0]['id']}/approve",
+        headers=headers,
+        json={"rationale": "looks good"},
+    )
+    assert approved.status_code == 200
+    mapping = client.get(f"/api/kbs/{kb_id}/mappings", headers=headers).json()["mappings"]
+    row = next(m for m in mapping if m["id"] == created["id"])
+    assert row["status"] == "confirmed"
+
+    queue_after = client.get(f"/api/kbs/{kb_id}/review/items", headers=headers)
+    assert queue_after.json()["items"] == []

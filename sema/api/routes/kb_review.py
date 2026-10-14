@@ -21,6 +21,10 @@ from sema.api.deps import (
 from sema.explorer.session_guard import require_explorer_graph_session
 from sema.knowledge.graph_audit import audit_kb_graph
 from sema.knowledge.import_review import discard_staged_import, stage_import_blob, upload_file_from_staged
+from sema.knowledge.mapping_service import (
+    MAPPING_REVIEW_KIND,
+    apply_mapping_status_change,
+)
 from sema.knowledge.store import KnowledgeStore
 
 router = APIRouter(prefix="/api/kbs", tags=["knowledge-bases"])
@@ -146,8 +150,24 @@ async def approve_review_item(
 
     merge_result: dict[str, Any] | None = None
     import_result: dict[str, Any] | None = None
+    mapping_result: dict[str, Any] | None = None
     approve_action = "kb.graph.merge_approved"
-    if item["kind"] == "entity_merge":
+    if item["kind"] == MAPPING_REVIEW_KIND:
+        approve_action = "kb.mapping.approved"
+        payload = item["payload"] or {}
+        mapping_id = str(payload.get("mapping_id") or item["subject_id"])
+        mapping_result = apply_mapping_status_change(
+            request,
+            kb_id,
+            mapping_id,
+            user,
+            store,
+            knowledge,
+            status="confirmed",
+            why=body.rationale,
+            sync_review=False,
+        )
+    elif item["kind"] == "entity_merge":
         payload = item["payload"]
         primary_id = str(payload.get("primary_id") or "")
         duplicate_ids = [str(d) for d in payload.get("duplicate_ids") or []]
@@ -257,7 +277,12 @@ async def approve_review_item(
             ),
         },
     )
-    return {"item": resolved, "merge": merge_result, "import": import_result}
+    return {
+        "item": resolved,
+        "merge": merge_result,
+        "import": import_result,
+        "mapping": mapping_result,
+    }
 
 
 @router.post("/{kb_id}/review/items/{item_id}/reject")
@@ -274,6 +299,20 @@ async def reject_review_item(
     item = knowledge.get_review_item(kb_id, item_id)
     if item.get("kind") == "graph_import":
         discard_staged_import(get_blob_store(request), kb_id, item.get("payload") or {})
+    elif item.get("kind") == MAPPING_REVIEW_KIND:
+        payload = item.get("payload") or {}
+        mapping_id = str(payload.get("mapping_id") or item["subject_id"])
+        apply_mapping_status_change(
+            request,
+            kb_id,
+            mapping_id,
+            user,
+            store,
+            knowledge,
+            status="rejected",
+            why=body.rationale,
+            sync_review=False,
+        )
     resolved = knowledge.resolve_review_item(
         kb_id,
         item_id,
@@ -281,11 +320,12 @@ async def reject_review_item(
         resolved_by=user.id,
         rationale=body.rationale,
     )
-    reject_action = (
-        "kb.graph.import_rejected"
-        if item.get("kind") == "graph_import"
-        else "kb.graph.merge_rejected"
-    )
+    if item.get("kind") == "graph_import":
+        reject_action = "kb.graph.import_rejected"
+    elif item.get("kind") == MAPPING_REVIEW_KIND:
+        reject_action = "kb.mapping.rejected"
+    else:
+        reject_action = "kb.graph.merge_rejected"
     audit_kb_graph(
         store,
         user,

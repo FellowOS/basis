@@ -1932,6 +1932,31 @@ class KnowledgeStore:
             rows = self._conn.execute(sql, tuple(params)).fetchall()
         return [self._review_row_to_dict(row) for row in rows]
 
+    def find_open_review_item(
+        self,
+        kb_id: str,
+        *,
+        kind: str,
+        subject_type: str,
+        subject_id: str,
+    ) -> dict[str, Any] | None:
+        with self._lock:
+            self._assert_kb_exists(kb_id)
+            row = self._conn.execute(
+                """
+                SELECT id, kind, subject_type, subject_id, status, priority,
+                       payload_json, version, created_at, resolved_at, resolved_by, rationale
+                FROM review_items
+                WHERE kb_id = ? AND kind = ? AND subject_type = ? AND subject_id = ?
+                  AND status = 'open'
+                LIMIT 1
+                """,
+                (kb_id, kind, subject_type, subject_id),
+            ).fetchone()
+        if row is None:
+            return None
+        return self._review_row_to_dict(row)
+
     def get_review_item(self, kb_id: str, item_id: str) -> dict[str, Any]:
         with self._lock:
             self._assert_kb_exists(kb_id)

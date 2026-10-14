@@ -8,8 +8,9 @@ from fastapi import APIRouter, Depends, Query, Request
 from pydantic import BaseModel, Field
 
 from sema.admin.store import AdminStore, User
-from sema.api.deps import get_current_user, get_knowledge_store, get_store, rebuild_kb_projection
+from sema.api.deps import get_current_user, get_knowledge_store, get_store
 from sema.knowledge.graph_audit import audit_kb_graph
+from sema.knowledge.mapping_service import apply_mapping_status_change, ensure_mapping_review_item
 from sema.knowledge.store import KnowledgeStore
 
 router = APIRouter(prefix="/api/kbs", tags=["knowledge-bases"])
@@ -47,6 +48,7 @@ async def list_kb_mappings(
 async def create_kb_mapping(
     kb_id: str,
     body: CreateMappingRequest,
+    request: Request,
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
@@ -63,14 +65,29 @@ async def create_kb_mapping(
         status=body.status,
         why=body.why,
     )
+    materialized = None
+    projection = None
+    if body.status == "proposed":
+        ensure_mapping_review_item(knowledge, kb_id, mapping)
+    else:
+        materialized = knowledge.materialize_mapping_facts(kb_id, mapping["id"])
+        if materialized.get("created", 0) > 0:
+            from sema.api.deps import rebuild_kb_projection
+
+            projection = rebuild_kb_projection(request, kb_id)
     audit_kb_graph(
         store,
         user,
         kb_id,
         "kb.mapping.created",
-        extra={"mapping_id": mapping["id"], "signature": mapping["signature"], "status": mapping["status"]},
+        extra={
+            "mapping_id": mapping["id"],
+            "signature": mapping["signature"],
+            "status": mapping["status"],
+            "materialized": materialized,
+        },
     )
-    return {"mapping": mapping}
+    return {"mapping": mapping, "materialized": materialized, "projection": projection}
 
 
 @router.post("/{kb_id}/mappings/{mapping_id}/status")
@@ -84,28 +101,14 @@ async def update_kb_mapping_status(
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> dict[str, Any]:
     store.get_kb_for(user, kb_id, "editor")
-    mapping = knowledge.update_mapping_status(
+    return apply_mapping_status_change(
+        request,
         kb_id,
         mapping_id,
-        user.id,
+        user,
+        store,
+        knowledge,
         status=body.status,
         why=body.why,
+        sync_review=True,
     )
-    materialized: dict[str, Any] | None = None
-    projection: dict[str, Any] | None = None
-    if body.status == "confirmed":
-        materialized = knowledge.materialize_mapping_facts(kb_id, mapping_id)
-        if materialized.get("created", 0) > 0:
-            projection = rebuild_kb_projection(request, kb_id)
-    audit_kb_graph(
-        store,
-        user,
-        kb_id,
-        "kb.mapping.status",
-        extra={
-            "mapping_id": mapping_id,
-            "status": body.status,
-            "materialized": materialized,
-        },
-    )
-    return {"mapping": mapping, "materialized": materialized, "projection": projection}

@@ -1,5 +1,6 @@
 import { type FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { toast } from 'sonner';
 import {
   DataPanel,
   DataPanelBody,
@@ -50,6 +51,7 @@ type TypedFactRow = {
 export function KbMappingsPage() {
   const { locale, t } = useI18n();
   const { id } = useParams();
+  const navigate = useNavigate();
   const { getKb } = useKbCatalog();
   const kb = id ? getKb(id) : undefined;
   const canEdit = ['owner', 'admin', 'editor'].includes(kb?.my_role ?? '');
@@ -107,12 +109,20 @@ export function KbMappingsPage() {
           target_uri: targetUri.trim() || null,
           target_kind: targetKind,
           direction,
-          status: canEdit ? 'proposed' : 'proposed',
+          status: 'proposed',
         }),
       });
       setSignature('');
       setTargetUri('');
       await load();
+      toast.success(zh ? '已提交审核队列' : 'Sent to review queue', {
+        action: {
+          label: zh ? '去审核' : 'Review',
+          onClick: () => {
+            navigate(`${kbPath(id, 'review')}?tab=queue`);
+          },
+        },
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Save failed');
     } finally {
