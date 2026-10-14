@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { CSSProperties } from "react";
 import { Download, HeartPulse, Loader2, Wrench } from "lucide-react";
+import { explorerApiErrorMessage } from "../../lib/explorer-api-error";
 import { loadOntologyHealth, loadOntologyRegistry } from "./api";
 import type { OntologyEntry, OntologyHealthResponse, HealthIssue } from "./types";
 
@@ -25,7 +26,7 @@ export function HealthTab({ onFixInEditor }: HealthTabProps) {
       })
       .catch((err) => {
         if (cancelled) return;
-        setError(err instanceof Error ? err.message : "Failed to load ontology registry.");
+        setError(explorerApiErrorMessage(err));
       });
     return () => {
       cancelled = true;

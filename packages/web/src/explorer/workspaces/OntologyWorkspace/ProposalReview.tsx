@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { explorerApiErrorMessage, explorerGetJson, explorerMutationResult } from "../../lib/explorer-api-error";
 import { explorerFetch } from "../../host/explorerHttp";
 import {
   GitMerge,
@@ -65,12 +66,13 @@ export function ProposalReview({ proposalId }: { proposalId: string }) {
 
   const loadProposal = useCallback(async () => {
     try {
-      const response = await explorerFetch(`/api/ontology/proposals/${proposalId}`);
-      if (response.ok) {
-        const data = await response.json();
-        setProposal(data);
-        generateDiff(data);
-      }
+      const { data } = await explorerGetJson<Proposal>(
+        `/api/ontology/proposals/${proposalId}`,
+        undefined,
+        { fallbackMessage: "Failed to load proposal" },
+      );
+      setProposal(data);
+      generateDiff(data);
     } catch (error) {
       console.error("Failed to load proposal:", error);
     }
@@ -80,13 +82,14 @@ export function ProposalReview({ proposalId }: { proposalId: string }) {
     let ignore = false;
     async function fetchInitial() {
       try {
-        const response = await explorerFetch(`/api/ontology/proposals/${proposalId}`);
-        if (response.ok) {
-          const data = await response.json();
-          if (!ignore) {
-            setProposal(data);
-            generateDiff(data);
-          }
+        const { data } = await explorerGetJson<Proposal>(
+          `/api/ontology/proposals/${proposalId}`,
+          undefined,
+          { fallbackMessage: "Failed to load proposal" },
+        );
+        if (!ignore) {
+          setProposal(data);
+          generateDiff(data);
         }
       } catch (error) {
         console.error("Failed to load proposal:", error);
@@ -108,13 +111,12 @@ export function ProposalReview({ proposalId }: { proposalId: string }) {
           author: "user",
         }),
       });
-      if (response.ok) {
-        setCommentText("");
-        loadProposal();
-      }
+      await explorerMutationResult(response, "Failed to add comment");
+      setCommentText("");
+      loadProposal();
     } catch (error) {
       console.error("Failed to add comment:", error);
-      alert("Failed to add comment");
+      alert(explorerApiErrorMessage(error));
     }
   }, [selectedElement, commentText, proposal, loadProposal]);
 
@@ -124,13 +126,12 @@ export function ProposalReview({ proposalId }: { proposalId: string }) {
       const response = await explorerFetch(`/api/ontology/proposals/${proposal.proposal_id}/approve`, {
         method: "POST",
       });
-      if (response.ok) {
-        alert("Proposal approved");
-        loadProposal();
-      }
+      await explorerMutationResult(response, "Failed to approve proposal");
+      alert("Proposal approved");
+      loadProposal();
     } catch (error) {
       console.error("Failed to approve proposal:", error);
-      alert("Failed to approve proposal");
+      alert(explorerApiErrorMessage(error));
     }
   }, [proposal, loadProposal]);
 
@@ -140,13 +141,12 @@ export function ProposalReview({ proposalId }: { proposalId: string }) {
       const response = await explorerFetch(`/api/ontology/proposals/${proposal.proposal_id}/reject`, {
         method: "POST",
       });
-      if (response.ok) {
-        alert("Proposal rejected");
-        loadProposal();
-      }
+      await explorerMutationResult(response, "Failed to reject proposal");
+      alert("Proposal rejected");
+      loadProposal();
     } catch (error) {
       console.error("Failed to reject proposal:", error);
-      alert("Failed to reject proposal");
+      alert(explorerApiErrorMessage(error));
     }
   }, [proposal, loadProposal]);
 
@@ -156,13 +156,12 @@ export function ProposalReview({ proposalId }: { proposalId: string }) {
       const response = await explorerFetch(`/api/ontology/proposals/${proposal.proposal_id}/publish`, {
         method: "POST",
       });
-      if (response.ok) {
-        alert("Proposal published");
-        loadProposal();
-      }
+      await explorerMutationResult(response, "Failed to publish proposal");
+      alert("Proposal published");
+      loadProposal();
     } catch (error) {
       console.error("Failed to publish proposal:", error);
-      alert("Failed to publish proposal");
+      alert(explorerApiErrorMessage(error));
     }
   }, [proposal, loadProposal]);
 

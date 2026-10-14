@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { explorerApiErrorMessage, explorerGetJson, parseExplorerJson } from "../../lib/explorer-api-error";
 import { explorerFetch } from "../../host/explorerHttp";
 import {
   AlertCircle,
@@ -189,18 +190,21 @@ function DetailPanel({
 
   useEffect(() => {
     let ignore = false;
-    explorerFetch(`/api/ontology/entity/${encodeURIComponent(uri)}`)
-      .then(async (r) => {
-        if (!r.ok) throw new Error("Not found");
-        const data = await r.json();
-        if (r.status === 207) setError(data.message || "Warning: Partial success loading entity.");
-        return data;
-      })
-      .then((data) => {
-        if (!ignore) setDetail(data);
+    void explorerGetJson<EntityDetail>(
+      `/api/ontology/entity/${encodeURIComponent(uri)}`,
+      undefined,
+      {
+        fallbackMessage: "Entity not found",
+        partialWarning: "Warning: Partial success loading entity.",
+      },
+    )
+      .then(({ data, partialWarning }) => {
+        if (ignore) return;
+        if (partialWarning) setError(partialWarning);
+        setDetail(data);
       })
       .catch((e) => {
-        if (!ignore) setError(e.message);
+        if (!ignore) setError(explorerApiErrorMessage(e));
       })
       .finally(() => {
         if (!ignore) setLoading(false);
@@ -326,8 +330,7 @@ export function OntologySearch() {
       const params = new URLSearchParams({ q: q.trim(), limit: "80" });
       if (type !== "all") params.set("entity_type", type);
       const res = await explorerFetch(`/api/ontology/search?${params}`);
-      if (!res.ok) throw new Error("Search failed");
-      setResults(await res.json());
+      setResults(await parseExplorerJson<SearchResult[]>(res, "Search failed"));
     } catch {
       setResults([]);
     } finally {

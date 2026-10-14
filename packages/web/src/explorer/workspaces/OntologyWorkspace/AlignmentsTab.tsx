@@ -8,6 +8,7 @@ import {
   saveAlignment,
   suggestAlignments,
 } from "./api";
+import { explorerApiErrorMessage } from "../../lib/explorer-api-error";
 import type { AlignmentRelation, AlignmentSuggestion, OntologyAlignment, OntologyEntry } from "./types";
 
 const RELATIONS: AlignmentRelation[] = [
@@ -60,12 +61,12 @@ export function AlignmentsTab() {
       setSourceOntology((current) => current || registryResult.value[0]?.uri || "");
       setTargetOntology((current) => current || registryResult.value[1]?.uri || registryResult.value[0]?.uri || "");
     } else {
-      errors.push(registryResult.reason instanceof Error ? registryResult.reason.message : "Failed to load ontology registry.");
+      errors.push(explorerApiErrorMessage(registryResult.reason, "en"));
     }
     if (alignmentResult.status === "fulfilled") {
       setAlignments(alignmentResult.value);
     } else {
-      errors.push(alignmentResult.reason instanceof Error ? alignmentResult.reason.message : "Failed to load alignments.");
+      errors.push(explorerApiErrorMessage(alignmentResult.reason, "en"));
     }
     if (errors.length) setError(errors.join(" "));
   }, []);
@@ -85,12 +86,12 @@ export function AlignmentsTab() {
         setSourceOntology((current) => current || registryResult.value[0]?.uri || "");
         setTargetOntology((current) => current || registryResult.value[1]?.uri || registryResult.value[0]?.uri || "");
       } else {
-        errors.push(registryResult.reason instanceof Error ? registryResult.reason.message : "Failed to load ontology registry.");
+        errors.push(explorerApiErrorMessage(registryResult.reason, "en"));
       }
       if (alignmentResult.status === "fulfilled") {
         setAlignments(alignmentResult.value);
       } else {
-        errors.push(alignmentResult.reason instanceof Error ? alignmentResult.reason.message : "Failed to load alignments.");
+        errors.push(explorerApiErrorMessage(alignmentResult.reason, "en"));
       }
       if (errors.length) setError(errors.join(" "));
     }
@@ -150,7 +151,7 @@ export function AlignmentsTab() {
       setTargetUri("");
       await reload();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not save alignment.");
+      setError(explorerApiErrorMessage(err));
     } finally {
       setBusy(false);
     }
@@ -168,7 +169,7 @@ export function AlignmentsTab() {
       });
       setSuggestions(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not suggest alignments.");
+      setError(explorerApiErrorMessage(err));
     } finally {
       setBusy(false);
     }
@@ -189,7 +190,7 @@ export function AlignmentsTab() {
       await removeAlignment(id);
       await reload();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not remove alignment.");
+      setError(explorerApiErrorMessage(err));
     } finally {
       setBusy(false);
     }

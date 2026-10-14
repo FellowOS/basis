@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { explorerFetch } from "../../host/explorerHttp";
+import { explorerApiErrorMessage, explorerGetJson } from "../../lib/explorer-api-error";
 import {
   AlertCircle,
   BookOpen,
@@ -88,18 +88,21 @@ function ConceptDetailPanel({
 
   useEffect(() => {
     let ignore = false;
-    explorerFetch(`/api/ontology/skos/concept/${encodeURIComponent(uri)}`)
-      .then(async (r) => {
-        if (!r.ok) throw new Error("Concept not found");
-        const data = await r.json();
-        if (r.status === 207) setError(data.message || "Warning: Partial success loading concept.");
-        return data;
-      })
-      .then((data) => {
-        if (!ignore) setDetail(data);
+    void explorerGetJson<SKOSConceptDetail>(
+      `/api/ontology/skos/concept/${encodeURIComponent(uri)}`,
+      undefined,
+      {
+        fallbackMessage: "Concept not found",
+        partialWarning: "Warning: Partial success loading concept.",
+      },
+    )
+      .then(({ data, partialWarning }) => {
+        if (ignore) return;
+        if (partialWarning) setError(partialWarning);
+        setDetail(data);
       })
       .catch((e) => {
-        if (!ignore) setError(e.message);
+        if (!ignore) setError(explorerApiErrorMessage(e));
       })
       .finally(() => {
         if (!ignore) setLoading(false);
@@ -361,20 +364,23 @@ function SchemePanel({
   useEffect(() => {
     let ignore = false;
     if (!expanded) return;
-    explorerFetch(`/api/vocabulary/hierarchy?scheme=${encodeURIComponent(scheme.uri)}`)
-      .then(async (r) => {
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        const data = await r.json();
-        if (r.status === 207 && !ignore) setError(data.message || "Warning: Partial success loading hierarchy.");
-        return data;
-      })
-      .then((data) => {
-        if (!ignore) setHierarchy(data);
+    void explorerGetJson<ConceptNode[]>(
+      `/api/vocabulary/hierarchy?scheme=${encodeURIComponent(scheme.uri)}`,
+      undefined,
+      {
+        fallbackMessage: "Failed to load hierarchy",
+        partialWarning: "Warning: Partial success loading hierarchy.",
+      },
+    )
+      .then(({ data, partialWarning }) => {
+        if (ignore) return;
+        if (partialWarning) setError(partialWarning);
+        setHierarchy(data);
       })
       .catch((err) => {
         if (!ignore) {
           setHierarchy([]);
-          setError(err instanceof Error ? err.message : "Failed to load hierarchy.");
+          setError(explorerApiErrorMessage(err));
         }
       })
       .finally(() => {
@@ -462,15 +468,19 @@ export function SKOSVocabularyManager({ schemeUri }: Props) {
   const [selectedUri, setSelectedUri] = useState<string | null>(null);
 
   useEffect(() => {
-    explorerFetch("/api/ontology/skos/schemes")
-      .then(async (r) => {
-        if (!r.ok) throw new Error(`Failed to load schemes (${r.status})`);
-        const data = await r.json();
-        if (r.status === 207) setError(data.message || "Warning: Partial success loading schemes.");
-        return data;
+    void explorerGetJson<SKOSScheme[]>(
+      "/api/ontology/skos/schemes",
+      undefined,
+      {
+        fallbackMessage: "Failed to load schemes",
+        partialWarning: "Warning: Partial success loading schemes.",
+      },
+    )
+      .then(({ data, partialWarning }) => {
+        if (partialWarning) setError(partialWarning);
+        setSchemes(data);
       })
-      .then(setSchemes)
-      .catch((e) => setError(e.message))
+      .catch((e) => setError(explorerApiErrorMessage(e)))
       .finally(() => setLoading(false));
   }, []);
 

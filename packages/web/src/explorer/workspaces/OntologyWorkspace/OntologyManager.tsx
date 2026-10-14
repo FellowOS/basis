@@ -1,4 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
+import {
+  explorerApiErrorMessage,
+  explorerGetJson,
+  explorerMutationResult,
+  parseExplorerJson,
+  throwIfExplorerNotOk,
+} from "../../lib/explorer-api-error";
 import { explorerFetch } from "../../host/explorerHttp";
 import {
   AlertCircle,
@@ -267,14 +274,19 @@ export function OntologyManager() {
     try {
       const params = new URLSearchParams();
       if (searchQ) params.set("q", searchQ);
-      const res = await explorerFetch(`/api/ontology/registry?${params}`);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
+      const { data, partialWarning } = await explorerGetJson<OntologyEntry[]>(
+        `/api/ontology/registry?${params}`,
+        undefined,
+        {
+          fallbackMessage: "Failed to load ontology registry",
+          partialWarning: "Warning: Partial success loading registry.",
+        },
+      );
       setEntries(data);
-      if (res.status === 207) flashMsg("err", data.message || "Warning: Partial success loading registry.");
-    } catch {
+      if (partialWarning) flashMsg("err", partialWarning);
+    } catch (err) {
       setEntries([]);
-      flashMsg("err", "Failed to load ontology registry");
+      flashMsg("err", explorerApiErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -286,16 +298,21 @@ export function OntologyManager() {
       try {
         const params = new URLSearchParams();
         if (searchQ) params.set("q", searchQ);
-        const res = await explorerFetch(`/api/ontology/registry?${params}`);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
+        const { data, partialWarning } = await explorerGetJson<OntologyEntry[]>(
+          `/api/ontology/registry?${params}`,
+          undefined,
+          {
+            fallbackMessage: "Failed to load ontology registry",
+            partialWarning: "Warning: Partial success loading registry.",
+          },
+        );
         if (ignore) return;
         setEntries(data);
-        if (res.status === 207) flashMsg("err", data.message || "Warning: Partial success loading registry.");
-      } catch {
+        if (partialWarning) flashMsg("err", partialWarning);
+      } catch (err) {
         if (!ignore) {
           setEntries([]);
-          flashMsg("err", "Failed to load ontology registry");
+          flashMsg("err", explorerApiErrorMessage(err));
         }
       } finally {
         if (!ignore) setLoading(false);
@@ -310,13 +327,12 @@ export function OntologyManager() {
       const res = await explorerFetch(`/api/ontology/${encodeURIComponent(uri)}/toggle`, {
         method: "PATCH",
       });
-      if (!res.ok) throw new Error("Toggle failed");
-      const data = await res.json();
+      const data = await parseExplorerJson<{ enabled: boolean }>(res, "Toggle failed");
       setEntries((prev) =>
         prev.map((e) => (e.uri === uri ? { ...e, enabled: data.enabled } : e))
       );
-    } catch {
-      flashMsg("err", "Could not toggle ontology");
+    } catch (err) {
+      flashMsg("err", explorerApiErrorMessage(err));
     }
   }, []);
 
@@ -325,11 +341,16 @@ export function OntologyManager() {
       const res = await explorerFetch(`/api/ontology/${encodeURIComponent(uri)}/refresh`, {
         method: "POST",
       });
-      if (!res.ok) throw new Error("Refresh failed");
-      flashMsg("ok", "Ontology refreshed");
+      const partial = await explorerMutationResult(
+        res,
+        "Refresh failed",
+        "Warning: Partial success refreshing ontology.",
+      );
+      if (partial) flashMsg("err", partial);
+      else flashMsg("ok", "Ontology refreshed");
       fetchRegistry();
-    } catch {
-      flashMsg("err", "Refresh failed — check source URL");
+    } catch (err) {
+      flashMsg("err", explorerApiErrorMessage(err));
     }
   }, [fetchRegistry]);
 
@@ -338,12 +359,12 @@ export function OntologyManager() {
       const res = await explorerFetch(`/api/ontology/${encodeURIComponent(uri)}`, {
         method: "DELETE",
       });
-      if (!res.ok) throw new Error("Remove failed");
+      await throwIfExplorerNotOk(res, "Remove failed");
       setEntries((prev) => prev.filter((e) => e.uri !== uri));
       if (selectedEntry?.uri === uri) setSelectedEntry(null);
       flashMsg("ok", "Removed from registry");
-    } catch {
-      flashMsg("err", "Could not remove ontology");
+    } catch (err) {
+      flashMsg("err", explorerApiErrorMessage(err));
     }
   }, [selectedEntry]);
 

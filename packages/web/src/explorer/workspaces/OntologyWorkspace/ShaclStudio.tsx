@@ -8,6 +8,7 @@ import {
   loadShaclShapes,
   validateShacl,
 } from "./api";
+import { explorerApiErrorMessage } from "../../lib/explorer-api-error";
 import type { OntologyEntry, ShaclShapeSummary, ShaclValidationResponse } from "./types";
 
 interface ShaclStudioProps {
@@ -35,7 +36,7 @@ export function ShaclStudio({ onJumpToNode }: ShaclStudioProps) {
       })
       .catch((err) => {
         if (cancelled) return;
-        setError(err instanceof Error ? err.message : "Failed to load ontology registry.");
+        setError(explorerApiErrorMessage(err));
       });
     return () => {
       cancelled = true;
@@ -92,7 +93,7 @@ export function ShaclStudio({ onJumpToNode }: ShaclStudioProps) {
       setShapes(shapeData.shapes);
       setValidation(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not generate SHACL.");
+      setError(explorerApiErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -127,7 +128,7 @@ export function ShaclStudio({ onJumpToNode }: ShaclStudioProps) {
     try {
       setValidation(await validateShacl(selectedUri, shacl));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not validate SHACL.");
+      setError(explorerApiErrorMessage(err));
     } finally {
       setLoading(false);
     }

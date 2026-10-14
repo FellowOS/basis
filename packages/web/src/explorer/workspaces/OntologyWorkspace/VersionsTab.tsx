@@ -1,4 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
+import {
+  explorerApiErrorMessage,
+  explorerGetJson,
+  explorerMutationResult,
+  explorerPartialSuccessWarning,
+  parseExplorerJson,
+} from "../../lib/explorer-api-error";
 import { explorerFetch } from "../../host/explorerHttp";
 import {
   Layers,
@@ -54,32 +61,36 @@ export function VersionsTab() {
     if (!ontologyUri) return;
     setError("");
     try {
-      const response = await explorerFetch(`/api/ontology/versions/${encodeURIComponent(ontologyUri)}`);
-      if (response.ok) {
-        const data = await response.json();
-        setVersions(data);
-        if (response.status === 207) setError(data.message || "Warning: Partial success loading versions.");
-      } else {
-        setError(`Failed to load versions (${response.status})`);
-      }
+      const { data, partialWarning } = await explorerGetJson<VersionEntry[]>(
+        `/api/ontology/versions/${encodeURIComponent(ontologyUri)}`,
+        undefined,
+        {
+          fallbackMessage: "Failed to load versions",
+          partialWarning: "Warning: Partial success loading versions.",
+        },
+      );
+      setVersions(data);
+      if (partialWarning) setError(partialWarning);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load versions.");
+      setError(explorerApiErrorMessage(err));
     }
   }, [ontologyUri]);
 
   const loadProposals = useCallback(async () => {
     setError("");
     try {
-      const response = await explorerFetch("/api/ontology/proposals");
-      if (response.ok) {
-        const data = await response.json();
-        setProposals(data);
-        if (response.status === 207) setError(data.message || "Warning: Partial success loading proposals.");
-      } else {
-        setError(`Failed to load proposals (${response.status})`);
-      }
+      const { data, partialWarning } = await explorerGetJson<Proposal[]>(
+        "/api/ontology/proposals",
+        undefined,
+        {
+          fallbackMessage: "Failed to load proposals",
+          partialWarning: "Warning: Partial success loading proposals.",
+        },
+      );
+      setProposals(data);
+      if (partialWarning) setError(partialWarning);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load proposals.");
+      setError(explorerApiErrorMessage(err));
     }
   }, []);
 
@@ -88,34 +99,38 @@ export function VersionsTab() {
     async function fetchInitial() {
       if (!ignore) setError("");
       try {
-        const propRes = await explorerFetch("/api/ontology/proposals");
-        if (propRes.ok) {
-          const propData = await propRes.json();
-          if (!ignore) {
-            setProposals(propData);
-            if (propRes.status === 207) setError(propData.message || "Warning: Partial success loading proposals.");
-          }
-        } else if (!ignore) {
-          setError(`Failed to load proposals (${propRes.status})`);
+        const { data: propData, partialWarning: propWarn } = await explorerGetJson<Proposal[]>(
+          "/api/ontology/proposals",
+          undefined,
+          {
+            fallbackMessage: "Failed to load proposals",
+            partialWarning: "Warning: Partial success loading proposals.",
+          },
+        );
+        if (!ignore) {
+          setProposals(propData);
+          if (propWarn) setError(propWarn);
         }
       } catch (err) {
-        if (!ignore) setError(err instanceof Error ? err.message : "Failed to load proposals.");
+        if (!ignore) setError(explorerApiErrorMessage(err));
       }
 
       if (!ontologyUri) return;
       try {
-        const verRes = await explorerFetch(`/api/ontology/versions/${encodeURIComponent(ontologyUri)}`);
-        if (verRes.ok) {
-          const verData = await verRes.json();
-          if (!ignore) {
-            setVersions(verData);
-            if (verRes.status === 207) setError(verData.message || "Warning: Partial success loading versions.");
-          }
-        } else if (!ignore) {
-          setError((prev) => prev || `Failed to load versions (${verRes.status})`);
+        const { data: verData, partialWarning: verWarn } = await explorerGetJson<VersionEntry[]>(
+          `/api/ontology/versions/${encodeURIComponent(ontologyUri)}`,
+          undefined,
+          {
+            fallbackMessage: "Failed to load versions",
+            partialWarning: "Warning: Partial success loading versions.",
+          },
+        );
+        if (!ignore) {
+          setVersions(verData);
+          if (verWarn) setError((prev) => prev || verWarn);
         }
       } catch (err) {
-        if (!ignore) setError((prev) => prev || (err instanceof Error ? err.message : "Failed to load versions."));
+        if (!ignore) setError((prev) => prev || explorerApiErrorMessage(err));
       }
     }
     void fetchInitial();
@@ -128,19 +143,16 @@ export function VersionsTab() {
       const response = await explorerFetch(`/api/ontology/proposals/${proposalId}/approve`, {
         method: "POST",
       });
-      if (response.ok) {
-        if (response.status === 207) {
-          const data = await response.json().catch(() => ({}));
-          setError(data.message || "Warning: Partial success approving proposal.");
-        } else {
-          alert("Proposal approved");
-        }
-        loadProposals();
-      } else {
-        setError(`Failed to approve proposal (${response.status})`);
-      }
+      const partial = await explorerMutationResult(
+        response,
+        "Failed to approve proposal",
+        "Warning: Partial success approving proposal.",
+      );
+      if (partial) setError(partial);
+      else alert("Proposal approved");
+      loadProposals();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to approve proposal.");
+      setError(explorerApiErrorMessage(err));
     }
   }, [loadProposals]);
 
@@ -150,19 +162,16 @@ export function VersionsTab() {
       const response = await explorerFetch(`/api/ontology/proposals/${proposalId}/reject`, {
         method: "POST",
       });
-      if (response.ok) {
-        if (response.status === 207) {
-          const data = await response.json().catch(() => ({}));
-          setError(data.message || "Warning: Partial success rejecting proposal.");
-        } else {
-          alert("Proposal rejected");
-        }
-        loadProposals();
-      } else {
-        setError(`Failed to reject proposal (${response.status})`);
-      }
+      const partial = await explorerMutationResult(
+        response,
+        "Failed to reject proposal",
+        "Warning: Partial success rejecting proposal.",
+      );
+      if (partial) setError(partial);
+      else alert("Proposal rejected");
+      loadProposals();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to reject proposal.");
+      setError(explorerApiErrorMessage(err));
     }
   }, [loadProposals]);
 
@@ -172,20 +181,17 @@ export function VersionsTab() {
       const response = await explorerFetch(`/api/ontology/proposals/${proposalId}/publish`, {
         method: "POST",
       });
-      if (response.ok) {
-        if (response.status === 207) {
-          const data = await response.json().catch(() => ({}));
-          setError(data.message || "Warning: Partial success publishing proposal.");
-        } else {
-          alert("Proposal published");
-        }
-        loadProposals();
-        loadVersions();
-      } else {
-        setError(`Failed to publish proposal (${response.status})`);
-      }
+      const partial = await explorerMutationResult(
+        response,
+        "Failed to publish proposal",
+        "Warning: Partial success publishing proposal.",
+      );
+      if (partial) setError(partial);
+      else alert("Proposal published");
+      loadProposals();
+      loadVersions();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to publish proposal.");
+      setError(explorerApiErrorMessage(err));
     }
   }, [loadProposals, loadVersions]);
 
@@ -202,15 +208,19 @@ export function VersionsTab() {
           version2: comparePair.v2,
         }),
       });
-      if (response.ok) {
-        const data = await response.json();
-        if (response.status === 207) setError(data.message || "Warning: Partial success comparing versions.");
-        setCompareResult(data);
-      } else {
-        setError(`Failed to compare versions (${response.status})`);
-      }
+      const data = await parseExplorerJson<Record<string, unknown>>(
+        response,
+        "Failed to compare versions",
+      );
+      const partial = explorerPartialSuccessWarning(
+        response,
+        data,
+        "Warning: Partial success comparing versions.",
+      );
+      if (partial) setError(partial);
+      setCompareResult(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to compare versions.");
+      setError(explorerApiErrorMessage(err));
     } finally {
       setIsLoading(false);
     }

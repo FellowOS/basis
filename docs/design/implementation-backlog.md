@@ -396,7 +396,7 @@ Acceptance:
 - localize messages in Web;
 - stop exposing raw server strings.
 
-**Status:** partial — `api.ts` / `explorer-client` attach `detail.code`; `api-error-message.ts` maps codes across KB shell, projection panel, graph load, import/export, and ontology API client; Explorer ontology loader still has raw-fetch surfaces in tabs.
+**Status:** partial — `api.ts` / `explorer-client` attach `detail.code`; `api-error-message.ts` + `explorer-api-error.ts` cover KB shell, graph load, import/export, and Ontology workspace tabs (versions, manager, SKOS, search, alignments, SHACL, proposals).
 
 ### X-02 — Request IDs and structured logging
 
