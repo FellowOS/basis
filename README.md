@@ -125,3 +125,12 @@ uv sync --extra dev --extra heavy
 ```
 
 管理台里配置的 **Chat / Embed API Key** 只在走 LLM 抽取或对话/嵌入时需要；默认 `pattern` 抽取与纯文本上传不依赖 Key。
+
+## 测试
+
+```bash
+uv sync --extra dev
+uv run pytest -q
+```
+
+图谱 Explorer 相关 UI 闭环与手测清单见 [docs/design/graph-workspace-closure.md](docs/design/graph-workspace-closure.md)。推送 `main` 时 GitHub Actions 会跑同一套 pytest（`.github/workflows/ci.yml`）。
