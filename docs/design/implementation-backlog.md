@@ -451,8 +451,9 @@ Review, mappings, SPARQL, Decision, chat, and ontology editing follow this found
 introduce a second source of truth.
 
 **Automated coverage (partial):** `tests/test_release_gate.py`, `tests/test_graph_page_limits.py`,
+`tests/test_runtime_limits.py`, `tests/test_observability.py`, `tests/test_request_id.py`,
 `tests/test_legacy_graph_migration.py`, `tests/test_ws_hub.py`, `tests/test_realtime_ws.py`, and
-`packages/web/src/explorer/host/explorerHttp.test.ts`.
+`packages/web/src/explorer/host/explorerHttp.test.ts` (+ `api-error-message.test.ts`).
 
 ## 10. Engineering debt (post graph-closure)
 
@@ -460,4 +461,4 @@ introduce a second source of truth.
 | --- | --- |
 | Web strict indexed access | `noUncheckedIndexedAccess` disabled in `packages/web/tsconfig.json` for Explorer graph code; re-enable incrementally if desired. |
 | `vitest` for `packages/web` | Wired in CI (`pnpm --filter @sema/web test`). |
-| Git remote | Local `main` has CI workflow; push after `git remote add origin …`. |
+| Ingest executor queue | `ThreadPoolExecutor` may queue unbounded tasks; consider `ingest_overloaded` when saturated. |
