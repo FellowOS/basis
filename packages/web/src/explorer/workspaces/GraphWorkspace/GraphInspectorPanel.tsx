@@ -6,6 +6,16 @@ import { Input } from "@/components/ui/input.js";
 import { Separator } from "@/components/ui/separator.js";
 import { useI18n } from "@/i18n/context.js";
 import { kbPath } from "@/lib/nav-config.js";
+import type { GraphWorkspaceLocale } from "./graphWorkspaceCopy";
+import {
+  inspectorAltPathsBadge,
+  inspectorBadgeCount,
+  inspectorCanonicalNodeLine,
+  inspectorCopy,
+  inspectorFocusTitle,
+  inspectorHopsSummary,
+  inspectorPathBandBadge,
+} from "./graphInspectorCopy";
 import {
   resolveGraphNodeEvidenceLinks,
   type GraphEvidenceLink,
@@ -42,6 +52,7 @@ export type PathResponse = {
 };
 
 export interface GraphInspectorPanelProps {
+  locale?: GraphWorkspaceLocale;
   kbId?: string;
   graphWriteEnabled?: boolean;
   decisionsEnabled?: boolean;
@@ -90,7 +101,13 @@ const BAND_COLORS: Record<string, string> = {
   distant: "#ff7b72",
 };
 
-function PathDistanceIntelPanel({ result }: { result: PathResponse }) {
+function PathDistanceIntelPanel({
+  locale,
+  result,
+}: {
+  locale: GraphWorkspaceLocale;
+  result: PathResponse;
+}) {
   const bandColor = BAND_COLORS[result.distance_band] ?? "#8b949e";
   const hasMetrics =
     result.confidence_decay != null ||
@@ -110,10 +127,12 @@ function PathDistanceIntelPanel({ result }: { result: PathResponse }) {
             color: bandColor,
           }}
         >
-          {result.distance_band} · {result.hop_count} hop{result.hop_count !== 1 ? "s" : ""}
+          {inspectorPathBandBadge(locale, result.distance_band, result.hop_count)}
         </Badge>
         {(result.alternative_path_count ?? 0) > 0 ? (
-          <Badge variant="secondary">{result.alternative_path_count} alt path{result.alternative_path_count !== 1 ? "s" : ""}</Badge>
+          <Badge variant="secondary">
+            {inspectorAltPathsBadge(locale, result.alternative_path_count ?? 0)}
+          </Badge>
         ) : null}
       </div>
 
@@ -121,7 +140,9 @@ function PathDistanceIntelPanel({ result }: { result: PathResponse }) {
         <div className="grid grid-cols-2 gap-2">
           {result.confidence_decay != null ? (
             <div className="graph-inspector-metric">
-              <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Confidence Decay</div>
+              <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                {inspectorCopy(locale, "confidenceDecay")}
+              </div>
               <div
                 className="text-sm font-semibold tabular-nums"
                 style={{
@@ -144,7 +165,9 @@ function PathDistanceIntelPanel({ result }: { result: PathResponse }) {
           ) : null}
           {result.semantic_similarity != null ? (
             <div className="graph-inspector-metric">
-              <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Semantic Sim.</div>
+              <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                {inspectorCopy(locale, "semanticSim")}
+              </div>
               <div className="text-sm font-semibold tabular-nums text-sky-600 dark:text-sky-400">
                 {(result.semantic_similarity * 100).toFixed(1)}%
               </div>
@@ -158,7 +181,9 @@ function PathDistanceIntelPanel({ result }: { result: PathResponse }) {
           ) : null}
           {result.path_coherence_score != null ? (
             <div className="graph-inspector-metric">
-              <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Path Coherence</div>
+              <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                {inspectorCopy(locale, "pathCoherence")}
+              </div>
               <div className="text-sm font-semibold tabular-nums text-emerald-600 dark:text-emerald-400">
                 {(result.path_coherence_score * 100).toFixed(1)}%
               </div>
@@ -166,7 +191,9 @@ function PathDistanceIntelPanel({ result }: { result: PathResponse }) {
           ) : null}
           {result.bottleneck_node ? (
             <div className="graph-inspector-metric">
-              <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Bottleneck</div>
+              <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                {inspectorCopy(locale, "bottleneck")}
+              </div>
               <div className="truncate text-xs font-semibold text-amber-600 dark:text-amber-400" title={result.bottleneck_node}>
                 {getNodeLabel(result.bottleneck_node)}
               </div>
@@ -218,12 +245,14 @@ function getEdgeLabelBetween(sourceId: string, targetId: string, edgeIds?: strin
 }
 
 function PathFlowViz({
+  locale,
   path,
   edgeIds,
   totalWeight,
   bottleneckNodeId,
   onFocusNode,
 }: {
+  locale: GraphWorkspaceLocale;
   path: string[];
   edgeIds?: string[];
   totalWeight: number;
@@ -231,7 +260,7 @@ function PathFlowViz({
   onFocusNode?: (nodeId: string) => void;
 }) {
   if (path.length === 0) {
-    return <p className={inspectorEmptyClass}>No path found between the selected nodes.</p>;
+    return <p className={inspectorEmptyClass}>{inspectorCopy(locale, "noPathFound")}</p>;
   }
 
   return (
@@ -249,7 +278,7 @@ function PathFlowViz({
               <button
                 type="button"
                 onClick={() => onFocusNode?.(nodeId)}
-                title={nodeId === bottleneckNodeId ? `Bottleneck: ${nodeId}` : `Focus: ${nodeId}`}
+                title={inspectorFocusTitle(locale, nodeId, nodeId === bottleneckNodeId)}
                 data-bottleneck={nodeId === bottleneckNodeId ? "true" : undefined}
                 className={cn(
                   "graph-inspector-path-chip",
@@ -280,10 +309,10 @@ function PathFlowViz({
       </div>
 
       <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-        <span>Total weight</span>
+        <span>{inspectorCopy(locale, "totalWeight")}</span>
         <span className="font-semibold tabular-nums text-foreground">{totalWeight.toFixed(3)}</span>
         <span aria-hidden>·</span>
-        <span>{path.length} hops</span>
+        <span>{inspectorHopsSummary(locale, path.length)}</span>
       </div>
     </div>
   );
@@ -292,6 +321,7 @@ function PathFlowViz({
 /* ─── Main Panel ─────────────────────────────────────────────────── */
 
 export function GraphInspectorPanel({
+  locale: localeProp,
   kbId,
   nodeId,
   inspectableNodeId,
@@ -314,8 +344,9 @@ export function GraphInspectorPanel({
   graphWriteEnabled = true,
   decisionsEnabled = false,
 }: GraphInspectorPanelProps) {
-  const { locale } = useI18n();
-  const zh = locale === "zh";
+  const { locale: i18nLocale } = useI18n();
+  const loc: GraphWorkspaceLocale =
+    localeProp ?? (i18nLocale === "zh" ? "zh" : "en");
 
   if (!nodeId) {
     return (
@@ -324,7 +355,7 @@ export function GraphInspectorPanel({
           <div className="size-3.5 rounded-full bg-primary/30" />
         </div>
         <p className="max-w-[28ch] text-sm leading-relaxed text-muted-foreground">
-          Search for a node or click one in the canvas to inspect its properties.
+          {inspectorCopy(loc, "emptyHint")}
         </p>
       </div>
     );
@@ -342,17 +373,21 @@ export function GraphInspectorPanel({
         <header className="space-y-2 border-b border-border pb-4">
           <div className="flex items-center gap-2">
             <span className="size-2 shrink-0 rounded-full bg-primary" />
-            <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Selection</span>
+            <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              {inspectorCopy(loc, "selection")}
+            </span>
           </div>
           <h2 className="text-lg font-semibold leading-snug break-words">{nodeId}</h2>
           <p className="font-mono text-xs break-all text-muted-foreground">{nodeId}</p>
         </header>
         <div className={inspectorNoticeClass}>
-          <p className="mb-1.5 font-medium text-foreground">Selected item is not directly inspectable in the current graph.</p>
+          <p className="mb-1.5 font-medium text-foreground">
+            {inspectorCopy(loc, "notInspectableTitle")}
+          </p>
           <p className="text-muted-foreground">
             {canActivateFocused
-              ? "Use Focus to resolve this grouped selection to its canonical node."
-              : focusedUnavailableReasonText(focusedUnavailableReason)}
+              ? inspectorCopy(loc, "useFocusHint")
+              : focusedUnavailableReasonText(focusedUnavailableReason, loc)}
           </p>
         </div>
       </aside>
@@ -391,23 +426,13 @@ export function GraphInspectorPanel({
     : [];
 
   const evidenceLinkLabel = (kind: GraphEvidenceLink["kind"]) => {
-    if (zh) {
-      switch (kind) {
-        case "sources-doc":
-          return "在资料中打开文档";
-        case "sources-chunk":
-          return "在资料中打开片段";
-        case "search":
-          return "在检索中搜索";
-      }
-    }
     switch (kind) {
       case "sources-doc":
-        return "Open document in Sources";
+        return inspectorCopy(loc, "evidenceSourcesDoc");
       case "sources-chunk":
-        return "Open chunk in Sources";
+        return inspectorCopy(loc, "evidenceSourcesChunk");
       case "search":
-        return "Search in KB";
+        return inspectorCopy(loc, "evidenceSearch");
     }
   };
 
@@ -420,7 +445,9 @@ export function GraphInspectorPanel({
             style={{ background: accentColor, boxShadow: `0 0 0 1px ${withAlpha(accentColor, 0.35)}` }}
           />
           <Badge variant="secondary" className="font-semibold uppercase tracking-wide">
-            {groupedDisplaySelection ? "Grouped Selection" : (attributes?.nodeType || "Entity")}
+            {groupedDisplaySelection
+              ? inspectorCopy(loc, "groupedSelection")
+              : (attributes?.nodeType || inspectorCopy(loc, "entityDefault"))}
           </Badge>
         </div>
         <h2 className="text-lg font-semibold leading-snug break-words">
@@ -432,39 +459,54 @@ export function GraphInspectorPanel({
         {groupedDisplaySelection ? (
           <div className={inspectorNoticeClass}>
             <p className="mb-1.5 font-medium text-foreground">
-              This grouped item stays display-level until you explicitly enter Focused mode.
+              {inspectorCopy(loc, "groupedDisplayTitle")}
             </p>
             <p className="text-muted-foreground">
               {canActivateFocused
-                ? `Canonical node available: ${effectiveNodeId}`
-                : focusedUnavailableReasonText(focusedUnavailableReason)}
+                ? inspectorCanonicalNodeLine(loc, effectiveNodeId)
+                : focusedUnavailableReasonText(focusedUnavailableReason, loc)}
             </p>
           </div>
         ) : null}
         {(attributes?.valid_from || attributes?.valid_until || attribution.length > 0 || predictions.length > 0) ? (
           <div className="flex flex-wrap gap-1.5">
-            {attributes?.valid_from || attributes?.valid_until ? <Badge variant="warning">temporal</Badge> : null}
-            {attribution.length ? <Badge variant="outline">{attribution.length} source fields</Badge> : null}
-            {predictions.length ? <Badge variant="outline">{predictions.length} candidate links</Badge> : null}
+            {attributes?.valid_from || attributes?.valid_until ? (
+              <Badge variant="warning">{inspectorCopy(loc, "temporalBadge")}</Badge>
+            ) : null}
+            {attribution.length ? (
+              <Badge variant="outline">{inspectorBadgeCount(loc, attribution.length, "sourceFields")}</Badge>
+            ) : null}
+            {predictions.length ? (
+              <Badge variant="outline">{inspectorBadgeCount(loc, predictions.length, "candidateLinks")}</Badge>
+            ) : null}
           </div>
         ) : null}
       </header>
 
       {(attributes?.valid_from || attributes?.valid_until) ? (
         <div className="rounded-lg border border-border bg-muted/35 px-3 py-2 font-mono text-xs text-foreground">
-          {attributes?.valid_from ? <div>from: {attributes.valid_from}</div> : null}
-          {attributes?.valid_until ? <div>until: {attributes.valid_until}</div> : null}
+          {attributes?.valid_from ? (
+            <div>{inspectorCopy(loc, "validFrom")}: {attributes.valid_from}</div>
+          ) : null}
+          {attributes?.valid_until ? (
+            <div>{inspectorCopy(loc, "validUntil")}: {attributes.valid_until}</div>
+          ) : null}
         </div>
       ) : null}
 
       {kbId && decisionsEnabled ? (
-        <GraphInspectorDecisions kbId={kbId} nodeId={effectiveNodeId} enabled={decisionsEnabled} />
+        <GraphInspectorDecisions
+          kbId={kbId}
+          nodeId={effectiveNodeId}
+          enabled={decisionsEnabled}
+          locale={loc}
+        />
       ) : null}
 
       {evidenceLinks.length > 0 || kbId ? (
         <section className={inspectorSectionClass}>
           <h3 className={inspectorSectionTitleClass}>
-            {zh ? "知识库跳转" : "Knowledge links"}
+            {inspectorCopy(loc, "knowledgeLinks")}
           </h3>
           <div className="flex flex-col gap-2">
             {kbId ? (
@@ -473,7 +515,7 @@ export function GraphInspectorPanel({
                   to={`${kbPath(kbId, 'chat')}?focus=${encodeURIComponent(effectiveNodeId)}`}
                 >
                   <MessageCircle size={14} className="shrink-0 opacity-70" />
-                  {zh ? "在对话中继续" : "Continue in chat"}
+                  {inspectorCopy(loc, "continueInChat")}
                 </Link>
               </Button>
             ) : null}
@@ -491,7 +533,7 @@ export function GraphInspectorPanel({
 
       {/* Canonical nodes remain editable even when their current body is empty. */}
       <details className="node-panel-collapse" open>
-        <summary className="node-panel-summary">Content</summary>
+        <summary className="node-panel-summary">{inspectorCopy(loc, "content")}</summary>
         <div className="node-panel-body" style={{ marginTop: 8 }}>
           <MarkdownContentViewer
             kbId={kbId}
@@ -505,7 +547,7 @@ export function GraphInspectorPanel({
       </details>
 
       <section className={inspectorSectionClass}>
-        <h3 className={inspectorSectionTitleClass}>Actions</h3>
+        <h3 className={inspectorSectionTitleClass}>{inspectorCopy(loc, "actions")}</h3>
         <div className="flex flex-col gap-2.5">
           <Button
             type="button"
@@ -514,58 +556,61 @@ export function GraphInspectorPanel({
             disabled={isRunningPredictions || !actionNodeId}
           >
             {isRunningPredictions ? <Loader2 size={14} className="animate-spin" /> : null}
-            {isRunningPredictions ? "Running…" : "Run Link Prediction"}
+            {isRunningPredictions
+              ? inspectorCopy(loc, "running")
+              : inspectorCopy(loc, "runPrediction")}
           </Button>
           <div className="flex flex-wrap gap-2">
             <Button type="button" variant="outline" size="sm" onClick={() => onDownloadProvenance("json")} disabled={!actionNodeId}>
-              Provenance JSON
+              {inspectorCopy(loc, "provenanceJson")}
             </Button>
             <Button type="button" variant="outline" size="sm" onClick={() => onDownloadProvenance("markdown")} disabled={!actionNodeId}>
-              Provenance MD
+              {inspectorCopy(loc, "provenanceMd")}
             </Button>
           </div>
         </div>
         <Input
           value={predictionType}
           onChange={(event) => onPredictionTypeChange(event.target.value)}
-          placeholder="Optional candidate type filter, e.g. disease"
+          placeholder={inspectorCopy(loc, "predictionTypePlaceholder")}
           className="h-9 bg-background"
         />
       </section>
 
       <section className={inspectorSectionClass}>
-        <h3 className={inspectorSectionTitleClass}>Trace Path</h3>
+        <h3 className={inspectorSectionTitleClass}>{inspectorCopy(loc, "tracePath")}</h3>
         <Input
           value={pathTargetId}
           onChange={(event) => onPathTargetChange(event.target.value)}
-          placeholder="Target node ID"
+          placeholder={inspectorCopy(loc, "pathTargetPlaceholder")}
           className="h-9 bg-background"
         />
         <Button type="button" variant="secondary" className="w-full sm:w-auto" onClick={onTracePath} disabled={!actionNodeId}>
-          Trace Causal Path
+          {inspectorCopy(loc, "traceCausalPath")}
         </Button>
         <Separator className="bg-border/80" />
         {pathResult?.path?.length ? (
           <>
             <PathFlowViz
+              locale={loc}
               path={pathResult.path}
               edgeIds={pathResult.edge_ids}
               totalWeight={pathResult.total_weight}
               bottleneckNodeId={pathResult.bottleneck_node}
               onFocusNode={onFocusNode}
             />
-            <PathDistanceIntelPanel result={pathResult} />
+            <PathDistanceIntelPanel locale={loc} result={pathResult} />
           </>
         ) : (
           <p className={inspectorEmptyClass}>
-            Choose a target or click a candidate prediction to prepare a path trace.
+            {inspectorCopy(loc, "pathEmptyHint")}
           </p>
         )}
       </section>
 
       {/* Candidate Links */}
       <details className="node-panel-collapse" open={predictions.length > 0}>
-        <summary className="node-panel-summary">Candidate Links</summary>
+        <summary className="node-panel-summary">{inspectorCopy(loc, "candidateLinks")}</summary>
         <div className="node-panel-body">
           {predictions.length > 0 ? (
             <div className="flex flex-col gap-2">
@@ -591,17 +636,17 @@ export function GraphInspectorPanel({
           ) : isRunningPredictions ? (
             <div className="flex items-center gap-2 py-1 text-xs text-muted-foreground">
               <Loader2 size={13} className="animate-spin" />
-              <span>Computing candidate links…</span>
+              <span>{inspectorCopy(loc, "computingCandidates")}</span>
             </div>
           ) : (
-            <p className={inspectorEmptyClass}>Run link prediction to surface likely next-hop relationships.</p>
+            <p className={inspectorEmptyClass}>{inspectorCopy(loc, "runPredictionHint")}</p>
           )}
         </div>
       </details>
 
       {/* Source Attribution */}
       <details className="node-panel-collapse">
-        <summary className="node-panel-summary">Source Attribution</summary>
+        <summary className="node-panel-summary">{inspectorCopy(loc, "sourceAttribution")}</summary>
         <div className="node-panel-body">
           {attribution.length ? (
             <div className="flex flex-col gap-2">
@@ -615,14 +660,14 @@ export function GraphInspectorPanel({
               ))}
             </div>
           ) : (
-            <p className={inspectorEmptyClass}>No explicit attribution metadata was found on this node.</p>
+            <p className={inspectorEmptyClass}>{inspectorCopy(loc, "noAttribution")}</p>
           )}
         </div>
       </details>
 
       {/* Properties */}
       <details className="node-panel-collapse">
-        <summary className="node-panel-summary">Properties</summary>
+        <summary className="node-panel-summary">{inspectorCopy(loc, "properties")}</summary>
         <div className="node-panel-body">
           {propertyEntries.length ? (
             <div className="flex flex-col gap-2">
@@ -636,7 +681,7 @@ export function GraphInspectorPanel({
               ))}
             </div>
           ) : (
-            <p className={inspectorEmptyClass}>No additional properties are attached to this node.</p>
+            <p className={inspectorEmptyClass}>{inspectorCopy(loc, "noProperties")}</p>
           )}
         </div>
       </details>

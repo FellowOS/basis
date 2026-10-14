@@ -55,6 +55,7 @@ import {
   graphGroupedSummaryDrillIn,
   graphNeighborSummary,
 } from "./graphWorkspaceCopy";
+import { inspectorCopy } from "./graphInspectorCopy";
 import { createGraphLoadProgress } from "./graphLoading";
 import { Badge } from "@/components/ui/badge.js";
 import { Button } from "@/components/ui/button.js";
@@ -3003,8 +3004,15 @@ export function GraphWorkspace({
             <div className="explore-inspector-shell">
               <InspectorPanel open={layoutState.showInspector} className="explore-inspector-card">
                 <div className="explore-inspector-scroll hud-scrollbar">
-                  <Suspense fallback={<div style={inspectorFallbackStyle}>Loading inspector…</div>}>
+                  <Suspense
+                    fallback={
+                      <div style={inspectorFallbackStyle}>
+                        {inspectorCopy(apiErrorLocale, "loadingInspector")}
+                      </div>
+                    }
+                  >
                     <LazyGraphInspectorPanel
+                      locale={apiErrorLocale}
                       kbId={kbId}
                       graphWriteEnabled={graphWriteEnabled}
                       decisionsEnabled={decisionsEnabled}

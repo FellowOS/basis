@@ -379,7 +379,7 @@ Work:
 - connect realtime updates and revision refetch;
 - respect viewer permissions.
 
-**Status:** partial — Explorer `GraphWorkspace` embedded when `explorer_runtime`; timeline + search/focus; direct graph merge/import blocked (`409` → review queue); KB embed caps initial node/edge fetch (200/400) with UI notice when truncated; empty-graph hint links to library. Remaining: richer error copy (X-01).
+**Status:** partial — Explorer `GraphWorkspace` embedded when `explorer_runtime`; timeline + search/focus; direct graph merge/import blocked (`409` → review queue); KB embed caps initial node/edge fetch (200/400) with UI notice when truncated; empty-graph hint links to library; graph inspector UI copy localized via `graphInspectorCopy` (KB embed `apiErrorLocale`). Remaining: standalone Explorer locale alignment, more X-01 backend codes.
 
 Acceptance:
 
@@ -396,7 +396,7 @@ Acceptance:
 - localize messages in Web;
 - stop exposing raw server strings.
 
-**Status:** partial — coded `detail` no longer surfaces raw server `message` in clients; KB graph embed uses `apiErrorLocale` for API errors and `graphWorkspaceCopy` for load, toolbars, search/status docks, and view-mode copy; Ontology + shell covered; remaining: inspector panel strings, more backend codes.
+**Status:** partial — coded `detail` no longer surfaces raw server `message` in clients; KB graph embed uses `apiErrorLocale` for API errors, `graphWorkspaceCopy` / `graphViewCopy` for workspace chrome, and `graphInspectorCopy` for the lazy inspector (path intel, actions, decisions fetch errors); Ontology + shell covered; remaining: more backend 4xx codes, standalone Explorer default locale vs i18n provider.
 
 ### X-02 — Request IDs and structured logging
 
