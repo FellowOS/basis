@@ -32,6 +32,8 @@ type IngestSource = {
     repo_url?: string;
     branch?: string;
     paths?: string[];
+    title?: string;
+    external_key_prefix?: string;
     sync_events?: { at: string; status: string; mode?: string; doc_id?: string; error?: string }[];
     last_sync_at?: string;
     last_sync_status?: string;
@@ -66,8 +68,13 @@ export function KbIngestSourcesDialog({
   const [gitRepoUrl, setGitRepoUrl] = useState('');
   const [gitBranch, setGitBranch] = useState('main');
   const [gitPaths, setGitPaths] = useState('');
+  const [docTitle, setDocTitle] = useState('');
+  const [externalKeyPrefix, setExternalKeyPrefix] = useState('');
   const [createdSecret, setCreatedSecret] = useState<CreateResponse | null>(null);
   const [rotatedSecret, setRotatedSecret] = useState<CreateResponse | null>(null);
+  const [editingSyncId, setEditingSyncId] = useState<string | null>(null);
+  const [editSyncTitle, setEditSyncTitle] = useState('');
+  const [editSyncPrefix, setEditSyncPrefix] = useState('');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -106,6 +113,12 @@ export function KbIngestSourcesDialog({
         return;
       }
     }
+    const syncExtras: Record<string, string> = {};
+    const titleTrim = docTitle.trim();
+    const prefixTrim = externalKeyPrefix.trim();
+    if (titleTrim) syncExtras.title = titleTrim;
+    if (prefixTrim) syncExtras.external_key_prefix = prefixTrim;
+
     setLoading(true);
     try {
       const data = await api<CreateResponse>(`/api/kbs/${kbId}/sources`, {
@@ -117,6 +130,7 @@ export function KbIngestSourcesDialog({
             kind === 'http_poll'
               ? {
                   url: pollUrl.trim(),
+                  ...syncExtras,
                   ...(pollIntervalMinutes.trim()
                     ? { poll_interval_minutes: Number(pollIntervalMinutes) }
                     : {}),
@@ -129,6 +143,7 @@ export function KbIngestSourcesDialog({
                       .split(/[\n,]+/)
                       .map((p) => p.trim())
                       .filter(Boolean),
+                    ...syncExtras,
                     ...(pollIntervalMinutes.trim()
                       ? { poll_interval_minutes: Number(pollIntervalMinutes) }
                       : {}),
@@ -155,6 +170,8 @@ export function KbIngestSourcesDialog({
       setGitRepoUrl('');
       setGitBranch('main');
       setGitPaths('');
+      setDocTitle('');
+      setExternalKeyPrefix('');
       await load();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : zh ? '创建失败' : 'Create failed');
@@ -188,6 +205,38 @@ export function KbIngestSourcesDialog({
       toast.success(zh ? '已轮换令牌' : 'Token rotated');
     } catch (err) {
       toast.error(err instanceof Error ? err.message : zh ? '轮换失败' : 'Rotate failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const beginEditSyncOptions = (source: IngestSource) => {
+    setEditingSyncId(source.id);
+    setEditSyncTitle(source.config?.title ?? '');
+    setEditSyncPrefix(source.config?.external_key_prefix ?? '');
+  };
+
+  const cancelEditSyncOptions = () => {
+    setEditingSyncId(null);
+  };
+
+  const saveSyncOptions = async (sourceId: string) => {
+    setLoading(true);
+    try {
+      await api(`/api/kbs/${kbId}/sources/${sourceId}`, {
+        method: 'PATCH',
+        body: JSON.stringify({
+          config: {
+            title: editSyncTitle.trim(),
+            external_key_prefix: editSyncPrefix.trim(),
+          },
+        }),
+      });
+      toast.success(zh ? '已保存同步选项' : 'Sync options saved');
+      setEditingSyncId(null);
+      await load();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : zh ? '保存失败' : 'Save failed');
     } finally {
       setLoading(false);
     }
@@ -308,6 +357,37 @@ export function KbIngestSourcesDialog({
             </>
           ) : null}
           {kind === 'http_poll' || kind === 'git' ? (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="sync-doc-title">
+                  {zh ? '同步资料标题（可选）' : 'Document title on sync (optional)'}
+                </Label>
+                <Input
+                  id="sync-doc-title"
+                  value={docTitle}
+                  onChange={(e) => setDocTitle(e.target.value)}
+                  placeholder={zh ? '留空则使用来源名称' : 'Leave empty to use source name'}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="sync-doc-prefix">
+                  {zh ? 'doc_id 前缀（可选）' : 'doc_id prefix (optional)'}
+                </Label>
+                <Input
+                  id="sync-doc-prefix"
+                  value={externalKeyPrefix}
+                  onChange={(e) => setExternalKeyPrefix(e.target.value)}
+                  placeholder={kind === 'git' ? 'git' : 'poll'}
+                />
+                <p className="text-[10px] text-muted-foreground">
+                  {zh
+                    ? '每次同步新建一篇资料，ID 形如「前缀-随机串」。Webhook 请在请求体里用 external_key。'
+                    : 'Each sync creates a new document as «prefix-random». For webhooks use external_key in the POST body.'}
+                </p>
+              </div>
+            </>
+          ) : null}
+          {kind === 'http_poll' || kind === 'git' ? (
             <div className="space-y-2">
               <Label htmlFor="poll-interval">
                 {zh ? '自动拉取间隔（分钟，0=仅手动）' : 'Auto poll interval (minutes, 0=manual)'}
@@ -332,7 +412,7 @@ export function KbIngestSourcesDialog({
           </Button>
         </div>
 
-        <div className="max-h-56 space-y-2 overflow-y-auto text-sm">
+        <div className="max-h-72 space-y-2 overflow-y-auto text-sm">
           {loading && sources.length === 0 ? (
             <div className="flex justify-center py-4">
               <Spinner className="size-4" />
@@ -367,6 +447,23 @@ export function KbIngestSourcesDialog({
                           {s.config.paths?.length ? ` · ${s.config.paths.join(', ')}` : ''}
                         </p>
                       ) : null}
+                      {(s.kind === 'http_poll' || s.kind === 'git') &&
+                      editingSyncId !== s.id &&
+                      (s.config?.title || s.config?.external_key_prefix) ? (
+                        <p className="mt-1 text-[10px] text-muted-foreground">
+                          {s.config.title ? (
+                            <span>
+                              {zh ? '标题' : 'Title'}: {s.config.title}
+                            </span>
+                          ) : null}
+                          {s.config.title && s.config.external_key_prefix ? ' · ' : null}
+                          {s.config.external_key_prefix ? (
+                            <span>
+                              {zh ? '前缀' : 'Prefix'}: {s.config.external_key_prefix}
+                            </span>
+                          ) : null}
+                        </p>
+                      ) : null}
                       {last ? (
                         <p className="mt-1 text-[10px] text-muted-foreground">
                           {zh ? '最近同步' : 'Last sync'}: {last.status} · {last.at}
@@ -383,18 +480,72 @@ export function KbIngestSourcesDialog({
                           {zh ? '轮换令牌' : 'Rotate token'}
                         </Button>
                       ) : (
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          disabled={!s.enabled || loading}
-                          onClick={() => void runSync(s.id)}
-                        >
-                          {zh ? '立即拉取' : 'Sync now'}
-                        </Button>
+                        <>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            disabled={!s.enabled || loading}
+                            onClick={() => void runSync(s.id)}
+                          >
+                            {zh ? '立即拉取' : 'Sync now'}
+                          </Button>
+                          {editingSyncId === s.id ? (
+                            <>
+                              <Button
+                                type="button"
+                                variant="secondary"
+                                size="sm"
+                                disabled={loading}
+                                onClick={() => void saveSyncOptions(s.id)}
+                              >
+                                {zh ? '保存' : 'Save'}
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={cancelEditSyncOptions}
+                              >
+                                {zh ? '取消' : 'Cancel'}
+                              </Button>
+                            </>
+                          ) : (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => beginEditSyncOptions(s)}
+                            >
+                              {zh ? '同步选项' : 'Sync options'}
+                            </Button>
+                          )}
+                        </>
                       )}
                     </div>
                   </div>
+                  {(s.kind === 'http_poll' || s.kind === 'git') && editingSyncId === s.id ? (
+                    <div className="grid gap-2 border-t border-border pt-2">
+                      <div className="space-y-1">
+                        <Label className="text-xs">{zh ? '同步资料标题' : 'Document title'}</Label>
+                        <Input
+                          value={editSyncTitle}
+                          onChange={(e) => setEditSyncTitle(e.target.value)}
+                          placeholder={zh ? '留空则使用来源名称' : 'Empty = source name'}
+                          className="h-8 text-xs"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">{zh ? 'doc_id 前缀' : 'doc_id prefix'}</Label>
+                        <Input
+                          value={editSyncPrefix}
+                          onChange={(e) => setEditSyncPrefix(e.target.value)}
+                          placeholder={s.kind === 'git' ? 'git' : 'poll'}
+                          className="h-8 text-xs"
+                        />
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
               );
             })
