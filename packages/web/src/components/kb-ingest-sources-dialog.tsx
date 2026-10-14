@@ -59,6 +59,7 @@ export function KbIngestSourcesDialog({
   const [name, setName] = useState('');
   const [kind, setKind] = useState<SourceKind>('webhook');
   const [pollUrl, setPollUrl] = useState('');
+  const [pollIntervalMinutes, setPollIntervalMinutes] = useState('');
   const [createdSecret, setCreatedSecret] = useState<CreateResponse | null>(null);
   const [rotatedSecret, setRotatedSecret] = useState<CreateResponse | null>(null);
 
@@ -96,7 +97,15 @@ export function KbIngestSourcesDialog({
         body: JSON.stringify({
           kind,
           name: trimmed,
-          config: kind === 'http_poll' ? { url: pollUrl.trim() } : {},
+          config:
+            kind === 'http_poll'
+              ? {
+                  url: pollUrl.trim(),
+                  ...(pollIntervalMinutes.trim()
+                    ? { poll_interval_minutes: Number(pollIntervalMinutes) }
+                    : {}),
+                }
+              : {},
         }),
       });
       if (data.ingest_token) {
@@ -106,6 +115,7 @@ export function KbIngestSourcesDialog({
       }
       setName('');
       setPollUrl('');
+      setPollIntervalMinutes('');
       await load();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : zh ? '创建失败' : 'Create failed');
@@ -216,15 +226,35 @@ export function KbIngestSourcesDialog({
             />
           </div>
           {kind === 'http_poll' ? (
-            <div className="space-y-2">
-              <Label htmlFor="poll-url">URL</Label>
-              <Input
-                id="poll-url"
-                value={pollUrl}
-                onChange={(e) => setPollUrl(e.target.value)}
-                placeholder="https://…"
-              />
-            </div>
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="poll-url">URL</Label>
+                <Input
+                  id="poll-url"
+                  value={pollUrl}
+                  onChange={(e) => setPollUrl(e.target.value)}
+                  placeholder="https://…"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="poll-interval">
+                  {zh ? '自动拉取间隔（分钟，0=仅手动）' : 'Auto poll interval (minutes, 0=manual)'}
+                </Label>
+                <Input
+                  id="poll-interval"
+                  type="number"
+                  min={0}
+                  value={pollIntervalMinutes}
+                  onChange={(e) => setPollIntervalMinutes(e.target.value)}
+                  placeholder="0"
+                />
+                <p className="text-[10px] text-muted-foreground">
+                  {zh
+                    ? '服务端需设置 SEMA_HTTP_POLL_TICK_SECONDS>0 才会定时执行。'
+                    : 'Set SEMA_HTTP_POLL_TICK_SECONDS>0 on the server to enable scheduling.'}
+                </p>
+              </div>
+            </>
           ) : null}
           <Button type="button" onClick={() => void createSource()} disabled={loading || !name.trim()}>
             {loading ? <Spinner className="size-4" /> : zh ? '创建' : 'Create'}

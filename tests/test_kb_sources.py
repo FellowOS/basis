@@ -8,8 +8,12 @@ from sema.api.app import create_app
 from sema.config import Settings
 
 
+def _test_settings(tmp_path) -> Settings:
+    return Settings(data_dir=tmp_path, ingest_inline=True)
+
+
 def test_webhook_source_crud_and_ingest(tmp_path) -> None:
-    client = TestClient(create_app(Settings(data_dir=tmp_path)))
+    client = TestClient(create_app(_test_settings(tmp_path)))
     admin = client.post(
         "/api/auth/register",
         json={"email": "src@example.com", "password": "password1", "display_name": "Src"},
@@ -64,7 +68,7 @@ def test_webhook_source_crud_and_ingest(tmp_path) -> None:
 
 
 def test_sources_kb_isolation(tmp_path) -> None:
-    client = TestClient(create_app(Settings(data_dir=tmp_path)))
+    client = TestClient(create_app(_test_settings(tmp_path)))
     a = client.post(
         "/api/auth/register",
         json={"email": "iso@example.com", "password": "password1", "display_name": "Iso"},
@@ -89,7 +93,7 @@ def test_sources_kb_isolation(tmp_path) -> None:
 
 
 def test_webhook_token_rotation(tmp_path) -> None:
-    client = TestClient(create_app(Settings(data_dir=tmp_path)))
+    client = TestClient(create_app(_test_settings(tmp_path)))
     admin = client.post(
         "/api/auth/register",
         json={"email": "rot@example.com", "password": "password1", "display_name": "Rot"},
@@ -128,7 +132,7 @@ def test_webhook_token_rotation(tmp_path) -> None:
 
 
 def test_http_poll_sync(tmp_path) -> None:
-    client = TestClient(create_app(Settings(data_dir=tmp_path)))
+    client = TestClient(create_app(_test_settings(tmp_path)))
     admin = client.post(
         "/api/auth/register",
         json={"email": "poll@example.com", "password": "password1", "display_name": "Poll"},
@@ -157,7 +161,7 @@ def test_http_poll_sync(tmp_path) -> None:
     mock_http.__enter__ = MagicMock(return_value=mock_http)
     mock_http.__exit__ = MagicMock(return_value=False)
 
-    with patch("sema.api.routes.kb_sources.httpx.Client", return_value=mock_http):
+    with patch("sema.knowledge.ingest_source_service.httpx.Client", return_value=mock_http):
         synced = client.post(f"/api/kbs/{kb_id}/sources/{source_id}/sync", headers=headers, json={})
 
     assert synced.status_code == 200

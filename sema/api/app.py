@@ -48,23 +48,36 @@ from sema.capabilities import explorer_available
 
 
 @asynccontextmanager
-async def _explorer_eviction_lifespan(app: FastAPI):
-    task: asyncio.Task[None] | None = None
+async def _app_lifespan(app: FastAPI):
+    tasks: list[asyncio.Task[None]] = []
     if explorer_available():
         interval = max(30, app.state.settings.explorer_evict_interval_seconds)
 
-        async def _loop() -> None:
+        async def _evict_loop() -> None:
             registry = app.state.explorer_registry
             while True:
                 await asyncio.sleep(interval)
                 registry.evict_idle()
 
-        task = asyncio.create_task(_loop())
+        tasks.append(asyncio.create_task(_evict_loop()))
+
+    poll_tick = int(getattr(app.state.settings, "http_poll_tick_seconds", 0) or 0)
+    if poll_tick > 0:
+        from sema.knowledge.ingest_poll_scheduler import run_due_http_polls
+
+        async def _poll_loop() -> None:
+            while True:
+                await asyncio.sleep(max(15, poll_tick))
+                await asyncio.to_thread(run_due_http_polls, app)
+
+        tasks.append(asyncio.create_task(_poll_loop()))
+
     try:
         yield
     finally:
-        if task is not None:
+        for task in tasks:
             task.cancel()
+        for task in tasks:
             try:
                 await task
             except asyncio.CancelledError:
@@ -73,7 +86,7 @@ async def _explorer_eviction_lifespan(app: FastAPI):
 
 def create_app(app_settings: Settings | None = None) -> FastAPI:
     app_settings = app_settings or Settings.from_env()
-    app = FastAPI(title="Sema API", version=__version__, lifespan=_explorer_eviction_lifespan)
+    app = FastAPI(title="Sema API", version=__version__, lifespan=_app_lifespan)
     app.state.settings = app_settings
     app.state.database = get_database(
         app_settings.effective_database_url,

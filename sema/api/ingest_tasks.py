@@ -104,4 +104,7 @@ def enqueue_version_ingest(
             options=options,
         )
 
+    if getattr(app.state.settings, "ingest_inline", False):
+        _work()
+        return
     threading.Thread(target=_work, name=f"ingest-{job_id[:8]}", daemon=True).start()

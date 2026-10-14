@@ -7,7 +7,6 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any, Literal
 
-import httpx
 from fastapi import APIRouter, Depends, Header, Request
 from pydantic import BaseModel, Field
 
@@ -15,13 +14,14 @@ from sema.admin.errors import AdminError
 from sema.admin.store import AdminStore, User
 from sema.api.deps import get_current_user, get_knowledge_store, get_store
 from sema.knowledge.graph_audit import audit_kb_graph
-from sema.knowledge.ingest_source_service import enqueue_text_from_source, record_ingest_source_event
+from sema.knowledge.ingest_source_service import (
+    enqueue_text_from_source,
+    execute_http_poll_sync,
+    record_ingest_source_event,
+)
 from sema.knowledge.store import KnowledgeStore
 
 router = APIRouter(prefix="/api/kbs", tags=["knowledge-bases"])
-
-_HTTP_POLL_TIMEOUT = 30.0
-_HTTP_POLL_MAX_BYTES = 5 * 1024 * 1024
 
 
 class CreateIngestSourceRequest(BaseModel):
@@ -220,75 +220,12 @@ async def sync_ingest_source(
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> dict[str, Any]:
     store.get_kb_for(user, kb_id, "editor")
-    source = knowledge.get_ingest_source(kb_id, source_id)
-    if not source["enabled"]:
-        raise AdminError(403, "forbidden", "来源未启用")
-    if source["kind"] != "http_poll":
-        raise AdminError(422, "bad_kind", "仅 http_poll 来源支持手动同步")
-
-    url = str(source["config"].get("url") or "").strip()
-    if not url:
-        raise AdminError(422, "bad_url", "未配置 URL")
-
-    at = _now_iso()
-    try:
-        with httpx.Client(timeout=_HTTP_POLL_TIMEOUT, follow_redirects=True) as client:
-            response = client.get(url)
-        response.raise_for_status()
-        raw = response.content
-        if len(raw) > _HTTP_POLL_MAX_BYTES:
-            raise AdminError(413, "payload_too_large", "响应体过大")
-        text = raw.decode(response.encoding or "utf-8", errors="replace").strip()
-        if not text:
-            raise AdminError(422, "empty_body", "URL 返回空内容")
-    except AdminError:
-        record_ingest_source_event(
-            knowledge,
-            kb_id,
-            source_id,
-            {"at": at, "status": "failed", "mode": "http_poll", "url": url},
-        )
-        raise
-    except Exception as exc:
-        record_ingest_source_event(
-            knowledge,
-            kb_id,
-            source_id,
-            {
-                "at": at,
-                "status": "failed",
-                "mode": "http_poll",
-                "url": url,
-                "error": str(exc)[:500],
-            },
-        )
-        raise AdminError(502, "fetch_failed", "拉取 URL 失败") from exc
-
-    prefix = str(source["config"].get("external_key_prefix") or "poll").strip() or "poll"
-    doc_id = _doc_id_from_external_key(f"{prefix}-{uuid.uuid4().hex[:10]}", url)
-    title = str(source["config"].get("title") or source["name"] or "HTTP poll")
-    result = enqueue_text_from_source(
-        request,
+    result = execute_http_poll_sync(
+        request.app,
         knowledge,
         kb_id,
         source_id,
-        title=title,
-        text=text,
-        doc_id=doc_id,
         auto_process=body.auto_process,
-    )
-    record_ingest_source_event(
-        knowledge,
-        kb_id,
-        source_id,
-        {
-            "at": at,
-            "status": "succeeded",
-            "mode": "http_poll",
-            "url": url,
-            "doc_id": result.get("doc_id"),
-            "job_id": result.get("job_id"),
-        },
     )
     audit_kb_graph(
         store,
@@ -323,7 +260,7 @@ async def ingest_via_webhook(
     at = _now_iso()
     try:
         result = enqueue_text_from_source(
-            request,
+            request.app,
             knowledge,
             kb_id,
             source_id,

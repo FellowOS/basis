@@ -2516,6 +2516,18 @@ class KnowledgeStore:
 
     _INGEST_SOURCE_KINDS = frozenset({"webhook", "http_poll"})
 
+    def list_http_poll_sources_global(self) -> list[dict[str, Any]]:
+        with self._lock:
+            rows = self._conn.execute(
+                """
+                SELECT id, kb_id, kind, name, config_json, enabled, created_by, created_at, updated_at
+                FROM ingest_sources
+                WHERE deleted_at IS NULL AND enabled = 1 AND kind = 'http_poll'
+                ORDER BY kb_id, created_at ASC
+                """,
+            ).fetchall()
+        return [self._ingest_source_row_to_dict(row) for row in rows]
+
     def list_ingest_sources(self, kb_id: str) -> list[dict[str, Any]]:
         with self._lock:
             self._assert_kb_exists(kb_id)

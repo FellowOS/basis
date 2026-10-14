@@ -22,6 +22,8 @@ class Settings:
     db_pool_timeout_seconds: int = 30
     mcp_max_inflight: int = 32
     mcp_timeout_seconds: int = 60
+    ingest_inline: bool = False
+    http_poll_tick_seconds: int = 0
 
     @property
     def db_path(self) -> Path:
@@ -54,4 +56,6 @@ class Settings:
             db_pool_timeout_seconds=int(os.environ.get("SEMA_DB_POOL_TIMEOUT_SECONDS", "30")),
             mcp_max_inflight=int(os.environ.get("SEMA_MCP_MAX_INFLIGHT", "32")),
             mcp_timeout_seconds=int(os.environ.get("SEMA_MCP_TIMEOUT_SECONDS", "60")),
+            ingest_inline=os.environ.get("SEMA_INGEST_INLINE", "").lower() in ("1", "true", "yes"),
+            http_poll_tick_seconds=int(os.environ.get("SEMA_HTTP_POLL_TICK_SECONDS", "0")),
         )
