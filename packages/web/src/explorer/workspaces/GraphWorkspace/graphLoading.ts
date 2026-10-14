@@ -1,3 +1,8 @@
+import {
+  type GraphWorkspaceLocale,
+  graphLoadPhaseTitle,
+  graphLoadStageLabel as graphLoadStageLabelForLocale,
+} from "./graphWorkspaceCopy";
 import type { GraphLoadPhase, GraphLoadProgress, GraphLoadProgressKind, GraphLayoutSource, GraphLayoutState } from "./types";
 
 export const GRAPH_LOAD_STAGE_SEQUENCE: Exclude<GraphLoadPhase, "ready">[] = [
@@ -9,49 +14,25 @@ export const GRAPH_LOAD_STAGE_SEQUENCE: Exclude<GraphLoadPhase, "ready">[] = [
   "stabilizing_layout",
 ];
 
-export function getGraphLoadTitle(phase: GraphLoadPhase): string {
-  switch (phase) {
-    case "bootstrapping":
-      return "Preparing graph session";
-    case "fetching_nodes":
-      return "Loading nodes";
-    case "fetching_edges":
-      return "Loading relationships";
-    case "computing_styling":
-      return "Computing node styling";
-    case "hydrating_scene":
-      return "Hydrating graph scene";
-    case "stabilizing_layout":
-      return "Stabilizing layout";
-    case "ready":
-    default:
-      return "Graph ready";
-  }
+export function getGraphLoadTitle(
+  phase: GraphLoadPhase,
+  locale: GraphWorkspaceLocale = "en",
+): string {
+  return graphLoadPhaseTitle(locale, phase);
 }
 
-export function getGraphLoadStageLabel(phase: Exclude<GraphLoadPhase, "ready">): string {
-  switch (phase) {
-    case "bootstrapping":
-      return "Prepare";
-    case "fetching_nodes":
-      return "Nodes";
-    case "fetching_edges":
-      return "Relations";
-    case "computing_styling":
-      return "Styling";
-    case "hydrating_scene":
-      return "Scene";
-    case "stabilizing_layout":
-      return "Layout";
-    default:
-      return "Stage";
-  }
+export function getGraphLoadStageLabel(
+  phase: Exclude<GraphLoadPhase, "ready">,
+  locale: GraphWorkspaceLocale = "en",
+): string {
+  return graphLoadStageLabelForLocale(locale, phase);
 }
 
 export function createGraphLoadProgress(input: {
   phase: GraphLoadPhase;
   message: string;
   progressKind: GraphLoadProgressKind;
+  locale?: GraphWorkspaceLocale;
   loaded?: number | null;
   total?: number | null;
   nodesLoaded?: number;
@@ -66,7 +47,7 @@ export function createGraphLoadProgress(input: {
 
   return {
     phase: input.phase,
-    title: getGraphLoadTitle(input.phase),
+    title: getGraphLoadTitle(input.phase, input.locale ?? "en"),
     message: input.message,
     progressKind: input.progressKind,
     loaded: input.loaded ?? null,

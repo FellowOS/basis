@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { AlertTriangle, RefreshCw } from "lucide-react";
 
 import { GRAPH_THEME, withAlpha } from "./graphTheme";
+import { graphCopy, graphLoadPhaseTitle, type GraphWorkspaceLocale } from "./graphWorkspaceCopy";
 import { GRAPH_LOAD_STAGE_SEQUENCE, createGraphLoadProgress, getGraphLoadStageLabel } from "./graphLoading";
 import type { GraphLoadProgress } from "./types";
 
@@ -210,12 +211,14 @@ const loadingMetricStyle = {
 } satisfies CSSProperties;
 
 export function GraphLoadingOverlay({
+  locale = "en",
   progress,
   visible,
   showGraphBehind,
   error = null,
   onRetry,
 }: {
+  locale?: GraphWorkspaceLocale;
   progress: GraphLoadProgress | null;
   visible: boolean;
   showGraphBehind: boolean;
@@ -227,8 +230,9 @@ export function GraphLoadingOverlay({
   const [displayProgress, setDisplayProgress] = useState<GraphLoadProgress>(
     progress ?? createGraphLoadProgress({
       phase: "bootstrapping",
-      message: "Preparing graph session",
+      message: graphLoadPhaseTitle(locale, "bootstrapping"),
       progressKind: "indeterminate",
+      locale,
     }),
   );
   const exitTimerRef = useRef<number | null>(null);
@@ -288,10 +292,10 @@ export function GraphLoadingOverlay({
             </div>
             <div style={{ minWidth: 0 }}>
               <div style={{ color: "var(--foreground)", fontSize: 20, fontWeight: 700, letterSpacing: "-0.03em", marginBottom: 6 }}>
-                Could not load the graph
+                {graphCopy(locale, "loadErrorTitle")}
               </div>
               <div style={{ color: "var(--muted-foreground)", fontSize: 13, lineHeight: 1.5 }}>
-                The Explorer API did not return graph data. Check that the backend is running and reachable, then try again.
+                {graphCopy(locale, "loadErrorBody")}
               </div>
             </div>
           </div>
@@ -302,7 +306,7 @@ export function GraphLoadingOverlay({
             <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
               <button type="button" className="graph-stage-loader-retry" onClick={onRetry}>
                 <RefreshCw size={14} strokeWidth={2.2} aria-hidden />
-                Retry
+                {graphCopy(locale, "loadRetry")}
               </button>
             </div>
           ) : null}
@@ -353,7 +357,7 @@ export function GraphLoadingOverlay({
             const state = index + 1 < current ? "done" : index + 1 === current ? "active" : "upcoming";
             return (
               <div key={phase} className="graph-stage-loader-step" data-state={state}>
-                {getGraphLoadStageLabel(phase)}
+                {getGraphLoadStageLabel(phase, locale)}
               </div>
             );
           })}

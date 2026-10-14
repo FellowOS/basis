@@ -15,6 +15,13 @@ import {
   type GraphNodeShapeVariant,
 } from "./graphTheme";
 import { classifyEntityShape } from "./graphEntityShape";
+import {
+  type GraphWorkspaceLocale,
+  graphCopy,
+  graphLoadEdgesProgressMessage,
+  graphLoadNodesProgressMessage,
+  graphLoadPhaseTitle,
+} from "./graphWorkspaceCopy";
 import { createGraphLoadProgress } from "./graphLoading";
 import {
   buildSmallGraphSeedPositions,
@@ -350,6 +357,7 @@ async function fetchAllNodes(
   signal: AbortSignal,
   kbId?: string,
   onProgress?: (progress: GraphLoadProgress) => void,
+  locale: GraphWorkspaceLocale = "en",
 ): Promise<{ nodes: ApiNode[]; truncated: boolean }> {
   let cursor: string | null = null;
   const collected: ApiNode[] = [];
@@ -392,9 +400,8 @@ async function fetchAllNodes(
       nodesTotal: total,
       edgesLoaded: 0,
       edgesTotal: null,
-      message: total
-        ? `Loading nodes ${collected.length.toLocaleString()} of ${total.toLocaleString()}`
-        : `Loading nodes ${collected.length.toLocaleString()}`,
+      locale,
+      message: graphLoadNodesProgressMessage(locale, collected.length, total),
     }));
 
     if (!data.next_cursor) {
@@ -413,6 +420,7 @@ async function fetchAllEdges(
   nodeProgress: { loaded: number; total: number | null },
   kbId?: string,
   onProgress?: (progress: GraphLoadProgress) => void,
+  locale: GraphWorkspaceLocale = "en",
 ): Promise<{ edges: ApiEdge[]; truncated: boolean }> {
   let cursor: string | null = null;
   const collected: ApiEdge[] = [];
@@ -475,9 +483,8 @@ async function fetchAllEdges(
       nodesTotal: nodeProgress.total,
       edgesLoaded: safeLoaded,
       edgesTotal: total,
-      message: total
-        ? `Loading edges ${safeLoaded.toLocaleString()} of ${total.toLocaleString()}`
-        : `Loading edges ${safeLoaded.toLocaleString()}`,
+      locale,
+      message: graphLoadEdgesProgressMessage(locale, safeLoaded, total),
     }));
 
     if (!data.next_cursor) {
@@ -500,12 +507,13 @@ function yieldToMain(): Promise<void> {
 interface UseLoadGraphOptions {
   kbId?: string;
   enabled?: boolean;
+  copyLocale?: GraphWorkspaceLocale;
   onGraphReady?: (summary: GraphLoadSummary) => void;
   onProgress?: (progress: GraphLoadProgress) => void;
 }
 
 export function useLoadGraph(options: UseLoadGraphOptions = {}) {
-  const { kbId, enabled = true, onGraphReady, onProgress } = options;
+  const { kbId, enabled = true, copyLocale = "en", onGraphReady, onProgress } = options;
 
   return useQuery<GraphLoadSummary>({
     queryKey: ["graph", "full-load", kbId ?? "standalone"],
@@ -521,10 +529,11 @@ export function useLoadGraph(options: UseLoadGraphOptions = {}) {
         nodesTotal: null,
         edgesLoaded: 0,
         edgesTotal: null,
-        message: "Preparing graph session",
+        locale: copyLocale,
+        message: graphLoadPhaseTitle(copyLocale, "bootstrapping"),
       }));
 
-      const nodeFetch = await fetchAllNodes(signal, kbId, onProgress);
+      const nodeFetch = await fetchAllNodes(signal, kbId, onProgress, copyLocale);
       const fetchedNodes = nodeFetch.nodes;
       const nodeIds = new Set(fetchedNodes.map((node) => node.id));
       const edgeFetch = await fetchAllEdges(
@@ -533,6 +542,7 @@ export function useLoadGraph(options: UseLoadGraphOptions = {}) {
         { loaded: fetchedNodes.length, total: fetchedNodes.length },
         kbId,
         onProgress,
+        copyLocale,
       );
       const fetchedEdges = edgeFetch.edges;
 
@@ -567,7 +577,8 @@ export function useLoadGraph(options: UseLoadGraphOptions = {}) {
         nodesTotal: fetchedNodes.length,
         edgesLoaded: fetchedEdges.length,
         edgesTotal: fetchedEdges.length,
-        message: "Applying semantic color, sizing, and structural styling",
+        locale: copyLocale,
+        message: graphCopy(copyLocale, "loadApplyingStyling"),
       }));
 
       const colorAccessor = chooseColorAccessor(draftAttributes);
@@ -721,7 +732,8 @@ export function useLoadGraph(options: UseLoadGraphOptions = {}) {
         nodesTotal: nodesToMerge.length,
         edgesLoaded: edgesToMerge.length,
         edgesTotal: edgesToMerge.length,
-        message: "Preparing renderer and hydrating graph scene",
+        locale: copyLocale,
+        message: graphCopy(copyLocale, "loadHydratingScene"),
       }));
 
       try {
@@ -762,7 +774,10 @@ export function useLoadGraph(options: UseLoadGraphOptions = {}) {
         nodesTotal: summary.nodeCount,
         edgesLoaded: summary.edgeCount,
         edgesTotal: summary.edgeCount,
-        message: summary.layoutReady ? "Graph ready" : "Settling runtime layout",
+        locale: copyLocale,
+        message: summary.layoutReady
+          ? graphLoadPhaseTitle(copyLocale, "ready")
+          : graphCopy(copyLocale, "loadSettlingLayout"),
         showGraphBehind: !summary.layoutReady,
         layoutSource: summary.layoutSource,
         layoutState: summary.layoutReady ? "interactive" : "bootstrapping",

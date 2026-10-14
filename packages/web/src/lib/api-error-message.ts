@@ -143,6 +143,10 @@ const MESSAGES: Record<string, { zh: string; en: string }> = {
     zh: '当前图谱不支持语义相似度。',
     en: 'Semantic similarity is unavailable for this graph.',
   },
+  semantic_node_not_found: {
+    zh: '语义距离接口未找到所选节点。',
+    en: 'Selected node was not found by the semantic distance API.',
+  },
 };
 
 export type ApiErrorLike = {

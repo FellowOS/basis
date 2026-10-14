@@ -45,6 +45,7 @@ import { GraphStatusDock } from "./GraphStatusDock";
 import { GraphColorLegendDock } from "./GraphColorLegendDock";
 import { GraphPluginPanelDialog } from "./GraphPluginPanelDialog";
 import { GraphToolbarRail } from "./GraphToolbarRail";
+import { graphCopy } from "./graphWorkspaceCopy";
 import { createGraphLoadProgress } from "./graphLoading";
 import { Badge } from "@/components/ui/badge.js";
 import { Button } from "@/components/ui/button.js";
@@ -1145,12 +1146,13 @@ export function GraphWorkspace({
       nodesTotal: graphSummary.nodeCount,
       edgesLoaded: graphSummary.edgeCount,
       edgesTotal: graphSummary.edgeCount,
-      message: "Settling runtime layout",
+      locale: apiErrorLocale,
+      message: graphCopy(apiErrorLocale, "loadSettlingLayout"),
       showGraphBehind: true,
       layoutSource: graphSummary.layoutSource,
       layoutState: "bootstrapping",
     }));
-  }, []);
+  }, [apiErrorLocale]);
 
   const {
     data: summary,
@@ -1162,6 +1164,7 @@ export function GraphWorkspace({
   } = useLoadGraph({
     kbId,
     enabled: true,
+    copyLocale: apiErrorLocale,
     onGraphReady: applyGraphReadySummary,
     onProgress: handleLoadProgress,
   });
@@ -1411,10 +1414,10 @@ export function GraphWorkspace({
   const confirmDiscardMarkdownDraft = useCallback(() => {
     if (!markdownDraftDirty) return true;
     const discard = window.confirm(
-      "Discard the unapplied Markdown draft and leave this node?",
+      graphCopy(apiErrorLocale, "discardMarkdownDraft"),
     );
     return discard;
-  }, [markdownDraftDirty]);
+  }, [apiErrorLocale, markdownDraftDirty]);
 
 
   const enterLocalGraph = useCallback((nodeId: string) => {
@@ -1862,7 +1865,9 @@ export function GraphWorkspace({
         scores: EMPTY_DISTANCE_RECORD,
         count: 0,
         status: distanceMode === "semantic" ? "unavailable" : "idle",
-        error: distanceMode === "semantic" ? "Select a Full Graph node to load semantic distance." : null,
+        error: distanceMode === "semantic"
+          ? graphCopy(apiErrorLocale, "semanticSelectFullGraphNode")
+          : null,
       });
       return;
     }
@@ -1891,13 +1896,16 @@ export function GraphWorkspace({
         if (!response.ok) {
           const data = await response.json().catch(() => ({}));
           const fallback = response.status === 503
-            ? "Semantic similarity is unavailable for this graph."
+            ? graphCopy(apiErrorLocale, "semanticUnavailable")
             : response.status === 404
-              ? "Selected node was not found by the semantic distance API."
+              ? graphCopy(apiErrorLocale, "semanticNodeNotFound")
               : `Semantic distance failed (${response.status})`;
           const err = errorFromApiResponse(response.status, data, fallback);
           if (response.status === 503 && !(err as Error & { code?: string }).code) {
             (err as Error & { code?: string }).code = "semantic_unavailable";
+          }
+          if (response.status === 404 && !(err as Error & { code?: string }).code) {
+            (err as Error & { code?: string }).code = "semantic_node_not_found";
           }
           throw err;
         }
@@ -1915,7 +1923,9 @@ export function GraphWorkspace({
           scores,
           count: Object.keys(scores).length,
           status: Object.keys(scores).length > 0 ? "ready" : "unavailable",
-          error: Object.keys(scores).length > 0 ? null : "No semantic neighbors were returned for this node.",
+          error: Object.keys(scores).length > 0
+            ? null
+            : graphCopy(apiErrorLocale, "semanticNoNeighbors"),
         });
       } catch (error) {
         if (cancelled) {
@@ -1935,7 +1945,7 @@ export function GraphWorkspace({
     return () => {
       cancelled = true;
     };
-  }, [distanceAnchorNodeId, distanceMode, formatApiError, kbId]);
+  }, [apiErrorLocale, distanceAnchorNodeId, distanceMode, formatApiError, kbId]);
 
   const distanceVisualState = useMemo<GraphDistanceVisualState>(() => {
     if (activeDistanceMode === "off") {
@@ -1974,7 +1984,7 @@ export function GraphWorkspace({
         heatmapSaturationMode: undefined,
         semanticNeighborCount: 0,
         status: "unavailable",
-        error: "Distance intelligence is available in Full Graph mode.",
+        error: graphCopy(apiErrorLocale, "distanceFullGraphOnly"),
       };
     }
 
@@ -1994,7 +2004,7 @@ export function GraphWorkspace({
         heatmapSaturationMode: undefined,
         semanticNeighborCount: 0,
         status: "unavailable",
-        error: "Select a node to activate distance intelligence.",
+        error: graphCopy(apiErrorLocale, "distanceSelectNode"),
       };
     }
 
@@ -2045,6 +2055,7 @@ export function GraphWorkspace({
     };
   }, [
     activeDistanceMode,
+    apiErrorLocale,
     distanceAnchorLabel,
     distanceAnchorNodeId,
     distanceCounts,
@@ -2061,7 +2072,7 @@ export function GraphWorkspace({
   const hasGraphContent = Boolean(summary?.nodeCount);
   const graphLoadInfoMessage =
     summary?.loadTruncated && kbId
-      ? "Showing the first 200 nodes and 400 edges for this knowledge base. Rebuild or use search to focus on specific entities."
+      ? graphCopy(apiErrorLocale, "graphLoadTruncated")
       : undefined;
   const showEmptyKbGraphHint = Boolean(
     kbId && graphReady && summary && summary.nodeCount === 0 && !showLoadingOverlay,
@@ -2693,7 +2704,7 @@ export function GraphWorkspace({
   ], [isLayoutRunning, showLoadingOverlay]);
 
   const localToolbarItems = useMemo<GraphToolbarItem[]>(() => {
-    const selectNodeHint = "Select a node on the canvas first";
+    const selectNodeHint = graphCopy(apiErrorLocale, "selectNodeFirst");
     if (!selectedNodeState) {
       if (!hasGraphContent) {
         return [];
@@ -2758,7 +2769,7 @@ export function GraphWorkspace({
     }
 
     const nodeReady = Boolean(selectedNodeId && graph.hasNode(selectedNodeId));
-    const selectNodeHint = "Select a node on the canvas first";
+    const selectNodeHint = graphCopy(apiErrorLocale, "selectNodeFirst");
 
     return [
       {
@@ -2916,6 +2927,7 @@ export function GraphWorkspace({
                     {...sceneAdapterProps}
                   />
                   <GraphLoadingOverlay
+                    locale={apiErrorLocale}
                     progress={loadingProgress}
                     visible={showLoadingOverlay}
                     showGraphBehind={hasGraphContent || Boolean(loadingProgress?.showGraphBehind)}
@@ -2928,15 +2940,17 @@ export function GraphWorkspace({
                       role="status"
                     >
                       <div className="pointer-events-auto max-w-md rounded-lg border bg-background/95 p-5 text-center shadow-sm">
-                        <p className="text-sm font-medium text-foreground">No graph nodes yet</p>
+                        <p className="text-sm font-medium text-foreground">
+                          {graphCopy(apiErrorLocale, "emptyGraphTitle")}
+                        </p>
                         <p className="mt-2 text-xs text-muted-foreground">
-                          Upload documents and run processing, then rebuild the projection if needed.
+                          {graphCopy(apiErrorLocale, "emptyGraphBody")}
                         </p>
                         <a
                           className="mt-4 inline-flex text-sm font-medium text-primary underline-offset-4 hover:underline"
                           href={`/kbs/${kbId}/sources`}
                         >
-                          Go to library
+                          {graphCopy(apiErrorLocale, "emptyGraphLink")}
                         </a>
                       </div>
                     </div>
@@ -2946,7 +2960,7 @@ export function GraphWorkspace({
 
               {showTimelinePanel && temporalBounds?.min ? (
                 <div className="explore-scene-footer">
-                  <Suspense fallback={<div style={timelineFallbackStyle}>Loading timeline…</div>}>
+                  <Suspense fallback={<div style={timelineFallbackStyle}>{graphCopy(apiErrorLocale, "timelineLoading")}</div>}>
                     <LazyTimelinePanel
                       onTimeChange={onTimeChange}
                       minDate={temporalBounds.min}
