@@ -9,6 +9,7 @@ export function useKbMcpIntegration(kbId: string | undefined, canManageTokens: b
   const [mcpInfo, setMcpInfo] = useState<McpIntegrationInfo | null>(null);
   const [apiTokens, setApiTokens] = useState<ApiTokenRow[]>([]);
   const [tokenName, setTokenName] = useState('');
+  const [createdSecret, setCreatedSecret] = useState<string | null>(null);
 
   const reloadTokens = useCallback(async () => {
     if (!kbId || !canManageTokens) {
@@ -46,13 +47,14 @@ export function useKbMcpIntegration(kbId: string | undefined, canManageTokens: b
       event.preventDefault();
       if (!kbId || !tokenName.trim()) return;
       try {
-        await api(`/api/kbs/${kbId}/tokens`, {
+        const body = await api<{ secret: string }>(`/api/kbs/${kbId}/tokens`, {
           method: 'POST',
           body: JSON.stringify({ name: tokenName.trim(), scope: 'read' }),
         });
+        setCreatedSecret(body.secret);
         setTokenName('');
         await reloadTokens();
-        toast.success(t.common.updateSuccess);
+        toast.success(t.menu.kbMcp.secretOnce);
       } catch (err) {
         toast.error(err instanceof Error ? err.message : t.common.operationFailed);
       }
@@ -79,6 +81,8 @@ export function useKbMcpIntegration(kbId: string | undefined, canManageTokens: b
     apiTokens,
     tokenName,
     setTokenName,
+    createdSecret,
+    clearCreatedSecret: () => setCreatedSecret(null),
     copyToClipboard,
     createApiToken,
     deleteApiToken,

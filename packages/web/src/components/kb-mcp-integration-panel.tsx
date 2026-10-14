@@ -42,6 +42,8 @@ type KbMcpIntegrationPanelProps = {
   tokenName: string;
   onTokenNameChange: (value: string) => void;
   onCreateToken: (event: FormEvent) => void;
+  createdSecret: string | null;
+  onDismissCreatedSecret: () => void;
   onCopy: (text: string) => void | Promise<void>;
   onDeleteToken: (tokenId: string) => void | Promise<void>;
 };
@@ -57,6 +59,8 @@ export function KbMcpIntegrationPanel({
   tokenName,
   onTokenNameChange,
   onCreateToken,
+  createdSecret,
+  onDismissCreatedSecret,
   onCopy,
   onDeleteToken,
 }: KbMcpIntegrationPanelProps) {
@@ -160,6 +164,20 @@ export function KbMcpIntegrationPanel({
           <CardDescription>{t.menu.kbMcp.bearerHint}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4 pt-6">
+          {createdSecret ? (
+            <div className="space-y-2 rounded-lg border border-primary/40 bg-muted/40 p-4 text-sm">
+              <p className="font-medium">{t.menu.kbMcp.secretOnce}</p>
+              <code className="block break-all text-xs">{createdSecret}</code>
+              <div className="flex flex-wrap gap-2">
+                <Button type="button" variant="outline" size="sm" onClick={() => void onCopy(createdSecret)}>
+                  {t.menu.kbMcp.copyToken}
+                </Button>
+                <Button type="button" variant="ghost" size="sm" onClick={onDismissCreatedSecret}>
+                  {t.menu.kbMcp.secretDismiss}
+                </Button>
+              </div>
+            </div>
+          ) : null}
           {!canManageTokens ? (
             <p className="rounded-lg border border-dashed border-border bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
               {t.menu.kbMcp.adminOnly}

@@ -1,4 +1,4 @@
-"""Platform API tokens (/api/tokens)."""
+"""KB-scoped API tokens (graph access isolation)."""
 
 import pytest
 
@@ -10,7 +10,7 @@ from sema.api.app import create_app
 from sema.config import Settings
 
 
-def test_platform_api_token_reads_scoped_kb_graph(tmp_path) -> None:
+def test_kb_api_token_reads_scoped_kb_graph(tmp_path) -> None:
     client = TestClient(create_app(Settings(data_dir=tmp_path, ingest_inline=True)))
     admin = client.post(
         "/api/auth/register",
@@ -31,9 +31,9 @@ def test_platform_api_token_reads_scoped_kb_graph(tmp_path) -> None:
     )
 
     created = client.post(
-        "/api/tokens",
+        f"/api/kbs/{kb_id}/tokens",
         headers=session,
-        json={"name": "ci", "scope": "read", "kb_ids": [kb_id]},
+        json={"name": "ci", "scope": "read"},
     )
     assert created.status_code == 200
     secret = created.json()["secret"]
@@ -45,10 +45,10 @@ def test_platform_api_token_reads_scoped_kb_graph(tmp_path) -> None:
     denied = client.get(f"/api/kbs/{other}/graph/stats", headers=api_headers)
     assert denied.status_code == 403
 
-    listed = client.get("/api/tokens", headers=session).json()["tokens"]
+    listed = client.get(f"/api/kbs/{kb_id}/tokens", headers=session).json()["tokens"]
     assert any(t["name"] == "ci" for t in listed)
 
     token_id = next(t["id"] for t in listed if t["name"] == "ci")
-    revoked = client.delete(f"/api/tokens/{token_id}", headers=session)
+    revoked = client.delete(f"/api/kbs/{kb_id}/tokens/{token_id}", headers=session)
     assert revoked.status_code == 200
     assert client.get(f"/api/kbs/{kb_id}/graph/stats", headers=api_headers).status_code == 401

@@ -69,6 +69,8 @@ export function KbChatPage() {
             tokenName={mcp.tokenName}
             onTokenNameChange={mcp.setTokenName}
             onCreateToken={mcp.createApiToken}
+            createdSecret={mcp.createdSecret}
+            onDismissCreatedSecret={mcp.clearCreatedSecret}
             onCopy={mcp.copyToClipboard}
             onDeleteToken={mcp.deleteApiToken}
           />

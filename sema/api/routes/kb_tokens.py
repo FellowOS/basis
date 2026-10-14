@@ -4,12 +4,12 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel, Field
 
 from sema.admin.errors import AdminError
 from sema.admin.store import AdminStore, User
-from sema.api.deps import get_current_user, get_store
+from sema.api.deps import get_current_user, get_kb_for_admin, get_store
 
 router = APIRouter(prefix="/api/kbs", tags=["knowledge-bases"])
 
@@ -27,10 +27,11 @@ def _tokens_for_kb(store: AdminStore, user: User, kb_id: str) -> list:
 @router.get("/{kb_id}/tokens")
 async def list_kb_tokens(
     kb_id: str,
+    request: Request,
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> dict[str, Any]:
-    store.get_kb_for(user, kb_id, "admin")
+    get_kb_for_admin(request, user, kb_id, store)
     tokens = _tokens_for_kb(store, user, kb_id)
     return {"tokens": [t.public() for t in tokens]}
 
@@ -39,10 +40,11 @@ async def list_kb_tokens(
 async def create_kb_token(
     kb_id: str,
     body: CreateKbApiTokenRequest,
+    request: Request,
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> dict[str, Any]:
-    store.get_kb_for(user, kb_id, "admin")
+    get_kb_for_admin(request, user, kb_id, store)
     record, plaintext = store.create_api_token(
         user,
         name=body.name,
@@ -57,10 +59,11 @@ async def create_kb_token(
 async def delete_kb_token(
     kb_id: str,
     token_id: str,
+    request: Request,
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> dict[str, str]:
-    store.get_kb_for(user, kb_id, "admin")
+    get_kb_for_admin(request, user, kb_id, store)
     matches = [t for t in _tokens_for_kb(store, user, kb_id) if t.id == token_id]
     if not matches:
         raise AdminError(404, "not_found", "令牌不存在或不属于此知识库")

@@ -31,7 +31,6 @@ from sema.api.routes import (
     platform,
     realtime,
     reasoning,
-    tokens,
     users,
 )
 from sema.api.routes import settings as settings_routes
@@ -145,7 +144,6 @@ def create_app(app_settings: Settings | None = None) -> FastAPI:
     app.include_router(kb_ledger.router)
     app.include_router(kb_mappings.router)
     app.include_router(kb_sources.router)
-    app.include_router(tokens.router)
     app.include_router(realtime.router)
     app.include_router(settings_routes.router)
     app.include_router(model_providers.router)

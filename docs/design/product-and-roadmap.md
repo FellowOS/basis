@@ -124,7 +124,7 @@
 | F-ACC-01 | 注册、登录、登出、session | `POST /api/auth/*`, `GET /api/auth/me` |
 | F-ACC-02 | 首用户为平台 admin | 已有逻辑 |
 | F-ACC-03 | 平台用户 CRUD、停用 | `/api/admin/users` |
-| F-ACC-04 | 个人/服务 API Token，scope（kb 列表、read/write） | `/api/tokens` |
+| F-ACC-04 | 个人/服务 API Token，scope（单 KB read/write） | `/api/kbs/{id}/tokens` |
 | F-ACC-05 | 审计日志查询、按 KB/用户/动作过滤 | `/api/audit` |
 | F-ACC-06 | 稳定错误 `code`（无服务端自然语言给用户） | 全局 |
 | F-ACC-07 | SSO / OIDC | 扩展 |
@@ -388,7 +388,7 @@ semantica SDK（parse, kg, ontology, reasoning, embeddings, …）
 | ID 范围 | 摘要 | 状态（2025-03 快照） |
 | --- | --- | --- |
 | F-ACC-01–03 | 登录、用户 | **已有** |
-| F-ACC-04–07 | Token、SSO | **部分**（KB/platform token 路由有；SSO **未**） |
+| F-ACC-04–07 | Token、SSO | **部分**（KB 令牌 + 对话/MCP UI；SSO **未**） |
 | F-PLAT-01–02 | 设置、模型 | **部分**（设置页；模型配置与 pipeline/chat 部分接通） |
 | F-KB-01–03,05 | KB、成员 | **已有** |
 | F-KB-04,06 | KB 扩展设置、导出 | **部分**（设置/图投影；全量导出 **未**） |
@@ -416,7 +416,7 @@ semantica SDK（parse, kg, ontology, reasoning, embeddings, …）
 | 前缀 | 域 |
 | --- | --- |
 | `/api/auth`, `/api/admin/users` | F-ACC |
-| `/api/settings`, `/api/tokens`, `/api/audit` | F-PLAT, F-ACC |
+| `/api/settings`, `/api/kbs/{id}/tokens`, `/api/audit` | F-PLAT, F-ACC |
 | `/api/kbs`, `/api/kbs/{id}/members` | F-KB |
 | `/api/kbs/{id}/documents`, `.../sources`, `.../ingest` | F-SRC, F-EXT |
 | `/api/kbs/{id}/search` | F-SRCH |

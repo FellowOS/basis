@@ -144,6 +144,21 @@ def ensure_kb_viewer(
     get_kb_for_viewer(request, user, kb_id, store)
 
 
+def get_kb_for_admin(
+    request: Request,
+    user: User,
+    kb_id: str,
+    store: AdminStore,
+):
+    """KB admin routes (token management, etc.) — session auth only."""
+    if get_api_token_record(request) is not None:
+        raise HTTPException(
+            status_code=403,
+            detail={"code": "forbidden", "message": "请使用登录会话管理访问令牌"},
+        )
+    return store.get_kb_for(user, kb_id, "admin")
+
+
 def require_system_admin(user: User) -> User:
     if not user.is_admin:
         raise AdminError(403, "forbidden", "需要系统管理员")
