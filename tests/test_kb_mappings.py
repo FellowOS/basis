@@ -159,3 +159,46 @@ def test_proposed_mapping_opens_review_queue(tmp_path) -> None:
 
     queue_after = client.get(f"/api/kbs/{kb_id}/review/items", headers=headers)
     assert queue_after.json()["items"] == []
+
+
+def test_viewer_cannot_confirm_mapping_directly(tmp_path) -> None:
+    client = TestClient(create_app(Settings(data_dir=tmp_path)))
+    owner = client.post(
+        "/api/auth/register",
+        json={"email": "own@example.com", "password": "password1", "display_name": "Own"},
+    ).json()
+    owner_headers = {"Authorization": f"Bearer {owner['token']}"}
+    kb_id = client.get("/api/kbs", headers=owner_headers).json()["kbs"][0]["id"]
+
+    viewer = client.post(
+        "/api/auth/register",
+        json={"email": "view2@example.com", "password": "password1", "display_name": "View"},
+    ).json()
+    viewer_user = client.get("/api/users", headers=owner_headers).json()["users"]
+    viewer_id = next(u for u in viewer_user if u["email"] == "view2@example.com")["id"]
+    client.post(
+        f"/api/kbs/{kb_id}/members",
+        headers=owner_headers,
+        json={"user_id": viewer_id, "role": "viewer"},
+    )
+    viewer_headers = {"Authorization": f"Bearer {viewer['token']}"}
+
+    created = client.post(
+        f"/api/kbs/{kb_id}/mappings",
+        headers=viewer_headers,
+        json={
+            "signature": "surface:viewer_prop",
+            "target_kind": "none",
+            "direction": "n/a",
+            "status": "proposed",
+        },
+    )
+    assert created.status_code == 200
+    mapping_id = created.json()["mapping"]["id"]
+
+    denied = client.post(
+        f"/api/kbs/{kb_id}/mappings/{mapping_id}/status",
+        headers=viewer_headers,
+        json={"status": "confirmed"},
+    )
+    assert denied.status_code == 403

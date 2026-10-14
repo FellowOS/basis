@@ -385,30 +385,29 @@ semantica SDK（parse, kg, ontology, reasoning, embeddings, …）
 
 ## 7. 实现状态总表（相对完整设计）
 
-| ID 范围 | 摘要 | 状态 |
+| ID 范围 | 摘要 | 状态（2025-03 快照） |
 | --- | --- | --- |
-| F-ACC-01–03 | 登录、用户 | **部分**（无 Token） |
-| F-ACC-04–07 | Token、SSO | **未** |
-| F-PLAT-01–02 | 设置、模型 | **部分**（模型未接入 pipeline/chat） |
+| F-ACC-01–03 | 登录、用户 | **已有** |
+| F-ACC-04–07 | Token、SSO | **部分**（KB/platform token 路由有；SSO **未**） |
+| F-PLAT-01–02 | 设置、模型 | **部分**（设置页；模型配置与 pipeline/chat 部分接通） |
 | F-KB-01–03,05 | KB、成员 | **已有** |
-| F-KB-04,06 | KB 扩展设置、导出 | **未** |
-| F-SRC-01–02, F-EXT-01 | 上传、抽取 | **已有 MVP** |
-| F-SRC-03–08, F-EXT-02 | 文档详情、连接器、job | **未** |
-| F-SRCH-* | 检索 | **部分**（SQLite/PostgreSQL ledger、FTS5/pg_trgm、sqlite-vec/pgvector、KB 检索策略、混合搜索与重建；时间过滤待补） |
-| F-GRAPH-01 | stats | **已有** |
-| F-GRAPH-02–08, F-UI-* | Explorer 级图 | **未** |
-| F-LDG-* | 账本 | **仅图** |
-| F-GOV-*, F-IDN-* | 审核/决策 | **未** |
-| F-ONT-01 | 创建本体 API | **部分** |
-| F-ONT-02–09 | 本体 UI、SPARQL… | **未** |
-| F-RUL-* | KB 规则 | **未**（全局 demo infer） |
-| F-TIM-* | 时态 | **未** |
-| F-CHAT-* | 对话/MCP | **未** |
-| F-IO-*, F-LIN-*, F-DIFF-* | 导入导出/血缘 | **未** |
-| F-ALT-*, F-IF-* | 告警、interface | **部分**（i18n/主题有骨架） |
+| F-KB-04,06 | KB 扩展设置、导出 | **部分**（设置/图投影；全量导出 **未**） |
+| F-SRC-01–02, F-EXT-01 | 上传、抽取 | **已有**（资料 + 处理任务） |
+| F-SRC-03–08, F-EXT-02 | 文档详情、连接器、job | **部分**（处理 job、webhook/http_poll 连接器；Git/定时同步 **未**） |
+| F-SRCH-* | 检索 | **部分**（混合检索、重建；高级时间过滤待补） |
+| F-GRAPH-01–05 | 图读/WS | **已有**（Explorer 适配 + 图页） |
+| F-GRAPH-06–08, F-UI-* | 图写/Overview/Timeline UI | **部分**（读为主；合并走审核；Timeline 在 Explorer） |
+| F-LDG-* | 账本 | **部分**（陈述/映射/typed facts；图仍为投影） |
+| F-GOV-*, F-IDN-* | 审核/决策 | **部分**（合并/导入/映射队列；Decision/Agent governor **未**） |
+| F-ONT-01–09 | 本体/SPARQL/映射 | **部分**（Hub 适配、SPARQL/推理、SKOS、映射+审核） |
+| F-RUL-* | KB 规则 | **部分**（KB `reasoning/run`；规则 CRUD **未**） |
+| F-TIM-* | 时态 | **部分**（Explorer temporal API；产品化 **未**） |
+| F-CHAT-* | 对话/MCP | **部分**（KB chat；MCP 路由 **未**完） |
+| F-IO-*, F-LIN-*, F-DIFF-* | 导入导出/血缘 | **部分**（图 import 审核、provenance；Lineage 工作台 **未**） |
+| F-ALT-*, F-IF-* | 告警、interface | **部分**（i18n/主题；SSE 告警 **未**） |
 | F-LAKE-*, F-MEM-* | 可选 | **未** |
 
-**完整性结论（设计层）**：§5 已覆盖 Utopia 十二域 + Explorer 主要 Workspace，并标明可选模块。**实现层**约完成 **平台壳 + 文库摄入 + 图持久化**；检索、图 UI、审核、对话、本体工作台、SPARQL/Decision、告警、Token 等均在总表中标为未/部分——与第一篇规格一致，无「静默遗漏」域。
+**完整性结论（设计层）**：§5 仍覆盖 Utopia 十二域 + Explorer 主要 Workspace。**实现层**已完成 **纵向切片主干**：文库 → 处理 → 图/搜/聊 → 审核闭环 → 本体/SPARQL/映射/连接器 MVP；待深化项见 `graph-workspace-closure.md` 与 §9 发布门。
 
 ---
 

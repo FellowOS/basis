@@ -130,38 +130,6 @@ export function KbMappingsPage() {
     }
   }
 
-  async function confirmMapping(mappingId: string) {
-    if (!id) return;
-    try {
-      const result = await api<{
-        materialized?: { created?: number };
-        projection?: { edge_count?: number };
-      }>(`/api/kbs/${id}/mappings/${mappingId}/status`, {
-        method: 'POST',
-        body: JSON.stringify({ status: 'confirmed' }),
-      });
-      if (result.materialized?.created && result.materialized.created > 0) {
-        setError(null);
-      }
-      await load();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Update failed');
-    }
-  }
-
-  async function rejectMapping(mappingId: string) {
-    if (!id) return;
-    try {
-      await api(`/api/kbs/${id}/mappings/${mappingId}/status`, {
-        method: 'POST',
-        body: JSON.stringify({ status: 'rejected' }),
-      });
-      await load();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Update failed');
-    }
-  }
-
   const name = kb?.name ?? id ?? '…';
   const zh = locale === 'zh';
 
@@ -185,31 +153,18 @@ export function KbMappingsPage() {
         header: zh ? '操作' : 'Actions',
         align: 'right',
         render: (row) =>
-          canEdit && row.status === 'proposed' ? (
-            <div className="flex justify-end gap-1">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => void confirmMapping(row.id)}
-              >
-                {zh ? '确认' : 'Confirm'}
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => void rejectMapping(row.id)}
-              >
-                {zh ? '驳回' : 'Reject'}
-              </Button>
-            </div>
+          row.status === 'proposed' && id ? (
+            <Button type="button" variant="outline" size="sm" asChild>
+              <Link to={`${kbPath(id, 'review')}?tab=queue`}>
+                {zh ? '去审核' : 'Review'}
+              </Link>
+            </Button>
           ) : (
             '—'
           ),
       },
     ],
-    [canEdit, zh],
+    [id, zh],
   );
 
   const factColumns = useMemo<DataTableColumn<TypedFactRow>[]>(
@@ -265,7 +220,14 @@ export function KbMappingsPage() {
         {error ? <p className="text-sm text-destructive">{error}</p> : null}
         <DataPanelBody className="mt-2 space-y-6 p-4">
           <form className="grid gap-4 border-b border-border pb-6 sm:grid-cols-2" onSubmit={onSubmit}>
-            <div className="sm:col-span-2 text-sm font-semibold">{zh ? '新建映射' : 'New mapping'}</div>
+            <div className="sm:col-span-2 space-y-1">
+              <div className="text-sm font-semibold">{zh ? '新建映射' : 'New mapping'}</div>
+              <p className="text-xs text-muted-foreground">
+                {zh
+                  ? '提交后进入治理 → 审核队列；编辑者批准后才会物化类型化事实。'
+                  : 'Submissions go to Governance → Review; editors approve before typed facts materialize.'}
+              </p>
+            </div>
             <div className="space-y-2 sm:col-span-2">
               <Label htmlFor="sig">{locale === 'zh' ? '签名' : 'Signature'}</Label>
               <Input
