@@ -5,6 +5,7 @@ import {
   type KbGraphAuditEvent,
 } from '@/lib/kb-graph-audit.js';
 import { api } from '@/lib/api.js';
+import { formatUserFacingApiError } from '@/lib/api-error-message.js';
 import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
 
@@ -39,7 +40,7 @@ export function KbGraphAuditRecent({
       );
       setEvents(body.events ?? []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : zh ? '加载失败' : 'Load failed');
+      setError(formatUserFacingApiError(err, zh ? 'zh' : 'en'));
       setEvents([]);
     } finally {
       setLoading(false);

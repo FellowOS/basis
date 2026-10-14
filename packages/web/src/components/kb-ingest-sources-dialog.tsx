@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/select.js';
 import { Spinner } from '@/components/ui/spinner.js';
 import { api } from '@/lib/api.js';
+import { formatUserFacingApiError } from '@/lib/api-error-message.js';
 
 type IngestSource = {
   id: string;
@@ -76,17 +77,22 @@ export function KbIngestSourcesDialog({
   const [editSyncTitle, setEditSyncTitle] = useState('');
   const [editSyncPrefix, setEditSyncPrefix] = useState('');
 
+  const apiError = useCallback(
+    (err: unknown) => formatUserFacingApiError(err, zh ? 'zh' : 'en'),
+    [zh],
+  );
+
   const load = useCallback(async () => {
     setLoading(true);
     try {
       const data = await api<{ sources: IngestSource[] }>(`/api/kbs/${kbId}/sources`);
       setSources(data.sources);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : zh ? '加载失败' : 'Load failed');
+      toast.error(apiError(err));
     } finally {
       setLoading(false);
     }
-  }, [kbId, zh]);
+  }, [apiError, kbId]);
 
   useEffect(() => {
     if (open) {
@@ -174,7 +180,7 @@ export function KbIngestSourcesDialog({
       setExternalKeyPrefix('');
       await load();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : zh ? '创建失败' : 'Create failed');
+      toast.error(apiError(err));
     } finally {
       setLoading(false);
     }
@@ -188,7 +194,7 @@ export function KbIngestSourcesDialog({
       });
       await load();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : zh ? '更新失败' : 'Update failed');
+      toast.error(apiError(err));
     }
   };
 
@@ -204,7 +210,7 @@ export function KbIngestSourcesDialog({
       });
       toast.success(zh ? '已轮换令牌' : 'Token rotated');
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : zh ? '轮换失败' : 'Rotate failed');
+      toast.error(apiError(err));
     } finally {
       setLoading(false);
     }
@@ -236,7 +242,7 @@ export function KbIngestSourcesDialog({
       setEditingSyncId(null);
       await load();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : zh ? '保存失败' : 'Save failed');
+      toast.error(apiError(err));
     } finally {
       setLoading(false);
     }
@@ -249,7 +255,7 @@ export function KbIngestSourcesDialog({
       toast.success(zh ? '已拉取并入队处理' : 'Fetched and queued');
       await load();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : zh ? '同步失败' : 'Sync failed');
+      toast.error(apiError(err));
     } finally {
       setLoading(false);
     }

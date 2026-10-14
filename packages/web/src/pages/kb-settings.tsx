@@ -1,4 +1,4 @@
-import { type FormEvent, useEffect, useState } from 'react';
+import { type FormEvent, useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { ConfirmAlertDialog } from '@/components/console-ui/ConfirmAlertDialog.js';
@@ -28,6 +28,7 @@ import { KbGraphProjectionPanel } from '@/components/kb-graph-projection-panel.j
 import { useKbCatalog } from '@/lib/kb-context.js';
 import { useKbCapabilities } from '@/lib/kb-capabilities.js';
 import { api } from '@/lib/api.js';
+import { formatUserFacingApiError } from '@/lib/api-error-message.js';
 
 type Member = {
   user_id: string;
@@ -81,7 +82,12 @@ export function KbSettingsPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
+  const zh = locale === 'zh';
+  const apiError = useCallback(
+    (err: unknown) => formatUserFacingApiError(err, zh ? 'zh' : 'en'),
+    [zh],
+  );
   const { getKb, refresh: refreshKbs } = useKbCatalog();
   const { caps } = useKbCapabilities();
   const tab = searchParams.get('tab') ?? 'general';
@@ -112,8 +118,8 @@ export function KbSettingsPage() {
         setUsers(usersBody.users);
         setSearchConfig(searchBody);
       })
-      .catch((err) => setError(err instanceof Error ? err.message : '加载失败'));
-  }, [id]);
+      .catch((err) => setError(apiError(err)));
+  }, [apiError, id]);
 
   async function saveGeneral(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -132,7 +138,7 @@ export function KbSettingsPage() {
       setKb(body);
       await refreshKbs();
     } catch (err) {
-      setError(err instanceof Error ? err.message : '保存失败');
+      setError(apiError(err));
     }
   }
 
@@ -147,7 +153,7 @@ export function KbSettingsPage() {
       const body = await api<{ members: Member[] }>(`/api/kbs/${id}/members`);
       setMembers(body.members);
     } catch (err) {
-      setError(err instanceof Error ? err.message : '更新失败');
+      setError(apiError(err));
     }
   }
 
@@ -160,7 +166,7 @@ export function KbSettingsPage() {
       toast.success(t.common.deleteSuccess);
       navigate('/kbs');
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : t.common.deleteFailed);
+      toast.error(apiError(err));
     }
   }
 
@@ -196,7 +202,7 @@ export function KbSettingsPage() {
         body.reindex_required ? '检索设置已保存，请重建向量索引' : '检索设置已保存',
       );
     } catch (err) {
-      setError(err instanceof Error ? err.message : '保存失败');
+      setError(apiError(err));
     }
   }
 
@@ -213,7 +219,7 @@ export function KbSettingsPage() {
       setSearchConfig(current);
       toast.success('向量索引已重建');
     } catch (err) {
-      setError(err instanceof Error ? err.message : '重建失败');
+      setError(apiError(err));
     } finally {
       setReindexing(false);
     }

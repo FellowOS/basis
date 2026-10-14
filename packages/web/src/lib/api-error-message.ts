@@ -63,6 +63,26 @@ const MESSAGES: Record<string, { zh: string; en: string }> = {
     zh: '拉取远程内容失败。',
     en: 'Failed to fetch remote content.',
   },
+  unsupported_repo: {
+    zh: '仅支持 GitHub HTTPS 仓库地址。',
+    en: 'Only GitHub HTTPS repository URLs are supported.',
+  },
+  bad_paths: {
+    zh: '请至少配置一个仓库内文件路径。',
+    en: 'Configure at least one file path in the repository.',
+  },
+  bad_url: {
+    zh: '请配置有效的拉取 URL。',
+    en: 'Configure a valid pull URL.',
+  },
+  not_syncable: {
+    zh: '该来源类型不支持手动同步。',
+    en: 'Manual sync is not supported for this source type.',
+  },
+  empty_body: {
+    zh: '远程 URL 返回空内容。',
+    en: 'The remote URL returned empty content.',
+  },
 };
 
 export type ApiErrorLike = {
