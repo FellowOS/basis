@@ -43,13 +43,19 @@ def _minimal_docx_bytes() -> bytes:
     return buffer.getvalue()
 
 
-def _viewer_headers(client: TestClient, owner_headers: dict[str, str], kb_id: str) -> dict[str, str]:
+def _viewer_headers(
+    client: TestClient,
+    owner_headers: dict[str, str],
+    kb_id: str,
+    *,
+    email: str = "viewer-gate@example.com",
+) -> dict[str, str]:
     viewer = client.post(
         "/api/auth/register",
-        json={"email": "viewer-gate@example.com", "password": "password1", "display_name": "V"},
+        json={"email": email, "password": "password1", "display_name": "V"},
     ).json()
     users = client.get("/api/users", headers=owner_headers).json()["users"]
-    viewer_user = next(u for u in users if u["email"] == "viewer-gate@example.com")
+    viewer_user = next(u for u in users if u["email"] == email)
     client.post(
         f"/api/kbs/{kb_id}/members",
         headers=owner_headers,
@@ -175,6 +181,43 @@ def test_viewer_cannot_upload_or_create_documents(tmp_path) -> None:
 
     denied_rebuild = client.post(f"/api/kbs/{kb_id}/graph/rebuild", headers=viewer_headers)
     assert denied_rebuild.status_code == 403
+
+
+def test_viewer_can_read_graph_and_cannot_start_processing(tmp_path) -> None:
+    """§9.4 — viewers browse graph APIs; processing start requires editor."""
+    client = TestClient(create_app(_settings(tmp_path)))
+    owner_headers = _register(client, "owner-vbrowse@example.com")
+    kb_id = client.get("/api/kbs", headers=owner_headers).json()["kbs"][0]["id"]
+    uploaded = client.post(
+        f"/api/kbs/{kb_id}/documents",
+        headers=owner_headers,
+        json={"doc_id": "gate-doc", "text": "Alice knows Bob.", "extract": False},
+    )
+    assert uploaded.status_code == 200
+    version_id = uploaded.json()["version_id"]
+    client.post(f"/api/kbs/{kb_id}/graph/rebuild", headers=owner_headers)
+
+    viewer_headers = _viewer_headers(
+        client,
+        owner_headers,
+        kb_id,
+        email="viewer-browse@example.com",
+    )
+    assert client.get(f"/api/kbs/{kb_id}/graph/stats", headers=viewer_headers).status_code == 200
+    assert client.get(f"/api/kbs/{kb_id}/graph/nodes", headers=viewer_headers).status_code == 200
+    search = client.post(
+        f"/api/kbs/{kb_id}/graph/search",
+        headers=viewer_headers,
+        json={"query": "Alice", "limit": 10},
+    )
+    assert search.status_code == 200
+
+    denied_job = client.post(
+        f"/api/kbs/{kb_id}/processing/jobs",
+        headers=viewer_headers,
+        json={"version_id": version_id, "wait": False, "extract": False, "chunk": False},
+    )
+    assert denied_job.status_code == 403
 
 
 def test_viewer_cannot_apply_reasoning_to_graph(tmp_path) -> None:

@@ -27,6 +27,8 @@ uv run pytest tests/test_release_gate.py tests/test_realtime_ws.py -q
 pnpm --filter @sema/web test
 ```
 
+`test_release_gate.py` includes viewer **403** on upload/rebuild/processing and read-only **graph/stats**, **graph/nodes**, **graph/search**.
+
 ### Playwright (optional)
 
 Starts a disposable API (SQLite under `data-e2e/`, port **8091**, `SEMA_INGEST_INLINE=1`; `SEMA_DATABASE_URL` is cleared so `.env` Postgres is not used) and Vite (**5174**) unless servers are already up:
