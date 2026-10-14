@@ -1,0 +1,39 @@
+export type ProcessingStartOptions = {
+  chunk?: boolean;
+  chunk_size?: number;
+  chunk_overlap?: number;
+  extract?: boolean;
+  ner_method?: string;
+  relation_method?: string;
+  extract_relations?: boolean;
+  extract_triplets?: boolean;
+};
+
+function stableHash(input: string): string {
+  let hash = 0;
+  for (let i = 0; i < input.length; i += 1) {
+    hash = (hash * 31 + input.charCodeAt(i)) | 0;
+  }
+  return Math.abs(hash).toString(36);
+}
+
+/** KB-scoped idempotency key for `POST .../processing/jobs` (safe retries / double-submit). */
+export function processingStartIdempotencyKey(
+  versionId: string,
+  options?: ProcessingStartOptions,
+): string {
+  if (!options) {
+    return `ingest-start:${versionId}`;
+  }
+  const payload = JSON.stringify({
+    chunk: options.chunk,
+    chunk_size: options.chunk_size,
+    chunk_overlap: options.chunk_overlap,
+    extract: options.extract,
+    ner_method: options.ner_method,
+    relation_method: options.relation_method,
+    extract_relations: options.extract_relations,
+    extract_triplets: options.extract_triplets,
+  });
+  return `ingest-config:${versionId}:${stableHash(payload)}`;
+}

@@ -41,6 +41,8 @@ import { useKbCapabilities } from '@/lib/kb-capabilities.js';
 import { useExplorerClient } from '@/lib/explorer-context.js';
 import { KbIngestSourcesDialog } from '@/components/kb-ingest-sources-dialog.js';
 import { kbPath } from '@/lib/nav-config.js';
+import { formatUserFacingApiError } from '@/lib/api-error-message.js';
+import { processingStartIdempotencyKey } from '@/lib/processing-idempotency.js';
 
 const PAGE_SIZE = 10;
 
@@ -153,6 +155,10 @@ export function KnowledgePage() {
   const [extractTriplets, setExtractTriplets] = useState(false);
 
   const zh = locale === 'zh';
+  const apiErrorMessage = useCallback(
+    (err: unknown) => formatUserFacingApiError(err, zh ? 'zh' : 'en'),
+    [zh],
+  );
   const canEdit = caps?.graph_write !== false;
   const graphEnabled = caps?.graph === true;
   const kbName = id ? getKb(id)?.name : undefined;
@@ -211,9 +217,9 @@ export function KnowledgePage() {
   useEffect(() => {
     setLoading(true);
     void refresh()
-      .catch((err) => toast.error(err instanceof Error ? err.message : zh ? '加载失败' : 'Load failed'))
+      .catch((err) => toast.error(apiErrorMessage(err)))
       .finally(() => setLoading(false));
-  }, [refresh, zh]);
+  }, [apiErrorMessage, refresh]);
 
   useEffect(() => {
     if (!jobs.some((job) => job.status === 'queued' || job.status === 'running')) return;
@@ -274,7 +280,11 @@ export function KnowledgePage() {
       return;
     }
     if (processImmediately) {
-      await client.processing.start({ version_id: created.version_id, wait: false });
+      await client.processing.start({
+        version_id: created.version_id,
+        wait: false,
+        idempotency_key: processingStartIdempotencyKey(created.version_id),
+      });
       toast.success(zh ? '已保存并加入处理队列' : 'Saved and queued for processing');
     } else {
       toast.success(zh ? '已保存' : 'Saved');
@@ -361,11 +371,15 @@ export function KnowledgePage() {
   async function startDefault(versionId: string) {
     setBusyVersionId(versionId);
     try {
-      await client.processing.start({ version_id: versionId, wait: false });
+      await client.processing.start({
+        version_id: versionId,
+        wait: false,
+        idempotency_key: processingStartIdempotencyKey(versionId),
+      });
       toast.success(zh ? '已加入处理队列' : 'Queued for processing');
       await refresh();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : zh ? '启动处理失败' : 'Failed to start');
+      toast.error(apiErrorMessage(err));
     } finally {
       setBusyVersionId(null);
     }
@@ -376,9 +390,7 @@ export function KnowledgePage() {
     if (!configVersionId) return;
     setBusyVersionId(configVersionId);
     try {
-      await client.processing.start({
-        version_id: configVersionId,
-        wait: false,
+      const processingOptions = {
         chunk,
         chunk_size: chunkSize,
         chunk_overlap: chunkOverlap,
@@ -387,12 +399,18 @@ export function KnowledgePage() {
         relation_method: relationMethod,
         extract_relations: extractRelations,
         extract_triplets: extractTriplets,
+      };
+      await client.processing.start({
+        version_id: configVersionId,
+        wait: false,
+        ...processingOptions,
+        idempotency_key: processingStartIdempotencyKey(configVersionId, processingOptions),
       });
       closeConfig();
       toast.success(zh ? '已按配置加入处理队列' : 'Queued with custom options');
       await refresh();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : zh ? '启动处理失败' : 'Failed to start');
+      toast.error(apiErrorMessage(err));
     } finally {
       setBusyVersionId(null);
     }
@@ -405,7 +423,7 @@ export function KnowledgePage() {
       toast.success(zh ? '已重试' : 'Retry queued');
       await refresh();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : zh ? '重试失败' : 'Retry failed');
+      toast.error(apiErrorMessage(err));
     } finally {
       setBusyVersionId(null);
     }
