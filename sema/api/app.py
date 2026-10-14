@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
@@ -44,6 +44,11 @@ from sema.knowledge.store import KnowledgeStore
 from sema.realtime.hub import GraphWsHub
 from sema.realtime.tickets import RealtimeTicketStore
 from sema.capabilities import explorer_available
+from sema.api.request_id import (
+    RequestIdMiddleware,
+    attach_request_id_to_detail,
+    install_request_id_logging,
+)
 
 
 @asynccontextmanager
@@ -84,6 +89,7 @@ async def _app_lifespan(app: FastAPI):
 
 
 def create_app(app_settings: Settings | None = None) -> FastAPI:
+    install_request_id_logging()
     app_settings = app_settings or Settings.from_env()
     app = FastAPI(title="Sema API", version=__version__, lifespan=_app_lifespan)
     app.state.settings = app_settings
@@ -120,15 +126,28 @@ def create_app(app_settings: Settings | None = None) -> FastAPI:
         ],
         allow_credentials=True,
         allow_methods=["*"],
-        allow_headers=["Authorization", "Content-Type"],
+        allow_headers=["Authorization", "Content-Type", "X-Request-ID"],
     )
+    app.add_middleware(RequestIdMiddleware)
 
     @app.exception_handler(AdminError)
-    async def handle_admin_error(_request: Request, exc: AdminError) -> JSONResponse:
-        return JSONResponse(
-            status_code=exc.status,
-            content={"detail": {"code": exc.code, "message": exc.message}},
+    async def handle_admin_error(request: Request, exc: AdminError) -> JSONResponse:
+        detail = attach_request_id_to_detail(
+            request,
+            {"code": exc.code, "message": exc.message},
         )
+        return JSONResponse(status_code=exc.status, content={"detail": detail})
+
+    @app.exception_handler(HTTPException)
+    async def handle_http_exception(request: Request, exc: HTTPException) -> JSONResponse:
+        detail = exc.detail
+        if isinstance(detail, dict):
+            payload = attach_request_id_to_detail(request, dict(detail))
+            return JSONResponse(status_code=exc.status_code, content={"detail": payload})
+        if isinstance(detail, str):
+            payload = attach_request_id_to_detail(request, {"message": detail})
+            return JSONResponse(status_code=exc.status_code, content={"detail": payload})
+        return JSONResponse(status_code=exc.status_code, content={"detail": detail})
 
     app.include_router(health.router)
     app.include_router(platform.router)
