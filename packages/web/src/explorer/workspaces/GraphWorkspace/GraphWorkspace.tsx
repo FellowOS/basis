@@ -37,6 +37,7 @@ import { GraphLoadingOverlay } from "./GraphLoadingOverlay";
 import { GraphSearchDock, type GraphSearchResult } from "./GraphSearchDock";
 import { GraphStatusDock } from "./GraphStatusDock";
 import { GraphColorLegendDock } from "./GraphColorLegendDock";
+import { GraphPluginPanelDialog } from "./GraphPluginPanelDialog";
 import { GraphToolbarRail } from "./GraphToolbarRail";
 import { createGraphLoadProgress } from "./graphLoading";
 import { Badge } from "@/components/ui/badge.js";
@@ -96,7 +97,6 @@ type TemporalBounds = {
 
 type ExploreLayoutState = {
   showInspector: boolean;
-  showPluginDock: boolean;
 };
 
 type ToolbarIconComponent = ComponentType<{
@@ -459,38 +459,6 @@ function buildGraphHudCss(): string {
     border-top: 1px solid ${GRAPH_THEME.ui.timeline.border};
     background: ${GRAPH_THEME.ui.timeline.background};
     pointer-events: auto;
-  }
-  .explore-plugin-dock {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 7;
-    pointer-events: auto;
-  }
-  .explore-scene-card:has(.explore-scene-footer) .explore-plugin-dock {
-    bottom: var(--explore-timeline-height, 90px);
-  }
-  .explore-plugin-dock-tabs {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    flex-wrap: wrap;
-  }
-  .explore-plugin-dock-tab {
-    border: 1px solid ${GRAPH_THEME.ui.control.defaultBorder};
-    background: ${GRAPH_THEME.ui.control.defaultBg};
-    color: ${GRAPH_THEME.ui.control.defaultText};
-    border-radius: 999px;
-    padding: 6px 10px;
-    font-size: 11px;
-    font-weight: 600;
-    cursor: pointer;
-  }
-  .explore-plugin-dock-tab[data-active="true"] {
-    color: ${GRAPH_THEME.ui.control.activeText};
-    background: rgba(74, 181, 166, 0.18);
-    border-color: ${GRAPH_THEME.ui.control.activeBorder};
   }
   .explore-toolbar {
     display: flex;
@@ -2604,7 +2572,6 @@ export function GraphWorkspace({
     ?? null;
   const layoutState: ExploreLayoutState = {
     showInspector: Boolean(selectedNodeId),
-    showPluginDock: openDockPanels.length > 0,
   };
 
   const openDockPanelIdsString = openDockPanels.map((p) => p.id).join("|");
@@ -2969,40 +2936,6 @@ export function GraphWorkspace({
                 </div>
               </div>
 
-              {layoutState.showPluginDock ? (
-                <div className="explore-plugin-dock">
-                  <SurfaceCard tone="subtle" style={{ borderRadius: 0, borderLeft: "none", borderRight: "none", borderBottom: "none" }}>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
-                        <div className="explore-plugin-dock-tabs">
-                          {openDockPanels.map((panel) => (
-                            <button
-                              key={panel.id}
-                              className="explore-plugin-dock-tab"
-                              data-active={activeDockPanel?.id === panel.id}
-                              onClick={() => setActiveDockPanelId(panel.id)}
-                            >
-                              {panel.title}
-                            </button>
-                          ))}
-                          {activeDockPanel ? (
-                            <button
-                              className="explore-plugin-dock-tab"
-                              onClick={() => handlePluginAction({ type: "closePanel", panelId: activeDockPanel.id })}
-                            >
-                              ×
-                            </button>
-                          ) : null}
-                        </div>
-                      </div>
-                      {activeDockPanel ? (
-                        <div style={pluginDockContentStyle}>{activeDockPanel.content}</div>
-                      ) : null}
-                    </div>
-                  </SurfaceCard>
-                </div>
-              ) : null}
-
               {showTimelinePanel && temporalBounds?.min ? (
                 <div className="explore-scene-footer">
                   <Suspense fallback={<div style={timelineFallbackStyle}>Loading timeline…</div>}>
@@ -3110,17 +3043,17 @@ export function GraphWorkspace({
             <GraphToolbarRail groups={rightToolbarClusters} expandLabels="left" />
           </section>
         ) : null}
+
+        <GraphPluginPanelDialog
+          panels={openDockPanels}
+          activePanelId={activeDockPanel?.id ?? null}
+          onActivePanelChange={setActiveDockPanelId}
+          onClosePanel={(panelId) => handlePluginAction({ type: "closePanel", panelId })}
+        />
       </div>
     </div>
   );
 }
-
-const pluginDockContentStyle: React.CSSProperties = {
-  borderRadius: 16,
-  border: `1px solid ${GRAPH_THEME.ui.surface.panelBorder}`,
-  background: "rgba(255, 255, 255, 0.02)",
-  padding: 14,
-};
 
 const pluginLoadingStyle: React.CSSProperties = {
   color: GRAPH_THEME.ui.text.muted,
