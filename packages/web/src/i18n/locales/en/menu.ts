@@ -96,16 +96,6 @@ export const menu = {
     copyFailed: 'Could not copy — select the secret and copy manually',
     actions: 'Actions',
   },
-  platformTokens: {
-    title: 'API tokens',
-    subtitle: 'Bearer tokens scoped to selected knowledge bases for scripts, CI, or MCP clients.',
-    createTitle: 'New token',
-    listTitle: 'Your tokens',
-    kbScope: 'Authorized KBs',
-    secretTitle: 'New token secret',
-    secretHint: 'Copy now. You can copy again from the list while the server still stores the secret.',
-    mcpHint: 'Per-KB MCP URL and tools:',
-  },
   models: {
     title: 'Models',
     hint: 'Chat and embedding endpoints for extraction, search, and conversations.',

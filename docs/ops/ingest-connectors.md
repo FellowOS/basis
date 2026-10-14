@@ -33,12 +33,12 @@ Optional `config` keys (UI or API):
 
 Git `config`: `repo_url` (GitHub HTTPS), `branch`, `paths[]`.
 
-## Platform API tokens vs ingest tokens
+## Ingest token vs KB access token
 
-| Token | API | Purpose |
+| Token | Where | Purpose |
 | --- | --- | --- |
-| **Platform API token** | `/api/tokens`, UI **Account → API tokens** | User Bearer; scoped `kb_ids`; graph/read APIs, MCP |
-| **Ingest token** | Created with webhook source | Only that source’s webhook endpoint |
+| **Ingest token** | Webhook source (connectors dialog) | Only that source’s `.../webhook` endpoint |
+| **KB access token** | **KB → Ask (chat)** MCP panel, `/api/kbs/{id}/tokens` | Bearer for MCP and KB-scoped API; KB admins only |
 
 ## Sync history
 

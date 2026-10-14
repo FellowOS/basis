@@ -96,16 +96,6 @@ export const menu = {
     copyFailed: '复制失败，请手动选中密钥复制',
     actions: '操作',
   },
-  platformTokens: {
-    title: 'API 令牌',
-    subtitle: '跨知识库的 Bearer 令牌，用于脚本、CI 或 MCP 客户端；仅能访问所选知识库。',
-    createTitle: '新建令牌',
-    listTitle: '我的令牌',
-    kbScope: '授权知识库',
-    secretTitle: '新令牌密钥',
-    secretHint: '请立即复制保存；关闭页面后仍可在列表中复制（若服务端仍保留密钥）。',
-    mcpHint: '单库 MCP 端点与工具列表见',
-  },
   models: {
     title: '模型',
     hint: '配置对话与向量模型端点，供抽取、检索与对话使用。',

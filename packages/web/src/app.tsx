@@ -16,7 +16,6 @@ import {
   KbsPage,
   ModelsPage,
   SemaLayout,
-  PlatformTokensPage,
   SettingsPage,
   UsersPage,
 } from '@/lazy-pages.js';
@@ -197,14 +196,7 @@ function AuthedApp() {
             </Suspense>
           }
         />
-        <Route
-          path="/tokens"
-          element={
-            <Suspense fallback={null}>
-              <PlatformTokensPage />
-            </Suspense>
-          }
-        />
+        <Route path="/tokens" element={<Navigate to="/kbs" replace />} />
         <Route
           path="/models"
           element={

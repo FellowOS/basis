@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar.js';
 import {
   DropdownMenu,
@@ -106,12 +105,6 @@ export function SemaAccountMenu({ onLogout }: { onLogout: () => void }) {
           </DropdownMenuPortal>
         </DropdownMenuSub>
         <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <Link to="/tokens">
-            <MenuIcon name="key-01" />
-            {t.menu.platformTokens.title}
-          </Link>
-        </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => {
             onLogout();
