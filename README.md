@@ -64,7 +64,7 @@ uv run pytest -q
 pnpm --filter @basis/web test
 ```
 
-See [CONTRIBUTING.md](CONTRIBUTING.md), [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md), [SECURITY.md](SECURITY.md).
+See [CONTRIBUTING.md](CONTRIBUTING.md), [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md), [SECURITY.md](SECURITY.md). Upgrading from the pre-release **Sema** name: [docs/ops/migrating-from-sema.md](docs/ops/migrating-from-sema.md).
 
 ---
 

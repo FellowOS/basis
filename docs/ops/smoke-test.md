@@ -34,7 +34,7 @@ pnpm --filter @basis/web test
 Starts a disposable API (SQLite under `data-e2e/`, port **8091**, `BASIS_INGEST_INLINE=1`; `BASIS_DATABASE_URL` is cleared so `.env` Postgres is not used) and Vite (**5174**) unless servers are already up:
 
 ```bash
-cd fellowos/basis
+cd basis   # clone path; from repo root if you already have the tree
 pnpm install
 pnpm --filter @basis/web exec playwright install chromium
 pnpm test:e2e

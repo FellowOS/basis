@@ -182,12 +182,13 @@ uv run python -m spacy download en_core_web_sm
 | 数据模型 | [docs/design/data-model.md](docs/design/data-model.md) |
 | Explorer 集成 | [docs/design/explorer-integration.md](docs/design/explorer-integration.md) |
 | 连接器 | [docs/ops/ingest-connectors.zh.md](docs/ops/ingest-connectors.zh.md) |
+| 从 Sema 迁移 | [docs/ops/migrating-from-sema.md](docs/ops/migrating-from-sema.md) |
 
 ---
 
 ## 参与贡献
 
-详见 [CONTRIBUTING.md](CONTRIBUTING.md)、[行为准则](CODE_OF_CONDUCT.md)、[安全报告](SECURITY.md)。
+详见 [CONTRIBUTING.md](CONTRIBUTING.md)、[行为准则](CODE_OF_CONDUCT.md)、[安全报告](SECURITY.md)。曾用 **Sema** 命名的部署请参阅 [迁移说明](docs/ops/migrating-from-sema.md)。
 
 ---
 
