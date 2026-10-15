@@ -100,6 +100,18 @@ export function KbIngestSourcesDialog({
     [zh],
   );
 
+  const copyText = useCallback(
+    async (text: string, okMessage: string) => {
+      try {
+        await navigator.clipboard.writeText(text);
+        toast.success(okMessage);
+      } catch {
+        toast.error(zh ? '复制失败' : 'Copy failed');
+      }
+    },
+    [zh],
+  );
+
   const load = useCallback(async () => {
     setLoading(true);
     try {
@@ -352,13 +364,44 @@ export function KbIngestSourcesDialog({
         {secretBlock?.ingest_token ? (
           <div className="space-y-2 rounded-md border border-border bg-muted/40 p-3 text-sm">
             <p className="font-medium">{zh ? '请保存令牌（仅显示一次）' : 'Save token (shown once)'}</p>
-            <div>
-              <Label className="text-xs text-muted-foreground">URL</Label>
-              <p className="break-all font-mono text-xs">{webhookUrl}</p>
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <Label className="text-xs text-muted-foreground">URL</Label>
+                <p className="break-all font-mono text-xs">{webhookUrl}</p>
+              </div>
+              {webhookUrl ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="shrink-0 text-xs"
+                  onClick={() =>
+                    void copyText(webhookUrl, zh ? '已复制 Webhook URL' : 'Webhook URL copied')
+                  }
+                >
+                  {zh ? '复制' : 'Copy'}
+                </Button>
+              ) : null}
             </div>
-            <div>
-              <Label className="text-xs text-muted-foreground">Authorization</Label>
-              <p className="break-all font-mono text-xs">Bearer {secretBlock.ingest_token}</p>
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <Label className="text-xs text-muted-foreground">Authorization</Label>
+                <p className="break-all font-mono text-xs">Bearer {secretBlock.ingest_token}</p>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="shrink-0 text-xs"
+                onClick={() =>
+                  void copyText(
+                    `Bearer ${secretBlock.ingest_token}`,
+                    zh ? '已复制 Authorization' : 'Authorization copied',
+                  )
+                }
+              >
+                {zh ? '复制' : 'Copy'}
+              </Button>
             </div>
           </div>
         ) : null}

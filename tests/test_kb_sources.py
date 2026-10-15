@@ -92,6 +92,40 @@ def test_sources_kb_isolation(tmp_path) -> None:
     assert denied.status_code == 404
 
 
+def test_ingest_source_audit_never_contains_token(tmp_path) -> None:
+    client = TestClient(create_app(_test_settings(tmp_path)))
+    admin = client.post(
+        "/api/auth/register",
+        json={"email": "aud@example.com", "password": "password1", "display_name": "Aud"},
+    ).json()
+    headers = {"Authorization": f"Bearer {admin['token']}"}
+    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    created = client.post(
+        f"/api/kbs/{kb_id}/sources",
+        headers=headers,
+        json={"kind": "webhook", "name": "Audit"},
+    )
+    assert created.status_code == 200
+    token = created.json()["ingest_token"]
+    source_id = created.json()["source"]["id"]
+
+    rotated = client.post(f"/api/kbs/{kb_id}/sources/{source_id}/rotate-token", headers=headers)
+    assert rotated.status_code == 200
+    new_token = rotated.json()["ingest_token"]
+
+    audit = client.get(
+        f"/api/kbs/{kb_id}/audit/graph-mutations?action_prefix=kb.ingest_source.",
+        headers=headers,
+    )
+    assert audit.status_code == 200
+    blob = str(audit.json())
+    assert token not in blob
+    assert new_token not in blob
+    actions = [e["action"] for e in audit.json()["events"]]
+    assert "kb.ingest_source.created" in actions
+    assert "kb.ingest_source.token_rotated" in actions
+
+
 def test_webhook_token_rotation(tmp_path) -> None:
     client = TestClient(create_app(_test_settings(tmp_path)))
     admin = client.post(

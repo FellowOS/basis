@@ -474,8 +474,8 @@ Work:
 
 Acceptance:
 
-- editor can create/disable/sync without leaking secrets in audit logs;
-- two-KB isolation on sources and webhook paths.
+- editor can create/disable/sync without leaking secrets in audit logs — **met** (`test_ingest_source_audit_never_contains_token`);
+- two-KB isolation on sources and webhook paths — **met** (`test_sources_kb_isolation`).
 
 ### M6-02 — Chat + MCP hardening (F-CHAT-01/05/06)
 
