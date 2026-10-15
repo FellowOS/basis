@@ -2,9 +2,14 @@
 
 from pathlib import Path
 
+import pytest
+
+pytest.importorskip("semantica")
+
 from fastapi.testclient import TestClient
 
 from sema.api.app import create_app
+from sema.capabilities import explorer_available
 from sema.admin.store import AdminStore
 from sema.config import Settings
 from sema.knowledge.blob_store import BlobStore
@@ -100,6 +105,36 @@ def test_entity_facts_includes_derived_facts(tmp_path) -> None:
     )
     listed = store.list_derived_facts_for_entity(kb_id, subj)
     assert len(listed) == 1
+
+
+def test_reasoning_apply_persists_derived_facts(tmp_path) -> None:
+    if not explorer_available():
+        pytest.skip("explorer extra not installed")
+
+    client = TestClient(create_app(Settings(data_dir=tmp_path)))
+    admin = client.post(
+        "/api/auth/register",
+        json={"email": "ra@example.com", "password": "password1", "display_name": "RA"},
+    ).json()
+    headers = {"Authorization": f"Bearer {admin['token']}"}
+    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+
+    run = client.post(
+        f"/api/kbs/{kb_id}/reasoning/run",
+        headers=headers,
+        json={
+            "facts": ["parent(PersistA, PersistB)"],
+            "rules": ["IF parent(PersistA, PersistB) THEN ancestor(PersistA, PersistB)"],
+            "mode": "forward",
+            "apply_to_graph": True,
+        },
+    )
+    assert run.status_code == 200
+    body = run.json()
+    assert body.get("derived_facts_persisted", {}).get("created", 0) >= 1
+    listed = client.get(f"/api/kbs/{kb_id}/ledger/derived-facts", headers=headers)
+    assert listed.status_code == 200
+    assert len(listed.json()["derived_facts"]) >= 1
 
 
 def test_list_ingest_jobs_alias(tmp_path) -> None:

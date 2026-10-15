@@ -457,7 +457,7 @@ introduce a second source of truth.
 `tests/test_request_id.py`, `tests/test_legacy_graph_migration.py`, `tests/test_entity_merges.py`,
 `tests/test_explorer_registry.py`, `tests/test_ws_hub.py`, `tests/test_realtime_ws.py`,
 `packages/web/src/lib/kb-alert-actions.test.ts`, `packages/web/src/lib/reviewUrlState.test.ts`,
-`packages/web/src/explorer/host/explorerHttp.test.ts`, and `packages/web/e2e` (`onboarding`, `lineage`, `governance`, `graph-diff`, `search-graph-at`, `shell`; CI `e2e`).
+`packages/web/src/explorer/host/explorerHttp.test.ts`, and `packages/web/e2e` (`onboarding`, `lineage`, `governance`, `graph-diff`, `search-graph-at`, `reasoning-derived`, `shell`; CI `e2e`).
 Manual M6: [smoke-test.md](../ops/smoke-test.md) § M6 deepening.
 
 ## 10. Milestone M6 — post–Explorer migration deepening

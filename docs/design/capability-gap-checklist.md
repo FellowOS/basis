@@ -114,4 +114,4 @@ References: [Product and roadmap](product-and-roadmap.md), [Explorer integration
 - Split **P0/P1** rows into backlog tasks (§6–9 in `implementation-backlog.md`) with acceptance tests.
 - Do **not** reopen Explorer shell items marked `excluded` or `replaced` unless product explicitly reverses ADR/design.
 
-_Last updated: 2026-10-15 (graph diff + proof chains, governance/graph-diff e2e, M6 GA slice)._
+_Last updated: 2026-10-15 (derived facts on entities, reasoning/search e2e, M6 GA slice)._

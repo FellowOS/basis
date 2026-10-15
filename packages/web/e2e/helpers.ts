@@ -159,6 +159,32 @@ export async function fetchTemporalBounds(
   return (await response.json()) as { min?: string; max?: string };
 }
 
+export async function runReasoningApplyViaApi(
+  page: Page,
+  kbId: string,
+  facts: string[],
+  rules: string[],
+): Promise<{ derived_facts_persisted?: { created?: number } }> {
+  const token = await bearerToken(page);
+  const response = await page.request.post(`/api/kbs/${kbId}/reasoning/run`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    data: {
+      facts,
+      rules,
+      mode: 'forward',
+      apply_to_graph: true,
+    },
+  });
+  if (response.status() === 503) {
+    throw new Error('explorer_unavailable');
+  }
+  expect(response.ok()).toBeTruthy();
+  return (await response.json()) as { derived_facts_persisted?: { created?: number } };
+}
+
 export async function proposeRememberViaApi(
   page: Page,
   kbId: string,
