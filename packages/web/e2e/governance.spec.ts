@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { defaultKbId, registerFreshUser } from './helpers';
+import { defaultKbId, proposeRememberViaApi, registerFreshUser } from './helpers';
 
 test('review queue surfaces link to ontology versions tab', async ({ page }) => {
   test.setTimeout(120_000);
@@ -32,6 +32,29 @@ test('sources query opens ingest connectors dialog', async ({ page }) => {
   const dialog = page.getByRole('dialog');
   await expect(dialog).toBeVisible({ timeout: 30_000 });
   await expect(dialog.getByText(/Ingest sources|摄入来源/i)).toBeVisible();
+});
+
+test('review queue deep link highlights remembered fact item', async ({ page }) => {
+  test.setTimeout(120_000);
+
+  await registerFreshUser(page);
+  const kbId = await defaultKbId(page);
+  const fact = `E2E remembered fact ${Date.now()}`;
+  const { reviewItemId } = await proposeRememberViaApi(page, kbId, fact);
+
+  await page.goto(`/kbs/${kbId}/review?tab=queue&reviewItem=${encodeURIComponent(reviewItemId)}`);
+
+  const unavailable = page.getByRole('heading', {
+    name: /工作区不可用|Workspace unavailable/i,
+  });
+  if ((await unavailable.count()) > 0) {
+    test.skip(true, 'review workspace requires explorer_runtime');
+  }
+
+  const card = page.locator(`#review-item-${reviewItemId}`);
+  await expect(card).toBeVisible({ timeout: 60_000 });
+  await expect(card).toHaveClass(/ring-primary/);
+  await expect(card.getByText(fact)).toBeVisible();
 });
 
 test('search graph tab shows temporal hint and link to graph workspace', async ({ page }) => {

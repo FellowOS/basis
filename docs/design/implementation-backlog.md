@@ -481,7 +481,7 @@ Acceptance:
 
 ### M6-02 — Chat + MCP hardening (F-CHAT-01/05/06)
 
-**Status:** partial — playground + SSE stream; client `AbortController`; async stream checks `is_disconnected` + closes OpenAI stream; `chat_in_flight` 409; server message trim with SSE `context_trimmed` + non-stream `context_trim`; MCP filters on `search_chunks`; tests for `mcp_busy` / `mcp_timeout`.
+**Status:** partial — playground + SSE stream; client `AbortController`; async stream checks `is_disconnected` + closes OpenAI stream; `chat_in_flight` 409; server message trim with SSE `context_trimmed` + non-stream `context_trim`; MCP filters on `search_chunks`; tests for `mcp_busy` / `mcp_timeout`; `POST .../chat/remember` → `statement_remember` queue covered by `tests/test_remember.py` + `test_m6_smoke.py` and Playwright `reviewItem` deep link.
 
 Work (playground **not** a focus — current char/msg trim + `context_trimmed` is enough for KB GA):
 

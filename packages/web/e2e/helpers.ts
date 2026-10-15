@@ -147,6 +147,27 @@ export async function ingestDocumentViaApi(
 }
 
 /** Minimal document ingest (pattern extract) for graph projection smoke. */
+export async function proposeRememberViaApi(
+  page: Page,
+  kbId: string,
+  content: string,
+): Promise<{ reviewItemId: string }> {
+  const token = await bearerToken(page);
+  const response = await page.request.post(`/api/kbs/${kbId}/chat/remember`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    data: { content },
+  });
+  expect(response.ok()).toBeTruthy();
+  const body = (await response.json()) as { review_item_id?: string };
+  if (!body.review_item_id) {
+    throw new Error('POST /chat/remember did not return review_item_id');
+  }
+  return { reviewItemId: body.review_item_id };
+}
+
 export async function ingestPasteText(page: Page, kbId: string, text: string): Promise<void> {
   await Promise.all([
     page.waitForResponse(

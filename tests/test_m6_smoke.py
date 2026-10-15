@@ -1,4 +1,4 @@
-"""M6 vertical-slice API smoke (alerts, rules, ingest sources)."""
+"""M6 vertical-slice API smoke (alerts, rules, ingest sources, remember → review)."""
 
 from fastapi.testclient import TestClient
 
@@ -48,3 +48,13 @@ def test_m6_kb_alerts_rules_sources_smoke(tmp_path) -> None:
     )
     assert webhook.status_code == 200
     assert webhook.json().get("ingest_token")
+
+    remembered = client.post(
+        f"/api/kbs/{kb_id}/chat/remember",
+        headers=headers,
+        json={"content": "M6 smoke remembered fact."},
+    )
+    assert remembered.status_code == 200
+    review_id = remembered.json()["review_item_id"]
+    items = client.get(f"/api/kbs/{kb_id}/review/items", headers=headers).json()["items"]
+    assert any(i["id"] == review_id and i["kind"] == "statement_remember" for i in items)

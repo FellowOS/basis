@@ -78,7 +78,7 @@ References: [Product and roadmap](product-and-roadmap.md), [Explorer integration
 | F-SRC-08 | Large async ingest jobs | `partial` | P1 | Processing tasks exist; align with F-SRC-08 scope |
 | F-SRCH-03 | Advanced time filters on search | `partial` | P1 | Chunk filters on `GET .../search` + UI; graph tab copy clarifies no ingest-time filter |
 | F-CHAT-01–03 | KB chat + RAG + tool subset | `partial` | P0 | Playground + SSE; client abort + server disconnect stops stream frames |
-| F-CHAT-04 | `remember` → pending review | `partial` | P1 | `POST .../chat/remember` + MCP `propose_remember`; review kind `statement_remember` |
+| F-CHAT-04 | `remember` → pending review | `partial` | P1 | `POST .../chat/remember` + MCP `propose_remember`; review kind `statement_remember`; `reviewItem=` deep link + M6 smoke |
 | F-CHAT-05 | MCP Streamable HTTP | `partial` | P0 | `GET/POST /api/kbs/{id}/mcp` + 7 read tools; no platform `/api/mcp` |
 | F-CHAT-06 | Stop gen, 409 concurrency, context trim | `partial` | P1 | Sufficient for GA: abort, 409, char/msg trim + `context_trimmed`; token budget **deferred** |
 | F-ALT-01–02 | Alert episodes + SSE refetch | `partial` | P1 | Bell SSE + 5m poll; deep links → connectors (`ingestSource`), chat, review item, ontology proposal |
