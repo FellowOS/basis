@@ -380,7 +380,7 @@ Work:
 - connect realtime updates and revision refetch;
 - respect viewer permissions.
 
-**Status:** partial — Explorer `GraphWorkspace` embedded when `explorer_runtime`; timeline + search/focus; `projection_updated` WS triggers full graph reload + dock notice; KB switch remounts workspace (`key={kbId}`); inspector evidence links resolve ledger `chunk_id` / document neighbors; merge/import gated via review with property diff in resolve + review queue; `/kbs/:id/lineage` PROV viewer + graph overview in KB settings; backend WS/viewer tests; graph read-only UX; unit tests for projection refresh. Manual gate: `docs/ops/smoke-test.md`. Playwright: `e2e/shell.spec.ts`, `e2e/onboarding.spec.ts`, `e2e/lineage.spec.ts` (provenance API + lineage shell after ingest).
+**Status:** partial — Explorer `GraphWorkspace` embedded when `explorer_runtime`; timeline + search/focus; `projection_updated` WS triggers full graph reload + dock notice; KB switch remounts workspace (`key={kbId}`); inspector evidence links resolve ledger `chunk_id` / document neighbors; merge/import gated via review with property diff in resolve + review queue; `/kbs/:id/lineage` PROV viewer + graph overview in KB settings; backend WS/viewer tests; graph read-only UX; unit tests for projection refresh. Manual gate: `docs/ops/smoke-test.md`. Playwright: `e2e/shell.spec.ts`, `e2e/onboarding.spec.ts`, `e2e/lineage.spec.ts`, `e2e/governance.spec.ts` (provenance API + lineage shell after ingest; governance/search deep links).
 
 Acceptance:
 
@@ -457,7 +457,7 @@ introduce a second source of truth.
 `tests/test_request_id.py`, `tests/test_legacy_graph_migration.py`, `tests/test_entity_merges.py`,
 `tests/test_explorer_registry.py`, `tests/test_ws_hub.py`, `tests/test_realtime_ws.py`,
 `packages/web/src/lib/kb-alert-actions.test.ts`, `packages/web/src/lib/reviewUrlState.test.ts`,
-`packages/web/src/explorer/host/explorerHttp.test.ts`, and `packages/web/e2e` (Playwright; CI `e2e`).
+`packages/web/src/explorer/host/explorerHttp.test.ts`, and `packages/web/e2e` (`onboarding`, `lineage`, `governance`, `shell`; CI `e2e`).
 Manual M6: [smoke-test.md](../ops/smoke-test.md) § M6 deepening.
 
 ## 10. Milestone M6 — post–Explorer migration deepening
@@ -523,7 +523,7 @@ Acceptance:
 
 ### M6-05 — Temporal + alerts product surfaces (F-TIM-*, F-ALT-*)
 
-**Status:** partial — temporal diff + graph scrubber; chunk search `as_of` / `created_*` + search page copy; alerts + bell SSE/poll + deep links (**done** for MVP kinds).
+**Status:** partial — temporal diff + graph scrubber; chunk search `as_of` / `created_*` + search page copy; alerts + bell SSE/poll + deep links (**done** for MVP kinds); Playwright `governance.spec.ts` (review/ontology, connectors query, search graph hint).
 
 Work:
 

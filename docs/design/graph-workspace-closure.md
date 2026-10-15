@@ -30,7 +30,7 @@ lifecycle. See [explorer-integration.md](./explorer-integration.md) for API cont
 | SPARQL + reasoning | same page, tabs | `POST .../sparql`, reasoning via `kb_explorer` |
 | SKOS + alignments | `/kbs/:id/vocabulary` | `kb_ontology` vocabulary routes |
 | Phrase → type mappings | `/kbs/:id/mappings` | `kb_mappings` ledger |
-| Connectors | `ingest_sources` + `/sources` API | **Partial** — webhook + `http_poll` sync, token rotate, sync history in source `config` |
+| Connectors | `ingest_sources` + `/sources` API | **GA slice** — `webhook` / `http_poll` / GitHub raw `git` only (no new kinds); sync history in `config`; `?connectors=1` deep link |
 
 ## Intentionally out of scope (design)
 
@@ -51,4 +51,6 @@ lifecycle. See [explorer-integration.md](./explorer-integration.md) for API cont
 
 - `tests/test_graph_snapshot.py` — projection GET, rebuild audit, viewer KB audit vs platform 403
 - `tests/test_kb_review.py`, `tests/test_kb_explorer_routes.py` — graph-mutations audit
-- `packages/web/src/lib/graph-evidence-links.test.ts` — evidence URL helper (when vitest wired)
+- `packages/web/src/lib/graph-evidence-links.test.ts` — evidence URL helper
+- `packages/web/e2e/governance.spec.ts` — review → ontology versions, sources `?connectors=1`, search graph temporal hint → graph route
+- `packages/web/e2e/onboarding.spec.ts`, `e2e/lineage.spec.ts`, `e2e/shell.spec.ts` — ingest + graph shell, provenance, nav

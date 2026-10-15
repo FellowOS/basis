@@ -394,7 +394,7 @@ semantica SDK（parse, kg, ontology, reasoning, embeddings, …）
 | F-KB-04,06 | KB 扩展设置、导出 | **部分**（设置/图投影；全量导出 **未**） |
 | F-SRC-01–02, F-EXT-01 | 上传、抽取 | **已有**（资料 + 处理任务） |
 | F-SRC-03–08, F-EXT-02 | 文档详情、连接器、job | **部分**（处理 job；连接器 **三种冻结**：webhook/http_poll/GitHub raw；告警深链；**不**扩新 kind / git clone） |
-| F-SRCH-* | 检索 | **部分**（混合检索、重建；chunk `as_of`/`created_*`；图谱搜索为当前投影） |
+| F-SRCH-* | 检索 | **部分**（混合检索、重建；chunk `as_of`/`created_*`；图谱搜索为当前投影；Graph 页时点说明 + e2e） |
 | F-GRAPH-01–05 | 图读/WS | **已有**（Explorer 适配 + 图页） |
 | F-GRAPH-06–08, F-UI-* | 图写/Overview/Timeline UI | **部分**（读为主；合并走审核；设置页图概览；Timeline 在 GraphWorkspace） |
 | F-LDG-* | 账本 | **部分**（陈述/映射/typed facts；图仍为投影） |

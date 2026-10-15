@@ -50,6 +50,8 @@ SEMA_E2E_SKIP_SERVERS=1 SEMA_E2E_WEB_PORT=5173 pnpm --filter @sema/web test:e2e
 
 `e2e/onboarding.spec.ts` covers register → paste text → pattern ingest → `graph/stats` and opening the Graph workspace shell (not canvas interaction).
 
+`e2e/governance.spec.ts` covers review queue → Ontology Versions link, `?connectors=1` opening the ingest sources dialog, and Search → Graph temporal hint + link to the graph workspace.
+
 Manual checklist above remains the release fallback when e2e is not run.
 
 ## M6 deepening (post–Explorer migration)
