@@ -74,7 +74,7 @@ References: [Product and roadmap](product-and-roadmap.md), [Explorer integration
 
 | F-* | Capability | Status | Priority | Notes |
 | --- | --- | --- | --- | --- |
-| F-SRC-06–07 | Connectors CRUD + sync jobs | `partial` | P0 | MVP webhook/http_poll/GitHub raw; full git clone etc. open |
+| F-SRC-06–07 | Connectors CRUD + sync jobs | `partial` | P0 | **Frozen:** webhook / http_poll / GitHub raw only; no new kinds; git clone & SaaS OAuth deferred |
 | F-SRC-08 | Large async ingest jobs | `partial` | P1 | Processing tasks exist; align with F-SRC-08 scope |
 | F-SRCH-03 | Advanced time filters on search | `partial` | P1 | Chunk filters on `GET .../search` + UI; graph tab copy clarifies no ingest-time filter |
 | F-CHAT-01–03 | KB chat + RAG + tool subset | `partial` | P0 | Playground + SSE; client abort + server disconnect stops stream frames |
@@ -99,7 +99,7 @@ References: [Product and roadmap](product-and-roadmap.md), [Explorer integration
 
 | Phase | Focus | Checklist rows |
 | --- | --- | --- |
-| **Now** | Operational KB loop | F-SRC-06/07 connectors, F-CHAT-01/05 hardening, commit/push Explorer migration work |
+| **Now** | Operational KB loop | F-SRC-06/07 **baseline shipped** (no new connector kinds); F-CHAT MCP slice; governance/ontology/rules as needed |
 | **Next** | Multi-editor governance | F-ONT-05 proposal UX, F-RUL-01–03, F-CHAT-04 |
 | **Then** | Time + ops visibility | F-TIM-01–04 product surfaces, F-ALT-01–02, F-SRCH-03 |
 | **On demand** | Release engineering | F-DIFF-01, distance-matrix adapter |

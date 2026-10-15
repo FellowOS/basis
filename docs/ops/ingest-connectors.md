@@ -51,10 +51,13 @@ Git `config`: `repo_url` (GitHub HTTPS), `branch`, `paths[]`.
 
 ## Limits (MVP)
 
+**Product scope:** only `webhook`, `http_poll`, and GitHub raw `git` — **no additional connector kinds** are planned until explicitly reopened.
+
 | Not supported yet | Notes |
 | --- | --- |
 | Full `git clone` / private Git hosts | `git` kind fetches **public GitHub raw** paths only |
 | Arbitrary OAuth to SaaS | Use `webhook` or `http_poll` for bespoke integrations |
+| S3 presign / second connector family | Deferred; use webhook or poll URL |
 | Durable sync-run table | History is the tail in `config.sync_events` + `GET .../sync-history` |
 
 ## Tests

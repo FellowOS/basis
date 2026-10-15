@@ -51,10 +51,13 @@ Git `config`：`repo_url`（GitHub HTTPS）、`branch`、`paths[]`。
 
 ## 限制（MVP）
 
+**产品范围：** 仅 `webhook`、`http_poll`、GitHub raw `git` 三种——**暂不增加新连接器类型**，除非产品重新立项。
+
 | 暂不支持 | 说明 |
 | --- | --- |
 | 完整 `git clone` / 私有 Git | `git` 种类仅拉取 **公开 GitHub raw** 路径 |
 | 通用 SaaS OAuth | 请用 `webhook` 或 `http_poll` 对接 |
+| S3 预签名 / 新连接器族 | 延后；可用 webhook 或轮询 URL |
 | 独立同步任务表 | 历史为 `config.sync_events` 尾部 + `GET .../sync-history` |
 
 英文版：[ingest-connectors.md](./ingest-connectors.md)
