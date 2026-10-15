@@ -795,9 +795,6 @@ function buildGraphHudCss(): string {
       max-width: calc(100% - 200px);
       padding-top: 10px;
     }
-    .explore-toolbar-rail {
-      max-width: min(100% - 24px, 220px);
-    }
     .explore-workflow-bar {
       grid-template-columns: 1fr;
     }

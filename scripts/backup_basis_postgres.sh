@@ -25,18 +25,18 @@ if ! command -v pg_dump >/dev/null 2>&1; then
 fi
 
 mkdir -p "$OUT_DIR"
-DUMP="$OUT_DIR/sema-pg-$STAMP.dump"
+DUMP="$OUT_DIR/basis-pg-$STAMP.dump"
 pg_dump "$BASIS_DATABASE_URL" -Fc --no-owner --no-acl -f "$DUMP"
 echo "Wrote $DUMP"
 
 if [[ -d "$DATA_DIR/blobs" ]]; then
-  BLOBS="$OUT_DIR/sema-blobs-$STAMP.tar.gz"
+  BLOBS="$OUT_DIR/basis-blobs-$STAMP.tar.gz"
   tar -czf "$BLOBS" -C "$DATA_DIR" blobs
   echo "Wrote $BLOBS"
 fi
 
 if [[ -d "$DATA_DIR/graphs" ]]; then
-  GRAPHS="$OUT_DIR/sema-graphs-$STAMP.tar.gz"
+  GRAPHS="$OUT_DIR/basis-graphs-$STAMP.tar.gz"
   tar -czf "$GRAPHS" -C "$DATA_DIR" graphs
   echo "Wrote $GRAPHS (optional; projections rebuild from ledger)"
 fi

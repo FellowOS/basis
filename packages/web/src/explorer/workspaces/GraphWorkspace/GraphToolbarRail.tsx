@@ -49,16 +49,6 @@ export function GraphToolbarRail({
     <div className={cn("flex flex-col gap-2", alignEnd ? "items-end" : "items-start")}>
       {visible.map((group) => (
         <div key={group.id} className={cn("flex flex-col gap-1", alignEnd ? "items-end" : "items-start")}>
-          {group.label ? (
-            <span
-              className={cn(
-                "px-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground",
-                alignEnd && "text-right",
-              )}
-            >
-              {group.label}
-            </span>
-          ) : null}
           <GraphToolTower expandLabels={expandLabels} aria-label={group.label ?? group.id}>
           {group.items.map((item) => (
             <GraphToolButton

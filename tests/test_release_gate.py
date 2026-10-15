@@ -374,7 +374,7 @@ def test_backup_tar_roundtrip_preserves_ledger(tmp_path) -> None:
     client.post(f"/api/kbs/{kb_id}/graph/rebuild", headers=headers)
     client.close()
 
-    archive = tmp_path / "sema-backup.tar.gz"
+    archive = tmp_path / "basis-backup.tar.gz"
     _tar_data_dir(data_dir, archive)
 
     restore_dir = tmp_path / "restored"

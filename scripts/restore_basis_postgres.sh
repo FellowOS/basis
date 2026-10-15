@@ -6,7 +6,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 DATA_DIR="${BASIS_DATA_DIR:-$ROOT/data}"
 
 if [[ $# -lt 1 ]]; then
-  echo "Usage: BASIS_RESTORE_CONFIRM=yes $0 <sema-pg.dump> [sema-blobs.tar.gz]" >&2
+  echo "Usage: BASIS_RESTORE_CONFIRM=yes $0 <basis-pg.dump> [basis-blobs.tar.gz]" >&2
   exit 1
 fi
 

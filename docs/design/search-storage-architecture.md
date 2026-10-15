@@ -92,7 +92,7 @@ connection pool and common execution layer, while dialect-specific search remain
 interfaces. Alembic records the portable baseline; legacy SQLite migrations remain readable for
 existing databases.
 
-`sema migrate-postgres` copies canonical tables in one administrative transaction, verifies a
+`basis migrate-postgres` copies canonical tables in one administrative transaction, verifies a
 stable hash of all chunk IDs/text, and changes KB search configs to PostgreSQL/pgvector. Blob and
 graph files remain in `BASIS_DATA_DIR`; vector bytes are rebuilt from canonical chunks.
 

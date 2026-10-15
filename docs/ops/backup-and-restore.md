@@ -17,7 +17,7 @@ Canonical state lives in the **admin database** (SQLite file or PostgreSQL), **c
 ./scripts/backup_basis_data.sh
 ```
 
-Creates `backups/sema-data-YYYYMMDD-HHMMSS.tar.gz` containing `basis.db`, `blobs/`, and `graphs/`.
+Creates `backups/basis-data-YYYYMMDD-HHMMSS.tar.gz` containing `basis.db`, `blobs/`, and `graphs/`.
 
 ## Restore (SQLite)
 
@@ -34,13 +34,13 @@ With `BASIS_DATABASE_URL` set (and `pg_dump` on your PATH):
 ./scripts/backup_basis_postgres.sh
 ```
 
-Writes `backups/sema-pg-YYYYMMDD-HHMMSS.dump` (custom format) plus `sema-blobs-*.tar.gz` when `blobs/` exists. Graph JSON is optional (`sema-graphs-*.tar.gz`); omit graphs and rebuild per KB after restore.
+Writes `backups/basis-pg-YYYYMMDD-HHMMSS.dump` (custom format) plus `basis-blobs-*.tar.gz` when `blobs/` exists. Graph JSON is optional (`basis-graphs-*.tar.gz`); omit graphs and rebuild per KB after restore.
 
 Manual equivalent:
 
 ```bash
-pg_dump "$BASIS_DATABASE_URL" -Fc -f sema-$(date +%Y%m%d).dump
-tar -czf sema-blobs-$(date +%Y%m%d).tar.gz -C "$BASIS_DATA_DIR" blobs
+pg_dump "$BASIS_DATABASE_URL" -Fc -f basis-$(date +%Y%m%d).dump
+tar -czf basis-blobs-$(date +%Y%m%d).tar.gz -C "$BASIS_DATA_DIR" blobs
 ```
 
 ### Local Docker (`compose.postgres.yml`)
@@ -59,7 +59,7 @@ uv run basis migrate-postgres --database-url "$BASIS_DATABASE_URL"   # first tim
 3. Run (destructive):
 
 ```bash
-BASIS_RESTORE_CONFIRM=yes ./scripts/restore_basis_postgres.sh backups/sema-pg-….dump backups/sema-blobs-….tar.gz
+BASIS_RESTORE_CONFIRM=yes ./scripts/restore_basis_postgres.sh backups/basis-pg-….dump backups/basis-blobs-….tar.gz
 ```
 
 Or manually: `pg_restore --clean --if-exists -d "$BASIS_DATABASE_URL" …` and extract blobs into `BASIS_DATA_DIR`.

@@ -78,9 +78,9 @@ def test_postgres_backup_restore_scripts_preserve_ledger(
         check=True,
         cwd=repo_root,
     )
-    dumps = sorted(backups.glob("sema-pg-*.dump"))
+    dumps = sorted(backups.glob("basis-pg-*.dump"))
     assert len(dumps) == 1
-    blob_archives = sorted(backups.glob("sema-blobs-*.tar.gz"))
+    blob_archives = sorted(backups.glob("basis-blobs-*.tar.gz"))
 
     restore_url = create_postgres_database(postgres_admin_url)
     try:

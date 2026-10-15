@@ -5,7 +5,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 DATA_DIR="${BASIS_DATA_DIR:-$ROOT/data}"
 STAMP="$(date +%Y%m%d-%H%M%S)"
 OUT_DIR="${1:-$ROOT/backups}"
-ARCHIVE="$OUT_DIR/sema-data-$STAMP.tar.gz"
+ARCHIVE="$OUT_DIR/basis-data-$STAMP.tar.gz"
 
 mkdir -p "$OUT_DIR"
 

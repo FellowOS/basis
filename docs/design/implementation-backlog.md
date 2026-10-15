@@ -241,7 +241,7 @@ Acceptance:
 - unmappable records are reported, not silently dropped;
 - rollback restores use of untouched old snapshot.
 
-**Status:** done — `sema migrate-legacy-graphs [--dry-run] [--rebuild] [--kb-id …]`; `legacy_import` statements without fabricated offsets; graph JSON files untouched; JSON report on stdout.
+**Status:** done — `basis migrate-legacy-graphs [--dry-run] [--rebuild] [--kb-id …]`; `legacy_import` statements without fabricated offsets; graph JSON files untouched; JSON report on stdout.
 
 ## 5. Milestone M4 — Explorer runtime adapter
 
