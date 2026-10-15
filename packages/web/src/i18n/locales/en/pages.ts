@@ -2005,7 +2005,7 @@ export const pages = {
     chat:
       'Playground uses this KB’s retrieval tools and MCP-compatible agents; writes like remember go through review.',
     review:
-      'Approve merges, imports, mappings, and remembered statements before they affect the ledger or graph.',
+      'Ledger review queue for merges, imports, mappings, and remembered facts. OWL ontology proposals are under Ontology → Versions.',
     ontology:
       'Edit OWL drafts, run impact/SHACL checks, and publish ontology versions scoped to this knowledge base.',
     lineage:

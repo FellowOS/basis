@@ -481,10 +481,10 @@ Acceptance:
 
 **Status:** partial — playground + SSE stream; client `AbortController`; async stream checks `is_disconnected` + closes OpenAI stream; `chat_in_flight` 409; server message trim with SSE `context_trimmed` + non-stream `context_trim`; MCP filters on `search_chunks`; tests for `mcp_busy` / `mcp_timeout`.
 
-Work:
+Work (playground **not** a focus — current char/msg trim + `context_trimmed` is enough for KB GA):
 
-- cooperative cancel of in-flight OpenAI HTTP (today: stop yielding + close stream handle);
-- deeper context budgeting (token-based trim vs char cap).
+- **Deferred:** token-accurate context budget; cooperative OpenAI HTTP cancel (today: client abort + stop yielding + close stream handle).
+- Only revisit if operators hit context-window errors or runaway tool payloads in production.
 
 Acceptance:
 
@@ -498,7 +498,8 @@ Acceptance:
 Work:
 
 - restore reviewer-focused layout (impact + SHACL summary) without standalone Explorer `App`;
-- deep link `kbOntologyProposalPath` + audit timeline links (**done**); dedicated ontology-only review queue item **open**.
+- deep link `kbOntologyProposalPath` + audit timeline links (**done**); review queue copy links to **Ontology → Versions** (**done**);
+- dedicated ontology-only **review queue row** remains **open** (by design: proposals stay in Versions tab, not `review/items`).
 
 Acceptance:
 
@@ -520,7 +521,7 @@ Acceptance:
 
 ### M6-05 — Temporal + alerts product surfaces (F-TIM-*, F-ALT-*)
 
-**Status:** partial — temporal diff + graph scrubber; chunk search `as_of` / `created_*` + search page copy; alerts (`sync_failed`, `llm.*`, `governance.tripped` incl. review approve); bell SSE + 5m poll.
+**Status:** partial — temporal diff + graph scrubber; chunk search `as_of` / `created_*` + search page copy; alerts + bell SSE/poll + deep links (**done** for MVP kinds).
 
 Work:
 

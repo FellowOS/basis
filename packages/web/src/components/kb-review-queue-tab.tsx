@@ -11,7 +11,7 @@ import { formatUserFacingApiError } from '@/lib/api-error-message.js';
 import { formatGraphAuditAction } from '@/lib/kb-graph-audit.js';
 import { formatNodeRef, formatNodeRefDetail } from '@/lib/format-node-ref.js';
 import { fetchKbNodeLabels } from '@/lib/kb-node-labels.js';
-import { kbOntologyProposalPath, kbPath } from '@/lib/nav-config.js';
+import { kbOntologyProposalPath, kbOntologyVersionsPath, kbPath } from '@/lib/nav-config.js';
 import { cn } from '@/lib/utils.js';
 
 type ReviewItem = {
@@ -386,8 +386,13 @@ export function KbReviewQueueTab({
           <h2 className="text-base font-semibold">{title}</h2>
           <p className="mt-1 text-xs text-muted-foreground">
             {locale === 'zh'
-              ? '合并、图导入、Agent 记入与本体映射需编辑者批准后才会生效。'
-              : 'Merges, imports, remembered facts, and mappings apply only after editor approval.'}
+              ? '合并、图导入、Agent 记入与本体映射需编辑者批准后才会生效。OWL 本体变更提案在'
+              : 'Merges, imports, remembered facts, and mappings need editor approval. OWL ontology proposals are in'}
+            {' '}
+            <Link to={kbOntologyVersionsPath(kbId)} className="text-primary hover:underline">
+              {locale === 'zh' ? '本体 → 版本' : 'Ontology → Versions'}
+            </Link>
+            {locale === 'zh' ? '。' : '.'}
           </p>
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
@@ -399,7 +404,16 @@ export function KbReviewQueueTab({
           ) : error ? (
             <p className="text-sm text-destructive">{error}</p>
           ) : items.length === 0 ? (
-            <p className="text-sm text-muted-foreground">{empty}</p>
+            <div className="space-y-2 text-sm text-muted-foreground">
+              <p>{empty}</p>
+              <p>
+                {locale === 'zh' ? '有待审的本体提案？前往 ' : 'Pending ontology proposals? Open '}
+                <Link to={kbOntologyVersionsPath(kbId)} className="text-primary hover:underline">
+                  {locale === 'zh' ? '本体 → 版本' : 'Ontology → Versions'}
+                </Link>
+                {locale === 'zh' ? '。' : '.'}
+              </p>
+            </div>
           ) : (
             <ul className="flex flex-col gap-3">
               {items.map((item) => {

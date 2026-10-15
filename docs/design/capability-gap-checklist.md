@@ -52,7 +52,7 @@ References: [Product and roadmap](product-and-roadmap.md), [Explorer integration
 | F-* | Capability | Status | Priority | Notes |
 | --- | --- | --- | --- | --- |
 | F-DIFF-01 | Whole-graph diff/merge (publish/staging) | `not` | P1 | Distinct from entity-pair merge diff |
-| F-ONT-05 | Full ontology proposal workflow (UI) | `partial` | P1 | `VersionsTab` + `?ontologyTab=versions&ontologyProposal=`; review governance alerts → `?tab=queue&reviewItem=` |
+| F-ONT-05 | Full ontology proposal workflow (UI) | `partial` | P1 | `VersionsTab` + proposal deep links; review UI points to Versions (no duplicate queue row) |
 | F-GOV-04 | Agent governor (batch clustering, gates) | `not` | P2 | Scale governance automation |
 | F-GOV-05 | Impact gates + `governance.tripped` alerts | `partial` | P1 | Tied to F-ALT |
 | F-GOV-06 | Durable registry read model | `partial` | P1 | Audit exists; no duplicate Explorer Registry page |
@@ -80,7 +80,7 @@ References: [Product and roadmap](product-and-roadmap.md), [Explorer integration
 | F-CHAT-01–03 | KB chat + RAG + tool subset | `partial` | P0 | Playground + SSE; client abort + server disconnect stops stream frames |
 | F-CHAT-04 | `remember` → pending review | `partial` | P1 | `POST .../chat/remember` + MCP `propose_remember`; review kind `statement_remember` |
 | F-CHAT-05 | MCP Streamable HTTP | `partial` | P0 | `GET/POST /api/kbs/{id}/mcp` + 7 read tools; no platform `/api/mcp` |
-| F-CHAT-06 | Stop gen, 409 concurrency, context trim | `partial` | P1 | Client abort + trim; SSE `context_trimmed` notice in playground; char/msg caps; no token budget yet |
+| F-CHAT-06 | Stop gen, 409 concurrency, context trim | `partial` | P1 | Sufficient for GA: abort, 409, char/msg trim + `context_trimmed`; token budget **deferred** |
 | F-ALT-01–02 | Alert episodes + SSE refetch | `partial` | P1 | Bell SSE + 5m poll; deep links → connectors (`ingestSource`), chat, review item, ontology proposal |
 | F-IF-03 | Page subtitles (interface copy) | `done` | P2 | `KbPageSubtitle` on KB explore/governance/sources/settings pages |
 

@@ -89,6 +89,12 @@ export function kbOntologyProposalPath(kbId: string, proposalId: string): string
   return `${kbPath(kbId, 'ontology')}?${params.toString()}`;
 }
 
+/** Ontology Hub Versions tab (OWL proposals; separate from ledger review queue). */
+export function kbOntologyVersionsPath(kbId: string): string {
+  const params = new URLSearchParams({ ontologyTab: 'versions' });
+  return `${kbPath(kbId, 'ontology')}?${params.toString()}`;
+}
+
 export function parseKbIdFromPath(pathname: string): string | null {
   const match = /^\/kbs\/([^/]+)(?:\/|$)/.exec(pathname);
   if (!match) return null;

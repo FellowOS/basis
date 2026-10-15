@@ -1962,7 +1962,8 @@ export const pages = {
     search:
       '文档片段按入库时间过滤；图谱时点请用图谱工作区时间轴（temporal/snapshot）。',
     chat: 'Playground 使用本库检索工具与 MCP 兼容 Agent；写入类操作（如记住）须经审核。',
-    review: '合并、导入、映射与「记住」语句在写入账本或图谱前需在此批准。',
+    review:
+      '账本审核队列：合并、导入、映射与「记住」语句。OWL 本体变更提案在「本体 → 版本」中处理。',
     ontology: '编辑 OWL 草案、查看影响/SHACL，并发布仅限本知识库的本体版本。',
     lineage: '图谱节点的 PROV-O 血缘，追溯到文档与摄入事件。',
     mappings: '将外部词汇与本库本体对齐；需要时通过审核确认。',
