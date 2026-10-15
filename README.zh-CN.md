@@ -66,7 +66,7 @@ Basis Web (5173)  ──/api──▶  Basis API (8090)  FastAPI
 ### 环境
 
 - **Python** 3.10–3.13、[uv](https://docs.astral.sh/uv/)
-- **Node.js** ≥ 22、[pnpm](https://pnpm.io/) ≥ 10
+- **Node.js** ≥ 22、npm（随 Node 自带）
 - **semantica SDK** — 由 `uv sync` 安装（见下文「semantica 依赖」）
 
 ### 1. 克隆与配置
@@ -75,7 +75,7 @@ Basis Web (5173)  ──/api──▶  Basis API (8090)  FastAPI
 git clone https://github.com/fellowos/basis.git
 cd basis
 cp .env.example .env
-cp packages/web/.env.example packages/web/.env
+cp web/.env.example web/.env
 ```
 
 ### 2. 启动 API
@@ -90,8 +90,9 @@ uv run basis
 ### 3. 启动 Web
 
 ```bash
-pnpm install
-pnpm dev
+cd web
+npm install
+npm run dev
 ```
 
 浏览器打开 `http://127.0.0.1:5173`。首个注册用户为平台管理员。
@@ -105,7 +106,7 @@ pnpm dev
 | `BASIS_HOST` / `BASIS_PORT` | `127.0.0.1` / `8090` | API 监听 |
 | `BASIS_DATA_DIR` | `./data` | SQLite、blob、图 JSON |
 | `BASIS_DATABASE_URL` | 空则 SQLite | 生产建议 PostgreSQL |
-| `BASIS_API_URL` | `http://127.0.0.1:8090` | Web 代理目标（`packages/web/.env`） |
+| `BASIS_API_URL` | `http://127.0.0.1:8090` | Web 代理目标（`web/.env`） |
 
 详见 [.env.example](.env.example)；限流与背压：[docs/ops/runtime-limits.md](docs/ops/runtime-limits.md)。
 
@@ -143,8 +144,8 @@ uv run basis migrate-postgres --database-url postgresql://basis:basis@127.0.0.1:
 uv run pytest -q
 uv run pytest tests/test_release_gate.py tests/test_runtime_limits.py -q
 
-pnpm --filter @basis/web build
-pnpm --filter @basis/web test
+cd web && npm run build
+cd web && npm test
 ```
 
 E2E 与手测清单：[docs/ops/smoke-test.md](docs/ops/smoke-test.md)。CI 见 [`.github/workflows/ci.yml`](.github/workflows/ci.yml)。
@@ -166,7 +167,11 @@ spaCy NER 需额外下载模型，例如：
 
 ```bash
 uv run python -m spacy download en_core_web_sm
+# 中文实体抽取（处理任务 NER=ml）：
+uv run python -m spacy download zh_core_web_sm
 ```
+
+资料页「配置处理」可选 **pattern / ml / llm**；`llm` 使用「模型」页的 Chat 配置；中文推荐 **ml + `zh_core_web_sm`** 或 **llm**。
 
 本地调试 semantica：`cp uv.toml.example uv.toml` 并修改路径后 `uv sync`；无 `uv.toml` 时从 PyPI 安装（见 `uv.lock`）。
 

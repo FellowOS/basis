@@ -70,6 +70,16 @@ def test_find_entities_and_facts(tmp_path: Path) -> None:
 
     recent = client.get(f"/api/kbs/{kb_id}/ledger/entities?limit=10", headers=headers)
     assert recent.status_code == 200
-    recent_ids = {e["id"] for e in recent.json()["entities"]}
+    recent_body = recent.json()
+    assert recent_body["total"] >= 2
+    recent_ids = {e["id"] for e in recent_body["entities"]}
     assert alice in recent_ids
     assert bob in recent_ids
+
+    page2 = client.get(
+        f"/api/kbs/{kb_id}/ledger/entities?limit=1&offset=1",
+        headers=headers,
+    )
+    assert page2.status_code == 200
+    assert page2.json()["total"] >= 2
+    assert len(page2.json()["entities"]) == 1

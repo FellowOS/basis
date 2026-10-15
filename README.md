@@ -9,7 +9,7 @@ Basis is an open-source knowledge platform built on the [Semantica](https://gith
 [![CI](https://github.com/fellowos/basis/actions/workflows/ci.yml/badge.svg)](https://github.com/fellowos/basis/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10--3.13-blue.svg)](pyproject.toml)
-[![Node](https://img.shields.io/badge/node-%3E%3D22-green.svg)](package.json)
+[![Node](https://img.shields.io/badge/node-%3E%3D22-green.svg)](web/package.json)
 
 ---
 
@@ -19,10 +19,10 @@ Basis is an open-source knowledge platform built on the [Semantica](https://gith
 git clone https://github.com/fellowos/basis.git
 cd basis
 cp .env.example .env
-cp packages/web/.env.example packages/web/.env
+cp web/.env.example web/.env
 
 uv sync --extra dev && uv run basis   # API :8090
-pnpm install && pnpm dev              # Web  :5173
+cd web && npm install && npm run dev  # Web  :5173
 ```
 
 The first registered user becomes the platform administrator.
@@ -51,7 +51,7 @@ Full capability map: [product-and-roadmap.md](docs/design/product-and-roadmap.md
 | `BASIS_HOST` / `BASIS_PORT` | `127.0.0.1` / `8090` | API bind |
 | `BASIS_DATA_DIR` | `./data` | SQLite, blobs, graph JSON |
 | `BASIS_DATABASE_URL` | *(unset → SQLite)* | PostgreSQL for production |
-| `BASIS_API_URL` | `http://127.0.0.1:8090` | Web → API (`packages/web/.env`) |
+| `BASIS_API_URL` | `http://127.0.0.1:8090` | Web → API (`web/.env`) |
 
 PostgreSQL: `docker compose -f compose.postgres.yml up -d`, then set `BASIS_DATABASE_URL=postgresql://basis:basis@127.0.0.1:5432/basis`.
 
@@ -61,7 +61,7 @@ PostgreSQL: `docker compose -f compose.postgres.yml up -d`, then set `BASIS_DATA
 
 ```bash
 uv run pytest -q
-pnpm --filter @basis/web test
+cd web && npm test
 ```
 
 See [CONTRIBUTING.md](CONTRIBUTING.md), [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md), [SECURITY.md](SECURITY.md). Upgrading from the pre-release **Sema** name: [docs/ops/migrating-from-sema.md](docs/ops/migrating-from-sema.md).

@@ -104,6 +104,7 @@ def _run_version_ingest_for_app(
             graphs[kb_id] = session
         try:
             limits = app.state.limits
+            chat_llm = app.state.store.get_chat_llm_settings()
             result = run_version_ingest(
                 knowledge,
                 session,
@@ -117,6 +118,7 @@ def _run_version_ingest_for_app(
                 max_extract_chars=limits.ingest_max_extract_chars,
                 max_chunks=limits.ingest_max_chunks,
                 extract_timeout_seconds=limits.ingest_extract_timeout_seconds,
+                chat_llm=chat_llm,
             )
         except FileParseError:
             return None

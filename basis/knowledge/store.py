@@ -744,6 +744,18 @@ class KnowledgeStore:
                 ),
             )
             self._conn.commit()
+        try:
+            from basis.knowledge.kb_alerts_emit import emit_processing_failed_alert
+
+            emit_processing_failed_alert(self, kb_id, job_id, code, message)
+        except Exception:
+            import logging
+
+            logging.getLogger(__name__).exception(
+                "processing.failed alert not recorded kb_id=%s job_id=%s",
+                kb_id,
+                job_id,
+            )
 
     def get_document_summary(self, kb_id: str, doc_ref: str) -> dict[str, Any] | None:
         doc = self.resolve_document_ref(kb_id, doc_ref)
@@ -861,6 +873,11 @@ class KnowledgeStore:
             "version_id": version_id,
         }
         return row, chunk_id, True
+
+    def hard_delete_document(self, kb_id: str, document_id: str) -> dict[str, Any]:
+        from basis.knowledge.document_delete import execute_hard_delete_document
+
+        return execute_hard_delete_document(self, kb_id, document_id)
 
     def list_documents(self, kb_id: str) -> list[dict[str, Any]]:
         with self._lock:
@@ -1931,8 +1948,41 @@ class KnowledgeStore:
             "entity_kind": row["entity_kind"],
         }
 
-    def list_recent_entities(self, kb_id: str, *, limit: int = 50) -> list[dict[str, Any]]:
+    def count_browse_entities(self, kb_id: str, *, query: str = "") -> int:
+        query = query.strip()
+        with self._lock:
+            self._assert_kb_exists(kb_id)
+            if query:
+                pattern = f"%{query.replace('%', '')}%"
+                row = self._conn.execute(
+                    """
+                    SELECT COUNT(*) AS n
+                    FROM entities
+                    WHERE kb_id = ? AND invalidated_at IS NULL
+                      AND (canonical_label LIKE ? OR description LIKE ?)
+                    """,
+                    (kb_id, pattern, pattern),
+                ).fetchone()
+            else:
+                row = self._conn.execute(
+                    """
+                    SELECT COUNT(*) AS n
+                    FROM entities
+                    WHERE kb_id = ? AND invalidated_at IS NULL
+                    """,
+                    (kb_id,),
+                ).fetchone()
+        return int(row["n"] or 0)
+
+    def list_recent_entities(
+        self,
+        kb_id: str,
+        *,
+        limit: int = 20,
+        offset: int = 0,
+    ) -> list[dict[str, Any]]:
         limit = min(max(1, limit), 50)
+        offset = max(0, offset)
         with self._lock:
             self._assert_kb_exists(kb_id)
             rows = self._conn.execute(
@@ -1941,17 +1991,25 @@ class KnowledgeStore:
                 FROM entities
                 WHERE kb_id = ? AND invalidated_at IS NULL
                 ORDER BY created_at DESC
-                LIMIT ?
+                LIMIT ? OFFSET ?
                 """,
-                (kb_id, limit),
+                (kb_id, limit, offset),
             ).fetchall()
         return [self._entity_browse_row(row) for row in rows]
 
-    def find_entities(self, kb_id: str, *, query: str, limit: int = 20) -> list[dict[str, Any]]:
+    def find_entities(
+        self,
+        kb_id: str,
+        *,
+        query: str,
+        limit: int = 20,
+        offset: int = 0,
+    ) -> list[dict[str, Any]]:
         query = query.strip()
         if not query:
             return []
         limit = min(max(1, limit), 50)
+        offset = max(0, offset)
         pattern = f"%{query.replace('%', '')}%"
         with self._lock:
             self._assert_kb_exists(kb_id)
@@ -1962,9 +2020,9 @@ class KnowledgeStore:
                 WHERE kb_id = ? AND invalidated_at IS NULL
                   AND (canonical_label LIKE ? OR description LIKE ?)
                 ORDER BY canonical_label
-                LIMIT ?
+                LIMIT ? OFFSET ?
                 """,
-                (kb_id, pattern, pattern, limit),
+                (kb_id, pattern, pattern, limit, offset),
             ).fetchall()
         return [self._entity_browse_row(row) for row in rows]
 

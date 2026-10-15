@@ -6,9 +6,11 @@ import hashlib
 import re
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any
 
 from sqlalchemy import text
 from sqlalchemy.engine import Engine
+from sqlalchemy.exc import ProgrammingError
 
 
 def _migration_root() -> Path:
@@ -81,6 +83,67 @@ def _postgres_search_v2_sql() -> list[str]:
         ON chunks USING gist (text gist_trgm_ops)
         """
     ]
+
+
+def _vector_partition_bootstrap_sql() -> list[str]:
+    """Default local-embedding dimension (384); index owned by migration role."""
+    return [
+        """
+        CREATE TABLE IF NOT EXISTS chunk_vectors_d384
+        PARTITION OF chunk_vectors FOR VALUES IN (384)
+        """,
+        """
+        CREATE INDEX IF NOT EXISTS chunk_vectors_d384_hnsw_cosine
+        ON chunk_vectors_d384
+        USING hnsw ((embedding::vector(384)) vector_cosine_ops)
+        """,
+    ]
+
+
+def _exec_sql_best_effort(conn: Any, statement: str, *, skip_owner_errors: bool) -> None:
+    try:
+        with conn.begin_nested():
+            conn.exec_driver_sql(statement)
+    except ProgrammingError as exc:
+        if not skip_owner_errors:
+            raise
+        orig = getattr(exc, "orig", None)
+        msg = str(orig or exc).lower()
+        if "must be owner" in msg or getattr(orig, "sqlstate", None) == "42501":
+            return
+        raise
+
+
+def _apply_sql_migration(
+    conn: Any,
+    applied: dict[int, str],
+    applied_now: list[int],
+    version: int,
+) -> None:
+    path = next(_migration_root().glob(f"{version:04d}_*.sql"))
+    source = path.read_text(encoding="utf-8")
+    checksum = _checksum(source)
+    if version in applied:
+        if applied[version] != checksum:
+            raise RuntimeError(f"PostgreSQL migration {version} checksum mismatch")
+        return
+    for statement in _statements(_postgresize(source)):
+        conn.exec_driver_sql(statement)
+    conn.execute(
+        text(
+            """
+            INSERT INTO schema_migrations(version, name, checksum, applied_at)
+            VALUES (:version, :name, :checksum, :applied_at)
+            """
+        ),
+        {
+            "version": version,
+            "name": path.name,
+            "checksum": checksum,
+            "applied_at": datetime.now(timezone.utc).isoformat(),
+        },
+    )
+    applied_now.append(version)
 
 
 def run_postgres_migrations(engine: Engine) -> list[int]:
@@ -199,4 +262,29 @@ def run_postgres_migrations(engine: Engine) -> list[int]:
                 },
             )
             applied_now.append(7)
+
+        for version in (8, 9):
+            _apply_sql_migration(conn, applied, applied_now, version)
+
+        vector_bootstrap_checksum = _checksum("chunk_vectors_d384_bootstrap_v1")
+        if 10 in applied:
+            if applied[10] != vector_bootstrap_checksum:
+                raise RuntimeError("PostgreSQL migration 10 checksum mismatch")
+        else:
+            bootstrap = _vector_partition_bootstrap_sql()
+            conn.exec_driver_sql(bootstrap[0])
+            _exec_sql_best_effort(conn, bootstrap[1], skip_owner_errors=True)
+            conn.execute(
+                text(
+                    """
+                    INSERT INTO schema_migrations(version, name, checksum, applied_at)
+                    VALUES (10, 'vector_partition_d384_bootstrap', :checksum, :applied_at)
+                    """
+                ),
+                {
+                    "checksum": vector_bootstrap_checksum,
+                    "applied_at": datetime.now(timezone.utc).isoformat(),
+                },
+            )
+            applied_now.append(10)
     return applied_now

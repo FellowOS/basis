@@ -51,6 +51,6 @@ lifecycle. See [explorer-integration.md](./explorer-integration.md) for API cont
 
 - `tests/test_graph_snapshot.py` — projection GET, rebuild audit, viewer KB audit vs platform 403
 - `tests/test_kb_review.py`, `tests/test_kb_explorer_routes.py` — graph-mutations audit
-- `packages/web/src/lib/graph-evidence-links.test.ts` — evidence URL helper
-- `packages/web/e2e/governance.spec.ts` — review → ontology versions, sources `?connectors=1`, search graph temporal hint → graph route
-- `packages/web/e2e/onboarding.spec.ts`, `e2e/lineage.spec.ts`, `e2e/shell.spec.ts` — ingest + graph shell, provenance, nav
+- `web/src/lib/graph-evidence-links.test.ts` — evidence URL helper
+- `web/e2e/governance.spec.ts` — review → ontology versions, sources `?connectors=1`, search graph temporal hint → graph route
+- `web/e2e/onboarding.spec.ts`, `e2e/lineage.spec.ts`, `e2e/shell.spec.ts` — ingest + graph shell, provenance, nav

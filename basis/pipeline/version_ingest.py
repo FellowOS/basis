@@ -76,6 +76,7 @@ def run_version_ingest(
     max_extract_chars: int | None = None,
     max_chunks: int | None = None,
     extract_timeout_seconds: float | None = None,
+    chat_llm: dict[str, str | None] | None = None,
 ) -> dict[str, Any]:
     """Run the ingest pipeline for one version. Updates job/version status in the ledger."""
     options = options or TextIngestOptions(chunk=True)
@@ -139,6 +140,7 @@ def run_version_ingest(
                     chunk_doc_id,
                     row["text"],
                     options,
+                    chat_llm=chat_llm,
                     extract_timeout_seconds=extract_timeout_seconds,
                 )
                 part_stats = apply_kg_to_ledger(

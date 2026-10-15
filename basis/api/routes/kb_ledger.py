@@ -55,16 +55,19 @@ async def search_ledger_entities(
     request: Request,
     query: str = Query("", max_length=200),
     limit: int = Query(20, ge=1, le=50),
+    offset: int = Query(0, ge=0),
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> dict[str, Any]:
     get_kb_for_viewer(request, user, kb_id, store)
-    if query.strip():
-        entities = knowledge.find_entities(kb_id, query=query, limit=limit)
+    q = query.strip()
+    total = knowledge.count_browse_entities(kb_id, query=q)
+    if q:
+        entities = knowledge.find_entities(kb_id, query=q, limit=limit, offset=offset)
     else:
-        entities = knowledge.list_recent_entities(kb_id, limit=limit)
-    return {"entities": entities}
+        entities = knowledge.list_recent_entities(kb_id, limit=limit, offset=offset)
+    return {"entities": entities, "total": total, "limit": limit, "offset": offset}
 
 
 @router.get("/{kb_id}/ledger/documents/{doc_ref}")

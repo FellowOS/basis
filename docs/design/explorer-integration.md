@@ -329,7 +329,7 @@ Preferred order:
 
 1. Refactor `/Users/rog/Desktop/projects/semantica/explorer` to export workspace components and
    `ExplorerProvider` from a reusable package entry.
-2. Consume that pinned package/source from `packages/web`.
+2. Consume that pinned package/source from `web`.
 3. Keep the full Explorer SPA build for semantica's own product; Basis imports only workspaces.
 
 If upstream packaging cannot be changed immediately, Basis may port a narrowly selected workspace

@@ -1,0 +1,44 @@
+import { Navigate, useParams, useSearchParams } from 'react-router-dom';
+import { ConsolePageLayout } from '@/components/console-ui/index.js';
+import { KbReviewWorkspace } from '@/components/kb/workspaces/kb-review-workspace.js';
+import { useI18n } from '@/i18n/context.js';
+import { useKbCatalog } from '@/lib/kb-context.js';
+import { kbPath } from '@/lib/nav-config.js';
+
+export function KbReviewPage() {
+  const { id } = useParams();
+  const [searchParams] = useSearchParams();
+  const { t } = useI18n();
+  const { getKb } = useKbCatalog();
+
+  if (!id) {
+    return null;
+  }
+
+  const legacyTab = searchParams.get('tab');
+  if (legacyTab === 'resolve') {
+    return <Navigate to={kbPath(id, 'entity-resolution')} replace />;
+  }
+  if (legacyTab === 'decisions') {
+    const decision = searchParams.get('decision');
+    const q = decision ? `?decision=${encodeURIComponent(decision)}` : '';
+    return <Navigate to={`${kbPath(id, 'decisions')}${q}`} replace />;
+  }
+
+  return (
+    <ConsolePageLayout
+      crumbs={[
+        { label: t.menu.platform.kbs, to: '/kbs' },
+        { label: getKb(id)?.name ?? id, to: kbPath(id, 'graph') },
+        { label: t.menu.kb.review },
+      ]}
+      subtitle={t.pages.kbSubtitles.review}
+      className="min-h-0"
+    >
+      <KbReviewWorkspace
+        kbId={id}
+        className="min-h-0 flex-1 rounded-lg border border-border"
+      />
+    </ConsolePageLayout>
+  );
+}

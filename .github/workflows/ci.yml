@@ -61,29 +61,32 @@ jobs:
 
   web:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
     steps:
       - uses: actions/checkout@v4
-
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10
 
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: pnpm
+          cache: npm
+          cache-dependency-path: web/package-lock.json
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: npm ci
 
       - name: Typecheck and build
-        run: pnpm --filter @basis/web build
+        run: npm run build
 
       - name: Unit tests
-        run: pnpm --filter @basis/web test
+        run: npm run test
 
   e2e:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
     steps:
       - uses: actions/checkout@v4
 
@@ -95,23 +98,20 @@ jobs:
       - name: Sync Python dependencies
         run: uv sync --extra dev
 
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10
-
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: pnpm
+          cache: npm
+          cache-dependency-path: web/package-lock.json
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: npm ci
 
       - name: Install Playwright Chromium
-        run: pnpm --filter @basis/web exec playwright install chromium --with-deps
+        run: npx playwright install chromium --with-deps
 
       - name: Playwright smoke
-        run: CI=1 pnpm test:e2e
+        run: CI=1 npm run test:e2e
         env:
           BASIS_E2E_API_PORT: 8091
           BASIS_E2E_WEB_PORT: 5174

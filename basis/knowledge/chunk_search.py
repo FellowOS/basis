@@ -42,6 +42,11 @@ class ChunkSearchService:
         if database.backend == "postgres":
             self._backends["pgvector"] = PgVectorIndex(getattr(database, "engine"))
 
+    def delete_chunk_vectors(self, kb_id: str, chunk_ids: list[str]) -> None:
+        if not chunk_ids:
+            return
+        self._backend(kb_id).delete(kb_id, chunk_ids)
+
     def _backend(self, kb_id: str) -> VectorIndexBackend:
         name = self._knowledge.get_search_config(kb_id).vector_backend
         backend = self._backends.get(name)

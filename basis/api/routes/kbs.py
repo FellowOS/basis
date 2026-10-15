@@ -21,6 +21,7 @@ from basis.api.deps import (
     get_runtime_limits,
     get_store,
     graph_for,
+    rebuild_kb_projection,
     save_graph,
 )
 from basis.knowledge.chunk_search import ChunkSearchService
@@ -121,6 +122,7 @@ class StartProcessingRequest(BaseModel):
     relation_method: str = Field(default="pattern", min_length=1, max_length=40)
     extract_relations: bool = True
     extract_triplets: bool = False
+    ner_model: str | None = Field(default=None, max_length=120)
     idempotency_key: str | None = Field(default=None, max_length=128)
 
 
@@ -772,6 +774,28 @@ async def append_document_version_upload(
     )
 
 
+@router.delete("/{kb_id}/documents/{document_id}")
+async def delete_kb_document(
+    kb_id: str,
+    document_id: str,
+    request: Request,
+    user: User = Depends(get_current_user),
+    store: AdminStore = Depends(get_store),
+    chunk_search: ChunkSearchService = Depends(get_chunk_search),
+) -> dict[str, Any]:
+    get_kb_for_editor(request, user, kb_id, store)
+    knowledge = get_knowledge_store(request)
+    context = knowledge.resolve_document_ref(kb_id, document_id)
+    if context is None:
+        raise AdminError(404, "not_found", "文档不存在")
+    outcome = knowledge.hard_delete_document(kb_id, context["document_id"])
+    chunk_ids = outcome.get("chunk_ids") or []
+    if chunk_ids:
+        await asyncio.to_thread(chunk_search.delete_chunk_vectors, kb_id, chunk_ids)
+    projection = await asyncio.to_thread(rebuild_kb_projection, request, kb_id)
+    return {"ok": True, **outcome, "projection": projection}
+
+
 @router.get("/{kb_id}/documents")
 async def list_kb_documents(
     kb_id: str,
@@ -896,7 +920,10 @@ async def _respond_idempotent_processing_job(
     return JSONResponse(status_code=status_code, content=payload)
 
 
-def _processing_options(body: StartProcessingRequest) -> tuple[TextIngestOptions, dict[str, Any]]:
+def _processing_options(
+    body: StartProcessingRequest,
+    store: AdminStore,
+) -> tuple[TextIngestOptions, dict[str, Any]]:
     if body.chunk and body.chunk_overlap >= body.chunk_size:
         raise AdminError(422, "bad_chunk_options", "切分重叠必须小于块大小")
     payload = {
@@ -908,8 +935,13 @@ def _processing_options(body: StartProcessingRequest) -> tuple[TextIngestOptions
         "relation_method": body.relation_method,
         "extract_relations": body.extract_relations,
         "extract_triplets": body.extract_triplets,
+        "ner_model": (body.ner_model or "").strip() or None,
     }
-    return TextIngestOptions(**payload), payload
+    options = TextIngestOptions(**payload)
+    from basis.pipeline.extract_kwargs import validate_extract_options
+
+    validate_extract_options(options, store.get_chat_llm_settings())
+    return options, payload
 
 
 @router.get("/{kb_id}/processing/jobs")
@@ -945,7 +977,7 @@ async def start_processing_job(
 ) -> Any:
     get_kb_for_editor(request, user, kb_id, store)
     context = knowledge.get_processing_context(kb_id, body.version_id)
-    options, options_payload = _processing_options(body)
+    options, options_payload = _processing_options(body, store)
     trigger_rid = current_request_id()
     if trigger_rid:
         options_payload = {**options_payload, "request_id": trigger_rid}

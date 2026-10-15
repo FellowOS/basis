@@ -456,8 +456,8 @@ introduce a second source of truth.
 `tests/test_graph_page_limits.py`, `tests/test_runtime_limits.py`, `tests/test_observability.py`,
 `tests/test_request_id.py`, `tests/test_legacy_graph_migration.py`, `tests/test_entity_merges.py`,
 `tests/test_explorer_registry.py`, `tests/test_ws_hub.py`, `tests/test_realtime_ws.py`,
-`packages/web/src/lib/kb-alert-actions.test.ts`, `packages/web/src/lib/reviewUrlState.test.ts`,
-`packages/web/src/explorer/host/explorerHttp.test.ts`, and `packages/web/e2e` (`onboarding`, `lineage`, `governance`, `graph-diff`, `search-graph-at`, `reasoning-derived`, `shell`; CI `e2e`).
+`web/src/lib/kb-alert-actions.test.ts`, `web/src/lib/reviewUrlState.test.ts`,
+`web/src/explorer/host/explorerHttp.test.ts`, and `web/e2e` (`onboarding`, `lineage`, `governance`, `graph-diff`, `graph-at`, `search-graph-at`, `processing-job`, `reasoning-derived`, `shell`; CI `e2e`).
 Manual M6: [smoke-test.md](../ops/smoke-test.md) § M6 deepening.
 
 ## 10. Milestone M6 — post–Explorer migration deepening
@@ -472,6 +472,7 @@ Work:
 
 - document connector limits (no full `git clone` yet) — **met** in `docs/ops/ingest-connectors*.md`;
 - optional: sync run history API + UI beyond `config.sync_events` tail — **deferred**;
+- Sources `?job=` processing history deep link + `ingest.listJobs` client (**done**);
 - second connector kind — **deferred** (product decision).
 
 Acceptance:
@@ -523,14 +524,14 @@ Acceptance:
 
 ### M6-04b — Statement conflicts (F-RUL-04)
 
-**Status:** partial — `conflict_review.scan_statement_conflicts`; review kind `statement_conflict`; scan after remember/mapping approve; queue UI acknowledge/dismiss.
+**Status:** partial — `conflict_review.scan_statement_conflicts`; review kind `statement_conflict`; scan after remember/mapping approve; queue UI acknowledge/dismiss; `governance.statement_conflict` KB alert + bell → `reviewItem=` (**done**); Playwright `governance.spec.ts` via `POST .../_e2e/statement-conflict` (**done** on `data-e2e`).
 
 Work:
 
 - negation / SHACL-aware contradiction detection — **deferred**;
 - ingest-time scan after `ledger_statements_written` — **done**;
 - manual `POST .../review/scan-statement-conflicts` — **done**;
-- `governance.tripped` on conflict — **deferred**.
+- Explorer `governance.tripped` on conflict — **deferred** (alerts use dedicated kind instead).
 
 ### M6-05 — Temporal + alerts product surfaces (F-TIM-*, F-ALT-*)
 
@@ -538,18 +539,18 @@ Work:
 
 Work:
 
-- graph search tied to temporal snapshot (today: API warning + docs/UI copy; scrubber on graph);
+- graph search tied to temporal snapshot (today: API `at` + search URL `?tab=graph&as_of=`; scrubber on graph);
 - richer valid_from/to on ledger entities (beyond ingest-time chunk filters).
 
 Doc: [search-storage-architecture.md](search-storage-architecture.md) § temporal filters (**done** for MVP clarity).
 
 Acceptance:
 
-- at least one alert type end-to-end in dev with automated test — **met** (`tests/test_kb_alerts.py`).
+- at least one alert type end-to-end in dev with automated test — **met** (`tests/test_kb_alerts.py`, `processing.failed` → `?job=` in `tests/test_processing_failed_alert.py` + `kb-alert-actions.test.ts`).
 
 ### M6-06 — Optional graph adapters (F-DIFF-01, distance-matrix)
 
-**Status:** partial — `POST .../graph/distance-matrix` adapter; `GET .../graph/diff` + **Graph diff** nav page; whole-graph canvas merge studio **not**.
+**Status:** partial — `POST .../graph/distance-matrix` adapter; `GET .../graph/diff` + **Graph diff** page (shareable `from`/`to`, links → graph `focus`+`at`); graph `?at=` deep link sets scrubber; whole-graph canvas merge studio **not**.
 
 Work:
 
@@ -566,6 +567,6 @@ Acceptance:
 
 | Item | Notes |
 | --- | --- |
-| Web strict indexed access | `noUncheckedIndexedAccess` disabled in `packages/web/tsconfig.json` for Explorer graph code; re-enable incrementally if desired. |
-| `vitest` for `packages/web` | Wired in CI (`pnpm --filter @basis/web test`). |
+| Web strict indexed access | `noUncheckedIndexedAccess` disabled in `web/tsconfig.json` for Explorer graph code; re-enable incrementally if desired. |
+| `vitest` for `web` | Wired in CI (`npm run test` in `web/`). |
 | Ingest slot tuning | `BASIS_INGEST_MAX_PENDING` semaphore; raise if operators see frequent `ingest_overloaded`. |

@@ -7,6 +7,7 @@ from collections import defaultdict
 from typing import Any
 
 from basis.admin.errors import AdminError
+from basis.knowledge.kb_alerts_emit import emit_statement_conflict_alert
 from basis.knowledge.store import KnowledgeStore
 
 STATEMENT_CONFLICT_KIND = "statement_conflict"
@@ -74,6 +75,13 @@ def scan_statement_conflicts(knowledge: KnowledgeStore, kb_id: str) -> dict[str,
                 priority=5,
             )
             created.append(item["id"])
+            emit_statement_conflict_alert(
+                knowledge,
+                kb_id,
+                review_item_id=item["id"],
+                surface_phrase=str(group.get("surface_phrase") or ""),
+                statement_ids=list(group.get("statement_ids") or []),
+            )
         except AdminError as exc:
             if exc.code == "review_exists":
                 skipped += 1

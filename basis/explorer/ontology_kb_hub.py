@@ -439,9 +439,12 @@ def register_kb_ontology_hub_routes(router: APIRouter) -> None:
         store: AdminStore = Depends(get_store),
     ) -> Any:
         get_kb_for_role(request, user, kb_id, store, _min_role("GET"))
-        session = _session(request, kb_id)
+        _session(request, kb_id)
         with KbOntologyState(request, kb_id):
-            result = await invoke_explorer(ont.list_proposals(request=request, session=session, ontology_uri=ontology_uri, state=state), context="ontology")
+            result = await invoke_explorer(
+                ont.list_proposals(request=request, ontology_uri=ontology_uri, state=state),
+                context="ontology",
+            )
             return result
 
     router.add_api_route("/{kb_id}/ontology/proposals", _kb_ont_21_list_proposals, methods=["GET"], name="_kb_ont_21_list_proposals")
@@ -454,9 +457,12 @@ def register_kb_ontology_hub_routes(router: APIRouter) -> None:
         store: AdminStore = Depends(get_store),
     ) -> Any:
         get_kb_for_role(request, user, kb_id, store, _min_role("GET"))
-        session = _session(request, kb_id)
+        _session(request, kb_id)
         with KbOntologyState(request, kb_id):
-            result = await invoke_explorer(ont.get_proposal(request=request, session=session, proposal_id=proposal_id), context="ontology")
+            result = await invoke_explorer(
+                ont.get_proposal(proposal_id=proposal_id, request=request),
+                context="ontology",
+            )
             return result
 
     router.add_api_route("/{kb_id}/ontology/proposals/{proposal_id}", _kb_ont_22_get_proposal, methods=["GET"], name="_kb_ont_22_get_proposal")
@@ -469,9 +475,12 @@ def register_kb_ontology_hub_routes(router: APIRouter) -> None:
         store: AdminStore = Depends(get_store),
     ) -> Any:
         get_kb_for_role(request, user, kb_id, store, _min_role("POST"))
-        session = _session(request, kb_id)
+        _session(request, kb_id)
         with KbOntologyState(request, kb_id):
-            result = await invoke_explorer(ont.approve_proposal(request=request, session=session, proposal_id=proposal_id), context="ontology")
+            result = await invoke_explorer(
+                ont.approve_proposal(proposal_id=proposal_id, request=request),
+                context="ontology",
+            )
             save_graph(request, kb_id)
             return result
 
@@ -485,9 +494,12 @@ def register_kb_ontology_hub_routes(router: APIRouter) -> None:
         store: AdminStore = Depends(get_store),
     ) -> Any:
         get_kb_for_role(request, user, kb_id, store, _min_role("POST"))
-        session = _session(request, kb_id)
+        _session(request, kb_id)
         with KbOntologyState(request, kb_id):
-            result = await invoke_explorer(ont.reject_proposal(request=request, session=session, proposal_id=proposal_id), context="ontology")
+            result = await invoke_explorer(
+                ont.reject_proposal(proposal_id=proposal_id, request=request),
+                context="ontology",
+            )
             save_graph(request, kb_id)
             return result
 
@@ -506,7 +518,7 @@ def register_kb_ontology_hub_routes(router: APIRouter) -> None:
         with KbOntologyState(request, kb_id):
             try:
                 result = await invoke_explorer(
-                    ont.publish_proposal(request=request, session=session, proposal_id=proposal_id),
+                    ont.publish_proposal(proposal_id=proposal_id, request=request, session=session),
                     context="ontology",
                 )
             except AdminError as exc:
@@ -550,9 +562,12 @@ def register_kb_ontology_hub_routes(router: APIRouter) -> None:
         store: AdminStore = Depends(get_store),
     ) -> Any:
         get_kb_for_role(request, user, kb_id, store, _min_role("POST"))
-        session = _session(request, kb_id)
+        _session(request, kb_id)
         with KbOntologyState(request, kb_id):
-            result = await invoke_explorer(ont.add_comment(request=request, session=session, proposal_id=proposal_id, body=body), context="ontology")
+            result = await invoke_explorer(
+                ont.add_comment(proposal_id=proposal_id, body=body, request=request),
+                context="ontology",
+            )
             save_graph(request, kb_id)
             return result
 
@@ -566,9 +581,12 @@ def register_kb_ontology_hub_routes(router: APIRouter) -> None:
         store: AdminStore = Depends(get_store),
     ) -> Any:
         get_kb_for_role(request, user, kb_id, store, _min_role("GET"))
-        session = _session(request, kb_id)
+        _session(request, kb_id)
         with KbOntologyState(request, kb_id):
-            result = await invoke_explorer(ont.list_versions(request=request, session=session, ontology_uri=ontology_uri), context="ontology")
+            result = await invoke_explorer(
+                ont.list_versions(ontology_uri=ontology_uri, request=request),
+                context="ontology",
+            )
             return result
 
     router.add_api_route("/{kb_id}/ontology/versions/{ontology_uri:path}", _kb_ont_27_list_versions, methods=["GET"], name="_kb_ont_27_list_versions")

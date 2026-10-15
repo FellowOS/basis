@@ -55,3 +55,55 @@ def test_reasoning_rules_crud_and_isolation(tmp_path) -> None:
 
     denied = client.get(f"/api/kbs/{kb_id}/rules", headers=headers_b)
     assert denied.status_code == 403
+
+
+def test_viewer_cannot_mutate_rules(tmp_path) -> None:
+    client = TestClient(create_app(Settings(data_dir=tmp_path)))
+    owner = client.post(
+        "/api/auth/register",
+        json={"email": "own@example.com", "password": "password1", "display_name": "Own"},
+    ).json()
+    owner_headers = {"Authorization": f"Bearer {owner['token']}"}
+    kb_id = client.post(
+        "/api/kbs",
+        headers=owner_headers,
+        json={"name": "Viewer Rules KB", "visibility": "restricted"},
+    ).json()["id"]
+
+    viewer = client.post(
+        "/api/auth/register",
+        json={"email": "view@example.com", "password": "password1", "display_name": "View"},
+    ).json()
+    client.post(
+        f"/api/kbs/{kb_id}/members",
+        headers=owner_headers,
+        json={"user_id": viewer["user"]["id"], "role": "viewer"},
+    )
+    viewer_headers = {"Authorization": f"Bearer {viewer['token']}"}
+
+    assert (
+        client.post(
+            f"/api/kbs/{kb_id}/rules",
+            headers=viewer_headers,
+            json={"name": "X", "body": "IF a THEN b", "enabled": True},
+        ).status_code
+        == 403
+    )
+
+    created = client.post(
+        f"/api/kbs/{kb_id}/rules",
+        headers=owner_headers,
+        json={"name": "Y", "body": "IF c THEN d", "enabled": True},
+    ).json()["rule"]["id"]
+
+    assert (
+        client.patch(
+            f"/api/kbs/{kb_id}/rules/{created}",
+            headers=viewer_headers,
+            json={"enabled": False},
+        ).status_code
+        == 403
+    )
+    assert (
+        client.delete(f"/api/kbs/{kb_id}/rules/{created}", headers=viewer_headers).status_code == 403
+    )

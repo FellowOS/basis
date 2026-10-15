@@ -103,6 +103,8 @@ def test_scan_enqueues_review_item(tmp_path: Path) -> None:
     )
     out = scan_statement_conflicts(store, kb_id)
     assert out["created"] == 1
+    alerts = store.list_kb_alerts(kb_id, limit=10)
+    assert any(a.get("kind") == "governance.statement_conflict" for a in alerts)
     items = store.list_review_items(kb_id, kind=STATEMENT_CONFLICT_KIND)
     assert len(items) == 1
     assert items[0]["payload"]["surface_phrase"] == "employed_by"

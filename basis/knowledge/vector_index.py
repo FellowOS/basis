@@ -3,12 +3,16 @@
 from __future__ import annotations
 
 import json
+import logging
 import threading
 from pathlib import Path
 from typing import Any, Protocol
 
 import numpy as np
 from sqlalchemy.engine import Engine
+from sqlalchemy.exc import ProgrammingError
+
+logger = logging.getLogger(__name__)
 
 
 class VectorIndexBackend(Protocol):
@@ -34,6 +38,8 @@ class VectorIndexBackend(Protocol):
         limit: int,
         filters: dict[str, Any] | None = None,
     ) -> list[dict[str, Any]]: ...
+
+    def delete(self, kb_id: str, ids: list[str]) -> None: ...
 
     def reset(self, kb_id: str) -> None: ...
 
@@ -122,6 +128,15 @@ class SQLiteVectorIndex:
         self._store(kb_id, dimension).add(vectors, metadata=metadata, ids=ids)
         self._write_manifest(kb_id, model_ref=model_ref, dimension=dimension)
 
+    def delete(self, kb_id: str, ids: list[str]) -> None:
+        if not ids:
+            return
+        manifest = self.manifest(kb_id)
+        dimension = int(manifest.get("dimension", 0))
+        if not dimension:
+            return
+        self._store(kb_id, dimension).delete(ids)
+
     def search(
         self,
         kb_id: str,
@@ -183,13 +198,26 @@ class PgVectorIndex:
             PARTITION OF chunk_vectors FOR VALUES IN ({dimension})
             """
         )
-        conn.exec_driver_sql(
-            f"""
-            CREATE INDEX IF NOT EXISTS {index}
-            ON {partition}
-            USING hnsw ((embedding::vector({dimension})) vector_cosine_ops)
-            """
-        )
+        try:
+            with conn.begin_nested():
+                conn.exec_driver_sql(
+                    f"""
+                    CREATE INDEX IF NOT EXISTS {index}
+                    ON {partition}
+                    USING hnsw ((embedding::vector({dimension})) vector_cosine_ops)
+                    """
+                )
+        except ProgrammingError as exc:
+            orig = getattr(exc, "orig", None)
+            msg = str(orig or exc).lower()
+            if "must be owner" in msg or getattr(orig, "sqlstate", None) == "42501":
+                logger.warning(
+                    "Skipping HNSW index on %s (insufficient privilege): %s",
+                    partition,
+                    orig or exc,
+                )
+            else:
+                raise
 
     def upsert(
         self,
@@ -246,6 +274,21 @@ class PgVectorIndex:
                 """,
                 (kb_id, model_ref, dimension),
             )
+
+    def delete(self, kb_id: str, ids: list[str]) -> None:
+        if not ids:
+            return
+        with self._engine.begin() as conn:
+            for offset in range(0, len(ids), 500):
+                batch = ids[offset : offset + 500]
+                placeholders = ",".join("%s" for _ in batch)
+                conn.exec_driver_sql(
+                    f"""
+                    DELETE FROM chunk_vectors
+                    WHERE kb_id = %s AND chunk_id IN ({placeholders})
+                    """,
+                    (kb_id, *batch),
+                )
 
     def search(
         self,

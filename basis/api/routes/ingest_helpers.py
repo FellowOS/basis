@@ -49,6 +49,7 @@ def run_ingest_blocking(
     knowledge: KnowledgeStore = app.state.knowledge_store
     limits = app.state.limits
     if graph_session is not None:
+        chat_llm = app.state.store.get_chat_llm_settings()
         return run_version_ingest(
             knowledge,
             graph_session,
@@ -62,6 +63,7 @@ def run_ingest_blocking(
             max_extract_chars=limits.ingest_max_extract_chars,
             max_chunks=limits.ingest_max_chunks,
             extract_timeout_seconds=limits.ingest_extract_timeout_seconds,
+            chat_llm=chat_llm,
         )
     result = run_version_ingest_for_app(
         app,

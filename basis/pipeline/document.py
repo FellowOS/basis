@@ -20,6 +20,7 @@ class TextIngestOptions:
     chunk_overlap: int = 250
     ner_method: str = "pattern"
     relation_method: str = "pattern"
+    ner_model: str | None = None  # spaCy model when ner_method=ml (e.g. zh_core_web_sm)
     extract_relations: bool = True
     extract_triplets: bool = False
     merge_entities: bool = True
@@ -39,6 +40,7 @@ def build_kg_from_text(
     text: str,
     options: TextIngestOptions,
     *,
+    chat_llm: dict[str, str | None] | None = None,
     extract_timeout_seconds: float | None = None,
 ) -> dict[str, Any]:
     """Run semantica GraphBuilder on plain text segments.
@@ -47,6 +49,8 @@ def build_kg_from_text(
     GraphBuilder source ``id``, or extraction is skipped (prebuilt-entity shortcut).
     """
     from semantica.kg import GraphBuilder
+
+    from basis.pipeline.extract_kwargs import semantica_build_kwargs
 
     builder = GraphBuilder(merge_entities=options.merge_entities, resolve_conflicts=False)
     segments: list[str] = [text]
@@ -66,13 +70,7 @@ def build_kg_from_text(
             if getattr(chunk, "text", "").strip()
         ] or [text]
 
-    build_kwargs = {
-        "extract": options.extract,
-        "ner_method": options.ner_method,
-        "relation_method": options.relation_method,
-        "extract_relations": options.extract_relations,
-        "extract_triplets": options.extract_triplets,
-    }
+    build_kwargs = semantica_build_kwargs(options, chat_llm)
 
     merged: dict[str, Any] = {"entities": [], "relationships": [], "metadata": {}}
     timeout = float(extract_timeout_seconds or 0)

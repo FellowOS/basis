@@ -1,6 +1,6 @@
 # Manual smoke test (M5 gate)
 
-Run with API (`uv run basis`) and Web (`pnpm dev`) on a fresh data dir or dev DB.
+Run with API (`uv run basis`) and Web (`cd web && npm run dev`) on a fresh data dir or dev DB.
 
 ## Auth and KB shell
 
@@ -24,7 +24,7 @@ Run with API (`uv run basis`) and Web (`pnpm dev`) on a fresh data dir or dev DB
 
 ```bash
 uv run pytest tests/test_release_gate.py tests/test_realtime_ws.py -q
-pnpm --filter @basis/web test
+cd web && npm test
 ```
 
 `test_release_gate.py` includes viewer **403** on upload/rebuild/processing and read-only **graph/stats**, **graph/nodes**, **graph/search**.
@@ -35,15 +35,17 @@ Starts a disposable API (SQLite under `data-e2e/`, port **8091**, `BASIS_INGEST_
 
 ```bash
 cd basis   # clone path; from repo root if you already have the tree
-pnpm install
-pnpm --filter @basis/web exec playwright install chromium
-pnpm test:e2e
+cd web
+npm install
+npx playwright install chromium
+npm run test:e2e
 ```
 
-Reuse your own `uv run basis` + `pnpm dev` on the default ports:
+Reuse your own `uv run basis` + `cd web && npm run dev` on the default ports:
 
 ```bash
-BASIS_E2E_SKIP_SERVERS=1 BASIS_E2E_WEB_PORT=5173 pnpm --filter @basis/web test:e2e
+cd web
+BASIS_E2E_SKIP_SERVERS=1 BASIS_E2E_WEB_PORT=5173 npm run test:e2e
 ```
 
 (`BASIS_API_URL` for Vite must still point at the running API.)
