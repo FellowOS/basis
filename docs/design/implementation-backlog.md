@@ -521,6 +521,16 @@ Acceptance:
 
 - rules isolated per KB; viewer cannot mutate rules.
 
+### M6-04b — Statement conflicts (F-RUL-04)
+
+**Status:** partial — `conflict_review.scan_statement_conflicts`; review kind `statement_conflict`; scan after remember/mapping approve; queue UI acknowledge/dismiss.
+
+Work:
+
+- negation / SHACL-aware contradiction detection — **deferred**;
+- ingest-time scan — **deferred**;
+- `governance.tripped` on conflict — **deferred**.
+
 ### M6-05 — Temporal + alerts product surfaces (F-TIM-*, F-ALT-*)
 
 **Status:** partial — temporal diff + graph scrubber; chunk search `as_of` / `created_*` + search page copy; alerts + bell SSE/poll + deep links (**done** for MVP kinds); `governance.tripped` records Explorer `decision_id` when graph loaded (`governance_decision.py`); Playwright `governance.spec.ts` (review/ontology, connectors query, bell → Decisions, search graph hint).

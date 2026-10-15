@@ -189,6 +189,10 @@ async def approve_review_item(
                 why=body.rationale,
                 sync_review=False,
             )
+            mapping_result = {
+                **mapping_result,
+                "conflicts": scan_statement_conflicts(knowledge, kb_id),
+            }
         elif item["kind"] == "entity_merge":
             payload = item["payload"]
             primary_id = str(payload.get("primary_id") or "")
