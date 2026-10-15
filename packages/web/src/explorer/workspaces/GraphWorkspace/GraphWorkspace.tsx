@@ -84,6 +84,7 @@ import {
   type GraphPluginPanelDescriptor,
   type GraphPluginToolbarItem,
 } from "./plugins";
+import { kbGraphDiffPath } from "@/lib/nav-config.js";
 import { explorationEffectsShouldLoad, neighborhoodPanelShouldLoad, temporalOverlayShouldLoad } from "./pluginRegistryPredicates";
 import { shouldFetchTemporalBounds, shouldFetchTemporalSnapshot } from "./temporalLifecyclePredicates";
 import { createTemporalSnapshotGuards, type TemporalSnapshotResponse } from "./temporalSnapshotGuards";
@@ -3220,6 +3221,18 @@ export function GraphWorkspace({
                       maxDate={temporalBounds.max ?? undefined}
                     />
                   </Suspense>
+                  {kbId ? (
+                    <a
+                      href={kbGraphDiffPath(
+                        kbId,
+                        temporalBounds.min,
+                        (scrubberTime ?? (temporalBounds.max ? new Date(temporalBounds.max) : null) ?? new Date(temporalBounds.min)).toISOString(),
+                      )}
+                      className="mt-1 block text-center text-[11px] text-primary underline-offset-2 hover:underline"
+                    >
+                      {graphCopy(copyLocale, "timelineDiffLink")}
+                    </a>
+                  ) : null}
                 </div>
               ) : null}
             </SurfaceCard>

@@ -400,10 +400,10 @@ semantica SDK（parse, kg, ontology, reasoning, embeddings, …）
 | F-LDG-* | 账本 | **部分**（陈述/映射/typed facts；图仍为投影） |
 | F-GOV-*, F-IDN-* | 审核/决策 | **部分**（合并/导入/映射队列；Decision/Agent governor **未**） |
 | F-ONT-01–09 | 本体/SPARQL/映射 | **部分**（KB Hub、SPARQL/推理、SKOS、映射+审核；`VersionsTab` 提案+深链；与 ledger 审核队列分工） |
-| F-RUL-* | KB 规则 | **部分**（`reasoning/run` + `.../rules` CRUD + Reasoning WS 库；证明链/矛盾入队 **未**） |
+| F-RUL-* | KB 规则 | **部分**（`reasoning/run` + `proof_chains` + `.../rules` CRUD；账本派生事实/矛盾入队 **未**） |
 | F-TIM-* | 时态 | **部分**（图谱 scrubber + `temporal/*`；chunk 与图谱时点文档化；playback 无独立路由） |
 | F-CHAT-* | 对话/MCP | **部分**（playground SSE/停生成/裁剪提示；MCP 工具集；remember→审核；**不**做 token 预算深化） |
-| F-IO-*, F-LIN-*, F-DIFF-* | 导入导出/血缘 | **部分**（图 import 审核；`GET .../provenance` + `/kbs/:id/lineage`；整图 DiffMerge **未**） |
+| F-IO-*, F-LIN-*, F-DIFF-* | 导入导出/血缘 | **部分**（图 import 审核；lineage；`GET .../graph/diff` + Graph diff 页；画布合并工作室 **未**） |
 | F-ALT-*, F-IF-* | 告警、interface | **部分**（`sync_failed`/`llm.*`/`governance.*`、铃铛 SSE+深链；KB 页副标题 **已有**） |
 | F-LAKE-*, F-MEM-* | 可选 | **未** |
 

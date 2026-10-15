@@ -147,6 +147,18 @@ export async function ingestDocumentViaApi(
 }
 
 /** Minimal document ingest (pattern extract) for graph projection smoke. */
+export async function fetchTemporalBounds(
+  page: Page,
+  kbId: string,
+): Promise<{ min?: string; max?: string }> {
+  const token = await bearerToken(page);
+  const response = await page.request.get(`/api/kbs/${kbId}/temporal/bounds`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  expect(response.ok()).toBeTruthy();
+  return (await response.json()) as { min?: string; max?: string };
+}
+
 export async function proposeRememberViaApi(
   page: Page,
   kbId: string,

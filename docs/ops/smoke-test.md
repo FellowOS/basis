@@ -52,6 +52,8 @@ SEMA_E2E_SKIP_SERVERS=1 SEMA_E2E_WEB_PORT=5173 pnpm --filter @sema/web test:e2e
 
 `e2e/governance.spec.ts` covers review queue → Ontology Versions link, `reviewItem=` deep link for `statement_remember`, `?connectors=1` opening the ingest sources dialog, and Search → Graph temporal hint + link to the graph workspace.
 
+`e2e/graph-diff.spec.ts` covers **Graph diff** after ingest (`GET .../graph/diff` via UI).
+
 Manual checklist above remains the release fallback when e2e is not run.
 
 ## M6 deepening (post–Explorer migration)

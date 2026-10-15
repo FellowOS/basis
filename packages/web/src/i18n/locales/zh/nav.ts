@@ -1,4 +1,5 @@
 export const nav = {
+  kbAlerts: '知识库告警',
   platform: {
     overview: '总览',
     instances: '实例',

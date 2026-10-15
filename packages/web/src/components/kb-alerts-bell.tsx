@@ -132,7 +132,7 @@ export function KbAlertsBell() {
           variant="ghost"
           size="icon"
           className="relative size-9 shrink-0"
-          aria-label={t.nav.alerts}
+          aria-label={t.nav.kbAlerts}
         >
           <Bell className="size-[18px]" />
           {badge > 0 ? (

@@ -116,6 +116,10 @@ const MESSAGES = {
   pluginNeighborsTitle: { zh: "切换邻域面板", en: "Toggle neighborhood panel" },
   pluginTemporal: { zh: "时间", en: "Temporal" },
   pluginTemporalTitle: { zh: "切换时间上下文面板", en: "Toggle temporal context panel" },
+  timelineDiffLink: {
+    zh: "对比时间范围内的图变更 →",
+    en: "Compare graph changes over time →",
+  },
   toolbarCamera: { zh: "视图", en: "Camera" },
   toolbarLayout: { zh: "布局", en: "Layout" },
   toolbarLocal: { zh: "局部", en: "Local" },

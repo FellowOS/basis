@@ -97,6 +97,17 @@ export function kbOntologyVersionsPath(kbId: string): string {
   return `${kbPath(kbId, 'ontology')}?${params.toString()}`;
 }
 
+/** Graph projection diff between two ISO instants (F-DIFF-01). */
+export function kbGraphDiffPath(kbId: string, from?: string, to?: string): string {
+  const base = kbPath(kbId, 'graph-diff');
+  if (!from && !to) return base;
+  const params = new URLSearchParams();
+  if (from) params.set('from', from);
+  if (to) params.set('to', to);
+  const q = params.toString();
+  return q ? `${base}?${q}` : base;
+}
+
 export function parseKbIdFromPath(pathname: string): string | null {
   const match = /^\/kbs\/([^/]+)(?:\/|$)/.exec(pathname);
   if (!match) return null;

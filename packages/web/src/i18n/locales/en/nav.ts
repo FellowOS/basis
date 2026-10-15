@@ -1,4 +1,5 @@
 export const nav = {
+  kbAlerts: 'Knowledge base alerts',
   platform: {
     overview: 'Overview',
     instances: 'Instances',
