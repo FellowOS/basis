@@ -30,6 +30,12 @@ type ReviewItem = {
     direction?: string;
     content?: string;
     statement_id?: string;
+    surface_phrase?: string;
+    objects?: Array<{
+      statement_id?: string;
+      object_entity_id?: string | null;
+      object_value?: string | null;
+    }>;
   };
   created_at: string;
 };
@@ -424,6 +430,7 @@ export function KbReviewQueueTab({
                 const isImport = item.kind === 'graph_import';
                 const isMapping = item.kind === 'ontology_mapping';
                 const isRemember = item.kind === 'statement_remember';
+                const isConflict = item.kind === 'statement_conflict';
                 const isEntityMerge = item.kind === 'entity_merge';
                 const primaryId = item.payload.primary_id ?? '—';
                 const duplicateIds = item.payload.duplicate_ids ?? [];
@@ -441,7 +448,11 @@ export function KbReviewQueueTab({
                       ? locale === 'zh'
                         ? '批准记入'
                         : 'Approve fact'
-                      : approveLabel;
+                      : isConflict
+                        ? locale === 'zh'
+                          ? '已知晓'
+                          : 'Acknowledge'
+                        : approveLabel;
                 return (
                   <li
                     key={item.id}
@@ -470,6 +481,26 @@ export function KbReviewQueueTab({
                                 {String(item.payload.content ?? item.payload.statement_id ?? '—')}
                               </span>
                             )
+                          : isConflict
+                            ? (
+                              <span className="flex flex-col gap-1 text-sm">
+                                <span>
+                                  {locale === 'zh' ? '谓语冲突：' : 'Conflicting objects for predicate '}
+                                  <span className="font-mono text-xs">
+                                    {String(item.payload.surface_phrase ?? '—')}
+                                  </span>
+                                </span>
+                                <ul className="mt-1 list-disc pl-4 text-xs text-muted-foreground">
+                                  {item.payload.objects?.map((obj) => (
+                                    <li key={obj.statement_id}>
+                                      {obj.object_entity_id
+                                        ? renderNodeRef(obj.object_entity_id)
+                                        : String(obj.object_value ?? '—')}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </span>
+                            )
                           : (
                           <span className="flex flex-col gap-1">
                             <span className="text-muted-foreground text-xs font-normal">
@@ -491,7 +522,7 @@ export function KbReviewQueueTab({
                           </span>
                         )}
                     </div>
-                    {!isImport && !isMapping && !isRemember ? (
+                    {!isImport && !isMapping && !isRemember && !isConflict ? (
                       <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">{graphOnlyMergeHint}</p>
                     ) : null}
                     {isEntityMerge && primaryId !== '—' && firstDuplicate ? (

@@ -31,6 +31,7 @@ from sema.knowledge.mapping_service import (
     MAPPING_REVIEW_KIND,
     apply_mapping_status_change,
 )
+from sema.knowledge.conflict_review import STATEMENT_CONFLICT_KIND, scan_statement_conflicts
 from sema.knowledge.remember_service import STATEMENT_REVIEW_KIND
 from sema.knowledge.store import KnowledgeStore
 
@@ -263,7 +264,14 @@ async def approve_review_item(
             statement_id = str(payload.get("statement_id") or item["subject_id"])
             knowledge.set_statement_status(kb_id, statement_id, "confirmed")
             rebuild_kb_projection(request, kb_id)
-            merge_result = {"statement_id": statement_id, "status": "confirmed"}
+            merge_result = {
+                "statement_id": statement_id,
+                "status": "confirmed",
+                "conflicts": scan_statement_conflicts(knowledge, kb_id),
+            }
+        elif item["kind"] == STATEMENT_CONFLICT_KIND:
+            approve_action = "kb.statement.conflict_acknowledged"
+            merge_result = {"status": "acknowledged", "payload": item.get("payload")}
         elif item["kind"] == "graph_import":
             from semantica.explorer.routes.export_import import import_file
 
@@ -391,6 +399,8 @@ async def reject_review_item(
         reject_action = "kb.mapping.rejected"
     elif item.get("kind") == STATEMENT_REVIEW_KIND:
         reject_action = "kb.statement.remember_rejected"
+    elif item.get("kind") == STATEMENT_CONFLICT_KIND:
+        reject_action = "kb.statement.conflict_dismissed"
     else:
         reject_action = "kb.graph.merge_rejected"
     audit_kb_graph(
