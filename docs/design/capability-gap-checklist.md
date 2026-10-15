@@ -114,4 +114,4 @@ References: [Product and roadmap](product-and-roadmap.md), [Explorer integration
 - Split **P0/P1** rows into backlog tasks (§6–9 in `implementation-backlog.md`) with acceptance tests.
 - Do **not** reopen Explorer shell items marked `excluded` or `replaced` unless product explicitly reverses ADR/design.
 
-_Last updated: 2026-03-26 (M6 partial: alerts, temporal/search copy, chat/MCP hardening, KB subtitles)._
+_Last updated: 2026-10-15 (M6: alerts/deep links, temporal docs, rules library UX, connectors frozen, playground scope capped)._

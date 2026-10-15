@@ -528,6 +528,41 @@ export function VersionsTab() {
                 {selectedProposal.state}
               </div>
             </div>
+            <div style={{ marginBottom: "12px" }}>
+              <label style={{ display: "block", color: "#8fa8c6", fontSize: "12px", marginBottom: "4px" }}>
+                Proposal ID
+              </label>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <code style={{ flex: 1, fontSize: "11px", color: "#c5d4e8", wordBreak: "break-all" }}>
+                  {selectedProposal.proposal_id}
+                </code>
+                <button
+                  type="button"
+                  style={{ ...buttonStyle, padding: "6px 10px", fontSize: "11px" }}
+                  onClick={() => {
+                    void navigator.clipboard.writeText(selectedProposal.proposal_id);
+                    setModalNotice("Proposal ID copied.");
+                  }}
+                >
+                  Copy
+                </button>
+              </div>
+            </div>
+            {selectedProposal.shacl_validation?.conforms === false ? (
+              <div
+                style={{
+                  marginBottom: "12px",
+                  padding: "10px 12px",
+                  borderRadius: "6px",
+                  border: "1px solid rgba(255, 157, 175, 0.35)",
+                  background: "rgba(255, 157, 175, 0.1)",
+                  color: "#ffb4c2",
+                  fontSize: "12px",
+                }}
+              >
+                {shaclSummaryLine(selectedProposal.shacl_validation)} — publish may be blocked until resolved.
+              </div>
+            ) : null}
             {modalNotice ? (
               <div style={{ marginBottom: "12px", color: "#4cc38a", fontSize: "12px" }}>{modalNotice}</div>
             ) : null}

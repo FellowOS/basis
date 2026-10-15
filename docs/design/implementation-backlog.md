@@ -497,9 +497,9 @@ Acceptance:
 
 Work:
 
-- restore reviewer-focused layout (impact + SHACL summary) without standalone Explorer `App`;
-- deep link `kbOntologyProposalPath` + audit timeline links (**done**); review queue copy links to **Ontology → Versions** (**done**);
-- dedicated ontology-only **review queue row** remains **open** (by design: proposals stay in Versions tab, not `review/items`).
+- deep link `kbOntologyProposalPath` + audit/review links (**done**); modal SHACL gate banner + copyable `proposal_id` (**done**);
+- dedicated ontology-only **review queue row** — **won't do** (proposals stay in Versions tab);
+- larger ProposalReview layout restore — **deferred** (inline modal summaries sufficient for GA).
 
 Acceptance:
 
