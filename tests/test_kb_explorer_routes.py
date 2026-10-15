@@ -37,6 +37,39 @@ def test_temporal_bounds_after_ingest(tmp_path) -> None:
     assert "min" in body and "max" in body
 
 
+def test_temporal_diff_after_ingest(tmp_path) -> None:
+    if not explorer_available():
+        pytest.skip("explorer extra not installed")
+
+    client = TestClient(create_app(Settings(data_dir=tmp_path)))
+    admin = client.post(
+        "/api/auth/register",
+        json={"email": "td@example.com", "password": "password1", "display_name": "TD"},
+    ).json()
+    headers = {"Authorization": f"Bearer {admin['token']}"}
+
+    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    client.post(
+        f"/api/kbs/{kb_id}/documents",
+        headers=headers,
+        json={"doc_id": "td1", "text": "Alice knows Bob.", "wait": True, "extract": True},
+    )
+
+    bounds = client.get(f"/api/kbs/{kb_id}/temporal/bounds", headers=headers)
+    assert bounds.status_code == 200
+    b = bounds.json()
+    t_from, t_to = b["min"], b["max"]
+
+    diff = client.get(
+        f"/api/kbs/{kb_id}/temporal/diff",
+        headers=headers,
+        params={"from": t_from, "to": t_to},
+    )
+    assert diff.status_code == 200
+    payload = diff.json()
+    assert isinstance(payload, dict)
+
+
 def test_enrich_dedup_after_ingest(tmp_path) -> None:
     if not explorer_available():
         pytest.skip("explorer extra not installed")
@@ -95,6 +128,41 @@ def test_sparql_select_after_ingest(tmp_path) -> None:
     assert body.get("error") in (None, "")
 
 
+def test_provenance_lineage_after_ingest(tmp_path) -> None:
+    if not explorer_available():
+        pytest.skip("explorer extra not installed")
+
+    client = TestClient(create_app(Settings(data_dir=tmp_path)))
+    admin = client.post(
+        "/api/auth/register",
+        json={"email": "p@example.com", "password": "password1", "display_name": "P"},
+    ).json()
+    headers = {"Authorization": f"Bearer {admin['token']}"}
+
+    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    client.post(
+        f"/api/kbs/{kb_id}/documents",
+        headers=headers,
+        json={"doc_id": "p1", "text": "Alice knows Bob.", "wait": True, "extract": True},
+    )
+
+    nodes = client.get(f"/api/kbs/{kb_id}/graph/nodes?limit=5", headers=headers)
+    assert nodes.status_code == 200
+    node_list = nodes.json().get("nodes") or []
+    if not node_list:
+        pytest.skip("no projected nodes to trace")
+
+    node_id = node_list[0]["id"]
+    lineage = client.get(
+        f"/api/kbs/{kb_id}/provenance",
+        headers=headers,
+        params={"node_id": node_id},
+    )
+    assert lineage.status_code == 200
+    body = lineage.json()
+    assert "nodes" in body and "edges" in body
+
+
 def test_decisions_list_empty_after_ingest(tmp_path) -> None:
     if not explorer_available():
         pytest.skip("explorer extra not installed")
@@ -116,6 +184,41 @@ def test_decisions_list_empty_after_ingest(tmp_path) -> None:
     decisions = client.get(f"/api/kbs/{kb_id}/decisions", headers=headers)
     assert decisions.status_code == 200
     assert isinstance(decisions.json(), list)
+
+
+def test_distance_matrix_after_ingest(tmp_path) -> None:
+    if not explorer_available():
+        pytest.skip("explorer extra not installed")
+
+    client = TestClient(create_app(Settings(data_dir=tmp_path)))
+    admin = client.post(
+        "/api/auth/register",
+        json={"email": "dm@example.com", "password": "password1", "display_name": "DM"},
+    ).json()
+    headers = {"Authorization": f"Bearer {admin['token']}"}
+
+    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    client.post(
+        f"/api/kbs/{kb_id}/documents",
+        headers=headers,
+        json={"doc_id": "dm1", "text": "Alice knows Bob. Bob knows Carol.", "wait": True, "extract": True},
+    )
+
+    nodes = client.get(f"/api/kbs/{kb_id}/graph/nodes", headers=headers, params={"limit": 20})
+    assert nodes.status_code == 200
+    node_list = nodes.json().get("nodes") or []
+    if len(node_list) < 2:
+        pytest.skip("ingest produced fewer than two graph nodes")
+
+    ids = [n["id"] for n in node_list[:3]]
+    matrix = client.post(
+        f"/api/kbs/{kb_id}/graph/distance-matrix",
+        headers=headers,
+        json={"node_ids": ids, "metric": "hops"},
+    )
+    assert matrix.status_code == 200
+    body = matrix.json()
+    assert "distances" in body or "matrix" in body
 
 
 def test_reasoning_run_without_graph_write(tmp_path) -> None:

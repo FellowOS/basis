@@ -86,6 +86,23 @@ def test_search_api(tmp_path: Path) -> None:
     assert body.get("chunks") is not None
     assert body.get("mode") in ("none", "keyword", "hybrid", "semantic")
 
+    future = client.get(
+        f"/api/kbs/{kb_id}/search",
+        headers=headers,
+        params={"q": "Berlin", "created_after": "2099-01-01T00:00:00Z"},
+    )
+    assert future.status_code == 200
+    assert future.json().get("chunks") == []
+
+    past = client.get(
+        f"/api/kbs/{kb_id}/search",
+        headers=headers,
+        params={"q": "Berlin", "as_of": "2000-01-01T00:00:00Z"},
+    )
+    assert past.status_code == 200
+    assert past.json().get("chunks") == []
+    assert past.json().get("filters", {}).get("as_of") == "2000-01-01T00:00:00Z"
+
 
 def test_kb_search_config_controls_modes(tmp_path: Path) -> None:
     client = TestClient(create_app(Settings(data_dir=tmp_path)))

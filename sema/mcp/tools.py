@@ -6,10 +6,13 @@ import json
 from dataclasses import dataclass
 from typing import Any, Callable
 
+from fastapi import HTTPException
+
 from sema.admin.store import AdminStore, KnowledgeBase, User
 from sema.explorer.graph_read import find_path, list_neighbors, search_nodes
 from sema.explorer.registry import KbExplorerRuntime
 from sema.knowledge.chunk_search import ChunkSearchService
+from sema.knowledge.remember_service import propose_remember
 from sema.knowledge.store import KnowledgeStore
 
 TOOL_NAMES = (
@@ -20,6 +23,7 @@ TOOL_NAMES = (
     "neighbors",
     "paths",
     "entity_facts",
+    "propose_remember",
 )
 
 SERVER_INFO = {"name": "sema-kb-mcp", "version": "0.1.0"}
@@ -36,6 +40,7 @@ class KbToolContext:
     chunk_search: ChunkSearchService | None = None
     runtime: KbExplorerRuntime | None = None
     runtime_loader: Callable[[], KbExplorerRuntime] | None = None
+    assert_kb_editor: Callable[[], None] | None = None
 
     def graph_runtime(self) -> KbExplorerRuntime:
         if self.runtime is not None:
@@ -68,9 +73,25 @@ def _tool_search_chunks(ctx: KbToolContext, args: dict[str, Any]) -> dict[str, A
     query = str(args.get("query", "")).strip()
     if not query:
         return _text_result({"error": "query is required"})
-    limit = int(args.get("limit", 10))
+    limit = min(max(1, int(args.get("limit", 10))), 30)
+    document_id = str(args.get("document_id") or "").strip() or None
+    entity_id = str(args.get("entity_id") or "").strip() or None
+    as_of = str(args.get("as_of") or "").strip() or None
+    created_after = str(args.get("created_after") or "").strip() or None
+    created_before = str(args.get("created_before") or "").strip() or None
+    if as_of and not created_before:
+        created_before = as_of
     if ctx.chunk_search is not None:
-        payload = ctx.chunk_search.search(ctx.kb.id, query=query, limit=limit)
+        payload = ctx.chunk_search.search(
+            ctx.kb.id,
+            query=query,
+            limit=limit,
+            document_id=document_id,
+            entity_id=entity_id,
+            created_after=created_after,
+            created_before=created_before,
+            as_of=as_of,
+        )
         return _text_result(payload)
     hits = ctx.knowledge.search_chunks(ctx.kb.id, query=query, limit=limit)
     return _text_result({"query": query, "mode": "keyword", "chunks": hits})
@@ -136,6 +157,36 @@ def _tool_paths(ctx: KbToolContext, args: dict[str, Any]) -> dict[str, Any]:
     return _text_result(path)
 
 
+def _tool_propose_remember(ctx: KbToolContext, args: dict[str, Any]) -> dict[str, Any]:
+    content = str(args.get("content", "")).strip()
+    if not content:
+        return _text_result({"error": "content is required"})
+    try:
+        if ctx.assert_kb_editor is not None:
+            ctx.assert_kb_editor()
+        else:
+            ctx.store.get_kb_for(ctx.user, ctx.kb.id, "editor")
+    except HTTPException as exc:
+        detail = exc.detail if isinstance(exc.detail, dict) else {"message": str(exc.detail)}
+        return {
+            "content": [{"type": "text", "text": json.dumps(detail, ensure_ascii=False)}],
+            "isError": True,
+        }
+    payload = propose_remember(
+        ctx.knowledge,
+        ctx.kb.id,
+        ctx.user.id,
+        content,
+        source="mcp",
+    )
+    return _text_result(
+        {
+            **payload,
+            "message": "Fact submitted for review; it is not searchable until approved.",
+        }
+    )
+
+
 def _tool_entity_facts(ctx: KbToolContext, args: dict[str, Any]) -> dict[str, Any]:
     entity_id = str(args.get("entity_id", "")).strip()
     if not entity_id:
@@ -153,6 +204,7 @@ _HANDLERS: dict[str, Callable[[KbToolContext, dict[str, Any]], dict[str, Any]]] 
     "neighbors": _tool_neighbors,
     "paths": _tool_paths,
     "entity_facts": _tool_entity_facts,
+    "propose_remember": _tool_propose_remember,
 }
 
 
@@ -170,6 +222,14 @@ TOOL_DEFINITIONS: list[dict[str, Any]] = [
             "properties": {
                 "query": {"type": "string", "description": "Search text"},
                 "limit": {"type": "integer", "description": "Max chunks (default 10, max 30)"},
+                "document_id": {"type": "string", "description": "Limit to one document id"},
+                "entity_id": {"type": "string", "description": "Limit to chunks linked to entity id"},
+                "as_of": {
+                    "type": "string",
+                    "description": "ISO ingest-time upper bound (alias for created_before)",
+                },
+                "created_after": {"type": "string", "description": "ISO document ingest lower bound"},
+                "created_before": {"type": "string", "description": "ISO document ingest upper bound"},
             },
             "required": ["query"],
         },
@@ -233,6 +293,23 @@ TOOL_DEFINITIONS: list[dict[str, Any]] = [
                 "limit": {"type": "integer"},
             },
             "required": ["entity_id"],
+        },
+    },
+    {
+        "name": "propose_remember",
+        "description": (
+            "Propose a new canonical fact for human review (pending statement). "
+            "Does not write to the graph until approved in the review queue."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string",
+                    "description": "Natural-language fact or note to remember",
+                },
+            },
+            "required": ["content"],
         },
     },
 ]

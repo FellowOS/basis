@@ -1,5 +1,9 @@
 """KB MCP HTTP and API tokens."""
 
+import json
+import time
+from unittest.mock import patch
+
 from fastapi.testclient import TestClient
 
 from sema.api.app import create_app
@@ -56,6 +60,7 @@ def test_mcp_tools_with_api_token(tmp_path) -> None:
     ).json()
     names = {t["name"] for t in tools["result"]["tools"]}
     assert "search_chunks" in names
+    assert "propose_remember" in names
 
     search = client.post(
         f"/api/kbs/{kb_id}/mcp",
@@ -76,3 +81,61 @@ def test_mcp_tools_with_api_token(tmp_path) -> None:
         json={"jsonrpc": "2.0", "id": 4, "method": "ping", "params": {}},
     )
     assert wrong_kb.status_code == 403
+
+    remember = client.post(
+        f"/api/kbs/{kb_id}/mcp",
+        headers=session_headers,
+        json={
+            "jsonrpc": "2.0",
+            "id": 5,
+            "method": "tools/call",
+            "params": {
+                "name": "propose_remember",
+                "arguments": {"content": "MCP remembered fact for review."},
+            },
+        },
+    )
+    assert remember.status_code == 200
+    remember_payload = json.loads(remember.json()["result"]["content"][0]["text"])
+    assert remember_payload.get("review_item_id")
+
+
+def test_mcp_busy_when_semaphore_saturated(tmp_path) -> None:
+    client = TestClient(create_app(Settings(data_dir=tmp_path, mcp_max_inflight=0)))
+    admin = client.post(
+        "/api/auth/register",
+        json={"email": "busy@example.com", "password": "password1", "display_name": "Busy"},
+    ).json()
+    headers = {"Authorization": f"Bearer {admin['token']}"}
+    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+
+    resp = client.post(
+        f"/api/kbs/{kb_id}/mcp",
+        headers=headers,
+        json={"jsonrpc": "2.0", "id": 1, "method": "ping", "params": {}},
+    )
+    assert resp.status_code == 429
+    assert resp.json()["detail"]["code"] == "mcp_busy"
+
+
+def test_mcp_timeout(tmp_path) -> None:
+    client = TestClient(create_app(Settings(data_dir=tmp_path, mcp_timeout_seconds=1)))
+    admin = client.post(
+        "/api/auth/register",
+        json={"email": "to@example.com", "password": "password1", "display_name": "To"},
+    ).json()
+    headers = {"Authorization": f"Bearer {admin['token']}"}
+    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+
+    def slow_batch(*_args, **_kwargs):
+        time.sleep(2)
+        return {"jsonrpc": "2.0", "id": 1, "result": {}}
+
+    with patch("sema.api.routes.mcp.handle_batch", side_effect=slow_batch):
+        resp = client.post(
+            f"/api/kbs/{kb_id}/mcp",
+            headers=headers,
+            json={"jsonrpc": "2.0", "id": 1, "method": "ping", "params": {}},
+        )
+    assert resp.status_code == 504
+    assert resp.json()["detail"]["code"] == "mcp_timeout"

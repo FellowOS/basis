@@ -57,6 +57,26 @@ async def kb_temporal_snapshot(
     return await invoke_explorer(temporal_snapshot(at=at, session=session), context="temporal")
 
 
+@router.get("/{kb_id}/temporal/diff")
+async def kb_temporal_diff(
+    kb_id: str,
+    request: Request,
+    from_time: str = Query(..., alias="from"),
+    to_time: str = Query(..., alias="to"),
+    user: User = Depends(get_current_user),
+    store: AdminStore = Depends(get_store),
+) -> Any:
+    get_kb_for_viewer(request, user, kb_id, store)
+    runtime = get_explorer_registry(request).get(request, kb_id)
+    session = require_explorer_graph_session(runtime)
+    from semantica.explorer.routes.temporal import temporal_diff
+
+    return await invoke_explorer(
+        temporal_diff(from_time=from_time, to_time=to_time, session=session),
+        context="temporal",
+    )
+
+
 @router.post("/{kb_id}/enrich/links")
 async def kb_enrich_links(
     kb_id: str,
@@ -106,6 +126,25 @@ async def kb_enrich_merge(
         409,
         "merge_requires_review",
         "图节点合并请提交审核队列，并在批准后应用",
+    )
+
+
+@router.get("/{kb_id}/provenance")
+async def kb_provenance_lineage(
+    kb_id: str,
+    request: Request,
+    node_id: Optional[str] = Query(None),
+    user: User = Depends(get_current_user),
+    store: AdminStore = Depends(get_store),
+) -> Any:
+    get_kb_for_viewer(request, user, kb_id, store)
+    runtime = get_explorer_registry(request).get(request, kb_id)
+    session = require_explorer_graph_session(runtime)
+    from semantica.explorer.routes.provenance import get_provenance_lineage
+
+    return await invoke_explorer(
+        get_provenance_lineage(node_id=node_id, session=session),
+        context="provenance",
     )
 
 
@@ -170,6 +209,24 @@ async def kb_graph_semantic_neighborhood(
         ),
         context="semantic_neighborhood",
     )
+
+
+@router.post("/{kb_id}/graph/distance-matrix")
+async def kb_graph_distance_matrix(
+    kb_id: str,
+    request: Request,
+    user: User = Depends(get_current_user),
+    store: AdminStore = Depends(get_store),
+) -> Any:
+    get_kb_for_viewer(request, user, kb_id, store)
+    runtime = get_explorer_registry(request).get(request, kb_id)
+    session = require_explorer_graph_session(runtime)
+    from semantica.explorer.routes.graph import distance_matrix
+    from semantica.explorer.schemas import DistanceMatrixRequest
+
+    raw = await request.json()
+    payload = DistanceMatrixRequest.model_validate(raw)
+    return await invoke_explorer(distance_matrix(payload, session=session), context="distance_matrix")
 
 
 @router.get("/{kb_id}/decisions")

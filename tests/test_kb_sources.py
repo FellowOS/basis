@@ -171,6 +171,12 @@ def test_http_poll_sync(tmp_path) -> None:
     events = detail["config"].get("sync_events") or []
     assert events and events[0]["status"] == "succeeded"
 
+    history = client.get(f"/api/kbs/{kb_id}/sources/{source_id}/sync-history", headers=headers)
+    assert history.status_code == 200
+    hist = history.json()
+    assert hist["source_id"] == source_id
+    assert hist["events"][0]["status"] == "succeeded"
+
 
 def test_git_source_sync(tmp_path) -> None:
     client = TestClient(create_app(_test_settings(tmp_path)))

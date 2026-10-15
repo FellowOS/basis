@@ -9,11 +9,24 @@ from pydantic_core import PydanticUndefined
 import semantica.explorer.routes.ontology  # noqa: F401 — annotations on generated handlers
 
 from sema.admin.store import AdminStore, User
-from sema.api.deps import get_current_user, get_explorer_registry, get_kb_for_role, get_store, save_graph
+from sema.api.deps import (
+    get_current_user,
+    get_explorer_registry,
+    get_kb_for_role,
+    get_knowledge_store,
+    get_store,
+    save_graph,
+)
 from sema.api.explorer_route_errors import invoke_explorer
 from sema.explorer.kb_scoped_ontology_state import KbOntologyState
 from sema.explorer.session_guard import require_explorer_graph_session
+from sema.admin.errors import AdminError
 from sema.knowledge.graph_audit import audit_kb_graph
+from sema.knowledge.kb_alerts_emit import (
+    emit_governance_proposal_proposed_alert,
+    emit_governance_tripped_alert,
+)
+from sema.knowledge.store import KnowledgeStore
 
 WRITE_METHODS = frozenset({"POST", "PUT", "PATCH", "DELETE"})
 
@@ -25,6 +38,31 @@ def _session(request: Request, kb_id: str):
 
 def _min_role(method: str) -> str:
     return "editor" if method in WRITE_METHODS else "viewer"
+
+
+def _governance_alert_from_proposal_result(
+    knowledge: KnowledgeStore,
+    kb_id: str,
+    proposal_id: str,
+    result: Any,
+) -> None:
+    if hasattr(result, "model_dump"):
+        data: Any = result.model_dump()
+    elif isinstance(result, dict):
+        data = result
+    else:
+        return
+    shacl = data.get("shacl_validation")
+    if isinstance(shacl, dict) and shacl.get("conforms") is False:
+        emit_governance_tripped_alert(
+            knowledge,
+            kb_id,
+            message=f"SHACL gate failed for proposal {proposal_id}",
+            detail={
+                "proposal_id": proposal_id,
+                "shacl_validation": shacl,
+            },
+        )
 
 
 def _audit_ontology_graph_write(
@@ -361,9 +399,30 @@ def register_kb_ontology_hub_routes(router: APIRouter) -> None:
     ) -> Any:
         get_kb_for_role(request, user, kb_id, store, _min_role("POST"))
         session = _session(request, kb_id)
+        knowledge = get_knowledge_store(request)
         with KbOntologyState(request, kb_id):
             result = await invoke_explorer(ont.submit_proposal(request=request, session=session, body=body), context="ontology")
             save_graph(request, kb_id)
+            if hasattr(result, "model_dump"):
+                data: Any = result.model_dump()
+            elif isinstance(result, dict):
+                data = result
+            else:
+                data = {}
+            proposal_id = str(data.get("proposal_id") or "").strip()
+            if proposal_id:
+                summary = str(data.get("summary") or "").strip()
+                emit_governance_proposal_proposed_alert(
+                    knowledge,
+                    kb_id,
+                    proposal_id=proposal_id,
+                    message=summary or f"Ontology proposal {proposal_id} awaiting review",
+                    detail={
+                        "proposal_id": proposal_id,
+                        "ontology_uri": data.get("ontology_uri"),
+                        "state": data.get("state"),
+                    },
+                )
             return result
 
     router.add_api_route("/{kb_id}/ontology/propose", _kb_ont_20_submit_proposal, methods=["POST"], name="_kb_ont_20_submit_proposal")
@@ -440,9 +499,25 @@ def register_kb_ontology_hub_routes(router: APIRouter) -> None:
     ) -> Any:
         get_kb_for_role(request, user, kb_id, store, _min_role("POST"))
         session = _session(request, kb_id)
+        knowledge = get_knowledge_store(request)
         with KbOntologyState(request, kb_id):
-            result = await invoke_explorer(ont.publish_proposal(request=request, session=session, proposal_id=proposal_id), context="ontology")
+            try:
+                result = await invoke_explorer(
+                    ont.publish_proposal(request=request, session=session, proposal_id=proposal_id),
+                    context="ontology",
+                )
+            except AdminError as exc:
+                code = exc.code.lower()
+                if any(token in code for token in ("governance", "impact", "tripped", "shacl")):
+                    emit_governance_tripped_alert(
+                        knowledge,
+                        kb_id,
+                        message=exc.message,
+                        detail={"code": exc.code, "proposal_id": proposal_id},
+                    )
+                raise
             save_graph(request, kb_id)
+            _governance_alert_from_proposal_result(knowledge, kb_id, proposal_id, result)
             _audit_ontology_graph_write(
                 store,
                 user,

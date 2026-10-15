@@ -103,6 +103,21 @@ def record_ingest_source_event(
     config["last_sync_at"] = event.get("at")
     config["last_sync_status"] = event.get("status")
     knowledge.update_ingest_source(kb_id, source_id, config=config)
+    if event.get("status") == "failed":
+        mode = str(event.get("mode") or source.get("kind") or "source")
+        err = str(event.get("error") or "")[:400]
+        knowledge.create_kb_alert(
+            kb_id,
+            kind="sync_failed",
+            message=f"Connector sync failed ({mode})",
+            severity="warning",
+            detail={
+                "source_id": source_id,
+                "source_name": source.get("name"),
+                "mode": mode,
+                "error": err or None,
+            },
+        )
 
 
 def fetch_http_poll_text(url: str) -> str:

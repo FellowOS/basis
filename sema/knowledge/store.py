@@ -1359,6 +1359,32 @@ class KnowledgeStore:
                 )
         return items
 
+    def set_statement_status(self, kb_id: str, statement_id: str, status: str) -> None:
+        allowed = {"pending", "confirmed", "rejected", "invalidated", "superseded"}
+        if status not in allowed:
+            raise AdminError(422, "bad_status", "陈述状态无效")
+        now = _now()
+        with self._lock:
+            row = self._conn.execute(
+                "SELECT kb_id, status FROM statements WHERE id = ?", (statement_id,)
+            ).fetchone()
+            if row is None:
+                raise AdminError(404, "not_found", "陈述不存在")
+            if row["kb_id"] != kb_id:
+                raise AdminError(403, "forbidden", "记录不属于该知识库")
+            if row["status"] != "pending" and status in {"confirmed", "rejected"}:
+                raise AdminError(409, "statement_not_pending", "陈述已处理")
+            invalidated_at = now if status in {"invalidated", "rejected", "superseded"} else None
+            self._conn.execute(
+                """
+                UPDATE statements
+                SET status = ?, invalidated_at = COALESCE(?, invalidated_at)
+                WHERE id = ? AND kb_id = ?
+                """,
+                (status, invalidated_at, statement_id, kb_id),
+            )
+            self._conn.commit()
+
     def invalidate_statement(self, kb_id: str, statement_id: str) -> None:
         now = _now()
         with self._lock:
@@ -1720,12 +1746,20 @@ class KnowledgeStore:
         *,
         document_id: str | None = None,
         entity_id: str | None = None,
+        created_after: str | None = None,
+        created_before: str | None = None,
     ) -> set[str]:
         clauses = ["c.kb_id = ?"]
         params: list[Any] = [kb_id]
         if document_id:
             clauses.append("d.id = ?")
             params.append(document_id)
+        if created_after:
+            clauses.append("d.created_at >= ?")
+            params.append(created_after)
+        if created_before:
+            clauses.append("d.created_at <= ?")
+            params.append(created_before)
         if entity_id:
             clauses.append(
                 """
@@ -2830,6 +2864,271 @@ class KnowledgeStore:
             "created_at": row["created_at"],
             "updated_at": row["updated_at"],
         }
+
+    @staticmethod
+    def _reasoning_rule_row_to_dict(row: sqlite3.Row) -> dict[str, Any]:
+        return {
+            "id": row["id"],
+            "kb_id": row["kb_id"],
+            "name": row["name"],
+            "body": row["body"],
+            "enabled": bool(row["enabled"]),
+            "actor_id": row["actor_id"],
+            "created_at": row["created_at"],
+            "updated_at": row["updated_at"],
+        }
+
+    def list_reasoning_rules(self, kb_id: str, *, limit: int = 100) -> list[dict[str, Any]]:
+        limit = min(max(1, limit), 200)
+        with self._lock:
+            self._assert_kb_exists(kb_id)
+            rows = self._conn.execute(
+                """
+                SELECT id, kb_id, name, body, enabled, actor_id, created_at, updated_at
+                FROM kb_reasoning_rules
+                WHERE kb_id = ? AND deleted_at IS NULL
+                ORDER BY updated_at DESC
+                LIMIT ?
+                """,
+                (kb_id, limit),
+            ).fetchall()
+        return [self._reasoning_rule_row_to_dict(row) for row in rows]
+
+    def create_reasoning_rule(
+        self,
+        kb_id: str,
+        *,
+        name: str,
+        body: str,
+        actor_id: str,
+        enabled: bool = True,
+    ) -> dict[str, Any]:
+        rule_id = str(uuid.uuid4())
+        now = _now()
+        with self._lock:
+            self._assert_kb_exists(kb_id)
+            self._conn.execute(
+                """
+                INSERT INTO kb_reasoning_rules (
+                    id, kb_id, name, body, enabled, actor_id, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (rule_id, kb_id, name, body, int(enabled), actor_id, now, now),
+            )
+            self._conn.commit()
+        return self.get_reasoning_rule(kb_id, rule_id)
+
+    def get_reasoning_rule(self, kb_id: str, rule_id: str) -> dict[str, Any]:
+        with self._lock:
+            row = self._conn.execute(
+                """
+                SELECT id, kb_id, name, body, enabled, actor_id, created_at, updated_at
+                FROM kb_reasoning_rules
+                WHERE kb_id = ? AND id = ? AND deleted_at IS NULL
+                """,
+                (kb_id, rule_id),
+            ).fetchone()
+        if row is None:
+            raise AdminError(404, "not_found", "规则不存在")
+        return self._reasoning_rule_row_to_dict(row)
+
+    def update_reasoning_rule(
+        self,
+        kb_id: str,
+        rule_id: str,
+        *,
+        name: str | None = None,
+        body: str | None = None,
+        enabled: bool | None = None,
+    ) -> dict[str, Any]:
+        self.get_reasoning_rule(kb_id, rule_id)
+        if name is None and body is None and enabled is None:
+            return self.get_reasoning_rule(kb_id, rule_id)
+        now = _now()
+        sets: list[str] = ["updated_at = ?"]
+        params: list[Any] = [now]
+        if name is not None:
+            sets.append("name = ?")
+            params.append(name)
+        if body is not None:
+            sets.append("body = ?")
+            params.append(body)
+        if enabled is not None:
+            sets.append("enabled = ?")
+            params.append(int(enabled))
+        params.extend([kb_id, rule_id])
+        with self._lock:
+            self._conn.execute(
+                f"""
+                UPDATE kb_reasoning_rules
+                SET {", ".join(sets)}
+                WHERE kb_id = ? AND id = ? AND deleted_at IS NULL
+                """,
+                params,
+            )
+            self._conn.commit()
+        return self.get_reasoning_rule(kb_id, rule_id)
+
+    def delete_reasoning_rule(self, kb_id: str, rule_id: str) -> None:
+        self.get_reasoning_rule(kb_id, rule_id)
+        now = _now()
+        with self._lock:
+            self._conn.execute(
+                """
+                UPDATE kb_reasoning_rules
+                SET deleted_at = ?, updated_at = ?, enabled = 0
+                WHERE kb_id = ? AND id = ? AND deleted_at IS NULL
+                """,
+                (now, now, kb_id, rule_id),
+            )
+            self._conn.commit()
+
+    @staticmethod
+    def _alert_row_to_dict(row: sqlite3.Row) -> dict[str, Any]:
+        detail_raw = row["detail_json"]
+        try:
+            detail = json.loads(detail_raw) if detail_raw else {}
+        except json.JSONDecodeError:
+            detail = {}
+        return {
+            "id": row["id"],
+            "kb_id": row["kb_id"],
+            "kind": row["kind"],
+            "severity": row["severity"],
+            "message": row["message"],
+            "detail": detail,
+            "created_at": row["created_at"],
+            "read_at": row["read_at"],
+            "dismissed_at": row["dismissed_at"],
+        }
+
+    def create_kb_alert(
+        self,
+        kb_id: str,
+        *,
+        kind: str,
+        message: str,
+        severity: str = "warning",
+        detail: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        alert_id = str(uuid.uuid4())
+        now = _now()
+        with self._lock:
+            self._assert_kb_exists(kb_id)
+            self._conn.execute(
+                """
+                INSERT INTO kb_alerts (
+                    id, kb_id, kind, severity, message, detail_json, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    alert_id,
+                    kb_id,
+                    kind,
+                    severity,
+                    message[:2000],
+                    json.dumps(detail or {}, ensure_ascii=False),
+                    now,
+                ),
+            )
+            self._conn.commit()
+        return self.get_kb_alert(kb_id, alert_id)
+
+    def get_kb_alert(self, kb_id: str, alert_id: str) -> dict[str, Any]:
+        with self._lock:
+            row = self._conn.execute(
+                """
+                SELECT id, kb_id, kind, severity, message, detail_json,
+                       created_at, read_at, dismissed_at
+                FROM kb_alerts
+                WHERE kb_id = ? AND id = ?
+                """,
+                (kb_id, alert_id),
+            ).fetchone()
+        if row is None:
+            raise AdminError(404, "not_found", "告警不存在")
+        return self._alert_row_to_dict(row)
+
+    def list_kb_alerts(
+        self,
+        kb_id: str,
+        *,
+        include_dismissed: bool = False,
+        limit: int = 50,
+    ) -> list[dict[str, Any]]:
+        limit = min(max(1, limit), 100)
+        clauses = ["kb_id = ?"]
+        params: list[Any] = [kb_id]
+        if not include_dismissed:
+            clauses.append("dismissed_at IS NULL")
+        with self._lock:
+            self._assert_kb_exists(kb_id)
+            rows = self._conn.execute(
+                f"""
+                SELECT id, kb_id, kind, severity, message, detail_json,
+                       created_at, read_at, dismissed_at
+                FROM kb_alerts
+                WHERE {' AND '.join(clauses)}
+                ORDER BY created_at DESC
+                LIMIT ?
+                """,
+                (*params, limit),
+            ).fetchall()
+        return [self._alert_row_to_dict(row) for row in rows]
+
+    def list_kb_alerts_since(
+        self,
+        kb_id: str,
+        *,
+        since_created_at: str | None,
+        limit: int = 20,
+    ) -> list[dict[str, Any]]:
+        limit = min(max(1, limit), 50)
+        with self._lock:
+            self._assert_kb_exists(kb_id)
+            if since_created_at:
+                rows = self._conn.execute(
+                    """
+                    SELECT id, kb_id, kind, severity, message, detail_json,
+                           created_at, read_at, dismissed_at
+                    FROM kb_alerts
+                    WHERE kb_id = ? AND dismissed_at IS NULL AND created_at > ?
+                    ORDER BY created_at ASC
+                    LIMIT ?
+                    """,
+                    (kb_id, since_created_at, limit),
+                ).fetchall()
+            else:
+                rows = self._conn.execute(
+                    """
+                    SELECT id, kb_id, kind, severity, message, detail_json,
+                           created_at, read_at, dismissed_at
+                    FROM kb_alerts
+                    WHERE kb_id = ? AND dismissed_at IS NULL
+                    ORDER BY created_at DESC
+                    LIMIT ?
+                    """,
+                    (kb_id, limit),
+                ).fetchall()
+        items = [self._alert_row_to_dict(row) for row in rows]
+        if since_created_at is None:
+            items.reverse()
+        return items
+
+    def dismiss_kb_alert(self, kb_id: str, alert_id: str) -> dict[str, Any]:
+        now = _now()
+        self.get_kb_alert(kb_id, alert_id)
+        with self._lock:
+            self._conn.execute(
+                """
+                UPDATE kb_alerts
+                SET dismissed_at = ?, read_at = COALESCE(read_at, ?)
+                WHERE kb_id = ? AND id = ?
+                """,
+                (now, now, kb_id, alert_id),
+            )
+            self._conn.commit()
+        return self.get_kb_alert(kb_id, alert_id)
 
     def _validate_quote_in_chunk(
         self, chunk_id: str, quote: str, quote_start: int, quote_end: int

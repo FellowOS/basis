@@ -1,9 +1,12 @@
 """KB review queue for entity merge proposals."""
 
+from unittest.mock import patch
+
 import pytest
 
 pytest.importorskip("semantica")
 
+from fastapi import HTTPException
 from fastapi.testclient import TestClient
 
 from sema.api.app import create_app
@@ -72,3 +75,36 @@ def test_direct_enrich_merge_blocked(tmp_path) -> None:
     )
     assert blocked.status_code == 409
     assert blocked.json()["detail"]["code"] == "merge_requires_review"
+
+
+def test_review_approve_failure_emits_governance_alert(tmp_path) -> None:
+    if not explorer_available():
+        pytest.skip("explorer extra not installed")
+
+    client = TestClient(create_app(Settings(data_dir=tmp_path)))
+    admin = client.post(
+        "/api/auth/register",
+        json={"email": "gov-rev@example.com", "password": "password1", "display_name": "GovRev"},
+    ).json()
+    headers = {"Authorization": f"Bearer {admin['token']}"}
+    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+
+    proposed = client.post(
+        f"/api/kbs/{kb_id}/review/items/entity-merge",
+        headers=headers,
+        json={"primary_id": "node-a", "duplicate_ids": ["node-b"]},
+    ).json()["item"]
+
+    async def fail_merge(*_args, **_kwargs):
+        raise HTTPException(status_code=422, detail={"code": "impact_gate", "message": "blocked"})
+
+    with patch("semantica.explorer.routes.enrich.merge_nodes", side_effect=fail_merge):
+        failed = client.post(
+            f"/api/kbs/{kb_id}/review/items/{proposed['id']}/approve",
+            headers=headers,
+            json={"rationale": "try merge"},
+        )
+    assert failed.status_code == 422
+
+    alerts = client.get(f"/api/kbs/{kb_id}/alerts", headers=headers).json()["alerts"]
+    assert any(a["kind"] == "governance.tripped" for a in alerts)

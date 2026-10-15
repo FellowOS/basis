@@ -4,7 +4,7 @@ import re
 from pathlib import Path
 from typing import Any, Literal
 
-from fastapi import APIRouter, Depends, File, Form, Request, UploadFile
+from fastapi import APIRouter, Depends, File, Form, Query, Request, UploadFile
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
@@ -71,6 +71,10 @@ class MemberRoleRequest(BaseModel):
 class GraphSearchRequest(BaseModel):
     query: str = Field(min_length=1)
     limit: int = Field(default=20, ge=1, le=50)
+    at: str | None = Field(
+        default=None,
+        description="Optional temporal instant (ISO). Search uses current projection; use temporal/snapshot for point-in-time graph overlay.",
+    )
 
 
 class SearchConfigRequest(BaseModel):
@@ -462,6 +466,12 @@ async def chunk_search_route(
     limit: int = 20,
     document_id: str | None = None,
     entity_id: str | None = None,
+    created_after: str | None = None,
+    created_before: str | None = None,
+    as_of: str | None = Query(
+        None,
+        description="Point-in-time (ISO): alias for created_before when that param is omitted.",
+    ),
     mode: Literal["keyword", "semantic", "hybrid"] | None = None,
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
@@ -476,6 +486,9 @@ async def chunk_search_route(
         doc = knowledge.resolve_document_ref(kb_id, document_id)
         if doc is not None:
             resolved_document_id = doc["document_id"]
+    effective_before = created_before
+    if as_of and not created_before:
+        effective_before = as_of
     return await asyncio.to_thread(
         chunk_search.search,
         kb_id,
@@ -483,6 +496,9 @@ async def chunk_search_route(
         limit=capped_limit,
         document_id=resolved_document_id,
         entity_id=entity_id,
+        created_after=created_after,
+        created_before=effective_before,
+        as_of=as_of,
         mode=mode,
     )
 
@@ -591,7 +607,13 @@ async def graph_search_route(
         max_limit=limits.graph_node_search_max_limit,
     )
     engine = "explorer" if runtime.explorer is not None else "snapshot"
-    return {"results": results, "engine": engine}
+    payload: dict[str, Any] = {"results": results, "engine": engine}
+    if body.at:
+        payload["at"] = body.at
+        payload["warnings"] = [
+            "graph_search_uses_current_projection",
+        ]
+    return payload
 
 
 @router.get("/{kb_id}/graph/snapshot")

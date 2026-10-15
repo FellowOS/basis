@@ -23,6 +23,8 @@ from sema.api.routes import (
     kb_ledger,
     kb_mappings,
     kb_ontology,
+    kb_alerts,
+    kb_reasoning_rules,
     kb_review,
     kb_sources,
     kb_tokens,
@@ -177,6 +179,8 @@ def create_app(app_settings: Settings | None = None) -> FastAPI:
     app.include_router(kb_review.router)
     app.include_router(kb_ledger.router)
     app.include_router(kb_mappings.router)
+    app.include_router(kb_reasoning_rules.router)
+    app.include_router(kb_alerts.router)
     app.include_router(kb_sources.router)
     app.include_router(realtime.router)
     app.include_router(settings_routes.router)

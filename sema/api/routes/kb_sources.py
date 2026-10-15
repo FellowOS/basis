@@ -7,7 +7,7 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any, Literal
 
-from fastapi import APIRouter, Depends, Header, Request
+from fastapi import APIRouter, Depends, Header, Query, Request
 from pydantic import BaseModel, Field
 
 from sema.admin.errors import AdminError
@@ -212,6 +212,29 @@ async def rotate_ingest_source_token(
     return {
         "ingest_token": token,
         "webhook_path": _webhook_path(kb_id, source_id),
+    }
+
+
+@router.get("/{kb_id}/sources/{source_id}/sync-history")
+async def list_ingest_source_sync_history(
+    kb_id: str,
+    source_id: str,
+    request: Request,
+    limit: int = Query(50, ge=1, le=200),
+    user: User = Depends(get_current_user),
+    store: AdminStore = Depends(get_store),
+    knowledge: KnowledgeStore = Depends(get_knowledge_store),
+) -> dict[str, Any]:
+    """Recent sync runs stored on the source config (`sync_events`, newest first)."""
+    get_kb_for_viewer(request, user, kb_id, store)
+    source = knowledge.get_ingest_source(kb_id, source_id)
+    events = list(source.get("config", {}).get("sync_events") or [])
+    capped = min(max(1, limit), 200)
+    return {
+        "source_id": source_id,
+        "events": events[:capped],
+        "last_sync_at": source.get("config", {}).get("last_sync_at"),
+        "last_sync_status": source.get("config", {}).get("last_sync_status"),
     }
 
 

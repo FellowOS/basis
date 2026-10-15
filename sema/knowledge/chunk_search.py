@@ -67,13 +67,17 @@ class ChunkSearchService:
         *,
         document_id: str | None,
         entity_id: str | None,
+        created_after: str | None = None,
+        created_before: str | None = None,
     ) -> set[str] | None:
-        if not document_id and not entity_id:
+        if not document_id and not entity_id and not created_after and not created_before:
             return None
         return self._knowledge.chunk_ids_matching_filters(
             kb_id,
             document_id=document_id,
             entity_id=entity_id,
+            created_after=created_after,
+            created_before=created_before,
         )
 
     def index_chunks(self, kb_id: str, chunk_ids: list[str] | None = None) -> dict[str, Any]:
@@ -175,6 +179,9 @@ class ChunkSearchService:
         limit: int = 10,
         document_id: str | None = None,
         entity_id: str | None = None,
+        created_after: str | None = None,
+        created_before: str | None = None,
+        as_of: str | None = None,
         mode: SearchMode | None = None,
     ) -> dict[str, Any]:
         query = query.strip()
@@ -194,7 +201,11 @@ class ChunkSearchService:
 
         limit = min(max(1, limit), 50)
         allow = self._chunk_filter_ids(
-            kb_id, document_id=document_id, entity_id=entity_id
+            kb_id,
+            document_id=document_id,
+            entity_id=entity_id,
+            created_after=created_after,
+            created_before=created_before,
         )
 
         keyword_hits = (
@@ -219,8 +230,14 @@ class ChunkSearchService:
                 qvec, q_ref = embed_query(query, settings)
                 if q_ref == model_ref or not manifest.get("model_ref"):
                     filt: dict[str, Any] | None = None
-                    if document_id:
-                        filt = {"document_id": document_id}
+                    if document_id or created_after or created_before:
+                        filt = {}
+                        if document_id:
+                            filt["document_id"] = document_id
+                        if created_after:
+                            filt["created_after"] = created_after
+                        if created_before:
+                            filt["created_before"] = created_before
                     raw = backend.search(
                         kb_id, qvec, limit=limit * 3, filters=filt
                     )
@@ -268,5 +285,12 @@ class ChunkSearchService:
             "mode": effective_mode,
             "model_ref": manifest.get("model_ref"),
             "warnings": warnings,
+            "filters": {
+                "document_id": document_id,
+                "entity_id": entity_id,
+                "created_after": created_after,
+                "created_before": created_before,
+                "as_of": as_of,
+            },
             "chunks": chunks,
         }

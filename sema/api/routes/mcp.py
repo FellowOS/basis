@@ -5,12 +5,13 @@ from __future__ import annotations
 import asyncio
 from typing import Any
 
-from fastapi import APIRouter, Header, Request
+from fastapi import APIRouter, Header, HTTPException, Request
 
 from sema.admin.store import User
 from sema.api.deps import (
     get_chunk_search,
     get_explorer_registry,
+    get_kb_for_editor,
     get_kb_for_viewer,
     get_knowledge_store,
     get_store,
@@ -70,6 +71,7 @@ async def mcp_jsonrpc(
         store=store,
         chunk_search=get_chunk_search(request),
         runtime_loader=lambda: get_explorer_registry(request).get(request, kb_id),
+        assert_kb_editor=lambda: get_kb_for_editor(request, user, kb_id, store),
     )
     semaphore: asyncio.Semaphore = request.app.state.mcp_semaphore
     try:

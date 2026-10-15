@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, Depends, File, Query, Request, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile
 from pydantic import BaseModel, Field
 
 from sema.admin.errors import AdminError
@@ -21,6 +21,8 @@ from sema.api.deps import (
     rebuild_kb_projection,
     save_graph,
 )
+from sema.api.explorer_route_errors import admin_error_from_explorer_http
+from sema.knowledge.kb_alerts_emit import emit_governance_tripped_alert
 from sema.limits import RuntimeLimits
 from sema.explorer.session_guard import require_explorer_graph_session
 from sema.knowledge.graph_audit import audit_kb_graph
@@ -29,6 +31,7 @@ from sema.knowledge.mapping_service import (
     MAPPING_REVIEW_KIND,
     apply_mapping_status_change,
 )
+from sema.knowledge.remember_service import STATEMENT_REVIEW_KIND
 from sema.knowledge.store import KnowledgeStore
 
 router = APIRouter(prefix="/api/kbs", tags=["knowledge-bases"])
@@ -165,137 +168,178 @@ async def approve_review_item(
     import_result: dict[str, Any] | None = None
     mapping_result: dict[str, Any] | None = None
     approve_action = "kb.graph.merge_approved"
-    if item["kind"] == MAPPING_REVIEW_KIND:
-        approve_action = "kb.mapping.approved"
-        payload = item["payload"] or {}
-        mapping_id = str(payload.get("mapping_id") or item["subject_id"])
-        mapping_result = apply_mapping_status_change(
-            request,
-            kb_id,
-            mapping_id,
-            user,
-            store,
-            knowledge,
-            status="confirmed",
-            why=body.rationale,
-            sync_review=False,
-        )
-    elif item["kind"] == "entity_merge":
-        payload = item["payload"]
-        primary_id = str(payload.get("primary_id") or "")
-        duplicate_ids = [str(d) for d in payload.get("duplicate_ids") or []]
+    _skip_governance_alert = frozenset(
+        {"review_closed", "not_found", "forbidden", "unsupported_review_kind"},
+    )
 
-        if _ledger_entity_merge_ids(knowledge, kb_id, primary_id, duplicate_ids):
-            ledger_merges = [
-                knowledge.record_entity_merge(
-                    kb_id,
-                    source_entity_id=dup,
-                    target_entity_id=primary_id,
-                    actor_id=user.id,
-                    why=body.rationale,
-                )
-                for dup in duplicate_ids
-            ]
-            projection = rebuild_kb_projection(request, kb_id)
-            merge_result = {
-                "mode": "ledger_rebuild",
-                "ledger_merges": ledger_merges,
-                "projection": projection,
-            }
-        else:
-            from semantica.explorer.routes.enrich import merge_nodes
-            from semantica.explorer.schemas import MergeRequest
+    try:
+        if item["kind"] == MAPPING_REVIEW_KIND:
+            approve_action = "kb.mapping.approved"
+            payload = item["payload"] or {}
+            mapping_id = str(payload.get("mapping_id") or item["subject_id"])
+            mapping_result = apply_mapping_status_change(
+                request,
+                kb_id,
+                mapping_id,
+                user,
+                store,
+                knowledge,
+                status="confirmed",
+                why=body.rationale,
+                sync_review=False,
+            )
+        elif item["kind"] == "entity_merge":
+            payload = item["payload"]
+            primary_id = str(payload.get("primary_id") or "")
+            duplicate_ids = [str(d) for d in payload.get("duplicate_ids") or []]
 
-            merge_body = MergeRequest.model_validate(payload)
+            if _ledger_entity_merge_ids(knowledge, kb_id, primary_id, duplicate_ids):
+                ledger_merges = [
+                    knowledge.record_entity_merge(
+                        kb_id,
+                        source_entity_id=dup,
+                        target_entity_id=primary_id,
+                        actor_id=user.id,
+                        why=body.rationale,
+                    )
+                    for dup in duplicate_ids
+                ]
+                projection = rebuild_kb_projection(request, kb_id)
+                merge_result = {
+                    "mode": "ledger_rebuild",
+                    "ledger_merges": ledger_merges,
+                    "projection": projection,
+                }
+            else:
+                from semantica.explorer.routes.enrich import merge_nodes
+                from semantica.explorer.schemas import MergeRequest
+
+                merge_body = MergeRequest.model_validate(payload)
+                runtime = get_explorer_registry(request).get(request, kb_id)
+                session = require_explorer_graph_session(runtime)
+                result = await merge_nodes(merge_body, session=session)
+                save_graph(request, kb_id)
+                merge_result = result.model_dump() if hasattr(result, "model_dump") else dict(result)
+                ledger_merges: list[dict[str, Any]] = []
+                for dup in duplicate_ids:
+                    if (
+                        primary_id
+                        and knowledge.ledger_entity_exists(kb_id, dup)
+                        and knowledge.ledger_entity_exists(kb_id, primary_id)
+                    ):
+                        ledger_merges.append(
+                            knowledge.record_entity_merge(
+                                kb_id,
+                                source_entity_id=dup,
+                                target_entity_id=primary_id,
+                                actor_id=user.id,
+                                why=body.rationale,
+                            )
+                        )
+                if ledger_merges:
+                    merge_result = {**merge_result, "ledger_merges": ledger_merges}
+                elif duplicate_ids:
+                    merge_result = {
+                        **merge_result,
+                        "ledger_notice": "graph_only_merge",
+                        "ledger_skipped_ids": duplicate_ids,
+                    }
+                partial = [
+                    dup
+                    for dup in duplicate_ids
+                    if primary_id
+                    and knowledge.ledger_entity_exists(kb_id, primary_id)
+                    and not knowledge.ledger_entity_exists(kb_id, dup)
+                ]
+                if ledger_merges and partial:
+                    merge_result = {
+                        **merge_result,
+                        "ledger_notice": "partial_ledger",
+                        "ledger_skipped_ids": partial,
+                    }
+        elif item["kind"] == STATEMENT_REVIEW_KIND:
+            approve_action = "kb.statement.remember_approved"
+            payload = item.get("payload") or {}
+            statement_id = str(payload.get("statement_id") or item["subject_id"])
+            knowledge.set_statement_status(kb_id, statement_id, "confirmed")
+            rebuild_kb_projection(request, kb_id)
+            merge_result = {"statement_id": statement_id, "status": "confirmed"}
+        elif item["kind"] == "graph_import":
+            from semantica.explorer.routes.export_import import import_file
+
+            approve_action = "kb.graph.import"
             runtime = get_explorer_registry(request).get(request, kb_id)
             session = require_explorer_graph_session(runtime)
-            result = await merge_nodes(merge_body, session=session)
+            upload = upload_file_from_staged(get_blob_store(request), kb_id, item["payload"])
+            result = await import_file(file=upload, session=session)
             save_graph(request, kb_id)
-            merge_result = result.model_dump() if hasattr(result, "model_dump") else dict(result)
-            ledger_merges: list[dict[str, Any]] = []
-            for dup in duplicate_ids:
-                if (
-                    primary_id
-                    and knowledge.ledger_entity_exists(kb_id, dup)
-                    and knowledge.ledger_entity_exists(kb_id, primary_id)
-                ):
-                    ledger_merges.append(
-                        knowledge.record_entity_merge(
-                            kb_id,
-                            source_entity_id=dup,
-                            target_entity_id=primary_id,
-                            actor_id=user.id,
-                            why=body.rationale,
-                        )
-                    )
-            if ledger_merges:
-                merge_result = {**merge_result, "ledger_merges": ledger_merges}
-            elif duplicate_ids:
-                merge_result = {
-                    **merge_result,
-                    "ledger_notice": "graph_only_merge",
-                    "ledger_skipped_ids": duplicate_ids,
-                }
-            partial = [
-                dup
-                for dup in duplicate_ids
-                if primary_id
-                and knowledge.ledger_entity_exists(kb_id, primary_id)
-                and not knowledge.ledger_entity_exists(kb_id, dup)
-            ]
-            if ledger_merges and partial:
-                merge_result = {
-                    **merge_result,
-                    "ledger_notice": "partial_ledger",
-                    "ledger_skipped_ids": partial,
-                }
-    elif item["kind"] == "graph_import":
-        from semantica.explorer.routes.export_import import import_file
+            import_result = result.model_dump() if hasattr(result, "model_dump") else dict(result)
+            discard_staged_import(get_blob_store(request), kb_id, item["payload"])
+        else:
+            raise AdminError(422, "unsupported_review_kind", f"不支持的审核类型: {item['kind']}")
 
-        approve_action = "kb.graph.import"
-        runtime = get_explorer_registry(request).get(request, kb_id)
-        session = require_explorer_graph_session(runtime)
-        upload = upload_file_from_staged(get_blob_store(request), kb_id, item["payload"])
-        result = await import_file(file=upload, session=session)
-        save_graph(request, kb_id)
-        import_result = result.model_dump() if hasattr(result, "model_dump") else dict(result)
-        discard_staged_import(get_blob_store(request), kb_id, item["payload"])
-    else:
-        raise AdminError(422, "unsupported_review_kind", f"不支持的审核类型: {item['kind']}")
-
-    resolved = knowledge.resolve_review_item(
-        kb_id,
-        item_id,
-        status="approved",
-        resolved_by=user.id,
-        rationale=body.rationale,
-    )
-    audit_kb_graph(
-        store,
-        user,
-        kb_id,
-        approve_action,
-        review_item_id=item_id,
-        extra={
+        resolved = knowledge.resolve_review_item(
+            kb_id,
+            item_id,
+            status="approved",
+            resolved_by=user.id,
+            rationale=body.rationale,
+        )
+        audit_kb_graph(
+            store,
+            user,
+            kb_id,
+            approve_action,
+            review_item_id=item_id,
+            extra={
+                "merge": merge_result,
+                "import": import_result,
+                "rationale": body.rationale,
+                **(
+                    {
+                        "ledger_notice": merge_result.get("ledger_notice"),
+                        "ledger_skipped_ids": merge_result.get("ledger_skipped_ids"),
+                    }
+                    if isinstance(merge_result, dict) and merge_result.get("ledger_notice")
+                    else {}
+                ),
+            },
+        )
+        return {
+            "item": resolved,
             "merge": merge_result,
             "import": import_result,
-            "rationale": body.rationale,
-            **(
-                {
-                    "ledger_notice": merge_result.get("ledger_notice"),
-                    "ledger_skipped_ids": merge_result.get("ledger_skipped_ids"),
-                }
-                if isinstance(merge_result, dict) and merge_result.get("ledger_notice")
-                else {}
-            ),
-        },
-    )
-    return {
-        "item": resolved,
-        "merge": merge_result,
-        "import": import_result,
-        "mapping": mapping_result,
-    }
+            "mapping": mapping_result,
+        }
+    except HTTPException as exc:
+        mapped = admin_error_from_explorer_http(exc, context="enrich")
+        if mapped.code not in _skip_governance_alert:
+            emit_governance_tripped_alert(
+                knowledge,
+                kb_id,
+                message=mapped.message,
+                detail={
+                    "code": mapped.code,
+                    "item_id": item_id,
+                    "kind": item.get("kind"),
+                    "source": "review_approve",
+                },
+            )
+        raise mapped
+    except AdminError as exc:
+        if exc.code not in _skip_governance_alert:
+            emit_governance_tripped_alert(
+                knowledge,
+                kb_id,
+                message=exc.message,
+                detail={
+                    "code": exc.code,
+                    "item_id": item_id,
+                    "kind": item.get("kind"),
+                    "source": "review_approve",
+                },
+            )
+        raise
 
 
 @router.post("/{kb_id}/review/items/{item_id}/reject")
@@ -326,6 +370,10 @@ async def reject_review_item(
             why=body.rationale,
             sync_review=False,
         )
+    elif item.get("kind") == STATEMENT_REVIEW_KIND:
+        payload = item.get("payload") or {}
+        statement_id = str(payload.get("statement_id") or item["subject_id"])
+        knowledge.set_statement_status(kb_id, statement_id, "rejected")
     resolved = knowledge.resolve_review_item(
         kb_id,
         item_id,
@@ -337,6 +385,8 @@ async def reject_review_item(
         reject_action = "kb.graph.import_rejected"
     elif item.get("kind") == MAPPING_REVIEW_KIND:
         reject_action = "kb.mapping.rejected"
+    elif item.get("kind") == STATEMENT_REVIEW_KIND:
+        reject_action = "kb.statement.remember_rejected"
     else:
         reject_action = "kb.graph.merge_rejected"
     audit_kb_graph(
