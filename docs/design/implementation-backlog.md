@@ -303,7 +303,7 @@ Acceptance:
 - unauthorized and wrong-KB requests do not reveal graph existence;
 - compatibility tests compare representative responses with Explorer semantics.
 
-**Status:** partial — read/search/temporal/enrich/provenance/semantic-neighborhood; `sparql`, `reasoning/run`, `decisions`; merge/import `409` → review; global `/api/reason` → 410. Remaining: ontology load/graph write adapters beyond enrich.
+**Status:** partial — read/search/temporal/enrich/provenance/semantic-neighborhood; `sparql`, `reasoning/run`, `decisions`; merge/import `409` → review; global `/api/reason` → 410; ontology hub (`ontology_kb_hub`) load/create/publish/remove + `POST .../ontology` audited (`kb.graph.ontology_*`). Remaining: optional `distance-matrix` adapter if UI enables structural matrix API.
 
 ### M4-04 — Add KB-scoped realtime ticket and WebSocket
 

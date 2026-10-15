@@ -13,6 +13,7 @@ from sema.api.deps import get_current_user, get_explorer_registry, get_kb_for_ro
 from sema.api.explorer_route_errors import invoke_explorer
 from sema.explorer.kb_scoped_ontology_state import KbOntologyState
 from sema.explorer.session_guard import require_explorer_graph_session
+from sema.knowledge.graph_audit import audit_kb_graph
 
 WRITE_METHODS = frozenset({"POST", "PUT", "PATCH", "DELETE"})
 
@@ -24,6 +25,27 @@ def _session(request: Request, kb_id: str):
 
 def _min_role(method: str) -> str:
     return "editor" if method in WRITE_METHODS else "viewer"
+
+
+def _audit_ontology_graph_write(
+    store: AdminStore,
+    user: User,
+    kb_id: str,
+    action: str,
+    result: Any,
+) -> None:
+    extra: dict[str, Any] = {}
+    if hasattr(result, "model_dump"):
+        data: Any = result.model_dump()
+    elif isinstance(result, dict):
+        data = result
+    else:
+        data = {}
+    for key in ("uri", "ontology_uri", "name", "namespace", "format", "source"):
+        value = data.get(key)
+        if value:
+            extra[key] = value
+    audit_kb_graph(store, user, kb_id, action, extra=extra or None)
 
 
 def register_kb_ontology_hub_routes(router: APIRouter) -> None:
@@ -57,6 +79,7 @@ def register_kb_ontology_hub_routes(router: APIRouter) -> None:
         with KbOntologyState(request, kb_id):
             result = await invoke_explorer(ont.load_ontology(request=request, session=session, body=body), context="ontology")
             save_graph(request, kb_id)
+            _audit_ontology_graph_write(store, user, kb_id, "kb.graph.ontology_load", result)
             return result
 
     router.add_api_route("/{kb_id}/ontology/load", _kb_ont_2_load_ontology, methods=["POST"], name="_kb_ont_2_load_ontology")
@@ -73,6 +96,7 @@ def register_kb_ontology_hub_routes(router: APIRouter) -> None:
         with KbOntologyState(request, kb_id):
             result = await invoke_explorer(ont.create_ontology(request=request, session=session, body=body), context="ontology")
             save_graph(request, kb_id)
+            _audit_ontology_graph_write(store, user, kb_id, "kb.graph.ontology_create", result)
             return result
 
     router.add_api_route("/{kb_id}/ontology/create", _kb_ont_3_create_ontology, methods=["POST"], name="_kb_ont_3_create_ontology")
@@ -243,6 +267,9 @@ def register_kb_ontology_hub_routes(router: APIRouter) -> None:
         with KbOntologyState(request, kb_id):
             result = await invoke_explorer(ont.remove_ontology(request=request, session=session, ontology_uri=ontology_uri), context="ontology")
             save_graph(request, kb_id)
+            _audit_ontology_graph_write(
+                store, user, kb_id, "kb.graph.ontology_remove", {"ontology_uri": ontology_uri}
+            )
             return result
 
     router.add_api_route("/{kb_id}/ontology/{ontology_uri:path}", _kb_ont_14_remove_ontology, methods=["DELETE"], name="_kb_ont_14_remove_ontology")
@@ -416,6 +443,13 @@ def register_kb_ontology_hub_routes(router: APIRouter) -> None:
         with KbOntologyState(request, kb_id):
             result = await invoke_explorer(ont.publish_proposal(request=request, session=session, proposal_id=proposal_id), context="ontology")
             save_graph(request, kb_id)
+            _audit_ontology_graph_write(
+                store,
+                user,
+                kb_id,
+                "kb.graph.ontology_publish",
+                {"proposal_id": proposal_id, **(result.model_dump() if hasattr(result, "model_dump") else {})},
+            )
             return result
 
     router.add_api_route("/{kb_id}/ontology/proposals/{proposal_id}/publish", _kb_ont_25_publish_proposal, methods=["POST"], name="_kb_ont_25_publish_proposal")

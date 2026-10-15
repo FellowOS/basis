@@ -92,3 +92,12 @@ def test_ontology_graph_requires_uri(tmp_path) -> None:
     )
     assert graph.status_code == 200
     assert graph.json()["uri"] == "http://example.org/demo#ontology"
+
+    audit = client.get(
+        f"/api/kbs/{kb_id}/audit/graph-mutations",
+        headers=headers,
+        params={"action_prefix": "kb.graph.ontology"},
+    )
+    assert audit.status_code == 200
+    actions = {e["action"] for e in audit.json()["events"]}
+    assert "kb.graph.ontology_create" in actions

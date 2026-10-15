@@ -1172,4 +1172,11 @@ async def create_ontology(
         description=body.description,
     )
     save_graph(request, kb_id)
+    audit_kb_graph(
+        store,
+        user,
+        kb_id,
+        "kb.graph.ontology_create",
+        extra={"uri": result["uri"], "name": body.name, "namespace": body.namespace},
+    )
     return result
