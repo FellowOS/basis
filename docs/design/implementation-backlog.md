@@ -12,6 +12,7 @@ acceptance gates so it can become an issue without rediscovering architecture.
 References:
 
 - [Product and roadmap](product-and-roadmap.md)
+- [Capability gap checklist](capability-gap-checklist.md) — post–Explorer migration inventory (excluded vs partial vs P0/P1)
 - [Data model](data-model.md)
 - [Explorer integration](explorer-integration.md)
 - [ADR 0001](../decisions/0001-canonical-knowledge-model.md)
@@ -303,7 +304,7 @@ Acceptance:
 - unauthorized and wrong-KB requests do not reveal graph existence;
 - compatibility tests compare representative responses with Explorer semantics.
 
-**Status:** partial — read/search/temporal/enrich/provenance/semantic-neighborhood; `sparql`, `reasoning/run`, `decisions`; merge/import `409` → review; global `/api/reason` → 410; ontology hub (`ontology_kb_hub`) load/create/publish/remove + `POST .../ontology` audited (`kb.graph.ontology_*`). Remaining: optional `distance-matrix` adapter if UI enables structural matrix API.
+**Status:** partial — read/search/temporal/enrich/`GET .../provenance` + report/semantic-neighborhood; `sparql`, `reasoning/run`, `decisions`; merge/import `409` → review; global `/api/reason` → 410; ontology hub (`ontology_kb_hub`) load/create/publish/remove + `POST .../ontology` audited (`kb.graph.ontology_*`). Web: KB-only ontology/vocabulary paths (`ontologyKb` / `vocabularyKb`); standalone Explorer `App.tsx` removed. Remaining: optional `distance-matrix` adapter if UI enables structural matrix API.
 
 ### M4-04 — Add KB-scoped realtime ticket and WebSocket
 
@@ -379,7 +380,7 @@ Work:
 - connect realtime updates and revision refetch;
 - respect viewer permissions.
 
-**Status:** partial — Explorer `GraphWorkspace` embedded when `explorer_runtime`; timeline + search/focus; `projection_updated` WS triggers full graph reload + dock notice; KB switch remounts workspace (`key={kbId}`); inspector evidence links resolve ledger `chunk_id` / document neighbors; merge/import gated via review; backend WS/viewer tests; graph read-only UX; unit tests for projection refresh. Manual gate: `docs/ops/smoke-test.md`. Playwright baseline: `packages/web/e2e` (login shell + onboarding: register → paste text → pattern ingest → `graph/stats` + Graph page shell); extend for canvas/focus when stable selectors exist.
+**Status:** partial — Explorer `GraphWorkspace` embedded when `explorer_runtime`; timeline + search/focus; `projection_updated` WS triggers full graph reload + dock notice; KB switch remounts workspace (`key={kbId}`); inspector evidence links resolve ledger `chunk_id` / document neighbors; merge/import gated via review with property diff in resolve + review queue; `/kbs/:id/lineage` PROV viewer + graph overview in KB settings; backend WS/viewer tests; graph read-only UX; unit tests for projection refresh. Manual gate: `docs/ops/smoke-test.md`. Playwright: `e2e/shell.spec.ts`, `e2e/onboarding.spec.ts`, `e2e/lineage.spec.ts` (provenance API + lineage shell after ingest).
 
 Acceptance:
 
@@ -457,7 +458,95 @@ introduce a second source of truth.
 `packages/web/src/explorer/host/explorerHttp.test.ts` (+ `api-error-message.test.ts`), and
 `packages/web/e2e` (Playwright login + register smoke; CI job `e2e`).
 
-## 10. Engineering debt (post graph-closure)
+## 10. Milestone M6 — post–Explorer migration deepening
+
+Tracks [capability-gap-checklist.md](capability-gap-checklist.md) **P0/P1** after M5 graph closure. Each item should become a GitHub issue with tests and `F-*` status updates.
+
+### M6-01 — Ingest connectors (F-SRC-06/07)
+
+**Status:** partial — webhook, `http_poll`, GitHub raw `git` kind, scheduler tick, `KbIngestSourcesDialog`, `GET .../sync-history` + UI.
+
+Work:
+
+- document connector limits (no full `git clone` yet);
+- optional: sync run history API + UI beyond `config.sync_events` tail;
+- optional: second connector kind (e.g. S3 presign or generic git host) per release gate.
+
+Acceptance:
+
+- editor can create/disable/sync without leaking secrets in audit logs;
+- two-KB isolation on sources and webhook paths.
+
+### M6-02 — Chat + MCP hardening (F-CHAT-01/05/06)
+
+**Status:** partial — playground + SSE stream; client `AbortController`; async stream checks `is_disconnected` + closes OpenAI stream; `chat_in_flight` 409; message trim; MCP filters on `search_chunks`; tests for `mcp_busy` / `mcp_timeout`.
+
+Work:
+
+- cooperative cancel of in-flight OpenAI HTTP (today: stop yielding + close stream handle);
+- deeper context budgeting (token-based trim vs char cap).
+
+Acceptance:
+
+- Cursor example from `GET .../mcp` works against local stack with API token;
+- no unauthenticated KB leakage on MCP errors.
+
+### M6-03 — Ontology proposal workflow UI (F-ONT-05)
+
+**Status:** partial — `VersionsTab` list + review modal (impact/SHACL summary, in-modal approve/reject/publish).
+
+Work:
+
+- restore reviewer-focused layout (impact + SHACL summary) without standalone Explorer `App`;
+- deep link `kbOntologyProposalPath` + audit timeline links (**done**); dedicated ontology-only review queue item **open**.
+
+Acceptance:
+
+- editor proposes, admin publishes; audit records ontology mutations.
+
+### M6-04 — KB rules library (F-RUL-01–03)
+
+**Status:** partial — rules CRUD + Reasoning WS load/save; results show inferred facts + rules-in-run list (API has no proof chain yet).
+
+Work:
+
+- `kb_reasoning_rules` persistence + `GET/POST/PATCH/DELETE .../rules`;
+- Reasoning workspace loads saved rulesets;
+- surface derived facts / proof summary in UI where Explorer already returns them.
+
+Acceptance:
+
+- rules isolated per KB; viewer cannot mutate rules.
+
+### M6-05 — Temporal + alerts product surfaces (F-TIM-*, F-ALT-*)
+
+**Status:** partial — temporal diff + graph scrubber; chunk search `as_of` / `created_*` + search page copy; alerts (`sync_failed`, `llm.*`, `governance.tripped` incl. review approve); bell SSE + 5m poll.
+
+Work:
+
+- graph search tied to temporal snapshot (today: warning + graph UI scrubber only);
+- richer valid_from/to on ledger entities (beyond ingest-time chunk filters).
+
+Acceptance:
+
+- at least one alert type end-to-end in dev with automated test — **met** (`tests/test_kb_alerts.py`).
+
+### M6-06 — Optional graph adapters (F-DIFF-01, distance-matrix)
+
+**Status:** partial — `POST .../graph/distance-matrix` adapter; whole-graph DiffMerge **not**; client-side structural distance remains default.
+
+Work:
+
+- implement `POST .../graph/distance-matrix` adapter when graph size exceeds client budget;
+- whole-graph diff API + UI only if release engineering requests it.
+
+Acceptance:
+
+- documented in `explorer-integration.md`; capability-gated in web.
+
+---
+
+## 11. Engineering debt (post graph-closure)
 
 | Item | Notes |
 | --- | --- |

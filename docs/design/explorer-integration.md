@@ -193,7 +193,7 @@ across Semantica upgrades.
 | POST | `/api/kbs/{kb_id}/graph/search` | graph search | viewer |
 | GET | `/api/kbs/{kb_id}/graph/nodes/{node_id}/neighbors` | neighbors | viewer |
 | GET | `/api/kbs/{kb_id}/graph/path` | path | viewer |
-| POST | `/api/kbs/{kb_id}/graph/distance-matrix` | distance matrix | viewer |
+| POST | `/api/kbs/{kb_id}/graph/distance-matrix` | distance matrix (`DistanceMatrixRequest`) | viewer |
 | GET | `/api/kbs/{kb_id}/graph/analytics/*` | analytics | viewer |
 | WS | `/api/kbs/{kb_id}/ws/graph-updates` | adapted WS hub | viewer |
 
@@ -204,9 +204,20 @@ are never interpolated into a filesystem path.
 
 | Prefix | Purpose |
 | --- | --- |
-| `/api/kbs/{kb_id}/temporal/*` | temporal bounds/snapshots |
+| `/api/kbs/{kb_id}/temporal/*` | temporal bounds, snapshot (`at`), diff (`from`/`to` query) |
+
+**Product mapping (F-TIM-03):**
+
+- **Graph point-in-time:** Graph workspace scrubber calls `GET .../temporal/snapshot?at=<ISO>` and overlays node/edge emphasis; bounds from `GET .../temporal/bounds`.
+- **Chunk search point-in-time:** `GET .../search` accepts `as_of` (alias for `created_before` when omitted) plus `created_after` / `created_before` on **document ingest** timestamps — not graph `valid_from` on entities.
+- **Graph text search:** `POST .../graph/search` accepts optional `at` in the JSON body for client correlation; results still use the **current** projection (response may include `warnings: ["graph_search_uses_current_projection"]`).
+- **Ontology proposals (F-ONT-05):** Web deep link `/kbs/{kb_id}/ontology?ontologyTab=versions&ontologyProposal={id}` opens the Versions tab review modal; audit timeline links use the same query params.
 | `/api/kbs/{kb_id}/decisions/*` | decision list/detail/causal chain |
-| `/api/kbs/{kb_id}/provenance/*` | lineage reads |
+| `/api/kbs/{kb_id}/provenance` | PROV-O lineage graph (`node_id` query) |
+| `/api/kbs/{kb_id}/provenance/report` | downloadable provenance report |
+
+Sema web: `/kbs/{kb_id}/lineage` (`KbLineageWorkspace`), linked from graph inspector, entity list,
+and graph toolbar when `capabilities.provenance` is true.
 
 Decision has no dedicated WebSocket. Changes arrive through the graph-update stream or client
 refetch notification.

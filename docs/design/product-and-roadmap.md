@@ -385,29 +385,29 @@ semantica SDK（parse, kg, ontology, reasoning, embeddings, …）
 
 ## 7. 实现状态总表（相对完整设计）
 
-| ID 范围 | 摘要 | 状态（2025-03 快照） |
+| ID 范围 | 摘要 | 状态（2026-03 快照） |
 | --- | --- | --- |
 | F-ACC-01–03 | 登录、用户 | **已有** |
-| F-ACC-04–07 | Token、SSO | **部分**（KB 令牌 + 对话/MCP UI；SSO **未**） |
+| F-ACC-04–07 | Token、SSO | **部分**（KB API 令牌 + Chat「连接」页 MCP 配置；SSO **未**） |
 | F-PLAT-01–02 | 设置、模型 | **部分**（设置页；模型配置与 pipeline/chat 部分接通） |
 | F-KB-01–03,05 | KB、成员 | **已有** |
 | F-KB-04,06 | KB 扩展设置、导出 | **部分**（设置/图投影；全量导出 **未**） |
 | F-SRC-01–02, F-EXT-01 | 上传、抽取 | **已有**（资料 + 处理任务） |
 | F-SRC-03–08, F-EXT-02 | 文档详情、连接器、job | **部分**（处理 job、webhook/http_poll/**git**（GitHub raw）连接器与定时 tick；完整 git clone **未**） |
-| F-SRCH-* | 检索 | **部分**（混合检索、重建；高级时间过滤待补） |
+| F-SRCH-* | 检索 | **部分**（混合检索、重建；文档 `created_after`/`created_before` 过滤） |
 | F-GRAPH-01–05 | 图读/WS | **已有**（Explorer 适配 + 图页） |
-| F-GRAPH-06–08, F-UI-* | 图写/Overview/Timeline UI | **部分**（读为主；合并走审核；Timeline 在 Explorer） |
+| F-GRAPH-06–08, F-UI-* | 图写/Overview/Timeline UI | **部分**（读为主；合并走审核；设置页图概览；Timeline 在 GraphWorkspace） |
 | F-LDG-* | 账本 | **部分**（陈述/映射/typed facts；图仍为投影） |
 | F-GOV-*, F-IDN-* | 审核/决策 | **部分**（合并/导入/映射队列；Decision/Agent governor **未**） |
-| F-ONT-01–09 | 本体/SPARQL/映射 | **部分**（Hub 适配、SPARQL/推理、SKOS、映射+审核） |
-| F-RUL-* | KB 规则 | **部分**（KB `reasoning/run`；规则 CRUD **未**） |
+| F-ONT-01–09 | 本体/SPARQL/映射 | **部分**（KB-only Ontology/Vocabulary Hub、SPARQL/推理、SKOS、映射+审核；提案评审 UI 简版） |
+| F-RUL-* | KB 规则 | **部分**（`reasoning/run` + `.../rules` CRUD；证明链/矛盾入队 **未**） |
 | F-TIM-* | 时态 | **部分**（Explorer temporal API；产品化 **未**） |
-| F-CHAT-* | 对话/MCP | **部分**（KB chat；MCP 路由 **未**完） |
-| F-IO-*, F-LIN-*, F-DIFF-* | 导入导出/血缘 | **部分**（图 import 审核、provenance；Lineage 工作台 **未**） |
-| F-ALT-*, F-IF-* | 告警、interface | **部分**（i18n/主题；SSE 告警 **未**） |
+| F-CHAT-* | 对话/MCP | **部分**（playground + MCP；`propose_remember` / `POST .../chat/remember` → 审核；流式/停生成等 **未**） |
+| F-IO-*, F-LIN-*, F-DIFF-* | 导入导出/血缘 | **部分**（图 import 审核；`GET .../provenance` + `/kbs/:id/lineage`；整图 DiffMerge **未**） |
+| F-ALT-*, F-IF-* | 告警、interface | **部分**（`sync_failed`、铃铛 SSE 推送 + 5m 兜底轮询；llm/governance 种类未做） |
 | F-LAKE-*, F-MEM-* | 可选 | **未** |
 
-**完整性结论（设计层）**：§5 仍覆盖 Utopia 十二域 + Explorer 主要 Workspace。**实现层**已完成 **纵向切片主干**：文库 → 处理 → 图/搜/聊 → 审核闭环 → 本体/SPARQL/映射/连接器 MVP；待深化项见 `graph-workspace-closure.md` 与 §9 发布门。
+**完整性结论（设计层）**：§5 仍覆盖 Utopia 十二域 + Explorer 主要 Workspace。**实现层**已完成 **纵向切片主干**：文库 → 处理 → 图/搜/聊 → 审核闭环 → 本体/SPARQL/映射/连接器 MVP；独立 Explorer 产品壳已移除，能力以 KB 路由挂载。待深化项见 [capability-gap-checklist.md](capability-gap-checklist.md)、`graph-workspace-closure.md` 与 §9 发布门。
 
 ---
 
@@ -423,7 +423,7 @@ semantica SDK（parse, kg, ontology, reasoning, embeddings, …）
 | `/api/kbs/{id}/graph/*` | F-GRAPH, F-UI |
 | `/api/kbs/{id}/review`, `.../decisions`, `.../registry` | F-GOV, F-IDN |
 | `/api/kbs/{id}/ontology`, `.../mappings`, `.../sparql` | F-ONT |
-| `/api/kbs/{id}/rules`, `.../reasoning` | F-RUL |
+| `/api/kbs/{id}/rules` (CRUD), `.../reasoning/run` | F-RUL |
 | `/api/kbs/{id}/chat`, `.../mcp` | F-CHAT |
 | `/api/kbs/{id}/export`, `.../import` | F-IO |
 | WS `/api/kbs/{id}/graph-updates`, SSE alerts | F-GRAPH, F-ALT |
@@ -442,6 +442,7 @@ semantica SDK（parse, kg, ontology, reasoning, embeddings, …）
 | `/kbs/:id/chat` | F-CHAT |
 | `/kbs/:id/library` | F-SRC |
 | `/kbs/:id/review` | F-GOV, F-IDN, F-GOV-07 |
+| `/kbs/:id/lineage` | F-LIN-01 |
 | `/kbs/:id/ontology` | F-ONT（含 vocabulary、shacl 子 tab） |
 | `/kbs/:id/mappings` | F-ONT-07 |
 | `/kbs/:id/settings` | F-KB-03–04 |

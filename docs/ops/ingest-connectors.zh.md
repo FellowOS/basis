@@ -20,6 +20,7 @@ Body：`text`（必填）、`title`、`external_key`、`auto_process`（默认 t
 ## HTTP 轮询与 Git
 
 - **手动同步：** `POST /api/kbs/{kb_id}/sources/{source_id}/sync`
+- **同步记录：** `GET /api/kbs/{kb_id}/sources/{source_id}/sync-history`（`sync_events`，新到旧）
 - **定时：** 在 `config` 中设置 `poll_interval_minutes`，并启用服务端 tick：
 
 ```bash

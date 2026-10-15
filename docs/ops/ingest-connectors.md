@@ -22,6 +22,7 @@ Body fields: `text` (required), `title`, `external_key`, `auto_process` (default
 ## HTTP poll & Git
 
 - **Manual sync:** `POST /api/kbs/{kb_id}/sources/{source_id}/sync`
+- **Sync history:** `GET /api/kbs/{kb_id}/sources/{source_id}/sync-history` (newest-first `sync_events` tail)
 - **Schedule:** set `poll_interval_minutes` in `config` and enable server tick:
 
 ```bash
@@ -40,7 +41,7 @@ Git `config`: `repo_url` (GitHub HTTPS), `branch`, `paths[]`.
 | Token | Where | Purpose |
 | --- | --- | --- |
 | **Ingest token** | Webhook source (connectors dialog) | Only that source’s `.../webhook` endpoint |
-| **KB access token** | **KB → Ask (chat)** MCP panel, `/api/kbs/{id}/tokens` | Bearer for MCP and KB-scoped API; KB admins only |
+| **KB access token** | **KB → Ask (chat)** MCP panel, `/api/kbs/{id}/tokens` | Bearer for MCP and KB-scoped API; scope `read` or `write` (write required for `propose_remember` / graph mutations) |
 
 ## Sync history
 
