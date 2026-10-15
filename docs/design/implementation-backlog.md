@@ -507,13 +507,13 @@ Acceptance:
 
 ### M6-04 — KB rules library (F-RUL-01–03)
 
-**Status:** partial — rules CRUD + Reasoning WS load/save; results show inferred facts + rules-in-run list (API has no proof chain yet).
+**Status:** partial — rules CRUD API + Reasoning WS (save, enable/disable, delete, auto-merge enabled on run); inferred facts + rules-in-run summary (no proof chain in API).
 
 Work:
 
-- `kb_reasoning_rules` persistence + `GET/POST/PATCH/DELETE .../rules`;
-- Reasoning workspace loads saved rulesets;
-- surface derived facts / proof summary in UI where Explorer already returns them.
+- `kb_reasoning_rules` persistence + `GET/POST/PATCH/DELETE .../rules` (**done**);
+- Reasoning workspace rule library UX (**done** baseline);
+- proof chain UI when Semantica `reasoning/run` exposes it.
 
 Acceptance:
 

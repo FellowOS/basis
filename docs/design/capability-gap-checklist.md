@@ -62,9 +62,9 @@ References: [Product and roadmap](product-and-roadmap.md), [Explorer integration
 
 | F-* | Capability | Status | Priority | Notes |
 | --- | --- | --- | --- | --- |
-| F-RUL-01 | KB ruleset CRUD (`.../rules`) | `partial` | P1 | Persisted rules + Reasoning WS load/save |
+| F-RUL-01 | KB ruleset CRUD (`.../rules`) | `partial` | P1 | API + Reasoning WS enable/delete; enabled rules merged on run |
 | F-RUL-02 | Run inference on current graph | `partial` | — | `POST .../reasoning/run` |
-| F-RUL-03 | Derived facts + proof chain in UI | `partial` | P1 | Inferred facts + rules-in-run summary; Semantica API has no proof chain field yet |
+| F-RUL-03 | Derived facts + proof chain in UI | `partial` | P1 | Inferred facts + rules-in-run list; proof chain blocked on API |
 | F-RUL-04 | Contradiction → governance queue | `not` | P2 | |
 | F-TIM-01–03 | valid_from/to, doc events, search/graph `as_of` | `partial` | P1 | Graph scrubber + `temporal/*`; chunk `as_of`/`created_*` on search API + KB search copy |
 | F-TIM-04 | Timeline playback (product nav) | `partial` | P1 | Controls in `GraphWorkspace`; no dedicated route |

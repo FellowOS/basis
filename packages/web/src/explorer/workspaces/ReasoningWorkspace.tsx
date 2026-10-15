@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { BrainCircuit, Play, RotateCcw, CheckCircle2, AlertCircle, Zap, GitBranch, Info } from "lucide-react";
+import { BrainCircuit, Play, RotateCcw, CheckCircle2, AlertCircle, Zap, GitBranch, Info, Trash2 } from "lucide-react";
 import { buildExplorerKbApiPath, explorerFetch } from "../host/explorerHttp";
 import { errorFromApiResponse } from "@/lib/api-error.js";
 import { useApiErrorMessage } from "@/lib/use-api-error-message.js";
@@ -85,6 +85,31 @@ export function ReasoningWorkspace({ kbId }: { kbId: string }) {
     setRules(lines.join("\n"));
     setResult(null);
     setError("");
+  }
+
+  async function setRuleEnabled(rule: SavedRule, enabled: boolean) {
+    if (!kbId) return;
+    setError("");
+    try {
+      await api(`/api/kbs/${kbId}/rules/${rule.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ enabled }),
+      });
+      await loadSavedRules();
+    } catch (e) {
+      setError(apiError(e));
+    }
+  }
+
+  async function deleteRule(ruleId: string) {
+    if (!kbId || !canWriteGraph) return;
+    setError("");
+    try {
+      await api(`/api/kbs/${kbId}/rules/${ruleId}`, { method: "DELETE" });
+      await loadSavedRules();
+    } catch (e) {
+      setError(apiError(e));
+    }
   }
 
   async function saveCurrentRules() {
@@ -204,22 +229,57 @@ export function ReasoningWorkspace({ kbId }: { kbId: string }) {
               )}
             </div>
             {savedRules.length > 0 && (
-              <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: canWriteGraph ? 10 : 0 }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: canWriteGraph ? 10 : 0 }}>
+                <div style={{ fontSize: 11, color: "var(--ws-text-dim)", lineHeight: 1.4 }}>
+                  Enabled rules run automatically on each Run, plus anything in the Rules box below.
+                </div>
                 {savedRules.map((r) => (
-                  <button
+                  <div
                     key={r.id}
-                    type="button"
-                    className="ws-btn ws-btn--ghost"
-                    style={{ padding: "5px 10px", fontSize: 11, opacity: r.enabled ? 1 : 0.55 }}
-                    title={r.body}
-                    onClick={() => {
-                      setRules(r.body);
-                      setResult(null);
-                      setError("");
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                      padding: "6px 8px",
+                      borderRadius: "var(--ws-radius-sm)",
+                      border: "1px solid var(--ws-border)",
+                      background: "var(--ws-surface)",
+                      opacity: r.enabled ? 1 : 0.72,
                     }}
                   >
-                    {r.name}
-                  </button>
+                    <input
+                      type="checkbox"
+                      checked={r.enabled}
+                      disabled={!canWriteGraph}
+                      title={canWriteGraph ? "Include on Run" : "View only"}
+                      onChange={(e) => void setRuleEnabled(r, e.target.checked)}
+                      style={{ flexShrink: 0 }}
+                    />
+                    <button
+                      type="button"
+                      className="ws-btn ws-btn--ghost"
+                      style={{ flex: 1, justifyContent: "flex-start", padding: "2px 6px", fontSize: 11, minWidth: 0 }}
+                      title={r.body}
+                      onClick={() => {
+                        setRules(r.body);
+                        setResult(null);
+                        setError("");
+                      }}
+                    >
+                      <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.name}</span>
+                    </button>
+                    {canWriteGraph ? (
+                      <button
+                        type="button"
+                        className="ws-btn ws-btn--ghost"
+                        style={{ padding: "4px 6px", color: "var(--ws-red, #f87171)" }}
+                        title="Delete rule"
+                        onClick={() => void deleteRule(r.id)}
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    ) : null}
+                  </div>
                 ))}
               </div>
             )}
