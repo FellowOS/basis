@@ -52,7 +52,7 @@ References: [Product and roadmap](product-and-roadmap.md), [Explorer integration
 | F-* | Capability | Status | Priority | Notes |
 | --- | --- | --- | --- | --- |
 | F-DIFF-01 | Whole-graph diff/merge (publish/staging) | `not` | P1 | Distinct from entity-pair merge diff |
-| F-ONT-05 | Full ontology proposal workflow (UI) | `partial` | P1 | `VersionsTab` + `?ontologyTab=versions&ontologyProposal=` deep link; audit/review links to ontology |
+| F-ONT-05 | Full ontology proposal workflow (UI) | `partial` | P1 | `VersionsTab` + `?ontologyTab=versions&ontologyProposal=`; review governance alerts → `?tab=queue&reviewItem=` |
 | F-GOV-04 | Agent governor (batch clustering, gates) | `not` | P2 | Scale governance automation |
 | F-GOV-05 | Impact gates + `governance.tripped` alerts | `partial` | P1 | Tied to F-ALT |
 | F-GOV-06 | Durable registry read model | `partial` | P1 | Audit exists; no duplicate Explorer Registry page |
@@ -81,7 +81,7 @@ References: [Product and roadmap](product-and-roadmap.md), [Explorer integration
 | F-CHAT-04 | `remember` → pending review | `partial` | P1 | `POST .../chat/remember` + MCP `propose_remember`; review kind `statement_remember` |
 | F-CHAT-05 | MCP Streamable HTTP | `partial` | P0 | `GET/POST /api/kbs/{id}/mcp` + 7 read tools; no platform `/api/mcp` |
 | F-CHAT-06 | Stop gen, 409 concurrency, context trim | `partial` | P1 | Client abort + SSE disconnect stops frames; char/msg trim; no token-accurate budget yet |
-| F-ALT-01–02 | Alert episodes + SSE refetch | `partial` | P1 | `sync_failed`, `llm.*`, `governance.tripped`, `governance.proposal_proposed` (on ontology submit); bell SSE + 5m poll |
+| F-ALT-01–02 | Alert episodes + SSE refetch | `partial` | P1 | Same kinds; bell SSE + 5m poll; deep links → sources / chat / review / ontology proposal |
 | F-IF-03 | Page subtitles (interface copy) | `partial` | P2 | `KbPageSubtitle` on KB workspace pages incl. graph strip |
 
 ### 3.4 IO, resources, engineering

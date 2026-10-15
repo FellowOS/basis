@@ -1,0 +1,15 @@
+import { describe, expect, it } from 'vitest';
+import { kbReviewItemPath, parseReviewUrlState } from '@/lib/reviewUrlState.js';
+
+describe('reviewUrlState', () => {
+  it('parses review item id', () => {
+    const state = parseReviewUrlState('?tab=queue&reviewItem=item-42');
+    expect(state.tab).toBe('queue');
+    expect(state.reviewItemId).toBe('item-42');
+  });
+
+  it('builds review item path', () => {
+    const href = kbReviewItemPath('kb-1', 'item-42');
+    expect(href).toBe('/kbs/kb-1/review?tab=queue&reviewItem=item-42');
+  });
+});

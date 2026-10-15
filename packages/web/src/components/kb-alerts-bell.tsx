@@ -10,7 +10,7 @@ import {
 import { api } from '@/lib/api.js';
 import { consumeKbAlertsStream, type KbAlertStreamItem } from '@/lib/kb-alerts-stream.js';
 import { useI18n } from '@/i18n/context.js';
-import { kbOntologyProposalPath } from '@/lib/nav-config.js';
+import { kbAlertAction } from '@/lib/kb-alert-actions.js';
 
 type KbAlert = KbAlertStreamItem;
 
@@ -24,18 +24,10 @@ function kbIdFromPath(pathname: string): string | null {
   return m?.[1] ?? null;
 }
 
-function alertActionHref(kbId: string, alert: KbAlert): string | null {
-  const proposalId = alert.detail?.proposal_id;
-  if (alert.kind === 'governance.proposal_proposed' && typeof proposalId === 'string') {
-    return kbOntologyProposalPath(kbId, proposalId);
-  }
-  return null;
-}
-
 export function KbAlertsBell() {
   const { pathname } = useLocation();
   const kbId = useMemo(() => kbIdFromPath(pathname), [pathname]);
-  const { t, locale } = useI18n();
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [alerts, setAlerts] = useState<KbAlert[]>([]);
@@ -166,14 +158,18 @@ export function KbAlertsBell() {
           ) : (
             <ul className="divide-y">
               {alerts.map((alert) => {
-                const href = kbId ? alertActionHref(kbId, alert) : null;
+                const action = kbId ? kbAlertAction(kbId, alert) : null;
                 return (
                 <li key={alert.id} className="flex gap-2 px-3 py-2 text-sm">
                   <div className="min-w-0 flex-1">
                     <p className="font-medium leading-snug">{alert.message}</p>
-                    {href ? (
-                      <Link to={href} className="text-xs text-primary hover:underline" onClick={() => setOpen(false)}>
-                        {locale === 'zh' ? '查看提案' : 'View proposal'}
+                    {action ? (
+                      <Link
+                        to={action.href}
+                        className="text-xs text-primary hover:underline"
+                        onClick={() => setOpen(false)}
+                      >
+                        {t.pages.alerts[action.labelKey]}
                       </Link>
                     ) : null}
                     <p className="text-xs text-muted-foreground">{alert.created_at}</p>

@@ -504,6 +504,10 @@ export const pages = {
     severityInfo: 'Info',
     loadFailed: 'Failed to load monitor data',
     viewAudit: 'View audit',
+    viewProposal: 'View proposal',
+    viewSources: 'Open sources',
+    viewReview: 'Open review queue',
+    viewChat: 'Open chat',
     rulesHint:
       'Evaluated about every 60 seconds. Hits go to the inbox. Apprise or webhook is notified once; failures are not retried.',
     rulesSettings: 'Alert rule settings',

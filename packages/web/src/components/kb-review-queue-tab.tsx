@@ -12,6 +12,7 @@ import { formatGraphAuditAction } from '@/lib/kb-graph-audit.js';
 import { formatNodeRef, formatNodeRefDetail } from '@/lib/format-node-ref.js';
 import { fetchKbNodeLabels } from '@/lib/kb-node-labels.js';
 import { kbOntologyProposalPath, kbPath } from '@/lib/nav-config.js';
+import { cn } from '@/lib/utils.js';
 
 type ReviewItem = {
   id: string;
@@ -200,7 +201,13 @@ function mergeTimeline(
   return rows.sort((a, b) => (a.at < b.at ? 1 : a.at > b.at ? -1 : 0));
 }
 
-export function KbReviewQueueTab({ kbId }: { kbId: string }) {
+export function KbReviewQueueTab({
+  kbId,
+  focusItemId,
+}: {
+  kbId: string;
+  focusItemId?: string;
+}) {
   const { locale } = useI18n();
   const apiError = useCallback(
     (err: unknown) => formatUserFacingApiError(err, locale === 'zh' ? 'zh' : 'en'),
@@ -217,6 +224,7 @@ export function KbReviewQueueTab({ kbId }: { kbId: string }) {
   const [busyMergeId, setBusyMergeId] = useState<string | null>(null);
   const [labels, setLabels] = useState<Record<string, string | null>>({});
   const [diffExpandedId, setDiffExpandedId] = useState<string | null>(null);
+  const [highlightItemId, setHighlightItemId] = useState<string | null>(null);
   const canRevertMerge = Boolean(caps?.graph_write);
 
   const load = useCallback(async () => {
@@ -279,6 +287,27 @@ export function KbReviewQueueTab({ kbId }: { kbId: string }) {
   useEffect(() => {
     void load();
   }, [load]);
+
+  useEffect(() => {
+    if (!focusItemId || loading) return;
+    const item = items.find((row) => row.id === focusItemId);
+    if (!item) return;
+    if (item.kind === 'entity_merge') {
+      setDiffExpandedId(focusItemId);
+    }
+    setHighlightItemId(focusItemId);
+    const timer = window.setTimeout(() => {
+      document.getElementById(`review-item-${focusItemId}`)?.scrollIntoView({
+        block: 'nearest',
+        behavior: 'smooth',
+      });
+    }, 0);
+    const clearHighlight = window.setTimeout(() => setHighlightItemId(null), 4000);
+    return () => {
+      window.clearTimeout(timer);
+      window.clearTimeout(clearHighlight);
+    };
+  }, [focusItemId, items, loading]);
 
   async function revertLedgerMerge(mergeId: string) {
     if (!canRevertMerge) return;
@@ -398,7 +427,11 @@ export function KbReviewQueueTab({ kbId }: { kbId: string }) {
                 return (
                   <li
                     key={item.id}
-                    className="oh-card text-sm"
+                    id={`review-item-${item.id}`}
+                    className={cn(
+                      'oh-card text-sm',
+                      highlightItemId === item.id && 'ring-2 ring-primary ring-offset-2 ring-offset-background',
+                    )}
                   >
                     <div className="font-mono text-xs text-muted-foreground">{item.kind}</div>
                     <div className="mt-2 font-medium">

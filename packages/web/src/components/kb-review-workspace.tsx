@@ -10,6 +10,7 @@ import { KbReviewQueueTab } from '@/components/kb-review-queue-tab.js';
 import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
 import { cn } from '@/lib/utils.js';
+import { parseReviewUrlState } from '@/lib/reviewUrlState.js';
 import '@/explorer/ui/primitives.css';
 
 const EntityResolutionTab = lazy(() =>
@@ -44,11 +45,15 @@ export function KbReviewWorkspace({
   const { caps, loading: capsLoading } = useKbCapabilities();
   const config = useMemo(() => buildKbExplorerHttpConfig(kbId), [kbId]);
 
-  const tabFromUrl = searchParams.get('tab');
+  const reviewUrl = parseReviewUrlState(searchParams.toString());
+  const tabFromUrl = reviewUrl.tab ?? searchParams.get('tab');
+  const reviewFocusItemId = reviewUrl.reviewItemId?.trim() || '';
   const initialTab: ReviewTab =
     tabFromUrl === 'decisions' || tabFromUrl === 'queue' || tabFromUrl === 'resolve'
       ? tabFromUrl
-      : 'resolve';
+      : reviewFocusItemId
+        ? 'queue'
+        : 'resolve';
   const [tab, setTab] = useState<ReviewTab>(initialTab);
 
   useEffect(() => {
@@ -58,8 +63,12 @@ export function KbReviewWorkspace({
       tabFromUrl === 'resolve'
     ) {
       setTab(tabFromUrl);
+      return;
     }
-  }, [tabFromUrl]);
+    if (reviewFocusItemId) {
+      setTab('queue');
+    }
+  }, [tabFromUrl, reviewFocusItemId]);
 
   function changeTab(next: ReviewTab) {
     setTab(next);
@@ -121,7 +130,7 @@ export function KbReviewWorkspace({
                 selectDecisionId={decisionsFocusId || undefined}
               />
             ) : (
-              <KbReviewQueueTab kbId={kbId} />
+              <KbReviewQueueTab kbId={kbId} focusItemId={reviewFocusItemId || undefined} />
             )}
           </div>
         </Suspense>
