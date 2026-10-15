@@ -1,6 +1,8 @@
 # 摄入连接器（KB 数据源）
 
-连接器向知识库的**文档 + 处理流水线**推送或拉取**文本**。控制台入口：**文库 → 连接器**；API：`/api/kbs/{kb_id}/sources`。
+连接器向知识库的**文档 + 处理流水线**推送或拉取**文本**。控制台：**知识库 → 资料（Sources）** → **摄入来源**；API：`/api/kbs/{kb_id}/sources`。
+
+深链（如 `sync_failed` 告警）：`/kbs/{kb_id}/sources?connectors=1&ingestSource={source_id}` 会打开连接器对话框并高亮对应来源。
 
 ## 类型
 
@@ -42,5 +44,17 @@ Git `config`：`repo_url`（GitHub HTTPS）、`branch`、`paths[]`。
 | **KB MCP token** | 对话 → 连接 | KB 范围 API / MCP |
 
 平台级用户 API token 已移除；请使用 KB 级 token。
+
+## 同步记录与告警
+
+`config.sync_events` 保留最近运行记录；失败会生成 KB **告警**（`sync_failed`），可在顶栏铃铛查看。
+
+## 限制（MVP）
+
+| 暂不支持 | 说明 |
+| --- | --- |
+| 完整 `git clone` / 私有 Git | `git` 种类仅拉取 **公开 GitHub raw** 路径 |
+| 通用 SaaS OAuth | 请用 `webhook` 或 `http_poll` 对接 |
+| 独立同步任务表 | 历史为 `config.sync_events` 尾部 + `GET .../sync-history` |
 
 英文版：[ingest-connectors.md](./ingest-connectors.md)

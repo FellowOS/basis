@@ -464,11 +464,11 @@ Tracks [capability-gap-checklist.md](capability-gap-checklist.md) **P0/P1** afte
 
 ### M6-01 — Ingest connectors (F-SRC-06/07)
 
-**Status:** partial — webhook, `http_poll`, GitHub raw `git` kind, scheduler tick, `KbIngestSourcesDialog`, `GET .../sync-history` + UI.
+**Status:** partial — webhook, `http_poll`, GitHub raw `git` kind, scheduler tick, `KbIngestSourcesDialog`, `GET .../sync-history` + UI; ops limits + alert deep links documented.
 
 Work:
 
-- document connector limits (no full `git clone` yet);
+- document connector limits (no full `git clone` yet) — **met** in `docs/ops/ingest-connectors*.md`;
 - optional: sync run history API + UI beyond `config.sync_events` tail;
 - optional: second connector kind (e.g. S3 presign or generic git host) per release gate.
 

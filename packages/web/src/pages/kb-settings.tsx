@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/table.js';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs.js';
 import { useI18n } from '@/i18n/context.js';
+import { KbPageSubtitle } from '@/components/kb-page-subtitle.js';
 import { KbGraphOverviewStats } from '@/components/kb-graph-overview-stats.js';
 import { KbGraphProjectionPanel } from '@/components/kb-graph-projection-panel.js';
 import { useKbCatalog } from '@/lib/kb-context.js';
@@ -240,6 +241,7 @@ export function KbSettingsPage() {
           { label: t.menu.kb.settings },
         ]}
       />
+      <KbPageSubtitle>{t.pages.kbSubtitles.settings}</KbPageSubtitle>
       <p className="text-sm text-muted-foreground">
         {t.menu.kbSettings.myRole}：{kb.my_role}
       </p>

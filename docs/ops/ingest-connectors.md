@@ -2,7 +2,9 @@
 
 中文说明：[ingest-connectors.zh.md](./ingest-connectors.zh.md)
 
-Connectors push or pull **text** into a knowledge base’s document + processing pipeline. Manage them in the console: **Documents → Connectors**, or via `/api/kbs/{kb_id}/sources`.
+Connectors push or pull **text** into a knowledge base’s document + processing pipeline. In the console: **KB → Sources** → **Ingest sources**, or via `/api/kbs/{kb_id}/sources`.
+
+Deep link (e.g. from a `sync_failed` alert): `/kbs/{kb_id}/sources?connectors=1&ingestSource={source_id}` opens the connectors dialog and highlights that source.
 
 ## Types
 
@@ -45,7 +47,15 @@ Git `config`: `repo_url` (GitHub HTTPS), `branch`, `paths[]`.
 
 ## Sync history
 
-`config.sync_events` records recent runs (`succeeded` / `failed`, `error` when applicable).
+`config.sync_events` records recent runs (`succeeded` / `failed`, `error` when applicable). Failed runs also emit a KB **alert** (`sync_failed`) visible in the header bell.
+
+## Limits (MVP)
+
+| Not supported yet | Notes |
+| --- | --- |
+| Full `git clone` / private Git hosts | `git` kind fetches **public GitHub raw** paths only |
+| Arbitrary OAuth to SaaS | Use `webhook` or `http_poll` for bespoke integrations |
+| Durable sync-run table | History is the tail in `config.sync_events` + `GET .../sync-history` |
 
 ## Tests
 
