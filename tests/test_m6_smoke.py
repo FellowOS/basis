@@ -58,3 +58,11 @@ def test_m6_kb_alerts_rules_sources_smoke(tmp_path) -> None:
     review_id = remembered.json()["review_item_id"]
     items = client.get(f"/api/kbs/{kb_id}/review/items", headers=headers).json()["items"]
     assert any(i["id"] == review_id and i["kind"] == "statement_remember" for i in items)
+
+    derived = client.get(f"/api/kbs/{kb_id}/ledger/derived-facts", headers=headers)
+    assert derived.status_code == 200
+    assert "derived_facts" in derived.json()
+
+    ingest_jobs = client.get(f"/api/kbs/{kb_id}/ingest/jobs", headers=headers)
+    assert ingest_jobs.status_code == 200
+    assert "jobs" in ingest_jobs.json()

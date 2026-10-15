@@ -54,6 +54,8 @@ SEMA_E2E_SKIP_SERVERS=1 SEMA_E2E_WEB_PORT=5173 pnpm --filter @sema/web test:e2e
 
 `e2e/graph-diff.spec.ts` covers **Graph diff** after ingest (`GET .../graph/diff` via UI).
 
+`e2e/search-graph-at.spec.ts` covers Search → Graph with `as_of` + search submit.
+
 Manual checklist above remains the release fallback when e2e is not run.
 
 ## M6 deepening (post–Explorer migration)

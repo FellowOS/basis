@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { Scale, Search, ArrowRight, Info } from "lucide-react";
 import { buildExplorerKbApiPath, explorerFetch } from "../../host/explorerHttp";
 import { errorFromApiResponse } from "@/lib/api-error.js";
+import { kbReviewDecisionPath } from "@/lib/reviewUrlState.js";
 import { useApiErrorMessage } from "@/lib/use-api-error-message.js";
 
 type OutcomeKind = "approved" | "rejected" | "deferred" | "pending" | string;
@@ -270,7 +271,21 @@ export function DecisionWorkspace({
                   <div className="ws-eyebrow" style={{ marginBottom: 6 }}>Decision Record</div>
                   <h2 className="ws-title">{selected.decision_id}</h2>
                 </div>
-                {selected.outcome && <OutcomeBadge outcome={selected.outcome} />}
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  {selected.outcome ? <OutcomeBadge outcome={selected.outcome} /> : null}
+                  <button
+                    type="button"
+                    className="ws-pill ws-pill--mono"
+                    style={{ cursor: "pointer", border: "none" }}
+                    onClick={() => {
+                      const path = kbReviewDecisionPath(kbId, selected.decision_id);
+                      const url = `${window.location.origin}${path}`;
+                      void navigator.clipboard.writeText(url);
+                    }}
+                  >
+                    Copy deep link
+                  </button>
+                </div>
               </div>
               {selected.category && (
                 <span className="ws-pill ws-pill--mono">{selected.category}</span>

@@ -3094,6 +3094,60 @@ class KnowledgeStore:
                 )
         return facts
 
+    def list_derived_facts_for_entity(
+        self,
+        kb_id: str,
+        entity_id: str,
+        *,
+        limit: int = 50,
+    ) -> list[dict[str, Any]]:
+        limit = min(max(1, limit), 100)
+        with self._lock:
+            self._assert_row_in_kb("entities", entity_id, kb_id)
+            rows = self._conn.execute(
+                """
+                SELECT id, kb_id, subject_id, predicate_uri,
+                       object_entity_id, object_value, rule_id, recorded_at
+                FROM derived_facts
+                WHERE kb_id = ? AND invalidated_at IS NULL
+                  AND (subject_id = ? OR object_entity_id = ?)
+                ORDER BY recorded_at DESC
+                LIMIT ?
+                """,
+                (kb_id, entity_id, entity_id, limit),
+            ).fetchall()
+            facts: list[dict[str, Any]] = []
+            for row in rows:
+                deriv_rows = self._conn.execute(
+                    """
+                    SELECT premise_kind, premise_id, ordinal
+                    FROM fact_derivations
+                    WHERE derived_fact_id = ?
+                    ORDER BY ordinal
+                    """,
+                    (row["id"],),
+                ).fetchall()
+                facts.append(
+                    {
+                        "id": row["id"],
+                        "subject_id": row["subject_id"],
+                        "predicate_uri": row["predicate_uri"],
+                        "object_entity_id": row["object_entity_id"],
+                        "object_value": row["object_value"],
+                        "rule_id": row["rule_id"],
+                        "recorded_at": row["recorded_at"],
+                        "derivations": [
+                            {
+                                "premise_kind": d["premise_kind"],
+                                "premise_id": d["premise_id"],
+                                "ordinal": d["ordinal"],
+                            }
+                            for d in deriv_rows
+                        ],
+                    }
+                )
+        return facts
+
     @staticmethod
     def _alert_row_to_dict(row: sqlite3.Row) -> dict[str, Any]:
         detail_raw = row["detail_json"]

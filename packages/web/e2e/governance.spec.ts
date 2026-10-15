@@ -71,7 +71,7 @@ test('search graph tab shows temporal hint and link to graph workspace', async (
   }
 
   await expect(
-    page.getByText(/current projection|当前投影/i),
+    page.getByText(/as_of|截至时刻|active at that instant|该时点仍活跃/i),
   ).toBeVisible({ timeout: 30_000 });
   await page.getByRole('link', { name: /Open in graph|在图谱中打开/i }).click();
   await expect(page).toHaveURL(new RegExp(`/kbs/${kbId}/graph`));

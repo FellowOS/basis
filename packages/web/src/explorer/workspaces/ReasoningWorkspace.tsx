@@ -403,9 +403,13 @@ export function ReasoningWorkspace({ kbId }: { kbId: string }) {
                 ? <span className="ws-pill ws-pill--green">graph updated</span>
                 : <span className="ws-pill ws-pill--mono">preview only</span>}
               {result.derived_facts_persisted?.created != null && result.derived_facts_persisted.created > 0 ? (
-                <span className="ws-pill ws-pill--mono">
-                  {result.derived_facts_persisted.created} derived fact(s) in ledger
-                </span>
+                <a
+                  href={`/kbs/${kbId}/entities`}
+                  className="ws-pill ws-pill--mono"
+                  style={{ textDecoration: "none" }}
+                >
+                  {result.derived_facts_persisted.created} derived fact(s) in ledger →
+                </a>
               ) : null}
             </div>
           )}

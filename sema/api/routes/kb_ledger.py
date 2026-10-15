@@ -136,7 +136,8 @@ async def list_entity_facts_route(
 ) -> dict[str, Any]:
     get_kb_for_viewer(request, user, kb_id, store)
     facts = knowledge.list_entity_facts(kb_id, entity_id=entity_id, limit=limit)
-    return {"entity_id": entity_id, "facts": facts}
+    derived_facts = knowledge.list_derived_facts_for_entity(kb_id, entity_id, limit=limit)
+    return {"entity_id": entity_id, "facts": facts, "derived_facts": derived_facts}
 
 
 @router.get("/{kb_id}/ledger/typed-facts")

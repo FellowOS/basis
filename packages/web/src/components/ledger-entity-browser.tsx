@@ -36,6 +36,16 @@ type EntityFactHit = {
   evidence_quote?: string | null;
 };
 
+type DerivedFactHit = {
+  id: string;
+  predicate_uri: string;
+  subject_id: string;
+  object_entity_id: string | null;
+  object_value: string | null;
+  rule_id: string | null;
+  derivations: Array<{ premise_kind: string; premise_id: string }>;
+};
+
 export function ledgerEntityId(hit: LedgerEntityHit): string {
   return hit.id ?? hit.entity_id;
 }
@@ -53,6 +63,7 @@ export function LedgerEntityList({
   const { caps } = useKbCapabilities();
   const [factsEntityId, setFactsEntityId] = useState<string | null>(null);
   const [entityFacts, setEntityFacts] = useState<EntityFactHit[]>([]);
+  const [entityDerivedFacts, setEntityDerivedFacts] = useState<DerivedFactHit[]>([]);
   const [factsLoading, setFactsLoading] = useState(false);
 
   const factLabelIds = entityFacts.flatMap((fact) =>
@@ -60,7 +71,8 @@ export function LedgerEntityList({
   );
   const factLabels = useKbNodeLabels(kbId, factsEntityId ? [factsEntityId, ...factLabelIds] : []);
 
-  const showStatements = locale === 'zh' ? '陈述' : 'Statements';
+  const showStatements = locale === 'zh' ? '事实' : 'Facts';
+  const derivedTitle = locale === 'zh' ? '推理派生' : 'Derived (reasoning)';
   const hideStatements = locale === 'zh' ? '收起' : 'Hide';
   const openInGraph = locale === 'zh' ? '在图谱中打开' : 'Open in graph';
   const openLineage = locale === 'zh' ? '溯源血缘' : 'Lineage';
@@ -71,17 +83,20 @@ export function LedgerEntityList({
     if (factsEntityId === entityId) {
       setFactsEntityId(null);
       setEntityFacts([]);
+      setEntityDerivedFacts([]);
       return;
     }
     setFactsLoading(true);
     setFactsEntityId(entityId);
     try {
-      const data = await api<{ facts: EntityFactHit[] }>(
+      const data = await api<{ facts: EntityFactHit[]; derived_facts?: DerivedFactHit[] }>(
         `/api/kbs/${kbId}/ledger/entities/${encodeURIComponent(entityId)}/facts`,
       );
       setEntityFacts(data.facts ?? []);
+      setEntityDerivedFacts(data.derived_facts ?? []);
     } catch {
       setEntityFacts([]);
+      setEntityDerivedFacts([]);
     } finally {
       setFactsLoading(false);
     }
@@ -138,9 +153,9 @@ export function LedgerEntityList({
               <ul className="mt-3 space-y-2 border-t border-border pt-3 text-xs">
                 {factsLoading ? (
                   <li className="text-muted-foreground">{locale === 'zh' ? '加载中…' : 'Loading…'}</li>
-                ) : entityFacts.length === 0 ? (
+                ) : entityFacts.length === 0 && entityDerivedFacts.length === 0 ? (
                   <li className="text-muted-foreground">
-                    {locale === 'zh' ? '无开放陈述' : 'No open statements'}
+                    {locale === 'zh' ? '无陈述或派生事实' : 'No statements or derived facts'}
                   </li>
                 ) : (
                   entityFacts.map((fact) => (
@@ -183,6 +198,38 @@ export function LedgerEntityList({
                     </li>
                   ))
                 )}
+                {entityDerivedFacts.length > 0 ? (
+                  <>
+                    <li className="list-none pt-3 font-semibold text-foreground">{derivedTitle}</li>
+                    {entityDerivedFacts.map((df) => (
+                      <li key={df.id} className="list-none">
+                        <span className="font-mono text-[11px] text-muted-foreground">{df.predicate_uri}</span>
+                        <div className="mt-1">
+                          <EntityRefLine id={df.subject_id} labels={factLabels} className="inline" />
+                          {' → '}
+                          {df.object_entity_id ? (
+                            <EntityRefLine
+                              id={df.object_entity_id}
+                              labels={factLabels}
+                              className="inline"
+                            />
+                          ) : (
+                            <span>{df.object_value}</span>
+                          )}
+                        </div>
+                        {df.derivations.length > 0 ? (
+                          <ul className="mt-1 list-disc pl-4 text-muted-foreground">
+                            {df.derivations.map((d, i) => (
+                              <li key={`${df.id}-${i}`} className="font-mono text-[10px]">
+                                {d.premise_id}
+                              </li>
+                            ))}
+                          </ul>
+                        ) : null}
+                      </li>
+                    ))}
+                  </>
+                ) : null}
               </ul>
             ) : null}
           </div>

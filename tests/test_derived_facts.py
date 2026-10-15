@@ -84,6 +84,24 @@ def test_ledger_derived_facts_route(tmp_path) -> None:
     assert len(res.json()["derived_facts"]) >= 1
 
 
+def test_entity_facts_includes_derived_facts(tmp_path) -> None:
+    kb_id = _kb_id(tmp_path)
+    store = _knowledge(tmp_path)
+    subj = store.get_or_create_entity_by_label(kb_id, "Subj")
+    obj = store.get_or_create_entity_by_label(kb_id, "Obj")
+    store.insert_derived_fact(
+        kb_id,
+        subject_id=subj,
+        predicate_uri="urn:sema:pred:rel",
+        object_entity_id=obj,
+        object_value=None,
+        rule_id=None,
+        derivations=[("ground_fact", "rel(Subj, Obj)")],
+    )
+    listed = store.list_derived_facts_for_entity(kb_id, subj)
+    assert len(listed) == 1
+
+
 def test_list_ingest_jobs_alias(tmp_path) -> None:
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
     admin = client.post(

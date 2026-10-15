@@ -1969,7 +1969,7 @@ export const pages = {
     lineage: '图谱节点的 PROV-O 血缘，追溯到文档与摄入事件。',
     mappings: '将外部词汇与本库本体对齐；需要时通过审核确认。',
     vocabulary: '本库 SKOS 概念与对齐（非平台全局目录）。',
-    entities: '账本实体与别名；在图谱中查看结构与邻域。',
+    entities: '账本实体与别名；展开「事实」可查看开放陈述与推理派生事实（含前提）。',
     library: '本库上传文档、版本与处理任务状态。',
     sources: '文档上传、处理任务与摄入连接器（Webhook、HTTP 轮询、GitHub raw）。',
     graph: '可交互图谱，含时间轴、搜索与溯源；导入须经审核。',

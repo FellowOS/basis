@@ -2013,7 +2013,8 @@ export const pages = {
       'PROV-O lineage for graph nodes — trace evidence back to documents and ingest events.',
     mappings: 'Align external vocabulary terms to this KB’s ontology and confirm via review when required.',
     vocabulary: 'SKOS concepts and alignments for this KB (not the global platform catalog).',
-    entities: 'Ledger entities and aliases; open the graph to explore structure and neighbors.',
+    entities:
+      'Ledger entities and aliases; expand Facts to see open statements and reasoning-derived facts with proof premises.',
     library: 'Uploaded documents, versions, and processing status for this knowledge base.',
     sources:
       'Documents, uploads, processing jobs, and ingest connectors (webhook, HTTP poll, GitHub raw).',
