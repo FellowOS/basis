@@ -18,6 +18,7 @@ export const menu = {
     mappings: '映射',
     vocabulary: '词表与对齐',
     lineage: '溯源血缘',
+    graphDiff: '图对比',
     settings: '设置',
   },
   kbZones: {

@@ -52,3 +52,6 @@ export const KbChatPage = lazy(() =>
 export const KbLineagePage = lazy(() =>
   import('@/pages/kb/lineage').then((m) => ({ default: m.KbLineagePage })),
 );
+export const KbGraphDiffPage = lazy(() =>
+  import('@/pages/kb/graph-diff').then((m) => ({ default: m.KbGraphDiffPage })),
+);

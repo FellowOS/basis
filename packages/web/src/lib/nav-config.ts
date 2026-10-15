@@ -45,6 +45,7 @@ export type KbNavKey =
   | 'mappings'
   | 'vocabulary'
   | 'lineage'
+  | 'graphDiff'
   | 'settings';
 
 export type KbNavItem = {
@@ -65,6 +66,7 @@ export const KB_NAV_BY_ZONE: Record<KbWorkspaceZone, KbNavItem[]> = {
     { segment: 'search', labelKey: 'search', icon: 'search-01' },
     { segment: 'chat', labelKey: 'chat', icon: 'message-chat-01' },
     { segment: 'lineage', labelKey: 'lineage', icon: 'git-branch-01' },
+    { segment: 'graph-diff', labelKey: 'graphDiff', icon: 'git-branch-01' },
   ],
   governance: [
     { segment: 'review', labelKey: 'review', icon: 'check-square-contained' },

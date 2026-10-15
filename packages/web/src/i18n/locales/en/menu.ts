@@ -18,6 +18,7 @@ export const menu = {
     mappings: 'Mappings',
     vocabulary: 'Vocabulary & alignments',
     lineage: 'Provenance lineage',
+    graphDiff: 'Graph diff',
     settings: 'Settings',
   },
   kbZones: {

@@ -1972,6 +1972,7 @@ export const pages = {
     library: '本库上传文档、版本与处理任务状态。',
     sources: '文档上传、处理任务与摄入连接器（Webhook、HTTP 轮询、GitHub raw）。',
     graph: '可交互图谱，含时间轴、搜索与溯源；导入须经审核。',
+    graphDiff: '对比两个时点的图投影（节点、边与属性变更），类似 DiffMerge 发布前审阅。',
     settings: '成员、检索后端、图谱投影与本库元数据；仅作用于当前知识库。',
   },
   footer: {

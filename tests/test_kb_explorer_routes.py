@@ -70,6 +70,39 @@ def test_temporal_diff_after_ingest(tmp_path) -> None:
     assert isinstance(payload, dict)
 
 
+def test_graph_diff_includes_edges_summary(tmp_path) -> None:
+    if not explorer_available():
+        pytest.skip("explorer extra not installed")
+
+    client = TestClient(create_app(Settings(data_dir=tmp_path)))
+    admin = client.post(
+        "/api/auth/register",
+        json={"email": "gd@example.com", "password": "password1", "display_name": "GD"},
+    ).json()
+    headers = {"Authorization": f"Bearer {admin['token']}"}
+
+    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    client.post(
+        f"/api/kbs/{kb_id}/documents",
+        headers=headers,
+        json={"doc_id": "gd1", "text": "Carol knows Dave.", "wait": True, "extract": True},
+    )
+
+    bounds = client.get(f"/api/kbs/{kb_id}/temporal/bounds", headers=headers).json()
+    t_from = bounds.get("min") or "2020-01-01T00:00:00"
+    t_to = bounds.get("max") or "2030-01-01T00:00:00"
+    diff = client.get(
+        f"/api/kbs/{kb_id}/graph/diff",
+        headers=headers,
+        params={"from": t_from, "to": t_to},
+    )
+    assert diff.status_code == 200
+    body = diff.json()
+    assert "summary" in body
+    assert "added_edges" in body
+    assert "modified_nodes" in body
+
+
 def test_enrich_dedup_after_ingest(tmp_path) -> None:
     if not explorer_available():
         pytest.skip("explorer extra not installed")
@@ -249,6 +282,8 @@ def test_reasoning_run_without_graph_write(tmp_path) -> None:
     assert reasoning.status_code == 200
     body = reasoning.json()
     assert "inferred_facts" in body
+    assert body.get("proof_chains")
+    assert body["proof_chains"][0].get("premises")
 
 
 def test_graph_import_export_roundtrip(tmp_path) -> None:

@@ -12,6 +12,7 @@ import {
   KbMappingsPage,
   KbVocabularyPage,
   KbLineagePage,
+  KbGraphDiffPage,
   KbSectionPage,
   KbSettingsPage,
   KbsPage,
@@ -103,6 +104,16 @@ function AuthedApp() {
         />
         <Route path="/kbs/:id" element={<KbDefaultRedirect />} />
         <Route path="/kbs/:id/knowledge" element={<KbLegacyKnowledgeRedirect />} />
+        <Route
+          path="/kbs/:id/graph-diff"
+          element={
+            <KbExplorerShell>
+              <Suspense fallback={null}>
+                <KbGraphDiffPage />
+              </Suspense>
+            </KbExplorerShell>
+          }
+        />
         <Route
           path="/kbs/:id/graph"
           element={

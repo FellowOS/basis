@@ -77,6 +77,24 @@ async def kb_temporal_diff(
     )
 
 
+@router.get("/{kb_id}/graph/diff")
+async def kb_graph_diff(
+    kb_id: str,
+    request: Request,
+    from_time: str = Query(..., alias="from"),
+    to_time: str = Query(..., alias="to"),
+    user: User = Depends(get_current_user),
+    store: AdminStore = Depends(get_store),
+) -> Any:
+    """Whole-graph diff between two instants (F-DIFF-01); nodes + edges + property changes."""
+    get_kb_for_viewer(request, user, kb_id, store)
+    runtime = get_explorer_registry(request).get(request, kb_id)
+    session = require_explorer_graph_session(runtime)
+    from sema.explorer.graph_diff import diff_session_at
+
+    return diff_session_at(session, from_time, to_time)
+
+
 @router.post("/{kb_id}/enrich/links")
 async def kb_enrich_links(
     kb_id: str,
@@ -293,9 +311,16 @@ async def kb_reasoning_run(
     runtime = get_explorer_registry(request).get(request, kb_id)
     session = require_explorer_graph_session(runtime)
     result = await invoke_explorer(run_reasoning(payload, session=session), context="reasoning")
-    if payload.apply_to_graph and getattr(result, "mutated", False):
+    summary = result.model_dump() if hasattr(result, "model_dump") else dict(result)
+    from sema.explorer.forward_reasoning import proof_chains_for_run
+
+    summary["proof_chains"] = proof_chains_for_run(
+        list(payload.facts),
+        list(payload.rules),
+        list(summary.get("inferred_facts") or []),
+    )
+    if payload.apply_to_graph and summary.get("mutated"):
         save_graph(request, kb_id)
-        summary = result.model_dump() if hasattr(result, "model_dump") else dict(result)
         audit_kb_graph(
             store,
             user,
@@ -306,7 +331,7 @@ async def kb_reasoning_run(
                 "rules_fired": summary.get("rules_fired"),
             },
         )
-    return result
+    return summary
 
 
 @router.post("/{kb_id}/import")

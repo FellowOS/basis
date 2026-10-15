@@ -54,6 +54,7 @@ export function ReasoningWorkspace({ kbId }: { kbId: string }) {
   }, [canWriteGraph]);
   const [result, setResult] = useState<{
     inferred_facts?: string[];
+    proof_chains?: Array<{ conclusion: string; rule: string; premises: string[] }>;
     rules_fired?: number;
     added_edges?: number;
     mutated?: boolean;
@@ -428,9 +429,38 @@ export function ReasoningWorkspace({ kbId }: { kbId: string }) {
                       <code key={`${i}-${rule.slice(0, 24)}`} style={{ fontFamily: "'JetBrains Mono','Fira Code',monospace", fontSize: 11, color: "var(--ws-text-muted)", lineHeight: 1.5, wordBreak: "break-all" }}>{rule}</code>
                     ))}
                   </div>
-                  <div style={{ marginTop: 8, fontSize: 11, color: "var(--ws-text-muted)" }}>
-                    Proof chains are not returned by the API yet; use rules fired / inferred facts as the run summary.
-                  </div>
+                </div>
+              )}
+              {(result.proof_chains ?? []).length > 0 && (
+                <div style={{ marginBottom: 14, display: "flex", flexDirection: "column", gap: 10 }}>
+                  <div className="ws-eyebrow">Proof chains ({result.proof_chains!.length})</div>
+                  {result.proof_chains!.map((chain, i) => (
+                    <div
+                      key={`${chain.conclusion}-${i}`}
+                      style={{
+                        padding: "12px 14px",
+                        borderRadius: "var(--ws-radius-sm)",
+                        background: "var(--ws-surface)",
+                        border: "1px solid var(--ws-border)",
+                      }}
+                    >
+                      <code style={{ fontFamily: "'JetBrains Mono','Fira Code',monospace", fontSize: 12, color: "var(--ws-green)", display: "block", marginBottom: 8, wordBreak: "break-all" }}>
+                        {chain.conclusion}
+                      </code>
+                      {chain.rule ? (
+                        <div style={{ fontSize: 11, color: "var(--ws-text-muted)", marginBottom: 6 }}>
+                          Rule: <code style={{ fontSize: 11 }}>{chain.rule}</code>
+                        </div>
+                      ) : null}
+                      {chain.premises?.length ? (
+                        <ul style={{ margin: 0, paddingLeft: 18, fontSize: 11, color: "var(--ws-text-muted)" }}>
+                          {chain.premises.map((p, j) => (
+                            <li key={j} style={{ fontFamily: "'JetBrains Mono','Fira Code',monospace", wordBreak: "break-all" }}>{p}</li>
+                          ))}
+                        </ul>
+                      ) : null}
+                    </div>
+                  ))}
                 </div>
               )}
               {(result.inferred_facts ?? []).length === 0 ? (

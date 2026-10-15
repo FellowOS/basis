@@ -207,6 +207,7 @@ are never interpolated into a filesystem path.
 | Prefix | Purpose |
 | --- | --- |
 | `/api/kbs/{kb_id}/temporal/*` | temporal bounds, snapshot (`at`), diff (`from`/`to` query) |
+| `/api/kbs/{kb_id}/graph/diff` | whole-graph diff at two instants (nodes/edges/properties; F-DIFF-01) |
 
 **Product mapping (F-TIM-03):**
 

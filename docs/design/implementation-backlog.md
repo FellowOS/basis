@@ -509,13 +509,13 @@ Acceptance:
 
 ### M6-04 — KB rules library (F-RUL-01–03)
 
-**Status:** partial — rules CRUD API + Reasoning WS (save, enable/disable, delete, auto-merge enabled on run); inferred facts + rules-in-run summary (no proof chain in API).
+**Status:** partial — rules CRUD API + Reasoning WS (save, enable/disable, delete, auto-merge enabled on run); inferred facts + `proof_chains` on `reasoning/run` (Sema forward-reasoner proofs); ledger persist **not**.
 
 Work:
 
 - `kb_reasoning_rules` persistence + `GET/POST/PATCH/DELETE .../rules` (**done**);
 - Reasoning workspace rule library UX (**done** baseline);
-- proof chain UI when Semantica `reasoning/run` exposes it.
+- proof chain UI + API field `proof_chains` (**done** for fallback IF/THEN rules); persist to `derived_facts` when product requires.
 
 Acceptance:
 
@@ -538,7 +538,7 @@ Acceptance:
 
 ### M6-06 — Optional graph adapters (F-DIFF-01, distance-matrix)
 
-**Status:** partial — `POST .../graph/distance-matrix` adapter; graph UI uses it for structural/ego/heatmap when loaded nodes &gt; 2500; whole-graph DiffMerge **not**.
+**Status:** partial — `POST .../graph/distance-matrix` adapter; `GET .../graph/diff` + **Graph diff** nav page; whole-graph canvas merge studio **not**.
 
 Work:
 
