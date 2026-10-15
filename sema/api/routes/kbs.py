@@ -73,7 +73,7 @@ class GraphSearchRequest(BaseModel):
     limit: int = Field(default=20, ge=1, le=50)
     at: str | None = Field(
         default=None,
-        description="Optional temporal instant (ISO). Search uses current projection; use temporal/snapshot for point-in-time graph overlay.",
+        description="Optional temporal instant (ISO). When set, results are limited to nodes active at that instant.",
     )
 
 
@@ -605,14 +605,13 @@ async def graph_search_route(
         query=body.query,
         limit=body.limit,
         max_limit=limits.graph_node_search_max_limit,
+        at=body.at,
     )
     engine = "explorer" if runtime.explorer is not None else "snapshot"
     payload: dict[str, Any] = {"results": results, "engine": engine}
     if body.at:
         payload["at"] = body.at
-        payload["warnings"] = [
-            "graph_search_uses_current_projection",
-        ]
+        payload["temporal_filter"] = True
     return payload
 
 
@@ -1057,6 +1056,30 @@ async def retry_processing_job(
         store=store,
         knowledge=knowledge,
     )
+
+
+@router.get("/{kb_id}/ingest/jobs")
+async def list_ingest_jobs(
+    kb_id: str,
+    request: Request,
+    status: str | None = None,
+    limit: int = 100,
+    user: User = Depends(get_current_user),
+    store: AdminStore = Depends(get_store),
+    knowledge: KnowledgeStore = Depends(get_knowledge_store),
+) -> dict[str, Any]:
+    """F-SRC-08: document ingest jobs (alias of ``GET .../processing/jobs``)."""
+    get_kb_for_viewer(request, user, kb_id, store)
+    if status and status not in {"queued", "running", "succeeded", "failed", "cancelled"}:
+        raise AdminError(422, "bad_status", "任务状态无效")
+    return {
+        "jobs": knowledge.list_processing_jobs(
+            kb_id,
+            status=status,
+            limit=min(max(1, limit), 200),
+        ),
+        "processing_jobs_path": f"/api/kbs/{kb_id}/processing/jobs",
+    }
 
 
 @router.get("/{kb_id}/ingest/jobs/{job_id}")

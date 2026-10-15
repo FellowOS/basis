@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { kbReviewItemPath, parseReviewUrlState } from '@/lib/reviewUrlState.js';
+import { kbReviewDecisionPath, kbReviewItemPath, parseReviewUrlState } from '@/lib/reviewUrlState.js';
 
 describe('reviewUrlState', () => {
   it('parses review item id', () => {
@@ -11,5 +11,11 @@ describe('reviewUrlState', () => {
   it('builds review item path', () => {
     const href = kbReviewItemPath('kb-1', 'item-42');
     expect(href).toBe('/kbs/kb-1/review?tab=queue&reviewItem=item-42');
+  });
+
+  it('builds decision deep link path', () => {
+    expect(kbReviewDecisionPath('kb-1', 'dec-1')).toBe(
+      '/kbs/kb-1/review?tab=decisions&decision=dec-1',
+    );
   });
 });

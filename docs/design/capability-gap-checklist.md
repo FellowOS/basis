@@ -54,9 +54,9 @@ References: [Product and roadmap](product-and-roadmap.md), [Explorer integration
 | F-DIFF-01 | Whole-graph diff/merge (publish/staging) | `partial` | P1 | `GET .../graph/diff` + `/kbs/:id/graph-diff` UI; no canvas merge studio |
 | F-ONT-05 | Full ontology proposal workflow (UI) | `partial` | P1 | `VersionsTab` + proposal deep links; review UI points to Versions (no duplicate queue row) |
 | F-GOV-04 | Agent governor (batch clustering, gates) | `not` | P2 | Scale governance automation |
-| F-GOV-05 | Impact gates + `governance.tripped` alerts | `partial` | P1 | Tied to F-ALT |
+| F-GOV-05 | Impact gates + `governance.tripped` alerts | `partial` | P1 | Emit on review/ontology; bell deep links → review item / decisions |
 | F-GOV-06 | Durable registry read model | `partial` | P1 | Audit exists; no duplicate Explorer Registry page |
-| F-GOV-07 | Decision / causal chain (full) | `partial` | P1 | REST + WS refetch; deepen as needed |
+| F-GOV-07 | Decision / causal chain (full) | `partial` | P1 | `.../decisions/{id}/chain` + Review Decisions tab; `?decision=` deep link |
 
 ### 3.2 Rules, time, graph adapters
 
@@ -64,7 +64,7 @@ References: [Product and roadmap](product-and-roadmap.md), [Explorer integration
 | --- | --- | --- | --- | --- |
 | F-RUL-01 | KB ruleset CRUD (`.../rules`) | `partial` | P1 | API + Reasoning WS enable/delete; enabled rules merged on run |
 | F-RUL-02 | Run inference on current graph | `partial` | — | `POST .../reasoning/run` |
-| F-RUL-03 | Derived facts + proof chain in UI | `partial` | P1 | `proof_chains` on `reasoning/run` + Reasoning WS; ledger `derived_facts` persist **not** |
+| F-RUL-03 | Derived facts + proof chain in UI | `partial` | P1 | `proof_chains` + persist on `apply_to_graph`; `GET .../ledger/derived-facts` |
 | F-RUL-04 | Contradiction → governance queue | `not` | P2 | |
 | F-TIM-01–03 | valid_from/to, doc events, search/graph `as_of` | `partial` | P1 | Documented split: chunk ingest filters vs graph `temporal/snapshot`; graph search = current projection |
 | F-TIM-04 | Timeline playback (product nav) | `partial` | P1 | Scrubber in `GraphWorkspace`; KB Search graph tab hints → graph timeline |
@@ -75,8 +75,8 @@ References: [Product and roadmap](product-and-roadmap.md), [Explorer integration
 | F-* | Capability | Status | Priority | Notes |
 | --- | --- | --- | --- | --- |
 | F-SRC-06–07 | Connectors CRUD + sync jobs | `partial` | P0 | **Frozen:** webhook / http_poll / GitHub raw only; no new kinds; git clone & SaaS OAuth deferred |
-| F-SRC-08 | Large async ingest jobs | `partial` | P1 | Processing tasks exist; align with F-SRC-08 scope |
-| F-SRCH-03 | Advanced time filters on search | `partial` | P1 | Chunk filters on `GET .../search` + UI; graph tab copy clarifies no ingest-time filter |
+| F-SRC-08 | Large async ingest jobs | `partial` | P1 | `GET .../ingest/jobs` alias of processing jobs; job detail at `.../ingest/jobs/{id}` |
+| F-SRCH-03 | Advanced time filters on search | `partial` | P1 | Chunk `as_of`; graph search `at` filters active nodes (temporal alignment) |
 | F-CHAT-01–03 | KB chat + RAG + tool subset | `partial` | P0 | Playground + SSE; client abort + server disconnect stops stream frames |
 | F-CHAT-04 | `remember` → pending review | `partial` | P1 | `POST .../chat/remember` + MCP `propose_remember`; review kind `statement_remember`; `reviewItem=` deep link + M6 smoke |
 | F-CHAT-05 | MCP Streamable HTTP | `partial` | P0 | `GET/POST /api/kbs/{id}/mcp` + 7 read tools; no platform `/api/mcp` |

@@ -54,6 +54,8 @@ chunk storage or the public search API.
 
 Chunk search and graph exploration use **different clocks**. Do not assume one `as_of` applies to both.
 
+`POST .../graph/search` accepts optional `at` (ISO): results are intersected with nodes active at that instant (`find_active_nodes`), aligned with `GET .../temporal/snapshot?at=`.
+
 | Surface | API | What time means |
 | --- | --- | --- |
 | **Chunk search** | `GET /api/kbs/{id}/search` | Filters on **document version ingest** time: `created_after`, `created_before`, and `as_of` (alias for `created_before` when the latter is omitted). Restricts which chunks are eligible; does not rewind the graph. |

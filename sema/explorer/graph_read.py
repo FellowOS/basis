@@ -114,38 +114,62 @@ def find_path(
     return {"found": False, "nodes": [], "algorithm": "bfs", "engine": "bfs"}
 
 
+def _active_node_ids_at(runtime: KbExplorerRuntime, at_iso: str) -> set[str]:
+    from sema.explorer.graph_diff import parse_query_dt
+
+    at_dt = parse_query_dt(at_iso)
+    graph = runtime.sema.graph
+    active = graph.find_active_nodes(at_time=at_dt)
+    return {str(n.get("id")) for n in active if n.get("id")}
+
+
 def search_nodes(
     runtime: KbExplorerRuntime,
     *,
     query: str,
     limit: int = 20,
     max_limit: int = GRAPH_NODE_SEARCH_MAX_LIMIT,
+    at: str | None = None,
 ) -> list[dict[str, Any]]:
     query = query.strip()
     if not query:
         return []
     cap = max(1, max_limit)
     limit = min(max(1, limit), cap)
+    active_ids: set[str] | None = None
+    if at and at.strip():
+        try:
+            active_ids = _active_node_ids_at(runtime, at.strip())
+        except ValueError:
+            active_ids = None
     if runtime.explorer is not None:
-        return runtime.explorer.search(query, limit=limit)
-    q = query.lower()
-    results: list[dict[str, Any]] = []
-    for node in runtime.sema.graph.nodes.values():
-        label = (node.content or "") + str(node.properties)
-        if q in node.node_id.lower() or q in label.lower():
-            results.append(
-                {
-                    "node": {
-                        "id": node.node_id,
-                        "type": node.node_type,
-                        "content": node.content or "",
-                    },
-                    "score": 1.0,
-                }
-            )
-        if len(results) >= limit:
-            break
-    return results
+        results = runtime.explorer.search(query, limit=limit * 3 if active_ids else limit)
+    else:
+        results = None
+    if results is None:
+        q = query.lower()
+        results = []
+        for node in runtime.sema.graph.nodes.values():
+            if active_ids is not None and node.node_id not in active_ids:
+                continue
+            label = (node.content or "") + str(node.properties)
+            if q in node.node_id.lower() or q in label.lower():
+                results.append(
+                    {
+                        "node": {
+                            "id": node.node_id,
+                            "type": node.node_type,
+                            "content": node.content or "",
+                        },
+                        "score": 1.0,
+                    }
+                )
+            if len(results) >= limit:
+                break
+    if active_ids is not None:
+        filtered = [r for r in results if r.get("node", {}).get("id") in active_ids]
+        return filtered[:limit]
+    return results[:limit]
 
 
 def paginate_edges(

@@ -494,6 +494,7 @@ export const pages = {
     viewProposal: '查看提案',
     viewSources: '打开资料源',
     viewReview: '打开审核队列',
+    viewDecisions: '打开决策记录',
     viewChat: '打开对话',
     rulesHint:
       '周期评估（约 60 秒）。命中后写入 inbox；启用 Apprise 或 webhook 会通知一次，失败不重试。',

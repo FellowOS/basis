@@ -393,6 +393,10 @@ export function KbReviewQueueTab({
               {locale === 'zh' ? '本体 → 版本' : 'Ontology → Versions'}
             </Link>
             {locale === 'zh' ? '。' : '.'}
+            {' '}
+            {locale === 'zh'
+              ? '治理门控触发时，页头告警可深链回本队列或决策记录。'
+              : 'When governance gates trip, use header alerts to jump back here or to Decisions.'}
           </p>
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">

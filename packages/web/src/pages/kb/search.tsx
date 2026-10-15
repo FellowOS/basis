@@ -130,9 +130,18 @@ export function KbSearchPage() {
     setError(null);
     try {
       if (tab === 'graph') {
-        const data = await client.graph.search({ query: q, limit: 30 });
+        const asOf = filterAsOf.trim();
+        const data = await client.graph.search({
+          query: q,
+          limit: 30,
+          ...(asOf ? { at: asOf } : {}),
+        });
         setGraphResults(data.results as GraphSearchHit[]);
-        setEngine((data as { engine?: string }).engine ?? null);
+        setEngine(
+          data.temporal_filter
+            ? 'temporal'
+            : ((data as { engine?: string }).engine ?? null),
+        );
         setChunkResults([]);
         setChunkMode(null);
         setEntityResults([]);
@@ -202,8 +211,8 @@ export function KbSearchPage() {
     locale === 'zh' ? '截至时刻 as_of (ISO，等同 created_before)' : 'As-of instant (ISO, alias for created_before)';
   const graphTemporalHint =
     locale === 'zh'
-      ? '图谱节点搜索针对当前投影，不按文档入库时间过滤。时点浏览请打开图谱并使用时间轴。'
-      : 'Graph node search uses the current projection, not document ingest time. For point-in-time views, open Graph and use the timeline.';
+      ? '图谱搜索默认针对当前投影。填写 as_of 时仅返回该时点仍活跃的节点（与 temporal/snapshot 一致）。'
+      : 'Graph search uses the current projection by default. Set as_of to restrict results to nodes active at that instant (aligned with temporal/snapshot).';
 
   useEffect(() => {
     const doc = searchParams.get('doc');
@@ -308,12 +317,20 @@ export function KbSearchPage() {
             }
           />
           {tab === 'graph' && id && !graphBlocked ? (
-            <p className="mt-2 px-1 text-xs text-muted-foreground">
-              {graphTemporalHint}{' '}
-              <Link to={kbPath(id, 'graph')} className="text-primary underline-offset-2 hover:underline">
-                {openInGraph}
-              </Link>
-            </p>
+            <div className="mt-2 space-y-2 px-1">
+              <p className="text-xs text-muted-foreground">
+                {graphTemporalHint}{' '}
+                <Link to={kbPath(id, 'graph')} className="text-primary underline-offset-2 hover:underline">
+                  {openInGraph}
+                </Link>
+              </p>
+              <Input
+                value={filterAsOf}
+                onChange={(e) => setFilterAsOf(e.target.value)}
+                placeholder={filterAsOfLabel}
+                className="text-xs"
+              />
+            </div>
           ) : null}
           {tab === 'chunks' ? (
             <div className="mt-2 grid gap-2 px-1 sm:grid-cols-2">

@@ -1,13 +1,14 @@
 import type { KbAlertStreamItem } from '@/lib/kb-alerts-stream.js';
 import { kbOntologyProposalPath, kbPath } from '@/lib/nav-config.js';
-import { kbReviewItemPath } from '@/lib/reviewUrlState.js';
+import { kbReviewDecisionPath, kbReviewItemPath } from '@/lib/reviewUrlState.js';
 import { kbIngestSourcePath } from '@/lib/sourcesUrlState.js';
 
 export type KbAlertActionLabelKey =
   | 'viewProposal'
   | 'viewSources'
   | 'viewReview'
-  | 'viewChat';
+  | 'viewChat'
+  | 'viewDecisions';
 
 export type KbAlertAction = {
   href: string;
@@ -29,6 +30,10 @@ export function kbAlertAction(kbId: string, alert: KbAlertStreamItem): KbAlertAc
   }
 
   if (alert.kind === 'governance.tripped') {
+    const decisionId = detail.decision_id;
+    if (typeof decisionId === 'string' && decisionId.length > 0) {
+      return { href: kbReviewDecisionPath(kbId, decisionId), labelKey: 'viewDecisions' };
+    }
     if (proposalId) {
       return { href: kbOntologyProposalPath(kbId, proposalId), labelKey: 'viewProposal' };
     }

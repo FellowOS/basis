@@ -58,6 +58,7 @@ export function ReasoningWorkspace({ kbId }: { kbId: string }) {
     rules_fired?: number;
     added_edges?: number;
     mutated?: boolean;
+    derived_facts_persisted?: { created?: number; skipped?: number };
   } | null>(null);
   const [lastRunRules, setLastRunRules] = useState<string[]>([]);
   const [isRunning, setIsRunning] = useState(false);
@@ -401,6 +402,11 @@ export function ReasoningWorkspace({ kbId }: { kbId: string }) {
               {result.mutated
                 ? <span className="ws-pill ws-pill--green">graph updated</span>
                 : <span className="ws-pill ws-pill--mono">preview only</span>}
+              {result.derived_facts_persisted?.created != null && result.derived_facts_persisted.created > 0 ? (
+                <span className="ws-pill ws-pill--mono">
+                  {result.derived_facts_persisted.created} derived fact(s) in ledger
+                </span>
+              ) : null}
             </div>
           )}
         </div>

@@ -185,11 +185,12 @@ export class ExplorerClient {
       const q = new URLSearchParams({ source, target });
       return this.request(`graph/path?${q}`);
     },
-    search: (body: { query: string; limit?: number }) =>
-      this.request<{ results: { node: { id: string; type: string; content: string }; score: number }[] }>(
-        'graph/search',
-        { method: 'POST', body: JSON.stringify(body) },
-      ),
+    search: (body: { query: string; limit?: number; at?: string }) =>
+      this.request<{
+        results: { node: { id: string; type: string; content: string }; score: number }[];
+        temporal_filter?: boolean;
+        at?: string;
+      }>('graph/search', { method: 'POST', body: JSON.stringify(body) }),
     rebuild: () =>
       this.request<{
         projection_revision?: number;

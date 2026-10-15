@@ -507,6 +507,7 @@ export const pages = {
     viewProposal: 'View proposal',
     viewSources: 'Open sources',
     viewReview: 'Open review queue',
+    viewDecisions: 'Open decisions',
     viewChat: 'Open chat',
     rulesHint:
       'Evaluated about every 60 seconds. Hits go to the inbox. Apprise or webhook is notified once; failures are not retried.',

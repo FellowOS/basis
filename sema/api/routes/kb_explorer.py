@@ -14,6 +14,7 @@ from sema.api.deps import (
     get_explorer_registry,
     get_kb_for_editor,
     get_kb_for_viewer,
+    get_knowledge_store,
     get_runtime_limits,
     get_store,
     save_graph,
@@ -22,6 +23,7 @@ from sema.api.explorer_route_errors import invoke_explorer
 from sema.explorer.session_guard import require_explorer_graph_session
 from sema.limits import RuntimeLimits
 from sema.knowledge.graph_audit import audit_kb_graph
+from sema.knowledge.store import KnowledgeStore
 
 router = APIRouter(prefix="/api/kbs", tags=["knowledge-bases"])
 
@@ -300,6 +302,7 @@ async def kb_reasoning_run(
     request: Request,
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
+    knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> Any:
     from semantica.explorer.routes.enrich import run_reasoning
     from semantica.explorer.schemas import ReasoningRequest
@@ -321,6 +324,13 @@ async def kb_reasoning_run(
     )
     if payload.apply_to_graph and summary.get("mutated"):
         save_graph(request, kb_id)
+        from sema.knowledge.derived_facts_service import persist_reasoning_derived
+
+        summary["derived_facts_persisted"] = persist_reasoning_derived(
+            knowledge,
+            kb_id,
+            list(summary.get("proof_chains") or []),
+        )
         audit_kb_graph(
             store,
             user,
@@ -329,6 +339,7 @@ async def kb_reasoning_run(
             extra={
                 "added_edges": summary.get("added_edges"),
                 "rules_fired": summary.get("rules_fired"),
+                "derived_facts_created": summary["derived_facts_persisted"].get("created"),
             },
         )
     return summary

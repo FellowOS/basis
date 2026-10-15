@@ -509,7 +509,7 @@ Acceptance:
 
 ### M6-04 — KB rules library (F-RUL-01–03)
 
-**Status:** partial — rules CRUD API + Reasoning WS (save, enable/disable, delete, auto-merge enabled on run); inferred facts + `proof_chains` on `reasoning/run` (Sema forward-reasoner proofs); ledger persist **not**.
+**Status:** partial — rules CRUD API + Reasoning WS; `proof_chains` + persist to `derived_facts`/`fact_derivations` on `apply_to_graph`; `GET .../ledger/derived-facts`.
 
 Work:
 

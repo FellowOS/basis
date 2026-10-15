@@ -21,3 +21,9 @@ export function kbReviewItemPath(kbId: string, itemId: string): string {
   });
   return `${kbPath(kbId, 'review')}?${params.toString()}`;
 }
+
+/** Deep-link to Decisions tab with causal chain loaded (F-GOV-07). */
+export function kbReviewDecisionPath(kbId: string, decisionId: string): string {
+  const params = new URLSearchParams({ tab: 'decisions', decision: decisionId });
+  return `${kbPath(kbId, 'review')}?${params.toString()}`;
+}

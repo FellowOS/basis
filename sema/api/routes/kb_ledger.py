@@ -29,6 +29,19 @@ async def list_surface_phrases(
     return {"phrases": phrases}
 
 
+@router.get("/{kb_id}/ledger/derived-facts")
+async def list_derived_facts_route(
+    kb_id: str,
+    request: Request,
+    limit: int = Query(100, ge=1, le=200),
+    user: User = Depends(get_current_user),
+    store: AdminStore = Depends(get_store),
+    knowledge: KnowledgeStore = Depends(get_knowledge_store),
+) -> dict[str, Any]:
+    get_kb_for_viewer(request, user, kb_id, store)
+    return {"derived_facts": knowledge.list_derived_facts(kb_id, limit=limit)}
+
+
 @router.get("/{kb_id}/ledger/entities")
 async def search_ledger_entities(
     kb_id: str,

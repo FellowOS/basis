@@ -35,6 +35,15 @@ describe('kbAlertAction', () => {
     expect(action?.labelKey).toBe('viewProposal');
   });
 
+  it('links governance tripped with decision id to decisions tab', () => {
+    const action = kbAlertAction(
+      'kb-1',
+      alert({ kind: 'governance.tripped', detail: { decision_id: 'dec-9' } }),
+    );
+    expect(action?.href).toBe('/kbs/kb-1/review?tab=decisions&decision=dec-9');
+    expect(action?.labelKey).toBe('viewDecisions');
+  });
+
   it('links governance tripped with review item to queue deep link', () => {
     const action = kbAlertAction(
       'kb-1',

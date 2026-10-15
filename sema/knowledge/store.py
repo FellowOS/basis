@@ -2983,6 +2983,117 @@ class KnowledgeStore:
             )
             self._conn.commit()
 
+    def insert_derived_fact(
+        self,
+        kb_id: str,
+        *,
+        subject_id: str,
+        predicate_uri: str,
+        object_entity_id: str | None,
+        object_value: str | None,
+        rule_id: str | None,
+        derivations: list[tuple[str, str]],
+    ) -> str | None:
+        if object_entity_id and object_value:
+            raise AdminError(422, "validation_error", "派生事实 object 只能二选一")
+        if not object_entity_id and not object_value:
+            raise AdminError(422, "validation_error", "派生事实缺少 object")
+        now = _now()
+        with self._lock:
+            self._assert_row_in_kb("entities", subject_id, kb_id)
+            if object_entity_id:
+                self._assert_row_in_kb("entities", object_entity_id, kb_id)
+            exists = self._conn.execute(
+                """
+                SELECT id FROM derived_facts
+                WHERE kb_id = ? AND subject_id = ? AND predicate_uri = ?
+                  AND COALESCE(object_entity_id, '') = COALESCE(?, '')
+                  AND COALESCE(object_value, '') = COALESCE(?, '')
+                  AND invalidated_at IS NULL
+                LIMIT 1
+                """,
+                (kb_id, subject_id, predicate_uri, object_entity_id, object_value),
+            ).fetchone()
+            if exists:
+                return None
+            fact_id = str(uuid.uuid4())
+            self._conn.execute(
+                """
+                INSERT INTO derived_facts (
+                    id, kb_id, subject_id, predicate_uri,
+                    object_entity_id, object_value, object_datatype,
+                    rule_id, recorded_at, invalidated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, NULL, ?, ?, NULL)
+                """,
+                (
+                    fact_id,
+                    kb_id,
+                    subject_id,
+                    predicate_uri,
+                    object_entity_id,
+                    object_value,
+                    rule_id,
+                    now,
+                ),
+            )
+            for ordinal, (premise_kind, premise_id) in enumerate(derivations):
+                self._conn.execute(
+                    """
+                    INSERT INTO fact_derivations (
+                        derived_fact_id, premise_kind, premise_id, ordinal
+                    ) VALUES (?, ?, ?, ?)
+                    """,
+                    (fact_id, premise_kind[:64], premise_id[:240], ordinal),
+                )
+            self._conn.commit()
+        return fact_id
+
+    def list_derived_facts(self, kb_id: str, *, limit: int = 100) -> list[dict[str, Any]]:
+        limit = min(max(1, limit), 200)
+        with self._lock:
+            rows = self._conn.execute(
+                """
+                SELECT id, kb_id, subject_id, predicate_uri,
+                       object_entity_id, object_value, rule_id, recorded_at
+                FROM derived_facts
+                WHERE kb_id = ? AND invalidated_at IS NULL
+                ORDER BY recorded_at DESC
+                LIMIT ?
+                """,
+                (kb_id, limit),
+            ).fetchall()
+            facts: list[dict[str, Any]] = []
+            for row in rows:
+                deriv_rows = self._conn.execute(
+                    """
+                    SELECT premise_kind, premise_id, ordinal
+                    FROM fact_derivations
+                    WHERE derived_fact_id = ?
+                    ORDER BY ordinal
+                    """,
+                    (row["id"],),
+                ).fetchall()
+                facts.append(
+                    {
+                        "id": row["id"],
+                        "subject_id": row["subject_id"],
+                        "predicate_uri": row["predicate_uri"],
+                        "object_entity_id": row["object_entity_id"],
+                        "object_value": row["object_value"],
+                        "rule_id": row["rule_id"],
+                        "recorded_at": row["recorded_at"],
+                        "derivations": [
+                            {
+                                "premise_kind": d["premise_kind"],
+                                "premise_id": d["premise_id"],
+                                "ordinal": d["ordinal"],
+                            }
+                            for d in deriv_rows
+                        ],
+                    }
+                )
+        return facts
+
     @staticmethod
     def _alert_row_to_dict(row: sqlite3.Row) -> dict[str, Any]:
         detail_raw = row["detail_json"]
