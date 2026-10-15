@@ -38,6 +38,7 @@ async function readPlaygroundStream(
   messages: { role: string; content: string }[],
   signal: AbortSignal,
   onDelta: (chunk: string) => void,
+  onContextTrimmed?: (removedTurns: number) => void,
 ): Promise<{ content: string; tool_traces: PlaygroundToolTrace[] }> {
   const token = localStorage.getItem('sema_token');
   const headers: HeadersInit = { 'Content-Type': 'application/json' };
@@ -81,8 +82,11 @@ async function readPlaygroundStream(
             tool_traces?: PlaygroundToolTrace[];
             code?: string;
             error_message?: string;
+            removed_turns?: number;
           };
-          if (evt.type === 'delta' && evt.text) {
+          if (evt.type === 'context_trimmed' && typeof evt.removed_turns === 'number') {
+            onContextTrimmed?.(evt.removed_turns);
+          } else if (evt.type === 'delta' && evt.text) {
             content += evt.text;
             onDelta(evt.text);
           } else if (evt.type === 'done') {
@@ -130,6 +134,7 @@ export function KbChatPlayground({
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [trimNotice, setTrimNotice] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const seededFocusRef = useRef<string | null>(null);
@@ -150,6 +155,7 @@ export function KbChatPlayground({
     const text = input.trim();
     if (!text || loading) return;
     setError(null);
+    setTrimNotice(null);
     const userMsg: ChatMessage = { id: crypto.randomUUID(), role: 'user', content: text };
     const next = [...messages, userMsg];
     setMessages(next);
@@ -174,6 +180,9 @@ export function KbChatPlayground({
               m.id === assistantId ? { ...m, content: m.content + chunk } : m,
             ),
           );
+        },
+        (removedTurns) => {
+          setTrimNotice(t.chat.contextTrimmed.replace('{count}', String(removedTurns)));
         },
       );
       const traces = streamed.tool_traces ?? [];
@@ -254,6 +263,12 @@ export function KbChatPlayground({
         ) : null}
       </CardHeader>
       <CardContent className="flex min-h-0 flex-1 flex-col gap-4 pt-4">
+        {trimNotice ? (
+          <p className="rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-950 dark:text-amber-100">
+            {trimNotice}
+          </p>
+        ) : null}
+        {error ? <p className="text-sm text-destructive">{error}</p> : null}
         <ScrollArea className="min-h-0 flex-1 rounded-lg border border-border/80 bg-muted/20">
           <div className="space-y-4 p-4">
             {messages.length === 0 && (
@@ -290,7 +305,6 @@ export function KbChatPlayground({
             <div ref={bottomRef} />
           </div>
         </ScrollArea>
-        {error && <p className="text-sm text-destructive">{error}</p>}
         <form className="flex flex-col gap-2 sm:flex-row sm:items-end" onSubmit={send}>
           {canProposeRemember ? (
             <Button

@@ -9,6 +9,7 @@ export const chat = {
   stop: '停止',
   sendFailed: '发送失败',
   cancelled: '已停止生成。',
+  contextTrimmed: '为符合服务端上下文上限，已从本次请求中移除较早的 {count} 条消息。',
   proposeRemember: '提交记入审核',
   rememberQueued: '已提交到审核队列。',
   emptyReply: '（无文本回复）',

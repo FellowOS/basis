@@ -23,18 +23,26 @@ _PLAYGROUND_MAX_MESSAGE_CHARS = 96_000
 _PLAYGROUND_MAX_MESSAGES = 40
 
 
-def _trim_playground_messages(messages: list[dict[str, str]]) -> list[dict[str, str]]:
+def trim_playground_messages(
+    messages: list[dict[str, str]],
+) -> tuple[list[dict[str, str]], dict[str, int]]:
     """Drop oldest turns when the client sends an oversized history (F-CHAT-06)."""
     if not messages:
-        return messages
+        return messages, {"removed_turns": 0}
     trimmed = [m for m in messages if m.get("content")]
     total = sum(len(m.get("content") or "") for m in trimmed)
+    removed_turns = 0
     while len(trimmed) > 2 and (
         total > _PLAYGROUND_MAX_MESSAGE_CHARS or len(trimmed) > _PLAYGROUND_MAX_MESSAGES
     ):
         removed = trimmed.pop(0)
         total -= len(removed.get("content") or "")
-    return trimmed
+        removed_turns += 1
+    return trimmed, {"removed_turns": removed_turns}
+
+
+def _trim_playground_messages(messages: list[dict[str, str]]) -> list[dict[str, str]]:
+    return trim_playground_messages(messages)[0]
 
 
 def _close_openai_stream(stream: Any) -> None:
@@ -103,10 +111,15 @@ def run_kb_playground(
     store = get_store(request)
     kb, _role = store.get_kb_for(user, kb_id, "viewer")
     knowledge = get_knowledge_store(request)
-    messages = _trim_playground_messages(messages)
+    messages, trim_info = trim_playground_messages(messages)
     _playground_enter(kb_id, user.id)
     try:
-        return _run_kb_playground_body(request, kb_id, user, kb, messages, max_tool_rounds=max_tool_rounds)
+        result = _run_kb_playground_body(
+            request, kb_id, user, kb, messages, max_tool_rounds=max_tool_rounds,
+        )
+        if trim_info["removed_turns"] > 0:
+            result["context_trim"] = trim_info
+        return result
     except AdminError as exc:
         emit_llm_playground_alert(
             knowledge, kb_id, code=exc.code, message=exc.message,
@@ -129,8 +142,17 @@ def iter_kb_playground_sse(
     kb, _role = store.get_kb_for(user, kb_id, "viewer")
     knowledge = get_knowledge_store(request)
     _playground_enter(kb_id, user.id)
-    messages = _trim_playground_messages(messages)
+    messages, trim_info = trim_playground_messages(messages)
     try:
+        if trim_info["removed_turns"] > 0:
+            yield _sse_event(
+                {
+                    "type": "context_trimmed",
+                    "removed_turns": trim_info["removed_turns"],
+                    "max_messages": _PLAYGROUND_MAX_MESSAGES,
+                    "max_message_chars": _PLAYGROUND_MAX_MESSAGE_CHARS,
+                },
+            )
         for frame in _iter_playground_sse_body(request, kb_id, user, kb, messages, max_tool_rounds=max_tool_rounds):
             yield frame
     except GeneratorExit:

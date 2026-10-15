@@ -101,10 +101,20 @@ def test_chat_playground_rejects_concurrent_request(tmp_path) -> None:
 
 
 def test_trim_playground_messages_drops_oldest() -> None:
-    from sema.chat.playground import _PLAYGROUND_MAX_MESSAGES, _trim_playground_messages
+    from sema.chat.playground import _PLAYGROUND_MAX_MESSAGES, trim_playground_messages
 
     messages = [{"role": "user", "content": f"msg-{i}"} for i in range(_PLAYGROUND_MAX_MESSAGES + 5)]
-    trimmed = _trim_playground_messages(messages)
+    trimmed, info = trim_playground_messages(messages)
     assert len(trimmed) <= _PLAYGROUND_MAX_MESSAGES
     assert trimmed[0]["content"] == f"msg-{5}"
     assert trimmed[-1]["content"] == f"msg-{_PLAYGROUND_MAX_MESSAGES + 4}"
+    assert info["removed_turns"] == 5
+
+
+def test_trim_playground_messages_reports_no_trim() -> None:
+    from sema.chat.playground import trim_playground_messages
+
+    messages = [{"role": "user", "content": "hi"}]
+    trimmed, info = trim_playground_messages(messages)
+    assert trimmed == messages
+    assert info["removed_turns"] == 0
