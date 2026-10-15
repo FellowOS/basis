@@ -69,3 +69,23 @@ def test_postgres_ledger_fts_pgvector_and_mcp(
         )
     assert all(response.status_code == 200 for response in responses)
     client.close()
+
+
+def test_postgres_kb_graph_audit_list(tmp_path: Path, postgres_url: str) -> None:
+    client = TestClient(
+        create_app(Settings(data_dir=tmp_path, database_url=postgres_url))
+    )
+    registered = client.post(
+        "/api/auth/register",
+        json={"email": "audit@example.com", "password": "password1", "display_name": "A"},
+    )
+    assert registered.status_code == 200
+    headers = {"Authorization": f"Bearer {registered.json()['token']}"}
+    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    audit = client.get(
+        f"/api/kbs/{kb_id}/audit/graph-mutations",
+        headers=headers,
+    )
+    assert audit.status_code == 200
+    assert "events" in audit.json()
+    client.close()

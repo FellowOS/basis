@@ -1,6 +1,7 @@
 import type { ExplorerHttpConfig } from '@/explorer/host/explorerHttp.js';
 import { getToken } from '@/lib/api.js';
 import { errorFromApiResponse } from '@/lib/api-error.js';
+import { realtimeWsOrigin } from '@/lib/realtime-ws-origin.js';
 
 export function buildKbExplorerHttpConfig(kbId: string): ExplorerHttpConfig {
   return {
@@ -26,8 +27,7 @@ export function buildKbExplorerHttpConfig(kbId: string): ExplorerHttpConfig {
         );
       }
       const body = (await ticketResp.json()) as { ticket: string };
-      const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const url = `${proto}//${window.location.host}/api/kbs/${kbId}/ws/graph-updates?ticket=${encodeURIComponent(body.ticket)}`;
+      const url = `${realtimeWsOrigin()}/api/kbs/${kbId}/ws/graph-updates?ticket=${encodeURIComponent(body.ticket)}`;
       return new WebSocket(url);
     },
   };

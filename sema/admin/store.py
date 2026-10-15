@@ -902,7 +902,7 @@ class AdminStore:
             LIMIT ?
         """
         with self._lock:
-            rows = self._conn.execute(sql, params).fetchall()
+            rows = self._conn.execute(sql, tuple(params)).fetchall()
         return [self._audit_row_to_dict(row) for row in rows]
 
     def record_audit(

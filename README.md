@@ -114,6 +114,8 @@ uv run pytest tests/
 | `split-tiktoken` | 按 token 分块 |
 | `ingest-git` | Git 仓库摄入（后续连接器） |
 
+Sema 默认关闭 ContextGraph 的 **Node2Vec**（`node_embeddings`），图谱重建不会要求 `gensim`。若要在 Semantica 里跑结构嵌入分析，可装 `semantica[graph-embeddings]` 并在创建 `GraphSession` 时传入 `context_graph_config={"node_embeddings": True}`。
+
 安装后若要用 **spaCy NER**，还需下载语言模型（一次性）：
 
 ```bash
