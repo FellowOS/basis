@@ -411,7 +411,7 @@ Acceptance:
 - restore test;
 - projections may rebuild, canonical DB/blobs may not.
 
-**Status:** done (SQLite dev baseline) — `scripts/backup_sema_data.sh`, `docs/ops/backup-and-restore.md`; `test_backup_tar_roundtrip_preserves_ledger` restores tar, drops `graphs/`, rebuilds projection from ledger. PostgreSQL: `scripts/backup_sema_postgres.sh`, `scripts/restore_sema_postgres.sh` (`SEMA_RESTORE_CONFIRM=yes`); follow-up: automated pg_restore verification test in CI.
+**Status:** done — SQLite: `scripts/backup_sema_data.sh`, `test_backup_tar_roundtrip_preserves_ledger`. PostgreSQL: `backup_sema_postgres.sh` / `restore_sema_postgres.sh`, `tests/test_postgres_backup_restore.py` (CI job `postgres` with `SEMA_TEST_POSTGRES_URL`).
 
 ### X-04 — Limits
 

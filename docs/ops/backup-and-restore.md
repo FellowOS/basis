@@ -81,4 +81,6 @@ After restore + rebuild:
 
 ## Release gate
 
+PostgreSQL dump/restore scripts are exercised in CI when `SEMA_TEST_POSTGRES_URL` is set (`tests/test_postgres_backup_restore.py`).
+
 See `docs/design/implementation-backlog.md` §9. Tests in `tests/test_release_gate.py` cover DOCX upload → ledger chunks/statements, statement/evidence refs on projected graph edges, KB-scoped graph API (no global `/api/graph`), viewer write denial, persistence across process restart, dual-KB graph isolation (HTTP), and tar backup roundtrip; `tests/test_graph_page_limits.py` caps snapshot pagination; `packages/web/src/explorer/host/explorerHttp.test.ts` asserts Explorer HTTP rewrite to `/api/kbs/{id}/…`; `tests/test_legacy_graph_migration.py` covers dry-run legacy graph import; `tests/test_ws_hub.py` covers per-KB WebSocket broadcast isolation; `tests/test_realtime_ws.py` covers `projection_updated` on rebuild and inline ingest.

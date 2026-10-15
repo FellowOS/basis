@@ -6,6 +6,43 @@ on:
   pull_request:
 
 jobs:
+  postgres:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:pg17
+        env:
+          POSTGRES_USER: sema
+          POSTGRES_PASSWORD: sema
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U sema -d postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      SEMA_TEST_POSTGRES_URL: postgresql://sema:sema@localhost:5432/postgres
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+
+      - name: Sync Python dependencies
+        run: uv sync --extra dev
+
+      - name: PostgreSQL integration and backup restore
+        run: >-
+          uv run pytest tests/test_postgres_integration.py
+          tests/test_postgres_backup_restore.py -q
+
   pytest:
     runs-on: ubuntu-latest
     steps:

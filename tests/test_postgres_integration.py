@@ -1,38 +1,10 @@
-import os
-import uuid
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-import psycopg
-import pytest
 from fastapi.testclient import TestClient
-from psycopg import sql
-from sqlalchemy.engine import make_url
 
 from sema.api.app import create_app
 from sema.config import Settings
-from sema.database import reset_sqlite_database_pool
-
-
-@pytest.fixture
-def postgres_url() -> str:
-    admin_url = os.environ.get("SEMA_TEST_POSTGRES_URL")
-    if not admin_url:
-        pytest.skip("SEMA_TEST_POSTGRES_URL is not configured")
-    database = f"sema_test_{uuid.uuid4().hex}"
-    parsed = make_url(admin_url)
-    admin_dsn = parsed.set(database=parsed.database or "postgres").render_as_string(
-        hide_password=False
-    )
-    with psycopg.connect(admin_dsn, autocommit=True) as conn:
-        conn.execute(sql.SQL("CREATE DATABASE {}").format(sql.Identifier(database)))
-    test_url = parsed.set(database=database).render_as_string(hide_password=False)
-    yield test_url
-    reset_sqlite_database_pool()
-    with psycopg.connect(admin_dsn, autocommit=True) as conn:
-        conn.execute(
-            sql.SQL("DROP DATABASE {} WITH (FORCE)").format(sql.Identifier(database))
-        )
 
 
 def test_postgres_ledger_fts_pgvector_and_mcp(

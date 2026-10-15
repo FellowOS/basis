@@ -41,7 +41,14 @@ if ! command -v pg_restore >/dev/null 2>&1; then
 fi
 
 echo "Restoring database from $DUMP into $SEMA_DATABASE_URL"
+set +e
 pg_restore --clean --if-exists --no-owner --no-acl -d "$SEMA_DATABASE_URL" "$DUMP"
+restore_code=$?
+set -e
+# pg_restore exits 1 when --clean drops missing objects on an empty database.
+if [[ "$restore_code" -gt 1 ]]; then
+  exit "$restore_code"
+fi
 
 if [[ -n "$BLOBS_TAR" ]]; then
   if [[ ! -f "$BLOBS_TAR" ]]; then
