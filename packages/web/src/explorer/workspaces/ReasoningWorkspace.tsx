@@ -1,10 +1,18 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { BrainCircuit, Play, RotateCcw, CheckCircle2, AlertCircle, Zap, GitBranch, Info } from "lucide-react";
 import { buildExplorerKbApiPath, explorerFetch } from "../host/explorerHttp";
 import { errorFromApiResponse } from "@/lib/api-error.js";
 import { useApiErrorMessage } from "@/lib/use-api-error-message.js";
 import { useKbCapabilitiesOptional } from "@/lib/kb-capabilities.js";
+import { api } from "@/lib/api.js";
+
+type SavedRule = {
+  id: string;
+  name: string;
+  body: string;
+  enabled: boolean;
+};
 
 const SAMPLE_FACTS = `inhibits(Metformin, mTOR)
 causes(mTOR, Neurodegeneration)
@@ -50,13 +58,68 @@ export function ReasoningWorkspace({ kbId }: { kbId: string }) {
     added_edges?: number;
     mutated?: boolean;
   } | null>(null);
+  const [lastRunRules, setLastRunRules] = useState<string[]>([]);
   const [isRunning, setIsRunning] = useState(false);
   const [error, setError] = useState("");
+  const [savedRules, setSavedRules] = useState<SavedRule[]>([]);
+  const [saveRuleName, setSaveRuleName] = useState("");
+  const [savingRule, setSavingRule] = useState(false);
+
+  const loadSavedRules = useCallback(async () => {
+    if (!kbId) return;
+    try {
+      const data = await api<{ rules: SavedRule[] }>(`/api/kbs/${kbId}/rules`);
+      setSavedRules(data.rules);
+    } catch {
+      setSavedRules([]);
+    }
+  }, [kbId]);
+
+  useEffect(() => {
+    void loadSavedRules();
+  }, [loadSavedRules]);
+
+  function applyEnabledSavedRules() {
+    const lines = savedRules.filter((r) => r.enabled).map((r) => r.body.trim()).filter(Boolean);
+    if (!lines.length) return;
+    setRules(lines.join("\n"));
+    setResult(null);
+    setError("");
+  }
+
+  async function saveCurrentRules() {
+    const name = saveRuleName.trim();
+    const body = rules.trim();
+    if (!name || !body || !kbId) return;
+    setSavingRule(true);
+    setError("");
+    try {
+      await api(`/api/kbs/${kbId}/rules`, {
+        method: "POST",
+        body: JSON.stringify({ name, body, enabled: true }),
+      });
+      setSaveRuleName("");
+      await loadSavedRules();
+    } catch (e) {
+      setError(apiError(e));
+    } finally {
+      setSavingRule(false);
+    }
+  }
+
+  function rulesForRun(): string[] {
+    const manual = rules.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+    const fromLibrary = savedRules.filter((r) => r.enabled).map((r) => r.body.trim()).filter(Boolean);
+    const merged = [...fromLibrary, ...manual];
+    return merged.length ? [...new Set(merged)] : manual;
+  }
 
   async function handleRun() {
     setIsRunning(true);
     setError("");
     setResult(null);
+    const runRules = rulesForRun();
+    setLastRunRules(runRules);
     try {
       const path = buildExplorerKbApiPath("reasoning/run", kbId);
       const response = await explorerFetch(path, {
@@ -64,7 +127,7 @@ export function ReasoningWorkspace({ kbId }: { kbId: string }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           facts: facts.split(/\r?\n/).map((l) => l.trim()).filter(Boolean),
-          rules: rules.split(/\r?\n/).map((l) => l.trim()).filter(Boolean),
+          rules: runRules,
           mode: "forward",
           apply_to_graph: applyToGraph && canWriteGraph,
         }),
@@ -129,6 +192,58 @@ export function ReasoningWorkspace({ kbId }: { kbId: string }) {
             ))}
           </div>
         </div>
+
+        {(savedRules.length > 0 || canWriteGraph) && (
+          <div style={{ padding: "12px 16px 10px", borderBottom: "1px solid var(--ws-border)", flexShrink: 0 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+              <div className="ws-eyebrow">KB rule library</div>
+              {savedRules.some((r) => r.enabled) && (
+                <button type="button" className="ws-btn ws-btn--ghost" style={{ padding: "4px 8px", fontSize: 11 }} onClick={applyEnabledSavedRules}>
+                  Load enabled
+                </button>
+              )}
+            </div>
+            {savedRules.length > 0 && (
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: canWriteGraph ? 10 : 0 }}>
+                {savedRules.map((r) => (
+                  <button
+                    key={r.id}
+                    type="button"
+                    className="ws-btn ws-btn--ghost"
+                    style={{ padding: "5px 10px", fontSize: 11, opacity: r.enabled ? 1 : 0.55 }}
+                    title={r.body}
+                    onClick={() => {
+                      setRules(r.body);
+                      setResult(null);
+                      setError("");
+                    }}
+                  >
+                    {r.name}
+                  </button>
+                ))}
+              </div>
+            )}
+            {canWriteGraph && (
+              <div style={{ display: "flex", gap: 6 }}>
+                <input
+                  className="ws-input"
+                  placeholder="Name to save current rules"
+                  value={saveRuleName}
+                  onChange={(e) => setSaveRuleName(e.target.value)}
+                  style={{ flex: 1, fontSize: 12 }}
+                />
+                <button
+                  type="button"
+                  className="ws-btn ws-btn--ghost"
+                  disabled={savingRule || !saveRuleName.trim() || !rules.trim()}
+                  onClick={() => void saveCurrentRules()}
+                >
+                  Save
+                </button>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Input area */}
         <div className="ws-scroll ws-padded" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -245,6 +360,19 @@ export function ReasoningWorkspace({ kbId }: { kbId: string }) {
 
           {result && !isRunning && (
             <div className="ws-animate-in">
+              {lastRunRules.length > 0 && (
+                <div style={{ marginBottom: 14, padding: "12px 14px", borderRadius: "var(--ws-radius-sm)", background: "var(--ws-surface-raised)", border: "1px solid var(--ws-border)" }}>
+                  <div className="ws-eyebrow" style={{ marginBottom: 8 }}>Rules in this run ({lastRunRules.length})</div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                    {lastRunRules.map((rule, i) => (
+                      <code key={`${i}-${rule.slice(0, 24)}`} style={{ fontFamily: "'JetBrains Mono','Fira Code',monospace", fontSize: 11, color: "var(--ws-text-muted)", lineHeight: 1.5, wordBreak: "break-all" }}>{rule}</code>
+                    ))}
+                  </div>
+                  <div style={{ marginTop: 8, fontSize: 11, color: "var(--ws-text-muted)" }}>
+                    Proof chains are not returned by the API yet; use rules fired / inferred facts as the run summary.
+                  </div>
+                </div>
+              )}
               {(result.inferred_facts ?? []).length === 0 ? (
                 <div className="ws-empty">
                   <div className="ws-empty-icon"><CheckCircle2 size={32} /></div>

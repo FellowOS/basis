@@ -2,12 +2,14 @@
 // spelled out anywhere else, so that the protocol can change in one place.
 const TAB_PARAM = "ontologyTab";
 const ENTITY_PARAM = "ontologyEntity";
+const PROPOSAL_PARAM = "ontologyProposal";
 const EDITOR_TAB = "editor";
 
 export interface OntologyUrlState {
   /** Raw parameter value; the set of legal tab ids belongs to the workspace, not this module. */
   tab?: string;
   entityUri?: string;
+  proposalId?: string;
 }
 
 /** `undefined` means the parameter is absent; an empty string means it is present but blank. */
@@ -16,6 +18,7 @@ export function parseOntologyUrlState(search: string): OntologyUrlState {
   return {
     tab: params.get(TAB_PARAM) ?? undefined,
     entityUri: params.get(ENTITY_PARAM) ?? undefined,
+    proposalId: params.get(PROPOSAL_PARAM) ?? undefined,
   };
 }
 
@@ -61,9 +64,16 @@ export function readOntologyUrlState(search?: string): OntologyUrlState {
 }
 
 /** True when the URL addresses the Ontology Hub at all, even with blank parameter values. */
+export function applyProposalSelection(search: string, proposalId: string): string {
+  const params = new URLSearchParams(search);
+  params.set(TAB_PARAM, "versions");
+  params.set(PROPOSAL_PARAM, proposalId);
+  return `?${params.toString()}`;
+}
+
 export function hasOntologyUrlState(search?: string): boolean {
-  const { tab, entityUri } = readOntologyUrlState(search);
-  return tab !== undefined || entityUri !== undefined;
+  const { tab, entityUri, proposalId } = readOntologyUrlState(search);
+  return tab !== undefined || entityUri !== undefined || proposalId !== undefined;
 }
 
 // The transform returns a query string only, so the fragment has to be carried
@@ -91,4 +101,8 @@ export function writeEntitySelection(entityUri: string): void {
 
 export function clearEntitySelection(): void {
   updateSearch(removeEntitySelection);
+}
+
+export function writeProposalSelection(proposalId: string): void {
+  updateSearch((search) => applyProposalSelection(search, proposalId));
 }

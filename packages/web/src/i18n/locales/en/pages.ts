@@ -1995,6 +1995,26 @@ export const pages = {
     submitPublishApprovalFailed: 'Could not submit publish approval',
     publishApprovalPending: 'Publish approval pending for: {slugs}',
   },
+  kbSubtitles: {
+    search:
+      'Chunk filters use document ingest time. For point-in-time graph views, use the graph timeline (temporal/snapshot).',
+    chat:
+      'Playground uses this KB’s retrieval tools and MCP-compatible agents; writes like remember go through review.',
+    review:
+      'Approve merges, imports, mappings, and remembered statements before they affect the ledger or graph.',
+    ontology:
+      'Edit OWL drafts, run impact/SHACL checks, and publish ontology versions scoped to this knowledge base.',
+    lineage:
+      'PROV-O lineage for graph nodes — trace evidence back to documents and ingest events.',
+    mappings: 'Align external vocabulary terms to this KB’s ontology and confirm via review when required.',
+    vocabulary: 'SKOS concepts and alignments for this KB (not the global platform catalog).',
+    entities: 'Ledger entities and aliases; open the graph to explore structure and neighbors.',
+    library: 'Uploaded documents, versions, and processing status for this knowledge base.',
+    sources:
+      'Documents, uploads, processing jobs, and ingest connectors (webhook, HTTP poll, GitHub raw).',
+    graph:
+      'Interactive graph with temporal scrubber, search, and provenance; imports require review.',
+  },
   footer: {
     copyright: '© {year} Fellow. All rights reserved.',
     terms: 'Terms of service',

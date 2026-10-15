@@ -8,6 +8,7 @@ import {
   loadShaclShapes,
   validateShacl,
 } from "./api";
+import { useOntologyKbId } from "./ontologyKb";
 import { explorerApiErrorMessage } from "../../lib/explorer-api-error";
 import type { OntologyEntry, ShaclShapeSummary, ShaclValidationResponse } from "./types";
 
@@ -16,6 +17,7 @@ interface ShaclStudioProps {
 }
 
 export function ShaclStudio({ onJumpToNode }: ShaclStudioProps) {
+  const kbId = useOntologyKbId();
   const [registry, setRegistry] = useState<OntologyEntry[]>([]);
   const [selectedUri, setSelectedUri] = useState("");
   const [shacl, setShacl] = useState("");
@@ -28,7 +30,7 @@ export function ShaclStudio({ onJumpToNode }: ShaclStudioProps) {
 
   useEffect(() => {
     let cancelled = false;
-    loadOntologyRegistry()
+    loadOntologyRegistry(kbId)
       .then((entries) => {
         if (cancelled) return;
         setRegistry(entries);
@@ -41,7 +43,7 @@ export function ShaclStudio({ onJumpToNode }: ShaclStudioProps) {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [kbId]);
 
   const [prevUri, setPrevUri] = useState(selectedUri);
   if (selectedUri !== prevUri) {
@@ -59,7 +61,7 @@ export function ShaclStudio({ onJumpToNode }: ShaclStudioProps) {
     async function fetchShapes() {
       if (!selectedUri) return;
       try {
-        const data = await loadShaclShapes(selectedUri);
+        const data = await loadShaclShapes(kbId, selectedUri);
         if (!ignore) {
           setShapes(data.shapes);
           const turtle = data.shacl_turtle;
@@ -78,18 +80,18 @@ export function ShaclStudio({ onJumpToNode }: ShaclStudioProps) {
     return () => {
       ignore = true;
     };
-  }, [selectedUri]);
+  }, [kbId, selectedUri]);
 
   const handleGenerate = useCallback(async () => {
     if (!selectedUri) return;
     setLoading(true);
     setError("");
     try {
-      const data = await generateShacl(selectedUri, "strict");
+      const data = await generateShacl(kbId, selectedUri, "strict");
       setFullShacl(data.shacl_turtle);
       setShacl(data.shacl_turtle);
       setSelectedShapeId(null);
-      const shapeData = await loadShaclShapes(selectedUri);
+      const shapeData = await loadShaclShapes(kbId, selectedUri);
       setShapes(shapeData.shapes);
       setValidation(null);
     } catch (err) {
@@ -97,7 +99,7 @@ export function ShaclStudio({ onJumpToNode }: ShaclStudioProps) {
     } finally {
       setLoading(false);
     }
-  }, [selectedUri]);
+  }, [kbId, selectedUri]);
 
   const handleSelectShape = useCallback((shapeId: string) => {
     setSelectedShapeId(shapeId);
@@ -126,7 +128,7 @@ export function ShaclStudio({ onJumpToNode }: ShaclStudioProps) {
     setLoading(true);
     setError("");
     try {
-      setValidation(await validateShacl(selectedUri, shacl));
+      setValidation(await validateShacl(kbId, selectedUri, shacl));
     } catch (err) {
       setError(explorerApiErrorMessage(err));
     } finally {

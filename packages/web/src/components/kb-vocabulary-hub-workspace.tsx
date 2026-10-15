@@ -9,6 +9,7 @@ import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
 import { cn } from '@/lib/utils.js';
 import '@/explorer/ui/primitives.css';
+import { OntologyKbProvider } from '@/explorer/workspaces/OntologyWorkspace/ontologyKb.js';
 
 const VocabularyWorkspace = lazy(() =>
   import('@/explorer/workspaces/VocabularyWorkspace/VocabularyWorkspace.js').then((module) => ({
@@ -70,6 +71,7 @@ export function KbVocabularyHubWorkspace({
     >
       <QueryClientProvider client={hubQueryClient}>
         <ExplorerHostProvider config={config}>
+          <OntologyKbProvider kbId={kbId}>
           <KbExplorerZoneTabs
             variant="console"
             tabs={tabs}
@@ -85,9 +87,10 @@ export function KbVocabularyHubWorkspace({
             }
           >
             <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-              {tab === 'vocabulary' ? <VocabularyWorkspace /> : <AlignmentsTab />}
+              {tab === 'vocabulary' ? <VocabularyWorkspace kbId={kbId} /> : <AlignmentsTab />}
             </div>
           </Suspense>
+          </OntologyKbProvider>
         </ExplorerHostProvider>
       </QueryClientProvider>
     </div>

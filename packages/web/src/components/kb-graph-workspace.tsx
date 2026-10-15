@@ -63,6 +63,7 @@ export function KbGraphWorkspace({
 
   const canImportExport = !capsLoading && caps?.import_export;
   const canRebuild = !capsLoading && caps?.graph_write;
+  const canLineage = !capsLoading && caps?.provenance && caps?.graph;
 
   const graphDataActions =
     canRebuild || canImportExport
@@ -100,6 +101,19 @@ export function KbGraphWorkspace({
                   {zh ? '导出' : 'Export'}
                 </Button>
               </>
+            ) : null}
+            {canLineage ? (
+              <Button type="button" variant="outline" size="sm" asChild>
+                <Link
+                  to={
+                    focusNodeId
+                      ? `${kbPath(kbId, 'lineage')}?node=${encodeURIComponent(focusNodeId)}`
+                      : kbPath(kbId, 'lineage')
+                  }
+                >
+                  {zh ? '溯源' : 'Lineage'}
+                </Link>
+              </Button>
             ) : null}
           </>
         )

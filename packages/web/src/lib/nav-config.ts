@@ -44,6 +44,7 @@ export type KbNavKey =
   | 'ontology'
   | 'mappings'
   | 'vocabulary'
+  | 'lineage'
   | 'settings';
 
 export type KbNavItem = {
@@ -63,6 +64,7 @@ export const KB_NAV_BY_ZONE: Record<KbWorkspaceZone, KbNavItem[]> = {
     { segment: 'graph', labelKey: 'graph', icon: 'git-branch-01' },
     { segment: 'search', labelKey: 'search', icon: 'search-01' },
     { segment: 'chat', labelKey: 'chat', icon: 'message-chat-01' },
+    { segment: 'lineage', labelKey: 'lineage', icon: 'git-branch-01' },
   ],
   governance: [
     { segment: 'review', labelKey: 'review', icon: 'check-square-contained' },
@@ -76,6 +78,15 @@ export const KB_NAV: KbNavItem[] = KB_WORKSPACE_ZONES.flatMap((zone) => KB_NAV_B
 
 export function kbPath(kbId: string, segment: string): string {
   return `/kbs/${kbId}/${segment}`;
+}
+
+/** Deep-link to ontology Versions tab + proposal review modal (F-ONT-05). */
+export function kbOntologyProposalPath(kbId: string, proposalId: string): string {
+  const params = new URLSearchParams({
+    ontologyTab: 'versions',
+    ontologyProposal: proposalId,
+  });
+  return `${kbPath(kbId, 'ontology')}?${params.toString()}`;
 }
 
 export function parseKbIdFromPath(pathname: string): string | null {

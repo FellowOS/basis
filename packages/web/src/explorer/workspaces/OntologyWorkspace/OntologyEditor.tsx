@@ -30,6 +30,7 @@ import {
   parseExplorerJson,
 } from "../../lib/explorer-api-error";
 import { loadOntologyEntityOwner, loadOntologyGraph, loadOntologyRegistry } from "./api";
+import { ontologyPath, useOntologyKbId } from "./ontologyKb";
 import type { OntologyGraphEdge, OntologyGraphNode } from "./api";
 import {
   isEditableEntityType,
@@ -228,6 +229,7 @@ function buildEditorElements(apiNodes: OntologyGraphNode[], apiEdges: OntologyGr
 }
 
 export function OntologyEditor() {
+  const kbId = useOntologyKbId();
   const [nodes, setNodes, onNodesChange] = useNodesState<OntologyNode>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<OntologyEdge>([]);
   const [selectedElement, setSelectedElement] = useState<OntologyNode | OntologyEdge | null>(null);
@@ -258,9 +260,9 @@ export function OntologyEditor() {
     let cancelled = false;
     const requested = requestedEntityUri();
     Promise.all([
-      loadOntologyRegistry().catch(() => [] as RegistryEntry[]),
+      loadOntologyRegistry(kbId).catch(() => [] as RegistryEntry[]),
       requested
-        ? loadOntologyEntityOwner(requested).catch(() => undefined)
+        ? loadOntologyEntityOwner(kbId, requested).catch(() => undefined)
         : Promise.resolve(undefined),
     ])
       .then(([entries, ownerVerdict]: [RegistryEntry[], string | null | undefined]) => {
@@ -285,7 +287,7 @@ export function OntologyEditor() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [kbId]);
 
   useEffect(() => {
     if (!ontologyUri) {
@@ -298,7 +300,7 @@ export function OntologyEditor() {
     const controller = new AbortController();
     setIsLoadingGraph(true);
     setGraphError("");
-    loadOntologyGraph(ontologyUri, controller.signal)
+    loadOntologyGraph(kbId, ontologyUri, controller.signal)
       .then((payload) => {
         const elements = buildEditorElements(payload.nodes, payload.edges);
         setNodes(elements.nodes);
@@ -318,7 +320,7 @@ export function OntologyEditor() {
       });
 
     return () => controller.abort();
-  }, [ontologyUri, setEdges, setNodes]);
+  }, [kbId, ontologyUri, setEdges, setNodes]);
 
   useEffect(() => {
     if (!flowInstance || nodes.length === 0) return;
@@ -410,7 +412,7 @@ export function OntologyEditor() {
     }
     setIsSaving(true);
     try {
-      const response = await explorerFetch("/api/ontology/draft", {
+      const response = await explorerFetch(ontologyPath(kbId, "draft"), {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -428,7 +430,7 @@ export function OntologyEditor() {
     } finally {
       setIsSaving(false);
     }
-  }, [ontologyUri, draftDiff]);
+  }, [kbId, ontologyUri, draftDiff]);
 
   const handleNodeContextMenu = useCallback((event: React.MouseEvent, node: OntologyNode) => {
     event.preventDefault();

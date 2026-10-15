@@ -22,10 +22,84 @@ type ChatMessage = {
   citations?: ChatCitationLink[];
 };
 
+type PlaygroundToolTrace = {
+  name: string;
+  arguments: Record<string, unknown>;
+  result: string;
+};
+
 type PlaygroundResponse = {
   message: { role: string; content: string };
-  tool_traces?: Array<{ name: string; arguments: Record<string, unknown>; result: string }>;
+  tool_traces?: PlaygroundToolTrace[];
 };
+
+async function readPlaygroundStream(
+  kbId: string,
+  messages: { role: string; content: string }[],
+  signal: AbortSignal,
+  onDelta: (chunk: string) => void,
+): Promise<{ content: string; tool_traces: PlaygroundToolTrace[] }> {
+  const token = localStorage.getItem('sema_token');
+  const headers: HeadersInit = { 'Content-Type': 'application/json' };
+  if (token) headers.Authorization = `Bearer ${token}`;
+  const response = await fetch(`/api/kbs/${kbId}/chat/playground/stream`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ messages }),
+    signal,
+  });
+  if (!response.ok) {
+    const errBody = await response.json().catch(() => ({}));
+    throw errBody;
+  }
+  const reader = response.body?.getReader();
+  if (!reader) {
+    throw new Error('No response body');
+  }
+  const decoder = new TextDecoder();
+  let buffer = '';
+  let content = '';
+  let tool_traces: PlaygroundToolTrace[] = [];
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    let split = buffer.indexOf('\n\n');
+    while (split !== -1) {
+      const block = buffer.slice(0, split);
+      buffer = buffer.slice(split + 2);
+      const line = block
+        .split('\n')
+        .find((l) => l.startsWith('data:'));
+      if (line) {
+        const raw = line.slice(5).trim();
+        if (raw) {
+          const evt = JSON.parse(raw) as {
+            type: string;
+            text?: string;
+            message?: { content?: string };
+            tool_traces?: PlaygroundToolTrace[];
+            code?: string;
+            error_message?: string;
+          };
+          if (evt.type === 'delta' && evt.text) {
+            content += evt.text;
+            onDelta(evt.text);
+          } else if (evt.type === 'done') {
+            content = evt.message?.content ?? content;
+            tool_traces = evt.tool_traces ?? [];
+          } else if (evt.type === 'error') {
+            throw {
+              detail: { code: evt.code, message: evt.error_message ?? 'Chat stream failed' },
+            };
+          }
+        }
+      }
+      split = buffer.indexOf('\n\n');
+    }
+  }
+  return { content, tool_traces };
+}
 
 function citationLabel(link: ChatCitationLink, zh: boolean): string {
   const name = link.label || link.id;
@@ -43,10 +117,12 @@ export function KbChatPlayground({
   kbId,
   graphFocusId,
   graphEnabled = true,
+  canProposeRemember = false,
 }: {
   kbId: string;
   graphFocusId?: string | null;
   graphEnabled?: boolean;
+  canProposeRemember?: boolean;
 }) {
   const { t, locale } = useI18n();
   const zh = locale === 'zh';
@@ -54,6 +130,7 @@ export function KbChatPlayground({
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const seededFocusRef = useRef<string | null>(null);
 
@@ -77,28 +154,72 @@ export function KbChatPlayground({
     const next = [...messages, userMsg];
     setMessages(next);
     setInput('');
+    const controller = new AbortController();
+    abortRef.current = controller;
     setLoading(true);
+    const assistantId = crypto.randomUUID();
+    setMessages((prev) => [
+      ...prev,
+      { id: assistantId, role: 'assistant', content: '' },
+    ]);
     try {
-      const body = await api<PlaygroundResponse>(`/api/kbs/${kbId}/chat/playground`, {
-        method: 'POST',
-        body: JSON.stringify({
-          messages: next.map((m) => ({ role: m.role, content: m.content })),
-        }),
-      });
-      const traces = body.tool_traces ?? [];
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: crypto.randomUUID(),
-          role: 'assistant',
-          content: body.message.content || t.chat.emptyReply,
-          citations: extractChatCitationLinks(traces),
+      const payload = next.map((m) => ({ role: m.role, content: m.content }));
+      const streamed = await readPlaygroundStream(
+        kbId,
+        payload,
+        controller.signal,
+        (chunk) => {
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === assistantId ? { ...m, content: m.content + chunk } : m,
+            ),
+          );
         },
-      ]);
+      );
+      const traces = streamed.tool_traces ?? [];
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === assistantId
+            ? {
+                ...m,
+                content: streamed.content || m.content || t.chat.emptyReply,
+                citations: extractChatCitationLinks(traces),
+              }
+            : m,
+        ),
+      );
       bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
     } catch (err) {
-      setError(formatUserFacingApiError(err, zh ? 'zh' : 'en'));
+      if (err instanceof DOMException && err.name === 'AbortError') {
+        setError(t.chat.cancelled);
+      } else {
+        setError(formatUserFacingApiError(err, zh ? 'zh' : 'en'));
+      }
       setMessages(next);
+    } finally {
+      abortRef.current = null;
+      setLoading(false);
+    }
+  }
+
+  function stopGeneration() {
+    abortRef.current?.abort();
+  }
+
+  async function proposeRemember() {
+    const text = input.trim();
+    if (!text || loading) return;
+    setError(null);
+    setLoading(true);
+    try {
+      await api(`/api/kbs/${kbId}/chat/remember`, {
+        method: 'POST',
+        body: JSON.stringify({ content: text }),
+      });
+      setInput('');
+      setError(t.chat.rememberQueued);
+    } catch (err) {
+      setError(formatUserFacingApiError(err, zh ? 'zh' : 'en'));
     } finally {
       setLoading(false);
     }
@@ -171,6 +292,17 @@ export function KbChatPlayground({
         </ScrollArea>
         {error && <p className="text-sm text-destructive">{error}</p>}
         <form className="flex flex-col gap-2 sm:flex-row sm:items-end" onSubmit={send}>
+          {canProposeRemember ? (
+            <Button
+              type="button"
+              variant="secondary"
+              className="shrink-0 sm:order-last"
+              disabled={loading || !input.trim()}
+              onClick={() => void proposeRemember()}
+            >
+              {t.chat.proposeRemember}
+            </Button>
+          ) : null}
           <Textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -185,9 +317,15 @@ export function KbChatPlayground({
               }
             }}
           />
-          <Button type="submit" disabled={loading || !input.trim()} className="shrink-0">
-            {t.chat.send}
-          </Button>
+          {loading ? (
+            <Button type="button" variant="outline" className="shrink-0" onClick={stopGeneration}>
+              {t.chat.stop}
+            </Button>
+          ) : (
+            <Button type="submit" disabled={!input.trim()} className="shrink-0">
+              {t.chat.send}
+            </Button>
+          )}
         </form>
       </CardContent>
     </Card>

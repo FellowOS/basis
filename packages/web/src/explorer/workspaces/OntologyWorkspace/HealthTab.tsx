@@ -3,6 +3,7 @@ import type { CSSProperties } from "react";
 import { Download, HeartPulse, Loader2, Wrench } from "lucide-react";
 import { explorerApiErrorMessage } from "../../lib/explorer-api-error";
 import { loadOntologyHealth, loadOntologyRegistry } from "./api";
+import { useOntologyKbId } from "./ontologyKb";
 import type { OntologyEntry, OntologyHealthResponse, HealthIssue } from "./types";
 
 interface HealthTabProps {
@@ -10,6 +11,7 @@ interface HealthTabProps {
 }
 
 export function HealthTab({ onFixInEditor }: HealthTabProps) {
+  const kbId = useOntologyKbId();
   const [registry, setRegistry] = useState<OntologyEntry[]>([]);
   const [selectedUri, setSelectedUri] = useState("");
   const [health, setHealth] = useState<OntologyHealthResponse | null>(null);
@@ -18,7 +20,7 @@ export function HealthTab({ onFixInEditor }: HealthTabProps) {
 
   useEffect(() => {
     let cancelled = false;
-    loadOntologyRegistry()
+    loadOntologyRegistry(kbId)
       .then((entries) => {
         if (cancelled) return;
         setRegistry(entries);
@@ -31,7 +33,7 @@ export function HealthTab({ onFixInEditor }: HealthTabProps) {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [kbId]);
 
   const [prevUri, setPrevUri] = useState(selectedUri);
   if (selectedUri !== prevUri) {
@@ -47,7 +49,7 @@ export function HealthTab({ onFixInEditor }: HealthTabProps) {
     async function fetchHealth() {
       if (!selectedUri) return;
       try {
-        const data = await loadOntologyHealth(selectedUri);
+        const data = await loadOntologyHealth(kbId, selectedUri);
         if (!ignore) setHealth(data);
       } catch {
         if (!ignore) setHealth(null);
@@ -57,7 +59,7 @@ export function HealthTab({ onFixInEditor }: HealthTabProps) {
     }
     void fetchHealth();
     return () => { ignore = true; };
-  }, [selectedUri]);
+  }, [kbId, selectedUri]);
 
   const exportReport = useCallback(() => {
     if (!health) return;

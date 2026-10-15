@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   explorerApiErrorMessage,
   explorerGetJson,
@@ -7,6 +7,8 @@ import {
   parseExplorerJson,
 } from "../../lib/explorer-api-error";
 import { explorerFetch } from "../../host/explorerHttp";
+import { ontologyPath, useOntologyKbId } from "./ontologyKb";
+import { readOntologyUrlState, writeProposalSelection } from "./ontologyUrlState";
 import {
   Layers,
   GitMerge,
@@ -30,6 +32,33 @@ interface VersionEntry {
   diff_summary: Record<string, any>;
 }
 
+function shaclSummaryLine(shacl: Record<string, unknown>): string {
+  if (!shacl || Object.keys(shacl).length === 0) return "No SHACL report attached.";
+  const conforms = shacl.conforms ?? shacl.valid;
+  const rawViolations = shacl.violations ?? shacl.results ?? shacl.report;
+  const violationCount = Array.isArray(rawViolations) ? rawViolations.length : 0;
+  if (typeof conforms === "boolean") {
+    return conforms
+      ? "SHACL: conforms"
+      : `SHACL: does not conform (${violationCount} violation${violationCount === 1 ? "" : "s"})`;
+  }
+  if (violationCount > 0) return `SHACL: ${violationCount} violation(s) listed`;
+  return "SHACL: see detailed report";
+}
+
+function impactSummaryLine(impact: Record<string, unknown>): string {
+  if (!impact || Object.keys(impact).length === 0) return "No impact analysis.";
+  const parts: string[] = [];
+  for (const key of ["classes_added", "classes_removed", "properties_added", "properties_removed", "individuals_added", "individuals_removed"]) {
+    const val = impact[key];
+    if (typeof val === "number" && val > 0) parts.push(`${key.replace(/_/g, " ")}: ${val}`);
+  }
+  if (parts.length) return parts.join(" · ");
+  const summary = impact.summary ?? impact.message;
+  if (typeof summary === "string" && summary.trim()) return summary.trim();
+  return "See detailed impact JSON below.";
+}
+
 interface Proposal {
   proposal_id: string;
   draft_id: string;
@@ -46,6 +75,7 @@ interface Proposal {
 }
 
 export function VersionsTab() {
+  const kbId = useOntologyKbId();
   const [ontologyUri, setOntologyUri] = useState<string>("");
   const [versions, setVersions] = useState<VersionEntry[]>([]);
   const [proposals, setProposals] = useState<Proposal[]>([]);
@@ -56,13 +86,35 @@ export function VersionsTab() {
   const [compareResult, setCompareResult] = useState<Record<string, any> | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [modalNotice, setModalNotice] = useState("");
+  const openedProposalFromUrl = useRef<string | null>(null);
+
+  useEffect(() => {
+    const { proposalId } = readOntologyUrlState();
+    if (!proposalId || proposals.length === 0) return;
+    if (openedProposalFromUrl.current === proposalId) return;
+    const match = proposals.find((p) => p.proposal_id === proposalId);
+    if (!match) return;
+    openedProposalFromUrl.current = proposalId;
+    if (match.ontology_uri) setOntologyUri(match.ontology_uri);
+    setSelectedProposal(match);
+    setShowProposalModal(true);
+  }, [proposals]);
+
+  useEffect(() => {
+    if (!selectedProposal) return;
+    const fresh = proposals.find((p) => p.proposal_id === selectedProposal.proposal_id);
+    if (fresh && fresh.state !== selectedProposal.state) {
+      setSelectedProposal(fresh);
+    }
+  }, [proposals, selectedProposal?.proposal_id, selectedProposal?.state]);
 
   const loadVersions = useCallback(async () => {
     if (!ontologyUri) return;
     setError("");
     try {
       const { data, partialWarning } = await explorerGetJson<VersionEntry[]>(
-        `/api/ontology/versions/${encodeURIComponent(ontologyUri)}`,
+        ontologyPath(kbId, `versions/${encodeURIComponent(ontologyUri)}`),
         undefined,
         {
           fallbackMessage: "Failed to load versions",
@@ -74,13 +126,13 @@ export function VersionsTab() {
     } catch (err) {
       setError(explorerApiErrorMessage(err));
     }
-  }, [ontologyUri]);
+  }, [kbId, ontologyUri]);
 
   const loadProposals = useCallback(async () => {
     setError("");
     try {
       const { data, partialWarning } = await explorerGetJson<Proposal[]>(
-        "/api/ontology/proposals",
+        ontologyPath(kbId, "proposals"),
         undefined,
         {
           fallbackMessage: "Failed to load proposals",
@@ -92,7 +144,7 @@ export function VersionsTab() {
     } catch (err) {
       setError(explorerApiErrorMessage(err));
     }
-  }, []);
+  }, [kbId]);
 
   useEffect(() => {
     let ignore = false;
@@ -100,7 +152,7 @@ export function VersionsTab() {
       if (!ignore) setError("");
       try {
         const { data: propData, partialWarning: propWarn } = await explorerGetJson<Proposal[]>(
-          "/api/ontology/proposals",
+          ontologyPath(kbId, "proposals"),
           undefined,
           {
             fallbackMessage: "Failed to load proposals",
@@ -118,7 +170,7 @@ export function VersionsTab() {
       if (!ontologyUri) return;
       try {
         const { data: verData, partialWarning: verWarn } = await explorerGetJson<VersionEntry[]>(
-          `/api/ontology/versions/${encodeURIComponent(ontologyUri)}`,
+          ontologyPath(kbId, `versions/${encodeURIComponent(ontologyUri)}`),
           undefined,
           {
             fallbackMessage: "Failed to load versions",
@@ -135,12 +187,12 @@ export function VersionsTab() {
     }
     void fetchInitial();
     return () => { ignore = true; };
-  }, [ontologyUri]);
+  }, [kbId, ontologyUri]);
 
   const approveProposal = useCallback(async (proposalId: string) => {
     setError("");
     try {
-      const response = await explorerFetch(`/api/ontology/proposals/${proposalId}/approve`, {
+      const response = await explorerFetch(ontologyPath(kbId, `proposals/${proposalId}/approve`), {
         method: "POST",
       });
       const partial = await explorerMutationResult(
@@ -149,17 +201,17 @@ export function VersionsTab() {
         "Warning: Partial success approving proposal.",
       );
       if (partial) setError(partial);
-      else alert("Proposal approved");
+      else setModalNotice("Proposal approved");
       loadProposals();
     } catch (err) {
       setError(explorerApiErrorMessage(err));
     }
-  }, [loadProposals]);
+  }, [kbId, loadProposals]);
 
   const rejectProposal = useCallback(async (proposalId: string) => {
     setError("");
     try {
-      const response = await explorerFetch(`/api/ontology/proposals/${proposalId}/reject`, {
+      const response = await explorerFetch(ontologyPath(kbId, `proposals/${proposalId}/reject`), {
         method: "POST",
       });
       const partial = await explorerMutationResult(
@@ -168,17 +220,17 @@ export function VersionsTab() {
         "Warning: Partial success rejecting proposal.",
       );
       if (partial) setError(partial);
-      else alert("Proposal rejected");
+      else setModalNotice("Proposal rejected");
       loadProposals();
     } catch (err) {
       setError(explorerApiErrorMessage(err));
     }
-  }, [loadProposals]);
+  }, [kbId, loadProposals]);
 
   const publishProposal = useCallback(async (proposalId: string) => {
     setError("");
     try {
-      const response = await explorerFetch(`/api/ontology/proposals/${proposalId}/publish`, {
+      const response = await explorerFetch(ontologyPath(kbId, `proposals/${proposalId}/publish`), {
         method: "POST",
       });
       const partial = await explorerMutationResult(
@@ -187,20 +239,20 @@ export function VersionsTab() {
         "Warning: Partial success publishing proposal.",
       );
       if (partial) setError(partial);
-      else alert("Proposal published");
+      else setModalNotice("Proposal published");
       loadProposals();
       loadVersions();
     } catch (err) {
       setError(explorerApiErrorMessage(err));
     }
-  }, [loadProposals, loadVersions]);
+  }, [kbId, loadProposals, loadVersions]);
 
   const runVersionComparison = useCallback(async () => {
     if (!comparePair || !ontologyUri) return;
     setIsLoading(true);
     setError("");
     try {
-      const response = await explorerFetch(`/api/ontology/versions/${encodeURIComponent(ontologyUri)}/compare`, {
+      const response = await explorerFetch(ontologyPath(kbId, `versions/${encodeURIComponent(ontologyUri)}/compare`), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -224,7 +276,7 @@ export function VersionsTab() {
     } finally {
       setIsLoading(false);
     }
-  }, [comparePair, ontologyUri]);
+  }, [kbId, comparePair, ontologyUri]);
 
   const getStateIcon = (state: string) => {
     switch (state) {
@@ -437,7 +489,9 @@ export function VersionsTab() {
                 <button
                   style={buttonStyle}
                   onClick={() => {
+                    writeProposalSelection(proposal.proposal_id);
                     setSelectedProposal(proposal);
+                    setModalNotice("");
                     setShowProposalModal(true);
                   }}
                 >
@@ -474,11 +528,17 @@ export function VersionsTab() {
                 {selectedProposal.state}
               </div>
             </div>
+            {modalNotice ? (
+              <div style={{ marginBottom: "12px", color: "#4cc38a", fontSize: "12px" }}>{modalNotice}</div>
+            ) : null}
             <div style={{ marginBottom: "12px" }}>
               <label style={{ display: "block", color: "#8fa8c6", fontSize: "12px", marginBottom: "4px" }}>
                 Impact Analysis
               </label>
-              <pre style={{ background: "rgba(3, 9, 18, 0.8)", padding: "12px", borderRadius: "6px", color: "#ebf3ff", fontSize: "12px", overflow: "auto" }}>
+              <div style={{ color: "#c5d4e8", fontSize: "12px", marginBottom: "6px" }}>
+                {impactSummaryLine(selectedProposal.impact_analysis)}
+              </div>
+              <pre style={{ background: "rgba(3, 9, 18, 0.8)", padding: "12px", borderRadius: "6px", color: "#ebf3ff", fontSize: "12px", overflow: "auto", maxHeight: "160px" }}>
                 {JSON.stringify(selectedProposal.impact_analysis, null, 2)}
               </pre>
             </div>
@@ -486,7 +546,10 @@ export function VersionsTab() {
               <label style={{ display: "block", color: "#8fa8c6", fontSize: "12px", marginBottom: "4px" }}>
                 SHACL Validation
               </label>
-              <pre style={{ background: "rgba(3, 9, 18, 0.8)", padding: "12px", borderRadius: "6px", color: "#ebf3ff", fontSize: "12px", overflow: "auto" }}>
+              <div style={{ color: "#c5d4e8", fontSize: "12px", marginBottom: "6px" }}>
+                {shaclSummaryLine(selectedProposal.shacl_validation)}
+              </div>
+              <pre style={{ background: "rgba(3, 9, 18, 0.8)", padding: "12px", borderRadius: "6px", color: "#ebf3ff", fontSize: "12px", overflow: "auto", maxHeight: "160px" }}>
                 {JSON.stringify(selectedProposal.shacl_validation, null, 2)}
               </pre>
             </div>
@@ -495,13 +558,40 @@ export function VersionsTab() {
                 Comments ({selectedProposal.comments.length})
               </label>
               <div style={{ maxHeight: "120px", overflow: "auto" }}>
-                {selectedProposal.comments.map((comment) => (
-                  <div key={comment.id} style={{ padding: "8px", background: "rgba(3, 9, 18, 0.6)", borderRadius: "4px", marginBottom: "6px" }}>
+                {selectedProposal.comments.map((comment, idx) => (
+                  <div key={String(comment.id ?? idx)} style={{ padding: "8px", background: "rgba(3, 9, 18, 0.6)", borderRadius: "4px", marginBottom: "6px" }}>
                     <div style={{ color: "#ebf3ff", fontSize: "12px", fontWeight: "600" }}>{comment.author}</div>
                     <div style={{ color: "#8fa8c6", fontSize: "11px" }}>{comment.text}</div>
                   </div>
                 ))}
               </div>
+            </div>
+            <div style={{ display: "flex", gap: "8px", marginTop: "16px", flexWrap: "wrap" }}>
+              {selectedProposal.state === "proposed" && (
+                <>
+                  <button style={buttonStyle} type="button" onClick={() => approveProposal(selectedProposal.proposal_id)}>
+                    <CheckCircle size={12} />
+                    Approve
+                  </button>
+                  <button style={buttonStyle} type="button" onClick={() => rejectProposal(selectedProposal.proposal_id)}>
+                    <XCircle size={12} />
+                    Reject
+                  </button>
+                </>
+              )}
+              {selectedProposal.state === "approved" && (
+                <button style={buttonStyle} type="button" onClick={() => publishProposal(selectedProposal.proposal_id)}>
+                  <Send size={12} />
+                  Publish
+                </button>
+              )}
+              <button
+                style={{ ...buttonStyle, marginLeft: "auto" }}
+                type="button"
+                onClick={() => setShowProposalModal(false)}
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>

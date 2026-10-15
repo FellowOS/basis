@@ -11,6 +11,7 @@ import {
   KbChatPage,
   KbMappingsPage,
   KbVocabularyPage,
+  KbLineagePage,
   KbSectionPage,
   KbSettingsPage,
   KbsPage,
@@ -176,6 +177,16 @@ function AuthedApp() {
             <KbExplorerShell>
               <Suspense fallback={null}>
                 <KbVocabularyPage />
+              </Suspense>
+            </KbExplorerShell>
+          }
+        />
+        <Route
+          path="/kbs/:id/lineage"
+          element={
+            <KbExplorerShell>
+              <Suspense fallback={null}>
+                <KbLineagePage />
               </Suspense>
             </KbExplorerShell>
           }

@@ -1,4 +1,4 @@
-import { ExternalLink, Loader2, MessageCircle } from "lucide-react";
+import { ExternalLink, GitBranch, Loader2, MessageCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge.js";
 import { Button } from "@/components/ui/button.js";
@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input.js";
 import { Separator } from "@/components/ui/separator.js";
 import { useI18n } from "@/i18n/context.js";
 import { kbPath } from "@/lib/nav-config.js";
+import { useKbCapabilitiesOptional } from "@/lib/kb-capabilities.js";
 import type { GraphWorkspaceLocale } from "./graphWorkspaceCopy";
 import {
   inspectorAltPathsBadge,
@@ -347,6 +348,7 @@ export function GraphInspectorPanel({
   const { locale: i18nLocale } = useI18n();
   const loc: GraphWorkspaceLocale =
     localeProp ?? (i18nLocale === "zh" ? "zh" : "en");
+  const provenanceEnabled = useKbCapabilitiesOptional()?.caps?.provenance === true;
 
   if (!nodeId) {
     return (
@@ -516,6 +518,16 @@ export function GraphInspectorPanel({
                 >
                   <MessageCircle size={14} className="shrink-0 opacity-70" />
                   {inspectorCopy(loc, "continueInChat")}
+                </Link>
+              </Button>
+            ) : null}
+            {kbId && provenanceEnabled ? (
+              <Button variant="outline" size="sm" className="justify-start gap-2" asChild>
+                <Link
+                  to={`${kbPath(kbId, 'lineage')}?node=${encodeURIComponent(effectiveNodeId)}`}
+                >
+                  <GitBranch size={14} className="shrink-0 opacity-70" />
+                  {inspectorCopy(loc, "openLineage")}
                 </Link>
               </Button>
             ) : null}

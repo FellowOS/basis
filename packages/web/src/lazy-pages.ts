@@ -49,3 +49,6 @@ export const KbVocabularyPage = lazy(() =>
 export const KbChatPage = lazy(() =>
   import('@/pages/kb/chat').then((m) => ({ default: m.KbChatPage })),
 );
+export const KbLineagePage = lazy(() =>
+  import('@/pages/kb/lineage').then((m) => ({ default: m.KbLineagePage })),
+);

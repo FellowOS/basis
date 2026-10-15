@@ -6,6 +6,10 @@ export const chat = {
   playgroundEmpty: '提问关于本知识库的内容，例如「有哪些文档提到了某某？」',
   inputPlaceholder: '输入问题，Enter 发送，Shift+Enter 换行',
   send: '发送',
+  stop: '停止',
   sendFailed: '发送失败',
+  cancelled: '已停止生成。',
+  proposeRemember: '提交记入审核',
+  rememberQueued: '已提交到审核队列。',
   emptyReply: '（无文本回复）',
 } as const;

@@ -3,6 +3,7 @@ import { SemaSidebar } from '@/components/sema-sidebar.js';
 import { KbProvider } from '@/lib/kb-context.js';
 import { KbCapabilitiesProvider } from '@/lib/kb-capabilities.js';
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar.js';
+import { KbAlertsBell } from '@/components/kb-alerts-bell.js';
 import { Toaster } from '@/components/ui/sonner.js';
 import { TooltipProvider } from '@/components/ui/tooltip.js';
 import { useI18n } from '@/i18n/context.js';
@@ -16,6 +17,7 @@ export function SemaLayout({ onLogout }: { onLogout: () => void }) {
   const { t } = useI18n();
   const { pathname } = useLocation();
   const graphCanvas = isKbGraphFullBleedPath(pathname);
+  const kbWorkspace = /^\/kbs\/[^/]+/.test(pathname);
 
   return (
     <TooltipProvider delayDuration={0}>
@@ -31,11 +33,16 @@ export function SemaLayout({ onLogout }: { onLogout: () => void }) {
                 : 'console-page-scroll relative flex min-h-0 flex-1 flex-col overflow-y-auto'
             }
           >
-            <div className="pointer-events-none absolute inset-x-0 top-0 z-50 flex items-center p-3 md:hidden">
+            <div className="pointer-events-none absolute inset-x-0 top-0 z-50 flex items-center justify-between gap-2 p-3">
               <SidebarTrigger
                 aria-label={t.sidebar.openSidebar}
-                className="pointer-events-auto size-auto h-auto w-auto rounded-md border border-border bg-background/90 p-1.5 text-muted-foreground shadow-sm backdrop-blur hover:bg-accent hover:opacity-100 [&_svg]:size-[18px]"
+                className="pointer-events-auto size-auto h-auto w-auto rounded-md border border-border bg-background/90 p-1.5 text-muted-foreground shadow-sm backdrop-blur hover:bg-accent hover:opacity-100 md:hidden [&_svg]:size-[18px]"
               />
+              {kbWorkspace ? (
+                <div className="pointer-events-auto ml-auto flex items-center rounded-md border border-border bg-background/90 p-0.5 shadow-sm backdrop-blur">
+                  <KbAlertsBell />
+                </div>
+              ) : null}
             </div>
             <div
               className={

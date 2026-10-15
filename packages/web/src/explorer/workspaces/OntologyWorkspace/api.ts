@@ -1,5 +1,6 @@
 import { parseExplorerJson } from "../../lib/explorer-api-error";
 import { explorerFetch } from "../../host/explorerHttp";
+import { ontologyPath } from "./ontologyKb";
 import type {
   AlignmentRelation,
   AlignmentSuggestion,
@@ -14,8 +15,6 @@ import type {
 export type OntologyGraphNode = {
   id: string;
   type: string;
-  // Required: /graph always classifies. Optional here would make a producer
-  // that forgets read as a graph of read-only nodes rather than a type error.
   entity_type: string;
   content?: string;
   properties?: Record<string, unknown>;
@@ -37,10 +36,6 @@ export type OntologyGraphResponse = {
 };
 
 export type OntologyEntityOwner = {
-  // Optional on purpose, unlike OntologyGraphNode.entity_type. There, a missing
-  // field degrades to a read-only node — benign. Here it would be read as an
-  // authoritative "nothing owns this entity", which now suppresses selection
-  // outright, so presence has to be checked rather than assumed.
   owning_ontology?: string | null;
 };
 
@@ -55,49 +50,63 @@ async function parseResponse<T>(response: Response): Promise<T> {
   return data as T;
 }
 
-export async function loadOntologyRegistry(): Promise<OntologyEntry[]> {
-  return parseResponse<OntologyEntry[]>(await explorerFetch("/api/ontology/registry"));
-}
-
-export async function loadOntologyGraph(uri: string, signal?: AbortSignal): Promise<OntologyGraphResponse> {
-  return parseResponse<OntologyGraphResponse>(
-    await explorerFetch(`/api/ontology/graph?uri=${encodeURIComponent(uri)}`, { signal }),
+export async function loadOntologyRegistry(kbId: string): Promise<OntologyEntry[]> {
+  return parseResponse<OntologyEntry[]>(
+    await explorerFetch(ontologyPath(kbId, "registry")),
   );
 }
 
-// Three-state verdict: a string names the owner, null is the backend's
-// authoritative "no known ontology owns this entity", and undefined means the
-// request failed so there is no verdict to act on.
+export async function loadOntologyGraph(
+  kbId: string,
+  uri: string,
+  signal?: AbortSignal,
+): Promise<OntologyGraphResponse> {
+  return parseResponse<OntologyGraphResponse>(
+    await explorerFetch(ontologyPath(kbId, "graph", `uri=${encodeURIComponent(uri)}`), {
+      signal,
+    }),
+  );
+}
+
 export type OntologyOwnerVerdict = string | null | undefined;
 
-export async function loadOntologyEntityOwner(uri: string): Promise<OntologyOwnerVerdict> {
-  const response = await explorerFetch(`/api/ontology/entity/${encodeURIComponent(uri)}`);
+export async function loadOntologyEntityOwner(
+  kbId: string,
+  uri: string,
+): Promise<OntologyOwnerVerdict> {
+  const response = await explorerFetch(
+    ontologyPath(kbId, `entity/${encodeURIComponent(uri)}`),
+  );
   if (!response.ok) return undefined;
-  const owner = await response.json() as OntologyEntityOwner | null;
-  // Only a field that is actually there carries the verdict. Coercing an absent
-  // field to null would assert the strongest available claim — "nothing owns
-  // this" — on the weakest possible evidence, and that claim now stops the
-  // editor selecting an ontology at all.
+  const owner = (await response.json()) as OntologyEntityOwner | null;
   const verdict = owner?.owning_ontology;
   return verdict === undefined ? undefined : verdict;
 }
 
-export async function loadAlignments(uri?: string): Promise<OntologyAlignment[]> {
-  const query = uri ? `?uri=${encodeURIComponent(uri)}` : "";
-  return parseResponse<OntologyAlignment[]>(await explorerFetch(`/api/ontology/alignments${query}`));
+export async function loadAlignments(
+  kbId: string,
+  uri?: string,
+): Promise<OntologyAlignment[]> {
+  const query = uri ? `uri=${encodeURIComponent(uri)}` : undefined;
+  return parseResponse<OntologyAlignment[]>(
+    await explorerFetch(ontologyPath(kbId, "alignments", query)),
+  );
 }
 
-export async function saveAlignment(payload: {
-  source_uri: string;
-  target_uri: string;
-  relation: AlignmentRelation;
-  confidence: number;
-  provenance?: string;
-  source?: string;
-  reviewer?: string;
-}): Promise<OntologyAlignment> {
+export async function saveAlignment(
+  kbId: string,
+  payload: {
+    source_uri: string;
+    target_uri: string;
+    relation: AlignmentRelation;
+    confidence: number;
+    provenance?: string;
+    source?: string;
+    reviewer?: string;
+  },
+): Promise<OntologyAlignment> {
   return parseResponse<OntologyAlignment>(
-    await explorerFetch("/api/ontology/alignments", {
+    await explorerFetch(ontologyPath(kbId, "alignments"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
@@ -105,20 +114,26 @@ export async function saveAlignment(payload: {
   );
 }
 
-export async function removeAlignment(id: string): Promise<void> {
+export async function removeAlignment(kbId: string, id: string): Promise<void> {
   await parseResponse<{ status: string }>(
-    await explorerFetch(`/api/ontology/alignments?id=${encodeURIComponent(id)}`, { method: "DELETE" }),
+    await explorerFetch(
+      ontologyPath(kbId, "alignments", `id=${encodeURIComponent(id)}`),
+      { method: "DELETE" },
+    ),
   );
 }
 
-export async function suggestAlignments(payload: {
-  source_ontology_uri?: string;
-  target_ontology_uri?: string;
-  threshold: number;
-  limit: number;
-}): Promise<AlignmentSuggestion[]> {
+export async function suggestAlignments(
+  kbId: string,
+  payload: {
+    source_ontology_uri?: string;
+    target_ontology_uri?: string;
+    threshold: number;
+    limit: number;
+  },
+): Promise<AlignmentSuggestion[]> {
   return parseResponse<AlignmentSuggestion[]>(
-    await explorerFetch("/api/ontology/suggest-alignments", {
+    await explorerFetch(ontologyPath(kbId, "suggest-alignments"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
@@ -126,15 +141,24 @@ export async function suggestAlignments(payload: {
   );
 }
 
-export async function loadOntologyHealth(uri: string): Promise<OntologyHealthResponse> {
+export async function loadOntologyHealth(
+  kbId: string,
+  uri: string,
+): Promise<OntologyHealthResponse> {
   return parseResponse<OntologyHealthResponse>(
-    await explorerFetch(`/api/ontology/health?uri=${encodeURIComponent(uri)}`),
+    await explorerFetch(
+      ontologyPath(kbId, "health", `uri=${encodeURIComponent(uri)}`),
+    ),
   );
 }
 
-export async function generateShacl(uri: string, qualityTier: "standard" | "strict" = "strict"): Promise<ShaclGenerateResponse> {
+export async function generateShacl(
+  kbId: string,
+  uri: string,
+  qualityTier: "standard" | "strict" = "strict",
+): Promise<ShaclGenerateResponse> {
   return parseResponse<ShaclGenerateResponse>(
-    await explorerFetch("/api/ontology/shacl/generate", {
+    await explorerFetch(ontologyPath(kbId, "shacl/generate"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ uri, quality_tier: qualityTier }),
@@ -142,15 +166,24 @@ export async function generateShacl(uri: string, qualityTier: "standard" | "stri
   );
 }
 
-export async function loadShaclShapes(uri: string): Promise<ShaclShapesResponse> {
+export async function loadShaclShapes(
+  kbId: string,
+  uri: string,
+): Promise<ShaclShapesResponse> {
   return parseResponse<ShaclShapesResponse>(
-    await explorerFetch(`/api/ontology/shacl/shapes?uri=${encodeURIComponent(uri)}`),
+    await explorerFetch(
+      ontologyPath(kbId, "shacl/shapes", `uri=${encodeURIComponent(uri)}`),
+    ),
   );
 }
 
-export async function validateShacl(uri: string, shaclTurtle: string): Promise<ShaclValidationResponse> {
+export async function validateShacl(
+  kbId: string,
+  uri: string,
+  shaclTurtle: string,
+): Promise<ShaclValidationResponse> {
   return parseResponse<ShaclValidationResponse>(
-    await explorerFetch("/api/ontology/shacl/validate", {
+    await explorerFetch(ontologyPath(kbId, "shacl/validate"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ uri, shacl_turtle: shaclTurtle }),

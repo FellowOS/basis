@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/table.js';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs.js';
 import { useI18n } from '@/i18n/context.js';
+import { KbGraphOverviewStats } from '@/components/kb-graph-overview-stats.js';
 import { KbGraphProjectionPanel } from '@/components/kb-graph-projection-panel.js';
 import { useKbCatalog } from '@/lib/kb-context.js';
 import { useKbCapabilities } from '@/lib/kb-capabilities.js';
@@ -298,13 +299,16 @@ export function KbSettingsPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="graph" className="mt-4">
+        <TabsContent value="graph" className="mt-4 space-y-4">
           {id ? (
-            <KbGraphProjectionPanel
-              kbId={id}
-              canRebuild={canRebuildGraph}
-              graphEnabled={graphEnabled}
-            />
+            <>
+              <KbGraphOverviewStats kbId={id} />
+              <KbGraphProjectionPanel
+                kbId={id}
+                canRebuild={canRebuildGraph}
+                graphEnabled={graphEnabled}
+              />
+            </>
           ) : null}
         </TabsContent>
 

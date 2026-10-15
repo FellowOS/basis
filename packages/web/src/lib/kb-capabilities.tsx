@@ -99,6 +99,8 @@ export function kbNavSegmentEnabled(segment: string, caps: KbCapabilities | null
     case 'graph':
     case 'search':
       return caps.graph;
+    case 'lineage':
+      return caps.provenance && caps.graph;
     case 'chat':
       return true;
     case 'ontology':

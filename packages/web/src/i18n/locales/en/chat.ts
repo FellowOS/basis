@@ -6,6 +6,10 @@ export const chat = {
   playgroundEmpty: 'Ask about this knowledge base, e.g. “What documents mention …?”',
   inputPlaceholder: 'Ask a question — Enter to send, Shift+Enter for newline',
   send: 'Send',
+  stop: 'Stop',
   sendFailed: 'Failed to send',
+  cancelled: 'Generation stopped.',
+  proposeRemember: 'Propose for review',
+  rememberQueued: 'Submitted to the review queue.',
   emptyReply: '(No text reply)',
 } as const;

@@ -24,6 +24,7 @@ const MESSAGES = {
   },
   knowledgeLinks: { zh: "知识库跳转", en: "Knowledge links" },
   continueInChat: { zh: "在对话中继续", en: "Continue in chat" },
+  openLineage: { zh: "查看 PROV 血缘", en: "Open PROV lineage" },
   evidenceSourcesDoc: { zh: "在资料中打开文档", en: "Open document in Sources" },
   evidenceSourcesChunk: { zh: "在资料中打开片段", en: "Open chunk in Sources" },
   evidenceSearch: { zh: "在检索中搜索", en: "Search in KB" },

@@ -10,7 +10,7 @@ export function KbExplorerUnavailable({
   feature,
 }: {
   kbId: string;
-  feature?: 'graph' | 'sparql' | 'review' | 'import' | 'vocabulary';
+  feature?: 'graph' | 'sparql' | 'review' | 'import' | 'vocabulary' | 'lineage';
 }) {
   const { t, locale } = useI18n();
   const { caps } = useKbCapabilities();

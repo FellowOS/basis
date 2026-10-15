@@ -1,4 +1,5 @@
 import { useParams } from 'react-router-dom';
+import { KbPageSubtitle } from '@/components/kb-page-subtitle.js';
 import { PageHeader } from '@/components/console-ui/PageHeader.js';
 import { LedgerEntityBrowser } from '@/components/ledger-entity-browser.js';
 import { useI18n } from '@/i18n/context.js';
@@ -20,6 +21,7 @@ export function KbEntitiesPage() {
           { label: t.menu.kb.entities },
         ]}
       />
+      <KbPageSubtitle>{t.pages.kbSubtitles.entities}</KbPageSubtitle>
       <LedgerEntityBrowser kbId={id} />
     </div>
   );

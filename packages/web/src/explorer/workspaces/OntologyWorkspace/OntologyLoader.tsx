@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { explorerApiErrorMessage, parseExplorerJson } from "../../lib/explorer-api-error";
 import { explorerFetch } from "../../host/explorerHttp";
+import { ontologyPath, useOntologyKbId } from "./ontologyKb";
 import {
   AlertCircle,
   CheckCircle2,
@@ -175,6 +176,7 @@ function PreviewRow({
 // ---------------------------------------------------------------------------
 
 function URLImportPanel({ onLoaded }: { onLoaded: () => void }) {
+  const kbId = useOntologyKbId();
   const [url, setUrl] = useState("");
   const [format, setFormat] = useState("");
   const [customName, setCustomName] = useState("");
@@ -192,7 +194,7 @@ function URLImportPanel({ onLoaded }: { onLoaded: () => void }) {
     setPreview(null);
     setErrorMsg("");
     try {
-      const res = await explorerFetch("/api/ontology/preview", {
+      const res = await explorerFetch(ontologyPath(kbId, "preview"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: url.trim(), format: format || undefined }),
@@ -211,7 +213,7 @@ function URLImportPanel({ onLoaded }: { onLoaded: () => void }) {
     if (!url.trim()) return;
     setLoadState("loading");
     try {
-      const res = await explorerFetch("/api/ontology/load", {
+      const res = await explorerFetch(ontologyPath(kbId, "load"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -352,6 +354,7 @@ function URLImportPanel({ onLoaded }: { onLoaded: () => void }) {
 // ---------------------------------------------------------------------------
 
 function FileUploadPanel({ onLoaded }: { onLoaded: () => void }) {
+  const kbId = useOntologyKbId();
   const fileRef = useRef<HTMLInputElement>(null);
   const [fileName, setFileName] = useState("");
   const [content, setContent] = useState("");
@@ -385,7 +388,7 @@ function FileUploadPanel({ onLoaded }: { onLoaded: () => void }) {
     if (!content) return;
     setLoadState("loading");
     try {
-      const res = await explorerFetch("/api/ontology/load", {
+      const res = await explorerFetch(ontologyPath(kbId, "load"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         // Omit format when empty so the backend _detect_format() runs
@@ -497,6 +500,7 @@ function FileUploadPanel({ onLoaded }: { onLoaded: () => void }) {
 // ---------------------------------------------------------------------------
 
 function CreateNewPanel({ onLoaded }: { onLoaded: () => void }) {
+  const kbId = useOntologyKbId();
   const [createMode, setCreateMode] = useState<CreateMode>("scratch");
   const [namespace, setNamespace] = useState("https://example.org/ontology/");
   const [name, setName] = useState("");
@@ -511,7 +515,7 @@ function CreateNewPanel({ onLoaded }: { onLoaded: () => void }) {
     if (!name.trim() || !namespace.trim()) return;
     setCreateState("loading");
     try {
-      const res = await explorerFetch("/api/ontology/create", {
+      const res = await explorerFetch(ontologyPath(kbId, "create"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

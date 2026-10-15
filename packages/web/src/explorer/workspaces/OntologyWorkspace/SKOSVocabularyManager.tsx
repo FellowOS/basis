@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { explorerApiErrorMessage, explorerGetJson } from "../../lib/explorer-api-error";
+import { ontologyPath, useOntologyKbId, vocabularyPath } from "./ontologyKb";
 import {
   AlertCircle,
   BookOpen,
@@ -74,6 +75,7 @@ function ConceptDetailPanel({
   onClose: () => void;
   onNavigate: (uri: string) => void;
 }) {
+  const kbId = useOntologyKbId();
   const [detail, setDetail] = useState<SKOSConceptDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -89,7 +91,7 @@ function ConceptDetailPanel({
   useEffect(() => {
     let ignore = false;
     void explorerGetJson<SKOSConceptDetail>(
-      `/api/ontology/skos/concept/${encodeURIComponent(uri)}`,
+      ontologyPath(kbId, `skos/concept/${encodeURIComponent(uri)}`),
       undefined,
       {
         fallbackMessage: "Concept not found",
@@ -110,7 +112,7 @@ function ConceptDetailPanel({
     return () => {
       ignore = true;
     };
-  }, [uri]);
+  }, [kbId, uri]);
 
   const renderUriList = (label: string, uris: string[]) => {
     if (!uris.length) return null;
@@ -342,6 +344,7 @@ function SchemePanel({
   onSelectConcept: (uri: string) => void;
   searchQuery: string;
 }) {
+  const kbId = useOntologyKbId();
   const [expanded, setExpanded] = useState(true);
   const [hierarchy, setHierarchy] = useState<ConceptNode[]>([]);
   const [loading, setLoading] = useState(expanded);
@@ -365,7 +368,7 @@ function SchemePanel({
     let ignore = false;
     if (!expanded) return;
     void explorerGetJson<ConceptNode[]>(
-      `/api/vocabulary/hierarchy?scheme=${encodeURIComponent(scheme.uri)}`,
+      vocabularyPath(kbId, "hierarchy", `scheme=${encodeURIComponent(scheme.uri)}`),
       undefined,
       {
         fallbackMessage: "Failed to load hierarchy",
@@ -389,7 +392,7 @@ function SchemePanel({
     return () => {
       ignore = true;
     };
-  }, [scheme.uri, expanded]);
+  }, [kbId, scheme.uri, expanded]);
 
   const totalConcepts = countConcepts(hierarchy);
 
@@ -461,6 +464,7 @@ interface Props {
 }
 
 export function SKOSVocabularyManager({ schemeUri }: Props) {
+  const kbId = useOntologyKbId();
   const [schemes, setSchemes] = useState<SKOSScheme[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -469,7 +473,7 @@ export function SKOSVocabularyManager({ schemeUri }: Props) {
 
   useEffect(() => {
     void explorerGetJson<SKOSScheme[]>(
-      "/api/ontology/skos/schemes",
+      ontologyPath(kbId, "skos/schemes"),
       undefined,
       {
         fallbackMessage: "Failed to load schemes",
@@ -482,7 +486,7 @@ export function SKOSVocabularyManager({ schemeUri }: Props) {
       })
       .catch((e) => setError(explorerApiErrorMessage(e)))
       .finally(() => setLoading(false));
-  }, []);
+  }, [kbId]);
 
   const displayedSchemes = schemeUri
     ? schemes.filter((s) => s.uri === schemeUri)

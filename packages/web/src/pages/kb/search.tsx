@@ -7,6 +7,7 @@ import {
   EmptyState,
   ToolbarSearch,
 } from '@/components/console-ui/index.js';
+import { KbPageSubtitle } from '@/components/kb-page-subtitle.js';
 import { PageHeader } from '@/components/console-ui/PageHeader.js';
 import { KbExplorerUnavailable } from '@/components/kb-explorer-unavailable.js';
 import { Button } from '@/components/ui/button.js';
@@ -61,6 +62,13 @@ export function KbSearchPage() {
   const [loading, setLoading] = useState(false);
   const [filterDoc, setFilterDoc] = useState(() => searchParams.get('doc') ?? '');
   const [filterEntity, setFilterEntity] = useState(() => searchParams.get('entity') ?? '');
+  const [filterCreatedAfter, setFilterCreatedAfter] = useState(
+    () => searchParams.get('created_after') ?? '',
+  );
+  const [filterCreatedBefore, setFilterCreatedBefore] = useState(
+    () => searchParams.get('created_before') ?? '',
+  );
+  const [filterAsOf, setFilterAsOf] = useState(() => searchParams.get('as_of') ?? '');
 
   const graphBlocked = id && !capsLoading && caps && !caps.graph;
   const graphLabelIds = graphResults.map((hit) => hit.node.id);
@@ -143,6 +151,12 @@ export function KbSearchPage() {
         const entityFilter = filterEntity.trim();
         if (docFilter) params.set('document_id', docFilter);
         if (entityFilter) params.set('entity_id', entityFilter);
+        const after = filterCreatedAfter.trim();
+        const before = filterCreatedBefore.trim();
+        if (after) params.set('created_after', after);
+        const asOf = filterAsOf.trim();
+        if (asOf) params.set('as_of', asOf);
+        else if (before) params.set('created_before', before);
         const data = await api<{ chunks: ChunkHit[]; mode?: string }>(
           `/api/kbs/${id}/search?${params}`,
         );
@@ -180,6 +194,12 @@ export function KbSearchPage() {
   const openInGraph = locale === 'zh' ? '在图谱中打开' : 'Open in graph';
   const filterDocLabel = locale === 'zh' ? '限定文档 (doc_id)' : 'Limit to document (doc_id)';
   const filterEntityLabel = locale === 'zh' ? '限定实体 (id)' : 'Limit to entity (id)';
+  const filterAfterLabel =
+    locale === 'zh' ? '文档入库不早于 (ISO)' : 'Document created after (ISO)';
+  const filterBeforeLabel =
+    locale === 'zh' ? '文档入库不晚于 (ISO)' : 'Document created before (ISO)';
+  const filterAsOfLabel =
+    locale === 'zh' ? '截至时刻 as_of (ISO，等同 created_before)' : 'As-of instant (ISO, alias for created_before)';
 
   useEffect(() => {
     const doc = searchParams.get('doc');
@@ -189,6 +209,12 @@ export function KbSearchPage() {
       setFilterEntity(entity);
       setTab('chunks');
     }
+    const createdAfter = searchParams.get('created_after');
+    const createdBefore = searchParams.get('created_before');
+    if (createdAfter) setFilterCreatedAfter(createdAfter);
+    if (createdBefore) setFilterCreatedBefore(createdBefore);
+    const asOf = searchParams.get('as_of');
+    if (asOf) setFilterAsOf(asOf);
   }, [searchParams]);
 
   if (tab === 'graph' && graphBlocked) {
@@ -213,6 +239,17 @@ export function KbSearchPage() {
           { label: t.menu.kb.search },
         ]}
       />
+      <KbPageSubtitle>
+        {t.pages.kbSubtitles.search}
+        {id ? (
+          <>
+            {' '}
+            <Link to={kbPath(id, 'graph')} className="text-primary underline-offset-2 hover:underline">
+              {locale === 'zh' ? '打开图谱' : 'Open graph'}
+            </Link>
+          </>
+        ) : null}
+      </KbPageSubtitle>
       <DataPanel>
         <form onSubmit={onSubmit}>
           <DataPanelToolbar
@@ -279,6 +316,25 @@ export function KbSearchPage() {
                 onChange={(e) => setFilterEntity(e.target.value)}
                 placeholder={filterEntityLabel}
                 className="text-xs"
+              />
+              <Input
+                value={filterCreatedAfter}
+                onChange={(e) => setFilterCreatedAfter(e.target.value)}
+                placeholder={filterAfterLabel}
+                className="text-xs sm:col-span-1"
+              />
+              <Input
+                value={filterCreatedBefore}
+                onChange={(e) => setFilterCreatedBefore(e.target.value)}
+                placeholder={filterBeforeLabel}
+                className="text-xs sm:col-span-1"
+                disabled={Boolean(filterAsOf.trim())}
+              />
+              <Input
+                value={filterAsOf}
+                onChange={(e) => setFilterAsOf(e.target.value)}
+                placeholder={filterAsOfLabel}
+                className="text-xs sm:col-span-2"
               />
             </div>
           ) : null}

@@ -102,7 +102,7 @@ export function KbOntologyWorkspace({
           >
             <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
               {tab === 'hub' ? (
-                <OntologyWorkspace onJumpToGraphNode={onJumpToGraphNode} />
+                <OntologyWorkspace kbId={kbId} onJumpToGraphNode={onJumpToGraphNode} />
               ) : tab === 'sparql' ? (
                 caps?.sparql ? (
                   <SparqlWorkspace kbId={kbId} />

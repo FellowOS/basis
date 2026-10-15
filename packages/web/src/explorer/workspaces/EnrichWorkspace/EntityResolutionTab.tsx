@@ -11,6 +11,7 @@ import { fetchKbNodeLabels } from "@/lib/kb-node-labels.js";
 import { errorFromApiResponse } from "@/lib/api-error.js";
 import { useApiErrorMessage } from "@/lib/use-api-error-message.js";
 import { logEvent, useRegistry } from "../../store/registryStore";
+import { KbEntityMergePropertyDiff } from "@/components/kb-entity-merge-property-diff.js";
 
 interface DedupPair {
   a: { id: string; label: string; type: string };
@@ -86,11 +87,13 @@ function ScoreBar({ score }: { score: number }) {
 }
 
 function PairRow({
+  kbId,
   pair,
   onMerge,
   onQueue,
   onDismiss,
 }: {
+  kbId: string;
   pair: DedupPair;
   onMerge: (primaryId: string, duplicateId: string) => Promise<void>;
   onQueue?: (primaryId: string, duplicateId: string) => Promise<void>;
@@ -171,23 +174,13 @@ function PairRow({
         </div>
       </div>
 
-      {/* Expanded diff */}
       {expanded ? (
-        <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-          {[
-            { label: "Primary (keep)", entity: pair.a, accentColor: "#4aa3ff" },
-            { label: "Duplicate (remove)", entity: pair.b, accentColor: "#ff7b72" },
-          ].map(({ label, entity, accentColor }) => (
-            <div key={entity.id} style={{ ...diffCardStyle, borderColor: `${accentColor}33` }}>
-              <div style={{ color: accentColor, fontSize: 10, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 6 }}>
-                {label}
-              </div>
-              <div style={{ color: "#e6edf3", fontSize: 13, fontWeight: 600 }}>{entity.label || entity.id}</div>
-              <div style={{ color: "#8b949e", fontSize: 11, marginTop: 3 }}>{entity.type}</div>
-              <div style={{ color: "#6a7f97", fontSize: 10, marginTop: 4, fontFamily: "monospace" }}>{entity.id}</div>
-            </div>
-          ))}
-        </div>
+        <KbEntityMergePropertyDiff
+          kbId={kbId}
+          primaryId={pair.a.id}
+          duplicateId={pair.b.id}
+          variant="console"
+        />
       ) : null}
     </div>
   );
@@ -358,6 +351,7 @@ export function EntityResolutionTab({ kbId }: { kbId: string }) {
               {pairs.map((pair, index) => (
                 <PairRow
                   key={`${pair.a.id}:${pair.b.id}`}
+                  kbId={kbId}
                   pair={pair}
                   onMerge={handleMerge}
                   onQueue={kbId ? handleQueueMerge : undefined}
@@ -442,13 +436,6 @@ const iconBtnStyle: React.CSSProperties = {
   borderRadius: 6,
   display: "flex",
   alignItems: "center",
-};
-
-const diffCardStyle: React.CSSProperties = {
-  padding: "10px 12px",
-  borderRadius: 10,
-  background: "color-mix(in oklch, var(--muted) 40%, var(--card))",
-  border: "1px solid var(--ws-border)",
 };
 
 const historyPanelStyle: React.CSSProperties = {

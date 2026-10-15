@@ -17,6 +17,7 @@ export const menu = {
     ontology: 'Ontology & analyze',
     mappings: 'Mappings',
     vocabulary: 'Vocabulary & alignments',
+    lineage: 'Provenance lineage',
     settings: 'Settings',
   },
   kbZones: {

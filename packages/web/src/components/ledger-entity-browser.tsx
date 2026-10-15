@@ -15,6 +15,7 @@ import { useI18n } from '@/i18n/context.js';
 import { api } from '@/lib/api.js';
 import { useKbNodeLabels } from '@/lib/kb-node-labels.js';
 import { kbPath } from '@/lib/nav-config.js';
+import { useKbCapabilities } from '@/lib/kb-capabilities.js';
 import { useApiErrorMessage } from '@/lib/use-api-error-message.js';
 
 export type LedgerEntityHit = {
@@ -49,6 +50,7 @@ export function LedgerEntityList({
   emptyLabel: string;
 }) {
   const { locale } = useI18n();
+  const { caps } = useKbCapabilities();
   const [factsEntityId, setFactsEntityId] = useState<string | null>(null);
   const [entityFacts, setEntityFacts] = useState<EntityFactHit[]>([]);
   const [factsLoading, setFactsLoading] = useState(false);
@@ -61,6 +63,8 @@ export function LedgerEntityList({
   const showStatements = locale === 'zh' ? '陈述' : 'Statements';
   const hideStatements = locale === 'zh' ? '收起' : 'Hide';
   const openInGraph = locale === 'zh' ? '在图谱中打开' : 'Open in graph';
+  const openLineage = locale === 'zh' ? '溯源血缘' : 'Lineage';
+  const showLineage = Boolean(caps?.provenance && caps?.graph);
   const openEvidence = locale === 'zh' ? '证据' : 'Evidence';
 
   async function toggleEntityFacts(entityId: string) {
@@ -115,6 +119,15 @@ export function LedgerEntityList({
                     {openInGraph}
                   </Link>
                 </Button>
+                {showLineage ? (
+                  <Button variant="ghost" size="sm" className="h-7 text-xs" asChild>
+                    <Link
+                      to={`${kbPath(kbId, 'lineage')}?node=${encodeURIComponent(entityId)}`}
+                    >
+                      {openLineage}
+                    </Link>
+                  </Button>
+                ) : null}
               </div>
             </div>
             {hit.description ? (

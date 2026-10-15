@@ -1,6 +1,7 @@
 import { useParams, useSearchParams } from 'react-router-dom';
 import { KbChatPlayground } from '@/components/kb-chat-playground.js';
 import { KbMcpIntegrationPanel } from '@/components/kb-mcp-integration-panel.js';
+import { KbPageSubtitle } from '@/components/kb-page-subtitle.js';
 import { PageHeader } from '@/components/console-ui/PageHeader.js';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs.js';
 import { useI18n } from '@/i18n/context.js';
@@ -46,6 +47,7 @@ export function KbChatPage() {
           { label: t.menu.kb.chat },
         ]}
       />
+      <KbPageSubtitle>{t.pages.kbSubtitles.chat}</KbPageSubtitle>
       <Tabs
         value={tab}
         onValueChange={(value) => setSearchParams({ tab: value }, { replace: true })}
@@ -59,6 +61,7 @@ export function KbChatPage() {
             kbId={id}
             graphFocusId={graphFocus}
             graphEnabled={caps?.graph === true}
+            canProposeRemember={caps?.graph_write === true}
           />
         </TabsContent>
         <TabsContent value="connect" className="mt-4">

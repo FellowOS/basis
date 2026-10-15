@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { explorerApiErrorMessage, explorerGetJson, parseExplorerJson } from "../../lib/explorer-api-error";
 import { explorerFetch } from "../../host/explorerHttp";
+import { ontologyPath, useOntologyKbId } from "./ontologyKb";
 import {
   AlertCircle,
   BookOpen,
@@ -176,6 +177,7 @@ function DetailPanel({
   uri: string;
   onClose: () => void;
 }) {
+  const kbId = useOntologyKbId();
   const [detail, setDetail] = useState<EntityDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -191,7 +193,7 @@ function DetailPanel({
   useEffect(() => {
     let ignore = false;
     void explorerGetJson<EntityDetail>(
-      `/api/ontology/entity/${encodeURIComponent(uri)}`,
+      ontologyPath(kbId, `entity/${encodeURIComponent(uri)}`),
       undefined,
       {
         fallbackMessage: "Entity not found",
@@ -210,7 +212,7 @@ function DetailPanel({
         if (!ignore) setLoading(false);
       });
     return () => { ignore = true; };
-  }, [uri]);
+  }, [kbId, uri]);
 
   return (
     <div style={detailPanelStyle}>
@@ -313,6 +315,7 @@ function DetailSection({ label, children }: { label: string; children: React.Rea
 // ---------------------------------------------------------------------------
 
 export function OntologySearch() {
+  const kbId = useOntologyKbId();
   const [query, setQuery] = useState("");
   const [entityType, setEntityType] = useState<string>("all");
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -329,7 +332,7 @@ export function OntologySearch() {
     try {
       const params = new URLSearchParams({ q: q.trim(), limit: "80" });
       if (type !== "all") params.set("entity_type", type);
-      const res = await explorerFetch(`/api/ontology/search?${params}`);
+      const res = await explorerFetch(ontologyPath(kbId, "search", params.toString()));
       setResults(await parseExplorerJson<SearchResult[]>(res, "Search failed"));
     } catch {
       setResults([]);
@@ -342,7 +345,7 @@ export function OntologySearch() {
     if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => runSearch(query, entityType), 320);
     return () => { if (timerRef.current) clearTimeout(timerRef.current); };
-  }, [query, entityType]);
+  }, [query, entityType, kbId]);
 
   return (
     <div style={searchShellStyle}>

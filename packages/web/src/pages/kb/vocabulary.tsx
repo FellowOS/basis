@@ -1,4 +1,5 @@
 import { useParams } from 'react-router-dom';
+import { KbPageSubtitle } from '@/components/kb-page-subtitle.js';
 import { PageHeader } from '@/components/console-ui/PageHeader.js';
 import { KbVocabularyHubWorkspace } from '@/components/kb-vocabulary-hub-workspace.js';
 import { useI18n } from '@/i18n/context.js';
@@ -23,6 +24,7 @@ export function KbVocabularyPage() {
           { label: t.menu.kb.vocabulary },
         ]}
       />
+      <KbPageSubtitle>{t.pages.kbSubtitles.vocabulary}</KbPageSubtitle>
       <KbVocabularyHubWorkspace
         kbId={id}
         className="min-h-0 flex-1 rounded-lg border border-border"

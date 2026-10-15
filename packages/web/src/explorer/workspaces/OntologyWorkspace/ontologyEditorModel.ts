@@ -22,7 +22,7 @@ export const ONTOLOGY_MINIMAP_THEME = {
 
 // Last-resort guess, reached only when the backend gave no verdict: it has no
 // notion of nested vocabularies, so it can name a parent that does not contain
-// the entity. Authority is owning_ontology from /api/ontology/entity
+// the entity. Authority is owning_ontology from KB ontology entity API.
 // (_resolve_owning_ontology in semantica/explorer/routes/ontology.py).
 function ownsByNamespace(entityUri: string, ontologyUri: string): boolean {
   const stem = ontologyUri.replace(/[/#]+$/, "");
@@ -73,7 +73,7 @@ export function inferOntologyUri(
   // namespace guess here would answer a question nobody asked — the backend
   // named this entity's owner, and silently opening a *different* ontology is
   // worse than opening one the registry has not been told about yet, which
-  // surfaces as an explicit error from /api/ontology/graph.
+  // surfaces as an explicit error from the KB ontology graph API.
   if (explicitOwner) {
     return explicitOwner;
   }

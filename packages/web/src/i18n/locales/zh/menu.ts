@@ -17,6 +17,7 @@ export const menu = {
     ontology: '本体与分析',
     mappings: '映射',
     vocabulary: '词表与对齐',
+    lineage: '溯源血缘',
     settings: '设置',
   },
   kbZones: {

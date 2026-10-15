@@ -22,6 +22,7 @@ import {
   ToggleLeft,
   ToggleRight,
 } from "lucide-react";
+import { ontologyPath, useOntologyKbId } from "./ontologyKb";
 import { OntologyLoader } from "./OntologyLoader";
 import { OntologySearch } from "./OntologySearch";
 import { SKOSVocabularyManager } from "./SKOSVocabularyManager";
@@ -247,6 +248,7 @@ function RegistryRow({
 // ---------------------------------------------------------------------------
 
 export function OntologyManager() {
+  const kbId = useOntologyKbId();
   const [entries, setEntries] = useState<OntologyEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQ, setSearchQ] = useState("");
@@ -275,7 +277,7 @@ export function OntologyManager() {
       const params = new URLSearchParams();
       if (searchQ) params.set("q", searchQ);
       const { data, partialWarning } = await explorerGetJson<OntologyEntry[]>(
-        `/api/ontology/registry?${params}`,
+        ontologyPath(kbId, "registry", params.toString()),
         undefined,
         {
           fallbackMessage: "Failed to load ontology registry",
@@ -290,7 +292,7 @@ export function OntologyManager() {
     } finally {
       setLoading(false);
     }
-  }, [searchQ, flashMsg]);
+  }, [kbId, searchQ, flashMsg]);
 
   useEffect(() => {
     let ignore = false;
@@ -299,7 +301,7 @@ export function OntologyManager() {
         const params = new URLSearchParams();
         if (searchQ) params.set("q", searchQ);
         const { data, partialWarning } = await explorerGetJson<OntologyEntry[]>(
-          `/api/ontology/registry?${params}`,
+          ontologyPath(kbId, "registry", params.toString()),
           undefined,
           {
             fallbackMessage: "Failed to load ontology registry",
@@ -320,11 +322,11 @@ export function OntologyManager() {
     }
     void fetchInitial();
     return () => { ignore = true; };
-  }, [searchQ, flashMsg]);
+  }, [kbId, searchQ, flashMsg]);
 
   const handleToggle = useCallback(async (uri: string) => {
     try {
-      const res = await explorerFetch(`/api/ontology/${encodeURIComponent(uri)}/toggle`, {
+      const res = await explorerFetch(ontologyPath(kbId, `${encodeURIComponent(uri)}/toggle`), {
         method: "PATCH",
       });
       const data = await parseExplorerJson<{ enabled: boolean }>(res, "Toggle failed");
@@ -334,11 +336,11 @@ export function OntologyManager() {
     } catch (err) {
       flashMsg("err", explorerApiErrorMessage(err));
     }
-  }, []);
+  }, [kbId]);
 
   const handleRefresh = useCallback(async (uri: string) => {
     try {
-      const res = await explorerFetch(`/api/ontology/${encodeURIComponent(uri)}/refresh`, {
+      const res = await explorerFetch(ontologyPath(kbId, `${encodeURIComponent(uri)}/refresh`), {
         method: "POST",
       });
       const partial = await explorerMutationResult(
@@ -352,11 +354,11 @@ export function OntologyManager() {
     } catch (err) {
       flashMsg("err", explorerApiErrorMessage(err));
     }
-  }, [fetchRegistry]);
+  }, [kbId, fetchRegistry]);
 
   const handleRemove = useCallback(async (uri: string) => {
     try {
-      const res = await explorerFetch(`/api/ontology/${encodeURIComponent(uri)}`, {
+      const res = await explorerFetch(ontologyPath(kbId, encodeURIComponent(uri)), {
         method: "DELETE",
       });
       await throwIfExplorerNotOk(res, "Remove failed");
@@ -366,7 +368,7 @@ export function OntologyManager() {
     } catch (err) {
       flashMsg("err", explorerApiErrorMessage(err));
     }
-  }, [selectedEntry]);
+  }, [kbId, selectedEntry]);
 
   const handleSelect = (entry: OntologyEntry) => {
     setSelectedEntry((prev) => (prev?.uri === entry.uri ? null : entry));

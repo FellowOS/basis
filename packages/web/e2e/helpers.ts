@@ -1,6 +1,6 @@
 import { expect, type Page } from '@playwright/test';
 
-async function bearerToken(page: Page): Promise<string> {
+export async function bearerToken(page: Page): Promise<string> {
   const token = await page.evaluate(() => localStorage.getItem('sema_token'));
   if (!token) {
     throw new Error('Missing sema_token after login');
@@ -23,6 +23,10 @@ export async function registerFreshUser(page: Page): Promise<{ email: string; pa
   return { email, password };
 }
 
+function isEditableRole(role: string | undefined): boolean {
+  return role === 'admin' || role === 'owner' || role === 'editor';
+}
+
 export async function defaultKbId(page: Page): Promise<string> {
   const token = await bearerToken(page);
   const response = await page.request.get('/api/kbs', {
@@ -33,13 +37,29 @@ export async function defaultKbId(page: Page): Promise<string> {
     kbs?: Array<{ id: string; my_role?: string }>;
   };
   const kbs = body.kbs ?? [];
-  const editable =
-    kbs.find((kb) => kb.my_role === 'admin' || kb.my_role === 'owner' || kb.my_role === 'editor') ??
-    kbs[0];
-  if (!editable?.id) {
-    throw new Error('Could not resolve default KB id from /api/kbs');
+  const editable = kbs.find((kb) => isEditableRole(kb.my_role));
+  if (editable?.id) {
+    return editable.id;
   }
-  return editable.id;
+
+  const stamp = Date.now();
+  const created = await page.request.post('/api/kbs', {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    data: {
+      name: `E2E KB ${stamp}`,
+      description: 'Playwright isolation',
+      visibility: 'restricted',
+    },
+  });
+  expect(created.ok()).toBeTruthy();
+  const kb = (await created.json()) as { id: string };
+  if (!kb.id) {
+    throw new Error('POST /api/kbs did not return id');
+  }
+  return kb.id;
 }
 
 export async function fetchGraphStats(
@@ -72,4 +92,82 @@ export async function searchGraphNodes(
     results?: Array<{ node: { id: string; content?: string; label?: string } }>;
   };
   return body.results ?? [];
+}
+
+export async function fetchFirstGraphNodeId(page: Page, kbId: string): Promise<string> {
+  const token = await bearerToken(page);
+  const response = await page.request.get(`/api/kbs/${kbId}/graph/nodes?limit=1`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  expect(response.ok()).toBeTruthy();
+  const body = (await response.json()) as { nodes?: Array<{ id: string }> };
+  const id = body.nodes?.[0]?.id;
+  if (!id) {
+    throw new Error('No graph nodes available for lineage e2e');
+  }
+  return id;
+}
+
+export async function fetchProvenanceLineage(
+  page: Page,
+  kbId: string,
+  nodeId: string,
+): Promise<{ nodes: unknown[]; edges: unknown[] }> {
+  const token = await bearerToken(page);
+  const response = await page.request.get(
+    `/api/kbs/${kbId}/provenance?node_id=${encodeURIComponent(nodeId)}`,
+    { headers: { Authorization: `Bearer ${token}` } },
+  );
+  expect(response.ok()).toBeTruthy();
+  return (await response.json()) as { nodes: unknown[]; edges: unknown[] };
+}
+
+/** Ingest via API (wait + extract) — reliable for graph/provenance e2e. */
+export async function ingestDocumentViaApi(
+  page: Page,
+  kbId: string,
+  text: string,
+): Promise<void> {
+  const token = await bearerToken(page);
+  const response = await page.request.post(`/api/kbs/${kbId}/documents`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    data: {
+      doc_id: `e2e-${Date.now()}`,
+      text,
+      wait: true,
+      extract: true,
+    },
+  });
+  expect(response.ok()).toBeTruthy();
+  const stats = await fetchGraphStats(page, kbId);
+  expect(stats.node_count).toBeGreaterThan(0);
+}
+
+/** Minimal document ingest (pattern extract) for graph projection smoke. */
+export async function ingestPasteText(page: Page, kbId: string, text: string): Promise<void> {
+  await Promise.all([
+    page.waitForResponse(
+      (response) =>
+        response.url().includes('/capabilities') &&
+        response.request().method() === 'GET' &&
+        response.ok(),
+    ),
+    page.goto(`/kbs/${kbId}/sources`),
+  ]);
+  await expect(page.locator('.kb-library-workspace')).toBeVisible({ timeout: 60_000 });
+  const addDoc = page.getByRole('button', { name: /添加文档|Add document/i }).first();
+  await expect(addDoc).toBeVisible({ timeout: 60_000 });
+  await addDoc.click();
+  const dialog = page.getByRole('dialog');
+  await dialog.getByRole('tab', { name: /粘贴文本|Paste text/i }).click();
+  await dialog.locator('#add-text').fill(text);
+  await dialog.getByRole('checkbox').check();
+  await dialog.getByRole('button', { name: /^保存$|^Save$/i }).click();
+  await expect(page.getByText(text, { exact: false })).toBeVisible({ timeout: 90_000 });
+  await expect(page.getByText(/就绪|Ready/i).first()).toBeVisible({ timeout: 90_000 });
+  const stats = await fetchGraphStats(page, kbId);
+  expect(stats.node_count).toBeGreaterThan(0);
 }

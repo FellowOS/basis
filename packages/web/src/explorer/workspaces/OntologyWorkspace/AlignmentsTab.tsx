@@ -8,6 +8,7 @@ import {
   saveAlignment,
   suggestAlignments,
 } from "./api";
+import { useOntologyKbId } from "./ontologyKb";
 import { explorerApiErrorMessage } from "../../lib/explorer-api-error";
 import type { AlignmentRelation, AlignmentSuggestion, OntologyAlignment, OntologyEntry } from "./types";
 
@@ -32,6 +33,7 @@ const RELATION_COLORS: Record<AlignmentRelation, string> = {
 };
 
 export function AlignmentsTab() {
+  const kbId = useOntologyKbId();
   const [registry, setRegistry] = useState<OntologyEntry[]>([]);
   const [alignments, setAlignments] = useState<OntologyAlignment[]>([]);
   const [suggestions, setSuggestions] = useState<AlignmentSuggestion[]>([]);
@@ -51,8 +53,8 @@ export function AlignmentsTab() {
   const reload = useCallback(async () => {
     setError("");
     const [registryResult, alignmentResult] = await Promise.allSettled([
-      loadOntologyRegistry(),
-      loadAlignments(),
+      loadOntologyRegistry(kbId),
+      loadAlignments(kbId),
     ]);
 
     const errors: string[] = [];
@@ -69,14 +71,14 @@ export function AlignmentsTab() {
       errors.push(explorerApiErrorMessage(alignmentResult.reason, "en"));
     }
     if (errors.length) setError(errors.join(" "));
-  }, []);
+  }, [kbId]);
 
   useEffect(() => {
     let ignore = false;
     async function fetchInitial() {
       const [registryResult, alignmentResult] = await Promise.allSettled([
-        loadOntologyRegistry(),
-        loadAlignments(),
+        loadOntologyRegistry(kbId),
+        loadAlignments(kbId),
       ]);
       if (ignore) return;
 
@@ -97,7 +99,7 @@ export function AlignmentsTab() {
     }
     void fetchInitial();
     return () => { ignore = true; };
-  }, []);
+  }, [kbId]);
 
   const relationCounts = useMemo(() => {
     const counts = new Map<string, number>();
@@ -138,7 +140,7 @@ export function AlignmentsTab() {
     setBusy(true);
     setError("");
     try {
-      await saveAlignment({
+      await saveAlignment(kbId, {
         source_uri: sourceUri.trim(),
         target_uri: targetUri.trim(),
         relation,
@@ -155,13 +157,13 @@ export function AlignmentsTab() {
     } finally {
       setBusy(false);
     }
-  }, [sourceUri, targetUri, relation, confidence, provenance, source, reviewer, reload]);
+  }, [kbId, sourceUri, targetUri, relation, confidence, provenance, source, reviewer, reload]);
 
   const handleSuggest = useCallback(async () => {
     setBusy(true);
     setError("");
     try {
-      const data = await suggestAlignments({
+      const data = await suggestAlignments(kbId, {
         source_ontology_uri: sourceOntology || undefined,
         target_ontology_uri: targetOntology || undefined,
         threshold,
@@ -173,7 +175,7 @@ export function AlignmentsTab() {
     } finally {
       setBusy(false);
     }
-  }, [sourceOntology, targetOntology, threshold]);
+  }, [kbId, sourceOntology, targetOntology, threshold]);
 
   const handleAcceptSuggestion = useCallback((suggestion: AlignmentSuggestion) => {
     setSourceUri(suggestion.source_uri);
@@ -187,14 +189,14 @@ export function AlignmentsTab() {
     setBusy(true);
     setError("");
     try {
-      await removeAlignment(id);
+      await removeAlignment(kbId, id);
       await reload();
     } catch (err) {
       setError(explorerApiErrorMessage(err));
     } finally {
       setBusy(false);
     }
-  }, [reload]);
+  }, [kbId, reload]);
 
   return (
     <div className="ws-page ws-scroll">

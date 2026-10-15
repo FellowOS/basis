@@ -9,6 +9,7 @@ import {
   EmptyState,
 } from '@/components/console-ui/index.js';
 import { DataTable, type DataTableColumn } from '@/components/console-ui/DataTable.js';
+import { KbPageSubtitle } from '@/components/kb-page-subtitle.js';
 import { PageHeader } from '@/components/console-ui/PageHeader.js';
 import { Button } from '@/components/ui/button.js';
 import { Input } from '@/components/ui/input.js';
@@ -208,6 +209,7 @@ export function KbMappingsPage() {
           { label: t.menu.kb.mappings },
         ]}
       />
+      <KbPageSubtitle>{t.pages.kbSubtitles.mappings}</KbPageSubtitle>
 
       <DataPanel>
         <DataPanelToolbar

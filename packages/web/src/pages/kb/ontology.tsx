@@ -1,4 +1,5 @@
 import { useParams } from 'react-router-dom';
+import { KbPageSubtitle } from '@/components/kb-page-subtitle.js';
 import { PageHeader } from '@/components/console-ui/PageHeader.js';
 import { KbOntologyWorkspace } from '@/components/kb-ontology-workspace.js';
 import { useI18n } from '@/i18n/context.js';
@@ -23,6 +24,7 @@ export function KbOntologyPage() {
           { label: t.menu.kb.ontology },
         ]}
       />
+      <KbPageSubtitle>{t.pages.kbSubtitles.ontology}</KbPageSubtitle>
       <KbOntologyWorkspace
         kbId={id}
         className="min-h-0 flex-1 rounded-lg border border-border"

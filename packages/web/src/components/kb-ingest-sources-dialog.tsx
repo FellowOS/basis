@@ -22,23 +22,33 @@ import { Spinner } from '@/components/ui/spinner.js';
 import { api } from '@/lib/api.js';
 import { formatUserFacingApiError } from '@/lib/api-error-message.js';
 
+type SyncEvent = {
+  at: string;
+  status: string;
+  mode?: string;
+  doc_id?: string;
+  error?: string;
+};
+
+type IngestSourceConfig = {
+  url?: string;
+  repo_url?: string;
+  branch?: string;
+  paths?: string[];
+  title?: string;
+  external_key_prefix?: string;
+  sync_events?: SyncEvent[];
+  last_sync_at?: string;
+  last_sync_status?: string;
+};
+
 type IngestSource = {
   id: string;
   kind: string;
   name: string;
   enabled: boolean;
   webhook_path?: string;
-  config?: {
-    url?: string;
-    repo_url?: string;
-    branch?: string;
-    paths?: string[];
-    title?: string;
-    external_key_prefix?: string;
-    sync_events?: { at: string; status: string; mode?: string; doc_id?: string; error?: string }[];
-    last_sync_at?: string;
-    last_sync_status?: string;
-  };
+  config?: IngestSourceConfig;
 };
 
 type CreateResponse = {
@@ -76,6 +86,10 @@ export function KbIngestSourcesDialog({
   const [editingSyncId, setEditingSyncId] = useState<string | null>(null);
   const [editSyncTitle, setEditSyncTitle] = useState('');
   const [editSyncPrefix, setEditSyncPrefix] = useState('');
+  const [expandedHistoryId, setExpandedHistoryId] = useState<string | null>(null);
+  const [syncHistory, setSyncHistory] = useState<
+    Record<string, { events: SyncEvent[]; loading?: boolean }>
+  >({});
 
   const apiError = useCallback(
     (err: unknown) => formatUserFacingApiError(err, zh ? 'zh' : 'en'),
@@ -246,6 +260,28 @@ export function KbIngestSourcesDialog({
     } finally {
       setLoading(false);
     }
+  };
+
+  const loadSyncHistory = async (sourceId: string) => {
+    setSyncHistory((prev) => ({ ...prev, [sourceId]: { ...prev[sourceId], loading: true, events: [] } }));
+    try {
+      const data = await api<{ events: SyncEvent[] }>(
+        `/api/kbs/${kbId}/sources/${sourceId}/sync-history`,
+      );
+      setSyncHistory((prev) => ({ ...prev, [sourceId]: { loading: false, events: data.events ?? [] } }));
+    } catch (err) {
+      toast.error(apiError(err));
+      setSyncHistory((prev) => ({ ...prev, [sourceId]: { loading: false, events: [] } }));
+    }
+  };
+
+  const toggleSyncHistory = (sourceId: string) => {
+    if (expandedHistoryId === sourceId) {
+      setExpandedHistoryId(null);
+      return;
+    }
+    setExpandedHistoryId(sourceId);
+    void loadSyncHistory(sourceId);
   };
 
   const runSync = async (sourceId: string) => {
@@ -476,6 +512,22 @@ export function KbIngestSourcesDialog({
                           {last.error ? ` · ${last.error}` : ''}
                         </p>
                       ) : null}
+                      {(s.kind === 'http_poll' || s.kind === 'git') && (
+                        <Button
+                          type="button"
+                          variant="link"
+                          className="h-auto p-0 text-[10px]"
+                          onClick={() => toggleSyncHistory(s.id)}
+                        >
+                          {expandedHistoryId === s.id
+                            ? zh
+                              ? '收起同步记录'
+                              : 'Hide sync history'
+                            : zh
+                              ? '查看同步记录'
+                              : 'View sync history'}
+                        </Button>
+                      )}
                     </div>
                     <div className="flex shrink-0 flex-col gap-1">
                       <Button type="button" variant="outline" size="sm" onClick={() => void toggleEnabled(s)}>
@@ -530,6 +582,28 @@ export function KbIngestSourcesDialog({
                       )}
                     </div>
                   </div>
+                  {expandedHistoryId === s.id && (s.kind === 'http_poll' || s.kind === 'git') ? (
+                    <div className="border-t border-border pt-2 text-[10px] text-muted-foreground">
+                      {syncHistory[s.id]?.loading ? (
+                        <div className="flex justify-center py-2">
+                          <Spinner className="size-3" />
+                        </div>
+                      ) : (syncHistory[s.id]?.events?.length ?? 0) === 0 ? (
+                        <p>{zh ? '暂无记录' : 'No sync runs yet'}</p>
+                      ) : (
+                        <ul className="max-h-32 space-y-1 overflow-y-auto font-mono">
+                          {(syncHistory[s.id]?.events ?? []).map((ev: SyncEvent, idx: number) => (
+                            <li key={`${ev.at}-${idx}`}>
+                              {ev.at} · {ev.status}
+                              {ev.mode ? ` · ${ev.mode}` : ''}
+                              {ev.doc_id ? ` · ${ev.doc_id}` : ''}
+                              {ev.error ? ` · ${ev.error}` : ''}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  ) : null}
                   {(s.kind === 'http_poll' || s.kind === 'git') && editingSyncId === s.id ? (
                     <div className="grid gap-2 border-t border-border pt-2">
                       <div className="space-y-1">

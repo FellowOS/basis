@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
-import { Check, Clock, Loader2, X } from 'lucide-react';
+import { Check, ChevronDown, ChevronRight, Clock, Loader2, X } from 'lucide-react';
+import { KbEntityMergePropertyDiff } from '@/components/kb-entity-merge-property-diff.js';
 import { buildExplorerKbApiPath, explorerFetch } from '@/explorer/host/explorerHttp.js';
 import { useI18n } from '@/i18n/context.js';
 import { useKbCapabilities } from '@/lib/kb-capabilities.js';
@@ -9,6 +11,7 @@ import { formatUserFacingApiError } from '@/lib/api-error-message.js';
 import { formatGraphAuditAction } from '@/lib/kb-graph-audit.js';
 import { formatNodeRef, formatNodeRefDetail } from '@/lib/format-node-ref.js';
 import { fetchKbNodeLabels } from '@/lib/kb-node-labels.js';
+import { kbOntologyProposalPath, kbPath } from '@/lib/nav-config.js';
 
 type ReviewItem = {
   id: string;
@@ -24,6 +27,8 @@ type ReviewItem = {
     target_uri?: string | null;
     target_kind?: string;
     direction?: string;
+    content?: string;
+    statement_id?: string;
   };
   created_at: string;
 };
@@ -135,6 +140,21 @@ function auditDetailLine(
   return null;
 }
 
+function auditProposalId(event: AuditEvent): string | null {
+  const d = event.detail ?? {};
+  const direct = d.proposal_id;
+  if (typeof direct === 'string' && direct.trim()) return direct.trim();
+  const extra = d.extra as { proposal_id?: string } | undefined;
+  if (typeof extra?.proposal_id === 'string' && extra.proposal_id.trim()) {
+    return extra.proposal_id.trim();
+  }
+  const payload = d.payload as { proposal_id?: string } | undefined;
+  if (typeof payload?.proposal_id === 'string' && payload.proposal_id.trim()) {
+    return payload.proposal_id.trim();
+  }
+  return null;
+}
+
 function collectAuditLabelIds(events: AuditEvent[]): string[] {
   const ids: string[] = [];
   for (const event of events) {
@@ -196,6 +216,7 @@ export function KbReviewQueueTab({ kbId }: { kbId: string }) {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [busyMergeId, setBusyMergeId] = useState<string | null>(null);
   const [labels, setLabels] = useState<Record<string, string | null>>({});
+  const [diffExpandedId, setDiffExpandedId] = useState<string | null>(null);
   const canRevertMerge = Boolean(caps?.graph_write);
 
   const load = useCallback(async () => {
@@ -336,8 +357,8 @@ export function KbReviewQueueTab({ kbId }: { kbId: string }) {
           <h2 className="text-base font-semibold">{title}</h2>
           <p className="mt-1 text-xs text-muted-foreground">
             {locale === 'zh'
-              ? '合并、图导入与本体映射需编辑者批准后才会生效。'
-              : 'Merges, graph imports, and ontology mappings apply only after editor approval.'}
+              ? '合并、图导入、Agent 记入与本体映射需编辑者批准后才会生效。'
+              : 'Merges, imports, remembered facts, and mappings apply only after editor approval.'}
           </p>
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
@@ -355,8 +376,12 @@ export function KbReviewQueueTab({ kbId }: { kbId: string }) {
               {items.map((item) => {
                 const isImport = item.kind === 'graph_import';
                 const isMapping = item.kind === 'ontology_mapping';
+                const isRemember = item.kind === 'statement_remember';
+                const isEntityMerge = item.kind === 'entity_merge';
                 const primaryId = item.payload.primary_id ?? '—';
                 const duplicateIds = item.payload.duplicate_ids ?? [];
+                const firstDuplicate = duplicateIds[0];
+                const showDiff = diffExpandedId === item.id;
                 const approveLabelForItem = isImport
                   ? locale === 'zh'
                     ? '批准导入'
@@ -365,7 +390,11 @@ export function KbReviewQueueTab({ kbId }: { kbId: string }) {
                     ? locale === 'zh'
                       ? '批准映射'
                       : 'Approve mapping'
-                    : approveLabel;
+                    : isRemember
+                      ? locale === 'zh'
+                        ? '批准记入'
+                        : 'Approve fact'
+                      : approveLabel;
                 return (
                   <li
                     key={item.id}
@@ -384,6 +413,12 @@ export function KbReviewQueueTab({ kbId }: { kbId: string }) {
                               </span>
                             </span>
                           )
+                          : isRemember
+                            ? (
+                              <span className="whitespace-pre-wrap text-sm">
+                                {String(item.payload.content ?? item.payload.statement_id ?? '—')}
+                              </span>
+                            )
                           : (
                           <span className="flex flex-col gap-1">
                             <span className="text-muted-foreground text-xs font-normal">
@@ -405,8 +440,44 @@ export function KbReviewQueueTab({ kbId }: { kbId: string }) {
                           </span>
                         )}
                     </div>
-                    {!isImport && !isMapping ? (
+                    {!isImport && !isMapping && !isRemember ? (
                       <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">{graphOnlyMergeHint}</p>
+                    ) : null}
+                    {isEntityMerge && primaryId !== '—' && firstDuplicate ? (
+                      <>
+                        <button
+                          type="button"
+                          className="mt-2 inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                          onClick={() =>
+                            setDiffExpandedId(showDiff ? null : item.id)
+                          }
+                        >
+                          {showDiff ? (
+                            <ChevronDown className="size-3" />
+                          ) : (
+                            <ChevronRight className="size-3" />
+                          )}
+                          {locale === 'zh' ? '属性对比' : 'Property diff'}
+                        </button>
+                        {showDiff ? (
+                          <KbEntityMergePropertyDiff
+                            kbId={kbId}
+                            primaryId={primaryId}
+                            duplicateId={firstDuplicate}
+                            variant="compact"
+                          />
+                        ) : null}
+                      </>
+                    ) : null}
+                    {isMapping ? (
+                      <div className="mt-2">
+                        <Link
+                          to={kbPath(kbId, 'mappings')}
+                          className="text-xs text-primary hover:underline"
+                        >
+                          {locale === 'zh' ? '在本体映射页查看' : 'Open mappings workspace'}
+                        </Link>
+                      </div>
                     ) : null}
                     <div className="mt-3 flex gap-2">
                       <button
@@ -499,6 +570,7 @@ export function KbReviewQueueTab({ kbId }: { kbId: string }) {
                 }
                 const event = entry.event;
                 const detail = auditDetailLine(event, locale, labels);
+                const proposalId = auditProposalId(event);
                 return (
                   <li key={entry.id} className="mb-4 last:mb-0">
                     <span
@@ -510,6 +582,14 @@ export function KbReviewQueueTab({ kbId }: { kbId: string }) {
                     </div>
                     {detail ? (
                       <div className="mt-0.5 text-[10px] text-muted-foreground">{detail}</div>
+                    ) : null}
+                    {proposalId ? (
+                      <Link
+                        to={kbOntologyProposalPath(kbId, proposalId)}
+                        className="mt-1 inline-block text-[10px] text-primary hover:underline"
+                      >
+                        {locale === 'zh' ? '打开本体提案' : 'Open ontology proposal'}
+                      </Link>
                     ) : null}
                     <time className="mt-1 block text-[10px] text-muted-foreground">
                       {new Date(entry.at).toLocaleString()}
