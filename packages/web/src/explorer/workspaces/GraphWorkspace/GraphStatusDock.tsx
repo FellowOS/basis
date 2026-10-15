@@ -34,6 +34,7 @@ export function GraphStatusDock({
   activeNodeCount,
   focusedSummary,
   readOnly = false,
+  trailing,
 }: {
   locale?: GraphWorkspaceLocale;
   showLoadingStatus: boolean;
@@ -42,13 +43,14 @@ export function GraphStatusDock({
   activeNodeCount: number | null;
   focusedSummary: string | null;
   readOnly?: boolean;
+  trailing?: ReactNode;
 }) {
   const hasLoading = showLoadingStatus && loadingPhase;
   const hasSummary = Boolean(summary);
   const hasActive = activeNodeCount !== null;
   const hasFocused = Boolean(focusedSummary);
 
-  if (!hasLoading && !hasSummary && !hasActive && !hasFocused && !readOnly) {
+  if (!hasLoading && !hasSummary && !hasActive && !hasFocused && !readOnly && !trailing) {
     return null;
   }
 
@@ -69,6 +71,7 @@ export function GraphStatusDock({
         <StatusBadge tone="success">{graphActiveCountLabel(locale, activeNodeCount!)}</StatusBadge>
       ) : null}
       {focusedSummary ? <StatusBadge tone="warm">{focusedSummary}</StatusBadge> : null}
+      {trailing}
     </div>
   );
 }

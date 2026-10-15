@@ -38,7 +38,7 @@ export function BasisLayout({ onLogout }: { onLogout: () => void }) {
                 aria-label={t.sidebar.openSidebar}
                 className="pointer-events-auto size-auto h-auto w-auto rounded-md border border-border bg-background/90 p-1.5 text-muted-foreground shadow-sm backdrop-blur hover:bg-accent hover:opacity-100 md:hidden [&_svg]:size-[18px]"
               />
-              {kbWorkspace ? (
+              {kbWorkspace && !graphCanvas ? (
                 <div className="pointer-events-auto ml-auto flex items-center rounded-md border border-border bg-background/90 p-0.5 shadow-sm backdrop-blur">
                   <KbAlertsBell />
                 </div>

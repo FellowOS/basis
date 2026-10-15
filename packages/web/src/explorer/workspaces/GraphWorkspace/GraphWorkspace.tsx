@@ -60,6 +60,7 @@ import { inspectorCopy } from "./graphInspectorCopy";
 import { createGraphLoadProgress } from "./graphLoading";
 import { shouldApplyProjectionRevision } from "./graphProjectionRefresh";
 import { parseGraphRealtimeServerMessage } from "./graphRealtimeMessages";
+import { KbAlertsBell } from "@/components/kb-alerts-bell.js";
 import { Badge } from "@/components/ui/badge.js";
 import { Button } from "@/components/ui/button.js";
 import { useI18n } from "@/i18n/context.js";
@@ -351,10 +352,10 @@ function buildGraphHudCss(): string {
     pointer-events: none;
     overflow: visible;
   }
-  .explore-hud-layer :is(.explore-search-dock, .explore-status-dock, .explore-legend-dock, .explore-toolbar-rail, .explore-toolbar-rail-right) {
+  .explore-hud-layer :is(.explore-search-dock, .explore-status-dock, .explore-legend-dock, .explore-toolbar-rail-right) {
     pointer-events: none;
   }
-  .explore-hud-layer :is(.explore-search-dock, .explore-status-dock, .explore-legend-dock, .explore-toolbar-rail, .explore-toolbar-rail-right) > * {
+  .explore-hud-layer :is(.explore-search-dock, .explore-status-dock, .explore-legend-dock, .explore-toolbar-rail-right) > * {
     pointer-events: auto;
   }
   .explore-search-dock {
@@ -405,17 +406,6 @@ function buildGraphHudCss(): string {
   }
   .explore-shell[data-timeline="true"] .explore-legend-dock {
     bottom: calc(90px + 12px);
-  }
-  .explore-toolbar-rail {
-    position: absolute;
-    top: 50%;
-    left: 0;
-    z-index: 24;
-    transform: translateY(-50%) translateZ(0);
-    padding-left: 12px;
-    max-height: min(70vh, 100%);
-    overflow-y: auto;
-    overscroll-behavior: contain;
   }
   .explore-toolbar-rail-right {
     position: absolute;
@@ -3130,6 +3120,17 @@ export function GraphWorkspace({
     },
   ].filter((group) => group.items.length > 0), [analysisToolbarItems, copyLocale, distanceToolbarItems]);
 
+  const toolbarRailGroups = useMemo<GraphToolbarGroup[]>(
+    () => [
+      ...(viewModeItems.length > 0
+        ? [{ id: "view-mode", label: "View", items: viewModeItems }]
+        : []),
+      ...leftToolbarClusters,
+      ...rightToolbarClusters,
+    ],
+    [viewModeItems, leftToolbarClusters, rightToolbarClusters],
+  );
+
   const sceneAdapterProps = {
     onNodeSelect: focusNode,
     onEdgeSelect: handleEdgeSelect,
@@ -3317,6 +3318,11 @@ export function GraphWorkspace({
               activeNodeCount={activeNodeCount}
               focusedSummary={focusedSummary}
               readOnly={!graphWriteEnabled}
+              trailing={
+                <div className="flex items-center rounded-md border border-border bg-background/90 p-0.5 shadow-sm backdrop-blur">
+                  <KbAlertsBell />
+                </div>
+              }
             />
           </section>
 
@@ -3326,20 +3332,9 @@ export function GraphWorkspace({
             </section>
           ) : null}
 
-          <section className="explore-toolbar-rail" aria-label="Graph tools">
-            <GraphToolbarRail
-              groups={[
-                ...(viewModeItems.length > 0
-                  ? [{ id: "view-mode", label: "View", items: viewModeItems }]
-                  : []),
-                ...leftToolbarClusters,
-              ]}
-            />
-          </section>
-
-          {rightToolbarClusters.length > 0 ? (
-            <section className="explore-toolbar-rail-right" aria-label="Distance and analysis tools">
-              <GraphToolbarRail groups={rightToolbarClusters} expandLabels="left" />
+          {toolbarRailGroups.length > 0 ? (
+            <section className="explore-toolbar-rail-right" aria-label="Graph tools">
+              <GraphToolbarRail groups={toolbarRailGroups} expandLabels="left" />
             </section>
           ) : null}
         </div>
