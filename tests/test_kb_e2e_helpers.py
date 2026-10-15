@@ -8,9 +8,9 @@ pytest.importorskip("semantica")
 
 from fastapi.testclient import TestClient
 
-from sema.api.app import create_app
-from sema.capabilities import explorer_available
-from sema.config import Settings
+from basis.api.app import create_app
+from basis.capabilities import explorer_available
+from basis.config import Settings
 
 
 def test_e2e_governance_trip_disabled_outside_data_e2e(tmp_path) -> None:

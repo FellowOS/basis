@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useSemaSession } from '@/lib/sema-session.js';
+import { useBasisSession } from '@/lib/basis-session.js';
 import { KbGraphAuditRecent } from '@/components/kb-graph-audit-recent.js';
 import { KbGraphRebuildButton } from '@/components/kb-graph-rebuild-button.js';
 import { Button } from '@/components/ui/button.js';
@@ -31,7 +31,7 @@ export function KbGraphProjectionPanel({
   graphEnabled: boolean;
 }) {
   const { locale } = useI18n();
-  const { isAdmin } = useSemaSession();
+  const { isAdmin } = useBasisSession();
   const zh = locale === 'zh';
   const auditGraphUrl = `/audit?kb_id=${encodeURIComponent(kbId)}&action_prefix=${encodeURIComponent('kb.graph.')}`;
   const [loading, setLoading] = useState(true);

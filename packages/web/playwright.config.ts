@@ -4,18 +4,18 @@ import { defineConfig, devices } from '@playwright/test';
 
 const packageRoot = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(packageRoot, '../..');
-const webPort = Number(process.env.SEMA_E2E_WEB_PORT ?? '5174');
-const apiPort = Number(process.env.SEMA_E2E_API_PORT ?? '8091');
+const webPort = Number(process.env.BASIS_E2E_WEB_PORT ?? '5174');
+const apiPort = Number(process.env.BASIS_E2E_API_PORT ?? '8091');
 const baseURL = `http://127.0.0.1:${webPort}`;
 
 function e2eApiEnv(): Record<string, string> {
   const env = { ...process.env } as Record<string, string>;
   // Empty string prevents repo `.env` Postgres URL from being applied after load_dotenv().
-  env.SEMA_DATABASE_URL = '';
-  env.SEMA_DATA_DIR = 'data-e2e';
-  env.SEMA_HOST = '127.0.0.1';
-  env.SEMA_PORT = String(apiPort);
-  env.SEMA_INGEST_INLINE = '1';
+  env.BASIS_DATABASE_URL = '';
+  env.BASIS_DATA_DIR = 'data-e2e';
+  env.BASIS_HOST = '127.0.0.1';
+  env.BASIS_PORT = String(apiPort);
+  env.BASIS_INGEST_INLINE = '1';
   return env;
 }
 
@@ -34,11 +34,11 @@ export default defineConfig({
     trace: 'on-first-retry',
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
-  webServer: process.env.SEMA_E2E_SKIP_SERVERS
+  webServer: process.env.BASIS_E2E_SKIP_SERVERS
     ? undefined
     : [
         {
-          command: 'uv run sema',
+          command: 'uv run basis',
           cwd: repoRoot,
           env: e2eApiEnv(),
           url: `http://127.0.0.1:${apiPort}/health`,
@@ -50,7 +50,7 @@ export default defineConfig({
           cwd: packageRoot,
           env: {
             ...process.env,
-            SEMA_API_URL: `http://127.0.0.1:${apiPort}`,
+            BASIS_API_URL: `http://127.0.0.1:${apiPort}`,
           },
           url: baseURL,
           reuseExistingServer: !process.env.CI,

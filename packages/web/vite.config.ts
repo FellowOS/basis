@@ -5,7 +5,7 @@ import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 
 const root = path.dirname(fileURLToPath(import.meta.url));
-const apiTarget = process.env.SEMA_API_URL ?? 'http://127.0.0.1:8090';
+const apiTarget = process.env.BASIS_API_URL ?? 'http://127.0.0.1:8090';
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],

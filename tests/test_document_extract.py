@@ -6,11 +6,11 @@ pytest.importorskip("semantica")
 
 from fastapi.testclient import TestClient
 
-from sema.api.app import create_app
-from sema.config import Settings
-from sema.pipeline.document import TextIngestOptions, build_kg_from_text
-from sema.knowledge.blob_store import BlobStore
-from sema.knowledge.store import KnowledgeStore
+from basis.api.app import create_app
+from basis.config import Settings
+from basis.pipeline.document import TextIngestOptions, build_kg_from_text
+from basis.knowledge.blob_store import BlobStore
+from basis.knowledge.store import KnowledgeStore
 
 
 def test_build_kg_from_text_runs_pattern_ner() -> None:
@@ -30,18 +30,18 @@ def test_build_kg_from_text_runs_pattern_ner() -> None:
 
 
 def test_version_ingest_writes_entities_to_ledger(tmp_path) -> None:
-    from sema.admin.store import AdminStore
-    from sema.graph.session import GraphSession
-    from sema.pipeline.version_ingest import run_version_ingest
+    from basis.admin.store import AdminStore
+    from basis.graph.session import GraphSession
+    from basis.pipeline.version_ingest import run_version_ingest
 
-    admin = AdminStore(tmp_path / "sema.db")
+    admin = AdminStore(tmp_path / "basis.db")
     user, _ = admin.register("extract@example.com", "password1", "U")
     kb = admin.create_kb(user, "KB", None, "restricted")
     kb_id = kb.id
     admin.close()
 
     blobs = BlobStore(tmp_path)
-    knowledge = KnowledgeStore(tmp_path / "sema.db", blobs)
+    knowledge = KnowledgeStore(tmp_path / "basis.db", blobs)
     _, version_id, job_id, _ = knowledge.store_upload_bytes(
         kb_id,
         title="story.txt",

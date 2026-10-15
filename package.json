@@ -1,5 +1,5 @@
 {
-  "name": "sema-workspace",
+  "name": "basis-workspace",
   "private": true,
   "packageManager": "pnpm@10.2.1",
   "engines": {
@@ -7,9 +7,9 @@
     "pnpm": ">=10.0.0"
   },
   "scripts": {
-    "dev": "pnpm --filter @sema/web dev",
-    "build": "pnpm --filter @sema/web build",
-    "typecheck": "pnpm --filter @sema/web typecheck",
-    "test:e2e": "pnpm --filter @sema/web test:e2e"
+    "dev": "pnpm --filter @basis/web dev",
+    "build": "pnpm --filter @basis/web build",
+    "typecheck": "pnpm --filter @basis/web typecheck",
+    "test:e2e": "pnpm --filter @basis/web test:e2e"
   }
 }

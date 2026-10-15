@@ -1,7 +1,7 @@
 import { errorFromApiResponse } from '@/lib/api-error.js';
 import { ensureRequestIdHeader } from '@/lib/request-id.js';
 
-const TOKEN_KEY = 'sema_token';
+const TOKEN_KEY = 'basis_token';
 
 export function getToken(): string | null {
   try {
@@ -20,7 +20,7 @@ export function setToken(token: string | null): void {
   }
 }
 
-/** 所有请求只打 Sema API（Python，进程内使用 Semantica SDK）。 */
+/** 所有请求只打 Basis API（Python，进程内使用 semantica SDK）。 */
 export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
   const headers = new Headers(init.headers);
   ensureRequestIdHeader(headers);
@@ -41,18 +41,18 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
   return data as T;
 }
 
-export type SemaUser = {
+export type BasisUser = {
   id: string;
   email: string;
   display_name: string;
   is_admin: boolean;
 };
 
-export async function fetchSession(): Promise<SemaUser | null> {
+export async function fetchSession(): Promise<BasisUser | null> {
   const token = getToken();
   if (!token) return null;
   try {
-    const body = await api<{ user: SemaUser }>('/api/auth/me');
+    const body = await api<{ user: BasisUser }>('/api/auth/me');
     return body.user;
   } catch {
     setToken(null);
@@ -63,8 +63,8 @@ export async function fetchSession(): Promise<SemaUser | null> {
 export async function login(input: {
   email: string;
   password: string;
-}): Promise<{ user: SemaUser; token: string }> {
-  const body = await api<{ user: SemaUser; token: string }>('/api/auth/login', {
+}): Promise<{ user: BasisUser; token: string }> {
+  const body = await api<{ user: BasisUser; token: string }>('/api/auth/login', {
     method: 'POST',
     body: JSON.stringify({ email: input.email, password: input.password }),
   });
@@ -76,8 +76,8 @@ export async function register(input: {
   email: string;
   password: string;
   display_name: string;
-}): Promise<{ user: SemaUser; token: string }> {
-  const body = await api<{ user: SemaUser; token: string }>('/api/auth/register', {
+}): Promise<{ user: BasisUser; token: string }> {
+  const body = await api<{ user: BasisUser; token: string }>('/api/auth/register', {
     method: 'POST',
     body: JSON.stringify(input),
   });

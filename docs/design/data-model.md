@@ -1,4 +1,4 @@
-# Sema data model
+# Basis data model
 
 This document turns [ADR 0001](../decisions/0001-canonical-knowledge-model.md) into a persistence
 contract. It covers the core schema needed for ingest, evidence, graph projection, review, search,
@@ -8,7 +8,7 @@ and Explorer integration.
 
 | Store | Canonical | Contents |
 | --- | --- | --- |
-| `data/sema.db` | Yes | accounts, KBs, documents, chunks, ledger, review, mappings, decisions, audit |
+| `data/basis.db` | Yes | accounts, KBs, documents, chunks, ledger, review, mappings, decisions, audit |
 | `data/blobs/{kb_id}/...` | Yes | original uploaded/connector payloads, content-addressed |
 | `data/graphs/{kb_id}.json` | No | rebuildable ContextGraph projection |
 | `data/indexes/{kb_id}/...` | No | vector/search indexes |
@@ -37,7 +37,7 @@ as `INTEGER CHECK (... IN (0,1))`.
 Replace the single expanding `_migrate()` script with ordered migrations:
 
 ```text
-sema/admin/migrations/
+basis/admin/migrations/
   0001_admin.sql
   0002_knowledge_ledger.sql
   0003_search_review.sql

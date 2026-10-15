@@ -8,24 +8,24 @@ pytest.importorskip("semantica")
 
 from fastapi.testclient import TestClient
 
-from sema.admin.store import AdminStore
-from sema.api.app import create_app
-from sema.capabilities import explorer_available
-from sema.config import Settings
-from sema.graph.projector import rebuild_graph_from_ledger
-from sema.graph.persistence import GraphPersistence
-from sema.knowledge.blob_store import BlobStore
-from sema.knowledge.store import KnowledgeStore
+from basis.admin.store import AdminStore
+from basis.api.app import create_app
+from basis.capabilities import explorer_available
+from basis.config import Settings
+from basis.graph.projector import rebuild_graph_from_ledger
+from basis.graph.persistence import GraphPersistence
+from basis.knowledge.blob_store import BlobStore
+from basis.knowledge.store import KnowledgeStore
 
 
 def test_record_and_list_entity_merges(tmp_path: Path) -> None:
-    admin = AdminStore(tmp_path / "sema.db")
+    admin = AdminStore(tmp_path / "basis.db")
     user, _ = admin.register("em@example.com", "password1", "U")
     kb_id = admin.create_kb(user, "KB", None, "restricted").id
     actor_id = user.id
     admin.close()
 
-    store = KnowledgeStore(tmp_path / "sema.db", BlobStore(tmp_path))
+    store = KnowledgeStore(tmp_path / "basis.db", BlobStore(tmp_path))
     source = store.create_entity(kb_id, canonical_label="Dup")
     target = store.create_entity(kb_id, canonical_label="Primary")
     row = store.record_entity_merge(
@@ -89,7 +89,7 @@ def test_approve_entity_merge_records_ledger_rows(tmp_path: Path) -> None:
     assert rows[0]["target_entity_id"] == primary
     assert rows[0]["why"] == "confirmed duplicate"
 
-    from sema.graph.persistence import GraphPersistence
+    from basis.graph.persistence import GraphPersistence
 
     loaded, _ = GraphPersistence(tmp_path).load_snapshot(kb_id)
     node_ids = sorted(loaded.graph.nodes.keys())
@@ -98,13 +98,13 @@ def test_approve_entity_merge_records_ledger_rows(tmp_path: Path) -> None:
 
 
 def test_revert_entity_merge(tmp_path: Path) -> None:
-    admin = AdminStore(tmp_path / "sema.db")
+    admin = AdminStore(tmp_path / "basis.db")
     user, _ = admin.register("rev@example.com", "password1", "U")
     kb_id = admin.create_kb(user, "KB", None, "restricted").id
     actor_id = user.id
     admin.close()
 
-    store = KnowledgeStore(tmp_path / "sema.db", BlobStore(tmp_path))
+    store = KnowledgeStore(tmp_path / "basis.db", BlobStore(tmp_path))
     source = store.create_entity(kb_id, canonical_label="X")
     target = store.create_entity(kb_id, canonical_label="Y")
     row = store.record_entity_merge(

@@ -1,6 +1,6 @@
 import asyncio
 
-from sema.realtime.hub import GraphWsHub
+from basis.realtime.hub import GraphWsHub
 
 
 class _FakeWebSocket:

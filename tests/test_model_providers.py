@@ -1,8 +1,8 @@
 from fastapi.testclient import TestClient
 
-from sema.api.app import create_app
-from sema.config import Settings
-from sema.models.setup_providers import infer_provider_id, providers_for_kind
+from basis.api.app import create_app
+from basis.config import Settings
+from basis.models.setup_providers import infer_provider_id, providers_for_kind
 
 
 def _client(tmp_path) -> TestClient:

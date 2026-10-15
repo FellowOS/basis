@@ -2,9 +2,9 @@
 
 from fastapi.testclient import TestClient
 
-from sema.api.app import create_app
-from sema.config import Settings
-from sema.knowledge.kb_alerts_emit import (
+from basis.api.app import create_app
+from basis.config import Settings
+from basis.knowledge.kb_alerts_emit import (
     emit_governance_proposal_proposed_alert,
     emit_governance_tripped_alert,
     emit_llm_playground_alert,

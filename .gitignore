@@ -17,3 +17,4 @@ node_modules/
 dist/
 .DS_Store
 .cursor/
+uv.toml

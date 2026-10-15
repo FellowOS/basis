@@ -6,8 +6,8 @@ from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 
-from sema.api.app import create_app
-from sema.config import Settings
+from basis.api.app import create_app
+from basis.config import Settings
 
 
 def test_mcp_tools_with_api_token(tmp_path) -> None:
@@ -51,7 +51,7 @@ def test_mcp_tools_with_api_token(tmp_path) -> None:
         json={"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {}},
     )
     assert init.status_code == 200
-    assert init.json()["result"]["serverInfo"]["name"] == "sema-kb-mcp"
+    assert init.json()["result"]["serverInfo"]["name"] == "basis-kb-mcp"
 
     tools = client.post(
         f"/api/kbs/{kb_id}/mcp",
@@ -131,7 +131,7 @@ def test_mcp_timeout(tmp_path) -> None:
         time.sleep(2)
         return {"jsonrpc": "2.0", "id": 1, "result": {}}
 
-    with patch("sema.api.routes.mcp.handle_batch", side_effect=slow_batch):
+    with patch("basis.api.routes.mcp.handle_batch", side_effect=slow_batch):
         resp = client.post(
             f"/api/kbs/{kb_id}/mcp",
             headers=headers,

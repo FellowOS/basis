@@ -3,9 +3,9 @@ from pathlib import Path
 
 import pytest
 
-from sema.admin.errors import AdminError
-from sema.admin.migrations import MigrationError, load_migrations, run_migrations
-from sema.admin.store import AdminStore
+from basis.admin.errors import AdminError
+from basis.admin.migrations import MigrationError, load_migrations, run_migrations
+from basis.admin.store import AdminStore
 
 
 def _legacy_baseline_only(db_path: Path) -> None:
@@ -47,7 +47,7 @@ def _legacy_baseline_only(db_path: Path) -> None:
 
 
 def test_fresh_database_applies_all_migrations(tmp_path: Path) -> None:
-    db_path = tmp_path / "sema.db"
+    db_path = tmp_path / "basis.db"
     store = AdminStore(db_path)
     versions = {
         row[0]
@@ -72,7 +72,7 @@ def test_fresh_database_applies_all_migrations(tmp_path: Path) -> None:
 
 
 def test_migrations_are_idempotent(tmp_path: Path) -> None:
-    db_path = tmp_path / "sema.db"
+    db_path = tmp_path / "basis.db"
     conn = sqlite3.connect(db_path)
     first = run_migrations(conn)
     second = run_migrations(conn)
@@ -82,7 +82,7 @@ def test_migrations_are_idempotent(tmp_path: Path) -> None:
 
 
 def test_legacy_database_upgrades_without_data_loss(tmp_path: Path) -> None:
-    db_path = tmp_path / "sema.db"
+    db_path = tmp_path / "basis.db"
     _legacy_baseline_only(db_path)
 
     store = AdminStore(db_path)
@@ -100,7 +100,7 @@ def test_legacy_database_upgrades_without_data_loss(tmp_path: Path) -> None:
 
 
 def test_checksum_mismatch_fails(tmp_path: Path) -> None:
-    db_path = tmp_path / "sema.db"
+    db_path = tmp_path / "basis.db"
     conn = sqlite3.connect(db_path)
     run_migrations(conn)
     conn.execute(

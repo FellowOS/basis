@@ -1,9 +1,9 @@
 import { expect, type Page } from '@playwright/test';
 
 export async function bearerToken(page: Page): Promise<string> {
-  const token = await page.evaluate(() => localStorage.getItem('sema_token'));
+  const token = await page.evaluate(() => localStorage.getItem('basis_token'));
   if (!token) {
-    throw new Error('Missing sema_token after login');
+    throw new Error('Missing basis_token after login');
   }
   return token;
 }

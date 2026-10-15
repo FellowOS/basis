@@ -8,9 +8,9 @@ pytest.importorskip("semantica")
 
 from fastapi.testclient import TestClient
 
-from sema.api.app import create_app
-from sema.capabilities import explorer_available
-from sema.config import Settings
+from basis.api.app import create_app
+from basis.capabilities import explorer_available
+from basis.config import Settings
 
 
 def test_reject_graph_import_deletes_staged_blob(tmp_path) -> None:
@@ -43,7 +43,7 @@ def test_reject_graph_import_deletes_staged_blob(tmp_path) -> None:
     )
     assert rejected.status_code == 200
 
-    from sema.knowledge.blob_store import BlobStore
+    from basis.knowledge.blob_store import BlobStore
 
     blobs = BlobStore(tmp_path)
     try:
@@ -83,7 +83,7 @@ def test_approve_graph_import_deletes_staged_blob(tmp_path) -> None:
     )
     assert approved.status_code == 200
 
-    from sema.knowledge.blob_store import BlobStore
+    from basis.knowledge.blob_store import BlobStore
 
     blobs = BlobStore(tmp_path)
     try:

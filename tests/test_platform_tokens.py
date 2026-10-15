@@ -6,8 +6,8 @@ pytest.importorskip("semantica")
 
 from fastapi.testclient import TestClient
 
-from sema.api.app import create_app
-from sema.config import Settings
+from basis.api.app import create_app
+from basis.config import Settings
 
 
 def test_kb_api_token_reads_scoped_kb_graph(tmp_path) -> None:

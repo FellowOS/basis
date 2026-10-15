@@ -9,9 +9,9 @@ pytest.importorskip("semantica")
 from fastapi import HTTPException
 from fastapi.testclient import TestClient
 
-from sema.api.app import create_app
-from sema.capabilities import explorer_available
-from sema.config import Settings
+from basis.api.app import create_app
+from basis.capabilities import explorer_available
+from basis.config import Settings
 
 
 def test_entity_merge_review_propose_list_reject(tmp_path) -> None:

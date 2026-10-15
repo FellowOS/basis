@@ -40,7 +40,7 @@ async function readPlaygroundStream(
   onDelta: (chunk: string) => void,
   onContextTrimmed?: (removedTurns: number) => void,
 ): Promise<{ content: string; tool_traces: PlaygroundToolTrace[] }> {
-  const token = localStorage.getItem('sema_token');
+  const token = localStorage.getItem('basis_token');
   const headers: HeadersInit = { 'Content-Type': 'application/json' };
   if (token) headers.Authorization = `Bearer ${token}`;
   const response = await fetch(`/api/kbs/${kbId}/chat/playground/stream`, {

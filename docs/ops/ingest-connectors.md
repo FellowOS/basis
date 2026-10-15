@@ -11,8 +11,8 @@ Deep link (e.g. from a `sync_failed` alert): `/kbs/{kb_id}/sources?connectors=1&
 | Kind | Direction | Auth |
 | --- | --- | --- |
 | `webhook` | External system POSTs JSON | Bearer ingest token (per source) |
-| `http_poll` | Sema GETs a URL | User session / API token for management; URL is public fetch |
-| `git` | Sema GETs GitHub raw files | Same as http_poll; public GitHub repos only (MVP) |
+| `http_poll` | Basis GETs a URL | User session / API token for management; URL is public fetch |
+| `git` | Basis GETs GitHub raw files | Same as http_poll; public GitHub repos only (MVP) |
 
 ## Webhook
 
@@ -28,7 +28,7 @@ Body fields: `text` (required), `title`, `external_key`, `auto_process` (default
 - **Schedule:** set `poll_interval_minutes` in `config` and enable server tick:
 
 ```bash
-SEMA_HTTP_POLL_TICK_SECONDS=60
+BASIS_HTTP_POLL_TICK_SECONDS=60
 ```
 
 Optional `config` keys (UI or API):

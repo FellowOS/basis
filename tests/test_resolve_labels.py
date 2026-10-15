@@ -4,12 +4,12 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
-from sema.admin.store import AdminStore
-from sema.api.app import create_app
-from sema.config import Settings
-from sema.graph.projector import rebuild_graph_from_ledger
-from sema.knowledge.blob_store import BlobStore
-from sema.knowledge.store import KnowledgeStore
+from basis.admin.store import AdminStore
+from basis.api.app import create_app
+from basis.config import Settings
+from basis.graph.projector import rebuild_graph_from_ledger
+from basis.knowledge.blob_store import BlobStore
+from basis.knowledge.store import KnowledgeStore
 
 
 def test_resolve_labels_ledger_and_graph(tmp_path: Path) -> None:

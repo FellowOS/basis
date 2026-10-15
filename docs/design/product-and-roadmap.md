@@ -1,8 +1,8 @@
-# Sema 功能设计与开发计划
+# Basis 功能设计与开发计划
 
 **阅读顺序**：先 **第一篇（完整功能设计）** 判断范围是否齐全；再 **第二篇（分期交付）** 决定实现顺序。能力条目用 **`F-域-序号`** 编号，分期表只引用编号，不在域章节里写 P0/P1。
 
-实现原则：**知识能力在 Sema API 内通过 Semantica Python SDK 组装**；**体验与信息架构对标 Utopia（`fellowos/onto`）**；**图谱/本体/分析工作台在可行处复用 Semantica Knowledge Explorer 的 UI 与 API 契约**；**不**以独立 `semantica server start` / `semantica-explorer` 进程作为产品入口。
+实现原则：**知识能力在 Basis API 内通过 semantica Python SDK 组装**；**体验与信息架构对标 Utopia（`fellowos/onto`）**；**图谱/本体/分析工作台在可行处复用 semantica Knowledge Explorer 的 UI 与 API 契约**；**不**以独立 `semantica server start` / `semantica-explorer` 进程作为产品入口。
 
 已接受的基础决策：
 
@@ -17,15 +17,15 @@
 
 ## 1. 产品边界
 
-| | Sema | 非目标 |
+| | Basis | 非目标 |
 | --- | --- | --- |
-| 产品形态 | 多 KB 企业知识台：文库 → 图 → 搜/问 → 审 → 本体/映射 | Semantica 官方通用 HTTP 服务；Utopia Rust 代码复刻 |
-| 客户端 | Sema Web + 经 Token/MCP 的集成方 | Explorer 独立站点作为默认入口 |
-| 引擎 | `semantica.*` SDK +（可选）`semantica.explorer` 路由 | 在 Sema 外再暴露一套 Semantica API |
+| 产品形态 | 多 KB 企业知识台：文库 → 图 → 搜/问 → 审 → 本体/映射 | semantica 官方通用 HTTP 服务；Utopia Rust 代码复刻 |
+| 客户端 | Basis Web + 经 Token/MCP 的集成方 | Explorer 独立站点作为默认入口 |
+| 引擎 | `semantica.*` SDK +（可选）`semantica.explorer` 路由 | 在 Basis 外再暴露一套 semantica API |
 
 **北极星体验（Utopia）**：KB 内 **图谱 · 搜索 · 对话 · 文库 · 审核 · 本体 · 映射 · 设置**；平台级 **库 · 令牌 · 用户 · 模型 · 审计 · 系统设置**。
 
-**引擎与工作台（Semantica）**：解析/抽取/图/向量/LLM/本体/推理；Explorer 提供 Graph、Timeline、Decision、Registry、Entity Resolution、KG Overview、Ontology Hub、Lineage、SPARQL、Vocabulary、Import/Export、Reasoning、Diff/Merge、Agent Memory 等 Workspace——Sema **按域纳入或明确排除**，见 §3。
+**引擎与工作台（semantica）**：解析/抽取/图/向量/LLM/本体/推理；Explorer 提供 Graph、Timeline、Decision、Registry、Entity Resolution、KG Overview、Ontology Hub、Lineage、SPARQL、Vocabulary、Import/Export、Reasoning、Diff/Merge、Agent Memory 等 Workspace——Basis **按域纳入或明确排除**，见 §3。
 
 ---
 
@@ -50,9 +50,9 @@
 
 ## 3. 领域与参考映射（完整性索引）
 
-对齐 Utopia `docs/design/` 十二域 + Explorer Workspace + Sema 落点。
+对齐 Utopia `docs/design/` 十二域 + Explorer Workspace + Basis 落点。
 
-| Utopia 域 | Explorer / SDK（主要） | Sema 能力 ID 前缀 | 纳入 Sema |
+| Utopia 域 | Explorer / SDK（主要） | Basis 能力 ID 前缀 | 纳入 Basis |
 | --- | --- | --- | --- |
 | access-and-audit | — | `F-ACC` | **全量** |
 | sources | parse, ingest-*, ImportExport | `F-SRC` | **全量**（连接器可分期实现） |
@@ -67,7 +67,7 @@
 | chat-and-mcp | LLM extras | `F-CHAT` | **全量** |
 | lakehouse-and-actions | db-*, ingest-parquet… | `F-LAKE` | **可选模块**（企业扩展） |
 
-| Explorer Workspace | Sema 落点（UI） | 纳入 |
+| Explorer Workspace | Basis 落点（UI） | 纳入 |
 | --- | --- | --- |
 | Graph + Timeline | `/kbs/:id/graph` | ✓ |
 | KG Overview | graph 子页或 Manage 摘要 | ✓ |
@@ -255,7 +255,7 @@
 | F-GOV-03 | 人工决定：merge/keep/reject + rationale | `POST .../review/{id}/decide` |
 | F-GOV-04 | Agent governor（批量聚类、置信门控） | 后台 job |
 | F-GOV-05 | 影响门控、熔断 governance.tripped | 告警 |
-| F-GOV-06 | Registry：图变更流水 | Sema audit/ledger 持久读模；Explorer store 仅实时视图 |
+| F-GOV-06 | Registry：图变更流水 | Basis audit/ledger 持久读模；Explorer store 仅实时视图 |
 | F-GOV-07 | Decision：决策列表与因果链 | `.../decisions` REST；变更通过通用 WS/refetch |
 
 **界面**：`/kbs/:id/review`（含决策追溯子视图）。
@@ -365,11 +365,11 @@ Explorer Memory Workspace：长期 Agent 记忆图。**纳入策略**：当 F-CH
 ## 6. 目标系统架构
 
 ```
-Sema Web
+Basis Web
   ├─ Platform routes（§5.1–5.2）
   └─ /kbs/:id/*（§5.3–5.15）
         ▼ Bearer + KB role
-Sema API
+Basis API
   ├─ AdminStore（SQLite）
   ├─ Per-KB GraphSession（semantica.explorer.session + ContextGraph）
   ├─ Per-KB VectorIndex / SearchIndex
@@ -455,12 +455,12 @@ semantica SDK（parse, kg, ontology, reasoning, embeddings, …）
 
 完整实施契约见 [explorer-integration.md](explorer-integration.md)。关键约束：
 
-1. **后端**：计划依赖 `semantica[explorer]`；Sema 为每 KB 管理独立
+1. **后端**：计划依赖 `semantica[explorer]`；Basis 为每 KB 管理独立
    `semantica.explorer.session.GraphSession`；不直接挂载 Explorer 的单 session routers，而是
-   以 Sema adapter routes 复用 schemas/session/service 逻辑。
-2. **路径与鉴权**：公共 URL 为 **`/api/kbs/{kb_id}/...`**；HTTP 使用 Sema JWT + KB
+   以 Basis adapter routes 复用 schemas/session/service 逻辑。
+2. **路径与鉴权**：公共 URL 为 **`/api/kbs/{kb_id}/...`**；HTTP 使用 Basis JWT + KB
    role；WebSocket 使用短时、一次性 realtime ticket，不使用 Explorer API Key。
-3. **写路径**：写入先经过 Sema 证据账本和领域服务，再更新/重建图投影；Explorer
+3. **写路径**：写入先经过 Basis 证据账本和领域服务，再更新/重建图投影；Explorer
    mutation callback 不是持久化事务。
 4. **前端**：通过注入 `ExplorerClient` 复用 workspace 组件，集中处理 `apiBase`、JWT、
    WS ticket 与 capabilities；不直接保留 root-relative `/api/*` 调用。
@@ -474,7 +474,7 @@ semantica SDK（parse, kg, ontology, reasoning, embeddings, …）
 | 话题 | 状态 |
 | --- | --- |
 | 知识主存 | **已决策**：证据账本主存；开放陈述 → 映射 → 类型化事实；图/RDF/向量为投影（ADR 0001） |
-| Explorer | **已决策**：Sema 多 KB adapter + JWT/role + workspace client 注入；不直接挂单 session 应用 |
+| Explorer | **已决策**：Basis 多 KB adapter + JWT/role + workspace client 注入；不直接挂单 session 应用 |
 | SPARQL | **已决策前置条件**：读取稳定 RDF 投影；初版 RDFLib，Oxigraph 非必需 |
 | Lakehouse | 开放：标准产品或 `heavy`/企业扩展 |
 | Agent Memory | 开放：是否与 Chat 同批 |
@@ -525,7 +525,7 @@ F-LAKE-*, F-MEM-*, F-ACC-07, Neo4j 同步等。
 | --- | --- |
 | Python / extras | 见 README；Explorer 集成时增加 `semantica[explorer]`；初版 SPARQL 使用 RDFLib，Oxigraph 仅作可选后端 |
 | 图 JSON 规模 | F-GRAPH-02 分页与索引优先 |
-| 许可证 | Explorer 与 Semantica 同源 |
+| 许可证 | Explorer 与 semantica 同源 |
 
 ## 文档维护
 

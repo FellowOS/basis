@@ -1,6 +1,6 @@
-# Semantica Explorer integration
+# semantica Explorer integration
 
-This document defines how Sema reuses Semantica Knowledge Explorer in a multi-KB, JWT-authenticated,
+This document defines how Basis reuses semantica Knowledge Explorer in a multi-KB, JWT-authenticated,
 persisted product. It is an implementation contract, not a statement that Explorer is already
 mounted.
 
@@ -8,19 +8,19 @@ Related decision: [0001 — Evidence ledger is canonical](../decisions/0001-cano
 
 ## 1. Decision summary
 
-Sema reuses Explorer at two levels:
+Basis reuses Explorer at two levels:
 
 1. **Python logic and schemas**: `semantica.explorer.session.GraphSession`, search/analytics helpers,
    and selected route implementation logic.
 2. **React workspace components**: Graph, Ontology, SPARQL, Decision, Timeline, Entity Resolution,
    KG Overview, Vocabulary, and Lineage after they accept an injected API client and capability set.
 
-Sema does **not**:
+Basis does **not**:
 
 - run `semantica-explorer` as a second product process;
 - mount Explorer's `create_app()` unchanged;
 - expose Explorer's `X-API-Key` authentication;
-- let Explorer mutations bypass Sema's ledger, authorization, audit, or persistence;
+- let Explorer mutations bypass Basis's ledger, authorization, audit, or persistence;
 - treat Explorer's frontend Registry store as an audit database.
 
 ## 2. Why unchanged mounting is not viable
@@ -33,7 +33,7 @@ Explorer is a single-graph application:
 - protected routes use `X-API-Key`;
 - WebSocket is `/ws/graph-updates` and accepts an API key;
 - the React app calls root-relative `/api/*` and `/ws/graph-updates`;
-- graph mutation broadcasts do not persist Sema's graph snapshot;
+- graph mutation broadcasts do not persist Basis's graph snapshot;
 - Registry is a browser-side store, not a durable mutation REST API.
 
 Therefore `include_router(explorer_router, prefix="/api/kbs/{kb_id}")` is not the integration:
@@ -42,10 +42,10 @@ it would produce incorrect paths, keep a single session, and apply the wrong sec
 ## 3. Target component architecture
 
 ```text
-Sema endpoint
+Basis endpoint
   → JWT/session authentication
   → KB role authorization
-  → Sema domain service / ledger transaction
+  → Basis domain service / ledger transaction
   → ExplorerAdapter(kb_id)
       ├─ Explorer GraphSession (read/index/analytics)
       ├─ ContextGraph projection
@@ -55,7 +55,7 @@ Sema endpoint
 
 ### 3.1 Session ownership
 
-Introduce a Sema-owned `ExplorerSessionRegistry`:
+Introduce a Basis-owned `ExplorerSessionRegistry`:
 
 ```python
 class ExplorerSessionRegistry:
@@ -88,7 +88,7 @@ The mutation callback is useful for:
 - broadcasting a KB-local event;
 - marking a projection dirty.
 
-It is **not** the transaction boundary and is **not** sufficient durability. Sema services save the
+It is **not** the transaction boundary and is **not** sufficient durability. Basis services save the
 projection only after the canonical transaction succeeds.
 
 Source storage and processing are separate operations:
@@ -122,7 +122,7 @@ Explorer-only state needs an explicit policy:
 | --- | --- |
 | Graph search index | rebuildable, not persisted |
 | Embedding cache | rebuildable / vector store owns durable copy |
-| Annotations | persist in Sema DB before exposing write UI |
+| Annotations | persist in Basis DB before exposing write UI |
 | Markdown resources | persist per KB or keep disabled |
 | Provenance | derive from ledger; optional per-KB cache |
 | Agent Memory | disabled unless F-MEM is enabled |
@@ -131,14 +131,14 @@ Explorer-only state needs an explicit policy:
 
 ### 4.1 HTTP
 
-All Explorer-backed HTTP endpoints use Sema's existing authentication:
+All Explorer-backed HTTP endpoints use Basis's existing authentication:
 
 1. `get_current_user`;
 2. `store.get_kb_for(user, kb_id, minimum_role)`;
-3. Sema error envelope `{detail: {code, message?}}`.
+3. Basis error envelope `{detail: {code, message?}}`.
 
-Explorer's `require_auth` dependency is not mounted. `SEMANTICA_ALLOW_ANONYMOUS` must not control
-Sema routes.
+Explorer's `require_auth` dependency is not mounted. `semantica_ALLOW_ANONYMOUS` must not control
+Basis routes.
 
 ### 4.2 Role policy
 
@@ -157,7 +157,7 @@ accepted from untrusted requests without allowlisting and SSRF/path validation.
 
 ### 4.3 WebSocket
 
-Browser WebSocket clients cannot attach Sema's normal `Authorization` header portably. Use a
+Browser WebSocket clients cannot attach Basis's normal `Authorization` header portably. Use a
 short-lived one-time ticket:
 
 1. `POST /api/kbs/{kb_id}/realtime-ticket` with normal Bearer auth;
@@ -175,14 +175,14 @@ dedup so duplicate events are ignored. Contract tests: `tests/test_realtime_ws.p
 
 Do not put a reusable JWT or API token in a WebSocket query string.
 
-## 5. Sema HTTP and WebSocket contract
+## 5. Basis HTTP and WebSocket contract
 
-Sema owns these public paths. Adapter handlers may call Explorer internals but preserve these paths
-across Semantica upgrades.
+Basis owns these public paths. Adapter handlers may call Explorer internals but preserve these paths
+across semantica upgrades.
 
 ### 5.1 Graph
 
-| Method | Sema path | Explorer source | Role |
+| Method | Basis path | Explorer source | Role |
 | --- | --- | --- | --- |
 | GET | `/api/kbs/{kb_id}/graph/stats` | graph stats | viewer |
 | GET | `/api/kbs/{kb_id}/graph/projection` | ledger projection revision/status + live counts | viewer |
@@ -219,7 +219,7 @@ are never interpolated into a filesystem path.
 | `/api/kbs/{kb_id}/provenance` | PROV-O lineage graph (`node_id` query) |
 | `/api/kbs/{kb_id}/provenance/report` | downloadable provenance report |
 
-Sema web: `/kbs/{kb_id}/lineage` (`KbLineageWorkspace`), linked from graph inspector, entity list,
+Basis web: `/kbs/{kb_id}/lineage` (`KbLineageWorkspace`), linked from graph inspector, entity list,
 and graph toolbar when `capabilities.provenance` is true.
 
 Decision has no dedicated WebSocket. Changes arrive through the graph-update stream or client
@@ -244,13 +244,13 @@ optional future backend, not a requirement for initial Explorer SPARQL reuse.
 
 | Prefix | Purpose |
 | --- | --- |
-| `/api/kbs/{kb_id}/review/*` | Sema review state machine |
+| `/api/kbs/{kb_id}/review/*` | Basis review state machine |
 | `/api/kbs/{kb_id}/enrich/*` | candidate generation/calculations |
 | `/api/kbs/{kb_id}/import` | controlled graph/ontology import |
 | `/api/kbs/{kb_id}/export` | ledger-backed JSON/RDF export |
 
 Explorer entity-resolution calculations may propose candidates. Applying a merge always uses
-Sema's review/domain service so it remains reversible, audited, persisted, and reflected in the
+Basis's review/domain service so it remains reversible, audited, persisted, and reflected in the
 ledger.
 
 ### 5.5 Ledger browse (Sources / Search)
@@ -269,13 +269,13 @@ Web: **Knowledge → Entities & statements** owns ledger entity/fact browse; **S
 
 ### 5.6 Registry
 
-There is no public `/registry` claim based on Explorer. Sema provides durable mutation history via:
+There is no public `/registry` claim based on Explorer. Basis provides durable mutation history via:
 
 - platform/KB audit events;
 - decision records;
 - ledger history.
 
-The UI Registry view reads an Sema endpoint such as
+The UI Registry view reads an Basis endpoint such as
 `GET /api/audit?kb_id=...&category=graph_mutation` or a later dedicated read model. Explorer's
 `registryStore` may be used only as a transient live-event view.
 
@@ -286,12 +286,12 @@ assumptions.
 
 Preferred implementation:
 
-1. Build Sema routers with the stable paths in §5.
+1. Build Basis routers with the stable paths in §5.
 2. Inject `kb_id`, authorized user, and `KbExplorerRuntime`.
 3. Reuse Explorer schemas and session methods.
-4. Extract pure handler/service functions upstream in Semantica where a route currently contains
+4. Extract pure handler/service functions upstream in semantica where a route currently contains
    valuable logic that cannot be called cleanly.
-5. Keep a compatibility test against the pinned Semantica version.
+5. Keep a compatibility test against the pinned semantica version.
 
 Avoid monkey-patching `request.app.state.session`, request path rewriting, or temporarily swapping a
 global session. Those approaches can leak data between concurrent KB requests.
@@ -312,12 +312,12 @@ type ExplorerClient = {
 };
 ```
 
-Workspace components obtain this client through `ExplorerProvider`. The Sema implementation:
+Workspace components obtain this client through `ExplorerProvider`. The Basis implementation:
 
 - prefixes requests with `/api/kbs/${kbId}`;
-- uses Sema's authenticated API wrapper;
+- uses Basis's authenticated API wrapper;
 - obtains a realtime ticket before opening WS;
-- maps Sema error codes to localized UI;
+- maps Basis error codes to localized UI;
 - reports only enabled capabilities.
 
 All root-relative `fetch('/api/...')` and direct `new WebSocket('/ws/...')` calls in reused
@@ -330,18 +330,18 @@ Preferred order:
 1. Refactor `/Users/rog/Desktop/projects/semantica/explorer` to export workspace components and
    `ExplorerProvider` from a reusable package entry.
 2. Consume that pinned package/source from `packages/web`.
-3. Keep the full Explorer SPA build for Semantica's own product; Sema imports only workspaces.
+3. Keep the full Explorer SPA build for semantica's own product; Basis imports only workspaces.
 
-If upstream packaging cannot be changed immediately, Sema may port a narrowly selected workspace
+If upstream packaging cannot be changed immediately, Basis may port a narrowly selected workspace
 with an explicit upstream commit reference and sync notes. Do not import arbitrary files through
 Vite paths outside the package boundary in production, and do not copy the full `App.tsx`.
 
 ### 7.3 Shell and visual ownership
 
-- Sema owns routing, sidebar, account, theme, locale, loading, and error boundaries.
+- Basis owns routing, sidebar, account, theme, locale, loading, and error boundaries.
 - Explorer owns canvas and workspace-specific interaction.
-- Workspace CSS must use scoped classes/tokens; it must not reset Sema global styles.
-- Data colors may follow the Semantica/Utopia graph palette; chrome follows Sema tokens.
+- Workspace CSS must use scoped classes/tokens; it must not reset Basis global styles.
+- Data colors may follow the semantica/Utopia graph palette; chrome follows Basis tokens.
 
 ## 8. Realtime event contract
 
@@ -372,7 +372,7 @@ connected viewer could not retrieve over HTTP.
 
 ## 9. Error, concurrency, and consistency contract
 
-- Explorer exceptions are translated to Sema error codes; raw Python exception text is not exposed.
+- Explorer exceptions are translated to Basis error codes; raw Python exception text is not exposed.
 - Graph reads include `revision` where consistency matters.
 - Writes use a per-KB lock plus ledger transaction; review/mapping writes use optimistic versioning.
 - Duplicate retried writes require an idempotency key.
@@ -389,7 +389,7 @@ connected viewer could not retrieve over HTTP.
 - Graph workspace starts with a bounded overview or neighborhood for large KBs.
 - Analytics with material cost run as jobs and cache by projection revision.
 - Multi-process deployment cannot rely on process-local locks or WebSocket managers; before that
-  deployment mode is enabled, use a shared lock/event backend or constrain Sema API to one writer
+  deployment mode is enabled, use a shared lock/event backend or constrain Basis API to one writer
   process.
 
 ## 11. Security requirements
@@ -397,13 +397,13 @@ connected viewer could not retrieve over HTTP.
 - KB authorization occurs before runtime lookup to avoid side-channel existence leaks.
 - Imported files and ontology URLs are size-limited and validated against path traversal/SSRF.
 - SPARQL execution has timeout, result-row limit, and query-form allowlist.
-- WebSocket Origin is checked against Sema's configured origins.
+- WebSocket Origin is checked against Basis's configured origins.
 - Realtime tickets are hashed at rest, single-use, scoped to user + KB, and short-lived.
 - Export is audited and streamed; temporary archives are deleted.
 
 ## 12. Capability rollout
 
-Sema exposes a KB capability endpoint:
+Basis exposes a KB capability endpoint:
 
 `GET /api/kbs/{kb_id}/capabilities`
 
@@ -436,7 +436,7 @@ must disable a capability with a stable diagnostic; it must not fail application
 
 ### Gate B — read-only Graph workspace
 
-- nodes/edges/stats/search work under Sema JWT;
+- nodes/edges/stats/search work under Basis JWT;
 - viewer allowed, unauthenticated denied;
 - frontend uses injected client, no root-relative Explorer API calls in imported Graph workspace;
 - restart yields the same graph.
@@ -466,11 +466,11 @@ must disable a capability with a stable diagnostic; it must not fail application
 - load/evict/reload projection equality;
 - ledger commit followed by projection failure/rebuild;
 - concurrent writes to one KB;
-- Semantica upgrade compatibility for reused schemas/session calls;
+- semantica upgrade compatibility for reused schemas/session calls;
 - SPARQL timeout/row limit and no UPDATE;
 - import path traversal and ontology URL SSRF cases;
 - WebSocket expired/reused/wrong-KB ticket rejection;
 - frontend test proving API base includes the current `kbId`.
 
-For a product-level checklist of what the Sema graph UI wires today, see
+For a product-level checklist of what the Basis graph UI wires today, see
 [graph-workspace-closure.md](./graph-workspace-closure.md).

@@ -1,20 +1,20 @@
 from pathlib import Path
 
-from sema.admin.store import AdminStore
-from sema.graph.projector import graph_projection_signature, rebuild_graph_from_ledger
-from sema.graph.session import GraphSession
-from sema.knowledge.blob_store import BlobStore
-from sema.knowledge.store import KnowledgeStore
-from sema.pipeline.ledger_extract import apply_kg_to_ledger
-from sema.knowledge.derived_facts_service import persist_reasoning_derived
+from basis.admin.store import AdminStore
+from basis.graph.projector import graph_projection_signature, rebuild_graph_from_ledger
+from basis.graph.session import GraphSession
+from basis.knowledge.blob_store import BlobStore
+from basis.knowledge.store import KnowledgeStore
+from basis.pipeline.ledger_extract import apply_kg_to_ledger
+from basis.knowledge.derived_facts_service import persist_reasoning_derived
 
 
 def _kb_store(tmp_path: Path) -> tuple[str, KnowledgeStore]:
-    admin = AdminStore(tmp_path / "sema.db")
+    admin = AdminStore(tmp_path / "basis.db")
     user, _ = admin.register("proj@example.com", "password1", "U")
     kb_id = admin.create_kb(user, "KB", None, "restricted").id
     admin.close()
-    store = KnowledgeStore(tmp_path / "sema.db", BlobStore(tmp_path))
+    store = KnowledgeStore(tmp_path / "basis.db", BlobStore(tmp_path))
     return kb_id, store
 
 

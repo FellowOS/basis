@@ -4,25 +4,25 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
-from sema.api.app import create_app
-from sema.config import Settings
-from sema.knowledge.blob_store import BlobStore
-from sema.knowledge.conflict_review import (
+from basis.api.app import create_app
+from basis.config import Settings
+from basis.knowledge.blob_store import BlobStore
+from basis.knowledge.conflict_review import (
     STATEMENT_CONFLICT_KIND,
     find_statement_conflict_groups,
     scan_statement_conflicts,
 )
-from sema.knowledge.store import KnowledgeStore
+from basis.knowledge.store import KnowledgeStore
 
 
 def _kb(tmp_path: Path) -> tuple[str, KnowledgeStore]:
-    from sema.admin.store import AdminStore
+    from basis.admin.store import AdminStore
 
-    admin = AdminStore(tmp_path / "sema.db")
+    admin = AdminStore(tmp_path / "basis.db")
     user, _ = admin.register("conf@example.com", "password1", "Conf")
     kb_id = admin.create_kb(user, "Conf KB", None, "restricted").id
     admin.close()
-    store = KnowledgeStore(tmp_path / "sema.db", BlobStore(tmp_path))
+    store = KnowledgeStore(tmp_path / "basis.db", BlobStore(tmp_path))
     return kb_id, store
 
 
@@ -116,7 +116,7 @@ def test_acknowledge_conflict_review_item(tmp_path: Path) -> None:
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
     kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
-    store = KnowledgeStore(tmp_path / "sema.db", BlobStore(tmp_path))
+    store = KnowledgeStore(tmp_path / "basis.db", BlobStore(tmp_path))
     chunk_id = _chunk(store, kb_id)
     alice = store.create_entity(kb_id, canonical_label="Alice")
     bob = store.create_entity(kb_id, canonical_label="Bob")

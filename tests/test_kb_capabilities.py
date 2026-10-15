@@ -2,9 +2,9 @@
 
 from fastapi.testclient import TestClient
 
-from sema.api.app import create_app
-from sema.capabilities import explorer_available, kb_capabilities
-from sema.config import Settings
+from basis.api.app import create_app
+from basis.capabilities import explorer_available, kb_capabilities
+from basis.config import Settings
 
 
 def test_kb_capabilities_unit_viewer_vs_editor() -> None:

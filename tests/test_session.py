@@ -4,10 +4,10 @@ pytest.importorskip("semantica")
 
 from fastapi.testclient import TestClient
 
-from sema.api.app import create_app
-from sema.config import Settings
-from sema.graph.session import GraphSession
-from sema.ontology.service import OntologyService
+from basis.api.app import create_app
+from basis.config import Settings
+from basis.graph.session import GraphSession
+from basis.ontology.service import OntologyService
 
 
 def _auth(token: str) -> dict[str, str]:

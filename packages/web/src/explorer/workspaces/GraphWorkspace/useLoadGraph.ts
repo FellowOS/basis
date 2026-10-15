@@ -332,21 +332,21 @@ interface EdgeListResponse {
 
 const PAGE_LIMIT = 1000;
 
-/** Match `sema.limits` — bound paginated fetches when GraphWorkspace runs inside Sema (`kbId` set). */
-const SEMA_GRAPH_MAX_NODES = 200;
-const SEMA_GRAPH_MAX_EDGES = 400;
-const SEMA_PAGE_LIMIT = 200;
+/** Match `basis.limits` — bound paginated fetches when GraphWorkspace runs inside Basis (`kbId` set). */
+const BASIS_GRAPH_MAX_NODES = 200;
+const BASIS_GRAPH_MAX_EDGES = 400;
+const BASIS_PAGE_LIMIT = 200;
 
 function pageLimitForGraphLoad(kbId?: string): number {
-  return kbId ? SEMA_PAGE_LIMIT : PAGE_LIMIT;
+  return kbId ? BASIS_PAGE_LIMIT : PAGE_LIMIT;
 }
 
 function maxNodesForGraphLoad(kbId?: string): number | null {
-  return kbId ? SEMA_GRAPH_MAX_NODES : null;
+  return kbId ? BASIS_GRAPH_MAX_NODES : null;
 }
 
 function maxEdgesForGraphLoad(kbId?: string): number | null {
-  return kbId ? SEMA_GRAPH_MAX_EDGES : null;
+  return kbId ? BASIS_GRAPH_MAX_EDGES : null;
 }
 
 async function ensureGraphFetchOk(response: Response): Promise<void> {

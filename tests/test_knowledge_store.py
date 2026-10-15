@@ -2,14 +2,14 @@ from pathlib import Path
 
 import pytest
 
-from sema.admin.errors import AdminError
-from sema.admin.store import AdminStore
-from sema.knowledge.blob_store import BlobStore
-from sema.knowledge.store import KnowledgeStore
+from basis.admin.errors import AdminError
+from basis.admin.store import AdminStore
+from basis.knowledge.blob_store import BlobStore
+from basis.knowledge.store import KnowledgeStore
 
 
 def _kb_id(tmp_path: Path, *, email: str = "u@example.com", name: str = "Test KB") -> str:
-    admin = AdminStore(tmp_path / "sema.db")
+    admin = AdminStore(tmp_path / "basis.db")
     user, _ = admin.register(email, "password1", "U")
     kb = admin.create_kb(user, name, None, "restricted")
     admin.close()
@@ -19,7 +19,7 @@ def _kb_id(tmp_path: Path, *, email: str = "u@example.com", name: str = "Test KB
 def test_store_upload_and_read_roundtrip(tmp_path: Path) -> None:
     kb_id = _kb_id(tmp_path)
     blobs = BlobStore(tmp_path)
-    store = KnowledgeStore(tmp_path / "sema.db", blobs)
+    store = KnowledgeStore(tmp_path / "basis.db", blobs)
     doc_id, version_id, job_id, blob = store.store_upload_bytes(
         kb_id,
         title="note.txt",
@@ -38,7 +38,7 @@ def test_store_upload_and_read_roundtrip(tmp_path: Path) -> None:
 def test_same_bytes_two_versions_two_documents(tmp_path: Path) -> None:
     kb_id = _kb_id(tmp_path)
     blobs = BlobStore(tmp_path)
-    store = KnowledgeStore(tmp_path / "sema.db", blobs)
+    store = KnowledgeStore(tmp_path / "basis.db", blobs)
     d1, v1, _, _ = store.store_upload_bytes(
         kb_id, title="a", mime_type="text/plain", data=b"same", created_by=None
     )
@@ -51,13 +51,13 @@ def test_same_bytes_two_versions_two_documents(tmp_path: Path) -> None:
 
 
 def test_open_statement_validation_and_kb_guard(tmp_path: Path) -> None:
-    admin = AdminStore(tmp_path / "sema.db")
+    admin = AdminStore(tmp_path / "basis.db")
     user, _ = admin.register("stmt@example.com", "password1", "U")
     kb_id = admin.create_kb(user, "KB A", None, "restricted").id
     other_kb = admin.create_kb(user, "KB B", None, "restricted").id
     admin.close()
     blobs = BlobStore(tmp_path)
-    store = KnowledgeStore(tmp_path / "sema.db", blobs)
+    store = KnowledgeStore(tmp_path / "basis.db", blobs)
     _, version_id, _, _ = store.store_upload_bytes(
         kb_id, title="doc", mime_type="text/plain", data=b"x", created_by=None
     )

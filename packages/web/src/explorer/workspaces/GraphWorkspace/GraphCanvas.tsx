@@ -54,7 +54,7 @@ import {
   drawSemanticaNodeHover,
   drawSemanticaNodeLabel,
 } from "./sigmaNativeRendering";
-import { getSigmaCanvasLabelSettings } from "./semaGraphThemeSync";
+import { getSigmaCanvasLabelSettings } from "./basisGraphThemeSync";
 import {
   buildGraphStructureCurveCache,
   clearGraphStructureLayer,

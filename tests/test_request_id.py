@@ -2,8 +2,8 @@
 
 from fastapi.testclient import TestClient
 
-from sema.api.app import create_app
-from sema.config import Settings
+from basis.api.app import create_app
+from basis.config import Settings
 
 
 def test_health_returns_request_id_header(tmp_path) -> None:

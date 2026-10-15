@@ -1,23 +1,23 @@
-# Sema
+# Basis
 
 **企业知识的统一语义层** — 本体驱动的知识库、证据链支撑的事实，以及可自托管的团队与 AI 工作台。
 
-Sema 是基于 [Semantica](https://github.com/semantica-agi/semantica) Python SDK 的开源知识平台：**FastAPI 后端**（`sema`）+ **React 控制台**（`@sema/web`）。在同一套部署中完成文档摄入、图谱探索、混合检索、治理审核，并通过 HTTP / MCP 向业务系统与智能体开放知识——**无需**再单独运行 Semantica 官方的 `semantica server` 作为产品入口。
+Basis 是基于 [Semantica](https://github.com/semantica-agi/semantica) Python SDK 的开源知识平台：**FastAPI 后端**（`basis`）+ **React 控制台**（`@basis/web`）。在同一套部署中完成文档摄入、图谱探索、混合检索、治理审核，并通过 HTTP / MCP 向业务系统与智能体开放知识——**无需**再单独运行 semantica 官方的 `semantica server` 作为产品入口。
 
 [English](./README.md) · [设计文档](./docs/design/README.md) · [接口文档](http://127.0.0.1:8090/docs)（需先启动 API）
 
-[![CI](https://github.com/fellowos/sema/actions/workflows/ci.yml/badge.svg)](https://github.com/fellowos/sema/actions/workflows/ci.yml)
+[![CI](https://github.com/fellowos/basis/actions/workflows/ci.yml/badge.svg)](https://github.com/fellowos/basis/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
 ---
 
 ## 产品定位
 
-| | 常见「图 + RAG」方案 | **Sema** |
+| | 常见「图 + RAG」方案 | **Basis** |
 | --- | --- | --- |
 | 主存 | 图库 / 向量库即真相 | **证据账本**（陈述、映射、审计）；图与向量为**可重建投影** |
 | 语义 | 临时标签 | **本体**、映射、规则、SHACL、SPARQL |
-| 运维 | 多服务拼装 | 默认 **两个进程**：Sema API + Sema Web（SQLite 零配置） |
+| 运维 | 多服务拼装 | 默认 **两个进程**：Basis API + Basis Web（SQLite 零配置） |
 | 集成 | 自建胶水层 | **REST**、知识库 **API 令牌**、**MCP** 工具 |
 
 架构决策：[ADR 0001 — 证据账本为主存](docs/decisions/0001-canonical-knowledge-model.md)。
@@ -34,7 +34,7 @@ Sema 是基于 [Semantica](https://github.com/semantica-agi/semantica) Python SD
 
 **单库**
 
-- **文库** — 上传与解析（PDF、Office、HTML 等，Semantica 管线）
+- **文库** — 上传与解析（PDF、Office、HTML 等，semantica 管线）
 - **图谱** — ContextGraph 工作台（对齐 Explorer 交互契约）
 - **搜索** — 词法 + 向量混合（SQLite FTS5 + sqlite-vec，或 PostgreSQL `pg_trgm` + `pgvector`）
 - **审核** — 治理队列、实体合并、陈述冲突（`statement_conflict`）
@@ -50,14 +50,14 @@ Sema 是基于 [Semantica](https://github.com/semantica-agi/semantica) Python SD
 ## 架构
 
 ```
-Sema Web (5173)  ──/api──▶  Sema API (8090)  FastAPI
+Basis Web (5173)  ──/api──▶  Basis API (8090)  FastAPI
                               ├─ 管理：用户、库、令牌、审计 → SQLite / PostgreSQL
                               ├─ 知识：账本、blob、分块、任务 → SQLite / PostgreSQL
                               ├─ 图投影（每库 JSON，可重建）
                               └─ semantica.* SDK（解析、图、本体、LLM、向量…）
 ```
 
-后端在进程内 `import semantica`；前端与集成方只访问 **Sema** 的 `/api/*`。
+后端在进程内 `import semantica`；前端与集成方只访问 **Basis** 的 `/api/*`。
 
 ---
 
@@ -67,13 +67,13 @@ Sema Web (5173)  ──/api──▶  Sema API (8090)  FastAPI
 
 - **Python** 3.10–3.13、[uv](https://docs.astral.sh/uv/)
 - **Node.js** ≥ 22、[pnpm](https://pnpm.io/) ≥ 10
-- **Semantica SDK** — 由 `uv sync` 安装（见下文「Semantica 依赖」）
+- **semantica SDK** — 由 `uv sync` 安装（见下文「semantica 依赖」）
 
 ### 1. 克隆与配置
 
 ```bash
-git clone https://github.com/fellowos/sema.git
-cd sema
+git clone https://github.com/fellowos/basis.git
+cd basis
 cp .env.example .env
 cp packages/web/.env.example packages/web/.env
 ```
@@ -82,7 +82,7 @@ cp packages/web/.env.example packages/web/.env
 
 ```bash
 uv sync --extra dev
-uv run sema
+uv run basis
 ```
 
 默认 `http://127.0.0.1:8090`，`/docs` 为 OpenAPI。
@@ -102,10 +102,10 @@ pnpm dev
 
 | 变量 | 默认 | 说明 |
 | --- | --- | --- |
-| `SEMA_HOST` / `SEMA_PORT` | `127.0.0.1` / `8090` | API 监听 |
-| `SEMA_DATA_DIR` | `./data` | SQLite、blob、图 JSON |
-| `SEMA_DATABASE_URL` | 空则 SQLite | 生产建议 PostgreSQL |
-| `SEMA_API_URL` | `http://127.0.0.1:8090` | Web 代理目标（`packages/web/.env`） |
+| `BASIS_HOST` / `BASIS_PORT` | `127.0.0.1` / `8090` | API 监听 |
+| `BASIS_DATA_DIR` | `./data` | SQLite、blob、图 JSON |
+| `BASIS_DATABASE_URL` | 空则 SQLite | 生产建议 PostgreSQL |
+| `BASIS_API_URL` | `http://127.0.0.1:8090` | Web 代理目标（`packages/web/.env`） |
 
 详见 [.env.example](.env.example)；限流与背压：[docs/ops/runtime-limits.md](docs/ops/runtime-limits.md)。
 
@@ -113,14 +113,14 @@ pnpm dev
 
 ```bash
 docker compose -f compose.postgres.yml up -d
-export SEMA_DATABASE_URL=postgresql://sema:sema@127.0.0.1:5432/sema
-uv run sema
+export BASIS_DATABASE_URL=postgresql://basis:basis@127.0.0.1:5432/basis
+uv run basis
 ```
 
 从 SQLite 迁移账本：
 
 ```bash
-uv run sema migrate-postgres --database-url postgresql://sema:sema@127.0.0.1:5432/sema
+uv run basis migrate-postgres --database-url postgresql://basis:basis@127.0.0.1:5432/basis
 ```
 
 备份恢复：[docs/ops/backup-and-restore.md](docs/ops/backup-and-restore.md)。
@@ -133,7 +133,7 @@ uv run sema migrate-postgres --database-url postgresql://sema:sema@127.0.0.1:543
 - **API 令牌** — 知识库设置中创建，用于自动化与 MCP。
 - **MCP** — `POST/GET /api/kbs/{id}/mcp`（如 `search_chunks`、`find_entities`、`neighbors` 等）。
 
-可通过 `SEMA_MCP_MAX_INFLIGHT`、`SEMA_MCP_TIMEOUT_SECONDS` 限制并发与超时。
+可通过 `BASIS_MCP_MAX_INFLIGHT`、`BASIS_MCP_TIMEOUT_SECONDS` 限制并发与超时。
 
 ---
 
@@ -143,17 +143,17 @@ uv run sema migrate-postgres --database-url postgresql://sema:sema@127.0.0.1:543
 uv run pytest -q
 uv run pytest tests/test_release_gate.py tests/test_runtime_limits.py -q
 
-pnpm --filter @sema/web build
-pnpm --filter @sema/web test
+pnpm --filter @basis/web build
+pnpm --filter @basis/web test
 ```
 
 E2E 与手测清单：[docs/ops/smoke-test.md](docs/ops/smoke-test.md)。CI 见 [`.github/workflows/ci.yml`](.github/workflows/ci.yml)。
 
 ---
 
-## Semantica 依赖
+## semantica 依赖
 
-默认 `uv sync` 安装 Sema **运行时推荐** 的 extras（非完整 `semantica[all]`）：
+默认 `uv sync` 安装 Basis **运行时推荐** 的 extras（非完整 `semantica[all]`）：
 
 | 组合 | 用途 |
 | --- | --- |
@@ -168,7 +168,7 @@ spaCy NER 需额外下载模型，例如：
 uv run python -m spacy download en_core_web_sm
 ```
 
-本地调试 Semantica：`cp uv.toml.example uv.toml` 并修改路径后 `uv sync`；无 `uv.toml` 时从 PyPI 安装（见 `uv.lock`）。
+本地调试 semantica：`cp uv.toml.example uv.toml` 并修改路径后 `uv sync`；无 `uv.toml` 时从 PyPI 安装（见 `uv.lock`）。
 
 控制台配置的 **Chat / Embed Key** 仅在 LLM 抽取或对话/嵌入时需要；默认 pattern 抽取与纯文本上传可不配置 Key。
 

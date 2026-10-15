@@ -3,11 +3,11 @@
 import json
 import logging
 
-from sema.observability.json_logging import JsonLogFormatter
-from sema.observability.uvicorn_logging import UvicornAccessJsonFormatter
-from sema.observability.log_context import correlation_log_extra
-from sema.observability.redaction import REDACTED, redact_for_log, redact_string
-from sema.observability.request_context import (
+from basis.observability.json_logging import JsonLogFormatter
+from basis.observability.uvicorn_logging import UvicornAccessJsonFormatter
+from basis.observability.log_context import correlation_log_extra
+from basis.observability.redaction import REDACTED, redact_for_log, redact_string
+from basis.observability.request_context import (
     current_request_id,
     reset_request_id,
     set_request_id,
@@ -76,7 +76,7 @@ def test_uvicorn_access_json_formatter_structures_request() -> None:
 
 def test_json_log_formatter_emits_parseable_line_with_extras() -> None:
     record = logging.LogRecord(
-        name="sema.test",
+        name="basis.test",
         level=logging.INFO,
         pathname=__file__,
         lineno=1,

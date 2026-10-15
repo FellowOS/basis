@@ -8,12 +8,12 @@ import sys
 import time
 from pathlib import Path
 
-from sema.admin.store import AdminStore
-from sema.config import Settings
-from sema.database import get_database
-from sema.knowledge.blob_store import BlobStore
-from sema.knowledge.chunk_search import ChunkSearchService
-from sema.knowledge.store import KnowledgeStore
+from basis.admin.store import AdminStore
+from basis.config import Settings
+from basis.database import get_database
+from basis.knowledge.blob_store import BlobStore
+from basis.knowledge.chunk_search import ChunkSearchService
+from basis.knowledge.store import KnowledgeStore
 
 
 def _pending_chunk_ids(database, kb_id: str, limit: int) -> list[str]:

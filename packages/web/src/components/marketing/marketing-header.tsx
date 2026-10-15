@@ -17,9 +17,15 @@ import { useTheme } from '@/lib/theme.js';
 type Props = {
   loginTo?: string;
   registerTo?: string;
+  /** Hide header sign-in / register when the hero already shows the auth form. */
+  showAuthActions?: boolean;
 };
 
-export function MarketingHeader({ loginTo = '/login', registerTo = '/login?mode=register' }: Props) {
+export function MarketingHeader({
+  loginTo = '/',
+  registerTo = '/?mode=register',
+  showAuthActions = true,
+}: Props) {
   const { t } = useI18n();
   const { theme, toggleTheme } = useTheme();
   const m = t.marketing;
@@ -50,20 +56,23 @@ export function MarketingHeader({ loginTo = '/login', registerTo = '/login?mode=
           </Link>
 
           <div className="flex items-center gap-0.5 sm:gap-1">
-            <Link
-              to={registerTo}
-              className="hidden rounded-md px-2.5 py-1.5 text-sm text-muted-foreground no-underline transition-colors hover:text-foreground sm:inline-flex"
-            >
-              {m.ctaRegister}
-            </Link>
-            <Link
-              to={loginTo}
-              className="inline-flex h-8 items-center justify-center rounded-full bg-[var(--login-cta-bg,#152033)] px-4 text-sm font-medium text-white no-underline transition-[filter] hover:brightness-110 sm:h-9 sm:px-5"
-            >
-              {m.ctaLogin}
-            </Link>
-
-            <span className="mx-0.5 hidden h-4 w-px bg-border/60 sm:mx-1 sm:block" aria-hidden />
+            {showAuthActions && (
+              <>
+                <Link
+                  to={registerTo}
+                  className="hidden rounded-md px-2.5 py-1.5 text-sm text-muted-foreground no-underline transition-colors hover:text-foreground sm:inline-flex"
+                >
+                  {m.ctaRegister}
+                </Link>
+                <Link
+                  to={loginTo}
+                  className="inline-flex h-8 items-center justify-center rounded-full bg-[var(--login-cta-bg,#152033)] px-4 text-sm font-medium text-white no-underline transition-[filter] hover:brightness-110 sm:h-9 sm:px-5"
+                >
+                  {m.ctaLogin}
+                </Link>
+                <span className="mx-0.5 hidden h-4 w-px bg-border/60 sm:mx-1 sm:block" aria-hidden />
+              </>
+            )}
 
             <Button
               type="button"

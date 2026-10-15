@@ -1,4 +1,4 @@
-"""X-03 — PostgreSQL pg_dump / restore script roundtrip (requires SEMA_TEST_POSTGRES_URL)."""
+"""X-03 — PostgreSQL pg_dump / restore script roundtrip (requires BASIS_TEST_POSTGRES_URL)."""
 
 from __future__ import annotations
 
@@ -11,9 +11,9 @@ import pytest
 
 from fastapi.testclient import TestClient
 
-from sema.api.app import create_app
-from sema.config import Settings
-from sema.test_support.postgres import create_postgres_database, drop_postgres_database
+from basis.api.app import create_app
+from basis.config import Settings
+from basis.test_support.postgres import create_postgres_database, drop_postgres_database
 
 
 def _auth(token: str) -> dict[str, str]:
@@ -69,11 +69,11 @@ def test_postgres_backup_restore_scripts_preserve_ledger(
 
     backup_env = {
         **os.environ,
-        "SEMA_DATABASE_URL": postgres_url,
-        "SEMA_DATA_DIR": str(data_dir),
+        "BASIS_DATABASE_URL": postgres_url,
+        "BASIS_DATA_DIR": str(data_dir),
     }
     subprocess.run(
-        [str(repo_root / "scripts/backup_sema_postgres.sh"), str(backups)],
+        [str(repo_root / "scripts/backup_basis_postgres.sh"), str(backups)],
         env=backup_env,
         check=True,
         cwd=repo_root,
@@ -86,12 +86,12 @@ def test_postgres_backup_restore_scripts_preserve_ledger(
     try:
         restore_env = {
             **os.environ,
-            "SEMA_DATABASE_URL": restore_url,
-            "SEMA_DATA_DIR": str(data_dir),
-            "SEMA_RESTORE_CONFIRM": "yes",
+            "BASIS_DATABASE_URL": restore_url,
+            "BASIS_DATA_DIR": str(data_dir),
+            "BASIS_RESTORE_CONFIRM": "yes",
         }
         restore_cmd = [
-            str(repo_root / "scripts/restore_sema_postgres.sh"),
+            str(repo_root / "scripts/restore_basis_postgres.sh"),
             str(dumps[0]),
         ]
         if blob_archives:

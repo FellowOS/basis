@@ -2,8 +2,8 @@ from pathlib import Path
 
 import pytest
 
-from sema.admin.errors import AdminError
-from sema.knowledge.blob_store import BlobStore
+from basis.admin.errors import AdminError
+from basis.knowledge.blob_store import BlobStore
 
 
 def test_put_is_content_addressed_and_atomic(tmp_path: Path) -> None:

@@ -1,6 +1,6 @@
 # Realtime graph WebSocket (M4)
 
-Sema pushes **projection** events to the Web UI over a KB-scoped WebSocket. Canonical state still lives in the ledger; clients refetch graph data after `projection_updated`.
+Basis pushes **projection** events to the Web UI over a KB-scoped WebSocket. Canonical state still lives in the ledger; clients refetch graph data after `projection_updated`.
 
 ## Endpoints
 
@@ -11,13 +11,13 @@ Sema pushes **projection** events to the Web UI over a KB-scoped WebSocket. Cano
 | Event | `{"type":"projection_updated","kb_id":"…","projection_revision":N}` |
 | Revoke | `{"type":"access_revoked",…}` when membership or account is revoked |
 
-Explorer in Sema Web uses `openGraphUpdatesSocket` from `ExplorerHostProvider` (ticketed URL + cookies).
+Explorer in Basis Web uses `openGraphUpdatesSocket` from `ExplorerHostProvider` (ticketed URL + cookies).
 
 ## Single-process deployment (current)
 
 - `GraphWsHub` and `RealtimeTicketStore` are **in-memory** on `app.state`.
 - Broadcasts reach only sockets connected to **that** API process.
-- Suitable for `uv run sema`, Docker single replica, or dev.
+- Suitable for `uv run basis`, Docker single replica, or dev.
 
 ## Multi-replica (out of scope for now)
 
@@ -30,7 +30,7 @@ Running **multiple API workers** without sticky sessions (e.g. round-robin acros
 
 **Supported patterns:**
 
-- **One API process** per environment (`uv run sema`, single container replica, `workers=1`).
+- **One API process** per environment (`uv run basis`, single container replica, `workers=1`).
 - **Sticky sessions** at the load balancer so HTTP + WS stay on the same instance (each instance still has its own in-memory hub; scale only helps HTTP, not shared WS fan-out across nodes).
 
 If realtime breaks after enabling multiple workers, reduce to a single process or enable stickiness—do not expect a shared Redis layer.

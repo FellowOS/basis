@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { parseGraphRealtimeServerMessage } from "./graphRealtimeMessages.js";
 
 describe("parseGraphRealtimeServerMessage", () => {
-  it("maps Sema projection_updated (ingest/rebuild)", () => {
+  it("maps Basis projection_updated (ingest/rebuild)", () => {
     expect(
       parseGraphRealtimeServerMessage({
         type: "projection_updated",

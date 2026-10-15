@@ -1,4 +1,4 @@
-# Graph workspace product closure (Sema)
+# Graph workspace product closure (Basis)
 
 Status snapshot for the KB **Explore → Graph** surface and its links to the rest of the
 lifecycle. See [explorer-integration.md](./explorer-integration.md) for API contracts and gates.
@@ -37,7 +37,7 @@ lifecycle. See [explorer-integration.md](./explorer-integration.md) for API cont
 - Canvas **direct merge** (`direct_graph_merge: false`) — use review / entity resolution.
 - Standalone **Decision** top-level nav — lives under **Governance → Review** tab.
 - **Registry** as durable history — platform/KB audit + review queue.
-- Semantica **inner chrome** full token migration — graph HUD still mixed theme.
+- semantica **inner chrome** full token migration — graph HUD still mixed theme.
 
 ## Suggested manual test (15 min)
 

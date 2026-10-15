@@ -15,7 +15,7 @@ export type ExplorerHttpConfig = {
    */
   apiRoot?: string;
   getAuthHeaders?: () => HeadersInit;
-  /** Sema: ticketed KB WebSocket via `buildKbExplorerHttpConfig`. */
+  /** Basis: ticketed KB WebSocket via `buildKbExplorerHttpConfig`. */
   openGraphUpdatesSocket?: () => Promise<WebSocket>;
 };
 
@@ -103,7 +103,7 @@ function rewriteApiPath(pathname: string, apiRoot: string): string {
   if (pathname === root || pathname.startsWith(`${root}/`)) {
     return pathname;
   }
-  // Already KB-scoped (Sema or another host); do not prepend apiRoot again.
+  // Already KB-scoped (Basis or another host); do not prepend apiRoot again.
   if (pathname.startsWith("/api/kbs/")) {
     return pathname;
   }

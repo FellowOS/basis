@@ -1,18 +1,18 @@
 from pathlib import Path
 
-from sema.admin.store import AdminStore
-from sema.knowledge.blob_store import BlobStore
-from sema.knowledge.store import KnowledgeStore
-from sema.pipeline.ledger_extract import apply_kg_to_ledger
+from basis.admin.store import AdminStore
+from basis.knowledge.blob_store import BlobStore
+from basis.knowledge.store import KnowledgeStore
+from basis.pipeline.ledger_extract import apply_kg_to_ledger
 
 
 def _kb_and_chunk(tmp_path: Path) -> tuple[KnowledgeStore, str, str, str]:
-    admin = AdminStore(tmp_path / "sema.db")
+    admin = AdminStore(tmp_path / "basis.db")
     user, _ = admin.register("ledger@example.com", "password1", "U")
     kb_id = admin.create_kb(user, "KB", None, "restricted").id
     admin.close()
     blobs = BlobStore(tmp_path)
-    store = KnowledgeStore(tmp_path / "sema.db", blobs)
+    store = KnowledgeStore(tmp_path / "basis.db", blobs)
     _, version_id, _, _ = store.store_upload_bytes(
         kb_id,
         title="doc.txt",

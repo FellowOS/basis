@@ -12,18 +12,18 @@ jobs:
       postgres:
         image: pgvector/pgvector:pg17
         env:
-          POSTGRES_USER: sema
-          POSTGRES_PASSWORD: sema
+          POSTGRES_USER: basis
+          POSTGRES_PASSWORD: basis
           POSTGRES_DB: postgres
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U sema -d postgres"
+          --health-cmd "pg_isready -U basis -d postgres"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
     env:
-      SEMA_TEST_POSTGRES_URL: postgresql://sema:sema@localhost:5432/postgres
+      BASIS_TEST_POSTGRES_URL: postgresql://basis:basis@localhost:5432/postgres
     steps:
       - uses: actions/checkout@v4
 
@@ -77,10 +77,10 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Typecheck and build
-        run: pnpm --filter @sema/web build
+        run: pnpm --filter @basis/web build
 
       - name: Unit tests
-        run: pnpm --filter @sema/web test
+        run: pnpm --filter @basis/web test
 
   e2e:
     runs-on: ubuntu-latest
@@ -108,10 +108,10 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Install Playwright Chromium
-        run: pnpm --filter @sema/web exec playwright install chromium --with-deps
+        run: pnpm --filter @basis/web exec playwright install chromium --with-deps
 
       - name: Playwright smoke
         run: CI=1 pnpm test:e2e
         env:
-          SEMA_E2E_API_PORT: 8091
-          SEMA_E2E_WEB_PORT: 5174
+          BASIS_E2E_API_PORT: 8091
+          BASIS_E2E_WEB_PORT: 5174

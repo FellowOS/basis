@@ -7,10 +7,10 @@
 
 ## Boundaries
 
-Sema separates source-of-truth storage from rebuildable search projections:
+Basis separates source-of-truth storage from rebuildable search projections:
 
 1. **Canonical chunk store** — documents, versions, chunks, statements, and evidence live in one
-   deployment-level ledger: SQLite (`data/sema.db`) or PostgreSQL. `kb_id` is the tenant boundary.
+   deployment-level ledger: SQLite (`data/basis.db`) or PostgreSQL. `kb_id` is the tenant boundary.
 2. **Blob store** — original uploaded bytes live under the configured data directory and are
    addressed from document versions.
 3. **Vector index** — embeddings are a rebuildable projection: sqlite-vec stores one database per
@@ -87,14 +87,14 @@ chunks first, then indexes when semantic search and automatic indexing are enabl
 
 ## Deployment and migration
 
-`SEMA_DATABASE_URL` selects PostgreSQL; if unset, Sema uses SQLite. SQLAlchemy supplies the
+`BASIS_DATABASE_URL` selects PostgreSQL; if unset, Basis uses SQLite. SQLAlchemy supplies the
 connection pool and common execution layer, while dialect-specific search remains behind backend
 interfaces. Alembic records the portable baseline; legacy SQLite migrations remain readable for
 existing databases.
 
 `sema migrate-postgres` copies canonical tables in one administrative transaction, verifies a
 stable hash of all chunk IDs/text, and changes KB search configs to PostgreSQL/pgvector. Blob and
-graph files remain in `SEMA_DATA_DIR`; vector bytes are rebuilt from canonical chunks.
+graph files remain in `BASIS_DATA_DIR`; vector bytes are rebuilt from canonical chunks.
 
 `scripts/benchmark_search.py` measures both backends with identical data. On the development
 machine with 100,000 chunks and the common query `混合检索`, SQLite measured about 63 requests/s

@@ -1,6 +1,6 @@
 # Capability gap checklist
 
-Post–Explorer-shell migration inventory: what is **done**, **replaced**, **excluded by design**, or **still open** on the Sema product roadmap.
+Post–Explorer-shell migration inventory: what is **done**, **replaced**, **excluded by design**, or **still open** on the Basis product roadmap.
 
 References: [Product and roadmap](product-and-roadmap.md), [Explorer integration](explorer-integration.md), [Implementation backlog](implementation-backlog.md).
 
@@ -9,15 +9,15 @@ References: [Product and roadmap](product-and-roadmap.md), [Explorer integration
 | Column | Meaning |
 | --- | --- |
 | **F-*** | Roadmap feature ID in `product-and-roadmap.md` |
-| **Status** | `done` · `partial` · `not` · `excluded` (intentional) · `replaced` (different Sema surface) |
+| **Status** | `done` · `partial` · `not` · `excluded` (intentional) · `replaced` (different Basis surface) |
 | **Priority** | `P0` must for KB GA slice · `P1` high value for enterprise/multi-user · `P2` optional / niche · `—` not applicable |
-| **Migrate?** | Whether this was an Explorer→Sema **shell** migration item |
+| **Migrate?** | Whether this was an Explorer→Basis **shell** migration item |
 
 ---
 
 ## 1. Explorer shell migration (historical)
 
-| Item | Status | Migrate? | Sema today |
+| Item | Status | Migrate? | Basis today |
 | --- | --- | --- | --- |
 | Standalone Explorer `App.tsx` / global `/api/graph` | `excluded` | N/A | Removed; only `/api/kbs/{id}/...` |
 | Graph / Ontology / Vocabulary / SPARQL / Reasoning workspaces | `done` | Yes | Vendored `packages/web/src/explorer/*` via `kb-*-workspace` + `explorerHttp` |
@@ -45,7 +45,7 @@ References: [Product and roadmap](product-and-roadmap.md), [Explorer integration
 
 ---
 
-## 3. Roadmap gaps (useful for Sema; not “failed migration”)
+## 3. Roadmap gaps (useful for Basis; not “failed migration”)
 
 ### 3.1 Governance & ontology
 
@@ -90,7 +90,7 @@ References: [Product and roadmap](product-and-roadmap.md), [Explorer integration
 | --- | --- | --- | --- | --- |
 | F-IO-01 | Graph import/export | `partial` | — | Import via review |
 | — | Markdown node resources persistence | `open` | P2 | Policy: per-KB persist vs disable |
-| M5-02 | Semantica package entry for Graph workspace | `not` | P2 | Still vendored `src/explorer` |
+| M5-02 | semantica package entry for Graph workspace | `not` | P2 | Still vendored `src/explorer` |
 | M4-04 | Cross-instance WS (Redis pub/sub) | `deferred` | P1 | Single worker or sticky sessions today |
 
 ---

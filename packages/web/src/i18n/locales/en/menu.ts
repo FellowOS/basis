@@ -69,7 +69,7 @@ export const menu = {
     stepCopyUrl: 'Copy the MCP URL into your client',
     stepPasteConfig: 'Paste the JSON below into mcp.json and set Bearer to your token',
     url: 'MCP endpoint URL',
-    apiBaseNote: 'Point the client at the Sema API (e.g. http://127.0.0.1:8090), not the Vite dev port.',
+    apiBaseNote: 'Point the client at the Basis API (e.g. http://127.0.0.1:8090), not the Vite dev port.',
     tools: 'Available tools',
     copy: 'Copy URL',
     copyConfig: 'Copy config',

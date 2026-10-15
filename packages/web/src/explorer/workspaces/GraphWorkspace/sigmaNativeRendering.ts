@@ -7,7 +7,7 @@ import type { NodeHoverDrawingFunction, NodeLabelDrawingFunction } from "sigma/r
 
 import { GRAPH_THEME, type GraphEntityShapeVariant, withAlpha } from "./graphTheme";
 
-type SemanticaNodeDrawData = {
+type semanticaNodeDrawData = {
   x: number;
   y: number;
   size: number;
@@ -269,7 +269,7 @@ class EntityTokenNodeProgram extends NodeProgram<(typeof ENTITY_TOKEN_UNIFORMS)[
     };
   }
 
-  processVisibleItem(nodeIndex: number, startIndex: number, data: NodeDisplayData & SemanticaNodeDrawData): void {
+  processVisibleItem(nodeIndex: number, startIndex: number, data: NodeDisplayData & semanticaNodeDrawData): void {
     const array = this.array;
     const hasInteractionRing = Boolean(data.ringSize && data.ringSize > 0 && data.ringColor);
     const outlineColor = hasInteractionRing
@@ -333,7 +333,7 @@ function drawRoundedRect(
 }
 
 export const drawSemanticaNodeLabel: NodeLabelDrawingFunction = (context, rawData) => {
-  const data = rawData as typeof rawData & SemanticaNodeDrawData;
+  const data = rawData as typeof rawData & semanticaNodeDrawData;
   if (data.suppressNodeChip || !data.label) {
     return;
   }
@@ -375,7 +375,7 @@ export const drawSemanticaNodeLabel: NodeLabelDrawingFunction = (context, rawDat
 };
 
 export const drawSemanticaNodeHover: NodeHoverDrawingFunction = (context, rawData) => {
-  const data = rawData as typeof rawData & SemanticaNodeDrawData;
+  const data = rawData as typeof rawData & semanticaNodeDrawData;
   if (!data.label) {
     return;
   }

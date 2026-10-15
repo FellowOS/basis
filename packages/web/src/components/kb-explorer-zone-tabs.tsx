@@ -16,7 +16,7 @@ export function KbExplorerZoneTabs({
   activeId: string;
   onChange: (id: string) => void;
   className?: string;
-  /** `console` uses Sema shell tokens for document-style workspaces. */
+  /** `console` uses Basis shell tokens for document-style workspaces. */
   variant?: 'explorer' | 'console';
 }) {
   const isConsole = variant === 'console';

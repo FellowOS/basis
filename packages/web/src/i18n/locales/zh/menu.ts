@@ -69,7 +69,7 @@ export const menu = {
     stepCopyUrl: '复制 MCP URL，在客户端填入服务地址',
     stepPasteConfig: '将下方配置粘贴到 mcp.json，并把 Bearer 换成你的令牌',
     url: 'MCP 端点 URL',
-    apiBaseNote: '客户端需直连 Sema API（如 http://127.0.0.1:8090），不要走前端开发代理端口。',
+    apiBaseNote: '客户端需直连 Basis API（如 http://127.0.0.1:8090），不要走前端开发代理端口。',
     tools: '可用工具',
     copy: '复制 URL',
     copyConfig: '复制配置',

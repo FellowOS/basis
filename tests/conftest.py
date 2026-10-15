@@ -2,8 +2,8 @@ import os
 
 import pytest
 
-from sema.database import reset_sqlite_database_pool
-from sema.test_support.postgres import create_postgres_database, drop_postgres_database
+from basis.database import reset_sqlite_database_pool
+from basis.test_support.postgres import create_postgres_database, drop_postgres_database
 
 
 @pytest.fixture(autouse=True)
@@ -14,9 +14,9 @@ def _isolate_sqlite_pool() -> None:
 
 @pytest.fixture
 def postgres_admin_url() -> str:
-    admin_url = os.environ.get("SEMA_TEST_POSTGRES_URL")
+    admin_url = os.environ.get("BASIS_TEST_POSTGRES_URL")
     if not admin_url:
-        pytest.skip("SEMA_TEST_POSTGRES_URL is not configured")
+        pytest.skip("BASIS_TEST_POSTGRES_URL is not configured")
     return admin_url
 
 

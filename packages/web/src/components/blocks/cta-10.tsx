@@ -24,7 +24,7 @@ export function Cta10({ title, body, primaryCta, secondaryCta }: Cta10Props) {
       >
         <div className="relative aspect-4/5 md:aspect-auto md:min-h-[360px] rounded-2xl overflow-hidden bg-muted grid place-items-center">
           <div className="absolute inset-0 bg-gradient-to-br from-amber-500/15 via-transparent to-foreground/5" />
-          <AppLogo size={80} label="Sema" />
+          <AppLogo size={80} label="Basis" />
         </div>
 
         <div className="flex flex-col justify-center p-6 sm:p-10 gap-5">

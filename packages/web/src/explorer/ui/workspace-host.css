@@ -1,6 +1,6 @@
 /**
- * Explorer workspaces embedded in Sema (governance, import/export, etc.).
- * Remaps Semantica --ws-* / --text-* tokens to the app theme and provides
+ * Explorer workspaces embedded in Basis (governance, import/export, etc.).
+ * Remaps semantica --ws-* / --text-* tokens to the app theme and provides
  * .ws-* primitives that standalone Explorer injects via App.tsx.
  */
 .kb-explorer-console {

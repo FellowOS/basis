@@ -1,4 +1,4 @@
-/** Parsed server envelopes from `/api/kbs/{id}/ws/graph-updates` (Sema realtime hub). */
+/** Parsed server envelopes from `/api/kbs/{id}/ws/graph-updates` (Basis realtime hub). */
 
 export type GraphRealtimeServerMessage =
   | { type: "projection_updated"; projectionRevision?: number }

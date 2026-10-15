@@ -5,10 +5,10 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
-from sema.api.app import create_app
-from sema.config import Settings
-from sema.knowledge.blob_store import BlobStore
-from sema.knowledge.store import KnowledgeStore
+from basis.api.app import create_app
+from basis.config import Settings
+from basis.knowledge.blob_store import BlobStore
+from basis.knowledge.store import KnowledgeStore
 
 
 def test_settings_override_graph_snapshot_cap(tmp_path: Path) -> None:
@@ -41,7 +41,7 @@ def test_settings_override_chunk_search_cap(tmp_path: Path) -> None:
     headers = {"Authorization": f"Bearer {admin['token']}"}
     kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
 
-    store = KnowledgeStore(tmp_path / "sema.db", BlobStore(tmp_path))
+    store = KnowledgeStore(tmp_path / "basis.db", BlobStore(tmp_path))
     _, version_id, _, _ = store.store_upload_bytes(
         kb_id,
         title="many.txt",
@@ -130,7 +130,7 @@ def test_processing_fails_when_extracted_text_exceeds_cap(tmp_path: Path) -> Non
 
 
 def test_processing_fails_when_chunk_count_exceeds_cap(tmp_path: Path, monkeypatch) -> None:
-    from sema.pipeline import version_ingest as vi
+    from basis.pipeline import version_ingest as vi
 
     def _many_chunks(full_text: str, options) -> list[str]:
         return [f"part-{i}" for i in range(5)]
@@ -174,8 +174,8 @@ def test_processing_fails_when_chunk_count_exceeds_cap(tmp_path: Path, monkeypat
 
 
 def test_processing_fails_when_extraction_times_out(tmp_path: Path, monkeypatch) -> None:
-    from sema.pipeline import document
-    from sema.pipeline.extract_timeout import ExtractionTimeoutError
+    from basis.pipeline import document
+    from basis.pipeline.extract_timeout import ExtractionTimeoutError
 
     def _always_timeout(_fn, timeout_seconds: float):
         raise ExtractionTimeoutError(timeout_seconds)
@@ -219,7 +219,7 @@ def test_processing_fails_when_extraction_times_out(tmp_path: Path, monkeypatch)
 def test_async_ingest_fails_with_ingest_overloaded_when_pending_full(
     tmp_path: Path, monkeypatch
 ) -> None:
-    from sema.pipeline import version_ingest as vi
+    from basis.pipeline import version_ingest as vi
 
     original = vi.run_version_ingest
 
@@ -278,7 +278,7 @@ def test_async_ingest_fails_with_ingest_overloaded_when_pending_full(
 def test_run_sync_with_timeout_returns_without_waiting_on_worker() -> None:
     import pytest
 
-    from sema.pipeline.extract_timeout import ExtractionTimeoutError, run_sync_with_timeout
+    from basis.pipeline.extract_timeout import ExtractionTimeoutError, run_sync_with_timeout
 
     start = time.monotonic()
     with pytest.raises(ExtractionTimeoutError):

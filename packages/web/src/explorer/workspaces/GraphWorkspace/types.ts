@@ -312,7 +312,7 @@ export interface GraphLoadSummary {
   hasCoordinates?: boolean;
   layoutSource?: GraphLayoutSource;
   layoutReady?: boolean;
-  /** True when Sema caps (200 nodes / 400 edges) truncated paginated fetch. */
+  /** True when Basis caps (200 nodes / 400 edges) truncated paginated fetch. */
   loadTruncated?: boolean;
 }
 

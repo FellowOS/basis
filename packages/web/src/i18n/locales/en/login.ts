@@ -1,7 +1,7 @@
 export const login = {
-  title: 'Sign in to Sema',
+  title: 'Sign in to Basis',
   subtitle:
-    'The web app talks only to the Sema API; graph and reasoning run in-process via the Semantica SDK.',
+    'The web app talks only to the Basis API; graph and reasoning run in-process via the semantica SDK.',
   registerTitle: 'Create your account',
   registerSubtitle: 'The first registered user becomes a platform admin and can create knowledge bases.',
   emailLabel: 'Email',

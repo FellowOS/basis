@@ -4,9 +4,9 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
-from sema.api.app import create_app
-from sema.config import Settings
-from sema.limits import GRAPH_PAGE_MAX_EDGES, GRAPH_PAGE_MAX_NODES
+from basis.api.app import create_app
+from basis.config import Settings
+from basis.limits import GRAPH_PAGE_MAX_EDGES, GRAPH_PAGE_MAX_NODES
 
 
 def test_graph_nodes_limit_capped(tmp_path: Path) -> None:

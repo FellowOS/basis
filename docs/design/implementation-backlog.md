@@ -4,7 +4,7 @@ This backlog converts the accepted knowledge model and Explorer integration desi
 implementable vertical slice:
 
 > Upload a document → persist source/evidence → build a graph projection → browse the graph through
-> Sema-authenticated Explorer-compatible APIs → restart without losing data.
+> Basis-authenticated Explorer-compatible APIs → restart without losing data.
 
 It is deliberately narrower than the complete product roadmap. Each task has dependencies and
 acceptance gates so it can become an issue without rediscovering architecture.
@@ -34,7 +34,7 @@ References:
 
 **Status:** done (0001 baseline + 0002 knowledge ledger schema; runner + tests)  
 **Depends on:** none  
-**Touches:** `sema/admin/store.py`, new `sema/admin/migrations/`, tests
+**Touches:** `basis/admin/store.py`, new `basis/admin/migrations/`, tests
 
 Work:
 
@@ -90,7 +90,7 @@ Acceptance:
 
 ### M1-04 — Add atomic content-addressed blob storage
 
-**Status:** done (`sema/knowledge/blob_store.py`, wired on `app.state`)  
+**Status:** done (`basis/knowledge/blob_store.py`, wired on `app.state`)  
 **Depends on:** M1-03  
 **Maps to:** F-SRC-02
 
@@ -251,14 +251,14 @@ Acceptance:
 
 Work:
 
-- add `semantica[explorer]` to the appropriate Sema extra/runtime bundle;
-- verify supported Semantica version;
+- add `semantica[explorer]` to the appropriate Basis extra/runtime bundle;
+- verify supported semantica version;
 - add a capability probe so missing optional pieces disable workspaces without breaking startup.
 
 Acceptance:
 
 - clean `uv sync` provides Explorer Python modules;
-- Sema starts with expected graph capability;
+- Basis starts with expected graph capability;
 - compatibility smoke test imports schemas/session and constructs a runtime.
 
 **Status:** partial — optional `uv sync --extra explorer`; `capabilities.explorer_runtime` probe; tests when extra installed.
@@ -283,9 +283,9 @@ Acceptance:
 - eviction/reload preserves graph and search;
 - memory/cache limits are configurable.
 
-**Status:** done (baseline) — registry + idle eviction; WS tickets; `access_revoked` on member removal, role change, and user deactivation; ledger merge revert rebuilds projection, invalidates Explorer cache, and re-wraps Explorer when `sema.graph` is replaced (`test_revert_entity_merge_refreshes_explorer_nodes`).
+**Status:** done (baseline) — registry + idle eviction; WS tickets; `access_revoked` on member removal, role change, and user deactivation; ledger merge revert rebuilds projection, invalidates Explorer cache, and re-wraps Explorer when `basis.graph` is replaced (`test_revert_entity_merge_refreshes_explorer_nodes`).
 
-### M4-03 — Add Sema graph read adapters
+### M4-03 — Add Basis graph read adapters
 
 **Depends on:** M4-02  
 **Maps to:** F-GRAPH-01–04, F-SRCH-05
@@ -294,7 +294,7 @@ Work:
 
 - implement stats, paginated nodes/edges, graph search, neighbors, path;
 - reuse Explorer schemas/session methods;
-- translate errors to Sema codes;
+- translate errors to Basis codes;
 - enforce viewer role before runtime lookup.
 
 Acceptance:
@@ -326,7 +326,7 @@ Acceptance:
 
 **Status:** partial (single-process) — ticketed `WS .../ws/graph-updates`; `projection_updated` on save/ingest/rebuild; revoke on member removal and user deactivation; tests in `test_ws_hub.py` / `test_realtime_ws.py`. Ops: `docs/ops/realtime-websocket.md`. **Deferred:** Redis / cross-instance WS pub/sub (use one API worker or LB sticky sessions instead).
 
-## 6. Milestone M5 — Graph workspace in Sema Web
+## 6. Milestone M5 — Graph workspace in Basis Web
 
 ### M5-01 — Introduce injectable Explorer client
 
@@ -336,7 +336,7 @@ Acceptance:
 Work:
 
 - define `ExplorerClient` and provider;
-- route HTTP through Sema API auth wrapper;
+- route HTTP through Basis API auth wrapper;
 - prefix current KB;
 - centralize capabilities and error mapping;
 - remove direct API usage from the first reused Graph modules.
@@ -347,7 +347,7 @@ Acceptance:
 - switching KB cancels/invalidates previous queries;
 - no reused Graph module performs root-relative Explorer fetch directly.
 
-**Status:** partial — `explorerHttp` + `ExplorerHostProvider`; zone shells incl. `KbVocabularyHubWorkspace` (SKOS + Alignments), mappings page; capabilities gate nav. Remaining: full package entry from Semantica (M5-02).
+**Status:** partial — `explorerHttp` + `ExplorerHostProvider`; zone shells incl. `KbVocabularyHubWorkspace` (SKOS + Alignments), mappings page; capabilities gate nav. Remaining: full package entry from semantica (M5-02).
 
 ### M5-02 — Package/refactor reusable Graph workspace
 
@@ -355,19 +355,19 @@ Acceptance:
 
 Work:
 
-- expose Graph workspace from Semantica Explorer through a supported package entry;
+- expose Graph workspace from semantica Explorer through a supported package entry;
 - isolate workspace styles;
 - inject client and theme tokens;
 - avoid importing full Explorer `App.tsx`.
 
 Acceptance:
 
-- Semantica's own Explorer build still works;
-- Sema build consumes the supported entry;
-- no global CSS reset leaks into Sema;
+- semantica's own Explorer build still works;
+- Basis build consumes the supported entry;
+- no global CSS reset leaks into Basis;
 - dependency versions are pinned/compatible.
 
-### M5-03 — Replace Sema graph placeholder
+### M5-03 — Replace Basis graph placeholder
 
 **Depends on:** M5-02, M4-04  
 **Maps to:** F-GRAPH-02–05, F-UI-01–02
@@ -397,14 +397,14 @@ Acceptance:
 - localize messages in Web;
 - stop exposing raw server strings.
 
-**Status:** partial — coded API errors on KB + Explorer routes; `explorerFetch` / `explorerFetchJson` (auth, `X-Request-ID`, KB path rewrite) used across Sema KB workspaces; legacy `/api/graph` strings rewrite only under `ExplorerHostProvider` (no standalone `/api/...` fallback). Ingest limit codes localized.
+**Status:** partial — coded API errors on KB + Explorer routes; `explorerFetch` / `explorerFetchJson` (auth, `X-Request-ID`, KB path rewrite) used across Basis KB workspaces; legacy `/api/graph` strings rewrite only under `ExplorerHostProvider` (no standalone `/api/...` fallback). Ingest limit codes localized.
 
 ### X-02 — Request IDs and structured logging
 
 - request/job/projection IDs in logs and audit;
 - redact authorization, API keys, document content, and model secrets.
 
-**Status:** done (baseline) — `X-Request-ID` middleware; `detail.request_id` on API errors; Web correlation headers + user-facing reference IDs; `record_audit` + ingest logs use `correlation_log_extra`; async ingest threads bind `trigger_request_id`; processing jobs store `options.request_id`; `SEMA_LOG_JSON=1` enables JSON on `sema.*` and uvicorn access/error (`UvicornAccessJsonFormatter`); `redact_for_log` / `redact_string` for secrets and bulky text. Follow-up: cancel in-flight LLM work on extract timeout.
+**Status:** done (baseline) — `X-Request-ID` middleware; `detail.request_id` on API errors; Web correlation headers + user-facing reference IDs; `record_audit` + ingest logs use `correlation_log_extra`; async ingest threads bind `trigger_request_id`; processing jobs store `options.request_id`; `BASIS_LOG_JSON=1` enables JSON on `basis.*` and uvicorn access/error (`UvicornAccessJsonFormatter`); `redact_for_log` / `redact_string` for secrets and bulky text. Follow-up: cancel in-flight LLM work on extract timeout.
 
 ### X-03 — Backup/recovery baseline
 
@@ -412,7 +412,7 @@ Acceptance:
 - restore test;
 - projections may rebuild, canonical DB/blobs may not.
 
-**Status:** done — SQLite: `scripts/backup_sema_data.sh`, `test_backup_tar_roundtrip_preserves_ledger`. PostgreSQL: `backup_sema_postgres.sh` / `restore_sema_postgres.sh`, `tests/test_postgres_backup_restore.py` (CI job `postgres` with `SEMA_TEST_POSTGRES_URL`).
+**Status:** done — SQLite: `scripts/backup_basis_data.sh`, `test_backup_tar_roundtrip_preserves_ledger`. PostgreSQL: `backup_basis_postgres.sh` / `restore_basis_postgres.sh`, `tests/test_postgres_backup_restore.py` (CI job `postgres` with `BASIS_TEST_POSTGRES_URL`).
 
 ### X-04 — Limits
 
@@ -420,7 +420,7 @@ Acceptance:
   parse/LLM timeout;
 - reject before allocating unbounded memory where possible.
 
-**Status:** done (baseline) — `RuntimeLimits` + `SEMA_*` for graph/search/import/upload/ingest; ingest thread pool + `SEMA_INGEST_MAX_PENDING` backpressure (`ingest_overloaded`); job wait timeout; ingest size/chunk caps; extract wall-clock timeout (`run_sync_with_timeout` releases the pool without waiting on timeout). Ops: `docs/ops/runtime-limits.md`. Follow-up: cooperative LLM abort inside Semantica, per-model timeouts.
+**Status:** done (baseline) — `RuntimeLimits` + `BASIS_*` for graph/search/import/upload/ingest; ingest thread pool + `BASIS_INGEST_MAX_PENDING` backpressure (`ingest_overloaded`); job wait timeout; ingest size/chunk caps; extract wall-clock timeout (`run_sync_with_timeout` releases the pool without waiting on timeout). Ops: `docs/ops/runtime-limits.md`. Follow-up: cooperative LLM abort inside semantica, per-model timeouts.
 
 ## 8. Task dependency graph
 
@@ -444,7 +444,7 @@ The slice is complete only when:
 3. graph projection rebuild is deterministic and survives restart;
 4. a viewer can browse but not mutate;
 5. two KBs remain isolated under concurrent HTTP and WS tests;
-6. the Sema graph page uses the injected Explorer client;
+6. the Basis graph page uses the injected Explorer client;
 7. migration of existing JSON graphs is dry-runnable and non-destructive;
 8. backup and restore reproduce the canonical ledger, after which projections rebuild.
 
@@ -566,5 +566,5 @@ Acceptance:
 | Item | Notes |
 | --- | --- |
 | Web strict indexed access | `noUncheckedIndexedAccess` disabled in `packages/web/tsconfig.json` for Explorer graph code; re-enable incrementally if desired. |
-| `vitest` for `packages/web` | Wired in CI (`pnpm --filter @sema/web test`). |
-| Ingest slot tuning | `SEMA_INGEST_MAX_PENDING` semaphore; raise if operators see frequent `ingest_overloaded`. |
+| `vitest` for `packages/web` | Wired in CI (`pnpm --filter @basis/web test`). |
+| Ingest slot tuning | `BASIS_INGEST_MAX_PENDING` semaphore; raise if operators see frequent `ingest_overloaded`. |

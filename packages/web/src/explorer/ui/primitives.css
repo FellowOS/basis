@@ -386,7 +386,7 @@
   }
 }
 
-/* Sema-hosted graph workspace: use the application's tokens instead of the
+/* Basis-hosted graph workspace: use the application's tokens instead of the
    standalone Explorer palette. The wrapper scope keeps these rules local. */
 .kb-graph-workspace .sem-surface,
 .kb-explorer-console .sem-surface {

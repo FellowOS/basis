@@ -1,7 +1,7 @@
 import { lazy } from 'react';
 
-export const SemaLayout = lazy(() =>
-  import('@/components/sema-layout').then((m) => ({ default: m.SemaLayout })),
+export const BasisLayout = lazy(() =>
+  import('@/components/basis-layout').then((m) => ({ default: m.BasisLayout })),
 );
 export const KbsPage = lazy(() => import('@/pages/kbs').then((m) => ({ default: m.KbsPage })));
 export const KbSettingsPage = lazy(() =>

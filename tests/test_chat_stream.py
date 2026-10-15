@@ -4,8 +4,8 @@ from unittest.mock import MagicMock, patch
 
 from fastapi.testclient import TestClient
 
-from sema.api.app import create_app
-from sema.config import Settings
+from basis.api.app import create_app
+from basis.config import Settings
 
 
 def test_playground_stream_emits_delta_and_done(tmp_path) -> None:

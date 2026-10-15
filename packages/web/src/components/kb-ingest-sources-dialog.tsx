@@ -517,8 +517,8 @@ export function KbIngestSourcesDialog({
               />
               <p className="text-[10px] text-muted-foreground">
                 {zh
-                  ? '服务端需设置 SEMA_HTTP_POLL_TICK_SECONDS>0 才会定时执行。'
-                  : 'Set SEMA_HTTP_POLL_TICK_SECONDS>0 on the server to enable scheduling.'}
+                  ? '服务端需设置 BASIS_HTTP_POLL_TICK_SECONDS>0 才会定时执行。'
+                  : 'Set BASIS_HTTP_POLL_TICK_SECONDS>0 on the server to enable scheduling.'}
               </p>
             </div>
           ) : null}

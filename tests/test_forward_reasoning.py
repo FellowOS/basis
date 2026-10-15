@@ -1,4 +1,4 @@
-from sema.explorer.forward_reasoning import infer_with_proof_chains, proof_chains_for_run
+from basis.explorer.forward_reasoning import infer_with_proof_chains, proof_chains_for_run
 
 
 def test_infer_with_proof_chains_metformin_rule() -> None:

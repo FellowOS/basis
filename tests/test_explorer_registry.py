@@ -2,27 +2,27 @@
 
 import time
 
-from sema.explorer.registry import ExplorerSessionRegistry, KbExplorerRuntime
-from sema.graph.session import GraphSession
+from basis.explorer.registry import ExplorerSessionRegistry, KbExplorerRuntime
+from basis.graph.session import GraphSession
 
 
-def test_rebuild_explorer_wrapper_tracks_sema_graph_swap() -> None:
-    from sema.capabilities import explorer_available
-    from sema.explorer.registry import _explorer_wrapped_graph, _rebuild_explorer_wrapper
+def test_rebuild_explorer_wrapper_tracks_basis_graph_swap() -> None:
+    from basis.capabilities import explorer_available
+    from basis.explorer.registry import _explorer_wrapped_graph, _rebuild_explorer_wrapper
 
-    sema = GraphSession()
-    sema.add_node("a", "entity", content="A")
-    stale = type("E", (), {"graph": sema.graph})()
-    assert _explorer_wrapped_graph(stale) is sema.graph
+    session = GraphSession()
+    session.add_node("a", "entity", content="A")
+    stale = type("E", (), {"graph": session.graph})()
+    assert _explorer_wrapped_graph(stale) is session.graph
 
-    sema.graph = GraphSession().graph
-    sema.add_node("b", "entity", content="B")
-    assert _explorer_wrapped_graph(stale) is not sema.graph
+    session.graph = GraphSession().graph
+    session.add_node("b", "entity", content="B")
+    assert _explorer_wrapped_graph(stale) is not session.graph
 
     if explorer_available():
-        fresh = _rebuild_explorer_wrapper(sema)
+        fresh = _rebuild_explorer_wrapper(session)
         assert fresh is not None
-        assert _explorer_wrapped_graph(fresh) is sema.graph
+        assert _explorer_wrapped_graph(fresh) is session.graph
 
 
 def test_evict_idle_drops_stale_runtimes() -> None:
@@ -31,7 +31,7 @@ def test_evict_idle_drops_stale_runtimes() -> None:
     registry._cache["kb-stale"] = KbExplorerRuntime(
         kb_id="kb-stale",
         projection_revision=1,
-        sema=session,
+        basis=session,
         explorer=None,
         last_access=time.monotonic() - 10,
     )

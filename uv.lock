@@ -223,6 +223,55 @@ wheels = [
 ]
 
 [[package]]
+name = "basis"
+version = "0.1.0"
+source = { editable = "." }
+dependencies = [
+    { name = "alembic" },
+    { name = "fastapi" },
+    { name = "pgvector" },
+    { name = "psycopg", extra = ["binary", "pool"] },
+    { name = "pydantic" },
+    { name = "python-dotenv" },
+    { name = "python-multipart" },
+    { name = "semantica", extra = ["documents", "embeddings-local", "ingest-git", "llm-openai", "nlp-spacy", "parse-pdf", "shacl", "split-tiktoken", "vectorstore-faiss", "vectorstore-sqlite"] },
+    { name = "sqlalchemy", version = "2.0.54", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }, marker = "python_full_version < '3.11'" },
+    { name = "sqlalchemy", version = "2.1.4", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }, marker = "python_full_version >= '3.11'" },
+    { name = "uvicorn", extra = ["standard"] },
+]
+
+[package.optional-dependencies]
+dev = [
+    { name = "httpx" },
+    { name = "pytest" },
+]
+explorer = [
+    { name = "semantica", extra = ["explorer"] },
+]
+heavy = [
+    { name = "semantica", extra = ["graph-neo4j", "llm-litellm", "parse-docling", "vectorstore-pgvector"] },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "alembic", specifier = ">=1.14" },
+    { name = "fastapi", specifier = ">=0.115" },
+    { name = "httpx", marker = "extra == 'dev'", specifier = ">=0.27" },
+    { name = "pgvector", specifier = ">=0.3" },
+    { name = "psycopg", extras = ["binary", "pool"], specifier = ">=3.2" },
+    { name = "pydantic", specifier = ">=2" },
+    { name = "pytest", marker = "extra == 'dev'", specifier = ">=8" },
+    { name = "python-dotenv", specifier = ">=1.0" },
+    { name = "python-multipart", specifier = ">=0.0.9" },
+    { name = "semantica", extras = ["documents", "parse-pdf", "nlp-spacy", "llm-openai", "embeddings-local", "vectorstore-faiss", "vectorstore-sqlite", "shacl", "split-tiktoken", "ingest-git"], editable = "../../semantica" },
+    { name = "semantica", extras = ["explorer"], marker = "extra == 'explorer'", editable = "../../semantica" },
+    { name = "semantica", extras = ["parse-docling", "vectorstore-pgvector", "llm-litellm", "graph-neo4j"], marker = "extra == 'heavy'", editable = "../../semantica" },
+    { name = "sqlalchemy", specifier = ">=2.0" },
+    { name = "uvicorn", extras = ["standard"], specifier = ">=0.32" },
+]
+provides-extras = ["dev", "heavy", "explorer"]
+
+[[package]]
 name = "beautifulsoup4"
 version = "4.15.0"
 source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
@@ -1735,15 +1784,6 @@ sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/a9/75/f9edc5d7294501
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/dd/c1/d10b371bcba7abce05e2b33910e39c33cfa496a53f13640b7b8e10bb4d2b/langcodes-3.5.1-py3-none-any.whl", hash = "sha256:b6a9c25c603804e2d169165091d0cdb23934610524a21d226e4f463e8e958a72", size = 183050, upload-time = "2025-12-02T16:21:59.954Z" },
 ]
-
-[[package]]
-name = "langdetect"
-version = "1.0.9"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
-dependencies = [
-    { name = "six" },
-]
-sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/0e/72/a3add0e4eec4eb9e2569554f7c70f4a3c27712f40e3284d483e88094cc0e/langdetect-1.0.9.tar.gz", hash = "sha256:cbc1fef89f8d062739774bd51eda3da3274006b3661d199c2655f6b3f6d605a0", size = 981474, upload-time = "2021-05-07T07:54:13.562Z" }
 
 [[package]]
 name = "latex2mathml"
@@ -4530,55 +4570,6 @@ wheels = [
 ]
 
 [[package]]
-name = "sema"
-version = "0.1.0"
-source = { editable = "." }
-dependencies = [
-    { name = "alembic" },
-    { name = "fastapi" },
-    { name = "pgvector" },
-    { name = "psycopg", extra = ["binary", "pool"] },
-    { name = "pydantic" },
-    { name = "python-dotenv" },
-    { name = "python-multipart" },
-    { name = "semantica", extra = ["documents", "embeddings-local", "ingest-git", "llm-openai", "nlp-langdetect", "nlp-spacy", "parse-pdf", "shacl", "split-tiktoken", "vectorstore-faiss", "vectorstore-sqlite"] },
-    { name = "sqlalchemy", version = "2.0.54", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }, marker = "python_full_version < '3.11'" },
-    { name = "sqlalchemy", version = "2.1.4", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }, marker = "python_full_version >= '3.11'" },
-    { name = "uvicorn", extra = ["standard"] },
-]
-
-[package.optional-dependencies]
-dev = [
-    { name = "httpx" },
-    { name = "pytest" },
-]
-explorer = [
-    { name = "semantica", extra = ["explorer"] },
-]
-heavy = [
-    { name = "semantica", extra = ["graph-neo4j", "llm-litellm", "parse-docling", "vectorstore-pgvector"] },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "alembic", specifier = ">=1.14" },
-    { name = "fastapi", specifier = ">=0.115" },
-    { name = "httpx", marker = "extra == 'dev'", specifier = ">=0.27" },
-    { name = "pgvector", specifier = ">=0.3" },
-    { name = "psycopg", extras = ["binary", "pool"], specifier = ">=3.2" },
-    { name = "pydantic", specifier = ">=2" },
-    { name = "pytest", marker = "extra == 'dev'", specifier = ">=8" },
-    { name = "python-dotenv", specifier = ">=1.0" },
-    { name = "python-multipart", specifier = ">=0.0.9" },
-    { name = "semantica", extras = ["documents", "parse-pdf", "nlp-spacy", "nlp-langdetect", "llm-openai", "embeddings-local", "vectorstore-faiss", "vectorstore-sqlite", "shacl", "split-tiktoken", "ingest-git"], editable = "../../semantica" },
-    { name = "semantica", extras = ["explorer"], marker = "extra == 'explorer'", editable = "../../semantica" },
-    { name = "semantica", extras = ["parse-docling", "vectorstore-pgvector", "llm-litellm", "graph-neo4j"], marker = "extra == 'heavy'", editable = "../../semantica" },
-    { name = "sqlalchemy", specifier = ">=2.0" },
-    { name = "uvicorn", extras = ["standard"], specifier = ">=0.32" },
-]
-provides-extras = ["dev", "heavy", "explorer"]
-
-[[package]]
 name = "semantica"
 version = "0.7.0"
 source = { editable = "../../semantica" }
@@ -4649,9 +4640,6 @@ llm-litellm = [
 ]
 llm-openai = [
     { name = "openai" },
-]
-nlp-langdetect = [
-    { name = "langdetect" },
 ]
 nlp-spacy = [
     { name = "spacy" },

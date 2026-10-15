@@ -65,7 +65,7 @@ import { Button } from "@/components/ui/button.js";
 import { useI18n } from "@/i18n/context.js";
 import { useTheme } from "@/lib/theme.js";
 import { GRAPH_THEME, withAlpha } from "./graphTheme";
-import { syncSemaGraphTheme } from "./semaGraphThemeSync";
+import { syncBasisGraphTheme } from "./basisGraphThemeSync";
 import { buildGraphColorLegend, type GraphColorLegendItem } from "./graphColorLegend";
 import { focusedUnavailableReasonText, groupedViewReasonText } from "./graphViewCopy";
 import { localGraphRequiresDraftConfirm } from "./localGraphTransition";
@@ -1000,7 +1000,7 @@ interface GraphWorkspaceProps {
   onDirtyChange?: (dirty: boolean) => void;
   /** Rendered after the graph reload control in the search dock (e.g. import/export). */
   graphDataActions?: ReactNode;
-  /** When false, node Markdown editing is hidden (Sema viewer role). */
+  /** When false, node Markdown editing is hidden (Basis viewer role). */
   graphWriteEnabled?: boolean;
   decisionsEnabled?: boolean;
   /** Overrides graph copy/API error locale; defaults to the app i18n locale. */
@@ -1027,7 +1027,7 @@ export function GraphWorkspace({
   );
   const { theme } = useTheme();
   const hudCss = useMemo(() => {
-    syncSemaGraphTheme(theme);
+    syncBasisGraphTheme(theme);
     return buildGraphHudCss();
   }, [theme]);
   const queryClient = useQueryClient();
@@ -1198,7 +1198,7 @@ export function GraphWorkspace({
   }, [graphReady]);
 
   useEffect(() => {
-    syncSemaGraphTheme(theme);
+    syncBasisGraphTheme(theme);
     setGraphVersion((version) => version + 1);
     reload();
   }, [theme]);

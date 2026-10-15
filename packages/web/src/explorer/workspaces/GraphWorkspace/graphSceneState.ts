@@ -1704,7 +1704,7 @@ export function resolveNodeElementStyle(
     coreScale: shouldShowGlyphHint ? clamp(0.06, rawCoreScale, 0.5) : 0,
     size: Math.max(baseSize * sizeMultiplier * overviewPresence, stateConfig.minSize, entityShapeConfig.minSize),
     forceLabel,
-    // Keep text for Sigma hover renderer; `forceLabel` only gates the chip (`drawSemanticaNodeLabel`).
+    // Keep text for Sigma hover renderer; `forceLabel` only gates the chip (`drawsemanticaNodeLabel`).
     label,
     zIndex: forceLabel && interactionStateConfig.zIndex === 0 ? 1 : interactionStateConfig.zIndex,
     hidden: false,

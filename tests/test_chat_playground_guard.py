@@ -4,8 +4,8 @@ from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 
-from sema.api.app import create_app
-from sema.config import Settings
+from basis.api.app import create_app
+from basis.config import Settings
 
 
 def test_mcp_read_token_cannot_propose_remember(tmp_path) -> None:
@@ -63,7 +63,7 @@ def test_chat_playground_rejects_concurrent_request(tmp_path) -> None:
             "get_chat_llm_settings",
             return_value={"api_key": "sk-test", "model": "gpt-test", "base_url": None},
         ),
-        patch("sema.chat.playground._run_kb_playground_body", side_effect=slow_body),
+        patch("basis.chat.playground._run_kb_playground_body", side_effect=slow_body),
     ):
         import threading
 
@@ -101,7 +101,7 @@ def test_chat_playground_rejects_concurrent_request(tmp_path) -> None:
 
 
 def test_trim_playground_messages_drops_oldest() -> None:
-    from sema.chat.playground import _PLAYGROUND_MAX_MESSAGES, trim_playground_messages
+    from basis.chat.playground import _PLAYGROUND_MAX_MESSAGES, trim_playground_messages
 
     messages = [{"role": "user", "content": f"msg-{i}"} for i in range(_PLAYGROUND_MAX_MESSAGES + 5)]
     trimmed, info = trim_playground_messages(messages)
@@ -112,7 +112,7 @@ def test_trim_playground_messages_drops_oldest() -> None:
 
 
 def test_trim_playground_messages_reports_no_trim() -> None:
-    from sema.chat.playground import trim_playground_messages
+    from basis.chat.playground import trim_playground_messages
 
     messages = [{"role": "user", "content": "hi"}]
     trimmed, info = trim_playground_messages(messages)

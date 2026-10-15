@@ -1,4 +1,4 @@
-/* Governance / ontology-hub layouts inside Sema (.kb-explorer-console) */
+/* Governance / ontology-hub layouts inside Basis (.kb-explorer-console) */
 
 /* Embedded KB workspaces need a viewport-bounded height so inner splits (SPARQL editor) layout correctly. */
 .kb-explorer-console.kb-ontology-workspace,

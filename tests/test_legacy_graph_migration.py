@@ -4,16 +4,16 @@ import pytest
 
 pytest.importorskip("semantica")
 
-from sema.admin.store import AdminStore
-from sema.graph.persistence import GraphPersistence
-from sema.graph.session import GraphSession
-from sema.knowledge.blob_store import BlobStore
-from sema.knowledge.store import KnowledgeStore
-from sema.migration.legacy_graph import migrate_legacy_graph
+from basis.admin.store import AdminStore
+from basis.graph.persistence import GraphPersistence
+from basis.graph.session import GraphSession
+from basis.knowledge.blob_store import BlobStore
+from basis.knowledge.store import KnowledgeStore
+from basis.migration.legacy_graph import migrate_legacy_graph
 
 
 def _kb(tmp_path: Path) -> str:
-    admin = AdminStore(tmp_path / "sema.db")
+    admin = AdminStore(tmp_path / "basis.db")
     user, _ = admin.register("m@example.com", "password1", "U")
     kb_id = admin.create_kb(user, "KB", None, "restricted").id
     admin.close()
@@ -32,7 +32,7 @@ def _write_legacy_graph(persistence: GraphPersistence, kb_id: str) -> None:
 def test_legacy_migration_dry_run_and_apply_idempotent(tmp_path: Path) -> None:
     kb_id = _kb(tmp_path)
     persistence = GraphPersistence(tmp_path)
-    knowledge = KnowledgeStore(tmp_path / "sema.db", BlobStore(tmp_path))
+    knowledge = KnowledgeStore(tmp_path / "basis.db", BlobStore(tmp_path))
     _write_legacy_graph(persistence, kb_id)
 
     dry = migrate_legacy_graph(knowledge, persistence, kb_id, dry_run=True)

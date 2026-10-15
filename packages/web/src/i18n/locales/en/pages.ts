@@ -2018,8 +2018,6 @@ export const pages = {
     library: 'Uploaded documents, versions, and processing status for this knowledge base.',
     sources:
       'Documents, uploads, processing jobs, and ingest connectors (webhook, HTTP poll, GitHub raw).',
-    graph:
-      'Interactive graph with temporal scrubber, search, and provenance; imports require review.',
     graphDiff:
       'DiffMerge-style comparison of graph projection between two instants (nodes, edges, property changes).',
     settings:

@@ -8,17 +8,17 @@ pytest.importorskip("semantica")
 
 from fastapi.testclient import TestClient
 
-from sema.api.app import create_app
-from sema.capabilities import explorer_available
-from sema.admin.store import AdminStore
-from sema.config import Settings
-from sema.knowledge.blob_store import BlobStore
-from sema.knowledge.derived_facts_service import persist_reasoning_derived
-from sema.knowledge.store import KnowledgeStore
+from basis.api.app import create_app
+from basis.capabilities import explorer_available
+from basis.admin.store import AdminStore
+from basis.config import Settings
+from basis.knowledge.blob_store import BlobStore
+from basis.knowledge.derived_facts_service import persist_reasoning_derived
+from basis.knowledge.store import KnowledgeStore
 
 
 def _kb_id(tmp_path: Path) -> str:
-    admin = AdminStore(tmp_path / "sema.db")
+    admin = AdminStore(tmp_path / "basis.db")
     user, _ = admin.register("df@example.com", "password1", "DF")
     kb = admin.create_kb(user, "DF KB", None, "restricted")
     admin.close()
@@ -26,7 +26,7 @@ def _kb_id(tmp_path: Path) -> str:
 
 
 def _knowledge(tmp_path: Path) -> KnowledgeStore:
-    return KnowledgeStore(tmp_path / "sema.db", BlobStore(tmp_path))
+    return KnowledgeStore(tmp_path / "basis.db", BlobStore(tmp_path))
 
 
 def test_insert_and_list_derived_facts(tmp_path) -> None:
@@ -37,7 +37,7 @@ def test_insert_and_list_derived_facts(tmp_path) -> None:
     fact_id = store.insert_derived_fact(
         kb_id,
         subject_id=subj,
-        predicate_uri="urn:sema:pred:knows",
+        predicate_uri="urn:basis:pred:knows",
         object_entity_id=obj,
         object_value=None,
         rule_id=None,
@@ -78,7 +78,7 @@ def test_ledger_derived_facts_route(tmp_path) -> None:
     store.insert_derived_fact(
         kb_id,
         subject_id=subj,
-        predicate_uri="urn:sema:pred:rel",
+        predicate_uri="urn:basis:pred:rel",
         object_entity_id=obj,
         object_value=None,
         rule_id=None,
@@ -92,7 +92,7 @@ def test_ledger_derived_facts_route(tmp_path) -> None:
     store.insert_derived_fact(
         kb_id,
         subject_id=other,
-        predicate_uri="urn:sema:pred:only",
+        predicate_uri="urn:basis:pred:only",
         object_entity_id=None,
         object_value="literal",
         rule_id=None,
@@ -117,7 +117,7 @@ def test_entity_facts_includes_derived_facts(tmp_path) -> None:
     store.insert_derived_fact(
         kb_id,
         subject_id=subj,
-        predicate_uri="urn:sema:pred:rel",
+        predicate_uri="urn:basis:pred:rel",
         object_entity_id=obj,
         object_value=None,
         rule_id=None,
@@ -135,7 +135,7 @@ def test_list_derived_facts_filtered_by_entity(tmp_path) -> None:
     store.insert_derived_fact(
         kb_id,
         subject_id=subj,
-        predicate_uri="urn:sema:pred:r",
+        predicate_uri="urn:basis:pred:r",
         object_entity_id=other,
         object_value=None,
         rule_id=None,
@@ -144,7 +144,7 @@ def test_list_derived_facts_filtered_by_entity(tmp_path) -> None:
     store.insert_derived_fact(
         kb_id,
         subject_id=other,
-        predicate_uri="urn:sema:pred:r2",
+        predicate_uri="urn:basis:pred:r2",
         object_entity_id=subj,
         object_value=None,
         rule_id=None,

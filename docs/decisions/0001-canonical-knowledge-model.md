@@ -2,12 +2,12 @@
 
 - Status: accepted
 - Date: 2026-10-13
-- Deciders: Sema maintainers
+- Deciders: Basis maintainers
 - Affects: ingest, graph, search, review, mappings, ontology, reasoning, chat, SPARQL, export
 
 ## Context
 
-Sema currently parses a document, runs Semantica `GraphBuilder`, and merges the resulting entities
+Basis currently parses a document, runs semantica `GraphBuilder`, and merges the resulting entities
 and relationships directly into a per-KB `ContextGraph` JSON file. This is sufficient for an early
 graph demo, but it cannot reliably answer:
 
@@ -18,8 +18,8 @@ graph demo, but it cannot reliably answer:
 - what SPARQL, chat citations, review, and Decision lineage should read.
 
 Utopia solves this with an append-only evidence ledger and separates open statements from typed
-facts. Semantica provides the extraction, graph, ontology, reasoning, and Explorer primitives, but
-does not prescribe Sema's multi-KB source-of-truth model.
+facts. semantica provides the extraction, graph, ontology, reasoning, and Explorer primitives, but
+does not prescribe Basis's multi-KB source-of-truth model.
 
 The previous product design left three alternatives open: graph-only, a lightweight statements
 table, or an Utopia-style open graph. That ambiguity blocks implementation of review, mappings,
@@ -27,7 +27,7 @@ table, or an Utopia-style open graph. That ambiguity blocks implementation of re
 
 ## Decision
 
-Sema adopts an **evidence-first, two-layer knowledge model**:
+Basis adopts an **evidence-first, two-layer knowledge model**:
 
 1. The **evidence ledger in SQLite is canonical**.
 2. Extraction first writes **open statements in the document's own wording**.
@@ -37,7 +37,7 @@ Sema adopts an **evidence-first, two-layer knowledge model**:
 6. Mutations never silently overwrite knowledge. Corrections, invalidations, mappings, merges, and
    derivations produce explicit records and audit events.
 
-This adopts the essential Utopia model without requiring Sema to copy every Utopia heuristic,
+This adopts the essential Utopia model without requiring Basis to copy every Utopia heuristic,
 queue, or table on day one.
 
 ## Layer semantics
@@ -84,7 +84,7 @@ Derived facts can be rebuilt and must not overwrite asserted facts.
 
 ### Projection layer
 
-The active graph shown by Sema and Explorer contains:
+The active graph shown by Basis and Explorer contains:
 
 - entities and document/chunk nodes needed for navigation;
 - open edges when no active typed projection exists;
@@ -234,7 +234,7 @@ marked `legacy_import`.
 
 - Review, chat citations, mappings, Decision, temporal history, and RDF export share one source of
   truth.
-- Explorer remains a projection/workbench rather than becoming Sema's database.
+- Explorer remains a projection/workbench rather than becoming Basis's database.
 - Graph and vector indexes can be rebuilt after corruption or SDK upgrades.
 - Automated decisions are explainable and reversible.
 
@@ -242,7 +242,7 @@ marked `legacy_import`.
 
 - More schema and pipeline work than graph-only storage.
 - Projection invalidation and rebuild logic is required.
-- Some Semantica Explorer mutation endpoints cannot be exposed directly; they need Sema domain
+- Some semantica Explorer mutation endpoints cannot be exposed directly; they need Basis domain
   adapters.
 
 ## Rejected alternatives
@@ -259,7 +259,7 @@ would exist.
 
 ### Copy the entire Utopia schema and behavior
 
-Rejected because Sema uses Semantica primitives and can adopt the semantic invariants without
+Rejected because Basis uses semantica primitives and can adopt the semantic invariants without
 copying Utopia's implementation, thresholds, or every connector.
 
 ## Follow-up documents

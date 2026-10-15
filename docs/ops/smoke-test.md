@@ -1,6 +1,6 @@
 # Manual smoke test (M5 gate)
 
-Run with API (`uv run sema`) and Web (`pnpm dev`) on a fresh data dir or dev DB.
+Run with API (`uv run basis`) and Web (`pnpm dev`) on a fresh data dir or dev DB.
 
 ## Auth and KB shell
 
@@ -24,29 +24,29 @@ Run with API (`uv run sema`) and Web (`pnpm dev`) on a fresh data dir or dev DB.
 
 ```bash
 uv run pytest tests/test_release_gate.py tests/test_realtime_ws.py -q
-pnpm --filter @sema/web test
+pnpm --filter @basis/web test
 ```
 
 `test_release_gate.py` includes viewer **403** on upload/rebuild/processing and read-only **graph/stats**, **graph/nodes**, **graph/search**.
 
 ### Playwright (optional)
 
-Starts a disposable API (SQLite under `data-e2e/`, port **8091**, `SEMA_INGEST_INLINE=1`; `SEMA_DATABASE_URL` is cleared so `.env` Postgres is not used) and Vite (**5174**) unless servers are already up:
+Starts a disposable API (SQLite under `data-e2e/`, port **8091**, `BASIS_INGEST_INLINE=1`; `BASIS_DATABASE_URL` is cleared so `.env` Postgres is not used) and Vite (**5174**) unless servers are already up:
 
 ```bash
-cd fellowos/sema
+cd fellowos/basis
 pnpm install
-pnpm --filter @sema/web exec playwright install chromium
+pnpm --filter @basis/web exec playwright install chromium
 pnpm test:e2e
 ```
 
-Reuse your own `uv run sema` + `pnpm dev` on the default ports:
+Reuse your own `uv run basis` + `pnpm dev` on the default ports:
 
 ```bash
-SEMA_E2E_SKIP_SERVERS=1 SEMA_E2E_WEB_PORT=5173 pnpm --filter @sema/web test:e2e
+BASIS_E2E_SKIP_SERVERS=1 BASIS_E2E_WEB_PORT=5173 pnpm --filter @basis/web test:e2e
 ```
 
-(`SEMA_API_URL` for Vite must still point at the running API.)
+(`BASIS_API_URL` for Vite must still point at the running API.)
 
 `e2e/onboarding.spec.ts` covers register → paste text → pattern ingest → `graph/stats` and opening the Graph workspace shell (not canvas interaction).
 

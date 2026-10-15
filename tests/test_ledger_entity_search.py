@@ -4,10 +4,10 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
-from sema.api.app import create_app
-from sema.config import Settings
-from sema.knowledge.blob_store import BlobStore
-from sema.knowledge.store import KnowledgeStore
+from basis.api.app import create_app
+from basis.config import Settings
+from basis.knowledge.blob_store import BlobStore
+from basis.knowledge.store import KnowledgeStore
 
 
 def test_find_entities_and_facts(tmp_path: Path) -> None:
@@ -20,7 +20,7 @@ def test_find_entities_and_facts(tmp_path: Path) -> None:
     headers = {"Authorization": f"Bearer {admin['token']}"}
     kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
 
-    store = KnowledgeStore(tmp_path / "sema.db", BlobStore(tmp_path))
+    store = KnowledgeStore(tmp_path / "basis.db", BlobStore(tmp_path))
     _, version_id, _, _ = store.store_upload_bytes(
         kb_id,
         title="d.txt",

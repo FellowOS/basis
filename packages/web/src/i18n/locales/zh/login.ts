@@ -1,6 +1,6 @@
 export const login = {
-  title: '登录 Sema',
-  subtitle: '前端只连接 Sema API；图谱与推理在 API 进程内通过 Semantica SDK 执行。',
+  title: '登录 Basis',
+  subtitle: '前端只连接 Basis API；图谱与推理在 API 进程内通过 semantica SDK 执行。',
   registerTitle: '注册账号',
   registerSubtitle: '首个注册用户将成为平台管理员，可创建知识库并邀请成员。',
   emailLabel: '邮箱',

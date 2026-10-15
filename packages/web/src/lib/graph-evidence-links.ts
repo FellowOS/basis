@@ -79,7 +79,7 @@ function collectLedgerHintsFromGraph(nodeId: string): {
   };
 }
 
-/** Deep links from a graph node to Sema knowledge UI (sources / search). */
+/** Deep links from a graph node to Basis knowledge UI (sources / search). */
 export function resolveGraphNodeEvidenceLinks(
   kbId: string,
   nodeId: string,

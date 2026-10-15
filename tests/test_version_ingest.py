@@ -9,19 +9,19 @@ pytest.importorskip("semantica")
 
 from fastapi.testclient import TestClient
 
-from sema.api.app import create_app
-from sema.config import Settings
-from sema.graph.session import GraphSession
-from sema.knowledge.blob_store import BlobStore
-from sema.knowledge.store import KnowledgeStore
-from sema.pipeline.document import TextIngestOptions
-from sema.pipeline.version_ingest import run_version_ingest
+from basis.api.app import create_app
+from basis.config import Settings
+from basis.graph.session import GraphSession
+from basis.knowledge.blob_store import BlobStore
+from basis.knowledge.store import KnowledgeStore
+from basis.pipeline.document import TextIngestOptions
+from basis.pipeline.version_ingest import run_version_ingest
 
 
 def _kb_id(tmp_path: Path) -> str:
-    from sema.admin.store import AdminStore
+    from basis.admin.store import AdminStore
 
-    admin = AdminStore(tmp_path / "sema.db")
+    admin = AdminStore(tmp_path / "basis.db")
     user, _ = admin.register("ingest@example.com", "password1", "U")
     kb = admin.create_kb(user, "KB", None, "restricted")
     admin.close()
@@ -31,7 +31,7 @@ def _kb_id(tmp_path: Path) -> str:
 def test_run_version_ingest_chunks_and_marks_ready(tmp_path: Path) -> None:
     kb_id = _kb_id(tmp_path)
     blobs = BlobStore(tmp_path)
-    knowledge = KnowledgeStore(tmp_path / "sema.db", blobs)
+    knowledge = KnowledgeStore(tmp_path / "basis.db", blobs)
     text = b"Line one.\nLine two about contracts."
     _, version_id, job_id, _ = knowledge.store_upload_bytes(
         kb_id,
@@ -63,7 +63,7 @@ def test_run_version_ingest_chunks_and_marks_ready(tmp_path: Path) -> None:
 def test_ingest_failure_before_rebuild_marks_projection_dirty(tmp_path: Path) -> None:
     kb_id = _kb_id(tmp_path)
     blobs = BlobStore(tmp_path)
-    knowledge = KnowledgeStore(tmp_path / "sema.db", blobs)
+    knowledge = KnowledgeStore(tmp_path / "basis.db", blobs)
     _, version_id, job_id, _ = knowledge.store_upload_bytes(
         kb_id,
         title="dirty.txt",
@@ -76,7 +76,7 @@ def test_ingest_failure_before_rebuild_marks_projection_dirty(tmp_path: Path) ->
     knowledge.set_projection_status(kb_id, "clean")
 
     with patch(
-        "sema.pipeline.version_ingest.apply_rebuild_to_session",
+        "basis.pipeline.version_ingest.apply_rebuild_to_session",
         side_effect=RuntimeError("rebuild unavailable"),
     ):
         with pytest.raises(RuntimeError, match="rebuild unavailable"):

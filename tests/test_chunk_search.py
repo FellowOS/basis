@@ -6,19 +6,19 @@ pytest.importorskip("semantica")
 
 from fastapi.testclient import TestClient
 
-from sema.admin.store import AdminStore
-from sema.api.app import create_app
-from sema.config import Settings
-from sema.knowledge.blob_store import BlobStore
-from sema.knowledge.chunk_search import ChunkSearchService
-from sema.knowledge.store import KnowledgeStore
-from sema.pipeline.document import TextIngestOptions
-from sema.pipeline.version_ingest import run_version_ingest
-from sema.graph.session import GraphSession
+from basis.admin.store import AdminStore
+from basis.api.app import create_app
+from basis.config import Settings
+from basis.knowledge.blob_store import BlobStore
+from basis.knowledge.chunk_search import ChunkSearchService
+from basis.knowledge.store import KnowledgeStore
+from basis.pipeline.document import TextIngestOptions
+from basis.pipeline.version_ingest import run_version_ingest
+from basis.graph.session import GraphSession
 
 
 def _setup_kb(tmp_path: Path) -> tuple[str, KnowledgeStore, ChunkSearchService, AdminStore]:
-    db = tmp_path / "sema.db"
+    db = tmp_path / "basis.db"
     admin = AdminStore(db)
     user, _ = admin.register("search@example.com", "password1", "U")
     kb = admin.create_kb(user, "KB", None, "restricted")

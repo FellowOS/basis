@@ -1,9 +1,9 @@
 from pathlib import Path
 
-from sema.admin.store import AdminStore
-from sema.graph.projector import graph_projection_signature, rebuild_graph_from_ledger
-from sema.knowledge.blob_store import BlobStore
-from sema.knowledge.store import KnowledgeStore
+from basis.admin.store import AdminStore
+from basis.graph.projector import graph_projection_signature, rebuild_graph_from_ledger
+from basis.knowledge.blob_store import BlobStore
+from basis.knowledge.store import KnowledgeStore
 
 
 def _fixture_kb(store: KnowledgeStore, kb_id: str, actor_id: str) -> tuple[str, str]:
@@ -34,13 +34,13 @@ def _fixture_kb(store: KnowledgeStore, kb_id: str, actor_id: str) -> tuple[str, 
 
 
 def test_active_merge_collapses_entity_nodes(tmp_path: Path) -> None:
-    admin = AdminStore(tmp_path / "sema.db")
+    admin = AdminStore(tmp_path / "basis.db")
     user, _ = admin.register("mp@example.com", "password1", "U")
     kb_id = admin.create_kb(user, "KB", None, "restricted").id
     actor_id = user.id
     admin.close()
 
-    store = KnowledgeStore(tmp_path / "sema.db", BlobStore(tmp_path))
+    store = KnowledgeStore(tmp_path / "basis.db", BlobStore(tmp_path))
     alice, bob = _fixture_kb(store, kb_id, actor_id)
 
     before = rebuild_graph_from_ledger(store, kb_id)
@@ -62,13 +62,13 @@ def test_active_merge_collapses_entity_nodes(tmp_path: Path) -> None:
 
 
 def test_revert_merge_restores_distinct_entities(tmp_path: Path) -> None:
-    admin = AdminStore(tmp_path / "sema.db")
+    admin = AdminStore(tmp_path / "basis.db")
     user, _ = admin.register("rv@example.com", "password1", "U")
     kb_id = admin.create_kb(user, "KB", None, "restricted").id
     actor_id = user.id
     admin.close()
 
-    store = KnowledgeStore(tmp_path / "sema.db", BlobStore(tmp_path))
+    store = KnowledgeStore(tmp_path / "basis.db", BlobStore(tmp_path))
     alice, bob = _fixture_kb(store, kb_id, actor_id)
     row = store.record_entity_merge(
         kb_id,

@@ -2,7 +2,7 @@
 
 from fastapi import HTTPException
 
-from sema.api.explorer_route_errors import admin_error_from_explorer_http
+from basis.api.explorer_route_errors import admin_error_from_explorer_http
 
 
 def test_semantic_neighborhood_404_maps_to_code() -> None:

@@ -9,8 +9,8 @@
 | 种类 | 方向 | 鉴权 |
 | --- | --- | --- |
 | `webhook` | 外部系统 POST JSON | 每个数据源独立的 ingest token |
-| `http_poll` | Sema 定时 GET URL | 管理用会话 / KB API token；URL 为公网可访问 |
-| `git` | Sema GET GitHub raw 文件 | 同 http_poll；MVP 仅公开 GitHub 仓库 |
+| `http_poll` | Basis 定时 GET URL | 管理用会话 / KB API token；URL 为公网可访问 |
+| `git` | Basis GET GitHub raw 文件 | 同 http_poll；MVP 仅公开 GitHub 仓库 |
 
 ## Webhook
 
@@ -26,7 +26,7 @@ Body：`text`（必填）、`title`、`external_key`、`auto_process`（默认 t
 - **定时：** 在 `config` 中设置 `poll_interval_minutes`，并启用服务端 tick：
 
 ```bash
-SEMA_HTTP_POLL_TICK_SECONDS=60
+BASIS_HTTP_POLL_TICK_SECONDS=60
 ```
 
 可选 `config`（UI 或 API）：

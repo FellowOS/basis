@@ -17,17 +17,17 @@ import {
   KbSettingsPage,
   KbsPage,
   ModelsPage,
-  SemaLayout,
+  BasisLayout,
   SettingsPage,
   UsersPage,
 } from '@/lazy-pages.js';
 import { HomePage } from '@/pages/home.js';
 import { LoginPage } from '@/pages/login.js';
 import { KbExplorerShell } from '@/lib/explorer-context.js';
-import { SemaSessionProvider, useSemaSession } from '@/lib/sema-session.js';
+import { BasisSessionProvider, useBasisSession } from '@/lib/basis-session.js';
 
 function AdminOnly({ children }: { children: ReactNode }) {
-  const { ready, user, homePath, isAdmin } = useSemaSession();
+  const { ready, user, homePath, isAdmin } = useBasisSession();
   if (!ready) return children;
   if (!user || !isAdmin) return <Navigate to={homePath} replace />;
   return children;
@@ -59,28 +59,18 @@ function KbLegacyProcessingRedirect() {
 }
 
 function AuthedApp() {
-  const { ready, user, homePath, logout } = useSemaSession();
+  const { ready, user, homePath, logout } = useBasisSession();
 
   return (
     <Routes>
       <Route
         path="/"
-        element={
-          ready && user ? (
-            <Navigate to={homePath} replace />
-          ) : (
-            <HomePage />
-          )
-        }
+        element={ready && user ? <Navigate to={homePath} replace /> : <HomePage />}
       />
       <Route
         path="/login"
         element={
-          ready && user ? (
-            <Navigate to={homePath} replace />
-          ) : (
-            <LoginPage />
-          )
+          ready && user ? <Navigate to={homePath} replace /> : <LoginPage />
         }
       />
       <Route
@@ -89,7 +79,7 @@ function AuthedApp() {
             <Navigate to="/" replace />
           ) : (
             <Suspense fallback={null}>
-              <SemaLayout onLogout={() => void logout()} />
+              <BasisLayout onLogout={() => void logout()} />
             </Suspense>
           )
         }
@@ -266,8 +256,8 @@ function AuthedApp() {
 
 export function App() {
   return (
-    <SemaSessionProvider>
+    <BasisSessionProvider>
       <AuthedApp />
-    </SemaSessionProvider>
+    </BasisSessionProvider>
   );
 }

@@ -539,7 +539,7 @@ export const GRAPH_THEME: GraphTheme = {
     },
   },
   labels: {
-    // Hovered nodes use `drawSemanticaNodeHover` only — avoid duplicate chip + hover card.
+    // Hovered nodes use `drawsemanticaNodeHover` only — avoid duplicate chip + hover card.
     forceVisibleStates: ["selected", "path"],
     policies: {
       none: { minZoomTier: "inspection" },

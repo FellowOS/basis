@@ -8,11 +8,11 @@ import math
 import random
 from pathlib import Path
 
-from sema.admin.store import AdminStore
-from sema.config import Settings
-from sema.database import get_database
-from sema.knowledge.blob_store import BlobStore
-from sema.knowledge.store import KnowledgeStore
+from basis.admin.store import AdminStore
+from basis.config import Settings
+from basis.database import get_database
+from basis.knowledge.blob_store import BlobStore
+from basis.knowledge.store import KnowledgeStore
 
 KB_NAME = "Search Benchmark"
 LEGACY_KB_NAMES = {"Search Benchmark 10k", "Search Benchmark 100k"}
@@ -56,7 +56,7 @@ def main() -> None:
     database_url = args.database_url or (
         settings.effective_database_url
         if not args.data_dir
-        else f"sqlite:///{(data_dir / 'sema.db').resolve()}"
+        else f"sqlite:///{(data_dir / 'basis.db').resolve()}"
     )
     database = get_database(database_url)
     admin = AdminStore(database)
@@ -65,7 +65,7 @@ def main() -> None:
     try:
         users = admin.list_users()
         if not users:
-            raise SystemExit("Create a Sema user before seeding benchmark data.")
+            raise SystemExit("Create a Basis user before seeding benchmark data.")
         owner = users[0]
         kb = next(
             (

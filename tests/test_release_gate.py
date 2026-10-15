@@ -13,9 +13,9 @@ pytest.importorskip("semantica")
 
 from fastapi.testclient import TestClient
 
-from sema.api.app import create_app
-from sema.capabilities import explorer_available
-from sema.config import Settings
+from basis.api.app import create_app
+from basis.capabilities import explorer_available
+from basis.config import Settings
 
 
 def _settings(tmp_path) -> Settings:
@@ -141,7 +141,7 @@ def test_extracted_graph_edges_carry_statement_and_evidence_refs(tmp_path) -> No
 
 
 def test_graph_page_api_is_kb_scoped_not_global(tmp_path) -> None:
-    """§9.6 — graph HTTP surface is per-KB (Sema graph page uses injected KB apiRoot)."""
+    """§9.6 — graph HTTP surface is per-KB (Basis graph page uses injected KB apiRoot)."""
     client = TestClient(create_app(_settings(tmp_path)))
     headers = _register(client, "scope@example.com")
     kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
@@ -339,7 +339,7 @@ def test_rebuild_is_idempotent_for_empty_ledger_change(tmp_path) -> None:
 
 
 def _checkpoint_sqlite(data_dir) -> None:
-    db = data_dir / "sema.db"
+    db = data_dir / "basis.db"
     if not db.is_file():
         return
     conn = sqlite3.connect(db)
@@ -351,7 +351,7 @@ def _tar_data_dir(data_dir, archive) -> None:
     _checkpoint_sqlite(data_dir)
     with tarfile.open(archive, "w:gz") as tar:
         for path in sorted(data_dir.iterdir()):
-            if path.name == "sema.db" or path.name.startswith("sema.db-") or path.name in {
+            if path.name == "basis.db" or path.name.startswith("basis.db-") or path.name in {
                 "blobs",
                 "graphs",
             }:

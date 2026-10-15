@@ -1,0 +1,5 @@
+# Optional: editable Semantica checkout (default install uses PyPI via uv.lock).
+#   cp uv.toml.example uv.toml
+
+[tool.uv.sources]
+semantica = { path = "../../semantica", editable = true }
