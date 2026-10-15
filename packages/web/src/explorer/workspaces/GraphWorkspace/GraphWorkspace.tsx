@@ -69,6 +69,12 @@ import { syncSemaGraphTheme } from "./semaGraphThemeSync";
 import { buildGraphColorLegend, type GraphColorLegendItem } from "./graphColorLegend";
 import { focusedUnavailableReasonText, groupedViewReasonText } from "./graphViewCopy";
 import { localGraphRequiresDraftConfirm } from "./localGraphTransition";
+import {
+  collectDistanceMatrixNodeIds,
+  shouldUseServerStructuralDistance,
+  structuralDistancesFromMatrixResponse,
+  type DistanceMatrixApiResponse,
+} from "./graphDistanceMatrix";
 import { buildHeatmapRenderSnapshot, buildStructuralDistanceSnapshot, checkGroupedViewAvailability, resolveDisplayGraph, resolveDisplayStateSnapshot, resolveGroupedDisplayNodeId, resolveGroupedDisplayStateSnapshot, summarizeDistanceBuckets } from "./graphSceneState";
 import {
   type GraphPlugin,
@@ -1099,6 +1105,17 @@ export function GraphWorkspace({
     status: "idle",
     error: null,
   });
+  const [serverStructuralState, setServerStructuralState] = useState<{
+    anchorNodeId: string | null;
+    distances: Record<string, number>;
+    status: GraphDistanceVisualState["status"];
+    error: string | null;
+  }>({
+    anchorNodeId: null,
+    distances: EMPTY_DISTANCE_RECORD,
+    status: "idle",
+    error: null,
+  });
 
   const debouncedTime = useDebounce(scrubberTime, 150);
   const prevActiveIdsRef = useRef<Set<string>>(new Set());
@@ -1934,14 +1951,24 @@ export function GraphWorkspace({
     : activeDistanceMode === "heatmap"
       ? HEATMAP_DISTANCE_MAX_HOPS
       : STRUCTURAL_DISTANCE_MAX_HOPS;
-  const structuralDistances = useMemo(
+  const useServerStructuralDistance = shouldUseServerStructuralDistance(graph.order);
+  const localStructuralDistances = useMemo(
     () => (
-      distanceAnchorNodeId && activeDistanceMode !== "off"
+      !useServerStructuralDistance
+      && distanceAnchorNodeId
+      && activeDistanceMode !== "off"
         ? buildStructuralDistanceSnapshot(graph, distanceAnchorNodeId, distanceMaxHops)
         : EMPTY_DISTANCE_RECORD
     ),
-    [activeDistanceMode, distanceAnchorNodeId, distanceMaxHops, graphVersion],
+    [activeDistanceMode, distanceAnchorNodeId, distanceMaxHops, graphVersion, useServerStructuralDistance],
   );
+  const structuralDistances = useServerStructuralDistance
+    ? (
+      serverStructuralState.anchorNodeId === distanceAnchorNodeId
+        ? serverStructuralState.distances
+        : EMPTY_DISTANCE_RECORD
+    )
+    : localStructuralDistances;
   const distanceCounts = useMemo(
     () => summarizeDistanceBuckets(structuralDistances, graph.order),
     [structuralDistances, graphVersion],
@@ -1971,6 +1998,92 @@ export function GraphWorkspace({
       setDistanceMode("off");
     }
   }, [activeDistanceMode, graphVersion, selectedNodeId]);
+
+  useEffect(() => {
+    if (
+      !useServerStructuralDistance
+      || !kbId
+      || viewMode !== "full"
+      || !distanceAnchorNodeId
+      || activeDistanceMode === "off"
+    ) {
+      setServerStructuralState({
+        anchorNodeId: null,
+        distances: EMPTY_DISTANCE_RECORD,
+        status: "idle",
+        error: null,
+      });
+      return;
+    }
+
+    let cancelled = false;
+    setServerStructuralState({
+      anchorNodeId: distanceAnchorNodeId,
+      distances: EMPTY_DISTANCE_RECORD,
+      status: "loading",
+      error: null,
+    });
+
+    const loadServerStructuralDistances = async () => {
+      try {
+        const nodeIds = collectDistanceMatrixNodeIds(graph, distanceAnchorNodeId);
+        const response = await explorerFetch(buildExplorerGraphApiPath("distance-matrix", kbId), {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ node_ids: nodeIds, metric: "hops" }),
+        });
+        if (cancelled) {
+          return;
+        }
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({}));
+          throw errorFromApiResponse(response.status, data, graphCopy(copyLocale, "loadErrorTitle"));
+        }
+        const data = (await response.json()) as DistanceMatrixApiResponse;
+        const distances = structuralDistancesFromMatrixResponse(
+          data,
+          distanceAnchorNodeId,
+          distanceMaxHops,
+        );
+        setServerStructuralState({
+          anchorNodeId: distanceAnchorNodeId,
+          distances,
+          status: "ready",
+          error: null,
+        });
+      } catch (error) {
+        if (cancelled) {
+          return;
+        }
+        const fallback = buildStructuralDistanceSnapshot(
+          graph,
+          distanceAnchorNodeId,
+          distanceMaxHops,
+        );
+        setServerStructuralState({
+          anchorNodeId: distanceAnchorNodeId,
+          distances: fallback,
+          status: "ready",
+          error: formatApiError(error),
+        });
+      }
+    };
+
+    void loadServerStructuralDistances();
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    activeDistanceMode,
+    copyLocale,
+    distanceAnchorNodeId,
+    distanceMaxHops,
+    formatApiError,
+    graphVersion,
+    kbId,
+    useServerStructuralDistance,
+    viewMode,
+  ]);
 
   useEffect(() => {
     if (distanceMode !== "semantic" || !distanceAnchorNodeId) {
@@ -2143,6 +2256,18 @@ export function GraphWorkspace({
       };
     }
 
+    const structuralStatus = useServerStructuralDistance
+      ? (
+        serverStructuralState.anchorNodeId === distanceAnchorNodeId
+          ? serverStructuralState.status
+          : "loading"
+      )
+      : "ready";
+    const structuralError = useServerStructuralDistance
+      && serverStructuralState.anchorNodeId === distanceAnchorNodeId
+      ? serverStructuralState.error
+      : null;
+
     return {
       mode: activeDistanceMode,
       anchorNodeId: distanceAnchorNodeId,
@@ -2157,8 +2282,8 @@ export function GraphWorkspace({
       heatmapRenderedRingCounts: heatmapRenderSnapshot?.renderedRingCounts,
       heatmapSaturationMode: heatmapRenderSnapshot?.saturationMode,
       semanticNeighborCount: 0,
-      status: "ready",
-      error: null,
+      status: structuralStatus,
+      error: structuralError,
     };
   }, [
     activeDistanceMode,
@@ -2170,7 +2295,9 @@ export function GraphWorkspace({
     graph.order,
     heatmapRenderSnapshot,
     semanticDistanceState,
+    serverStructuralState,
     structuralDistances,
+    useServerStructuralDistance,
     viewMode,
   ]);
 

@@ -68,7 +68,7 @@ References: [Product and roadmap](product-and-roadmap.md), [Explorer integration
 | F-RUL-04 | Contradiction → governance queue | `not` | P2 | |
 | F-TIM-01–03 | valid_from/to, doc events, search/graph `as_of` | `partial` | P1 | Graph scrubber + `temporal/*`; chunk `as_of`/`created_*` on search API + KB search copy |
 | F-TIM-04 | Timeline playback (product nav) | `partial` | P1 | Controls in `GraphWorkspace`; no dedicated route |
-| — | `POST .../graph/distance-matrix` | `partial` | P2 | KB adapter wired; graph UI still uses local structural distance by default |
+| — | `POST .../graph/distance-matrix` | `partial` | P2 | KB adapter + graph UI server hop matrix when loaded graph &gt; 2500 nodes; local BFS below threshold |
 
 ### 3.3 Sources, search, chat, alerts
 

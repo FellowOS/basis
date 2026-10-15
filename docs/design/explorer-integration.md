@@ -193,7 +193,9 @@ across Semantica upgrades.
 | POST | `/api/kbs/{kb_id}/graph/search` | graph search | viewer |
 | GET | `/api/kbs/{kb_id}/graph/nodes/{node_id}/neighbors` | neighbors | viewer |
 | GET | `/api/kbs/{kb_id}/graph/path` | path | viewer |
-| POST | `/api/kbs/{kb_id}/graph/distance-matrix` | distance matrix (`DistanceMatrixRequest`) | viewer |
+| POST | `/api/kbs/{kb_id}/graph/distance-matrix` | hop/weighted/semantic matrix for `node_ids` (`DistanceMatrixRequest`) | viewer |
+
+Graph workspace: when the loaded graph exceeds **2500** nodes, ego/heatmap/structural distance overlays fetch hop distances from this endpoint (capped batch of node ids) instead of client BFS; smaller graphs still use in-memory `buildStructuralDistanceSnapshot`.
 | GET | `/api/kbs/{kb_id}/graph/analytics/*` | analytics | viewer |
 | WS | `/api/kbs/{kb_id}/ws/graph-updates` | adapted WS hub | viewer |
 

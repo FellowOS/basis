@@ -533,11 +533,11 @@ Acceptance:
 
 ### M6-06 — Optional graph adapters (F-DIFF-01, distance-matrix)
 
-**Status:** partial — `POST .../graph/distance-matrix` adapter; whole-graph DiffMerge **not**; client-side structural distance remains default.
+**Status:** partial — `POST .../graph/distance-matrix` adapter; graph UI uses it for structural/ego/heatmap when loaded nodes &gt; 2500; whole-graph DiffMerge **not**.
 
 Work:
 
-- implement `POST .../graph/distance-matrix` adapter when graph size exceeds client budget;
+- tune `GRAPH_STRUCTURAL_DISTANCE_LOCAL_MAX_NODES` / matrix batch cap if operators hit limits;
 - whole-graph diff API + UI only if release engineering requests it.
 
 Acceptance:
