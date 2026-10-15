@@ -1,5 +1,5 @@
-import { lazy, Suspense, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ExplorerHostProvider } from '@/explorer/host/explorerHttp.js';
 import { buildKbExplorerHttpConfig } from '@/lib/kb-explorer-host.js';
@@ -49,7 +49,15 @@ export function KbOntologyWorkspace({
   const navigate = useNavigate();
   const { caps, loading: capsLoading } = useKbCapabilities();
   const config = useMemo(() => buildKbExplorerHttpConfig(kbId), [kbId]);
+  const [searchParams] = useSearchParams();
   const [tab, setTab] = useState<OntologyZoneTab>('hub');
+
+  useEffect(() => {
+    const fromUrl = searchParams.get('ontologyTab');
+    if (fromUrl === 'hub' || fromUrl === 'sparql' || fromUrl === 'reasoning') {
+      setTab(fromUrl);
+    }
+  }, [searchParams]);
 
   const explorerReady = caps?.explorer_runtime && caps.graph;
 

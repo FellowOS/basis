@@ -54,7 +54,7 @@ References: [Product and roadmap](product-and-roadmap.md), [Explorer integration
 | F-DIFF-01 | Whole-graph diff/merge (publish/staging) | `partial` | P1 | `GET .../graph/diff` + `/kbs/:id/graph-diff` UI; no canvas merge studio |
 | F-ONT-05 | Full ontology proposal workflow (UI) | `partial` | P1 | `VersionsTab` + proposal deep links; review UI points to Versions (no duplicate queue row) |
 | F-GOV-04 | Agent governor (batch clustering, gates) | `not` | P2 | Scale governance automation |
-| F-GOV-05 | Impact gates + `governance.tripped` alerts | `partial` | P1 | Emit on review/ontology; bell deep links → review item / decisions |
+| F-GOV-05 | Impact gates + `governance.tripped` alerts | `partial` | P1 | Emit on review/ontology; records graph `decision_id` when Explorer loaded; bell → decisions / review item |
 | F-GOV-06 | Durable registry read model | `partial` | P1 | Audit exists; no duplicate Explorer Registry page |
 | F-GOV-07 | Decision / causal chain (full) | `partial` | P1 | `.../decisions/{id}/chain` + Review Decisions tab; `?decision=` deep link |
 
@@ -64,7 +64,7 @@ References: [Product and roadmap](product-and-roadmap.md), [Explorer integration
 | --- | --- | --- | --- | --- |
 | F-RUL-01 | KB ruleset CRUD (`.../rules`) | `partial` | P1 | API + Reasoning WS enable/delete; enabled rules merged on run |
 | F-RUL-02 | Run inference on current graph | `partial` | — | `POST .../reasoning/run` |
-| F-RUL-03 | Derived facts + proof chain in UI | `partial` | P1 | `proof_chains` + persist on `apply_to_graph`; `GET .../ledger/derived-facts` |
+| F-RUL-03 | Derived facts + proof chain in UI | `partial` | P1 | `proof_chains` + persist; ledger APIs; Entities UI; projector emits `projection_layer=derived` edges on rebuild |
 | F-RUL-04 | Contradiction → governance queue | `not` | P2 | |
 | F-TIM-01–03 | valid_from/to, doc events, search/graph `as_of` | `partial` | P1 | Documented split: chunk ingest filters vs graph `temporal/snapshot`; graph search = current projection |
 | F-TIM-04 | Timeline playback (product nav) | `partial` | P1 | Scrubber in `GraphWorkspace`; KB Search graph tab hints → graph timeline |
@@ -114,4 +114,4 @@ References: [Product and roadmap](product-and-roadmap.md), [Explorer integration
 - Split **P0/P1** rows into backlog tasks (§6–9 in `implementation-backlog.md`) with acceptance tests.
 - Do **not** reopen Explorer shell items marked `excluded` or `replaced` unless product explicitly reverses ADR/design.
 
-_Last updated: 2026-10-15 (derived facts on entities, reasoning/search e2e, M6 GA slice)._
+_Last updated: 2026-10-15 (entities derived-facts panel, governance alert `decision_id`, reasoning-derived e2e)._

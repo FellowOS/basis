@@ -1,6 +1,7 @@
 import { useParams } from 'react-router-dom';
 import { KbPageSubtitle } from '@/components/kb-page-subtitle.js';
 import { PageHeader } from '@/components/console-ui/PageHeader.js';
+import { KbDerivedFactsPanel } from '@/components/kb-derived-facts-panel.js';
 import { LedgerEntityBrowser } from '@/components/ledger-entity-browser.js';
 import { useI18n } from '@/i18n/context.js';
 import { useKbCatalog } from '@/lib/kb-context.js';
@@ -22,6 +23,7 @@ export function KbEntitiesPage() {
         ]}
       />
       <KbPageSubtitle>{t.pages.kbSubtitles.entities}</KbPageSubtitle>
+      <KbDerivedFactsPanel kbId={id} />
       <LedgerEntityBrowser kbId={id} />
     </div>
   );

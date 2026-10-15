@@ -34,12 +34,19 @@ async def list_derived_facts_route(
     kb_id: str,
     request: Request,
     limit: int = Query(100, ge=1, le=200),
+    entity_id: str | None = Query(None, max_length=128),
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> dict[str, Any]:
     get_kb_for_viewer(request, user, kb_id, store)
-    return {"derived_facts": knowledge.list_derived_facts(kb_id, limit=limit)}
+    if entity_id and entity_id.strip():
+        facts = knowledge.list_derived_facts_for_entity(
+            kb_id, entity_id.strip(), limit=limit
+        )
+    else:
+        facts = knowledge.list_derived_facts(kb_id, limit=limit)
+    return {"derived_facts": facts}
 
 
 @router.get("/{kb_id}/ledger/entities")

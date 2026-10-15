@@ -199,6 +199,31 @@ def rebuild_graph_from_ledger(
                 edge_props["confidence"] = fact["confidence"]
             session.add_edge(subject_id, target_id, edge_label, **edge_props)
 
+        for fact in knowledge.list_derived_facts_for_projection(kb_id):
+            subject_id = _canon_entity_id(fact["subject_id"], merge_redirect)
+            if fact["object_entity_id"]:
+                target_id = _canon_entity_id(fact["object_entity_id"], merge_redirect)
+            elif fact["object_value"]:
+                target_id = f"derived:{fact['id']}"
+                session.add_node(
+                    target_id,
+                    "literal",
+                    content=fact["object_value"],
+                    projection_layer="derived",
+                    derived_fact_id=fact["id"],
+                )
+            else:
+                continue
+            edge_label = _predicate_edge_label(fact["predicate_uri"])
+            edge_props: dict[str, Any] = {
+                "projection_layer": "derived",
+                "derived_fact_id": fact["id"],
+                "predicate_uri": fact["predicate_uri"],
+            }
+            if fact.get("rule_id"):
+                edge_props["rule_id"] = fact["rule_id"]
+            session.add_edge(subject_id, target_id, edge_label, **edge_props)
+
         knowledge.bump_projection_revision(kb_id)
         return session
     except Exception:

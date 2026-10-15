@@ -1,6 +1,11 @@
 import { expect, test } from '@playwright/test';
 
-import { defaultKbId, proposeRememberViaApi, registerFreshUser } from './helpers';
+import {
+  defaultKbId,
+  proposeRememberViaApi,
+  registerFreshUser,
+  seedGovernanceTrippedViaApi,
+} from './helpers';
 
 test('review queue surfaces link to ontology versions tab', async ({ page }) => {
   test.setTimeout(120_000);
@@ -55,6 +60,32 @@ test('review queue deep link highlights remembered fact item', async ({ page }) 
   await expect(card).toBeVisible({ timeout: 60_000 });
   await expect(card).toHaveClass(/ring-primary/);
   await expect(card.getByText(fact)).toBeVisible();
+});
+
+test('governance tripped alert links to decisions tab', async ({ page }) => {
+  test.setTimeout(120_000);
+
+  await registerFreshUser(page);
+  const kbId = await defaultKbId(page);
+
+  let decisionId: string | null;
+  try {
+    ({ decisionId } = await seedGovernanceTrippedViaApi(page, kbId));
+  } catch (err) {
+    if (String(err).includes('e2e_governance_trip_unavailable')) {
+      test.skip(true, 'governance e2e helper only on data-e2e API');
+    }
+    throw err;
+  }
+  if (!decisionId) {
+    test.skip(true, 'governance trip did not record explorer decision_id');
+  }
+
+  await page.goto(`/kbs/${kbId}/review`);
+  await page.getByRole('button', { name: /Knowledge base alerts|知识库告警/i }).click();
+  await page.getByRole('link', { name: /Open decisions|打开决策记录/i }).click();
+  await expect(page).toHaveURL(new RegExp(`tab=decisions`));
+  await expect(page).toHaveURL(new RegExp(`decision=${encodeURIComponent(decisionId!)}`));
 });
 
 test('search graph tab shows temporal hint and link to graph workspace', async ({ page }) => {

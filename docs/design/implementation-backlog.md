@@ -200,7 +200,7 @@ Acceptance:
 - invalidated statements disappear from current projection but remain in ledger;
 - projection failure marks state dirty/failed without losing ledger rows.
 
-**Status:** partial — `graph/projector.py` full rebuild from documents/entities/statements; ingest ends with `apply_rebuild_to_session`; `POST .../graph/rebuild`; `projection_state` revision bump; ontology nodes preserved. Typed/derived facts and incremental rebuild not done.
+**Status:** partial — `graph/projector.py` full rebuild from documents/entities/statements/typed/derived facts; ingest ends with `apply_rebuild_to_session`; `POST .../graph/rebuild`; `projection_state` revision bump; ontology nodes preserved. Incremental rebuild not done.
 
 ### M3-02 — Make graph snapshot persistence atomic
 
@@ -509,13 +509,13 @@ Acceptance:
 
 ### M6-04 — KB rules library (F-RUL-01–03)
 
-**Status:** partial — rules CRUD API + Reasoning WS; `proof_chains` + persist to `derived_facts`/`fact_derivations` on `apply_to_graph`; `GET .../ledger/derived-facts`.
+**Status:** partial — rules CRUD API + Reasoning WS; `proof_chains` + persist to `derived_facts`/`fact_derivations` on `apply_to_graph`; `GET .../ledger/derived-facts` (+ optional `entity_id`); Entities summary panel + per-entity Facts; Playwright `reasoning-derived.spec.ts`.
 
 Work:
 
 - `kb_reasoning_rules` persistence + `GET/POST/PATCH/DELETE .../rules` (**done**);
 - Reasoning workspace rule library UX (**done** baseline);
-- proof chain UI + API field `proof_chains` (**done** for fallback IF/THEN rules); persist to `derived_facts` when product requires.
+- proof chain UI + API field `proof_chains` (**done** for fallback IF/THEN rules); persist to `derived_facts` (**done** on `apply_to_graph` + mutated).
 
 Acceptance:
 
@@ -523,7 +523,7 @@ Acceptance:
 
 ### M6-05 — Temporal + alerts product surfaces (F-TIM-*, F-ALT-*)
 
-**Status:** partial — temporal diff + graph scrubber; chunk search `as_of` / `created_*` + search page copy; alerts + bell SSE/poll + deep links (**done** for MVP kinds); Playwright `governance.spec.ts` (review/ontology, connectors query, search graph hint).
+**Status:** partial — temporal diff + graph scrubber; chunk search `as_of` / `created_*` + search page copy; alerts + bell SSE/poll + deep links (**done** for MVP kinds); `governance.tripped` records Explorer `decision_id` when graph loaded (`governance_decision.py`); Playwright `governance.spec.ts` (review/ontology, connectors query, bell → Decisions, search graph hint).
 
 Work:
 

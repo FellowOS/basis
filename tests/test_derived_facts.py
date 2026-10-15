@@ -88,6 +88,26 @@ def test_ledger_derived_facts_route(tmp_path) -> None:
     assert res.status_code == 200
     assert len(res.json()["derived_facts"]) >= 1
 
+    other = store.get_or_create_entity_by_label(kb_id, "ZOnly")
+    store.insert_derived_fact(
+        kb_id,
+        subject_id=other,
+        predicate_uri="urn:sema:pred:only",
+        object_entity_id=None,
+        object_value="literal",
+        rule_id=None,
+        derivations=[],
+    )
+    filtered = client.get(
+        f"/api/kbs/{kb_id}/ledger/derived-facts?entity_id={subj}",
+        headers=headers,
+    )
+    assert filtered.status_code == 200
+    rows = filtered.json()["derived_facts"]
+    assert rows
+    assert all(r["subject_id"] == subj or r["object_entity_id"] == subj for r in rows)
+    assert not any(r["subject_id"] == other and r.get("object_value") == "literal" for r in rows)
+
 
 def test_entity_facts_includes_derived_facts(tmp_path) -> None:
     kb_id = _kb_id(tmp_path)
@@ -105,6 +125,33 @@ def test_entity_facts_includes_derived_facts(tmp_path) -> None:
     )
     listed = store.list_derived_facts_for_entity(kb_id, subj)
     assert len(listed) == 1
+
+
+def test_list_derived_facts_filtered_by_entity(tmp_path) -> None:
+    kb_id = _kb_id(tmp_path)
+    store = _knowledge(tmp_path)
+    subj = store.get_or_create_entity_by_label(kb_id, "OnlySubj")
+    other = store.get_or_create_entity_by_label(kb_id, "OtherEnt")
+    store.insert_derived_fact(
+        kb_id,
+        subject_id=subj,
+        predicate_uri="urn:sema:pred:r",
+        object_entity_id=other,
+        object_value=None,
+        rule_id=None,
+        derivations=[],
+    )
+    store.insert_derived_fact(
+        kb_id,
+        subject_id=other,
+        predicate_uri="urn:sema:pred:r2",
+        object_entity_id=subj,
+        object_value=None,
+        rule_id=None,
+        derivations=[],
+    )
+    for_subj = store.list_derived_facts_for_entity(kb_id, subj)
+    assert len(for_subj) == 2
 
 
 def test_reasoning_apply_persists_derived_facts(tmp_path) -> None:
@@ -132,6 +179,8 @@ def test_reasoning_apply_persists_derived_facts(tmp_path) -> None:
     assert run.status_code == 200
     body = run.json()
     assert body.get("derived_facts_persisted", {}).get("created", 0) >= 1
+    assert isinstance(body.get("projection"), dict)
+    assert body["projection"].get("projection_revision") is not None
     listed = client.get(f"/api/kbs/{kb_id}/ledger/derived-facts", headers=headers)
     assert listed.status_code == 200
     assert len(listed.json()["derived_facts"]) >= 1

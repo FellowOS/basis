@@ -22,10 +22,8 @@ from sema.explorer.kb_scoped_ontology_state import KbOntologyState
 from sema.explorer.session_guard import require_explorer_graph_session
 from sema.admin.errors import AdminError
 from sema.knowledge.graph_audit import audit_kb_graph
-from sema.knowledge.kb_alerts_emit import (
-    emit_governance_proposal_proposed_alert,
-    emit_governance_tripped_alert,
-)
+from sema.explorer.governance_decision import emit_governance_tripped_for_kb
+from sema.knowledge.kb_alerts_emit import emit_governance_proposal_proposed_alert
 from sema.knowledge.store import KnowledgeStore
 
 WRITE_METHODS = frozenset({"POST", "PUT", "PATCH", "DELETE"})
@@ -41,10 +39,13 @@ def _min_role(method: str) -> str:
 
 
 def _governance_alert_from_proposal_result(
-    knowledge: KnowledgeStore,
+    request: Request,
     kb_id: str,
+    knowledge: KnowledgeStore,
     proposal_id: str,
     result: Any,
+    *,
+    actor_id: str | None = None,
 ) -> None:
     if hasattr(result, "model_dump"):
         data: Any = result.model_dump()
@@ -54,14 +55,16 @@ def _governance_alert_from_proposal_result(
         return
     shacl = data.get("shacl_validation")
     if isinstance(shacl, dict) and shacl.get("conforms") is False:
-        emit_governance_tripped_alert(
-            knowledge,
+        emit_governance_tripped_for_kb(
+            request,
             kb_id,
+            knowledge,
             message=f"SHACL gate failed for proposal {proposal_id}",
             detail={
                 "proposal_id": proposal_id,
                 "shacl_validation": shacl,
             },
+            actor_id=actor_id,
         )
 
 
@@ -509,15 +512,24 @@ def register_kb_ontology_hub_routes(router: APIRouter) -> None:
             except AdminError as exc:
                 code = exc.code.lower()
                 if any(token in code for token in ("governance", "impact", "tripped", "shacl")):
-                    emit_governance_tripped_alert(
-                        knowledge,
+                    emit_governance_tripped_for_kb(
+                        request,
                         kb_id,
+                        knowledge,
                         message=exc.message,
                         detail={"code": exc.code, "proposal_id": proposal_id},
+                        actor_id=user.id,
                     )
                 raise
             save_graph(request, kb_id)
-            _governance_alert_from_proposal_result(knowledge, kb_id, proposal_id, result)
+            _governance_alert_from_proposal_result(
+                request,
+                kb_id,
+                knowledge,
+                proposal_id,
+                result,
+                actor_id=user.id,
+            )
             _audit_ontology_graph_write(
                 store,
                 user,

@@ -22,7 +22,7 @@ from sema.api.deps import (
     save_graph,
 )
 from sema.api.explorer_route_errors import admin_error_from_explorer_http
-from sema.knowledge.kb_alerts_emit import emit_governance_tripped_alert
+from sema.explorer.governance_decision import emit_governance_tripped_for_kb
 from sema.limits import RuntimeLimits
 from sema.explorer.session_guard import require_explorer_graph_session
 from sema.knowledge.graph_audit import audit_kb_graph
@@ -314,9 +314,10 @@ async def approve_review_item(
     except HTTPException as exc:
         mapped = admin_error_from_explorer_http(exc, context="enrich")
         if mapped.code not in _skip_governance_alert:
-            emit_governance_tripped_alert(
-                knowledge,
+            emit_governance_tripped_for_kb(
+                request,
                 kb_id,
+                knowledge,
                 message=mapped.message,
                 detail={
                     "code": mapped.code,
@@ -324,13 +325,15 @@ async def approve_review_item(
                     "kind": item.get("kind"),
                     "source": "review_approve",
                 },
+                actor_id=user.id,
             )
         raise mapped
     except AdminError as exc:
         if exc.code not in _skip_governance_alert:
-            emit_governance_tripped_alert(
-                knowledge,
+            emit_governance_tripped_for_kb(
+                request,
                 kb_id,
+                knowledge,
                 message=exc.message,
                 detail={
                     "code": exc.code,
@@ -338,6 +341,7 @@ async def approve_review_item(
                     "kind": item.get("kind"),
                     "source": "review_approve",
                 },
+                actor_id=user.id,
             )
         raise
 

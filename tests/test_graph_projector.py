@@ -6,6 +6,7 @@ from sema.graph.session import GraphSession
 from sema.knowledge.blob_store import BlobStore
 from sema.knowledge.store import KnowledgeStore
 from sema.pipeline.ledger_extract import apply_kg_to_ledger
+from sema.knowledge.derived_facts_service import persist_reasoning_derived
 
 
 def _kb_store(tmp_path: Path) -> tuple[str, KnowledgeStore]:
@@ -83,6 +84,30 @@ def test_invalidated_statement_omitted_from_projection(tmp_path: Path) -> None:
     store.invalidate_statement(kb_id, sid)
     without = rebuild_graph_from_ledger(store, kb_id)
     assert not any(edge[2] == "relates" for edge in graph_projection_signature(without)["edges"])
+    store.close()
+
+
+def test_derived_facts_projected_as_edges(tmp_path: Path) -> None:
+    kb_id, store = _kb_store(tmp_path)
+    subj = store.get_or_create_entity_by_label(kb_id, "DerSubj")
+    obj = store.get_or_create_entity_by_label(kb_id, "DerObj")
+    persist_reasoning_derived(
+        store,
+        kb_id,
+        [
+            {
+                "conclusion": "knows(DerSubj, DerObj)",
+                "rule": "IF parent(DerSubj, DerObj) THEN knows(DerSubj, DerObj)",
+                "premises": ["parent(DerSubj, DerObj)"],
+            }
+        ],
+    )
+    session = rebuild_graph_from_ledger(store, kb_id)
+    sig = graph_projection_signature(session)
+    assert any(
+        src == subj and tgt == obj and label == "knows"
+        for src, tgt, label in sig["edges"]
+    )
     store.close()
 
 

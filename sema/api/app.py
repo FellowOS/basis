@@ -181,6 +181,10 @@ def create_app(app_settings: Settings | None = None) -> FastAPI:
     app.include_router(kb_mappings.router)
     app.include_router(kb_reasoning_rules.router)
     app.include_router(kb_alerts.router)
+    if app_settings.data_dir.name == "data-e2e":
+        from sema.api.routes import kb_e2e_helpers
+
+        app.include_router(kb_e2e_helpers.router)
     app.include_router(kb_sources.router)
     app.include_router(realtime.router)
     app.include_router(settings_routes.router)

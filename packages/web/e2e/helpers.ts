@@ -185,6 +185,23 @@ export async function runReasoningApplyViaApi(
   return (await response.json()) as { derived_facts_persisted?: { created?: number } };
 }
 
+/** Seed governance.tripped + graph decision (Playwright data-e2e API only). */
+export async function seedGovernanceTrippedViaApi(
+  page: Page,
+  kbId: string,
+): Promise<{ decisionId: string | null }> {
+  const token = await bearerToken(page);
+  const response = await page.request.post(`/api/kbs/${kbId}/_e2e/governance-trip`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (response.status() === 404) {
+    throw new Error('e2e_governance_trip_unavailable');
+  }
+  expect(response.ok()).toBeTruthy();
+  const body = (await response.json()) as { decision_id?: string | null };
+  return { decisionId: body.decision_id ?? null };
+}
+
 export async function proposeRememberViaApi(
   page: Page,
   kbId: string,

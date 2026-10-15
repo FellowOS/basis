@@ -2372,6 +2372,30 @@ class KnowledgeStore:
             for row in rows
         ]
 
+    def list_derived_facts_for_projection(self, kb_id: str) -> list[dict[str, Any]]:
+        with self._lock:
+            self._assert_kb_exists(kb_id)
+            rows = self._conn.execute(
+                """
+                SELECT id, subject_id, predicate_uri, object_entity_id, object_value, rule_id
+                FROM derived_facts
+                WHERE kb_id = ? AND invalidated_at IS NULL
+                ORDER BY recorded_at ASC
+                """,
+                (kb_id,),
+            ).fetchall()
+        return [
+            {
+                "id": row["id"],
+                "subject_id": row["subject_id"],
+                "predicate_uri": row["predicate_uri"],
+                "object_entity_id": row["object_entity_id"],
+                "object_value": row["object_value"],
+                "rule_id": row["rule_id"],
+            }
+            for row in rows
+        ]
+
     def list_typed_facts(self, kb_id: str, *, limit: int = 100) -> list[dict[str, Any]]:
         limit = min(max(1, limit), 200)
         with self._lock:

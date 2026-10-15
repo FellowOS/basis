@@ -17,6 +17,7 @@ from sema.api.deps import (
     get_knowledge_store,
     get_runtime_limits,
     get_store,
+    rebuild_kb_projection,
     save_graph,
 )
 from sema.api.explorer_route_errors import invoke_explorer
@@ -323,7 +324,6 @@ async def kb_reasoning_run(
         list(summary.get("inferred_facts") or []),
     )
     if payload.apply_to_graph and summary.get("mutated"):
-        save_graph(request, kb_id)
         from sema.knowledge.derived_facts_service import persist_reasoning_derived
 
         summary["derived_facts_persisted"] = persist_reasoning_derived(
@@ -331,6 +331,11 @@ async def kb_reasoning_run(
             kb_id,
             list(summary.get("proof_chains") or []),
         )
+        created = int(summary["derived_facts_persisted"].get("created") or 0)
+        if created > 0:
+            summary["projection"] = rebuild_kb_projection(request, kb_id)
+        else:
+            save_graph(request, kb_id)
         audit_kb_graph(
             store,
             user,
@@ -339,7 +344,12 @@ async def kb_reasoning_run(
             extra={
                 "added_edges": summary.get("added_edges"),
                 "rules_fired": summary.get("rules_fired"),
-                "derived_facts_created": summary["derived_facts_persisted"].get("created"),
+                "derived_facts_created": created,
+                **(
+                    {"projection_revision": summary["projection"].get("projection_revision")}
+                    if isinstance(summary.get("projection"), dict)
+                    else {}
+                ),
             },
         )
     return summary

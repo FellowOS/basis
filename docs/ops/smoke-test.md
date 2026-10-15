@@ -50,7 +50,7 @@ SEMA_E2E_SKIP_SERVERS=1 SEMA_E2E_WEB_PORT=5173 pnpm --filter @sema/web test:e2e
 
 `e2e/onboarding.spec.ts` covers register → paste text → pattern ingest → `graph/stats` and opening the Graph workspace shell (not canvas interaction).
 
-`e2e/governance.spec.ts` covers review queue → Ontology Versions link, `reviewItem=` deep link for `statement_remember`, `?connectors=1` opening the ingest sources dialog, and Search → Graph temporal hint + link to the graph workspace.
+`e2e/governance.spec.ts` covers review queue → Ontology Versions link, `reviewItem=` deep link for `statement_remember`, `?connectors=1` opening the ingest sources dialog, governance bell → **Decisions** (`decision=` deep link; uses `POST .../_e2e/governance-trip` on `data-e2e` API only), and Search → Graph temporal hint + link to the graph workspace.
 
 `e2e/graph-diff.spec.ts` covers **Graph diff** after ingest (`GET .../graph/diff` via UI).
 
@@ -72,7 +72,7 @@ uv run pytest tests/test_m6_smoke.py tests/test_kb_alerts.py tests/test_kb_sourc
 
 1. **Review** → queue header links to **Ontology → Versions**; empty queue shows the same hint.
 2. Submit an ontology proposal (editor) → header **alerts** bell shows `governance.proposal_proposed`; link opens Versions + proposal modal.
-3. Approve a merge that trips governance → bell links to review item when `item_id` is present.
+3. Approve a merge that trips governance → bell links to **Decisions** when `decision_id` is present, else review item when `item_id` is set (`tests/test_kb_review.py::test_review_approve_failure_emits_governance_alert`).
 
 ### Connectors (no new kinds)
 

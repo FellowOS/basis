@@ -27,6 +27,11 @@ test('reasoning apply_to_graph shows derived facts on entities page', async ({ p
   }
 
   await page.goto(`/kbs/${kbId}/entities`);
+  await expect(
+    page.getByRole('heading', { name: /Recent derived facts|最近推理派生事实/i }),
+  ).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByText(/urn:sema:pred:ancestor|ancestor/).first()).toBeVisible();
+
   await page.getByPlaceholder(/Entity label|实体名称/i).fill(entityA);
   await page.getByRole('button', { name: /^Search$|^搜索$/ }).click();
   await expect(page.getByText(entityA).first()).toBeVisible({ timeout: 60_000 });

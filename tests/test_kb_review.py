@@ -107,4 +107,10 @@ def test_review_approve_failure_emits_governance_alert(tmp_path) -> None:
     assert failed.status_code == 422
 
     alerts = client.get(f"/api/kbs/{kb_id}/alerts", headers=headers).json()["alerts"]
-    assert any(a["kind"] == "governance.tripped" for a in alerts)
+    tripped = [a for a in alerts if a["kind"] == "governance.tripped"]
+    assert tripped
+    assert any(
+        isinstance((a.get("detail") or {}).get("decision_id"), str)
+        and (a.get("detail") or {})["decision_id"]
+        for a in tripped
+    )

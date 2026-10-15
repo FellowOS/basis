@@ -450,6 +450,7 @@ must disable a capability with a stable diagnostic; it must not fail application
 ### Gate D — controlled mutations
 
 - merge/ontology/mapping writes go through ledger service;
+- `reasoning/run` with `apply_to_graph` persists derived facts to the ledger and rebuilds the graph projection when new derived rows are created;
 - audit and Decision records exist;
 - projection rebuild reproduces the visible result.
 
