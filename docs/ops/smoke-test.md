@@ -51,3 +51,33 @@ SEMA_E2E_SKIP_SERVERS=1 SEMA_E2E_WEB_PORT=5173 pnpm --filter @sema/web test:e2e
 `e2e/onboarding.spec.ts` covers register → paste text → pattern ingest → `graph/stats` and opening the Graph workspace shell (not canvas interaction).
 
 Manual checklist above remains the release fallback when e2e is not run.
+
+## M6 deepening (post–Explorer migration)
+
+Quick API smoke:
+
+```bash
+uv run pytest tests/test_m6_smoke.py tests/test_kb_alerts.py tests/test_kb_sources.py -q
+```
+
+### Governance & ontology
+
+1. **Review** → queue header links to **Ontology → Versions**; empty queue shows the same hint.
+2. Submit an ontology proposal (editor) → header **alerts** bell shows `governance.proposal_proposed`; link opens Versions + proposal modal.
+3. Approve a merge that trips governance → bell links to review item when `item_id` is present.
+
+### Connectors (no new kinds)
+
+1. **Sources** → **Ingest sources** → create webhook; copy URL + Bearer from one-time panel.
+2. Force `http_poll` / `git` sync failure (bad URL) → `sync_failed` alert → link opens sources with `?connectors=1&ingestSource=`.
+
+### Search & time
+
+1. **Search → Chunks** — set `as_of` / `created_after`; results respect ingest time.
+2. **Search → Graph** — banner states graph uses current projection; link opens **Graph** timeline.
+
+### Rules
+
+1. **Ontology** tab → **Reasoning** — save a rule, toggle enabled, **Run**; results list inferred facts and rules-in-run.
+
+Playground: SSE chat + stop + context-trim banner only (no token-budget testing required).

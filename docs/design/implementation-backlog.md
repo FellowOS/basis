@@ -451,12 +451,14 @@ The slice is complete only when:
 Review, mappings, SPARQL, Decision, chat, and ontology editing follow this foundation and must not
 introduce a second source of truth.
 
-**Automated coverage (partial):** `tests/test_release_gate.py`, `tests/test_graph_page_limits.py`,
-`tests/test_runtime_limits.py`, `tests/test_observability.py`, `tests/test_request_id.py`,
-`tests/test_legacy_graph_migration.py`, `tests/test_entity_merges.py` (merge revert + Explorer),
+**Automated coverage (partial):** `tests/test_release_gate.py`, `tests/test_m6_smoke.py`,
+`tests/test_kb_alerts.py`, `tests/test_kb_sources.py`, `tests/test_kb_reasoning_rules.py`,
+`tests/test_graph_page_limits.py`, `tests/test_runtime_limits.py`, `tests/test_observability.py`,
+`tests/test_request_id.py`, `tests/test_legacy_graph_migration.py`, `tests/test_entity_merges.py`,
 `tests/test_explorer_registry.py`, `tests/test_ws_hub.py`, `tests/test_realtime_ws.py`,
-`packages/web/src/explorer/host/explorerHttp.test.ts` (+ `api-error-message.test.ts`), and
-`packages/web/e2e` (Playwright login + register smoke; CI job `e2e`).
+`packages/web/src/lib/kb-alert-actions.test.ts`, `packages/web/src/lib/reviewUrlState.test.ts`,
+`packages/web/src/explorer/host/explorerHttp.test.ts`, and `packages/web/e2e` (Playwright; CI `e2e`).
+Manual M6: [smoke-test.md](../ops/smoke-test.md) § M6 deepening.
 
 ## 10. Milestone M6 — post–Explorer migration deepening
 
