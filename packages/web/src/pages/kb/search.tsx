@@ -200,6 +200,10 @@ export function KbSearchPage() {
     locale === 'zh' ? '文档入库不晚于 (ISO)' : 'Document created before (ISO)';
   const filterAsOfLabel =
     locale === 'zh' ? '截至时刻 as_of (ISO，等同 created_before)' : 'As-of instant (ISO, alias for created_before)';
+  const graphTemporalHint =
+    locale === 'zh'
+      ? '图谱节点搜索针对当前投影，不按文档入库时间过滤。时点浏览请打开图谱并使用时间轴。'
+      : 'Graph node search uses the current projection, not document ingest time. For point-in-time views, open Graph and use the timeline.';
 
   useEffect(() => {
     const doc = searchParams.get('doc');
@@ -303,6 +307,14 @@ export function KbSearchPage() {
               </>
             }
           />
+          {tab === 'graph' && id && !graphBlocked ? (
+            <p className="mt-2 px-1 text-xs text-muted-foreground">
+              {graphTemporalHint}{' '}
+              <Link to={kbPath(id, 'graph')} className="text-primary underline-offset-2 hover:underline">
+                {openInGraph}
+              </Link>
+            </p>
+          ) : null}
           {tab === 'chunks' ? (
             <div className="mt-2 grid gap-2 px-1 sm:grid-cols-2">
               <Input

@@ -9,7 +9,8 @@ lifecycle. See [explorer-integration.md](./explorer-integration.md) for API cont
 | --- | --- | --- |
 | Open graph | `/kbs/:id/graph`, default KB landing | Capability `graph`; full-bleed canvas |
 | Focus node | `?focus=<nodeId>` | From search, entities, sources after processing, chat citations |
-| Search & reload | `GraphSearchDock`, paginated load | `POST .../graph/search` |
+| Search & reload | `GraphSearchDock`, paginated load | `POST .../graph/search` (current projection; KB Search **Graph** tab same — use timeline for `at`) |
+| Point-in-time | Temporal scrubber | `GET .../temporal/snapshot?at=` (not chunk `as_of`) |
 | Inspector | Path, link prediction, provenance download | Markdown edit gated by `graph_write` |
 | Knowledge links | Inspector → sources (doc/chunk), search fallback | `graph-evidence-links` |
 | Decisions | Inspector summary → `/review?tab=decisions&q=` | `DecisionWorkspace` URL params |

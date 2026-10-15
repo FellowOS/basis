@@ -66,8 +66,8 @@ References: [Product and roadmap](product-and-roadmap.md), [Explorer integration
 | F-RUL-02 | Run inference on current graph | `partial` | — | `POST .../reasoning/run` |
 | F-RUL-03 | Derived facts + proof chain in UI | `partial` | P1 | Inferred facts + rules-in-run list; proof chain blocked on API |
 | F-RUL-04 | Contradiction → governance queue | `not` | P2 | |
-| F-TIM-01–03 | valid_from/to, doc events, search/graph `as_of` | `partial` | P1 | Graph scrubber + `temporal/*`; chunk `as_of`/`created_*` on search API + KB search copy |
-| F-TIM-04 | Timeline playback (product nav) | `partial` | P1 | Controls in `GraphWorkspace`; no dedicated route |
+| F-TIM-01–03 | valid_from/to, doc events, search/graph `as_of` | `partial` | P1 | Documented split: chunk ingest filters vs graph `temporal/snapshot`; graph search = current projection |
+| F-TIM-04 | Timeline playback (product nav) | `partial` | P1 | Scrubber in `GraphWorkspace`; KB Search graph tab hints → graph timeline |
 | — | `POST .../graph/distance-matrix` | `partial` | P2 | KB adapter + graph UI server hop matrix when loaded graph &gt; 2500 nodes; local BFS below threshold |
 
 ### 3.3 Sources, search, chat, alerts
@@ -76,7 +76,7 @@ References: [Product and roadmap](product-and-roadmap.md), [Explorer integration
 | --- | --- | --- | --- | --- |
 | F-SRC-06–07 | Connectors CRUD + sync jobs | `partial` | P0 | MVP webhook/http_poll/GitHub raw; full git clone etc. open |
 | F-SRC-08 | Large async ingest jobs | `partial` | P1 | Processing tasks exist; align with F-SRC-08 scope |
-| F-SRCH-03 | Advanced time filters on search | `partial` | P1 | `created_after` / `created_before` on `GET .../search` (+ KB search UI); graph `as_of` still separate |
+| F-SRCH-03 | Advanced time filters on search | `partial` | P1 | Chunk filters on `GET .../search` + UI; graph tab copy clarifies no ingest-time filter |
 | F-CHAT-01–03 | KB chat + RAG + tool subset | `partial` | P0 | Playground + SSE; client abort + server disconnect stops stream frames |
 | F-CHAT-04 | `remember` → pending review | `partial` | P1 | `POST .../chat/remember` + MCP `propose_remember`; review kind `statement_remember` |
 | F-CHAT-05 | MCP Streamable HTTP | `partial` | P0 | `GET/POST /api/kbs/{id}/mcp` + 7 read tools; no platform `/api/mcp` |

@@ -50,6 +50,18 @@ dimension partitions and HNSW cosine indexes, so KBs may use embedding models wi
 dimensions. Milvus or Qdrant can implement the same contract later without changing canonical
 chunk storage or the public search API.
 
+## Temporal filters (F-TIM-03)
+
+Chunk search and graph exploration use **different clocks**. Do not assume one `as_of` applies to both.
+
+| Surface | API | What time means |
+| --- | --- | --- |
+| **Chunk search** | `GET /api/kbs/{id}/search` | Filters on **document version ingest** time: `created_after`, `created_before`, and `as_of` (alias for `created_before` when the latter is omitted). Restricts which chunks are eligible; does not rewind the graph. |
+| **Graph workspace** | `GET /api/kbs/{id}/temporal/bounds`, `.../temporal/snapshot?at=` | **Explorer projection** emphasis at a point in time (scrubber UI). Separate from ledger ingest timestamps on chunks. |
+| **Graph node search** | `POST /api/kbs/{id}/graph/search` | Always searches the **current** loaded projection. Optional body field `at` is accepted for forward compatibility but returns `warnings: ["graph_search_uses_current_projection"]` — use the graph timeline for point-in-time exploration. |
+
+Product copy lives in KB Search subtitles and the Search page chunk filters. See also [explorer-integration.md](./explorer-integration.md) §5.2.
+
 ## Search behavior
 
 - `keyword`: SQLite uses FTS5 trigram/BM25 (and a short-query `LIKE` fallback); PostgreSQL uses

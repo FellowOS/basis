@@ -525,8 +525,10 @@ Acceptance:
 
 Work:
 
-- graph search tied to temporal snapshot (today: warning + graph UI scrubber only);
+- graph search tied to temporal snapshot (today: API warning + docs/UI copy; scrubber on graph);
 - richer valid_from/to on ledger entities (beyond ingest-time chunk filters).
+
+Doc: [search-storage-architecture.md](search-storage-architecture.md) § temporal filters (**done** for MVP clarity).
 
 Acceptance:
 
