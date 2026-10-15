@@ -2,7 +2,11 @@ import type {
   MarkdownEditorError,
   MarkdownResourceRef,
 } from "./markdownEditorState";
-import { buildExplorerKbApiPath, explorerFetch, resolveExplorerApiUrl } from "../../host/explorerHttp";
+import {
+  buildExplorerKbApiPath,
+  explorerFetch,
+  resolveExplorerApiUrl,
+} from "../../host/explorerHttp";
 
 export interface MarkdownDocument {
   resource: MarkdownResourceRef;
@@ -42,12 +46,9 @@ export class MarkdownClientError extends Error implements MarkdownEditorError {
   }
 }
 
-function resourceUrl(ref: MarkdownResourceRef, kbId?: string): string {
+function resourceUrl(ref: MarkdownResourceRef, kbId: string): string {
   const segment = `markdown/${ref.kind}/${encodeURIComponent(ref.id)}`;
-  if (kbId) {
-    return buildExplorerKbApiPath(segment, kbId);
-  }
-  return resolveExplorerApiUrl(`/api/${segment}`);
+  return buildExplorerKbApiPath(segment, kbId);
 }
 
 async function responseError(response: Response): Promise<MarkdownClientError> {
@@ -102,18 +103,18 @@ async function request<T>(input: RequestInfo | URL, init?: RequestInit): Promise
 
 export function readMarkdownResource(
   ref: MarkdownResourceRef,
-  options?: { kbId?: string },
+  kbId: string,
 ): Promise<MarkdownDocument> {
-  return request<MarkdownDocument>(resourceUrl(ref, options?.kbId));
+  return request<MarkdownDocument>(resourceUrl(ref, kbId));
 }
 
 export function applyMarkdownResource(
   ref: MarkdownResourceRef,
   markdown: string,
   expectedRevision: string,
-  options?: { kbId?: string },
+  kbId: string,
 ): Promise<MarkdownApplyResult> {
-  return request<MarkdownApplyResult>(resourceUrl(ref, options?.kbId), {
+  return request<MarkdownApplyResult>(resourceUrl(ref, kbId), {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({

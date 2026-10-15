@@ -31,7 +31,7 @@ import type { MarkdownEditorError } from "./markdownEditorState";
 import { useApiErrorMessage } from "@/lib/use-api-error-message.js";
 
 export interface MarkdownContentViewerProps {
-  kbId?: string;
+  kbId: string;
   content?: string | null;
   resource?: MarkdownResourceRef;
   onApplied?: (result: MarkdownApplyResult) => void;

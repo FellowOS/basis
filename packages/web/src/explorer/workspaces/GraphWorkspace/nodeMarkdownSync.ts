@@ -1,4 +1,4 @@
-import { buildExplorerGraphApiPath, explorerFetch, resolveExplorerApiUrl } from "../../host/explorerHttp";
+import { buildExplorerGraphApiPath, explorerFetch } from "../../host/explorerHttp";
 import { errorFromApiResponse } from "@/lib/api-error.js";
 
 export interface NodeMarkdownAttributeUpdate {
@@ -57,11 +57,9 @@ export function buildNodeMarkdownAttributeUpdate(
 
 export async function readNodeMarkdownAttributeUpdate(
   nodeId: string,
-  kbId?: string,
+  kbId: string,
 ): Promise<SavedNodeMarkdownAttributeUpdate> {
-  const url = kbId
-    ? buildExplorerGraphApiPath(`nodes/${encodeURIComponent(nodeId)}`, kbId)
-    : resolveExplorerApiUrl(`/api/graph/node?node_id=${encodeURIComponent(nodeId)}`);
+  const url = buildExplorerGraphApiPath(`nodes/${encodeURIComponent(nodeId)}`, kbId);
   const response = await explorerFetch(url);
   const payload = (await response.json().catch(() => ({}))) as
     | GraphNodeMarkdownSnapshot

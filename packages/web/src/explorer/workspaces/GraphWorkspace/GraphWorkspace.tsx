@@ -984,8 +984,8 @@ function collectPluginOverlays(
 }
 
 interface GraphWorkspaceProps {
-  /** Sema KB id — graph list APIs use `/api/kbs/{kbId}/graph/...`. */
-  kbId?: string;
+  /** KB id — all graph APIs use `/api/kbs/{kbId}/graph/...`. */
+  kbId: string;
   externalFocusNodeId?: string;
   externalFocusToken?: number;
   /** Increment to trigger a full graph reload (e.g. after ledger rebuild). */
@@ -1010,7 +1010,7 @@ export function GraphWorkspace({
   graphWriteEnabled = true,
   decisionsEnabled = false,
   apiErrorLocale,
-}: GraphWorkspaceProps = {}) {
+}: GraphWorkspaceProps) {
   const { locale: i18nLocale } = useI18n();
   const copyLocale: GraphWorkspaceLocale =
     apiErrorLocale ?? (i18nLocale === "zh" ? "zh" : "en");

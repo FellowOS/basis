@@ -12,7 +12,7 @@ const TEMPLATES: { label: string; query: string }[] = [
   { label: "Path between", query: "SELECT ?mid ?p1 ?p2\nWHERE {\n  <urn:node:a> ?p1 ?mid .\n  ?mid ?p2 <urn:node:b>\n}\nLIMIT 20" },
 ];
 
-export function SparqlWorkspace({ kbId }: { kbId?: string } = {}) {
+export function SparqlWorkspace({ kbId }: { kbId: string }) {
   const apiError = useApiErrorMessage();
   const monaco = useMonaco();
   const editorRef = useRef<unknown>(null);

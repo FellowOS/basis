@@ -193,7 +193,7 @@ function PairRow({
   );
 }
 
-export function EntityResolutionTab({ kbId }: { kbId?: string } = {}) {
+export function EntityResolutionTab({ kbId }: { kbId: string }) {
   const apiError = useApiErrorMessage();
   const [threshold, setThreshold] = useState(0.82);
   const [scanning, setScanning] = useState(false);
@@ -265,7 +265,6 @@ export function EntityResolutionTab({ kbId }: { kbId?: string } = {}) {
 
   const handleQueueMerge = useCallback(
     async (primaryId: string, duplicateId: string) => {
-      if (!kbId) return;
       setScanError("");
       try {
         const res = await explorerFetch(

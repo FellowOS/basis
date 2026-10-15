@@ -53,7 +53,7 @@ export type PathResponse = {
 
 export interface GraphInspectorPanelProps {
   locale?: GraphWorkspaceLocale;
-  kbId?: string;
+  kbId: string;
   graphWriteEnabled?: boolean;
   decisionsEnabled?: boolean;
   nodeId: string;

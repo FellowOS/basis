@@ -8,8 +8,9 @@ import {
   setActiveExplorerHttpConfig,
 } from './explorerHttp.js';
 
+const kbId = 'kb-test-uuid';
+
 describe('explorerHttp KB injection (§9.6)', () => {
-  const kbId = 'kb-test-uuid';
 
   beforeEach(() => {
     setActiveExplorerHttpConfig({ apiRoot: `/api/kbs/${kbId}` });
@@ -39,9 +40,19 @@ describe('explorerHttp KB injection (§9.6)', () => {
       '/api/kbs/other-kb/graph/stats',
     );
   });
+
+  it('rejects legacy /api paths without KB host context', () => {
+    setActiveExplorerHttpConfig({});
+    expect(() => buildExplorerKbApiPath('graph/stats')).toThrow(/knowledge base/i);
+    expect(() => resolveExplorerApiUrl('/api/graph/stats')).toThrow(/knowledge base/i);
+  });
 });
 
 describe('explorerFetchJson', () => {
+  beforeEach(() => {
+    setActiveExplorerHttpConfig({ apiRoot: `/api/kbs/${kbId}` });
+  });
+
   afterEach(() => {
     vi.unstubAllGlobals();
     setActiveExplorerHttpConfig({});

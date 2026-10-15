@@ -396,7 +396,7 @@ Acceptance:
 - localize messages in Web;
 - stop exposing raw server strings.
 
-**Status:** partial — coded API errors on KB + Explorer routes; `explorerFetch` / `explorerFetchJson` (auth, `X-Request-ID`, KB path rewrite) used across graph workspaces and Manage/Memory/Lineage/DiffMerge tabs; ingest limit codes localized. Remaining: optional routes without Sema KB host (standalone-only APIs).
+**Status:** partial — coded API errors on KB + Explorer routes; `explorerFetch` / `explorerFetchJson` (auth, `X-Request-ID`, KB path rewrite) used across Sema KB workspaces; legacy `/api/graph` strings rewrite only under `ExplorerHostProvider` (no standalone `/api/...` fallback). Ingest limit codes localized.
 
 ### X-02 — Request IDs and structured logging
 

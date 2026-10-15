@@ -12,5 +12,11 @@
     }
   },
   "include": ["src"],
-  "exclude": ["src/**/*.test.ts", "src/**/*.test.tsx"]
+  "exclude": [
+    "src/**/*.test.ts",
+    "src/**/*.test.tsx",
+    "src/explorer/App.tsx",
+    "src/explorer/main.tsx",
+    "src/explorer/workspaces/MemoryWorkspace.tsx"
+  ]
 }

@@ -93,10 +93,10 @@ export function DecisionWorkspace({
   initialFilter = "",
   selectDecisionId,
 }: {
-  kbId?: string;
+  kbId: string;
   initialFilter?: string;
   selectDecisionId?: string;
-} = {}) {
+}) {
   const apiError = useApiErrorMessage();
   const [decisions, setDecisions] = useState<{ decision_id: string; category?: string; outcome?: string }[]>([]);
   const [selected, setSelected] = useState<{ decision_id: string; category?: string; outcome?: string } | null>(null);
@@ -117,7 +117,7 @@ export function DecisionWorkspace({
     const ctrl = new AbortController();
     setListLoading(true);
     setError("");
-    const listPath = kbId ? buildExplorerKbApiPath("decisions", kbId) : "/api/decisions";
+    const listPath = buildExplorerKbApiPath("decisions", kbId);
     explorerFetch(listPath, { signal: ctrl.signal })
       .then(async (r) => {
         const data = await r.json().catch(() => ({}));
@@ -159,9 +159,10 @@ export function DecisionWorkspace({
     setChain([]);
     setError("");
     try {
-      const chainPath = kbId
-        ? buildExplorerKbApiPath(`decisions/${encodeURIComponent(d.decision_id)}/chain`, kbId)
-        : `/api/decisions/${encodeURIComponent(d.decision_id)}/chain`;
+      const chainPath = buildExplorerKbApiPath(
+        `decisions/${encodeURIComponent(d.decision_id)}/chain`,
+        kbId,
+      );
       const res = await explorerFetch(chainPath, { signal: ctrl.signal });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw errorFromApiResponse(res.status, data, `HTTP ${res.status}`);

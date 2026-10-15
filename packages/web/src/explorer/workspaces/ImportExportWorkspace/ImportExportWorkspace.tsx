@@ -1,5 +1,4 @@
 import { useState, useCallback, useEffect, useRef } from "react";
-import { useQueryClient } from "@tanstack/react-query";
 import { useDropzone } from "react-dropzone";
 import { UploadCloud, Download, FileJson, FileText, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 import { errorFromApiResponse } from "@/lib/api-error.js";
@@ -21,12 +20,12 @@ export function ImportExportWorkspace({
   importQueuedActionLabel = "Open review queue",
   locale = "en",
 }: {
-  kbId?: string;
+  kbId: string;
   focusSection?: "import" | "export";
   onImportQueued?: () => void;
   importQueuedActionLabel?: string;
   locale?: "zh" | "en";
-} = {}) {
+}) {
   const importRef = useRef<HTMLDivElement>(null);
   const exportRef = useRef<HTMLDivElement>(null);
 
@@ -35,7 +34,6 @@ export function ImportExportWorkspace({
     const target = focusSection === "import" ? importRef.current : exportRef.current;
     target?.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }, [focusSection]);
-  const queryClient = useQueryClient();
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [exportFormat, setExportFormat] = useState<"json" | "csv">("json");
@@ -69,31 +67,21 @@ export function ImportExportWorkspace({
     try {
       const fd = new FormData();
       fd.append("file", file);
-      const importPath = kbId
-        ? buildExplorerKbApiPath("review/items/graph-import", kbId)
-        : "/api/import";
+      const importPath = buildExplorerKbApiPath("review/items/graph-import", kbId);
       const res = await explorerFetch(importPath, { method: "POST", body: fd });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         throw errorFromApiResponse(res.status, data, "Import failed");
       }
-      if (kbId) {
-        const reviewAction = onImportQueued
-          ? { label: importQueuedActionLabel, onClick: onImportQueued }
-          : undefined;
-        showToast(
-          "success",
-          `Submitted ${file.name} for review — approve in the review queue.`,
-          reviewAction,
-        );
-        logEvent("review", `Queued graph import: ${file.name}`, { file: file.name });
-      } else {
-        showToast("success", `Imported ${data.nodes_imported} nodes · ${data.edges_imported} edges`);
-        logEvent("import", `Imported ${data.nodes_imported} nodes · ${data.edges_imported} edges from ${file.name}`, { file: file.name });
-      }
-      if (!kbId) {
-        void queryClient.invalidateQueries({ queryKey: ["graph", "full-load"] });
-      }
+      const reviewAction = onImportQueued
+        ? { label: importQueuedActionLabel, onClick: onImportQueued }
+        : undefined;
+      showToast(
+        "success",
+        `Submitted ${file.name} for review — approve in the review queue.`,
+        reviewAction,
+      );
+      logEvent("review", `Queued graph import: ${file.name}`, { file: file.name });
       setFile(null);
     } catch (e: unknown) {
       showToast("error", formatUserFacingApiError(e, locale));
@@ -103,7 +91,7 @@ export function ImportExportWorkspace({
   async function handleExport() {
     setIsExporting(true);
     try {
-      const exportPath = kbId ? buildExplorerKbApiPath("export", kbId) : "/api/export";
+      const exportPath = buildExplorerKbApiPath("export", kbId);
       const res = await explorerFetch(exportPath, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

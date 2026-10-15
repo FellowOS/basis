@@ -15,9 +15,19 @@ export type ExplorerHttpConfig = {
    */
   apiRoot?: string;
   getAuthHeaders?: () => HeadersInit;
-  /** Hosted apps (Sema) use ticketed WS; standalone Explorer uses `/ws/graph-updates`. */
+  /** Sema: ticketed KB WebSocket via `buildKbExplorerHttpConfig`. */
   openGraphUpdatesSocket?: () => Promise<WebSocket>;
 };
+
+const KB_CONTEXT_ERROR =
+  "Explorer API requires a knowledge base (pass kbId or mount ExplorerHostProvider with apiRoot).";
+
+export function assertKbExplorerContext(): void {
+  const { apiRoot } = activeConfig;
+  if (!apiRoot) {
+    throw new Error(KB_CONTEXT_ERROR);
+  }
+}
 
 const ExplorerHttpContext = createContext<ExplorerHttpConfig>({});
 
@@ -33,6 +43,13 @@ export function getActiveExplorerHttpConfig(): ExplorerHttpConfig {
 
 export function resolveExplorerApiUrl(pathOrUrl: string): string {
   const { apiRoot } = activeConfig;
+  if (
+    !apiRoot &&
+    pathOrUrl.startsWith("/api/") &&
+    !pathOrUrl.startsWith("/api/kbs/")
+  ) {
+    throw new Error(KB_CONTEXT_ERROR);
+  }
   if (!apiRoot) {
     return pathOrUrl;
   }
@@ -62,10 +79,7 @@ function normalizeRoot(apiRoot: string): string {
   return apiRoot.endsWith("/") ? apiRoot.slice(0, -1) : apiRoot;
 }
 
-/**
- * KB-scoped API path for Sema (`/api/kbs/{id}/...`).
- * Standalone Explorer falls back to `/api/...` when `kbId` and `apiRoot` are unset.
- */
+/** KB-scoped API path (`/api/kbs/{id}/...`). Requires `kbId` or active `apiRoot`. */
 export function buildExplorerKbApiPath(subpath: string, kbId?: string): string {
   const segment = subpath.replace(/^\//, "");
   if (kbId) {
@@ -75,10 +89,10 @@ export function buildExplorerKbApiPath(subpath: string, kbId?: string): string {
   if (apiRoot) {
     return `${normalizeRoot(apiRoot)}/${segment}`;
   }
-  return `/api/${segment}`;
+  throw new Error(KB_CONTEXT_ERROR);
 }
 
-/** Graph routes under `/api/kbs/{id}/graph/...` (or `/api/graph/...` standalone). */
+/** Graph routes under `/api/kbs/{id}/graph/...`. */
 export function buildExplorerGraphApiPath(resource: string, kbId?: string): string {
   const segment = resource.replace(/^\//, "");
   return buildExplorerKbApiPath(`graph/${segment}`, kbId);
@@ -146,8 +160,9 @@ export async function openGraphUpdatesWebSocket(): Promise<WebSocket> {
   if (activeConfig.openGraphUpdatesSocket) {
     return activeConfig.openGraphUpdatesSocket();
   }
-  const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-  return new WebSocket(`${protocol}//${window.location.host}/ws/graph-updates`);
+  throw new Error(
+    "Graph updates WebSocket requires ExplorerHostProvider (KB realtime ticket).",
+  );
 }
 
 export function ExplorerHostProvider({

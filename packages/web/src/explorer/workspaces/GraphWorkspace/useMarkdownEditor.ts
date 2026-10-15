@@ -26,7 +26,7 @@ import {
 } from "./markdownEditorState";
 
 interface MarkdownEditorOptions {
-  kbId?: string;
+  kbId: string;
   resource?: MarkdownResourceRef;
   onApplied?: (result: MarkdownApplyResult) => void;
   onDirtyChange?: (dirty: boolean) => void;
@@ -106,7 +106,7 @@ export function useMarkdownEditor({
     setViewError(null);
     setSession(createLoadingSession(resource));
     try {
-      const document = await readMarkdownResource(resource, { kbId });
+      const document = await readMarkdownResource(resource, kbId);
       if (loadGeneration !== loadGenerationRef.current) return false;
       setSession(createEditSession(resource, document));
       return true;
@@ -134,7 +134,7 @@ export function useMarkdownEditor({
         pending.resource,
         pending.draft,
         pending.baseRevision,
-        { kbId },
+        kbId,
       );
       if (resourceGeneration !== loadGenerationRef.current) return false;
       setSession(saveSucceeded(pending, result));

@@ -30,12 +30,10 @@ const TEMPLATES = [
   },
 ];
 
-export function ReasoningWorkspace({ kbId }: { kbId?: string } = {}) {
+export function ReasoningWorkspace({ kbId }: { kbId: string }) {
   const apiError = useApiErrorMessage();
   const capsCtx = useKbCapabilitiesOptional();
-  const canWriteGraph = kbId
-    ? !capsCtx?.loading && Boolean(capsCtx?.caps?.graph_write)
-    : true;
+  const canWriteGraph = !capsCtx?.loading && Boolean(capsCtx?.caps?.graph_write);
   const queryClient = useQueryClient();
   const [facts, setFacts] = useState(SAMPLE_FACTS);
   const [rules, setRules] = useState(SAMPLE_RULE);
@@ -60,9 +58,6 @@ export function ReasoningWorkspace({ kbId }: { kbId?: string } = {}) {
     setError("");
     setResult(null);
     try {
-      if (!kbId) {
-        throw new Error("Reasoning requires a knowledge base context.");
-      }
       const path = buildExplorerKbApiPath("reasoning/run", kbId);
       const response = await explorerFetch(path, {
         method: "POST",
