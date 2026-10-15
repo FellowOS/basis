@@ -108,6 +108,39 @@ def test_scan_enqueues_review_item(tmp_path: Path) -> None:
     assert items[0]["payload"]["surface_phrase"] == "employed_by"
 
 
+def test_scan_statement_conflicts_route(tmp_path: Path) -> None:
+    client = TestClient(create_app(Settings(data_dir=tmp_path)))
+    admin = client.post(
+        "/api/auth/register",
+        json={"email": "scan@example.com", "password": "password1", "display_name": "Scan"},
+    ).json()
+    headers = {"Authorization": f"Bearer {admin['token']}"}
+    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    store = KnowledgeStore(tmp_path / "basis.db", BlobStore(tmp_path))
+    chunk_id = _chunk(store, kb_id)
+    alice = store.create_entity(kb_id, canonical_label="Alice")
+    bob = store.create_entity(kb_id, canonical_label="Bob")
+    carol = store.create_entity(kb_id, canonical_label="Carol")
+    for obj in (bob, carol):
+        store.add_open_statement(
+            kb_id,
+            subject_id=alice,
+            surface_phrase="works_with",
+            object_entity_id=obj,
+            object_value=None,
+            status="confirmed",
+            proposed_by="test",
+            chunk_id=chunk_id,
+            quote="works_with",
+        )
+    res = client.post(
+        f"/api/kbs/{kb_id}/review/scan-statement-conflicts",
+        headers=headers,
+    )
+    assert res.status_code == 200
+    assert res.json().get("created", 0) >= 1
+
+
 def test_acknowledge_conflict_review_item(tmp_path: Path) -> None:
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
     admin = client.post(

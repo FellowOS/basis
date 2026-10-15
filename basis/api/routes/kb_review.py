@@ -60,6 +60,19 @@ def _ledger_entity_merge_ids(
     return all(knowledge.ledger_entity_exists(kb_id, dup) for dup in duplicate_ids)
 
 
+@router.post("/{kb_id}/review/scan-statement-conflicts")
+async def scan_statement_conflicts_route(
+    kb_id: str,
+    request: Request,
+    user: User = Depends(get_current_user),
+    store: AdminStore = Depends(get_store),
+    knowledge: KnowledgeStore = Depends(get_knowledge_store),
+) -> dict[str, Any]:
+    """Re-scan ledger statements and enqueue `statement_conflict` review items (F-RUL-04)."""
+    get_kb_for_editor(request, user, kb_id, store)
+    return scan_statement_conflicts(knowledge, kb_id)
+
+
 @router.get("/{kb_id}/review/items")
 async def list_review_items(
     kb_id: str,

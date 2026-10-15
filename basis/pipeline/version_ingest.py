@@ -154,6 +154,12 @@ def run_version_ingest(
                 for key in ledger_stats:
                     ledger_stats[key] += part_stats.get(key, 0)
 
+        conflict_scan: dict[str, Any] | None = None
+        if ledger_stats["ledger_statements_written"] > 0:
+            from basis.knowledge.conflict_review import scan_statement_conflicts
+
+            conflict_scan = scan_statement_conflicts(knowledge, kb_id)
+
         projection_meta = apply_rebuild_to_session(
             knowledge, kb_id, graph, include_version_ids=(version_id,)
         )
@@ -165,6 +171,8 @@ def run_version_ingest(
             "extracted": bool(options.extract and normalized.strip()),
             **ledger_stats,
         }
+        if conflict_scan is not None:
+            graph_result["conflicts"] = conflict_scan
 
         result = {
             **graph_result,

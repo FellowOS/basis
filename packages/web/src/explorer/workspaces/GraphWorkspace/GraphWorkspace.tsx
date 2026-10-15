@@ -3145,6 +3145,7 @@ export function GraphWorkspace({
     effectsState,
     temporalState,
     isLayoutRunning,
+    onLayoutRunningChange: setIsLayoutRunning,
     layoutSource: graphSummary?.layoutSource,
     viewMode,
     showFitViewButton: false,

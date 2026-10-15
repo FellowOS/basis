@@ -528,7 +528,8 @@ Acceptance:
 Work:
 
 - negation / SHACL-aware contradiction detection — **deferred**;
-- ingest-time scan — **deferred**;
+- ingest-time scan after `ledger_statements_written` — **done**;
+- manual `POST .../review/scan-statement-conflicts` — **done**;
 - `governance.tripped` on conflict — **deferred**.
 
 ### M6-05 — Temporal + alerts product surfaces (F-TIM-*, F-ALT-*)
