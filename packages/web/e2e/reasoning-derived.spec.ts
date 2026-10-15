@@ -37,6 +37,6 @@ test('reasoning apply_to_graph shows derived facts on entities page', async ({ p
   await expect(page.getByText(entityA).first()).toBeVisible({ timeout: 60_000 });
   await page.getByRole('button', { name: /^Facts$|^事实$/ }).first().click();
   await expect(page.getByText(/Derived \(reasoning\)|推理派生/)).toBeVisible({ timeout: 30_000 });
-  await expect(page.getByText(/urn:sema:pred:ancestor|ancestor/)).toBeVisible();
-  await expect(page.getByText(`parent(${entityA}, ${entityB})`)).toBeVisible();
+  await expect(page.getByText(/urn:sema:pred:ancestor|ancestor/).first()).toBeVisible();
+  await expect(page.getByText(`parent(${entityA}, ${entityB})`).first()).toBeVisible();
 });
