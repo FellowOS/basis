@@ -42,6 +42,7 @@ import { useKbCapabilities } from '@/lib/kb-capabilities.js';
 import { useExplorerClient } from '@/lib/explorer-context.js';
 import { KbIngestSourcesDialog } from '@/components/kb-ingest-sources-dialog.js';
 import { kbPath } from '@/lib/nav-config.js';
+import { parseSourcesUrlState } from '@/lib/sourcesUrlState.js';
 import { formatUserFacingApiError } from '@/lib/api-error-message.js';
 import { processingStartIdempotencyKey } from '@/lib/processing-idempotency.js';
 
@@ -134,7 +135,10 @@ export function KnowledgePage() {
 
   const [addOpen, setAddOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
-  const [sourcesOpen, setSourcesOpen] = useState(false);
+  const sourcesUrl = parseSourcesUrlState(searchParams.toString());
+  const [sourcesOpen, setSourcesOpen] = useState(
+    sourcesUrl.openConnectors || Boolean(sourcesUrl.ingestSourceId),
+  );
   const [updateTarget, setUpdateTarget] = useState<{
     document_id: string;
     doc_id: string;
@@ -155,6 +159,12 @@ export function KnowledgePage() {
   const [relationMethod, setRelationMethod] = useState('pattern');
   const [extractRelations, setExtractRelations] = useState(true);
   const [extractTriplets, setExtractTriplets] = useState(false);
+
+  useEffect(() => {
+    if (sourcesUrl.openConnectors || sourcesUrl.ingestSourceId) {
+      setSourcesOpen(true);
+    }
+  }, [sourcesUrl.ingestSourceId, sourcesUrl.openConnectors]);
 
   const zh = locale === 'zh';
   const apiErrorMessage = useCallback(
@@ -1002,6 +1012,7 @@ export function KnowledgePage() {
           kbId={id}
           open={sourcesOpen}
           onOpenChange={setSourcesOpen}
+          focusSourceId={sourcesUrl.ingestSourceId}
           zh={zh}
         />
       ) : null}

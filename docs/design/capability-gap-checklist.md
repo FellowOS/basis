@@ -81,7 +81,7 @@ References: [Product and roadmap](product-and-roadmap.md), [Explorer integration
 | F-CHAT-04 | `remember` → pending review | `partial` | P1 | `POST .../chat/remember` + MCP `propose_remember`; review kind `statement_remember` |
 | F-CHAT-05 | MCP Streamable HTTP | `partial` | P0 | `GET/POST /api/kbs/{id}/mcp` + 7 read tools; no platform `/api/mcp` |
 | F-CHAT-06 | Stop gen, 409 concurrency, context trim | `partial` | P1 | Client abort + SSE disconnect stops frames; char/msg trim; no token-accurate budget yet |
-| F-ALT-01–02 | Alert episodes + SSE refetch | `partial` | P1 | Same kinds; bell SSE + 5m poll; deep links → sources / chat / review / ontology proposal |
+| F-ALT-01–02 | Alert episodes + SSE refetch | `partial` | P1 | Bell SSE + 5m poll; deep links → connectors (`ingestSource`), chat, review item, ontology proposal |
 | F-IF-03 | Page subtitles (interface copy) | `partial` | P2 | `KbPageSubtitle` on KB workspace pages incl. graph strip |
 
 ### 3.4 IO, resources, engineering

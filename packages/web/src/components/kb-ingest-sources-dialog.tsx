@@ -21,6 +21,7 @@ import {
 import { Spinner } from '@/components/ui/spinner.js';
 import { api } from '@/lib/api.js';
 import { formatUserFacingApiError } from '@/lib/api-error-message.js';
+import { cn } from '@/lib/utils.js';
 
 type SyncEvent = {
   at: string;
@@ -63,11 +64,13 @@ export function KbIngestSourcesDialog({
   kbId,
   open,
   onOpenChange,
+  focusSourceId,
   zh,
 }: {
   kbId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  focusSourceId?: string;
   zh: boolean;
 }) {
   const [loading, setLoading] = useState(false);
@@ -90,6 +93,7 @@ export function KbIngestSourcesDialog({
   const [syncHistory, setSyncHistory] = useState<
     Record<string, { events: SyncEvent[]; loading?: boolean }>
   >({});
+  const [highlightSourceId, setHighlightSourceId] = useState<string | null>(null);
 
   const apiError = useCallback(
     (err: unknown) => formatUserFacingApiError(err, zh ? 'zh' : 'en'),
@@ -284,6 +288,32 @@ export function KbIngestSourcesDialog({
     void loadSyncHistory(sourceId);
   };
 
+  useEffect(() => {
+    if (!open || !focusSourceId || loading) {
+      return;
+    }
+    const source = sources.find((s) => s.id === focusSourceId);
+    if (!source) {
+      return;
+    }
+    if (source.kind === 'http_poll' || source.kind === 'git') {
+      setExpandedHistoryId(focusSourceId);
+      void loadSyncHistory(focusSourceId);
+    }
+    setHighlightSourceId(focusSourceId);
+    const timer = window.setTimeout(() => {
+      document.getElementById(`ingest-source-${focusSourceId}`)?.scrollIntoView({
+        block: 'nearest',
+        behavior: 'smooth',
+      });
+    }, 0);
+    const clearHighlight = window.setTimeout(() => setHighlightSourceId(null), 4000);
+    return () => {
+      window.clearTimeout(timer);
+      window.clearTimeout(clearHighlight);
+    };
+  }, [focusSourceId, loading, open, sources]);
+
   const runSync = async (sourceId: string) => {
     setLoading(true);
     try {
@@ -465,7 +495,14 @@ export function KbIngestSourcesDialog({
             sources.map((s) => {
               const last = s.config?.sync_events?.[0];
               return (
-                <div key={s.id} className="space-y-2 rounded border border-border px-3 py-2">
+                <div
+                  key={s.id}
+                  id={`ingest-source-${s.id}`}
+                  className={cn(
+                    'space-y-2 rounded border border-border px-3 py-2',
+                    highlightSourceId === s.id && 'ring-2 ring-primary ring-offset-2 ring-offset-background',
+                  )}
+                >
                   <div className="flex items-start justify-between gap-2">
                     <div>
                       <div className="font-medium">{s.name}</div>
