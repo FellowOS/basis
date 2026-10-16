@@ -15,7 +15,7 @@ export function PageHeader({ crumbs, className }: PageHeaderProps) {
   return (
     <nav
       className={cn(
-        'console-page-header flex items-center gap-1.5 text-[12.5px] text-muted-foreground',
+        'box-border flex h-(--console-chrome-row) shrink-0 items-center gap-1.5 text-[12.5px] text-muted-foreground',
         className,
       )}
     >

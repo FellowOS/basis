@@ -16,6 +16,7 @@ import {
   type GraphNodeShapeVariant,
 } from "./graphTheme";
 import { classifyEntityShape } from "./graphEntityShape";
+import { assignSemanticGroupColors, colorForSemanticGroupIndex } from "./semanticGroupColor";
 import {
   type GraphWorkspaceLocale,
   graphCopy,
@@ -646,10 +647,10 @@ export function useLoadGraph(options: UseLoadGraphOptions = {}) {
             })),
           );
 
+      const colorByGroup = assignSemanticGroupColors(semanticKeyByNodeId.values());
       const nodesToMerge = draftAttributes.map(({ id, attributes }) => {
         const semanticGroup = semanticKeyByNodeId.get(id) ?? colorAccessor(id, attributes);
-        const colorIndex = hashString(semanticGroup) % GRAPH_THEME.palette.semantic.length;
-        const baseColor = GRAPH_THEME.palette.semantic[colorIndex];
+        const baseColor = colorByGroup.get(semanticGroup) ?? colorForSemanticGroupIndex(0, 1);
         const sizeRatio = nodePriorityById.get(id) ?? 0;
         const dynamicSize = useSmallGraphLayout
           ? clamp(5.2, 5.2 + 6.6 * sizeRatio, 11.8)

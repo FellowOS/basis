@@ -1,12 +1,5 @@
-import { PublicIcon } from "@/components/ui/public-icon.js";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-import { Button } from "@/components/ui/button.js";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover.js";
 import { Slider } from "@/components/ui/slider.js";
 import { fmt, formatLocaleNumber } from "@/i18n/format.js";
 import { messagesForLocale } from "@/i18n/pick-locale.js";
@@ -19,37 +12,14 @@ import {
   GRAPH_LOAD_BUDGET_NODE_STEP,
   catalogEdgeCeiling,
   catalogNodeCeiling,
+  loadBudgetSliderBounds,
+  snapLoadBudgetValue,
   type GraphCatalogTotals,
   type GraphLoadBudget,
 } from "./graphLoadBudget";
 
 function loadBudgetCopy(locale: GraphWorkspaceLocale) {
   return messagesForLocale(locale).kbGraphWorkspace.loadBudget;
-}
-
-function summaryLabel(
-  locale: GraphWorkspaceLocale,
-  loadedNodes: number,
-  loadedEdges: number,
-  budget: GraphLoadBudget,
-  catalogTotals: GraphCatalogTotals,
-): string {
-  const lb = loadBudgetCopy(locale);
-  const nLoaded = formatLocaleNumber(locale, loadedNodes);
-  const eLoaded = formatLocaleNumber(locale, loadedEdges);
-  const nodeCatalog = catalogTotals.nodeTotal;
-  const edgeCatalog = catalogTotals.edgeTotal;
-  const nDenominator =
-    nodeCatalog != null ? formatLocaleNumber(locale, nodeCatalog) : formatLocaleNumber(locale, budget.maxNodes);
-  const eDenominator =
-    edgeCatalog != null ? formatLocaleNumber(locale, edgeCatalog) : formatLocaleNumber(locale, budget.maxEdges);
-
-  return fmt(lb.summary, {
-    nLoaded,
-    nMax: nDenominator,
-    eLoaded,
-    eMax: eDenominator,
-  });
 }
 
 export function GraphLoadBudgetControl({
@@ -70,15 +40,19 @@ export function GraphLoadBudgetControl({
   disabled?: boolean;
 }) {
   const lb = loadBudgetCopy(locale);
-  const [open, setOpen] = useState(false);
   const [draftNodes, setDraftNodes] = useState(budget.maxNodes);
   const [draftEdges, setDraftEdges] = useState(budget.maxEdges);
+  const draggingRef = useRef<"nodes" | "edges" | null>(null);
 
   const nodeMax = catalogNodeCeiling(catalogTotals);
   const edgeMax = catalogEdgeCeiling(catalogTotals);
-  const slidersDisabled = disabled || (nodeMax === 0 && edgeMax === 0);
+  const nodeBounds = loadBudgetSliderBounds(nodeMax, GRAPH_LOAD_BUDGET_MIN_NODES, GRAPH_LOAD_BUDGET_NODE_STEP);
+  const edgeBounds = loadBudgetSliderBounds(edgeMax, GRAPH_LOAD_BUDGET_MIN_EDGES, GRAPH_LOAD_BUDGET_EDGE_STEP);
+  const nodeValue = snapLoadBudgetValue(draftNodes, nodeBounds);
+  const edgeValue = snapLoadBudgetValue(draftEdges, edgeBounds);
 
   useEffect(() => {
+    if (draggingRef.current) return;
     setDraftNodes(budget.maxNodes);
     setDraftEdges(budget.maxEdges);
   }, [budget.maxEdges, budget.maxNodes]);
@@ -87,80 +61,89 @@ export function GraphLoadBudgetControl({
     onBudgetCommit({ maxNodes: nodes, maxEdges: edges });
   };
 
-  const triggerText = summaryLabel(locale, loadedNodes, loadedEdges, budget, catalogTotals);
-
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          type="button"
-          variant="secondary"
-          size="sm"
-          disabled={slidersDisabled}
-          className="h-8 max-w-[min(100%,20rem)] gap-1.5 px-2.5 text-xs font-normal"
-          aria-label={lb.ariaLabel}
-        >
-          <PublicIcon name="settings" className="size-3.5 shrink-0 opacity-70" />
-          <span className="truncate">{triggerText}</span>
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent align="end" className="w-72 space-y-4 p-3">
-        <div className="space-y-1">
-          <p className="text-xs font-medium text-foreground">{lb.title}</p>
-          <p className="text-[11px] leading-snug text-muted-foreground">{lb.hint}</p>
-        </div>
+    <section className="flex flex-col gap-3 px-2" aria-label={lb.ariaLabel}>
+      <div className="flex flex-col gap-1">
+        <h3 className="text-sm font-medium">{lb.title}</h3>
+        <p className="text-xs leading-snug text-muted-foreground">{lb.hint}</p>
+        <p className="text-xs text-muted-foreground">
+          {fmt(lb.summary, {
+            nLoaded: formatLocaleNumber(locale, loadedNodes),
+            nMax: formatLocaleNumber(locale, nodeMax),
+            eLoaded: formatLocaleNumber(locale, loadedEdges),
+            eMax: formatLocaleNumber(locale, edgeMax),
+          })}
+        </p>
+      </div>
 
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-[11px]">
-            <span className="text-muted-foreground">{lb.nodesLabel}</span>
-            <span className="tabular-nums font-medium">
-              {formatLocaleNumber(locale, draftNodes)}
-              <span className="text-muted-foreground font-normal">
-                {" "}/ {formatLocaleNumber(locale, nodeMax)}
-              </span>
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center justify-between text-xs">
+          <span className="text-muted-foreground">{lb.nodesLabel}</span>
+          <span className="tabular-nums font-medium">
+            {formatLocaleNumber(locale, nodeValue)}
+            <span className="font-normal text-muted-foreground">
+              {" "}/ {formatLocaleNumber(locale, nodeMax)}
             </span>
-          </div>
-          <Slider
-            min={nodeMax === 0 ? 0 : GRAPH_LOAD_BUDGET_MIN_NODES}
-            max={Math.max(nodeMax, nodeMax === 0 ? 0 : GRAPH_LOAD_BUDGET_MIN_NODES)}
-            step={GRAPH_LOAD_BUDGET_NODE_STEP}
-            value={[draftNodes]}
-            disabled={slidersDisabled || nodeMax === 0}
-            onValueChange={([value]) => setDraftNodes(value)}
-            onValueCommit={([value]) => commitDraft(value, draftEdges)}
-          />
+          </span>
         </div>
+        <Slider
+          min={nodeBounds.min}
+          max={nodeBounds.max}
+          step={nodeBounds.step}
+          value={[nodeValue]}
+          disabled={disabled || nodeBounds.disabled}
+          aria-label={lb.nodesLabel}
+          onValueChange={(values) => {
+            draggingRef.current = "nodes";
+            const next = values[0];
+            if (typeof next === "number") setDraftNodes(next);
+          }}
+          onValueCommit={(values) => {
+            draggingRef.current = null;
+            const next = values[0];
+            if (typeof next === "number") commitDraft(next, edgeValue);
+          }}
+        />
+      </div>
 
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-[11px]">
-            <span className="text-muted-foreground">{lb.edgesLabel}</span>
-            <span className="tabular-nums font-medium">
-              {formatLocaleNumber(locale, draftEdges)}
-              <span className="text-muted-foreground font-normal">
-                {" "}/ {formatLocaleNumber(locale, edgeMax)}
-              </span>
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center justify-between text-xs">
+          <span className="text-muted-foreground">{lb.edgesLabel}</span>
+          <span className="tabular-nums font-medium">
+            {formatLocaleNumber(locale, edgeValue)}
+            <span className="font-normal text-muted-foreground">
+              {" "}/ {formatLocaleNumber(locale, edgeMax)}
             </span>
-          </div>
-          <Slider
-            min={edgeMax === 0 ? 0 : GRAPH_LOAD_BUDGET_MIN_EDGES}
-            max={Math.max(edgeMax, edgeMax === 0 ? 0 : GRAPH_LOAD_BUDGET_MIN_EDGES)}
-            step={GRAPH_LOAD_BUDGET_EDGE_STEP}
-            value={[draftEdges]}
-            disabled={slidersDisabled || edgeMax === 0}
-            onValueChange={([value]) => setDraftEdges(value)}
-            onValueCommit={([value]) => commitDraft(draftNodes, value)}
-          />
+          </span>
         </div>
+        <Slider
+          min={edgeBounds.min}
+          max={edgeBounds.max}
+          step={edgeBounds.step}
+          value={[edgeValue]}
+          disabled={disabled || edgeBounds.disabled}
+          aria-label={lb.edgesLabel}
+          onValueChange={(values) => {
+            draggingRef.current = "edges";
+            const next = values[0];
+            if (typeof next === "number") setDraftEdges(next);
+          }}
+          onValueCommit={(values) => {
+            draggingRef.current = null;
+            const next = values[0];
+            if (typeof next === "number") commitDraft(nodeValue, next);
+          }}
+        />
+      </div>
 
-        {catalogTotals.nodeTotal != null && catalogTotals.edgeTotal != null ? (
-          <p className="text-[10px] text-muted-foreground">
-            {fmt(lb.catalogFull, {
-              nodes: formatLocaleNumber(locale, catalogTotals.nodeTotal),
-              edges: formatLocaleNumber(locale, catalogTotals.edgeTotal),
-            })}
-          </p>
-        ) : null}
-      </PopoverContent>
-    </Popover>
+      {catalogTotals.nodeTotal != null && catalogTotals.edgeTotal != null ? (
+        <p className="text-xs text-muted-foreground">
+          {fmt(lb.catalogFull, {
+            nodes: formatLocaleNumber(locale, catalogTotals.nodeTotal),
+            edges: formatLocaleNumber(locale, catalogTotals.edgeTotal),
+          })}
+        </p>
+      ) : null}
+    </section>
   );
 }

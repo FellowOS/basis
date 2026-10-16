@@ -240,8 +240,6 @@ export function GraphSearchDock({
   searchDisabled,
   onSearch,
   onSelectSuggestion,
-  onReload,
-  reloadDisabled,
   trailingActions,
   searchError,
   searchResults,
@@ -256,8 +254,6 @@ export function GraphSearchDock({
   searchDisabled: boolean;
   onSearch: () => void;
   onSelectSuggestion: (result: GraphSearchResult) => void;
-  onReload: () => void;
-  reloadDisabled?: boolean;
   trailingActions?: ReactNode;
   searchError: string;
   searchResults: GraphSearchResult[];
@@ -266,8 +262,8 @@ export function GraphSearchDock({
   infoMessage?: string;
 }) {
   return (
-    <div className="flex w-full min-w-0 flex-col gap-2">
-      <div className="explore-search-dock-toolbar flex w-full min-w-0 items-center gap-2">
+    <div className="flex w-max shrink-0 flex-col gap-2">
+      <div className="explore-search-dock-toolbar flex w-max items-center gap-2">
         <SearchCommandBar
           locale={locale}
           kbId={kbId}
@@ -277,20 +273,11 @@ export function GraphSearchDock({
           onSubmit={onSearch}
           onSelectSuggestion={onSelectSuggestion}
         />
-        <div className="explore-search-dock-actions flex shrink-0 items-center gap-1.5">
-          <Button
-            type="button"
-            variant="outline"
-            size="icon-sm"
-            disabled={reloadDisabled}
-            title={graphCopy(locale, "searchReloadTitle")}
-            aria-label={graphCopy(locale, "searchReloadTitle")}
-            onClick={onReload}
-          >
-            <PublicIcon name="arrow-refresh-01" />
-          </Button>
-          {trailingActions}
-        </div>
+        {trailingActions ? (
+          <div className="explore-search-dock-actions flex shrink-0 items-center gap-1.5">
+            {trailingActions}
+          </div>
+        ) : null}
       </div>
 
       {infoMessage ? (

@@ -50,11 +50,11 @@ export const ShimmerButton = forwardRef<HTMLButtonElement, ShimmerButtonProps>(
           style={{ containerType: 'size' }}
         >
           <div
-            className="animate-shimmer-slide absolute inset-0 rounded-none"
+            className="absolute inset-0 animate-shimmer-slide rounded-none motion-reduce:animate-none"
             style={{ height: '100cqh', aspectRatio: '1' }}
           >
             <div
-              className="animate-spin-around absolute w-auto"
+              className="absolute w-auto animate-spin-around motion-reduce:animate-none"
               style={{
                 inset: '-100%',
                 background:

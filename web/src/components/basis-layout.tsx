@@ -21,14 +21,14 @@ export function BasisLayout({ onLogout }: { onLogout: () => void }) {
     <TooltipProvider delayDuration={0}>
       <KbProvider>
       <KbCapabilitiesProvider>
-      <SidebarProvider className="console-bench relative flex h-svh max-h-svh min-h-0 overflow-hidden">
+      <SidebarProvider className="relative flex h-svh max-h-svh min-h-0 overflow-hidden bg-background">
         <BasisSidebar onLogout={onLogout} />
         <SidebarInset className="relative flex min-h-0 min-w-0 w-0 flex-1 flex-col overflow-hidden bg-transparent">
           <div
             className={
               graphCanvas
                 ? 'relative flex min-h-0 flex-1 flex-col overflow-hidden'
-                : 'console-page-scroll relative flex min-h-0 flex-1 flex-col overflow-y-auto'
+                : 'relative flex min-h-0 flex-1 flex-col overflow-y-auto'
             }
           >
             <div className="pointer-events-none absolute inset-x-0 top-0 z-50 flex items-center justify-between gap-2 p-3 md:hidden">

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 
 import { AppLogo } from '@/components/app-logo.js';
@@ -52,7 +52,22 @@ export function LoginScreen() {
   }
 
   return (
-    <div className="login-marketing-shell relative flex h-dvh max-h-dvh flex-col overflow-hidden overscroll-none">
+    <div
+      className="relative flex h-dvh max-h-dvh flex-col overflow-hidden overscroll-none text-foreground"
+      style={{
+        background: isDark ? '#090b10' : '#f6f7f9',
+        '--login-canvas': isDark ? '#090b10' : '#f6f7f9',
+        '--login-panel': isDark ? '#121820' : '#152033',
+        '--login-panel-fg': '#f4f1ea',
+        '--login-panel-muted': 'rgb(244 241 234 / 0.68)',
+        '--login-panel-faint': isDark ? 'rgb(244 241 234 / 0.4)' : 'rgb(244 241 234 / 0.42)',
+        '--login-panel-line': isDark ? 'rgb(244 241 234 / 0.12)' : 'rgb(244 241 234 / 0.14)',
+        '--login-gold': isDark ? '#e8a830' : '#e0a04a',
+        '--login-cta-bg': isDark ? '#f3ead7' : '#152033',
+        '--login-cta-fg': isDark ? '#152033' : '#f6f4ef',
+        '--login-cta-shimmer': isDark ? '#e8a830' : '#d4880a',
+      } as CSSProperties}
+    >
       <div className="absolute inset-y-0 right-0 z-0 w-full sm:w-[62%] lg:w-[58%]">
         <BinaryOrbits
           className="pointer-events-auto h-full min-h-0"

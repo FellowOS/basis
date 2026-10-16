@@ -1,5 +1,4 @@
 import { lazy, Suspense, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ExplorerHostProvider } from '@/explorer/host/explorerHttp.js';
 import { buildKbExplorerHttpConfig } from '@/lib/kb-explorer-host.js';
@@ -8,10 +7,10 @@ import { KbImportExportDialog } from '@/components/kb/dialogs/kb-import-export-d
 import { useKbCapabilities } from '@/lib/kb-capabilities.js';
 import { KbExplorerUnavailable } from '@/components/kb/shell/kb-explorer-unavailable.js';
 import { Button } from '@/components/ui/button.js';
+import { PublicIcon } from '@/components/ui/public-icon.js';
 import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
 import type { Locale } from '@/i18n/locale.js';
-import { kbPath } from '@/lib/nav-config.js';
 import { GraphExplorerThemeSync } from '@/lib/graph/explorer-theme-sync.js';
 const GraphWorkspace = lazy(() =>
   import('@/explorer/workspaces/GraphWorkspace/GraphWorkspace.js').then((module) => ({
@@ -66,57 +65,41 @@ export function KbGraphWorkspace({
 
   const canImportExport = !capsLoading && caps?.import_export;
   const canRebuild = !capsLoading && caps?.graph_write;
-  const canLineage = !capsLoading && caps?.provenance && caps?.graph;
 
   const graphDataActions =
     canRebuild || canImportExport
       ? (
           <>
             {canRebuild ? (
-              <>
-                <KbGraphRebuildButton
-                  kbId={kbId}
-                  onRebuilt={() => setReloadToken((token) => token + 1)}
-                />
-                <Button type="button" variant="outline" size="sm" asChild>
-                  <Link to={`${kbPath(kbId, 'settings')}?tab=graph`}>
-                    {g.projectionSettings}
-                  </Link>
-                </Button>
-              </>
+              <KbGraphRebuildButton
+                kbId={kbId}
+                iconOnly
+                onRebuilt={() => setReloadToken((token) => token + 1)}
+              />
             ) : null}
             {canImportExport ? (
               <>
                 <Button
                   type="button"
                   variant="outline"
-                  size="sm"
+                  size="icon-sm"
+                  aria-label={g.import}
+                  title={g.import}
                   onClick={() => openImportExport('import')}
                 >
-                  {g.import}
+                  <PublicIcon name="upload-01" />
                 </Button>
                 <Button
                   type="button"
                   variant="outline"
-                  size="sm"
+                  size="icon-sm"
+                  aria-label={g.export}
+                  title={g.export}
                   onClick={() => openImportExport('export')}
                 >
-                  {g.export}
+                  <PublicIcon name="download-01" />
                 </Button>
               </>
-            ) : null}
-            {canLineage ? (
-              <Button type="button" variant="outline" size="sm" asChild>
-                <Link
-                  to={
-                    focusNodeId
-                      ? `${kbPath(kbId, 'lineage')}?node=${encodeURIComponent(focusNodeId)}`
-                      : kbPath(kbId, 'lineage')
-                  }
-                >
-                  {g.lineage}
-                </Link>
-              </Button>
             ) : null}
           </>
         )

@@ -56,6 +56,11 @@ export function graphNodeTypeLabel(locale: GraphWorkspaceLocale, type: string): 
   return labels[type] ?? type;
 }
 
+export function graphNodeKindLabel(locale: GraphWorkspaceLocale, type: string): string {
+  const labels = pack(locale).nodeKindLabels as Record<string, string>;
+  return labels[type] ?? graphNodeTypeLabel(locale, type);
+}
+
 export function graphPluginCopy(locale: GraphWorkspaceLocale) {
   return pack(locale).plugins;
 }

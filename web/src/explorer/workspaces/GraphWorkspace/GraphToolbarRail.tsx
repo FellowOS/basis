@@ -23,15 +23,17 @@ function RailIcon({ icon }: { icon?: string }) {
   if (!icon) {
     return null;
   }
-  return <PublicIcon name={icon} size={15} />;
+  return <PublicIcon name={icon} size={16} />;
 }
 
 export function GraphToolbarRail({
   groups,
   expandLabels = "right",
+  orientation = "vertical",
 }: {
   groups: GraphToolbarRailGroup[];
   expandLabels?: "left" | "right";
+  orientation?: "vertical" | "horizontal";
 }) {
   const visible = groups.filter((group) => group.items.length > 0);
   if (!visible.length) {
@@ -39,12 +41,13 @@ export function GraphToolbarRail({
   }
 
   const alignEnd = expandLabels === "left";
+  const horizontal = orientation === "horizontal";
 
   return (
-    <div className={cn("flex flex-col gap-2", alignEnd ? "items-end" : "items-start")}>
+    <div className={cn("flex gap-2", horizontal ? "flex-row items-start" : "flex-col", !horizontal && (alignEnd ? "items-end" : "items-start"))}>
       {visible.map((group) => (
-        <div key={group.id} className={cn("flex flex-col gap-1", alignEnd ? "items-end" : "items-start")}>
-          <GraphToolTower expandLabels={expandLabels} aria-label={group.label ?? group.id}>
+        <div key={group.id} className={cn("flex gap-1", horizontal ? "flex-row" : "flex-col", !horizontal && (alignEnd ? "items-end" : "items-start"))}>
+          <GraphToolTower orientation={orientation} expandLabels={expandLabels} aria-label={group.label ?? group.id}>
           {group.items.map((item) => (
             <GraphToolButton
               key={item.id}

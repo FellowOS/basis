@@ -155,7 +155,7 @@ export function BasisSidebar({ onLogout }: { onLogout: () => void }) {
                     <span className="absolute -right-0.5 -top-0.5 hidden size-2 rounded-full bg-destructive group-data-[collapsible=icon]:block" />
                   ) : null}
                 </span>
-                <span className="sidebar-nav-text min-w-0 flex-1 truncate">
+                <span className="min-w-0 flex-1 truncate group-data-[collapsible=icon]:hidden">
                   {label}
                 </span>
               </Link>
@@ -173,7 +173,7 @@ export function BasisSidebar({ onLogout }: { onLogout: () => void }) {
             tooltip={`${label} — ${disabledTooltip}`}
           >
             <SidebarIcon name={item.icon} />
-            <span className="sidebar-nav-text min-w-0 flex-1 truncate opacity-60">
+            <span className="min-w-0 flex-1 truncate opacity-60 group-data-[collapsible=icon]:hidden">
               {label}
             </span>
           </SidebarMenuButton>
@@ -193,7 +193,7 @@ export function BasisSidebar({ onLogout }: { onLogout: () => void }) {
           className="flex h-8 min-w-0 flex-1 items-center gap-2 overflow-hidden px-2 group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:flex-none group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0"
         >
           <AppLogo size={24} />
-          <span className="font-display sidebar-nav-text truncate text-sm font-semibold leading-4 tracking-tight group-data-[collapsible=icon]:hidden">
+          <span className="truncate font-display text-sm font-semibold leading-[1.25] tracking-tight group-data-[collapsible=icon]:hidden">
             Basis
           </span>
         </Link>
@@ -220,7 +220,7 @@ export function BasisSidebar({ onLogout }: { onLogout: () => void }) {
                           <div className="mx-2 my-1 hidden h-px bg-sidebar-border group-data-[collapsible=icon]:block" />
                         ) : null}
                         <div
-                          className="sidebar-nav-text px-2 pb-0.5 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/50 group-data-[collapsible=icon]:hidden"
+                          className="px-2 pb-0.5 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/50 group-data-[collapsible=icon]:hidden"
                         >
                           {zoneLabel}
                         </div>
@@ -248,7 +248,7 @@ export function BasisSidebar({ onLogout }: { onLogout: () => void }) {
                         <SidebarMenuButton asChild isActive={active} tooltip={label}>
                           <Link to={item.to} onClick={closeMobile}>
                             <SidebarIcon name={item.icon} />
-                            <span className="sidebar-nav-text min-w-0 flex-1 truncate">{label}</span>
+                            <span className="min-w-0 flex-1 truncate group-data-[collapsible=icon]:hidden">{label}</span>
                           </Link>
                         </SidebarMenuButton>
                       </SidebarMenuItem>

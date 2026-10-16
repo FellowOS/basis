@@ -102,7 +102,7 @@ export function ScrollShadow({
 				className={cn(
 					"h-full w-full",
 					isV ? "overflow-y-auto" : "overflow-x-auto",
-					hideScrollBar && "scrollbar-hide",
+					hideScrollBar && "scrollbar-none",
 				)}
 			>
 				{children}

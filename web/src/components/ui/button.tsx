@@ -29,7 +29,8 @@ const buttonVariants = cva(
 					"bg-primary text-primary-foreground hover:bg-primary/90",
 				destructive:
 					"bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
-				outline: "console-control",
+				outline:
+					"max-w-full border-0 bg-[var(--control)] leading-none shadow-none transition-[background-color,box-shadow] duration-150 hover:bg-[color-mix(in_oklch,var(--foreground)_6%,var(--control))] focus-visible:border-transparent focus-visible:ring-0 focus-visible:shadow-[0_0_0_3px_var(--focus)]",
 				secondary:
 					"bg-secondary text-secondary-foreground hover:bg-secondary/80",
 				ghost:
@@ -47,6 +48,12 @@ const buttonVariants = cva(
 				"icon-lg": "size-10",
 			},
 		},
+		compoundVariants: [
+			{
+				variant: "outline",
+				class: "h-8 px-2.5 text-[13px]",
+			},
+		],
 		defaultVariants: {
 			variant: "default",
 			size: "default",

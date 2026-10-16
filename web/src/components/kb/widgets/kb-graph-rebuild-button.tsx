@@ -20,9 +20,11 @@ type GraphRebuildMeta = {
 export function KbGraphRebuildButton({
   kbId,
   onRebuilt,
+  iconOnly = false,
 }: {
   kbId: string;
   onRebuilt?: () => void;
+  iconOnly?: boolean;
 }) {
   const { t, locale } = useI18n();
   const w = t.kbGraphWorkspace.widgets;
@@ -64,9 +66,20 @@ export function KbGraphRebuildButton({
       destructive
       onConfirm={rebuild}
       trigger={
-        <Button type="button" variant="outline" size="sm" disabled={busy}>
-          {busy ? <Spinner className="size-3.5" /> : <PublicIcon name='database' className="size-3.5" />}
-          {w.rebuildButton}
+        <Button
+          type="button"
+          variant="outline"
+          size={iconOnly ? "icon-sm" : "sm"}
+          disabled={busy}
+          aria-label={iconOnly ? w.rebuildButton : undefined}
+          title={iconOnly ? w.rebuildButton : undefined}
+        >
+          {busy ? (
+            <Spinner className={iconOnly ? "size-4" : "size-3.5"} />
+          ) : (
+            <PublicIcon name="sync" className={iconOnly ? undefined : "size-3.5"} />
+          )}
+          {iconOnly ? null : w.rebuildButton}
         </Button>
       }
     />

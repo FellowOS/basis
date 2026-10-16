@@ -25,7 +25,7 @@ import { useLoadGraph, useReloadGraph } from "./useLoadGraph";
 import { GraphLoadingOverlay } from "./GraphLoadingOverlay";
 import { GraphSearchDock, type GraphSearchResult } from "./GraphSearchDock";
 import { GraphStatusDock } from "./GraphStatusDock";
-import { GraphColorLegendDock } from "./GraphColorLegendDock";
+import { GraphNodeTypeFilterDock, GraphNodeTypeFilterSidebar } from "./GraphNodeTypeFilterDock";
 import { GraphPluginPanelDialog } from "./GraphPluginPanelDialog";
 import { GraphToolbarRail } from "./GraphToolbarRail";
 import {
@@ -47,9 +47,11 @@ import { shouldApplyProjectionRevision } from "./graphProjectionRefresh";
 import { parseGraphRealtimeServerMessage } from "./graphRealtimeMessages";
 import { Badge } from "@/components/ui/badge.js";
 import { Button } from "@/components/ui/button.js";
+import { PublicIcon } from "@/components/ui/public-icon.js";
 import { useI18n } from "@/i18n/context.js";
 import { useTheme } from "@/lib/theme.js";
 import {
+  alignLoadBudgetWithLoaded,
   clampLoadBudget,
   defaultLoadBudget,
   loadGraphLoadBudget,
@@ -67,7 +69,8 @@ import {
   graphSuspenseFallback,
   graphTimelineShell,
 } from "@/lib/graph/graph-ui-classes.js";
-import { buildGraphColorLegend, type GraphColorLegendItem } from "./graphColorLegend";
+import { collectEdgeTypeCounts, edgeTypeOf, mergeEdgeTypeCounts } from "./graphEdgeTypes";
+import { collectNodeTypeCounts, mergeNodeTypeCounts, nodeTypeOf } from "./graphNodeTypes";
 import { focusedUnavailableReasonText, groupedViewReasonText } from "./graphViewCopy";
 import { localGraphRequiresDraftConfirm } from "./localGraphTransition";
 import {
@@ -317,6 +320,7 @@ function buildGraphHudCss(): string {
   }
   .explore-shell {
     --explore-inspector-width: min(360px, 38vw);
+    --explore-filter-width: min(300px, 86vw);
     position: relative;
     width: 100%;
     height: 100%;
@@ -331,10 +335,10 @@ function buildGraphHudCss(): string {
     pointer-events: none;
     overflow: visible;
   }
-  .explore-hud-layer :is(.explore-search-dock, .explore-status-dock, .explore-legend-dock, .explore-toolbar-rail-right) {
+  .explore-hud-layer :is(.explore-search-dock, .explore-status-dock, .explore-toolbar-rail-right) {
     pointer-events: none;
   }
-  .explore-hud-layer :is(.explore-search-dock, .explore-status-dock, .explore-legend-dock, .explore-toolbar-rail-right) > * {
+  .explore-hud-layer :is(.explore-search-dock, .explore-status-dock, .explore-toolbar-rail-right) > * {
     pointer-events: auto;
   }
   .explore-search-dock {
@@ -343,12 +347,12 @@ function buildGraphHudCss(): string {
     left: 0;
     z-index: 30;
     width: max-content;
-    max-width: min(100% - 24px, calc(100% - 200px));
+    max-width: calc(100% - 24px);
     padding: 10px 0 0 12px;
     overflow: visible;
   }
   .explore-search-dock-toolbar {
-    min-width: 0;
+    width: max-content;
     max-width: 100%;
   }
   .explore-search-dock-search {
@@ -363,36 +367,36 @@ function buildGraphHudCss(): string {
     position: absolute;
     top: 0;
     right: 0;
-    z-index: 22;
+    z-index: 26;
     padding: 10px 12px 0 0;
     max-width: min(520px, calc(100% - 24px));
     display: flex;
     justify-content: flex-end;
   }
-  .explore-legend-dock {
+  .explore-counts-dock {
     position: absolute;
-    bottom: 12px;
     left: 0;
-    z-index: 9;
-    padding: 0 12px;
-    max-width: min(520px, calc(100% - 24px));
-    max-height: 28vh;
-    overflow-y: auto;
-    overscroll-behavior: contain;
+    bottom: 12px;
+    z-index: 26;
+    max-width: calc(100% - 24px);
+    padding-left: 12px;
   }
-  .explore-shell[data-timeline="true"] .explore-legend-dock {
+  .explore-shell[data-timeline="true"] .explore-counts-dock {
     bottom: calc(90px + 12px);
   }
   .explore-toolbar-rail-right {
     position: absolute;
-    top: 50%;
+    top: 52px;
     right: 0;
+    bottom: 12px;
     z-index: 24;
-    transform: translateY(-50%) translateZ(0);
-    padding-right: 12px;
-    max-height: min(70vh, 100%);
-    overflow-y: auto;
-    overscroll-behavior: contain;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    overflow: visible;
+  }
+  .explore-shell[data-timeline="true"] .explore-toolbar-rail-right {
+    bottom: calc(90px + 12px);
   }
   .explore-main-grid {
     position: absolute;
@@ -702,6 +706,17 @@ function buildGraphHudCss(): string {
     overflow-y: auto;
     padding-right: 4px;
   }
+  .explore-filter-shell {
+    position: relative;
+    flex: 0 0 var(--explore-filter-width);
+    width: var(--explore-filter-width);
+    max-width: 100%;
+    z-index: 30;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    pointer-events: auto;
+  }
   .explore-inspector-shell {
     position: relative;
     flex: 0 0 var(--explore-inspector-width);
@@ -735,6 +750,19 @@ function buildGraphHudCss(): string {
     .explore-main-grid {
       flex-direction: column;
     }
+    .explore-filter-shell {
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: auto;
+      z-index: 30;
+      flex: none;
+      height: auto;
+    }
+    .explore-shell[data-inspector="true"] .explore-filter-shell {
+      bottom: min(42vh, 360px);
+    }
     .explore-inspector-shell {
       position: absolute;
       top: auto;
@@ -763,7 +791,7 @@ function buildGraphHudCss(): string {
       padding-right: 0.5rem;
     }
     .explore-status-dock {
-      max-width: calc(100% - 200px);
+      max-width: calc(100% - 24px);
       padding-top: 10px;
     }
     .explore-workflow-bar {
@@ -1004,11 +1032,6 @@ export function GraphWorkspace({
   const [loadBudget, setLoadBudget] = useState<GraphLoadBudget>(() =>
     defaultLoadBudget({ nodeTotal: null, edgeTotal: null }),
   );
-  const handleLoadBudgetCommit = useCallback((next: GraphLoadBudget) => {
-    const clamped = clampLoadBudget(next, graphStats);
-    saveGraphLoadBudget(kbId, clamped);
-    setLoadBudget(clamped);
-  }, [graphStats.edgeTotal, graphStats.nodeTotal, kbId]);
   const [markdownDraftDirty, setMarkdownDraftDirty] = useState(false);
   const markdownRefreshGuard = useMemo(() => new NodeMarkdownRefreshGuard(), []);
   const handleMarkdownDirtyChange = useCallback((dirty: boolean) => {
@@ -1109,14 +1132,6 @@ export function GraphWorkspace({
   useEffect(() => {
     setEffectsState(loadGraphEffectsState(kbId, { diagnosticsAllowed: diagnosticsEffectsAllowed }));
   }, [diagnosticsEffectsAllowed, kbId]);
-
-  useEffect(() => {
-    setLoadBudget(loadGraphLoadBudget(kbId, graphStats));
-  }, [graphStats.edgeTotal, graphStats.nodeTotal, kbId]);
-
-  useEffect(() => {
-    setLoadBudget((current) => clampLoadBudget(current, graphStats));
-  }, [graphStats.edgeTotal, graphStats.nodeTotal]);
 
   useEffect(() => {
     appliedGraphSummarySignatureRef.current = null;
@@ -1262,6 +1277,57 @@ export function GraphWorkspace({
   const graphLoadErrorMessage = isGraphLoadError
     ? formatApiError(graphLoadError)
     : null;
+
+  const catalogTotals = useMemo(
+    () => mergeCatalogTotals(graphStats, summary),
+    [
+      graphStats.edgeTotal,
+      graphStats.nodeTotal,
+      summary?.graphEdgeTotal,
+      summary?.graphNodeTotal,
+    ],
+  );
+
+  const handleLoadBudgetCommit = useCallback((next: GraphLoadBudget) => {
+    const clamped = clampLoadBudget(next, catalogTotals);
+    saveGraphLoadBudget(kbId, clamped);
+    setLoadBudget(clamped);
+  }, [catalogTotals, kbId]);
+
+  useEffect(() => {
+    setLoadBudget(loadGraphLoadBudget(kbId, { nodeTotal: null, edgeTotal: null }));
+  }, [kbId]);
+
+  useEffect(() => {
+    setLoadBudget((current) => clampLoadBudget(current, catalogTotals));
+  }, [catalogTotals.edgeTotal, catalogTotals.nodeTotal]);
+
+  useEffect(() => {
+    if (!summary || !graphReady) {
+      return;
+    }
+    setLoadBudget((current) => {
+      const next = alignLoadBudgetWithLoaded(
+        current,
+        catalogTotals,
+        { nodes: summary.nodeCount, edges: summary.edgeCount },
+        Boolean(summary.loadTruncated),
+      );
+      if (next.maxNodes === current.maxNodes && next.maxEdges === current.maxEdges) {
+        return current;
+      }
+      saveGraphLoadBudget(kbId, next);
+      return next;
+    });
+  }, [
+    catalogTotals.edgeTotal,
+    catalogTotals.nodeTotal,
+    graphReady,
+    kbId,
+    summary?.edgeCount,
+    summary?.loadTruncated,
+    summary?.nodeCount,
+  ]);
 
   const handleRetryGraphLoad = useCallback(() => {
     setLoadingProgress(null);
@@ -2354,15 +2420,6 @@ export function GraphWorkspace({
   const showLoadingOverlay = !graphReady && (isLoading || isFetching || Boolean(loadingProgress) || isGraphLoadError);
   const showSettlingStatus = graphReady && loadingProgress?.phase === "stabilizing_layout";
   const hasGraphContent = Boolean(summary?.nodeCount);
-  const catalogTotals = useMemo(
-    () => mergeCatalogTotals(graphStats, summary),
-    [
-      graphStats.edgeTotal,
-      graphStats.nodeTotal,
-      summary?.graphEdgeTotal,
-      summary?.graphNodeTotal,
-    ],
-  );
   const graphLoadInfoMessage = projectionRefreshPending
     ? graphCopy(copyLocale, "projectionRefreshed")
     : summary?.loadTruncated && kbId
@@ -2407,11 +2464,51 @@ export function GraphWorkspace({
     structuralSelectedNodeId,
     viewMode,
   ]);
-  const colorLegendItems = useMemo(() => {
-    // Store mutations can preserve graph identity while changing its attributes.
+  const [typeFilterOpen, setTypeFilterOpen] = useState(false);
+  const [hiddenNodeTypes, setHiddenNodeTypes] = useState<readonly string[]>([]);
+  const hiddenNodeTypeSet = useMemo(() => new Set(hiddenNodeTypes), [hiddenNodeTypes]);
+  const nodeTypeCounts = useMemo(() => {
     void graphVersion;
-    return buildGraphColorLegend(displayResult.graph);
+    return mergeNodeTypeCounts(
+      collectNodeTypeCounts(graph),
+      collectNodeTypeCounts(displayResult.graph),
+    );
   }, [displayResult.graph, graphVersion]);
+  const handleHiddenNodeTypesChange = useCallback((types: string[]) => {
+    const hidden = [...new Set(types)].sort();
+    setHiddenNodeTypes(hidden);
+    if (!selectedNodeId || !graph.hasNode(selectedNodeId)) {
+      return;
+    }
+    const selectedType = nodeTypeOf(graph.getNodeAttributes(selectedNodeId) as NodeAttributes);
+    if (hidden.includes(selectedType)) {
+      setSelectedNodeId("");
+    }
+  }, [selectedNodeId]);
+  const [hiddenEdgeTypes, setHiddenEdgeTypes] = useState<readonly string[]>([]);
+  const hiddenEdgeTypeSet = useMemo(() => new Set(hiddenEdgeTypes), [hiddenEdgeTypes]);
+  const edgeTypeCounts = useMemo(() => {
+    void graphVersion;
+    return mergeEdgeTypeCounts(
+      collectEdgeTypeCounts(graph),
+      collectEdgeTypeCounts(displayResult.graph),
+    );
+  }, [displayResult.graph, graphVersion]);
+  const handleHiddenEdgeTypesChange = useCallback((types: string[]) => {
+    const hidden = [...new Set(types)].sort();
+    setHiddenEdgeTypes(hidden);
+    if (!selectedEdgeId) {
+      return;
+    }
+    const selectedGraph = graph.hasEdge(selectedEdgeId) ? graph : displayResult.graph;
+    if (!selectedGraph.hasEdge(selectedEdgeId)) {
+      return;
+    }
+    const selectedType = edgeTypeOf(selectedGraph.getEdgeAttributes(selectedEdgeId) as EdgeAttributes);
+    if (hidden.includes(selectedType)) {
+      setSelectedEdgeId("");
+    }
+  }, [displayResult.graph, selectedEdgeId]);
   const displayState = useMemo(
     () => (
       viewMode === "grouped"
@@ -3238,8 +3335,9 @@ export function GraphWorkspace({
     onDiagnosticsChange: handleDiagnosticsChange,
     onAnalyticsChange: handleAnalyticsChange,
     locale: copyLocale,
+    hiddenNodeTypes,
+    hiddenEdgeTypes,
   } as const;
-  const showDistanceStatus = distanceVisualState.mode !== "off";
   const showTimelinePanel = Boolean(temporalBounds?.min);
 
   return (
@@ -3328,7 +3426,8 @@ export function GraphWorkspace({
 
             <div className="explore-hud-layer">
               <section className="explore-search-dock" aria-label={graphCopy(copyLocale, "dockSearchAria")}>
-                <GraphSearchDock
+                <div className="flex flex-nowrap items-start gap-2">
+                  <GraphSearchDock
                   locale={copyLocale}
                   kbId={kbId}
                   query={searchQuery}
@@ -3347,14 +3446,12 @@ export function GraphWorkspace({
                     handleClearSearchResults();
                     focusNode(result.node.id);
                   }}
-                  onReload={reload}
-                  reloadDisabled={showLoadingOverlay}
-                  trailingActions={graphDataActions}
                   infoMessage={graphLoadInfoMessage}
                 />
+                </div>
               </section>
 
-              <section className="explore-status-dock" aria-label={graphCopy(copyLocale, "dockStatusAria")}>
+              <section className="explore-counts-dock" aria-label={graphCopy(copyLocale, "dockStatusAria")}>
                 <GraphStatusDock
                   locale={copyLocale}
                   showLoadingStatus={(showLoadingOverlay || showSettlingStatus) && Boolean(loadingProgress)}
@@ -3363,29 +3460,61 @@ export function GraphWorkspace({
                   activeNodeCount={activeNodeCount}
                   focusedSummary={focusedSummary}
                   readOnly={!graphWriteEnabled}
-                  loadBudget={{
-                    budget: loadBudget,
-                    onBudgetCommit: handleLoadBudgetCommit,
-                    catalogTotals,
-                    disabled: showLoadingOverlay && !graphReady,
-                  }}
                 />
               </section>
 
-              {!showDistanceStatus && colorLegendItems.length > 0 ? (
-                <section className="explore-legend-dock" aria-label={graphCopy(copyLocale, "dockLegendAria")}>
-                  <GraphColorLegendDock locale={copyLocale} items={colorLegendItems} />
-                </section>
-              ) : null}
+              <section className="explore-status-dock" aria-label={graphCopy(copyLocale, "dockToolsAria")}>
+                  <div className="flex flex-wrap items-center justify-end gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon-sm"
+                    disabled={showLoadingOverlay}
+                    title={graphCopy(copyLocale, "searchReloadTitle")}
+                    aria-label={graphCopy(copyLocale, "searchReloadTitle")}
+                    onClick={reload}
+                  >
+                    <PublicIcon name="arrow-refresh-01" />
+                  </Button>
+                  {graphDataActions}
+                  {nodeTypeCounts.length > 0 || edgeTypeCounts.length > 0 ? (
+                    <GraphNodeTypeFilterDock
+                      locale={copyLocale}
+                      open={typeFilterOpen}
+                      onOpenChange={setTypeFilterOpen}
+                    />
+                  ) : null}
+                </div>
+              </section>
 
               {toolbarRailGroups.length > 0 ? (
                 <section className="explore-toolbar-rail-right" aria-label={graphCopy(copyLocale, "dockToolsAria")}>
-                  <GraphToolbarRail groups={toolbarRailGroups} expandLabels="left" />
+                  <GraphToolbarRail groups={toolbarRailGroups} orientation="vertical" expandLabels="left" />
                 </section>
               ) : null}
             </div>
           </div>
 
+          {typeFilterOpen && (nodeTypeCounts.length > 0 || edgeTypeCounts.length > 0) ? (
+            <GraphNodeTypeFilterSidebar
+              locale={copyLocale}
+              items={nodeTypeCounts}
+              hiddenTypes={hiddenNodeTypeSet}
+              onHiddenTypesChange={handleHiddenNodeTypesChange}
+              edgeItems={edgeTypeCounts}
+              hiddenEdgeTypes={hiddenEdgeTypeSet}
+              onHiddenEdgeTypesChange={handleHiddenEdgeTypesChange}
+              onClose={() => setTypeFilterOpen(false)}
+              loadBudget={{
+                budget: loadBudget,
+                onBudgetCommit: handleLoadBudgetCommit,
+                loadedNodes: summary?.nodeCount ?? 0,
+                loadedEdges: summary?.edgeCount ?? 0,
+                catalogTotals,
+                disabled: showLoadingOverlay,
+              }}
+            />
+          ) : null}
           {layoutState.showInspector ? (
             <div className="explore-inspector-shell border-l border-border/50">
               <InspectorPanel open={layoutState.showInspector} className="explore-inspector-card">

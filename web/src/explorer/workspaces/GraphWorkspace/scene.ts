@@ -65,6 +65,8 @@ export interface GraphSceneProps extends GraphSceneEventMap {
   showFitViewButton?: boolean;
   pluginOverlays?: ReactNode[];
   locale?: GraphWorkspaceLocale;
+  hiddenNodeTypes?: readonly string[];
+  hiddenEdgeTypes?: readonly string[];
 }
 
 export interface GraphSceneHandle {

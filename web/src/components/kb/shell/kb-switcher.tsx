@@ -33,7 +33,7 @@ export function KbSwitcher() {
           className="h-9 justify-between border-sidebar-border/80 bg-muted/30 font-medium shadow-none data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground group-data-[collapsible=icon]:justify-center"
         >
           <SidebarIcon name="folder-down-01" />
-          <span className="sidebar-nav-text min-w-0 flex-1 truncate text-left group-data-[collapsible=icon]:hidden">
+          <span className="min-w-0 flex-1 truncate text-left group-data-[collapsible=icon]:hidden">
             {loading && !current ? t.menu.kbSwitcher.loading : label}
           </span>
           <PublicIcon

@@ -35,6 +35,8 @@ import {
   resolveNodeVisualState,
 } from "./graphSceneState";
 import { fmt, formatLocaleFixedDecimals, formatLocaleNumber } from "@/i18n/format.js";
+import { isEdgeTypeSuppressed, edgeTypeOf } from "./graphEdgeTypes";
+import { isNodeTypeSuppressed } from "./graphNodeTypes";
 
 import { buildGraphAnalyticsSnapshot, computeGraphAnalyticsBase } from "./graphAnalytics";
 import {
@@ -141,6 +143,10 @@ export interface GraphCanvasProps {
   onDiagnosticsChange?: (diagnostics: GraphRuntimeDiagnosticsSnapshot) => void;
   onAnalyticsChange?: (analytics: GraphAnalyticsSnapshot | null) => void;
   locale?: GraphWorkspaceLocale;
+  /** Node types switched off in the type filter. Those nodes stay in the graph but are not drawn. */
+  hiddenNodeTypes?: readonly string[];
+  /** Edge types switched off in the type filter. Those edges stay in the graph but are not drawn. */
+  hiddenEdgeTypes?: readonly string[];
 }
 
 type EffectReasons = ReturnType<typeof graphEffectReasonsCopy>;
@@ -914,6 +920,8 @@ type ReducerSceneState = {
   highlightedIncidentEdgeIds: Set<string>;
   overviewBackboneEdgeIds: Set<string>;
   distanceVisualState?: GraphDistanceVisualState;
+  hiddenNodeTypes: ReadonlySet<string>;
+  hiddenEdgeTypes: ReadonlySet<string>;
 };
 
 const FULL_EDGE_CLASSES: GraphFullEdgeClass[] = [
@@ -1042,6 +1050,8 @@ function buildReducerSceneState(
   displayState?: GraphDisplayStateSnapshot,
   analyticsSnapshot?: GraphAnalyticsSnapshot | null,
   distanceVisualState?: GraphDistanceVisualState,
+  hiddenNodeTypes: ReadonlySet<string> = new Set(),
+  hiddenEdgeTypes: ReadonlySet<string> = new Set(),
 ): ReducerSceneState {
   const { viewMode, zoomTier, hoveredNodeId, selectedNodeId, selectedEdgeId, activePath } = interactionState;
   const primaryNodeId = hoveredNodeId || selectedNodeId;
@@ -1064,6 +1074,8 @@ function buildReducerSceneState(
     pathEdgeIds,
     overviewBackboneEdgeIds: new Set(analyticsSnapshot?.overviewBackbone.edgeIds ?? []),
     distanceVisualState,
+    hiddenNodeTypes,
+    hiddenEdgeTypes,
     highlightedIncidentEdgeIds: buildHighlightedIncidentEdgeIds(
       displayGraph,
       interactionState,
@@ -1189,6 +1201,7 @@ function applySceneState(
       )
       : {};
     const resolvedStyle = { ...style, ...distanceStyle };
+    const typeHidden = Boolean(attrs.hidden) || isNodeTypeSuppressed(attrs.nodeType, currentState.hiddenNodeTypes);
 
       return {
         ...data,
@@ -1196,11 +1209,11 @@ function applySceneState(
         shellColor: resolvedStyle.shellColor,
         coreScale: resolvedStyle.coreScale,
         size: resolvedStyle.size,
-        forceLabel: resolvedStyle.forceLabel,
-        label: resolvedStyle.label,
+        forceLabel: typeHidden ? false : resolvedStyle.forceLabel,
+        label: typeHidden ? undefined : resolvedStyle.label,
         suppressNodeChip: state === "hovered",
         zIndex: resolvedStyle.zIndex,
-        hidden: resolvedStyle.hidden,
+        hidden: typeHidden || resolvedStyle.hidden,
         borderColor: resolvedStyle.borderColor,
         borderSize: resolvedStyle.borderSize,
         ringColor: resolvedStyle.showRing ? resolvedStyle.ringColor : resolvedStyle.borderColor,
@@ -1281,10 +1294,20 @@ function applySceneState(
       )
       : {};
     const resolvedStyle = { ...style, ...distanceStyle };
+    const sourceAttrs = currentGraph.hasNode(source)
+      ? currentGraph.getNodeAttributes(source) as NodeAttributes
+      : undefined;
+    const targetAttrs = currentGraph.hasNode(target)
+      ? currentGraph.getNodeAttributes(target) as NodeAttributes
+      : undefined;
+    const endpointHidden = Boolean(sourceAttrs?.hidden || targetAttrs?.hidden)
+      || isNodeTypeSuppressed(sourceAttrs?.nodeType, currentState.hiddenNodeTypes)
+      || isNodeTypeSuppressed(targetAttrs?.nodeType, currentState.hiddenNodeTypes)
+      || isEdgeTypeSuppressed(edgeTypeOf(attrs), currentState.hiddenEdgeTypes);
 
     return {
       ...data,
-      hidden: resolvedStyle.hidden,
+      hidden: endpointHidden || resolvedStyle.hidden,
       type: resolvedStyle.type,
       color: resolvedStyle.color,
       size: resolvedStyle.size,
@@ -1295,8 +1318,8 @@ function applySceneState(
       // saw, so enabling renderEdgeLabels alone left edges blank.
       // Use || rather than ?? so that an empty-string edgeType (possible
       // when the API returns type: "") does not produce a blank label.
-      label: resolvedStyle.hidden ? undefined : String(attrs.edgeType || data.label || ""),
-      labelColor: resolvedStyle.hidden ? undefined : resolvedStyle.labelColor,
+      label: endpointHidden || resolvedStyle.hidden ? undefined : String(attrs.edgeType || data.label || ""),
+      labelColor: endpointHidden || resolvedStyle.hidden ? undefined : resolvedStyle.labelColor,
     };
   });
 
@@ -1355,6 +1378,8 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(
       onDiagnosticsChange,
       onAnalyticsChange,
       locale = "en",
+      hiddenNodeTypes = [],
+      hiddenEdgeTypes = [],
     },
     ref,
   ) {
@@ -1476,9 +1501,25 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(
       }),
       [displayGraph, shouldComputeCentrality, shouldComputeCommunities],
     );
+    const hiddenNodeTypeSet = useMemo(
+      () => new Set(hiddenNodeTypes),
+      [hiddenNodeTypes],
+    );
+    const hiddenEdgeTypeSet = useMemo(
+      () => new Set(hiddenEdgeTypes),
+      [hiddenEdgeTypes],
+    );
     const reducerSceneState = useMemo(
-      () => buildReducerSceneState(displayGraph, interactionState, displayState, analyticsSnapshot, distanceVisualState),
-      [analyticsSnapshot, displayGraph, displayState, distanceVisualState, interactionState],
+      () => buildReducerSceneState(
+        displayGraph,
+        interactionState,
+        displayState,
+        analyticsSnapshot,
+        distanceVisualState,
+        hiddenNodeTypeSet,
+        hiddenEdgeTypeSet,
+      ),
+      [analyticsSnapshot, displayGraph, displayState, distanceVisualState, hiddenEdgeTypeSet, hiddenNodeTypeSet, interactionState],
     );
     const reducerSceneStateRef = useRef<ReducerSceneState>(reducerSceneState);
     reducerSceneStateRef.current = reducerSceneState;
@@ -2275,6 +2316,8 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(
       previousDistanceVisualStateRef.current = undefined;
     }, [displayGraph]);
 
+    const hiddenNodeTypeKey = `${hiddenNodeTypes.join("\0")}\u0001${hiddenEdgeTypes.join("\0")}`;
+    const previousHiddenNodeTypeKeyRef = useRef(hiddenNodeTypeKey);
     useEffect(() => {
       const sigma = sigmaRef.current;
       if (!sigma) {
@@ -2283,15 +2326,17 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(
 
       const previousInteractionState = previousInteractionStateRef.current;
       const distanceVisualStateChanged = previousDistanceVisualStateRef.current !== distanceVisualState;
-      const refreshTargets = !distanceVisualStateChanged && previousInteractionState
+      const typeFilterChanged = previousHiddenNodeTypeKeyRef.current !== hiddenNodeTypeKey;
+      const refreshTargets = !distanceVisualStateChanged && !typeFilterChanged && previousInteractionState
         ? collectInteractionRefreshTargets(displayGraph, previousInteractionState, interactionState)
         : undefined;
 
       applySceneState(sigma, reducerSceneStateRef, reducerWarningStateRef, refreshTargets);
       previousInteractionStateRef.current = interactionState;
       previousDistanceVisualStateRef.current = distanceVisualState;
+      previousHiddenNodeTypeKeyRef.current = hiddenNodeTypeKey;
       overlayRedrawRef.current?.();
-    }, [displayGraph, distanceVisualState, interactionState, reducerSceneStateRef]);
+    }, [displayGraph, distanceVisualState, hiddenNodeTypeKey, interactionState, reducerSceneStateRef]);
 
     const drawStructureLayerFrame = useCallback(() => {
       const sigma = sigmaRef.current;
