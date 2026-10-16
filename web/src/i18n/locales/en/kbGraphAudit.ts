@@ -17,6 +17,7 @@ export const kbGraphAudit = {
     'kb.mapping.created': 'Mapping created',
     'kb.mapping.status': 'Mapping status updated',
     'kb.ledger.entity_merge_revert': 'Ledger merge reverted',
+    'kb.ledger.entity_delete': 'Ledger entity deleted',
   },
   projectionRevision: 'rev {revision}',
   nodesEdgesRatio: '{nodes}/{edges} nodes/edges',

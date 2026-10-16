@@ -1,7 +1,8 @@
-"""Read-only ledger helpers for KB manage workspaces."""
+"""Ledger helpers for KB manage workspaces."""
 
 from __future__ import annotations
 
+import asyncio
 from typing import Any
 
 from fastapi import APIRouter, Depends, Query, Request
@@ -148,6 +149,46 @@ async def list_entity_facts_route(
     facts = knowledge.list_entity_facts(kb_id, entity_id=entity_id, limit=limit)
     derived_facts = knowledge.list_derived_facts_for_entity(kb_id, entity_id, limit=limit)
     return {"entity_id": entity_id, "facts": facts, "derived_facts": derived_facts}
+
+
+@router.get("/{kb_id}/ledger/entities/{entity_id}/delete-preview")
+async def preview_delete_ledger_entity(
+    kb_id: str,
+    entity_id: str,
+    request: Request,
+    user: User = Depends(get_current_user),
+    store: AdminStore = Depends(get_store),
+    knowledge: KnowledgeStore = Depends(get_knowledge_store),
+) -> dict[str, Any]:
+    get_kb_for_editor(request, user, kb_id, store)
+    return knowledge.preview_entity_deletion(kb_id, entity_id)
+
+
+@router.delete("/{kb_id}/ledger/entities/{entity_id}")
+async def delete_ledger_entity(
+    kb_id: str,
+    entity_id: str,
+    request: Request,
+    user: User = Depends(get_current_user),
+    store: AdminStore = Depends(get_store),
+    knowledge: KnowledgeStore = Depends(get_knowledge_store),
+) -> dict[str, Any]:
+    get_kb_for_editor(request, user, kb_id, store)
+    outcome = knowledge.delete_entity(kb_id, entity_id)
+    projection = await asyncio.to_thread(rebuild_kb_projection, request, kb_id)
+    audit_kb_graph(
+        store,
+        user,
+        kb_id,
+        "kb.ledger.entity_delete",
+        extra={
+            "entity_id": outcome["entity_id"],
+            "canonical_label": outcome["canonical_label"],
+            "statements_removed": outcome["statements_removed"],
+            "projection": projection,
+        },
+    )
+    return {"ok": True, **outcome, "projection": projection}
 
 
 @router.get("/{kb_id}/ledger/typed-facts")

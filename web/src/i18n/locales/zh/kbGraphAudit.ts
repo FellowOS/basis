@@ -17,6 +17,7 @@ export const kbGraphAudit = {
     'kb.mapping.created': '创建映射',
     'kb.mapping.status': '更新映射状态',
     'kb.ledger.entity_merge_revert': '回滚账本合并',
+    'kb.ledger.entity_delete': '删除账本实体',
   },
   projectionRevision: '修订 {revision}',
   nodesEdgesRatio: '{nodes}/{edges} 节点/边',

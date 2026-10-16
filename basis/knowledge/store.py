@@ -934,6 +934,16 @@ class KnowledgeStore:
 
         return execute_hard_delete_document(self, kb_id, document_id)
 
+    def preview_entity_deletion(self, kb_id: str, entity_id: str) -> dict[str, Any]:
+        from basis.knowledge.entity_delete import preview_entity_deletion
+
+        return preview_entity_deletion(self, kb_id, entity_id)
+
+    def delete_entity(self, kb_id: str, entity_id: str) -> dict[str, Any]:
+        from basis.knowledge.entity_delete import execute_delete_entity
+
+        return execute_delete_entity(self, kb_id, entity_id)
+
     def list_documents(self, kb_id: str) -> list[dict[str, Any]]:
         with self._lock:
             rows = self._conn.execute(

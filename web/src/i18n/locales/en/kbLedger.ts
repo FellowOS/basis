@@ -17,6 +17,16 @@ export const kbLedger = {
   colDescription: 'Description',
   colActions: 'Actions',
   viewFacts: 'View facts',
+  deleteEntity: 'Delete entity',
+  deleteEntityTitle: 'Delete entity',
+  deleteEntityDescription:
+    'Entity “{label}” will be deleted. The statements below are removed with it and cannot be restored.',
+  deleteEntityNone: 'This entity has no statements. Confirming deletes only the entity.',
+  deleteEntityTruncated: 'Showing the first {shown} of {total} statements.',
+  deleteEntityRelated:
+    'Also deletes {typed} typed facts, {derived} derived facts, and {merges} merge records.',
+  deleteEntityConfirm: 'Delete',
+  deleteEntityLoading: 'Loading statements that will be deleted…',
   entityFactsTitle: 'Entity facts',
   recentDerivedFacts: 'Recent derived facts (reasoning)',
   reasoningWorkspace: 'Reasoning workspace',

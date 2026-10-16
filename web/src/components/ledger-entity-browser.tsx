@@ -15,6 +15,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog.js';
@@ -44,6 +45,37 @@ export type LedgerEntityHit = {
   description: string | null;
   entity_kind: string;
 };
+
+type EntityDeleteStatement = {
+  statement_id: string;
+  subject_id: string;
+  subject_label: string | null;
+  surface_phrase: string;
+  object_entity_id: string | null;
+  object_label: string | null;
+  object_value: string | null;
+  status: string;
+  evidence_quote: string | null;
+};
+
+type EntityDeletePreview = {
+  entity_id: string;
+  canonical_label: string | null;
+  statement_count: number;
+  statements_truncated: boolean;
+  statements: EntityDeleteStatement[];
+  typed_fact_count: number;
+  derived_fact_count: number;
+  merge_count: number;
+};
+
+function statementDeleteLine(statement: EntityDeleteStatement): string {
+  const subject = statement.subject_label || statement.subject_id;
+  const object = statement.object_entity_id
+    ? statement.object_label || statement.object_entity_id
+    : statement.object_value || '';
+  return `${subject} ${statement.surface_phrase} ${object}`.trim();
+}
 
 type EntityFactHit = {
   statement_id: string;
@@ -269,6 +301,7 @@ export function LedgerEntityBrowser({
   const l = t.kbLedger;
   const { caps } = useKbCapabilities();
   const apiError = useApiErrorMessage();
+  const canDeleteEntity = ['owner', 'admin', 'editor'].includes(caps?.role ?? '');
   const [query, setQuery] = useState('');
   const [appliedQuery, setAppliedQuery] = useState('');
   const [entities, setEntities] = useState<LedgerEntityHit[]>([]);
@@ -277,6 +310,11 @@ export function LedgerEntityBrowser({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [factsTarget, setFactsTarget] = useState<LedgerEntityHit | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<LedgerEntityHit | null>(null);
+  const [deletePreview, setDeletePreview] = useState<EntityDeletePreview | null>(null);
+  const [deletePreviewError, setDeletePreviewError] = useState<string | null>(null);
+  const [deletePreviewLoading, setDeletePreviewLoading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const showLineage = Boolean(caps?.provenance && caps?.graph);
 
@@ -325,6 +363,53 @@ export function LedgerEntityBrowser({
     if (!loadRecentOnMount) return;
     void fetchEntities(appliedQuery, safePage);
   }, [appliedQuery, fetchEntities, loadRecentOnMount, safePage]);
+
+  useEffect(() => {
+    if (!deleteTarget) {
+      setDeletePreview(null);
+      setDeletePreviewError(null);
+      return;
+    }
+    const entityId = ledgerEntityId(deleteTarget);
+    let cancelled = false;
+    setDeletePreview(null);
+    setDeletePreviewError(null);
+    setDeletePreviewLoading(true);
+    void (async () => {
+      try {
+        const preview = await api<EntityDeletePreview>(
+          `/api/kbs/${kbId}/ledger/entities/${encodeURIComponent(entityId)}/delete-preview`,
+        );
+        if (!cancelled) setDeletePreview(preview);
+      } catch (err) {
+        if (!cancelled) setDeletePreviewError(apiError(err));
+      } finally {
+        if (!cancelled) setDeletePreviewLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [apiError, deleteTarget, kbId]);
+
+  async function confirmDeleteEntity() {
+    if (!deleteTarget || deleting) return;
+    const entityId = ledgerEntityId(deleteTarget);
+    setDeleting(true);
+    setError(null);
+    try {
+      await api(`/api/kbs/${kbId}/ledger/entities/${encodeURIComponent(entityId)}`, {
+        method: 'DELETE',
+      });
+      if (factsTarget && ledgerEntityId(factsTarget) === entityId) setFactsTarget(null);
+      setDeleteTarget(null);
+      await fetchEntities(appliedQuery, safePage);
+    } catch (err) {
+      setDeletePreviewError(apiError(err));
+    } finally {
+      setDeleting(false);
+    }
+  }
 
   function onSubmit(event: FormEvent) {
     event.preventDefault();
@@ -400,13 +485,21 @@ export function LedgerEntityBrowser({
                     {l.searchChunks}
                   </Link>
                 </DropdownMenuItem>
+                {canDeleteEntity ? (
+                  <DropdownMenuItem
+                    className="text-destructive focus:text-destructive"
+                    onClick={() => setDeleteTarget(hit)}
+                  >
+                    {l.deleteEntity}
+                  </DropdownMenuItem>
+                ) : null}
               </DropdownMenuContent>
             </DropdownMenu>
           );
         },
       },
     ];
-  }, [kbId, l, nodeLabels, showLineage]);
+  }, [canDeleteEntity, kbId, l, nodeLabels, showLineage]);
 
   return (
     <DataPanel>
@@ -475,6 +568,92 @@ export function LedgerEntityBrowser({
           {factsTarget ? (
             <EntityFactsPanel kbId={kbId} entityId={ledgerEntityId(factsTarget)} />
           ) : null}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={deleteTarget !== null}
+        onOpenChange={(open) => {
+          if (!open && !deleting) setDeleteTarget(null);
+        }}
+      >
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{l.deleteEntityTitle}</DialogTitle>
+            <DialogDescription>
+              {fmt(l.deleteEntityDescription, {
+                label: deleteTarget?.canonical_label || (deleteTarget ? ledgerEntityId(deleteTarget) : ''),
+              })}
+            </DialogDescription>
+          </DialogHeader>
+          {deletePreviewLoading ? (
+            <div className="flex items-center gap-2 py-4 text-sm text-muted-foreground">
+              <Spinner className="size-4" />
+              {l.deleteEntityLoading}
+            </div>
+          ) : null}
+          {deletePreviewError ? (
+            <p className="text-sm text-destructive">{deletePreviewError}</p>
+          ) : null}
+          {deletePreview && !deletePreviewLoading ? (
+            <div className="space-y-3">
+              {deletePreview.statements.length === 0 ? (
+                <p className="text-sm text-muted-foreground">{l.deleteEntityNone}</p>
+              ) : (
+                <ul className="max-h-[min(50vh,18rem)] space-y-2 overflow-y-auto text-sm">
+                  {deletePreview.statements.map((statement) => (
+                    <li key={statement.statement_id} className="rounded-md border border-border p-3">
+                      <div>{statementDeleteLine(statement)}</div>
+                      <div className="mt-1 text-xs text-muted-foreground">{statement.status}</div>
+                      {statement.evidence_quote ? (
+                        <blockquote className="mt-2 border-l-2 pl-2 text-xs text-muted-foreground">
+                          {statement.evidence_quote}
+                        </blockquote>
+                      ) : null}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {deletePreview.statements_truncated ? (
+                <p className="text-xs text-muted-foreground">
+                  {fmt(l.deleteEntityTruncated, {
+                    shown: deletePreview.statements.length,
+                    total: deletePreview.statement_count,
+                  })}
+                </p>
+              ) : null}
+              {deletePreview.typed_fact_count > 0 ||
+              deletePreview.derived_fact_count > 0 ||
+              deletePreview.merge_count > 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  {fmt(l.deleteEntityRelated, {
+                    typed: deletePreview.typed_fact_count,
+                    derived: deletePreview.derived_fact_count,
+                    merges: deletePreview.merge_count,
+                  })}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={deleting}
+              onClick={() => setDeleteTarget(null)}
+            >
+              {t.common.cancel}
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              disabled={deleting || deletePreviewLoading || deletePreview === null}
+              onClick={() => void confirmDeleteEntity()}
+            >
+              {deleting ? <Spinner className="size-4" /> : null}
+              {l.deleteEntityConfirm}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </DataPanel>
