@@ -1,15 +1,7 @@
+import { PublicIcon } from "@/components/ui/public-icon.js";
 import { useEffect, useState } from "react";
 import { explorerApiErrorMessage, explorerGetJson } from "../../lib/explorer-api-error";
 import { ontologyPath, useOntologyKbId, vocabularyPath } from "./ontologyKb";
-import {
-  AlertCircle,
-  BookOpen,
-  ChevronDown,
-  ChevronRight,
-  Loader2,
-  Search,
-  X,
-} from "lucide-react";
 import { cn } from "@/lib/utils.js";
 import {
   ontErrorBanner,
@@ -156,7 +148,7 @@ function ConceptDetailPanel({
         <div className="flex flex-col gap-1">
           {uris.map((u) => (
             <button key={u} type="button" onClick={() => onNavigate(u)} className={ontSkosNavLink}>
-              <ChevronRight className="size-2.5 shrink-0" />
+              <PublicIcon name="chevron-right" className="size-2.5 shrink-0" />
               <UriLink uri={u} />
             </button>
           ))}
@@ -169,23 +161,23 @@ function ConceptDetailPanel({
     <div className={ontSkosDetailPanel}>
       <div className={ontSkosDetailHeader}>
         <div className="flex min-w-0 items-center gap-2">
-          <BookOpen className="size-3.5 shrink-0 text-ok" />
+          <PublicIcon name="book-01" className="size-3.5 shrink-0 text-ok" />
           <span className="truncate text-sm font-bold text-foreground">Concept Detail</span>
         </div>
         <button type="button" onClick={onClose} className={ontSkosIconBtn} aria-label="Close">
-          <X className="size-3.5" />
+          <PublicIcon name="x-02" className="size-3.5" />
         </button>
       </div>
 
       {loading && (
         <div className={ontSkosCentered}>
-          <Loader2 className="size-[18px] animate-spin text-primary" />
+          <PublicIcon name="loader-01" className="size-[18px] animate-spin text-primary" />
         </div>
       )}
 
       {error && (
         <div className={ontSkosCentered}>
-          <AlertCircle className="size-4 text-destructive" />
+          <PublicIcon name="alert-circle" className="size-4 text-destructive" />
           <span className="mt-1.5 text-xs text-destructive">{error}</span>
         </div>
       )}
@@ -296,7 +288,7 @@ function ConceptTreeNode({
             className={ontSkosExpandBtn}
             aria-expanded={expanded}
           >
-            {expanded ? <ChevronDown className="size-2.5" /> : <ChevronRight className="size-2.5" />}
+            {expanded ? <PublicIcon name="chevron-down" className="size-2.5" /> : <PublicIcon name="chevron-right" className="size-2.5" />}
           </button>
         ) : (
           <span className={ontSkosTreeSpacer} aria-hidden />
@@ -421,9 +413,9 @@ function SchemePanel({
       <button type="button" onClick={() => setExpanded((v) => !v)} className={ontSkosSchemeHeaderBtn}>
         <div className="flex items-center gap-2">
           {expanded ? (
-            <ChevronDown className="size-3.5 text-muted-foreground" />
+            <PublicIcon name="chevron-down" className="size-3.5 text-muted-foreground" />
           ) : (
-            <ChevronRight className="size-3.5 text-muted-foreground" />
+            <PublicIcon name="chevron-right" className="size-3.5 text-muted-foreground" />
           )}
           <span className={ontSkosSchemeTitle}>{scheme.title}</span>
         </div>
@@ -437,7 +429,7 @@ function SchemePanel({
           {error ? <div className={cn(ontErrorBanner, "m-2")}>{error}</div> : null}
           {loading ? (
             <div className={ontSkosLoadingRow}>
-              <Loader2 className="size-3 animate-spin text-primary" />
+              <PublicIcon name="loader-01" className="size-3 animate-spin text-primary" />
               <span className="text-xs text-muted-foreground">Loading concepts…</span>
             </div>
           ) : displayedConcepts.length === 0 ? (
@@ -505,7 +497,7 @@ export function SKOSVocabularyManager({ schemeUri }: Props) {
       {error ? <div className={cn(ontErrorBanner, ontSkosErrorInset)}>{error}</div> : null}
       <div className={ontSkosToolbar}>
         <div className={ontSkosSearchBar}>
-          <Search className="size-3.5 shrink-0 text-muted-foreground" />
+          <PublicIcon name="search-01" className="size-3.5 shrink-0 text-muted-foreground" />
           <input
             value={searchQ}
             onChange={(e) => setSearchQ(e.target.value)}
@@ -514,7 +506,7 @@ export function SKOSVocabularyManager({ schemeUri }: Props) {
           />
           {searchQ ? (
             <button type="button" onClick={() => setSearchQ("")} className={ontSkosIconBtn} aria-label="Clear search">
-              <X className="size-2.5" />
+              <PublicIcon name="x-02" className="size-2.5" />
             </button>
           ) : null}
         </div>
@@ -524,20 +516,20 @@ export function SKOSVocabularyManager({ schemeUri }: Props) {
         <div className={ontSkosTreeCol}>
           {loading && (
             <div className={ontSkosCentered}>
-              <Loader2 className="size-[18px] animate-spin text-primary" />
+              <PublicIcon name="loader-01" className="size-[18px] animate-spin text-primary" />
             </div>
           )}
 
           {error && (
             <div className={ontSkosCentered}>
-              <AlertCircle className="size-4 text-destructive" />
+              <PublicIcon name="alert-circle" className="size-4 text-destructive" />
               <span className="mt-1.5 text-xs text-destructive">{error}</span>
             </div>
           )}
 
           {!loading && !error && displayedSchemes.length === 0 && (
             <div className={ontSkosEmptyState}>
-              <BookOpen className="size-7 text-primary/15" />
+              <PublicIcon name="book-01" className="size-7 text-primary/15" />
               <span className="mt-2.5 text-xs text-muted-foreground">No SKOS concept schemes found</span>
               <span className="mt-1 max-w-[220px] text-[11px] text-muted-foreground">
                 Import a SKOS vocabulary to browse concepts here

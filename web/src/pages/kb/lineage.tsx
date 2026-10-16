@@ -18,8 +18,7 @@ export function KbLineagePage() {
         { label: getKb(id)?.name ?? id, to: kbPath(id, 'graph') },
         { label: t.menu.kb.lineage },
       ]}
-      subtitle={t.pages.kbSubtitles.lineage}
-      className="min-h-0"
+      className="min-h-0 overflow-hidden"
     >
       <KbLineageWorkspace kbId={id} className="min-h-0 flex-1" />
     </ConsolePageLayout>

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from "react";
-import { Scale, Search, ArrowRight, Info, AlertCircle } from "lucide-react";
+import { PublicIcon } from "@/components/ui/public-icon.js";
 import { Button } from "@/components/ui/button.js";
 import { Input } from "@/components/ui/input.js";
 import { buildExplorerKbApiPath, explorerFetch } from "../../host/explorerHttp";
@@ -110,7 +110,7 @@ function RelEdge({ label }: { label: string }) {
     <div className={exWsChainEdgeCol}>
       <div className={exWsChainEdgeLine} />
       <div className={exWsChainEdgePill}>
-        <ArrowRight size={10} className="shrink-0 text-primary" aria-hidden />
+        <PublicIcon name="arrow-right" size={10} className="shrink-0 text-primary" />
         <span className={exWsChainEdgeLabel}>{label}</span>
       </div>
       <div className={exWsChainEdgeLine} />
@@ -129,7 +129,7 @@ function CausalFlow({ chain, loading }: { chain: ChainStep[]; loading: boolean }
   if (!chain.length) {
     return (
       <div className="ws-empty">
-        <div className="ws-empty-icon"><Info size={28} /></div>
+        <div className="ws-empty-icon"><PublicIcon name="information-circle-contained" size={28} /></div>
         <div className="ws-empty-title">No chain steps</div>
         <div className="ws-empty-body">No causal chain steps were found for this decision.</div>
       </div>
@@ -251,10 +251,10 @@ export function DecisionWorkspace({
       <div className={cn(exWsSplitSidebar, "ws-sidebar")}>
         <div className="ws-sidebar-header">
           <div className="relative">
-            <Search
+            <PublicIcon
+              name="search-01"
               size={12}
               className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-              aria-hidden
             />
             <Input
               type="search"
@@ -310,7 +310,7 @@ export function DecisionWorkspace({
 
         {error ? (
           <div className={cn(exWsErrorBanner, "relative z-[2]")}>
-            <AlertCircle size={16} className="mt-0.5 shrink-0" aria-hidden />
+            <PublicIcon name="alert-circle" size={16} className="mt-0.5 shrink-0" />
             <div>{error}</div>
           </div>
         ) : null}
@@ -360,7 +360,7 @@ export function DecisionWorkspace({
         ) : (
           <div className={exWsCenterEmpty}>
             <div className="ws-empty">
-              <div className="ws-empty-icon"><Scale size={32} /></div>
+              <div className="ws-empty-icon"><PublicIcon name="scales" size={32} /></div>
               <div className="ws-empty-title">No decision selected</div>
               <div className="ws-empty-body">Select a decision from the list to inspect its causal chain and metadata.</div>
             </div>

@@ -1,10 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
-import { Check, ChevronDown, ChevronRight, Clock, Loader2, X } from 'lucide-react';
+import { PublicIcon } from '@/components/ui/public-icon.js';
 import { KbEntityMergePropertyDiff } from '@/components/kb/widgets/kb-entity-merge-property-diff.js';
 import { buildExplorerKbApiPath, explorerFetch } from '@/explorer/host/explorerHttp.js';
 import { useI18n } from '@/i18n/context.js';
+import { fmt } from '@/i18n/format.js';
+import type { LocaleMessages } from '@/i18n/locales/en/index.js';
+import type { Locale } from '@/i18n/locale.js';
 import { useKbCapabilities } from '@/lib/kb-capabilities.js';
 import { throwIfApiNotOk } from '@/lib/api-error.js';
 import { formatUserFacingApiError } from '@/lib/api-error-message.js';
@@ -61,13 +64,10 @@ type TimelineEntry =
   | { kind: 'audit'; id: string; at: string; event: AuditEvent }
   | { kind: 'ledger_merge'; id: string; at: string; merge: EntityMergeRow };
 
-function formatAuditAction(action: string, locale: string): string {
-  return formatGraphAuditAction(action, locale === 'zh');
-}
-
 function auditDetailLine(
   event: AuditEvent,
-  locale: string,
+  r: LocaleMessages['kbReview'],
+  audit: LocaleMessages['kbGraphAudit'],
   labels: Record<string, string | null>,
 ): string | null {
   const d = event.detail ?? {};
@@ -87,12 +87,11 @@ function auditDetailLine(
     const nodes = d.nodes_imported;
     const edges = d.edges_imported;
     const file = d.filename;
-    if (locale === 'zh') {
-      return [file, nodes != null ? `${nodes} 节点` : null, edges != null ? `${edges} 边` : null]
-        .filter(Boolean)
-        .join(' · ');
-    }
-    return [file, nodes != null ? `${nodes} nodes` : null, edges != null ? `${edges} edges` : null]
+    return [
+      file,
+      nodes != null ? fmt(r.importNodes, { count: String(nodes) }) : null,
+      edges != null ? fmt(r.importEdges, { count: String(edges) }) : null,
+    ]
       .filter(Boolean)
       .join(' · ');
   }
@@ -103,7 +102,7 @@ function auditDetailLine(
   if (event.action === 'kb.graph.projection_rebuild') {
     const parts: string[] = [];
     if (d.projection_revision != null) {
-      parts.push(locale === 'zh' ? `修订 ${d.projection_revision}` : `rev ${d.projection_revision}`);
+      parts.push(fmt(audit.projectionRevision, { revision: String(d.projection_revision) }));
     }
     if (d.node_count != null && d.edge_count != null) {
       parts.push(`${d.node_count}/${d.edge_count}`);
@@ -115,15 +114,11 @@ function auditDetailLine(
   const ledgerSkipped =
     (d.ledger_skipped_ids as string[] | undefined) ?? mergePayload?.ledger_skipped_ids;
   if (event.action === 'kb.graph.merge_approved' && ledgerNotice === 'graph_only_merge') {
-    return locale === 'zh'
-      ? '仅更新图投影，未写入账本 entity_merges'
-      : 'Graph projection only; no ledger entity_merges recorded';
+    return r.graphOnlyMergeApproved;
   }
   if (event.action === 'kb.graph.merge_approved' && ledgerNotice === 'partial_ledger') {
     const skipped = ledgerSkipped?.join(', ');
-    return locale === 'zh'
-      ? `部分节点未入账本：${skipped ?? ''}`
-      : `Some nodes skipped for ledger: ${skipped ?? ''}`;
+    return fmt(r.partialLedgerSkipped, { skipped: skipped ?? '' });
   }
   if (event.action === 'kb.graph.merge_approved') {
     const ledger = d.ledger_merges as { source_entity_id?: string; target_entity_id?: string }[] | undefined;
@@ -215,9 +210,11 @@ export function KbReviewQueueTab({
   kbId: string;
   focusItemId?: string;
 }) {
-  const { locale } = useI18n();
+  const { t, locale } = useI18n();
+  const r = t.kbReview;
+  const auditMessages = t.kbGraphAudit;
   const apiError = useCallback(
-    (err: unknown) => formatUserFacingApiError(err, locale === 'zh' ? 'zh' : 'en'),
+    (err: unknown) => formatUserFacingApiError(err, locale as Locale),
     [locale],
   );
   const { caps } = useKbCapabilities();
@@ -360,18 +357,7 @@ export function KbReviewQueueTab({
     }
   }
 
-  const timelineTitle = locale === 'zh' ? 'KB 变更记录' : 'KB activity log';
-  const ledgerMergeLabel = locale === 'zh' ? '账本实体合并' : 'Ledger entity merge';
-  const revertMergeLabel = locale === 'zh' ? '回滚合并' : 'Revert merge';
   const timeline = mergeTimeline(events, merges);
-  const empty = locale === 'zh' ? '暂无待处理项' : 'No open items';
-  const emptyLog = locale === 'zh' ? '暂无记录' : 'No events yet';
-  const approveLabel = locale === 'zh' ? '批准合并' : 'Approve merge';
-  const rejectLabel = locale === 'zh' ? '驳回' : 'Reject';
-  const graphOnlyMergeHint =
-    locale === 'zh'
-      ? '若重复项不是账本实体，批准后只改图投影，不会写入 entity_merges。'
-      : 'Non-ledger nodes update the graph only; entity_merges are not recorded.';
 
   function renderNodeRef(id: string) {
     const { title, subtitle } = formatNodeRefDetail(id, labels);
@@ -385,30 +371,47 @@ export function KbReviewQueueTab({
     );
   }
 
+  function kindLabel(kind: string) {
+    if (kind === 'graph_import') return r.kindImport;
+    if (kind === 'ontology_mapping') return r.kindMapping;
+    if (kind === 'statement_remember') return r.kindRemember;
+    if (kind === 'statement_conflict') return r.kindConflict;
+    if (kind === 'entity_merge') return r.kindMerge;
+    return kind;
+  }
+
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-background text-foreground lg:flex-row">
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col border-b border-border lg:border-b-0 lg:border-r">
-        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
+    <div className="flex min-h-0 flex-1 overflow-hidden max-[900px]:flex-col">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden border-r border-border max-[900px]:max-h-[min(52vh,480px)] max-[900px]:border-r-0 max-[900px]:border-b">
+        <div className="flex h-12 shrink-0 items-center gap-2 border-b border-border px-4">
+          <PublicIcon name="check-square-contained" size={13} className="shrink-0 text-muted-foreground" />
+          <span className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">{r.queueTitle}</span>
+          {!loading ? (
+            <span className="font-mono text-[11px] tabular-nums text-muted-foreground">{items.length}</span>
+          ) : null}
+        </div>
+        <div className="min-h-0 flex-1 overflow-auto">
           {loading ? (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Loader2 className="size-4 animate-spin" />
-              {locale === 'zh' ? '加载中…' : 'Loading…'}
+            <div className="flex items-center gap-2 px-4 py-3 text-sm text-muted-foreground">
+              <PublicIcon name="loader-01" size={16} className="animate-spin" />
+              {t.common.loading}
             </div>
           ) : error ? (
-            <p className="text-sm text-destructive">{error}</p>
+            <p className="px-4 py-3 text-sm text-destructive">{error}</p>
           ) : items.length === 0 ? (
-            <div className="space-y-2 text-sm text-muted-foreground">
-              <p>{empty}</p>
-              <p>
-                {locale === 'zh' ? '有待审的本体提案？前往 ' : 'Pending ontology proposals? Open '}
-                <Link to={kbOntologyVersionsPath(kbId)} className="text-primary hover:underline">
-                  {locale === 'zh' ? '本体 → 版本' : 'Ontology → Versions'}
+            <div className="flex h-full min-h-32 flex-col items-center justify-center px-6 text-center">
+              <PublicIcon name="check-square-contained" size={18} className="mb-2 text-muted-foreground" />
+              <p className="text-sm font-medium text-foreground">{r.emptyQueue}</p>
+              <p className="mt-1 max-w-sm text-[11px] leading-snug text-muted-foreground">
+                {r.emptyQueuePrefix}
+                <Link to={kbOntologyVersionsPath(kbId)} className="text-foreground underline-offset-2 hover:underline">
+                  {r.emptyQueueLink}
                 </Link>
-                {locale === 'zh' ? '。' : '.'}
+                {r.emptyQueueSuffix}
               </p>
             </div>
           ) : (
-            <ul className="flex flex-col gap-3">
+            <ul>
               {items.map((item) => {
                 const isImport = item.kind === 'graph_import';
                 const isMapping = item.kind === 'ontology_mapping';
@@ -420,33 +423,25 @@ export function KbReviewQueueTab({
                 const firstDuplicate = duplicateIds[0];
                 const showDiff = diffExpandedId === item.id;
                 const approveLabelForItem = isImport
-                  ? locale === 'zh'
-                    ? '批准导入'
-                    : 'Approve import'
+                  ? r.approveImport
                   : isMapping
-                    ? locale === 'zh'
-                      ? '批准映射'
-                      : 'Approve mapping'
+                    ? r.approveMapping
                     : isRemember
-                      ? locale === 'zh'
-                        ? '批准记入'
-                        : 'Approve fact'
+                      ? r.approveFact
                       : isConflict
-                        ? locale === 'zh'
-                          ? '已知晓'
-                          : 'Acknowledge'
-                        : approveLabel;
+                        ? r.acknowledge
+                        : r.approveMerge;
                 return (
                   <li
                     key={item.id}
                     id={`review-item-${item.id}`}
                     className={cn(
-                      'rounded-lg border border-border bg-card p-4 text-sm shadow-sm',
-                      highlightItemId === item.id && 'ring-2 ring-primary ring-offset-2 ring-offset-background',
+                      'border-b border-border px-4 py-2.5 text-sm',
+                      highlightItemId === item.id && 'bg-muted',
                     )}
                   >
-                    <div className="font-mono text-xs text-muted-foreground">{item.kind}</div>
-                    <div className="mt-2 font-medium">
+                    <div className="text-[11px] text-muted-foreground">{kindLabel(item.kind)}</div>
+                    <div className="mt-1 text-[13px] leading-snug">
                       {isImport
                         ? `${item.payload.filename ?? 'import'} (${item.payload.byte_size ?? '?'} B)`
                         : isMapping
@@ -460,15 +455,15 @@ export function KbReviewQueueTab({
                           )
                           : isRemember
                             ? (
-                              <span className="whitespace-pre-wrap text-sm">
+                              <span className="whitespace-pre-wrap">
                                 {String(item.payload.content ?? item.payload.statement_id ?? '—')}
                               </span>
                             )
                           : isConflict
                             ? (
-                              <span className="flex flex-col gap-1 text-sm">
+                              <span className="flex flex-col gap-1">
                                 <span>
-                                  {locale === 'zh' ? '谓语冲突：' : 'Conflicting objects for predicate '}
+                                  {r.conflictPredicate}
                                   <span className="font-mono text-xs">
                                     {String(item.payload.surface_phrase ?? '—')}
                                   </span>
@@ -487,13 +482,13 @@ export function KbReviewQueueTab({
                           : (
                           <span className="flex flex-col gap-1">
                             <span className="text-muted-foreground text-xs font-normal">
-                              {locale === 'zh' ? '主节点' : 'Primary'}
+                              {r.primary}
                             </span>
                             {primaryId !== '—' ? renderNodeRef(primaryId) : '—'}
                             {duplicateIds.length ? (
                               <>
                                 <span className="text-muted-foreground text-xs font-normal pt-1">
-                                  {locale === 'zh' ? '合并入' : 'Duplicates'}
+                                  {r.duplicates}
                                 </span>
                                 <span className="flex flex-col gap-1">
                                   {duplicateIds.map((dup) => (
@@ -506,23 +501,23 @@ export function KbReviewQueueTab({
                         )}
                     </div>
                     {!isImport && !isMapping && !isRemember && !isConflict ? (
-                      <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">{graphOnlyMergeHint}</p>
+                      <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">{r.graphOnlyMergeHint}</p>
                     ) : null}
                     {isEntityMerge && primaryId !== '—' && firstDuplicate ? (
                       <>
                         <button
                           type="button"
-                          className="mt-2 inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                          className="mt-2 inline-flex items-center gap-1 text-[11px] text-foreground underline-offset-2 hover:underline"
                           onClick={() =>
                             setDiffExpandedId(showDiff ? null : item.id)
                           }
                         >
                           {showDiff ? (
-                            <ChevronDown className="size-3" />
+                            <PublicIcon name="chevron-down" size={12} />
                           ) : (
-                            <ChevronRight className="size-3" />
+                            <PublicIcon name="chevron-right" size={12} />
                           )}
-                          {locale === 'zh' ? '属性对比' : 'Property diff'}
+                          {r.propertyDiff}
                         </button>
                         {showDiff ? (
                           <KbEntityMergePropertyDiff
@@ -538,9 +533,9 @@ export function KbReviewQueueTab({
                       <div className="mt-2">
                         <Link
                           to={kbPath(kbId, 'mappings')}
-                          className="text-xs text-primary hover:underline"
+                          className="text-[11px] text-foreground underline-offset-2 hover:underline"
                         >
-                          {locale === 'zh' ? '在本体映射页查看' : 'Open mappings workspace'}
+                          {r.openMappings}
                         </Link>
                       </div>
                     ) : null}
@@ -548,13 +543,14 @@ export function KbReviewQueueTab({
                       <Button
                         type="button"
                         size="sm"
+                        className="h-8"
                         disabled={busyId === item.id}
                         onClick={() => void resolve(item.id, 'approve')}
                       >
                         {busyId === item.id ? (
-                          <Loader2 className="size-3 animate-spin" />
+                          <PublicIcon name="loader-01" size={12} className="animate-spin" />
                         ) : (
-                          <Check className="size-3" />
+                          <PublicIcon name="check-01" size={12} />
                         )}
                         {approveLabelForItem}
                       </Button>
@@ -562,11 +558,12 @@ export function KbReviewQueueTab({
                         type="button"
                         size="sm"
                         variant="outline"
+                        className="h-8"
                         disabled={busyId === item.id}
                         onClick={() => void resolve(item.id, 'reject')}
                       >
-                        <X className="size-3" />
-                        {rejectLabel}
+                        <PublicIcon name="x-02" size={12} />
+                        {r.reject}
                       </Button>
                     </div>
                   </li>
@@ -577,16 +574,20 @@ export function KbReviewQueueTab({
         </div>
       </div>
 
-      <aside className="flex w-full shrink-0 flex-col lg:w-[min(100%,22rem)]">
-        <div className="border-b border-border px-4 py-3">
-          <div className="flex items-center gap-2 text-sm font-semibold">
-            <Clock className="size-4 text-primary" aria-hidden />
-            {timelineTitle}
-          </div>
+      <aside className="flex w-[min(360px,34vw)] min-w-[260px] shrink-0 flex-col overflow-hidden max-[900px]:max-h-[min(40vh,360px)] max-[900px]:w-full max-[900px]:min-w-0">
+        <div className="flex h-12 shrink-0 items-center gap-2 border-b border-border px-4">
+          <PublicIcon name="clock-01" size={13} className="shrink-0 text-muted-foreground" />
+          <span className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">{r.timelineTitle}</span>
+          {!loading ? (
+            <span className="font-mono text-[11px] tabular-nums text-muted-foreground">{timeline.length}</span>
+          ) : null}
         </div>
-        <div className="min-h-0 max-h-[40vh] flex-1 overflow-y-auto px-4 py-3 lg:max-h-none">
+        <div className="min-h-0 flex-1 overflow-auto px-4 py-3">
           {!loading && timeline.length === 0 ? (
-            <p className="text-xs text-muted-foreground">{emptyLog}</p>
+            <div className="flex h-full min-h-32 flex-col items-center justify-center px-4 text-center">
+              <PublicIcon name="clock-01" size={18} className="mb-2 text-muted-foreground" />
+              <p className="text-sm font-medium text-foreground">{r.emptyLog}</p>
+            </div>
           ) : (
             <ol className="relative border-l border-border pl-4">
               {timeline.map((entry) => {
@@ -595,16 +596,12 @@ export function KbReviewQueueTab({
                   return (
                     <li key={entry.id} className="mb-4 last:mb-0">
                       <span
-                        className="absolute -left-1.5 mt-1.5 size-2.5 rounded-full bg-[#9ee8d7]/90"
+                        className="absolute -left-1.5 mt-1.5 size-2 rounded-full bg-primary"
                         aria-hidden
                       />
                       <div className="text-xs font-semibold text-foreground">
-                        {ledgerMergeLabel}
-                        {row.reverted_at
-                          ? locale === 'zh'
-                            ? '（已回滚）'
-                            : ' (reverted)'
-                          : ''}
+                        {r.ledgerMergeLabel}
+                        {row.reverted_at ? r.ledgerMergeReverted : ''}
                       </div>
                       <div className="mt-0.5 text-[10px] text-muted-foreground">
                         {formatNodeRef(row.source_entity_id, labels)} →{' '}
@@ -618,14 +615,14 @@ export function KbReviewQueueTab({
                           type="button"
                           size="sm"
                           variant="outline"
-                          className="mt-2"
+                          className="mt-2 h-8"
                           disabled={busyMergeId === row.id}
                           onClick={() => void revertLedgerMerge(row.id)}
                         >
                           {busyMergeId === row.id ? (
-                            <Loader2 className="size-3 animate-spin" />
+                            <PublicIcon name="loader-01" size={12} className="animate-spin" />
                           ) : null}
-                          {revertMergeLabel}
+                          {r.revertMerge}
                         </Button>
                       ) : null}
                       <time className="mt-1 block text-[10px] text-muted-foreground">
@@ -635,16 +632,16 @@ export function KbReviewQueueTab({
                   );
                 }
                 const event = entry.event;
-                const detail = auditDetailLine(event, locale, labels);
+                const detail = auditDetailLine(event, r, auditMessages, labels);
                 const proposalId = auditProposalId(event);
                 return (
                   <li key={entry.id} className="mb-4 last:mb-0">
                     <span
-                      className="absolute -left-1.5 mt-1.5 size-2.5 rounded-full bg-[#4aa3ff]/80"
+                      className="absolute -left-1.5 mt-1.5 size-2 rounded-full bg-muted-foreground"
                       aria-hidden
                     />
                     <div className="text-xs font-semibold text-foreground">
-                      {formatAuditAction(event.action, locale)}
+                      {formatGraphAuditAction(event.action, locale as Locale)}
                     </div>
                     {detail ? (
                       <div className="mt-0.5 text-[10px] text-muted-foreground">{detail}</div>
@@ -652,9 +649,9 @@ export function KbReviewQueueTab({
                     {proposalId ? (
                       <Link
                         to={kbOntologyProposalPath(kbId, proposalId)}
-                        className="mt-1 inline-block text-[10px] text-primary hover:underline"
+                        className="mt-1 inline-block text-[11px] text-foreground underline-offset-2 hover:underline"
                       >
-                        {locale === 'zh' ? '打开本体提案' : 'Open ontology proposal'}
+                        {r.openOntologyProposal}
                       </Link>
                     ) : null}
                     <time className="mt-1 block text-[10px] text-muted-foreground">

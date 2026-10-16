@@ -2,16 +2,32 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { EntityRefLine } from '@/components/entity-ref-line.js';
 import { Button } from '@/components/ui/button.js';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card.js';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog.js';
 import { useI18n } from '@/i18n/context.js';
+import { fmt } from '@/i18n/format.js';
 import { api } from '@/lib/api.js';
 import { useKbNodeLabels } from '@/lib/kb-node-labels.js';
 import { kbPath } from '@/lib/nav-config.js';
 import { useApiErrorMessage } from '@/lib/use-api-error-message.js';
 
-type ChunkSummary = { id: string; ordinal: number; text: string };
+type ChunkFields = {
+  heading?: string | null;
+  char_start?: number | null;
+  char_end?: number | null;
+  token_count?: number | null;
+  language?: string | null;
+  origin?: string | null;
+};
 
-type ChunkDetail = {
+type ChunkSummary = ChunkFields & { id: string; ordinal: number; text: string };
+
+type ChunkDetail = ChunkFields & {
   chunk_id: string;
   document_id: string;
   document_title: string;
@@ -30,7 +46,8 @@ type ChunkStatement = {
 };
 
 export function LedgerEvidenceInspector({ kbId }: { kbId: string }) {
-  const { locale } = useI18n();
+  const { t } = useI18n();
+  const ev = t.kbLedger.evidence;
   const apiError = useApiErrorMessage();
   const [searchParams, setSearchParams] = useSearchParams();
   const docRef = searchParams.get('doc')?.trim() || null;
@@ -136,40 +153,58 @@ export function LedgerEvidenceInspector({ kbId }: { kbId: string }) {
   function openChunk(id: string) {
     const next = new URLSearchParams(searchParams);
     next.set('chunk', id);
-    next.delete('doc');
     setSearchParams(next, { replace: true });
   }
 
-  if (!docRef && !chunkId) return null;
+  function backToChunks() {
+    const next = new URLSearchParams(searchParams);
+    next.delete('chunk');
+    setSearchParams(next, { replace: true });
+  }
 
   const graphFocusId =
     statements.find((row) => row.subject_id)?.subject_id ??
     statements.find((row) => row.object_entity_id)?.object_entity_id ??
     null;
 
-  const title =
-    chunkId
-      ? locale === 'zh'
-        ? '片段证据'
-        : 'Chunk evidence'
-      : locale === 'zh'
-        ? `文档：${docTitle ?? docRef}`
-        : `Document: ${docTitle ?? docRef}`;
-  const closeLabel = locale === 'zh' ? '关闭' : 'Close';
-  const openChunkLabel = locale === 'zh' ? '查看片段' : 'View chunk';
-  const statementsTitle = locale === 'zh' ? '本片段陈述' : 'Statements in chunk';
-  const noStatements = locale === 'zh' ? '无关联陈述' : 'No linked statements';
-  const loadingLabel = locale === 'zh' ? '加载中…' : 'Loading…';
+  const loadingLabel = t.common.loading;
+  const title = chunkId ? ev.chunkTitle : (docTitle ?? docRef ?? '');
+
+  function chunkMeta(row: ChunkFields): string | null {
+    const parts: string[] = [];
+    if (row.heading) parts.push(row.heading);
+    if (row.char_start != null && row.char_end != null) {
+      parts.push(`${row.char_start}–${row.char_end}`);
+    }
+    if (row.token_count != null) {
+      parts.push(fmt(ev.tokenCount, { count: row.token_count }));
+    }
+    if (row.language) parts.push(row.language);
+    if (row.origin && (row.origin !== 'stated' || parts.length > 0)) parts.push(row.origin);
+    return parts.length ? parts.join(' · ') : null;
+  }
+
+  const chunkCountLabel =
+    docChunks.length === 1
+      ? ev.chunkCountOne
+      : fmt(ev.chunkCount, { count: docChunks.length });
 
   return (
-    <Card className="m-4 border-primary/30">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-base">{title}</CardTitle>
-        <Button type="button" variant="ghost" size="sm" onClick={clearEvidenceParams}>
-          {closeLabel}
-        </Button>
-      </CardHeader>
-      <CardContent className="space-y-4 text-sm">
+    <Dialog open={Boolean(docRef || chunkId)} onOpenChange={(open) => { if (!open) clearEvidenceParams(); }}>
+      <DialogContent className="flex max-h-[min(80vh,720px)] flex-col gap-3 sm:max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>
+            {chunkId
+              ? chunk
+                ? `${chunk.document_title || chunk.document_id} · #${chunk.ordinal}`
+                : loadingLabel
+              : loading
+                ? loadingLabel
+                : chunkCountLabel}
+          </DialogDescription>
+        </DialogHeader>
+        <div className="min-h-0 flex-1 space-y-3 overflow-auto text-sm">
         {error ? <p className="text-destructive">{error}</p> : null}
         {loading && !chunk && docChunks.length === 0 ? (
           <p className="text-muted-foreground">{loadingLabel}</p>
@@ -178,37 +213,47 @@ export function LedgerEvidenceInspector({ kbId }: { kbId: string }) {
         {docRef && !chunkId ? (
           <ul className="space-y-2">
             {docChunks.length === 0 && !loading ? (
-              <li className="text-muted-foreground">
-                {locale === 'zh' ? '暂无片段' : 'No chunks'}
-              </li>
+              <li className="text-muted-foreground">{ev.noChunks}</li>
             ) : (
-              docChunks.map((row) => (
-                <li key={row.id} className="rounded-md border p-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <span className="text-xs text-muted-foreground">#{row.ordinal}</span>
-                    <Button type="button" size="sm" variant="outline" onClick={() => openChunk(row.id)}>
-                      {openChunkLabel}
-                    </Button>
-                  </div>
-                  <p className="mt-2 line-clamp-4 whitespace-pre-wrap">{row.text}</p>
+              docChunks.map((row) => {
+                const meta = chunkMeta(row);
+                return (
+                <li key={row.id}>
+                  <button
+                    type="button"
+                    className="w-full rounded-md border border-border px-3 py-2 text-left hover:bg-muted"
+                    onClick={() => openChunk(row.id)}
+                  >
+                    <span className="font-mono text-[11px] text-muted-foreground">
+                      #{row.ordinal}
+                      {meta ? ` · ${meta}` : ''}
+                    </span>
+                    <p className="mt-1 line-clamp-4 whitespace-pre-wrap text-[13px] leading-snug">{row.text}</p>
+                  </button>
                 </li>
-              ))
+                );
+              })
             )}
           </ul>
         ) : null}
 
         {chunk ? (
           <>
-            <div className="text-xs text-muted-foreground">
-              {chunk.document_title || chunk.document_id} · #{chunk.ordinal}
-            </div>
+            {docRef ? (
+              <Button type="button" variant="outline" size="sm" className="h-8" onClick={backToChunks}>
+                {ev.allChunks}
+              </Button>
+            ) : null}
+            {chunkMeta(chunk) ? (
+              <p className="font-mono text-[11px] text-muted-foreground">{chunkMeta(chunk)}</p>
+            ) : null}
             <pre className="max-h-64 overflow-auto rounded-md bg-muted p-3 text-xs whitespace-pre-wrap">
               {chunk.text}
             </pre>
             <div>
-              <div className="mb-2 font-medium">{statementsTitle}</div>
+              <div className="mb-2 font-medium">{ev.statementsTitle}</div>
               {statements.length === 0 ? (
-                <p className="text-muted-foreground">{noStatements}</p>
+                <p className="text-muted-foreground">{ev.noStatements}</p>
               ) : (
                 <ul className="space-y-2 text-xs">
                   {statements.map((row) => (
@@ -237,13 +282,14 @@ export function LedgerEvidenceInspector({ kbId }: { kbId: string }) {
             {graphFocusId ? (
               <Button variant="link" size="sm" className="h-auto p-0" asChild>
                 <Link to={`${kbPath(kbId, 'graph')}?focus=${encodeURIComponent(graphFocusId)}`}>
-                  {locale === 'zh' ? '在图谱中定位实体' : 'Focus entity in graph'}
+                  {ev.focusInGraph}
                 </Link>
               </Button>
             ) : null}
           </>
         ) : null}
-      </CardContent>
-    </Card>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }

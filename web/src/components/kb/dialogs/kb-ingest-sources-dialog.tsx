@@ -19,6 +19,9 @@ import {
   SelectValue,
 } from '@/components/ui/select.js';
 import { Spinner } from '@/components/ui/spinner.js';
+import { useI18n } from '@/i18n/context.js';
+import { fmt } from '@/i18n/format.js';
+import type { Locale } from '@/i18n/locale.js';
 import { api } from '@/lib/api.js';
 import { formatUserFacingApiError } from '@/lib/api-error-message.js';
 import { cn } from '@/lib/utils.js';
@@ -65,14 +68,14 @@ export function KbIngestSourcesDialog({
   open,
   onOpenChange,
   focusSourceId,
-  zh,
 }: {
   kbId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   focusSourceId?: string;
-  zh: boolean;
 }) {
+  const { t, locale } = useI18n();
+  const i = t.kbIngestSources;
   const [loading, setLoading] = useState(false);
   const [sources, setSources] = useState<IngestSource[]>([]);
   const [name, setName] = useState('');
@@ -97,8 +100,8 @@ export function KbIngestSourcesDialog({
   const [highlightSourceId, setHighlightSourceId] = useState<string | null>(null);
 
   const apiError = useCallback(
-    (err: unknown) => formatUserFacingApiError(err, zh ? 'zh' : 'en'),
-    [zh],
+    (err: unknown) => formatUserFacingApiError(err, locale as Locale),
+    [locale],
   );
 
   const copyText = useCallback(
@@ -107,10 +110,10 @@ export function KbIngestSourcesDialog({
         await navigator.clipboard.writeText(text);
         toast.success(okMessage);
       } catch {
-        toast.error(zh ? '复制失败' : 'Copy failed');
+        toast.error(i.copyFailed);
       }
     },
-    [zh],
+    [i.copyFailed],
   );
 
   const load = useCallback(async () => {
@@ -154,16 +157,16 @@ export function KbIngestSourcesDialog({
     const trimmed = name.trim();
     if (!trimmed) return;
     if (kind === 'http_poll' && !pollUrl.trim().startsWith('http')) {
-      toast.error(zh ? '请输入有效的 URL' : 'Enter a valid URL');
+      toast.error(i.enterValidUrl);
       return;
     }
     if (kind === 'git') {
       if (!gitRepoUrl.trim().includes('github.com')) {
-        toast.error(zh ? '请输入 GitHub 仓库 HTTPS URL' : 'Enter a GitHub HTTPS repo URL');
+        toast.error(i.enterGithubRepoUrl);
         return;
       }
       if (!gitPaths.trim()) {
-        toast.error(zh ? '请输入至少一个文件路径' : 'Enter at least one file path');
+        toast.error(i.enterFilePaths);
         return;
       }
     }
@@ -208,15 +211,7 @@ export function KbIngestSourcesDialog({
       if (data.ingest_token) {
         setCreatedSecret(data);
       } else {
-        toast.success(
-          kind === 'git'
-            ? zh
-              ? '已创建 Git 来源'
-              : 'Git source created'
-            : zh
-              ? '已创建 URL 拉取来源'
-              : 'HTTP poll source created',
-        );
+        toast.success(kind === 'git' ? i.gitSourceCreated : i.httpPollSourceCreated);
       }
       resetCreateForm();
       setCreateOpen(false);
@@ -250,7 +245,7 @@ export function KbIngestSourcesDialog({
         ...data,
         source: { id: sourceId, kind: 'webhook', name: '', enabled: true },
       });
-      toast.success(zh ? '已轮换令牌' : 'Token rotated');
+      toast.success(i.tokenRotated);
     } catch (err) {
       toast.error(apiError(err));
     } finally {
@@ -282,7 +277,7 @@ export function KbIngestSourcesDialog({
           },
         }),
       });
-      toast.success(zh ? '已保存同步选项' : 'Sync options saved');
+      toast.success(i.syncOptionsSaved);
       closeSyncOptionsDialog();
       await load();
     } catch (err) {
@@ -344,7 +339,7 @@ export function KbIngestSourcesDialog({
     setLoading(true);
     try {
       await api(`/api/kbs/${kbId}/sources/${sourceId}/sync`, { method: 'POST', body: '{}' });
-      toast.success(zh ? '已拉取并入队处理' : 'Fetched and queued');
+      toast.success(i.fetchedAndQueued);
       await load();
     } catch (err) {
       toast.error(apiError(err));
@@ -369,25 +364,25 @@ export function KbIngestSourcesDialog({
   const createFormFields = (
     <div className="space-y-3">
       <div className="space-y-2">
-        <Label>{zh ? '类型' : 'Kind'}</Label>
+        <Label>{i.kind}</Label>
         <Select value={kind} onValueChange={(v) => setKind(v as SourceKind)}>
           <SelectTrigger>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="webhook">Webhook</SelectItem>
-            <SelectItem value="http_poll">{zh ? 'HTTP 拉取' : 'HTTP poll'}</SelectItem>
-            <SelectItem value="git">{zh ? 'Git（GitHub）' : 'Git (GitHub)'}</SelectItem>
+            <SelectItem value="http_poll">{i.httpPoll}</SelectItem>
+            <SelectItem value="git">{i.gitGithub}</SelectItem>
           </SelectContent>
         </Select>
       </div>
       <div className="space-y-2">
-        <Label htmlFor="source-name">{zh ? '名称' : 'Name'}</Label>
+        <Label htmlFor="source-name">{i.name}</Label>
         <Input
           id="source-name"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder={zh ? '例如：工单系统' : 'e.g. Ticket system'}
+          placeholder={i.namePlaceholder}
         />
       </div>
       {kind === 'http_poll' ? (
@@ -404,7 +399,7 @@ export function KbIngestSourcesDialog({
       {kind === 'git' ? (
         <>
           <div className="space-y-2">
-            <Label htmlFor="git-repo">{zh ? '仓库 URL' : 'Repository URL'}</Label>
+            <Label htmlFor="git-repo">{i.repositoryUrl}</Label>
             <Input
               id="git-repo"
               value={gitRepoUrl}
@@ -413,7 +408,7 @@ export function KbIngestSourcesDialog({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="git-branch">{zh ? '分支' : 'Branch'}</Label>
+            <Label htmlFor="git-branch">{i.branch}</Label>
             <Input
               id="git-branch"
               value={gitBranch}
@@ -423,7 +418,7 @@ export function KbIngestSourcesDialog({
           </div>
           <div className="space-y-2">
             <Label htmlFor="git-paths">
-              {zh ? '文件路径（逗号或换行）' : 'File paths (comma or newline)'}
+              {i.filePaths}
             </Label>
             <Input
               id="git-paths"
@@ -438,18 +433,18 @@ export function KbIngestSourcesDialog({
         <>
           <div className="space-y-2">
             <Label htmlFor="sync-doc-title">
-              {zh ? '同步资料标题（可选）' : 'Document title on sync (optional)'}
+              {i.syncDocTitleOptional}
             </Label>
             <Input
               id="sync-doc-title"
               value={docTitle}
               onChange={(e) => setDocTitle(e.target.value)}
-              placeholder={zh ? '留空则使用来源名称' : 'Leave empty to use source name'}
+              placeholder={i.emptyUsesSourceName}
             />
           </div>
           <div className="space-y-2">
             <Label htmlFor="sync-doc-prefix">
-              {zh ? 'doc_id 前缀（可选）' : 'doc_id prefix (optional)'}
+              {i.docIdPrefixOptional}
             </Label>
             <Input
               id="sync-doc-prefix"
@@ -457,18 +452,14 @@ export function KbIngestSourcesDialog({
               onChange={(e) => setExternalKeyPrefix(e.target.value)}
               placeholder={kind === 'git' ? 'git' : 'poll'}
             />
-            <p className="text-[10px] text-muted-foreground">
-              {zh
-                ? '每次同步新建一篇资料，ID 形如「前缀-随机串」。Webhook 请在请求体里用 external_key。'
-                : 'Each sync creates a new document as «prefix-random». For webhooks use external_key in the POST body.'}
-            </p>
+            <p className="text-[10px] text-muted-foreground">{i.prefixHint}</p>
           </div>
         </>
       ) : null}
       {kind === 'http_poll' || kind === 'git' ? (
         <div className="space-y-2">
           <Label htmlFor="poll-interval">
-            {zh ? '自动拉取间隔（分钟，0=仅手动）' : 'Auto poll interval (minutes, 0=manual)'}
+            {i.pollInterval}
           </Label>
           <Input
             id="poll-interval"
@@ -478,11 +469,7 @@ export function KbIngestSourcesDialog({
             onChange={(e) => setPollIntervalMinutes(e.target.value)}
             placeholder="0"
           />
-          <p className="text-[10px] text-muted-foreground">
-            {zh
-              ? '服务端需设置 BASIS_HTTP_POLL_TICK_SECONDS>0 才会定时执行。'
-              : 'Set BASIS_HTTP_POLL_TICK_SECONDS>0 on the server to enable scheduling.'}
-          </p>
+          <p className="text-[10px] text-muted-foreground">{i.pollTickHint}</p>
         </div>
       ) : null}
     </div>
@@ -493,17 +480,13 @@ export function KbIngestSourcesDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>{zh ? '摄入来源（连接器）' : 'Ingest sources'}</DialogTitle>
-          <DialogDescription>
-            {zh
-              ? 'Webhook、HTTP 或 GitHub 文件拉取，进入资料与处理流水线。'
-              : 'Webhook, HTTP URL, or GitHub file pull into documents and processing.'}
-          </DialogDescription>
+          <DialogTitle>{i.dialogTitle}</DialogTitle>
+          <DialogDescription>{i.dialogDesc}</DialogDescription>
         </DialogHeader>
 
         {secretBlock?.ingest_token ? (
           <div className="space-y-2 rounded-md border border-border bg-muted/40 p-3 text-sm">
-            <p className="font-medium">{zh ? '请保存令牌（仅显示一次）' : 'Save token (shown once)'}</p>
+            <p className="font-medium">{i.saveTokenOnce}</p>
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
                 <Label className="text-xs text-muted-foreground">URL</Label>
@@ -516,10 +499,10 @@ export function KbIngestSourcesDialog({
                   size="sm"
                   className="shrink-0 text-xs"
                   onClick={() =>
-                    void copyText(webhookUrl, zh ? '已复制 Webhook URL' : 'Webhook URL copied')
+                    void copyText(webhookUrl, i.webhookUrlCopied)
                   }
                 >
-                  {zh ? '复制' : 'Copy'}
+                  {t.common.copy}
                 </Button>
               ) : null}
             </div>
@@ -536,11 +519,11 @@ export function KbIngestSourcesDialog({
                 onClick={() =>
                   void copyText(
                     `Bearer ${secretBlock.ingest_token}`,
-                    zh ? '已复制 Authorization' : 'Authorization copied',
+                    i.authorizationCopied,
                   )
                 }
               >
-                {zh ? '复制' : 'Copy'}
+                {t.common.copy}
               </Button>
             </div>
           </div>
@@ -552,7 +535,7 @@ export function KbIngestSourcesDialog({
               <Spinner className="size-4" />
             </div>
           ) : sources.length === 0 ? (
-            <p className="text-muted-foreground">{zh ? '暂无来源' : 'No sources yet'}</p>
+            <p className="text-muted-foreground">{i.noSources}</p>
           ) : (
             sources.map((s) => {
               const last = s.config?.sync_events?.[0];
@@ -570,7 +553,7 @@ export function KbIngestSourcesDialog({
                       <div className="font-medium">{s.name}</div>
                       <div className="text-xs text-muted-foreground">
                         {s.kind}
-                        {!s.enabled ? (zh ? ' · 已停用' : ' · disabled') : ''}
+                        {!s.enabled ? i.disabledSuffix : ''}
                       </div>
                       {s.kind === 'webhook' && s.webhook_path ? (
                         <p className="mt-1 break-all font-mono text-[10px] text-muted-foreground">
@@ -593,20 +576,20 @@ export function KbIngestSourcesDialog({
                         <p className="mt-1 text-[10px] text-muted-foreground">
                           {s.config.title ? (
                             <span>
-                              {zh ? '标题' : 'Title'}: {s.config.title}
+                              {i.titleLabel}: {s.config.title}
                             </span>
                           ) : null}
                           {s.config.title && s.config.external_key_prefix ? ' · ' : null}
                           {s.config.external_key_prefix ? (
                             <span>
-                              {zh ? '前缀' : 'Prefix'}: {s.config.external_key_prefix}
+                              {i.prefixLabel}: {s.config.external_key_prefix}
                             </span>
                           ) : null}
                         </p>
                       ) : null}
                       {last ? (
                         <p className="mt-1 text-[10px] text-muted-foreground">
-                          {zh ? '最近同步' : 'Last sync'}: {last.status} · {last.at}
+                          {i.lastSync}: {last.status} · {last.at}
                           {last.error ? ` · ${last.error}` : ''}
                         </p>
                       ) : null}
@@ -617,23 +600,17 @@ export function KbIngestSourcesDialog({
                           className="h-auto p-0 text-[10px]"
                           onClick={() => toggleSyncHistory(s.id)}
                         >
-                          {expandedHistoryId === s.id
-                            ? zh
-                              ? '收起同步记录'
-                              : 'Hide sync history'
-                            : zh
-                              ? '查看同步记录'
-                              : 'View sync history'}
+                          {expandedHistoryId === s.id ? i.hideSyncHistory : i.viewSyncHistory}
                         </Button>
                       )}
                     </div>
                     <div className="flex shrink-0 flex-col gap-1">
                       <Button type="button" variant="outline" size="sm" onClick={() => void toggleEnabled(s)}>
-                        {s.enabled ? (zh ? '停用' : 'Disable') : zh ? '启用' : 'Enable'}
+                        {s.enabled ? i.disable : i.enable}
                       </Button>
                       {s.kind === 'webhook' ? (
                         <Button type="button" variant="outline" size="sm" onClick={() => void rotateToken(s.id)}>
-                          {zh ? '轮换令牌' : 'Rotate token'}
+                          {i.rotateToken}
                         </Button>
                       ) : (
                         <>
@@ -644,7 +621,7 @@ export function KbIngestSourcesDialog({
                             disabled={!s.enabled || loading}
                             onClick={() => void runSync(s.id)}
                           >
-                            {zh ? '立即拉取' : 'Sync now'}
+                            {i.syncNow}
                           </Button>
                           <Button
                             type="button"
@@ -652,7 +629,7 @@ export function KbIngestSourcesDialog({
                             size="sm"
                             onClick={() => openSyncOptionsDialog(s)}
                           >
-                            {zh ? '同步选项' : 'Sync options'}
+                            {i.syncOptions}
                           </Button>
                         </>
                       )}
@@ -665,7 +642,7 @@ export function KbIngestSourcesDialog({
                           <Spinner className="size-3" />
                         </div>
                       ) : (syncHistory[s.id]?.events?.length ?? 0) === 0 ? (
-                        <p>{zh ? '暂无记录' : 'No sync runs yet'}</p>
+                        <p>{i.noSyncRuns}</p>
                       ) : (
                         <ul className="max-h-32 space-y-1 overflow-y-auto font-mono">
                           {(syncHistory[s.id]?.events ?? []).map((ev: SyncEvent, idx: number) => (
@@ -688,10 +665,10 @@ export function KbIngestSourcesDialog({
 
         <DialogFooter className="gap-2 sm:justify-between">
           <Button type="button" onClick={openCreateDialog} disabled={loading}>
-            {zh ? '添加来源' : 'Add source'}
+            {i.addSource}
           </Button>
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-            {zh ? '关闭' : 'Close'}
+            {i.close}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -700,18 +677,18 @@ export function KbIngestSourcesDialog({
     <Dialog open={createOpen} onOpenChange={setCreateOpen}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>{zh ? '添加摄入来源' : 'Add ingest source'}</DialogTitle>
+          <DialogTitle>{i.addDialogTitle}</DialogTitle>
           <DialogDescription>
-            {zh ? '配置 Webhook、HTTP 拉取或 GitHub 文件同步。' : 'Configure webhook, HTTP poll, or GitHub file sync.'}
+            {i.addDialogDesc}
           </DialogDescription>
         </DialogHeader>
         {createFormFields}
         <DialogFooter>
           <Button type="button" variant="outline" onClick={() => setCreateOpen(false)}>
-            {zh ? '取消' : 'Cancel'}
+            {t.common.cancel}
           </Button>
           <Button type="button" onClick={() => void createSource()} disabled={loading || !name.trim()}>
-            {loading ? <Spinner className="size-4" /> : zh ? '创建' : 'Create'}
+            {loading ? <Spinner className="size-4" /> : i.create}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -725,26 +702,24 @@ export function KbIngestSourcesDialog({
     >
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>{zh ? '同步选项' : 'Sync options'}</DialogTitle>
+          <DialogTitle>{i.syncOptions}</DialogTitle>
           <DialogDescription>
             {syncOptionsSource?.name
-              ? zh
-                ? `来源：${syncOptionsSource.name}`
-                : `Source: ${syncOptionsSource.name}`
+              ? fmt(i.syncOptionsSource, { name: syncOptionsSource.name })
               : null}
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-3">
           <div className="space-y-2">
-            <Label>{zh ? '同步资料标题' : 'Document title'}</Label>
+            <Label>{i.syncDocTitle}</Label>
             <Input
               value={editSyncTitle}
               onChange={(e) => setEditSyncTitle(e.target.value)}
-              placeholder={zh ? '留空则使用来源名称' : 'Empty = source name'}
+              placeholder={i.emptySourceName}
             />
           </div>
           <div className="space-y-2">
-            <Label>{zh ? 'doc_id 前缀' : 'doc_id prefix'}</Label>
+            <Label>{i.docIdPrefix}</Label>
             <Input
               value={editSyncPrefix}
               onChange={(e) => setEditSyncPrefix(e.target.value)}
@@ -754,10 +729,10 @@ export function KbIngestSourcesDialog({
         </div>
         <DialogFooter>
           <Button type="button" variant="outline" onClick={closeSyncOptionsDialog}>
-            {zh ? '取消' : 'Cancel'}
+            {t.common.cancel}
           </Button>
           <Button type="button" disabled={loading} onClick={() => void saveSyncOptions()}>
-            {loading ? <Spinner className="size-4" /> : zh ? '保存' : 'Save'}
+            {loading ? <Spinner className="size-4" /> : t.common.save}
           </Button>
         </DialogFooter>
       </DialogContent>

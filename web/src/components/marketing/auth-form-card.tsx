@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card.j
 import { Input } from '@/components/ui/input.js';
 import { Label } from '@/components/ui/label.js';
 import { useI18n } from '@/i18n/context.js';
+import type { Locale } from '@/i18n/locale.js';
 import { formatUserFacingApiError } from '@/lib/api-error-message.js';
 import { useBasisSession } from '@/lib/basis-session.js';
 
@@ -45,7 +46,7 @@ export function AuthFormCard() {
       if (mode === 'login') await login(email, password);
       else await register(email, password, displayName);
     } catch (err) {
-      const message = formatUserFacingApiError(err, locale === 'zh' ? 'zh' : 'en');
+      const message = formatUserFacingApiError(err, locale as Locale);
       setError(message || t.login.loginFailed);
     } finally {
       setBusy(false);

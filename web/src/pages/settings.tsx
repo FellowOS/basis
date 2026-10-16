@@ -20,6 +20,7 @@ type Settings = {
 
 export function SettingsPage() {
   const { t } = useI18n();
+  const ps = t.platformSettings;
   const apiError = useApiErrorMessage();
   const [settings, setSettings] = useState<Settings | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -56,7 +57,7 @@ export function SettingsPage() {
   if (!settings) {
     return (
       <ConsolePageLayout crumbs={[{ label: t.menu.system.title }]} subtitle={t.menu.system.hint}>
-        <p className="text-sm text-muted-foreground">加载中…</p>
+        <p className="text-sm text-muted-foreground">{t.common.loading}</p>
       </ConsolePageLayout>
     );
   }
@@ -67,19 +68,22 @@ export function SettingsPage() {
       subtitle={t.menu.system.hint}
       actions={
         <Button type="button" size="sm" variant="outline" onClick={() => setEditOpen(true)}>
-          编辑注册策略
+          {ps.editRegistration}
         </Button>
       }
     >
       {error && <p className="text-sm text-destructive">{error}</p>}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">注册策略</CardTitle>
+          <CardTitle className="text-base">{ps.registrationPolicy}</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-sm">
-            开放注册：
-            <span className="font-medium">{settings.open_registration ? '是' : '否'}</span>
+            {ps.openRegistration}
+            {ps.labelSuffix}
+            <span className="font-medium">
+              {settings.open_registration ? ps.yes : ps.no}
+            </span>
           </p>
         </CardContent>
       </Card>
@@ -88,8 +92,8 @@ export function SettingsPage() {
         <DialogContent className="sm:max-w-md">
           <form onSubmit={onSave}>
             <DialogHeader>
-              <DialogTitle>注册策略</DialogTitle>
-              <DialogDescription>控制是否允许新用户自行注册。</DialogDescription>
+              <DialogTitle>{ps.registrationPolicy}</DialogTitle>
+              <DialogDescription>{ps.editDesc}</DialogDescription>
             </DialogHeader>
             <div className="py-4">
               <label className="flex items-center gap-2 text-sm">
@@ -98,15 +102,15 @@ export function SettingsPage() {
                   name="open_registration"
                   defaultChecked={settings.open_registration}
                 />
-                开放注册
+                {ps.openRegistration}
               </label>
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setEditOpen(false)}>
-                取消
+                {t.common.cancel}
               </Button>
               <Button type="submit" disabled={saving}>
-                {saving ? '保存中…' : '保存'}
+                {saving ? t.common.processing : t.common.save}
               </Button>
             </DialogFooter>
           </form>

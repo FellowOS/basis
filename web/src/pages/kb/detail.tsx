@@ -31,6 +31,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table.js';
+import { useI18n } from '@/i18n/context.js';
+import { fmt } from '@/i18n/format.js';
 import { api } from '@/lib/api.js';
 import { useApiErrorMessage } from '@/lib/use-api-error-message.js';
 
@@ -45,6 +47,8 @@ type UserRow = { id: string; email: string; display_name: string };
 
 export function KbDetailPage() {
   const apiError = useApiErrorMessage();
+  const { t } = useI18n();
+  const ks = t.kbSettings;
   const { id } = useParams();
   const [kb, setKb] = useState<{ name: string; my_role: string } | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
@@ -93,8 +97,10 @@ export function KbDetailPage() {
 
   if (!kb) {
     return (
-      <ConsolePageLayout crumbs={[{ label: '知识库', to: '/kbs' }, { label: '…' }]}>
-        <p className="text-sm text-muted-foreground">加载中…</p>
+      <ConsolePageLayout
+        crumbs={[{ label: t.menu.platform.kbs, to: '/kbs' }, { label: '…' }]}
+      >
+        <p className="text-sm text-muted-foreground">{t.common.loading}</p>
       </ConsolePageLayout>
     );
   }
@@ -103,33 +109,33 @@ export function KbDetailPage() {
 
   return (
     <ConsolePageLayout
-      crumbs={[{ label: '知识库', to: '/kbs' }, { label: kb.name }]}
-      meta={`我的角色：${kb.my_role}`}
+      crumbs={[{ label: t.menu.platform.kbs, to: '/kbs' }, { label: kb.name }]}
+      meta={fmt(ks.myRoleMeta, { role: kb.my_role })}
       actions={
         canManage ? (
           <Button type="button" size="sm" onClick={() => setAddOpen(true)}>
-            添加成员
+            {ks.addMember}
           </Button>
         ) : undefined
       }
     >
       <p>
         <Link className="text-primary hover:underline" to={`/kbs/${id}/knowledge`}>
-          打开知识能力 →
+          {ks.openKnowledgeLink}
         </Link>
       </p>
       {error && <p className="text-sm text-destructive">{error}</p>}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">成员</CardTitle>
+          <CardTitle className="text-base">{t.menu.kbSettings.members}</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>用户</TableHead>
-                <TableHead>邮箱</TableHead>
-                <TableHead>角色</TableHead>
+                <TableHead>{ks.colUser}</TableHead>
+                <TableHead>{ks.colEmail}</TableHead>
+                <TableHead>{ks.colRole}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -148,15 +154,15 @@ export function KbDetailPage() {
       <Dialog open={addOpen} onOpenChange={setAddOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>添加成员</DialogTitle>
-            <DialogDescription>选择用户并指定 KB 角色。</DialogDescription>
+            <DialogTitle>{ks.addMemberTitle}</DialogTitle>
+            <DialogDescription>{ks.addMemberDesc}</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-2">
             <div className="space-y-2">
-              <Label>用户</Label>
+              <Label>{ks.colUser}</Label>
               <Select value={targetUser} onValueChange={setTargetUser}>
                 <SelectTrigger>
-                  <SelectValue placeholder="选择用户" />
+                  <SelectValue placeholder={ks.selectUser} />
                 </SelectTrigger>
                 <SelectContent>
                   {users.map((u) => (
@@ -168,7 +174,7 @@ export function KbDetailPage() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>角色</Label>
+              <Label>{ks.role}</Label>
               <Select value={role} onValueChange={setRole}>
                 <SelectTrigger>
                   <SelectValue />
@@ -184,10 +190,10 @@ export function KbDetailPage() {
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setAddOpen(false)}>
-              取消
+              {t.common.cancel}
             </Button>
             <Button type="button" disabled={!targetUser || adding} onClick={() => void addMember()}>
-              {adding ? '保存中…' : '保存'}
+              {adding ? t.common.processing : t.common.save}
             </Button>
           </DialogFooter>
         </DialogContent>

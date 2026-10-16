@@ -12,8 +12,7 @@ import { kbPath } from '@/lib/nav-config.js';
 
 export function KbEntityResolutionPage() {
   const { id } = useParams();
-  const { t, locale } = useI18n();
-  const zh = locale === 'zh';
+  const { t } = useI18n();
   const { getKb } = useKbCatalog();
   const [pageActions, setPageActions] = useState<EntityResolutionPageActions | null>(null);
   const onPageActionsChange = useCallback((actions: EntityResolutionPageActions | null) => {
@@ -35,7 +34,7 @@ export function KbEntityResolutionPage() {
       actions={
         pageActions ? (
           <Button type="button" size="sm" onClick={pageActions.openDedupScan}>
-            {zh ? '去重扫描' : 'Dedup scan'}
+            {t.entityResolution.dedupScan}
           </Button>
         ) : undefined
       }

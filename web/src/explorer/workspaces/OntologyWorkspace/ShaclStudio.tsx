@@ -1,9 +1,12 @@
+import { PublicIcon } from "@/components/ui/public-icon.js";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils.js";
 import Editor, { type Monaco } from "@monaco-editor/react";
-import { FileCode2, Loader2, Play, Shield, Wand2 } from "lucide-react";
 import { Button } from "@/components/ui/button.js";
+import { useI18n } from "@/i18n/context.js";
+import { fmt } from "@/i18n/format.js";
 import { useTheme } from "@/lib/theme.js";
+import { exWsHint, exWsScrollFill, exWsSplitMain, exWsSplitSidebar } from "@/lib/explorer-ws-classes.js";
 import {
   generateShacl,
   loadOntologyRegistry,
@@ -13,19 +16,12 @@ import {
 import { useOntologyKbId } from "./ontologyKb";
 import { explorerApiErrorMessage } from "../../lib/explorer-api-error";
 import type { OntologyEntry, ShaclShapeSummary, ShaclValidationResponse } from "./types";
-import {
-  ontCard,
-  ontErrorBanner,
-  ontHero,
-  ontInput,
-  ontKicker,
-  ontLabel,
-  ontLead,
-  ontPageScroll,
-  ontRowCard,
-  ontSectionTitle,
-  ontStrong,
-} from "./ontologyUiClasses";
+
+function localName(value: string): string {
+  const cut = Math.max(value.lastIndexOf("#"), value.lastIndexOf("/"));
+  const name = cut >= 0 ? value.slice(cut + 1) : value;
+  return name || value;
+}
 
 interface ShaclStudioProps {
   onJumpToNode?: (nodeId: string) => void;
@@ -33,6 +29,12 @@ interface ShaclStudioProps {
 
 export function ShaclStudio({ onJumpToNode }: ShaclStudioProps) {
   const kbId = useOntologyKbId();
+  const { t, locale } = useI18n();
+  const copy = t.kbShacl;
+  const constraintsLabel = (n: number) =>
+    fmt(n === 1 && locale !== "zh" ? copy.constraintsOne : copy.constraints, {
+      count: String(n),
+    });
   const { theme } = useTheme();
   const [registry, setRegistry] = useState<OntologyEntry[]>([]);
   const [selectedUri, setSelectedUri] = useState("");
@@ -157,7 +159,7 @@ export function ShaclStudio({ onJumpToNode }: ShaclStudioProps) {
   const groupedShapes = useMemo(() => {
     const groups = new Map<string, ShaclShapeSummary[]>();
     for (const shape of shapes) {
-      const key = shape.target_class || "Untargeted shapes";
+      const key = shape.target_class || "";
       groups.set(key, [...(groups.get(key) || []), shape]);
     }
     return Array.from(groups.entries());
@@ -192,94 +194,112 @@ export function ShaclStudio({ onJumpToNode }: ShaclStudioProps) {
 
   const editorTheme = theme === "dark" ? "vs-dark" : "vs";
 
+  const statusLabel = validation
+    ? validation.status === "unavailable"
+      ? copy.unavailable
+      : validation.conforms
+        ? copy.conforms
+        : validation.status
+    : null;
+
   return (
-    <div className={`${ontPageScroll} gap-4`}>
-      <section className={ontHero}>
-        <div>
-          <div className={ontKicker}>
-            <Shield size={14} /> SHACL Studio
-          </div>
-          <h2 className="my-2 text-2xl font-bold tracking-tight text-foreground">Generate, edit, and validate shapes</h2>
-          <p className={ontLead}>
-            Create strict SHACL Turtle from ontology structure, inspect shape targets,
-            run validation, and jump from violations back into the graph.
-          </p>
-        </div>
-        <div className="min-w-[320px]">
-          <label className={ontLabel}>Ontology</label>
-          <select className={ontInput} value={selectedUri} onChange={(event) => setSelectedUri(event.target.value)}>
-            {registry.map((entry) => (
-              <option key={entry.uri} value={entry.uri}>{entry.name}</option>
-            ))}
-          </select>
-        </div>
-      </section>
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+      <div className="flex h-12 shrink-0 items-center gap-3 border-b border-border px-4">
+        <span className="flex shrink-0 items-center gap-1.5 text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
+          <PublicIcon name="shield-01" size={13} />
+          SHACL
+        </span>
+        <label className="sr-only" htmlFor="shacl-ontology">{copy.ontology}</label>
+        <select
+          id="shacl-ontology"
+          className="h-8 min-w-0 max-w-sm flex-1 rounded-md border border-border bg-background px-2 text-xs text-foreground"
+          value={selectedUri}
+          onChange={(event) => setSelectedUri(event.target.value)}
+        >
+          {registry.map((entry) => (
+            <option key={entry.uri} value={entry.uri}>{entry.name}</option>
+          ))}
+        </select>
+        <span className="hidden font-mono text-[11px] text-muted-foreground sm:inline">
+          {shapes.length}
+        </span>
+        <Button type="button" size="sm" variant="outline" className="h-8" disabled={loading || !selectedUri} onClick={handleGenerate}>
+          <PublicIcon name="magic-wand" size={14} />
+          {copy.generate}
+        </Button>
+        <Button type="button" size="sm" className="h-8" disabled={loading || !shacl.trim()} onClick={() => void handleValidate()}>
+          <PublicIcon name={loading ? "loader-01" : "play-03"} size={14} className={loading ? "animate-spin" : undefined} />
+          {loading ? copy.validating : copy.validate}
+        </Button>
+      </div>
 
-      {error ? <div className={ontErrorBanner}>{error}</div> : null}
+      {error ? (
+        <div className="flex shrink-0 items-start gap-2 border-b border-destructive/30 bg-destructive/10 px-4 py-2 text-sm text-destructive">
+          <PublicIcon name="alert-circle" size={16} className="mt-0.5" />
+          <div>{error}</div>
+        </div>
+      ) : null}
 
-      <div className="grid min-h-[560px] grid-cols-1 gap-4 lg:grid-cols-[360px_minmax(0,1fr)]">
-        <section className={ontCard}>
-          <div className="mb-3 flex items-center justify-between gap-3">
-            <h3 className={ontSectionTitle}>Shape library</h3>
-            <div className="flex items-center gap-2">
-              <span className="rounded-full border border-border px-2 py-0.5 text-[11px] font-bold text-muted-foreground">
-                {shapes.length} shapes
-              </span>
-              {selectedShapeId ? (
-                <Button type="button" size="sm" variant="ghost" onClick={handleShowAllShapes}>View all</Button>
-              ) : null}
-            </div>
+      <div className="flex min-h-0 flex-1 overflow-hidden">
+        <aside className={cn(exWsSplitSidebar, "w-[min(320px,36vw)]")}>
+          <div className="flex h-12 shrink-0 items-center justify-between gap-2 border-b border-border px-4">
+            <span className="flex items-center gap-1.5 text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
+              <PublicIcon name="shapes-01" size={13} />
+              {copy.shapes}
+            </span>
+            {selectedShapeId ? (
+              <Button type="button" size="sm" variant="ghost" className="h-7 px-2 text-[11px]" onClick={handleShowAllShapes}>
+                {copy.viewAll}
+              </Button>
+            ) : null}
           </div>
-          <div className="flex flex-col gap-2.5">
+          <div className={cn(exWsScrollFill, "flex flex-col gap-4 px-3 py-3")}>
             {groupedShapes.map(([target, items]) => (
-              <div key={target} className="flex flex-col gap-1.5">
-                <div className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">{target}</div>
+              <div key={target} className="flex flex-col gap-1">
+                <div className="truncate px-1 text-[10px] font-semibold tracking-wide text-muted-foreground uppercase" title={target || copy.untargeted}>
+                  {target ? localName(target) : copy.untargeted}
+                </div>
                 {items.map((shape) => {
                   const isSelected = selectedShapeId === shape.id;
                   return (
                     <button
                       key={shape.id}
                       type="button"
-                      className={`${ontRowCard} grid w-full grid-cols-[18px_1fr_auto] gap-2.5 text-left ${
-                        isSelected ? "border-primary/35 bg-primary/10" : ""
-                      }`}
+                      className={cn(
+                        "flex w-full items-start gap-2 rounded-md px-2 py-1.5 text-left hover:bg-muted/60",
+                        isSelected && "bg-muted",
+                      )}
                       onClick={() => handleSelectShape(shape.id)}
-                      title="Click to load this shape into the editor"
+                      title={shape.id}
                     >
-                      <FileCode2 size={14} className={isSelected ? "text-primary" : "text-muted-foreground"} />
-                      <div>
-                        <div className={ontStrong}>{shape.id}</div>
-                        <div className="text-xs leading-snug text-muted-foreground">
-                          {shape.constraint_count} constraints
-                          {shape.constraints.length ? ` · ${shape.constraints.join(", ")}` : ""}
-                        </div>
-                      </div>
-                      <span className="font-bold text-warn">{shape.violation_count}</span>
+                      <PublicIcon name="file-code" size={13} className={cn("mt-0.5", isSelected ? "text-foreground" : "text-muted-foreground")} />
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-xs font-medium text-foreground">{localName(shape.id)}</span>
+                        <span className={cn(exWsHint, "block truncate")}>
+                          {constraintsLabel(shape.constraint_count)}
+                          {shape.constraints.length ? ` · ${shape.constraints.map(localName).join(", ")}` : ""}
+                        </span>
+                      </span>
+                      {shape.violation_count > 0 ? (
+                        <span className="font-mono text-[11px] tabular-nums text-destructive">{shape.violation_count}</span>
+                      ) : null}
                     </button>
                   );
                 })}
               </div>
             ))}
-            {!shapes.length ? <p className="text-xs text-muted-foreground">No shapes generated yet.</p> : null}
+            {!shapes.length ? <p className={cn(exWsHint, "px-1 py-6 text-center")}>{copy.emptyShapes}</p> : null}
           </div>
-        </section>
+        </aside>
 
-        <section className={`${ontCard} flex min-h-[560px] flex-col`}>
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-            <h3 className={ontSectionTitle}>
-              {selectedShapeId ? selectedShapeId : "Turtle shape editor"}
-            </h3>
-            <div className="flex gap-2">
-              <Button type="button" size="sm" variant="outline" disabled={loading} onClick={handleGenerate}>
-                <Wand2 size={14} /> Generate strict
-              </Button>
-              <Button type="button" size="sm" disabled={loading || !shacl.trim()} onClick={handleValidate}>
-                {loading ? <Loader2 size={14} className="animate-spin" /> : <Play size={14} />}
-                Validate
-              </Button>
-            </div>
+        <section className={exWsSplitMain}>
+          <div className="flex h-12 shrink-0 items-center gap-2 border-b border-border px-4">
+            <PublicIcon name="code-01" size={13} className="text-muted-foreground" />
+            <h2 className="min-w-0 truncate text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
+              {selectedShapeId ? localName(selectedShapeId) : copy.allShapes}
+            </h2>
           </div>
-          <div className="min-h-0 flex-1 overflow-hidden rounded-2xl border border-border">
+          <div className="min-h-0 flex-1">
             <Editor
               height="100%"
               language="turtle"
@@ -293,61 +313,71 @@ export function ShaclStudio({ onJumpToNode }: ShaclStudioProps) {
                 fontFamily: "JetBrains Mono, monospace",
                 wordWrap: "on",
                 scrollBeyondLastLine: false,
+                padding: { top: 12, bottom: 12 },
               }}
             />
           </div>
-        </section>
-      </div>
-
-      <section className={ontCard}>
-        <div className="mb-3 flex items-center justify-between gap-3">
-          <h3 className={ontSectionTitle}>Validation report</h3>
-          {validation ? (
-            <span className={cn("rounded-full border px-2 py-1 text-[11px] font-black uppercase", validationBadgeClass(validation.status, validation.conforms))}>
-              {validation.status}{validation.conforms ? " · conforms" : ""}
-            </span>
-          ) : null}
-        </div>
-        {validation ? (
-          <>
-            <p className={ontLead}>{validation.message}</p>
-            <div className="mt-3 flex flex-col gap-2">
-              {validation.violations.map((violation, index) => {
-                const nodeId = violation.focus_node || violation.node;
-                return (
-                  <div key={`${violation.node}-${violation.path}-${index}`} className={`${ontRowCard} grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto]`}>
-                    <div>
-                      <div className={ontStrong}>{violation.message}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {violation.severity} {violation.path ? `· ${violation.path}` : ""}
-                      </div>
-                      {nodeId ? (
-                        <div className="mt-1 break-all font-mono text-[11px] text-muted-foreground">{nodeId}</div>
-                      ) : null}
-                    </div>
-                    {nodeId ? (
-                      <Button type="button" size="sm" variant="outline" onClick={() => onJumpToNode?.(nodeId)}>
-                        Jump to Node
-                      </Button>
-                    ) : null}
-                  </div>
-                );
-              })}
-              {!validation.violations.length ? (
-                <p className="text-xs text-muted-foreground">No validation violations returned.</p>
+          <div className={cn("shrink-0 border-t border-border", validation ? "max-h-[42%] overflow-auto" : "")}>
+            <div className="flex h-12 items-center gap-3 px-4">
+              <span className="flex items-center gap-1.5 text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
+                <PublicIcon name="shield-check" size={13} />
+                {copy.report}
+              </span>
+              {statusLabel ? (
+                <span className={cn("font-mono text-[11px]", validationBadgeClass(validation!.status, validation!.conforms))}>
+                  {statusLabel}
+                  {validation?.violations.length ? ` · ${validation.violations.length}` : ""}
+                </span>
+              ) : (
+                <span className={exWsHint}>{copy.reportEmpty}</span>
+              )}
+              {validation?.message ? (
+                <span className={cn(exWsHint, "min-w-0 flex-1 truncate")} title={validation.message}>{validation.message}</span>
               ) : null}
             </div>
-          </>
-        ) : (
-          <p className="text-xs text-muted-foreground">Generate or edit SHACL Turtle, then run validation.</p>
-        )}
-      </section>
+            {validation?.violations.length ? (
+              <ol className="m-0 divide-y divide-border border-t border-border">
+                {validation.violations.map((violation, index) => {
+                  const nodeId = violation.focus_node || violation.node;
+                  return (
+                    <li key={`${violation.node}-${violation.path}-${index}`} className="flex items-start gap-3 px-4 py-2.5">
+                      <span className="w-5 shrink-0 pt-0.5 text-right font-mono text-[11px] tabular-nums text-muted-foreground">
+                        {index + 1}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <div className="text-xs text-foreground">{violation.message}</div>
+                        <div className={cn(exWsHint, "mt-0.5 truncate")} title={violation.path}>
+                          {violation.severity}
+                          {violation.path ? ` · ${localName(violation.path)}` : ""}
+                        </div>
+                        {nodeId ? (
+                          <div className="mt-0.5 truncate font-mono text-[11px] text-muted-foreground" title={nodeId}>
+                            {localName(nodeId)}
+                          </div>
+                        ) : null}
+                      </div>
+                      {nodeId ? (
+                        <Button type="button" size="sm" variant="ghost" className="h-7 shrink-0 px-2 text-[11px]" onClick={() => onJumpToNode?.(nodeId)}>
+                          <PublicIcon name="graph" size={13} />
+                          {copy.jump}
+                        </Button>
+                      ) : null}
+                    </li>
+                  );
+                })}
+              </ol>
+            ) : validation ? (
+              <p className={cn(exWsHint, "border-t border-border px-4 py-3")}>{copy.noViolations}</p>
+            ) : null}
+          </div>
+        </section>
+      </div>
     </div>
   );
 }
 
 function validationBadgeClass(status: string, conforms: boolean) {
-  if (status === "unavailable") return "border-warn/35 bg-warn/10 text-warn";
-  if (conforms) return "border-ok/35 bg-ok/10 text-ok";
-  return "border-destructive/35 bg-destructive/10 text-destructive";
+  if (status === "unavailable") return "text-warn";
+  if (conforms) return "text-ok";
+  return "text-destructive";
 }

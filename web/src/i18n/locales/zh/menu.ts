@@ -60,6 +60,7 @@ export const menu = {
     unavailable: '当前知识库未启用此能力。',
     workspaceDisabledTitle: '工作区不可用',
     navDisabled: '此入口已禁用',
+    importEditorRequired: '需要编辑者权限才能导入图数据。',
   },
   kbSettings: {
     title: '知识库设置',

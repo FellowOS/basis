@@ -1,3 +1,4 @@
+import { PublicIcon } from "@/components/ui/public-icon.js";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   explorerApiErrorMessage,
@@ -9,18 +10,6 @@ import {
 import { explorerFetch } from "../../host/explorerHttp";
 import { ontologyPath, useOntologyKbId } from "./ontologyKb";
 import { readOntologyUrlState, writeProposalSelection } from "./ontologyUrlState";
-import {
-  Layers,
-  GitMerge,
-  Clock,
-  FileText,
-  CheckCircle,
-  XCircle,
-  AlertCircle,
-  Send,
-  ArrowRight,
-  Scale,
-} from "lucide-react";
 import { Button } from "@/components/ui/button.js";
 import {
   Dialog,
@@ -293,15 +282,15 @@ export function VersionsTab() {
   const getStateIcon = (state: string) => {
     switch (state) {
       case "published":
-        return <CheckCircle size={16} className="text-ok" />;
+        return <PublicIcon name="check-circle" size={16} className="text-ok" />;
       case "approved":
-        return <CheckCircle size={16} className="text-primary" />;
+        return <PublicIcon name="check-circle" size={16} className="text-primary" />;
       case "rejected":
-        return <XCircle size={16} className="text-destructive" />;
+        return <PublicIcon name="x-circle" size={16} className="text-destructive" />;
       case "proposed":
-        return <AlertCircle size={16} className="text-warn" />;
+        return <PublicIcon name="alert-circle" size={16} className="text-warn" />;
       default:
-        return <Clock size={16} className="text-muted-foreground" />;
+        return <PublicIcon name="clock-01" size={16} className="text-muted-foreground" />;
     }
   };
 
@@ -332,7 +321,7 @@ export function VersionsTab() {
 
       <div className="mb-6">
         <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-foreground">
-          <Layers size={16} />
+          <PublicIcon name="stack" size={16} />
           Version History
         </h2>
         <div className="flex flex-col gap-2">
@@ -360,7 +349,7 @@ export function VersionsTab() {
                     setShowCompareModal(true);
                   }}
                 >
-                  <ArrowRight size={12} />
+                  <PublicIcon name="arrow-right" size={12} />
                   Compare
                 </Button>
               </div>
@@ -371,7 +360,7 @@ export function VersionsTab() {
 
       <div className="mb-6">
         <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-foreground">
-          <GitMerge size={16} />
+          <PublicIcon name="git-merge" size={16} />
           Change Proposals
         </h2>
         <div className="flex flex-col gap-2">
@@ -393,18 +382,18 @@ export function VersionsTab() {
                 {proposal.state === "proposed" && (
                   <div className="flex gap-1.5">
                     <Button type="button" size="sm" onClick={() => approveProposal(proposal.proposal_id)}>
-                      <CheckCircle size={12} />
+                      <PublicIcon name="check-circle" size={12} />
                       Approve
                     </Button>
                     <Button type="button" size="sm" variant="outline" onClick={() => rejectProposal(proposal.proposal_id)}>
-                      <XCircle size={12} />
+                      <PublicIcon name="x-circle" size={12} />
                       Reject
                     </Button>
                   </div>
                 )}
                 {proposal.state === "approved" && (
                   <Button type="button" size="sm" onClick={() => publishProposal(proposal.proposal_id)}>
-                    <Send size={12} />
+                    <PublicIcon name="paper-plane" size={12} />
                     Publish
                   </Button>
                 )}
@@ -419,7 +408,7 @@ export function VersionsTab() {
                     setShowProposalModal(true);
                   }}
                 >
-                  <FileText size={12} />
+                  <PublicIcon name="file-01" size={12} />
                   Details
                 </Button>
               </div>
@@ -507,18 +496,18 @@ export function VersionsTab() {
               {selectedProposal.state === "proposed" && (
                 <>
                   <Button type="button" size="sm" onClick={() => approveProposal(selectedProposal.proposal_id)}>
-                    <CheckCircle size={12} />
+                    <PublicIcon name="check-circle" size={12} />
                     Approve
                   </Button>
                   <Button type="button" size="sm" variant="outline" onClick={() => rejectProposal(selectedProposal.proposal_id)}>
-                    <XCircle size={12} />
+                    <PublicIcon name="x-circle" size={12} />
                     Reject
                   </Button>
                 </>
               )}
               {selectedProposal.state === "approved" && (
                 <Button type="button" size="sm" onClick={() => publishProposal(selectedProposal.proposal_id)}>
-                  <Send size={12} />
+                  <PublicIcon name="paper-plane" size={12} />
                   Publish
                 </Button>
               )}
@@ -562,7 +551,7 @@ export function VersionsTab() {
                   Cancel
                 </Button>
                 <Button type="button" disabled={isLoading} onClick={runVersionComparison}>
-                  <Scale size={12} />
+                  <PublicIcon name="scales" size={12} />
                   {isLoading ? "Comparing…" : "Compare"}
                 </Button>
               </DialogFooter>

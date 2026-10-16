@@ -10,6 +10,7 @@ import { KbExplorerUnavailable } from '@/components/kb/shell/kb-explorer-unavail
 import { Button } from '@/components/ui/button.js';
 import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
+import type { Locale } from '@/i18n/locale.js';
 import { kbPath } from '@/lib/nav-config.js';
 import { GraphExplorerThemeSync } from '@/lib/graph/explorer-theme-sync.js';
 const GraphWorkspace = lazy(() =>
@@ -36,10 +37,11 @@ export function KbGraphWorkspace({
   focusNodeId?: string | null;
   focusAtInstant?: string | null;
 }) {
-  const { locale } = useI18n();
+  const { t, locale } = useI18n();
+  const g = t.kbGraphPage;
+  const apiLocale = locale as Locale;
   const { caps, loading: capsLoading } = useKbCapabilities();
   const config = useMemo(() => buildKbExplorerHttpConfig(kbId), [kbId]);
-  const zh = locale === 'zh';
   const [importExportOpen, setImportExportOpen] = useState(false);
   const [importExportFocus, setImportExportFocus] = useState<'import' | 'export'>('export');
   const [reloadToken, setReloadToken] = useState(0);
@@ -78,7 +80,7 @@ export function KbGraphWorkspace({
                 />
                 <Button type="button" variant="outline" size="sm" asChild>
                   <Link to={`${kbPath(kbId, 'settings')}?tab=graph`}>
-                    {zh ? '投影设置' : 'Projection'}
+                    {g.projectionSettings}
                   </Link>
                 </Button>
               </>
@@ -91,7 +93,7 @@ export function KbGraphWorkspace({
                   size="sm"
                   onClick={() => openImportExport('import')}
                 >
-                  {zh ? '导入' : 'Import'}
+                  {g.import}
                 </Button>
                 <Button
                   type="button"
@@ -99,7 +101,7 @@ export function KbGraphWorkspace({
                   size="sm"
                   onClick={() => openImportExport('export')}
                 >
-                  {zh ? '导出' : 'Export'}
+                  {g.export}
                 </Button>
               </>
             ) : null}
@@ -112,7 +114,7 @@ export function KbGraphWorkspace({
                       : kbPath(kbId, 'lineage')
                   }
                 >
-                  {zh ? '溯源' : 'Lineage'}
+                  {g.lineage}
                 </Link>
               </Button>
             ) : null}
@@ -140,7 +142,7 @@ export function KbGraphWorkspace({
               fallback={
                 <div className="flex flex-1 items-center justify-center gap-2 text-sm text-muted-foreground">
                   <Spinner className="size-4" />
-                  {zh ? '加载图谱…' : 'Loading graph…'}
+                  {t.kbExplorer.loadingGraph}
                 </div>
               }
             >
@@ -155,7 +157,7 @@ export function KbGraphWorkspace({
                 graphWriteEnabled={!capsLoading && (caps?.graph_write ?? false)}
                 decisionsEnabled={!capsLoading && (caps?.decisions ?? false)}
                 externalReloadToken={reloadToken}
-                apiErrorLocale={zh ? "zh" : "en"}
+                apiErrorLocale={apiLocale}
               />
               </GraphExplorerThemeSync>
             </Suspense>

@@ -1,7 +1,9 @@
+import { PublicIcon } from "@/components/ui/public-icon.js";
 import { useCallback, useEffect, useState } from "react";
 import { cn } from "@/lib/utils.js";
-import { Download, HeartPulse, Loader2, Wrench } from "lucide-react";
 import { Button } from "@/components/ui/button.js";
+import { useI18n } from "@/i18n/context.js";
+import type { Locale } from "@/i18n/locale.js";
 import { explorerApiErrorMessage } from "../../lib/explorer-api-error";
 import { loadOntologyHealth, loadOntologyRegistry } from "./api";
 import { useOntologyKbId } from "./ontologyKb";
@@ -26,6 +28,8 @@ interface HealthTabProps {
 }
 
 export function HealthTab({ onFixInEditor }: HealthTabProps) {
+  const { t, locale } = useI18n();
+  const h = t.kbOntology.health;
   const kbId = useOntologyKbId();
   const [registry, setRegistry] = useState<OntologyEntry[]>([]);
   const [selectedUri, setSelectedUri] = useState("");
@@ -43,12 +47,12 @@ export function HealthTab({ onFixInEditor }: HealthTabProps) {
       })
       .catch((err) => {
         if (cancelled) return;
-        setError(explorerApiErrorMessage(err));
+        setError(explorerApiErrorMessage(err, locale as Locale));
       });
     return () => {
       cancelled = true;
     };
-  }, [kbId]);
+  }, [kbId, locale]);
 
   const [prevUri, setPrevUri] = useState(selectedUri);
   if (selectedUri !== prevUri) {
@@ -96,16 +100,13 @@ export function HealthTab({ onFixInEditor }: HealthTabProps) {
       <section className={ontHero}>
         <div>
           <div className={ontKicker}>
-            <HeartPulse size={14} /> Ontology Health
+            <PublicIcon name="heartbeat" size={14} /> {h.kicker}
           </div>
-          <h2 className="my-2 text-2xl font-bold tracking-tight text-foreground">Quality and governance signals</h2>
-          <p className={ontLead}>
-            Score completeness, consistency, SHACL readiness, alignment coverage,
-            and documentation quality for the selected ontology.
-          </p>
+          <h2 className="my-2 text-2xl font-bold tracking-tight text-foreground">{h.title}</h2>
+          <p className={ontLead}>{h.lead}</p>
         </div>
         <div className="min-w-[320px]">
-          <label className={ontLabel}>Ontology</label>
+          <label className={ontLabel}>{h.ontologyLabel}</label>
           <select className={ontInput} value={selectedUri} onChange={(event) => setSelectedUri(event.target.value)}>
             {registry.map((entry) => (
               <option key={entry.uri} value={entry.uri}>{entry.name}</option>
@@ -118,7 +119,7 @@ export function HealthTab({ onFixInEditor }: HealthTabProps) {
 
       {loading ? (
         <div className="inline-flex items-center gap-2 px-1 py-4 text-sm text-muted-foreground">
-          <Loader2 size={18} className="animate-spin" /> Computing health dashboard...
+          <PublicIcon name="loader-01" size={18} className="animate-spin" /> {h.computing}
         </div>
       ) : health ? (
         <>
@@ -127,9 +128,9 @@ export function HealthTab({ onFixInEditor }: HealthTabProps) {
               <span className="text-5xl font-black leading-none tracking-tight text-primary">
                 {Math.round(health.total_score)}
               </span>
-              <span className="text-sm text-muted-foreground">Total health score</span>
+              <span className="text-sm text-muted-foreground">{h.totalScore}</span>
               <Button type="button" size="sm" variant="outline" className="mt-1 w-fit" onClick={exportReport}>
-                <Download size={14} /> Export report
+                <PublicIcon name="download-01" size={14} /> {h.exportReport}
               </Button>
             </div>
             {health.dimensions.map((dimension) => (
@@ -158,25 +159,38 @@ export function HealthTab({ onFixInEditor }: HealthTabProps) {
           </section>
 
           <section className={ontCard}>
-            <h3 className={ontSectionTitle}>Actionable issues</h3>
+            <h3 className={ontSectionTitle}>{h.actionableIssues}</h3>
             <div className="flex flex-col gap-2">
               {health.issues.map((issue) => (
-                <IssueRow key={issue.id} issue={issue} onFixInEditor={onFixInEditor} />
+                <IssueRow
+                  key={issue.id}
+                  issue={issue}
+                  fixLabel={h.fixInEditor}
+                  onFixInEditor={onFixInEditor}
+                />
               ))}
               {!health.issues.length ? (
-                <p className="text-sm text-muted-foreground">No actionable issues reported for this ontology.</p>
+                <p className="text-sm text-muted-foreground">{h.noIssues}</p>
               ) : null}
             </div>
           </section>
         </>
       ) : (
-        <div className="p-5 text-sm text-muted-foreground">Select an ontology to compute health signals.</div>
+        <div className="p-5 text-sm text-muted-foreground">{h.selectOntology}</div>
       )}
     </div>
   );
 }
 
-function IssueRow({ issue, onFixInEditor }: { issue: HealthIssue; onFixInEditor?: (entityUri: string) => void }) {
+function IssueRow({
+  issue,
+  fixLabel,
+  onFixInEditor,
+}: {
+  issue: HealthIssue;
+  fixLabel: string;
+  onFixInEditor?: (entityUri: string) => void;
+}) {
   return (
     <div className={`${ontRowCard} grid grid-cols-[14px_1fr_auto_auto] items-start gap-3`}>
       <div className={cn("mt-1.5 size-2.5 shrink-0 rounded-full", severityDotClass(issue.severity))} />
@@ -192,8 +206,8 @@ function IssueRow({ issue, onFixInEditor }: { issue: HealthIssue; onFixInEditor?
       </span>
       {issue.entity_uri ? (
         <button type="button" className={ontBtnSmall} onClick={() => onFixInEditor?.(issue.entity_uri || "")}>
-          <Wrench size={13} />
-          Fix in Editor
+          <PublicIcon name="wrench" size={13} />
+          {fixLabel}
         </button>
       ) : (
         <div />

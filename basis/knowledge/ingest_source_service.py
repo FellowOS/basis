@@ -24,13 +24,13 @@ _GITHUB_REPO_RE = re.compile(
 
 _DEFAULT_PROCESSING_OPTIONS = {
     "chunk": True,
+    "chunk_method": "recursive",
     "chunk_size": 1800,
     "chunk_overlap": 250,
     "extract": True,
     "ner_method": "pattern",
     "relation_method": "pattern",
     "extract_relations": True,
-    "extract_triplets": False,
 }
 
 

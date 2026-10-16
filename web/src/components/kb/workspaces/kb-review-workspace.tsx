@@ -15,7 +15,7 @@ export function KbReviewWorkspace({
   kbId: string;
   className?: string;
 }) {
-  const { locale } = useI18n();
+  const { t } = useI18n();
   const [searchParams] = useSearchParams();
   const { caps, loading: capsLoading } = useKbCapabilities();
   const reviewUrl = parseReviewUrlState(searchParams.toString());
@@ -25,16 +25,13 @@ export function KbReviewWorkspace({
     return <KbExplorerUnavailable kbId={kbId} feature="review" />;
   }
 
-  const loadingLabel =
-    locale === 'zh' ? '加载审核队列…' : 'Loading review queue…';
-
   return (
     <KbGovernanceExplorerShell kbId={kbId} className={className}>
       <Suspense
         fallback={
           <div className="flex flex-1 items-center justify-center gap-2 text-sm text-muted-foreground">
             <Spinner className="size-4" />
-            {loadingLabel}
+            {t.kbExplorer.loadingReview}
           </div>
         }
       >

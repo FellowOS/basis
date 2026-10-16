@@ -2,7 +2,6 @@ import { lazy, Suspense } from 'react';
 import { KbExplorerConsoleShell } from '@/components/kb/shell/kb-explorer-console-shell.js';
 import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
-import type { ReasoningPageActions } from '@/explorer/workspaces/ReasoningWorkspace.js';
 
 const ReasoningWorkspace = lazy(() =>
   import('@/explorer/workspaces/ReasoningWorkspace.js').then((module) => ({
@@ -10,22 +9,15 @@ const ReasoningWorkspace = lazy(() =>
   })),
 );
 
-export type { ReasoningPageActions };
-
-export type KbReasoningPageActions = ReasoningPageActions;
-
 export function KbReasoningWorkspace({
   kbId,
   className,
-  onPageActionsChange,
 }: {
   kbId: string;
   className?: string;
-  onPageActionsChange?: (actions: ReasoningPageActions | null) => void;
 }) {
-  const { locale } = useI18n();
-  const loadingLabel = locale === 'zh' ? '加载推理工作台…' : 'Loading reasoning workspace…';
-  const pageActionsHosted = Boolean(onPageActionsChange);
+  const { t } = useI18n();
+  const loadingLabel = t.kbExplorer.loadingReasoning;
 
   return (
     <KbExplorerConsoleShell
@@ -42,11 +34,7 @@ export function KbReasoningWorkspace({
           </div>
         }
       >
-        <ReasoningWorkspace
-          kbId={kbId}
-          pageActionsHosted={pageActionsHosted}
-          onPageActionsChange={onPageActionsChange}
-        />
+        <ReasoningWorkspace kbId={kbId} />
       </Suspense>
     </KbExplorerConsoleShell>
   );

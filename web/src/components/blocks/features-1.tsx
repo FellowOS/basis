@@ -1,10 +1,10 @@
 'use client';
 
-import type { LucideIcon } from 'lucide-react';
 import { motion } from 'motion/react';
+import { PublicIcon } from '@/components/ui/public-icon.js';
 
 export type MarketingFeature = {
-  icon: LucideIcon;
+  icon: string;
   title: string;
   description: string;
 };
@@ -54,7 +54,6 @@ export function Features1({ eyebrow, headline, subhead, features }: Features1Pro
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-8 md:gap-x-8 md:gap-y-12">
           {features.map((feature, index) => {
-            const Icon = feature.icon;
             return (
               <motion.div
                 key={feature.title}
@@ -66,7 +65,7 @@ export function Features1({ eyebrow, headline, subhead, features }: Features1Pro
               >
                 <div className="flex items-center gap-3 mb-2">
                   <div className="inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-xl border border-border bg-card shadow-sm">
-                    <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-[var(--brand-primary,#d4880a)]" />
+                    <PublicIcon name={feature.icon} size={22} className="text-[var(--brand-primary,#d4880a)]" />
                   </div>
 
                   <h3 className="text-base tracking-tight font-semibold text-foreground">{feature.title}</h3>

@@ -1,0 +1,23 @@
+export const kbSparql = {
+  templates: '模版',
+  results: '结果',
+  rows: '{count} 行',
+  rowsOne: '{count} 行',
+  exportCsv: '导出 CSV',
+  run: '执行查询',
+  running: '执行中…',
+  replaceTitle: '替换当前查询？',
+  replaceBody: '编辑器里的查询会被模版覆盖。',
+  replaceConfirm: '替换',
+  stale: '查询已变更，以下仍是上次结果。',
+  emptyTitle: '尚无结果',
+  emptyReady: '查询已就绪，执行后在此查看。',
+  emptyBody: '选择模版或编写 SPARQL，然后执行。',
+  noRows: '查询返回 0 行。',
+  templateLabels: {
+    triples: '三元组',
+    types: '类型',
+    edges: '出边',
+    path: '路径',
+  },
+} as const;

@@ -28,7 +28,7 @@ export function KbVocabularyHubWorkspace({
   kbId: string;
   className?: string;
 }) {
-  const { locale } = useI18n();
+  const { t } = useI18n();
   const { caps, loading: capsLoading } = useKbCapabilities();
   const config = useMemo(() => buildKbExplorerHttpConfig(kbId), [kbId]);
 
@@ -51,7 +51,7 @@ export function KbVocabularyHubWorkspace({
               fallback={
                 <div className="flex flex-1 items-center justify-center gap-2 text-sm text-muted-foreground">
                   <Spinner className="size-4" />
-                  {locale === 'zh' ? '加载词表工作台…' : 'Loading vocabulary workspace…'}
+                  {t.kbVocabulary.loadingWorkspace}
                 </div>
               }
             >

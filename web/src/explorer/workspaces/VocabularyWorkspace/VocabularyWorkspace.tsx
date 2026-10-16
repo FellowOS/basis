@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { exWsPageRow } from '@/lib/explorer-ws-classes.js';
 import { Sidebar } from './Sidebar';
 import { PropertyPanel } from './PropertyPanel';
 import type { ConceptNode } from './types';
@@ -9,14 +10,10 @@ export function VocabularyWorkspace({ kbId }: { kbId: string }) {
 
   return (
     <VocabularyKbProvider kbId={kbId}>
-    <div className="vocab-layout">
-      <Sidebar onSelectConcept={setSelectedConcept} />
-      <div className="vocab-main">
-        <div className="vocab-detail">
-          <PropertyPanel concept={selectedConcept} />
-        </div>
+      <div className={exWsPageRow}>
+        <Sidebar onSelectConcept={setSelectedConcept} />
+        <PropertyPanel concept={selectedConcept} onSelectConcept={setSelectedConcept} />
       </div>
-    </div>
     </VocabularyKbProvider>
   );
 }

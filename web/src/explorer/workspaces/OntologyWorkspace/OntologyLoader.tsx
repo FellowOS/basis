@@ -1,16 +1,8 @@
+import { PublicIcon } from "@/components/ui/public-icon.js";
 import { useRef, useState } from "react";
 import { explorerApiErrorMessage, parseExplorerJson } from "../../lib/explorer-api-error";
 import { explorerFetch } from "../../host/explorerHttp";
 import { ontologyPath, useOntologyKbId } from "./ontologyKb";
-import {
-  AlertCircle,
-  CheckCircle2,
-  ChevronDown,
-  FileUp,
-  Globe,
-  Loader2,
-  Plus,
-} from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -20,6 +12,9 @@ import {
 } from "@/components/ui/dialog.js";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs.js";
 import { Button } from "@/components/ui/button.js";
+import { useI18n } from "@/i18n/context.js";
+import { fmt } from "@/i18n/format.js";
+import type { Locale } from "@/i18n/locale.js";
 import { cn } from "@/lib/utils.js";
 import {
   ontBadgeBase,
@@ -143,11 +138,14 @@ function Textarea({
 }
 
 function PreviewCard({ preview }: { preview: OntologyPreview }) {
+  const { t } = useI18n();
+  const l = t.kbOntology.loader;
+  const m = t.kbOntology.manager;
   return (
     <div className={ontLoaderPreviewCard}>
       <div className="mb-3 flex items-center gap-2">
-        <CheckCircle2 size={16} className="text-ok" aria-hidden />
-        <span className="text-xs font-bold text-ok">Preview ready</span>
+        <PublicIcon name="check-circle" size={16} className="text-ok" />
+        <span className="text-xs font-bold text-ok">{l.previewReady}</span>
         <FormatBadge format={preview.format} />
       </div>
 
@@ -159,11 +157,11 @@ function PreviewCard({ preview }: { preview: OntologyPreview }) {
       )}
 
       <div className={ontLoaderPreviewGrid}>
-        <PreviewRow label="Namespace" value={preview.namespace || preview.uri} mono />
-        {preview.version && <PreviewRow label="Version" value={preview.version} />}
-        {preview.license && <PreviewRow label="License" value={preview.license} />}
+        <PreviewRow label={l.namespace} value={preview.namespace || preview.uri} mono />
+        {preview.version && <PreviewRow label={m.detailVersion} value={preview.version} />}
+        {preview.license && <PreviewRow label={l.license} value={preview.license} />}
         <PreviewRow
-          label="Estimated triples"
+          label={l.estimatedTriples}
           value={preview.estimated_triples.toLocaleString()}
         />
       </div>
@@ -195,6 +193,9 @@ function PreviewRow({
 // ---------------------------------------------------------------------------
 
 function URLImportPanel({ onLoaded }: { onLoaded: () => void }) {
+  const { t, locale } = useI18n();
+  const l = t.kbOntology.loader;
+  const m = t.kbOntology.manager;
   const kbId = useOntologyKbId();
   const [url, setUrl] = useState("");
   const [format, setFormat] = useState("");
@@ -219,12 +220,12 @@ function URLImportPanel({ onLoaded }: { onLoaded: () => void }) {
         body: JSON.stringify({ url: url.trim(), format: format || undefined }),
       });
       setPreview(
-        await parseExplorerJson<OntologyPreview>(res, "Preview failed"),
+        await parseExplorerJson<OntologyPreview>(res, l.api.previewFailed),
       );
       setPreviewState("idle");
     } catch (e) {
       setPreviewState("error");
-      setErrorMsg(explorerApiErrorMessage(e, "en"));
+      setErrorMsg(explorerApiErrorMessage(e, locale as Locale));
     }
   };
 
@@ -243,7 +244,7 @@ function URLImportPanel({ onLoaded }: { onLoaded: () => void }) {
           tags: tags ? tags.split(",").map((t) => t.trim()).filter(Boolean) : [],
         }),
       });
-      await parseExplorerJson(res, "Load failed");
+      await parseExplorerJson(res, l.api.loadFailed);
       setLoadState("success");
       setTimeout(() => {
         setLoadState("idle");
@@ -251,13 +252,13 @@ function URLImportPanel({ onLoaded }: { onLoaded: () => void }) {
       }, 1200);
     } catch (e) {
       setLoadState("error");
-      setErrorMsg(explorerApiErrorMessage(e, "en"));
+      setErrorMsg(explorerApiErrorMessage(e, locale as Locale));
     }
   };
 
   return (
     <div className={ontLoaderPanelBody}>
-      <FieldGroup label="Ontology URL">
+      <FieldGroup label={l.ontologyUrl}>
         <div className="flex gap-2">
           <input
             type="url"
@@ -267,7 +268,7 @@ function URLImportPanel({ onLoaded }: { onLoaded: () => void }) {
               setPreview(null);
               setPreviewState("idle");
             }}
-            placeholder="https://schema.org/version/latest/schema.ttl"
+            placeholder={l.urlPlaceholder}
             className={cn(ontInput, "min-w-0 flex-1")}
           />
           <Button
@@ -279,9 +280,9 @@ function URLImportPanel({ onLoaded }: { onLoaded: () => void }) {
             className="shrink-0"
           >
             {previewState === "loading" ? (
-              <Loader2 size={13} className="animate-spin" />
+              <PublicIcon name="loader-01" size={13} className="animate-spin" />
             ) : (
-              "Fetch Preview"
+              l.fetchPreview
             )}
           </Button>
         </div>
@@ -289,7 +290,7 @@ function URLImportPanel({ onLoaded }: { onLoaded: () => void }) {
 
       {previewState === "error" && (
         <div className={ontLoaderErrorBox}>
-          <AlertCircle size={13} aria-hidden />
+          <PublicIcon name="alert-circle" size={13} />
           <span>{errorMsg}</span>
         </div>
       )}
@@ -301,51 +302,50 @@ function URLImportPanel({ onLoaded }: { onLoaded: () => void }) {
         onClick={() => setShowAdvanced((v) => !v)}
         className={ontLoaderAdvancedToggle}
       >
-        <ChevronDown
+        <PublicIcon name="chevron-down"
           size={13}
           className={cn("transition-transform duration-200", showAdvanced && "rotate-180")}
-          aria-hidden
         />
-        Advanced options
+        {l.advancedOptions}
       </button>
 
       {showAdvanced && (
         <div className="flex flex-col gap-3">
-          <FieldGroup label="Format override">
+          <FieldGroup label={l.formatOverride}>
             <select
               value={format}
               onChange={(e) => setFormat(e.target.value)}
               className={ontLoaderSelect}
             >
-              <option value="">Auto-detect</option>
+              <option value="">{l.formatAuto}</option>
               <option value="turtle">Turtle (.ttl)</option>
               <option value="xml">RDF/XML (.rdf, .owl)</option>
               <option value="nt">N-Triples (.nt)</option>
               <option value="json-ld">JSON-LD (.jsonld)</option>
             </select>
           </FieldGroup>
-          <FieldGroup label="Custom display name">
-            <Input value={customName} onChange={setCustomName} placeholder="Leave blank to use ontology title" />
+          <FieldGroup label={l.customDisplayName}>
+            <Input value={customName} onChange={setCustomName} placeholder={l.customNamePlaceholder} />
           </FieldGroup>
-          <FieldGroup label="Description">
-            <Input value={description} onChange={setDescription} placeholder="Optional description" />
+          <FieldGroup label={m.detailDescription}>
+            <Input value={description} onChange={setDescription} placeholder={l.descriptionOptional} />
           </FieldGroup>
-          <FieldGroup label="Tags (comma-separated)">
-            <Input value={tags} onChange={setTags} placeholder="e.g. biology, upper-ontology" />
+          <FieldGroup label={l.tagsComma}>
+            <Input value={tags} onChange={setTags} placeholder={l.tagsPlaceholderUrl} />
           </FieldGroup>
         </div>
       )}
 
       {loadState === "success" && (
         <div className={ontLoaderSuccessBox}>
-          <CheckCircle2 size={13} aria-hidden />
-          <span>Ontology loaded successfully</span>
+          <PublicIcon name="check-circle" size={13} />
+          <span>{l.loadSuccess}</span>
         </div>
       )}
 
       {loadState === "error" && (
         <div className={ontLoaderErrorBox}>
-          <AlertCircle size={13} aria-hidden />
+          <PublicIcon name="alert-circle" size={13} />
           <span>{errorMsg}</span>
         </div>
       )}
@@ -359,13 +359,13 @@ function URLImportPanel({ onLoaded }: { onLoaded: () => void }) {
         >
           {loadState === "loading" ? (
             <>
-              <Loader2 size={13} className="animate-spin" />
-              Loading…
+              <PublicIcon name="loader-01" size={13} className="animate-spin" />
+              {t.common.loading}
             </>
           ) : (
             <>
-              <Globe size={13} />
-              Load Ontology
+              <PublicIcon name="globe-02" size={13} />
+              {m.loadOntology}
             </>
           )}
         </Button>
@@ -379,6 +379,8 @@ function URLImportPanel({ onLoaded }: { onLoaded: () => void }) {
 // ---------------------------------------------------------------------------
 
 function FileUploadPanel({ onLoaded }: { onLoaded: () => void }) {
+  const { t, locale } = useI18n();
+  const l = t.kbOntology.loader;
   const kbId = useOntologyKbId();
   const fileRef = useRef<HTMLInputElement>(null);
   const [fileName, setFileName] = useState("");
@@ -419,7 +421,7 @@ function FileUploadPanel({ onLoaded }: { onLoaded: () => void }) {
         // Omit format when empty so the backend _detect_format() runs
         body: JSON.stringify({ content, ...(format ? { format } : {}) }),
       });
-      await parseExplorerJson(res, "Load failed");
+      await parseExplorerJson(res, l.api.loadFailed);
       setLoadState("success");
       setTimeout(() => {
         setLoadState("idle");
@@ -427,7 +429,7 @@ function FileUploadPanel({ onLoaded }: { onLoaded: () => void }) {
       }, 1200);
     } catch (e) {
       setLoadState("error");
-      setErrorMsg(explorerApiErrorMessage(e, "en"));
+      setErrorMsg(explorerApiErrorMessage(e, locale as Locale));
     }
   };
 
@@ -440,17 +442,16 @@ function FileUploadPanel({ onLoaded }: { onLoaded: () => void }) {
         onDrop={handleDrop}
         onClick={() => fileRef.current?.click()}
       >
-        <FileUp size={24} className="text-primary" aria-hidden />
+        <PublicIcon name="upload-01" size={24} className="text-primary" />
         {fileName ? (
           <div className="text-sm font-semibold text-foreground">{fileName}</div>
         ) : (
           <>
             <div className="text-sm text-muted-foreground">
-              Drop a file here or <span className="text-primary">browse</span>
+              {l.dropFilePrefix}
+              <span className="text-primary">{l.browse}</span>
             </div>
-            <div className="text-[11px] text-muted-foreground">
-              .ttl · .rdf · .owl · .xml · .nt · .jsonld · .json · .n3
-            </div>
+            <div className="text-[11px] text-muted-foreground">{l.dropExtensions}</div>
           </>
         )}
         <input
@@ -463,7 +464,7 @@ function FileUploadPanel({ onLoaded }: { onLoaded: () => void }) {
       </div>
 
       {content && (
-        <FieldGroup label="Format">
+        <FieldGroup label={l.format}>
           <select
             value={format}
             onChange={(e) => setFormat(e.target.value)}
@@ -479,14 +480,14 @@ function FileUploadPanel({ onLoaded }: { onLoaded: () => void }) {
 
       {loadState === "success" && (
         <div className={ontLoaderSuccessBox}>
-          <CheckCircle2 size={13} aria-hidden />
-          <span>Ontology loaded successfully — {fileName}</span>
+          <PublicIcon name="check-circle" size={13} />
+          <span>{fmt(l.loadSuccessFile, { file: fileName })}</span>
         </div>
       )}
 
       {loadState === "error" && (
         <div className={ontLoaderErrorBox}>
-          <AlertCircle size={13} aria-hidden />
+          <PublicIcon name="alert-circle" size={13} />
           <span>{errorMsg}</span>
         </div>
       )}
@@ -500,13 +501,13 @@ function FileUploadPanel({ onLoaded }: { onLoaded: () => void }) {
         >
           {loadState === "loading" ? (
             <>
-              <Loader2 size={13} className="animate-spin" />
-              Loading…
+              <PublicIcon name="loader-01" size={13} className="animate-spin" />
+              {t.common.loading}
             </>
           ) : (
             <>
-              <FileUp size={13} />
-              Load File
+              <PublicIcon name="upload-01" size={13} />
+              {l.loadFile}
             </>
           )}
         </Button>
@@ -520,6 +521,9 @@ function FileUploadPanel({ onLoaded }: { onLoaded: () => void }) {
 // ---------------------------------------------------------------------------
 
 function CreateNewPanel({ onLoaded }: { onLoaded: () => void }) {
+  const { t, locale } = useI18n();
+  const l = t.kbOntology.loader;
+  const m = t.kbOntology.manager;
   const kbId = useOntologyKbId();
   const [createMode, setCreateMode] = useState<CreateMode>("scratch");
   const [namespace, setNamespace] = useState("https://example.org/ontology/");
@@ -548,7 +552,7 @@ function CreateNewPanel({ onLoaded }: { onLoaded: () => void }) {
           schema_text: createMode === "text" ? schemaText : undefined,
         }),
       });
-      await parseExplorerJson(res, "Create failed");
+      await parseExplorerJson(res, l.api.createFailed);
       setCreateState("success");
       setTimeout(() => {
         setCreateState("idle");
@@ -556,61 +560,65 @@ function CreateNewPanel({ onLoaded }: { onLoaded: () => void }) {
       }, 1200);
     } catch (e) {
       setCreateState("error");
-      setErrorMsg(explorerApiErrorMessage(e, "en"));
+      setErrorMsg(explorerApiErrorMessage(e, locale as Locale));
     }
   };
 
   return (
     <div className={ontLoaderPanelBody}>
       <div className="flex gap-1.5">
-        {(["scratch", "data", "text"] as CreateMode[]).map((m) => (
+        {(["scratch", "data", "text"] as CreateMode[]).map((mode) => (
           <button
-            key={m}
+            key={mode}
             type="button"
-            onClick={() => setCreateMode(m)}
+            onClick={() => setCreateMode(mode)}
             className={cn(
               ontLoaderModeTab,
-              createMode === m ? ontLoaderModeTabActive : ontLoaderModeTabIdle,
+              createMode === mode ? ontLoaderModeTabActive : ontLoaderModeTabIdle,
             )}
           >
-            {m === "scratch" ? "From Scratch" : m === "data" ? "From Data" : "From Text"}
+            {mode === "scratch"
+              ? l.createFromScratch
+              : mode === "data"
+                ? l.createFromData
+                : l.createFromText}
           </button>
         ))}
       </div>
 
-      <FieldGroup label="Display Name *">
-        <Input value={name} onChange={setName} placeholder="My Ontology" />
+      <FieldGroup label={l.displayNameRequired}>
+        <Input value={name} onChange={setName} placeholder={l.namePlaceholder} />
       </FieldGroup>
 
-      <FieldGroup label="Namespace URI *">
-        <Input value={namespace} onChange={setNamespace} placeholder="https://example.org/onto/" />
+      <FieldGroup label={l.namespaceRequired}>
+        <Input value={namespace} onChange={setNamespace} placeholder={l.namespacePlaceholder} />
       </FieldGroup>
 
-      <FieldGroup label="Description">
-        <Input value={description} onChange={setDescription} placeholder="Optional description" />
+      <FieldGroup label={m.detailDescription}>
+        <Input value={description} onChange={setDescription} placeholder={l.descriptionOptional} />
       </FieldGroup>
 
-      <FieldGroup label="Tags (comma-separated)">
-        <Input value={tags} onChange={setTags} placeholder="e.g. internal, draft" />
+      <FieldGroup label={l.tagsComma}>
+        <Input value={tags} onChange={setTags} placeholder={l.tagsPlaceholderCreate} />
       </FieldGroup>
 
       {createMode === "data" && (
-        <FieldGroup label="Sample Data (JSON or CSV)">
+        <FieldGroup label={l.sampleData}>
           <Textarea
             value={sampleData}
             onChange={setSampleData}
-            placeholder={'[{"name": "Alice", "age": 30, "city": "Berlin"}]'}
+            placeholder={l.sampleDataPlaceholder}
             rows={6}
           />
         </FieldGroup>
       )}
 
       {createMode === "text" && (
-        <FieldGroup label="Schema Requirements (natural language)">
+        <FieldGroup label={l.schemaRequirements}>
           <Textarea
             value={schemaText}
             onChange={setSchemaText}
-            placeholder="Describe the ontology you need. E.g.: I need an ontology for a hospital domain with patients, doctors, appointments, and medications."
+            placeholder={l.schemaPlaceholder}
             rows={6}
           />
         </FieldGroup>
@@ -618,14 +626,14 @@ function CreateNewPanel({ onLoaded }: { onLoaded: () => void }) {
 
       {createState === "success" && (
         <div className={ontLoaderSuccessBox}>
-          <CheckCircle2 size={13} aria-hidden />
-          <span>Ontology created and opened in the Registry</span>
+          <PublicIcon name="check-circle" size={13} />
+          <span>{l.createSuccess}</span>
         </div>
       )}
 
       {createState === "error" && (
         <div className={ontLoaderErrorBox}>
-          <AlertCircle size={13} aria-hidden />
+          <PublicIcon name="alert-circle" size={13} />
           <span>{errorMsg}</span>
         </div>
       )}
@@ -639,13 +647,13 @@ function CreateNewPanel({ onLoaded }: { onLoaded: () => void }) {
         >
           {createState === "loading" ? (
             <>
-              <Loader2 size={13} className="animate-spin" />
-              Creating…
+              <PublicIcon name="loader-01" size={13} className="animate-spin" />
+              {l.creating}
             </>
           ) : (
             <>
-              <Plus size={13} />
-              Create Ontology
+              <PublicIcon name="plus-01" size={13} />
+              {l.createOntology}
             </>
           )}
         </Button>
@@ -659,6 +667,8 @@ function CreateNewPanel({ onLoaded }: { onLoaded: () => void }) {
 // ---------------------------------------------------------------------------
 
 export function OntologyLoader({ onLoaded, onClose }: LoaderProps) {
+  const { t } = useI18n();
+  const l = t.kbOntology.loader;
   const [mode, setMode] = useState<LoaderMode>("url");
 
   return (
@@ -670,10 +680,8 @@ export function OntologyLoader({ onLoaded, onClose }: LoaderProps) {
     >
       <DialogContent className="flex max-h-[min(92vh,44rem)] max-w-2xl flex-col gap-0 overflow-hidden p-0 sm:max-w-2xl">
         <DialogHeader className="border-b border-border px-6 py-4 text-left">
-          <DialogTitle>Load Ontology</DialogTitle>
-          <DialogDescription>
-            Import from URL, upload a file, or create a new ontology
-          </DialogDescription>
+          <DialogTitle>{l.dialogTitle}</DialogTitle>
+          <DialogDescription>{l.dialogDesc}</DialogDescription>
         </DialogHeader>
 
         <Tabs
@@ -683,16 +691,16 @@ export function OntologyLoader({ onLoaded, onClose }: LoaderProps) {
         >
           <TabsList className="mx-6 mt-4 w-auto justify-start">
             <TabsTrigger value="url" className="gap-1.5">
-              <Globe size={12} aria-hidden />
-              URL Import
+              <PublicIcon name="globe-02" size={12} />
+              {l.tabUrl}
             </TabsTrigger>
             <TabsTrigger value="file" className="gap-1.5">
-              <FileUp size={12} aria-hidden />
-              File Upload
+              <PublicIcon name="upload-01" size={12} />
+              {l.tabFile}
             </TabsTrigger>
             <TabsTrigger value="create" className="gap-1.5">
-              <Plus size={12} aria-hidden />
-              Create New
+              <PublicIcon name="plus-01" size={12} />
+              {l.tabCreate}
             </TabsTrigger>
           </TabsList>
 

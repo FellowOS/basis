@@ -1,5 +1,11 @@
+import type { Locale } from '@/i18n/locale.js';
+import { messagesForLocale } from '@/i18n/pick-locale.js';
 import { errorFromApiResponse } from '@/lib/api-error.js';
 import { getToken } from '@/lib/api.js';
+
+function ingestPollTimeoutMessage(locale: Locale): string {
+  return messagesForLocale(locale).kbIngestSources.ingestPollTimeout;
+}
 
 export type ExplorerCapabilities = {
   graph_snapshot: boolean;
@@ -119,6 +125,7 @@ export class ExplorerClient {
       version_id: string;
       wait?: boolean;
       chunk?: boolean;
+      chunk_method?: string;
       chunk_size?: number;
       chunk_overlap?: number;
       extract?: boolean;
@@ -126,7 +133,6 @@ export class ExplorerClient {
       ner_model?: string;
       relation_method?: string;
       extract_relations?: boolean;
-      extract_triplets?: boolean;
       idempotency_key?: string;
     }) =>
       this.request<{ job_id?: string; accepted?: boolean; ledger_status?: string }>(
@@ -162,7 +168,7 @@ export class ExplorerClient {
         job: { status: string; error_code?: string | null };
         version?: { status: string } | null;
       }>(`ingest/jobs/${jobId}`),
-    pollJob: async (jobId: string, timeoutMs = 120_000) => {
+    pollJob: async (jobId: string, timeoutMs = 120_000, locale: Locale = 'en') => {
       const deadline = Date.now() + timeoutMs;
       while (Date.now() < deadline) {
         const payload = await this.ingest.getJob(jobId);
@@ -172,7 +178,7 @@ export class ExplorerClient {
         }
         await new Promise((resolve) => setTimeout(resolve, 800));
       }
-      throw new Error('摄入超时，请稍后刷新文库');
+      throw new Error(ingestPollTimeoutMessage(locale));
     },
   };
 

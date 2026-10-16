@@ -1,3 +1,4 @@
+import { PublicIcon } from '@/components/ui/public-icon.js';
 import { useCallback, useState } from 'react';
 import { Navigate, useParams, useSearchParams } from 'react-router-dom';
 import { ConsolePageLayout } from '@/components/console-ui/index.js';
@@ -9,13 +10,11 @@ import { Button } from '@/components/ui/button.js';
 import { useI18n } from '@/i18n/context.js';
 import { useKbCatalog } from '@/lib/kb-context.js';
 import { kbPath } from '@/lib/nav-config.js';
-import { Plus } from 'lucide-react';
 
 export function KbOntologyPage() {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
-  const { t, locale } = useI18n();
-  const zh = locale === 'zh';
+  const { t } = useI18n();
   const { getKb } = useKbCatalog();
   const [pageActions, setPageActions] = useState<OntologyHubPageActions | null>(null);
   const onPageActionsChange = useCallback((actions: OntologyHubPageActions | null) => {
@@ -60,8 +59,8 @@ export function KbOntologyPage() {
       actions={
         pageActions ? (
           <Button type="button" size="sm" onClick={pageActions.openLoadOntology}>
-            <Plus size={14} />
-            {zh ? '加载本体' : 'Load ontology'}
+            <PublicIcon name='plus-01' size={14} />
+            {t.kbExplorer.loadOntology}
           </Button>
         ) : undefined
       }

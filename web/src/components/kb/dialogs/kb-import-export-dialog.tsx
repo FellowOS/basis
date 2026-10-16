@@ -36,10 +36,10 @@ export function KbImportExportDialog({
   onOpenChange: (open: boolean) => void;
   focus?: 'import' | 'export';
 }) {
-  const { locale } = useI18n();
+  const { t } = useI18n();
+  const ie = t.kbImportExport;
   const navigate = useNavigate();
   const config = useMemo(() => buildKbExplorerHttpConfig(kbId), [kbId]);
-  const zh = locale === 'zh';
   const isImport = focus === 'import';
 
   function goToReviewQueue() {
@@ -52,22 +52,10 @@ export function KbImportExportDialog({
       <DialogContent className="flex max-h-[min(92vh,48rem)] flex-col gap-0 overflow-hidden p-0 sm:max-w-4xl">
         <DialogHeader className="border-b border-border px-6 py-4 text-left">
           <DialogTitle>
-            {isImport
-              ? zh
-                ? '提交图导入（审核）'
-                : 'Submit graph import (review)'
-              : zh
-                ? '导出图快照'
-                : 'Export graph snapshot'}
+            {isImport ? ie.importDialogTitle : ie.exportDialogTitle}
           </DialogTitle>
           <DialogDescription className="space-y-2">
-            {isImport
-              ? zh
-                ? '上传 JSON/CSV 图数据后进入审核队列，批准前不会更新当前画布。'
-                : 'Upload JSON/CSV graph data to the review queue; the canvas does not change until approved.'
-              : zh
-                ? '下载当前知识库 Explorer 图的 JSON 或 CSV 快照。'
-                : 'Download a JSON or CSV snapshot of the current Explorer graph.'}
+            {isImport ? ie.importDialogDesc : ie.exportDialogDesc}
             {isImport ? (
               <span className="block">
                 <Link
@@ -75,7 +63,7 @@ export function KbImportExportDialog({
                   to={kbPath(kbId, 'review')}
                   onClick={() => onOpenChange(false)}
                 >
-                  {zh ? '前往审核队列' : 'Open review queue'}
+                  {ie.openReviewQueue}
                 </Link>
               </span>
             ) : null}
@@ -88,16 +76,15 @@ export function KbImportExportDialog({
                 fallback={
                   <div className="flex items-center justify-center gap-2 py-16 text-sm text-muted-foreground">
                     <Spinner className="size-4" />
-                    {zh ? '加载中…' : 'Loading…'}
+                    {t.common.loading}
                   </div>
                 }
               >
                 <ImportExportWorkspace
                   kbId={kbId}
                   focusSection={focus}
-                  locale={zh ? 'zh' : 'en'}
                   onImportQueued={goToReviewQueue}
-                  importQueuedActionLabel={zh ? '前往审核队列' : 'Open review queue'}
+                  importQueuedActionLabel={ie.openReviewQueue}
                 />
               </Suspense>
             </ExplorerHostProvider>

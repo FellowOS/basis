@@ -1,0 +1,30 @@
+export const kbImportExport = {
+  importDialogTitle: 'Submit graph import (review)',
+  exportDialogTitle: 'Export graph snapshot',
+  importDialogDesc:
+    'Upload JSON/CSV graph data to the review queue; the canvas does not change until approved.',
+  exportDialogDesc: 'Download a JSON or CSV snapshot of the current Explorer graph.',
+  openReviewQueue: 'Open review queue',
+  pageTitle: 'Import & Export',
+  pageSubtitle: 'Ingest new graph datasets or extract the current knowledge base.',
+  importCardTitle: 'Import Entities & Relations',
+  importHint: 'Imports are queued for editor approval (Review queue) before they update the graph.',
+  fileSizeReplace: '{size} KB — click to replace',
+  dropBrowse: 'Drag & drop or click to browse',
+  or: 'or',
+  uploading: 'Uploading…',
+  uploadToGraph: 'Upload to Graph',
+  exportCardTitle: 'Export Graph Snapshot',
+  formatLabel: 'Format',
+  includedTitle: "What's included",
+  includedJson:
+    'Full graph snapshot: all node properties, edge weights, entity metadata and semantic groups in a standardized JSON payload.',
+  includedCsv:
+    'Flattened CSV: nodes and edges as rows. Complex nested properties are stringified. Best for spreadsheet analysis.',
+  preparing: 'Preparing…',
+  exportButton: 'Export',
+  importSuccess: 'Submitted {name} for review — approve in the review queue.',
+  exportSuccess: 'Export ready — semantica_export.{format}',
+  importFailed: 'Import failed',
+  exportFailed: 'Export failed',
+} as const;

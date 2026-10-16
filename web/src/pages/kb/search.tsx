@@ -13,6 +13,8 @@ import { Button } from '@/components/ui/button.js';
 import { Input } from '@/components/ui/input.js';
 import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
+import { fmt } from '@/i18n/format.js';
+import type { Locale } from '@/i18n/locale.js';
 import { api } from '@/lib/api.js';
 import { formatUserFacingApiError } from '@/lib/api-error-message.js';
 import { useKbCatalog } from '@/lib/kb-context.js';
@@ -47,6 +49,7 @@ type ChunkHit = {
 
 export function KbSearchPage() {
   const { t, locale } = useI18n();
+  const s = t.kbSearch;
   const { id } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
   const { getKb } = useKbCatalog();
@@ -179,7 +182,7 @@ export function KbSearchPage() {
           setEngine(null);
         }
       } catch (err) {
-        setError(formatUserFacingApiError(err, locale === 'zh' ? 'zh' : 'en'));
+        setError(formatUserFacingApiError(err, locale as Locale));
         setGraphResults([]);
         setChunkResults([]);
         setEntityResults([]);
@@ -225,33 +228,6 @@ export function KbSearchPage() {
   }
 
   const name = kb?.name ?? id ?? '…';
-  const searching = locale === 'zh' ? '搜索中…' : 'Searching…';
-  const searchLabel = locale === 'zh' ? '搜索' : 'Search';
-  const chunkPlaceholder =
-    locale === 'zh' ? '文档片段关键词…' : 'Keywords in document chunks…';
-  const graphPlaceholder =
-    locale === 'zh' ? '节点 id、类型或文本…' : 'Node id, type, or text…';
-  const tabChunks = locale === 'zh' ? '文档片段' : 'Chunks';
-  const tabGraph = locale === 'zh' ? '图谱节点' : 'Graph';
-  const tabEntities = locale === 'zh' ? '账本实体' : 'Entities';
-  const entityPlaceholder = locale === 'zh' ? '实体名称或描述…' : 'Entity label or description…';
-  const resultsTitle = locale === 'zh' ? '结果' : 'Results';
-  const noResults = locale === 'zh' ? '无结果' : 'No results';
-  const engineLabel = locale === 'zh' ? '引擎' : 'Engine';
-  const modeLabel = locale === 'zh' ? '模式' : 'Mode';
-  const openInGraph = locale === 'zh' ? '在图谱中打开' : 'Open in graph';
-  const filterDocLabel = locale === 'zh' ? '限定文档 (doc_id)' : 'Limit to document (doc_id)';
-  const filterEntityLabel = locale === 'zh' ? '限定实体 (id)' : 'Limit to entity (id)';
-  const filterAfterLabel =
-    locale === 'zh' ? '文档入库不早于 (ISO)' : 'Document created after (ISO)';
-  const filterBeforeLabel =
-    locale === 'zh' ? '文档入库不晚于 (ISO)' : 'Document created before (ISO)';
-  const filterAsOfLabel =
-    locale === 'zh' ? '截至时刻 as_of (ISO，等同 created_before)' : 'As-of instant (ISO, alias for created_before)';
-  const graphTemporalHint =
-    locale === 'zh'
-      ? '图谱搜索默认针对当前投影。填写 as_of 时仅返回该时点仍活跃的节点（与 temporal/snapshot 一致）。'
-      : 'Graph search uses the current projection by default. Set as_of to restrict results to nodes active at that instant (aligned with temporal/snapshot).';
 
   useEffect(() => {
     const doc = searchParams.get('doc');
@@ -282,7 +258,9 @@ export function KbSearchPage() {
         ? entityResults.length
         : graphResults.length;
   const countLabel =
-    locale === 'zh' ? `共 ${resultCount} 条结果` : `${resultCount} result${resultCount === 1 ? '' : 's'}`;
+    locale === 'en' && resultCount === 1
+      ? fmt(s.resultCountOne, { count: resultCount })
+      : fmt(s.resultCount, { count: resultCount });
 
   return (
     <ConsolePageLayout
@@ -298,7 +276,7 @@ export function KbSearchPage() {
             <>
               {' '}
               <Link to={kbPath(id, 'graph')} className="text-primary underline-offset-2 hover:underline">
-                {locale === 'zh' ? '打开图谱' : 'Open graph'}
+                {s.openGraphLink}
               </Link>
             </>
           ) : null}
@@ -315,10 +293,10 @@ export function KbSearchPage() {
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder={
                   tab === 'chunks'
-                    ? chunkPlaceholder
+                    ? s.chunkPlaceholder
                     : tab === 'entities'
-                      ? entityPlaceholder
-                      : graphPlaceholder
+                      ? s.entityPlaceholder
+                      : s.graphPlaceholder
                 }
               />
             }
@@ -331,7 +309,7 @@ export function KbSearchPage() {
                     variant={tab === 'chunks' ? 'default' : 'outline'}
                     onClick={() => setTab('chunks')}
                   >
-                    {tabChunks}
+                    {s.tabChunks}
                   </Button>
                   <Button
                     type="button"
@@ -340,7 +318,7 @@ export function KbSearchPage() {
                     onClick={() => setTab('graph')}
                     disabled={!!graphBlocked}
                   >
-                    {tabGraph}
+                    {s.tabGraph}
                   </Button>
                   <Button
                     type="button"
@@ -348,12 +326,12 @@ export function KbSearchPage() {
                     variant={tab === 'entities' ? 'default' : 'outline'}
                     onClick={() => setTab('entities')}
                   >
-                    {tabEntities}
+                    {s.tabEntities}
                   </Button>
                 </div>
                 <Button type="submit" size="sm" disabled={loading}>
                   {loading ? <Spinner className="size-4" /> : null}
-                  {loading ? searching : searchLabel}
+                  {loading ? s.searching : s.search}
                 </Button>
               </>
             }
@@ -361,15 +339,15 @@ export function KbSearchPage() {
           {tab === 'graph' && id && !graphBlocked ? (
             <div className="mt-2 space-y-2 px-1">
               <p className="text-xs text-muted-foreground">
-                {graphTemporalHint}{' '}
+                {s.graphTemporalHint}{' '}
                 <Link to={kbPath(id, 'graph')} className="text-primary underline-offset-2 hover:underline">
-                  {openInGraph}
+                  {s.openInGraph}
                 </Link>
               </p>
               <Input
                 value={filterAsOf}
                 onChange={(e) => setFilterAsOf(e.target.value)}
-                placeholder={filterAsOfLabel}
+                placeholder={s.filterAsOf}
                 className="text-xs"
               />
             </div>
@@ -379,32 +357,32 @@ export function KbSearchPage() {
               <Input
                 value={filterDoc}
                 onChange={(e) => setFilterDoc(e.target.value)}
-                placeholder={filterDocLabel}
+                placeholder={s.filterDoc}
                 className="text-xs"
               />
               <Input
                 value={filterEntity}
                 onChange={(e) => setFilterEntity(e.target.value)}
-                placeholder={filterEntityLabel}
+                placeholder={s.filterEntity}
                 className="text-xs"
               />
               <Input
                 value={filterCreatedAfter}
                 onChange={(e) => setFilterCreatedAfter(e.target.value)}
-                placeholder={filterAfterLabel}
+                placeholder={s.filterCreatedAfter}
                 className="text-xs sm:col-span-1"
               />
               <Input
                 value={filterCreatedBefore}
                 onChange={(e) => setFilterCreatedBefore(e.target.value)}
-                placeholder={filterBeforeLabel}
+                placeholder={s.filterCreatedBefore}
                 className="text-xs sm:col-span-1"
                 disabled={Boolean(filterAsOf.trim())}
               />
               <Input
                 value={filterAsOf}
                 onChange={(e) => setFilterAsOf(e.target.value)}
-                placeholder={filterAsOfLabel}
+                placeholder={s.filterAsOf}
                 className="text-xs sm:col-span-2"
               />
             </div>
@@ -414,12 +392,12 @@ export function KbSearchPage() {
           <div className="space-y-1 px-1 text-xs">
             {engine ? (
               <p className="text-muted-foreground">
-                {engineLabel}：{engine}
+                {s.engineLabel}：{engine}
               </p>
             ) : null}
             {chunkMode ? (
               <p className="text-muted-foreground">
-                {modeLabel}：{chunkMode}
+                {s.modeLabel}：{chunkMode}
               </p>
             ) : null}
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
@@ -427,13 +405,13 @@ export function KbSearchPage() {
         )}
         <DataPanelBody padded={false} className="mt-2">
           <div className="border-b border-border px-4 py-2 text-xs text-muted-foreground">
-            {resultsTitle}
+            {s.resultsTitle}
             {loading ? null : ` · ${countLabel}`}
           </div>
           <div className="space-y-3 p-4">
           {tab === 'chunks' ? (
             chunkResults.length === 0 ? (
-              <EmptyState title={noResults} description={chunkPlaceholder} />
+              <EmptyState title={s.noResults} description={s.chunkPlaceholder} />
             ) : (
               chunkResults.map((hit) => (
                 <div key={hit.chunk_id} className="rounded-md border p-3 text-sm">
@@ -449,7 +427,7 @@ export function KbSearchPage() {
                         <Link
                           to={`${kbPath(id, 'sources')}?chunk=${encodeURIComponent(hit.chunk_id)}`}
                         >
-                          {locale === 'zh' ? '证据' : 'Evidence'}
+                          {s.evidence}
                         </Link>
                       </Button>
                     ) : null}
@@ -461,15 +439,15 @@ export function KbSearchPage() {
           ) : tab === 'entities' ? (
             id ? (
               entityResults.length === 0 ? (
-                <EmptyState title={noResults} description={entityPlaceholder} />
+                <EmptyState title={s.noResults} description={s.entityPlaceholder} />
               ) : (
-                <LedgerEntityList kbId={id} entities={entityResults} emptyLabel={noResults} />
+                <LedgerEntityList kbId={id} entities={entityResults} emptyLabel={s.noResults} />
               )
             ) : (
-              <EmptyState title={noResults} />
+              <EmptyState title={s.noResults} />
             )
           ) : graphResults.length === 0 ? (
-            <EmptyState title={noResults} description={graphPlaceholder} />
+            <EmptyState title={s.noResults} description={s.graphPlaceholder} />
           ) : (
             graphResults.map((hit) => (
               <div key={hit.node.id} className="rounded-md border p-3 text-sm">
@@ -483,13 +461,13 @@ export function KbSearchPage() {
                           at: filterAsOf.trim() || undefined,
                         })}
                       >
-                        {openInGraph}
+                        {s.openInGraph}
                       </Link>
                     </Button>
                   ) : null}
                 </div>
                 <div className="text-muted-foreground">
-                  {hit.node.type} · score {hit.score.toFixed(3)}
+                  {fmt(s.graphScoreLine, { type: hit.node.type, score: hit.score.toFixed(3) })}
                 </div>
                 {hit.node.content && hit.node.content !== graphLabels[hit.node.id] ? (
                   <div className="mt-1 line-clamp-2 text-muted-foreground">{hit.node.content}</div>

@@ -32,7 +32,7 @@ export function KbLineageWorkspace({
       data-kb-id={kbId}
     >
       <ExplorerHostProvider config={config}>
-        <KbLineagePanel kbId={kbId} initialNodeId={initialNodeId} className="min-h-[min(70vh,640px)]" />
+        <KbLineagePanel kbId={kbId} initialNodeId={initialNodeId} className="min-h-0 flex-1" />
       </ExplorerHostProvider>
     </div>
   );

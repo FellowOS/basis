@@ -9,6 +9,8 @@ import {
   graphCopy,
   graphStatusCounts,
 } from "./graphWorkspaceCopy";
+import { GraphLoadBudgetControl } from "./GraphLoadBudgetControl";
+import type { GraphCatalogTotals, GraphLoadBudget } from "./graphLoadBudget";
 
 function StatusBadge({
   children,
@@ -35,6 +37,7 @@ export function GraphStatusDock({
   focusedSummary,
   readOnly = false,
   trailing,
+  loadBudget,
 }: {
   locale?: GraphWorkspaceLocale;
   showLoadingStatus: boolean;
@@ -44,6 +47,12 @@ export function GraphStatusDock({
   focusedSummary: string | null;
   readOnly?: boolean;
   trailing?: ReactNode;
+  loadBudget?: {
+    budget: GraphLoadBudget;
+    onBudgetCommit: (budget: GraphLoadBudget) => void;
+    catalogTotals: GraphCatalogTotals;
+    disabled?: boolean;
+  };
 }) {
   const hasLoading = showLoadingStatus && loadingPhase;
   const hasSummary = Boolean(summary);
@@ -62,7 +71,18 @@ export function GraphStatusDock({
       {hasLoading && loadingPhase ? (
         <StatusBadge>{getGraphLoadTitle(loadingPhase, locale)}</StatusBadge>
       ) : null}
-      {summary ? (
+      {summary && loadBudget ? (
+        <GraphLoadBudgetControl
+          locale={locale}
+          budget={loadBudget.budget}
+          onBudgetCommit={loadBudget.onBudgetCommit}
+          loadedNodes={summary.nodeCount}
+          loadedEdges={summary.edgeCount}
+          catalogTotals={loadBudget.catalogTotals}
+          disabled={loadBudget.disabled}
+        />
+      ) : null}
+      {summary && !loadBudget ? (
         <StatusBadge>
           {graphStatusCounts(locale, summary.nodeCount, summary.edgeCount)}
         </StatusBadge>

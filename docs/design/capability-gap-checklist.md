@@ -37,7 +37,8 @@ References: [Product and roadmap](product-and-roadmap.md), [Explorer integration
 
 | F-* | Capability | Status | Priority | Value (when it matters) |
 | --- | --- | --- | --- | --- |
-| F-LAKE-01–03 | Lakehouse: mount tables/Parquet, Ontology2SQL, declared actions | `not` | P2 | Unified semantic layer over warehouse/lake; **not** required for document→graph KB loop |
+| F-LAKE-01–03 | Lakehouse: mount tables/Parquet, Ontology2SQL, declared actions | `not` | P2 | **M7-01–02**, **M7-05**; pairs with **F-OPS**; not required for document→graph KB loop |
+| F-OPS-01–07 | Operational ontology (Palantir-style actions, functions, object↔dataset, OSDK-lite) | `not` | P2 | Second product track on ADR 0001; see [product-and-roadmap.md §5.18](product-and-roadmap.md); tasks **M7-00–M7-09** in [implementation-backlog.md §12](implementation-backlog.md) |
 | F-MEM-* | Agent Memory browser + `/api/memories` | `excluded` | P2 | Long-lived agent notes separate from canonical KB; enable with multi-agent / F-CHAT memory story |
 | — | Direct graph merge/import (Explorer-style) | `excluded` | — | `409` → review queue by design |
 | — | SPARQL UPDATE | `excluded` | — | Disabled by design |
@@ -104,7 +105,7 @@ References: [Product and roadmap](product-and-roadmap.md), [Explorer integration
 | **Next** | Multi-editor governance | F-ONT-05 proposal UX, F-RUL-01–03, F-CHAT-04 |
 | **Then** | Time + ops visibility | F-TIM-01–04 product surfaces, F-ALT-01–02, F-SRCH-03 |
 | **On demand** | Release engineering | F-DIFF-01, distance-matrix adapter |
-| **Enterprise option** | Data platform | F-LAKE-* |
+| **Enterprise option** | Data platform + operational ontology | F-LAKE-01–03 then F-OPS-04/05 → F-OPS-01/02 → F-OPS-03/06 |
 | **If agents are first-class** | Memory separate from KB | F-MEM-* |
 
 ---
@@ -115,4 +116,4 @@ References: [Product and roadmap](product-and-roadmap.md), [Explorer integration
 - Split **P0/P1** rows into backlog tasks (§6–9 in `implementation-backlog.md`) with acceptance tests.
 - Do **not** reopen Explorer shell items marked `excluded` or `replaced` unless product explicitly reverses ADR/design.
 
-_Last updated: 2026-10-15 (entities derived-facts panel, governance alert `decision_id`, reasoning-derived e2e)._
+_Last updated: 2026-10-15 (F-OPS / Palantir operational ontology in roadmap §5.18; entities derived-facts panel, governance alert `decision_id`, reasoning-derived e2e)._

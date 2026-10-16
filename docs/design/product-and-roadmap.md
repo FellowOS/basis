@@ -66,6 +66,7 @@
 | interface | GraphWorkspace | `F-UI` | **全量** |
 | chat-and-mcp | LLM extras | `F-CHAT` | **全量** |
 | lakehouse-and-actions | db-*, ingest-parquet… | `F-LAKE` | **可选模块**（企业扩展） |
+| operational ontology（对标 Palantir） | —（Basis 组装） | `F-OPS` | **可选模块**（与 `F-LAKE` 同批；见 §5.18） |
 
 | Explorer Workspace | Basis 落点（UI） | 纳入 |
 | --- | --- | --- |
@@ -348,17 +349,56 @@
 
 | ID | 能力 |
 | --- | --- |
-| F-LAKE-01 | 挂载表/Parquet |
-| F-LAKE-02 | 语义层 / Ontology2SQL |
-| F-LAKE-03 | Declared actions |
+| F-LAKE-01 | 挂载表/Parquet（含 Semantica `ingest-parquet`、`db-*` extras 能力） |
+| F-LAKE-02 | 语义层 / Ontology2SQL（类与列/表映射、受控查询） |
+| F-LAKE-03 | Declared actions（与 **F-OPS-01** 同一产品面：声明式写回/副作用） |
 
-**纳入策略**：企业扩展包，**不阻塞**核心 KB 闭环；与 Utopia lakehouse 域对齐时才启用对应 `semantica` db extras。
+**纳入策略**：企业扩展包，**不阻塞**核心 KB 闭环；与 Utopia lakehouse 域对齐时才启用对应 `semantica` db extras。运营语义层（Actions、对象—数据集绑定）的完整契约见 **§5.18**。
 
 ---
 
 ### 5.17 Agent Memory（可选）`F-MEM`
 
 Explorer Memory Workspace：长期 Agent 记忆图。**纳入策略**：当 F-CHAT 做多 Agent / 长期记忆时启用；否则排除。
+
+---
+
+### 5.18 运营语义层扩展（Palantir Foundry Ontology 对标）`F-OPS`
+
+在 [ADR 0001](../decisions/0001-canonical-knowledge-model.md) 的 **证据 KB** 之上，可选的第二轨道：**运营本体**（对象类型、受控写回、与数仓/湖对齐）。对标 Palantir Foundry Ontology 的「可执行语义层」，**不**替代默认的文库 → 抽取 → 陈述 → 审核 → 图投影闭环。
+
+**双轨（产品叙事）**
+
+| 轨道 | 主存与体验 | 典型用户问题 |
+| --- | --- | --- |
+| **A — 证据 KB**（默认） | 证据账本 + 投影图/向量/RDF | 这份材料说了什么？谁审过？冲突怎么决？ |
+| **B — 运营语义层**（企业可选） | `F-LAKE` 挂载 + `F-OPS` 对象/动作 | 业务对象状态是什么？谁能改？如何写回外部系统？ |
+
+轨道 B 依赖 Semantica SDK 的 lakehouse extras（`ingest-parquet`、`db-*` 等），由 Basis API 统一鉴权、审计与 KB 边界；**不**以独立 semantica HTTP 服务为产品入口。
+
+**与 Palantir 概念对照（差距 → 规划落点）**
+
+| Palantir / Foundry | Basis 现状（2026-10） | 规划 `F-*` |
+| --- | --- | --- |
+| **Object types** + 属性 | 图节点/实体 + OWL 类 + ledger 陈述 | 继续 **F-ONT** / **F-LDG**；运营对象绑定见 **F-OPS-04** |
+| **Actions**（参数、校验、执行） | 写路径以审核队列 + ledger 为主；无声明式 action 类型 | **F-OPS-01**、**F-LAKE-03** |
+| **Functions**（派生属性、批算） | **F-RUL** 为规则/推理与证明链，非业务函数沙箱 | **F-OPS-03**（与 F-RUL 分工：RUL=逻辑推导，OPS=可调用函数运行时） |
+| **Object ↔ dataset** 物化 | 无表/Parquet 挂载；图为投影 | **F-LAKE-01**、**F-OPS-04**、**F-OPS-05** |
+| **Interfaces** / 共享属性 | OWL/SKOS 已有；无「接口类型」一等公民 | **F-ONT** 深化 + **F-OPS-04** 映射层 |
+| **细粒度本体 ACL** | KB 级 `owner/admin/editor/viewer` | **F-OPS-02** |
+| **Workshop** / **OSDK** | Basis Web + MCP 工具子集 | **F-OPS-06**（集成 SDK / OpenAPI）；**F-OPS-07**（低代码壳，按需） |
+
+| ID | 能力 |
+| --- | --- |
+| F-OPS-01 | **Declared Actions**：action 类型、参数 schema、服务端校验、经 ledger/审计执行（可与外部 webhook/DB 写回组合） |
+| F-OPS-02 | **Action / 对象类型级权限**（超越 KB member role；与平台审计对齐） |
+| F-OPS-03 | **Ontology Functions**：派生属性、批处理求值运行时（语言/沙箱 TBD；非 SPARQL/Reasoner 替代品） |
+| F-OPS-04 | **对象类型 ↔ 数据集绑定**（表/Parquet/语义层列；依赖 **F-LAKE-01**） |
+| F-OPS-05 | **物化与同步作业**：从绑定源刷新运营侧投影或缓存（作业状态、告警与 **F-ALT** 深链） |
+| F-OPS-06 | **集成 SDK（OSDK-lite）**：由 ontology + actions 暴露稳定 OpenAPI 或 codegen 客户端 |
+| F-OPS-07 | **Workshop-lite**（可选）：可配置对象/动作面板，非 Phase 5 阻塞项 |
+
+**纳入策略**：与 **F-LAKE-*** 同属 **Phase 5+ 企业扩展**；实现顺序建议 **F-LAKE-01 → F-OPS-04/05 → F-OPS-01/02 → F-OPS-03/06**；**F-OPS-07** 仅在有明确应用构建需求时立项。核心 KB 的 P1 仍优先 **F-GOV**、**F-ONT**、**F-RUL**、**F-TIM**（见 [capability-gap-checklist.md](capability-gap-checklist.md)）。
 
 ---
 
@@ -405,7 +445,8 @@ semantica SDK（parse, kg, ontology, reasoning, embeddings, …）
 | F-CHAT-* | 对话/MCP | **部分**（playground SSE/停生成/裁剪提示；MCP 工具集；remember→审核；**不**做 token 预算深化） |
 | F-IO-*, F-LIN-*, F-DIFF-* | 导入导出/血缘 | **部分**（图 import 审核；lineage；`GET .../graph/diff` + Graph diff 页；画布合并工作室 **未**） |
 | F-ALT-*, F-IF-* | 告警、interface | **部分**（`sync_failed`/`llm.*`/`governance.*`、铃铛 SSE+深链；KB 页副标题 **已有**） |
-| F-LAKE-*, F-MEM-* | 可选 | **未** |
+| F-LAKE-*, F-MEM-* | 可选 lakehouse / Agent 记忆 | **未** |
+| F-OPS-* | 可选运营语义层（Palantir 对标） | **未**（设计已纳入 §5.18；依赖 F-LAKE 时启用） |
 
 **完整性结论（设计层）**：§5 仍覆盖 Utopia 十二域 + Explorer 主要 Workspace。**实现层**已完成 **纵向切片主干**：文库 → 处理 → 图/搜/聊 → 审核闭环 → 本体/SPARQL/映射/连接器 MVP；独立 Explorer 产品壳已移除，能力以 KB 路由挂载。待深化项见 [capability-gap-checklist.md](capability-gap-checklist.md)、`graph-workspace-closure.md` 与 §9 发布门。
 
@@ -476,7 +517,8 @@ semantica SDK（parse, kg, ontology, reasoning, embeddings, …）
 | 知识主存 | **已决策**：证据账本主存；开放陈述 → 映射 → 类型化事实；图/RDF/向量为投影（ADR 0001） |
 | Explorer | **已决策**：Basis 多 KB adapter + JWT/role + workspace client 注入；不直接挂单 session 应用 |
 | SPARQL | **已决策前置条件**：读取稳定 RDF 投影；初版 RDFLib，Oxigraph 非必需 |
-| Lakehouse | 开放：标准产品或 `heavy`/企业扩展 |
+| Lakehouse | 开放：标准产品或 `heavy`/企业扩展；与 **F-OPS** 同为企业语义层包 |
+| 运营语义层（Palantir 对标） | **已纳入设计**：§5.18 **F-OPS**；默认产品不启用，不阻塞证据 KB |
 | Agent Memory | 开放：是否与 Chat 同批 |
 
 ---
@@ -513,9 +555,9 @@ F-ONT-02–08, F-GOV-07（完整）, F-SRC-06–07, F-LDG-02, F-IO-01, F-DIFF-01
 
 F-ACC-04, F-CHAT-04–05, F-RUL-01–03, F-TIM-01–04, F-ALT-01–02, F-KB-06, F-GOV-04–05.
 
-### Phase 5+ — 可选
+### Phase 5+ — 可选（企业语义层与平台）
 
-F-LAKE-*, F-MEM-*, F-ACC-07, Neo4j 同步等。
+F-LAKE-01–03, F-OPS-01–06（建议顺序见 §5.18）, F-MEM-*, F-ACC-07, Neo4j 同步等；F-OPS-07 按需。
 
 ---
 
@@ -531,10 +573,13 @@ F-LAKE-*, F-MEM-*, F-ACC-07, Neo4j 同步等。
 
 - 新增能力：在 §5 增加 **F-* 行**，并更新 §7 状态表。
 - 分期调整：只改 **第二篇** 各 Phase 的 ID 列表。
+- 企业扩展落地任务：`implementation-backlog.md` **§12 (M7)**。
 - ADR：`docs/decisions/`。
 - 数据字段/约束变更：更新 [data-model.md](data-model.md) 并通过迁移落地。
 - Explorer 契约变更：更新 [explorer-integration.md](explorer-integration.md)。
 
 ---
+
+*修订：2026-10-15 — 补充 §5.18 运营语义层（Palantir Foundry Ontology 对标）与 F-OPS；扩展 F-LAKE 与双轨叙事。*
 
 *修订：2026-10-13 — 结构改为「完整功能设计 → 分期」；接受证据账本知识模型；补充 Explorer 多 KB 集成契约。*

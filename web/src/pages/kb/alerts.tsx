@@ -1,4 +1,4 @@
-import { Bell, CheckCheck, ExternalLink, RefreshCw, X } from 'lucide-react';
+import { PublicIcon } from '@/components/ui/public-icon.js';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import {
@@ -36,8 +36,7 @@ function severityBadgeVariant(severity: string): 'destructive' | 'warning' | 'se
 
 export function KbAlertsPage() {
   const { id } = useParams();
-  const { t, locale } = useI18n();
-  const zh = locale === 'zh';
+  const { t } = useI18n();
   const { getKb } = useKbCatalog();
   const [alerts, setAlerts] = useState<KbAlertStreamItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -160,8 +159,8 @@ export function KbAlertsPage() {
         <div className="flex items-center gap-2">
           {alerts.length > 0 ? (
             <Button type="button" variant="outline" size="sm" onClick={() => void dismissAll()}>
-              <CheckCheck className="mr-1.5 size-3.5" />
-              {zh ? '全部忽略' : 'Dismiss all'}
+              <PublicIcon name='checks' className="mr-1.5 size-3.5" />
+              {t.pages.alerts.dismissAll}
             </Button>
           ) : null}
           <Button
@@ -171,8 +170,8 @@ export function KbAlertsPage() {
             disabled={loading}
             onClick={() => void refresh()}
           >
-            <RefreshCw className={`mr-1.5 size-3.5 ${loading ? 'animate-spin' : ''}`} />
-            {zh ? '刷新' : 'Refresh'}
+            <PublicIcon name='arrow-refresh-01' className={`mr-1.5 size-3.5 ${loading ? 'animate-spin' : ''}`} />
+            {t.pages.alerts.refresh}
           </Button>
         </div>
       }
@@ -197,7 +196,7 @@ export function KbAlertsPage() {
             </div>
           ) : alerts.length === 0 ? (
             <EmptyState
-              icon={<Bell className="size-5 text-muted-foreground" />}
+              icon={<PublicIcon name='bell-01' className="size-5 text-muted-foreground" />}
               title={t.pages.alerts.alertsEmpty}
               description={t.pages.kbSubtitles.alerts}
             />
@@ -233,7 +232,7 @@ export function KbAlertsPage() {
                             className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
                           >
                             {t.pages.alerts[action.labelKey]}
-                            <ExternalLink className="size-3" />
+                            <PublicIcon name='link-external' className="size-3" />
                           </Link>
                         </div>
                       ) : null}
@@ -243,10 +242,10 @@ export function KbAlertsPage() {
                       variant="ghost"
                       size="icon"
                       className="size-7 shrink-0 text-muted-foreground hover:text-foreground"
-                      aria-label="Dismiss"
+                      aria-label={t.pages.alerts.dismissAria}
                       onClick={() => void dismiss(alert.id)}
                     >
-                      <X className="size-4" />
+                      <PublicIcon name='x-02' className="size-4" />
                     </Button>
                   </li>
                 );

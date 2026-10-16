@@ -117,6 +117,7 @@ export type GraphEffectToggle =
   | "centralityEnabled"
   | "legendEnabled"
   | "edgeLabelsEnabled"
+  | "autoLayoutEnabled"
   | "diagnosticsEnabled";
 
 export interface GraphEffectsState {
@@ -131,6 +132,7 @@ export interface GraphEffectsState {
   communitiesEnabled: boolean;
   centralityEnabled: boolean;
   legendEnabled: boolean;
+  autoLayoutEnabled: boolean;
   diagnosticsEnabled: boolean;
   lensMode: "neighborhood";
   effectQuality: "bounded";
@@ -202,6 +204,7 @@ export interface GraphDiagnosticsSnapshot {
     centrality: GraphEffectAvailability;
     legend: GraphEffectAvailability;
     edgeLabels: GraphEffectAvailability;
+    autoLayout: GraphEffectAvailability;
     diagnostics: GraphEffectAvailability;
   };
 }
@@ -312,8 +315,10 @@ export interface GraphLoadSummary {
   hasCoordinates?: boolean;
   layoutSource?: GraphLayoutSource;
   layoutReady?: boolean;
-  /** True when Basis caps (200 nodes / 400 edges) truncated paginated fetch. */
+  /** True when fetch stopped before API reported totals (client budget or server cap). */
   loadTruncated?: boolean;
+  graphNodeTotal?: number | null;
+  graphEdgeTotal?: number | null;
 }
 
 export interface GraphLoadProgress {

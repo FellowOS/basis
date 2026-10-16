@@ -2,7 +2,7 @@
  * Sources library UI (upload, processing, document table).
  * Routed at `/kbs/:id/sources` via `kb-library-workspace`; legacy `/kbs/:id/knowledge` redirects here.
  */
-import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { type FormEvent, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import {
@@ -36,20 +36,24 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog.js';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu.js';
 import { Input } from '@/components/ui/input.js';
 import { Label } from '@/components/ui/label.js';
-import { PublicIcon } from '@/components/ui/public-icon.js';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select.js';
 import { Spinner } from '@/components/ui/spinner.js';
+import { Switch } from '@/components/ui/switch.js';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs.js';
 import { Textarea } from '@/components/ui/textarea.js';
+import { cn } from '@/lib/utils.js';
 import { useI18n } from '@/i18n/context.js';
+import { fmt } from '@/i18n/format.js';
+import type { Locale } from '@/i18n/locale.js';
+import type { LocaleMessages } from '@/i18n/locales/en/index.js';
 import { messageForApiErrorCode } from '@/lib/api-error-message.js';
 import { useKbCatalog } from '@/lib/kb-context.js';
 import { useKbCapabilities } from '@/lib/kb-capabilities.js';
@@ -65,6 +69,7 @@ const PAGE_SIZE = 10;
 
 type DocRow = {
   doc_id: string;
+  filename?: string | null;
   document_id?: string;
   preview: string;
   char_count: number;
@@ -87,20 +92,13 @@ type ProcessingJob = {
   created_at: string;
 };
 
-function versionStatusLabel(status: string | null | undefined, zh: boolean): string {
-  const labels: Record<string, [string, string]> = {
-    uploaded: ['待处理', 'Pending'],
-    queued: ['排队中', 'Queued'],
-    parsing: ['解析中', 'Parsing'],
-    chunking: ['切分中', 'Chunking'],
-    embedding: ['向量化中', 'Embedding'],
-    extracting: ['抽取中', 'Extracting'],
-    ready: ['就绪', 'Ready'],
-    failed: ['失败', 'Failed'],
-    stale: ['已归档', 'Stale'],
-  };
+function versionStatusLabel(
+  status: string | null | undefined,
+  labels: LocaleMessages['kbSources']['versionStatus'],
+): string {
   if (!status) return '—';
-  return labels[status]?.[zh ? 0 : 1] ?? status;
+  const key = status as keyof typeof labels;
+  return key in labels ? labels[key] : status;
 }
 
 function statusBadgeVariant(
@@ -128,6 +126,94 @@ function statusBadgeVariant(
 function docReadyForGraph(doc: DocRow, job?: ProcessingJob): boolean {
   if (doc.version_status === 'ready') return true;
   return job?.status === 'succeeded';
+}
+
+const DEFAULT_CHUNK_SIZE = 1800;
+const DEFAULT_CHUNK_OVERLAP = 250;
+const DEFAULT_CHUNK_METHOD = 'recursive';
+
+type ProductChunkMethod =
+  | 'recursive'
+  | 'sentence'
+  | 'paragraph'
+  | 'structural'
+  | 'entity_aware';
+
+function chunkSizeValid(size: number): boolean {
+  return Number.isFinite(size) && size >= 200 && size <= 100_000;
+}
+
+function chunkOptionsValid(
+  method: ProductChunkMethod,
+  size: number,
+  overlap: number,
+): boolean {
+  if (!chunkSizeValid(size)) return false;
+  if (method !== 'recursive') return true;
+  return (
+    Number.isFinite(overlap) &&
+    overlap >= 0 &&
+    overlap <= 10_000 &&
+    overlap < size
+  );
+}
+
+function methodChoices(copy: LocaleMessages['kbSources']): { value: string; label: string }[] {
+  return [
+    { value: 'pattern', label: copy.methodPattern },
+    { value: 'ml', label: copy.methodMl },
+    { value: 'llm', label: copy.methodLlm },
+  ];
+}
+
+function chunkMethodChoices(
+  copy: LocaleMessages['kbSources'],
+): { value: ProductChunkMethod; label: string }[] {
+  return [
+    { value: 'recursive', label: copy.chunkMethodRecursive },
+    { value: 'sentence', label: copy.chunkMethodSentence },
+    { value: 'paragraph', label: copy.chunkMethodParagraph },
+    { value: 'structural', label: copy.chunkMethodStructural },
+    { value: 'entity_aware', label: copy.chunkMethodEntityAware },
+  ];
+}
+
+function ProcessSection({
+  id,
+  title,
+  hint,
+  checked,
+  onCheckedChange,
+  children,
+}: {
+  id: string;
+  title: string;
+  hint: string;
+  checked: boolean;
+  onCheckedChange: (checked: boolean) => void;
+  children: ReactNode;
+}) {
+  return (
+    <section className="rounded-md border border-border">
+      <div className="flex items-start justify-between gap-3 px-3 py-3">
+        <div className="min-w-0 space-y-0.5">
+          <Label htmlFor={id} className="text-sm font-medium">
+            {title}
+          </Label>
+          <p className="text-xs leading-relaxed text-muted-foreground">{hint}</p>
+        </div>
+        <Switch id={id} checked={checked} onCheckedChange={onCheckedChange} className="mt-0.5" />
+      </div>
+      <div
+        className={cn(
+          'space-y-3 border-t border-border px-3 py-3',
+          !checked && 'pointer-events-none opacity-40',
+        )}
+      >
+        {children}
+      </div>
+    </section>
+  );
 }
 
 export function KnowledgePage() {
@@ -174,14 +260,13 @@ export function KnowledgePage() {
   const [busyVersionId, setBusyVersionId] = useState<string | null>(null);
   const [configVersionId, setConfigVersionId] = useState(searchParams.get('version') ?? '');
   const [chunk, setChunk] = useState(true);
+  const [chunkMethod, setChunkMethod] = useState<ProductChunkMethod>(DEFAULT_CHUNK_METHOD);
   const [chunkSize, setChunkSize] = useState(1800);
   const [chunkOverlap, setChunkOverlap] = useState(250);
   const [extract, setExtract] = useState(true);
   const [nerMethod, setNerMethod] = useState('pattern');
   const [nerModel, setNerModel] = useState('');
   const [relationMethod, setRelationMethod] = useState('pattern');
-  const [extractRelations, setExtractRelations] = useState(true);
-  const [extractTriplets, setExtractTriplets] = useState(false);
 
   useEffect(() => {
     if (sourcesUrl.openConnectors || sourcesUrl.ingestSourceId) {
@@ -204,10 +289,10 @@ export function KnowledgePage() {
     }
   }, [historyOpen, jobFocusId, jobs]);
 
-  const zh = locale === 'zh';
+  const k = t.kbSources;
   const apiErrorMessage = useCallback(
-    (err: unknown) => formatUserFacingApiError(err, zh ? 'zh' : 'en'),
-    [zh],
+    (err: unknown) => formatUserFacingApiError(err, locale as Locale),
+    [locale],
   );
   const canEdit = caps?.graph_write !== false;
   const graphEnabled = caps?.graph === true;
@@ -233,7 +318,7 @@ export function KnowledgePage() {
     return documents.filter(
       (doc) =>
         doc.doc_id.toLowerCase().includes(q) ||
-        (doc.preview ?? '').toLowerCase().includes(q) ||
+        (doc.filename ?? '').toLowerCase().includes(q) ||
         (doc.document_id ?? '').toLowerCase().includes(q),
     );
   }, [documents, search]);
@@ -284,16 +369,16 @@ export function KnowledgePage() {
       jobStatusRef.current[job.id] = job.status;
       if (prev && prev !== 'succeeded' && job.status === 'succeeded' && job.doc_id) {
         const path = graphFocusPath(job.doc_id);
-        toast.success(zh ? '处理完成' : 'Processing complete', {
+        toast.success(k.toastProcessingComplete, {
           description: job.document_title || job.doc_id,
           action: {
-            label: zh ? '在图谱中查看' : 'View in graph',
+            label: k.toastViewInGraph,
             onClick: () => navigate(path),
           },
         });
       }
     }
-  }, [graphFocusPath, graphEnabled, id, jobs, navigate, zh]);
+  }, [graphFocusPath, graphEnabled, id, jobs, navigate, k]);
 
   useEffect(() => {
     const version = searchParams.get('version');
@@ -322,11 +407,7 @@ export function KnowledgePage() {
     close: () => void,
   ) {
     if (created.unchanged) {
-      toast.info(
-        zh
-          ? '内容与当前版本相同，未创建新版本。'
-          : 'Content is unchanged; no new version was created.',
-      );
+      toast.info(k.toastUnchanged);
       return;
     }
     if (processImmediately) {
@@ -335,9 +416,9 @@ export function KnowledgePage() {
         wait: false,
         idempotency_key: processingStartIdempotencyKey(created.version_id),
       });
-      toast.success(zh ? '已保存并加入处理队列' : 'Saved and queued for processing');
+      toast.success(k.toastSavedQueued);
     } else {
-      toast.success(zh ? '已保存' : 'Saved');
+      toast.success(k.toastSaved);
     }
     close();
     await refresh();
@@ -418,38 +499,22 @@ export function KnowledgePage() {
     }
   }
 
-  async function startDefault(versionId: string) {
-    setBusyVersionId(versionId);
-    try {
-      await client.processing.start({
-        version_id: versionId,
-        wait: false,
-        idempotency_key: processingStartIdempotencyKey(versionId),
-      });
-      toast.success(zh ? '已加入处理队列' : 'Queued for processing');
-      await refresh();
-    } catch (err) {
-      toast.error(apiErrorMessage(err));
-    } finally {
-      setBusyVersionId(null);
-    }
-  }
-
   async function startConfigured(event: FormEvent) {
     event.preventDefault();
-    if (!configVersionId) return;
+    if (!configVersionId || (!chunk && !extract)) return;
+    if (chunk && !chunkOptionsValid(chunkMethod, chunkSize, chunkOverlap)) return;
     setBusyVersionId(configVersionId);
     try {
       const processingOptions = {
         chunk,
+        chunk_method: chunkMethod,
         chunk_size: chunkSize,
         chunk_overlap: chunkOverlap,
         extract,
         ner_method: nerMethod,
-        ner_model: nerModel.trim() || undefined,
+        ner_model: nerMethod === 'ml' ? nerModel.trim() || undefined : undefined,
         relation_method: relationMethod,
-        extract_relations: extractRelations,
-        extract_triplets: extractTriplets,
+        extract_relations: true,
       };
       await client.processing.start({
         version_id: configVersionId,
@@ -458,7 +523,7 @@ export function KnowledgePage() {
         idempotency_key: processingStartIdempotencyKey(configVersionId, processingOptions),
       });
       closeConfig();
-      toast.success(zh ? '已按配置加入处理队列' : 'Queued with custom options');
+      toast.success(k.toastQueuedCustom);
       await refresh();
     } catch (err) {
       toast.error(apiErrorMessage(err));
@@ -471,7 +536,7 @@ export function KnowledgePage() {
     setBusyVersionId(job.version_id);
     try {
       await client.processing.retry(job.id);
-      toast.success(zh ? '已重试' : 'Retry queued');
+      toast.success(k.toastRetryQueued);
       await refresh();
     } catch (err) {
       toast.error(apiErrorMessage(err));
@@ -485,7 +550,7 @@ export function KnowledgePage() {
     setDeletingDocument(true);
     try {
       await client.documents.delete(deleteTarget.document_id);
-      toast.success(zh ? '文档已删除' : 'Document deleted');
+      toast.success(k.toastDocumentDeleted);
       setDeleteTarget(null);
       await refresh();
     } catch (err) {
@@ -496,6 +561,14 @@ export function KnowledgePage() {
   }
 
   function openConfig(versionId: string) {
+    setChunk(true);
+    setChunkMethod(DEFAULT_CHUNK_METHOD);
+    setChunkSize(DEFAULT_CHUNK_SIZE);
+    setChunkOverlap(DEFAULT_CHUNK_OVERLAP);
+    setExtract(true);
+    setNerMethod('pattern');
+    setNerModel('');
+    setRelationMethod('pattern');
     setConfigVersionId(versionId);
     const next = new URLSearchParams(searchParams);
     next.set('version', versionId);
@@ -509,6 +582,16 @@ export function KnowledgePage() {
     setSearchParams(next, { replace: true });
   }
 
+  const openDocument = useCallback(
+    (docId: string) => {
+      const next = new URLSearchParams(searchParams);
+      next.set('doc', docId);
+      next.delete('chunk');
+      setSearchParams(next, { replace: true });
+    },
+    [searchParams, setSearchParams],
+  );
+
   function openUpdate(doc: DocRow) {
     if (!doc.document_id) return;
     setUpdateText('');
@@ -517,11 +600,11 @@ export function KnowledgePage() {
   }
 
   const columns: DataTableColumn<DocRow>[] = useMemo(() => {
-    const documentCol = zh ? '文档' : 'Document';
-    const statusCol = zh ? '状态' : 'Status';
-    const charsCol = zh ? '字数' : 'Chars';
-    const previewCol = zh ? '预览' : 'Preview';
-    const actionsCol = zh ? '操作' : 'Actions';
+    const documentCol = 'doc_id';
+    const filenameCol = k.colFilename;
+    const statusCol = k.colStatus;
+    const charsCol = k.colChars;
+    const actionsCol = k.colActions;
 
     return [
       {
@@ -530,12 +613,13 @@ export function KnowledgePage() {
         render: (doc) => (
           <div className="min-w-0">
             {id ? (
-              <Link
-                className="font-medium text-primary hover:underline"
-                to={`${kbPath(id, 'sources')}?doc=${encodeURIComponent(doc.doc_id)}`}
+              <button
+                type="button"
+                className="max-w-full truncate text-left font-medium hover:underline"
+                onClick={() => openDocument(doc.doc_id)}
               >
                 {doc.doc_id}
-              </Link>
+              </button>
             ) : (
               <span className="font-medium">{doc.doc_id}</span>
             )}
@@ -553,16 +637,15 @@ export function KnowledgePage() {
                   </span>
                 );
               })() : null}
-              {id && graphEnabled && docReadyForGraph(doc, doc.version_id ? latestJobByVersion[doc.version_id] : undefined) ? (
-                <Link
-                  className="text-primary hover:underline"
-                  to={graphFocusPath(doc.doc_id)}
-                >
-                  {zh ? '图谱' : 'Graph'}
-                </Link>
-              ) : null}
             </div>
           </div>
+        ),
+      },
+      {
+        key: 'filename',
+        header: filenameCol,
+        render: (doc) => (
+          <span className="text-muted-foreground">{doc.filename || '—'}</span>
         ),
       },
       {
@@ -575,7 +658,7 @@ export function KnowledgePage() {
             job?.status === 'running' ? job.version_status : doc.version_status ?? job?.status;
           return (
             <Badge variant={statusBadgeVariant(status)}>
-              {versionStatusLabel(status, zh)}
+              {versionStatusLabel(status, k.versionStatus)}
             </Badge>
           );
         },
@@ -588,18 +671,9 @@ export function KnowledgePage() {
         render: (doc) => doc.char_count,
       },
       {
-        key: 'preview',
-        header: previewCol,
-        hideBelow: 'lg',
-        render: (doc) => (
-          <span className="line-clamp-2 text-muted-foreground">{doc.preview || '—'}</span>
-        ),
-      },
-      {
         key: 'actions',
         header: actionsCol,
         align: 'right',
-        width: '5rem',
         render: (doc) => {
           const job = doc.version_id ? latestJobByVersion[doc.version_id] : undefined;
           const busy = busyVersionId === doc.version_id;
@@ -616,78 +690,74 @@ export function KnowledgePage() {
             return <span className="text-muted-foreground">—</span>;
           }
 
+          const actionClass = 'h-7 px-2 text-xs';
           return (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button type="button" variant="ghost" size="icon-sm" disabled={busy}>
-                  <PublicIcon name="dot-horizontal" size={16} />
+            <div className="flex flex-wrap justify-end gap-1.5">
+              {canProcess ? (
+                <Button
+                  type="button"
+                  size="sm"
+                  className={actionClass}
+                  disabled={busy}
+                  onClick={() => openConfig(doc.version_id!)}
+                >
+                  {k.actionChunkExtract}
                 </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                {canProcess ? (
-                  <>
-                    <DropdownMenuItem onClick={() => void startDefault(doc.version_id!)}>
-                      {zh ? '默认处理' : 'Process (defaults)'}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => openConfig(doc.version_id!)}>
-                      {zh ? '配置并处理' : 'Configure & process'}
-                    </DropdownMenuItem>
-                  </>
-                ) : null}
-                {canRetry ? (
-                  <DropdownMenuItem onClick={() => void retry(job!)}>
-                    {zh ? '重试任务' : 'Retry job'}
-                  </DropdownMenuItem>
-                ) : null}
-                {canUpdate ? (
-                  <>
-                    {canProcess || canRetry ? <DropdownMenuSeparator /> : null}
-                    <DropdownMenuItem onClick={() => openUpdate(doc)}>
-                      {zh ? '更新内容' : 'Update content'}
-                    </DropdownMenuItem>
-                  </>
-                ) : null}
-                {canGraph && id ? (
-                  <>
-                    {canProcess || canRetry || canUpdate ? <DropdownMenuSeparator /> : null}
-                    <DropdownMenuItem asChild>
-                      <Link to={graphFocusPath(doc.doc_id)}>
-                        {zh ? '在图谱中查看' : 'View in graph'}
-                      </Link>
-                    </DropdownMenuItem>
-                  </>
-                ) : null}
-                {canDelete ? (
-                  <>
-                    {canProcess || canRetry || canUpdate || canGraph ? (
-                      <DropdownMenuSeparator />
-                    ) : null}
-                    <DropdownMenuItem
-                      className="text-destructive focus:text-destructive"
-                      onClick={() =>
-                        setDeleteTarget({
-                          document_id: doc.document_id!,
-                          doc_id: doc.doc_id,
-                        })
-                      }
-                    >
-                      {zh ? '删除文档' : 'Delete document'}
-                    </DropdownMenuItem>
-                  </>
-                ) : null}
-              </DropdownMenuContent>
-            </DropdownMenu>
+              ) : null}
+              {canRetry ? (
+                <Button
+                  type="button"
+                  size="sm"
+                  className={actionClass}
+                  disabled={busy}
+                  onClick={() => void retry(job!)}
+                >
+                  {k.actionRetry}
+                </Button>
+              ) : null}
+              {canUpdate ? (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className={actionClass}
+                  onClick={() => openUpdate(doc)}
+                >
+                  {k.actionUpdate}
+                </Button>
+              ) : null}
+              {canGraph && id ? (
+                <Button type="button" size="sm" variant="outline" className={actionClass} asChild>
+                  <Link to={graphFocusPath(doc.doc_id)}>{k.actionGraph}</Link>
+                </Button>
+              ) : null}
+              {canDelete ? (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className={`${actionClass} text-destructive`}
+                  onClick={() =>
+                    setDeleteTarget({
+                      document_id: doc.document_id!,
+                      doc_id: doc.doc_id,
+                    })
+                  }
+                >
+                  {k.actionDelete}
+                </Button>
+              ) : null}
+            </div>
           );
         },
       },
     ];
   }, [
-    zh,
+    k,
     id,
     canEdit,
     busyVersionId,
     latestJobByVersion,
-    startDefault,
     openConfig,
     retry,
     openUpdate,
@@ -695,11 +765,22 @@ export function KnowledgePage() {
     graphFocusPath,
     latestJobByVersion,
     setDeleteTarget,
+    openDocument,
+    locale,
   ]);
 
-  const documentCountLabel = zh
-    ? `共 ${filteredDocuments.length} 篇`
-    : `${filteredDocuments.length} document${filteredDocuments.length === 1 ? '' : 's'}`;
+  const configDoc = documents.find((doc) => doc.version_id === configVersionId);
+  const methods = methodChoices(k);
+  const chunkMethods = chunkMethodChoices(k);
+  const chunkOverlapEnabled = chunkMethod === 'recursive';
+  const chunkReady = !chunk || chunkOptionsValid(chunkMethod, chunkSize, chunkOverlap);
+  const canStartProcessing =
+    Boolean(configVersionId) && (chunk || extract) && chunkReady && busyVersionId !== configVersionId;
+
+  const documentCountLabel = fmt(
+    filteredDocuments.length === 1 ? k.documentCountOne : k.documentCount,
+    { count: String(filteredDocuments.length) },
+  );
 
   return (
     <ConsolePageLayout
@@ -712,16 +793,16 @@ export function KnowledgePage() {
       actions={
         <>
           <Button type="button" variant="outline" size="sm" onClick={() => setHistoryOpen(true)}>
-            {zh ? '任务历史' : 'Job history'}
+            {k.jobHistory}
           </Button>
           {canEdit ? (
             <Button type="button" variant="outline" size="sm" onClick={() => setSourcesOpen(true)}>
-              {zh ? '连接器' : 'Sources'}
+              {k.connectors}
             </Button>
           ) : null}
           {canEdit ? (
             <Button type="button" size="sm" onClick={openAdd}>
-              {zh ? '添加文档' : 'Add document'}
+              {k.addDocument}
             </Button>
           ) : null}
         </>
@@ -732,22 +813,10 @@ export function KnowledgePage() {
           search={
             <ToolbarSearch
               className="w-full min-w-[12rem] max-w-md sm:w-72"
-              placeholder={zh ? '搜索 doc_id 或预览…' : 'Search doc_id or preview…'}
+              placeholder={k.searchPlaceholder}
               value={search}
               onChange={(event) => setSearch(event.target.value)}
             />
-          }
-          actions={
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => void refresh()}
-              disabled={loading}
-            >
-              {loading ? <Spinner className="size-4" /> : null}
-              {zh ? '刷新' : 'Refresh'}
-            </Button>
           }
         />
 
@@ -758,16 +827,12 @@ export function KnowledgePage() {
             </div>
           ) : filteredDocuments.length === 0 ? (
             <EmptyState
-              title={zh ? '暂无文档' : 'No documents yet'}
-              description={
-                zh
-                  ? '添加文件或粘贴文本作为来源，再启动处理任务。'
-                  : 'Add a file or paste text, then start a processing job.'
-              }
+              title={k.emptyTitle}
+              description={k.emptyDescription}
               action={
                 canEdit ? (
                   <Button type="button" size="sm" onClick={openAdd}>
-                    {zh ? '添加文档' : 'Add document'}
+                    {k.addDocument}
                   </Button>
                 ) : undefined
               }
@@ -797,26 +862,22 @@ export function KnowledgePage() {
       }}>
         <DialogContent className="sm:max-w-xl">
           <DialogHeader>
-            <DialogTitle>{zh ? '添加文档' : 'Add document'}</DialogTitle>
-            <DialogDescription>
-              {zh
-                ? '保存为来源（待处理）。可选 doc_id；重复 doc_id 将创建新版本。'
-                : 'Store as a source (pending). Optional doc_id; reusing doc_id creates a new version.'}
-            </DialogDescription>
+            <DialogTitle>{k.addDocument}</DialogTitle>
+            <DialogDescription>{k.addDialogDesc}</DialogDescription>
           </DialogHeader>
           <Tabs defaultValue="file">
             <TabsList className="w-full">
               <TabsTrigger value="file" className="flex-1">
-                {zh ? '上传文件' : 'Upload file'}
+                {k.tabUpload}
               </TabsTrigger>
               <TabsTrigger value="text" className="flex-1">
-                {zh ? '粘贴文本' : 'Paste text'}
+                {k.tabPaste}
               </TabsTrigger>
             </TabsList>
             <TabsContent value="file">
               <form className="space-y-4 pt-2" onSubmit={uploadFile}>
                 <div className="space-y-2">
-                  <Label htmlFor="add-doc-id">doc_id（{zh ? '可选' : 'optional'}）</Label>
+                  <Label htmlFor="add-doc-id">{k.docIdOptional}</Label>
                   <Input
                     id="add-doc-id"
                     value={docId}
@@ -824,7 +885,7 @@ export function KnowledgePage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="add-file">{zh ? '文件' : 'File'}</Label>
+                  <Label htmlFor="add-file">{k.labelFile}</Label>
                   <Input
                     id="add-file"
                     ref={fileRef}
@@ -835,7 +896,7 @@ export function KnowledgePage() {
                 </div>
                 <DialogFooter className="px-0">
                   <Button type="submit" disabled={uploading}>
-                    {uploading ? (zh ? '上传中…' : 'Uploading…') : zh ? '上传' : 'Upload'}
+                    {uploading ? k.uploading : k.upload}
                   </Button>
                 </DialogFooter>
               </form>
@@ -843,7 +904,7 @@ export function KnowledgePage() {
             <TabsContent value="text">
               <form className="space-y-4 pt-2" onSubmit={saveText}>
                 <div className="space-y-2">
-                  <Label htmlFor="add-text-doc-id">doc_id（{zh ? '可选' : 'optional'}）</Label>
+                  <Label htmlFor="add-text-doc-id">{k.docIdOptional}</Label>
                   <Input
                     id="add-text-doc-id"
                     value={docId}
@@ -851,7 +912,7 @@ export function KnowledgePage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="add-text">{zh ? '文本' : 'Text'}</Label>
+                  <Label htmlFor="add-text">{k.labelText}</Label>
                   <Textarea
                     id="add-text"
                     rows={6}
@@ -862,7 +923,7 @@ export function KnowledgePage() {
                 </div>
                 <DialogFooter className="px-0">
                   <Button type="submit" disabled={uploading}>
-                    {zh ? '保存' : 'Save'}
+                    {k.save}
                   </Button>
                 </DialogFooter>
               </form>
@@ -873,7 +934,7 @@ export function KnowledgePage() {
               checked={processImmediately}
               onCheckedChange={(checked) => setProcessImmediately(checked === true)}
             />
-            {zh ? '保存后立即使用默认方案处理' : 'Process immediately with defaults after save'}
+            {k.processAfterSave}
           </label>
         </DialogContent>
       </Dialog>
@@ -886,16 +947,16 @@ export function KnowledgePage() {
       >
         <DialogContent className="sm:max-w-xl">
           <DialogHeader>
-            <DialogTitle>{zh ? '更新文档' : 'Update document'}</DialogTitle>
+            <DialogTitle>{k.updateDialogTitle}</DialogTitle>
             <DialogDescription>{updateTarget?.doc_id}</DialogDescription>
           </DialogHeader>
           <Tabs defaultValue="file">
             <TabsList className="w-full">
               <TabsTrigger value="file" className="flex-1">
-                {zh ? '新文件' : 'New file'}
+                {k.tabNewFile}
               </TabsTrigger>
               <TabsTrigger value="text" className="flex-1">
-                {zh ? '新正文' : 'New text'}
+                {k.tabNewText}
               </TabsTrigger>
             </TabsList>
             <TabsContent value="file">
@@ -903,7 +964,7 @@ export function KnowledgePage() {
                 <Input ref={updateFileRef} type="file" required />
                 <DialogFooter className="px-0">
                   <Button type="submit" disabled={uploading}>
-                    {uploading ? (zh ? '上传中…' : 'Uploading…') : zh ? '上传新版本' : 'Upload version'}
+                    {uploading ? k.uploading : k.uploadVersion}
                   </Button>
                 </DialogFooter>
               </form>
@@ -918,7 +979,7 @@ export function KnowledgePage() {
                 />
                 <DialogFooter className="px-0">
                   <Button type="submit" disabled={uploading || !updateText.trim()}>
-                    {zh ? '保存新版本' : 'Save version'}
+                    {k.saveVersion}
                   </Button>
                 </DialogFooter>
               </form>
@@ -929,119 +990,163 @@ export function KnowledgePage() {
               checked={processImmediately}
               onCheckedChange={(checked) => setProcessImmediately(checked === true)}
             />
-            {zh ? '新版本保存后立即处理' : 'Process new version immediately after save'}
+            {k.processAfterVersionSave}
           </label>
         </DialogContent>
       </Dialog>
 
       <Dialog open={Boolean(configVersionId)} onOpenChange={(open) => !open && closeConfig()}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>{zh ? '配置处理' : 'Configure processing'}</DialogTitle>
-            <DialogDescription>
-              {zh ? '选项将写入任务记录，处理时不可静默修改切分结果。' : 'Options are snapshotted on the job; chunk text cannot change silently.'}
-            </DialogDescription>
-          </DialogHeader>
-          <form className="grid gap-4 sm:grid-cols-2" onSubmit={startConfigured}>
-            <div className="space-y-2 sm:col-span-2">
-              <Label>{zh ? '版本 ID' : 'Version ID'}</Label>
-              <Input value={configVersionId} readOnly className="font-mono text-xs" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="chunk-size">{zh ? '块大小' : 'Chunk size'}</Label>
-              <Input
-                id="chunk-size"
-                type="number"
-                min={200}
-                max={100000}
-                value={chunkSize}
-                disabled={!chunk}
-                onChange={(event) => setChunkSize(Number(event.target.value))}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="chunk-overlap">{zh ? '重叠' : 'Overlap'}</Label>
-              <Input
-                id="chunk-overlap"
-                type="number"
-                min={0}
-                value={chunkOverlap}
-                disabled={!chunk}
-                onChange={(event) => setChunkOverlap(Number(event.target.value))}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="ner-method">NER</Label>
-              <select
-                id="ner-method"
-                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
-                value={nerMethod}
-                onChange={(event) => setNerMethod(event.target.value)}
-              >
-                <option value="pattern">pattern</option>
-                <option value="ml">ml (spaCy)</option>
-                <option value="llm">llm (Chat 模型)</option>
-              </select>
-              <p className="text-xs text-muted-foreground">
-                {zh
-                  ? '中文建议：ml + zh_core_web_sm，或 llm（需配置「模型」页 Chat）。pattern 主要适配英文。'
-                  : 'For Chinese: use ml + zh_core_web_sm, or llm (Models Chat). pattern is English-oriented.'}
+        <DialogContent className="max-h-[min(90vh,44rem)] gap-4 overflow-y-auto sm:max-w-lg">
+          <DialogHeader className="space-y-1 pr-8">
+            <DialogTitle>{k.processDialogTitle}</DialogTitle>
+            {configDoc ? (
+              <p className="truncate text-sm">
+                <span className="font-medium">{configDoc.filename || configDoc.doc_id}</span>
+                {configDoc.filename ? (
+                  <span className="ml-2 font-mono text-xs text-muted-foreground">{configDoc.doc_id}</span>
+                ) : null}
+                {configDoc.version_no ? (
+                  <span className="ml-2 text-xs text-muted-foreground">v{configDoc.version_no}</span>
+                ) : null}
               </p>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="ner-model">{zh ? 'NER 模型（ml 时）' : 'NER model (for ml)'}</Label>
-              <Input
-                id="ner-model"
-                value={nerModel}
-                placeholder={zh ? '例如 zh_core_web_sm' : 'e.g. zh_core_web_sm'}
-                onChange={(event) => setNerModel(event.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="relation-method">{zh ? '关系' : 'Relations'}</Label>
-              <select
-                id="relation-method"
-                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
-                value={relationMethod}
-                onChange={(event) => setRelationMethod(event.target.value)}
+            ) : null}
+          </DialogHeader>
+          <form className="space-y-3" onSubmit={startConfigured}>
+            <div className="space-y-3">
+              <ProcessSection
+                id="process-chunk"
+                title={k.sectionChunk}
+                hint={k.sectionChunkHint}
+                checked={chunk}
+                onCheckedChange={setChunk}
               >
-                <option value="pattern">pattern</option>
-                <option value="ml">ml</option>
-                <option value="llm">llm</option>
-              </select>
+                <div className="space-y-1.5">
+                  <Label>{k.chunkMethod}</Label>
+                  <Select
+                    value={chunkMethod}
+                    onValueChange={(value) => setChunkMethod(value as ProductChunkMethod)}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {chunkMethods.map((item) => (
+                        <SelectItem key={item.value} value={item.value}>
+                          {item.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {chunkMethod === 'entity_aware' ? (
+                    <p className="text-xs text-muted-foreground">{k.chunkMethodEntityAwareHint}</p>
+                  ) : null}
+                </div>
+                <div
+                  className={cn(
+                    'grid gap-3',
+                    chunkOverlapEnabled ? 'grid-cols-2' : 'grid-cols-1',
+                  )}
+                >
+                  <div className="space-y-1.5">
+                    <Label htmlFor="chunk-size">{k.chunkSize}</Label>
+                    <Input
+                      id="chunk-size"
+                      type="number"
+                      min={200}
+                      max={100000}
+                      value={chunkSize}
+                      onChange={(event) => setChunkSize(Number(event.target.value))}
+                    />
+                  </div>
+                  {chunkOverlapEnabled ? (
+                    <div className="space-y-1.5">
+                      <Label htmlFor="chunk-overlap">{k.chunkOverlap}</Label>
+                      <Input
+                        id="chunk-overlap"
+                        type="number"
+                        min={0}
+                        max={10000}
+                        value={chunkOverlap}
+                        onChange={(event) => setChunkOverlap(Number(event.target.value))}
+                      />
+                    </div>
+                  ) : null}
+                </div>
+                {chunk && !chunkReady ? (
+                  <p className="text-xs text-destructive">
+                    {chunkOverlapEnabled && chunkOverlap >= chunkSize
+                      ? k.chunkOverlapTooLarge
+                      : k.chunkSizeRange}
+                  </p>
+                ) : null}
+              </ProcessSection>
+              <ProcessSection
+                id="process-extract"
+                title={k.sectionExtract}
+                hint={k.sectionExtractHint}
+                checked={extract}
+                onCheckedChange={setExtract}
+              >
+                <div className="space-y-1.5">
+                  <Label>{k.entityRecognition}</Label>
+                  <Select value={nerMethod} onValueChange={setNerMethod}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {methods.map((item) => (
+                        <SelectItem key={item.value} value={item.value}>
+                          {item.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    {k.nerHint}
+                  </p>
+                </div>
+                {nerMethod === 'ml' ? (
+                  <div className="space-y-1.5">
+                    <Label htmlFor="ner-model">{k.spacyModel}</Label>
+                    <Input
+                      id="ner-model"
+                      value={nerModel}
+                      placeholder="zh_core_web_sm"
+                      onChange={(event) => setNerModel(event.target.value)}
+                    />
+                  </div>
+                ) : null}
+                <div className="space-y-1.5">
+                  <Label>{k.relationRecognition}</Label>
+                  <Select
+                    value={relationMethod}
+                    onValueChange={setRelationMethod}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {methods.map((item) => (
+                        <SelectItem key={`relation-${item.value}`} value={item.value}>
+                          {item.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </ProcessSection>
+              {!chunk && !extract ? (
+                <p className="text-xs text-muted-foreground">
+                  {k.needChunkOrExtract}
+                </p>
+              ) : null}
             </div>
-            <div className="flex flex-col gap-3 text-sm sm:col-span-2">
-              <label className="flex items-center gap-2">
-                <Checkbox checked={chunk} onCheckedChange={(c) => setChunk(c === true)} />
-                {zh ? '切分' : 'Chunk'}
-              </label>
-              <label className="flex items-center gap-2">
-                <Checkbox checked={extract} onCheckedChange={(c) => setExtract(c === true)} />
-                {zh ? '抽取' : 'Extract'}
-              </label>
-              <label className="flex items-center gap-2">
-                <Checkbox
-                  checked={extractRelations}
-                  disabled={!extract}
-                  onCheckedChange={(c) => setExtractRelations(c === true)}
-                />
-                {zh ? '关系' : 'Relations'}
-              </label>
-              <label className="flex items-center gap-2">
-                <Checkbox
-                  checked={extractTriplets}
-                  disabled={!extract}
-                  onCheckedChange={(c) => setExtractTriplets(c === true)}
-                />
-                {zh ? '三元组' : 'Triplets'}
-              </label>
-            </div>
-            <DialogFooter className="sm:col-span-2">
+            <DialogFooter className="border-t border-border pt-4">
               <Button type="button" variant="outline" onClick={closeConfig}>
-                {zh ? '取消' : 'Cancel'}
+                {t.common.cancel}
               </Button>
-              <Button type="submit" disabled={busyVersionId === configVersionId}>
-                {zh ? '开始处理' : 'Start processing'}
+              <Button type="submit" disabled={!canStartProcessing}>
+                {busyVersionId === configVersionId ? k.queuing : k.startProcessing}
               </Button>
             </DialogFooter>
           </form>
@@ -1051,15 +1156,15 @@ export function KnowledgePage() {
       <Dialog open={historyOpen} onOpenChange={setHistoryOpen}>
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
-            <DialogTitle>{zh ? '处理任务历史' : 'Processing history'}</DialogTitle>
+            <DialogTitle>{k.historyDialogTitle}</DialogTitle>
             <DialogDescription>
-              {zh ? '每次处理尝试及快照选项。' : 'Each processing attempt and its option snapshot.'}
+              {k.historyDialogDesc}
             </DialogDescription>
           </DialogHeader>
           <div className="max-h-[min(60vh,24rem)] space-y-2 overflow-y-auto pr-1">
             {jobs.length === 0 ? (
               <p className="text-sm text-muted-foreground">
-                {zh ? '暂无任务' : 'No jobs yet'}
+                {k.noJobs}
               </p>
             ) : (
               jobs.map((job) => (
@@ -1073,7 +1178,7 @@ export function KnowledgePage() {
                   </summary>
                   {id ? (
                     <p className="mt-2 text-xs text-muted-foreground">
-                      {zh ? '任务 ID' : 'Job ID'}:{' '}
+                      {k.jobId}:{' '}
                       <span className="font-mono">{job.id}</span>
                     </p>
                   ) : null}
@@ -1084,14 +1189,14 @@ export function KnowledgePage() {
                   ) : null}
                   {typeof job.options?.request_id === 'string' && job.options.request_id ? (
                     <p className="mt-1 text-xs text-muted-foreground">
-                      {zh ? '参考 ID' : 'Reference ID'}: {job.options.request_id}
+                      {k.referenceId}: {job.options.request_id}
                     </p>
                   ) : null}
                   {graphEnabled && id && job.status === 'succeeded' && job.doc_id ? (
                     <div className="mt-2">
                       <Button type="button" variant="outline" size="sm" asChild>
                         <Link to={graphFocusPath(job.doc_id)}>
-                          {zh ? '在图谱中查看' : 'View in graph'}
+                          {k.toastViewInGraph}
                         </Link>
                       </Button>
                     </div>
@@ -1112,7 +1217,6 @@ export function KnowledgePage() {
           open={sourcesOpen}
           onOpenChange={setSourcesOpen}
           focusSourceId={sourcesUrl.ingestSourceId}
-          zh={zh}
         />
       ) : null}
 
@@ -1124,16 +1228,14 @@ export function KnowledgePage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{zh ? '删除文档？' : 'Delete document?'}</AlertDialogTitle>
+            <AlertDialogTitle>{k.deleteTitle}</AlertDialogTitle>
             <AlertDialogDescription>
-              {zh
-                ? `将永久删除「${deleteTarget?.doc_id ?? ''}」及其所有版本、分块、向量索引、抽取结果，并从图谱中移除。此操作不可恢复。`
-                : `Permanently delete “${deleteTarget?.doc_id ?? ''}” with all versions, chunks, vectors, extractions, and graph nodes. This cannot be undone.`}
+              {fmt(k.deleteDescription, { docId: deleteTarget?.doc_id ?? '' })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={deletingDocument}>
-              {zh ? '取消' : 'Cancel'}
+              {t.common.cancel}
             </AlertDialogCancel>
             <AlertDialogAction
               disabled={deletingDocument}
@@ -1142,7 +1244,7 @@ export function KnowledgePage() {
                 void confirmDeleteDocument();
               }}
             >
-              {deletingDocument ? (zh ? '删除中…' : 'Deleting…') : zh ? '删除' : 'Delete'}
+              {deletingDocument ? k.deleting : k.delete}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

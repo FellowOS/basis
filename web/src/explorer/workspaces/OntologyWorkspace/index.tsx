@@ -1,17 +1,18 @@
 import { useCallback, useEffect, useState } from "react";
-import { BookMarked, HeartPulse, Sliders } from "lucide-react";
+import { PublicIcon } from "@/components/ui/public-icon.js";
 import { HealthTab } from "./HealthTab";
 import { OntologyManager } from "./OntologyManager";
 import { OntologyEditor } from "./OntologyEditor";
 import { readOntologyUrlState, writeEntitySelection, writeTab } from "./ontologyUrlState";
+import { useI18n } from "@/i18n/context.js";
 import { OntologyKbProvider } from "./ontologyKb";
 
 export type OntologyHubTab = "registry" | "editor" | "health";
 
-const TABS: { id: OntologyHubTab; label: string; icon: typeof Sliders }[] = [
-  { id: "registry", label: "Registry", icon: BookMarked },
-  { id: "editor", label: "Editor", icon: Sliders },
-  { id: "health", label: "Health", icon: HeartPulse },
+const TAB_IDS: { id: OntologyHubTab; icon: string }[] = [
+  { id: "registry", icon: "bookmark" },
+  { id: "editor", icon: "sliders" },
+  { id: "health", icon: "heartbeat" },
 ];
 
 function readInitialTab(): OntologyHubTab {
@@ -35,6 +36,8 @@ export function OntologyWorkspace({
   pageActionsHosted = false,
   onPageActionsChange,
 }: OntologyWorkspaceProps) {
+  const { t } = useI18n();
+  const hubTabs = t.kbOntology.hubTabs;
   const [activeTab, setActiveTab] = useState<OntologyHubTab>(readInitialTab);
 
   useEffect(() => {
@@ -70,7 +73,8 @@ export function OntologyWorkspace({
     <OntologyKbProvider kbId={kbId}>
     <div className="ws-page">
       <div className="flex shrink-0 flex-wrap gap-1 border-b border-border bg-muted/30 px-4 py-2">
-        {TABS.map(({ id, label, icon: Icon }) => {
+        {TAB_IDS.map(({ id, icon }) => {
+          const label = hubTabs[id];
           const active = activeTab === id;
           return (
             <button
@@ -83,7 +87,7 @@ export function OntologyWorkspace({
                   : "border-transparent text-muted-foreground hover:bg-muted/50 hover:text-foreground"
               }`}
             >
-              <Icon size={13} />
+              <PublicIcon name={icon} size={13} />
               {label}
             </button>
           );

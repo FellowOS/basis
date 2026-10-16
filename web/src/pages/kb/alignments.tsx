@@ -21,13 +21,9 @@ export function KbAlignmentsPage() {
         { label: getKb(id)?.name ?? id, to: kbPath(id, 'graph') },
         { label: t.menu.kb.alignments },
       ]}
-      subtitle={t.pages.kbSubtitles.alignments}
       className="min-h-0 overflow-hidden"
     >
-      <KbAlignmentsWorkspace
-        kbId={id}
-        className="min-h-0 flex-1 rounded-lg border border-border"
-      />
+      <KbAlignmentsWorkspace kbId={id} className="min-h-0 flex-1" />
     </ConsolePageLayout>
   );
 }

@@ -1,6 +1,5 @@
-import { type FormEvent, type ReactNode, useState } from 'react';
+import { type FormEvent, useState } from 'react';
 import { ConfirmAlertDialog } from '@/components/console-ui/ConfirmAlertDialog.js';
-import { EmptyState } from '@/components/console-ui/EmptyState.js';
 import { Badge } from '@/components/ui/badge.js';
 import { Button } from '@/components/ui/button.js';
 import {
@@ -11,18 +10,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog.js';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card.js';
 import { Input } from '@/components/ui/input.js';
 import { Label } from '@/components/ui/label.js';
-import { Separator } from '@/components/ui/separator.js';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table.js';
+import { PublicIcon } from '@/components/ui/public-icon.js';
 import { useI18n } from '@/i18n/context.js';
 
 export type McpIntegrationInfo = {
@@ -59,10 +49,6 @@ type KbMcpIntegrationPanelProps = {
   showCreateInCard?: boolean;
 };
 
-function SectionLabel({ children }: { children: ReactNode }) {
-  return <p className="text-sm font-medium text-foreground">{children}</p>;
-}
-
 export function KbMcpIntegrationPanel({
   mcpInfo,
   apiTokens,
@@ -86,185 +72,158 @@ export function KbMcpIntegrationPanel({
   const activeTokens = apiTokens.filter((row) => !row.revoked_at);
 
   return (
-    <div className="grid gap-6 lg:grid-cols-12">
-      <Card className="lg:col-span-7">
-        <CardHeader className="border-b border-border/60 pb-6">
-          <CardTitle className="text-base">{t.menu.kbMcp.connectionTitle}</CardTitle>
-          <CardDescription>{t.menu.kbMcp.hint}</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6 pt-6">
+    <div className="flex min-h-0 flex-1 overflow-hidden max-[900px]:flex-col">
+      <div className="flex w-[min(480px,42vw)] min-w-[280px] max-w-[520px] shrink-0 flex-col overflow-hidden border-r border-border max-[900px]:max-h-[min(52vh,480px)] max-[900px]:w-full max-[900px]:max-w-none max-[900px]:border-r-0 max-[900px]:border-b">
+        <div className="flex h-12 shrink-0 items-center gap-2 border-b border-border px-4">
+          <PublicIcon name="plug-01" size={13} className="shrink-0 text-muted-foreground" />
+          <span className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
+            {t.menu.kbMcp.connectionTitle}
+          </span>
+        </div>
+        <div className="min-h-0 flex-1 space-y-4 overflow-auto px-4 py-3">
           {!mcpInfo ? (
-            <p className="text-sm text-muted-foreground">{t.common.loading}</p>
+            <p className="flex items-center gap-2 text-sm text-muted-foreground">
+              <PublicIcon name="loader-01" size={14} className="animate-spin" />
+              {t.common.loading}
+            </p>
           ) : (
             <>
-              <ol className="space-y-2 text-sm text-muted-foreground">
-                <li className="flex gap-2">
-                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
-                    1
-                  </span>
-                  <span>{t.menu.kbMcp.stepCreateToken}</span>
-                </li>
-                <li className="flex gap-2">
-                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
-                    2
-                  </span>
-                  <span>{t.menu.kbMcp.stepCopyUrl}</span>
-                </li>
-                <li className="flex gap-2">
-                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
-                    3
-                  </span>
-                  <span>{t.menu.kbMcp.stepPasteConfig}</span>
-                </li>
+              <ol className="space-y-1.5 text-[11px] leading-snug text-muted-foreground">
+                <li>1. {t.menu.kbMcp.stepCreateToken}</li>
+                <li>2. {t.menu.kbMcp.stepCopyUrl}</li>
+                <li>3. {t.menu.kbMcp.stepPasteConfig}</li>
               </ol>
-
-              <Separator />
-
-              <div className="space-y-2">
-                <SectionLabel>{t.menu.kbMcp.url}</SectionLabel>
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                  <Input
-                    readOnly
-                    value={mcpInfo.mcp_url}
-                    className="font-mono text-xs sm:flex-1"
-                    aria-label={t.menu.kbMcp.url}
-                  />
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    className="shrink-0"
-                    onClick={() => void onCopy(mcpInfo.mcp_url)}
-                  >
-                    {t.menu.kbMcp.copy}
-                  </Button>
-                </div>
-                <p className="text-xs text-muted-foreground">{t.menu.kbMcp.apiBaseNote}</p>
-              </div>
-
-              <div className="space-y-2">
-                <SectionLabel>{t.menu.kbMcp.tools}</SectionLabel>
+              <label className="block space-y-1">
+                <span className="text-[11px] text-muted-foreground">{t.menu.kbMcp.url}</span>
+                <Input readOnly value={mcpInfo.mcp_url} className="h-8 font-mono text-xs" aria-label={t.menu.kbMcp.url} />
+                <span className="block text-[11px] leading-snug text-muted-foreground">{t.menu.kbMcp.apiBaseNote}</span>
+              </label>
+              <div className="space-y-1.5">
+                <p className="text-[11px] text-muted-foreground">{t.menu.kbMcp.tools}</p>
                 <div className="flex flex-wrap gap-1.5">
                   {mcpInfo.tools.map((tool) => (
-                    <Badge key={tool} variant="secondary" className="font-mono text-xs font-normal">
+                    <Badge key={tool} variant="secondary" className="font-mono text-[11px] font-normal">
                       {tool}
                     </Badge>
                   ))}
                 </div>
               </div>
-
-              <div className="space-y-2">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <SectionLabel>{t.menu.kbMcp.cursorConfig}</SectionLabel>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => void onCopy(cursorJson)}
-                  >
-                    {t.menu.kbMcp.copyConfig}
-                  </Button>
-                </div>
-                <pre
-                  className="max-h-64 overflow-auto rounded-lg border border-border/80 bg-muted/40 p-4 font-mono text-[11px] leading-relaxed text-foreground/90"
-                >
+              <div className="space-y-1.5">
+                <p className="text-[11px] text-muted-foreground">{t.menu.kbMcp.cursorConfig}</p>
+                <pre className="overflow-auto rounded-md border border-border bg-muted/40 p-3 font-mono text-[11px] leading-relaxed text-foreground">
                   {cursorJson}
                 </pre>
               </div>
             </>
           )}
-        </CardContent>
-      </Card>
+        </div>
+        <div className="flex h-12 shrink-0 items-center gap-2 border-t border-border px-3">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="h-8"
+            disabled={!mcpInfo}
+            onClick={() => mcpInfo && void onCopy(mcpInfo.mcp_url)}
+          >
+            <PublicIcon name="copy-left" size={14} />
+            {t.menu.kbMcp.copy}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="ml-auto h-8"
+            disabled={!mcpInfo}
+            onClick={() => void onCopy(cursorJson)}
+          >
+            <PublicIcon name="file-code" size={14} />
+            {t.menu.kbMcp.copyConfig}
+          </Button>
+        </div>
+      </div>
 
-      <Card className="lg:col-span-5">
-        <CardHeader className="flex flex-row items-center justify-between gap-3 border-b border-border/60 pb-4">
-          <CardTitle className="text-base">{t.menu.kbMcp.tokensTitle}</CardTitle>
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+        <div className="flex h-12 shrink-0 items-center gap-2 border-b border-border px-4">
+          <PublicIcon name="key-01" size={13} className="shrink-0 text-muted-foreground" />
+          <span className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
+            {t.menu.kbMcp.tokensTitle}
+          </span>
+          {activeTokens.length > 0 ? (
+            <span className="font-mono text-[11px] tabular-nums text-muted-foreground">{activeTokens.length}</span>
+          ) : null}
           {canManageTokens && showCreateInCard ? (
-            <Button type="button" size="sm" onClick={() => setCreateOpen(true)}>
+            <Button type="button" size="sm" className="ml-auto h-8" onClick={() => setCreateOpen(true)}>
               {t.menu.kbMcp.createButton}
             </Button>
           ) : null}
-        </CardHeader>
-        <CardContent className="space-y-4 pt-6">
+        </div>
+        <div className="min-h-0 flex-1 overflow-auto">
           {createdSecret ? (
-            <div className="space-y-2 rounded-lg border border-primary/40 bg-muted/40 p-4 text-sm">
-              <p className="font-medium">{t.menu.kbMcp.secretOnce}</p>
-              <code className="block break-all text-xs">{createdSecret}</code>
-              <div className="flex flex-wrap gap-2">
-                <Button type="button" variant="outline" size="sm" onClick={() => void onCopy(createdSecret)}>
+            <div className="space-y-2 border-b border-border px-4 py-3">
+              <p className="text-[13px] text-foreground">{t.menu.kbMcp.secretOnce}</p>
+              <code className="block break-all font-mono text-[11px] text-foreground">{createdSecret}</code>
+              <div className="flex gap-2">
+                <Button type="button" variant="outline" size="sm" className="h-8" onClick={() => void onCopy(createdSecret)}>
                   {t.menu.kbMcp.copyToken}
                 </Button>
-                <Button type="button" variant="ghost" size="sm" onClick={onDismissCreatedSecret}>
+                <Button type="button" variant="outline" size="sm" className="h-8" onClick={onDismissCreatedSecret}>
                   {t.menu.kbMcp.secretDismiss}
                 </Button>
               </div>
             </div>
           ) : null}
           {!canManageTokens ? (
-            <p className="rounded-lg border border-dashed border-border bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
-              {t.menu.kbMcp.adminOnly}
-            </p>
+            <p className="border-b border-border px-4 py-3 text-[11px] text-muted-foreground">{t.menu.kbMcp.adminOnly}</p>
           ) : null}
-
           {activeTokens.length === 0 ? (
-            <EmptyState
-              title={t.menu.kbMcp.emptyTokens}
-              description={canManageTokens ? t.menu.kbMcp.emptyTokensHint : undefined}
-            />
-          ) : (
-            <div className="overflow-hidden rounded-lg border border-border/80">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-muted/40 hover:bg-muted/40">
-                    <TableHead>{t.menu.kbMcp.nameLabel}</TableHead>
-                    <TableHead className="hidden sm:table-cell">{t.menu.kbMcp.lastUsed}</TableHead>
-                    <TableHead className="text-right">{t.menu.kbMcp.actions}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {activeTokens.map((row) => (
-                    <TableRow key={row.id}>
-                      <TableCell>
-                        <div className="font-medium">{row.name}</div>
-                        <div className="mt-0.5 text-xs text-muted-foreground">{row.scope}</div>
-                      </TableCell>
-                      <TableCell className="hidden text-xs text-muted-foreground sm:table-cell">
-                        {row.last_used_at ?? '—'}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-1.5">
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            disabled={!row.secret}
-                            title={row.secret ? undefined : t.menu.kbMcp.copyTokenUnavailable}
-                            onClick={() => row.secret && void onCopy(row.secret)}
-                          >
-                            {t.menu.kbMcp.copyToken}
-                          </Button>
-                          {canManageTokens && (
-                            <ConfirmAlertDialog
-                              title={t.menu.kbMcp.deleteTitle}
-                              description={t.menu.kbMcp.deleteConfirm}
-                              destructive
-                              onConfirm={() => onDeleteToken(row.id)}
-                              trigger={
-                                <Button type="button" variant="ghost" size="sm" className="text-destructive">
-                                  {t.menu.kbMcp.delete}
-                                </Button>
-                              }
-                            />
-                          )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+            <div className="flex h-full flex-col items-center justify-center px-6 text-center">
+              <PublicIcon name="key-01" size={18} className="mb-2 text-muted-foreground" />
+              <p className="text-sm font-medium text-foreground">{t.menu.kbMcp.emptyTokens}</p>
+              {canManageTokens ? (
+                <p className="mt-1 max-w-xs text-[11px] leading-snug text-muted-foreground">{t.menu.kbMcp.emptyTokensHint}</p>
+              ) : null}
             </div>
+          ) : (
+            activeTokens.map((row) => (
+              <div key={row.id} className="border-b border-border px-4 py-2.5">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="min-w-0 truncate text-[13px] text-foreground">{row.name}</span>
+                  <div className="flex shrink-0 items-center gap-2">
+                    <button
+                      type="button"
+                      className="text-[11px] text-foreground underline-offset-2 hover:underline disabled:text-muted-foreground disabled:no-underline"
+                      disabled={!row.secret}
+                      title={row.secret ? undefined : t.menu.kbMcp.copyTokenUnavailable}
+                      onClick={() => row.secret && void onCopy(row.secret)}
+                    >
+                      {t.menu.kbMcp.copyToken}
+                    </button>
+                    {canManageTokens ? (
+                      <ConfirmAlertDialog
+                        title={t.menu.kbMcp.deleteTitle}
+                        description={t.menu.kbMcp.deleteConfirm}
+                        destructive
+                        onConfirm={() => onDeleteToken(row.id)}
+                        trigger={
+                          <button type="button" className="text-[11px] text-destructive underline-offset-2 hover:underline">
+                            {t.menu.kbMcp.delete}
+                          </button>
+                        }
+                      />
+                    ) : null}
+                  </div>
+                </div>
+                <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
+                  {row.scope}
+                  {' · '}
+                  {row.last_used_at ?? '—'}
+                </p>
+              </div>
+            ))
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
         <DialogContent className="sm:max-w-md">

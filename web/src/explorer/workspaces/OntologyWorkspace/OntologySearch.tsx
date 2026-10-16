@@ -1,17 +1,8 @@
+import { PublicIcon } from "@/components/ui/public-icon.js";
 import { useEffect, useRef, useState } from "react";
 import { explorerApiErrorMessage, explorerGetJson, parseExplorerJson } from "../../lib/explorer-api-error";
 import { explorerFetch } from "../../host/explorerHttp";
 import { ontologyPath, useOntologyKbId } from "./ontologyKb";
-import {
-  AlertCircle,
-  BookOpen,
-  ChevronDown,
-  ChevronRight,
-  ExternalLink,
-  Loader2,
-  Search,
-  X,
-} from "lucide-react";
 import { cn } from "@/lib/utils.js";
 import {
   ontBadgeBase,
@@ -155,7 +146,7 @@ function CollapsibleList({ label, items }: { label: string; items: string[] }) {
   return (
     <div>
       <button type="button" onClick={() => setOpen((v) => !v)} className={ontSearchCollapseBtn}>
-        {open ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+        {open ? <PublicIcon name="chevron-down" size={12} /> : <PublicIcon name="chevron-right" size={12} />}
         <span>{label}</span>
         <span className="text-[10px]">({items.length})</span>
       </button>
@@ -224,23 +215,23 @@ function DetailPanel({
     <div className={ontSearchDetailPanel}>
       <div className={ontSearchDetailHeader}>
         <div className="flex min-w-0 items-center gap-2">
-          <BookOpen size={14} className="shrink-0 text-primary" />
+          <PublicIcon name="book-01" size={14} className="shrink-0 text-primary" />
           <span className="truncate text-sm font-bold text-foreground">Entity Detail</span>
         </div>
         <button type="button" onClick={onClose} className={ontManagerCloseBtn} aria-label="Close">
-          <X size={14} />
+          <PublicIcon name="x-02" size={14} />
         </button>
       </div>
 
       {loading ? (
         <div className={ontSearchHint}>
-          <Loader2 size={18} className="animate-spin text-primary" />
+          <PublicIcon name="loader-01" size={18} className="animate-spin text-primary" />
         </div>
       ) : null}
 
       {error && !loading ? (
         <div className={cn(ontSearchHint, "text-center")}>
-          <AlertCircle size={16} className="text-destructive" />
+          <PublicIcon name="alert-circle" size={16} className="text-destructive" />
           <span className="mt-1.5 text-xs text-destructive">{error}</span>
         </div>
       ) : null}
@@ -294,7 +285,7 @@ function DetailPanel({
             rel="noreferrer"
             className={ontSearchOpenUri}
           >
-            <ExternalLink size={11} />
+            <PublicIcon name="link-external" size={11} />
             Open URI
           </a>
         </div>
@@ -349,7 +340,7 @@ export function OntologySearch() {
     <div className={ontSearchShell}>
       <div className={ontSearchTop}>
         <div className={ontSearchBar}>
-          <Search size={14} className="shrink-0 text-muted-foreground" />
+          <PublicIcon name="search-01" size={14} className="shrink-0 text-muted-foreground" />
           <input
             autoFocus
             value={query}
@@ -358,7 +349,7 @@ export function OntologySearch() {
             className={ontSearchInput}
           />
           {searching ? (
-            <Loader2 size={13} className="shrink-0 animate-spin text-primary" />
+            <PublicIcon name="loader-01" size={13} className="shrink-0 animate-spin text-primary" />
           ) : null}
           {query && !searching ? (
             <button
@@ -367,7 +358,7 @@ export function OntologySearch() {
               className={ontSearchClearBtn}
               aria-label="Clear search"
             >
-              <X size={12} />
+              <PublicIcon name="x-02" size={12} />
             </button>
           ) : null}
         </div>
@@ -393,7 +384,7 @@ export function OntologySearch() {
         <div className={ontSearchResults}>
           {!query ? (
             <div className={ontSearchHint}>
-              <Search size={20} className="text-primary/20" />
+              <PublicIcon name="search-01" size={20} className="text-primary/20" />
               <span className="mt-2 text-xs text-muted-foreground">
                 Type to search across all loaded ontologies
               </span>

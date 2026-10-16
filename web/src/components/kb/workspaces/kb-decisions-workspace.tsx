@@ -19,7 +19,7 @@ export function KbDecisionsWorkspace({
   kbId: string;
   className?: string;
 }) {
-  const { locale } = useI18n();
+  const { t } = useI18n();
   const [searchParams] = useSearchParams();
   const { caps, loading: capsLoading } = useKbCapabilities();
   const decisionsQuery = searchParams.get('q') ?? '';
@@ -29,7 +29,7 @@ export function KbDecisionsWorkspace({
     return <KbExplorerUnavailable kbId={kbId} feature="review" />;
   }
 
-  const loadingLabel = locale === 'zh' ? '加载决策记录…' : 'Loading decisions…';
+  const loadingLabel = t.kbExplorer.loadingDecisions;
 
   return (
     <KbGovernanceExplorerShell kbId={kbId} className={className}>

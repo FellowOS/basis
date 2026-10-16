@@ -17,9 +17,8 @@ export function KbOntologyVersionsWorkspace({
   kbId: string;
   className?: string;
 }) {
-  const { locale } = useI18n();
-  const loadingLabel =
-    locale === 'zh' ? '加载本体版本…' : 'Loading ontology versions…';
+  const { t } = useI18n();
+  const loadingLabel = t.kbExplorer.loadingOntologyVersions;
 
   return (
     <KbExplorerConsoleShell kbId={kbId} className={className} feature="sparql">

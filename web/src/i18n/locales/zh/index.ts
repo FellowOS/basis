@@ -8,6 +8,29 @@ import { sidebar } from './sidebar.js';
 import { status } from './status.js';
 import { chat } from './chat.js';
 import { models } from './models.js';
+import { entityResolution } from './entityResolution.js';
+import { kbMappings } from './kbMappings.js';
+import { kbSearch } from './kbSearch.js';
+import { kbSources } from './kbSources.js';
+import { kbLedger } from './kbLedger.js';
+import { kbIngestSources } from './kbIngestSources.js';
+import { kbGraphDiff } from './kbGraphDiff.js';
+import { kbVocabulary } from './kbVocabulary.js';
+import { kbReasoning } from './kbReasoning.js';
+import { kbGraphWorkspace } from './kbGraphWorkspace.js';
+import { kbGraphAudit } from './kbGraphAudit.js';
+import { kbReview } from './kbReview.js';
+import { kbShacl } from './kbShacl.js';
+import { kbExplorer } from './kbExplorer.js';
+import { kbAlignments } from './kbAlignments.js';
+import { kbImportExport } from './kbImportExport.js';
+import { kbGraphPage } from './kbGraphPage.js';
+import { kbGraphProjection } from './kbGraphProjection.js';
+import { kbSparql } from './kbSparql.js';
+import { kbLineage } from './kbLineage.js';
+import { kbSettings } from './kbSettings.js';
+import { platformSettings } from './platformSettings.js';
+import { kbOntology } from './kbOntology.js';
 
 export const zh = {
   menu,
@@ -20,4 +43,27 @@ export const zh = {
   nav,
   status,
   pages,
+  entityResolution,
+  kbMappings,
+  kbSearch,
+  kbSources,
+  kbLedger,
+  kbIngestSources,
+  kbGraphDiff,
+  kbVocabulary,
+  kbReasoning,
+  kbGraphWorkspace,
+  kbGraphAudit,
+  kbReview,
+  kbShacl,
+  kbExplorer,
+  kbAlignments,
+  kbImportExport,
+  kbGraphPage,
+  kbGraphProjection,
+  kbSparql,
+  kbLineage,
+  kbSettings,
+  platformSettings,
+  kbOntology,
 } as const;

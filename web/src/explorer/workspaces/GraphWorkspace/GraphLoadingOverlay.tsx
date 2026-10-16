@@ -1,5 +1,5 @@
+import { PublicIcon } from "@/components/ui/public-icon.js";
 import { useEffect, useRef, useState } from "react";
-import { AlertTriangle, RefreshCw } from "lucide-react";
 
 import {
   graphLoaderMetric,
@@ -281,7 +281,7 @@ export function GraphLoadingOverlay({
         <div className="graph-stage-loader-card" data-error="true" role="alert">
           <div className="mb-3.5 flex items-start gap-3.5">
             <div className="graph-stage-loader-error-mark" aria-hidden="true">
-              <AlertTriangle size={18} strokeWidth={2.2} />
+              <PublicIcon name="alert-triangle" size={18} />
             </div>
             <div className="min-w-0">
               <div className="mb-1.5 text-xl font-bold tracking-tight text-foreground">
@@ -298,7 +298,7 @@ export function GraphLoadingOverlay({
           {onRetry ? (
             <div className="mt-4 flex gap-2.5">
               <button type="button" className="graph-stage-loader-retry" onClick={onRetry}>
-                <RefreshCw size={14} strokeWidth={2.2} aria-hidden />
+                <PublicIcon name="arrow-refresh-01" size={14} />
                 {graphCopy(locale, "loadRetry")}
               </button>
             </div>

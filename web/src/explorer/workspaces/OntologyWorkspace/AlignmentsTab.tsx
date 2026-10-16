@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils.js";
 import {
-  ontAlignList,
   ontAlignMatrixCell,
   ontAlignMatrixCellDiag,
   ontAlignMatrixColHeader,
@@ -10,12 +9,13 @@ import {
   ontAlignMatrixTable,
   ontAlignMatrixWrap,
   ontAlignRelationBadge,
-  ontAlignRelationBadgeLg,
   ontAlignRelationClass,
   ontAlignSuggestList,
   ontStrong,
 } from "./ontologyUiClasses";
-import { GitMerge, Loader2, Sparkles, Trash2 } from "lucide-react";
+import { PublicIcon } from "@/components/ui/public-icon.js";
+import { useI18n } from "@/i18n/context.js";
+import type { Locale } from "@/i18n/locale.js";
 import { Button } from "@/components/ui/button.js";
 import {
   Dialog,
@@ -52,6 +52,9 @@ function relationBadgeClass(relation: AlignmentRelation) {
 
 export function AlignmentsTab() {
   const kbId = useOntologyKbId();
+  const { t, locale } = useI18n();
+  const copy = t.kbAlignments;
+  const apiLocale = locale as Locale;
   const [registry, setRegistry] = useState<OntologyEntry[]>([]);
   const [alignments, setAlignments] = useState<OntologyAlignment[]>([]);
   const [suggestions, setSuggestions] = useState<AlignmentSuggestion[]>([]);
@@ -83,15 +86,15 @@ export function AlignmentsTab() {
       setSourceOntology((current) => current || registryResult.value[0]?.uri || "");
       setTargetOntology((current) => current || registryResult.value[1]?.uri || registryResult.value[0]?.uri || "");
     } else {
-      errors.push(explorerApiErrorMessage(registryResult.reason, "en"));
+      errors.push(explorerApiErrorMessage(registryResult.reason, apiLocale));
     }
     if (alignmentResult.status === "fulfilled") {
       setAlignments(alignmentResult.value);
     } else {
-      errors.push(explorerApiErrorMessage(alignmentResult.reason, "en"));
+      errors.push(explorerApiErrorMessage(alignmentResult.reason, apiLocale));
     }
     if (errors.length) setError(errors.join(" "));
-  }, [kbId]);
+  }, [apiLocale, kbId]);
 
   useEffect(() => {
     let ignore = false;
@@ -108,26 +111,18 @@ export function AlignmentsTab() {
         setSourceOntology((current) => current || registryResult.value[0]?.uri || "");
         setTargetOntology((current) => current || registryResult.value[1]?.uri || registryResult.value[0]?.uri || "");
       } else {
-        errors.push(explorerApiErrorMessage(registryResult.reason, "en"));
+        errors.push(explorerApiErrorMessage(registryResult.reason, apiLocale));
       }
       if (alignmentResult.status === "fulfilled") {
         setAlignments(alignmentResult.value);
       } else {
-        errors.push(explorerApiErrorMessage(alignmentResult.reason, "en"));
+        errors.push(explorerApiErrorMessage(alignmentResult.reason, apiLocale));
       }
       if (errors.length) setError(errors.join(" "));
     }
     void fetchInitial();
     return () => { ignore = true; };
-  }, [kbId]);
-
-  const relationCounts = useMemo(() => {
-    const counts = new Map<string, number>();
-    for (const item of alignments) {
-      counts.set(item.relation, (counts.get(item.relation) ?? 0) + 1);
-    }
-    return counts;
-  }, [alignments]);
+  }, [apiLocale, kbId]);
 
   // Pairwise matrix: group alignments by (source_ontology, target_ontology) pair.
   const matrix = useMemo(() => {
@@ -154,7 +149,7 @@ export function AlignmentsTab() {
 
   const handleSave = useCallback(async () => {
     if (!sourceUri.trim() || !targetUri.trim()) {
-      setError("Provide both source and target entity URIs.");
+      setError(copy.missingUris);
       return;
     }
     setBusy(true);
@@ -178,7 +173,7 @@ export function AlignmentsTab() {
     } finally {
       setBusy(false);
     }
-  }, [kbId, sourceUri, targetUri, relation, confidence, provenance, source, reviewer, reload]);
+  }, [copy.missingUris, kbId, sourceUri, targetUri, relation, confidence, provenance, source, reviewer, reload]);
 
   const handleSuggest = useCallback(async () => {
     setBusy(true);
@@ -221,133 +216,150 @@ export function AlignmentsTab() {
     }
   }, [kbId, reload]);
 
+  function openAlignment(item: OntologyAlignment) {
+    setSourceUri(item.source_uri);
+    setTargetUri(item.target_uri);
+    setRelation(item.relation);
+    setConfidence(item.confidence);
+    setProvenance(item.provenance ?? "");
+    setEditorOpen(true);
+  }
+
   return (
-    <div className="ws-page ws-scroll">
-      <div className="ws-padded oh-stack">
-      <section className="oh-hero">
-        <div>
-          <div className="oh-kicker"><GitMerge size={14} /> Alignment Matrix</div>
-          <h2 className="oh-title">Cross-ontology mappings</h2>
-          <p className="oh-lead">
-            Manage equivalence and SKOS match relations with confidence, provenance,
-            reviewer context, and label-based suggestions.
-          </p>
+    <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden">
+      {error ? <p className="text-sm text-destructive">{error}</p> : null}
+
+      <section className="flex min-h-0 flex-[1.15] flex-col overflow-hidden rounded-lg border border-border">
+        <div className="flex h-12 shrink-0 items-center gap-2 border-b border-border px-4">
+          <PublicIcon name="git-merge" size={13} className="shrink-0 text-muted-foreground" />
+          <span className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">{copy.matrix}</span>
+          <span className="font-mono text-[11px] tabular-nums text-muted-foreground">{matrix.ontologies.length}</span>
+          <div className="ml-auto flex items-center gap-1">
+            <Button type="button" size="sm" variant="outline" className="h-8 px-2 text-xs" onClick={() => setSuggestOpen(true)}>
+              <PublicIcon name="stars" size={14} />
+              {copy.suggest}
+            </Button>
+            <Button type="button" size="sm" className="h-8 px-2 text-xs" onClick={() => setEditorOpen(true)}>
+              <PublicIcon name="plus-01" size={14} />
+              {copy.newAlignment}
+            </Button>
+          </div>
         </div>
-        <div className="oh-metrics">
-          <Metric label="Mappings" value={alignments.length} />
-          <Metric label="Relations" value={relationCounts.size} />
-          <Metric label="Suggestions" value={suggestions.length} />
+        <div className="min-h-0 flex-1 overflow-auto">
+          {matrix.ontologies.length >= 2 ? (
+            <div className={ontAlignMatrixWrap}>
+              <table className={ontAlignMatrixTable}>
+                <thead>
+                  <tr>
+                    <th className={ontAlignMatrixCorner} />
+                    {matrix.ontologies.map((col) => (
+                      <th key={col.uri} className={ontAlignMatrixColHeader}>{col.name}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {matrix.ontologies.map((row) => (
+                    <tr key={row.uri}>
+                      <td className={ontAlignMatrixRowHeader}>{row.name}</td>
+                      {matrix.ontologies.map((col) => {
+                        const key = `${row.uri}|||${col.uri}`;
+                        const cellItems = matrix.cells.get(key) ?? [];
+                        const isDiag = row.uri === col.uri;
+                        return (
+                          <td key={col.uri} className={cn(ontAlignMatrixCell, isDiag && ontAlignMatrixCellDiag)}>
+                            {isDiag ? <span className="text-muted-foreground">—</span> : cellItems.length ? (
+                              <div className="flex flex-col gap-1">
+                                {cellItems.map((item) => (
+                                  <span
+                                    key={item.id}
+                                    role="button"
+                                    tabIndex={0}
+                                    className={cn(ontAlignRelationBadge, relationBadgeClass(item.relation))}
+                                    title={`${item.source_label} → ${item.target_label} (${Math.round(item.confidence * 100)}%)`}
+                                    onClick={() => openAlignment(item)}
+                                    onKeyDown={(event) => {
+                                      if (event.key === "Enter" || event.key === " ") openAlignment(item);
+                                    }}
+                                  >
+                                    {item.relation.split(":")[1]}
+                                  </span>
+                                ))}
+                              </div>
+                            ) : <span className="text-xs text-muted-foreground/30">·</span>}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <QuietEmpty icon="git-merge" title={copy.emptyMatrixTitle} body={copy.emptyMatrixBody} />
+          )}
         </div>
+        <p className="shrink-0 border-t border-border px-4 py-2 text-[11px] text-muted-foreground">
+          {matrix.ontologies.length >= 2 ? `${copy.clickHint} ` : null}
+          {copy.ephemeral}
+        </p>
       </section>
 
-      {error ? <div className="oh-banner-error">{error}</div> : null}
-
-      <div className="oh-banner-warn">
-        Alignments are stored in server memory and are not persisted across restarts.
-        Export your graph or ontology to preserve recorded mappings.
-      </div>
-
-      {matrix.ontologies.length >= 2 ? (
-        <section className="oh-card">
-          <h3 className="oh-card-title">Pairwise alignment matrix</h3>
-          <div className={ontAlignMatrixWrap}>
-            <table className={ontAlignMatrixTable}>
-              <thead>
-                <tr>
-                  <th className={ontAlignMatrixCorner} />
-                  {matrix.ontologies.map((col) => (
-                    <th key={col.uri} className={ontAlignMatrixColHeader}>{col.name}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {matrix.ontologies.map((row) => (
-                  <tr key={row.uri}>
-                    <td className={ontAlignMatrixRowHeader}>{row.name}</td>
-                    {matrix.ontologies.map((col) => {
-                      const key = `${row.uri}|||${col.uri}`;
-                      const cellItems = matrix.cells.get(key) ?? [];
-                      const isDiag = row.uri === col.uri;
-                      return (
-                        <td
-                          key={col.uri}
-                          className={cn(ontAlignMatrixCell, isDiag && ontAlignMatrixCellDiag)}
-                        >
-                          {isDiag ? <span className="oh-muted">—</span> : cellItems.length ? (
-                            <div className="flex flex-col gap-1">
-                              {cellItems.map((item) => (
-                                <span
-                                  key={item.id}
-                                  role="button"
-                                  tabIndex={0}
-                                  className={cn(ontAlignRelationBadge, relationBadgeClass(item.relation))}
-                                  title={`${item.source_label} → ${item.target_label} (${Math.round(item.confidence * 100)}%)`}
-                                  onClick={() => {
-                                    setSourceUri(item.source_uri);
-                                    setTargetUri(item.target_uri);
-                                    setRelation(item.relation);
-                                    setConfidence(item.confidence);
-                                    setProvenance(item.provenance ?? "");
-                                    setEditorOpen(true);
-                                  }}
-                                  onKeyDown={(e) => {
-                                    if (e.key === "Enter" || e.key === " ") {
-                                      setSourceUri(item.source_uri);
-                                      setTargetUri(item.target_uri);
-                                      setRelation(item.relation);
-                                      setConfidence(item.confidence);
-                                      setProvenance(item.provenance ?? "");
-                                      setEditorOpen(true);
-                                    }
-                                  }}
-                                >
-                                  {item.relation.split(":")[1]}
-                                </span>
-                              ))}
-                            </div>
-                          ) : <span className="text-xs text-muted-foreground/30">·</span>}
-                        </td>
-                      );
-                    })}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <p className="oh-muted mt-2.5">Click a relation badge to load it into the alignment editor.</p>
-        </section>
-      ) : null}
-
-      <div className="flex flex-wrap gap-2">
-        <Button type="button" size="sm" onClick={() => setEditorOpen(true)}>
-          <GitMerge size={14} className="mr-1" aria-hidden />
-          New alignment
-        </Button>
-        <Button type="button" size="sm" variant="outline" onClick={() => setSuggestOpen(true)}>
-          <Sparkles size={14} className="mr-1" aria-hidden />
-          Suggest alignments
-        </Button>
-      </div>
+      <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-border">
+        <div className="flex h-12 shrink-0 items-center gap-2 border-b border-border px-4">
+          <PublicIcon name="list-dashes-01" size={13} className="shrink-0 text-muted-foreground" />
+          <span className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">{copy.recorded}</span>
+          <span className="font-mono text-[11px] tabular-nums text-muted-foreground">{alignments.length}</span>
+        </div>
+        <div className="min-h-0 flex-1 overflow-auto">
+          {alignments.length === 0 ? (
+            <QuietEmpty icon="git-merge" title={copy.emptyRecordedTitle} body={copy.emptyRecordedBody} />
+          ) : (
+            alignments.map((item) => (
+              <div key={item.id} className="flex items-center gap-3 border-b border-border px-4 py-2.5">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-[13px] text-foreground">{item.source_label || item.source_uri}</p>
+                  <p className="truncate font-mono text-[11px] text-muted-foreground">{item.source_uri}</p>
+                </div>
+                <span className={cn(ontAlignRelationBadge, relationBadgeClass(item.relation))}>{item.relation.split(":")[1]}</span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-[13px] text-foreground">{item.target_label || item.target_uri}</p>
+                  <p className="truncate font-mono text-[11px] text-muted-foreground">{item.target_uri}</p>
+                </div>
+                <span className="shrink-0 font-mono text-[11px] tabular-nums text-muted-foreground">{Math.round(item.confidence * 100)}%</span>
+                <button
+                  type="button"
+                  className="shrink-0 text-destructive disabled:opacity-50"
+                  disabled={busy}
+                  title={copy.remove}
+                  onClick={() => void handleRemove(item.id)}
+                >
+                  <PublicIcon name="trash-01" size={14} />
+                </button>
+              </div>
+            ))
+          )}
+        </div>
+      </section>
 
       <Dialog open={editorOpen} onOpenChange={setEditorOpen}>
         <DialogContent className="max-h-[min(92vh,36rem)] max-w-lg overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Create or update alignment</DialogTitle>
-            <DialogDescription>Record equivalence or SKOS match between entity URIs.</DialogDescription>
+            <DialogTitle>{copy.editorTitle}</DialogTitle>
+            <DialogDescription>{copy.editorBody}</DialogDescription>
           </DialogHeader>
-          <label className="oh-label">Source entity URI</label>
+          <label className="oh-label">{copy.sourceUri}</label>
           <input className="oh-field" value={sourceUri} onChange={(event) => setSourceUri(event.target.value)} />
-          <label className="oh-label">Target entity URI</label>
+          <label className="oh-label">{copy.targetUri}</label>
           <input className="oh-field" value={targetUri} onChange={(event) => setTargetUri(event.target.value)} />
           <div className="oh-row-2">
             <div>
-              <label className="oh-label">Relation</label>
+              <label className="oh-label">{copy.relation}</label>
               <select className="oh-field" value={relation} onChange={(event) => setRelation(event.target.value as AlignmentRelation)}>
                 {RELATIONS.map((item) => <option key={item}>{item}</option>)}
               </select>
             </div>
             <div>
-              <label className="oh-label">Confidence {confidence.toFixed(2)}</label>
+              <label className="oh-label">{copy.confidence} {confidence.toFixed(2)}</label>
               <input
                 type="range"
                 min="0"
@@ -359,25 +371,25 @@ export function AlignmentsTab() {
               />
             </div>
           </div>
-          <label className="oh-label">Provenance note</label>
+          <label className="oh-label">{copy.provenance}</label>
           <textarea className="oh-field min-h-[74px] resize-y" value={provenance} onChange={(event) => setProvenance(event.target.value)} />
           <div className="oh-row-2">
             <div>
-              <label className="oh-label">Source</label>
+              <label className="oh-label">{copy.source}</label>
               <input className="oh-field" value={source} onChange={(event) => setSource(event.target.value)} />
             </div>
             <div>
-              <label className="oh-label">Reviewer</label>
+              <label className="oh-label">{copy.reviewer}</label>
               <input className="oh-field" value={reviewer} onChange={(event) => setReviewer(event.target.value)} />
             </div>
           </div>
           <DialogFooter className="gap-2 sm:justify-end">
             <Button type="button" variant="outline" onClick={() => setEditorOpen(false)}>
-              Cancel
+              {t.common.cancel}
             </Button>
             <Button type="button" disabled={busy} onClick={() => void handleSave()}>
-              {busy ? <Loader2 size={14} className="animate-spin" /> : <GitMerge size={14} />}
-              Save alignment
+              {busy ? <PublicIcon name="loader-01" size={14} className="animate-spin" /> : <PublicIcon name="git-merge" size={14} />}
+              {busy ? copy.saving : copy.save}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -386,26 +398,26 @@ export function AlignmentsTab() {
       <Dialog open={suggestOpen} onOpenChange={setSuggestOpen}>
         <DialogContent className="max-h-[min(92vh,40rem)] max-w-lg overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Suggest alignments</DialogTitle>
-            <DialogDescription>Rank candidate mappings by label similarity.</DialogDescription>
+            <DialogTitle>{copy.suggestTitle}</DialogTitle>
+            <DialogDescription>{copy.suggestBody}</DialogDescription>
           </DialogHeader>
           <div className="oh-row-2">
             <div>
-              <label className="oh-label">Source ontology</label>
+              <label className="oh-label">{copy.sourceOntology}</label>
               <select className="oh-field" value={sourceOntology} onChange={(event) => setSourceOntology(event.target.value)}>
-                <option value="">Any ontology</option>
+                <option value="">{copy.anyOntology}</option>
                 {registry.map((entry) => <option key={entry.uri} value={entry.uri}>{entry.name}</option>)}
               </select>
             </div>
             <div>
-              <label className="oh-label">Target ontology</label>
+              <label className="oh-label">{copy.targetOntology}</label>
               <select className="oh-field" value={targetOntology} onChange={(event) => setTargetOntology(event.target.value)}>
-                <option value="">Any ontology</option>
+                <option value="">{copy.anyOntology}</option>
                 {registry.map((entry) => <option key={entry.uri} value={entry.uri}>{entry.name}</option>)}
               </select>
             </div>
           </div>
-          <label className="oh-label">Similarity threshold {threshold.toFixed(2)}</label>
+          <label className="oh-label">{copy.threshold} {threshold.toFixed(2)}</label>
           <input
             type="range"
             min="0.25"
@@ -415,9 +427,9 @@ export function AlignmentsTab() {
             onChange={(event) => setThreshold(Number(event.target.value))}
             className="w-full"
           />
-          <Button type="button" className="mt-3" variant="secondary" disabled={busy} onClick={() => void handleSuggest()}>
-            <Sparkles size={14} className="mr-1" />
-            Run suggestions
+          <Button type="button" className="mt-3" variant="outline" disabled={busy} onClick={() => void handleSuggest()}>
+            <PublicIcon name="stars" size={14} className="mr-1" />
+            {copy.runSuggest}
           </Button>
           <div className={ontAlignSuggestList}>
             {suggestions.map((item) => (
@@ -428,46 +440,20 @@ export function AlignmentsTab() {
                 <span className="oh-muted">{Math.round(item.score * 100)}%</span>
               </button>
             ))}
-            {!suggestions.length ? <p className="oh-muted">Run suggestions to review ranked candidate mappings.</p> : null}
+            {!suggestions.length ? <p className="text-[11px] text-muted-foreground">{copy.suggestEmpty}</p> : null}
           </div>
         </DialogContent>
       </Dialog>
-
-      <section className="oh-card">
-        <h3 className="oh-card-title">Recorded alignments</h3>
-        <div className={ontAlignList}>
-          {alignments.map((item) => (
-            <div key={item.id} className="oh-list-row">
-              <div>
-                <div className={ontStrong}>{item.source_label || item.source_uri}</div>
-                <div className="oh-mono">{item.source_uri}</div>
-              </div>
-              <div className={cn(ontAlignRelationBadgeLg, relationBadgeClass(item.relation))}>
-                {item.relation}
-              </div>
-              <div>
-                <div className={ontStrong}>{item.target_label || item.target_uri}</div>
-                <div className="oh-mono">{item.target_uri}</div>
-              </div>
-              <div className="font-bold text-warn">{Math.round(item.confidence * 100)}%</div>
-              <button type="button" className="oh-icon-danger" disabled={busy} onClick={() => handleRemove(item.id)} title="Remove alignment">
-                <Trash2 size={14} />
-              </button>
-            </div>
-          ))}
-          {!alignments.length ? <p className="oh-muted">No alignments recorded yet.</p> : null}
-        </div>
-      </section>
-      </div>
     </div>
   );
 }
 
-function Metric({ label, value }: { label: string; value: number }) {
+function QuietEmpty({ icon, title, body }: { icon: string; title: string; body: string }) {
   return (
-    <div className="oh-metric">
-      <span className="oh-metric-value">{value.toLocaleString()}</span>
-      <span className="oh-metric-label">{label}</span>
+    <div className="flex h-full min-h-32 flex-col items-center justify-center px-6 text-center">
+      <PublicIcon name={icon} size={18} className="mb-2 text-muted-foreground" />
+      <p className="text-sm font-medium text-foreground">{title}</p>
+      <p className="mt-1 max-w-sm text-[11px] leading-snug text-muted-foreground">{body}</p>
     </div>
   );
 }

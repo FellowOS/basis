@@ -24,6 +24,61 @@ def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def _uploaded_filename(title: str | None, external_key: str | None) -> str | None:
+    """Return the stored title when it is a real upload name.
+
+    Pasted text is saved as ``{doc_id}.txt`` and has no filename.
+    """
+    name = (title or "").strip()
+    if not name:
+        return None
+    key = (external_key or "").strip()
+    if key and name == f"{key}.txt":
+        return None
+    return name
+
+
+def _chunk_payload(item: str | dict[str, Any]) -> dict[str, Any]:
+    raw = {"text": item} if isinstance(item, str) else item
+    anchor_json = raw.get("anchor_json")
+    anchor = raw.get("anchor")
+    if anchor_json is None and isinstance(anchor, dict):
+        anchor_json = json.dumps(anchor, ensure_ascii=False)
+    return {
+        "text": raw.get("text") or "",
+        "heading": raw.get("heading"),
+        "char_start": raw.get("char_start"),
+        "char_end": raw.get("char_end"),
+        "token_count": raw.get("token_count"),
+        "language": raw.get("language"),
+        "origin": raw.get("origin") or "stated",
+        "anchor_json": anchor_json,
+    }
+
+
+def _chunk_api_row(row: Any) -> dict[str, Any]:
+    anchor_raw = row["anchor_json"]
+    anchor: Any = None
+    if anchor_raw:
+        try:
+            anchor = json.loads(anchor_raw)
+        except json.JSONDecodeError:
+            anchor = None
+    return {
+        "id": row["id"],
+        "ordinal": row["ordinal"],
+        "text": row["text"] or "",
+        "heading": row["heading"],
+        "char_start": row["char_start"],
+        "char_end": row["char_end"],
+        "token_count": row["token_count"],
+        "language": row["language"],
+        "origin": row["origin"],
+        "anchor": anchor,
+        "created_at": row["created_at"],
+    }
+
+
 @dataclass(frozen=True)
 class JobRow:
     id: str
@@ -913,6 +968,7 @@ class KnowledgeStore:
                     {
                         "doc_id": doc_id,
                         "document_id": row["id"],
+                        "filename": _uploaded_filename(row["title"], row["external_key"]),
                         "preview": preview,
                         "char_count": char_count,
                         "version_status": row["version_status"],
@@ -931,13 +987,15 @@ class KnowledgeStore:
             self._assert_row_in_kb("document_versions", version_id, kb_id)
             rows = self._conn.execute(
                 """
-                SELECT id, ordinal, text FROM chunks
+                SELECT id, ordinal, text, heading, char_start, char_end,
+                       token_count, language, origin, anchor_json, created_at
+                FROM chunks
                 WHERE kb_id = ? AND version_id = ?
                 ORDER BY ordinal
                 """,
                 (kb_id, version_id),
             ).fetchall()
-        return [{"id": r["id"], "ordinal": r["ordinal"], "text": r["text"]} for r in rows]
+        return [_chunk_api_row(r) for r in rows]
 
     def get_or_create_entity_by_label(self, kb_id: str, label: str) -> str:
         clean = label.strip()
@@ -1135,6 +1193,12 @@ class KnowledgeStore:
         ordinal: int,
         text: str,
         heading: str | None = None,
+        char_start: int | None = None,
+        char_end: int | None = None,
+        token_count: int | None = None,
+        language: str | None = None,
+        origin: str = "stated",
+        anchor_json: str | None = None,
     ) -> str:
         chunk_id = str(uuid.uuid4())
         with self._lock:
@@ -1144,9 +1208,23 @@ class KnowledgeStore:
                 INSERT INTO chunks(
                     id, kb_id, version_id, ordinal, text, heading,
                     char_start, char_end, token_count, language, origin, anchor_json, created_at
-                ) VALUES (?, ?, ?, ?, ?, ?, NULL, NULL, NULL, NULL, 'stated', NULL, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
-                (chunk_id, kb_id, version_id, ordinal, text, heading, _now()),
+                (
+                    chunk_id,
+                    kb_id,
+                    version_id,
+                    ordinal,
+                    text,
+                    heading,
+                    char_start,
+                    char_end,
+                    token_count,
+                    language,
+                    origin or "stated",
+                    anchor_json,
+                    _now(),
+                ),
             )
             self._conn.commit()
         return chunk_id
@@ -1155,13 +1233,33 @@ class KnowledgeStore:
         self,
         kb_id: str,
         version_id: str,
-        texts: list[str],
+        texts: list[str] | list[dict[str, Any]],
     ) -> list[str]:
         """Insert one version's chunks in a single transaction."""
         if not texts:
             return []
         now = _now()
         chunk_ids = [str(uuid.uuid4()) for _ in texts]
+        rows = []
+        for ordinal, (chunk_id, item) in enumerate(zip(chunk_ids, texts)):
+            payload = _chunk_payload(item)
+            rows.append(
+                (
+                    chunk_id,
+                    kb_id,
+                    version_id,
+                    ordinal,
+                    payload["text"],
+                    payload["heading"],
+                    payload["char_start"],
+                    payload["char_end"],
+                    payload["token_count"],
+                    payload["language"],
+                    payload["origin"],
+                    payload["anchor_json"],
+                    now,
+                )
+            )
         with self._lock:
             self._assert_row_in_kb("document_versions", version_id, kb_id)
             self._conn.executemany(
@@ -1170,13 +1268,9 @@ class KnowledgeStore:
                     id, kb_id, version_id, ordinal, text, heading,
                     char_start, char_end, token_count, language, origin,
                     anchor_json, created_at
-                ) VALUES (?, ?, ?, ?, ?, NULL, NULL, NULL, NULL, NULL,
-                          'stated', NULL, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
-                [
-                    (chunk_id, kb_id, version_id, ordinal, text, now)
-                    for ordinal, (chunk_id, text) in enumerate(zip(chunk_ids, texts))
-                ],
+                rows,
             )
             self._conn.commit()
         return chunk_ids
@@ -1920,7 +2014,9 @@ class KnowledgeStore:
         with self._lock:
             row = self._conn.execute(
                 """
-                SELECT c.id, c.text, c.ordinal, d.id AS document_id, d.title AS document_title
+                SELECT c.id, c.text, c.ordinal, c.heading, c.char_start, c.char_end,
+                       c.token_count, c.language, c.origin, c.anchor_json, c.created_at,
+                       d.id AS document_id, d.title AS document_title
                 FROM chunks c
                 INNER JOIN document_versions dv ON dv.id = c.version_id
                 INNER JOIN documents d ON d.id = dv.document_id
@@ -1934,8 +2030,7 @@ class KnowledgeStore:
             "chunk_id": row["id"],
             "document_id": row["document_id"],
             "document_title": row["document_title"] or "",
-            "ordinal": row["ordinal"],
-            "text": row["text"] or "",
+            **_chunk_api_row(row),
         }
 
     @staticmethod

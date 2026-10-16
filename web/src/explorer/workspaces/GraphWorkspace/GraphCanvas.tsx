@@ -779,6 +779,14 @@ function buildEffectAvailability(
     ? { enabled: true, available: true, reason: "Ready" }
     : { enabled: false, available: false, reason: "Disabled by toggle" };
 
+  const autoLayout = effectsState.autoLayoutEnabled
+    ? {
+        enabled: true,
+        available: !isLayoutRunning,
+        reason: isLayoutRunning ? "Layout worker running" : "Ready — toolbar can still pause or resume",
+      }
+    : { enabled: false, available: true, reason: "Seed positions only; use toolbar Run to layout manually" };
+
   const diagnostics = !GRAPH_THEME.effects.diagnostics.enabledInDev
     ? { enabled: false, available: false, reason: "Disabled in production" }
     : effectsState.diagnosticsEnabled
@@ -797,6 +805,7 @@ function buildEffectAvailability(
     centrality,
     legend,
     edgeLabels,
+    autoLayout,
     diagnostics,
   };
 }

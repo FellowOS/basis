@@ -17,9 +17,8 @@ export function KbAlignmentsWorkspace({
   kbId: string;
   className?: string;
 }) {
-  const { locale } = useI18n();
-  const loadingLabel =
-    locale === 'zh' ? '加载本体对齐…' : 'Loading ontology alignments…';
+  const { t } = useI18n();
+  const loadingLabel = t.kbExplorer.loadingAlignments;
 
   return (
     <KbExplorerConsoleShell kbId={kbId} className={className} feature="sparql">

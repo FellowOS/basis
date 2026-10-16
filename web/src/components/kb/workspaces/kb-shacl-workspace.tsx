@@ -19,9 +19,9 @@ export function KbShaclWorkspace({
   kbId: string;
   className?: string;
 }) {
-  const { locale } = useI18n();
+  const { t } = useI18n();
   const navigate = useNavigate();
-  const loadingLabel = locale === 'zh' ? '加载 SHACL 工作台…' : 'Loading SHACL studio…';
+  const loadingLabel = t.kbExplorer.loadingShacl;
 
   const onJumpToGraphNode = (nodeId: string) => {
     navigate(`${kbPath(kbId, 'graph')}?focus=${encodeURIComponent(nodeId)}`);

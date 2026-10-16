@@ -19,6 +19,8 @@ import {
 } from '@/components/ui/dialog.js';
 import { Input } from '@/components/ui/input.js';
 import { Label } from '@/components/ui/label.js';
+import { useI18n } from '@/i18n/context.js';
+import { fmt } from '@/i18n/format.js';
 import { api } from '@/lib/api.js';
 import { useKbCatalog } from '@/lib/kb-context.js';
 import { useApiErrorMessage } from '@/lib/use-api-error-message.js';
@@ -32,6 +34,8 @@ type Kb = {
 };
 
 export function KbsPage() {
+  const { t } = useI18n();
+  const p = t.pages.basisKbs;
   const apiError = useApiErrorMessage();
   const { kbs, refresh } = useKbCatalog();
   const [name, setName] = useState('');
@@ -64,37 +68,37 @@ export function KbsPage() {
 
   const columns = useMemo<DataTableColumn<Kb>[]>(
     () => [
-      { key: 'name', header: '名称', render: (kb) => <span className="font-medium">{kb.name}</span> },
-      { key: 'visibility', header: '可见性', render: (kb) => kb.visibility },
-      { key: 'role', header: '我的角色', render: (kb) => kb.my_role },
+      { key: 'name', header: p.colName, render: (kb) => <span className="font-medium">{kb.name}</span> },
+      { key: 'visibility', header: p.colVisibility, render: (kb) => kb.visibility },
+      { key: 'role', header: p.colMyRole, render: (kb) => kb.my_role },
       {
         key: 'actions',
-        header: '操作',
+        header: p.colActions,
         align: 'right',
         render: (kb) => (
           <div className="text-sm">
             <Link className="text-primary hover:underline" to={`/kbs/${kb.id}/graph`}>
-              打开
+              {p.open}
             </Link>
             {' · '}
             <Link className="text-primary hover:underline" to={`/kbs/${kb.id}/settings`}>
-              设置
+              {p.settings}
             </Link>
           </div>
         ),
       },
     ],
-    [],
+    [p],
   );
 
-  const countLabel = `共 ${kbs.length} 个知识库`;
+  const countLabel = fmt(p.count, { count: kbs.length });
 
   return (
     <ConsolePageLayout
-      crumbs={[{ label: '知识库' }]}
+      crumbs={[{ label: t.menu.platform.kbs }]}
       actions={
         <Button type="button" size="sm" onClick={() => setCreateOpen(true)}>
-          新建知识库
+          {p.createKb}
         </Button>
       }
     >
@@ -104,11 +108,11 @@ export function KbsPage() {
         <DataPanelBody padded={false}>
           {kbs.length === 0 ? (
             <EmptyState
-              title="暂无知识库"
-              description="创建第一个知识库以开始管理文档与图谱。"
+              title={p.emptyTitle}
+              description={p.emptyDescription}
               action={
                 <Button type="button" size="sm" onClick={() => setCreateOpen(true)}>
-                  新建知识库
+                  {p.createKb}
                 </Button>
               }
             />
@@ -134,27 +138,27 @@ export function KbsPage() {
             }}
           >
             <DialogHeader>
-              <DialogTitle>新建知识库</DialogTitle>
-              <DialogDescription>创建后可在设置中调整可见性与成员。</DialogDescription>
+              <DialogTitle>{p.createDialogTitle}</DialogTitle>
+              <DialogDescription>{p.createDialogDesc}</DialogDescription>
             </DialogHeader>
             <div className="py-4">
               <div className="space-y-2">
-                <Label htmlFor="kb-name">名称</Label>
+                <Label htmlFor="kb-name">{p.nameLabel}</Label>
                 <Input
                   id="kb-name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="名称"
+                  placeholder={p.namePlaceholder}
                   required
                 />
               </div>
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setCreateOpen(false)}>
-                取消
+                {t.common.cancel}
               </Button>
               <Button type="submit" disabled={creating || !name.trim()}>
-                {creating ? '创建中…' : '创建'}
+                {creating ? p.creating : p.create}
               </Button>
             </DialogFooter>
           </form>

@@ -41,7 +41,9 @@ def semantica_build_kwargs(
         "ner_method": options.ner_method,
         "relation_method": options.relation_method,
         "extract_relations": options.extract_relations,
-        "extract_triplets": options.extract_triplets,
+        # Relation extraction already writes the graph edges. Triplet extraction
+        # only duplicated them, so it stays off.
+        "extract_triplets": False,
     }
     ner_model = (options.ner_model or "").strip()
     if ner_model:

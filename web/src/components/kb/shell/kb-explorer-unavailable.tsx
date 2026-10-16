@@ -1,5 +1,5 @@
+import { PublicIcon } from '@/components/ui/public-icon.js';
 import { Link } from 'react-router-dom';
-import { AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button.js';
 import { useI18n } from '@/i18n/context.js';
 import { kbPath } from '@/lib/nav-config.js';
@@ -12,7 +12,7 @@ export function KbExplorerUnavailable({
   kbId: string;
   feature?: 'graph' | 'sparql' | 'review' | 'import' | 'vocabulary' | 'lineage';
 }) {
-  const { t, locale } = useI18n();
+  const { t } = useI18n();
   const { caps } = useKbCapabilities();
 
   const message =
@@ -22,15 +22,13 @@ export function KbExplorerUnavailable({
 
   const featureHint =
     feature === 'import' && caps && !caps.import_export && caps.explorer_runtime
-      ? locale === 'zh'
-        ? '需要编辑者权限才能导入图数据。'
-        : 'Editor role is required to import graph data.'
+      ? t.menu.capabilities.importEditorRequired
       : null;
 
   return (
     <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4 px-6 text-center">
       <div className="flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
-        <AlertCircle className="size-6" aria-hidden />
+        <PublicIcon name='alert-circle' className="size-6" />
       </div>
       <div className="max-w-md space-y-2">
         <h2 className="text-lg font-semibold">{t.menu.capabilities.workspaceDisabledTitle}</h2>

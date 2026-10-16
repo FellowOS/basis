@@ -563,6 +563,207 @@ Acceptance:
 
 ---
 
+## 12. Milestone M7 — enterprise operational ontology (`F-LAKE` / `F-OPS`)
+
+**Status:** not started — **Phase 5+**; does not block M6 KB GA or evidence-track closure.
+
+Product design: [product-and-roadmap.md §5.16–5.18](product-and-roadmap.md). Sequencing matches
+[capability-gap-checklist.md §4](capability-gap-checklist.md): **F-LAKE-01 → F-OPS-04/05 → F-OPS-01/02 →
+F-OPS-03/06**; **F-OPS-07** only on demand.
+
+**Principles (non-negotiable for M7)**
+
+- Operational writes go through Basis API + audit; Semantica lakehouse SDK is invoked from Basis services, not a second public HTTP surface.
+- Evidence KB ledger remains source of truth for document-derived knowledge; operational bindings/materializations are an **optional projection lane** (ADR 0001 dual-track), not a silent overwrite of reviewed statements.
+- Every M7 route is KB-scoped, role-checked, and covered by two-KB isolation tests.
+
+### M7-00 — Lakehouse capability gate
+
+**Depends on:** M4-01 (Explorer optional extra pattern)  
+**Maps to:** platform packaging for `F-LAKE-*`, `F-OPS-*`
+
+Work:
+
+- add Basis extra (e.g. `lakehouse`) pulling `semantica` db / parquet extras with version pin;
+- expose `capabilities.lakehouse` (and per-KB `kb.capabilities.operational_ontology`) on settings/API;
+- document env/install in README ops; startup probe fails soft when extra missing (workspaces hidden).
+
+Acceptance:
+
+- install without extra: no M7 routes registered (or `503` with stable `lakehouse_unavailable`);
+- install with extra: probe passes; no import-time crash on default `uv sync`;
+- KB A cannot enable mounts using KB B credentials.
+
+### M7-01 — Dataset mounts (F-LAKE-01)
+
+**Depends on:** M7-00, M1-03  
+**Maps to:** F-LAKE-01
+
+Work:
+
+- persist mount definitions per KB (connection kind, URI/path, credentials ref, table/collection id, schema snapshot metadata);
+- CRUD API `.../lake/mounts` (admin+); secrets via existing token/secret storage patterns, never in audit payload;
+- read path: sample rows / schema introspection via Semantica ingest-parquet or `db-*` adapter;
+- validate mount before save (timeout, auth, reachable).
+
+Acceptance:
+
+- create/list/disable mount; restart preserves mounts;
+- unauthorized roles cannot read credentials or run introspection;
+- introspection errors return stable codes, not driver tracebacks;
+- forward migration + fresh DB tests.
+
+### M7-02 — Semantic layer queries (F-LAKE-02)
+
+**Depends on:** M7-01, F-ONT baseline (class/property IRIs)  
+**Maps to:** F-LAKE-02
+
+Work:
+
+- store mapping from OWL class/property IRIs to mount columns (versioned, auditable);
+- `POST .../lake/query` (or SPARQL extension) executing **declared** Ontology2SQL templates only — no arbitrary SQL from clients;
+- enforce row/timeout/result-size limits (`RuntimeLimits` extension);
+- viewer may run read-only queries; editor+ may propose mapping changes via review or ontology workflow (product choice documented in PR).
+
+Acceptance:
+
+- injection-style SQL from user input is impossible by construction;
+- query audit record: mount id, template id, actor, row count, duration;
+- mapping change does not break unrelated KB mounts.
+
+### M7-03 — Object type ↔ dataset bindings (F-OPS-04)
+
+**Depends on:** M7-01, M7-02 (or read-only mount without O2SQL if deferred)  
+**Maps to:** F-OPS-04
+
+Work:
+
+- define **operational object types** (link to OWL class IRI + primary key column + property column map);
+- API `.../ops/object-types` CRUD; binding references mount + mapping revision;
+- document relationship to graph entities (optional link `entity_id`, no automatic merge without governance).
+
+Acceptance:
+
+- binding validates against live mount schema or stored schema revision;
+- deleting mount blocks new executes until bindings updated;
+- two object types on same mount remain isolated by KB.
+
+### M7-04 — Materialization and sync jobs (F-OPS-05)
+
+**Depends on:** M7-03, M2-03 (job pattern)  
+**Maps to:** F-OPS-05, F-ALT-*
+
+Work:
+
+- job model analogous to processing jobs: `ops_sync_jobs` with stages, `result_json`, retry;
+- `POST .../ops/sync-jobs` refresh operational projection/cache from binding (full or incremental TBD);
+- emit `ops.sync_failed` / `ops.sync_succeeded` KB alerts with deep links (`?syncJob=`);
+- schedule optional tick (reuse connector scheduler patterns) — **defer** cron until one manual path is solid.
+
+Acceptance:
+
+- failed sync leaves prior materialization readable and marks job failed with stable code;
+- concurrent sync on same binding is single-flight or explicitly queued;
+- alert + audit entries include job id; Playwright or API test for deep link optional.
+
+### M7-05 — Declared actions (F-OPS-01, F-LAKE-03)
+
+**Depends on:** M7-03, X-01  
+**Maps to:** F-OPS-01, F-LAKE-03
+
+Work:
+
+- action type registry: JSON Schema (or Pydantic-exported schema) for parameters, target object type, side-effect kind (`ledger_patch`, `mount_write`, `webhook`);
+- `POST .../ops/actions/{action_id}/execute` with validation, idempotency key, synchronous or async job;
+- every execute writes audit + optional ledger row typed as **operational** (distinct from evidence statements);
+- webhook actions: allowlist hosts, signed outbound, timeout.
+
+Acceptance:
+
+- invalid parameters → validation error without partial side effects;
+- idempotent replay returns same outcome reference;
+- execute denied for viewer; editor+ per **M7-06** when ACL lands (until then: admin-only documented);
+- no action can bypass KB id in repository calls.
+
+### M7-06 — Action and object-type ACL (F-OPS-02)
+
+**Depends on:** M7-05, M1-02  
+**Maps to:** F-OPS-02
+
+Work:
+
+- policy rows: `(action_id | object_type_id) × role/principal × allow/deny`;
+- enforce in execute and in OSDK routes before runtime lookup;
+- admin UI in KB settings (operational tab) or API-only first slice.
+
+Acceptance:
+
+- editor denied on restricted action while admin succeeds;
+- policy change audited;
+- default deny for new actions until policy grants.
+
+### M7-07 — Ontology functions runtime (F-OPS-03)
+
+**Depends on:** M7-03  
+**Maps to:** F-OPS-03
+
+Work:
+
+- register functions (name, object type, input/output schema, implementation ref: embedded expression TBD vs external worker);
+- **v1 scope:** read-only functions over materialized operational rows + graph read APIs; no arbitrary network;
+- batch endpoint `POST .../ops/functions/{id}/evaluate` with timeout and row cap;
+- document boundary vs **F-RUL** (`reasoning/run` stays logical inference on graph/ledger).
+
+Acceptance:
+
+- function timeout kills run without wedging worker pool;
+- functions cannot read another KB's mounts;
+- evaluation logged with correlation id.
+
+### M7-08 — Integration surface (F-OPS-06)
+
+**Depends on:** M7-05, M7-06  
+**Maps to:** F-OPS-06
+
+Work:
+
+- generate OpenAPI fragment for KB operational surface (object types, actions, read queries) under `.../ops/openapi.json`;
+- optional codegen script in `scripts/` for TypeScript/Python clients;
+- API tokens scoped to `ops:execute` / `ops:read` (extend `api_tokens` scopes).
+
+Acceptance:
+
+- OpenAPI matches live routes; breaking change requires version bump field;
+- token without scope cannot execute actions;
+- documented example: curl execute with idempotency key.
+
+### M7-09 — Workshop-lite UI (F-OPS-07)
+
+**Depends on:** M7-05, M7-08  
+**Maps to:** F-OPS-07  
+**Status:** deferred — issue only when a customer needs configurable ops apps.
+
+Work:
+
+- KB route `/kbs/:id/ops` or embedded panels: object table, detail, action forms from schema;
+- capability-gated; reuse Basis form components.
+
+Acceptance:
+
+- same auth as API; no direct mount credentials in browser.
+
+### M7 dependency graph
+
+```text
+M7-00 ─ M7-01 ─ M7-02 ─ M7-03 ─ M7-04
+                    └────────────┴─ M7-05 ─ M7-06 ─ M7-08 ─ M7-09 (optional)
+                              └─ M7-07
+```
+
+Before cutting M7-01, extend [data-model.md](data-model.md) with mount/binding/job/action tables and ADR if operational ledger rows need a new fact kind.
+
+---
+
 ## 11. Engineering debt (post graph-closure)
 
 | Item | Notes |

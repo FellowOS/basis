@@ -27,6 +27,7 @@ def _copy_preserved_nodes(source: GraphSession, target: GraphSession) -> None:
         if node.node_type not in _PRESERVED_NODE_TYPES:
             continue
         props = dict(node.properties) if isinstance(node.properties, dict) else {}
+        props.pop("content", None)
         target.add_node(
             node.node_id,
             node.node_type,

@@ -42,8 +42,7 @@ export function TablePagination({
   onPageChange: (page: number) => void;
   className?: string;
 }) {
-  const { locale } = useI18n();
-  const zh = locale === 'zh';
+  const { t } = useI18n();
   const visiblePages = useMemo(() => getVisiblePages(page, totalPages), [page, totalPages]);
 
   return (
@@ -53,7 +52,7 @@ export function TablePagination({
           <PaginationLink
             size="default"
             href="#"
-            aria-label={zh ? '上一页' : 'Go to previous page'}
+            aria-label={t.common.paginationPreviousAria}
             className={cn('gap-1 px-2.5 sm:pl-2.5', page <= 1 && 'pointer-events-none opacity-50')}
             onClick={(event) => {
               event.preventDefault();
@@ -61,7 +60,7 @@ export function TablePagination({
             }}
           >
             <PublicIcon name="chevron-left" size={16} />
-            <span className="hidden sm:block">{zh ? '上一页' : 'Previous'}</span>
+            <span className="hidden sm:block">{t.common.paginationPrevious}</span>
           </PaginationLink>
         </PaginationItem>
         {visiblePages.map((item, index) =>
@@ -88,7 +87,7 @@ export function TablePagination({
           <PaginationLink
             size="default"
             href="#"
-            aria-label={zh ? '下一页' : 'Go to next page'}
+            aria-label={t.common.paginationNextAria}
             className={cn(
               'gap-1 px-2.5 sm:pr-2.5',
               page >= totalPages && 'pointer-events-none opacity-50',
@@ -98,7 +97,7 @@ export function TablePagination({
               if (page < totalPages) onPageChange(Math.min(totalPages, page + 1));
             }}
           >
-            <span className="hidden sm:block">{zh ? '下一页' : 'Next'}</span>
+            <span className="hidden sm:block">{t.common.paginationNext}</span>
             <PublicIcon name="chevron-right" size={16} />
           </PaginationLink>
         </PaginationItem>

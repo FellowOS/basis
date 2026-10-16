@@ -179,3 +179,32 @@ def test_processing_job_idempotency_key_replay(tmp_path: Path) -> None:
 
     jobs = client.get(f"/api/kbs/{kb_id}/processing/jobs", headers=headers).json()["jobs"]
     assert len(jobs) == 1
+
+
+def test_rejects_unknown_chunk_method(tmp_path: Path) -> None:
+    app = create_app(Settings(data_dir=tmp_path))
+    client = TestClient(app)
+    admin = client.post(
+        "/api/auth/register",
+        json={"email": "chunk@example.com", "password": "password1", "display_name": "Chunk"},
+    ).json()
+    headers = _auth(admin["token"])
+    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    source = client.post(
+        f"/api/kbs/{kb_id}/documents",
+        headers=headers,
+        json={"doc_id": "chunk-method", "text": "Hello world."},
+    ).json()
+
+    response = client.post(
+        f"/api/kbs/{kb_id}/processing/jobs",
+        headers=headers,
+        json={
+            "version_id": source["version_id"],
+            "chunk_method": "llm",
+            "wait": False,
+            "extract": False,
+        },
+    )
+    assert response.status_code == 422
+    assert response.json()["detail"]["code"] == "bad_chunk_method"

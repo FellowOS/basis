@@ -21,8 +21,8 @@ export function KbGraphAuditRecent({
   /** Bump after rebuild to refetch. */
   refreshKey?: number;
 }) {
-  const { locale } = useI18n();
-  const zh = locale === 'zh';
+  const { t, locale } = useI18n();
+  const w = t.kbGraphWorkspace.widgets;
   const [events, setEvents] = useState<KbGraphAuditEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -40,12 +40,12 @@ export function KbGraphAuditRecent({
       );
       setEvents(body.events ?? []);
     } catch (err) {
-      setError(formatUserFacingApiError(err, zh ? 'zh' : 'en'));
+      setError(formatUserFacingApiError(err, locale));
       setEvents([]);
     } finally {
       setLoading(false);
     }
-  }, [actionPrefix, kbId, limit, zh]);
+  }, [actionPrefix, kbId, limit, locale]);
 
   useEffect(() => {
     void load();
@@ -54,31 +54,29 @@ export function KbGraphAuditRecent({
   return (
     <div className="space-y-3 border-t border-border pt-4">
       <h3 className="text-sm font-medium">
-        {zh ? '近期图谱审计' : 'Recent graph audit'}
+        {w.auditTitle}
       </h3>
-      <p className="text-xs text-muted-foreground">
-        {zh
-          ? '本知识库内与 Explorer 图相关的操作（成员可见）。'
-          : 'Explorer graph actions for this KB (visible to KB members).'}
-      </p>
+      <p className="text-xs text-muted-foreground">{w.auditDescription}</p>
       {loading ? (
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Spinner className="size-4" />
-          {zh ? '加载中…' : 'Loading…'}
+          {t.common.loading}
         </div>
       ) : error ? (
         <p className="text-sm text-destructive">{error}</p>
       ) : events.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
-          {zh ? '暂无记录' : 'No events yet'}
-        </p>
+        <p className="text-sm text-muted-foreground">{w.auditEmpty}</p>
       ) : (
         <ul className="divide-y divide-border rounded-md border border-border text-sm">
           {events.map((event) => (
             <li key={event.id} className="flex flex-col gap-0.5 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <div className="font-medium">{formatGraphAuditAction(event.action, zh)}</div>
-                <div className="text-xs text-muted-foreground">{formatGraphAuditDetail(event, zh)}</div>
+                <div className="font-medium">
+                  {formatGraphAuditAction(event.action, locale)}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {formatGraphAuditDetail(event, locale)}
+                </div>
               </div>
               <time className="shrink-0 text-xs text-muted-foreground">{event.created_at}</time>
             </li>

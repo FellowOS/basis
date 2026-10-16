@@ -102,6 +102,26 @@
   color: var(--ws-text);
 }
 
+/* Split workspaces (Reasoning, Decisions): Tailwind flex-row loses to .ws-page above. */
+.kb-explorer-console .ws-page.ws-page--row {
+  flex-direction: row;
+}
+
+@media (max-width: 900px) {
+  .kb-explorer-console .ws-page.ws-page--row {
+    flex-direction: column;
+  }
+
+  .kb-explorer-console .ws-page.ws-page--row .ws-split-sidebar {
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+    max-height: min(52vh, 480px);
+    border-right: none;
+    border-bottom: 1px solid var(--ws-border);
+  }
+}
+
 .kb-explorer-console .ws-scroll {
   flex: 1;
   min-height: 0;

@@ -21,8 +21,7 @@ export function KbVocabularyPage() {
         { label: getKb(id)?.name ?? id, to: kbPath(id, 'graph') },
         { label: t.menu.kb.vocabulary },
       ]}
-      subtitle={t.pages.kbSubtitles.vocabulary}
-      className="min-h-0"
+      className="min-h-0 overflow-hidden"
     >
       <KbVocabularyHubWorkspace
         kbId={id}

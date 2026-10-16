@@ -21,7 +21,6 @@ export function KbShaclPage() {
         { label: getKb(id)?.name ?? id, to: kbPath(id, 'graph') },
         { label: t.menu.kb.shacl },
       ]}
-      subtitle={t.pages.kbSubtitles.shacl}
       className="min-h-0 overflow-hidden"
     >
       <KbShaclWorkspace

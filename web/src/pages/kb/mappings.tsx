@@ -1,15 +1,11 @@
 import { type FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import {
-  ConsolePageLayout,
-  DataPanel,
-  DataPanelBody,
-  DataPanelTableFooter,
-  EmptyState,
-} from '@/components/console-ui/index.js';
+import { ConsolePageLayout } from '@/components/console-ui/index.js';
 import { DataTable, type DataTableColumn } from '@/components/console-ui/DataTable.js';
+import { Badge } from '@/components/ui/badge.js';
 import { Button } from '@/components/ui/button.js';
+import { PublicIcon } from '@/components/ui/public-icon.js';
 import {
   Dialog,
   DialogContent,
@@ -27,7 +23,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select.js';
-import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
 import { api } from '@/lib/api.js';
 import { useApiErrorMessage } from '@/lib/use-api-error-message.js';
@@ -35,6 +30,7 @@ import { useKbCatalog } from '@/lib/kb-context.js';
 import { EntityRefLine } from '@/components/entity-ref-line.js';
 import { useKbNodeLabels } from '@/lib/kb-node-labels.js';
 import { kbPath } from '@/lib/nav-config.js';
+import type { LocaleMessages } from '@/i18n/locales/en/index.js';
 
 type MappingRow = {
   id: string;
@@ -56,8 +52,11 @@ type TypedFactRow = {
   mapping_id: string | null;
 };
 
+type KbMappingsCopy = LocaleMessages['kbMappings'];
+
 export function KbMappingsPage() {
-  const { locale, t } = useI18n();
+  const { t } = useI18n();
+  const m = t.kbMappings;
   const { id } = useParams();
   const navigate = useNavigate();
   const { getKb } = useKbCatalog();
@@ -79,7 +78,6 @@ export function KbMappingsPage() {
   );
   const entityLabels = useKbNodeLabels(id, entityIdsForLabels);
 
-  const zh = locale === 'zh';
   const apiError = useApiErrorMessage();
 
   const load = useCallback(async () => {
@@ -126,9 +124,9 @@ export function KbMappingsPage() {
       setTargetUri('');
       setCreateOpen(false);
       await load();
-      toast.success(zh ? '已提交审核队列' : 'Sent to review queue', {
+      toast.success(m.toastSubmitted, {
         action: {
-          label: zh ? '去审核' : 'Review',
+          label: m.toastReviewAction,
           onClick: () => {
             navigate(kbPath(id, 'review'));
           },
@@ -147,53 +145,67 @@ export function KbMappingsPage() {
     () => [
       {
         key: 'signature',
-        header: zh ? '签名' : 'Signature',
+        header: m.colSignature,
         render: (row) => <span className="font-mono text-xs">{row.signature}</span>,
       },
       {
         key: 'uri',
-        header: 'URI',
+        header: m.colUri,
         render: (row) => (
-          <span className="max-w-[200px] truncate text-xs">{row.target_uri ?? '—'}</span>
+          <span className="block max-w-[280px] truncate font-mono text-xs">{row.target_uri ?? '—'}</span>
         ),
       },
-      { key: 'status', header: zh ? '状态' : 'Status', render: (row) => row.status },
+      {
+        key: 'kind',
+        header: m.colKind,
+        hideBelow: 'md',
+        render: (row) => <span className="text-xs text-muted-foreground">{row.target_kind}</span>,
+      },
+      {
+        key: 'direction',
+        header: m.colDirection,
+        hideBelow: 'lg',
+        render: (row) => <span className="text-xs text-muted-foreground">{row.direction}</span>,
+      },
+      {
+        key: 'status',
+        header: m.colStatus,
+        render: (row) => <MappingStatus status={row.status} copy={m} />,
+      },
       {
         key: 'actions',
-        header: zh ? '操作' : 'Actions',
+        header: m.colActions,
         align: 'right',
         render: (row) =>
           row.status === 'proposed' && id ? (
-            <Button type="button" variant="outline" size="sm" asChild>
-              <Link to={kbPath(id, 'review')}>
-                {zh ? '去审核' : 'Review'}
-              </Link>
+            <Button type="button" variant="outline" size="sm" className="h-7 px-2 text-xs" asChild>
+              <Link to={kbPath(id, 'review')}>{m.review}</Link>
             </Button>
           ) : (
-            '—'
+            <span className="text-xs text-muted-foreground">—</span>
           ),
       },
     ],
-    [id, zh],
+    [id, m],
   );
 
   const factColumns = useMemo<DataTableColumn<TypedFactRow>[]>(
     () => [
       {
         key: 'predicate',
-        header: zh ? '谓词' : 'Predicate',
+        header: m.colPredicate,
         render: (fact) => (
           <span className="max-w-[180px] truncate font-mono text-xs">{fact.predicate_uri}</span>
         ),
       },
       {
         key: 'subject',
-        header: zh ? '主体' : 'Subject',
+        header: m.colSubject,
         render: (fact) => <EntityRefLine id={fact.subject_id} labels={entityLabels} />,
       },
       {
         key: 'object',
-        header: zh ? '客体' : 'Object',
+        header: m.colObject,
         render: (fact) =>
           fact.object_entity_id ? (
             <EntityRefLine id={fact.object_entity_id} labels={entityLabels} />
@@ -202,11 +214,8 @@ export function KbMappingsPage() {
           ),
       },
     ],
-    [entityLabels, zh],
+    [entityLabels, m],
   );
-
-  const mappingsCount = zh ? `共 ${rows.length} 条映射` : `${rows.length} mappings`;
-  const factsCount = zh ? `共 ${typedFacts.length} 条事实` : `${typedFacts.length} facts`;
 
   return (
     <ConsolePageLayout
@@ -215,104 +224,88 @@ export function KbMappingsPage() {
         { label: name, to: id ? kbPath(id, 'graph') : '/kbs' },
         { label: t.menu.kb.mappings },
       ]}
-      subtitle={t.pages.kbSubtitles.mappings}
+      className="min-h-0 overflow-hidden"
       actions={
         <>
-          <Button type="button" size="sm" onClick={() => setCreateOpen(true)}>
-            {zh ? '新建映射' : 'New mapping'}
+          <Button type="button" variant="outline" size="sm" className="h-8" disabled={loading} onClick={() => void load()}>
+            {loading ? <PublicIcon name="loader-01" size={14} className="animate-spin" /> : <PublicIcon name="arrow-rotate-left-01" size={14} />}
+            {m.refresh}
           </Button>
-          <Button type="button" variant="outline" size="sm" disabled={loading} onClick={() => void load()}>
-            {loading ? <Spinner className="size-4" /> : null}
-            {zh ? '刷新' : 'Refresh'}
+          <Button type="button" size="sm" className="h-8" onClick={() => setCreateOpen(true)}>
+            <PublicIcon name="plus-01" size={14} />
+            {m.newMapping}
           </Button>
         </>
       }
     >
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
-
-      <DataPanel>
-        <DataPanelBody padded={false} className="mt-2">
-          <div className="border-b border-border px-4 py-3 text-sm font-semibold">
-            {zh ? '映射列表' : 'Mappings'}
+      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden">
+        <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-border">
+          <div className="flex h-12 shrink-0 items-center gap-2 border-b border-border px-4">
+            <PublicIcon name="arrows-left-right" size={13} className="shrink-0 text-muted-foreground" />
+            <span className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
+              {m.sectionMappings}
+            </span>
+            {!loading ? (
+              <span className="font-mono text-[11px] tabular-nums text-muted-foreground">{rows.length}</span>
+            ) : null}
           </div>
+          <div className="min-h-0 flex-1 overflow-auto">
             {loading && rows.length === 0 ? (
-              <div className="flex justify-center py-12">
-                <Spinner className="size-6" />
-              </div>
+              <p className="flex items-center gap-2 px-4 py-6 text-sm text-muted-foreground">
+                <PublicIcon name="loader-01" size={14} className="animate-spin" />
+                {m.loading}
+              </p>
             ) : rows.length === 0 ? (
-              <EmptyState
-                title={zh ? '暂无映射' : 'No mappings'}
-                description={
-                  zh
-                    ? '将文本签名映射到目标 URI；确认后可用于 typed facts 投影。'
-                    : 'Map surface signatures to target URIs; confirmed rows feed typed projection.'
-                }
+              <QuietEmpty
+                icon="arrows-left-right"
+                title={m.mappingsEmptyTitle}
+                body={m.mappingsEmptyBody}
               />
             ) : (
-              <>
-                <DataTable
-                  columns={mappingColumns}
-                  data={rows}
-                  rowKey={(row) => row.id}
-                  className="border-0"
-                />
-                <DataPanelTableFooter
-                  countLabel={mappingsCount}
-                  page={1}
-                  totalPages={1}
-                  onPageChange={() => {}}
-                />
-              </>
+              <DataTable columns={mappingColumns} data={rows} rowKey={(row) => row.id} className="rounded-none border-0" />
             )}
-        </DataPanelBody>
-      </DataPanel>
-
-      <DataPanel>
-        <DataPanelBody padded={false}>
-          <div className="border-b border-border px-4 py-3 text-sm font-semibold">
-            {zh ? '已物化事实 (typed_facts)' : 'Materialized facts'}
           </div>
-          {typedFacts.length === 0 ? (
-            <EmptyState
-              title={zh ? '暂无物化事实' : 'No materialized facts'}
-              description={
-                zh
-                  ? '确认 property 映射后，匹配的陈述会写入 typed_facts。'
-                  : 'Confirm a property mapping to materialize matching statements.'
-              }
-            />
-          ) : (
-            <>
-              <DataTable
-                columns={factColumns}
-                data={typedFacts}
-                rowKey={(fact) => fact.id}
-                className="border-0"
+        </section>
+
+        <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-border">
+          <div className="flex h-12 shrink-0 items-center gap-2 border-b border-border px-4">
+            <PublicIcon name="table" size={13} className="shrink-0 text-muted-foreground" />
+            <span className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
+              {m.sectionTypedFacts}
+            </span>
+            {!loading ? (
+              <span className="font-mono text-[11px] tabular-nums text-muted-foreground">{typedFacts.length}</span>
+            ) : null}
+          </div>
+          <div className="min-h-0 flex-1 overflow-auto">
+            {loading && typedFacts.length === 0 ? (
+              <p className="flex items-center gap-2 px-4 py-6 text-sm text-muted-foreground">
+                <PublicIcon name="loader-01" size={14} className="animate-spin" />
+                {m.loading}
+              </p>
+            ) : typedFacts.length === 0 ? (
+              <QuietEmpty
+                icon="table"
+                title={m.typedFactsEmptyTitle}
+                body={m.typedFactsEmptyBody}
               />
-              <DataPanelTableFooter
-                countLabel={factsCount}
-                page={1}
-                totalPages={1}
-                onPageChange={() => {}}
-              />
-            </>
-          )}
-        </DataPanelBody>
-      </DataPanel>
+            ) : (
+              <DataTable columns={factColumns} data={typedFacts} rowKey={(fact) => fact.id} className="rounded-none border-0" />
+            )}
+          </div>
+        </section>
+      </div>
 
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
         <DialogContent className="sm:max-w-lg">
           <form className="grid gap-4 sm:grid-cols-2" onSubmit={onSubmit}>
             <DialogHeader className="sm:col-span-2">
-              <DialogTitle>{zh ? '新建映射' : 'New mapping'}</DialogTitle>
-              <DialogDescription>
-                {zh
-                  ? '提交后进入治理 → 审核队列；编辑者批准后才会物化类型化事实。'
-                  : 'Submissions go to Governance → Review; editors approve before typed facts materialize.'}
-              </DialogDescription>
+              <DialogTitle>{m.createDialogTitle}</DialogTitle>
+              <DialogDescription>{m.createDialogDesc}</DialogDescription>
             </DialogHeader>
             <div className="space-y-2 sm:col-span-2">
-              <Label htmlFor="sig">{locale === 'zh' ? '签名' : 'Signature'}</Label>
+              <Label htmlFor="sig">{m.labelSignature}</Label>
               <Input
                 id="sig"
                 list="kb-surface-phrases-dialog"
@@ -327,7 +320,7 @@ export function KbMappingsPage() {
               </datalist>
             </div>
             <div className="space-y-2 sm:col-span-2">
-              <Label htmlFor="uri">{locale === 'zh' ? '目标 URI' : 'Target URI'}</Label>
+              <Label htmlFor="uri">{m.labelTargetUri}</Label>
               <Input
                 id="uri"
                 value={targetUri}
@@ -336,7 +329,7 @@ export function KbMappingsPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label>{locale === 'zh' ? '目标类型' : 'Target kind'}</Label>
+              <Label>{m.labelTargetKind}</Label>
               <Select value={targetKind} onValueChange={(v) => setTargetKind(v as typeof targetKind)}>
                 <SelectTrigger>
                   <SelectValue />
@@ -349,7 +342,7 @@ export function KbMappingsPage() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>{locale === 'zh' ? '方向' : 'Direction'}</Label>
+              <Label>{m.labelDirection}</Label>
               <Select value={direction} onValueChange={(v) => setDirection(v as typeof direction)}>
                 <SelectTrigger>
                   <SelectValue />
@@ -363,21 +356,49 @@ export function KbMappingsPage() {
             </div>
             <DialogFooter className="sm:col-span-2">
               <Button type="button" variant="outline" onClick={() => setCreateOpen(false)}>
-                {zh ? '取消' : 'Cancel'}
+                {t.common.cancel}
               </Button>
               <Button type="submit" disabled={saving || !signature.trim()}>
-                {saving
-                  ? zh
-                    ? '保存中…'
-                    : 'Saving…'
-                  : zh
-                    ? '提交提案'
-                    : 'Submit proposal'}
+                {saving ? m.saving : m.submitProposal}
               </Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
     </ConsolePageLayout>
+  );
+}
+
+function MappingStatus({ status, copy }: { status: string; copy: KbMappingsCopy }) {
+  const variant =
+    status === 'proposed'
+      ? 'warning'
+      : status === 'confirmed' || status === 'approved' || status === 'active'
+        ? 'success'
+        : status === 'rejected' || status === 'dismissed'
+          ? 'destructive'
+          : 'outline';
+  const label =
+    status === 'proposed'
+      ? copy.statusProposed
+      : status === 'confirmed' || status === 'approved'
+        ? copy.statusConfirmed
+        : status === 'rejected'
+          ? copy.statusRejected
+          : status;
+  return (
+    <Badge variant={variant} className="text-[11px] font-normal">
+      {label}
+    </Badge>
+  );
+}
+
+function QuietEmpty({ icon, title, body }: { icon: string; title: string; body: string }) {
+  return (
+    <div className="flex h-full min-h-32 flex-col items-center justify-center px-6 text-center">
+      <PublicIcon name={icon} size={18} className="mb-2 text-muted-foreground" />
+      <p className="text-sm font-medium text-foreground">{title}</p>
+      <p className="mt-1 max-w-sm text-[11px] leading-snug text-muted-foreground">{body}</p>
+    </div>
   );
 }

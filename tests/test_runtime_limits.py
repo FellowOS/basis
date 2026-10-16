@@ -135,7 +135,7 @@ def test_processing_fails_when_chunk_count_exceeds_cap(tmp_path: Path, monkeypat
     def _many_chunks(full_text: str, options) -> list[str]:
         return [f"part-{i}" for i in range(5)]
 
-    monkeypatch.setattr(vi, "_chunk_texts", _many_chunks)
+    monkeypatch.setattr(vi, "prepare_chunks", _many_chunks)
 
     settings = Settings(
         data_dir=tmp_path,

@@ -1,3 +1,4 @@
+import { PublicIcon } from "@/components/ui/public-icon.js";
 import { useCallback, useEffect, useState } from "react";
 import { explorerFetch } from "../../host/explorerHttp";
 import {
@@ -14,17 +15,6 @@ import {
 } from "@xyflow/react";
 import type { Connection, Edge, Node, ReactFlowInstance } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import {
-  Plus,
-  GitBranch,
-  User,
-  Shield,
-  FileText,
-  Layout,
-  Send,
-  Pencil,
-  Trash2,
-} from "lucide-react";
 import {
   explorerApiErrorMessage,
   parseExplorerJson,
@@ -534,32 +524,32 @@ export function OntologyEditor() {
           ))}
         </select>
         <Button type="button" size="sm" variant="outline" className="h-8" onClick={addClass}>
-          <Plus size={14} />
+          <PublicIcon name="plus-01" size={14} />
           Add Class
         </Button>
         <Button type="button" size="sm" variant="outline" className="h-8" onClick={addProperty} disabled={nodes.length < 2}>
-          <GitBranch size={14} />
+          <PublicIcon name="git-branch-01" size={14} />
           Add Property
         </Button>
         <Button type="button" size="sm" variant="outline" className="h-8" onClick={addIndividual}>
-          <User size={14} />
+          <PublicIcon name="user-profile-01" size={14} />
           Add Individual
         </Button>
         <Button type="button" size="sm" variant="outline" className="h-8" onClick={addRestriction}>
-          <Shield size={14} />
+          <PublicIcon name="shield-01" size={14} />
           Add Restriction
         </Button>
         <Button type="button" size="sm" variant="outline" className="h-8" onClick={addAxiom}>
-          <FileText size={14} />
+          <PublicIcon name="file-01" size={14} />
           Add Axiom
         </Button>
         <Button type="button" size="sm" variant="outline" className="h-8" onClick={autoLayout}>
-          <Layout size={14} />
-          Auto Layout
+          <PublicIcon name="layout" size={14} />
+          Auto "layout"
         </Button>
         <div className="flex-1" />
         <Button type="button" size="sm" className="h-8" onClick={saveDraft} disabled={isSaving}>
-          <Send size={14} />
+          <PublicIcon name="paper-plane" size={14} />
           {isSaving ? "Saving..." : "Propose"}
         </Button>
       </div>
@@ -617,12 +607,12 @@ export function OntologyEditor() {
                 <>
                   {!("source" in showContext.element) && (
                     <button type="button" className={contextItemClassName} onClick={renameSelected}>
-                      <Pencil size={14} />
+                      <PublicIcon name="edit-01" size={14} />
                       Rename
                     </button>
                   )}
                   <button type="button" className={contextItemClassName} onClick={deleteSelected}>
-                    <Trash2 size={14} />
+                    <PublicIcon name="trash-01" size={14} />
                     Delete
                   </button>
                 </>

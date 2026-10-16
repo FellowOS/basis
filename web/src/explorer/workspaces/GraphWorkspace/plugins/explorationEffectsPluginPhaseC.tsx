@@ -40,6 +40,14 @@ type EffectRowConfig = {
   description: string;
 };
 
+const LAYOUT_EFFECT_ROWS: EffectRowConfig[] = [
+  {
+    key: "autoLayoutEnabled",
+    label: "Auto Layout",
+    description: "Run ForceAtlas2 after load to spread nodes by edge structure. Off keeps seed positions (clustered groups on large graphs).",
+  },
+];
+
 const SCENE_EFFECT_ROWS: EffectRowConfig[] = [
   {
     key: "pathPulseEnabled",
@@ -113,6 +121,7 @@ const AVAILABILITY_KEYS: Record<GraphEffectToggle, keyof GraphDiagnosticsSnapsho
   centralityEnabled: "centrality",
   legendEnabled: "legend",
   edgeLabelsEnabled: "edgeLabels",
+  autoLayoutEnabled: "autoLayout",
   diagnosticsEnabled: "diagnostics",
 };
 
@@ -321,6 +330,20 @@ export const explorationEffectsPluginPhaseC: GraphPlugin = {
       content: (
         <div className={graphLegendPanel}>
           <div className={graphLegendEyebrow}>Exploration effects</div>
+
+          <div className={graphEffectsSection}>
+            <div className={graphEffectsSectionTitle}>Layout</div>
+            {LAYOUT_EFFECT_ROWS.map((row) => (
+              <EffectToggleRow
+                key={row.key}
+                label={row.label}
+                description={row.description}
+                checked={effectsState[row.key]}
+                availability={resolveAvailability(availability, row.key, effectsState[row.key])}
+                onToggle={() => context.dispatchAction({ type: "toggleEffect", effect: row.key })}
+              />
+            ))}
+          </div>
 
           <div className={graphEffectsSection}>
             <div className={graphEffectsSectionTitle}>Scene effects</div>

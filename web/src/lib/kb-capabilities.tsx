@@ -32,6 +32,8 @@ export type KbCapabilities = {
   agent_memory: boolean;
   explorer_runtime: boolean;
   diagnostic: string | null;
+  graph_page_max_nodes?: number;
+  graph_page_max_edges?: number;
 };
 
 type KbCapabilitiesContextValue = {

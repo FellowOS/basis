@@ -100,10 +100,8 @@ def register_kb_ontology_hub_routes(router: APIRouter) -> None:
         store: AdminStore = Depends(get_store),
     ) -> Any:
         get_kb_for_role(request, user, kb_id, store, _min_role("POST"))
-        session = _session(request, kb_id)
         with KbOntologyState(request, kb_id):
-            result = await invoke_explorer(ont.preview_ontology(request=request, session=session, body=body), context="ontology")
-            save_graph(request, kb_id)
+            result = await invoke_explorer(ont.preview_ontology(body), context="ontology")
             return result
 
     router.add_api_route("/{kb_id}/ontology/preview", _kb_ont_1_preview_ontology, methods=["POST"], name="_kb_ont_1_preview_ontology")

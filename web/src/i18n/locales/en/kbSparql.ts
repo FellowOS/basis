@@ -1,0 +1,23 @@
+export const kbSparql = {
+  templates: 'Templates',
+  results: 'Results',
+  rows: '{count} rows',
+  rowsOne: '{count} row',
+  exportCsv: 'Export CSV',
+  run: 'Run query',
+  running: 'Running…',
+  replaceTitle: 'Replace the current query?',
+  replaceBody: 'The editor query will be replaced by the template.',
+  replaceConfirm: 'Replace',
+  stale: 'Query changed. Showing the previous result.',
+  emptyTitle: 'No results yet',
+  emptyReady: 'Query is ready. Run it to see rows here.',
+  emptyBody: 'Pick a template or write SPARQL, then run.',
+  noRows: 'The query returned 0 rows.',
+  templateLabels: {
+    triples: 'Triples',
+    types: 'Types',
+    edges: 'Edges',
+    path: 'Path',
+  },
+} as const;

@@ -1,7 +1,6 @@
-import type { Icon } from '@phosphor-icons/react';
+import type { IconType } from 'react-icons';
 import type { ReactNode } from 'react';
 import { Card, CardSubtitle } from '@/components/console-ui/Card.js';
-import { PHOSPHOR_ICON_WEIGHT } from '@/lib/phosphor-icon.js';
 import { getPublicIconComponent } from '@/lib/public-icon-map.js';
 import { cn } from '@/lib/utils.js';
 
@@ -18,7 +17,7 @@ export function DataPanelHeader({
   actions,
   className,
 }: {
-  icon?: Icon;
+  icon?: IconType;
   iconName?: string;
   title?: ReactNode;
   subtitle?: ReactNode;
@@ -44,7 +43,6 @@ export function DataPanelHeader({
           {HeaderIcon ? (
             <HeaderIcon
               size={16}
-              weight={PHOSPHOR_ICON_WEIGHT}
               aria-hidden
               className="size-4 shrink-0 text-signal [&_svg]:block"
             />

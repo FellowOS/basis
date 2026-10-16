@@ -25,4 +25,8 @@ export const common = {
   updateFailed: '更新失败',
   deleteFailed: '删除失败',
   instanceUnavailable: '实例不可用',
+  paginationPrevious: '上一页',
+  paginationNext: '下一页',
+  paginationPreviousAria: '上一页',
+  paginationNextAria: '下一页',
 } as const;

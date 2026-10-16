@@ -1,8 +1,10 @@
+import { PublicIcon } from '@/components/ui/public-icon.js';
 import React, { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { UploadCloud, CheckCircle2, Loader2 } from 'lucide-react';
 import { useImportVocabulary } from './queries';
 import type { ImportResponse } from './types';
+import { useI18n } from '@/i18n/context.js';
+import { fmt } from '@/i18n/format.js';
 import { useApiErrorMessage } from '@/lib/use-api-error-message.js';
 import { cn } from '@/lib/utils.js';
 import {
@@ -13,8 +15,9 @@ import {
   exWsVocabImportStateIcon,
   exWsVocabImportSuccessCol,
 } from '@/lib/explorer-ws-classes.js';
-
 export const ImportDropzone: React.FC = () => {
+  const { t } = useI18n();
+  const copy = t.kbVocabulary;
   const apiError = useApiErrorMessage();
   const [file, setFile] = useState<File | null>(null);
   const [importResult, setImportResult] = useState<ImportResponse | null>(null);
@@ -64,20 +67,23 @@ export const ImportDropzone: React.FC = () => {
 
         {importMutation.isPending ? (
           <div className={cn('oh-muted', exWsVocabImportStateCol)}>
-            <Loader2 className={cn('animate-spin', exWsVocabImportStateIcon)} size={20} />
-            <span className="text-xs">Uploading {file?.name}…</span>
+            <PublicIcon name='loader-01' className={cn('animate-spin', exWsVocabImportStateIcon)} size={20} />
+            <span className="text-xs">{copy.uploading} {file?.name}…</span>
           </div>
         ) : importResult ? (
           <div className={exWsVocabImportSuccessCol}>
-            <CheckCircle2 className={exWsVocabImportStateIcon} size={20} />
-            <span className="text-xs font-medium">Import successful</span>
+            <PublicIcon name='check-circle' className={exWsVocabImportStateIcon} size={20} />
+            <span className="text-xs font-medium">{copy.importOk}</span>
             <span className={cn('oh-muted', 'mt-0.5 text-[11px]')}>
-              +{importResult.nodes_added} concepts · +{importResult.edges_added} links
+              {fmt(copy.addedSummary, {
+                nodes: String(importResult.nodes_added),
+                edges: String(importResult.edges_added),
+              })}
             </span>
           </div>
         ) : (
           <div className={exWsVocabImportStateCol}>
-            <UploadCloud
+            <PublicIcon name='upload-01'
               className={cn(
                 exWsVocabImportStateIcon,
                 isDragActive ? 'text-primary' : 'text-muted-foreground',
@@ -85,9 +91,9 @@ export const ImportDropzone: React.FC = () => {
               size={20}
             />
             <span className="text-xs font-medium text-foreground">
-              {isDragActive ? 'Drop here…' : 'Import vocabulary'}
+              {isDragActive ? copy.dropActive : copy.drop}
             </span>
-            <span className={cn('oh-muted', 'mt-0.5 text-[11px]')}>.ttl or .rdf</span>
+            <span className={cn('oh-muted', 'mt-0.5 text-[11px]')}>.ttl · .rdf · .owl</span>
           </div>
         )}
       </div>

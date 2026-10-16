@@ -16,6 +16,7 @@ class TextIngestOptions:
 
     extract: bool = True
     chunk: bool = False
+    chunk_method: str = "recursive"
     chunk_size: int = 1800
     chunk_overlap: int = 250
     ner_method: str = "pattern"
@@ -56,13 +57,9 @@ def build_kg_from_text(
     segments: list[str] = [text]
 
     if options.chunk and len(text) > options.chunk_size:
-        from semantica.split import TextSplitter
+        from basis.pipeline.chunk_split import text_splitter
 
-        splitter = TextSplitter(
-            method="recursive",
-            chunk_size=options.chunk_size,
-            chunk_overlap=options.chunk_overlap,
-        )
+        splitter = text_splitter(options)
         chunks = splitter.split(text)
         segments = [
             chunk.text

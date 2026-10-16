@@ -1,22 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ComponentType, type ReactNode } from "react";
-import {
-  Activity,
-  Clock3,
-  Eye,
-  Flame,
-  Focus,
-  GitBranch,
-  Layers3,
-  Maximize2,
-  Pause,
-  Play,
-  Radar,
-  Route,
-  Sparkles,
-  Users,
-  ZoomIn,
-  ZoomOut,
-} from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
 import type Graph from "graphology";
@@ -65,6 +47,16 @@ import { Badge } from "@/components/ui/badge.js";
 import { Button } from "@/components/ui/button.js";
 import { useI18n } from "@/i18n/context.js";
 import { useTheme } from "@/lib/theme.js";
+import {
+  clampLoadBudget,
+  defaultLoadBudget,
+  loadGraphLoadBudget,
+  mergeCatalogTotals,
+  saveGraphLoadBudget,
+  type GraphLoadBudget,
+} from "./graphLoadBudget";
+import { useGraphCatalogStats } from "./useGraphCatalogStats";
+import { loadGraphEffectsState, saveGraphEffectsState } from "./graphEffectsPersistence";
 import { GRAPH_THEME, withAlpha } from "./graphTheme";
 import { syncBasisGraphTheme } from "@/lib/graph/basis-graph-theme-sync";
 import {
@@ -134,12 +126,6 @@ type ExploreLayoutState = {
   showInspector: boolean;
 };
 
-type ToolbarIconComponent = ComponentType<{
-  size?: number;
-  strokeWidth?: number;
-  "aria-hidden"?: boolean;
-}>;
-
 type GraphToolbarItem = {
   id: string;
   label: string;
@@ -147,7 +133,7 @@ type GraphToolbarItem = {
   active?: boolean;
   disabled?: boolean;
   tone?: "primary" | "secondary";
-  icon?: ToolbarIconComponent;
+  icon?: string;
   ariaLabel?: string;
   compact?: boolean;
   onClick: () => void;
@@ -189,22 +175,6 @@ const PROVENANCE_KEYS = ["source", "source_url", "pmid", "pmids", "evidence", "p
 const EMPTY_DISTANCE_RECORD: Record<string, number> = {};
 const STRUCTURAL_DISTANCE_MAX_HOPS = 6;
 const HEATMAP_DISTANCE_MAX_HOPS = 3;
-const DEFAULT_EFFECTS_STATE: GraphEffectsState = {
-  pathPulseEnabled: false,
-  pathFlowEnabled: false,
-  lensEnabled: false,
-  temporalEmphasisEnabled: false,
-  semanticRegionsEnabled: false,
-  contoursEnabled: false,
-  pathfindingEnabled: false,
-  communitiesEnabled: false,
-  centralityEnabled: false,
-  legendEnabled: false,
-  edgeLabelsEnabled: true,
-  diagnosticsEnabled: false,
-  lensMode: "neighborhood",
-  effectQuality: "bounded",
-};
 const LazyTimelinePanel = lazy(() => import("./TimelinePanel").then((module) => ({ default: module.TimelinePanel })));
 const LazyGraphInspectorPanel = lazy(() => import("./GraphInspectorPanel").then((module) => ({ default: module.GraphInspectorPanel })));
 
@@ -240,15 +210,15 @@ function useDebounce<T>(value: T, delay: number): T {
   return debouncedValue;
 }
 
-function iconForPluginToolbarItem(item: GraphPluginToolbarItem): ToolbarIconComponent {
+function iconForPluginToolbarItem(item: GraphPluginToolbarItem): string {
   const normalized = `${item.id} ${item.label}`.toLowerCase();
   if (normalized.includes("neighbor")) {
-    return Users;
+    return "users-profiles-01";
   }
   if (normalized.includes("temporal") || normalized.includes("time")) {
-    return Clock3;
+    return "clock-01";
   }
-  return Activity;
+  return "pulse";
 }
 
 function buildGraphHudCss(): string {
@@ -1027,6 +997,16 @@ export function GraphWorkspace({
   const [isLayoutRunning, setIsLayoutRunning] = useState(false);
   const [graphReady, setGraphReady] = useState(false);
   const [graphVersion, setGraphVersion] = useState(0);
+  const [catalogStatsRefreshKey, setCatalogStatsRefreshKey] = useState(0);
+  const graphStats = useGraphCatalogStats(kbId, catalogStatsRefreshKey);
+  const [loadBudget, setLoadBudget] = useState<GraphLoadBudget>(() =>
+    defaultLoadBudget({ nodeTotal: null, edgeTotal: null }),
+  );
+  const handleLoadBudgetCommit = useCallback((next: GraphLoadBudget) => {
+    const clamped = clampLoadBudget(next, graphStats);
+    saveGraphLoadBudget(kbId, clamped);
+    setLoadBudget(clamped);
+  }, [graphStats.edgeTotal, graphStats.nodeTotal, kbId]);
   const [markdownDraftDirty, setMarkdownDraftDirty] = useState(false);
   const markdownRefreshGuard = useMemo(() => new NodeMarkdownRefreshGuard(), []);
   const handleMarkdownDirtyChange = useCallback((dirty: boolean) => {
@@ -1067,7 +1047,12 @@ export function GraphWorkspace({
   });
   const [activeDockPanelId, setActiveDockPanelId] = useState<string | null>(null);
   const [pluginRuntimeVersion, setPluginRuntimeVersion] = useState(0);
-  const [effectsState, setEffectsState] = useState<GraphEffectsState>(DEFAULT_EFFECTS_STATE);
+  const diagnosticsEffectsAllowed = GRAPH_THEME.effects.diagnostics.enabledInDev;
+  const [effectsState, setEffectsState] = useState<GraphEffectsState>(() =>
+    loadGraphEffectsState(kbId, { diagnosticsAllowed: diagnosticsEffectsAllowed }),
+  );
+  const effectsStateRef = useRef(effectsState);
+  effectsStateRef.current = effectsState;
   const [graphDiagnosticsState, setGraphDiagnosticsState] = useState<GraphRuntimeDiagnosticsSnapshot | null>(null);
   // Tracks the last accepted diagnostics outside React's state cycle, allowing
   // handleDiagnosticsChange to compare synchronously before calling setState.
@@ -1118,6 +1103,22 @@ export function GraphWorkspace({
   const pluginRuntimeRef = useRef<GraphSceneRuntime | null>(null);
   const appliedGraphSummarySignatureRef = useRef<string | null>(null);
   const smallGraphModeRef = useRef(false);
+
+  useEffect(() => {
+    setEffectsState(loadGraphEffectsState(kbId, { diagnosticsAllowed: diagnosticsEffectsAllowed }));
+  }, [diagnosticsEffectsAllowed, kbId]);
+
+  useEffect(() => {
+    setLoadBudget(loadGraphLoadBudget(kbId, graphStats));
+  }, [graphStats.edgeTotal, graphStats.nodeTotal, kbId]);
+
+  useEffect(() => {
+    setLoadBudget((current) => clampLoadBudget(current, graphStats));
+  }, [graphStats.edgeTotal, graphStats.nodeTotal]);
+
+  useEffect(() => {
+    appliedGraphSummarySignatureRef.current = null;
+  }, [loadBudget.maxEdges, loadBudget.maxNodes]);
   const pluginInteractionStateRef = useRef<GraphInteractionState>({
     hoveredNodeId: null,
     selectedNodeId: "",
@@ -1176,6 +1177,7 @@ export function GraphWorkspace({
       resetInteractiveGraphState();
       setGraphReady(false);
       setProjectionRefreshPending(true);
+      setCatalogStatsRefreshKey((key) => key + 1);
       reload();
     },
     [reload, resetInteractiveGraphState],
@@ -1215,9 +1217,10 @@ export function GraphWorkspace({
     );
     setGraphReady(true);
     setGraphVersion((current) => current + 1);
-    setIsLayoutRunning(!graphSummary.layoutReady);
+    const shouldAutoLayout = !graphSummary.layoutReady && effectsStateRef.current.autoLayoutEnabled;
+    setIsLayoutRunning(shouldAutoLayout);
 
-    if (graphSummary.layoutReady) {
+    if (graphSummary.layoutReady || !shouldAutoLayout) {
       setLoadingProgress(null);
       return;
     }
@@ -1248,6 +1251,8 @@ export function GraphWorkspace({
     kbId,
     enabled: true,
     copyLocale: copyLocale,
+    loadMaxNodes: loadBudget.maxNodes,
+    loadMaxEdges: loadBudget.maxEdges,
     onGraphReady: applyGraphReadySummary,
     onProgress: handleLoadProgress,
   });
@@ -1268,6 +1273,18 @@ export function GraphWorkspace({
 
     setLoadingProgress((current) => (current?.phase === "stabilizing_layout" ? null : current));
   }, [isLayoutRunning]);
+
+  useEffect(() => {
+    if (!effectsState.autoLayoutEnabled) {
+      setIsLayoutRunning(false);
+      setLoadingProgress((current) => (current?.phase === "stabilizing_layout" ? null : current));
+      return;
+    }
+
+    if (summary && graphReady && !summary.layoutReady) {
+      setIsLayoutRunning(true);
+    }
+  }, [effectsState.autoLayoutEnabled, graphReady, summary]);
 
   useEffect(() => {
     if (!summary || graphReady) {
@@ -1571,7 +1588,7 @@ export function GraphWorkspace({
         setLastGroupedSelectedNodeId(nextGroupedSelection);
       }
       setViewMode("grouped");
-      setIsLayoutRunning(true);
+      setIsLayoutRunning(effectsStateRef.current.autoLayoutEnabled);
       return;
     }
 
@@ -1654,6 +1671,7 @@ export function GraphWorkspace({
     if (externalReloadToken == null || externalReloadToken === 0) return;
     if (lastExternalReloadTokenRef.current === externalReloadToken) return;
     lastExternalReloadTokenRef.current = externalReloadToken;
+    setCatalogStatsRefreshKey((key) => key + 1);
     reload();
   }, [externalReloadToken, reload]);
 
@@ -1795,6 +1813,9 @@ export function GraphWorkspace({
       });
   }, [kbId, markdownRefreshGuard]);
 
+  const handleProjectionRevisionBumpRef = useRef(handleProjectionRevisionBump);
+  handleProjectionRevisionBumpRef.current = handleProjectionRevisionBump;
+
   useEffect(() => {
     let socket: WebSocket | null = null;
     let cancelled = false;
@@ -1805,7 +1826,7 @@ export function GraphWorkspace({
       try {
         const parsed = parseGraphRealtimeServerMessage(JSON.parse(event.data));
         if (parsed.type === "projection_updated") {
-          handleProjectionRevisionBump(parsed.projectionRevision);
+          handleProjectionRevisionBumpRef.current(parsed.projectionRevision);
           return;
         }
         if (parsed.type === "access_revoked") {
@@ -1930,7 +1951,7 @@ export function GraphWorkspace({
       cancelled = true;
       socket?.close();
     };
-  }, [handleProjectionRevisionBump, kbId]);
+  }, [kbId]);
 
   useEffect(() => {
     setCollapsedNeighborhoodNodeIds([]);
@@ -2307,6 +2328,15 @@ export function GraphWorkspace({
   const showLoadingOverlay = !graphReady && (isLoading || isFetching || Boolean(loadingProgress) || isGraphLoadError);
   const showSettlingStatus = graphReady && loadingProgress?.phase === "stabilizing_layout";
   const hasGraphContent = Boolean(summary?.nodeCount);
+  const catalogTotals = useMemo(
+    () => mergeCatalogTotals(graphStats, summary),
+    [
+      graphStats.edgeTotal,
+      graphStats.nodeTotal,
+      summary?.graphEdgeTotal,
+      summary?.graphNodeTotal,
+    ],
+  );
   const graphLoadInfoMessage = projectionRefreshPending
     ? graphCopy(copyLocale, "projectionRefreshed")
     : summary?.loadTruncated && kbId
@@ -2550,18 +2580,20 @@ export function GraphWorkspace({
   const setEffectToggle = useCallback((effect: GraphEffectToggle, enabled: boolean | ((current: boolean) => boolean)) => {
     setEffectsState((current) => {
       const nextValue = typeof enabled === "function" ? enabled(current[effect]) : enabled;
-      if (effect === "diagnosticsEnabled" && !GRAPH_THEME.effects.diagnostics.enabledInDev) {
+      if (effect === "diagnosticsEnabled" && !diagnosticsEffectsAllowed) {
         return current;
       }
       if (current[effect] === nextValue) {
         return current;
       }
-      return {
+      const next = {
         ...current,
         [effect]: nextValue,
       };
+      saveGraphEffectsState(kbId, next);
+      return next;
     });
-  }, []);
+  }, [diagnosticsEffectsAllowed, kbId]);
 
   const handlePluginAction = useCallback((action: GraphPluginActionRequest) => {
     switch (action.type) {
@@ -2858,7 +2890,7 @@ export function GraphWorkspace({
         id: "view-full",
         label: graphCopy(copyLocale, "viewFullGraph"),
         title: graphCopy(copyLocale, "viewFullGraphTitle"),
-        icon: Layers3,
+        icon: "stack",
         active: viewMode === "full",
         onClick: () => setLayoutViewMode("full"),
       },
@@ -2870,7 +2902,7 @@ export function GraphWorkspace({
           : (groupedViewReasonText(displayState.groupedViewReason, copyLocale)
             ?? groupedViewReasonText({ code: "communities-undetected" }, copyLocale)
             ?? undefined),
-        icon: GitBranch,
+        icon: "git-branch-01",
         active: viewMode === "grouped",
         disabled: !displayState.groupedViewAvailable,
         onClick: () => setLayoutViewMode("grouped"),
@@ -2881,7 +2913,7 @@ export function GraphWorkspace({
         title: canActivateFocusedMode
           ? graphCopy(copyLocale, "viewFocusTitle")
           : (focusedUnavailableReasonText(focusedSelectionResolution.reason, copyLocale) ?? undefined),
-        icon: Focus,
+        icon: "crosshair",
         active: viewMode === "focused",
         disabled: viewMode !== "focused" && !canActivateFocusedMode,
         onClick: () => {
@@ -2911,7 +2943,7 @@ export function GraphWorkspace({
       label: graphCopy(copyLocale, "zoomIn"),
       title: graphCopy(copyLocale, "zoomInTitle"),
       ariaLabel: graphCopy(copyLocale, "zoomIn"),
-      icon: ZoomIn,
+      icon: "zoom-in",
       compact: true,
       onClick: () => sceneRef.current?.zoomIn(),
     },
@@ -2920,7 +2952,7 @@ export function GraphWorkspace({
       label: graphCopy(copyLocale, "zoomOut"),
       title: graphCopy(copyLocale, "zoomOutTitle"),
       ariaLabel: graphCopy(copyLocale, "zoomOut"),
-      icon: ZoomOut,
+      icon: "zoom-out",
       compact: true,
       onClick: () => sceneRef.current?.zoomOut(),
     },
@@ -2929,7 +2961,7 @@ export function GraphWorkspace({
       label: graphCopy(copyLocale, "fitView"),
       title: graphCopy(copyLocale, "fitViewTitle"),
       ariaLabel: graphCopy(copyLocale, "fitView"),
-      icon: Maximize2,
+      icon: "expand",
       compact: true,
       onClick: () => sceneRef.current?.fitView(),
     },
@@ -2942,7 +2974,7 @@ export function GraphWorkspace({
         ? graphCopy(copyLocale, "layoutPause")
         : graphCopy(copyLocale, "layoutRun"),
       title: graphCopy(copyLocale, "layoutToggleTitle"),
-      icon: isLayoutRunning ? Pause : Play,
+      icon: isLayoutRunning ? "pause-01" : "play-03",
       active: isLayoutRunning,
       disabled: showLoadingOverlay,
       onClick: () => setIsLayoutRunning((value) => !value),
@@ -2960,7 +2992,7 @@ export function GraphWorkspace({
           id: "collapse-neighborhood",
           label: graphCopy(copyLocale, "collapse"),
           title: selectNodeHint,
-          icon: Eye,
+          icon: "eye-open",
           disabled: true,
           onClick: () => {},
         },
@@ -2968,7 +3000,7 @@ export function GraphWorkspace({
           id: "expand-neighborhood",
           label: graphCopy(copyLocale, "expand"),
           title: selectNodeHint,
-          icon: Users,
+          icon: "users-profiles-01",
           disabled: true,
           onClick: () => {},
         },
@@ -2980,7 +3012,7 @@ export function GraphWorkspace({
         id: "collapse-neighborhood",
         label: graphCopy(copyLocale, "collapse"),
         title: graphCopy(copyLocale, "collapseNeighborhoodTitle"),
-        icon: Eye,
+        icon: "eye-open",
         disabled: !selectedNodeState.canCollapseNeighborhood || selectedNodeState.isNeighborhoodCollapsed,
         onClick: () => handlePluginAction({ type: "collapseNeighborhood" }),
       },
@@ -2988,7 +3020,7 @@ export function GraphWorkspace({
         id: "expand-neighborhood",
         label: graphCopy(copyLocale, "expand"),
         title: graphCopy(copyLocale, "expandNeighborhoodTitle"),
-        icon: Users,
+        icon: "users-profiles-01",
         disabled: !selectedNodeState.isNeighborhoodCollapsed,
         onClick: () => handlePluginAction({ type: "expandNeighborhood" }),
       },
@@ -3021,7 +3053,7 @@ export function GraphWorkspace({
       {
         id: "ego-mode",
         label: graphEgoModeLabel(copyLocale, egoModeEnabled, egoMaxHops),
-        icon: Radar,
+        icon: "signal",
         title: nodeReady
           ? graphEgoModeTitle(copyLocale, egoModeEnabled, egoMaxHops)
           : selectNodeHint,
@@ -3037,7 +3069,7 @@ export function GraphWorkspace({
       {
         id: "heatmap",
         label: graphCopy(copyLocale, "heatmap"),
-        icon: Flame,
+        icon: "flame",
         title: nodeReady
           ? heatmapEnabled
             ? graphCopy(copyLocale, "heatmapActiveTitle")
@@ -3055,7 +3087,7 @@ export function GraphWorkspace({
       {
         id: "dist-structural",
         label: graphCopy(copyLocale, "distStructural"),
-        icon: Route,
+        icon: "path",
         title: nodeReady
           ? graphCopy(copyLocale, "distStructuralTitle")
           : selectNodeHint,
@@ -3071,7 +3103,7 @@ export function GraphWorkspace({
       {
         id: "dist-semantic",
         label: graphCopy(copyLocale, "distSemantic"),
-        icon: Sparkles,
+        icon: "stars",
         title: nodeReady
           ? graphCopy(copyLocale, "distSemanticTitle")
           : selectNodeHint,
@@ -3294,6 +3326,12 @@ export function GraphWorkspace({
                   activeNodeCount={activeNodeCount}
                   focusedSummary={focusedSummary}
                   readOnly={!graphWriteEnabled}
+                  loadBudget={{
+                    budget: loadBudget,
+                    onBudgetCommit: handleLoadBudgetCommit,
+                    catalogTotals,
+                    disabled: showLoadingOverlay && !graphReady,
+                  }}
                 />
               </section>
 

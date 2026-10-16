@@ -13,6 +13,8 @@ import { Input } from '@/components/ui/input.js';
 import { Label } from '@/components/ui/label.js';
 import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
+import { fmt } from '@/i18n/format.js';
+import type { Locale } from '@/i18n/locale.js';
 import { api } from '@/lib/api.js';
 import { formatUserFacingApiError } from '@/lib/api-error-message.js';
 import { kbGraphPath } from '@/lib/graphUrlState.js';
@@ -59,8 +61,8 @@ export function KbGraphDiffWorkspace({
   pageActionsInHeader?: boolean;
   onPageActionsChange?: (actions: GraphDiffPageActions | null) => void;
 }) {
-  const { locale } = useI18n();
-  const zh = locale === 'zh';
+  const { t, locale } = useI18n();
+  const g = t.kbGraphDiff;
   const [, setSearchParams] = useSearchParams();
   const [fromTime, setFromTime] = useState(initialFrom ?? '');
   const [toTime, setToTime] = useState(initialTo ?? '');
@@ -96,11 +98,11 @@ export function KbGraphDiffWorkspace({
         { replace: true },
       );
     } catch (err) {
-      setError(formatUserFacingApiError(err, zh ? 'zh' : 'en'));
+      setError(formatUserFacingApiError(err, locale as Locale));
     } finally {
       setLoading(false);
     }
-  }, [fromTime, kbId, setSearchParams, toTime, zh]);
+  }, [fromTime, kbId, locale, setSearchParams, toTime]);
 
   const rangeSummary = `${fromTime.trim() || '…'} → ${toTime.trim() || '…'}`;
 
@@ -126,27 +128,29 @@ export function KbGraphDiffWorkspace({
     </section>
   );
 
+  const none = g.none;
+
   return (
     <div className={cn('kb-graph-diff-workspace flex min-h-0 flex-col gap-4', className)}>
       {!pageActionsInHeader ? (
         <div className="flex flex-wrap items-center gap-2">
           <Button type="button" size="sm" variant="outline" onClick={() => setRangeOpen(true)}>
-            {zh ? '时间范围' : 'Time range'}
+            {g.timeRange}
           </Button>
           <span className="max-w-full truncate font-mono text-xs text-muted-foreground">{rangeSummary}</span>
           <Button type="button" size="sm" disabled={loading} onClick={() => void runDiff()}>
             {loading ? <Spinner className="size-4" /> : null}
-            {zh ? '对比' : 'Compare'}
+            {g.compare}
           </Button>
           <Link to={kbPath(kbId, 'graph')} className="text-xs text-primary hover:underline">
-            {zh ? '返回图谱' : 'Back to graph'}
+            {g.backToGraph}
           </Link>
           {toTime.trim() ? (
             <Link
               to={kbSearchPath(kbId, { tab: 'graph', as_of: toTime.trim() })}
               className="text-xs text-primary hover:underline"
             >
-              {zh ? '在「结束时刻」搜索图谱节点' : 'Search graph at end instant'}
+              {g.searchAtEndInstant}
             </Link>
           ) : null}
         </div>
@@ -154,14 +158,14 @@ export function KbGraphDiffWorkspace({
       {pageActionsInHeader ? (
         <div className="flex flex-wrap gap-3 text-xs">
           <Link to={kbPath(kbId, 'graph')} className="text-primary hover:underline">
-            {zh ? '返回图谱' : 'Back to graph'}
+            {g.backToGraph}
           </Link>
           {toTime.trim() ? (
             <Link
               to={kbSearchPath(kbId, { tab: 'graph', as_of: toTime.trim() })}
               className="text-primary hover:underline"
             >
-              {zh ? '在结束时刻搜索图谱节点' : 'Search graph at end instant'}
+              {g.searchAtEndInstantShort}
             </Link>
           ) : null}
         </div>
@@ -170,14 +174,12 @@ export function KbGraphDiffWorkspace({
       <Dialog open={rangeOpen} onOpenChange={setRangeOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{zh ? '对比时间范围' : 'Compare time range'}</DialogTitle>
-            <DialogDescription>
-              {zh ? '使用 ISO-8601 时刻（与图谱时态投影一致）。' : 'Use ISO-8601 instants (same as graph temporal projection).'}
-            </DialogDescription>
+            <DialogTitle>{g.rangeDialogTitle}</DialogTitle>
+            <DialogDescription>{g.rangeDialogDesc}</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-2">
             <div className="grid gap-2">
-              <Label htmlFor="graph-diff-from">{zh ? '起始时刻 (from)' : 'From (ISO)'}</Label>
+              <Label htmlFor="graph-diff-from">{g.fromLabel}</Label>
               <Input
                 id="graph-diff-from"
                 value={fromTime}
@@ -186,7 +188,7 @@ export function KbGraphDiffWorkspace({
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="graph-diff-to">{zh ? '结束时刻 (to)' : 'To (ISO)'}</Label>
+              <Label htmlFor="graph-diff-to">{g.toLabel}</Label>
               <Input
                 id="graph-diff-to"
                 value={toTime}
@@ -197,7 +199,7 @@ export function KbGraphDiffWorkspace({
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setRangeOpen(false)}>
-              {zh ? '关闭' : 'Close'}
+              {g.close}
             </Button>
             <Button
               type="button"
@@ -207,7 +209,7 @@ export function KbGraphDiffWorkspace({
               }}
               disabled={loading || !fromTime.trim() || !toTime.trim()}
             >
-              {zh ? '对比' : 'Compare'}
+              {g.compare}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -216,15 +218,25 @@ export function KbGraphDiffWorkspace({
       {diff ? (
         <div className="grid gap-3 md:grid-cols-2">
           {section(
-            zh ? '摘要' : 'Summary',
+            g.summaryTitle,
             <ul className="list-inside list-disc font-mono text-xs">
-              <li>+{diff.summary.nodes_added} / −{diff.summary.nodes_removed} nodes</li>
-              <li>{diff.summary.nodes_modified} modified</li>
-              <li>+{diff.summary.edges_added} / −{diff.summary.edges_removed} edges</li>
+              <li>
+                {fmt(g.summaryNodes, {
+                  added: String(diff.summary.nodes_added),
+                  removed: String(diff.summary.nodes_removed),
+                })}
+              </li>
+              <li>{fmt(g.summaryModified, { count: String(diff.summary.nodes_modified) })}</li>
+              <li>
+                {fmt(g.summaryEdges, {
+                  added: String(diff.summary.edges_added),
+                  removed: String(diff.summary.edges_removed),
+                })}
+              </li>
             </ul>,
           )}
           {section(
-            zh ? '新增节点' : 'Added nodes',
+            g.addedNodesTitle,
             diff.added_nodes.length
               ? diff.added_nodes.map((id) => (
                   <div key={id}>
@@ -233,10 +245,10 @@ export function KbGraphDiffWorkspace({
                     </Link>
                   </div>
                 ))
-              : zh ? '无' : 'None',
+              : none,
           )}
           {section(
-            zh ? '移除节点' : 'Removed nodes',
+            g.removedNodesTitle,
             diff.removed_nodes.length ? (
               <ul className="font-mono text-xs">
                 {diff.removed_nodes.map((id) => (
@@ -248,11 +260,11 @@ export function KbGraphDiffWorkspace({
                 ))}
               </ul>
             ) : (
-              zh ? '无' : 'None'
+              none
             ),
           )}
           {section(
-            zh ? '属性变更' : 'Modified nodes',
+            g.modifiedNodesTitle,
             diff.modified_nodes.length ? (
               <ul className="font-mono text-xs">
                 {diff.modified_nodes.map((row) => (
@@ -266,11 +278,11 @@ export function KbGraphDiffWorkspace({
                 ))}
               </ul>
             ) : (
-              zh ? '无' : 'None'
+              none
             ),
           )}
           {section(
-            zh ? '新增边' : 'Added edges',
+            g.addedEdgesTitle,
             diff.added_edges.length ? (
               <ul className="font-mono text-xs">
                 {diff.added_edges.map((e, i) => (
@@ -288,11 +300,11 @@ export function KbGraphDiffWorkspace({
                 ))}
               </ul>
             ) : (
-              zh ? '无' : 'None'
+              none
             ),
           )}
           {section(
-            zh ? '移除边' : 'Removed edges',
+            g.removedEdgesTitle,
             diff.removed_edges.length ? (
               <ul className="font-mono text-xs">
                 {diff.removed_edges.map((e, i) => (
@@ -300,7 +312,7 @@ export function KbGraphDiffWorkspace({
                 ))}
               </ul>
             ) : (
-              zh ? '无' : 'None'
+              none
             ),
           )}
         </div>

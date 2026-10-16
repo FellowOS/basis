@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Spinner } from '@/components/ui/spinner.js';
 import { graphProgressWidthStyle } from '@/lib/graph/graph-ui-classes.js';
 import { useI18n } from '@/i18n/context.js';
+import type { Locale } from '@/i18n/locale.js';
 
 type GraphStats = {
   node_count?: number;
@@ -47,8 +48,8 @@ function TypeBar({
 }
 
 export function KbGraphOverviewStats({ kbId }: { kbId: string }) {
-  const { locale } = useI18n();
-  const zh = locale === 'zh';
+  const { t, locale } = useI18n();
+  const w = t.kbGraphWorkspace.widgets;
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [stats, setStats] = useState<GraphStats | null>(null);
@@ -70,8 +71,8 @@ export function KbGraphOverviewStats({ kbId }: { kbId: string }) {
       const nodes = nodesBody.nodes ?? [];
       const typeMap: Record<string, number> = {};
       for (const n of nodes) {
-        const t = n.type || 'unknown';
-        typeMap[t] = (typeMap[t] ?? 0) + 1;
+        const type = n.type || 'unknown';
+        typeMap[type] = (typeMap[type] ?? 0) + 1;
       }
       setNodeTypes(typeMap);
 
@@ -87,12 +88,12 @@ export function KbGraphOverviewStats({ kbId }: { kbId: string }) {
           .slice(0, 8),
       );
     } catch (err) {
-      setError(formatUserFacingApiError(err, zh ? 'zh' : 'en'));
+      setError(formatUserFacingApiError(err, locale as Locale));
       setStats(null);
     } finally {
       setLoading(false);
     }
-  }, [kbId, zh]);
+  }, [kbId, locale]);
 
   useEffect(() => {
     void load();
@@ -105,22 +106,18 @@ export function KbGraphOverviewStats({ kbId }: { kbId: string }) {
     <Card>
       <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-2 space-y-0">
         <div>
-          <CardTitle className="text-base">{zh ? '图谱概览' : 'Graph overview'}</CardTitle>
-          <CardDescription>
-            {zh
-              ? '节点/边规模与类型分布（基于采样节点与边列表）。'
-              : 'Scale and type distribution from sampled nodes and edges.'}
-          </CardDescription>
+          <CardTitle className="text-base">{w.overviewTitle}</CardTitle>
+          <CardDescription>{w.overviewDescription}</CardDescription>
         </div>
         <Link className="text-sm text-primary hover:underline" to={kbPath(kbId, 'graph')}>
-          {zh ? '打开图谱' : 'Open graph'}
+          {w.openGraph}
         </Link>
       </CardHeader>
       <CardContent className="space-y-4">
         {loading ? (
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Spinner className="size-4" />
-            {zh ? '加载中…' : 'Loading…'}
+            {t.common.loading}
           </div>
         ) : error ? (
           <p className="text-sm text-destructive">{error}</p>
@@ -128,13 +125,13 @@ export function KbGraphOverviewStats({ kbId }: { kbId: string }) {
           <>
             <dl className="grid gap-3 text-sm sm:grid-cols-2">
               <div>
-                <dt className="text-muted-foreground">{zh ? '节点数' : 'Nodes'}</dt>
+                <dt className="text-muted-foreground">{w.nodesLabel}</dt>
                 <dd className="font-mono text-lg font-semibold">
                   {(stats.node_count ?? 0).toLocaleString()}
                 </dd>
               </div>
               <div>
-                <dt className="text-muted-foreground">{zh ? '边数' : 'Edges'}</dt>
+                <dt className="text-muted-foreground">{w.edgesLabel}</dt>
                 <dd className="font-mono text-lg font-semibold">
                   {(stats.edge_count ?? 0).toLocaleString()}
                 </dd>
@@ -142,9 +139,7 @@ export function KbGraphOverviewStats({ kbId }: { kbId: string }) {
             </dl>
             {nodeTypeEntries.length > 0 ? (
               <div>
-                <p className="mb-2 text-xs font-medium text-muted-foreground">
-                  {zh ? '节点类型（采样）' : 'Node types (sample)'}
-                </p>
+                <p className="mb-2 text-xs font-medium text-muted-foreground">{w.nodeTypesSample}</p>
                 {nodeTypeEntries.slice(0, 8).map(([label, count]) => (
                   <TypeBar key={label} label={label} count={count} total={totalTyped} />
                 ))}
@@ -152,9 +147,7 @@ export function KbGraphOverviewStats({ kbId }: { kbId: string }) {
             ) : null}
             {topNodes.length > 0 ? (
               <div>
-                <p className="mb-2 text-xs font-medium text-muted-foreground">
-                  {zh ? '连接度最高（采样）' : 'Highest degree (sample)'}
-                </p>
+                <p className="mb-2 text-xs font-medium text-muted-foreground">{w.highestDegreeSample}</p>
                 <ul className="space-y-1 text-xs">
                   {topNodes.map(({ node, degree }) => (
                     <li key={node.id} className="flex justify-between gap-2 font-mono">

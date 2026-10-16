@@ -8,6 +8,7 @@ from typing import Any
 from basis.graph.session import GraphSession
 from basis.knowledge.chunk_search import ChunkSearchService
 from basis.knowledge.store import KnowledgeStore
+from basis.pipeline.chunk_meta import prepare_chunks
 from basis.pipeline.document import TextIngestOptions, _normalize_text, build_kg_from_text
 from basis.pipeline.extract_timeout import ExtractionTimeoutError
 from basis.pipeline.file_ingest import FileParseError, text_from_bytes
@@ -44,24 +45,6 @@ def parse_uploaded_bytes(filename: str, data: bytes) -> ParsedDocument:
     return ParsedDocument(full_text=text, filename=filename)
 
 
-def _chunk_texts(
-    full_text: str, options: TextIngestOptions
-) -> list[str]:
-    if not full_text.strip():
-        return []
-    if not options.chunk or len(full_text) <= options.chunk_size:
-        return [full_text]
-    from semantica.split import TextSplitter
-
-    splitter = TextSplitter(
-        method="recursive",
-        chunk_size=options.chunk_size,
-        chunk_overlap=options.chunk_overlap,
-    )
-    parts = splitter.split(full_text)
-    return [part.text for part in parts if getattr(part, "text", "").strip()]
-
-
 def run_version_ingest(
     knowledge: KnowledgeStore,
     graph: GraphSession,
@@ -92,7 +75,10 @@ def run_version_ingest(
                 raise ExtractTextTooLargeError(char_count, max_extract_chars)
         knowledge.set_version_status(kb_id, version_id, "chunking")
 
-        chunk_texts = _chunk_texts(parsed.full_text, options)
+        chunk_payloads = prepare_chunks(parsed.full_text, options)
+        chunk_texts = [
+            row if isinstance(row, str) else row["text"] for row in chunk_payloads
+        ]
         if not chunk_texts and parsed.full_text.strip():
             chunk_texts = [parsed.full_text]
         if max_chunks is not None and max_chunks > 0 and len(chunk_texts) > max_chunks:
@@ -106,7 +92,7 @@ def run_version_ingest(
                     "version_already_chunked: create a new document version to change chunk options"
                 )
         else:
-            knowledge.create_chunks(kb_id, version_id, chunk_texts)
+            knowledge.create_chunks(kb_id, version_id, chunk_payloads)
 
         embed_stats: dict[str, int] = {"indexed": 0, "skipped": 0}
         search_config = knowledge.get_search_config(kb_id)

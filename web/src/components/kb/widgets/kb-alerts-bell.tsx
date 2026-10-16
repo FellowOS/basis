@@ -1,4 +1,4 @@
-import { Bell, Loader2, X } from 'lucide-react';
+import { PublicIcon } from '@/components/ui/public-icon.js';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button.js';
@@ -134,7 +134,7 @@ export function KbAlertsBell() {
           className="relative size-9 shrink-0"
           aria-label={t.nav.kbAlerts}
         >
-          <Bell className="size-[18px]" />
+          <PublicIcon name='bell-01' className="size-[18px]" />
           {badge > 0 ? (
             <span
               className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-medium text-destructive-foreground"
@@ -149,7 +149,7 @@ export function KbAlertsBell() {
         <div className="max-h-72 overflow-y-auto">
           {loading && alerts.length === 0 ? (
             <div className="flex items-center justify-center gap-2 py-8 text-sm text-muted-foreground">
-              <Loader2 className="size-4 animate-spin" />
+              <PublicIcon name='loader-01' className="size-4 animate-spin" />
             </div>
           ) : alerts.length === 0 ? (
             <p className="px-3 py-6 text-center text-sm text-muted-foreground">
@@ -182,7 +182,7 @@ export function KbAlertsBell() {
                     aria-label="Dismiss"
                     onClick={() => void dismiss(alert.id)}
                   >
-                    <X className="size-3.5" />
+                    <PublicIcon name='x-02' className="size-3.5" />
                   </Button>
                 </li>
               );

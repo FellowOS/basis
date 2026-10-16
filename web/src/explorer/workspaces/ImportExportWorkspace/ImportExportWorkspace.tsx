@@ -1,9 +1,12 @@
+import { PublicIcon } from "@/components/ui/public-icon.js";
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useDropzone } from "react-dropzone";
-import { UploadCloud, Download, FileJson, FileText, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button.js";
 import { errorFromApiResponse } from "@/lib/api-error.js";
 import { formatUserFacingApiError } from "@/lib/api-error-message.js";
+import { useI18n } from "@/i18n/context.js";
+import { fmt } from "@/i18n/format.js";
+import type { Locale } from "@/i18n/locale.js";
 import { buildExplorerKbApiPath, explorerFetch } from "../../host/explorerHttp";
 import { logEvent } from "../../store/registryStore";
 import { cn } from "@/lib/utils.js";
@@ -34,15 +37,16 @@ export function ImportExportWorkspace({
   kbId,
   focusSection,
   onImportQueued,
-  importQueuedActionLabel = "Open review queue",
-  locale = "en",
+  importQueuedActionLabel,
 }: {
   kbId: string;
   focusSection?: "import" | "export";
   onImportQueued?: () => void;
   importQueuedActionLabel?: string;
-  locale?: "zh" | "en";
 }) {
+  const { t, locale } = useI18n();
+  const ie = t.kbImportExport;
+  const reviewLabel = importQueuedActionLabel ?? ie.openReviewQueue;
   const importRef = useRef<HTMLDivElement>(null);
   const exportRef = useRef<HTMLDivElement>(null);
 
@@ -64,7 +68,7 @@ export function ImportExportWorkspace({
   ) {
     const id = Date.now();
     setToasts((p) => [...p, { id, type, text, action }]);
-    setTimeout(() => setToasts((p) => p.filter((t) => t.id !== id)), 8000);
+    setTimeout(() => setToasts((p) => p.filter((toast) => toast.id !== id)), 8000);
   }
 
   const onDrop = useCallback((accepted: File[]) => {
@@ -88,20 +92,20 @@ export function ImportExportWorkspace({
       const res = await explorerFetch(importPath, { method: "POST", body: fd });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        throw errorFromApiResponse(res.status, data, "Import failed");
+        throw errorFromApiResponse(res.status, data, ie.importFailed);
       }
       const reviewAction = onImportQueued
-        ? { label: importQueuedActionLabel, onClick: onImportQueued }
+        ? { label: reviewLabel, onClick: onImportQueued }
         : undefined;
       showToast(
         "success",
-        `Submitted ${file.name} for review — approve in the review queue.`,
+        fmt(ie.importSuccess, { name: file.name }),
         reviewAction,
       );
       logEvent("review", `Queued graph import: ${file.name}`, { file: file.name });
       setFile(null);
     } catch (e: unknown) {
-      showToast("error", formatUserFacingApiError(e, locale));
+      showToast("error", formatUserFacingApiError(e, locale as Locale));
     } finally { setIsUploading(false); }
   }
 
@@ -116,7 +120,7 @@ export function ImportExportWorkspace({
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw errorFromApiResponse(res.status, data, "Export failed");
+        throw errorFromApiResponse(res.status, data, ie.exportFailed);
       }
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
@@ -127,10 +131,10 @@ export function ImportExportWorkspace({
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      showToast("success", `Export ready — semantica_export.${exportFormat}`);
+      showToast("success", fmt(ie.exportSuccess, { format: exportFormat }));
       logEvent("export", `Exported graph as ${exportFormat.toUpperCase()}`, { format: exportFormat });
     } catch (e: unknown) {
-      showToast("error", formatUserFacingApiError(e, locale));
+      showToast("error", formatUserFacingApiError(e, locale as Locale));
     } finally { setIsExporting(false); }
   }
 
@@ -139,23 +143,23 @@ export function ImportExportWorkspace({
       <div className={exWsImportPage}>
         <div className={exWsPageHero}>
           <div className={exWsPageHeroIcon}>
-            <UploadCloud size={20} />
+            <PublicIcon name="upload-01" size={20} />
           </div>
           <div>
-            <h2 className="ws-title text-lg">Import &amp; Export</h2>
-            <div className="ws-body mt-0.5">Ingest new graph datasets or extract the current knowledge base.</div>
+            <h2 className="ws-title text-lg">{ie.pageTitle}</h2>
+            <div className="ws-body mt-0.5">{ie.pageSubtitle}</div>
           </div>
         </div>
 
         <div className={exWsImportGrid}>
           <div ref={importRef} className={exWsImportCard}>
             <div className={exWsCardTitleRow}>
-              <UploadCloud size={16} className="text-primary" />
-              Import Entities &amp; Relations
+              <PublicIcon name="upload-01" size={16} className="text-primary" />
+              {ie.importCardTitle}
             </div>
             {kbId ? (
               <div className={exWsHint}>
-                Imports are queued for editor approval (Review queue) before they update the graph.
+                {ie.importHint}
               </div>
             ) : null}
 
@@ -166,20 +170,18 @@ export function ImportExportWorkspace({
               <input {...getInputProps()} />
               {file ? (
                 <>
-                  {file.name.endsWith(".json") ? (
-                    <FileJson size={40} className="text-ok" />
-                  ) : (
-                    <FileText size={40} className="text-ok" />
-                  )}
+                  <PublicIcon name="file-01" size={40} className="text-ok" />
                   <div className="font-bold text-foreground">{file.name}</div>
-                  <div className="ws-body text-[11px]">{(file.size / 1024).toFixed(1)} KB — click to replace</div>
+                  <div className="ws-body text-[11px]">
+                    {fmt(ie.fileSizeReplace, { size: (file.size / 1024).toFixed(1) })}
+                  </div>
                 </>
               ) : (
                 <>
-                  <UploadCloud size={36} className="text-primary opacity-70" />
-                  <div className="font-semibold text-foreground">Drag &amp; drop or click to browse</div>
+                  <PublicIcon name="upload-01" size={36} className="text-primary opacity-70" />
+                  <div className="font-semibold text-foreground">{ie.dropBrowse}</div>
                   <div className="ws-pill ws-pill--mono">.json</div>
-                  <span className={exWsHint}>or</span>
+                  <span className={exWsHint}>{ie.or}</span>
                   <div className="ws-pill ws-pill--mono">.csv</div>
                 </>
               )}
@@ -191,40 +193,48 @@ export function ImportExportWorkspace({
               onClick={handleImport}
               disabled={!file || isUploading}
             >
-              {isUploading ? <><Loader2 size={15} className="animate-spin" />Uploading…</> : <><UploadCloud size={15} />Upload to Graph</>}
+              {isUploading ? (
+                <>
+                  <PublicIcon name="loader-01" size={15} className="animate-spin" />
+                  {ie.uploading}
+                </>
+              ) : (
+                <>
+                  <PublicIcon name="upload-01" size={15} />
+                  {ie.uploadToGraph}
+                </>
+              )}
             </Button>
           </div>
 
           <div ref={exportRef} className={exWsImportCard}>
             <div className={exWsCardTitleRow}>
-              <Download size={16} className="text-primary" />
-              Export Graph Snapshot
+              <PublicIcon name="download-01" size={16} className="text-primary" />
+              {ie.exportCardTitle}
             </div>
 
             <div>
-              <label className="ws-label">Format</label>
+              <label className="ws-label">{ie.formatLabel}</label>
               <div className="flex gap-2">
-                {(["json", "csv"] as const).map((fmt) => (
+                {(["json", "csv"] as const).map((format) => (
                   <Button
-                    key={fmt}
+                    key={format}
                     type="button"
-                    variant={exportFormat === fmt ? "default" : "outline"}
+                    variant={exportFormat === format ? "default" : "outline"}
                     className="flex-1 uppercase text-xs"
-                    onClick={() => setExportFormat(fmt)}
+                    onClick={() => setExportFormat(format)}
                   >
-                    {fmt === "json" ? <FileJson size={14} /> : <FileText size={14} />}
-                    {fmt}
+                    <PublicIcon name="file-01" size={14} />
+                    {format}
                   </Button>
                 ))}
               </div>
             </div>
 
             <div className="flex-1 rounded-[var(--ws-radius-sm)] border border-border bg-muted/40 p-3.5 px-4">
-              <div className="mb-1.5 text-xs font-bold text-muted-foreground">What&apos;s included</div>
+              <div className="mb-1.5 text-xs font-bold text-muted-foreground">{ie.includedTitle}</div>
               <div className="ws-body text-xs">
-                {exportFormat === "json"
-                  ? "Full graph snapshot: all node properties, edge weights, entity metadata and semantic groups in a standardized JSON payload."
-                  : "Flattened CSV: nodes and edges as rows. Complex nested properties are stringified. Best for spreadsheet analysis."}
+                {exportFormat === "json" ? ie.includedJson : ie.includedCsv}
               </div>
             </div>
 
@@ -235,36 +245,46 @@ export function ImportExportWorkspace({
               onClick={handleExport}
               disabled={isExporting}
             >
-              {isExporting ? <><Loader2 size={15} className="animate-spin" />Preparing…</> : <><Download size={15} />Download Export</>}
+              {isExporting ? (
+                <>
+                  <PublicIcon name="loader-01" size={15} className="animate-spin" />
+                  {ie.preparing}
+                </>
+              ) : (
+                <>
+                  <PublicIcon name="download-01" size={15} />
+                  {ie.exportButton}
+                </>
+              )}
             </Button>
           </div>
         </div>
       </div>
 
       <div className={exWsToastStack}>
-        {toasts.map((t) => (
+        {toasts.map((toast) => (
           <div
-            key={t.id}
-            className={cn(exWsToast, t.type === "success" ? exWsToastSuccess : exWsToastError)}
+            key={toast.id}
+            className={cn(exWsToast, toast.type === "success" ? exWsToastSuccess : exWsToastError)}
           >
-            {t.type === "success" ? (
-              <CheckCircle2 size={16} className="shrink-0 text-ok" />
+            {toast.type === "success" ? (
+              <PublicIcon name="check-circle" size={16} className="shrink-0 text-ok" />
             ) : (
-              <AlertCircle size={16} className="shrink-0 text-destructive" />
+              <PublicIcon name="alert-circle" size={16} className="shrink-0 text-destructive" />
             )}
-            <span>{t.text}</span>
-            {t.action ? (
+            <span>{toast.text}</span>
+            {toast.action ? (
               <Button
                 type="button"
                 size="sm"
                 variant="outline"
                 className="ml-1 h-7"
                 onClick={() => {
-                  t.action?.onClick();
-                  setToasts((p) => p.filter((toast) => toast.id !== t.id));
+                  toast.action?.onClick();
+                  setToasts((p) => p.filter((item) => item.id !== toast.id));
                 }}
               >
-                {t.action.label}
+                {toast.action.label}
               </Button>
             ) : null}
           </div>

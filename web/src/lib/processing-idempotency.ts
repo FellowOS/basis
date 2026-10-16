@@ -1,5 +1,6 @@
 export type ProcessingStartOptions = {
   chunk?: boolean;
+  chunk_method?: string;
   chunk_size?: number;
   chunk_overlap?: number;
   extract?: boolean;
@@ -7,7 +8,6 @@ export type ProcessingStartOptions = {
   ner_model?: string;
   relation_method?: string;
   extract_relations?: boolean;
-  extract_triplets?: boolean;
 };
 
 function stableHash(input: string): string {
@@ -28,13 +28,13 @@ export function processingStartIdempotencyKey(
   }
   const payload = JSON.stringify({
     chunk: options.chunk,
+    chunk_method: options.chunk_method,
     chunk_size: options.chunk_size,
     chunk_overlap: options.chunk_overlap,
     extract: options.extract,
     ner_method: options.ner_method,
     relation_method: options.relation_method,
     extract_relations: options.extract_relations,
-    extract_triplets: options.extract_triplets,
   });
   return `ingest-config:${versionId}:${stableHash(payload)}`;
 }

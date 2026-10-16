@@ -15,8 +15,8 @@ import { kbSearchPath } from '@/lib/searchUrlState.js';
 export function KbGraphDiffPage() {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
-  const { t, locale } = useI18n();
-  const zh = locale === 'zh';
+  const { t } = useI18n();
+  const g = t.kbGraphDiff;
   const { getKb } = useKbCatalog();
   const [pageActions, setPageActions] = useState<GraphDiffPageActions | null>(null);
   const onPageActionsChange = useCallback((actions: GraphDiffPageActions | null) => {
@@ -44,7 +44,7 @@ export function KbGraphDiffPage() {
         pageActions ? (
           <>
             <Button type="button" size="sm" variant="outline" onClick={pageActions.openRange}>
-              {zh ? '时间范围' : 'Time range'}
+              {g.timeRange}
             </Button>
             <Button
               type="button"
@@ -53,15 +53,15 @@ export function KbGraphDiffPage() {
               onClick={pageActions.runCompare}
             >
               {pageActions.loading ? <Spinner className="size-4" /> : null}
-              {zh ? '对比' : 'Compare'}
+              {g.compare}
             </Button>
             <Button type="button" size="sm" variant="ghost" asChild>
-              <Link to={kbPath(id, 'graph')}>{zh ? '图谱' : 'Graph'}</Link>
+              <Link to={kbPath(id, 'graph')}>{g.graphLink}</Link>
             </Button>
             {toTime ? (
               <Button type="button" size="sm" variant="ghost" asChild>
                 <Link to={kbSearchPath(id, { tab: 'graph', as_of: toTime })}>
-                  {zh ? '搜索' : 'Search'}
+                  {g.searchLink}
                 </Link>
               </Button>
             ) : null}

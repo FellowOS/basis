@@ -5,7 +5,7 @@
  * perform one-click merges, and view merge history from the Registry.
  */
 import { useState, useCallback, useEffect } from "react";
-import { ScanSearch, GitMerge, X, ChevronDown, ChevronRight, Loader2 } from "lucide-react";
+import { PublicIcon } from "@/components/ui/public-icon.js";
 import { Button } from "@/components/ui/button.js";
 import {
   Dialog,
@@ -22,6 +22,8 @@ import { errorFromApiResponse } from "@/lib/api-error.js";
 import { useApiErrorMessage } from "@/lib/use-api-error-message.js";
 import { logEvent, useRegistry } from "../../store/registryStore";
 import { KbEntityMergePropertyDiff } from "@/components/kb/widgets/kb-entity-merge-property-diff.js";
+import { useI18n } from "@/i18n/context.js";
+import { fmt } from "@/i18n/format.js";
 import { cn } from "@/lib/utils.js";
 import {
   exWsErApprox,
@@ -130,6 +132,8 @@ function PairRow({
   onQueue?: (primaryId: string, duplicateId: string) => Promise<void>;
   onDismiss: () => void;
 }) {
+  const { t } = useI18n();
+  const er = t.entityResolution;
   const [expanded, setExpanded] = useState(false);
   const [merging, setMerging] = useState(false);
   const [queuing, setQueuing] = useState(false);
@@ -152,7 +156,7 @@ function PairRow({
       <div className="flex items-start gap-3">
         {/* Expand */}
         <button type="button" onClick={() => setExpanded((v) => !v)} className={exWsErExpandBtn}>
-          {expanded ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
+          {expanded ? <PublicIcon name="chevron-down" size={13} /> : <PublicIcon name="chevron-right" size={13} />}
         </button>
 
         {/* Entity Labels */}
@@ -175,11 +179,11 @@ function PairRow({
               size="sm"
               variant="secondary"
               disabled={queuing}
-              title="Submit for review"
+              title={er.submitForReviewTitle}
               onClick={() => void handleQueue()}
             >
-              {queuing ? <Loader2 size={12} className="animate-spin" /> : <GitMerge size={12} />}
-              Submit
+              {queuing ? <PublicIcon name="loader-01" size={12} className="animate-spin" /> : <PublicIcon name="git-merge" size={12} />}
+              {er.submitForReview}
             </Button>
           ) : (
             <Button
@@ -188,12 +192,12 @@ function PairRow({
               disabled={merging}
               onClick={() => void handleMerge()}
             >
-              {merging ? <Loader2 size={12} className="animate-spin" /> : <GitMerge size={12} />}
-              Merge
+              {merging ? <PublicIcon name="loader-01" size={12} className="animate-spin" /> : <PublicIcon name="git-merge" size={12} />}
+              {er.merge}
             </Button>
           )}
-          <Button type="button" size="sm" variant="ghost" onClick={onDismiss} title="Dismiss">
-            <X size={13} />
+          <Button type="button" size="sm" variant="ghost" onClick={onDismiss} title={er.dismissTitle} aria-label={er.dismiss}>
+            <PublicIcon name="x-02" size={13} />
           </Button>
         </div>
       </div>
@@ -219,6 +223,8 @@ export function EntityResolutionTab({
   pageActionsHosted?: boolean;
   onScanActionReady?: (openScan: () => void) => void;
 }) {
+  const { locale, t } = useI18n();
+  const er = t.entityResolution;
   const apiError = useApiErrorMessage();
   const [threshold, setThreshold] = useState(0.82);
   const [scanning, setScanning] = useState(false);
@@ -244,7 +250,7 @@ export function EntityResolutionTab({
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        throw errorFromApiResponse(res.status, body, `Scan failed (${res.status})`);
+        throw errorFromApiResponse(res.status, body, fmt(er.scanFailed, { status: res.status }));
       }
       const data = await res.json();
       const rawDuplicates: RawDuplicateItem[] = Array.isArray(data.duplicates)
@@ -255,10 +261,17 @@ export function EntityResolutionTab({
         parsed = await enrichPairsWithLabels(kbId, parsed);
       }
       setPairs(parsed);
-      logEvent("import", `Dedup scan found ${parsed.length} flagged pair${parsed.length !== 1 ? "s" : ""} (threshold ${threshold.toFixed(2)})`, {
-        threshold,
-        flagged: parsed.length,
-      });
+      logEvent(
+        "import",
+        fmt(
+          locale === "en" && parsed.length === 1 ? er.logDedupScanOne : er.logDedupScan,
+          { n: parsed.length, threshold: threshold.toFixed(2) },
+        ),
+        {
+          threshold,
+          flagged: parsed.length,
+        },
+      );
       return true;
     } catch (err) {
       setScanError(apiError(err));
@@ -266,7 +279,7 @@ export function EntityResolutionTab({
     } finally {
       setScanning(false);
     }
-  }, [kbId, threshold, apiError]);
+  }, [kbId, threshold, apiError, er, locale]);
 
   const handleMerge = useCallback(async (primaryId: string, duplicateId: string) => {
     setScanError("");
@@ -278,13 +291,20 @@ export function EntityResolutionTab({
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        throw errorFromApiResponse(res.status, body, `Merge failed (${res.status})`);
+        throw errorFromApiResponse(res.status, body, fmt(er.mergeFailed, { status: res.status }));
       }
       const data = await res.json();
       if (res.status === 207) {
-        setScanError(data.message || "Warning: Partial merge.");
+        setScanError(data.message || er.partialMergeWarning);
       }
-      logEvent("merge", `Merged ${duplicateId} → ${primaryId} · ${data.edges_updated ?? 0} edges redirected`, {
+      logEvent(
+        "merge",
+        fmt(er.logMerged, {
+          duplicateId,
+          primaryId,
+          edges: data.edges_updated ?? 0,
+        }),
+        {
         primary: primaryId,
         duplicate: duplicateId,
         edgesUpdated: data.edges_updated,
@@ -293,7 +313,7 @@ export function EntityResolutionTab({
     } catch (err) {
       setScanError(apiError(err));
     }
-  }, [kbId, apiError]);
+  }, [kbId, apiError, er]);
 
   const handleQueueMerge = useCallback(
     async (primaryId: string, duplicateId: string) => {
@@ -309,10 +329,13 @@ export function EntityResolutionTab({
         );
         if (!res.ok) {
           const body = await res.json().catch(() => ({}));
-          throw errorFromApiResponse(res.status, body, `Queue failed (${res.status})`);
+          throw errorFromApiResponse(res.status, body, fmt(er.queueFailed, { status: res.status }));
         }
         setPairs((prev) => prev.filter((p) => !(p.a.id === primaryId && p.b.id === duplicateId)));
-        logEvent("review", `Queued merge ${duplicateId} → ${primaryId}`, {
+        logEvent(
+          "review",
+          fmt(er.logQueuedMerge, { duplicateId, primaryId }),
+          {
           primary: primaryId,
           duplicate: duplicateId,
         });
@@ -320,7 +343,7 @@ export function EntityResolutionTab({
         setScanError(apiError(err));
       }
     },
-    [kbId, apiError],
+    [kbId, apiError, er],
   );
 
   const handleDismiss = useCallback((index: number) => {
@@ -338,17 +361,20 @@ export function EntityResolutionTab({
         <div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-3">
           {!pageActionsHosted ? (
             <Button type="button" size="sm" onClick={() => setScanOpen(true)}>
-              <ScanSearch size={14} className="mr-1" aria-hidden />
-              Dedup scan
+              <PublicIcon name="search-01" size={14} className="mr-1" />
+              {er.dedupScan}
             </Button>
           ) : null}
           {pairs.length > 0 ? (
             <>
               <span className="text-xs text-muted-foreground">
-                {pairs.length} flagged pair{pairs.length !== 1 ? "s" : ""}
+                {fmt(
+                  locale === "en" && pairs.length === 1 ? er.flaggedPairsOne : er.flaggedPairs,
+                  { n: pairs.length },
+                )}
               </span>
               <Button type="button" size="sm" variant="ghost" onClick={() => setPairs([])}>
-                Clear all
+                {er.clearAll}
               </Button>
             </>
           ) : null}
@@ -361,14 +387,12 @@ export function EntityResolutionTab({
       <Dialog open={scanOpen} onOpenChange={setScanOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Dedup scan</DialogTitle>
-            <DialogDescription>
-              Find near-duplicate entities above the similarity threshold.
-            </DialogDescription>
+            <DialogTitle>{er.scanDialogTitle}</DialogTitle>
+            <DialogDescription>{er.scanDialogDesc}</DialogDescription>
           </DialogHeader>
           <div className="space-y-3 py-2">
             <div className="flex items-center justify-between gap-2">
-              <Label htmlFor="dedup-threshold">Similarity threshold</Label>
+              <Label htmlFor="dedup-threshold">{er.similarityThreshold}</Label>
               <span className="font-mono text-sm font-semibold text-primary">{threshold.toFixed(2)}</span>
             </div>
             <input
@@ -381,17 +405,15 @@ export function EntityResolutionTab({
               onChange={(e) => setThreshold(parseFloat(e.target.value))}
               className="w-full accent-primary"
             />
-            <p className="text-[10px] text-muted-foreground">
-              Lower → more pairs; higher → fewer, higher-confidence matches.
-            </p>
+            <p className="text-[10px] text-muted-foreground">{er.thresholdHint}</p>
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setScanOpen(false)}>
-              Cancel
+              {t.common.cancel}
             </Button>
             <Button type="button" disabled={scanning} onClick={() => void runScanFromDialog()}>
-              {scanning ? <Loader2 size={14} className="animate-spin" /> : <ScanSearch size={14} />}
-              {scanning ? "Scanning…" : "Run scan"}
+              {scanning ? <PublicIcon name="loader-01" size={14} className="animate-spin" /> : <PublicIcon name="search-01" size={14} />}
+              {scanning ? er.scanning : er.runScan}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -415,11 +437,9 @@ export function EntityResolutionTab({
             </>
           ) : (
             <div className="ws-empty">
-              <ScanSearch size={36} className="text-muted-foreground opacity-30" />
-              <div className="ws-empty-title">No flagged pairs</div>
-              <div className="ws-empty-body">
-                Set a similarity threshold and run a dedup scan to detect potential duplicates.
-              </div>
+              <PublicIcon name="search-01" size={36} className="text-muted-foreground opacity-30" />
+              <div className="ws-empty-title">{er.emptyTitle}</div>
+              <div className="ws-empty-body">{er.emptyBody}</div>
             </div>
           )}
         </div>
@@ -427,11 +447,11 @@ export function EntityResolutionTab({
         {/* Merge history sidebar */}
         {mergeHistory.length > 0 ? (
           <div className={exWsErHistoryPanel}>
-            <div className="oh-label mb-2.5">Merge History</div>
+            <div className="oh-label mb-2.5">{er.mergeHistory}</div>
             <div className="flex flex-col gap-1.5">
               {mergeHistory.map((entry) => (
                 <div key={entry.id} className={exWsErHistoryRow}>
-                  <GitMerge size={11} className="text-primary" />
+                  <PublicIcon name="git-merge" size={11} className="text-primary" />
                   <div className="min-w-0 flex-1">
                     <div className={exWsErHistorySummary}>{entry.summary}</div>
                     <div className={exWsErHistoryTime}>{entry.timestamp.toLocaleTimeString()}</div>

@@ -1,4 +1,5 @@
-﻿import { useQuery, useQueryClient } from "@tanstack/react-query";
+﻿import { useCallback } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { batchMergeEdges, batchMergeNodes, clearGraph } from "../../store/graphStore";
 import type { EdgeAttributes, NodeAttributes } from "../../store/graphStore";
 import { curveGroupForPair, pairRegistryKey } from "../../store/edgePairKeys.js";
@@ -333,20 +334,26 @@ interface EdgeListResponse {
 const PAGE_LIMIT = 1000;
 
 /** Match `basis.limits` — bound paginated fetches when GraphWorkspace runs inside Basis (`kbId` set). */
-const BASIS_GRAPH_MAX_NODES = 200;
-const BASIS_GRAPH_MAX_EDGES = 400;
+const DEFAULT_BASIS_GRAPH_MAX_NODES = 200;
+const DEFAULT_BASIS_GRAPH_MAX_EDGES = 400;
 const BASIS_PAGE_LIMIT = 200;
 
 function pageLimitForGraphLoad(kbId?: string): number {
   return kbId ? BASIS_PAGE_LIMIT : PAGE_LIMIT;
 }
 
-function maxNodesForGraphLoad(kbId?: string): number | null {
-  return kbId ? BASIS_GRAPH_MAX_NODES : null;
+function maxNodesForGraphLoad(kbId?: string, budget?: number | null): number | null {
+  if (!kbId) {
+    return null;
+  }
+  return budget ?? DEFAULT_BASIS_GRAPH_MAX_NODES;
 }
 
-function maxEdgesForGraphLoad(kbId?: string): number | null {
-  return kbId ? BASIS_GRAPH_MAX_EDGES : null;
+function maxEdgesForGraphLoad(kbId?: string, budget?: number | null): number | null {
+  if (!kbId) {
+    return null;
+  }
+  return budget ?? DEFAULT_BASIS_GRAPH_MAX_EDGES;
 }
 
 async function ensureGraphFetchOk(response: Response): Promise<void> {
@@ -358,13 +365,14 @@ async function fetchAllNodes(
   kbId?: string,
   onProgress?: (progress: GraphLoadProgress) => void,
   locale: GraphWorkspaceLocale = "en",
-): Promise<{ nodes: ApiNode[]; truncated: boolean }> {
+  loadMaxNodes?: number | null,
+): Promise<{ nodes: ApiNode[]; truncated: boolean; total: number | null }> {
   let cursor: string | null = null;
   const collected: ApiNode[] = [];
   let total: number | null = null;
 
   const pageLimit = pageLimitForGraphLoad(kbId);
-  const maxNodes = maxNodesForGraphLoad(kbId);
+  const maxNodes = maxNodesForGraphLoad(kbId, loadMaxNodes);
   let truncated = false;
 
   while (true) {
@@ -411,7 +419,7 @@ async function fetchAllNodes(
     await yieldToMain();
   }
 
-  return { nodes: collected, truncated };
+  return { nodes: collected, truncated, total };
 }
 
 async function fetchAllEdges(
@@ -421,7 +429,8 @@ async function fetchAllEdges(
   kbId?: string,
   onProgress?: (progress: GraphLoadProgress) => void,
   locale: GraphWorkspaceLocale = "en",
-): Promise<{ edges: ApiEdge[]; truncated: boolean }> {
+  loadMaxEdges?: number | null,
+): Promise<{ edges: ApiEdge[]; truncated: boolean; total: number | null }> {
   let cursor: string | null = null;
   const collected: ApiEdge[] = [];
   const seenEdgeIds = new Set<string>();
@@ -429,7 +438,7 @@ async function fetchAllEdges(
   let warnedOverTotal = false;
 
   const pageLimit = pageLimitForGraphLoad(kbId);
-  const maxEdges = maxEdgesForGraphLoad(kbId);
+  const maxEdges = maxEdgesForGraphLoad(kbId, loadMaxEdges);
   let truncated = false;
 
   while (true) {
@@ -494,7 +503,7 @@ async function fetchAllEdges(
     await yieldToMain();
   }
 
-  return { edges: collected, truncated };
+  return { edges: collected, truncated, total };
 }
 
 function yieldToMain(): Promise<void> {
@@ -508,15 +517,25 @@ interface UseLoadGraphOptions {
   kbId?: string;
   enabled?: boolean;
   copyLocale?: GraphWorkspaceLocale;
+  loadMaxNodes?: number | null;
+  loadMaxEdges?: number | null;
   onGraphReady?: (summary: GraphLoadSummary) => void;
   onProgress?: (progress: GraphLoadProgress) => void;
 }
 
 export function useLoadGraph(options: UseLoadGraphOptions = {}) {
-  const { kbId, enabled = true, copyLocale = "en", onGraphReady, onProgress } = options;
+  const {
+    kbId,
+    enabled = true,
+    copyLocale = "en",
+    loadMaxNodes = null,
+    loadMaxEdges = null,
+    onGraphReady,
+    onProgress,
+  } = options;
 
   return useQuery<GraphLoadSummary>({
-    queryKey: ["graph", "full-load", kbId ?? "standalone"],
+    queryKey: ["graph", "full-load", kbId ?? "standalone", loadMaxNodes, loadMaxEdges],
     enabled,
     staleTime: Infinity,
     retry: 0,
@@ -533,7 +552,7 @@ export function useLoadGraph(options: UseLoadGraphOptions = {}) {
         message: graphLoadPhaseTitle(copyLocale, "bootstrapping"),
       }));
 
-      const nodeFetch = await fetchAllNodes(signal, kbId, onProgress, copyLocale);
+      const nodeFetch = await fetchAllNodes(signal, kbId, onProgress, copyLocale, loadMaxNodes);
       const fetchedNodes = nodeFetch.nodes;
       const nodeIds = new Set(fetchedNodes.map((node) => node.id));
       const edgeFetch = await fetchAllEdges(
@@ -543,6 +562,7 @@ export function useLoadGraph(options: UseLoadGraphOptions = {}) {
         kbId,
         onProgress,
         copyLocale,
+        loadMaxEdges,
       );
       const fetchedEdges = edgeFetch.edges;
 
@@ -765,6 +785,8 @@ export function useLoadGraph(options: UseLoadGraphOptions = {}) {
         layoutSource: useProvidedCoordinates ? "provided" : "runtime",
         layoutReady,
         loadTruncated: Boolean(kbId && (nodeFetch.truncated || edgeFetch.truncated)),
+        graphNodeTotal: nodeFetch.total,
+        graphEdgeTotal: edgeFetch.total,
       } satisfies GraphLoadSummary;
 
       onProgress?.(createGraphLoadProgress({
@@ -791,5 +813,7 @@ export function useLoadGraph(options: UseLoadGraphOptions = {}) {
 
 export function useReloadGraph() {
   const queryClient = useQueryClient();
-  return () => queryClient.invalidateQueries({ queryKey: ["graph", "full-load"] });
+  return useCallback(() => {
+    void queryClient.invalidateQueries({ queryKey: ["graph", "full-load"] });
+  }, [queryClient]);
 }

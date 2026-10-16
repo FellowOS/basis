@@ -25,4 +25,8 @@ export const common = {
   updateFailed: 'Update failed',
   deleteFailed: 'Delete failed',
   instanceUnavailable: 'Instance unavailable',
+  paginationPrevious: 'Previous',
+  paginationNext: 'Next',
+  paginationPreviousAria: 'Go to previous page',
+  paginationNextAria: 'Go to next page',
 } as const;

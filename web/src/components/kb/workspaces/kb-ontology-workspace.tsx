@@ -25,9 +25,8 @@ export function KbOntologyWorkspace({
   className?: string;
   onPageActionsChange?: (actions: OntologyHubPageActions | null) => void;
 }) {
-  const { locale } = useI18n();
-  const loadingLabel =
-    locale === 'zh' ? '加载本体工作台…' : 'Loading ontology workspace…';
+  const { t } = useI18n();
+  const loadingLabel = t.kbExplorer.loadingOntology;
   const pageActionsHosted = Boolean(onPageActionsChange);
 
   return (

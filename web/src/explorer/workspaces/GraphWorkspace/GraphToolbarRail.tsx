@@ -1,5 +1,4 @@
-import type { ComponentType } from "react";
-
+import { PublicIcon } from "@/components/ui/public-icon.js";
 import { cn } from "@/lib/utils.js";
 import { GraphToolButton, GraphToolTower } from "@/components/graph-tool-tower.js";
 
@@ -9,7 +8,7 @@ export type GraphToolbarRailItem = {
   title?: string;
   active?: boolean;
   disabled?: boolean;
-  icon?: ComponentType<{ size?: number; strokeWidth?: number; "aria-hidden"?: boolean }>;
+  icon?: string;
   ariaLabel?: string;
   onClick: () => void;
 };
@@ -20,15 +19,11 @@ export type GraphToolbarRailGroup = {
   items: GraphToolbarRailItem[];
 };
 
-function RailIcon({
-  icon: Icon,
-}: {
-  icon?: GraphToolbarRailItem["icon"];
-}) {
-  if (!Icon) {
+function RailIcon({ icon }: { icon?: string }) {
+  if (!icon) {
     return null;
   }
-  return <Icon size={15} strokeWidth={2.15} aria-hidden />;
+  return <PublicIcon name={icon} size={15} />;
 }
 
 export function GraphToolbarRail({

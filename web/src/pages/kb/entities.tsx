@@ -20,9 +20,14 @@ export function KbEntitiesPage() {
         { label: t.menu.kb.entities },
       ]}
       subtitle={t.pages.kbSubtitles.entities}
+      className="min-h-0 overflow-hidden"
     >
-      <KbDerivedFactsPanel kbId={id} />
-      <LedgerEntityBrowser kbId={id} />
+      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden min-[900px]:flex-row">
+        <div className="min-h-0 min-w-0 flex-1 overflow-auto">
+          <LedgerEntityBrowser kbId={id} />
+        </div>
+        <KbDerivedFactsPanel kbId={id} />
+      </div>
     </ConsolePageLayout>
   );
 }

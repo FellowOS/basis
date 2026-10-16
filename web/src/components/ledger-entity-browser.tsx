@@ -28,6 +28,7 @@ import {
 import { PublicIcon } from '@/components/ui/public-icon.js';
 import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
+import { fmt } from '@/i18n/format.js';
 import { api } from '@/lib/api.js';
 import { useKbNodeLabels } from '@/lib/kb-node-labels.js';
 import { kbPath } from '@/lib/nav-config.js';
@@ -75,7 +76,8 @@ function EntityFactsPanel({
   kbId: string;
   entityId: string;
 }) {
-  const { locale } = useI18n();
+  const { t } = useI18n();
+  const l = t.kbLedger;
   const [entityFacts, setEntityFacts] = useState<EntityFactHit[]>([]);
   const [entityDerivedFacts, setEntityDerivedFacts] = useState<DerivedFactHit[]>([]);
   const [loading, setLoading] = useState(true);
@@ -84,9 +86,6 @@ function EntityFactsPanel({
     fact.object_entity_id ? [fact.object_entity_id] : [],
   );
   const factLabels = useKbNodeLabels(kbId, [entityId, ...factLabelIds]);
-
-  const derivedTitle = locale === 'zh' ? '推理派生' : 'Derived (reasoning)';
-  const openEvidence = locale === 'zh' ? '证据' : 'Evidence';
 
   useEffect(() => {
     let cancelled = false;
@@ -124,7 +123,7 @@ function EntityFactsPanel({
   if (entityFacts.length === 0 && entityDerivedFacts.length === 0) {
     return (
       <p className="text-sm text-muted-foreground">
-        {locale === 'zh' ? '无陈述或派生事实' : 'No statements or derived facts'}
+        {l.noStatementsOrDerived}
       </p>
     );
   }
@@ -152,12 +151,12 @@ function EntityFactsPanel({
                 <Link
                   to={`${kbPath(kbId, 'sources')}?chunk=${encodeURIComponent(fact.evidence_chunk_id)}`}
                 >
-                  {openEvidence}
+                  {l.openEvidence}
                 </Link>
               </Button>
               <Button variant="link" size="sm" className="h-auto p-0 text-xs" asChild>
                 <Link to={`${kbPath(kbId, 'search')}?entity=${encodeURIComponent(entityId)}`}>
-                  {locale === 'zh' ? '搜相关片段' : 'Search chunks'}
+                  {l.searchChunks}
                 </Link>
               </Button>
             </div>
@@ -166,7 +165,7 @@ function EntityFactsPanel({
       ))}
       {entityDerivedFacts.length > 0 ? (
         <>
-          <li className="list-none pt-2 text-sm font-semibold">{derivedTitle}</li>
+          <li className="list-none pt-2 text-sm font-semibold">{l.derivedTitle}</li>
           {entityDerivedFacts.map((df) => (
             <li key={df.id} className="list-none rounded-md border border-border p-3 text-sm">
               <span className="font-mono text-xs text-muted-foreground">{df.predicate_uri}</span>
@@ -196,14 +195,10 @@ export function LedgerEntityList({
   entities: LedgerEntityHit[];
   emptyLabel: string;
 }) {
-  const { locale } = useI18n();
+  const { t } = useI18n();
+  const l = t.kbLedger;
   const { caps } = useKbCapabilities();
   const [factsEntityId, setFactsEntityId] = useState<string | null>(null);
-
-  const showStatements = locale === 'zh' ? '事实' : 'Facts';
-  const hideStatements = locale === 'zh' ? '收起' : 'Hide';
-  const openInGraph = locale === 'zh' ? '在图谱中打开' : 'Open in graph';
-  const openLineage = locale === 'zh' ? '溯源血缘' : 'Lineage';
   const showLineage = Boolean(caps?.provenance && caps?.graph);
 
   if (entities.length === 0) {
@@ -230,17 +225,17 @@ export function LedgerEntityList({
                   className="h-7 text-xs"
                   onClick={() => setFactsEntityId(factsOpen ? null : entityId)}
                 >
-                  {factsOpen ? hideStatements : showStatements}
+                  {factsOpen ? l.hideStatements : l.showStatements}
                 </Button>
                 <Button variant="ghost" size="sm" className="h-7 text-xs" asChild>
                   <Link to={`${kbPath(kbId, 'graph')}?focus=${encodeURIComponent(entityId)}`}>
-                    {openInGraph}
+                    {l.openInGraph}
                   </Link>
                 </Button>
                 {showLineage ? (
                   <Button variant="ghost" size="sm" className="h-7 text-xs" asChild>
                     <Link to={`${kbPath(kbId, 'lineage')}?node=${encodeURIComponent(entityId)}`}>
-                      {openLineage}
+                      {l.openLineage}
                     </Link>
                   </Button>
                 ) : null}
@@ -270,7 +265,8 @@ export function LedgerEntityBrowser({
   limit?: number;
   loadRecentOnMount?: boolean;
 }) {
-  const { locale } = useI18n();
+  const { t } = useI18n();
+  const l = t.kbLedger;
   const { caps } = useKbCapabilities();
   const apiError = useApiErrorMessage();
   const [query, setQuery] = useState('');
@@ -282,13 +278,6 @@ export function LedgerEntityBrowser({
   const [error, setError] = useState<string | null>(null);
   const [factsTarget, setFactsTarget] = useState<LedgerEntityHit | null>(null);
 
-  const zh = locale === 'zh';
-  const placeholder = zh
-    ? '实体名称或描述（留空浏览最近）'
-    : 'Entity label or description (empty = recent)';
-  const searchLabel = zh ? '搜索' : 'Search';
-  const searching = zh ? '加载中…' : 'Loading…';
-  const noResults = zh ? '无实体' : 'No entities';
   const showLineage = Boolean(caps?.provenance && caps?.graph);
 
   const totalPages = Math.max(1, Math.ceil(total / ENTITY_PAGE_SIZE));
@@ -296,13 +285,10 @@ export function LedgerEntityBrowser({
   const pageStart = total === 0 ? 0 : (safePage - 1) * ENTITY_PAGE_SIZE + 1;
   const pageEnd = Math.min(safePage * ENTITY_PAGE_SIZE, total);
 
-  const countLabel = zh
-    ? total === 0
-      ? '共 0 个实体'
-      : `第 ${pageStart}–${pageEnd} 条，共 ${total} 个实体`
-    : total === 0
-      ? '0 entities'
-      : `${pageStart}–${pageEnd} of ${total} entities`;
+  const countLabel =
+    total === 0
+      ? l.entityCountEmpty
+      : fmt(l.entityCount, { start: pageStart, end: pageEnd, total });
 
   const labelIds = entities.map((hit) => ledgerEntityId(hit));
   const nodeLabels = useKbNodeLabels(kbId, labelIds);
@@ -347,18 +333,10 @@ export function LedgerEntityBrowser({
   }
 
   const columns = useMemo((): DataTableColumn<LedgerEntityHit>[] => {
-    const entityCol = zh ? '实体' : 'Entity';
-    const kindCol = zh ? '类型' : 'Kind';
-    const descCol = zh ? '描述' : 'Description';
-    const actionsCol = zh ? '操作' : 'Actions';
-    const showFacts = zh ? '查看事实' : 'View facts';
-    const openInGraph = zh ? '在图谱中打开' : 'Open in graph';
-    const openLineageLabel = zh ? '溯源血缘' : 'Lineage';
-
     return [
       {
         key: 'entity',
-        header: entityCol,
+        header: l.colEntity,
         render: (hit) => {
           const entityId = ledgerEntityId(hit);
           return (
@@ -371,7 +349,7 @@ export function LedgerEntityBrowser({
       },
       {
         key: 'kind',
-        header: kindCol,
+        header: l.colKind,
         width: '6rem',
         hideBelow: 'sm',
         render: (hit) => (
@@ -380,7 +358,7 @@ export function LedgerEntityBrowser({
       },
       {
         key: 'description',
-        header: descCol,
+        header: l.colDescription,
         hideBelow: 'md',
         render: (hit) => (
           <span className="line-clamp-2 text-muted-foreground">{hit.description || '—'}</span>
@@ -388,7 +366,7 @@ export function LedgerEntityBrowser({
       },
       {
         key: 'actions',
-        header: actionsCol,
+        header: l.colActions,
         align: 'right',
         width: '5rem',
         render: (hit) => {
@@ -402,24 +380,24 @@ export function LedgerEntityBrowser({
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => setFactsTarget(hit)}>
-                  {showFacts}
+                  {l.viewFacts}
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link to={`${kbPath(kbId, 'graph')}?focus=${encodeURIComponent(entityId)}`}>
-                    {openInGraph}
+                    {l.openInGraph}
                   </Link>
                 </DropdownMenuItem>
                 {showLineage ? (
                   <DropdownMenuItem asChild>
                     <Link to={`${kbPath(kbId, 'lineage')}?node=${encodeURIComponent(entityId)}`}>
-                      {openLineageLabel}
+                      {l.openLineage}
                     </Link>
                   </DropdownMenuItem>
                 ) : null}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
                   <Link to={`${kbPath(kbId, 'search')}?entity=${encodeURIComponent(entityId)}`}>
-                    {zh ? '搜相关片段' : 'Search chunks'}
+                    {l.searchChunks}
                   </Link>
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -428,7 +406,7 @@ export function LedgerEntityBrowser({
         },
       },
     ];
-  }, [kbId, nodeLabels, showLineage, zh]);
+  }, [kbId, l, nodeLabels, showLineage]);
 
   return (
     <DataPanel>
@@ -439,25 +417,14 @@ export function LedgerEntityBrowser({
               className="w-full min-w-[12rem] max-w-md sm:w-72"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder={placeholder}
+              placeholder={l.entityPlaceholder}
             />
           }
           actions={
-            <>
-              <Button type="submit" size="sm" disabled={loading}>
-                {loading ? <Spinner className="size-4" /> : null}
-                {loading ? searching : searchLabel}
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={loading}
-                onClick={() => void fetchEntities(appliedQuery, safePage)}
-              >
-                {zh ? '刷新' : 'Refresh'}
-              </Button>
-            </>
+            <Button type="submit" size="sm" disabled={loading}>
+              {loading ? <Spinner className="size-4" /> : null}
+              {loading ? l.searching : l.search}
+            </Button>
           }
         />
       </form>
@@ -469,12 +436,8 @@ export function LedgerEntityBrowser({
           </div>
         ) : entities.length === 0 ? (
           <EmptyState
-            title={noResults}
-            description={
-              zh
-                ? '输入关键词搜索，或留空浏览最近创建的账本实体。'
-                : 'Search by keyword, or leave empty to browse recent ledger entities.'
-            }
+            title={l.noEntities}
+            description={l.emptyBrowseHint}
           />
         ) : (
           <>
@@ -502,7 +465,7 @@ export function LedgerEntityBrowser({
       >
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>{zh ? '实体事实' : 'Entity facts'}</DialogTitle>
+            <DialogTitle>{l.entityFactsTitle}</DialogTitle>
             <DialogDescription>
               {factsTarget
                 ? factsTarget.canonical_label || ledgerEntityId(factsTarget)

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button.js';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card.js';
 import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
+import type { Locale } from '@/i18n/locale.js';
 import { api } from '@/lib/api.js';
 import { formatUserFacingApiError, messageForApiErrorCode } from '@/lib/api-error-message.js';
 import { kbPath } from '@/lib/nav-config.js';
@@ -30,9 +31,9 @@ export function KbGraphProjectionPanel({
   canRebuild: boolean;
   graphEnabled: boolean;
 }) {
-  const { locale } = useI18n();
+  const { t, locale } = useI18n();
+  const p = t.kbGraphProjection;
   const { isAdmin } = useBasisSession();
-  const zh = locale === 'zh';
   const auditGraphUrl = `/audit?kb_id=${encodeURIComponent(kbId)}&action_prefix=${encodeURIComponent('kb.graph.')}`;
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState<GraphProjectionStatus | null>(null);
@@ -51,12 +52,12 @@ export function KbGraphProjectionPanel({
       const body = await api<GraphProjectionStatus>(`/api/kbs/${kbId}/graph/projection`);
       setStatus(body);
     } catch (err) {
-      setError(formatUserFacingApiError(err, zh ? 'zh' : 'en'));
+      setError(formatUserFacingApiError(err, locale as Locale));
       setStatus(null);
     } finally {
       setLoading(false);
     }
-  }, [graphEnabled, kbId, zh]);
+  }, [graphEnabled, kbId, locale]);
 
   useEffect(() => {
     void refresh();
@@ -66,10 +67,8 @@ export function KbGraphProjectionPanel({
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">{zh ? 'Explorer 图谱投影' : 'Explorer graph projection'}</CardTitle>
-          <CardDescription>
-            {zh ? '当前环境未启用 Explorer 运行时。' : 'Explorer runtime is not available in this environment.'}
-          </CardDescription>
+          <CardTitle className="text-base">{p.title}</CardTitle>
+          <CardDescription>{p.unavailableDesc}</CardDescription>
         </CardHeader>
       </Card>
     );
@@ -79,53 +78,47 @@ export function KbGraphProjectionPanel({
     <Card>
       <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-3 space-y-0">
         <div>
-          <CardTitle className="text-base">{zh ? 'Explorer 图谱投影' : 'Explorer graph projection'}</CardTitle>
-          <CardDescription>
-            {zh
-              ? '画布数据来自账本投影。重建会用账本覆盖当前 Explorer 会话并写入审计。'
-              : 'The canvas reads from the ledger-backed projection. Rebuild replaces the Explorer session from ledger and is audited.'}
-          </CardDescription>
+          <CardTitle className="text-base">{p.title}</CardTitle>
+          <CardDescription>{p.description}</CardDescription>
         </div>
         <Button type="button" variant="outline" size="sm" asChild>
-          <Link to={kbPath(kbId, 'graph')}>{zh ? '打开图谱' : 'Open graph'}</Link>
+          <Link to={kbPath(kbId, 'graph')}>{p.openGraph}</Link>
         </Button>
       </CardHeader>
       <CardContent className="space-y-4">
         {loading ? (
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Spinner className="size-4" />
-            {zh ? '加载中…' : 'Loading…'}
+            {t.common.loading}
           </div>
         ) : error ? (
           <p className="text-sm text-destructive">{error}</p>
         ) : status ? (
           <dl className="grid gap-3 text-sm sm:grid-cols-2">
             <div>
-              <dt className="text-muted-foreground">{zh ? '账本修订' : 'Ledger revision'}</dt>
+              <dt className="text-muted-foreground">{p.ledgerRevision}</dt>
               <dd className="font-mono font-medium">{status.revision}</dd>
             </div>
             <div>
-              <dt className="text-muted-foreground">{zh ? '投影状态' : 'Projection status'}</dt>
+              <dt className="text-muted-foreground">{p.projectionStatus}</dt>
               <dd className="font-medium">{status.status}</dd>
             </div>
             <div>
-              <dt className="text-muted-foreground">{zh ? '节点 / 边' : 'Nodes / edges'}</dt>
+              <dt className="text-muted-foreground">{p.nodesEdges}</dt>
               <dd className="font-mono">
                 {status.node_count ?? '—'} / {status.edge_count ?? '—'}
               </dd>
             </div>
             <div>
-              <dt className="text-muted-foreground">{zh ? '上次构建' : 'Last built'}</dt>
+              <dt className="text-muted-foreground">{p.lastBuilt}</dt>
               <dd>{status.last_built_at ?? '—'}</dd>
             </div>
             {status.last_error_code ? (
               <div className="sm:col-span-2">
-                <dt className="text-muted-foreground">{zh ? '最近错误' : 'Last error'}</dt>
+                <dt className="text-muted-foreground">{p.lastError}</dt>
                 <dd className="text-destructive">
-                  {messageForApiErrorCode(
-                    status.last_error_code,
-                    zh ? 'zh' : 'en',
-                  ) ?? status.last_error_code}
+                  {messageForApiErrorCode(status.last_error_code, locale as Locale) ??
+                    status.last_error_code}
                 </dd>
               </div>
             ) : null}
@@ -142,19 +135,15 @@ export function KbGraphProjectionPanel({
               }}
             />
           ) : (
-            <p className="text-xs text-muted-foreground">
-              {zh ? '需要编辑者角色才能重建投影。' : 'Editor role required to rebuild projection.'}
-            </p>
+            <p className="text-xs text-muted-foreground">{p.editorRequired}</p>
           )}
           <p className="text-xs text-muted-foreground">
-            {zh
-              ? '操作记入平台审计（kb.graph.projection_rebuild）。'
-              : 'Recorded in platform audit as kb.graph.projection_rebuild.'}
+            {p.auditNote}
             {isAdmin ? (
               <>
                 {' '}
                 <Link className="text-primary hover:underline" to={auditGraphUrl}>
-                  {zh ? '在审计日志中查看图谱事件' : 'View graph events in audit'}
+                  {p.viewAuditGraph}
                 </Link>
               </>
             ) : null}

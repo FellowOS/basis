@@ -1,31 +1,28 @@
+import { useEffect, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
-import { Button } from '@/components/ui/button.js';
 import { KbChatPlayground } from '@/components/kb/widgets/kb-chat-playground.js';
 import { KbMcpIntegrationPanel } from '@/components/kb/widgets/kb-mcp-integration-panel.js';
 import { ConsolePageLayout } from '@/components/console-ui/index.js';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs.js';
+import { Button } from '@/components/ui/button.js';
+import { PublicIcon } from '@/components/ui/public-icon.js';
 import { useI18n } from '@/i18n/context.js';
 import { useKbMcpIntegration } from '@/lib/use-kb-mcp-integration.js';
 import { useKbCatalog } from '@/lib/kb-context.js';
 import { useKbCapabilities } from '@/lib/kb-capabilities.js';
 import { kbPath } from '@/lib/nav-config.js';
 import { api } from '@/lib/api.js';
-import { useEffect, useState } from 'react';
-
 
 type KbRow = { my_role: string };
 
 export function KbChatPage() {
   const { id } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { t, locale } = useI18n();
-  const zh = locale === 'zh';
+  const { t } = useI18n();
   const { getKb } = useKbCatalog();
-  const tab = searchParams.get('tab') ?? 'playground';
+  const tab = searchParams.get('tab') === 'connect' ? 'connect' : 'playground';
   const graphFocus = searchParams.get('focus');
   const { caps } = useKbCapabilities();
   const [myRole, setMyRole] = useState<string | undefined>();
-  const [tokenCreateOpen, setTokenCreateOpen] = useState(false);
 
   const catalogKb = id ? getKb(id) : undefined;
   const name = catalogKb?.name ?? id ?? '…';
@@ -42,6 +39,16 @@ export function KbChatPage() {
 
   if (!id) return null;
 
+  function selectTab(value: 'playground' | 'connect') {
+    const next = new URLSearchParams(searchParams);
+    next.set('tab', value);
+    setSearchParams(next, { replace: true });
+  }
+
+  const graphHref = graphFocus
+    ? `${kbPath(id, 'graph')}?focus=${encodeURIComponent(graphFocus)}`
+    : kbPath(id, 'graph');
+
   return (
     <ConsolePageLayout
       crumbs={[
@@ -49,60 +56,53 @@ export function KbChatPage() {
         { label: name, to: `/kbs/${id}/graph` },
         { label: t.menu.kb.chat },
       ]}
-      subtitle={t.pages.kbSubtitles.chat}
-      meta={
-        tab === 'playground' && graphFocus && caps?.graph ? (
-          <span>
-            {zh ? '上下文节点：' : 'Context node: '}
-            <Link
-              className="font-mono text-primary hover:underline"
-              to={`${kbPath(id, 'graph')}?focus=${encodeURIComponent(graphFocus)}`}
-            >
+      className="min-h-0 overflow-hidden"
+    >
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-border">
+        <div className="flex h-12 shrink-0 items-center gap-2 border-b border-border px-4">
+          <PublicIcon name="message-chat-01" size={13} className="shrink-0 text-muted-foreground" />
+          <span className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
+            {t.menu.kb.chat}
+          </span>
+          {tab === 'playground' && graphFocus && caps?.graph ? (
+            <Link to={graphHref} className="min-w-0 truncate font-mono text-[11px] text-foreground underline-offset-2 hover:underline">
               {graphFocus}
             </Link>
-          </span>
-        ) : undefined
-      }
-      actions={
-        tab === 'playground' && caps?.graph ? (
-          <Button type="button" variant="outline" size="sm" asChild>
-            <Link
-              to={
-                graphFocus
-                  ? `${kbPath(id, 'graph')}?focus=${encodeURIComponent(graphFocus)}`
-                  : kbPath(id, 'graph')
-              }
+          ) : null}
+          <div className="ml-auto flex items-center gap-1">
+            <Button
+              type="button"
+              size="sm"
+              variant={tab === 'playground' ? 'default' : 'outline'}
+              className="h-8 px-2 text-xs"
+              onClick={() => selectTab('playground')}
             >
-              {zh ? '打开图谱' : 'Open graph'}
-            </Link>
-          </Button>
-        ) : tab === 'connect' && canManageTokens ? (
-          <Button type="button" size="sm" onClick={() => setTokenCreateOpen(true)}>
-            {t.menu.kbMcp.createButton}
-          </Button>
-        ) : undefined
-      }
-    >
-      <Tabs
-        value={tab}
-        onValueChange={(value) => {
-          setTokenCreateOpen(false);
-          setSearchParams({ tab: value }, { replace: true });
-        }}
-      >
-        <TabsList>
-          <TabsTrigger value="playground">{t.chat.tabPlayground}</TabsTrigger>
-          <TabsTrigger value="connect">{t.chat.tabConnect}</TabsTrigger>
-        </TabsList>
-        <TabsContent value="playground" className="mt-4">
+              {t.chat.tabPlayground}
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant={tab === 'connect' ? 'default' : 'outline'}
+              className="h-8 px-2 text-xs"
+              onClick={() => selectTab('connect')}
+            >
+              {t.chat.tabConnect}
+            </Button>
+            {tab === 'playground' && caps?.graph ? (
+              <Button type="button" variant="outline" size="sm" className="h-8 px-2 text-xs" asChild>
+                <Link to={graphHref}>{t.chat.graphLink}</Link>
+              </Button>
+            ) : null}
+          </div>
+        </div>
+        {tab === 'playground' ? (
           <KbChatPlayground
             kbId={id}
             graphFocusId={graphFocus}
             graphEnabled={caps?.graph === true}
             canProposeRemember={caps?.graph_write === true}
           />
-        </TabsContent>
-        <TabsContent value="connect" className="mt-4">
+        ) : (
           <KbMcpIntegrationPanel
             mcpInfo={mcp.mcpInfo}
             apiTokens={mcp.apiTokens}
@@ -114,12 +114,9 @@ export function KbChatPage() {
             onDismissCreatedSecret={mcp.clearCreatedSecret}
             onCopy={mcp.copyToClipboard}
             onDeleteToken={mcp.deleteApiToken}
-            createOpen={tokenCreateOpen}
-            onCreateOpenChange={setTokenCreateOpen}
-            showCreateInCard={false}
           />
-        </TabsContent>
-      </Tabs>
+        )}
+      </div>
     </ConsolePageLayout>
   );
 }

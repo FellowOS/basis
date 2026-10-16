@@ -1,5 +1,5 @@
+import { PublicIcon } from "@/components/ui/public-icon.js";
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
-import { RefreshCw, Search, X } from "lucide-react";
 
 import { parseExplorerJson } from "../../lib/explorer-api-error";
 import {
@@ -189,7 +189,7 @@ function SearchCommandBar({
           disabled={disabled}
           aria-label="Search for the current query"
         >
-          <Search aria-hidden />
+          <PublicIcon name="search-01" />
         </InputGroupButton>
       </InputGroup>
 
@@ -283,7 +283,7 @@ export function GraphSearchDock({
             aria-label={graphCopy(locale, "searchReloadTitle")}
             onClick={onReload}
           >
-            <RefreshCw aria-hidden />
+            <PublicIcon name="arrow-refresh-01" />
           </Button>
           {trailingActions}
         </div>
@@ -308,7 +308,7 @@ export function GraphSearchDock({
               onClick={onClearResults}
               aria-label={graphCopy(locale, "searchDismissAria")}
             >
-              <X size={12} strokeWidth={2.4} />
+              <PublicIcon name="x-02" size={12} />
               {graphCopy(locale, "searchDismiss")}
             </Button>
           </div>

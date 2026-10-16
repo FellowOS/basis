@@ -8,7 +8,7 @@
 
 export const exWsPage = "ws-page min-h-0";
 
-export const exWsPageRow = "ws-page flex min-h-0 flex-row";
+export const exWsPageRow = "ws-page ws-page--row flex min-h-0 flex-row";
 
 export const exWsSideHeader = "shrink-0 border-b border-border px-5 py-4";
 
@@ -168,7 +168,7 @@ export const exWsResultsTitle =
   "flex items-center gap-1.5 text-sm font-bold text-muted-foreground";
 
 export const exWsSplitSidebar =
-  "flex w-[min(480px,42vw)] min-w-[320px] shrink-0 flex-col overflow-hidden border-r border-border";
+  "ws-split-sidebar flex w-[min(480px,42vw)] min-w-[280px] max-w-[520px] shrink-0 flex-col overflow-hidden border-r border-border";
 
 export const exWsSplitMain = "flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden";
 

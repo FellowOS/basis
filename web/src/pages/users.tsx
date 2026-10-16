@@ -19,6 +19,8 @@ import {
 import { Input } from '@/components/ui/input.js';
 import { Label } from '@/components/ui/label.js';
 import { Spinner } from '@/components/ui/spinner.js';
+import { useI18n } from '@/i18n/context.js';
+import { fmt } from '@/i18n/format.js';
 import { api } from '@/lib/api.js';
 import { useApiErrorMessage } from '@/lib/use-api-error-message.js';
 
@@ -30,6 +32,8 @@ type UserRow = {
 };
 
 export function UsersPage() {
+  const { t } = useI18n();
+  const p = t.pages.basisUsers;
   const apiError = useApiErrorMessage();
   const [users, setUsers] = useState<UserRow[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -78,21 +82,25 @@ export function UsersPage() {
 
   const columns = useMemo<DataTableColumn<UserRow>[]>(
     () => [
-      { key: 'name', header: '显示名', render: (u) => u.display_name },
-      { key: 'email', header: '邮箱', render: (u) => u.email },
-      { key: 'admin', header: '管理员', render: (u) => (u.is_admin ? '是' : '否') },
+      { key: 'name', header: p.colDisplayName, render: (u) => u.display_name },
+      { key: 'email', header: p.colEmail, render: (u) => u.email },
+      {
+        key: 'admin',
+        header: p.colAdmin,
+        render: (u) => (u.is_admin ? p.yes : p.no),
+      },
     ],
-    [],
+    [p],
   );
 
-  const countLabel = `共 ${users.length} 位用户`;
+  const countLabel = fmt(p.count, { count: users.length });
 
   return (
     <ConsolePageLayout
-      crumbs={[{ label: '用户' }]}
+      crumbs={[{ label: t.menu.platform.users }]}
       actions={
         <Button type="button" size="sm" onClick={() => setCreateOpen(true)}>
-          创建用户
+          {p.createUser}
         </Button>
       }
     >
@@ -105,11 +113,11 @@ export function UsersPage() {
             </div>
           ) : users.length === 0 ? (
             <EmptyState
-              title="暂无用户"
-              description="代开账号后用户可登录系统。"
+              title={p.emptyTitle}
+              description={p.emptyDescription}
               action={
                 <Button type="button" size="sm" onClick={() => setCreateOpen(true)}>
-                  创建用户
+                  {p.createUser}
                 </Button>
               }
             />
@@ -131,33 +139,33 @@ export function UsersPage() {
         <DialogContent className="sm:max-w-md">
           <form onSubmit={onCreate}>
             <DialogHeader>
-              <DialogTitle>创建用户</DialogTitle>
-              <DialogDescription>代开账号；密码至少 8 位。</DialogDescription>
+              <DialogTitle>{p.createDialogTitle}</DialogTitle>
+              <DialogDescription>{p.createDialogDesc}</DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="space-y-2">
-                <Label htmlFor="email">邮箱</Label>
+                <Label htmlFor="email">{p.emailLabel}</Label>
                 <Input id="email" name="email" type="email" required />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="display_name">显示名</Label>
+                <Label htmlFor="display_name">{p.displayNameLabel}</Label>
                 <Input id="display_name" name="display_name" required />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">密码</Label>
+                <Label htmlFor="password">{p.passwordLabel}</Label>
                 <Input id="password" name="password" type="password" minLength={8} required />
               </div>
               <label className="flex items-center gap-2 text-sm">
                 <input type="checkbox" name="is_admin" />
-                系统管理员
+                {p.systemAdmin}
               </label>
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setCreateOpen(false)}>
-                取消
+                {t.common.cancel}
               </Button>
               <Button type="submit" disabled={creating}>
-                {creating ? '创建中…' : '创建'}
+                {creating ? p.creating : p.create}
               </Button>
             </DialogFooter>
           </form>

@@ -1,3 +1,4 @@
+import { PublicIcon } from "@/components/ui/public-icon.js";
 import {
   useEffect,
   useId,
@@ -9,18 +10,6 @@ import {
 } from "react";
 import ReactMarkdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
-import {
-  Check,
-  Code2,
-  Copy,
-  Eye,
-  ExternalLink,
-  Image as ImageIcon,
-  Loader2,
-  Pencil,
-  RefreshCw,
-  X,
-} from "lucide-react";
 import { cn } from "@/lib/utils.js";
 import type { MarkdownApplyResult } from "./markdownResourceClient";
 import type { MarkdownResourceRef } from "./markdownEditorState";
@@ -194,7 +183,7 @@ export function MarkdownContentViewer({
   // is correct for initial render and for renders triggered by selectMode(). However,
   // when focus and selection differ (i.e. after arrow-key navigation, before Enter/Space),
   // any unrelated re-render (copy-button click, parent update, etc.) will reconcile JSX
-  // tabIndex={activeMode === X} and overwrite the imperative tabIndex values set by
+  // tabIndex={activeMode === "x-02"} and overwrite the imperative tabIndex values set by
   // focusTab(). useLayoutEffect fires synchronously after React's DOM mutations, before
   // paint, so it corrects any such overwrite before the user sees it. It does not
   // schedule another render — the two property writes are pure DOM mutations.
@@ -283,7 +272,7 @@ export function MarkdownContentViewer({
             onKeyDown={handleTabKeyDown}
             className="graph-markdown-viewer__tab"
           >
-            <Eye size={12} aria-hidden="true" />
+            <PublicIcon name="eye-open" size={12} />
             Preview
           </button>
           <button
@@ -298,7 +287,7 @@ export function MarkdownContentViewer({
             onKeyDown={handleTabKeyDown}
             className="graph-markdown-viewer__tab"
           >
-            <Code2 size={12} aria-hidden="true" />
+            <PublicIcon name="code-01" size={12} />
             Source
           </button>
         </div>
@@ -313,12 +302,12 @@ export function MarkdownContentViewer({
             >
               {copied ? (
                 <>
-                  <Check size={12} className="text-ok" aria-hidden="true" />
+                  <PublicIcon name="check-01" size={12} className="text-ok" />
                   <span className="text-ok">Copied</span>
                 </>
               ) : (
                 <>
-                  <Copy size={12} aria-hidden="true" />
+                  <PublicIcon name="copy-left" size={12} />
                   <span>Copy</span>
                 </>
               )}
@@ -326,20 +315,20 @@ export function MarkdownContentViewer({
           )}
           {resource && allowEdit && !editing && !loading ? (
             <button type="button" onClick={() => void handleEdit()} className="graph-markdown-viewer__toolbtn">
-              <Pencil size={12} aria-hidden="true" />
+              <PublicIcon name="edit-01" size={12} />
               Edit
             </button>
           ) : null}
           {loading ? (
             <button type="button" disabled className="graph-markdown-viewer__toolbtn">
-              <Loader2 size={12} className="animate-spin" aria-hidden="true" />
+              <PublicIcon name="loader-01" size={12} className="animate-spin" />
               Loading…
             </button>
           ) : null}
           {editing ? (
             <>
               <button type="button" onClick={handleCancel} disabled={saving} className="graph-markdown-viewer__toolbtn">
-                <X size={12} aria-hidden="true" />
+                <PublicIcon name="x-02" size={12} />
                 Cancel
               </button>
               <button
@@ -350,9 +339,9 @@ export function MarkdownContentViewer({
                 className="graph-markdown-viewer__save"
               >
                 {saving ? (
-                  <Loader2 size={12} className="animate-spin" aria-hidden="true" />
+                  <PublicIcon name="loader-01" size={12} className="animate-spin" />
                 ) : (
-                  <Check size={12} aria-hidden="true" />
+                  <PublicIcon name="check-01" size={12} />
                 )}
                 {saving ? "Applying…" : "Apply"}
               </button>
@@ -370,7 +359,7 @@ export function MarkdownContentViewer({
               onClick={() => void editor.reloadLatest()}
               className="graph-markdown-viewer__toolbtn graph-markdown-viewer__error-action"
             >
-              <RefreshCw size={12} aria-hidden="true" />
+              <PublicIcon name="arrow-refresh-01" size={12} />
               Reload latest
             </button>
           ) : null}
@@ -465,13 +454,13 @@ const MARKDOWN_COMPONENTS: Components = {
     return (
       <a href={safeHref} title={title} target="_blank" rel="noopener noreferrer" {...rest}>
         {children}
-        <ExternalLink size={10} className="graph-md-ext-icon" />
+        <PublicIcon name="link-external" size={10} className="graph-md-ext-icon" />
       </a>
     );
   },
   img: ({ src, alt }) => (
     <span className="graph-md-image-badge" title={src || "Image"}>
-      <ImageIcon size={12} />
+      <PublicIcon name="image" size={12} />
       <span>Image: {alt || src || "unlabeled"}</span>
     </span>
   ),

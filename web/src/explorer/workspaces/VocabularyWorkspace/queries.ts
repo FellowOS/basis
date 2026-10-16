@@ -60,6 +60,7 @@ export const useImportVocabulary = () => {
     mutationFn: (file: File) => importVocabulary(kbId, file),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['vocabularies', kbId] });
+      queryClient.invalidateQueries({ queryKey: ['hierarchy', kbId] });
     },
   });
 };

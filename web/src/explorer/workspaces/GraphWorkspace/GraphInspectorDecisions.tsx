@@ -1,6 +1,6 @@
+import { PublicIcon } from "@/components/ui/public-icon.js";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Scale } from "lucide-react";
 
 import { Button } from "@/components/ui/button.js";
 import { Spinner } from "@/components/ui/spinner.js";
@@ -80,7 +80,7 @@ export function GraphInspectorDecisions({
   return (
     <section className="flex flex-col gap-3 rounded-lg border border-border bg-muted/30 p-3.5 shadow-sm">
       <div className="flex items-center gap-2">
-        <Scale size={14} className="text-muted-foreground" />
+        <PublicIcon name="scales" size={14} className="text-muted-foreground" />
         <h3 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
           {inspectorCopy(locale, "relatedDecisions")}
         </h3>

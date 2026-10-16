@@ -24,7 +24,7 @@ export function KbEntityResolutionWorkspace({
   className?: string;
   onPageActionsChange?: (actions: EntityResolutionPageActions | null) => void;
 }) {
-  const { locale } = useI18n();
+  const { t } = useI18n();
   const { caps, loading: capsLoading } = useKbCapabilities();
   const dedupScanRef = useRef<() => void>(() => {});
 
@@ -40,16 +40,13 @@ export function KbEntityResolutionWorkspace({
     return <KbExplorerUnavailable kbId={kbId} feature="review" />;
   }
 
-  const loadingLabel =
-    locale === 'zh' ? '加载实体解析…' : 'Loading entity resolution…';
-
   return (
     <KbGovernanceExplorerShell kbId={kbId} className={className}>
       <Suspense
         fallback={
           <div className="flex flex-1 items-center justify-center gap-2 text-sm text-muted-foreground">
             <Spinner className="size-4" />
-            {loadingLabel}
+            {t.entityResolution.loading}
           </div>
         }
       >

@@ -108,20 +108,19 @@ class IngestTextRequest(BaseModel):
     ner_method: str | None = None
     relation_method: str | None = None
     extract_relations: bool | None = None
-    extract_triplets: bool | None = None
 
 
 class StartProcessingRequest(BaseModel):
     version_id: str = Field(min_length=1)
     wait: bool = False
     chunk: bool = True
+    chunk_method: str = Field(default="recursive", min_length=1, max_length=40)
     chunk_size: int = Field(default=1800, ge=200, le=100_000)
     chunk_overlap: int = Field(default=250, ge=0, le=10_000)
     extract: bool = True
     ner_method: str = Field(default="pattern", min_length=1, max_length=40)
     relation_method: str = Field(default="pattern", min_length=1, max_length=40)
     extract_relations: bool = True
-    extract_triplets: bool = False
     ner_model: str | None = Field(default=None, max_length=120)
     idempotency_key: str | None = Field(default=None, max_length=128)
 
@@ -181,9 +180,16 @@ async def get_kb_capabilities(
     request: Request,
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
+    limits: RuntimeLimits = Depends(get_runtime_limits),
 ) -> dict[str, Any]:
     kb, role = get_kb_for_viewer(request, user, kb_id, store)
-    return {"kb_id": kb.id, "role": role, **kb_capabilities(role)}
+    return {
+        "kb_id": kb.id,
+        "role": role,
+        **kb_capabilities(role),
+        "graph_page_max_nodes": limits.graph_page_max_nodes,
+        "graph_page_max_edges": limits.graph_page_max_edges,
+    }
 
 
 @router.patch("/{kb_id}")
@@ -667,7 +673,6 @@ async def ingest_document(
         "ner_method",
         "relation_method",
         "extract_relations",
-        "extract_triplets",
     }
     if body.model_fields_set & legacy_fields:
         return await start_processing_job(
@@ -683,9 +688,6 @@ async def ingest_document(
                 relation_method=body.relation_method or "pattern",
                 extract_relations=(
                     body.extract_relations if body.extract_relations is not None else True
-                ),
-                extract_triplets=(
-                    body.extract_triplets if body.extract_triplets is not None else False
                 ),
             ),
             request=request,
@@ -924,17 +926,23 @@ def _processing_options(
     body: StartProcessingRequest,
     store: AdminStore,
 ) -> tuple[TextIngestOptions, dict[str, Any]]:
+    from basis.pipeline.chunk_split import normalize_chunk_method
+
     if body.chunk and body.chunk_overlap >= body.chunk_size:
         raise AdminError(422, "bad_chunk_options", "切分重叠必须小于块大小")
+    try:
+        chunk_method = normalize_chunk_method(body.chunk_method)
+    except ValueError:
+        raise AdminError(422, "bad_chunk_method", "切分方式无效") from None
     payload = {
         "chunk": body.chunk,
+        "chunk_method": chunk_method,
         "chunk_size": body.chunk_size,
         "chunk_overlap": body.chunk_overlap,
         "extract": body.extract,
         "ner_method": body.ner_method,
         "relation_method": body.relation_method,
         "extract_relations": body.extract_relations,
-        "extract_triplets": body.extract_triplets,
         "ner_model": (body.ner_model or "").strip() or None,
     }
     options = TextIngestOptions(**payload)

@@ -32,6 +32,7 @@ import {
 } from '@/components/ui/table.js';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs.js';
 import { useI18n } from '@/i18n/context.js';
+import { fmt } from '@/i18n/format.js';
 import { KbGraphOverviewStats } from '@/components/kb/widgets/kb-graph-overview-stats.js';
 import { KbGraphProjectionPanel } from '@/components/kb/widgets/kb-graph-projection-panel.js';
 import { useKbCatalog } from '@/lib/kb-context.js';
@@ -91,8 +92,18 @@ export function KbSettingsPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { t, locale } = useI18n();
-  const zh = locale === 'zh';
+  const { t } = useI18n();
+  const ks = t.kbSettings;
+
+  function defaultModeLabel(mode: SearchConfig['default_mode']): string {
+    if (mode === 'keyword') return ks.modeKeyword;
+    if (mode === 'semantic') return ks.modeSemantic;
+    return ks.modeHybrid;
+  }
+
+  function vectorStateLabel(state: SearchConfigResponse['status']['vector_state']): string {
+    return ks.vectorState[state] ?? state;
+  }
   const apiError = useApiErrorMessage();
   const { getKb, refresh: refreshKbs } = useKbCatalog();
   const { caps } = useKbCapabilities();
@@ -216,7 +227,7 @@ export function KbSettingsPage() {
           : current,
       );
       toast.success(
-        body.reindex_required ? '检索设置已保存，请重建向量索引' : '检索设置已保存',
+        body.reindex_required ? ks.toastSearchSavedReindex : ks.toastSearchSaved,
       );
       setSearchEditOpen(false);
     } catch (err) {
@@ -235,7 +246,7 @@ export function KbSettingsPage() {
       });
       const current = await api<SearchConfigResponse>(`/api/kbs/${id}/search/config`);
       setSearchConfig(current);
-      toast.success('向量索引已重建');
+      toast.success(ks.toastReindexDone);
     } catch (err) {
       setError(apiError(err));
     } finally {
@@ -243,7 +254,7 @@ export function KbSettingsPage() {
     }
   }
 
-  if (!kb) return <p className="text-sm text-muted-foreground">加载中…</p>;
+  if (!kb) return <p className="text-sm text-muted-foreground">{t.common.loading}</p>;
 
   const canManageMembers = ['owner', 'admin'].includes(kb.my_role);
   const canEditGeneral = ['owner', 'admin'].includes(kb.my_role);
@@ -259,7 +270,7 @@ export function KbSettingsPage() {
         { label: t.menu.kb.settings },
       ]}
       subtitle={t.pages.kbSubtitles.settings}
-      meta={`${t.menu.kbSettings.myRole}：${kb.my_role}`}
+      meta={fmt(ks.myRoleMeta, { role: kb.my_role })}
     >
       {error && <p className="text-sm text-destructive">{error}</p>}
 
@@ -271,7 +282,7 @@ export function KbSettingsPage() {
           <TabsTrigger value="general">{t.menu.kbSettings.general}</TabsTrigger>
           <TabsTrigger value="search">{t.menu.kbSettings.search}</TabsTrigger>
           <TabsTrigger value="graph">
-            {graphEnabled ? t.menu.kbSettings.explorerGraph : 'Explorer'}
+            {graphEnabled ? t.menu.kbSettings.explorerGraph : ks.explorerTab}
           </TabsTrigger>
           <TabsTrigger value="members">{t.menu.kbSettings.members}</TabsTrigger>
           <TabsTrigger value="danger">{t.menu.kbSettings.danger}</TabsTrigger>
@@ -283,14 +294,23 @@ export function KbSettingsPage() {
               <CardTitle className="text-base">{t.menu.kbSettings.general}</CardTitle>
               {canEditGeneral ? (
                 <Button type="button" size="sm" variant="outline" onClick={() => setGeneralEditOpen(true)}>
-                  编辑
+                  {ks.edit}
                 </Button>
               ) : null}
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
-              <p><span className="text-muted-foreground">名称：</span>{kb.name}</p>
-              <p><span className="text-muted-foreground">描述：</span>{kb.description || '—'}</p>
-              <p><span className="text-muted-foreground">可见性：</span>{kb.visibility}</p>
+              <p>
+                <span className="text-muted-foreground">{ks.fields.name}{ks.labelSuffix}</span>
+                {kb.name}
+              </p>
+              <p>
+                <span className="text-muted-foreground">{ks.fields.description}{ks.labelSuffix}</span>
+                {kb.description || '—'}
+              </p>
+              <p>
+                <span className="text-muted-foreground">{ks.fields.visibility}{ks.labelSuffix}</span>
+                {kb.visibility}
+              </p>
             </CardContent>
           </Card>
         </TabsContent>
@@ -311,38 +331,46 @@ export function KbSettingsPage() {
         <TabsContent value="search" className="mt-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0">
-              <CardTitle className="text-base">检索与索引</CardTitle>
+              <CardTitle className="text-base">{t.menu.kbSettings.search}</CardTitle>
               {canEditSearch && searchConfig ? (
                 <Button type="button" size="sm" variant="outline" onClick={() => setSearchEditOpen(true)}>
-                  配置检索
+                  {ks.configureSearch}
                 </Button>
               ) : null}
             </CardHeader>
             <CardContent>
               {!searchConfig ? (
-                <p className="text-sm text-muted-foreground">加载中…</p>
+                <p className="text-sm text-muted-foreground">{t.common.loading}</p>
               ) : (
                 <div className="space-y-4 text-sm">
                   <p>
-                    <span className="text-muted-foreground">向量存储：</span>
+                    <span className="text-muted-foreground">{ks.vectorStore}{ks.labelSuffix}</span>
                     {searchConfig.config.vector_backend === 'pgvector'
                       ? 'PostgreSQL (pgvector)'
                       : 'SQLite (sqlite-vec)'}
                   </p>
                   <p>
-                    <span className="text-muted-foreground">嵌入模型：</span>
-                    {searchConfig.config.embedding_model_id ?? '平台默认 / 本地 fallback'}
+                    <span className="text-muted-foreground">{ks.embeddingModel}{ks.labelSuffix}</span>
+                    {searchConfig.config.embedding_model_id ?? ks.platformDefaultEmbedding}
                   </p>
                   <p>
-                    <span className="text-muted-foreground">默认模式：</span>
-                    {searchConfig.config.default_mode}
+                    <span className="text-muted-foreground">{ks.defaultMode}{ks.labelSuffix}</span>
+                    {defaultModeLabel(searchConfig.config.default_mode)}
                   </p>
                   <div className="rounded-md border p-3">
-                    <div>存储：{searchConfig.status.storage_ready ? '可用' : '不可用'}</div>
-                    <div>向量索引：{searchConfig.status.vector_state}</div>
                     <div>
-                      嵌入服务：
-                      {searchConfig.status.embedding_configured ? '已配置' : '使用本地 fallback'}
+                      {ks.statusStorage}{ks.labelSuffix}
+                      {searchConfig.status.storage_ready ? ks.storageReady : ks.storageNotReady}
+                    </div>
+                    <div>
+                      {ks.statusVectorIndex}{ks.labelSuffix}
+                      {vectorStateLabel(searchConfig.status.vector_state)}
+                    </div>
+                    <div>
+                      {ks.statusEmbedding}{ks.labelSuffix}
+                      {searchConfig.status.embedding_configured
+                        ? ks.embeddingConfigured
+                        : ks.embeddingFallback}
                     </div>
                   </div>
                   {canEditSearch ? (
@@ -352,7 +380,7 @@ export function KbSettingsPage() {
                       onClick={reindexSearch}
                       disabled={reindexing || !searchConfig.config.semantic_enabled}
                     >
-                      {reindexing ? '重建中…' : '重建向量索引'}
+                      {reindexing ? ks.reindexing : ks.reindexVector}
                     </Button>
                   ) : null}
                 </div>
@@ -367,7 +395,7 @@ export function KbSettingsPage() {
               <CardTitle className="text-base">{t.menu.kbSettings.members}</CardTitle>
               {canManageMembers ? (
                 <Button type="button" size="sm" onClick={() => setMemberAddOpen(true)}>
-                  添加成员
+                  {ks.addMember}
                 </Button>
               ) : null}
             </CardHeader>
@@ -375,9 +403,9 @@ export function KbSettingsPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>用户</TableHead>
-                    <TableHead>邮箱</TableHead>
-                    <TableHead>角色</TableHead>
+                    <TableHead>{ks.colUser}</TableHead>
+                    <TableHead>{ks.colEmail}</TableHead>
+                    <TableHead>{ks.colRole}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -423,19 +451,19 @@ export function KbSettingsPage() {
           <form className="space-y-4" onSubmit={saveGeneral}>
             <DialogHeader>
               <DialogTitle>{t.menu.kbSettings.general}</DialogTitle>
-              <DialogDescription>名称、描述与可见性。</DialogDescription>
+              <DialogDescription>{ks.generalEditDesc}</DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-2">
               <div className="space-y-2">
-                <Label htmlFor="kb-name">名称</Label>
+                <Label htmlFor="kb-name">{ks.fields.name}</Label>
                 <Input id="kb-name" name="name" defaultValue={kb.name} required />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="kb-desc">描述</Label>
+                <Label htmlFor="kb-desc">{ks.fields.description}</Label>
                 <Input id="kb-desc" name="description" defaultValue={kb.description} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="kb-vis">可见性</Label>
+                <Label htmlFor="kb-vis">{ks.fields.visibility}</Label>
                 <select
                   id="kb-vis"
                   name="visibility"
@@ -449,9 +477,9 @@ export function KbSettingsPage() {
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setGeneralEditOpen(false)}>
-                取消
+                {t.common.cancel}
               </Button>
-              <Button type="submit">保存</Button>
+              <Button type="submit">{t.common.save}</Button>
             </DialogFooter>
           </form>
         </DialogContent>
@@ -462,12 +490,12 @@ export function KbSettingsPage() {
           <DialogContent className="sm:max-w-lg">
             <form className="space-y-5" onSubmit={saveSearchConfig}>
               <DialogHeader>
-                <DialogTitle>检索与索引</DialogTitle>
-                <DialogDescription>向量后端、嵌入模型与默认搜索模式。</DialogDescription>
+                <DialogTitle>{t.menu.kbSettings.search}</DialogTitle>
+                <DialogDescription>{ks.searchEditDesc}</DialogDescription>
               </DialogHeader>
               <div className="max-h-[min(60vh,24rem)] space-y-5 overflow-y-auto py-2">
                 <div className="space-y-2">
-                  <Label>向量存储</Label>
+                  <Label>{ks.vectorStore}</Label>
                   <Select
                     value={searchConfig.config.vector_backend}
                     onValueChange={(value: SearchConfig['vector_backend']) =>
@@ -496,7 +524,7 @@ export function KbSettingsPage() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label>嵌入模型</Label>
+                  <Label>{ks.embeddingModel}</Label>
                   <Select
                     value={searchConfig.config.embedding_model_id ?? '__default__'}
                     onValueChange={(value) =>
@@ -517,7 +545,7 @@ export function KbSettingsPage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="__default__">平台默认模型 / 本地 fallback</SelectItem>
+                      <SelectItem value="__default__">{ks.defaultEmbeddingOption}</SelectItem>
                       {searchConfig.available.embedding_models
                         .filter((model) => model.enabled)
                         .map((model) => (
@@ -540,7 +568,7 @@ export function KbSettingsPage() {
                       name="keyword_enabled"
                       defaultChecked={searchConfig.config.keyword_enabled}
                     />
-                    全文检索
+                    {ks.keywordSearch}
                   </label>
                   <label className="flex items-center gap-2 text-sm">
                     <input
@@ -548,7 +576,7 @@ export function KbSettingsPage() {
                       name="semantic_enabled"
                       defaultChecked={searchConfig.config.semantic_enabled}
                     />
-                    语义检索
+                    {ks.semanticSearch}
                   </label>
                   <label className="flex items-center gap-2 text-sm sm:col-span-2">
                     <input
@@ -556,27 +584,27 @@ export function KbSettingsPage() {
                       name="auto_index"
                       defaultChecked={searchConfig.config.auto_index}
                     />
-                    上传后自动建立向量索引
+                    {ks.autoIndexOnUpload}
                   </label>
                 </div>
                 <div className="space-y-2">
-                  <Label>默认搜索模式</Label>
+                  <Label>{ks.defaultSearchMode}</Label>
                   <select
                     name="default_mode"
                     className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm"
                     defaultValue={searchConfig.config.default_mode}
                   >
-                    <option value="keyword">全文检索</option>
-                    <option value="semantic">语义检索</option>
-                    <option value="hybrid">混合检索（推荐）</option>
+                    <option value="keyword">{ks.modeKeyword}</option>
+                    <option value="semantic">{ks.modeSemantic}</option>
+                    <option value="hybrid">{ks.modeHybrid}</option>
                   </select>
                 </div>
               </div>
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => setSearchEditOpen(false)}>
-                  取消
+                  {t.common.cancel}
                 </Button>
-                <Button type="submit">保存</Button>
+                <Button type="submit">{t.common.save}</Button>
               </DialogFooter>
             </form>
           </DialogContent>
@@ -586,15 +614,15 @@ export function KbSettingsPage() {
       <Dialog open={memberAddOpen} onOpenChange={setMemberAddOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>添加成员</DialogTitle>
-            <DialogDescription>选择用户并指定 KB 角色。</DialogDescription>
+            <DialogTitle>{ks.addMemberTitle}</DialogTitle>
+            <DialogDescription>{ks.addMemberDesc}</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-2">
             <div className="space-y-2">
-              <Label>用户</Label>
+              <Label>{ks.colUser}</Label>
               <Select value={targetUser} onValueChange={setTargetUser}>
                 <SelectTrigger>
-                  <SelectValue placeholder="选择用户" />
+                  <SelectValue placeholder={ks.selectUser} />
                 </SelectTrigger>
                 <SelectContent>
                   {users.map((u) => (
@@ -606,7 +634,7 @@ export function KbSettingsPage() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>角色</Label>
+              <Label>{ks.role}</Label>
               <Select value={role} onValueChange={setRole}>
                 <SelectTrigger>
                   <SelectValue />
@@ -622,10 +650,10 @@ export function KbSettingsPage() {
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setMemberAddOpen(false)}>
-              取消
+              {t.common.cancel}
             </Button>
             <Button type="button" disabled={!targetUser || addingMember} onClick={() => void addMember()}>
-              {addingMember ? '保存中…' : '保存'}
+              {addingMember ? t.common.processing : t.common.save}
             </Button>
           </DialogFooter>
         </DialogContent>

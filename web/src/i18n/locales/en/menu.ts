@@ -60,6 +60,7 @@ export const menu = {
     unavailable: 'This capability is not enabled for this knowledge base.',
     workspaceDisabledTitle: 'Workspace unavailable',
     navDisabled: 'Disabled',
+    importEditorRequired: 'Editor role is required to import graph data.',
   },
   kbSettings: {
     title: 'Knowledge base settings',

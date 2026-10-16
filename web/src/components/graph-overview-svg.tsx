@@ -1,3 +1,5 @@
+import { useI18n } from '@/i18n/context.js';
+
 type GraphNode = { id: string; label?: string };
 type GraphEdge = { source: string; target: string };
 
@@ -15,6 +17,7 @@ export function GraphOverviewSvg({
   focusId?: string | null;
   onSelect?: (id: string) => void;
 }) {
+  const { t } = useI18n();
   const capped = nodes.slice(0, 48);
   const positions = new Map<string, { x: number; y: number }>();
   const n = capped.length || 1;
@@ -35,7 +38,7 @@ export function GraphOverviewSvg({
       viewBox={`0 0 ${SIZE} ${SIZE}`}
       className="mx-auto w-full max-w-md rounded-md border bg-muted/20"
       role="img"
-      aria-label="图谱概览"
+      aria-label={t.kbGraphWorkspace.widgets.overviewTitle}
     >
       {visibleEdges.map((edge, i) => {
         const a = positions.get(edge.source)!;

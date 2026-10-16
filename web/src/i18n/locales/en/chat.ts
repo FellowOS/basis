@@ -14,4 +14,9 @@ export const chat = {
   proposeRemember: 'Propose for review',
   rememberQueued: 'Submitted to the review queue.',
   emptyReply: '(No text reply)',
+  graphLink: 'Graph',
+  focusSeedPrompt: 'Using KB tools, summarize what we know about graph node "{focus}" and cite evidence.',
+  citationChunk: 'Chunk · {name}',
+  citationEntity: 'Entity · {name}',
+  citationGraph: 'Graph · {name}',
 } as const;

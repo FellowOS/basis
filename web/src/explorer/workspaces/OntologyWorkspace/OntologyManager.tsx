@@ -1,3 +1,4 @@
+import { PublicIcon } from "@/components/ui/public-icon.js";
 import { useCallback, useEffect, useState } from "react";
 import {
   explorerApiErrorMessage,
@@ -7,26 +8,13 @@ import {
   throwIfExplorerNotOk,
 } from "../../lib/explorer-api-error";
 import { explorerFetch } from "../../host/explorerHttp";
-import {
-  AlertCircle,
-  BookMarked,
-  BookOpen,
-  CheckCircle2,
-  ExternalLink,
-  Layers,
-  Loader2,
-  Plus,
-  RefreshCw,
-  Search,
-  Trash2,
-  ToggleLeft,
-  ToggleRight,
-} from "lucide-react";
 import { ontologyPath, useOntologyKbId } from "./ontologyKb";
 import { OntologyLoader } from "./OntologyLoader";
 import { OntologySearch } from "./OntologySearch";
 import { SKOSVocabularyManager } from "./SKOSVocabularyManager";
 import { Button } from "@/components/ui/button.js";
+import { useI18n } from "@/i18n/context.js";
+import { fmt } from "@/i18n/format.js";
 import { cn } from "@/lib/utils.js";
 import {
   ontManagerActionBtn,
@@ -132,6 +120,8 @@ function RegistryRow({
   onRefresh: (uri: string) => void;
   onRemove: (uri: string) => void;
 }) {
+  const { t } = useI18n();
+  const m = t.kbOntology.manager;
   const [busyToggle, setBusyToggle] = useState(false);
   const [busyRefresh, setBusyRefresh] = useState(false);
   const [busyRemove, setBusyRemove] = useState(false);
@@ -152,7 +142,7 @@ function RegistryRow({
 
   const handleRemove = async (ev: React.MouseEvent) => {
     ev.stopPropagation();
-    if (!window.confirm(`Remove "${entry.name}" from the registry?`)) return;
+    if (!window.confirm(fmt(m.removeConfirm, { name: entry.name }))) return;
     setBusyRemove(true);
     await onRemove(entry.uri);
     setBusyRemove(false);
@@ -173,7 +163,7 @@ function RegistryRow({
           <StatusBadge status={entry.status} />
           <FormatBadge format={entry.format} />
           {!entry.enabled && (
-            <span className={ontManagerDisabledBadge}>Disabled</span>
+            <span className={ontManagerDisabledBadge}>{m.disabled}</span>
           )}
         </div>
         <div className={ontManagerRowUri}>{entry.uri}</div>
@@ -185,62 +175,62 @@ function RegistryRow({
             onClick={(e) => e.stopPropagation()}
             className={ontManagerSourceLink}
           >
-            <ExternalLink size={10} />
+            <PublicIcon name="link-external" size={10} />
             {entry.source_url.slice(0, 60)}{entry.source_url.length > 60 ? "…" : ""}
           </a>
         )}
       </div>
 
       <div className={ontManagerRowStats}>
-        <Stat value={entry.class_count} label="Classes" />
-        <Stat value={entry.concept_count} label="Concepts" />
-        <Stat value={entry.property_count} label="Props" />
+        <Stat value={entry.class_count} label={m.statClasses} />
+        <Stat value={entry.concept_count} label={m.statConcepts} />
+        <Stat value={entry.property_count} label={m.statProps} />
       </div>
 
       <div className={ontManagerRowActions}>
         <button
           type="button"
-          title={entry.enabled ? "Disable" : "Enable"}
+          title={entry.enabled ? m.disable : m.enable}
           onClick={handleToggle}
           disabled={busyToggle}
           className={ontManagerActionBtn}
         >
           {busyToggle ? (
-            <Loader2 size={13} className="animate-spin" />
+            <PublicIcon name="loader-01" size={13} className="animate-spin" />
           ) : entry.enabled ? (
-            <ToggleRight size={15} className="text-ok" />
+            <PublicIcon name="toggle-right" size={15} className="text-ok" />
           ) : (
-            <ToggleLeft size={15} className="text-muted-foreground" />
+            <PublicIcon name="toggle-left" size={15} className="text-muted-foreground" />
           )}
         </button>
 
         {entry.source_url && (
           <button
             type="button"
-            title="Re-fetch from source URL"
+            title={m.refreshTitle}
             onClick={handleRefresh}
             disabled={busyRefresh}
             className={ontManagerActionBtn}
           >
             {busyRefresh ? (
-              <Loader2 size={13} className="animate-spin" />
+              <PublicIcon name="loader-01" size={13} className="animate-spin" />
             ) : (
-              <RefreshCw size={13} className="text-primary" />
+              <PublicIcon name="arrow-refresh-01" size={13} className="text-primary" />
             )}
           </button>
         )}
 
         <button
           type="button"
-          title="Remove from registry"
+          title={m.removeTitle}
           onClick={handleRemove}
           disabled={busyRemove}
           className={cn(ontManagerActionBtn, "text-destructive hover:text-destructive")}
         >
           {busyRemove ? (
-            <Loader2 size={13} className="animate-spin" />
+            <PublicIcon name="loader-01" size={13} className="animate-spin" />
           ) : (
-            <Trash2 size={13} />
+            <PublicIcon name="trash-01" size={13} />
           )}
         </button>
       </div>
@@ -259,6 +249,8 @@ export function OntologyManager({
   pageActionsHosted?: boolean;
   onHubPageActionsChange?: (actions: { openLoadOntology: () => void } | null) => void;
 } = {}) {
+  const { t } = useI18n();
+  const m = t.kbOntology.manager;
   const kbId = useOntologyKbId();
   const [entries, setEntries] = useState<OntologyEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -297,8 +289,8 @@ export function OntologyManager({
         ontologyPath(kbId, "registry", params.toString()),
         undefined,
         {
-          fallbackMessage: "Failed to load ontology registry",
-          partialWarning: "Warning: Partial success loading registry.",
+          fallbackMessage: m.api.loadRegistryFailed,
+          partialWarning: m.api.partialRegistry,
         },
       );
       setEntries(data);
@@ -321,8 +313,8 @@ export function OntologyManager({
           ontologyPath(kbId, "registry", params.toString()),
           undefined,
           {
-            fallbackMessage: "Failed to load ontology registry",
-            partialWarning: "Warning: Partial success loading registry.",
+            fallbackMessage: m.api.loadRegistryFailed,
+            partialWarning: m.api.partialRegistry,
           },
         );
         if (ignore) return;
@@ -346,7 +338,7 @@ export function OntologyManager({
       const res = await explorerFetch(ontologyPath(kbId, `${encodeURIComponent(uri)}/toggle`), {
         method: "PATCH",
       });
-      const data = await parseExplorerJson<{ enabled: boolean }>(res, "Toggle failed");
+      const data = await parseExplorerJson<{ enabled: boolean }>(res, m.api.toggleFailed);
       setEntries((prev) =>
         prev.map((e) => (e.uri === uri ? { ...e, enabled: data.enabled } : e))
       );
@@ -362,11 +354,11 @@ export function OntologyManager({
       });
       const partial = await explorerMutationResult(
         res,
-        "Refresh failed",
-        "Warning: Partial success refreshing ontology.",
+        m.api.refreshFailed,
+        m.api.partialRefresh,
       );
       if (partial) flashMsg("err", partial);
-      else flashMsg("ok", "Ontology refreshed");
+      else flashMsg("ok", m.api.refreshedOk);
       fetchRegistry();
     } catch (err) {
       flashMsg("err", explorerApiErrorMessage(err));
@@ -378,10 +370,10 @@ export function OntologyManager({
       const res = await explorerFetch(ontologyPath(kbId, encodeURIComponent(uri)), {
         method: "DELETE",
       });
-      await throwIfExplorerNotOk(res, "Remove failed");
+      await throwIfExplorerNotOk(res, m.api.removeFailed);
       setEntries((prev) => prev.filter((e) => e.uri !== uri));
       if (selectedEntry?.uri === uri) setSelectedEntry(null);
-      flashMsg("ok", "Removed from registry");
+      flashMsg("ok", m.api.removedOk);
     } catch (err) {
       flashMsg("err", explorerApiErrorMessage(err));
     }
@@ -419,11 +411,11 @@ export function OntologyManager({
       <div className={ontManagerShell}>
         <div className={ontManagerToolbar}>
           <div className={ontManagerSearchBox}>
-            <Search size={14} color="var(--muted-foreground)" />
+            <PublicIcon name="search-01" size={14} className="text-muted-foreground" />
             <input
               value={searchQ}
               onChange={(e) => setSearchQ(e.target.value)}
-              placeholder="Search ontologies by name, URI, or namespace…"
+              placeholder={m.searchPlaceholder}
               className={ontManagerSearchInput}
             />
           </div>
@@ -438,7 +430,7 @@ export function OntologyManager({
                 className="h-7 px-2.5 text-[11px] font-semibold uppercase"
                 onClick={() => setStatusFilter(f)}
               >
-                {f === "all" ? "All" : f}
+                {m.filters[f]}
               </Button>
             ))}
           </div>
@@ -450,13 +442,13 @@ export function OntologyManager({
               variant={rightPanel === "search" ? "secondary" : "outline"}
               onClick={() => setRightPanel((p) => (p === "search" ? "none" : "search"))}
             >
-              <Search size={13} />
-              Entity Search
+              <PublicIcon name="search-01" size={13} />
+              {m.entitySearch}
             </Button>
             {!pageActionsHosted ? (
               <Button type="button" size="sm" onClick={() => setShowLoader(true)}>
-                <Plus size={13} />
-                Load Ontology
+                <PublicIcon name="plus-01" size={13} />
+                {m.loadOntology}
               </Button>
             ) : null}
           </div>
@@ -472,9 +464,9 @@ export function OntologyManager({
             )}
           >
             {actionMsg.type === "ok" ? (
-              <CheckCircle2 size={13} />
+              <PublicIcon name="check-circle" size={13} />
             ) : (
-              <AlertCircle size={13} />
+              <PublicIcon name="alert-circle" size={13} />
             )}
             {actionMsg.text}
           </div>
@@ -485,24 +477,22 @@ export function OntologyManager({
           <div className={ontManagerListPanel}>
             {loading ? (
               <div className={ontManagerCentered}>
-                <Loader2 size={22} className="animate-spin text-primary" />
-                <span className="mt-2.5 text-sm text-muted-foreground">Loading registry…</span>
+                <PublicIcon name="loader-01" size={22} className="animate-spin text-primary" />
+                <span className="mt-2.5 text-sm text-muted-foreground">{m.loadingRegistry}</span>
               </div>
             ) : filteredEntries.length === 0 ? (
               <div className={cn(ontManagerCentered, "text-center")}>
-                <BookMarked size={36} color="rgba(74,163,255,0.18)" />
+                <PublicIcon name="bookmark" size={36} className="text-primary/20" />
                 <div className="mt-3.5 text-sm font-semibold text-muted-foreground">
-                  {searchQ ? "No ontologies match your search" : "No ontologies loaded yet"}
+                  {searchQ ? m.emptySearchTitle : m.emptyTitle}
                 </div>
                 <div className="mt-1.5 max-w-[300px] text-center text-xs leading-relaxed text-muted-foreground">
-                  {searchQ
-                    ? "Try a different search term or clear the filter."
-                    : <>Import from a URL, upload a file, or create a new ontology to get started. Click <strong className="text-primary">Load Ontology</strong> above.</>}
+                  {searchQ ? m.emptySearchBody : m.emptyBody}
                 </div>
                 {!searchQ && !pageActionsHosted ? (
                   <Button type="button" size="sm" className="mt-4" onClick={() => setShowLoader(true)}>
-                    <Plus size={13} />
-                    Load Ontology
+                    <PublicIcon name="plus-01" size={13} />
+                    {m.loadOntology}
                   </Button>
                 ) : null}
               </div>
@@ -510,7 +500,9 @@ export function OntologyManager({
               <div className={ontManagerList}>
                 <div className={ontManagerListHeader}>
                   <span>
-                    {filteredEntries.length} ontolog{filteredEntries.length === 1 ? "y" : "ies"}
+                    {filteredEntries.length === 1
+                      ? m.registryCountOne
+                      : fmt(m.registryCount, { count: filteredEntries.length })}
                   </span>
                 </div>
                 {filteredEntries.map((entry) => (
@@ -532,7 +524,7 @@ export function OntologyManager({
           {rightPanel === "search" && (
             <div className={ontManagerRightPanel}>
               <div className={ontManagerRightHeader}>
-                <span className="truncate text-sm font-bold text-foreground">Entity Search</span>
+                <span className="truncate text-sm font-bold text-foreground">{m.entitySearch}</span>
                 <button type="button" onClick={() => setRightPanel("none")} className={ontManagerCloseBtn}>×</button>
               </div>
               <OntologySearch />
@@ -550,28 +542,28 @@ export function OntologyManager({
                       onClick={() => setRightPanel("skos")}
                       className={ontManagerBrowseBtn}
                     >
-                      <BookOpen size={12} />
-                      Browse SKOS
+                      <PublicIcon name="book-01" size={12} />
+                      {m.browseSkos}
                     </button>
                   )}
                   <button type="button" onClick={() => setSelectedEntry(null)} className={ontManagerCloseBtn}>×</button>
                 </div>
               </div>
               <div className={ontManagerDetailBody}>
-                <DetailSection label="URI">
+                <DetailSection label={m.detailUri}>
                   <span className="break-all font-mono text-[11px] text-muted-foreground">
                     {selectedEntry.uri}
                   </span>
                 </DetailSection>
                 {selectedEntry.description && (
-                  <DetailSection label="Description">
+                  <DetailSection label={m.detailDescription}>
                     <span className="text-sm leading-relaxed text-muted-foreground">
                       {selectedEntry.description}
                     </span>
                   </DetailSection>
                 )}
                 {selectedEntry.source_url && (
-                  <DetailSection label="Source URL">
+                  <DetailSection label={m.detailSourceUrl}>
                     <a
                       href={selectedEntry.source_url}
                       target="_blank"
@@ -583,24 +575,24 @@ export function OntologyManager({
                   </DetailSection>
                 )}
                 {selectedEntry.version && (
-                  <DetailSection label="Version">
+                  <DetailSection label={m.detailVersion}>
                     <span className="text-xs text-muted-foreground">{selectedEntry.version}</span>
                   </DetailSection>
                 )}
                 {selectedEntry.loaded_at && (
-                  <DetailSection label="Loaded at">
+                  <DetailSection label={m.detailLoadedAt}>
                     <span className="text-xs text-muted-foreground">
                       {new Date(selectedEntry.loaded_at).toLocaleString()}
                     </span>
                   </DetailSection>
                 )}
                 <div className={ontManagerStatRow}>
-                  <StatBlock value={selectedEntry.class_count} label="Classes" tone="primary" />
-                  <StatBlock value={selectedEntry.concept_count} label="Concepts" tone="ok" />
-                  <StatBlock value={selectedEntry.property_count} label="Properties" tone="warn" />
+                  <StatBlock value={selectedEntry.class_count} label={m.statClasses} tone="primary" />
+                  <StatBlock value={selectedEntry.concept_count} label={m.statConcepts} tone="ok" />
+                  <StatBlock value={selectedEntry.property_count} label={m.statProps} tone="warn" />
                 </div>
                 {selectedEntry.tags.length > 0 && (
-                  <DetailSection label="Tags">
+                  <DetailSection label={m.detailTags}>
                     <div className="flex flex-wrap gap-1.5">
                       {selectedEntry.tags.map((tag) => (
                         <span key={tag} className={ontManagerTagChip}>{tag}</span>
@@ -615,11 +607,13 @@ export function OntologyManager({
           {rightPanel === "skos" && selectedEntry && (
             <div className={ontManagerRightPanel}>
               <div className={ontManagerRightHeader}>
-                <span className="truncate text-sm font-bold text-foreground">SKOS — {selectedEntry.name}</span>
+                <span className="truncate text-sm font-bold text-foreground">
+                  {fmt(m.skosPanelTitle, { name: selectedEntry.name })}
+                </span>
                 <div className="flex gap-1.5">
                   <button type="button" onClick={() => setRightPanel("none")} className={ontManagerBrowseBtn}>
-                    <Layers size={12} />
-                    Registry Detail
+                    <PublicIcon name="stack" size={12} />
+                    {m.registryDetail}
                   </button>
                   <button type="button" onClick={() => setRightPanel("none")} className={ontManagerCloseBtn}>×</button>
                 </div>

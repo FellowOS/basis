@@ -1,4 +1,4 @@
-import { ExternalLink, GitBranch, Loader2, MessageCircle } from "lucide-react";
+import { PublicIcon } from "@/components/ui/public-icon.js";
 import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge.js";
 import { Button } from "@/components/ui/button.js";
@@ -510,7 +510,7 @@ export function GraphInspectorPanel({
                 <Link
                   to={`${kbPath(kbId, 'chat')}?focus=${encodeURIComponent(effectiveNodeId)}`}
                 >
-                  <MessageCircle size={14} className="shrink-0 opacity-70" />
+                  <PublicIcon name="message-chat-01" size={14} className="shrink-0 opacity-70" />
                   {inspectorCopy(loc, "continueInChat")}
                 </Link>
               </Button>
@@ -520,7 +520,7 @@ export function GraphInspectorPanel({
                 <Link
                   to={`${kbPath(kbId, 'lineage')}?node=${encodeURIComponent(effectiveNodeId)}`}
                 >
-                  <GitBranch size={14} className="shrink-0 opacity-70" />
+                  <PublicIcon name="git-branch-01" size={14} className="shrink-0 opacity-70" />
                   {inspectorCopy(loc, "openLineage")}
                 </Link>
               </Button>
@@ -528,7 +528,7 @@ export function GraphInspectorPanel({
             {evidenceLinks.map((link) => (
               <Button key={link.to} variant="outline" size="sm" className="justify-start gap-2" asChild>
                 <Link to={link.to}>
-                  <ExternalLink size={14} className="shrink-0 opacity-70" />
+                  <PublicIcon name="link-external" size={14} className="shrink-0 opacity-70" />
                   {evidenceLinkLabel(link.kind)}
                 </Link>
               </Button>
@@ -562,7 +562,7 @@ export function GraphInspectorPanel({
               onClick={onRunPredictions}
               disabled={isRunningPredictions || !actionNodeId}
             >
-              {isRunningPredictions ? <Loader2 size={14} className="animate-spin" /> : null}
+              {isRunningPredictions ? <PublicIcon name="loader-01" size={14} className="animate-spin" /> : null}
               {isRunningPredictions
                 ? inspectorCopy(loc, "running")
                 : inspectorCopy(loc, "runPrediction")}
@@ -645,7 +645,7 @@ export function GraphInspectorPanel({
             </div>
           ) : isRunningPredictions ? (
             <div className="flex items-center gap-2 py-1 text-xs text-muted-foreground">
-              <Loader2 size={13} className="animate-spin" />
+              <PublicIcon name="loader-01" size={13} className="animate-spin" />
               <span>{inspectorCopy(loc, "computingCandidates")}</span>
             </div>
           ) : (

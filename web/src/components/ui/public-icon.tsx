@@ -1,5 +1,4 @@
-import type { Icon } from "@phosphor-icons/react";
-import { PHOSPHOR_ICON_WEIGHT } from "@/lib/phosphor-icon.js";
+import type { IconType } from "react-icons";
 import { getPublicIconComponent } from "@/lib/public-icon-map.js";
 import { cn } from "@/lib/utils.js";
 
@@ -9,7 +8,7 @@ type PublicIconProps = {
 	size?: number;
 };
 
-export function getPublicIcon(name: string): Icon {
+export function getPublicIcon(name: string): IconType {
 	return getPublicIconComponent(name);
 }
 
@@ -19,7 +18,6 @@ export function PublicIcon({ name, className, size = 16 }: PublicIconProps) {
 	return (
 		<Icon
 			size={size}
-			weight={PHOSPHOR_ICON_WEIGHT}
 			className={cn("inline-block shrink-0", className)}
 			aria-hidden
 		/>

@@ -1,5 +1,6 @@
 """Document version append and external_key reuse."""
 
+from io import BytesIO
 from pathlib import Path
 
 from fastapi.testclient import TestClient
@@ -111,3 +112,35 @@ def test_explicit_version_upload_route(tmp_path: Path) -> None:
     assert updated.status_code == 200
     assert updated.json()["version_no"] == 2
     assert updated.json()["new_version"] is True
+
+
+def test_filename_only_for_uploaded_files(tmp_path: Path) -> None:
+    app = create_app(Settings(data_dir=tmp_path))
+    client = TestClient(app)
+    admin = client.post(
+        "/api/auth/register",
+        json={"email": "name@example.com", "password": "password1", "display_name": "Name"},
+    ).json()
+    headers = _auth(admin["token"])
+    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+
+    pasted = client.post(
+        f"/api/kbs/{kb_id}/documents",
+        headers=headers,
+        json={"doc_id": "note", "text": "pasted body"},
+    )
+    assert pasted.status_code == 200
+
+    uploaded = client.post(
+        f"/api/kbs/{kb_id}/documents/upload",
+        headers=headers,
+        files={"file": ("规范说明.md", BytesIO(b"# hello"), "text/markdown")},
+    )
+    assert uploaded.status_code == 200
+
+    docs = client.get(f"/api/kbs/{kb_id}/documents", headers=headers).json()["documents"]
+    by_id = {row["doc_id"]: row for row in docs}
+    assert by_id["note"]["filename"] is None
+    uploaded_row = next(row for row in docs if row.get("filename") == "规范说明.md")
+    assert uploaded_row["doc_id"] == "upload"
+    assert uploaded_row["doc_id"] != uploaded_row["filename"]

@@ -2,7 +2,6 @@ import { lazy, Suspense } from 'react';
 import { KbExplorerConsoleShell } from '@/components/kb/shell/kb-explorer-console-shell.js';
 import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
-import type { SparqlPageActions } from '@/explorer/workspaces/SparqlWorkspace/SparqlWorkspace.js';
 
 const SparqlWorkspace = lazy(() =>
   import('@/explorer/workspaces/SparqlWorkspace/SparqlWorkspace.js').then((module) => ({
@@ -10,22 +9,15 @@ const SparqlWorkspace = lazy(() =>
   })),
 );
 
-export type { SparqlPageActions };
-
-export type KbSparqlPageActions = SparqlPageActions;
-
 export function KbSparqlWorkspace({
   kbId,
   className,
-  onPageActionsChange,
 }: {
   kbId: string;
   className?: string;
-  onPageActionsChange?: (actions: SparqlPageActions | null) => void;
 }) {
-  const { locale } = useI18n();
-  const loadingLabel = locale === 'zh' ? '加载 SPARQL 工作台…' : 'Loading SPARQL workspace…';
-  const pageActionsHosted = Boolean(onPageActionsChange);
+  const { t } = useI18n();
+  const loadingLabel = t.kbExplorer.loadingSparql;
 
   return (
     <KbExplorerConsoleShell
@@ -42,11 +34,7 @@ export function KbSparqlWorkspace({
           </div>
         }
       >
-        <SparqlWorkspace
-          kbId={kbId}
-          pageActionsHosted={pageActionsHosted}
-          onPageActionsChange={onPageActionsChange}
-        />
+        <SparqlWorkspace kbId={kbId} />
       </Suspense>
     </KbExplorerConsoleShell>
   );

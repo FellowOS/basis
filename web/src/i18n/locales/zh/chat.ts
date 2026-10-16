@@ -13,4 +13,9 @@ export const chat = {
   proposeRemember: '提交记入审核',
   rememberQueued: '已提交到审核队列。',
   emptyReply: '（无文本回复）',
+  graphLink: '图谱',
+  focusSeedPrompt: '请结合知识库工具，说明节点「{focus}」的相关信息与证据。',
+  citationChunk: '片段 · {name}',
+  citationEntity: '实体 · {name}',
+  citationGraph: '图谱 · {name}',
 } as const;
