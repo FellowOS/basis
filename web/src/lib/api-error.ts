@@ -1,3 +1,15 @@
+import { localeFromBrowser, type Locale } from '@/i18n/locale.js';
+import { requestFailedStatusMessage } from '@/i18n/format.js';
+import { messagesForLocale } from '@/i18n/pick-locale.js';
+
+function resolveApiErrorLocale(locale?: Locale): Locale {
+  if (locale) {
+    return locale;
+  }
+  const lang = typeof navigator !== 'undefined' ? navigator.language : 'en';
+  return localeFromBrowser(lang);
+}
+
 export type ApiErrorDetail = {
   code?: string;
   message?: string;
@@ -13,15 +25,17 @@ export function errorFromApiResponse(
   status: number,
   data: unknown,
   fallbackMessage?: string,
+  locale?: Locale,
 ): Error {
   const raw = (data as { detail?: ApiErrorDetail | string })?.detail;
   const detail: ApiErrorDetail =
     typeof raw === 'string' ? { message: raw } : (raw ?? {});
+  const resolvedLocale = resolveApiErrorLocale(locale);
   const defaultMessage =
     fallbackMessage
     || (status === 401 || status === 403
-      ? 'Unauthorized'
-      : `Request failed (${status})`);
+      ? messagesForLocale(resolvedLocale).common.signInRequired
+      : requestFailedStatusMessage(resolvedLocale, status));
   // When the API sends a stable code, UI should map via the registry — not show raw server text.
   const err = new Error(
     detail.code

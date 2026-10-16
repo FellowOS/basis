@@ -13,7 +13,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs.js";
 import { Button } from "@/components/ui/button.js";
 import { useI18n } from "@/i18n/context.js";
-import { fmt } from "@/i18n/format.js";
+import { fmt, formatLocaleNumber } from "@/i18n/format.js";
 import type { Locale } from "@/i18n/locale.js";
 import { cn } from "@/lib/utils.js";
 import {
@@ -63,7 +63,10 @@ interface LoaderProps {
 }
 
 function FormatBadge({ format }: { format: string }) {
+  const { t } = useI18n();
   const key = format.toLowerCase();
+  const labels = t.kbOntology.manager.formatLabels;
+  const label = labels[key as keyof typeof labels] ?? format;
   return (
     <span
       className={cn(
@@ -71,7 +74,7 @@ function FormatBadge({ format }: { format: string }) {
         ontFormatBadgeClass[key] ?? ontFormatBadgeFallback,
       )}
     >
-      {format}
+      {label}
     </span>
   );
 }
@@ -138,7 +141,7 @@ function Textarea({
 }
 
 function PreviewCard({ preview }: { preview: OntologyPreview }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const l = t.kbOntology.loader;
   const m = t.kbOntology.manager;
   return (
@@ -162,7 +165,7 @@ function PreviewCard({ preview }: { preview: OntologyPreview }) {
         {preview.license && <PreviewRow label={l.license} value={preview.license} />}
         <PreviewRow
           label={l.estimatedTriples}
-          value={preview.estimated_triples.toLocaleString()}
+          value={formatLocaleNumber(locale, preview.estimated_triples)}
         />
       </div>
     </div>
@@ -318,10 +321,10 @@ function URLImportPanel({ onLoaded }: { onLoaded: () => void }) {
               className={ontLoaderSelect}
             >
               <option value="">{l.formatAuto}</option>
-              <option value="turtle">Turtle (.ttl)</option>
-              <option value="xml">RDF/XML (.rdf, .owl)</option>
-              <option value="nt">N-Triples (.nt)</option>
-              <option value="json-ld">JSON-LD (.jsonld)</option>
+              <option value="turtle">{l.formatSelectExtended.turtle}</option>
+              <option value="xml">{l.formatSelectExtended.xml}</option>
+              <option value="nt">{l.formatSelectExtended.nt}</option>
+              <option value="json-ld">{l.formatSelectExtended['json-ld']}</option>
             </select>
           </FieldGroup>
           <FieldGroup label={l.customDisplayName}>
@@ -381,6 +384,7 @@ function URLImportPanel({ onLoaded }: { onLoaded: () => void }) {
 function FileUploadPanel({ onLoaded }: { onLoaded: () => void }) {
   const { t, locale } = useI18n();
   const l = t.kbOntology.loader;
+  const mgr = t.kbOntology.manager;
   const kbId = useOntologyKbId();
   const fileRef = useRef<HTMLInputElement>(null);
   const [fileName, setFileName] = useState("");
@@ -470,10 +474,10 @@ function FileUploadPanel({ onLoaded }: { onLoaded: () => void }) {
             onChange={(e) => setFormat(e.target.value)}
             className={ontLoaderSelect}
           >
-            <option value="turtle">Turtle</option>
-            <option value="xml">RDF/XML</option>
-            <option value="nt">N-Triples</option>
-            <option value="json-ld">JSON-LD</option>
+            <option value="turtle">{mgr.formatLabels.turtle}</option>
+            <option value="xml">{mgr.formatLabels.xml}</option>
+            <option value="nt">{mgr.formatLabels.nt}</option>
+            <option value="json-ld">{mgr.formatLabels['json-ld']}</option>
           </select>
         </FieldGroup>
       )}

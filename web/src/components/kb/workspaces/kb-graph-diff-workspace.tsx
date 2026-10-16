@@ -13,7 +13,7 @@ import { Input } from '@/components/ui/input.js';
 import { Label } from '@/components/ui/label.js';
 import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
-import { fmt } from '@/i18n/format.js';
+import { fmt, formatLocaleNumber } from '@/i18n/format.js';
 import type { Locale } from '@/i18n/locale.js';
 import { api } from '@/lib/api.js';
 import { formatUserFacingApiError } from '@/lib/api-error-message.js';
@@ -63,6 +63,7 @@ export function KbGraphDiffWorkspace({
 }) {
   const { t, locale } = useI18n();
   const g = t.kbGraphDiff;
+  const ellipsis = t.common.ellipsis;
   const [, setSearchParams] = useSearchParams();
   const [fromTime, setFromTime] = useState(initialFrom ?? '');
   const [toTime, setToTime] = useState(initialTo ?? '');
@@ -104,7 +105,10 @@ export function KbGraphDiffWorkspace({
     }
   }, [fromTime, kbId, locale, setSearchParams, toTime]);
 
-  const rangeSummary = `${fromTime.trim() || '…'} → ${toTime.trim() || '…'}`;
+  const rangeSummary = fmt(g.rangeSummary, {
+    from: fromTime.trim() || ellipsis,
+    to: toTime.trim() || ellipsis,
+  });
 
   useEffect(() => {
     if (!pageActionsInHeader || !onPageActionsChange) return;
@@ -222,15 +226,19 @@ export function KbGraphDiffWorkspace({
             <ul className="list-inside list-disc font-mono text-xs">
               <li>
                 {fmt(g.summaryNodes, {
-                  added: String(diff.summary.nodes_added),
-                  removed: String(diff.summary.nodes_removed),
+                  added: formatLocaleNumber(locale, diff.summary.nodes_added),
+                  removed: formatLocaleNumber(locale, diff.summary.nodes_removed),
                 })}
               </li>
-              <li>{fmt(g.summaryModified, { count: String(diff.summary.nodes_modified) })}</li>
+              <li>
+                {fmt(g.summaryModified, {
+                  count: formatLocaleNumber(locale, diff.summary.nodes_modified),
+                })}
+              </li>
               <li>
                 {fmt(g.summaryEdges, {
-                  added: String(diff.summary.edges_added),
-                  removed: String(diff.summary.edges_removed),
+                  added: formatLocaleNumber(locale, diff.summary.edges_added),
+                  removed: formatLocaleNumber(locale, diff.summary.edges_removed),
                 })}
               </li>
             </ul>,

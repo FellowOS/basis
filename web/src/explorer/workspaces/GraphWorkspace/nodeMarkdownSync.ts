@@ -1,5 +1,8 @@
-import { buildExplorerGraphApiPath, explorerFetch } from "../../host/explorerHttp";
+import { fmt } from "@/i18n/format.js";
 import { errorFromApiResponse } from "@/lib/api-error.js";
+
+import { buildExplorerGraphApiPath, explorerFetch } from "../../host/explorerHttp";
+import { graphCopy, type GraphWorkspaceLocale } from "./graphWorkspaceCopy";
 
 export interface NodeMarkdownAttributeUpdate {
   label: string;
@@ -58,6 +61,7 @@ export function buildNodeMarkdownAttributeUpdate(
 export async function readNodeMarkdownAttributeUpdate(
   nodeId: string,
   kbId: string,
+  locale: GraphWorkspaceLocale = "en",
 ): Promise<SavedNodeMarkdownAttributeUpdate> {
   const url = buildExplorerGraphApiPath(`nodes/${encodeURIComponent(nodeId)}`, kbId);
   const response = await explorerFetch(url);
@@ -68,12 +72,13 @@ export async function readNodeMarkdownAttributeUpdate(
     throw errorFromApiResponse(
       response.status,
       payload,
-      `Graph node refresh failed (${response.status}).`,
+      fmt(graphCopy(locale, "apiNodeRefreshFailed"), { status: response.status }),
+      locale,
     );
   }
   const node = ("node" in payload && payload.node ? payload.node : payload) as GraphNodeMarkdownSnapshot;
   if (node.id !== nodeId) {
-    throw new Error("Graph node refresh returned a different resource.");
+    throw new Error(graphCopy(locale, "apiNodeRefreshMismatch"));
   }
 
   return {

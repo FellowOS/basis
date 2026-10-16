@@ -50,7 +50,7 @@ export function KbLineagePanel({
   className?: string;
 }) {
   const apiError = useApiErrorMessage();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const copy = t.kbLineage;
   const [searchParams, setSearchParams] = useSearchParams();
   const [nodes, setNodes] = useState<any[]>([]);
@@ -77,7 +77,7 @@ export function KbLineagePanel({
     );
     if (!response.ok) {
       const body = await response.json().catch(() => ({}));
-      throw errorFromApiResponse(response.status, body, 'Provenance report download failed');
+      throw errorFromApiResponse(response.status, body, t.kbLineage.provenanceDownloadFailed);
     }
     const blob = await response.blob();
     const url = window.URL.createObjectURL(blob);
@@ -113,7 +113,8 @@ export function KbLineagePanel({
         const data = await explorerFetchJson<ProvenancePayload>(
           buildExplorerKbApiPath(`provenance?node_id=${encodeURIComponent(activeId)}`, kbId),
           undefined,
-          'Lineage fetch failed',
+          t.kbLineage.fetchFailed,
+          locale,
         );
         if (data.message) setError(data.message);
 
@@ -165,7 +166,7 @@ export function KbLineagePanel({
     return () => {
       ignore = true;
     };
-  }, [activeId, apiError, kbId]);
+  }, [activeId, apiError, kbId, locale, t.kbLineage.fetchFailed]);
 
   function traceNode(raw: string) {
     const id = raw.trim();

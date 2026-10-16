@@ -1,4 +1,5 @@
 export const kbGraphDiff = {
+  rangeSummary: '{from} → {to}',
   timeRange: '时间范围',
   compare: '对比',
   backToGraph: '返回图谱',

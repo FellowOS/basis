@@ -5,7 +5,7 @@ import { ConfirmAlertDialog } from '@/components/console-ui/ConfirmAlertDialog.j
 import { Button } from '@/components/ui/button.js';
 import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
-import { fmt } from '@/i18n/format.js';
+import { fmt, formatLocaleNumber } from '@/i18n/format.js';
 import type { Locale } from '@/i18n/locale.js';
 import { api } from '@/lib/api.js';
 import { formatUserFacingApiError } from '@/lib/api-error-message.js';
@@ -41,7 +41,11 @@ export function KbGraphRebuildButton({
       toast.success(
         w.rebuildSuccess,
         revision != null
-          ? { description: fmt(w.rebuildRevision, { revision: String(revision) }) }
+          ? {
+              description: fmt(w.rebuildRevision, {
+                revision: formatLocaleNumber(locale as Locale, revision),
+              }),
+            }
           : undefined,
       );
       onRebuilt?.();

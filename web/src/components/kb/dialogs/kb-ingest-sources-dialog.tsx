@@ -387,12 +387,12 @@ export function KbIngestSourcesDialog({
       </div>
       {kind === 'http_poll' ? (
         <div className="space-y-2">
-          <Label htmlFor="poll-url">URL</Label>
+          <Label htmlFor="poll-url">{i.pollUrlLabel}</Label>
           <Input
             id="poll-url"
             value={pollUrl}
             onChange={(e) => setPollUrl(e.target.value)}
-            placeholder="https://…"
+            placeholder={i.pollUrlPlaceholder}
           />
         </div>
       ) : null}
@@ -404,7 +404,7 @@ export function KbIngestSourcesDialog({
               id="git-repo"
               value={gitRepoUrl}
               onChange={(e) => setGitRepoUrl(e.target.value)}
-              placeholder="https://github.com/org/repo"
+              placeholder={i.repoUrlPlaceholder}
             />
           </div>
           <div className="space-y-2">
@@ -413,7 +413,7 @@ export function KbIngestSourcesDialog({
               id="git-branch"
               value={gitBranch}
               onChange={(e) => setGitBranch(e.target.value)}
-              placeholder="main"
+              placeholder={i.branchPlaceholder}
             />
           </div>
           <div className="space-y-2">
@@ -424,7 +424,7 @@ export function KbIngestSourcesDialog({
               id="git-paths"
               value={gitPaths}
               onChange={(e) => setGitPaths(e.target.value)}
-              placeholder="README.md, docs/guide.md"
+              placeholder={i.filePathsPlaceholder}
             />
           </div>
         </>
@@ -450,7 +450,7 @@ export function KbIngestSourcesDialog({
               id="sync-doc-prefix"
               value={externalKeyPrefix}
               onChange={(e) => setExternalKeyPrefix(e.target.value)}
-              placeholder={kind === 'git' ? 'git' : 'poll'}
+              placeholder={kind === 'git' ? i.docIdPrefixGit : i.docIdPrefixPoll}
             />
             <p className="text-[10px] text-muted-foreground">{i.prefixHint}</p>
           </div>
@@ -467,7 +467,7 @@ export function KbIngestSourcesDialog({
             min={0}
             value={pollIntervalMinutes}
             onChange={(e) => setPollIntervalMinutes(e.target.value)}
-            placeholder="0"
+            placeholder={i.pollIntervalPlaceholder}
           />
           <p className="text-[10px] text-muted-foreground">{i.pollTickHint}</p>
         </div>
@@ -489,7 +489,7 @@ export function KbIngestSourcesDialog({
             <p className="font-medium">{i.saveTokenOnce}</p>
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
-                <Label className="text-xs text-muted-foreground">URL</Label>
+                <Label className="text-xs text-muted-foreground">{i.pollUrlLabel}</Label>
                 <p className="break-all font-mono text-xs">{webhookUrl}</p>
               </div>
               {webhookUrl ? (
@@ -723,7 +723,9 @@ export function KbIngestSourcesDialog({
             <Input
               value={editSyncPrefix}
               onChange={(e) => setEditSyncPrefix(e.target.value)}
-              placeholder={syncOptionsSource?.kind === 'git' ? 'git' : 'poll'}
+              placeholder={
+                syncOptionsSource?.kind === 'git' ? i.docIdPrefixGit : i.docIdPrefixPoll
+              }
             />
           </div>
         </div>

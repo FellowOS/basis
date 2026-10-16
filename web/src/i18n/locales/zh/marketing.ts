@@ -1,13 +1,13 @@
 export const marketing = {
   brand: 'Basis',
-  heroEyebrow: '统一业务语义层 · 本体与知识库 · 智能体优先',
-  heroHeadline: '让企业知识拥有统一语义',
-  heroSubhead:
-    'Basis 用本体统一业务概念、关系与规则，把分散的文档和数据沉淀为可信知识库，让团队与 AI 基于同一语义检索、推理与决策。',
+  heroEyebrow: '统一业务语义层',
+  heroHeadline: '同一套语义',
+  heroHeadlineRest: '贯穿知识与决策',
+  heroSubhead: '用本体对齐概念、关系与规则，把文档和数据沉淀为可追溯的知识库。',
   highlights: [
-    '统一业务口径，减少跨系统歧义与重复解释',
-    '事实关联来源，让检索结果与推理过程可追溯',
-    'API 直接接入现有应用、模型与 AI 工作流',
+    { index: '01', title: '本体', body: '定义概念、关系与规则' },
+    { index: '02', title: '知识', body: '保存事实，并保留来源' },
+    { index: '03', title: '检索', body: '按本体查找并推理，向智能体返回依据' },
   ],
   ctaLogin: '登录',
   ctaRegister: '注册账号',

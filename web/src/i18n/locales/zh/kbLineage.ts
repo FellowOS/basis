@@ -8,4 +8,6 @@ export const kbLineage = {
   emptyList: '这次追溯没有返回节点。',
   json: 'JSON',
   markdown: 'Markdown',
+  fetchFailed: '血缘加载失败',
+  provenanceDownloadFailed: '溯源报告下载失败',
 } as const;

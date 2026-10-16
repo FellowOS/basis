@@ -14,7 +14,8 @@ import { OntologySearch } from "./OntologySearch";
 import { SKOSVocabularyManager } from "./SKOSVocabularyManager";
 import { Button } from "@/components/ui/button.js";
 import { useI18n } from "@/i18n/context.js";
-import { fmt } from "@/i18n/format.js";
+import type { Locale } from "@/i18n/locale.js";
+import { fmt, formatLocaleDateTime, formatLocaleNumber, pickCountForm } from "@/i18n/format.js";
 import { cn } from "@/lib/utils.js";
 import {
   ontManagerActionBtn,
@@ -81,25 +82,32 @@ const badgeBase =
   "rounded-full border px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide";
 
 function StatusBadge({ status }: { status: string }) {
+  const { t } = useI18n();
+  const labels = t.kbOntology.manager.statusLabels;
+  const label = labels[status as keyof typeof labels] ?? status;
   return (
     <span className={cn(badgeBase, STATUS_CLASS[status] ?? "border-border bg-muted text-muted-foreground")}>
-      {status}
+      {label}
     </span>
   );
 }
 
 function FormatBadge({ format }: { format: string }) {
+  const { t } = useI18n();
+  const key = format.toLowerCase();
+  const labels = t.kbOntology.manager.formatLabels;
+  const label = labels[key as keyof typeof labels] ?? format;
   return (
     <span className={cn(badgeBase, FORMAT_CLASS[format] ?? "border-border bg-muted text-muted-foreground")}>
-      {format}
+      {label}
     </span>
   );
 }
 
-function Stat({ value, label }: { value: number; label: string }) {
+function Stat({ locale, value, label }: { locale: Locale; value: number; label: string }) {
   return (
     <div className="flex flex-col items-center gap-0.5">
-      <span className={ontStatValue}>{value.toLocaleString()}</span>
+      <span className={ontStatValue}>{formatLocaleNumber(locale, value)}</span>
       <span className={ontStatLabel}>{label}</span>
     </div>
   );
@@ -120,7 +128,7 @@ function RegistryRow({
   onRefresh: (uri: string) => void;
   onRemove: (uri: string) => void;
 }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const m = t.kbOntology.manager;
   const [busyToggle, setBusyToggle] = useState(false);
   const [busyRefresh, setBusyRefresh] = useState(false);
@@ -176,15 +184,16 @@ function RegistryRow({
             className={ontManagerSourceLink}
           >
             <PublicIcon name="link-external" size={10} />
-            {entry.source_url.slice(0, 60)}{entry.source_url.length > 60 ? "…" : ""}
+            {entry.source_url.slice(0, 60)}
+            {entry.source_url.length > 60 ? t.common.ellipsis : ""}
           </a>
         )}
       </div>
 
       <div className={ontManagerRowStats}>
-        <Stat value={entry.class_count} label={m.statClasses} />
-        <Stat value={entry.concept_count} label={m.statConcepts} />
-        <Stat value={entry.property_count} label={m.statProps} />
+        <Stat locale={locale} value={entry.class_count} label={m.statClasses} />
+        <Stat locale={locale} value={entry.concept_count} label={m.statConcepts} />
+        <Stat locale={locale} value={entry.property_count} label={m.statProps} />
       </div>
 
       <div className={ontManagerRowActions}>
@@ -249,7 +258,7 @@ export function OntologyManager({
   pageActionsHosted?: boolean;
   onHubPageActionsChange?: (actions: { openLoadOntology: () => void } | null) => void;
 } = {}) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const m = t.kbOntology.manager;
   const kbId = useOntologyKbId();
   const [entries, setEntries] = useState<OntologyEntry[]>([]);
@@ -291,17 +300,18 @@ export function OntologyManager({
         {
           fallbackMessage: m.api.loadRegistryFailed,
           partialWarning: m.api.partialRegistry,
+          locale: locale as Locale,
         },
       );
       setEntries(data);
       if (partialWarning) flashMsg("err", partialWarning);
     } catch (err) {
       setEntries([]);
-      flashMsg("err", explorerApiErrorMessage(err));
+      flashMsg("err", explorerApiErrorMessage(err, locale as Locale));
     } finally {
       setLoading(false);
     }
-  }, [kbId, searchQ, flashMsg]);
+  }, [kbId, searchQ, flashMsg, locale, m.api]);
 
   useEffect(() => {
     let ignore = false;
@@ -315,6 +325,7 @@ export function OntologyManager({
           {
             fallbackMessage: m.api.loadRegistryFailed,
             partialWarning: m.api.partialRegistry,
+            locale: locale as Locale,
           },
         );
         if (ignore) return;
@@ -323,7 +334,7 @@ export function OntologyManager({
       } catch (err) {
         if (!ignore) {
           setEntries([]);
-          flashMsg("err", explorerApiErrorMessage(err));
+          flashMsg("err", explorerApiErrorMessage(err, locale as Locale));
         }
       } finally {
         if (!ignore) setLoading(false);
@@ -331,7 +342,7 @@ export function OntologyManager({
     }
     void fetchInitial();
     return () => { ignore = true; };
-  }, [kbId, searchQ, flashMsg]);
+  }, [kbId, searchQ, flashMsg, locale, m.api]);
 
   const handleToggle = useCallback(async (uri: string) => {
     try {
@@ -343,9 +354,9 @@ export function OntologyManager({
         prev.map((e) => (e.uri === uri ? { ...e, enabled: data.enabled } : e))
       );
     } catch (err) {
-      flashMsg("err", explorerApiErrorMessage(err));
+      flashMsg("err", explorerApiErrorMessage(err, locale as Locale));
     }
-  }, [kbId]);
+  }, [kbId, locale, m.api]);
 
   const handleRefresh = useCallback(async (uri: string) => {
     try {
@@ -356,14 +367,15 @@ export function OntologyManager({
         res,
         m.api.refreshFailed,
         m.api.partialRefresh,
+        locale as Locale,
       );
       if (partial) flashMsg("err", partial);
       else flashMsg("ok", m.api.refreshedOk);
       fetchRegistry();
     } catch (err) {
-      flashMsg("err", explorerApiErrorMessage(err));
+      flashMsg("err", explorerApiErrorMessage(err, locale as Locale));
     }
-  }, [kbId, fetchRegistry]);
+  }, [kbId, fetchRegistry, locale, m.api]);
 
   const handleRemove = useCallback(async (uri: string) => {
     try {
@@ -375,9 +387,9 @@ export function OntologyManager({
       if (selectedEntry?.uri === uri) setSelectedEntry(null);
       flashMsg("ok", m.api.removedOk);
     } catch (err) {
-      flashMsg("err", explorerApiErrorMessage(err));
+      flashMsg("err", explorerApiErrorMessage(err, locale as Locale));
     }
-  }, [kbId, selectedEntry]);
+  }, [kbId, locale, m.api, selectedEntry]);
 
   const handleSelect = (entry: OntologyEntry) => {
     setSelectedEntry((prev) => (prev?.uri === entry.uri ? null : entry));
@@ -500,9 +512,10 @@ export function OntologyManager({
               <div className={ontManagerList}>
                 <div className={ontManagerListHeader}>
                   <span>
-                    {filteredEntries.length === 1
-                      ? m.registryCountOne
-                      : fmt(m.registryCount, { count: filteredEntries.length })}
+                    {fmt(
+                      pickCountForm(locale, filteredEntries.length, m.registryCountOne, m.registryCount),
+                      { count: formatLocaleNumber(locale, filteredEntries.length) },
+                    )}
                   </span>
                 </div>
                 {filteredEntries.map((entry) => (
@@ -582,14 +595,14 @@ export function OntologyManager({
                 {selectedEntry.loaded_at && (
                   <DetailSection label={m.detailLoadedAt}>
                     <span className="text-xs text-muted-foreground">
-                      {new Date(selectedEntry.loaded_at).toLocaleString()}
+                      {formatLocaleDateTime(locale, selectedEntry.loaded_at)}
                     </span>
                   </DetailSection>
                 )}
                 <div className={ontManagerStatRow}>
-                  <StatBlock value={selectedEntry.class_count} label={m.statClasses} tone="primary" />
-                  <StatBlock value={selectedEntry.concept_count} label={m.statConcepts} tone="ok" />
-                  <StatBlock value={selectedEntry.property_count} label={m.statProps} tone="warn" />
+                  <StatBlock locale={locale} value={selectedEntry.class_count} label={m.statClasses} tone="primary" />
+                  <StatBlock locale={locale} value={selectedEntry.concept_count} label={m.statConcepts} tone="ok" />
+                  <StatBlock locale={locale} value={selectedEntry.property_count} label={m.statProps} tone="warn" />
                 </div>
                 {selectedEntry.tags.length > 0 && (
                   <DetailSection label={m.detailTags}>
@@ -641,10 +654,12 @@ function DetailSection({ label, children }: { label: string; children: React.Rea
 }
 
 function StatBlock({
+  locale,
   value,
   label,
   tone,
 }: {
+  locale: Locale;
   value: number;
   label: string;
   tone: "primary" | "ok" | "warn";
@@ -653,7 +668,7 @@ function StatBlock({
     tone === "ok" ? "text-ok" : tone === "warn" ? "text-warn" : "text-primary";
   return (
     <div className="flex flex-1 flex-col items-center gap-0.5 rounded-lg border border-border bg-muted/30 px-1.5 py-2.5">
-      <span className={cn("text-lg font-extrabold", toneClass)}>{value.toLocaleString()}</span>
+      <span className={cn("text-lg font-extrabold", toneClass)}>{formatLocaleNumber(locale, value)}</span>
       <span className="text-[10px] text-muted-foreground">{label}</span>
     </div>
   );

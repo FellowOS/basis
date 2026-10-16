@@ -37,6 +37,8 @@ import {
   graphGroupedSummaryAvailable,
   graphGroupedSummaryDrillIn,
   graphNeighborSummary,
+  graphPluginPanelLoading,
+  graphRegistryLog,
   type GraphWorkspaceLocale,
 } from "./graphWorkspaceCopy";
 import { inspectorCopy } from "./graphInspectorCopy";
@@ -853,6 +855,7 @@ function synchronizeRealtimeSmallGraphEdges(isSmallGraph: boolean): void {
 function buildSelectedNodeState(
   nodeId: string,
   displayState: GraphDisplayStateSnapshot,
+  entityDefaultLabel: string,
 ): GraphSelectedNodeState | null {
   if (!nodeId || !graph.hasNode(nodeId)) {
     return null;
@@ -872,7 +875,7 @@ function buildSelectedNodeState(
     id: nodeId,
     label: String(attributes.label ?? nodeId),
     content: String(attributes.content ?? attributes.label ?? nodeId),
-    nodeType: String(attributes.nodeType ?? "Entity"),
+    nodeType: String(attributes.nodeType ?? entityDefaultLabel),
     color: typeof attributes.color === "string" ? attributes.color : undefined,
     valid_from: attributes.valid_from ?? null,
     valid_until: attributes.valid_until ?? null,
@@ -978,8 +981,7 @@ export function GraphWorkspace({
   apiErrorLocale,
 }: GraphWorkspaceProps) {
   const { locale: i18nLocale } = useI18n();
-  const copyLocale: GraphWorkspaceLocale =
-    apiErrorLocale ?? (i18nLocale === "zh" ? "zh" : "en");
+  const copyLocale: GraphWorkspaceLocale = apiErrorLocale ?? i18nLocale;
   const formatApiError = useCallback(
     (err: unknown) => explorerApiErrorMessage(err, copyLocale),
     [copyLocale],
@@ -998,7 +1000,7 @@ export function GraphWorkspace({
   const [graphReady, setGraphReady] = useState(false);
   const [graphVersion, setGraphVersion] = useState(0);
   const [catalogStatsRefreshKey, setCatalogStatsRefreshKey] = useState(0);
-  const graphStats = useGraphCatalogStats(kbId, catalogStatsRefreshKey);
+  const graphStats = useGraphCatalogStats(kbId, catalogStatsRefreshKey, copyLocale);
   const [loadBudget, setLoadBudget] = useState<GraphLoadBudget>(() =>
     defaultLoadBudget({ nodeTotal: null, edgeTotal: null }),
   );
@@ -1798,7 +1800,7 @@ export function GraphWorkspace({
     setGraphVersion((current) => current + 1);
     sceneRef.current?.getRuntime()?.requestRender();
 
-    void readNodeMarkdownAttributeUpdate(result.resource.id, kbId)
+    void readNodeMarkdownAttributeUpdate(result.resource.id, kbId, copyLocale)
       .then((savedAttributes) => {
         if (
           !markdownRefreshGuard.isCurrent(result.resource.id, syncGeneration)
@@ -1811,7 +1813,7 @@ export function GraphWorkspace({
       .catch((syncError) => {
         console.error("[GraphWorkspace] applied node refresh failed", syncError);
       });
-  }, [kbId, markdownRefreshGuard]);
+  }, [copyLocale, kbId, markdownRefreshGuard]);
 
   const handleProjectionRevisionBumpRef = useRef(handleProjectionRevisionBump);
   handleProjectionRevisionBumpRef.current = handleProjectionRevisionBump;
@@ -1874,7 +1876,18 @@ export function GraphWorkspace({
             smallGraphModeRef.current = false;
           }
           synchronizeRealtimeSmallGraphEdges(smallGraphModeRef.current);
-          logEvent("add-node", `Added node ${payload.label ?? nodeId}${payload.nodeType ? ` (${payload.nodeType})` : ""} via realtime ws`, { nodeId, nodeType: payload.nodeType });
+          logEvent(
+            "add-node",
+            graphRegistryLog(copyLocale, "addNode", {
+              label: String(payload.label ?? nodeId),
+              typeSuffix: payload.nodeType
+                ? graphRegistryLog(copyLocale, "addNodeTypeSuffix", {
+                    type: String(payload.nodeType),
+                  })
+                : "",
+            }),
+            { nodeId, nodeType: payload.nodeType },
+          );
           setGraphVersion((current) => current + 1);
           sceneRef.current?.getRuntime()?.requestRender();
         }
@@ -1896,7 +1909,7 @@ export function GraphWorkspace({
           });
           logEvent(
             "update-node",
-            `Updated node ${nodeId} via realtime ws`,
+            graphRegistryLog(copyLocale, "updateNode", { nodeId }),
             { nodeId, nodeType: payload.type },
           );
           setGraphVersion((version) => version + 1);
@@ -1925,7 +1938,20 @@ export function GraphWorkspace({
               }),
             },
           ]);
-          logEvent("add-edge", `Added edge ${payload.edgeType ?? payload.id} (${payload.source_id} → ${payload.target_id}) via realtime ws`, { edgeId: payload.id, edgeType: payload.edgeType, source: payload.source_id, target: payload.target_id });
+          logEvent(
+            "add-edge",
+            graphRegistryLog(copyLocale, "addEdge", {
+              edgeType: String(payload.edgeType ?? payload.id),
+              source: String(payload.source_id),
+              target: String(payload.target_id),
+            }),
+            {
+              edgeId: payload.id,
+              edgeType: payload.edgeType,
+              source: payload.source_id,
+              target: payload.target_id,
+            },
+          );
           setGraphVersion((current) => current + 1);
           sceneRef.current?.getRuntime()?.requestRender();
         }
@@ -1935,7 +1961,7 @@ export function GraphWorkspace({
       };
     };
 
-    void openGraphUpdatesWebSocket()
+    void openGraphUpdatesWebSocket(copyLocale)
       .then((activeSocket) => {
         if (cancelled) {
           activeSocket.close();
@@ -1951,7 +1977,7 @@ export function GraphWorkspace({
       cancelled = true;
       socket?.close();
     };
-  }, [kbId]);
+  }, [copyLocale, kbId]);
 
   useEffect(() => {
     setCollapsedNeighborhoodNodeIds([]);
@@ -2498,8 +2524,12 @@ export function GraphWorkspace({
   }, [copyLocale, displayState, selectedNodeId, viewMode]);
   const graphSummary = summary as GraphLoadSummary | null;
   const selectedNodeState = useMemo(
-    () => buildSelectedNodeState(selectedNodeId, displayState),
-    [displayState, selectedNodeId, summary?.nodeCount, summary?.edgeCount],
+    () => buildSelectedNodeState(
+      selectedNodeId,
+      displayState,
+      inspectorCopy(copyLocale, "entityDefault"),
+    ),
+    [copyLocale, displayState, selectedNodeId, summary?.nodeCount, summary?.edgeCount],
   );
   const temporalState = useMemo(
     () => ({
@@ -2683,6 +2713,7 @@ export function GraphWorkspace({
   }, [activePlugins, effectsState, graphDiagnosticsState, pluginPanelState]);
 
   const pluginContext = useMemo<GraphPluginContext>(() => ({
+    locale: copyLocale,
     get scene() {
       return pluginRuntimeRef.current;
     },
@@ -2708,6 +2739,7 @@ export function GraphWorkspace({
     isPanelOpen: (panelId: string) => Boolean(pluginPanelState[panelId]),
     dispatchAction: handlePluginAction,
   }), [
+    copyLocale,
     displayState,
     graphAnalyticsState,
     diagnosticsSnapshot,
@@ -2852,9 +2884,13 @@ export function GraphWorkspace({
         title: entry.label,
         placement: "bottom" as const,
         order: entry.order,
-        content: <div className={graphPluginLoading}>Loading {entry.label.toLowerCase()}…</div>,
+        content: (
+          <div className={graphPluginLoading}>
+            {graphPluginPanelLoading(copyLocale, entry.label)}
+          </div>
+        ),
       })),
-    [loadedPlugins, pluginPanelState, pluginRegistry],
+    [copyLocale, loadedPlugins, pluginPanelState, pluginRegistry],
   );
   const dockPanels = [...pluginPanels, ...pendingDockPanels]
     .filter((panel) => panel.placement === "bottom" || panel.placement === "side")
@@ -3167,12 +3203,12 @@ export function GraphWorkspace({
   const toolbarRailGroups = useMemo<GraphToolbarGroup[]>(
     () => [
       ...(viewModeItems.length > 0
-        ? [{ id: "view-mode", label: "View", items: viewModeItems }]
+        ? [{ id: "view-mode", label: graphCopy(copyLocale, "toolbarView"), items: viewModeItems }]
         : []),
       ...leftToolbarClusters,
       ...rightToolbarClusters,
     ],
-    [viewModeItems, leftToolbarClusters, rightToolbarClusters],
+    [copyLocale, viewModeItems, leftToolbarClusters, rightToolbarClusters],
   );
 
   const sceneAdapterProps = {
@@ -3201,6 +3237,7 @@ export function GraphWorkspace({
     onInteractionStateChange: handleInteractionStateChange,
     onDiagnosticsChange: handleDiagnosticsChange,
     onAnalyticsChange: handleAnalyticsChange,
+    locale: copyLocale,
   } as const;
   const showDistanceStatus = distanceVisualState.mode !== "off";
   const showTimelinePanel = Boolean(temporalBounds?.min);
@@ -3290,7 +3327,7 @@ export function GraphWorkspace({
             </SurfaceCard>
 
             <div className="explore-hud-layer">
-              <section className="explore-search-dock" aria-label="Graph search">
+              <section className="explore-search-dock" aria-label={graphCopy(copyLocale, "dockSearchAria")}>
                 <GraphSearchDock
                   locale={copyLocale}
                   kbId={kbId}
@@ -3317,7 +3354,7 @@ export function GraphWorkspace({
                 />
               </section>
 
-              <section className="explore-status-dock" aria-label="Graph status">
+              <section className="explore-status-dock" aria-label={graphCopy(copyLocale, "dockStatusAria")}>
                 <GraphStatusDock
                   locale={copyLocale}
                   showLoadingStatus={(showLoadingOverlay || showSettlingStatus) && Boolean(loadingProgress)}
@@ -3336,13 +3373,13 @@ export function GraphWorkspace({
               </section>
 
               {!showDistanceStatus && colorLegendItems.length > 0 ? (
-                <section className="explore-legend-dock" aria-label="Node color legend">
-                  <GraphColorLegendDock items={colorLegendItems} />
+                <section className="explore-legend-dock" aria-label={graphCopy(copyLocale, "dockLegendAria")}>
+                  <GraphColorLegendDock locale={copyLocale} items={colorLegendItems} />
                 </section>
               ) : null}
 
               {toolbarRailGroups.length > 0 ? (
-                <section className="explore-toolbar-rail-right" aria-label="Graph tools">
+                <section className="explore-toolbar-rail-right" aria-label={graphCopy(copyLocale, "dockToolsAria")}>
                   <GraphToolbarRail groups={toolbarRailGroups} expandLabels="left" />
                 </section>
               ) : null}

@@ -9,4 +9,11 @@ export const kbExplorer = {
   loadingShacl: 'Loading SHACL studio…',
   loadingReasoning: 'Loading reasoning workspace…',
   loadingReview: 'Loading review queue…',
+  kbContextRequired:
+    'Explorer API requires a knowledge base (pass kbId or mount ExplorerHostProvider with apiRoot).',
+  graphUpdatesWebSocketRequired:
+    'Graph updates WebSocket requires ExplorerHostProvider (KB realtime ticket).',
+  ontologyKbRequired: 'Ontology workspace requires kbId (OntologyKbProvider).',
+  vocabularyKbRequired: 'Vocabulary workspace requires kbId (VocabularyKbProvider).',
+  realtimeTicketFailed: 'Realtime ticket failed ({status})',
 } as const;

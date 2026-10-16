@@ -1,11 +1,13 @@
 import { Slot } from "@radix-ui/react-slot";
 import type * as React from "react";
 
+import { useI18n } from "@/i18n/context.js";
 import { PublicIcon } from "@/components/ui/public-icon.js";
 import { cn } from "@/lib/utils.js";
 
 function Breadcrumb({ ...props }: React.ComponentProps<"nav">) {
-	return <nav aria-label="breadcrumb" data-slot="breadcrumb" {...props} />;
+	const { t } = useI18n();
+	return <nav aria-label={t.common.breadcrumbNavAria} data-slot="breadcrumb" {...props} />;
 }
 
 function BreadcrumbList({ className, ...props }: React.ComponentProps<"ol">) {
@@ -90,6 +92,7 @@ function BreadcrumbEllipsis({
 	className,
 	...props
 }: React.ComponentProps<"span">) {
+	const { t } = useI18n();
 	return (
 		<span
 			data-slot="breadcrumb-ellipsis"
@@ -99,7 +102,7 @@ function BreadcrumbEllipsis({
 			{...props}
 		>
 			<PublicIcon name="dot-horizontal" size={16} className="breadcrumb-icon" />
-			<span className="sr-only">More</span>
+			<span className="sr-only">{t.common.breadcrumbMore}</span>
 		</span>
 	);
 }

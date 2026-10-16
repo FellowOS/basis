@@ -7,6 +7,8 @@ import {
   useState,
 } from 'react';
 import { useParams } from 'react-router-dom';
+import { useI18n } from '@/i18n/context.js';
+import { devMessage } from '@/i18n/dev-messages.js';
 import { ExplorerClient } from '@/lib/explorer-client.js';
 
 const ExplorerContext = createContext<ExplorerClient | null>(null);
@@ -18,6 +20,7 @@ export function ExplorerProvider({
   kbId: string;
   children: ReactNode;
 }) {
+  const { locale } = useI18n();
   const [generation, setGeneration] = useState(0);
 
   useEffect(() => {
@@ -26,9 +29,9 @@ export function ExplorerProvider({
 
   const client = useMemo(() => {
     const controller = new AbortController();
-    const instance = new ExplorerClient(kbId, controller.signal);
+    const instance = new ExplorerClient(kbId, controller.signal, locale);
     return { instance, controller };
-  }, [kbId, generation]);
+  }, [kbId, generation, locale]);
 
   useEffect(() => () => client.controller.abort(), [client]);
 
@@ -46,7 +49,7 @@ export function KbExplorerShell({ children }: { children: ReactNode }) {
 export function useExplorerClient(): ExplorerClient {
   const client = useContext(ExplorerContext);
   if (!client) {
-    throw new Error('useExplorerClient requires ExplorerProvider');
+    throw new Error(devMessage('useExplorerClient'));
   }
   return client;
 }

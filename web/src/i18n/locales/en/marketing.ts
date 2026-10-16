@@ -1,13 +1,18 @@
 export const marketing = {
   brand: 'Basis',
-  heroEyebrow: 'Unified Business Semantics · Ontologies & KBs · Agent-First',
-  heroHeadline: 'One semantic layer for enterprise knowledge',
+  heroEyebrow: 'Unified business semantics',
+  heroHeadline: 'One semantic layer',
+  heroHeadlineRest: 'for knowledge and decisions',
   heroSubhead:
-    'Basis uses ontologies to align business concepts, relationships, and rules, turning fragmented documents and data into trusted knowledge bases for teams and AI.',
+    'Ontologies align concepts, relationships, and rules, so documents and data become a knowledge base you can trace.',
   highlights: [
-    'Shared business definitions across systems and teams',
-    'Source-linked facts for explainable retrieval and reasoning',
-    'APIs that connect existing apps, models, and AI workflows',
+    { index: '01', title: 'Ontology', body: 'Define concepts, relationships, and rules' },
+    { index: '02', title: 'Knowledge', body: 'Store facts and keep their sources' },
+    {
+      index: '03',
+      title: 'Retrieval',
+      body: 'Look up and reason over the ontology, then return evidence to agents',
+    },
   ],
   ctaLogin: 'Sign in',
   ctaRegister: 'Create account',

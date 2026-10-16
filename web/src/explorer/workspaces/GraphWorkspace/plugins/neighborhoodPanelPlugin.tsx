@@ -9,7 +9,11 @@ import {
   graphPanelTitle,
   graphSemanticSwatchStyle,
 } from "@/lib/graph/graph-ui-classes.js";
+import { fmt, formatLocaleFixedDecimals, formatLocaleNumber, pickCountForm } from "@/i18n/format.js";
+import type { Locale } from "@/i18n/locale.js";
 
+import { graphCopy, graphFormatNumber, graphPluginCopy } from "../graphWorkspaceCopy";
+import { inspectorCopy } from "../graphInspectorCopy";
 import type { GraphPlugin } from "./types";
 
 const NEIGHBORHOOD_PANEL_ID = "neighborhood-panel";
@@ -23,10 +27,17 @@ function maxWeightBetween(graphRef: any, sourceId: string, targetId: string): nu
   return weight;
 }
 
-function formatNeighborMeta(neighbor: { nodeType: string; degree: number; weight: number }) {
-  const parts = [neighbor.nodeType, `degree ${neighbor.degree}`];
+function formatNeighborMeta(
+  locale: Locale,
+  neighbor: { nodeType: string; degree: number; weight: number },
+  p: ReturnType<typeof graphPluginCopy>["neighborhood"],
+) {
+  const parts = [
+    neighbor.nodeType,
+    fmt(p.metaDegree, { degree: formatLocaleNumber(locale, neighbor.degree) }),
+  ];
   if (neighbor.weight > 0) {
-    parts.push(`weight ${neighbor.weight.toFixed(2)}`);
+    parts.push(fmt(p.metaWeight, { weight: formatLocaleFixedDecimals(locale, neighbor.weight, 2) }));
   }
   return parts.join(" · ");
 }
@@ -39,8 +50,8 @@ export const neighborhoodPanelPlugin: GraphPlugin = {
   toolbarItems: (context) => [
     {
       id: "neighborhood-toggle",
-      label: "Neighbors",
-      title: "Toggle neighborhood panel",
+      label: graphCopy(context.locale, "pluginNeighbors"),
+      title: graphCopy(context.locale, "pluginNeighborsTitle"),
       active: context.isPanelOpen(NEIGHBORHOOD_PANEL_ID),
       order: 30,
       onClick: () => context.dispatchAction({ type: "togglePanel", panelId: NEIGHBORHOOD_PANEL_ID }),
@@ -51,19 +62,20 @@ export const neighborhoodPanelPlugin: GraphPlugin = {
       return null;
     }
 
+    const p = graphPluginCopy(context.locale).neighborhood;
     const selected = context.getSelectedNodeState();
     const displayState = context.getDisplayState();
     if (!selected) {
       return {
         id: NEIGHBORHOOD_PANEL_ID,
-        title: "Neighborhood",
+        title: p.panelTitle,
         placement: "bottom",
         order: 20,
         defaultOpen: false,
         preferredWidth: 360,
         preferredHeight: 260,
         content: (
-          <div className={graphPanelSummary}>Select a node to inspect its local neighborhood.</div>
+          <div className={graphPanelSummary}>{p.emptySelect}</div>
         ),
       };
     }
@@ -79,7 +91,7 @@ export const neighborhoodPanelPlugin: GraphPlugin = {
         return {
           id: neighborId,
           label: String(attrs.label || neighborId),
-          nodeType: String(attrs.nodeType || "Entity"),
+          nodeType: String(attrs.nodeType || inspectorCopy(context.locale, "entityDefault")),
           color: String(attrs.baseColor || attrs.color || context.theme.palette.semantic[0]),
           weight,
           degree: context.graph.degree(neighborId),
@@ -103,7 +115,7 @@ export const neighborhoodPanelPlugin: GraphPlugin = {
 
     return {
       id: NEIGHBORHOOD_PANEL_ID,
-      title: "Neighborhood",
+      title: p.panelTitle,
       placement: "bottom",
       order: 20,
       defaultOpen: false,
@@ -113,7 +125,7 @@ export const neighborhoodPanelPlugin: GraphPlugin = {
         <div className={graphLegendPanel}>
           <div className={graphPanelTitle}>{selected.label}</div>
           <div className={graphPanelSummary}>
-            {selected.neighborCount.toLocaleString()} direct neighbors in the full graph
+            {fmt(p.neighborSummary, { count: graphFormatNumber(context.locale, selected.neighborCount) })}
           </div>
           <div className="flex flex-wrap gap-2">
             <button
@@ -122,7 +134,7 @@ export const neighborhoodPanelPlugin: GraphPlugin = {
               disabled={!selected.canCollapseNeighborhood || selected.isNeighborhoodCollapsed}
               className={graphPanelControlBtn}
             >
-              Collapse Neighborhood
+              {p.collapse}
             </button>
             <button
               type="button"
@@ -130,17 +142,25 @@ export const neighborhoodPanelPlugin: GraphPlugin = {
               disabled={!selected.isNeighborhoodCollapsed}
               className={graphPanelControlBtn}
             >
-              Expand Neighborhood
+              {p.expand}
             </button>
           </div>
           {hiddenNeighborCount > 0 ? (
             <div className={graphPanelSummary}>
-              {hiddenNeighborCount.toLocaleString()} lower-priority neighbors are collapsed in the current view.
+              {fmt(p.hiddenNeighbors, { count: graphFormatNumber(context.locale, hiddenNeighborCount) })}
             </div>
           ) : null}
           {aggregatedEdgeCount > 0 ? (
             <div className={graphPanelSummary}>
-              {aggregatedEdgeCount.toLocaleString()} aggregated structural bundle{aggregatedEdgeCount === 1 ? "" : "s"} visible.
+              {fmt(
+                pickCountForm(
+                  context.locale,
+                  aggregatedEdgeCount,
+                  p.aggregatedBundles,
+                  p.aggregatedBundlesPlural,
+                ),
+                { count: graphFormatNumber(context.locale, aggregatedEdgeCount) },
+              )}
             </div>
           ) : null}
           {neighbors.length ? (
@@ -155,13 +175,15 @@ export const neighborhoodPanelPlugin: GraphPlugin = {
                   <span className={graphLegendSwatch} style={graphSemanticSwatchStyle(neighbor.color)} />
                   <div className="min-w-0 flex-1">
                     <div className={graphLegendTitle}>{neighbor.label}</div>
-                    <div className={graphLegendMeta}>{formatNeighborMeta(neighbor)}</div>
+                    <div className={graphLegendMeta}>
+                      {formatNeighborMeta(context.locale, neighbor, p)}
+                    </div>
                   </div>
                 </button>
               ))}
             </div>
           ) : (
-            <div className={graphPanelSummary}>No direct neighbors are available for this node.</div>
+            <div className={graphPanelSummary}>{p.noNeighbors}</div>
           )}
         </div>
       ),

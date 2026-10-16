@@ -1,0 +1,123 @@
+/** Graph explorer panel plugins (temporal, legend, neighborhood, effects). */
+export const graphPlugins = {
+  temporal: {
+    noTimeSelected: 'No time selected',
+    panelTitle: 'Temporal context',
+    scrubberEyebrow: 'Current scrubber state',
+    current: 'Current',
+    bounds: 'Bounds',
+    activeNodes: 'Active nodes',
+    activeChip: '{count} active',
+    allNodes: 'All',
+    boundsNow: 'now',
+    boundsEpoch: '1970-01-01',
+  },
+  legend: {
+    toolbarLabel: 'Legend',
+    toggleTitle: 'Toggle semantic legend',
+    panelTitle: 'Legend',
+    eyebrow: 'Semantic groups',
+    empty: 'Legend will populate when the graph metadata is available.',
+    nodeCount: '{count} nodes',
+  },
+  neighborhood: {
+    panelTitle: 'Neighborhood',
+    emptySelect: 'Select a node to inspect its local neighborhood.',
+    neighborSummary: '{count} direct neighbors in the full graph',
+    collapse: 'Collapse neighborhood',
+    expand: 'Expand neighborhood',
+    hiddenNeighbors: '{count} lower-priority neighbors are collapsed in the current view.',
+    aggregatedBundles: '{count} aggregated structural bundle visible.',
+    aggregatedBundlesPlural: '{count} aggregated structural bundles visible.',
+    noNeighbors: 'No direct neighbors are available for this node.',
+    metaDegree: 'degree {degree}',
+    metaWeight: 'weight {weight}',
+  },
+  effects: {
+    panelTitle: 'Effects',
+    eyebrow: 'Exploration effects',
+    sectionLayout: 'Layout',
+    sectionScene: 'Scene effects',
+    sectionIntelligence: 'Graph intelligence',
+    sectionRegions: 'Regions and signals',
+    sectionDiagnostics: 'Diagnostics',
+    toggleOn: 'On',
+    toggleOff: 'Off',
+    waitingRuntime: 'Waiting for graph runtime',
+    segmentsProgress: '{reason} - {visible}/{cap} segments',
+    availabilityDetail: '{reason} - {detail}',
+    regionsEmpty: 'Regions and intelligence summaries will populate when graph analytics are ready.',
+    semanticRegions: 'Semantic regions',
+    visibleTotal: '{visible} visible / {total} total',
+    communityAnchors: 'Community anchors',
+    communityMeta: 'Community {id} - {visible} visible / {total} total',
+    centralityLeaders: 'Centrality leaders',
+    centralityMeta: '{group} - score {score}',
+    centralityBadge: 'deg {degree}',
+    directedPathfinding: 'Directed pathfinding',
+    pathReady: 'Local directed path ready',
+    pathWaiting: 'Waiting for path context',
+    pathHops: '{count} hops',
+    pathMatch: ' - match',
+    fallbackLegend: 'Fallback semantic legend',
+    devDiagnosticsLabel: 'Dev diagnostics',
+    devDiagnosticsDesc: 'Inspect plugin, interaction, and effect gating state.',
+    runtimeSnapshot: 'Runtime snapshot',
+    rows: {
+      autoLayoutEnabled: {
+        label: 'Auto layout',
+        description:
+          'Run ForceAtlas2 after load to spread nodes by edge structure. Off keeps seed positions (clustered groups on large graphs).',
+      },
+      pathPulseEnabled: {
+        label: 'Path pulse',
+        description: 'Animated pulse on the active selected path.',
+      },
+      pathFlowEnabled: {
+        label: 'Path flow',
+        description: 'Directional flow accents along the active selected path.',
+      },
+      lensEnabled: {
+        label: 'Neighborhood lens',
+        description: 'Local emphasis around the hovered or selected node.',
+      },
+      temporalEmphasisEnabled: {
+        label: 'Temporal emphasis',
+        description: 'Subtle glow around temporally relevant nodes in the active time window.',
+      },
+      semanticRegionsEnabled: {
+        label: 'Semantic regions',
+        description: 'Quiet semantic hulls around the strongest visible topic clusters.',
+      },
+      contoursEnabled: {
+        label: 'Contours',
+        description: 'Low-contrast density halos around the strongest visible anchors.',
+      },
+      edgeLabelsEnabled: {
+        label: 'Edge labels',
+        description:
+          'Draw the relationship type on graph edges. Off restores label-free edges on dense graphs.',
+      },
+      legendEnabled: {
+        label: 'Regions summary',
+        description: 'Keep the regions and signals summary visible in the Effects panel.',
+      },
+      pathfindingEnabled: {
+        label: 'Directed pathfinding',
+        description: 'Compare the traced path against a strict local directed shortest path.',
+      },
+      communitiesEnabled: {
+        label: 'Community regions',
+        description: 'Detect stable Louvain communities for orientation and scene grouping.',
+      },
+      centralityEnabled: {
+        label: 'Centrality ranking',
+        description: 'Rank the strongest graph anchors for labels, regions, and navigation.',
+      },
+      diagnosticsEnabled: {
+        label: 'Dev diagnostics',
+        description: 'Inspect plugin, interaction, and effect gating state.',
+      },
+    },
+  },
+} as const;

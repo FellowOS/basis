@@ -32,4 +32,7 @@ export const kbReview = {
   partialLedgerSkipped: 'Some nodes skipped for ledger: {skipped}',
   importNodes: '{count} nodes',
   importEdges: '{count} edges',
+  importDefaultFilename: 'import',
+  importByteSize: '{size} B',
+  mappingKindUnknown: '?',
 } as const;

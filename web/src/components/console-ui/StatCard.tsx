@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { useI18n } from '@/i18n/context.js';
 import { cn } from '@/lib/utils.js';
 import { AnimatedNumber } from './AnimatedNumber.js';
 import { Card } from './Card.js';
@@ -24,6 +25,7 @@ export function StatCard({
   sparkline,
   className,
 }: StatCardProps) {
+  const { locale } = useI18n();
   return (
     <Card padding="md" className={cn('min-w-0', className)}>
       <div className="flex items-center justify-between gap-2">
@@ -47,6 +49,7 @@ export function StatCard({
       <p className="mt-4 truncate text-xs font-medium text-muted-foreground">{label}</p>
       <AnimatedNumber
         value={value}
+        locale={locale}
         className="mt-1 block truncate text-2xl font-extrabold text-foreground"
       />
       {sparkline && <div className="mt-3 h-9">{sparkline}</div>}

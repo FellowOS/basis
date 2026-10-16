@@ -38,6 +38,7 @@ import { KbGraphProjectionPanel } from '@/components/kb/widgets/kb-graph-project
 import { useKbCatalog } from '@/lib/kb-context.js';
 import { useKbCapabilities } from '@/lib/kb-capabilities.js';
 import { api } from '@/lib/api.js';
+import { kbMemberRoleLabel, kbVisibilityLabel } from '@/lib/kb-settings-labels.js';
 import { useApiErrorMessage } from '@/lib/use-api-error-message.js';
 
 type Member = {
@@ -93,6 +94,7 @@ export function KbSettingsPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { t } = useI18n();
+  const emptyCell = t.common.emptyCell;
   const ks = t.kbSettings;
 
   function defaultModeLabel(mode: SearchConfig['default_mode']): string {
@@ -123,7 +125,7 @@ export function KbSettingsPage() {
   const [addingMember, setAddingMember] = useState(false);
 
   const catalogKb = id ? getKb(id) : undefined;
-  const name = catalogKb?.name ?? kb?.name ?? id ?? '…';
+  const name = catalogKb?.name ?? kb?.name ?? id ?? t.common.ellipsis;
 
   useEffect(() => {
     if (!id) return;
@@ -270,7 +272,7 @@ export function KbSettingsPage() {
         { label: t.menu.kb.settings },
       ]}
       subtitle={t.pages.kbSubtitles.settings}
-      meta={fmt(ks.myRoleMeta, { role: kb.my_role })}
+      meta={fmt(ks.myRoleMeta, { role: kbMemberRoleLabel(ks, kb.my_role) })}
     >
       {error && <p className="text-sm text-destructive">{error}</p>}
 
@@ -305,11 +307,11 @@ export function KbSettingsPage() {
               </p>
               <p>
                 <span className="text-muted-foreground">{ks.fields.description}{ks.labelSuffix}</span>
-                {kb.description || '—'}
+                {kb.description || emptyCell}
               </p>
               <p>
                 <span className="text-muted-foreground">{ks.fields.visibility}{ks.labelSuffix}</span>
-                {kb.visibility}
+                {kbVisibilityLabel(ks, kb.visibility)}
               </p>
             </CardContent>
           </Card>
@@ -413,7 +415,7 @@ export function KbSettingsPage() {
                     <TableRow key={m.user_id}>
                       <TableCell>{m.display_name}</TableCell>
                       <TableCell>{m.email}</TableCell>
-                      <TableCell>{m.role}</TableCell>
+                      <TableCell>{kbMemberRoleLabel(ks, m.role)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -470,8 +472,8 @@ export function KbSettingsPage() {
                   className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm"
                   defaultValue={kb.visibility}
                 >
-                  <option value="restricted">restricted</option>
-                  <option value="open">open</option>
+                  <option value="restricted">{ks.visibilityLabels.restricted}</option>
+                  <option value="open">{ks.visibilityLabels.open}</option>
                 </select>
               </div>
             </div>
@@ -640,10 +642,10 @@ export function KbSettingsPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="viewer">viewer</SelectItem>
-                  <SelectItem value="editor">editor</SelectItem>
-                  <SelectItem value="admin">admin</SelectItem>
-                  <SelectItem value="owner">owner</SelectItem>
+                  <SelectItem value="viewer">{ks.roleLabels.viewer}</SelectItem>
+                  <SelectItem value="editor">{ks.roleLabels.editor}</SelectItem>
+                  <SelectItem value="admin">{ks.roleLabels.admin}</SelectItem>
+                  <SelectItem value="owner">{ks.roleLabels.owner}</SelectItem>
                 </SelectContent>
               </Select>
             </div>

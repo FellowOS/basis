@@ -2,9 +2,9 @@ import { type FormEvent, useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
 import { Button } from '@/components/ui/button.js';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card.js';
 import { Input } from '@/components/ui/input.js';
 import { Label } from '@/components/ui/label.js';
+import { PublicIcon } from '@/components/ui/public-icon.js';
 import { useI18n } from '@/i18n/context.js';
 import type { Locale } from '@/i18n/locale.js';
 import { formatUserFacingApiError } from '@/lib/api-error-message.js';
@@ -21,6 +21,7 @@ export function AuthFormCard() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -31,6 +32,7 @@ export function AuthFormCard() {
   function switchMode(next: AuthMode) {
     setMode(next);
     setError(null);
+    setShowPassword(false);
     if (next === 'register') {
       setSearchParams({ mode: 'register' }, { replace: true });
     } else {
@@ -55,81 +57,112 @@ export function AuthFormCard() {
 
   const isRegister = mode === 'register';
 
+  const fieldLabel = 'text-[13px] font-medium text-foreground/75';
+  const fieldInput =
+    'h-10 border-foreground/12 bg-[#f4f5f7] shadow-none dark:border-white/12 dark:bg-[#0c1016]';
+
   return (
-    <Card className="w-full border-border/80 bg-card/95 shadow-lg backdrop-blur-sm">
-      <CardHeader className="pb-4">
-        <CardTitle className="text-lg">
+    <div className="flex min-h-0 flex-col">
+      <div className="pt-5 pr-12 pb-0 pl-6">
+        <h2 className="text-xl font-semibold tracking-[-0.03em] text-foreground">
           {isRegister ? t.login.registerTitle : t.login.title}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form className="space-y-3" onSubmit={onSubmit}>
+        </h2>
+        <p className="mt-1.5 text-sm leading-snug text-muted-foreground">
+          {isRegister ? t.login.registerSubtitle : t.login.subtitle}
+        </p>
+      </div>
+
+      <form className="mt-4 flex min-h-0 flex-col" onSubmit={onSubmit}>
+        <div className="min-h-0 space-y-3 overflow-y-auto px-6">
           {isRegister && (
             <div className="space-y-1.5">
-              <Label htmlFor="display_name">{t.login.displayNameLabel}</Label>
+              <Label htmlFor="display_name" className={fieldLabel}>
+                {t.login.displayNameLabel}
+              </Label>
               <Input
                 id="display_name"
+                name="display_name"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
                 placeholder={t.login.displayNamePlaceholder}
+                autoComplete="name"
+                className={fieldInput}
                 required
               />
             </div>
           )}
           <div className="space-y-1.5">
-            <Label htmlFor="email">{t.login.emailLabel}</Label>
+            <Label htmlFor="email" className={fieldLabel}>
+              {t.login.emailLabel}
+            </Label>
             <Input
               id="email"
+              name="email"
               type="email"
               autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder={t.login.emailPlaceholder}
+              className={fieldInput}
               required
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="password">{t.login.passwordLabel}</Label>
-            <Input
-              id="password"
-              type="password"
-              autoComplete={isRegister ? 'new-password' : 'current-password'}
-              minLength={8}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder={t.login.passwordPlaceholder}
-              required
-            />
+            <Label htmlFor="password" className={fieldLabel}>
+              {t.login.passwordLabel}
+            </Label>
+            <div className="relative">
+              <Input
+                id="password"
+                name="password"
+                type={showPassword ? 'text' : 'password'}
+                autoComplete={isRegister ? 'new-password' : 'current-password'}
+                minLength={8}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder={t.login.passwordPlaceholder}
+                className={`${fieldInput} pr-10`}
+                required
+              />
+              <button
+                type="button"
+                className="absolute top-1/2 right-1 flex size-8 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-foreground/5 hover:text-foreground"
+                aria-label={showPassword ? t.login.hidePassword : t.login.showPassword}
+                aria-pressed={showPassword}
+                onClick={() => setShowPassword((visible) => !visible)}
+              >
+                <PublicIcon name={showPassword ? 'eye-off' : 'eye-open'} size={16} />
+              </button>
+            </div>
           </div>
-          {error && <p className="text-sm text-destructive">{error}</p>}
-          <Button type="submit" disabled={busy} className="mt-1 w-full rounded-xl">
-            {busy
-              ? t.login.submitting
-              : isRegister
-                ? t.login.registerSubmit
-                : t.login.submit}
-          </Button>
-        </form>
-        <p className="mt-3 text-center text-sm text-muted-foreground">
-          {isRegister ? (
-            <button
-              type="button"
-              className="underline-offset-4 hover:text-foreground hover:underline"
-              onClick={() => switchMode('login')}
-            >
-              {t.login.switchToLogin}
-            </button>
-          ) : (
-            <button
-              type="button"
-              className="underline-offset-4 hover:text-foreground hover:underline"
-              onClick={() => switchMode('register')}
-            >
-              {t.login.switchToRegister}
-            </button>
+          {error && (
+            <p role="alert" className="rounded-md bg-destructive/10 px-3 py-2 text-sm leading-relaxed text-destructive">
+              {error}
+            </p>
           )}
-        </p>
-      </CardContent>
-    </Card>
+        </div>
+        <div className="px-6 pt-3">
+          <Button
+            type="submit"
+            size="lg"
+            disabled={busy}
+            className="w-full bg-[#152033] text-[#f6f4ef] hover:bg-[#152033] hover:brightness-110 dark:bg-[#f3ead7] dark:text-[#152033] dark:hover:bg-[#f3ead7]"
+          >
+            {busy ? t.login.submitting : isRegister ? t.login.registerSubmit : t.login.submit}
+          </Button>
+        </div>
+      </form>
+
+      <p className="mx-6 mt-3 mb-4 border-t border-foreground/10 pt-3.5 text-sm text-muted-foreground">
+        {isRegister ? t.login.hasAccount : t.login.noAccount}{' '}
+        <button
+          type="button"
+          className="font-medium text-foreground underline-offset-4 hover:underline"
+          onClick={() => switchMode(isRegister ? 'login' : 'register')}
+        >
+          {isRegister ? t.login.switchToLogin : t.login.switchToRegister}
+        </button>
+      </p>
+    </div>
   );
 }

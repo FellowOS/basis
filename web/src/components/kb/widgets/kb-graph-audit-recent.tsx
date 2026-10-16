@@ -8,6 +8,8 @@ import { api } from '@/lib/api.js';
 import { formatUserFacingApiError } from '@/lib/api-error-message.js';
 import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
+import { formatLocaleDateTime } from '@/i18n/format.js';
+import type { Locale } from '@/i18n/locale.js';
 
 export function KbGraphAuditRecent({
   kbId,
@@ -78,7 +80,9 @@ export function KbGraphAuditRecent({
                   {formatGraphAuditDetail(event, locale)}
                 </div>
               </div>
-              <time className="shrink-0 text-xs text-muted-foreground">{event.created_at}</time>
+              <time className="shrink-0 text-xs text-muted-foreground">
+                {formatLocaleDateTime(locale as Locale, event.created_at)}
+              </time>
             </li>
           ))}
         </ul>

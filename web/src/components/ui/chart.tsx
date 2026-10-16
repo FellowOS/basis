@@ -4,6 +4,9 @@ import * as React from "react"
 import * as RechartsPrimitive from "recharts"
 import type { TooltipValueType } from "recharts"
 
+import { useI18n } from "@/i18n/context.js"
+import { devMessage } from "@/i18n/dev-messages.js"
+import { formatLocaleNumber } from "@/i18n/format.js"
 import { cn } from "@/lib/utils"
 
 // Format: { THEME_NAME: CSS_SELECTOR }
@@ -33,7 +36,7 @@ function useChart() {
   const context = React.useContext(ChartContext)
 
   if (!context) {
-    throw new Error("useChart must be used within a <ChartContainer />")
+    throw new Error(devMessage("useChart"))
   }
 
   return context
@@ -145,6 +148,7 @@ function ChartTooltipContent({
     "accessibilityLayer"
   >) {
   const { config } = useChart()
+  const { locale } = useI18n()
 
   const tooltipLabel = React.useMemo(() => {
     if (hideLabel || !payload?.length) {
@@ -255,7 +259,7 @@ function ChartTooltipContent({
                       {item.value != null && (
                         <span className="font-mono font-medium text-foreground tabular-nums">
                           {typeof item.value === "number"
-                            ? item.value.toLocaleString()
+                            ? formatLocaleNumber(locale, item.value)
                             : String(item.value)}
                         </span>
                       )}

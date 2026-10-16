@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button.js";
 import { errorFromApiResponse } from "@/lib/api-error.js";
 import { formatUserFacingApiError } from "@/lib/api-error-message.js";
 import { useI18n } from "@/i18n/context.js";
-import { fmt } from "@/i18n/format.js";
+import { fmt, formatLocaleFixedDecimals } from "@/i18n/format.js";
 import type { Locale } from "@/i18n/locale.js";
 import { buildExplorerKbApiPath, explorerFetch } from "../../host/explorerHttp";
 import { logEvent } from "../../store/registryStore";
@@ -102,7 +102,7 @@ export function ImportExportWorkspace({
         fmt(ie.importSuccess, { name: file.name }),
         reviewAction,
       );
-      logEvent("review", `Queued graph import: ${file.name}`, { file: file.name });
+      logEvent("review", fmt(ie.logQueuedImport, { name: file.name }), { file: file.name });
       setFile(null);
     } catch (e: unknown) {
       showToast("error", formatUserFacingApiError(e, locale as Locale));
@@ -132,7 +132,11 @@ export function ImportExportWorkspace({
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
       showToast("success", fmt(ie.exportSuccess, { format: exportFormat }));
-      logEvent("export", `Exported graph as ${exportFormat.toUpperCase()}`, { format: exportFormat });
+      logEvent(
+        "export",
+        fmt(ie.logExported, { format: exportFormat.toUpperCase() }),
+        { format: exportFormat },
+      );
     } catch (e: unknown) {
       showToast("error", formatUserFacingApiError(e, locale as Locale));
     } finally { setIsExporting(false); }
@@ -173,7 +177,9 @@ export function ImportExportWorkspace({
                   <PublicIcon name="file-01" size={40} className="text-ok" />
                   <div className="font-bold text-foreground">{file.name}</div>
                   <div className="ws-body text-[11px]">
-                    {fmt(ie.fileSizeReplace, { size: (file.size / 1024).toFixed(1) })}
+                    {fmt(ie.fileSizeReplace, {
+                      size: formatLocaleFixedDecimals(locale as Locale, file.size / 1024, 1),
+                    })}
                   </div>
                 </>
               ) : (

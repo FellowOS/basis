@@ -1,4 +1,8 @@
 import { createContext, useContext, type ReactNode } from "react";
+
+import { localeFromBrowser } from "@/i18n/locale.js";
+import { messagesForLocale } from "@/i18n/pick-locale.js";
+
 import { buildExplorerKbApiPath } from "../../host/explorerHttp";
 
 const OntologyKbContext = createContext<string | null>(null);
@@ -18,7 +22,8 @@ export function OntologyKbProvider({
 export function useOntologyKbId(): string {
   const kbId = useContext(OntologyKbContext);
   if (!kbId) {
-    throw new Error("Ontology workspace requires kbId (OntologyKbProvider).");
+    const lang = typeof navigator !== "undefined" ? navigator.language : "en";
+    throw new Error(messagesForLocale(localeFromBrowser(lang)).kbExplorer.ontologyKbRequired);
   }
   return kbId;
 }

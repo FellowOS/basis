@@ -21,6 +21,8 @@ import {
 	TooltipProvider,
 	TooltipTrigger,
 } from "@/components/ui/tooltip.js";
+import { useI18n } from "@/i18n/context.js";
+import { devMessage } from "@/i18n/dev-messages.js";
 import { getIsMobileViewport, useIsMobile } from "@/lib/use-mobile.js";
 import { cn } from "@/lib/utils.js";
 
@@ -58,7 +60,7 @@ const SidebarContext = React.createContext<SidebarContextProps | null>(null);
 function useSidebar() {
 	const context = React.useContext(SidebarContext);
 	if (!context) {
-		throw new Error("useSidebar must be used within a SidebarProvider.");
+		throw new Error(devMessage("useSidebar"));
 	}
 
 	return context;
@@ -186,6 +188,7 @@ function Sidebar({
 	collapsible?: "offcanvas" | "icon" | "none";
 }) {
 	const { isMobile, state, openMobile, setOpenMobile } = useSidebar();
+	const { t } = useI18n();
 
 	if (collapsible === "none") {
 		return (
@@ -218,8 +221,8 @@ function Sidebar({
 					side={side}
 				>
 					<SheetHeader className="sr-only">
-						<SheetTitle>Sidebar</SheetTitle>
-						<SheetDescription>Displays the mobile sidebar.</SheetDescription>
+						<SheetTitle>{t.sidebar.mobileTitle}</SheetTitle>
+						<SheetDescription>{t.sidebar.mobileDescription}</SheetDescription>
 					</SheetHeader>
 					<div className="flex h-full w-full flex-col">{children}</div>
 				</SheetContent>
@@ -282,6 +285,7 @@ function SidebarTrigger({
 	...props
 }: React.ComponentProps<typeof Button>) {
 	const { toggleSidebar } = useSidebar();
+	const { t } = useI18n();
 
 	return (
 		<Button
@@ -297,22 +301,23 @@ function SidebarTrigger({
 			{...props}
 		>
 			<PublicIcon name="layout-left" size={16} />
-			<span className="sr-only">Toggle Sidebar</span>
+			<span className="sr-only">{t.common.toggleSidebar}</span>
 		</Button>
 	);
 }
 
 function SidebarRail({ className, ...props }: React.ComponentProps<"button">) {
 	const { toggleSidebar } = useSidebar();
+	const { t } = useI18n();
 
 	return (
 		<button
 			data-sidebar="rail"
 			data-slot="sidebar-rail"
-			aria-label="Toggle Sidebar"
+			aria-label={t.common.toggleSidebar}
 			tabIndex={-1}
 			onClick={toggleSidebar}
-			title="Toggle Sidebar"
+			title={t.common.toggleSidebar}
 			className={cn(
 				"hover:after:bg-border/40 absolute inset-y-0 z-20 hidden w-4 -translate-x-1/2 transition-all ease-linear group-data-[side=left]:-right-4 group-data-[side=right]:left-0 after:absolute after:inset-y-0 after:left-1/2 after:w-[2px] sm:flex",
 				"",

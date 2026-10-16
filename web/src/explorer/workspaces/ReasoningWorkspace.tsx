@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useI18n } from "@/i18n/context.js";
-import { fmt } from "@/i18n/format.js";
+import { fmt, formatLocaleNumber, requestFailedStatusMessage } from "@/i18n/format.js";
+import type { Locale } from "@/i18n/locale.js";
 import { ReasoningRulesDialog, type KbReasoningRule } from "./ReasoningRulesDialog.js";
 import { ReasoningInputPanel } from "./ReasoningInputPanel.js";
 import { ReasoningResultsPanel } from "./ReasoningResultsPanel.js";
@@ -64,7 +65,7 @@ export function ReasoningWorkspace({
   kbId: string;
 }) {
   const apiError = useApiErrorMessage();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const copy = t.kbReasoning;
   const capsCtx = useKbCapabilitiesOptional();
   const canWriteGraph = !capsCtx?.loading && Boolean(capsCtx?.caps?.graph_write);
@@ -175,12 +176,12 @@ export function ReasoningWorkspace({
   );
 
   const formatFactIssue = useCallback(
-    (n: number) => fmt(copy.factIssue, { n: String(n) }),
-    [copy.factIssue],
+    (n: number) => fmt(copy.factIssue, { n: formatLocaleNumber(locale, n) }),
+    [copy.factIssue, locale],
   );
   const formatRuleIssue = useCallback(
-    (n: number) => fmt(copy.ruleIssue, { n: String(n) }),
-    [copy.ruleIssue],
+    (n: number) => fmt(copy.ruleIssue, { n: formatLocaleNumber(locale, n) }),
+    [copy.ruleIssue, locale],
   );
   const formatLibraryRuleIssue = useCallback(
     (name: string) => fmt(copy.libraryRuleIssue, { name }),
@@ -235,9 +236,14 @@ export function ReasoningWorkspace({
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw errorFromApiResponse(response.status, data, `Status ${response.status}`);
+        throw errorFromApiResponse(
+          response.status,
+          data,
+          requestFailedStatusMessage(locale as Locale, response.status),
+          locale as Locale,
+        );
       }
-      if (response.status === 207) setError(data.message || "Warning: Partial success reasoning.");
+      if (response.status === 207) setError(data.message || copy.partialRun);
       setResult(data);
       setRunSnapshot(signature);
       if (data.mutated) {
@@ -250,7 +256,7 @@ export function ReasoningWorkspace({
     } finally {
       setIsRunning(false);
     }
-  }, [apiError, applyToGraph, canRun, canWriteGraph, factLines, inputSignature, kbId, queryClient, runRules]);
+  }, [apiError, applyToGraph, canRun, canWriteGraph, copy.partialRun, factLines, inputSignature, kbId, locale, queryClient, runRules]);
 
   const applyReplace = useCallback((next: { facts: string; rules: string; clearLibrary: boolean }) => {
     setFacts(next.facts);
@@ -310,6 +316,7 @@ export function ReasoningWorkspace({
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
       <div className={exWsPageRow}>
         <ReasoningInputPanel
+          locale={locale as Locale}
           copy={copy}
           facts={facts}
           factCount={factLines.length}
@@ -340,6 +347,7 @@ export function ReasoningWorkspace({
         />
 
         <ReasoningResultsPanel
+          locale={locale}
           copy={copy}
           kbId={kbId}
           result={result}

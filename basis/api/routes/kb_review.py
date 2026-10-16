@@ -232,28 +232,30 @@ async def approve_review_item(
                 from semantica.explorer.routes.enrich import merge_nodes
                 from semantica.explorer.schemas import MergeRequest
 
+                from basis.knowledge.graph_sync import resolve_ledger_entity_id
+
                 merge_body = MergeRequest.model_validate(payload)
                 runtime = get_explorer_registry(request).get(request, kb_id)
                 session = require_explorer_graph_session(runtime)
+                primary_ledger = resolve_ledger_entity_id(
+                    knowledge, kb_id, runtime.basis, primary_id
+                )
+                ledger_merges = []
+                if primary_ledger:
+                    for dup in duplicate_ids:
+                        if dup != primary_ledger and knowledge.ledger_entity_exists(kb_id, dup):
+                            ledger_merges.append(
+                                knowledge.record_entity_merge(
+                                    kb_id,
+                                    source_entity_id=dup,
+                                    target_entity_id=primary_ledger,
+                                    actor_id=user.id,
+                                    why=body.rationale,
+                                )
+                            )
                 result = await merge_nodes(merge_body, session=session)
                 save_graph(request, kb_id)
                 merge_result = result.model_dump() if hasattr(result, "model_dump") else dict(result)
-                ledger_merges: list[dict[str, Any]] = []
-                for dup in duplicate_ids:
-                    if (
-                        primary_id
-                        and knowledge.ledger_entity_exists(kb_id, dup)
-                        and knowledge.ledger_entity_exists(kb_id, primary_id)
-                    ):
-                        ledger_merges.append(
-                            knowledge.record_entity_merge(
-                                kb_id,
-                                source_entity_id=dup,
-                                target_entity_id=primary_id,
-                                actor_id=user.id,
-                                why=body.rationale,
-                            )
-                        )
                 if ledger_merges:
                     merge_result = {**merge_result, "ledger_merges": ledger_merges}
                 elif duplicate_ids:
@@ -262,12 +264,11 @@ async def approve_review_item(
                         "ledger_notice": "graph_only_merge",
                         "ledger_skipped_ids": duplicate_ids,
                     }
+                merged_sources = {row["source_entity_id"] for row in ledger_merges}
                 partial = [
                     dup
                     for dup in duplicate_ids
-                    if primary_id
-                    and knowledge.ledger_entity_exists(kb_id, primary_id)
-                    and not knowledge.ledger_entity_exists(kb_id, dup)
+                    if primary_ledger and dup != primary_ledger and dup not in merged_sources
                 ]
                 if ledger_merges and partial:
                     merge_result = {

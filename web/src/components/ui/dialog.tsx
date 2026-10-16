@@ -5,6 +5,7 @@ import * as React from "react";
 
 import { Button } from "@/components/ui/button.js";
 import { PublicIcon } from "@/components/ui/public-icon.js";
+import { useI18n } from "@/i18n/context.js";
 import { cn } from "@/lib/utils.js";
 
 function Dialog({
@@ -65,6 +66,7 @@ function DialogContent({
 }: React.ComponentProps<typeof DialogPrimitive.Content> & {
 	showCloseButton?: boolean;
 }) {
+	const { t } = useI18n();
 	return (
 		<DialogPortal>
 			<DialogOverlay />
@@ -88,7 +90,7 @@ function DialogContent({
 							data-slot="dialog-close"
 						>
 							<PublicIcon name="x-02" size={16} />
-							<span className="sr-only">Close</span>
+							<span className="sr-only">{t.common.close}</span>
 						</Button>
 					</DialogPrimitive.Close>
 				)}

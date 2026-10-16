@@ -59,6 +59,8 @@ def test_same_doc_id_appends_version_and_supersedes_ready(tmp_path: Path) -> Non
     policy_rows = [d for d in docs if d.get("doc_id") == "policy"]
     assert len(policy_rows) == 1
     assert policy_rows[0]["version_no"] == 2
+    assert policy_rows[0]["created_at"]
+    assert policy_rows[0]["updated_at"] >= policy_rows[0]["created_at"]
 
 
 def test_unchanged_content_skips_new_version(tmp_path: Path) -> None:
@@ -144,3 +146,28 @@ def test_filename_only_for_uploaded_files(tmp_path: Path) -> None:
     uploaded_row = next(row for row in docs if row.get("filename") == "规范说明.md")
     assert uploaded_row["doc_id"] == "upload"
     assert uploaded_row["doc_id"] != uploaded_row["filename"]
+
+
+def test_document_list_is_newest_upload_first(tmp_path: Path) -> None:
+    client = TestClient(create_app(Settings(data_dir=tmp_path)))
+    admin = client.post(
+        "/api/auth/register",
+        json={"email": "order@example.com", "password": "password1", "display_name": "Order"},
+    ).json()
+    headers = _auth(admin["token"])
+    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    client.post(
+        f"/api/kbs/{kb_id}/documents",
+        headers=headers,
+        json={"doc_id": "older", "text": "first"},
+    )
+    client.post(
+        f"/api/kbs/{kb_id}/documents",
+        headers=headers,
+        json={"doc_id": "newer", "text": "second"},
+    )
+    docs = client.get(f"/api/kbs/{kb_id}/documents", headers=headers).json()["documents"]
+    ids = [row["doc_id"] for row in docs]
+    assert ids.index("newer") < ids.index("older")
+    created = [row["created_at"] for row in docs]
+    assert created == sorted(created, reverse=True)

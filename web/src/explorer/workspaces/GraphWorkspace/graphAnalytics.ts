@@ -8,7 +8,10 @@ import {
   outDegreeCentrality,
 } from "graphology-metrics/centrality/degree";
 
+import { fmt } from "@/i18n/format.js";
+
 import { graph, type EdgeAttributes, type NodeAttributes } from "../../store/graphStore";
+import { graphEffectReasonsCopy, type GraphWorkspaceLocale } from "./graphWorkspaceCopy";
 import { GRAPH_THEME, hashString } from "./graphTheme";
 import type {
   GraphAnalyticsSnapshot,
@@ -28,6 +31,8 @@ type GraphCentralityRecord = {
   betweenness: number;
   score: number;
 };
+
+type EffectReasons = ReturnType<typeof graphEffectReasonsCopy>;
 
 type GraphAnalyticsBase = {
   communitiesByNode: Map<string, number>;
@@ -183,6 +188,7 @@ function buildCommunitySummaries(
   graphRef: GraphRef,
   visibleNodeIds: Set<string>,
   base: GraphAnalyticsBase,
+  reasons: EffectReasons,
 ): GraphCommunitySummary[] {
   const grouped = new Map<number, {
     nodeCount: number;
@@ -237,7 +243,9 @@ function buildCommunitySummaries(
         dominantSemanticGroup,
         color: data.color,
         anchorNodeId: data.anchorNodeId,
-        anchorLabel: data.anchorNodeId ? getNodeLabel(graphRef, data.anchorNodeId) : "Community anchor",
+        anchorLabel: data.anchorNodeId
+          ? getNodeLabel(graphRef, data.anchorNodeId)
+          : reasons.communityAnchorDefault,
         prominence: data.prominence,
       };
     })
@@ -435,11 +443,12 @@ function buildOverviewBackboneSnapshot(
   base: GraphAnalyticsBase,
   semanticRegionSummaries: GraphSemanticRegionSummary[],
   centralitySummaries: GraphCentralityNodeSummary[],
+  reasons: EffectReasons,
 ): GraphAnalyticsSnapshot["overviewBackbone"] {
   if (visibleNodeIds.size === 0) {
     return {
       ready: false,
-      reason: "No visible nodes are available for overview backbone selection.",
+      reason: reasons.noVisibleNodesBackbone,
       edgeIds: [],
     };
   }
@@ -568,9 +577,7 @@ function buildOverviewBackboneSnapshot(
 
   return {
     ready: edgeIds.length > 0,
-    reason: edgeIds.length > 0
-      ? "Ready"
-      : "No overview backbone edges met the current visibility thresholds.",
+    reason: edgeIds.length > 0 ? reasons.ready : reasons.noOverviewBackboneEdges,
     edgeIds,
   };
 }
@@ -578,11 +585,12 @@ function buildOverviewBackboneSnapshot(
 function buildDirectedPathSnapshot(
   graphRef: GraphRef,
   interactionState: GraphInteractionState,
+  reasons: EffectReasons,
 ): GraphAnalyticsSnapshot["directedPath"] {
   if (interactionState.activePath.length < 2) {
     return {
       ready: false,
-      reason: "Trace a path to compare it against local strict directed shortest pathfinding.",
+      reason: reasons.tracePathForPathfinding,
       sourceId: interactionState.selectedNodeId || null,
       targetId: null,
       path: [],
@@ -596,7 +604,7 @@ function buildDirectedPathSnapshot(
   if (!sourceId || !targetId || !graphRef.hasNode(sourceId) || !graphRef.hasNode(targetId)) {
     return {
       ready: false,
-      reason: "Active path endpoints are not available in the current graph view.",
+      reason: reasons.pathEndpointsUnavailable,
       sourceId,
       targetId,
       path: [],
@@ -609,9 +617,7 @@ function buildDirectedPathSnapshot(
     const path = dijkstra.bidirectional(graphRef, sourceId, targetId, "weight") ?? [];
     return {
       ready: path.length > 1,
-      reason: path.length > 1
-        ? "Ready"
-        : "No strict directed shortest path found in the current graph view.",
+      reason: path.length > 1 ? reasons.ready : reasons.noDirectedShortestPath,
       sourceId,
       targetId,
       path,
@@ -622,7 +628,7 @@ function buildDirectedPathSnapshot(
     console.error("[GraphAnalytics] directed pathfinding failed", error);
     return {
       ready: false,
-      reason: "Directed pathfinding failed for the current graph snapshot.",
+      reason: reasons.directedPathfindingFailed,
       sourceId,
       targetId,
       path: [],
@@ -637,12 +643,14 @@ export function buildGraphAnalyticsSnapshot(params: {
   interactionState: GraphInteractionState;
   base: GraphAnalyticsBase;
   visibleNodeIds?: Iterable<string>;
+  locale?: GraphWorkspaceLocale;
 }): GraphAnalyticsSnapshot {
   const { graphRef, interactionState, base } = params;
+  const reasons = graphEffectReasonsCopy(params.locale ?? "en");
   const visibleNodeIds = toVisibleNodeSet(graphRef, params.visibleNodeIds);
-  const directedPath = buildDirectedPathSnapshot(graphRef, interactionState);
+  const directedPath = buildDirectedPathSnapshot(graphRef, interactionState, reasons);
   const communitySummaries = base.communitiesByNode.size
-    ? buildCommunitySummaries(graphRef, visibleNodeIds, base)
+    ? buildCommunitySummaries(graphRef, visibleNodeIds, base, reasons)
     : [];
   const semanticRegionSummaries = buildSemanticRegionSummaries(graphRef, visibleNodeIds, base);
   const centralitySummaries = buildCentralitySummaries(graphRef, visibleNodeIds, base);
@@ -652,6 +660,7 @@ export function buildGraphAnalyticsSnapshot(params: {
     base,
     semanticRegionSummaries,
     centralitySummaries,
+    reasons,
   );
 
   return {
@@ -660,10 +669,10 @@ export function buildGraphAnalyticsSnapshot(params: {
     communities: {
       ready: communitySummaries.length > 0,
       reason: communitySummaries.length > 0
-        ? "Ready"
+        ? reasons.ready
         : base.communitiesByNode.size > 0
-          ? "No visible communities in the current graph context."
-          : "Community detection has not produced summaries yet.",
+          ? reasons.noVisibleCommunities
+          : reasons.communitiesNotReady,
       count: base.communityCount,
       modularity: base.modularity,
       summaries: communitySummaries,
@@ -672,16 +681,16 @@ export function buildGraphAnalyticsSnapshot(params: {
       ready: centralitySummaries.length > 0,
       reason: centralitySummaries.length > 0
         ? base.betweennessReady
-          ? "Ready"
-          : "Ready (degree-biased while betweenness is bounded for large graphs)."
-        : "Centrality ranking is waiting for graph data.",
+          ? reasons.ready
+          : reasons.centralityDegreeBiased
+        : reasons.centralityWaitingData,
       topNodes: centralitySummaries,
     },
     semanticRegions: {
       ready: semanticRegionSummaries.length > 0,
       reason: semanticRegionSummaries.length > 0
-        ? "Ready"
-        : "No semantic regions are visible in the current graph context.",
+        ? reasons.ready
+        : reasons.noVisibleSemanticRegions,
       summaries: semanticRegionSummaries,
     },
     overviewBackbone,

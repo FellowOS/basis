@@ -27,4 +27,6 @@ export const kbImportExport = {
   exportSuccess: 'Export ready — semantica_export.{format}',
   importFailed: 'Import failed',
   exportFailed: 'Export failed',
+  logQueuedImport: 'Queued graph import: {name}',
+  logExported: 'Exported graph as {format}',
 } as const;

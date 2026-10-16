@@ -14,6 +14,9 @@ import {
   graphTimelineShell,
   graphTimelineVisHost,
 } from "@/lib/graph/graph-ui-classes.js";
+import { useI18n } from "@/i18n/context.js";
+import { fmt, formatLocaleNumber, formatLocaleYearMonth } from "@/i18n/format.js";
+import type { Locale } from "@/i18n/locale.js";
 import { cn } from "@/lib/utils.js";
 import { GRAPH_THEME } from "./graphTheme";
 import { DEFAULT_MIN_DATE, resolvePlayStepMs, resolveScrubberBounds } from "./temporalScrubberBounds";
@@ -65,17 +68,21 @@ const VIS_OVERRIDE_CSS = `
   .sem-timeline-wrap .vis-panel.vis-left { display: none !important; }
 `;
 
-function formatPlayheadLabel(value: Date): string {
-  return `${value.getFullYear()}/${String(value.getMonth() + 1).padStart(2, "0")}`;
-}
-
 export function TimelinePanel({ onTimeChange, minDate, maxDate }: TimelinePanelProps) {
+  const { t, locale } = useI18n();
+  const ws = t.kbGraphWorkspace.workspace;
   const containerRef = useRef<HTMLDivElement>(null);
   const timelineRef = useRef<Timeline | null>(null);
   const playheadRef = useRef<Date>(DEFAULT_MIN_DATE);
   const playIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [displayDate, setDisplayDate] = useState(formatPlayheadLabel(DEFAULT_MIN_DATE));
+  const formatPlayhead = useCallback(
+    (value: Date) => formatLocaleYearMonth(locale as Locale, value),
+    [locale],
+  );
+  const [displayDate, setDisplayDate] = useState(() =>
+    formatLocaleYearMonth(locale as Locale, DEFAULT_MIN_DATE),
+  );
 
   // Captured once per mount so re-renders keep the same reference and do not
   // retrigger the timeline effect below.
@@ -119,10 +126,10 @@ export function TimelinePanel({ onTimeChange, minDate, maxDate }: TimelinePanelP
         playheadRef.current = props.time;
         nextTimeline.setCustomTime(props.time, PLAYHEAD_ID);
         onTimeChange(props.time);
-        setDisplayDate(formatPlayheadLabel(props.time));
+        setDisplayDate(formatPlayhead(props.time));
       });
       onTimeChange(defaultTime);
-      setDisplayDate(formatPlayheadLabel(defaultTime));
+      setDisplayDate(formatPlayhead(defaultTime));
       return () => {
         nextTimeline.destroy();
         timelineRef.current = null;
@@ -133,8 +140,8 @@ export function TimelinePanel({ onTimeChange, minDate, maxDate }: TimelinePanelP
     playheadRef.current = defaultTime;
     timeline.setCustomTime(defaultTime, PLAYHEAD_ID);
     onTimeChange(defaultTime);
-    setDisplayDate(formatPlayheadLabel(defaultTime));
-  }, [defaultTime, maxBound, minBound, onTimeChange]);
+    setDisplayDate(formatPlayhead(defaultTime));
+  }, [defaultTime, formatPlayhead, maxBound, minBound, onTimeChange]);
 
   const startPlay = useCallback(() => {
     if (playIntervalRef.current) return;
@@ -148,9 +155,9 @@ export function TimelinePanel({ onTimeChange, minDate, maxDate }: TimelinePanelP
       playheadRef.current = next;
       timeline.setCustomTime(next, PLAYHEAD_ID);
       onTimeChange(next);
-      setDisplayDate(formatPlayheadLabel(next));
+      setDisplayDate(formatPlayhead(next));
     }, PLAY_INTERVAL_MS);
-  }, [maxBound, minBound, onTimeChange]);
+  }, [formatPlayhead, maxBound, minBound, onTimeChange]);
 
   const stopPlay = useCallback(() => {
     if (playIntervalRef.current) {
@@ -172,6 +179,10 @@ export function TimelinePanel({ onTimeChange, minDate, maxDate }: TimelinePanelP
 
   useEffect(() => () => stopPlay(), [stopPlay]);
 
+  useEffect(() => {
+    setDisplayDate(formatPlayhead(playheadRef.current));
+  }, [formatPlayhead]);
+
   return (
     <div className={graphTimelineShell}>
       <style>{VIS_OVERRIDE_CSS}</style>
@@ -180,7 +191,7 @@ export function TimelinePanel({ onTimeChange, minDate, maxDate }: TimelinePanelP
           id="temporal-play-btn"
           type="button"
           onClick={togglePlay}
-          title={isPlaying ? "Pause Evolution" : "Play Evolution"}
+          title={isPlaying ? ws.timelinePause : ws.timelinePlay}
           className={cn(graphTimelinePlayBtn, isPlaying && graphTimelinePlayBtnActive)}
         >
           {isPlaying ? (
@@ -195,7 +206,10 @@ export function TimelinePanel({ onTimeChange, minDate, maxDate }: TimelinePanelP
       </div>
 
       <div className={graphTimelineLabel}>
-        Temporal Scrubber · {minBound.getFullYear()}-{maxBound.getFullYear()}
+        {fmt(ws.timelineScrubber, {
+          minYear: formatLocaleNumber(locale as Locale, minBound.getFullYear()),
+          maxYear: formatLocaleNumber(locale as Locale, maxBound.getFullYear()),
+        })}
       </div>
 
       <div className={graphTimelineVisHost}>

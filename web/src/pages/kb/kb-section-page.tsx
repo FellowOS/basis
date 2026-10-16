@@ -9,7 +9,7 @@ export function KbSectionPage({ section }: { section: KbNavKey }) {
   const { t } = useI18n();
   const { getKb } = useKbCatalog();
   const kb = id ? getKb(id) : undefined;
-  const name = kb?.name ?? id ?? '…';
+  const name = kb?.name ?? id ?? t.common.ellipsis;
   const sectionLabel = t.menu.kb[section];
 
   return (

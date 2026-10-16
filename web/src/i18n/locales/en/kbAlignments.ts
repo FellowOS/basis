@@ -18,6 +18,7 @@ export const kbAlignments = {
   confidence: 'Confidence',
   provenance: 'Provenance note',
   source: 'Source',
+  defaultSource: 'Ontology Hub',
   reviewer: 'Reviewer',
   save: 'Save alignment',
   saving: 'Saving…',
@@ -30,4 +31,13 @@ export const kbAlignments = {
   threshold: 'Similarity threshold',
   runSuggest: 'Run suggestions',
   suggestEmpty: 'Run suggestions to review ranked candidate mappings.',
+  relationLabels: {
+    'owl:equivalentClass': 'OWL equivalent class',
+    'owl:equivalentProperty': 'OWL equivalent property',
+    'skos:exactMatch': 'SKOS exact match',
+    'skos:closeMatch': 'SKOS close match',
+    'skos:broadMatch': 'SKOS broad match',
+    'skos:narrowMatch': 'SKOS narrow match',
+    'skos:relatedMatch': 'SKOS related match',
+  },
 } as const;

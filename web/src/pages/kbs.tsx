@@ -20,9 +20,10 @@ import {
 import { Input } from '@/components/ui/input.js';
 import { Label } from '@/components/ui/label.js';
 import { useI18n } from '@/i18n/context.js';
-import { fmt } from '@/i18n/format.js';
+import { fmt, formatLocaleNumber, pickCountForm } from '@/i18n/format.js';
 import { api } from '@/lib/api.js';
 import { useKbCatalog } from '@/lib/kb-context.js';
+import { kbMemberRoleLabel, kbVisibilityLabel } from '@/lib/kb-settings-labels.js';
 import { useApiErrorMessage } from '@/lib/use-api-error-message.js';
 
 type Kb = {
@@ -34,8 +35,9 @@ type Kb = {
 };
 
 export function KbsPage() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const p = t.pages.basisKbs;
+  const ks = t.kbSettings;
   const apiError = useApiErrorMessage();
   const { kbs, refresh } = useKbCatalog();
   const [name, setName] = useState('');
@@ -69,8 +71,12 @@ export function KbsPage() {
   const columns = useMemo<DataTableColumn<Kb>[]>(
     () => [
       { key: 'name', header: p.colName, render: (kb) => <span className="font-medium">{kb.name}</span> },
-      { key: 'visibility', header: p.colVisibility, render: (kb) => kb.visibility },
-      { key: 'role', header: p.colMyRole, render: (kb) => kb.my_role },
+      {
+        key: 'visibility',
+        header: p.colVisibility,
+        render: (kb) => kbVisibilityLabel(ks, kb.visibility),
+      },
+      { key: 'role', header: p.colMyRole, render: (kb) => kbMemberRoleLabel(ks, kb.my_role) },
       {
         key: 'actions',
         header: p.colActions,
@@ -88,10 +94,13 @@ export function KbsPage() {
         ),
       },
     ],
-    [p],
+    [ks, p],
   );
 
-  const countLabel = fmt(p.count, { count: kbs.length });
+  const countLabel = fmt(
+    pickCountForm(locale, kbs.length, p.countOne, p.count),
+    { count: formatLocaleNumber(locale, kbs.length) },
+  );
 
   return (
     <ConsolePageLayout

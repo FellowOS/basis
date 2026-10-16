@@ -11,8 +11,9 @@ import {
   exWsSkeletonStack,
   exWsSplitMain,
 } from "@/lib/explorer-ws-classes.js";
-import { fmt } from "@/i18n/format.js";
+import { fmt, formatLocaleNumber } from "@/i18n/format.js";
 import type { LocaleMessages } from "@/i18n/locales/en/index.js";
+import type { Locale } from "@/i18n/locale.js";
 
 type Copy = LocaleMessages["kbReasoning"];
 
@@ -26,10 +27,12 @@ type ReasoningResult = {
 };
 
 function SectionHeading({
+  locale,
   title,
   count,
   icon,
 }: {
+  locale: Locale;
   title: string;
   count?: number;
   icon: string;
@@ -39,7 +42,9 @@ function SectionHeading({
       <PublicIcon name={icon} size={13} />
       {title}
       {typeof count === "number" ? (
-        <span className="font-mono text-[11px] tabular-nums text-foreground">{count}</span>
+        <span className="font-mono text-[11px] tabular-nums text-foreground">
+          {formatLocaleNumber(locale, count)}
+        </span>
       ) : null}
     </h3>
   );
@@ -50,6 +55,7 @@ function ResultSection({ children }: { children: ReactNode }) {
 }
 
 export function ReasoningResultsPanel({
+  locale,
   copy,
   kbId,
   result,
@@ -58,6 +64,7 @@ export function ReasoningResultsPanel({
   resultStale,
   hasInput,
 }: {
+  locale: Locale;
   copy: Copy;
   kbId: string;
   result: ReasoningResult | null;
@@ -80,16 +87,16 @@ export function ReasoningResultsPanel({
         </span>
         {hasResult && result ? (
           <p className="min-w-0 flex-1 truncate text-right font-mono text-[11px] text-muted-foreground">
-            {fmt(copy.rulesFired, { n: String(result.rules_fired ?? 0) })}
+            {fmt(copy.rulesFired, { n: formatLocaleNumber(locale, result.rules_fired ?? 0) })}
             <span className="mx-1.5 text-border">·</span>
-            {fmt(copy.edgesAdded, { n: String(result.added_edges ?? 0) })}
+            {fmt(copy.edgesAdded, { n: formatLocaleNumber(locale, result.added_edges ?? 0) })}
             <span className="mx-1.5 text-border">·</span>
             {result.mutated ? copy.graphUpdated : copy.previewOnly}
             {derived > 0 ? (
               <>
                 <span className="mx-1.5 text-border">·</span>
                 <a href={`/kbs/${kbId}/entities`} className="text-foreground underline-offset-2 hover:underline">
-                  {fmt(copy.derivedLink, { n: String(derived) })}
+                  {fmt(copy.derivedLink, { n: formatLocaleNumber(locale, derived) })}
                 </a>
               </>
             ) : null}
@@ -130,7 +137,12 @@ export function ReasoningResultsPanel({
               </p>
             ) : null}
             <ResultSection>
-              <SectionHeading icon="list-dashes-01" title={copy.tabInferences} count={inferences.length} />
+              <SectionHeading
+                locale={locale}
+                icon="list-dashes-01"
+                title={copy.tabInferences}
+                count={inferences.length}
+              />
               {inferences.length === 0 ? (
                 <p className={exWsHint}>{copy.completeEmpty}</p>
               ) : (
@@ -149,7 +161,7 @@ export function ReasoningResultsPanel({
 
             {proofs.length > 0 ? (
               <ResultSection>
-                <SectionHeading icon="path" title={copy.tabProofs} count={proofs.length} />
+                <SectionHeading locale={locale} icon="path" title={copy.tabProofs} count={proofs.length} />
                 <div className="divide-y divide-border border-y border-border">
                   {proofs.map((chain, i) => (
                     <article key={`${chain.conclusion}-${i}`} className="py-3">

@@ -14,6 +14,7 @@ export const kbSparql = {
   emptyReady: '查询已就绪，执行后在此查看。',
   emptyBody: '选择模版或编写 SPARQL，然后执行。',
   noRows: '查询返回 0 行。',
+  partialQuery: '警告：查询部分成功。',
   templateLabels: {
     triples: '三元组',
     types: '类型',

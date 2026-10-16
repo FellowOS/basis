@@ -22,4 +22,9 @@ export const kbVocabulary = {
   drop: '拖入文件，或点击选择',
   dropActive: '松开以导入',
   addedSummary: '+{nodes} 个概念 · +{edges} 条关系',
+  api: {
+    fetchSchemesFailed: '加载词表失败',
+    fetchHierarchyFailed: '加载层级失败',
+    importFailed: '导入词表失败',
+  },
 } as const;

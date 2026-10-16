@@ -1,6 +1,8 @@
 export const sidebar = {
   collapseSidebar: '折叠侧栏',
   openSidebar: '打开侧栏',
+  mobileTitle: '侧栏',
+  mobileDescription: '控制台导航菜单。',
   groups: {
     deploy: '部署',
     org: '组织与权限',

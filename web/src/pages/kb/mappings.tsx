@@ -24,6 +24,8 @@ import {
   SelectValue,
 } from '@/components/ui/select.js';
 import { useI18n } from '@/i18n/context.js';
+import { formatLocaleDateTime, formatLocaleNumber } from '@/i18n/format.js';
+import type { Locale } from '@/i18n/locale.js';
 import { api } from '@/lib/api.js';
 import { useApiErrorMessage } from '@/lib/use-api-error-message.js';
 import { useKbCatalog } from '@/lib/kb-context.js';
@@ -55,8 +57,10 @@ type TypedFactRow = {
 type KbMappingsCopy = LocaleMessages['kbMappings'];
 
 export function KbMappingsPage() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const m = t.kbMappings;
+  const emptyCell = t.common.emptyCell;
+  const loc = locale as Locale;
   const { id } = useParams();
   const navigate = useNavigate();
   const { getKb } = useKbCatalog();
@@ -139,7 +143,7 @@ export function KbMappingsPage() {
     }
   }
 
-  const name = kb?.name ?? id ?? '…';
+  const name = kb?.name ?? id ?? t.common.ellipsis;
 
   const mappingColumns = useMemo<DataTableColumn<MappingRow>[]>(
     () => [
@@ -152,25 +156,42 @@ export function KbMappingsPage() {
         key: 'uri',
         header: m.colUri,
         render: (row) => (
-          <span className="block max-w-[280px] truncate font-mono text-xs">{row.target_uri ?? '—'}</span>
+          <span className="block max-w-[280px] truncate font-mono text-xs">
+            {row.target_uri ?? emptyCell}
+          </span>
         ),
       },
       {
         key: 'kind',
         header: m.colKind,
         hideBelow: 'md',
-        render: (row) => <span className="text-xs text-muted-foreground">{row.target_kind}</span>,
+        render: (row) => (
+          <span className="text-xs text-muted-foreground">
+            {mappingTargetKindLabel(m, row.target_kind)}
+          </span>
+        ),
       },
       {
         key: 'direction',
         header: m.colDirection,
         hideBelow: 'lg',
-        render: (row) => <span className="text-xs text-muted-foreground">{row.direction}</span>,
+        render: (row) => (
+          <span className="text-xs text-muted-foreground">
+            {mappingDirectionLabel(m, row.direction)}
+          </span>
+        ),
       },
       {
         key: 'status',
         header: m.colStatus,
         render: (row) => <MappingStatus status={row.status} copy={m} />,
+      },
+      {
+        key: 'created',
+        header: m.colCreated,
+        hideBelow: 'lg',
+        render: (row) =>
+          row.created_at ? formatLocaleDateTime(loc, row.created_at) : emptyCell,
       },
       {
         key: 'actions',
@@ -182,11 +203,11 @@ export function KbMappingsPage() {
               <Link to={kbPath(id, 'review')}>{m.review}</Link>
             </Button>
           ) : (
-            <span className="text-xs text-muted-foreground">—</span>
+            <span className="text-xs text-muted-foreground">{emptyCell}</span>
           ),
       },
     ],
-    [id, m],
+    [emptyCell, id, loc, m],
   );
 
   const factColumns = useMemo<DataTableColumn<TypedFactRow>[]>(
@@ -210,11 +231,11 @@ export function KbMappingsPage() {
           fact.object_entity_id ? (
             <EntityRefLine id={fact.object_entity_id} labels={entityLabels} />
           ) : (
-            <span className="font-mono text-xs">{fact.object_value ?? '—'}</span>
+            <span className="font-mono text-xs">{fact.object_value ?? emptyCell}</span>
           ),
       },
     ],
-    [entityLabels, m],
+    [emptyCell, entityLabels, m],
   );
 
   return (
@@ -247,7 +268,9 @@ export function KbMappingsPage() {
               {m.sectionMappings}
             </span>
             {!loading ? (
-              <span className="font-mono text-[11px] tabular-nums text-muted-foreground">{rows.length}</span>
+              <span className="font-mono text-[11px] tabular-nums text-muted-foreground">
+                {formatLocaleNumber(loc, rows.length)}
+              </span>
             ) : null}
           </div>
           <div className="min-h-0 flex-1 overflow-auto">
@@ -275,7 +298,9 @@ export function KbMappingsPage() {
               {m.sectionTypedFacts}
             </span>
             {!loading ? (
-              <span className="font-mono text-[11px] tabular-nums text-muted-foreground">{typedFacts.length}</span>
+              <span className="font-mono text-[11px] tabular-nums text-muted-foreground">
+                {formatLocaleNumber(loc, typedFacts.length)}
+              </span>
             ) : null}
           </div>
           <div className="min-h-0 flex-1 overflow-auto">
@@ -311,7 +336,7 @@ export function KbMappingsPage() {
                 list="kb-surface-phrases-dialog"
                 value={signature}
                 onChange={(e) => setSignature(e.target.value)}
-                placeholder="knows"
+                placeholder={m.signaturePlaceholder}
               />
               <datalist id="kb-surface-phrases-dialog">
                 {phrases.map((phrase) => (
@@ -325,7 +350,7 @@ export function KbMappingsPage() {
                 id="uri"
                 value={targetUri}
                 onChange={(e) => setTargetUri(e.target.value)}
-                placeholder="https://schema.org/worksFor"
+                placeholder={m.targetUriPlaceholder}
               />
             </div>
             <div className="space-y-2">
@@ -335,9 +360,9 @@ export function KbMappingsPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="property">property</SelectItem>
-                  <SelectItem value="class">class</SelectItem>
-                  <SelectItem value="none">none</SelectItem>
+                  <SelectItem value="property">{m.targetKindProperty}</SelectItem>
+                  <SelectItem value="class">{m.targetKindClass}</SelectItem>
+                  <SelectItem value="none">{m.targetKindNone}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -348,9 +373,9 @@ export function KbMappingsPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="forward">forward</SelectItem>
-                  <SelectItem value="reverse">reverse</SelectItem>
-                  <SelectItem value="n/a">n/a</SelectItem>
+                  <SelectItem value="forward">{m.directionForward}</SelectItem>
+                  <SelectItem value="reverse">{m.directionReverse}</SelectItem>
+                  <SelectItem value="n/a">{m.directionNa}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -369,6 +394,20 @@ export function KbMappingsPage() {
   );
 }
 
+function mappingTargetKindLabel(copy: KbMappingsCopy, kind: string): string {
+  if (kind === 'property') return copy.targetKindProperty;
+  if (kind === 'class') return copy.targetKindClass;
+  if (kind === 'none') return copy.targetKindNone;
+  return kind;
+}
+
+function mappingDirectionLabel(copy: KbMappingsCopy, direction: string): string {
+  if (direction === 'forward') return copy.directionForward;
+  if (direction === 'reverse') return copy.directionReverse;
+  if (direction === 'n/a') return copy.directionNa;
+  return direction;
+}
+
 function MappingStatus({ status, copy }: { status: string; copy: KbMappingsCopy }) {
   const variant =
     status === 'proposed'
@@ -381,11 +420,17 @@ function MappingStatus({ status, copy }: { status: string; copy: KbMappingsCopy 
   const label =
     status === 'proposed'
       ? copy.statusProposed
-      : status === 'confirmed' || status === 'approved'
+      : status === 'confirmed'
         ? copy.statusConfirmed
-        : status === 'rejected'
-          ? copy.statusRejected
-          : status;
+        : status === 'approved'
+          ? copy.statusApproved
+          : status === 'active'
+            ? copy.statusActive
+            : status === 'rejected'
+              ? copy.statusRejected
+              : status === 'dismissed'
+                ? copy.statusDismissed
+                : status;
   return (
     <Badge variant={variant} className="text-[11px] font-normal">
       {label}

@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import type Graph from "graphology";
 
 import { graph, type EdgeAttributes, type NodeAttributes } from "../../../store/graphStore";
+import type { GraphWorkspaceLocale } from "../graphWorkspaceCopy.js";
 import type { GraphTheme } from "../graphTheme";
 import type { GraphSceneRuntime } from "../scene";
 import type {
@@ -69,6 +70,7 @@ export interface GraphPluginOverlayDescriptor {
 }
 
 export interface GraphPluginContext {
+  readonly locale: GraphWorkspaceLocale;
   readonly scene: GraphSceneRuntime | null;
   readonly graph: typeof graph | Graph<NodeAttributes, EdgeAttributes>;
   readonly displayGraph: typeof graph | Graph<NodeAttributes, EdgeAttributes>;

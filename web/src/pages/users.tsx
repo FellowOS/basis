@@ -20,7 +20,7 @@ import { Input } from '@/components/ui/input.js';
 import { Label } from '@/components/ui/label.js';
 import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
-import { fmt } from '@/i18n/format.js';
+import { fmt, formatLocaleNumber, pickCountForm } from '@/i18n/format.js';
 import { api } from '@/lib/api.js';
 import { useApiErrorMessage } from '@/lib/use-api-error-message.js';
 
@@ -32,7 +32,7 @@ type UserRow = {
 };
 
 export function UsersPage() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const p = t.pages.basisUsers;
   const apiError = useApiErrorMessage();
   const [users, setUsers] = useState<UserRow[]>([]);
@@ -93,7 +93,10 @@ export function UsersPage() {
     [p],
   );
 
-  const countLabel = fmt(p.count, { count: users.length });
+  const countLabel = fmt(
+    pickCountForm(locale, users.length, p.countOne, p.count),
+    { count: formatLocaleNumber(locale, users.length) },
+  );
 
   return (
     <ConsolePageLayout

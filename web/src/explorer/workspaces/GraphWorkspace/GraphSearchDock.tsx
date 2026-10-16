@@ -5,6 +5,8 @@ import { parseExplorerJson } from "../../lib/explorer-api-error";
 import {
   type GraphWorkspaceLocale,
   graphCopy,
+  graphFormatNumber,
+  graphNodeTypeLabel,
   graphSearchResultsLabel,
 } from "./graphWorkspaceCopy";
 import { buildExplorerGraphApiPath, explorerFetch } from "../../host/explorerHttp";
@@ -177,7 +179,7 @@ function SearchCommandBar({
             }
           }}
           placeholder={graphCopy(locale, "searchPlaceholder")}
-          aria-label="Search graph nodes"
+          aria-label={graphCopy(locale, "searchNodesAria")}
           aria-keyshortcuts="/"
           aria-autocomplete="list"
           aria-controls={listboxId}
@@ -187,7 +189,7 @@ function SearchCommandBar({
           type="submit"
           size="icon-sm"
           disabled={disabled}
-          aria-label="Search for the current query"
+          aria-label={graphCopy(locale, "searchSubmitAria")}
         >
           <PublicIcon name="search-01" />
         </InputGroupButton>
@@ -198,7 +200,7 @@ function SearchCommandBar({
           id={listboxId}
           role="listbox"
           className="absolute top-full z-50 mt-1 max-h-72 w-full overflow-y-auto rounded-md border bg-popover p-1 text-popover-foreground shadow-md"
-          aria-label="Search suggestions"
+          aria-label={graphCopy(locale, "searchSuggestionsAria")}
         >
           {suggestions.map((result, index) => (
             <li
@@ -219,7 +221,9 @@ function SearchCommandBar({
               <span className="min-w-0 truncate font-medium">
                 {result.node.content || result.node.id}
               </span>
-              <span className="shrink-0 text-xs uppercase text-muted-foreground">{result.node.type}</span>
+              <span className="shrink-0 text-xs uppercase text-muted-foreground">
+                {graphNodeTypeLabel(locale, result.node.type)}
+              </span>
             </li>
           ))}
         </ul>
@@ -323,9 +327,13 @@ export function GraphSearchDock({
               >
                 <div className="min-w-0">
                   <div className="font-medium">{result.node.content || result.node.id}</div>
-                  <div className="text-xs text-muted-foreground">{result.node.type}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {graphNodeTypeLabel(locale, result.node.type)}
+                  </div>
                 </div>
-                <span className="shrink-0 text-xs text-muted-foreground">{Math.round(result.score)}</span>
+                <span className="shrink-0 text-xs text-muted-foreground">
+                  {graphFormatNumber(locale, Math.round(result.score))}
+                </span>
               </Button>
             ))}
           </div>

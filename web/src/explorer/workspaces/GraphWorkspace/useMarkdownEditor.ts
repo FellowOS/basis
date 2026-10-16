@@ -30,6 +30,8 @@ interface MarkdownEditorOptions {
   resource?: MarkdownResourceRef;
   onApplied?: (result: MarkdownApplyResult) => void;
   onDirtyChange?: (dirty: boolean) => void;
+  discardReloadConfirm: string;
+  networkUnreachableMessage: string;
 }
 
 interface KeyedError {
@@ -41,11 +43,14 @@ function keyOf(resource?: MarkdownResourceRef): string {
   return resource ? `${resource.kind}:${resource.id}` : "";
 }
 
-function normalizeError(failure: unknown): MarkdownEditorError {
+function normalizeError(
+  failure: unknown,
+  networkUnreachableMessage: string,
+): MarkdownEditorError {
   if (failure instanceof MarkdownClientError) return failure;
   return {
     kind: "network",
-    message: "The Markdown service could not be reached. Your draft was kept.",
+    message: networkUnreachableMessage,
   };
 }
 
@@ -54,6 +59,8 @@ export function useMarkdownEditor({
   resource,
   onApplied,
   onDirtyChange,
+  discardReloadConfirm,
+  networkUnreachableMessage,
 }: MarkdownEditorOptions) {
   const resourceKey = keyOf(resource);
   const [session, setSession] = useState<MarkdownEditSession | null>(null);
@@ -113,10 +120,13 @@ export function useMarkdownEditor({
     } catch (failure) {
       if (loadGeneration !== loadGenerationRef.current) return false;
       setSession(null);
-      setViewError({ resourceKey, error: normalizeError(failure) });
+      setViewError({
+        resourceKey,
+        error: normalizeError(failure, networkUnreachableMessage),
+      });
       return false;
     }
-  }, [kbId, resource, resourceKey]);
+  }, [kbId, networkUnreachableMessage, resource, resourceKey]);
 
   const discard = useCallback(() => {
     if (!activeSession || saving) return;
@@ -142,19 +152,18 @@ export function useMarkdownEditor({
       return true;
     } catch (failure) {
       if (resourceGeneration !== loadGenerationRef.current) return false;
-      setSession(saveFailed(pending, normalizeError(failure)));
+      setSession(
+        saveFailed(pending, normalizeError(failure, networkUnreachableMessage)),
+      );
       return false;
     }
-  }, [activeSession, dirty, kbId, onApplied, saving]);
+  }, [activeSession, dirty, kbId, networkUnreachableMessage, onApplied, saving]);
 
   const reloadLatest = useCallback(async () => {
     if (!resource || saving) return;
-    if (
-      dirty
-      && !window.confirm("Discard this draft and reload the latest applied version?")
-    ) return;
+    if (dirty && !window.confirm(discardReloadConfirm)) return;
     await beginEdit();
-  }, [beginEdit, dirty, resource, saving]);
+  }, [beginEdit, dirty, discardReloadConfirm, resource, saving]);
 
   const changeDraft = useCallback((draft: string) => {
     setSession((current) => (

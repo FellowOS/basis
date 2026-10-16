@@ -19,6 +19,8 @@ import {
   SelectValue,
 } from '@/components/ui/select.js';
 import { useI18n } from '@/i18n/context.js';
+import { formatLocaleNumber } from '@/i18n/format.js';
+import type { Locale } from '@/i18n/locale.js';
 import { exWsSplitSidebar } from '@/lib/explorer-ws-classes.js';
 import { useVocabularies, useConceptHierarchy } from './queries';
 import { ConceptTree } from './ConceptTree';
@@ -34,7 +36,7 @@ function countConcepts(nodes: ConceptNode[]): number {
 }
 
 export function Sidebar({ onSelectConcept }: SidebarProps) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const copy = t.kbVocabulary;
   const { data: schemes = [], isLoading: schemesLoading } = useVocabularies();
   const [activeScheme, setActiveScheme] = useState<string | undefined>();
@@ -77,7 +79,9 @@ export function Sidebar({ onSelectConcept }: SidebarProps) {
           </Select>
         )}
         {conceptCount > 0 ? (
-          <span className="shrink-0 font-mono text-[11px] tabular-nums text-muted-foreground">{conceptCount}</span>
+          <span className="shrink-0 font-mono text-[11px] tabular-nums text-muted-foreground">
+            {formatLocaleNumber(locale as Locale, conceptCount)}
+          </span>
         ) : null}
         <Button type="button" size="sm" variant="outline" className="h-8 shrink-0 px-2 text-xs" onClick={() => setImportOpen(true)}>
           <PublicIcon name="upload-01" size={14} />

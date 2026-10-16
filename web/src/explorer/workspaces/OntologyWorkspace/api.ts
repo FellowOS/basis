@@ -1,3 +1,7 @@
+import { fmt } from "@/i18n/format.js";
+import type { Locale } from "@/i18n/locale.js";
+import { messagesForLocale } from "@/i18n/pick-locale.js";
+
 import { parseExplorerJson } from "../../lib/explorer-api-error";
 import { explorerFetch } from "../../host/explorerHttp";
 import { ontologyPath } from "./ontologyKb";
@@ -39,32 +43,46 @@ export type OntologyEntityOwner = {
   owning_ontology?: string | null;
 };
 
-async function parseResponse<T>(response: Response): Promise<T> {
+export type OntologyRequestOptions = {
+  locale?: Locale;
+};
+
+export type OntologyGraphRequestOptions = OntologyRequestOptions & {
+  signal?: AbortSignal;
+};
+
+async function parseResponse<T>(response: Response, locale: Locale = "en"): Promise<T> {
+  const common = messagesForLocale(locale).common;
   const data = await parseExplorerJson<T & { message?: string }>(
     response,
-    `Request failed (${response.status})`,
+    fmt(common.requestFailedStatus, { status: response.status }),
   );
   if (response.status === 207) {
-    console.warn("Partial Success:", data.message || "Warning: 207 Multi-Status");
+    console.warn(data.message?.trim() || common.partialSuccess);
   }
   return data as T;
 }
 
-export async function loadOntologyRegistry(kbId: string): Promise<OntologyEntry[]> {
+export async function loadOntologyRegistry(
+  kbId: string,
+  options?: OntologyRequestOptions,
+): Promise<OntologyEntry[]> {
   return parseResponse<OntologyEntry[]>(
     await explorerFetch(ontologyPath(kbId, "registry")),
+    options?.locale,
   );
 }
 
 export async function loadOntologyGraph(
   kbId: string,
   uri: string,
-  signal?: AbortSignal,
+  options?: OntologyGraphRequestOptions,
 ): Promise<OntologyGraphResponse> {
   return parseResponse<OntologyGraphResponse>(
     await explorerFetch(ontologyPath(kbId, "graph", `uri=${encodeURIComponent(uri)}`), {
-      signal,
+      signal: options?.signal,
     }),
+    options?.locale,
   );
 }
 
@@ -86,10 +104,12 @@ export async function loadOntologyEntityOwner(
 export async function loadAlignments(
   kbId: string,
   uri?: string,
+  options?: OntologyRequestOptions,
 ): Promise<OntologyAlignment[]> {
   const query = uri ? `uri=${encodeURIComponent(uri)}` : undefined;
   return parseResponse<OntologyAlignment[]>(
     await explorerFetch(ontologyPath(kbId, "alignments", query)),
+    options?.locale,
   );
 }
 
@@ -104,6 +124,7 @@ export async function saveAlignment(
     source?: string;
     reviewer?: string;
   },
+  options?: OntologyRequestOptions,
 ): Promise<OntologyAlignment> {
   return parseResponse<OntologyAlignment>(
     await explorerFetch(ontologyPath(kbId, "alignments"), {
@@ -111,15 +132,21 @@ export async function saveAlignment(
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     }),
+    options?.locale,
   );
 }
 
-export async function removeAlignment(kbId: string, id: string): Promise<void> {
+export async function removeAlignment(
+  kbId: string,
+  id: string,
+  options?: OntologyRequestOptions,
+): Promise<void> {
   await parseResponse<{ status: string }>(
     await explorerFetch(
       ontologyPath(kbId, "alignments", `id=${encodeURIComponent(id)}`),
       { method: "DELETE" },
     ),
+    options?.locale,
   );
 }
 
@@ -131,6 +158,7 @@ export async function suggestAlignments(
     threshold: number;
     limit: number;
   },
+  options?: OntologyRequestOptions,
 ): Promise<AlignmentSuggestion[]> {
   return parseResponse<AlignmentSuggestion[]>(
     await explorerFetch(ontologyPath(kbId, "suggest-alignments"), {
@@ -138,17 +166,20 @@ export async function suggestAlignments(
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     }),
+    options?.locale,
   );
 }
 
 export async function loadOntologyHealth(
   kbId: string,
   uri: string,
+  options?: OntologyRequestOptions,
 ): Promise<OntologyHealthResponse> {
   return parseResponse<OntologyHealthResponse>(
     await explorerFetch(
       ontologyPath(kbId, "health", `uri=${encodeURIComponent(uri)}`),
     ),
+    options?.locale,
   );
 }
 
@@ -156,6 +187,7 @@ export async function generateShacl(
   kbId: string,
   uri: string,
   qualityTier: "standard" | "strict" = "strict",
+  options?: OntologyRequestOptions,
 ): Promise<ShaclGenerateResponse> {
   return parseResponse<ShaclGenerateResponse>(
     await explorerFetch(ontologyPath(kbId, "shacl/generate"), {
@@ -163,17 +195,20 @@ export async function generateShacl(
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ uri, quality_tier: qualityTier }),
     }),
+    options?.locale,
   );
 }
 
 export async function loadShaclShapes(
   kbId: string,
   uri: string,
+  options?: OntologyRequestOptions,
 ): Promise<ShaclShapesResponse> {
   return parseResponse<ShaclShapesResponse>(
     await explorerFetch(
       ontologyPath(kbId, "shacl/shapes", `uri=${encodeURIComponent(uri)}`),
     ),
+    options?.locale,
   );
 }
 
@@ -181,6 +216,7 @@ export async function validateShacl(
   kbId: string,
   uri: string,
   shaclTurtle: string,
+  options?: OntologyRequestOptions,
 ): Promise<ShaclValidationResponse> {
   return parseResponse<ShaclValidationResponse>(
     await explorerFetch(ontologyPath(kbId, "shacl/validate"), {
@@ -188,5 +224,6 @@ export async function validateShacl(
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ uri, shacl_turtle: shaclTurtle }),
     }),
+    options?.locale,
   );
 }

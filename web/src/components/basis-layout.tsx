@@ -41,7 +41,7 @@ export function BasisLayout({ onLogout }: { onLogout: () => void }) {
               className={
                 graphCanvas
                   ? 'flex min-h-0 w-full flex-1 flex-col pt-11 md:pt-0'
-                  : 'flex w-full min-h-0 flex-1 flex-col p-4 pt-12 md:p-8 md:pt-8'
+                  : 'flex w-full min-h-0 flex-1 flex-col p-4 pt-11 md:p-8 md:pt-4'
               }
             >
               <Outlet />

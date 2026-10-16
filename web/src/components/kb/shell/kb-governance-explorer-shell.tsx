@@ -2,6 +2,7 @@ import { useMemo, type ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ExplorerHostProvider } from '@/explorer/host/explorerHttp.js';
 import { buildKbExplorerHttpConfig } from '@/lib/kb-explorer-host.js';
+import { useI18n } from '@/i18n/context.js';
 import { cn } from '@/lib/utils.js';
 const governanceQueryClient = new QueryClient({
   defaultOptions: {
@@ -18,7 +19,8 @@ export function KbGovernanceExplorerShell({
   className?: string;
   children: ReactNode;
 }) {
-  const config = useMemo(() => buildKbExplorerHttpConfig(kbId), [kbId]);
+  const { locale } = useI18n();
+  const config = useMemo(() => buildKbExplorerHttpConfig(kbId, locale), [kbId, locale]);
 
   return (
     <div

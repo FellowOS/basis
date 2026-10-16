@@ -39,6 +39,10 @@ def text_from_bytes(filename: str, data: bytes) -> str:
         try:
             parsed = parse_document(str(temp_path), method="default")
         except ProcessingError as exc:
+            if suffix == ".docx" and _docx_style_name_missing(exc):
+                fallback = _docx_paragraph_text(temp_path)
+                if fallback.strip():
+                    return fallback
             hint = str(exc)
             if "python-docx" in hint or "documents" in hint:
                 hint = (
@@ -59,3 +63,18 @@ def text_from_bytes(filename: str, data: bytes) -> str:
         raise FileParseError(f"无法从 {filename} 解析出文本内容")
     finally:
         temp_path.unlink(missing_ok=True)
+
+
+def _docx_style_name_missing(exc: BaseException) -> bool:
+    """Semantica aborts a DOCX when a paragraph style does not resolve."""
+    message = str(exc)
+    return "DOCX" in message and "NoneType" in message and "name" in message
+
+
+def _docx_paragraph_text(path: Path) -> str:
+    """Read paragraph text without consulting paragraph styles."""
+    from docx import Document
+
+    document = Document(str(path))
+    paragraphs = [para.text.strip() for para in document.paragraphs if para.text.strip()]
+    return "\n\n".join(paragraphs)

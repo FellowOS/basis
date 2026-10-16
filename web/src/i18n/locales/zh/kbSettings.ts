@@ -30,6 +30,16 @@ export const kbSettings = {
   colEmail: '邮箱',
   colRole: '角色',
   role: '角色',
+  roleLabels: {
+    viewer: '查看者',
+    editor: '编辑者',
+    admin: '管理员',
+    owner: '所有者',
+  },
+  visibilityLabels: {
+    restricted: '受限',
+    open: '开放',
+  },
   searchEditDesc: '向量后端、嵌入模型与默认搜索模式。',
   defaultEmbeddingOption: '平台默认模型 / 本地 fallback',
   keywordSearch: '全文检索',

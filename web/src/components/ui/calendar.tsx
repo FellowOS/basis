@@ -1,3 +1,5 @@
+"use client"
+
 import * as React from "react"
 import {
   DayPicker,
@@ -7,6 +9,8 @@ import {
 
 import { Button, buttonVariants } from "@/components/ui/button"
 import { PublicIcon } from "@/components/ui/public-icon"
+import { useI18n } from "@/i18n/context.js"
+import { LOCALE_HTML_LANG } from "@/i18n/locale.js"
 import { cn } from "@/lib/utils"
 
 function Calendar({
@@ -22,6 +26,8 @@ function Calendar({
   buttonVariant?: React.ComponentProps<typeof Button>["variant"]
 }) {
   const defaultClassNames = getDefaultClassNames()
+  const { locale } = useI18n()
+  const monthHtmlLang = LOCALE_HTML_LANG[locale]
 
   return (
     <DayPicker
@@ -35,7 +41,7 @@ function Calendar({
       captionLayout={captionLayout}
       formatters={{
         formatMonthDropdown: (date) =>
-          date.toLocaleString("default", { month: "short" }),
+          date.toLocaleString(monthHtmlLang, { month: "short" }),
         ...formatters,
       }}
       classNames={{
@@ -169,6 +175,8 @@ function CalendarDayButton({
   ...props
 }: React.ComponentProps<typeof DayButton>) {
   const defaultClassNames = getDefaultClassNames()
+  const { locale } = useI18n()
+  const monthHtmlLang = LOCALE_HTML_LANG[locale]
 
   const ref = React.useRef<HTMLButtonElement>(null)
   React.useEffect(() => {
@@ -180,7 +188,7 @@ function CalendarDayButton({
       ref={ref}
       variant="ghost"
       size="icon"
-      data-day={day.date.toLocaleDateString()}
+      data-day={day.date.toLocaleDateString(monthHtmlLang)}
       data-selected-single={
         modifiers.selected &&
         !modifiers.range_start &&

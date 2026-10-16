@@ -4,6 +4,7 @@ import * as SheetPrimitive from "@radix-ui/react-dialog";
 import type * as React from "react";
 
 import { PublicIcon } from "@/components/ui/public-icon.js";
+import { useI18n } from "@/i18n/context.js";
 import { cn } from "@/lib/utils.js";
 
 function Sheet({ ...props }: React.ComponentProps<typeof SheetPrimitive.Root>) {
@@ -53,6 +54,7 @@ function SheetContent({
 	overlayClassName?: string;
 	hideClose?: boolean;
 }) {
+	const { t } = useI18n();
 	return (
 		<SheetPortal>
 			<SheetOverlay className={overlayClassName} />
@@ -75,7 +77,7 @@ function SheetContent({
 				{hideClose ? null : (
 					<SheetPrimitive.Close className="ring-offset-background focus:ring-ring data-[state=open]:bg-secondary absolute top-4 right-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none">
 						<PublicIcon name="x-02" size={16} />
-						<span className="sr-only">Close</span>
+						<span className="sr-only">{t.common.close}</span>
 					</SheetPrimitive.Close>
 				)}
 			</SheetPrimitive.Content>

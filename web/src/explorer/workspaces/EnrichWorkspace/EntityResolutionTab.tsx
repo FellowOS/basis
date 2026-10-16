@@ -23,7 +23,15 @@ import { useApiErrorMessage } from "@/lib/use-api-error-message.js";
 import { logEvent, useRegistry } from "../../store/registryStore";
 import { KbEntityMergePropertyDiff } from "@/components/kb/widgets/kb-entity-merge-property-diff.js";
 import { useI18n } from "@/i18n/context.js";
-import { fmt } from "@/i18n/format.js";
+import {
+  fmt,
+  formatLocaleDateTime,
+  formatLocaleFixedDecimals,
+  formatLocaleNumber,
+  pickCountForm,
+  requestFailedStatusMessage,
+} from "@/i18n/format.js";
+import type { Locale } from "@/i18n/locale.js";
 import { cn } from "@/lib/utils.js";
 import {
   exWsErApprox,
@@ -250,7 +258,11 @@ export function EntityResolutionTab({
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        throw errorFromApiResponse(res.status, body, fmt(er.scanFailed, { status: res.status }));
+        throw errorFromApiResponse(
+          res.status,
+          body,
+          requestFailedStatusMessage(locale as Locale, res.status),
+        );
       }
       const data = await res.json();
       const rawDuplicates: RawDuplicateItem[] = Array.isArray(data.duplicates)
@@ -264,8 +276,11 @@ export function EntityResolutionTab({
       logEvent(
         "import",
         fmt(
-          locale === "en" && parsed.length === 1 ? er.logDedupScanOne : er.logDedupScan,
-          { n: parsed.length, threshold: threshold.toFixed(2) },
+          pickCountForm(locale, parsed.length, er.logDedupScanOne, er.logDedupScan),
+          {
+            n: formatLocaleNumber(locale, parsed.length),
+            threshold: formatLocaleFixedDecimals(locale, threshold, 2),
+          },
         ),
         {
           threshold,
@@ -291,7 +306,11 @@ export function EntityResolutionTab({
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        throw errorFromApiResponse(res.status, body, fmt(er.mergeFailed, { status: res.status }));
+        throw errorFromApiResponse(
+          res.status,
+          body,
+          requestFailedStatusMessage(locale as Locale, res.status),
+        );
       }
       const data = await res.json();
       if (res.status === 207) {
@@ -302,7 +321,7 @@ export function EntityResolutionTab({
         fmt(er.logMerged, {
           duplicateId,
           primaryId,
-          edges: data.edges_updated ?? 0,
+          edges: formatLocaleNumber(locale, data.edges_updated ?? 0),
         }),
         {
         primary: primaryId,
@@ -313,7 +332,7 @@ export function EntityResolutionTab({
     } catch (err) {
       setScanError(apiError(err));
     }
-  }, [kbId, apiError, er]);
+  }, [kbId, apiError, er, locale]);
 
   const handleQueueMerge = useCallback(
     async (primaryId: string, duplicateId: string) => {
@@ -329,7 +348,11 @@ export function EntityResolutionTab({
         );
         if (!res.ok) {
           const body = await res.json().catch(() => ({}));
-          throw errorFromApiResponse(res.status, body, fmt(er.queueFailed, { status: res.status }));
+          throw errorFromApiResponse(
+            res.status,
+            body,
+            requestFailedStatusMessage(locale as Locale, res.status),
+          );
         }
         setPairs((prev) => prev.filter((p) => !(p.a.id === primaryId && p.b.id === duplicateId)));
         logEvent(
@@ -343,7 +366,7 @@ export function EntityResolutionTab({
         setScanError(apiError(err));
       }
     },
-    [kbId, apiError, er],
+    [kbId, apiError, er, locale],
   );
 
   const handleDismiss = useCallback((index: number) => {
@@ -369,8 +392,8 @@ export function EntityResolutionTab({
             <>
               <span className="text-xs text-muted-foreground">
                 {fmt(
-                  locale === "en" && pairs.length === 1 ? er.flaggedPairsOne : er.flaggedPairs,
-                  { n: pairs.length },
+                  pickCountForm(locale, pairs.length, er.flaggedPairsOne, er.flaggedPairs),
+                  { n: formatLocaleNumber(locale, pairs.length) },
                 )}
               </span>
               <Button type="button" size="sm" variant="ghost" onClick={() => setPairs([])}>
@@ -393,7 +416,9 @@ export function EntityResolutionTab({
           <div className="space-y-3 py-2">
             <div className="flex items-center justify-between gap-2">
               <Label htmlFor="dedup-threshold">{er.similarityThreshold}</Label>
-              <span className="font-mono text-sm font-semibold text-primary">{threshold.toFixed(2)}</span>
+              <span className="font-mono text-sm font-semibold text-primary">
+                {formatLocaleFixedDecimals(locale, threshold, 2)}
+              </span>
             </div>
             <input
               id="dedup-threshold"
@@ -454,7 +479,13 @@ export function EntityResolutionTab({
                   <PublicIcon name="git-merge" size={11} className="text-primary" />
                   <div className="min-w-0 flex-1">
                     <div className={exWsErHistorySummary}>{entry.summary}</div>
-                    <div className={exWsErHistoryTime}>{entry.timestamp.toLocaleTimeString()}</div>
+                    <div className={exWsErHistoryTime}>
+                      {formatLocaleDateTime(locale as Locale, entry.timestamp, {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit',
+                      })}
+                    </div>
                   </div>
                 </div>
               ))}

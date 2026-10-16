@@ -4,7 +4,8 @@ import { cn } from "@/lib/utils.js";
 import Editor, { type Monaco } from "@monaco-editor/react";
 import { Button } from "@/components/ui/button.js";
 import { useI18n } from "@/i18n/context.js";
-import { fmt } from "@/i18n/format.js";
+import { fmt, formatLocaleNumber, pickCountForm } from "@/i18n/format.js";
+import type { Locale } from "@/i18n/locale.js";
 import { useTheme } from "@/lib/theme.js";
 import { exWsHint, exWsScrollFill, exWsSplitMain, exWsSplitSidebar } from "@/lib/explorer-ws-classes.js";
 import {
@@ -32,8 +33,8 @@ export function ShaclStudio({ onJumpToNode }: ShaclStudioProps) {
   const { t, locale } = useI18n();
   const copy = t.kbShacl;
   const constraintsLabel = (n: number) =>
-    fmt(n === 1 && locale !== "zh" ? copy.constraintsOne : copy.constraints, {
-      count: String(n),
+    fmt(pickCountForm(locale, n, copy.constraintsOne, copy.constraints), {
+      count: formatLocaleNumber(locale, n),
     });
   const { theme } = useTheme();
   const [registry, setRegistry] = useState<OntologyEntry[]>([]);
@@ -48,7 +49,7 @@ export function ShaclStudio({ onJumpToNode }: ShaclStudioProps) {
 
   useEffect(() => {
     let cancelled = false;
-    loadOntologyRegistry(kbId)
+    loadOntologyRegistry(kbId, { locale: locale as Locale })
       .then((entries) => {
         if (cancelled) return;
         setRegistry(entries);
@@ -56,7 +57,7 @@ export function ShaclStudio({ onJumpToNode }: ShaclStudioProps) {
       })
       .catch((err) => {
         if (cancelled) return;
-        setError(explorerApiErrorMessage(err));
+        setError(explorerApiErrorMessage(err, locale as Locale));
       });
     return () => {
       cancelled = true;
@@ -79,7 +80,7 @@ export function ShaclStudio({ onJumpToNode }: ShaclStudioProps) {
     async function fetchShapes() {
       if (!selectedUri) return;
       try {
-        const data = await loadShaclShapes(kbId, selectedUri);
+        const data = await loadShaclShapes(kbId, selectedUri, { locale: locale as Locale });
         if (!ignore) {
           setShapes(data.shapes);
           const turtle = data.shacl_turtle;
@@ -93,7 +94,7 @@ export function ShaclStudio({ onJumpToNode }: ShaclStudioProps) {
           setShapes([]);
           setFullShacl("");
           setShacl("");
-          setError(explorerApiErrorMessage(err));
+          setError(explorerApiErrorMessage(err, locale as Locale));
         }
       } finally {
         if (!ignore) setLoading(false);
@@ -110,15 +111,15 @@ export function ShaclStudio({ onJumpToNode }: ShaclStudioProps) {
     setLoading(true);
     setError("");
     try {
-      const data = await generateShacl(kbId, selectedUri, "strict");
+      const data = await generateShacl(kbId, selectedUri, "strict", { locale: locale as Locale });
       setFullShacl(data.shacl_turtle);
       setShacl(data.shacl_turtle);
       setSelectedShapeId(null);
-      const shapeData = await loadShaclShapes(kbId, selectedUri);
+      const shapeData = await loadShaclShapes(kbId, selectedUri, { locale: locale as Locale });
       setShapes(shapeData.shapes);
       setValidation(null);
     } catch (err) {
-      setError(explorerApiErrorMessage(err));
+      setError(explorerApiErrorMessage(err, locale as Locale));
     } finally {
       setLoading(false);
     }
@@ -148,9 +149,9 @@ export function ShaclStudio({ onJumpToNode }: ShaclStudioProps) {
     setLoading(true);
     setError("");
     try {
-      setValidation(await validateShacl(kbId, selectedUri, shacl));
+      setValidation(await validateShacl(kbId, selectedUri, shacl, { locale: locale as Locale }));
     } catch (err) {
-      setError(explorerApiErrorMessage(err));
+      setError(explorerApiErrorMessage(err, locale as Locale));
     } finally {
       setLoading(false);
     }

@@ -5,7 +5,7 @@ import { PublicIcon } from '@/components/ui/public-icon.js';
 import { KbEntityMergePropertyDiff } from '@/components/kb/widgets/kb-entity-merge-property-diff.js';
 import { buildExplorerKbApiPath, explorerFetch } from '@/explorer/host/explorerHttp.js';
 import { useI18n } from '@/i18n/context.js';
-import { fmt } from '@/i18n/format.js';
+import { fmt, formatLocaleDateTime, formatLocaleNumber } from '@/i18n/format.js';
 import type { LocaleMessages } from '@/i18n/locales/en/index.js';
 import type { Locale } from '@/i18n/locale.js';
 import { useKbCapabilities } from '@/lib/kb-capabilities.js';
@@ -65,6 +65,7 @@ type TimelineEntry =
   | { kind: 'ledger_merge'; id: string; at: string; merge: EntityMergeRow };
 
 function auditDetailLine(
+  locale: Locale,
   event: AuditEvent,
   r: LocaleMessages['kbReview'],
   audit: LocaleMessages['kbGraphAudit'],
@@ -89,8 +90,8 @@ function auditDetailLine(
     const file = d.filename;
     return [
       file,
-      nodes != null ? fmt(r.importNodes, { count: String(nodes) }) : null,
-      edges != null ? fmt(r.importEdges, { count: String(edges) }) : null,
+      nodes != null ? fmt(r.importNodes, { count: formatLocaleNumber(locale, Number(nodes)) }) : null,
+      edges != null ? fmt(r.importEdges, { count: formatLocaleNumber(locale, Number(edges)) }) : null,
     ]
       .filter(Boolean)
       .join(' · ');
@@ -102,7 +103,11 @@ function auditDetailLine(
   if (event.action === 'kb.graph.projection_rebuild') {
     const parts: string[] = [];
     if (d.projection_revision != null) {
-      parts.push(fmt(audit.projectionRevision, { revision: String(d.projection_revision) }));
+      parts.push(
+        fmt(audit.projectionRevision, {
+          revision: formatLocaleNumber(locale, Number(d.projection_revision)),
+        }),
+      );
     }
     if (d.node_count != null && d.edge_count != null) {
       parts.push(`${d.node_count}/${d.edge_count}`);
@@ -211,6 +216,7 @@ export function KbReviewQueueTab({
   focusItemId?: string;
 }) {
   const { t, locale } = useI18n();
+  const emptyCell = t.common.emptyCell;
   const r = t.kbReview;
   const auditMessages = t.kbGraphAudit;
   const apiError = useCallback(
@@ -418,7 +424,7 @@ export function KbReviewQueueTab({
                 const isRemember = item.kind === 'statement_remember';
                 const isConflict = item.kind === 'statement_conflict';
                 const isEntityMerge = item.kind === 'entity_merge';
-                const primaryId = item.payload.primary_id ?? '—';
+                const primaryId = item.payload.primary_id ?? emptyCell;
                 const duplicateIds = item.payload.duplicate_ids ?? [];
                 const firstDuplicate = duplicateIds[0];
                 const showDiff = diffExpandedId === item.id;
@@ -443,20 +449,26 @@ export function KbReviewQueueTab({
                     <div className="text-[11px] text-muted-foreground">{kindLabel(item.kind)}</div>
                     <div className="mt-1 text-[13px] leading-snug">
                       {isImport
-                        ? `${item.payload.filename ?? 'import'} (${item.payload.byte_size ?? '?'} B)`
+                        ? `${item.payload.filename ?? r.importDefaultFilename} (${fmt(r.importByteSize, {
+                            size:
+                              item.payload.byte_size != null
+                                ? formatLocaleNumber(locale as Locale, item.payload.byte_size)
+                                : '?',
+                          })})`
                         : isMapping
                           ? (
                             <span className="flex flex-col gap-1 font-mono text-xs">
-                              <span>{item.payload.signature ?? '—'}</span>
+                              <span>{item.payload.signature ?? emptyCell}</span>
                               <span className="text-muted-foreground">
-                                → {item.payload.target_uri ?? '—'} ({item.payload.target_kind ?? '?'})
+                                → {item.payload.target_uri ?? emptyCell} (
+                                {item.payload.target_kind ?? r.mappingKindUnknown})
                               </span>
                             </span>
                           )
                           : isRemember
                             ? (
                               <span className="whitespace-pre-wrap">
-                                {String(item.payload.content ?? item.payload.statement_id ?? '—')}
+                                {String(item.payload.content ?? item.payload.statement_id ?? emptyCell)}
                               </span>
                             )
                           : isConflict
@@ -465,7 +477,7 @@ export function KbReviewQueueTab({
                                 <span>
                                   {r.conflictPredicate}
                                   <span className="font-mono text-xs">
-                                    {String(item.payload.surface_phrase ?? '—')}
+                                    {String(item.payload.surface_phrase ?? emptyCell)}
                                   </span>
                                 </span>
                                 <ul className="mt-1 list-disc pl-4 text-xs text-muted-foreground">
@@ -473,7 +485,7 @@ export function KbReviewQueueTab({
                                     <li key={obj.statement_id}>
                                       {obj.object_entity_id
                                         ? renderNodeRef(obj.object_entity_id)
-                                        : String(obj.object_value ?? '—')}
+                                        : String(obj.object_value ?? emptyCell)}
                                     </li>
                                   ))}
                                 </ul>
@@ -484,7 +496,7 @@ export function KbReviewQueueTab({
                             <span className="text-muted-foreground text-xs font-normal">
                               {r.primary}
                             </span>
-                            {primaryId !== '—' ? renderNodeRef(primaryId) : '—'}
+                            {primaryId !== emptyCell ? renderNodeRef(primaryId) : emptyCell}
                             {duplicateIds.length ? (
                               <>
                                 <span className="text-muted-foreground text-xs font-normal pt-1">
@@ -503,7 +515,7 @@ export function KbReviewQueueTab({
                     {!isImport && !isMapping && !isRemember && !isConflict ? (
                       <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">{r.graphOnlyMergeHint}</p>
                     ) : null}
-                    {isEntityMerge && primaryId !== '—' && firstDuplicate ? (
+                    {isEntityMerge && primaryId !== emptyCell && firstDuplicate ? (
                       <>
                         <button
                           type="button"
@@ -626,13 +638,13 @@ export function KbReviewQueueTab({
                         </Button>
                       ) : null}
                       <time className="mt-1 block text-[10px] text-muted-foreground">
-                        {new Date(entry.at).toLocaleString()}
+                        {formatLocaleDateTime(locale, entry.at)}
                       </time>
                     </li>
                   );
                 }
                 const event = entry.event;
-                const detail = auditDetailLine(event, r, auditMessages, labels);
+                const detail = auditDetailLine(locale, event, r, auditMessages, labels);
                 const proposalId = auditProposalId(event);
                 return (
                   <li key={entry.id} className="mb-4 last:mb-0">
@@ -655,7 +667,7 @@ export function KbReviewQueueTab({
                       </Link>
                     ) : null}
                     <time className="mt-1 block text-[10px] text-muted-foreground">
-                      {new Date(entry.at).toLocaleString()}
+                      {formatLocaleDateTime(locale, entry.at)}
                     </time>
                   </li>
                 );

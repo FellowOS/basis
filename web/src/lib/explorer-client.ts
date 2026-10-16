@@ -1,4 +1,5 @@
 import type { Locale } from '@/i18n/locale.js';
+import { requestFailedStatusMessage } from '@/i18n/format.js';
 import { messagesForLocale } from '@/i18n/pick-locale.js';
 import { errorFromApiResponse } from '@/lib/api-error.js';
 import { getToken } from '@/lib/api.js';
@@ -27,10 +28,12 @@ export type DocumentStoreResult = {
 export class ExplorerClient {
   readonly kbId: string;
   private readonly signal?: AbortSignal;
+  private readonly locale: Locale;
 
-  constructor(kbId: string, signal?: AbortSignal) {
+  constructor(kbId: string, signal?: AbortSignal, locale: Locale = 'en') {
     this.kbId = kbId;
     this.signal = signal;
+    this.locale = locale;
   }
 
   /** KB-scoped API path; every graph call must go through here. */
@@ -54,7 +57,12 @@ export class ExplorerClient {
     });
     const data = await response.json().catch(() => ({}));
     if (!response.ok) {
-      throw errorFromApiResponse(response.status, data, `Request failed (${response.status})`);
+      throw errorFromApiResponse(
+        response.status,
+        data,
+        requestFailedStatusMessage(this.locale, response.status),
+        this.locale,
+      );
     }
     return { data: data as T, status: response.status };
   }
@@ -73,7 +81,12 @@ export class ExplorerClient {
     });
     const data = await response.json().catch(() => ({}));
     if (!response.ok) {
-      throw errorFromApiResponse(response.status, data, `Request failed (${response.status})`);
+      throw errorFromApiResponse(
+        response.status,
+        data,
+        requestFailedStatusMessage(this.locale, response.status),
+        this.locale,
+      );
     }
     return data as T;
   }

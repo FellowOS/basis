@@ -23,6 +23,8 @@ export const kbSources = {
   colFilename: 'Filename',
   colStatus: 'Status',
   colChars: 'Chars',
+  colCreatedAt: 'Created',
+  colUpdatedAt: 'Updated',
   colActions: 'Actions',
   actionChunkExtract: 'Chunk & extract',
   actionRetry: 'Retry',
@@ -75,6 +77,7 @@ export const kbSources = {
   nerHint:
     'For Chinese, use a spaCy model such as zh_core_web_sm, or the chat model. Rules are English-oriented.',
   spacyModel: 'spaCy model',
+  spacyModelPlaceholder: 'zh_core_web_sm',
   relationRecognition: 'Relation recognition',
   needChunkOrExtract: 'Turn on chunking or extraction.',
   queuing: 'Queuing…',
@@ -82,6 +85,14 @@ export const kbSources = {
   historyDialogTitle: 'Processing history',
   historyDialogDesc: 'Each processing attempt and its option snapshot.',
   noJobs: 'No jobs yet',
+  historyJobSummary: '{title} · {status} · {attempt}',
+  historyAttempt: 'attempt {attempt}',
+  jobStatus: {
+    queued: 'Queued',
+    running: 'Running',
+    succeeded: 'Succeeded',
+    failed: 'Failed',
+  },
   jobId: 'Job ID',
   referenceId: 'Reference ID',
   deleteTitle: 'Delete document?',
@@ -91,4 +102,5 @@ export const kbSources = {
   delete: 'Delete',
   documentCount: '{count} documents',
   documentCountOne: '{count} document',
+  tableVersionNo: 'v{version}',
 } as const;

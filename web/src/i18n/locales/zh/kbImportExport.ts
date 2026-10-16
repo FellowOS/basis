@@ -24,4 +24,6 @@ export const kbImportExport = {
   exportSuccess: '导出完成 — semantica_export.{format}',
   importFailed: '导入失败',
   exportFailed: '导出失败',
+  logQueuedImport: '已排队图谱导入：{name}',
+  logExported: '已导出图谱（{format}）',
 } as const;

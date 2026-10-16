@@ -23,7 +23,7 @@ export function DataPanelToolbar({
       {actions ? (
         <div
           className={cn(
-            'flex flex-wrap items-center justify-end gap-2',
+            'flex shrink-0 flex-wrap items-center justify-end gap-2',
             search ? 'ml-auto' : undefined,
           )}
         >

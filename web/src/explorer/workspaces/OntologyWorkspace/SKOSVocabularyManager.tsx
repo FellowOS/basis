@@ -1,4 +1,7 @@
 import { PublicIcon } from "@/components/ui/public-icon.js";
+import { useI18n } from "@/i18n/context.js";
+import { fmt, formatLocaleNumber, pickCountForm } from "@/i18n/format.js";
+import type { Locale } from "@/i18n/locale.js";
 import { useEffect, useState } from "react";
 import { explorerApiErrorMessage, explorerGetJson } from "../../lib/explorer-api-error";
 import { ontologyPath, useOntologyKbId, vocabularyPath } from "./ontologyKb";
@@ -102,6 +105,8 @@ function ConceptDetailPanel({
   onClose: () => void;
   onNavigate: (uri: string) => void;
 }) {
+  const { t, locale } = useI18n();
+  const s = t.kbOntology.skos;
   const kbId = useOntologyKbId();
   const [detail, setDetail] = useState<SKOSConceptDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -121,8 +126,9 @@ function ConceptDetailPanel({
       ontologyPath(kbId, `skos/concept/${encodeURIComponent(uri)}`),
       undefined,
       {
-        fallbackMessage: "Concept not found",
-        partialWarning: "Warning: Partial success loading concept.",
+        fallbackMessage: s.api.conceptNotFound,
+        partialWarning: s.api.partialConcept,
+        locale: locale as Locale,
       },
     )
       .then(({ data, partialWarning }) => {
@@ -131,7 +137,7 @@ function ConceptDetailPanel({
         setDetail(data);
       })
       .catch((e) => {
-        if (!ignore) setError(explorerApiErrorMessage(e));
+        if (!ignore) setError(explorerApiErrorMessage(e, locale as Locale));
       })
       .finally(() => {
         if (!ignore) setLoading(false);
@@ -139,7 +145,7 @@ function ConceptDetailPanel({
     return () => {
       ignore = true;
     };
-  }, [kbId, uri]);
+  }, [kbId, uri, s.api, locale]);
 
   const renderUriList = (label: string, uris: string[]) => {
     if (!uris.length) return null;
@@ -162,9 +168,9 @@ function ConceptDetailPanel({
       <div className={ontSkosDetailHeader}>
         <div className="flex min-w-0 items-center gap-2">
           <PublicIcon name="book-01" className="size-3.5 shrink-0 text-ok" />
-          <span className="truncate text-sm font-bold text-foreground">Concept Detail</span>
+          <span className="truncate text-sm font-bold text-foreground">{s.conceptDetail}</span>
         </div>
-        <button type="button" onClick={onClose} className={ontSkosIconBtn} aria-label="Close">
+        <button type="button" onClick={onClose} className={ontSkosIconBtn} aria-label={s.closeAria}>
           <PublicIcon name="x-02" className="size-3.5" />
         </button>
       </div>
@@ -202,33 +208,33 @@ function ConceptDetailPanel({
           </div>
 
           {detail.definition && (
-            <PropSection label="Definition">
+            <PropSection label={s.definition}>
               <p className={ontSkosBodyText}>{detail.definition}</p>
             </PropSection>
           )}
 
           {detail.scope_note && (
-            <PropSection label="Scope Note">
+            <PropSection label={s.scopeNote}>
               <p className={ontSkosNoteText}>{detail.scope_note}</p>
             </PropSection>
           )}
 
           {detail.editorial_note && (
-            <PropSection label="Editorial Note">
+            <PropSection label={s.editorialNote}>
               <p className={ontSkosNoteText}>{detail.editorial_note}</p>
             </PropSection>
           )}
 
-          {renderUriList("Broader", detail.broader)}
-          {renderUriList("Narrower", detail.narrower)}
-          {renderUriList("Related", detail.related)}
-          {renderUriList("Exact Match", detail.exact_match)}
-          {renderUriList("Close Match", detail.close_match)}
-          {renderUriList("Broad Match", detail.broad_match)}
-          {renderUriList("Narrow Match", detail.narrow_match)}
+          {renderUriList(s.broader, detail.broader)}
+          {renderUriList(s.narrower, detail.narrower)}
+          {renderUriList(s.related, detail.related)}
+          {renderUriList(s.exactMatch, detail.exact_match)}
+          {renderUriList(s.closeMatch, detail.close_match)}
+          {renderUriList(s.broadMatch, detail.broad_match)}
+          {renderUriList(s.narrowMatch, detail.narrow_match)}
 
           {detail.scheme_uri && (
-            <PropSection label="Concept Scheme">
+            <PropSection label={s.conceptScheme}>
               <span className="break-all font-mono text-[11px] text-muted-foreground">
                 {detail.scheme_uri}
               </span>
@@ -264,6 +270,7 @@ function ConceptTreeNode({
   selectedUri: string | null;
   onSelect: (uri: string) => void;
 }) {
+  const { locale } = useI18n();
   const [expanded, setExpanded] = useState(depth === 0);
   const children = concept.children ?? [];
   const hasChildren = children.length > 0;
@@ -306,7 +313,7 @@ function ConceptTreeNode({
         </span>
 
         {hasChildren && (
-          <span className={ontSkosTreeCount}>{children.length}</span>
+          <span className={ontSkosTreeCount}>{formatLocaleNumber(locale, children.length)}</span>
         )}
       </div>
 
@@ -340,6 +347,8 @@ function SchemePanel({
   onSelectConcept: (uri: string) => void;
   searchQuery: string;
 }) {
+  const { t, locale } = useI18n();
+  const s = t.kbOntology.skos;
   const kbId = useOntologyKbId();
   const [expanded, setExpanded] = useState(true);
   const [hierarchy, setHierarchy] = useState<ConceptNode[]>([]);
@@ -367,8 +376,9 @@ function SchemePanel({
       vocabularyPath(kbId, "hierarchy", `scheme=${encodeURIComponent(scheme.uri)}`),
       undefined,
       {
-        fallbackMessage: "Failed to load hierarchy",
-        partialWarning: "Warning: Partial success loading hierarchy.",
+        fallbackMessage: s.api.hierarchyFailed,
+        partialWarning: s.api.partialHierarchy,
+        locale: locale as Locale,
       },
     )
       .then(({ data, partialWarning }) => {
@@ -379,7 +389,7 @@ function SchemePanel({
       .catch((err) => {
         if (!ignore) {
           setHierarchy([]);
-          setError(explorerApiErrorMessage(err));
+          setError(explorerApiErrorMessage(err, locale as Locale));
         }
       })
       .finally(() => {
@@ -388,9 +398,14 @@ function SchemePanel({
     return () => {
       ignore = true;
     };
-  }, [kbId, scheme.uri, expanded]);
+  }, [kbId, scheme.uri, expanded, s.api, locale]);
 
   const totalConcepts = countConcepts(hierarchy);
+  const conceptCountLabel = loading
+    ? t.common.ellipsis
+    : fmt(pickCountForm(locale, totalConcepts, s.conceptCountOne, s.conceptCount), {
+        count: formatLocaleNumber(locale, totalConcepts),
+      });
 
   const filterConcepts = (nodes: ConceptNode[], q: string): ConceptNode[] => {
     if (!q) return nodes;
@@ -419,9 +434,7 @@ function SchemePanel({
           )}
           <span className={ontSkosSchemeTitle}>{scheme.title}</span>
         </div>
-        <span className="text-[11px] text-muted-foreground">
-          {loading ? "…" : `${totalConcepts} concept${totalConcepts !== 1 ? "s" : ""}`}
-        </span>
+        <span className="text-[11px] text-muted-foreground">{conceptCountLabel}</span>
       </button>
 
       {expanded && (
@@ -430,11 +443,11 @@ function SchemePanel({
           {loading ? (
             <div className={ontSkosLoadingRow}>
               <PublicIcon name="loader-01" className="size-3 animate-spin text-primary" />
-              <span className="text-xs text-muted-foreground">Loading concepts…</span>
+              <span className="text-xs text-muted-foreground">{s.loadingConcepts}</span>
             </div>
           ) : displayedConcepts.length === 0 ? (
             <div className="px-6 py-2 text-xs italic text-muted-foreground">
-              {searchQuery ? "No matching concepts" : "No concepts in this scheme"}
+              {searchQuery ? s.noMatchingConcepts : s.noConceptsInScheme}
             </div>
           ) : (
             <div className="pt-0.5">
@@ -464,6 +477,8 @@ interface Props {
 }
 
 export function SKOSVocabularyManager({ schemeUri }: Props) {
+  const { t, locale } = useI18n();
+  const s = t.kbOntology.skos;
   const kbId = useOntologyKbId();
   const [schemes, setSchemes] = useState<SKOSScheme[]>([]);
   const [loading, setLoading] = useState(true);
@@ -476,17 +491,18 @@ export function SKOSVocabularyManager({ schemeUri }: Props) {
       ontologyPath(kbId, "skos/schemes"),
       undefined,
       {
-        fallbackMessage: "Failed to load schemes",
-        partialWarning: "Warning: Partial success loading schemes.",
+        fallbackMessage: s.api.schemesFailed,
+        partialWarning: s.api.partialSchemes,
+        locale: locale as Locale,
       },
     )
       .then(({ data, partialWarning }) => {
         if (partialWarning) setError(partialWarning);
         setSchemes(data);
       })
-      .catch((e) => setError(explorerApiErrorMessage(e)))
+      .catch((e) => setError(explorerApiErrorMessage(e, locale as Locale)))
       .finally(() => setLoading(false));
-  }, [kbId]);
+  }, [kbId, s.api, locale]);
 
   const displayedSchemes = schemeUri
     ? schemes.filter((s) => s.uri === schemeUri)
@@ -501,11 +517,11 @@ export function SKOSVocabularyManager({ schemeUri }: Props) {
           <input
             value={searchQ}
             onChange={(e) => setSearchQ(e.target.value)}
-            placeholder="Search labels and definitions…"
+            placeholder={s.searchPlaceholder}
             className={ontSkosSearchInput}
           />
           {searchQ ? (
-            <button type="button" onClick={() => setSearchQ("")} className={ontSkosIconBtn} aria-label="Clear search">
+            <button type="button" onClick={() => setSearchQ("")} className={ontSkosIconBtn} aria-label={s.clearAria}>
               <PublicIcon name="x-02" className="size-2.5" />
             </button>
           ) : null}
@@ -530,9 +546,9 @@ export function SKOSVocabularyManager({ schemeUri }: Props) {
           {!loading && !error && displayedSchemes.length === 0 && (
             <div className={ontSkosEmptyState}>
               <PublicIcon name="book-01" className="size-7 text-primary/15" />
-              <span className="mt-2.5 text-xs text-muted-foreground">No SKOS concept schemes found</span>
+              <span className="mt-2.5 text-xs text-muted-foreground">{s.emptySchemes}</span>
               <span className="mt-1 max-w-[220px] text-[11px] text-muted-foreground">
-                Import a SKOS vocabulary to browse concepts here
+                {s.emptySchemesHint}
               </span>
             </div>
           )}

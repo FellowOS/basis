@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/utils.js";
 import {
   ontAlignMatrixCell,
@@ -15,6 +15,7 @@ import {
 } from "./ontologyUiClasses";
 import { PublicIcon } from "@/components/ui/public-icon.js";
 import { useI18n } from "@/i18n/context.js";
+import { formatLocaleFixedDecimals } from "@/i18n/format.js";
 import type { Locale } from "@/i18n/locale.js";
 import { Button } from "@/components/ui/button.js";
 import {
@@ -34,6 +35,7 @@ import {
 } from "./api";
 import { useOntologyKbId } from "./ontologyKb";
 import { explorerApiErrorMessage } from "../../lib/explorer-api-error";
+import type { LocaleMessages } from "@/i18n/locales/en/index.js";
 import type { AlignmentRelation, AlignmentSuggestion, OntologyAlignment, OntologyEntry } from "./types";
 
 const RELATIONS: AlignmentRelation[] = [
@@ -48,6 +50,14 @@ const RELATIONS: AlignmentRelation[] = [
 
 function relationBadgeClass(relation: AlignmentRelation) {
   return ontAlignRelationClass[relation] ?? "border-border text-muted-foreground";
+}
+
+function alignmentRelationLabel(
+  copy: LocaleMessages["kbAlignments"],
+  relation: AlignmentRelation,
+): string {
+  const labels = copy.relationLabels as Record<string, string>;
+  return labels[relation] ?? relation;
 }
 
 export function AlignmentsTab() {
@@ -65,7 +75,15 @@ export function AlignmentsTab() {
   const [relation, setRelation] = useState<AlignmentRelation>("skos:exactMatch");
   const [confidence, setConfidence] = useState(0.86);
   const [provenance, setProvenance] = useState("");
-  const [source, setSource] = useState("Ontology Hub");
+  const [source, setSource] = useState<string>(copy.defaultSource);
+  const prevDefaultSourceRef = useRef(copy.defaultSource);
+  useEffect(() => {
+    const prevDefault = prevDefaultSourceRef.current;
+    prevDefaultSourceRef.current = copy.defaultSource;
+    setSource((current) =>
+      current === prevDefault || current === "" ? copy.defaultSource : current,
+    );
+  }, [copy.defaultSource]);
   const [reviewer, setReviewer] = useState("");
   const [threshold, setThreshold] = useState(0.68);
   const [busy, setBusy] = useState(false);
@@ -76,8 +94,8 @@ export function AlignmentsTab() {
   const reload = useCallback(async () => {
     setError("");
     const [registryResult, alignmentResult] = await Promise.allSettled([
-      loadOntologyRegistry(kbId),
-      loadAlignments(kbId),
+      loadOntologyRegistry(kbId, { locale: apiLocale }),
+      loadAlignments(kbId, undefined, { locale: apiLocale }),
     ]);
 
     const errors: string[] = [];
@@ -100,8 +118,8 @@ export function AlignmentsTab() {
     let ignore = false;
     async function fetchInitial() {
       const [registryResult, alignmentResult] = await Promise.allSettled([
-        loadOntologyRegistry(kbId),
-        loadAlignments(kbId),
+        loadOntologyRegistry(kbId, { locale: apiLocale }),
+        loadAlignments(kbId, undefined, { locale: apiLocale }),
       ]);
       if (ignore) return;
 
@@ -155,43 +173,51 @@ export function AlignmentsTab() {
     setBusy(true);
     setError("");
     try {
-      await saveAlignment(kbId, {
-        source_uri: sourceUri.trim(),
-        target_uri: targetUri.trim(),
-        relation,
-        confidence,
-        provenance: provenance || undefined,
-        source: source || undefined,
-        reviewer: reviewer || undefined,
-      });
+      await saveAlignment(
+        kbId,
+        {
+          source_uri: sourceUri.trim(),
+          target_uri: targetUri.trim(),
+          relation,
+          confidence,
+          provenance: provenance || undefined,
+          source: source || undefined,
+          reviewer: reviewer || undefined,
+        },
+        { locale: apiLocale },
+      );
       setSourceUri("");
       setTargetUri("");
       await reload();
       setEditorOpen(false);
     } catch (err) {
-      setError(explorerApiErrorMessage(err));
+      setError(explorerApiErrorMessage(err, apiLocale));
     } finally {
       setBusy(false);
     }
-  }, [copy.missingUris, kbId, sourceUri, targetUri, relation, confidence, provenance, source, reviewer, reload]);
+  }, [apiLocale, copy.missingUris, kbId, sourceUri, targetUri, relation, confidence, provenance, source, reviewer, reload]);
 
   const handleSuggest = useCallback(async () => {
     setBusy(true);
     setError("");
     try {
-      const data = await suggestAlignments(kbId, {
-        source_ontology_uri: sourceOntology || undefined,
-        target_ontology_uri: targetOntology || undefined,
-        threshold,
-        limit: 40,
-      });
+      const data = await suggestAlignments(
+        kbId,
+        {
+          source_ontology_uri: sourceOntology || undefined,
+          target_ontology_uri: targetOntology || undefined,
+          threshold,
+          limit: 40,
+        },
+        { locale: apiLocale },
+      );
       setSuggestions(data);
     } catch (err) {
-      setError(explorerApiErrorMessage(err));
+      setError(explorerApiErrorMessage(err, apiLocale));
     } finally {
       setBusy(false);
     }
-  }, [kbId, sourceOntology, targetOntology, threshold]);
+  }, [apiLocale, kbId, sourceOntology, targetOntology, threshold]);
 
   const handleAcceptSuggestion = useCallback((suggestion: AlignmentSuggestion) => {
     setSourceUri(suggestion.source_uri);
@@ -207,14 +233,14 @@ export function AlignmentsTab() {
     setBusy(true);
     setError("");
     try {
-      await removeAlignment(kbId, id);
+      await removeAlignment(kbId, id, { locale: apiLocale });
       await reload();
     } catch (err) {
-      setError(explorerApiErrorMessage(err));
+      setError(explorerApiErrorMessage(err, apiLocale));
     } finally {
       setBusy(false);
     }
-  }, [kbId, reload]);
+  }, [apiLocale, kbId, reload]);
 
   function openAlignment(item: OntologyAlignment) {
     setSourceUri(item.source_uri);
@@ -281,7 +307,7 @@ export function AlignmentsTab() {
                                       if (event.key === "Enter" || event.key === " ") openAlignment(item);
                                     }}
                                   >
-                                    {item.relation.split(":")[1]}
+                                    {alignmentRelationLabel(copy, item.relation)}
                                   </span>
                                 ))}
                               </div>
@@ -320,7 +346,9 @@ export function AlignmentsTab() {
                   <p className="truncate text-[13px] text-foreground">{item.source_label || item.source_uri}</p>
                   <p className="truncate font-mono text-[11px] text-muted-foreground">{item.source_uri}</p>
                 </div>
-                <span className={cn(ontAlignRelationBadge, relationBadgeClass(item.relation))}>{item.relation.split(":")[1]}</span>
+                <span className={cn(ontAlignRelationBadge, relationBadgeClass(item.relation))}>
+                  {alignmentRelationLabel(copy, item.relation)}
+                </span>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-[13px] text-foreground">{item.target_label || item.target_uri}</p>
                   <p className="truncate font-mono text-[11px] text-muted-foreground">{item.target_uri}</p>
@@ -355,11 +383,17 @@ export function AlignmentsTab() {
             <div>
               <label className="oh-label">{copy.relation}</label>
               <select className="oh-field" value={relation} onChange={(event) => setRelation(event.target.value as AlignmentRelation)}>
-                {RELATIONS.map((item) => <option key={item}>{item}</option>)}
+                {RELATIONS.map((item) => (
+                  <option key={item} value={item}>
+                    {alignmentRelationLabel(copy, item)}
+                  </option>
+                ))}
               </select>
             </div>
             <div>
-              <label className="oh-label">{copy.confidence} {confidence.toFixed(2)}</label>
+              <label className="oh-label">
+                {copy.confidence} {formatLocaleFixedDecimals(locale, confidence, 2)}
+              </label>
               <input
                 type="range"
                 min="0"
@@ -417,7 +451,9 @@ export function AlignmentsTab() {
               </select>
             </div>
           </div>
-          <label className="oh-label">{copy.threshold} {threshold.toFixed(2)}</label>
+          <label className="oh-label">
+            {copy.threshold} {formatLocaleFixedDecimals(locale, threshold, 2)}
+          </label>
           <input
             type="range"
             min="0.25"
@@ -435,7 +471,9 @@ export function AlignmentsTab() {
             {suggestions.map((item) => (
               <button type="button" key={`${item.source_uri}-${item.target_uri}-${item.relation}`} className="oh-suggestion" onClick={() => handleAcceptSuggestion(item)}>
                 <span className={ontStrong}>{item.source_label}</span>
-                <span className={relationBadgeClass(item.relation)}>{item.relation}</span>
+                <span className={relationBadgeClass(item.relation)}>
+                  {alignmentRelationLabel(copy, item.relation)}
+                </span>
                 <span className={ontStrong}>{item.target_label}</span>
                 <span className="oh-muted">{Math.round(item.score * 100)}%</span>
               </button>

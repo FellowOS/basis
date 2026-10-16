@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from basis.pipeline.document import TextIngestOptions
 
 # Exposed in the Sources processing dialog; must match semantica.split.methods._SPLIT_METHODS keys.
@@ -15,6 +17,15 @@ PRODUCT_CHUNK_METHODS: frozenset[str] = frozenset(
     }
 )
 DEFAULT_CHUNK_METHOD = "recursive"
+_MARKDOWN_SUFFIXES = frozenset({".md", ".markdown"})
+
+
+def default_chunk_method(filename: str | None) -> str:
+    """Markdown keeps headings, lists, and code fences, so it splits by structure."""
+    suffix = Path(filename or "").suffix.lower()
+    if suffix in _MARKDOWN_SUFFIXES:
+        return "structural"
+    return DEFAULT_CHUNK_METHOD
 
 
 def normalize_chunk_method(value: str | None) -> str:

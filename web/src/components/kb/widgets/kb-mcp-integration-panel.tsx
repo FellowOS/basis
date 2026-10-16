@@ -14,6 +14,9 @@ import { Input } from '@/components/ui/input.js';
 import { Label } from '@/components/ui/label.js';
 import { PublicIcon } from '@/components/ui/public-icon.js';
 import { useI18n } from '@/i18n/context.js';
+import { fmt, formatLocaleDateTime, formatLocaleNumber } from '@/i18n/format.js';
+import type { Locale } from '@/i18n/locale.js';
+import { kbMcpTokenScopeLabel } from '@/lib/kb-mcp-labels.js';
 
 export type McpIntegrationInfo = {
   mcp_url: string;
@@ -64,7 +67,8 @@ export function KbMcpIntegrationPanel({
   onCreateOpenChange,
   showCreateInCard = true,
 }: KbMcpIntegrationPanelProps) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
+  const mcp = t.menu.kbMcp;
   const [createOpenInternal, setCreateOpenInternal] = useState(false);
   const createOpen = createOpenProp ?? createOpenInternal;
   const setCreateOpen = onCreateOpenChange ?? setCreateOpenInternal;
@@ -150,7 +154,9 @@ export function KbMcpIntegrationPanel({
             {t.menu.kbMcp.tokensTitle}
           </span>
           {activeTokens.length > 0 ? (
-            <span className="font-mono text-[11px] tabular-nums text-muted-foreground">{activeTokens.length}</span>
+            <span className="font-mono text-[11px] tabular-nums text-muted-foreground">
+              {formatLocaleNumber(locale as Locale, activeTokens.length)}
+            </span>
           ) : null}
           {canManageTokens && showCreateInCard ? (
             <Button type="button" size="sm" className="ml-auto h-8" onClick={() => setCreateOpen(true)}>
@@ -215,9 +221,12 @@ export function KbMcpIntegrationPanel({
                   </div>
                 </div>
                 <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
-                  {row.scope}
-                  {' · '}
-                  {row.last_used_at ?? '—'}
+                  {fmt(mcp.tokenMeta, {
+                    scope: kbMcpTokenScopeLabel(mcp, row.scope),
+                    lastUsed: row.last_used_at
+                      ? formatLocaleDateTime(locale as Locale, row.last_used_at)
+                      : mcp.lastUsedNever,
+                  })}
                 </p>
               </div>
             ))

@@ -31,4 +31,7 @@ export const kbReview = {
   partialLedgerSkipped: '部分节点未入账本：{skipped}',
   importNodes: '{count} 节点',
   importEdges: '{count} 边',
+  importDefaultFilename: '导入',
+  importByteSize: '{size} B',
+  mappingKindUnknown: '?',
 } as const;

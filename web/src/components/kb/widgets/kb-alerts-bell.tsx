@@ -10,6 +10,9 @@ import {
 import { api } from '@/lib/api.js';
 import { consumeKbAlertsStream, type KbAlertStreamItem } from '@/lib/kb-alerts-stream.js';
 import { useI18n } from '@/i18n/context.js';
+import { formatBadgeCount, formatLocaleDateTime } from '@/i18n/format.js';
+import { kbAlertKindLabel, kbAlertSeverityLabel } from '@/lib/kb-alert-labels.js';
+import type { Locale } from '@/i18n/locale.js';
 import { kbAlertAction } from '@/lib/kb-alert-actions.js';
 
 type KbAlert = KbAlertStreamItem;
@@ -27,7 +30,7 @@ function kbIdFromPath(pathname: string): string | null {
 export function KbAlertsBell() {
   const { pathname } = useLocation();
   const kbId = useMemo(() => kbIdFromPath(pathname), [pathname]);
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [alerts, setAlerts] = useState<KbAlert[]>([]);
@@ -86,6 +89,7 @@ export function KbAlertsBell() {
           await consumeKbAlertsStream(kbId, {
             since: streamSinceRef.current,
             signal: ac.signal,
+            locale,
             onAlert: (alert) => {
               streamSinceRef.current = alert.created_at;
               mergeAlert(alert);
@@ -104,7 +108,7 @@ export function KbAlertsBell() {
       cancelled = true;
       ac.abort();
     };
-  }, [kbId, streamReady, mergeAlert]);
+  }, [kbId, locale, mergeAlert, streamReady]);
 
   useEffect(() => {
     if (!kbId || !open) return;
@@ -139,7 +143,7 @@ export function KbAlertsBell() {
             <span
               className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-medium text-destructive-foreground"
             >
-              {badge > 9 ? '9+' : badge}
+              {formatBadgeCount(locale as Locale, badge, 9)}
             </span>
           ) : null}
         </Button>
@@ -162,6 +166,11 @@ export function KbAlertsBell() {
                 return (
                 <li key={alert.id} className="flex gap-2 px-3 py-2 text-sm">
                   <div className="min-w-0 flex-1">
+                    <p className="text-[11px] text-muted-foreground">
+                      {kbAlertSeverityLabel(t.pages.alerts, alert.severity)}
+                      {' · '}
+                      {kbAlertKindLabel(t.pages.alerts, alert.kind)}
+                    </p>
                     <p className="font-medium leading-snug">{alert.message}</p>
                     {action ? (
                       <Link
@@ -172,14 +181,16 @@ export function KbAlertsBell() {
                         {t.pages.alerts[action.labelKey]}
                       </Link>
                     ) : null}
-                    <p className="text-xs text-muted-foreground">{alert.created_at}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {formatLocaleDateTime(locale as Locale, alert.created_at)}
+                    </p>
                   </div>
                   <Button
                     type="button"
                     variant="ghost"
                     size="icon"
                     className="size-7 shrink-0"
-                    aria-label="Dismiss"
+                    aria-label={t.pages.alerts.dismissAria}
                     onClick={() => void dismiss(alert.id)}
                   >
                     <PublicIcon name='x-02' className="size-3.5" />

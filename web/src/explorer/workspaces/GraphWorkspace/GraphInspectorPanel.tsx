@@ -5,9 +5,11 @@ import { Button } from "@/components/ui/button.js";
 import { Input } from "@/components/ui/input.js";
 import { Separator } from "@/components/ui/separator.js";
 import { useI18n } from "@/i18n/context.js";
+import { formatLocaleFixedDecimals, formatLocalePercent } from "@/i18n/format.js";
 import { kbPath } from "@/lib/nav-config.js";
 import { useKbCapabilitiesOptional } from "@/lib/kb-capabilities.js";
 import type { GraphWorkspaceLocale } from "./graphWorkspaceCopy";
+import { graphNodeTypeLabel } from "./graphWorkspaceCopy";
 import {
   inspectorAltPathsBadge,
   inspectorBadgeCount,
@@ -140,7 +142,7 @@ function PathDistanceIntelPanel({
                   metricToneClass(result.confidence_decay),
                 )}
               >
-                {(result.confidence_decay * 100).toFixed(1)}%
+                {formatLocalePercent(locale, result.confidence_decay, 1)}
               </div>
               <div className="mt-1 h-1 overflow-hidden rounded-full bg-muted">
                 <div
@@ -159,7 +161,7 @@ function PathDistanceIntelPanel({
                 {inspectorCopy(locale, "semanticSim")}
               </div>
               <div className="text-sm font-semibold tabular-nums text-sky-600 dark:text-sky-400">
-                {(result.semantic_similarity * 100).toFixed(1)}%
+                {formatLocalePercent(locale, result.semantic_similarity, 1)}
               </div>
               <div className="mt-1 h-1 overflow-hidden rounded-full bg-muted">
                 <div
@@ -175,7 +177,7 @@ function PathDistanceIntelPanel({
                 {inspectorCopy(locale, "pathCoherence")}
               </div>
               <div className="text-sm font-semibold tabular-nums text-emerald-600 dark:text-emerald-400">
-                {(result.path_coherence_score * 100).toFixed(1)}%
+                {formatLocalePercent(locale, result.path_coherence_score, 1)}
               </div>
             </div>
           ) : null}
@@ -300,7 +302,9 @@ function PathFlowViz({
 
       <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
         <span>{inspectorCopy(locale, "totalWeight")}</span>
-        <span className="font-semibold tabular-nums text-foreground">{totalWeight.toFixed(3)}</span>
+        <span className="font-semibold tabular-nums text-foreground">
+          {formatLocaleFixedDecimals(locale, totalWeight, 3)}
+        </span>
         <span aria-hidden>·</span>
         <span>{inspectorHopsSummary(locale, path.length)}</span>
       </div>
@@ -336,7 +340,7 @@ export function GraphInspectorPanel({
 }: GraphInspectorPanelProps) {
   const { locale: i18nLocale } = useI18n();
   const loc: GraphWorkspaceLocale =
-    localeProp ?? (i18nLocale === "zh" ? "zh" : "en");
+    localeProp ?? i18nLocale;
   const provenanceEnabled = useKbCapabilitiesOptional()?.caps?.provenance === true;
 
   if (!nodeId) {
@@ -440,7 +444,9 @@ export function GraphInspectorPanel({
           <Badge variant="secondary" className="font-semibold uppercase tracking-wide">
             {groupedDisplaySelection
               ? inspectorCopy(loc, "groupedSelection")
-              : (attributes?.nodeType || inspectorCopy(loc, "entityDefault"))}
+              : attributes?.nodeType
+                ? graphNodeTypeLabel(loc, attributes.nodeType)
+                : inspectorCopy(loc, "entityDefault")}
           </Badge>
         </div>
         <h2
@@ -634,10 +640,12 @@ export function GraphInspectorPanel({
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
                       <div className="truncate font-medium text-foreground">{prediction.label || prediction.target}</div>
-                      <div className="text-xs text-muted-foreground">{prediction.type}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {graphNodeTypeLabel(loc, prediction.type)}
+                      </div>
                     </div>
                     <Badge variant="secondary" className="shrink-0 tabular-nums">
-                      {(prediction.score * 100).toFixed(1)}%
+                      {formatLocalePercent(loc, prediction.score, 1)}
                     </Badge>
                   </div>
                 </button>

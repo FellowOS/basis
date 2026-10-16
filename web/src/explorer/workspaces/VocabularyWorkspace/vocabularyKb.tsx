@@ -1,4 +1,8 @@
 import { createContext, useContext, type ReactNode } from "react";
+
+import { localeFromBrowser } from "@/i18n/locale.js";
+import { messagesForLocale } from "@/i18n/pick-locale.js";
+
 import { vocabularyPath as buildVocabularyPath } from "../OntologyWorkspace/ontologyKb";
 
 const VocabularyKbContext = createContext<string | null>(null);
@@ -18,7 +22,8 @@ export function VocabularyKbProvider({
 export function useVocabularyKbId(): string {
   const kbId = useContext(VocabularyKbContext);
   if (!kbId) {
-    throw new Error("Vocabulary workspace requires kbId (VocabularyKbProvider).");
+    const lang = typeof navigator !== "undefined" ? navigator.language : "en";
+    throw new Error(messagesForLocale(localeFromBrowser(lang)).kbExplorer.vocabularyKbRequired);
   }
   return kbId;
 }

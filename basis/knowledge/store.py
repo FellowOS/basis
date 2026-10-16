@@ -948,8 +948,10 @@ class KnowledgeStore:
         with self._lock:
             rows = self._conn.execute(
                 """
-                SELECT d.id, d.title, d.external_key, dv.status AS version_status,
-                       dv.id AS version_id, dv.version_no
+                SELECT d.id, d.title, d.external_key, d.created_at,
+                       dv.status AS version_status,
+                       dv.id AS version_id, dv.version_no,
+                       dv.created_at AS version_created_at
                 FROM documents d
                 LEFT JOIN document_versions dv ON dv.id = d.current_version_id
                 WHERE d.kb_id = ? AND d.deleted_at IS NULL
@@ -984,6 +986,8 @@ class KnowledgeStore:
                         "version_status": row["version_status"],
                         "version_id": row["version_id"],
                         "version_no": row["version_no"],
+                        "created_at": row["created_at"],
+                        "updated_at": row["version_created_at"] or row["created_at"],
                     }
                 )
         return items
@@ -1056,6 +1060,41 @@ class KnowledgeStore:
                     LIMIT 1
                     """,
                     (chunk_id, kb_id, subject_id, surface_phrase, object_value),
+                ).fetchone()
+        return row is not None
+
+    def has_equivalent_statement(
+        self,
+        kb_id: str,
+        subject_id: str,
+        surface_phrase: str,
+        *,
+        object_entity_id: str | None,
+        object_value: str | None,
+    ) -> bool:
+        """True when an active statement already asserts the same triple in this KB."""
+        with self._lock:
+            if object_entity_id is not None:
+                row = self._conn.execute(
+                    """
+                    SELECT id FROM statements
+                    WHERE kb_id = ? AND subject_id = ? AND surface_phrase = ?
+                      AND object_entity_id = ? AND invalidated_at IS NULL
+                      AND status IN ('pending', 'confirmed')
+                    LIMIT 1
+                    """,
+                    (kb_id, subject_id, surface_phrase, object_entity_id),
+                ).fetchone()
+            else:
+                row = self._conn.execute(
+                    """
+                    SELECT id FROM statements
+                    WHERE kb_id = ? AND subject_id = ? AND surface_phrase = ?
+                      AND object_value = ? AND invalidated_at IS NULL
+                      AND status IN ('pending', 'confirmed')
+                    LIMIT 1
+                    """,
+                    (kb_id, subject_id, surface_phrase, object_value),
                 ).fetchone()
         return row is not None
 

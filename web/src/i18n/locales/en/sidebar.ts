@@ -1,6 +1,8 @@
 export const sidebar = {
   collapseSidebar: 'Collapse sidebar',
   openSidebar: 'Open sidebar',
+  mobileTitle: 'Sidebar',
+  mobileDescription: 'Navigation menu for the console.',
   groups: {
     deploy: 'Deploy',
     org: 'Org & access',

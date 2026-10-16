@@ -15,7 +15,6 @@ import {
 } from '@/components/console-ui/index.js';
 import { DataTable, type DataTableColumn } from '@/components/console-ui/DataTable.js';
 import { ConsolePageLayout } from '@/components/console-ui/index.js';
-import { Badge } from '@/components/ui/badge.js';
 import { Button } from '@/components/ui/button.js';
 import { Checkbox } from '@/components/ui/checkbox.js';
 import {
@@ -51,7 +50,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs.j
 import { Textarea } from '@/components/ui/textarea.js';
 import { cn } from '@/lib/utils.js';
 import { useI18n } from '@/i18n/context.js';
-import { fmt } from '@/i18n/format.js';
+import {
+  compareLocaleStrings,
+  fmt,
+  formatLocaleDateTime,
+  formatLocaleNumber,
+  pickCountForm,
+} from '@/i18n/format.js';
 import type { Locale } from '@/i18n/locale.js';
 import type { LocaleMessages } from '@/i18n/locales/en/index.js';
 import { messageForApiErrorCode } from '@/lib/api-error-message.js';
@@ -76,6 +81,8 @@ type DocRow = {
   version_status?: string | null;
   version_id?: string | null;
   version_no?: number | null;
+  created_at?: string | null;
+  updated_at?: string | null;
 };
 
 type ProcessingJob = {
@@ -95,32 +102,34 @@ type ProcessingJob = {
 function versionStatusLabel(
   status: string | null | undefined,
   labels: LocaleMessages['kbSources']['versionStatus'],
+  emptyCell: string,
 ): string {
-  if (!status) return '—';
+  if (!status) return emptyCell;
   const key = status as keyof typeof labels;
   return key in labels ? labels[key] : status;
 }
 
-function statusBadgeVariant(
+function processingJobStatusLabel(
   status: string | null | undefined,
-): 'success' | 'destructive' | 'secondary' | 'warning' | 'outline' {
-  switch (status) {
-    case 'ready':
-      return 'success';
-    case 'failed':
-      return 'destructive';
-    case 'uploaded':
-    case 'stale':
-      return 'secondary';
-    case 'queued':
-    case 'parsing':
-    case 'chunking':
-    case 'embedding':
-    case 'extracting':
-      return 'warning';
-    default:
-      return 'outline';
-  }
+  labels: LocaleMessages['kbSources']['jobStatus'],
+  emptyCell: string,
+): string {
+  if (!status) return emptyCell;
+  const key = status as keyof typeof labels;
+  return key in labels ? labels[key] : status;
+}
+
+const PROCESSING_STATUSES = new Set([
+  'queued',
+  'running',
+  'parsing',
+  'chunking',
+  'embedding',
+  'extracting',
+]);
+
+function statusIsProcessing(status: string | null | undefined): boolean {
+  return status != null && PROCESSING_STATUSES.has(status);
 }
 
 function docReadyForGraph(doc: DocRow, job?: ProcessingJob): boolean {
@@ -138,6 +147,12 @@ type ProductChunkMethod =
   | 'paragraph'
   | 'structural'
   | 'entity_aware';
+
+function chunkMethodForName(name: string | null | undefined): ProductChunkMethod {
+  const lower = (name ?? '').trim().toLowerCase();
+  if (lower.endsWith('.md') || lower.endsWith('.markdown')) return 'structural';
+  return DEFAULT_CHUNK_METHOD;
+}
 
 function chunkSizeValid(size: number): boolean {
   return Number.isFinite(size) && size >= 200 && size <= 100_000;
@@ -222,6 +237,7 @@ export function KnowledgePage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const client = useExplorerClient();
   const { t, locale } = useI18n();
+  const emptyCell = t.common.emptyCell;
   const { getKb } = useKbCatalog();
   const { caps } = useKbCapabilities();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -314,14 +330,18 @@ export function KnowledgePage() {
 
   const filteredDocuments = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return documents;
-    return documents.filter(
-      (doc) =>
-        doc.doc_id.toLowerCase().includes(q) ||
-        (doc.filename ?? '').toLowerCase().includes(q) ||
-        (doc.document_id ?? '').toLowerCase().includes(q),
+    const matched = !q
+      ? documents
+      : documents.filter(
+          (doc) =>
+            doc.doc_id.toLowerCase().includes(q) ||
+            (doc.filename ?? '').toLowerCase().includes(q) ||
+            (doc.document_id ?? '').toLowerCase().includes(q),
+        );
+    return [...matched].sort((a, b) =>
+      compareLocaleStrings(locale as Locale, b.created_at ?? '', a.created_at ?? ''),
     );
-  }, [documents, search]);
+  }, [documents, locale, search]);
 
   const totalPages = Math.max(1, Math.ceil(filteredDocuments.length / PAGE_SIZE));
 
@@ -561,8 +581,9 @@ export function KnowledgePage() {
   }
 
   function openConfig(versionId: string) {
+    const doc = documents.find((item) => item.version_id === versionId);
     setChunk(true);
-    setChunkMethod(DEFAULT_CHUNK_METHOD);
+    setChunkMethod(chunkMethodForName(doc?.filename || doc?.doc_id));
     setChunkSize(DEFAULT_CHUNK_SIZE);
     setChunkOverlap(DEFAULT_CHUNK_OVERLAP);
     setExtract(true);
@@ -604,6 +625,8 @@ export function KnowledgePage() {
     const filenameCol = k.colFilename;
     const statusCol = k.colStatus;
     const charsCol = k.colChars;
+    const createdCol = k.colCreatedAt;
+    const updatedCol = k.colUpdatedAt;
     const actionsCol = k.colActions;
 
     return [
@@ -624,13 +647,21 @@ export function KnowledgePage() {
               <span className="font-medium">{doc.doc_id}</span>
             )}
             <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground">
-              {doc.version_no ? <span>v{doc.version_no}</span> : null}
+              {doc.version_no != null ? (
+                <span>
+                  {fmt(k.tableVersionNo, {
+                    version: formatLocaleNumber(locale as Locale, doc.version_no),
+                  })}
+                </span>
+              ) : null}
               {doc.version_id ? (() => {
                 const rowJob = latestJobByVersion[doc.version_id];
                 if (!rowJob) return null;
                 return (
                   <span>
-                    attempt {rowJob.attempt}
+                    {fmt(k.historyAttempt, {
+                      attempt: formatLocaleNumber(locale as Locale, rowJob.attempt),
+                    })}
                     {rowJob.error_code
                       ? ` · ${messageForApiErrorCode(rowJob.error_code, locale) ?? rowJob.error_code}`
                       : ''}
@@ -645,21 +676,32 @@ export function KnowledgePage() {
         key: 'filename',
         header: filenameCol,
         render: (doc) => (
-          <span className="text-muted-foreground">{doc.filename || '—'}</span>
+          <span className="text-muted-foreground">{doc.filename || emptyCell}</span>
         ),
       },
       {
         key: 'status',
         header: statusCol,
-        width: '7rem',
+        width: '8.5rem',
         render: (doc) => {
           const job = doc.version_id ? latestJobByVersion[doc.version_id] : undefined;
           const status =
-            job?.status === 'running' ? job.version_status : doc.version_status ?? job?.status;
+            job?.status === 'running'
+              ? job.version_status
+              : job?.status === 'queued'
+                ? 'queued'
+                : doc.version_status ?? job?.status;
           return (
-            <Badge variant={statusBadgeVariant(status)}>
-              {versionStatusLabel(status, k.versionStatus)}
-            </Badge>
+            <span className="inline-flex items-center gap-1.5 text-xs">
+              {status === 'ready' ? (
+                <span className="size-1.5 shrink-0 rounded-full bg-ok" aria-hidden />
+              ) : statusIsProcessing(status) ? (
+                <Spinner className="size-3" />
+              ) : null}
+              <span className={status === 'failed' ? 'text-destructive' : undefined}>
+                {versionStatusLabel(status, k.versionStatus, emptyCell)}
+              </span>
+            </span>
           );
         },
       },
@@ -668,7 +710,27 @@ export function KnowledgePage() {
         header: charsCol,
         width: '5rem',
         hideBelow: 'md',
-        render: (doc) => doc.char_count,
+        render: (doc) => formatLocaleNumber(locale as Locale, doc.char_count),
+      },
+      {
+        key: 'created_at',
+        header: createdCol,
+        width: '11rem',
+        render: (doc) => (
+          <span className="whitespace-nowrap text-muted-foreground">
+            {doc.created_at ? formatLocaleDateTime(locale as Locale, doc.created_at) : emptyCell}
+          </span>
+        ),
+      },
+      {
+        key: 'updated_at',
+        header: updatedCol,
+        width: '11rem',
+        render: (doc) => (
+          <span className="whitespace-nowrap text-muted-foreground">
+            {doc.updated_at ? formatLocaleDateTime(locale as Locale, doc.updated_at) : emptyCell}
+          </span>
+        ),
       },
       {
         key: 'actions',
@@ -687,7 +749,7 @@ export function KnowledgePage() {
             graphEnabled && docReadyForGraph(doc, rowJob);
 
           if (!canProcess && !canRetry && !canUpdate && !canGraph && !canDelete) {
-            return <span className="text-muted-foreground">—</span>;
+            return <span className="text-muted-foreground">{emptyCell}</span>;
           }
 
           const actionClass = 'h-7 px-2 text-xs';
@@ -767,6 +829,7 @@ export function KnowledgePage() {
     setDeleteTarget,
     openDocument,
     locale,
+    emptyCell,
   ]);
 
   const configDoc = documents.find((doc) => doc.version_id === configVersionId);
@@ -778,45 +841,46 @@ export function KnowledgePage() {
     Boolean(configVersionId) && (chunk || extract) && chunkReady && busyVersionId !== configVersionId;
 
   const documentCountLabel = fmt(
-    filteredDocuments.length === 1 ? k.documentCountOne : k.documentCount,
-    { count: String(filteredDocuments.length) },
+    pickCountForm(locale, filteredDocuments.length, k.documentCountOne, k.documentCount),
+    { count: formatLocaleNumber(locale, filteredDocuments.length) },
   );
 
   return (
     <ConsolePageLayout
       crumbs={[
         { label: t.menu.platform.kbs, to: '/kbs' },
-        { label: kbName ?? id ?? '…', to: id ? kbPath(id, 'graph') : '/kbs' },
+        { label: kbName ?? id ?? t.common.ellipsis, to: id ? kbPath(id, 'graph') : '/kbs' },
         { label: t.menu.kb.sources },
       ]}
       subtitle={t.pages.kbSubtitles.sources}
-      actions={
-        <>
-          <Button type="button" variant="outline" size="sm" onClick={() => setHistoryOpen(true)}>
-            {k.jobHistory}
-          </Button>
-          {canEdit ? (
-            <Button type="button" variant="outline" size="sm" onClick={() => setSourcesOpen(true)}>
-              {k.connectors}
-            </Button>
-          ) : null}
-          {canEdit ? (
-            <Button type="button" size="sm" onClick={openAdd}>
-              {k.addDocument}
-            </Button>
-          ) : null}
-        </>
-      }
     >
       <DataPanel>
         <DataPanelToolbar
+          className="flex-nowrap"
           search={
             <ToolbarSearch
-              className="w-full min-w-[12rem] max-w-md sm:w-72"
+              className="min-w-0 w-full max-w-md flex-1 sm:w-72 sm:flex-none"
               placeholder={k.searchPlaceholder}
               value={search}
               onChange={(event) => setSearch(event.target.value)}
             />
+          }
+          actions={
+            <>
+              <Button type="button" variant="outline" size="sm" onClick={() => setHistoryOpen(true)}>
+                {k.jobHistory}
+              </Button>
+              {canEdit ? (
+                <Button type="button" variant="outline" size="sm" onClick={() => setSourcesOpen(true)}>
+                  {k.connectors}
+                </Button>
+              ) : null}
+              {canEdit ? (
+                <Button type="button" size="sm" onClick={openAdd}>
+                  {k.addDocument}
+                </Button>
+              ) : null}
+            </>
           }
         />
 
@@ -996,17 +1060,23 @@ export function KnowledgePage() {
       </Dialog>
 
       <Dialog open={Boolean(configVersionId)} onOpenChange={(open) => !open && closeConfig()}>
-        <DialogContent className="max-h-[min(90vh,44rem)] gap-4 overflow-y-auto sm:max-w-lg">
-          <DialogHeader className="space-y-1 pr-8">
+        <DialogContent className="max-h-[min(90vh,44rem)] min-w-0 gap-4 overflow-x-hidden overflow-y-auto sm:max-w-lg">
+          <DialogHeader className="min-w-0 space-y-1 pr-8">
             <DialogTitle>{k.processDialogTitle}</DialogTitle>
             {configDoc ? (
-              <p className="truncate text-sm">
-                <span className="font-medium">{configDoc.filename || configDoc.doc_id}</span>
+              <p className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5 text-sm">
+                <span className="min-w-0 break-all font-medium">
+                  {configDoc.filename || configDoc.doc_id}
+                </span>
                 {configDoc.filename ? (
-                  <span className="ml-2 font-mono text-xs text-muted-foreground">{configDoc.doc_id}</span>
+                  <span className="min-w-0 break-all font-mono text-xs text-muted-foreground">
+                    {configDoc.doc_id}
+                  </span>
                 ) : null}
                 {configDoc.version_no ? (
-                  <span className="ml-2 text-xs text-muted-foreground">v{configDoc.version_no}</span>
+                  <span className="shrink-0 text-xs text-muted-foreground">
+                    v{configDoc.version_no}
+                  </span>
                 ) : null}
               </p>
             ) : null}
@@ -1111,7 +1181,7 @@ export function KnowledgePage() {
                     <Input
                       id="ner-model"
                       value={nerModel}
-                      placeholder="zh_core_web_sm"
+                      placeholder={k.spacyModelPlaceholder}
                       onChange={(event) => setNerModel(event.target.value)}
                     />
                   </div>
@@ -1174,7 +1244,16 @@ export function KnowledgePage() {
                   className="rounded-md border border-border p-3 text-sm"
                 >
                   <summary className="cursor-pointer font-medium">
-                    {job.document_title || job.doc_id} · {job.status} · attempt {job.attempt}
+                    {statusIsProcessing(job.status) ? (
+                      <Spinner className="mr-1.5 inline size-3 align-[-2px]" />
+                    ) : null}
+                    {fmt(k.historyJobSummary, {
+                      title: job.document_title || job.doc_id,
+                      status: processingJobStatusLabel(job.status, k.jobStatus, emptyCell),
+                      attempt: fmt(k.historyAttempt, {
+                        attempt: formatLocaleNumber(locale as Locale, job.attempt),
+                      }),
+                    })}
                   </summary>
                   {id ? (
                     <p className="mt-2 text-xs text-muted-foreground">

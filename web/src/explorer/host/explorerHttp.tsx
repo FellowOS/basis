@@ -5,6 +5,9 @@ import {
   useMemo,
   type ReactNode,
 } from "react";
+import { fmt } from "@/i18n/format.js";
+import { localeFromBrowser, type Locale } from "@/i18n/locale.js";
+import { messagesForLocale } from "@/i18n/pick-locale.js";
 import { errorFromApiResponse } from "@/lib/api-error.js";
 import { ensureRequestIdHeader } from "@/lib/request-id.js";
 
@@ -19,13 +22,28 @@ export type ExplorerHttpConfig = {
   openGraphUpdatesSocket?: () => Promise<WebSocket>;
 };
 
-const KB_CONTEXT_ERROR =
-  "Explorer API requires a knowledge base (pass kbId or mount ExplorerHostProvider with apiRoot).";
+function explorerHttpLocale(locale?: Locale): Locale {
+  if (locale) {
+    return locale;
+  }
+  const lang = typeof navigator !== "undefined" ? navigator.language : "en";
+  return localeFromBrowser(lang);
+}
+
+function kbContextRequiredMessage(locale?: Locale): string {
+  return messagesForLocale(explorerHttpLocale(locale)).kbExplorer.kbContextRequired;
+}
+
+function requestFailedMessage(status: number, locale?: Locale): string {
+  return fmt(messagesForLocale(explorerHttpLocale(locale)).common.requestFailedStatus, {
+    status,
+  });
+}
 
 export function assertKbExplorerContext(): void {
   const { apiRoot } = activeConfig;
   if (!apiRoot) {
-    throw new Error(KB_CONTEXT_ERROR);
+    throw new Error(kbContextRequiredMessage());
   }
 }
 
@@ -48,7 +66,7 @@ export function resolveExplorerApiUrl(pathOrUrl: string): string {
     pathOrUrl.startsWith("/api/") &&
     !pathOrUrl.startsWith("/api/kbs/")
   ) {
-    throw new Error(KB_CONTEXT_ERROR);
+    throw new Error(kbContextRequiredMessage());
   }
   if (!apiRoot) {
     return pathOrUrl;
@@ -89,7 +107,7 @@ export function buildExplorerKbApiPath(subpath: string, kbId?: string): string {
   if (apiRoot) {
     return `${normalizeRoot(apiRoot)}/${segment}`;
   }
-  throw new Error(KB_CONTEXT_ERROR);
+  throw new Error(kbContextRequiredMessage());
 }
 
 /** Graph routes under `/api/kbs/{id}/graph/...`. */
@@ -140,6 +158,7 @@ export async function explorerFetchJson<T = unknown>(
   input: string | URL,
   init?: RequestInit,
   fallbackMessage?: string,
+  locale?: Locale,
 ): Promise<T> {
   const response = await explorerFetch(input, init);
   const contentType = response.headers.get("content-type") ?? "";
@@ -150,18 +169,18 @@ export async function explorerFetchJson<T = unknown>(
     throw errorFromApiResponse(
       response.status,
       payload,
-      fallbackMessage ?? `Request failed (${response.status})`,
+      fallbackMessage ?? requestFailedMessage(response.status, locale),
     );
   }
   return payload as T;
 }
 
-export async function openGraphUpdatesWebSocket(): Promise<WebSocket> {
+export async function openGraphUpdatesWebSocket(locale?: Locale): Promise<WebSocket> {
   if (activeConfig.openGraphUpdatesSocket) {
     return activeConfig.openGraphUpdatesSocket();
   }
   throw new Error(
-    "Graph updates WebSocket requires ExplorerHostProvider (KB realtime ticket).",
+    messagesForLocale(explorerHttpLocale(locale)).kbExplorer.graphUpdatesWebSocketRequired,
   );
 }
 

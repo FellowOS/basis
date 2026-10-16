@@ -4,7 +4,7 @@ import { useDropzone } from 'react-dropzone';
 import { useImportVocabulary } from './queries';
 import type { ImportResponse } from './types';
 import { useI18n } from '@/i18n/context.js';
-import { fmt } from '@/i18n/format.js';
+import { fmt, formatLocaleNumber } from '@/i18n/format.js';
 import { useApiErrorMessage } from '@/lib/use-api-error-message.js';
 import { cn } from '@/lib/utils.js';
 import {
@@ -16,7 +16,7 @@ import {
   exWsVocabImportSuccessCol,
 } from '@/lib/explorer-ws-classes.js';
 export const ImportDropzone: React.FC = () => {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const copy = t.kbVocabulary;
   const apiError = useApiErrorMessage();
   const [file, setFile] = useState<File | null>(null);
@@ -37,8 +37,7 @@ export const ImportDropzone: React.FC = () => {
             setImportResult(null);
           }, 4000);
         },
-        onError: (err) => {
-          console.error('Upload failed:', err);
+        onError: () => {
           setFile(null);
         },
       });
@@ -76,8 +75,8 @@ export const ImportDropzone: React.FC = () => {
             <span className="text-xs font-medium">{copy.importOk}</span>
             <span className={cn('oh-muted', 'mt-0.5 text-[11px]')}>
               {fmt(copy.addedSummary, {
-                nodes: String(importResult.nodes_added),
-                edges: String(importResult.edges_added),
+                nodes: formatLocaleNumber(locale, importResult.nodes_added),
+                edges: formatLocaleNumber(locale, importResult.edges_added),
               })}
             </span>
           </div>

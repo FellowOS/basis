@@ -21,6 +21,8 @@ import {
 } from '@/components/ui/sidebar.js';
 import { ScrollShadow } from '@/components/ui/scroll-shadow.js';
 import { useI18n } from '@/i18n/context.js';
+import { formatBadgeCount } from '@/i18n/format.js';
+import type { Locale } from '@/i18n/locale.js';
 import { api } from '@/lib/api.js';
 import { consumeKbAlertsStream, type KbAlertStreamItem } from '@/lib/kb-alerts-stream.js';
 import {
@@ -36,7 +38,7 @@ import { useBasisSession } from '@/lib/basis-session.js';
 import { kbNavSegmentEnabled, useKbCapabilities } from '@/lib/kb-capabilities.js';
 
 export function BasisSidebar({ onLogout }: { onLogout: () => void }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const location = useLocation();
   const { isMobile, setOpenMobile } = useSidebar();
   const { isAdmin } = useBasisSession();
@@ -92,6 +94,7 @@ export function BasisSidebar({ onLogout }: { onLogout: () => void }) {
           await consumeKbAlertsStream(kbId, {
             since: streamSinceRef.current,
             signal: ac.signal,
+            locale,
             onAlert: (alert) => {
               streamSinceRef.current = alert.created_at;
               if (!seenAlertIdsRef.current.has(alert.id)) {
@@ -113,7 +116,7 @@ export function BasisSidebar({ onLogout }: { onLogout: () => void }) {
       cancelled = true;
       ac.abort();
     };
-  }, [kbId, alertsStreamReady]);
+  }, [alertsStreamReady, kbId, locale]);
 
   function closeMobile() {
     if (isMobile) setOpenMobile(false);
@@ -159,7 +162,7 @@ export function BasisSidebar({ onLogout }: { onLogout: () => void }) {
             </SidebarMenuButton>
             {showBadge ? (
               <SidebarMenuBadge className="bg-destructive/15 text-destructive">
-                {unreadAlertsCount > 99 ? '99+' : unreadAlertsCount}
+                {formatBadgeCount(locale as Locale, unreadAlertsCount, 99)}
               </SidebarMenuBadge>
             ) : null}
           </>

@@ -184,7 +184,7 @@ export function ReasoningRulesDialog({
                     value={body}
                     onChange={(e) => setBody(e.target.value)}
                     spellCheck={false}
-                    placeholder="IF … AND … THEN …"
+                    placeholder={rd.bodyPlaceholder}
                   />
                   <p className={exWsHint}>
                     {rd.bodyHint}

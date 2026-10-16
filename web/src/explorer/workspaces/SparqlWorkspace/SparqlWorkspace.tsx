@@ -13,7 +13,8 @@ import {
 } from "@/components/ui/alert-dialog.js";
 import { Button } from "@/components/ui/button.js";
 import { useI18n } from "@/i18n/context.js";
-import { fmt } from "@/i18n/format.js";
+import { fmt, formatLocaleNumber, pickCountForm, requestFailedStatusMessage } from "@/i18n/format.js";
+import type { Locale } from "@/i18n/locale.js";
 import type { LocaleMessages } from "@/i18n/locales/en/index.js";
 import { buildExplorerKbApiPath, explorerFetch } from "../../host/explorerHttp";
 import { errorFromApiResponse } from "@/lib/api-error.js";
@@ -52,7 +53,7 @@ export function SparqlWorkspace({ kbId }: { kbId: string }) {
   const { t, locale } = useI18n();
   const copy = t.kbSparql;
   const rowCountLabel = (n: number) =>
-    fmt(n === 1 && locale !== "zh" ? copy.rowsOne : copy.rows, { count: String(n) });
+    fmt(pickCountForm(locale, n, copy.rowsOne, copy.rows), { count: formatLocaleNumber(locale, n) });
   const { theme } = useTheme();
   const apiError = useApiErrorMessage();
   const monaco = useMonaco();
@@ -117,15 +118,21 @@ export function SparqlWorkspace({ kbId }: { kbId: string }) {
         throw errorFromApiResponse(
           res.status,
           { detail: { message: text.substring(0, 200) } },
-          `HTTP ${res.status}`,
+          requestFailedStatusMessage(locale as Locale, res.status),
+          locale as Locale,
         );
       }
       const data = await res.json();
       if (!res.ok) {
-        throw errorFromApiResponse(res.status, data, `HTTP ${res.status}`);
+        throw errorFromApiResponse(
+          res.status,
+          data,
+          requestFailedStatusMessage(locale as Locale, res.status),
+          locale as Locale,
+        );
       }
       if (res.status === 207) {
-        data.error = data.message || "Warning: Partial success running query.";
+        data.error = data.message || copy.partialQuery;
       }
       setRunSnapshot(snapshot);
 
@@ -148,7 +155,7 @@ export function SparqlWorkspace({ kbId }: { kbId: string }) {
     } finally {
       setIsLoading(false);
     }
-  }, [apiError, isLoading, kbId, monaco, query]);
+  }, [apiError, isLoading, kbId, locale, monaco, query]);
 
   const handleCopyQuery = useCallback(() => {
     navigator.clipboard.writeText(query).then(() => {

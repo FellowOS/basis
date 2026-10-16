@@ -10,6 +10,8 @@ import {
 } from '@/components/console-ui/index.js';
 import { DataTable, type DataTableColumn } from '@/components/console-ui/DataTable.js';
 import { EntityRefLine } from '@/components/entity-ref-line.js';
+import { DerivedFactCard } from '@/components/kb/widgets/kb-derived-facts-panel.js';
+import { Badge } from '@/components/ui/badge.js';
 import { Button } from '@/components/ui/button.js';
 import {
   Dialog,
@@ -29,7 +31,9 @@ import {
 import { PublicIcon } from '@/components/ui/public-icon.js';
 import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
-import { fmt } from '@/i18n/format.js';
+import { fmt, formatLocaleNumber } from '@/i18n/format.js';
+import type { Locale } from '@/i18n/locale.js';
+import { ledgerStatementStatusLabel } from '@/lib/kb-ledger-labels.js';
 import { api } from '@/lib/api.js';
 import { useKbNodeLabels } from '@/lib/kb-node-labels.js';
 import { kbPath } from '@/lib/nav-config.js';
@@ -93,6 +97,7 @@ type DerivedFactHit = {
   subject_id: string;
   object_entity_id: string | null;
   object_value: string | null;
+  recorded_at?: string | null;
   rule_id: string | null;
   derivations: Array<{ premise_kind: string; premise_id: string }>;
 };
@@ -108,7 +113,7 @@ function EntityFactsPanel({
   kbId: string;
   entityId: string;
 }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const l = t.kbLedger;
   const [entityFacts, setEntityFacts] = useState<EntityFactHit[]>([]);
   const [entityDerivedFacts, setEntityDerivedFacts] = useState<DerivedFactHit[]>([]);
@@ -161,60 +166,78 @@ function EntityFactsPanel({
   }
 
   return (
-    <ul className="max-h-[min(50vh,20rem)] space-y-3 overflow-y-auto text-sm">
-      {entityFacts.map((fact) => (
-        <li key={fact.statement_id} className="rounded-md border border-border p-3">
-          <span className="font-medium">{fact.surface_phrase}</span>
-          {' → '}
-          {fact.object_entity_id ? (
-            <EntityRefLine id={fact.object_entity_id} labels={factLabels} className="inline" />
-          ) : (
-            <span className="text-muted-foreground">{fact.object_value}</span>
-          )}
-          <span className="ml-2 text-xs text-muted-foreground">({fact.status})</span>
-          {fact.evidence_quote ? (
-            <blockquote className="mt-2 border-l-2 pl-2 text-xs text-muted-foreground">
-              {fact.evidence_quote}
-            </blockquote>
-          ) : null}
-          {fact.evidence_chunk_id ? (
-            <div className="mt-2 flex flex-wrap gap-2">
-              <Button variant="link" size="sm" className="h-auto p-0 text-xs" asChild>
-                <Link
-                  to={`${kbPath(kbId, 'sources')}?chunk=${encodeURIComponent(fact.evidence_chunk_id)}`}
-                >
-                  {l.openEvidence}
-                </Link>
-              </Button>
-              <Button variant="link" size="sm" className="h-auto p-0 text-xs" asChild>
-                <Link to={`${kbPath(kbId, 'search')}?entity=${encodeURIComponent(entityId)}`}>
-                  {l.searchChunks}
-                </Link>
-              </Button>
-            </div>
-          ) : null}
-        </li>
-      ))}
-      {entityDerivedFacts.length > 0 ? (
-        <>
-          <li className="list-none pt-2 text-sm font-semibold">{l.derivedTitle}</li>
-          {entityDerivedFacts.map((df) => (
-            <li key={df.id} className="list-none rounded-md border border-border p-3 text-sm">
-              <span className="font-mono text-xs text-muted-foreground">{df.predicate_uri}</span>
-              <div className="mt-1">
-                <EntityRefLine id={df.subject_id} labels={factLabels} className="inline" />
-                {' → '}
-                {df.object_entity_id ? (
-                  <EntityRefLine id={df.object_entity_id} labels={factLabels} className="inline" />
-                ) : (
-                  <span>{df.object_value}</span>
-                )}
-              </div>
-            </li>
-          ))}
-        </>
+    <div className="max-h-[min(60vh,28rem)] space-y-5 overflow-y-auto pr-1">
+      {entityFacts.length > 0 ? (
+        <section>
+          <div className="mb-2 flex items-center justify-between">
+            <h4 className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
+              {l.statementsSection}
+            </h4>
+            <span className="text-[11px] tabular-nums text-muted-foreground">
+              {formatLocaleNumber(locale as Locale, entityFacts.length)}
+            </span>
+          </div>
+          <ul className="space-y-2">
+            {entityFacts.map((fact) => (
+              <li key={fact.statement_id} className="rounded-lg border border-border/70 bg-bg-3/50 p-3">
+                <div className="flex items-start justify-between gap-2">
+                  <span className="text-sm font-medium">{fact.surface_phrase}</span>
+                  <Badge variant="secondary">
+                    {ledgerStatementStatusLabel(l, fact.status)}
+                  </Badge>
+                </div>
+                <div className="mt-2 flex items-start gap-1.5 text-sm">
+                  <PublicIcon name="arrow-right" size={14} className="mt-0.5 shrink-0 text-muted-foreground" />
+                  {fact.object_entity_id ? (
+                    <EntityRefLine id={fact.object_entity_id} labels={factLabels} className="min-w-0" />
+                  ) : (
+                    <span className="text-muted-foreground">{fact.object_value}</span>
+                  )}
+                </div>
+                {fact.evidence_quote ? (
+                  <blockquote className="mt-2 border-l-2 border-border pl-2 text-xs leading-relaxed text-muted-foreground">
+                    {fact.evidence_quote}
+                  </blockquote>
+                ) : null}
+                {fact.evidence_chunk_id ? (
+                  <div className="mt-2 flex flex-wrap gap-3">
+                    <Button variant="link" size="sm" className="h-auto p-0 text-xs" asChild>
+                      <Link
+                        to={`${kbPath(kbId, 'sources')}?chunk=${encodeURIComponent(fact.evidence_chunk_id)}`}
+                      >
+                        {l.openEvidence}
+                      </Link>
+                    </Button>
+                    <Button variant="link" size="sm" className="h-auto p-0 text-xs" asChild>
+                      <Link to={`${kbPath(kbId, 'search')}?entity=${encodeURIComponent(entityId)}`}>
+                        {l.searchChunks}
+                      </Link>
+                    </Button>
+                  </div>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        </section>
       ) : null}
-    </ul>
+      {entityDerivedFacts.length > 0 ? (
+        <section>
+          <div className="mb-2 flex items-center justify-between">
+            <h4 className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
+              {l.derivedSection}
+            </h4>
+            <span className="text-[11px] tabular-nums text-muted-foreground">
+              {formatLocaleNumber(locale as Locale, entityDerivedFacts.length)}
+            </span>
+          </div>
+          <ul className="space-y-2">
+            {entityDerivedFacts.map((df) => (
+              <DerivedFactCard key={df.id} fact={df} labels={factLabels} />
+            ))}
+          </ul>
+        </section>
+      ) : null}
+    </div>
   );
 }
 
@@ -297,8 +320,9 @@ export function LedgerEntityBrowser({
   limit?: number;
   loadRecentOnMount?: boolean;
 }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const l = t.kbLedger;
+  const emptyCell = t.common.emptyCell;
   const { caps } = useKbCapabilities();
   const apiError = useApiErrorMessage();
   const canDeleteEntity = ['owner', 'admin', 'editor'].includes(caps?.role ?? '');
@@ -323,10 +347,15 @@ export function LedgerEntityBrowser({
   const pageStart = total === 0 ? 0 : (safePage - 1) * ENTITY_PAGE_SIZE + 1;
   const pageEnd = Math.min(safePage * ENTITY_PAGE_SIZE, total);
 
+  const loc = locale as Locale;
   const countLabel =
     total === 0
       ? l.entityCountEmpty
-      : fmt(l.entityCount, { start: pageStart, end: pageEnd, total });
+      : fmt(l.entityCount, {
+          start: formatLocaleNumber(loc, pageStart),
+          end: formatLocaleNumber(loc, pageEnd),
+          total: formatLocaleNumber(loc, total),
+        });
 
   const labelIds = entities.map((hit) => ledgerEntityId(hit));
   const nodeLabels = useKbNodeLabels(kbId, labelIds);
@@ -437,16 +466,21 @@ export function LedgerEntityBrowser({
         header: l.colKind,
         width: '6rem',
         hideBelow: 'sm',
-        render: (hit) => (
-          <span className="text-muted-foreground">{hit.entity_kind || '—'}</span>
-        ),
+        render: (hit) =>
+          hit.entity_kind ? (
+            <Badge variant="secondary" className="max-w-full truncate">
+              {hit.entity_kind}
+            </Badge>
+          ) : (
+            <span className="text-muted-foreground">{emptyCell}</span>
+          ),
       },
       {
         key: 'description',
         header: l.colDescription,
         hideBelow: 'md',
         render: (hit) => (
-          <span className="line-clamp-2 text-muted-foreground">{hit.description || '—'}</span>
+          <span className="line-clamp-2 text-muted-foreground">{hit.description || emptyCell}</span>
         ),
       },
       {
@@ -459,7 +493,12 @@ export function LedgerEntityBrowser({
           return (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button type="button" variant="ghost" size="icon-sm">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={(event) => event.stopPropagation()}
+                >
                   <PublicIcon name="dot-horizontal" size={16} />
                 </Button>
               </DropdownMenuTrigger>
@@ -499,7 +538,7 @@ export function LedgerEntityBrowser({
         },
       },
     ];
-  }, [canDeleteEntity, kbId, l, nodeLabels, showLineage]);
+  }, [canDeleteEntity, emptyCell, kbId, l, nodeLabels, showLineage]);
 
   return (
     <DataPanel>
@@ -538,6 +577,7 @@ export function LedgerEntityBrowser({
               columns={columns}
               data={entities}
               rowKey={(hit) => ledgerEntityId(hit)}
+              onRowClick={setFactsTarget}
               className="border-0"
             />
             <DataPanelTableFooter
@@ -556,7 +596,7 @@ export function LedgerEntityBrowser({
           if (!open) setFactsTarget(null);
         }}
       >
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="sm:max-w-xl">
           <DialogHeader>
             <DialogTitle>{l.entityFactsTitle}</DialogTitle>
             <DialogDescription>

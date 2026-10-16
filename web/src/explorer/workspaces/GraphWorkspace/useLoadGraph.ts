@@ -22,6 +22,7 @@ import {
   graphLoadEdgesProgressMessage,
   graphLoadNodesProgressMessage,
   graphLoadPhaseTitle,
+  graphRequestFailed,
 } from "./graphWorkspaceCopy";
 import { createGraphLoadProgress } from "./graphLoading";
 import {
@@ -356,8 +357,11 @@ function maxEdgesForGraphLoad(kbId?: string, budget?: number | null): number | n
   return budget ?? DEFAULT_BASIS_GRAPH_MAX_EDGES;
 }
 
-async function ensureGraphFetchOk(response: Response): Promise<void> {
-  await throwIfExplorerNotOk(response, `Fetch failed (${response.status})`);
+async function ensureGraphFetchOk(
+  response: Response,
+  locale: GraphWorkspaceLocale,
+): Promise<void> {
+  await throwIfExplorerNotOk(response, graphRequestFailed(locale, response.status));
 }
 
 async function fetchAllNodes(
@@ -383,7 +387,7 @@ async function fetchAllNodes(
     }
 
     const response = await explorerFetch(url.toString(), { signal });
-    await ensureGraphFetchOk(response);
+    await ensureGraphFetchOk(response, locale);
 
     const data: NodeListResponse = await response.json();
     if (!data.nodes?.length) {
@@ -449,7 +453,7 @@ async function fetchAllEdges(
     }
 
     const response = await explorerFetch(url.toString(), { signal });
-    await ensureGraphFetchOk(response);
+    await ensureGraphFetchOk(response, locale);
 
     const data: EdgeListResponse = await response.json();
     if (!data.edges?.length) {

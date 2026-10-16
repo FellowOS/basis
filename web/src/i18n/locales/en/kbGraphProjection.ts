@@ -7,6 +7,13 @@ export const kbGraphProjection = {
   ledgerRevision: 'Ledger revision',
   projectionStatus: 'Projection status',
   nodesEdges: 'Nodes / edges',
+  nodesEdgesValue: '{nodes} / {edges}',
+  projectionStatusLabels: {
+    clean: 'Clean',
+    dirty: 'Dirty',
+    building: 'Building',
+    failed: 'Failed',
+  },
   lastBuilt: 'Last built',
   lastError: 'Last error',
   editorRequired: 'Editor role required to rebuild projection.',

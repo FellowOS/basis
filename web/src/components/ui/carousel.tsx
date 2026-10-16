@@ -6,6 +6,8 @@ import useEmblaCarousel, {
 } from "embla-carousel-react"
 import { Button } from "@/components/ui/button"
 import { PublicIcon } from "@/components/ui/public-icon"
+import { useI18n } from "@/i18n/context.js"
+import { devMessage } from "@/i18n/dev-messages.js"
 import { cn } from "@/lib/utils"
 
 type CarouselApi = UseEmblaCarouselType[1]
@@ -35,7 +37,7 @@ function useCarousel() {
   const context = React.useContext(CarouselContext)
 
   if (!context) {
-    throw new Error("useCarousel must be used within a <Carousel />")
+    throw new Error(devMessage("useCarousel"))
   }
 
   return context
@@ -177,6 +179,7 @@ function CarouselPrevious({
   ...props
 }: React.ComponentProps<typeof Button>) {
   const { orientation, scrollPrev, canScrollPrev } = useCarousel()
+  const { t } = useI18n()
 
   return (
     <Button
@@ -195,7 +198,7 @@ function CarouselPrevious({
       {...props}
     >
       <PublicIcon name="arrow-left" size={16} />
-      <span className="sr-only">Previous slide</span>
+      <span className="sr-only">{t.common.carouselPreviousSlide}</span>
     </Button>
   )
 }
@@ -207,6 +210,7 @@ function CarouselNext({
   ...props
 }: React.ComponentProps<typeof Button>) {
   const { orientation, scrollNext, canScrollNext } = useCarousel()
+  const { t } = useI18n()
 
   return (
     <Button
@@ -225,7 +229,7 @@ function CarouselNext({
       {...props}
     >
       <PublicIcon name="arrow-right" size={16} />
-      <span className="sr-only">Next slide</span>
+      <span className="sr-only">{t.common.carouselNextSlide}</span>
     </Button>
   )
 }

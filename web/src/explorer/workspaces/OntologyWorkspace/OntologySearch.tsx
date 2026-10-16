@@ -3,6 +3,9 @@ import { useEffect, useRef, useState } from "react";
 import { explorerApiErrorMessage, explorerGetJson, parseExplorerJson } from "../../lib/explorer-api-error";
 import { explorerFetch } from "../../host/explorerHttp";
 import { ontologyPath, useOntologyKbId } from "./ontologyKb";
+import { useI18n } from "@/i18n/context.js";
+import { fmt, formatLocaleNumber, pickCountForm } from "@/i18n/format.js";
+import type { Locale } from "@/i18n/locale.js";
 import { cn } from "@/lib/utils.js";
 import {
   ontBadgeBase,
@@ -58,16 +61,11 @@ interface EntityDetail {
   properties: Record<string, unknown>;
 }
 
-const ENTITY_TYPE_LABELS: Record<string, string> = {
-  class: "Class",
-  property: "Property",
-  individual: "Individual",
-  concept: "Concept",
-  scheme: "Scheme",
-  unknown: "Entity",
-};
-
 function TypeBadge({ entityType }: { entityType: string }) {
+  const { t } = useI18n();
+  const types = t.kbOntology.search.entityTypes;
+  const label =
+    types[entityType as keyof typeof types] ?? types.unknown ?? entityType;
   return (
     <span
       className={cn(
@@ -76,7 +74,7 @@ function TypeBadge({ entityType }: { entityType: string }) {
         ontEntityTypeBadgeClass[entityType] ?? ontEntityTypeBadgeFallback,
       )}
     >
-      {ENTITY_TYPE_LABELS[entityType] || entityType}
+      {label}
     </span>
   );
 }
@@ -104,6 +102,8 @@ function ResultRow({
   selected: boolean;
   onSelect: () => void;
 }) {
+  const { t } = useI18n();
+  const s = t.kbOntology.search;
   return (
     <div
       role="button"
@@ -133,7 +133,7 @@ function ResultRow({
       ) : null}
       {result.source_ontology ? (
         <div className="text-[10px] text-muted-foreground/80">
-          From: {result.source_ontology}
+          {fmt(s.fromSource, { source: result.source_ontology })}
         </div>
       ) : null}
     </div>
@@ -141,6 +141,8 @@ function ResultRow({
 }
 
 function CollapsibleList({ label, items }: { label: string; items: string[] }) {
+  const { t, locale } = useI18n();
+  const s = t.kbOntology.search;
   const [open, setOpen] = useState(false);
   if (!items.length) return null;
   return (
@@ -148,7 +150,7 @@ function CollapsibleList({ label, items }: { label: string; items: string[] }) {
       <button type="button" onClick={() => setOpen((v) => !v)} className={ontSearchCollapseBtn}>
         {open ? <PublicIcon name="chevron-down" size={12} /> : <PublicIcon name="chevron-right" size={12} />}
         <span>{label}</span>
-        <span className="text-[10px]">({items.length})</span>
+        <span className="text-[10px]">({formatLocaleNumber(locale, items.length)})</span>
       </button>
       {open ? (
         <div className="ml-4 mt-1 flex flex-col gap-1">
@@ -159,7 +161,9 @@ function CollapsibleList({ label, items }: { label: string; items: string[] }) {
             </div>
           ))}
           {items.length > 12 ? (
-            <span className="text-[10px] text-muted-foreground">+{items.length - 12} more</span>
+            <span className="text-[10px] text-muted-foreground">
+              {fmt(s.moreItems, { count: formatLocaleNumber(locale, items.length - 12) })}
+            </span>
           ) : null}
         </div>
       ) : null}
@@ -174,6 +178,8 @@ function DetailPanel({
   uri: string;
   onClose: () => void;
 }) {
+  const { t, locale } = useI18n();
+  const s = t.kbOntology.search;
   const kbId = useOntologyKbId();
   const [detail, setDetail] = useState<EntityDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -193,8 +199,9 @@ function DetailPanel({
       ontologyPath(kbId, `entity/${encodeURIComponent(uri)}`),
       undefined,
       {
-        fallbackMessage: "Entity not found",
-        partialWarning: "Warning: Partial success loading entity.",
+        fallbackMessage: s.api.entityNotFound,
+        partialWarning: s.api.partialEntity,
+        locale: locale as Locale,
       },
     )
       .then(({ data, partialWarning }) => {
@@ -203,22 +210,22 @@ function DetailPanel({
         setDetail(data);
       })
       .catch((e) => {
-        if (!ignore) setError(explorerApiErrorMessage(e));
+        if (!ignore) setError(explorerApiErrorMessage(e, locale as Locale));
       })
       .finally(() => {
         if (!ignore) setLoading(false);
       });
     return () => { ignore = true; };
-  }, [kbId, uri]);
+  }, [kbId, locale, s.api.entityNotFound, s.api.partialEntity, uri]);
 
   return (
     <div className={ontSearchDetailPanel}>
       <div className={ontSearchDetailHeader}>
         <div className="flex min-w-0 items-center gap-2">
           <PublicIcon name="book-01" size={14} className="shrink-0 text-primary" />
-          <span className="truncate text-sm font-bold text-foreground">Entity Detail</span>
+          <span className="truncate text-sm font-bold text-foreground">{s.entityDetail}</span>
         </div>
-        <button type="button" onClick={onClose} className={ontManagerCloseBtn} aria-label="Close">
+        <button type="button" onClick={onClose} className={ontManagerCloseBtn} aria-label={s.closeAria}>
           <PublicIcon name="x-02" size={14} />
         </button>
       </div>
@@ -251,7 +258,7 @@ function DetailPanel({
           </div>
 
           {detail.definition ? (
-            <DetailSection label="Definition">
+            <DetailSection label={s.definition}>
               <p className="m-0 text-sm leading-relaxed text-muted-foreground">
                 {detail.definition}
               </p>
@@ -259,20 +266,20 @@ function DetailPanel({
           ) : null}
 
           {detail.instance_count > 0 ? (
-            <DetailSection label="Instances">
+            <DetailSection label={s.instances}>
               <span className="text-sm font-extrabold text-ok">
-                {detail.instance_count.toLocaleString()}
+                {formatLocaleNumber(locale, detail.instance_count)}
               </span>
             </DetailSection>
           ) : null}
 
-          <CollapsibleList label="Superclasses / Broader" items={detail.superclasses} />
-          <CollapsibleList label="Subclasses / Narrower" items={detail.subclasses} />
-          <CollapsibleList label="Domain" items={detail.domain} />
-          <CollapsibleList label="Range" items={detail.range} />
+          <CollapsibleList label={s.superclasses} items={detail.superclasses} />
+          <CollapsibleList label={s.subclasses} items={detail.subclasses} />
+          <CollapsibleList label={s.domain} items={detail.domain} />
+          <CollapsibleList label={s.range} items={detail.range} />
 
           {detail.source_ontology ? (
-            <DetailSection label="Source Ontology">
+            <DetailSection label={s.sourceOntology}>
               <span className="font-mono text-xs text-muted-foreground">
                 {detail.source_ontology}
               </span>
@@ -286,7 +293,7 @@ function DetailPanel({
             className={ontSearchOpenUri}
           >
             <PublicIcon name="link-external" size={11} />
-            Open URI
+            {s.openUri}
           </a>
         </div>
       ) : null}
@@ -304,6 +311,8 @@ function DetailSection({ label, children }: { label: string; children: React.Rea
 }
 
 export function OntologySearch() {
+  const { t, locale } = useI18n();
+  const s = t.kbOntology.search;
   const kbId = useOntologyKbId();
   const [query, setQuery] = useState("");
   const [entityType, setEntityType] = useState<string>("all");
@@ -322,7 +331,7 @@ export function OntologySearch() {
       const params = new URLSearchParams({ q: q.trim(), limit: "80" });
       if (type !== "all") params.set("entity_type", type);
       const res = await explorerFetch(ontologyPath(kbId, "search", params.toString()));
-      setResults(await parseExplorerJson<SearchResult[]>(res, "Search failed"));
+      setResults(await parseExplorerJson<SearchResult[]>(res, s.api.searchFailed));
     } catch {
       setResults([]);
     } finally {
@@ -334,7 +343,9 @@ export function OntologySearch() {
     if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => runSearch(query, entityType), 320);
     return () => { if (timerRef.current) clearTimeout(timerRef.current); };
-  }, [query, entityType, kbId]);
+  }, [entityType, kbId, query, s.api.searchFailed]);
+
+  const filterTypes = ["all", "class", "property", "individual", "concept", "scheme"] as const;
 
   return (
     <div className={ontSearchShell}>
@@ -345,7 +356,7 @@ export function OntologySearch() {
             autoFocus
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search classes, properties, concepts…"
+            placeholder={s.placeholder}
             className={ontSearchInput}
           />
           {searching ? (
@@ -356,7 +367,7 @@ export function OntologySearch() {
               type="button"
               onClick={() => { setQuery(""); setResults([]); }}
               className={ontSearchClearBtn}
-              aria-label="Clear search"
+              aria-label={s.clearAria}
             >
               <PublicIcon name="x-02" size={12} />
             </button>
@@ -364,17 +375,17 @@ export function OntologySearch() {
         </div>
 
         <div className="flex flex-wrap gap-1">
-          {(["all", "class", "property", "individual", "concept", "scheme"] as const).map((t) => (
+          {filterTypes.map((ft) => (
             <button
-              key={t}
+              key={ft}
               type="button"
-              onClick={() => setEntityType(t)}
+              onClick={() => setEntityType(ft)}
               className={cn(
                 ontSearchFilterBtn,
-                entityType === t ? ontSearchFilterActive : ontSearchFilterIdle,
+                entityType === ft ? ontSearchFilterActive : ontSearchFilterIdle,
               )}
             >
-              {t === "all" ? "All" : ENTITY_TYPE_LABELS[t] || t}
+              {s.entityTypes[ft]}
             </button>
           ))}
         </div>
@@ -385,22 +396,24 @@ export function OntologySearch() {
           {!query ? (
             <div className={ontSearchHint}>
               <PublicIcon name="search-01" size={20} className="text-primary/20" />
-              <span className="mt-2 text-xs text-muted-foreground">
-                Type to search across all loaded ontologies
-              </span>
+              <span className="mt-2 text-xs text-muted-foreground">{s.hint}</span>
             </div>
           ) : null}
 
           {query && results.length === 0 && !searching ? (
             <div className={ontSearchHint}>
-              <span className="text-xs text-muted-foreground">No results for &quot;{query}&quot;</span>
+              <span className="text-xs text-muted-foreground">
+                {fmt(s.noResultsFor, { query })}
+              </span>
             </div>
           ) : null}
 
           {results.length > 0 ? (
             <div className={ontSearchResultList}>
               <div className="mb-0.5 text-[11px] font-bold text-muted-foreground">
-                {results.length} result{results.length !== 1 ? "s" : ""}
+                {fmt(pickCountForm(locale, results.length, s.resultCountOne, s.resultCount), {
+                  count: formatLocaleNumber(locale, results.length),
+                })}
               </div>
               {results.map((r) => (
                 <ResultRow

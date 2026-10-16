@@ -25,7 +25,7 @@ export function KbChatPage() {
   const [myRole, setMyRole] = useState<string | undefined>();
 
   const catalogKb = id ? getKb(id) : undefined;
-  const name = catalogKb?.name ?? id ?? '…';
+  const name = catalogKb?.name ?? id ?? t.common.ellipsis;
   const canManageTokens = ['owner', 'admin'].includes(myRole ?? catalogKb?.my_role ?? '');
 
   const mcp = useKbMcpIntegration(id, canManageTokens);

@@ -33,6 +33,7 @@ import {
 } from '@/components/ui/table.js';
 import { useI18n } from '@/i18n/context.js';
 import { fmt } from '@/i18n/format.js';
+import { kbMemberRoleLabel } from '@/lib/kb-settings-labels.js';
 import { api } from '@/lib/api.js';
 import { useApiErrorMessage } from '@/lib/use-api-error-message.js';
 
@@ -98,7 +99,7 @@ export function KbDetailPage() {
   if (!kb) {
     return (
       <ConsolePageLayout
-        crumbs={[{ label: t.menu.platform.kbs, to: '/kbs' }, { label: '…' }]}
+        crumbs={[{ label: t.menu.platform.kbs, to: '/kbs' }, { label: t.common.ellipsis }]}
       >
         <p className="text-sm text-muted-foreground">{t.common.loading}</p>
       </ConsolePageLayout>
@@ -110,7 +111,7 @@ export function KbDetailPage() {
   return (
     <ConsolePageLayout
       crumbs={[{ label: t.menu.platform.kbs, to: '/kbs' }, { label: kb.name }]}
-      meta={fmt(ks.myRoleMeta, { role: kb.my_role })}
+      meta={fmt(ks.myRoleMeta, { role: kbMemberRoleLabel(ks, kb.my_role) })}
       actions={
         canManage ? (
           <Button type="button" size="sm" onClick={() => setAddOpen(true)}>
@@ -143,7 +144,7 @@ export function KbDetailPage() {
                 <TableRow key={m.user_id}>
                   <TableCell>{m.display_name}</TableCell>
                   <TableCell>{m.email}</TableCell>
-                  <TableCell>{m.role}</TableCell>
+                  <TableCell>{kbMemberRoleLabel(ks, m.role)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -180,10 +181,10 @@ export function KbDetailPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="viewer">viewer</SelectItem>
-                  <SelectItem value="editor">editor</SelectItem>
-                  <SelectItem value="admin">admin</SelectItem>
-                  <SelectItem value="owner">owner</SelectItem>
+                  <SelectItem value="viewer">{ks.roleLabels.viewer}</SelectItem>
+                  <SelectItem value="editor">{ks.roleLabels.editor}</SelectItem>
+                  <SelectItem value="admin">{ks.roleLabels.admin}</SelectItem>
+                  <SelectItem value="owner">{ks.roleLabels.owner}</SelectItem>
                 </SelectContent>
               </Select>
             </div>

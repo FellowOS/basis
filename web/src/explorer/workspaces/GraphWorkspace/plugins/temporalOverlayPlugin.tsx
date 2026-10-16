@@ -7,17 +7,18 @@ import {
   graphTemporalChip,
   graphTemporalChipAccent,
 } from "@/lib/graph/graph-ui-classes.js";
+import { fmt } from "@/i18n/format.js";
 
+import {
+  graphCopy,
+  graphFormatNumber,
+  graphFormatTemporalInstant,
+  graphFormatYearMonth,
+  graphPluginCopy,
+} from "../graphWorkspaceCopy";
 import type { GraphPlugin } from "./types";
 
 const TEMPORAL_PANEL_ID = "temporal-panel";
-
-function formatTemporalLabel(value: Date | null) {
-  if (!value) {
-    return "No time selected";
-  }
-  return `${value.getFullYear()}/${String(value.getMonth() + 1).padStart(2, "0")}`;
-}
 
 export const temporalOverlayPlugin: GraphPlugin = {
   id: "temporal-overlay",
@@ -27,8 +28,8 @@ export const temporalOverlayPlugin: GraphPlugin = {
   toolbarItems: (context) => [
     {
       id: "temporal-toggle",
-      label: "Temporal",
-      title: "Toggle temporal context panel",
+      label: graphCopy(context.locale, "pluginTemporal"),
+      title: graphCopy(context.locale, "pluginTemporalTitle"),
       active: context.isPanelOpen(TEMPORAL_PANEL_ID),
       order: 40,
       onClick: () => context.dispatchAction({ type: "togglePanel", panelId: TEMPORAL_PANEL_ID }),
@@ -40,17 +41,22 @@ export const temporalOverlayPlugin: GraphPlugin = {
       return null;
     }
 
-    const label = formatTemporalLabel(temporal.currentTime);
+    const p = graphPluginCopy(context.locale).temporal;
+    const label = temporal.currentTime
+      ? graphFormatYearMonth(context.locale, temporal.currentTime)
+      : p.noTimeSelected;
     return {
       id: "temporal-overlay-chip",
       layer: 1,
       order: 10,
       element: (
         <div className={graphTemporalChip}>
-          <span className={graphTemporalChipAccent}>Temporal</span>
+          <span className={graphTemporalChipAccent}>{graphCopy(context.locale, "pluginTemporal")}</span>
           <span>{label}</span>
           {typeof temporal.activeNodeCount === "number" ? (
-            <span className="text-muted-foreground">{temporal.activeNodeCount.toLocaleString()} active</span>
+            <span className="text-muted-foreground">
+              {fmt(p.activeChip, { count: graphFormatNumber(context.locale, temporal.activeNodeCount) })}
+            </span>
           ) : null}
         </div>
       ),
@@ -62,9 +68,10 @@ export const temporalOverlayPlugin: GraphPlugin = {
     }
 
     const temporal = context.getTemporalState();
+    const p = graphPluginCopy(context.locale).temporal;
     return {
       id: TEMPORAL_PANEL_ID,
-      title: "Temporal Context",
+      title: p.panelTitle,
       placement: "bottom",
       order: 30,
       defaultOpen: false,
@@ -72,21 +79,29 @@ export const temporalOverlayPlugin: GraphPlugin = {
       preferredHeight: 220,
       content: (
         <div className={graphLegendPanel}>
-          <div className={graphLegendEyebrow}>Current scrubber state</div>
+          <div className={graphLegendEyebrow}>{p.scrubberEyebrow}</div>
           <div className={graphDetailRow}>
-            <span className={graphDetailLabel}>Current</span>
-            <span className={graphDetailValue}>{formatTemporalLabel(temporal?.currentTime ?? null)}</span>
-          </div>
-          <div className={graphDetailRow}>
-            <span className={graphDetailLabel}>Bounds</span>
+            <span className={graphDetailLabel}>{p.current}</span>
             <span className={graphDetailValue}>
-              {(temporal?.minDate ?? "1970")} → {(temporal?.maxDate ?? "now")}
+              {temporal?.currentTime
+                ? graphFormatYearMonth(context.locale, temporal.currentTime)
+                : p.noTimeSelected}
             </span>
           </div>
           <div className={graphDetailRow}>
-            <span className={graphDetailLabel}>Active nodes</span>
+            <span className={graphDetailLabel}>{p.bounds}</span>
             <span className={graphDetailValue}>
-              {typeof temporal?.activeNodeCount === "number" ? temporal.activeNodeCount.toLocaleString() : "All"}
+              {graphFormatTemporalInstant(context.locale, temporal?.minDate, p.boundsEpoch)}
+              {' → '}
+              {graphFormatTemporalInstant(context.locale, temporal?.maxDate, p.boundsNow)}
+            </span>
+          </div>
+          <div className={graphDetailRow}>
+            <span className={graphDetailLabel}>{p.activeNodes}</span>
+            <span className={graphDetailValue}>
+              {typeof temporal?.activeNodeCount === "number"
+                ? graphFormatNumber(context.locale, temporal.activeNodeCount)
+                : p.allNodes}
             </span>
           </div>
         </div>

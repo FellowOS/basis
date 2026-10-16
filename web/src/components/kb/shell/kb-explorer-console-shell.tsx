@@ -4,6 +4,7 @@ import { ExplorerHostProvider } from '@/explorer/host/explorerHttp.js';
 import { KbExplorerUnavailable } from '@/components/kb/shell/kb-explorer-unavailable.js';
 import { buildKbExplorerHttpConfig } from '@/lib/kb-explorer-host.js';
 import { useKbCapabilities } from '@/lib/kb-capabilities.js';
+import { useI18n } from '@/i18n/context.js';
 import { cn } from '@/lib/utils.js';
 const explorerConsoleQueryClient = new QueryClient({
   defaultOptions: {
@@ -29,8 +30,9 @@ export function KbExplorerConsoleShell({
   /** When set, must return true to render children (e.g. caps.sparql). */
   capabilityOk?: (caps: NonNullable<ReturnType<typeof useKbCapabilities>['caps']>) => boolean;
 }) {
+  const { locale } = useI18n();
   const { caps, loading: capsLoading } = useKbCapabilities();
-  const config = useMemo(() => buildKbExplorerHttpConfig(kbId), [kbId]);
+  const config = useMemo(() => buildKbExplorerHttpConfig(kbId, locale), [kbId, locale]);
 
   const explorerReady =
     caps &&

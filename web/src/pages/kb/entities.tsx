@@ -22,8 +22,8 @@ export function KbEntitiesPage() {
       subtitle={t.pages.kbSubtitles.entities}
       className="min-h-0 overflow-hidden"
     >
-      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden min-[900px]:flex-row">
-        <div className="min-h-0 min-w-0 flex-1 overflow-auto">
+      <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 overflow-auto min-[960px]:grid-cols-[minmax(0,1fr)_minmax(17.5rem,24rem)] min-[960px]:overflow-hidden">
+        <div className="min-h-0 min-w-0 min-[960px]:overflow-auto">
           <LedgerEntityBrowser kbId={id} />
         </div>
         <KbDerivedFactsPanel kbId={id} />

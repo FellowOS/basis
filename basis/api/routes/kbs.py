@@ -114,7 +114,7 @@ class StartProcessingRequest(BaseModel):
     version_id: str = Field(min_length=1)
     wait: bool = False
     chunk: bool = True
-    chunk_method: str = Field(default="recursive", min_length=1, max_length=40)
+    chunk_method: str | None = Field(default=None, max_length=40)
     chunk_size: int = Field(default=1800, ge=200, le=100_000)
     chunk_overlap: int = Field(default=250, ge=0, le=10_000)
     extract: bool = True
@@ -811,7 +811,12 @@ async def list_kb_documents(
     for row in get_knowledge_store(request).list_documents(kb_id):
         doc_id = row["doc_id"]
         merged[doc_id] = {**merged.get(doc_id, {}), **row}
-    return {"documents": list(merged.values())}
+    documents = sorted(
+        merged.values(),
+        key=lambda row: row.get("created_at") or "",
+        reverse=True,
+    )
+    return {"documents": documents}
 
 
 def _document_store_payload(
@@ -925,13 +930,20 @@ async def _respond_idempotent_processing_job(
 def _processing_options(
     body: StartProcessingRequest,
     store: AdminStore,
+    *,
+    filename: str | None = None,
 ) -> tuple[TextIngestOptions, dict[str, Any]]:
-    from basis.pipeline.chunk_split import normalize_chunk_method
+    from basis.pipeline.chunk_split import default_chunk_method, normalize_chunk_method
 
     if body.chunk and body.chunk_overlap >= body.chunk_size:
         raise AdminError(422, "bad_chunk_options", "切分重叠必须小于块大小")
+    requested = (body.chunk_method or "").strip() or None
     try:
-        chunk_method = normalize_chunk_method(body.chunk_method)
+        chunk_method = (
+            normalize_chunk_method(requested)
+            if requested
+            else default_chunk_method(filename)
+        )
     except ValueError:
         raise AdminError(422, "bad_chunk_method", "切分方式无效") from None
     payload = {
@@ -985,7 +997,9 @@ async def start_processing_job(
 ) -> Any:
     get_kb_for_editor(request, user, kb_id, store)
     context = knowledge.get_processing_context(kb_id, body.version_id)
-    options, options_payload = _processing_options(body, store)
+    options, options_payload = _processing_options(
+        body, store, filename=context["filename"]
+    )
     trigger_rid = current_request_id()
     if trigger_rid:
         options_payload = {**options_payload, "request_id": trigger_rid}

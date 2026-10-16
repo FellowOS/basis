@@ -181,6 +181,32 @@ def test_processing_job_idempotency_key_replay(tmp_path: Path) -> None:
     assert len(jobs) == 1
 
 
+def test_markdown_defaults_to_structural_chunking(tmp_path: Path) -> None:
+    client = TestClient(create_app(Settings(data_dir=tmp_path)))
+    admin = client.post(
+        "/api/auth/register",
+        json={"email": "md@example.com", "password": "password1", "display_name": "Md"},
+    ).json()
+    headers = _auth(admin["token"])
+    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    uploaded = client.post(
+        f"/api/kbs/{kb_id}/documents/upload",
+        headers=headers,
+        files={"file": ("readme.md", b"# Title\n\nBody\n", "text/markdown")},
+    )
+    assert uploaded.status_code == 200
+    version_id = uploaded.json()["version_id"]
+
+    omitted = client.post(
+        f"/api/kbs/{kb_id}/processing/jobs",
+        headers=headers,
+        json={"version_id": version_id, "chunk": False, "extract": False},
+    )
+    assert omitted.status_code in {200, 202}
+    jobs = client.get(f"/api/kbs/{kb_id}/processing/jobs", headers=headers).json()["jobs"]
+    assert jobs[0]["options"]["chunk_method"] == "structural"
+
+
 def test_rejects_unknown_chunk_method(tmp_path: Path) -> None:
     app = create_app(Settings(data_dir=tmp_path))
     client = TestClient(app)

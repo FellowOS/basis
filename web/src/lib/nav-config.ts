@@ -141,6 +141,17 @@ export function parseKbIdFromPath(pathname: string): string | null {
   return id as string;
 }
 
+/** Sidebar glyph for the page the pathname opens. */
+export function menuIconForPath(pathname: string): string | undefined {
+  const segment = /^\/kbs\/[^/]+\/([^/]+)/.exec(pathname)?.[1];
+  if (segment) {
+    return KB_NAV.find((item) => item.segment === segment)?.icon;
+  }
+  return PLATFORM_NAV.find((item) =>
+    item.exact ? pathname === item.to : pathname === item.to || pathname.startsWith(`${item.to}/`),
+  )?.icon;
+}
+
 export function isKbScopedPath(pathname: string): boolean {
   const id = parseKbIdFromPath(pathname);
   if (!id) return false;

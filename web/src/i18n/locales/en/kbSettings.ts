@@ -30,6 +30,16 @@ export const kbSettings = {
   colEmail: 'Email',
   colRole: 'Role',
   role: 'Role',
+  roleLabels: {
+    viewer: 'Viewer',
+    editor: 'Editor',
+    admin: 'Admin',
+    owner: 'Owner',
+  },
+  visibilityLabels: {
+    restricted: 'Restricted',
+    open: 'Open',
+  },
   searchEditDesc: 'Vector backend, embedding model, and default search mode.',
   defaultEmbeddingOption: 'Platform default / local fallback',
   keywordSearch: 'Full-text search',

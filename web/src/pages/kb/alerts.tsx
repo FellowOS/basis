@@ -12,6 +12,9 @@ import { Badge } from '@/components/ui/badge.js';
 import { Button } from '@/components/ui/button.js';
 import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
+import { formatLocaleDateTime } from '@/i18n/format.js';
+import type { Locale } from '@/i18n/locale.js';
+import { kbAlertKindLabel, kbAlertSeverityLabel } from '@/lib/kb-alert-labels.js';
 import { api } from '@/lib/api.js';
 import { kbAlertAction } from '@/lib/kb-alert-actions.js';
 import { consumeKbAlertsStream, type KbAlertStreamItem } from '@/lib/kb-alerts-stream.js';
@@ -36,7 +39,7 @@ function severityBadgeVariant(severity: string): 'destructive' | 'warning' | 'se
 
 export function KbAlertsPage() {
   const { id } = useParams();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const { getKb } = useKbCatalog();
   const [alerts, setAlerts] = useState<KbAlertStreamItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -92,6 +95,7 @@ export function KbAlertsPage() {
           await consumeKbAlertsStream(id, {
             since: streamSinceRef.current,
             signal: ac.signal,
+            locale,
             onAlert: (alert) => {
               streamSinceRef.current = alert.created_at;
               mergeAlert(alert);
@@ -110,7 +114,7 @@ export function KbAlertsPage() {
       cancelled = true;
       ac.abort();
     };
-  }, [id, streamReady, mergeAlert]);
+  }, [id, locale, mergeAlert, streamReady]);
 
   const dismiss = async (alertId: string) => {
     if (!id) return;
@@ -135,17 +139,6 @@ export function KbAlertsPage() {
 
   if (!id) return null;
   const kbName = getKb(id)?.name ?? id;
-
-  function severityLabel(severity: string) {
-    const normalized = severity.toLowerCase();
-    if (normalized === 'critical' || normalized === 'error' || normalized === 'high') {
-      return t.pages.alerts.severityCritical;
-    }
-    if (normalized === 'warning' || normalized === 'warn' || normalized === 'medium') {
-      return t.pages.alerts.severityWarning;
-    }
-    return t.pages.alerts.severityInfo;
-  }
 
   return (
     <ConsolePageLayout
@@ -212,14 +205,14 @@ export function KbAlertsPage() {
                     <div className="min-w-0 flex-1 space-y-1.5">
                       <div className="flex flex-wrap items-center gap-2">
                         <Badge variant={severityBadgeVariant(alert.severity)}>
-                          {severityLabel(alert.severity)}
+                          {kbAlertSeverityLabel(t.pages.alerts, alert.severity)}
                         </Badge>
-                        <span className="font-mono text-xs text-muted-foreground">
-                          {alert.kind}
+                        <span className="text-xs text-muted-foreground">
+                          {kbAlertKindLabel(t.pages.alerts, alert.kind)}
                         </span>
                         <span className="text-xs text-muted-foreground">·</span>
                         <time className="text-xs text-muted-foreground tabular-nums">
-                          {alert.created_at}
+                          {formatLocaleDateTime(locale as Locale, alert.created_at)}
                         </time>
                       </div>
                       <p className="text-sm font-medium leading-snug text-foreground">

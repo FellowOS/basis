@@ -14,6 +14,7 @@ export const kbSparql = {
   emptyReady: 'Query is ready. Run it to see rows here.',
   emptyBody: 'Pick a template or write SPARQL, then run.',
   noRows: 'The query returned 0 rows.',
+  partialQuery: 'Warning: Partial success running query.',
   templateLabels: {
     triples: 'Triples',
     types: 'Types',

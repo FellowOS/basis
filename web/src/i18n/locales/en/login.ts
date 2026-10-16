@@ -1,9 +1,8 @@
 export const login = {
-  title: 'Sign in to Basis',
-  subtitle:
-    'The web app talks only to the Basis API; graph and reasoning run in-process via the semantica SDK.',
-  registerTitle: 'Create your account',
-  registerSubtitle: 'The first registered user becomes a platform admin and can create knowledge bases.',
+  title: 'Sign in',
+  subtitle: 'Continue with your workspace account.',
+  registerTitle: 'Create an account',
+  registerSubtitle: 'The first account becomes a platform admin and can create knowledge bases.',
   emailLabel: 'Email',
   passwordLabel: 'Password',
   displayNameLabel: 'Display name',
@@ -14,7 +13,11 @@ export const login = {
   registerSubmit: 'Create account',
   submitting: 'Working…',
   loginFailed: 'Sign in failed',
-  switchToRegister: 'Register',
+  noAccount: 'New to Basis?',
+  hasAccount: 'Already have an account?',
+  switchToRegister: 'Create an account',
   switchToLogin: 'Sign in',
+  showPassword: 'Show password',
+  hidePassword: 'Hide password',
   backHome: 'Back to home',
 } as const;

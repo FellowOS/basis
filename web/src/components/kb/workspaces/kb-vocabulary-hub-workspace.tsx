@@ -28,9 +28,9 @@ export function KbVocabularyHubWorkspace({
   kbId: string;
   className?: string;
 }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const { caps, loading: capsLoading } = useKbCapabilities();
-  const config = useMemo(() => buildKbExplorerHttpConfig(kbId), [kbId]);
+  const config = useMemo(() => buildKbExplorerHttpConfig(kbId, locale), [kbId, locale]);
 
   if (!capsLoading && caps && !caps.vocabulary) {
     return <KbExplorerUnavailable kbId={kbId} feature="vocabulary" />;

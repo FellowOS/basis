@@ -8,6 +8,8 @@ export const chat = {
   send: '发送',
   stop: '停止',
   sendFailed: '发送失败',
+  streamNoBody: '响应体为空',
+  streamFailed: '对话流失败',
   cancelled: '已停止生成。',
   contextTrimmed: '为符合服务端上下文上限，已从本次请求中移除较早的 {count} 条消息。',
   proposeRemember: '提交记入审核',

@@ -5,6 +5,7 @@ import { buildKbExplorerHttpConfig } from '@/lib/kb-explorer-host.js';
 import { useKbCapabilities } from '@/lib/kb-capabilities.js';
 import { KbExplorerUnavailable } from '@/components/kb/shell/kb-explorer-unavailable.js';
 import { KbLineagePanel } from '@/components/kb/widgets/kb-lineage-panel.js';
+import { useI18n } from '@/i18n/context.js';
 import { cn } from '@/lib/utils.js';
 
 export function KbLineageWorkspace({
@@ -16,8 +17,9 @@ export function KbLineageWorkspace({
 }) {
   const [searchParams] = useSearchParams();
   const initialNodeId = searchParams.get('node');
+  const { locale } = useI18n();
   const { caps, loading: capsLoading } = useKbCapabilities();
-  const config = useMemo(() => buildKbExplorerHttpConfig(kbId), [kbId]);
+  const config = useMemo(() => buildKbExplorerHttpConfig(kbId, locale), [kbId, locale]);
 
   if (!capsLoading && caps && !caps.provenance) {
     return <KbExplorerUnavailable kbId={kbId} feature="lineage" />;

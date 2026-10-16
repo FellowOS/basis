@@ -41,7 +41,7 @@ export function KbGraphWorkspace({
   const g = t.kbGraphPage;
   const apiLocale = locale as Locale;
   const { caps, loading: capsLoading } = useKbCapabilities();
-  const config = useMemo(() => buildKbExplorerHttpConfig(kbId), [kbId]);
+  const config = useMemo(() => buildKbExplorerHttpConfig(kbId, apiLocale), [apiLocale, kbId]);
   const [importExportOpen, setImportExportOpen] = useState(false);
   const [importExportFocus, setImportExportFocus] = useState<'import' | 'export'>('export');
   const [reloadToken, setReloadToken] = useState(0);

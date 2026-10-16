@@ -8,6 +8,8 @@ export const chat = {
   send: 'Send',
   stop: 'Stop',
   sendFailed: 'Failed to send',
+  streamNoBody: 'No response body',
+  streamFailed: 'Chat stream failed',
   cancelled: 'Generation stopped.',
   contextTrimmed:
     'Older messages were dropped from this request ({count} turns) to stay within server limits.',

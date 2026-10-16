@@ -8,4 +8,6 @@ export const kbLineage = {
   emptyList: 'This trace returned no nodes.',
   json: 'JSON',
   markdown: 'Markdown',
+  fetchFailed: 'Lineage fetch failed',
+  provenanceDownloadFailed: 'Provenance report download failed',
 } as const;

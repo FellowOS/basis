@@ -860,43 +860,35 @@ input[type="checkbox"] {
   outline: none;
 }
 
-/* Console login — cooler slate base, gold accent (distinct from website warm cream) */
+/* Console login — slate story panel, cool form canvas, gold accent. */
 .login-marketing-shell {
-  --hero-bg: #ffffff;
-  --hero-glow-wash: linear-gradient(
-    to bottom,
-    rgb(212 136 10 / 0.035) 0%,
-    #ffffff 22%,
-    #ffffff 100%
-  );
-  --hero-glow-bloom: radial-gradient(
-    ellipse 85% 90% at 50% 0%,
-    rgb(212 136 10 / 0.07) 0%,
-    rgb(255 255 255 / 0) 52%,
-    transparent 72%
-  );
-  --hero-glow-mid: rgb(212 136 10 / 0.05);
-  --hero-glow-wide: rgb(0 0 0 / 0.02);
+  --login-canvas: #f6f7f9;
+  --login-panel: #152033;
+  --login-panel-fg: #f4f1ea;
+  --login-panel-muted: rgb(244 241 234 / 0.68);
+  --login-panel-faint: rgb(244 241 234 / 0.42);
+  --login-panel-line: rgb(244 241 234 / 0.14);
+  --login-gold: #e0a04a;
   --login-cta-bg: #152033;
+  --login-cta-fg: #f6f4ef;
   --login-cta-shimmer: #d4880a;
-  background: var(--hero-bg);
+  background: var(--login-canvas);
+  color: var(--foreground);
 }
 
 .dark .login-marketing-shell,
 :root[data-theme="dark"] .login-marketing-shell {
-  --hero-bg: #090b10;
-  --hero-glow-wash: linear-gradient(to bottom, #151a24 0%, #0f1218 44%, #090b10 100%);
-  --hero-glow-bloom: radial-gradient(
-    ellipse 85% 90% at 50% 0%,
-    #d4880a2a 0%,
-    #3d4a5c18 48%,
-    transparent 76%
-  );
-  --hero-glow-mid: #d4880a18;
-  --hero-glow-wide: #3d4a5c12;
-  --login-cta-bg: #1a2740;
+  --login-canvas: #090b10;
+  --login-panel: #121820;
+  --login-panel-fg: #f4f1ea;
+  --login-panel-muted: rgb(244 241 234 / 0.68);
+  --login-panel-faint: rgb(244 241 234 / 0.4);
+  --login-panel-line: rgb(244 241 234 / 0.12);
+  --login-gold: #e8a830;
+  --login-cta-bg: #f3ead7;
+  --login-cta-fg: #152033;
   --login-cta-shimmer: #e8a830;
-  background: var(--hero-bg);
+  background: var(--login-canvas);
 }
 
 /* Graph canvas tool towers (Utopia / onto-style) */

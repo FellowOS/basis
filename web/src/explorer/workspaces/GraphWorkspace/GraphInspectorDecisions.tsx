@@ -6,7 +6,13 @@ import { Button } from "@/components/ui/button.js";
 import { Spinner } from "@/components/ui/spinner.js";
 import { kbPath } from "@/lib/nav-config.js";
 import { buildExplorerKbApiPath, explorerFetch } from "../../host/explorerHttp";
+import type { LocaleMessages } from "@/i18n/locales/en/index.js";
+import { messagesForLocale } from "@/i18n/pick-locale.js";
 import { explorerApiErrorMessage, parseExplorerJson } from "../../lib/explorer-api-error";
+import {
+  decisionCategoryLabel,
+  decisionOutcomeLabel,
+} from "../DecisionWorkspace/decisionWorkspaceCopy";
 import type { GraphWorkspaceLocale } from "./graphWorkspaceCopy";
 import { inspectorCopy } from "./graphInspectorCopy";
 
@@ -74,6 +80,9 @@ export function GraphInspectorDecisions({
   );
 
   const reviewDecisionsUrl = `${kbPath(kbId, "decisions")}?q=${encodeURIComponent(nodeId)}`;
+  const localeMessages = messagesForLocale(locale);
+  const decisionsCopy = localeMessages.kbDecisions as LocaleMessages["kbDecisions"];
+  const emptyCell = localeMessages.common.emptyCell;
 
   if (!enabled) return null;
 
@@ -102,7 +111,12 @@ export function GraphInspectorDecisions({
             <li key={row.decision_id} className="rounded-md border border-border/80 bg-background/60 px-2.5 py-2">
               <div className="font-mono font-medium break-all">{row.decision_id}</div>
               <div className="mt-1 text-muted-foreground">
-                {[row.category, row.outcome].filter(Boolean).join(" · ") || "—"}
+                {[
+                  row.category ? decisionCategoryLabel(decisionsCopy, row.category) : "",
+                  row.outcome ? decisionOutcomeLabel(decisionsCopy, row.outcome) : "",
+                ]
+                  .filter(Boolean)
+                  .join(" · ") || emptyCell}
               </div>
             </li>
           ))}

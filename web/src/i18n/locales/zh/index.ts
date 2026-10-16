@@ -19,6 +19,7 @@ import { kbVocabulary } from './kbVocabulary.js';
 import { kbReasoning } from './kbReasoning.js';
 import { kbGraphWorkspace } from './kbGraphWorkspace.js';
 import { kbGraphAudit } from './kbGraphAudit.js';
+import { platformAuditActions } from './platformAuditActions.js';
 import { kbReview } from './kbReview.js';
 import { kbShacl } from './kbShacl.js';
 import { kbExplorer } from './kbExplorer.js';
@@ -31,6 +32,9 @@ import { kbLineage } from './kbLineage.js';
 import { kbSettings } from './kbSettings.js';
 import { platformSettings } from './platformSettings.js';
 import { kbOntology } from './kbOntology.js';
+import { kbDecisions } from './kbDecisions.js';
+import { apiErrorCodes } from './apiErrorCodes.js';
+import { dev } from './dev.js';
 
 export const zh = {
   menu,
@@ -54,6 +58,7 @@ export const zh = {
   kbReasoning,
   kbGraphWorkspace,
   kbGraphAudit,
+  platformAuditActions,
   kbReview,
   kbShacl,
   kbExplorer,
@@ -66,4 +71,7 @@ export const zh = {
   kbSettings,
   platformSettings,
   kbOntology,
+  kbDecisions,
+  apiErrorCodes,
+  dev,
 } as const;

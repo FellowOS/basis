@@ -7,6 +7,7 @@ import {
   useMemo,
   useState,
 } from 'react';
+import { devMessage } from '@/i18n/dev-messages.js';
 import { api } from '@/lib/api.js';
 
 export type KbSummary = {
@@ -28,7 +29,7 @@ const KbContext = createContext<KbContextValue | null>(null);
 
 export function useKbCatalog(): KbContextValue {
   const ctx = useContext(KbContext);
-  if (!ctx) throw new Error('useKbCatalog must be used under KbProvider');
+  if (!ctx) throw new Error(devMessage('useKbCatalog'));
   return ctx;
 }
 

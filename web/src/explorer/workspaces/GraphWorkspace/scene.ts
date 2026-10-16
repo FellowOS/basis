@@ -16,6 +16,7 @@ import type {
   GraphTemporalState,
   GraphViewMode,
 } from "./types";
+import type { GraphWorkspaceLocale } from "./graphWorkspaceCopy";
 
 export type GraphSceneGraph = typeof graph | Graph<NodeAttributes, EdgeAttributes>;
 export type GraphSceneRenderer = "sigma";
@@ -63,6 +64,7 @@ export interface GraphSceneProps extends GraphSceneEventMap {
   className?: string;
   showFitViewButton?: boolean;
   pluginOverlays?: ReactNode[];
+  locale?: GraphWorkspaceLocale;
 }
 
 export interface GraphSceneHandle {

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button.js';
 import { PublicIcon } from '@/components/ui/public-icon.js';
 import { Textarea } from '@/components/ui/textarea.js';
 import { useI18n } from '@/i18n/context.js';
-import { fmt } from '@/i18n/format.js';
+import { fmt, formatLocaleNumber } from '@/i18n/format.js';
 import type { Locale } from '@/i18n/locale.js';
 import { api } from '@/lib/api.js';
 import { formatUserFacingApiError } from '@/lib/api-error-message.js';
@@ -39,6 +39,7 @@ async function readPlaygroundStream(
   signal: AbortSignal,
   onDelta: (chunk: string) => void,
   onContextTrimmed?: (removedTurns: number) => void,
+  streamErrors?: { noBody: string; failed: string },
 ): Promise<{ content: string; tool_traces: PlaygroundToolTrace[] }> {
   const token = localStorage.getItem('basis_token');
   const headers: HeadersInit = { 'Content-Type': 'application/json' };
@@ -55,7 +56,7 @@ async function readPlaygroundStream(
   }
   const reader = response.body?.getReader();
   if (!reader) {
-    throw new Error('No response body');
+    throw new Error(streamErrors?.noBody ?? 'No response body');
   }
   const decoder = new TextDecoder();
   let buffer = '';
@@ -94,7 +95,10 @@ async function readPlaygroundStream(
             tool_traces = evt.tool_traces ?? [];
           } else if (evt.type === 'error') {
             throw {
-              detail: { code: evt.code, message: evt.error_message ?? 'Chat stream failed' },
+              detail: {
+                code: evt.code,
+                message: evt.error_message ?? streamErrors?.failed ?? 'Chat stream failed',
+              },
             };
           }
         }
@@ -180,8 +184,9 @@ export function KbChatPlayground({
           );
         },
         (removedTurns) => {
-          setTrimNotice(fmt(t.chat.contextTrimmed, { count: removedTurns }));
+          setTrimNotice(fmt(t.chat.contextTrimmed, { count: formatLocaleNumber(locale, removedTurns) }));
         },
+        { noBody: t.chat.streamNoBody, failed: t.chat.streamFailed },
       );
       const traces = streamed.tool_traces ?? [];
       setMessages((prev) =>

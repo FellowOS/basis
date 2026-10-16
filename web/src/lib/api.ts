@@ -32,11 +32,7 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
   const response = await fetch(path, { ...init, headers });
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
-    throw errorFromApiResponse(
-      response.status,
-      data,
-      `Request failed (${response.status})`,
-    );
+    throw errorFromApiResponse(response.status, data);
   }
   return data as T;
 }

@@ -22,4 +22,9 @@ export const kbVocabulary = {
   drop: 'Drop a file, or click to choose',
   dropActive: 'Drop to import',
   addedSummary: '+{nodes} concepts · +{edges} links',
+  api: {
+    fetchSchemesFailed: 'Failed to fetch vocabularies',
+    fetchHierarchyFailed: 'Failed to fetch hierarchy',
+    importFailed: 'Failed to import vocabulary',
+  },
 } as const;

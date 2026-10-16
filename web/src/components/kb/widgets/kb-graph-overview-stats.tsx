@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Spinner } from '@/components/ui/spinner.js';
 import { graphProgressWidthStyle } from '@/lib/graph/graph-ui-classes.js';
 import { useI18n } from '@/i18n/context.js';
+import { formatLocaleNumber } from '@/i18n/format.js';
 import type { Locale } from '@/i18n/locale.js';
 
 type GraphStats = {
@@ -23,10 +24,12 @@ type NodeItem = {
 };
 
 function TypeBar({
+  locale,
   label,
   count,
   total,
 }: {
+  locale: Locale;
   label: string;
   count: number;
   total: number;
@@ -41,7 +44,7 @@ function TypeBar({
         <div className="h-full rounded-full bg-primary" style={graphProgressWidthStyle(pct / 100)} />
       </div>
       <span className="w-16 shrink-0 text-right tabular-nums text-muted-foreground">
-        {count.toLocaleString()} ({pct}%)
+        {formatLocaleNumber(locale, count)} ({pct}%)
       </span>
     </div>
   );
@@ -127,13 +130,13 @@ export function KbGraphOverviewStats({ kbId }: { kbId: string }) {
               <div>
                 <dt className="text-muted-foreground">{w.nodesLabel}</dt>
                 <dd className="font-mono text-lg font-semibold">
-                  {(stats.node_count ?? 0).toLocaleString()}
+                  {formatLocaleNumber(locale, stats.node_count ?? 0)}
                 </dd>
               </div>
               <div>
                 <dt className="text-muted-foreground">{w.edgesLabel}</dt>
                 <dd className="font-mono text-lg font-semibold">
-                  {(stats.edge_count ?? 0).toLocaleString()}
+                  {formatLocaleNumber(locale, stats.edge_count ?? 0)}
                 </dd>
               </div>
             </dl>
@@ -141,7 +144,7 @@ export function KbGraphOverviewStats({ kbId }: { kbId: string }) {
               <div>
                 <p className="mb-2 text-xs font-medium text-muted-foreground">{w.nodeTypesSample}</p>
                 {nodeTypeEntries.slice(0, 8).map(([label, count]) => (
-                  <TypeBar key={label} label={label} count={count} total={totalTyped} />
+                  <TypeBar key={label} locale={locale} label={label} count={count} total={totalTyped} />
                 ))}
               </div>
             ) : null}

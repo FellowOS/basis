@@ -1,9 +1,15 @@
 import { en } from "@/i18n/locales/en/index.js";
-import { fmt } from "@/i18n/format.js";
+import { fmt, formatLocaleNumber, pickCountForm } from "@/i18n/format.js";
 import { messagesForLocale } from "@/i18n/pick-locale.js";
 import type { GraphWorkspaceLocale } from "./graphWorkspaceCopy.js";
 
-export type InspectorCopyKey = keyof typeof en.kbGraphWorkspace.inspector;
+type InspectorStringKey = {
+  [K in keyof typeof en.kbGraphWorkspace.inspector]: (typeof en.kbGraphWorkspace.inspector)[K] extends string
+    ? K
+    : never;
+}[keyof typeof en.kbGraphWorkspace.inspector];
+
+export type InspectorCopyKey = InspectorStringKey;
 
 function pack(locale: GraphWorkspaceLocale) {
   return messagesForLocale(locale).kbGraphWorkspace;
@@ -33,19 +39,19 @@ export function inspectorPathBandBadge(
     distant: h.inspectorPathBandDistant,
   };
   const bandLabel = bandMap[band] ?? band;
-  const hopTemplate = hops === 1 && locale !== "zh" ? h.inspectorPathBandHopsOne : h.inspectorPathBandHops;
-  const hopPart = fmt(hopTemplate, { hops: String(hops) });
+  const hopTemplate = pickCountForm(locale, hops, h.inspectorPathBandHopsOne, h.inspectorPathBandHops);
+  const hopPart = fmt(hopTemplate, { hops: formatLocaleNumber(locale, hops) });
   return `${bandLabel} · ${hopPart}`;
 }
 
 export function inspectorAltPathsBadge(locale: GraphWorkspaceLocale, count: number): string {
   const h = pack(locale).helpers;
-  const template = count === 1 && locale !== "zh" ? h.inspectorAltPathsOne : h.inspectorAltPaths;
-  return fmt(template, { count: String(count) });
+  const template = pickCountForm(locale, count, h.inspectorAltPathsOne, h.inspectorAltPaths);
+  return fmt(template, { count: formatLocaleNumber(locale, count) });
 }
 
 export function inspectorHopsSummary(locale: GraphWorkspaceLocale, hops: number): string {
-  return fmt(pack(locale).helpers.inspectorHops, { hops: String(hops) });
+  return fmt(pack(locale).helpers.inspectorHops, { hops: formatLocaleNumber(locale, hops) });
 }
 
 export function inspectorBadgeCount(
@@ -56,7 +62,7 @@ export function inspectorBadgeCount(
   const h = pack(locale).helpers;
   const template =
     kind === "sourceFields" ? h.inspectorSourceFieldsBadge : h.inspectorCandidateLinksBadge;
-  return fmt(template, { count: String(count) });
+  return fmt(template, { count: formatLocaleNumber(locale, count) });
 }
 
 export function inspectorFocusTitle(

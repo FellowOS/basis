@@ -10,7 +10,12 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog.js';
 import { useI18n } from '@/i18n/context.js';
-import { fmt } from '@/i18n/format.js';
+import { fmt, formatLocaleNumber, pickCountForm } from '@/i18n/format.js';
+import type { Locale } from '@/i18n/locale.js';
+import {
+  ledgerChunkOriginLabel,
+  ledgerStatementStatusLabel,
+} from '@/lib/kb-ledger-labels.js';
 import { api } from '@/lib/api.js';
 import { useKbNodeLabels } from '@/lib/kb-node-labels.js';
 import { kbPath } from '@/lib/nav-config.js';
@@ -46,8 +51,9 @@ type ChunkStatement = {
 };
 
 export function LedgerEvidenceInspector({ kbId }: { kbId: string }) {
-  const { t } = useI18n();
-  const ev = t.kbLedger.evidence;
+  const { t, locale } = useI18n();
+  const ledger = t.kbLedger;
+  const ev = ledger.evidence;
   const apiError = useApiErrorMessage();
   const [searchParams, setSearchParams] = useSearchParams();
   const docRef = searchParams.get('doc')?.trim() || null;
@@ -171,23 +177,33 @@ export function LedgerEvidenceInspector({ kbId }: { kbId: string }) {
   const title = chunkId ? ev.chunkTitle : (docTitle ?? docRef ?? '');
 
   function chunkMeta(row: ChunkFields): string | null {
+    const loc = locale as Locale;
     const parts: string[] = [];
     if (row.heading) parts.push(row.heading);
     if (row.char_start != null && row.char_end != null) {
-      parts.push(`${row.char_start}–${row.char_end}`);
+      parts.push(
+        fmt(ev.charRange, {
+          start: formatLocaleNumber(loc, row.char_start),
+          end: formatLocaleNumber(loc, row.char_end),
+        }),
+      );
     }
     if (row.token_count != null) {
-      parts.push(fmt(ev.tokenCount, { count: row.token_count }));
+      parts.push(
+        fmt(ev.tokenCount, { count: formatLocaleNumber(loc, row.token_count) }),
+      );
     }
     if (row.language) parts.push(row.language);
-    if (row.origin && (row.origin !== 'stated' || parts.length > 0)) parts.push(row.origin);
+    if (row.origin && (row.origin !== 'stated' || parts.length > 0)) {
+      parts.push(ledgerChunkOriginLabel(ledger, row.origin));
+    }
     return parts.length ? parts.join(' · ') : null;
   }
 
-  const chunkCountLabel =
-    docChunks.length === 1
-      ? ev.chunkCountOne
-      : fmt(ev.chunkCount, { count: docChunks.length });
+  const chunkCountLabel = fmt(
+    pickCountForm(locale, docChunks.length, ev.chunkCountOne, ev.chunkCount),
+    { count: formatLocaleNumber(locale as Locale, docChunks.length) },
+  );
 
   return (
     <Dialog open={Boolean(docRef || chunkId)} onOpenChange={(open) => { if (!open) clearEvidenceParams(); }}>
@@ -197,7 +213,10 @@ export function LedgerEvidenceInspector({ kbId }: { kbId: string }) {
           <DialogDescription>
             {chunkId
               ? chunk
-                ? `${chunk.document_title || chunk.document_id} · #${chunk.ordinal}`
+                ? fmt(ev.chunkDocLine, {
+                    title: chunk.document_title || chunk.document_id,
+                    ordinal: formatLocaleNumber(locale as Locale, chunk.ordinal),
+                  })
                 : loadingLabel
               : loading
                 ? loadingLabel
@@ -225,7 +244,7 @@ export function LedgerEvidenceInspector({ kbId }: { kbId: string }) {
                     onClick={() => openChunk(row.id)}
                   >
                     <span className="font-mono text-[11px] text-muted-foreground">
-                      #{row.ordinal}
+                      #{formatLocaleNumber(locale as Locale, row.ordinal)}
                       {meta ? ` · ${meta}` : ''}
                     </span>
                     <p className="mt-1 line-clamp-4 whitespace-pre-wrap text-[13px] leading-snug">{row.text}</p>
@@ -267,7 +286,9 @@ export function LedgerEvidenceInspector({ kbId }: { kbId: string }) {
                         ) : (
                           <span className="text-muted-foreground">{row.object_value}</span>
                         )}
-                        <span className="ml-2 text-muted-foreground">({row.status})</span>
+                        <span className="ml-2 text-muted-foreground">
+                          ({ledgerStatementStatusLabel(ledger, row.status)})
+                        </span>
                       </div>
                       {row.quote ? (
                         <blockquote className="mt-1 border-l-2 pl-2 text-muted-foreground">

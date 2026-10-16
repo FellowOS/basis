@@ -8,7 +8,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover.js";
 import { Slider } from "@/components/ui/slider.js";
-import { fmt } from "@/i18n/format.js";
+import { fmt, formatLocaleNumber } from "@/i18n/format.js";
 import { messagesForLocale } from "@/i18n/pick-locale.js";
 
 import type { GraphWorkspaceLocale } from "./graphWorkspaceCopy";
@@ -35,12 +35,14 @@ function summaryLabel(
   catalogTotals: GraphCatalogTotals,
 ): string {
   const lb = loadBudgetCopy(locale);
-  const nLoaded = loadedNodes.toLocaleString();
-  const eLoaded = loadedEdges.toLocaleString();
+  const nLoaded = formatLocaleNumber(locale, loadedNodes);
+  const eLoaded = formatLocaleNumber(locale, loadedEdges);
   const nodeCatalog = catalogTotals.nodeTotal;
   const edgeCatalog = catalogTotals.edgeTotal;
-  const nDenominator = nodeCatalog != null ? nodeCatalog.toLocaleString() : budget.maxNodes.toLocaleString();
-  const eDenominator = edgeCatalog != null ? edgeCatalog.toLocaleString() : budget.maxEdges.toLocaleString();
+  const nDenominator =
+    nodeCatalog != null ? formatLocaleNumber(locale, nodeCatalog) : formatLocaleNumber(locale, budget.maxNodes);
+  const eDenominator =
+    edgeCatalog != null ? formatLocaleNumber(locale, edgeCatalog) : formatLocaleNumber(locale, budget.maxEdges);
 
   return fmt(lb.summary, {
     nLoaded,
@@ -112,9 +114,9 @@ export function GraphLoadBudgetControl({
           <div className="flex items-center justify-between text-[11px]">
             <span className="text-muted-foreground">{lb.nodesLabel}</span>
             <span className="tabular-nums font-medium">
-              {draftNodes.toLocaleString()}
+              {formatLocaleNumber(locale, draftNodes)}
               <span className="text-muted-foreground font-normal">
-                {" "}/ {nodeMax.toLocaleString()}
+                {" "}/ {formatLocaleNumber(locale, nodeMax)}
               </span>
             </span>
           </div>
@@ -133,9 +135,9 @@ export function GraphLoadBudgetControl({
           <div className="flex items-center justify-between text-[11px]">
             <span className="text-muted-foreground">{lb.edgesLabel}</span>
             <span className="tabular-nums font-medium">
-              {draftEdges.toLocaleString()}
+              {formatLocaleNumber(locale, draftEdges)}
               <span className="text-muted-foreground font-normal">
-                {" "}/ {edgeMax.toLocaleString()}
+                {" "}/ {formatLocaleNumber(locale, edgeMax)}
               </span>
             </span>
           </div>
@@ -153,8 +155,8 @@ export function GraphLoadBudgetControl({
         {catalogTotals.nodeTotal != null && catalogTotals.edgeTotal != null ? (
           <p className="text-[10px] text-muted-foreground">
             {fmt(lb.catalogFull, {
-              nodes: catalogTotals.nodeTotal.toLocaleString(),
-              edges: catalogTotals.edgeTotal.toLocaleString(),
+              nodes: formatLocaleNumber(locale, catalogTotals.nodeTotal),
+              edges: formatLocaleNumber(locale, catalogTotals.edgeTotal),
             })}
           </p>
         ) : null}

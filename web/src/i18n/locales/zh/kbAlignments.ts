@@ -18,6 +18,7 @@ export const kbAlignments = {
   confidence: '置信度',
   provenance: '来源说明',
   source: '来源',
+  defaultSource: '本体工作台',
   reviewer: '审核人',
   save: '保存',
   saving: '保存中…',
@@ -30,4 +31,13 @@ export const kbAlignments = {
   threshold: '相似度阈值',
   runSuggest: '生成建议',
   suggestEmpty: '生成后可在这里查看候选映射。',
+  relationLabels: {
+    'owl:equivalentClass': 'OWL 等价类',
+    'owl:equivalentProperty': 'OWL 等价属性',
+    'skos:exactMatch': 'SKOS 精确匹配',
+    'skos:closeMatch': 'SKOS 近似匹配',
+    'skos:broadMatch': 'SKOS 上位匹配',
+    'skos:narrowMatch': 'SKOS 下位匹配',
+    'skos:relatedMatch': 'SKOS 相关匹配',
+  },
 } as const;

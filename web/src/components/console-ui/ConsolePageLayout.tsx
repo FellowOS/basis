@@ -1,5 +1,8 @@
 import type { ReactNode } from 'react';
+import { useLocation } from 'react-router-dom';
 import { PageHeader, type Crumb } from '@/components/console-ui/PageHeader.js';
+import { SidebarIcon } from '@/components/sidebar-icon.js';
+import { menuIconForPath } from '@/lib/nav-config.js';
 import { cn } from '@/lib/utils.js';
 
 export type ConsolePageLayoutProps = {
@@ -25,13 +28,19 @@ export function ConsolePageLayout({
   children,
   className,
 }: ConsolePageLayoutProps) {
+  const { pathname } = useLocation();
+  const menuIcon = menuIconForPath(pathname);
+
   return (
-    <div className={cn('flex min-h-0 flex-1 flex-col gap-4', className)}>
+    <div className={cn('flex min-h-0 flex-1 flex-col gap-6', className)}>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 space-y-1">
           <PageHeader crumbs={crumbs} />
           {subtitle ? (
-            <div className="text-sm text-muted-foreground">{subtitle}</div>
+            <div className="flex items-start gap-1.5 text-sm text-muted-foreground">
+              {menuIcon ? <SidebarIcon name={menuIcon} className="mt-0.5" /> : null}
+              <div className="min-w-0">{subtitle}</div>
+            </div>
           ) : null}
           {meta ? <div className="text-sm text-muted-foreground">{meta}</div> : null}
         </div>

@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button.js';
 import { Input } from '@/components/ui/input.js';
 import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
-import { fmt } from '@/i18n/format.js';
+import { fmt, formatLocaleFixedDecimals, formatLocaleNumber, pickCountForm } from '@/i18n/format.js';
 import type { Locale } from '@/i18n/locale.js';
 import { api } from '@/lib/api.js';
 import { formatUserFacingApiError } from '@/lib/api-error-message.js';
@@ -28,6 +28,7 @@ import {
 import { useKbNodeLabels } from '@/lib/kb-node-labels.js';
 import { kbPath } from '@/lib/nav-config.js';
 import { kbGraphPath } from '@/lib/graphUrlState.js';
+import { graphNodeTypeLabel } from '@/explorer/workspaces/GraphWorkspace/graphWorkspaceCopy.js';
 import {
   kbSearchPath,
   parseKbSearchTab,
@@ -49,6 +50,7 @@ type ChunkHit = {
 
 export function KbSearchPage() {
   const { t, locale } = useI18n();
+  const emptyCell = t.common.emptyCell;
   const s = t.kbSearch;
   const { id } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -227,7 +229,7 @@ export function KbSearchPage() {
     await runSearch(tab, q, true);
   }
 
-  const name = kb?.name ?? id ?? '…';
+  const name = kb?.name ?? id ?? t.common.ellipsis;
 
   useEffect(() => {
     const doc = searchParams.get('doc');
@@ -257,10 +259,10 @@ export function KbSearchPage() {
       : tab === 'entities'
         ? entityResults.length
         : graphResults.length;
-  const countLabel =
-    locale === 'en' && resultCount === 1
-      ? fmt(s.resultCountOne, { count: resultCount })
-      : fmt(s.resultCount, { count: resultCount });
+  const countLabel = fmt(
+    pickCountForm(locale, resultCount, s.resultCountOne, s.resultCount),
+    { count: formatLocaleNumber(locale, resultCount) },
+  );
 
   return (
     <ConsolePageLayout
@@ -432,7 +434,7 @@ export function KbSearchPage() {
                       </Button>
                     ) : null}
                   </div>
-                  <div className="mt-1 line-clamp-3">{hit.snippet || '—'}</div>
+                  <div className="mt-1 line-clamp-3">{hit.snippet || emptyCell}</div>
                 </div>
               ))
             )
@@ -467,7 +469,10 @@ export function KbSearchPage() {
                   ) : null}
                 </div>
                 <div className="text-muted-foreground">
-                  {fmt(s.graphScoreLine, { type: hit.node.type, score: hit.score.toFixed(3) })}
+                  {fmt(s.graphScoreLine, {
+                    type: graphNodeTypeLabel(locale as Locale, hit.node.type),
+                    score: formatLocaleFixedDecimals(locale, hit.score, 3),
+                  })}
                 </div>
                 {hit.node.content && hit.node.content !== graphLabels[hit.node.id] ? (
                   <div className="mt-1 line-clamp-2 text-muted-foreground">{hit.node.content}</div>

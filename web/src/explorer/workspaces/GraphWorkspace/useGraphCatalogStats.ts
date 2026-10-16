@@ -1,11 +1,17 @@
 import { useEffect, useState } from "react";
 
+import type { Locale } from "@/i18n/locale.js";
+
 import { buildExplorerGraphApiPath, explorerFetchJson } from "../../host/explorerHttp";
 import type { GraphCatalogTotals } from "./graphLoadBudget";
 
 const EMPTY_TOTALS: GraphCatalogTotals = { nodeTotal: null, edgeTotal: null };
 
-export function useGraphCatalogStats(kbId: string, refreshKey = 0): GraphCatalogTotals {
+export function useGraphCatalogStats(
+  kbId: string,
+  refreshKey = 0,
+  locale: Locale = "en",
+): GraphCatalogTotals {
   const [totals, setTotals] = useState<GraphCatalogTotals>(EMPTY_TOTALS);
 
   useEffect(() => {
@@ -15,6 +21,9 @@ export function useGraphCatalogStats(kbId: string, refreshKey = 0): GraphCatalog
       try {
         const data = await explorerFetchJson<{ node_count?: number; edge_count?: number }>(
           buildExplorerGraphApiPath("stats", kbId),
+          undefined,
+          undefined,
+          locale,
         );
         if (cancelled) {
           return;
@@ -33,7 +42,7 @@ export function useGraphCatalogStats(kbId: string, refreshKey = 0): GraphCatalog
     return () => {
       cancelled = true;
     };
-  }, [kbId, refreshKey]);
+  }, [kbId, locale, refreshKey]);
 
   return totals;
 }

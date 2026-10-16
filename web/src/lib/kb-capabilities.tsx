@@ -8,6 +8,7 @@ import {
   useState,
 } from 'react';
 import { useLocation } from 'react-router-dom';
+import { devMessage } from '@/i18n/dev-messages.js';
 import { api } from '@/lib/api.js';
 import type { KbNavKey } from '@/lib/nav-config.js';
 import { parseKbIdFromPath } from '@/lib/nav-config.js';
@@ -88,7 +89,7 @@ export function useKbCapabilitiesOptional(): KbCapabilitiesContextValue | null {
 export function useKbCapabilities(): KbCapabilitiesContextValue {
   const ctx = useKbCapabilitiesOptional();
   if (!ctx) {
-    throw new Error('useKbCapabilities requires KbCapabilitiesProvider');
+    throw new Error(devMessage('useKbCapabilities'));
   }
   return ctx;
 }

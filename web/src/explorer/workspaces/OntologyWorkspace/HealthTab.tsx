@@ -39,7 +39,7 @@ export function HealthTab({ onFixInEditor }: HealthTabProps) {
 
   useEffect(() => {
     let cancelled = false;
-    loadOntologyRegistry(kbId)
+    loadOntologyRegistry(kbId, { locale: locale as Locale })
       .then((entries) => {
         if (cancelled) return;
         setRegistry(entries);
@@ -68,7 +68,7 @@ export function HealthTab({ onFixInEditor }: HealthTabProps) {
     async function fetchHealth() {
       if (!selectedUri) return;
       try {
-        const data = await loadOntologyHealth(kbId, selectedUri);
+        const data = await loadOntologyHealth(kbId, selectedUri, { locale: locale as Locale });
         if (!ignore) setHealth(data);
       } catch {
         if (!ignore) setHealth(null);
@@ -80,7 +80,7 @@ export function HealthTab({ onFixInEditor }: HealthTabProps) {
     return () => {
       ignore = true;
     };
-  }, [kbId, selectedUri]);
+  }, [kbId, locale, selectedUri]);
 
   const exportReport = useCallback(() => {
     if (!health) return;

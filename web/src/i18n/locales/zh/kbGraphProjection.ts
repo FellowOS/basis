@@ -6,6 +6,13 @@ export const kbGraphProjection = {
   ledgerRevision: '账本修订',
   projectionStatus: '投影状态',
   nodesEdges: '节点 / 边',
+  nodesEdgesValue: '{nodes} / {edges}',
+  projectionStatusLabels: {
+    clean: '已同步',
+    dirty: '待重建',
+    building: '构建中',
+    failed: '失败',
+  },
   lastBuilt: '上次构建',
   lastError: '最近错误',
   editorRequired: '需要编辑者角色才能重建投影。',

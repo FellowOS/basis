@@ -1,6 +1,13 @@
+import { fmt } from '@/i18n/format.js';
+import type { Locale } from '@/i18n/locale.js';
+import { messagesForLocale } from '@/i18n/pick-locale.js';
 import { errorFromApiResponse } from '@/lib/api-error.js';
 import { formatUserFacingApiError } from '@/lib/api-error-message.js';
 import { explorerFetch } from '../host/explorerHttp';
+
+function explorerMessages(locale: Locale = 'en') {
+  return messagesForLocale(locale).common;
+}
 
 export type ExplorerJsonBody = { message?: string };
 
@@ -24,7 +31,7 @@ export async function parseExplorerJson<T>(
 }
 
 /** Explorer surfaces are English-first; KB shell pages pass locale explicitly. */
-export function explorerApiErrorMessage(err: unknown, locale: 'en' | 'zh' = 'en'): string {
+export function explorerApiErrorMessage(err: unknown, locale: Locale = 'en'): string {
   return formatUserFacingApiError(err, locale);
 }
 
@@ -48,17 +55,20 @@ export function explorerPartialSuccessWarning(
 export async function explorerGetJson<T>(
   url: string,
   init?: RequestInit,
-  options?: { fallbackMessage?: string; partialWarning?: string },
+  options?: { fallbackMessage?: string; partialWarning?: string; locale?: Locale },
 ): Promise<{ data: T; partialWarning: string | null }> {
   const response = await explorerFetch(url, init);
-  const fallback = options?.fallbackMessage ?? `Request failed (${response.status})`;
+  const locale = options?.locale ?? 'en';
+  const common = explorerMessages(locale);
+  const fallback =
+    options?.fallbackMessage ?? fmt(common.requestFailedStatus, { status: response.status });
   const data = await parseExplorerJson<T>(response, fallback);
   return {
     data,
     partialWarning: explorerPartialSuccessWarning(
       response,
       data,
-      options?.partialWarning ?? 'Partial success.',
+      options?.partialWarning ?? common.partialSuccess,
     ),
   };
 }
@@ -67,12 +77,14 @@ export async function explorerGetJson<T>(
 export async function explorerMutationResult(
   response: Response,
   fallbackMessage: string,
-  partialWarningFallback = 'Partial success.',
+  partialWarningFallback?: string,
+  locale: Locale = 'en',
 ): Promise<string | null> {
+  const partialFallback = partialWarningFallback ?? explorerMessages(locale).partialSuccess;
   await throwIfExplorerNotOk(response, fallbackMessage);
   if (response.status !== 207) {
     return null;
   }
   const data = await response.json().catch(() => ({}));
-  return explorerPartialSuccessWarning(response, data, partialWarningFallback);
+  return explorerPartialSuccessWarning(response, data, partialFallback);
 }

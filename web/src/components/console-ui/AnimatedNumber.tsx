@@ -1,4 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
+import { formatLocaleNumber } from '@/i18n/format.js';
+import type { Locale } from '@/i18n/locale.js';
+import { LOCALE_HTML_LANG } from '@/i18n/locale.js';
 
 interface Parsed {
   prefix: string;
@@ -33,14 +36,17 @@ export function AnimatedNumber({
   value,
   duration = 1100,
   className,
+  locale,
 }: {
   value: string | number;
   duration?: number;
   className?: string;
+  locale?: Locale;
 }) {
+  const resolvedLocale = locale ?? 'en';
   const parsed = parse(value);
   const [display, setDisplay] = useState(() =>
-    parsed && !prefersReduced ? format(parsed, 0) : String(value),
+    parsed && !prefersReduced ? format(parsed, 0, resolvedLocale) : String(value),
   );
   const frame = useRef<number>(0);
 
@@ -54,7 +60,7 @@ export function AnimatedNumber({
       const t = Math.min(1, (now - start) / duration);
       // easeOutCubic
       const eased = 1 - (1 - t) ** 3;
-      setDisplay(format(parsed, parsed.target * eased));
+      setDisplay(format(parsed, parsed.target * eased, resolvedLocale));
       if (t < 1) frame.current = requestAnimationFrame(tick);
     };
     frame.current = requestAnimationFrame(tick);
@@ -65,9 +71,10 @@ export function AnimatedNumber({
   return <span className={className}>{display}</span>;
 }
 
-function format(p: Parsed, n: number): string {
+function format(p: Parsed, n: number, locale: Locale = 'en'): string {
+  const htmlLang = LOCALE_HTML_LANG[locale];
   const num = p.decimals
-    ? n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-    : Math.round(n).toLocaleString();
+    ? n.toLocaleString(htmlLang, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    : formatLocaleNumber(locale, Math.round(n));
   return `${p.prefix}${num}${p.suffix}`;
 }

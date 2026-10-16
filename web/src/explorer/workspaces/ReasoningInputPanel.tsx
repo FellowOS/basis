@@ -6,6 +6,8 @@ import { cn } from "@/lib/utils.js";
 import { exWsPaddedCol, exWsSplitSidebar } from "@/lib/explorer-ws-classes.js";
 import { ReasoningRuleLibraryCombobox } from "./ReasoningRuleLibraryCombobox.js";
 import type { KbReasoningRule } from "./ReasoningRulesDialog.js";
+import { formatLocaleNumber } from "@/i18n/format.js";
+import type { Locale } from "@/i18n/locale.js";
 import type { LocaleMessages } from "@/i18n/locales/en/index.js";
 
 type Copy = LocaleMessages["kbReasoning"];
@@ -19,11 +21,13 @@ const TEMPLATE_ICONS: Record<TemplateKey, string> = {
 };
 
 function SectionLabel({
+  locale,
   id,
   title,
   count,
   icon,
 }: {
+  locale: Locale;
   id: string;
   title: string;
   count?: number;
@@ -36,13 +40,16 @@ function SectionLabel({
         {title}
       </h2>
       {typeof count === "number" ? (
-        <span className="font-mono text-[11px] tabular-nums text-foreground">{count}</span>
+        <span className="font-mono text-[11px] tabular-nums text-foreground">
+          {formatLocaleNumber(locale, count)}
+        </span>
       ) : null}
     </div>
   );
 }
 
 export function ReasoningInputPanel({
+  locale,
   copy,
   facts,
   factCount,
@@ -69,6 +76,7 @@ export function ReasoningInputPanel({
   applyToGraph,
   onApplyToGraphChange,
 }: {
+  locale: Locale;
   copy: Copy;
   facts: string;
   factCount: number;
@@ -119,7 +127,13 @@ export function ReasoningInputPanel({
 
       <div className={cn(exWsPaddedCol, "min-h-0 flex-1 gap-6 py-4")}>
         <section className="flex flex-col gap-2" aria-labelledby="reasoning-input-facts">
-          <SectionLabel id="reasoning-input-facts" icon="file-01" title={copy.factsTitle} count={factCount} />
+          <SectionLabel
+            locale={locale}
+            id="reasoning-input-facts"
+            icon="file-01"
+            title={copy.factsTitle}
+            count={factCount}
+          />
           <textarea
             className="ws-textarea min-h-[8.5rem] font-mono text-xs leading-relaxed"
             value={facts}
@@ -137,10 +151,16 @@ export function ReasoningInputPanel({
         </section>
 
         <section className="flex flex-col gap-2" aria-labelledby="reasoning-input-rules">
-          <SectionLabel id="reasoning-input-rules" icon="git-branch-01" title={copy.rulesTitle} />
+          <SectionLabel locale={locale} id="reasoning-input-rules" icon="git-branch-01" title={copy.rulesTitle} />
           {savedRules.length > 0 ? (
             <div className="flex flex-col gap-1.5">
-              <SectionLabel id="reasoning-input-library" icon="book-01" title={copy.librarySection} count={libraryCount} />
+              <SectionLabel
+                locale={locale}
+                id="reasoning-input-library"
+                icon="book-01"
+                title={copy.librarySection}
+                count={libraryCount}
+              />
               <ReasoningRuleLibraryCombobox
                 rules={savedRules}
                 runIncludedIds={runIncludedIds}
@@ -153,7 +173,13 @@ export function ReasoningInputPanel({
             </div>
           ) : null}
           <div className="flex items-center justify-between gap-2">
-            <SectionLabel id="reasoning-input-draft" icon="edit-01" title={copy.draftSection} count={draftRuleCount} />
+            <SectionLabel
+              locale={locale}
+              id="reasoning-input-draft"
+              icon="edit-01"
+              title={copy.draftSection}
+              count={draftRuleCount}
+            />
             {canWriteGraph ? (
               <Button
                 type="button"

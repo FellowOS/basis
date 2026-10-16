@@ -1,9 +1,21 @@
 import type { ExplorerHttpConfig } from '@/explorer/host/explorerHttp.js';
+import { fmt } from '@/i18n/format.js';
+import { localeFromBrowser, type Locale } from '@/i18n/locale.js';
+import { messagesForLocale } from '@/i18n/pick-locale.js';
 import { getToken } from '@/lib/api.js';
 import { errorFromApiResponse } from '@/lib/api-error.js';
 import { realtimeWsOrigin } from '@/lib/realtime-ws-origin.js';
 
-export function buildKbExplorerHttpConfig(kbId: string): ExplorerHttpConfig {
+function resolveLocale(locale?: Locale): Locale {
+  if (locale) {
+    return locale;
+  }
+  const lang = typeof navigator !== 'undefined' ? navigator.language : 'en';
+  return localeFromBrowser(lang);
+}
+
+export function buildKbExplorerHttpConfig(kbId: string, locale?: Locale): ExplorerHttpConfig {
+  const loc = resolveLocale(locale);
   return {
     apiRoot: `/api/kbs/${kbId}`,
     getAuthHeaders: (): Record<string, string> => {
@@ -23,7 +35,10 @@ export function buildKbExplorerHttpConfig(kbId: string): ExplorerHttpConfig {
         throw errorFromApiResponse(
           ticketResp.status,
           body,
-          `realtime ticket failed (${ticketResp.status})`,
+          fmt(messagesForLocale(loc).kbExplorer.realtimeTicketFailed, {
+            status: ticketResp.status,
+          }),
+          loc,
         );
       }
       const body = (await ticketResp.json()) as { ticket: string };

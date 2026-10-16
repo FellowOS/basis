@@ -24,6 +24,7 @@ export function KbEntityMergePropertyDiff({
 }) {
   const { t } = useI18n();
   const er = t.entityResolution;
+  const emptyCell = t.common.emptyCell;
   const [rows, setRows] = useState<
     Array<{ key: string; primary: string; duplicate: string; differs: boolean }>
   >([]);
@@ -88,14 +89,14 @@ export function KbEntityMergePropertyDiff({
             )}
           >
             <div className="px-2 py-1.5 font-medium text-muted-foreground">{row.key}</div>
-            <div className="break-words border-l border-border px-2 py-1.5">{row.primary || '—'}</div>
+            <div className="break-words border-l border-border px-2 py-1.5">{row.primary || emptyCell}</div>
             <div
               className={cn(
                 'break-words border-l border-border px-2 py-1.5',
                 row.differs && 'font-medium text-amber-700 dark:text-amber-400',
               )}
             >
-              {row.duplicate || '—'}
+              {row.duplicate || emptyCell}
             </div>
           </div>
         ))}
@@ -123,14 +124,14 @@ export function KbEntityMergePropertyDiff({
           )}
         >
           <div className="px-3 py-2 font-semibold text-[var(--ws-text-dim)]">{row.key}</div>
-          <div className="break-words border-l border-[var(--ws-border)] px-3 py-2">{row.primary || '—'}</div>
+          <div className="break-words border-l border-[var(--ws-border)] px-3 py-2">{row.primary || emptyCell}</div>
           <div
             className={cn(
               'break-words border-l border-[var(--ws-border)] px-3 py-2',
               row.differs && 'font-semibold text-[#fbbf24]',
             )}
           >
-            {row.duplicate || '—'}
+            {row.duplicate || emptyCell}
           </div>
         </div>
       ))}

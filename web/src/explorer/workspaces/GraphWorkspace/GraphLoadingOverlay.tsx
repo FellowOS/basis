@@ -6,7 +6,14 @@ import {
   graphLoaderMetricAccent,
   graphProgressWidthStyle,
 } from "@/lib/graph/graph-ui-classes.js";
-import { graphCopy, graphLoadPhaseTitle, type GraphWorkspaceLocale } from "./graphWorkspaceCopy";
+import { fmt, formatLocaleNumber } from "@/i18n/format.js";
+
+import {
+  graphCopy,
+  graphLoadOverlayCopy,
+  graphLoadPhaseTitle,
+  type GraphWorkspaceLocale,
+} from "./graphWorkspaceCopy";
 import { GRAPH_LOAD_STAGE_SEQUENCE, createGraphLoadProgress, getGraphLoadStageLabel } from "./graphLoading";
 import type { GraphLoadProgress } from "./types";
 
@@ -177,31 +184,39 @@ const LOADING_OVERLAY_CSS = `
   }
 `;
 
-function formatLayoutSource(source: GraphLoadProgress["layoutSource"]) {
+function formatLayoutSource(
+  locale: GraphWorkspaceLocale,
+  source: GraphLoadProgress["layoutSource"],
+) {
+  const o = graphLoadOverlayCopy(locale);
   switch (source) {
     case "provided":
-      return "Persisted layout";
+      return o.layoutProvided;
     case "carried":
-      return "Preserved layout";
+      return o.layoutCarried;
     case "runtime":
-      return "Runtime layout";
+      return o.layoutRuntime;
     default:
       return null;
   }
 }
 
-function formatLayoutState(state: GraphLoadProgress["layoutState"]) {
+function formatLayoutState(
+  locale: GraphWorkspaceLocale,
+  state: GraphLoadProgress["layoutState"],
+) {
+  const o = graphLoadOverlayCopy(locale);
   switch (state) {
     case "bootstrapping":
-      return "Bootstrapping";
+      return o.stateBootstrapping;
     case "running":
-      return "Settling";
+      return o.stateRunning;
     case "interactive":
-      return "Interactive";
+      return o.stateInteractive;
     case "stabilized":
-      return "Stable";
+      return o.stateStabilized;
     case "failed":
-      return "Fallback";
+      return o.stateFailed;
     default:
       return null;
   }
@@ -313,8 +328,9 @@ export function GraphLoadingOverlay({
   const determinateRatio = activeProgress.progressKind === "determinate" && activeProgress.total
     ? Math.max(0.05, Math.min(activeProgress.loaded ?? 0, activeProgress.total) / Math.max(activeProgress.total, 1))
     : null;
-  const layoutSource = formatLayoutSource(activeProgress.layoutSource);
-  const layoutState = formatLayoutState(activeProgress.layoutState);
+  const overlay = graphLoadOverlayCopy(locale);
+  const layoutSource = formatLayoutSource(locale, activeProgress.layoutSource);
+  const layoutState = formatLayoutState(locale, activeProgress.layoutState);
 
   return (
     <div
@@ -336,7 +352,10 @@ export function GraphLoadingOverlay({
           <div className="inline-flex shrink-0 items-center gap-2.5">
             <div className="graph-stage-loader-beacon" aria-hidden="true" />
             <div className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
-              Stage {activeProgress.stageIndex ?? 1}/{activeProgress.stageCount ?? GRAPH_LOAD_STAGE_SEQUENCE.length}
+              {fmt(overlay.stageBadge, {
+                current: activeProgress.stageIndex ?? 1,
+                total: activeProgress.stageCount ?? GRAPH_LOAD_STAGE_SEQUENCE.length,
+              })}
             </div>
           </div>
         </div>
@@ -356,13 +375,16 @@ export function GraphLoadingOverlay({
         <div className="mb-2 flex items-baseline justify-between gap-3">
           <div className="text-xs font-semibold text-foreground">
             {activeProgress.progressKind === "determinate" && activeProgress.total
-              ? `${(activeProgress.loaded ?? 0).toLocaleString()} / ${activeProgress.total.toLocaleString()} in current stage`
-              : "Working through this stage"}
+              ? fmt(overlay.stageCounts, {
+                  loaded: formatLocaleNumber(locale, activeProgress.loaded ?? 0),
+                  total: formatLocaleNumber(locale, activeProgress.total),
+                })
+              : overlay.stageWorking}
           </div>
           <div className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
             {activeProgress.progressKind === "determinate" && determinateRatio !== null
               ? `${Math.round(determinateRatio * 100)}%`
-              : "Live"}
+              : overlay.live}
           </div>
         </div>
 
@@ -374,12 +396,20 @@ export function GraphLoadingOverlay({
 
         <div className="mt-3.5 flex flex-wrap gap-2.5">
           <span className={graphLoaderMetric}>
-            {activeProgress.nodesLoaded.toLocaleString()}
-            {activeProgress.nodesTotal ? ` / ${activeProgress.nodesTotal.toLocaleString()}` : ""} nodes
+            {activeProgress.nodesTotal
+              ? fmt(overlay.nodesWithTotal, {
+                  loaded: formatLocaleNumber(locale, activeProgress.nodesLoaded),
+                  total: formatLocaleNumber(locale, activeProgress.nodesTotal),
+                })
+              : fmt(overlay.nodesOnly, { loaded: formatLocaleNumber(locale, activeProgress.nodesLoaded) })}
           </span>
           <span className={graphLoaderMetric}>
-            {activeProgress.edgesLoaded.toLocaleString()}
-            {activeProgress.edgesTotal ? ` / ${activeProgress.edgesTotal.toLocaleString()}` : ""} relationships
+            {activeProgress.edgesTotal
+              ? fmt(overlay.edgesWithTotal, {
+                  loaded: formatLocaleNumber(locale, activeProgress.edgesLoaded),
+                  total: formatLocaleNumber(locale, activeProgress.edgesTotal),
+                })
+              : fmt(overlay.edgesOnly, { loaded: formatLocaleNumber(locale, activeProgress.edgesLoaded) })}
           </span>
           {layoutSource ? (
             <span className={graphLoaderMetricAccent}>

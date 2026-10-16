@@ -47,6 +47,7 @@ export function ModelEndpointForm({ kind, onCreated, onCancel }: Props) {
   const { t } = useI18n();
   const apiError = useApiErrorMessage();
   const m = t.models;
+  const emptyCell = t.common.emptyCell;
   const [providers, setProviders] = useState<ProviderInfo[]>([]);
   const [providerId, setProviderId] = useState('openai');
   const [apiBase, setApiBase] = useState('');
@@ -246,7 +247,7 @@ export function ModelEndpointForm({ kind, onCreated, onCancel }: Props) {
         <p className="text-[12px] text-muted-foreground">
           {m.fieldBaseUrl}:{' '}
           <span className="font-mono text-foreground">
-            {apiBase || selected?.default_api_base || '—'}
+            {apiBase || selected?.default_api_base || emptyCell}
           </span>
         </p>
       )}

@@ -7,6 +7,7 @@ import {
   useMemo,
   useState,
 } from 'react';
+import { devMessage } from '@/i18n/dev-messages.js';
 import {
   fetchSession,
   login as loginRequest,
@@ -33,7 +34,7 @@ const BasisSessionContext = createContext<BasisSessionContextValue | null>(null)
 
 export function useBasisSession(): BasisSessionContextValue {
   const ctx = useContext(BasisSessionContext);
-  if (!ctx) throw new Error('useBasisSession must be used under BasisSessionProvider');
+  if (!ctx) throw new Error(devMessage('useBasisSession'));
   return ctx;
 }
 

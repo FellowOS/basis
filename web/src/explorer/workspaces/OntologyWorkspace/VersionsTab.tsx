@@ -21,6 +21,12 @@ import {
 } from "@/components/ui/dialog.js";
 import { Input } from "@/components/ui/input.js";
 import { Label } from "@/components/ui/label.js";
+import { useI18n } from "@/i18n/context.js";
+import { fmt, formatLocaleDateTime, formatLocaleNumber } from "@/i18n/format.js";
+import type { Locale } from "@/i18n/locale.js";
+import type { AnyLocaleMessages } from "@/i18n/pick-locale.js";
+
+type VersionsLocale = AnyLocaleMessages["kbOntology"]["versions"];
 
 interface VersionEntry {
   version_id: string;
@@ -31,31 +37,52 @@ interface VersionEntry {
   diff_summary: Record<string, any>;
 }
 
-function shaclSummaryLine(shacl: Record<string, unknown>): string {
-  if (!shacl || Object.keys(shacl).length === 0) return "No SHACL report attached.";
+function shaclSummaryLine(
+  locale: Locale,
+  shacl: Record<string, unknown>,
+  sh: VersionsLocale["shacl"],
+): string {
+  if (!shacl || Object.keys(shacl).length === 0) return sh.none;
   const conforms = shacl.conforms ?? shacl.valid;
   const rawViolations = shacl.violations ?? shacl.results ?? shacl.report;
   const violationCount = Array.isArray(rawViolations) ? rawViolations.length : 0;
   if (typeof conforms === "boolean") {
-    return conforms
-      ? "SHACL: conforms"
-      : `SHACL: does not conform (${violationCount} violation${violationCount === 1 ? "" : "s"})`;
+    if (conforms) return sh.conforms;
+    if (violationCount === 1) return sh.notConformsOne;
+    return fmt(sh.notConforms, { count: formatLocaleNumber(locale, violationCount) });
   }
-  if (violationCount > 0) return `SHACL: ${violationCount} violation(s) listed`;
-  return "SHACL: see detailed report";
+  if (violationCount > 0) {
+    return fmt(sh.violationsListed, { count: formatLocaleNumber(locale, violationCount) });
+  }
+  return sh.seeReport;
 }
 
-function impactSummaryLine(impact: Record<string, unknown>): string {
-  if (!impact || Object.keys(impact).length === 0) return "No impact analysis.";
+const IMPACT_KEY_MAP: Record<string, keyof VersionsLocale["impact"]> = {
+  classes_added: "classesAdded",
+  classes_removed: "classesRemoved",
+  properties_added: "propertiesAdded",
+  properties_removed: "propertiesRemoved",
+  individuals_added: "individualsAdded",
+  individuals_removed: "individualsRemoved",
+};
+
+function impactSummaryLine(
+  locale: Locale,
+  impact: Record<string, unknown>,
+  imp: VersionsLocale["impact"],
+): string {
+  if (!impact || Object.keys(impact).length === 0) return imp.none;
   const parts: string[] = [];
-  for (const key of ["classes_added", "classes_removed", "properties_added", "properties_removed", "individuals_added", "individuals_removed"]) {
+  for (const [key, templateKey] of Object.entries(IMPACT_KEY_MAP)) {
     const val = impact[key];
-    if (typeof val === "number" && val > 0) parts.push(`${key.replace(/_/g, " ")}: ${val}`);
+    if (typeof val === "number" && val > 0 && templateKey !== "none" && templateKey !== "seeJson") {
+      parts.push(fmt(imp[templateKey] as string, { count: formatLocaleNumber(locale, val) }));
+    }
   }
   if (parts.length) return parts.join(" · ");
   const summary = impact.summary ?? impact.message;
   if (typeof summary === "string" && summary.trim()) return summary.trim();
-  return "See detailed impact JSON below.";
+  return imp.seeJson;
 }
 
 interface Proposal {
@@ -74,6 +101,8 @@ interface Proposal {
 }
 
 export function VersionsTab() {
+  const { t, locale } = useI18n();
+  const v = t.kbOntology.versions;
   const kbId = useOntologyKbId();
   const [ontologyUri, setOntologyUri] = useState<string>("");
   const [versions, setVersions] = useState<VersionEntry[]>([]);
@@ -118,16 +147,17 @@ export function VersionsTab() {
         ontologyPath(kbId, `versions/${encodeURIComponent(ontologyUri)}`),
         undefined,
         {
-          fallbackMessage: "Failed to load versions",
-          partialWarning: "Warning: Partial success loading versions.",
+          fallbackMessage: v.api.loadVersionsFailed,
+          partialWarning: v.api.partialVersions,
+          locale: locale as Locale,
         },
       );
       setVersions(data);
       if (partialWarning) setError(partialWarning);
     } catch (err) {
-      setError(explorerApiErrorMessage(err));
+      setError(explorerApiErrorMessage(err, locale as Locale));
     }
-  }, [kbId, ontologyUri]);
+  }, [kbId, ontologyUri, v.api, locale]);
 
   const loadProposals = useCallback(async () => {
     setError("");
@@ -136,16 +166,17 @@ export function VersionsTab() {
         ontologyPath(kbId, "proposals"),
         undefined,
         {
-          fallbackMessage: "Failed to load proposals",
-          partialWarning: "Warning: Partial success loading proposals.",
+          fallbackMessage: v.api.loadProposalsFailed,
+          partialWarning: v.api.partialProposals,
+          locale: locale as Locale,
         },
       );
       setProposals(data);
       if (partialWarning) setError(partialWarning);
     } catch (err) {
-      setError(explorerApiErrorMessage(err));
+      setError(explorerApiErrorMessage(err, locale as Locale));
     }
-  }, [kbId]);
+  }, [kbId, v.api, locale]);
 
   useEffect(() => {
     let ignore = false;
@@ -156,8 +187,9 @@ export function VersionsTab() {
           ontologyPath(kbId, "proposals"),
           undefined,
           {
-            fallbackMessage: "Failed to load proposals",
-            partialWarning: "Warning: Partial success loading proposals.",
+            fallbackMessage: v.api.loadProposalsFailed,
+            partialWarning: v.api.partialProposals,
+            locale: locale as Locale,
           },
         );
         if (!ignore) {
@@ -165,7 +197,7 @@ export function VersionsTab() {
           if (propWarn) setError(propWarn);
         }
       } catch (err) {
-        if (!ignore) setError(explorerApiErrorMessage(err));
+        if (!ignore) setError(explorerApiErrorMessage(err, locale as Locale));
       }
 
       if (!ontologyUri) return;
@@ -174,8 +206,9 @@ export function VersionsTab() {
           ontologyPath(kbId, `versions/${encodeURIComponent(ontologyUri)}`),
           undefined,
           {
-            fallbackMessage: "Failed to load versions",
-            partialWarning: "Warning: Partial success loading versions.",
+            fallbackMessage: v.api.loadVersionsFailed,
+            partialWarning: v.api.partialVersions,
+            locale: locale as Locale,
           },
         );
         if (!ignore) {
@@ -183,12 +216,12 @@ export function VersionsTab() {
           if (verWarn) setError((prev) => prev || verWarn);
         }
       } catch (err) {
-        if (!ignore) setError((prev) => prev || explorerApiErrorMessage(err));
+        if (!ignore) setError((prev) => prev || explorerApiErrorMessage(err, locale as Locale));
       }
     }
     void fetchInitial();
     return () => { ignore = true; };
-  }, [kbId, ontologyUri]);
+  }, [kbId, ontologyUri, v.api, locale]);
 
   const approveProposal = useCallback(async (proposalId: string) => {
     setError("");
@@ -198,16 +231,17 @@ export function VersionsTab() {
       });
       const partial = await explorerMutationResult(
         response,
-        "Failed to approve proposal",
-        "Warning: Partial success approving proposal.",
+        v.api.approveFailed,
+        v.api.partialApprove,
+        locale as Locale,
       );
       if (partial) setError(partial);
-      else setModalNotice("Proposal approved");
+      else setModalNotice(v.approvedNotice);
       loadProposals();
     } catch (err) {
-      setError(explorerApiErrorMessage(err));
+      setError(explorerApiErrorMessage(err, locale as Locale));
     }
-  }, [kbId, loadProposals]);
+  }, [kbId, loadProposals, v.api, v.approvedNotice, locale]);
 
   const rejectProposal = useCallback(async (proposalId: string) => {
     setError("");
@@ -217,16 +251,17 @@ export function VersionsTab() {
       });
       const partial = await explorerMutationResult(
         response,
-        "Failed to reject proposal",
-        "Warning: Partial success rejecting proposal.",
+        v.api.rejectFailed,
+        v.api.partialReject,
+        locale as Locale,
       );
       if (partial) setError(partial);
-      else setModalNotice("Proposal rejected");
+      else setModalNotice(v.rejectedNotice);
       loadProposals();
     } catch (err) {
-      setError(explorerApiErrorMessage(err));
+      setError(explorerApiErrorMessage(err, locale as Locale));
     }
-  }, [kbId, loadProposals]);
+  }, [kbId, loadProposals, v.api, v.rejectedNotice, locale]);
 
   const publishProposal = useCallback(async (proposalId: string) => {
     setError("");
@@ -236,17 +271,18 @@ export function VersionsTab() {
       });
       const partial = await explorerMutationResult(
         response,
-        "Failed to publish proposal",
-        "Warning: Partial success publishing proposal.",
+        v.api.publishFailed,
+        v.api.partialPublish,
+        locale as Locale,
       );
       if (partial) setError(partial);
-      else setModalNotice("Proposal published");
+      else setModalNotice(v.publishedNotice);
       loadProposals();
       loadVersions();
     } catch (err) {
-      setError(explorerApiErrorMessage(err));
+      setError(explorerApiErrorMessage(err, locale as Locale));
     }
-  }, [kbId, loadProposals, loadVersions]);
+  }, [kbId, loadProposals, loadVersions, v.api, v.publishedNotice, locale]);
 
   const runVersionComparison = useCallback(async () => {
     if (!comparePair || !ontologyUri) return;
@@ -263,21 +299,28 @@ export function VersionsTab() {
       });
       const data = await parseExplorerJson<Record<string, unknown>>(
         response,
-        "Failed to compare versions",
+        v.api.compareFailed,
       );
       const partial = explorerPartialSuccessWarning(
         response,
         data,
-        "Warning: Partial success comparing versions.",
+        v.api.partialCompare,
       );
       if (partial) setError(partial);
       setCompareResult(data);
     } catch (err) {
-      setError(explorerApiErrorMessage(err));
+      setError(explorerApiErrorMessage(err, locale as Locale));
     } finally {
       setIsLoading(false);
     }
-  }, [kbId, comparePair, ontologyUri]);
+  }, [kbId, comparePair, ontologyUri, v.api, locale]);
+
+  const ontologyUriButtonLabel = ontologyUri
+    ? fmt(v.uriPrefix, {
+        uri:
+          ontologyUri.length > 40 ? `${ontologyUri.slice(0, 40)}…` : ontologyUri,
+      })
+    : v.setUri;
 
   const getStateIcon = (state: string) => {
     switch (state) {
@@ -297,7 +340,7 @@ export function VersionsTab() {
   return (
     <div className="flex h-full flex-col overflow-auto p-5">
       <div className="mb-5 flex items-center justify-between gap-3">
-        <h1 className="m-0 text-xl font-bold text-foreground">Versions & Change Proposals</h1>
+        <h1 className="m-0 text-xl font-bold text-foreground">{v.title}</h1>
         <Button
           type="button"
           size="sm"
@@ -307,9 +350,7 @@ export function VersionsTab() {
             setUriDialogOpen(true);
           }}
         >
-          {ontologyUri
-            ? `URI: ${ontologyUri.length > 40 ? `${ontologyUri.slice(0, 40)}…` : ontologyUri}`
-            : "Set ontology URI"}
+          {ontologyUriButtonLabel}
         </Button>
       </div>
 
@@ -322,11 +363,11 @@ export function VersionsTab() {
       <div className="mb-6">
         <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-foreground">
           <PublicIcon name="stack" size={16} />
-          Version History
+          {v.versionHistory}
         </h2>
         <div className="flex flex-col gap-2">
           {versions.length === 0 ? (
-            <div className="text-sm text-muted-foreground">No versions found</div>
+            <div className="text-sm text-muted-foreground">{v.noVersions}</div>
           ) : (
             versions.map((version) => (
               <div
@@ -337,7 +378,7 @@ export function VersionsTab() {
                 <div className="min-w-0 flex-1">
                   <div className="text-sm font-semibold text-foreground">{version.version_id}</div>
                   <div className="text-xs text-muted-foreground">
-                    {version.author} • {new Date(version.date).toLocaleDateString()}
+                    {version.author} • {formatLocaleDateTime(locale, version.date, { dateStyle: "medium" })}
                   </div>
                 </div>
                 <Button
@@ -350,7 +391,7 @@ export function VersionsTab() {
                   }}
                 >
                   <PublicIcon name="arrow-right" size={12} />
-                  Compare
+                  {v.compare}
                 </Button>
               </div>
             ))
@@ -361,11 +402,11 @@ export function VersionsTab() {
       <div className="mb-6">
         <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-foreground">
           <PublicIcon name="git-merge" size={16} />
-          Change Proposals
+          {v.changeProposals}
         </h2>
         <div className="flex flex-col gap-2">
           {proposals.length === 0 ? (
-            <div className="text-sm text-muted-foreground">No proposals found</div>
+            <div className="text-sm text-muted-foreground">{v.noProposals}</div>
           ) : (
             proposals.map((proposal) => (
               <div
@@ -376,25 +417,25 @@ export function VersionsTab() {
                 <div className="min-w-0 flex-1">
                   <div className="text-sm font-semibold text-foreground">{proposal.summary}</div>
                   <div className="text-xs text-muted-foreground">
-                    {proposal.author} • {new Date(proposal.created_at).toLocaleDateString()}
+                    {proposal.author} • {formatLocaleDateTime(locale, proposal.created_at, { dateStyle: "medium" })}
                   </div>
                 </div>
                 {proposal.state === "proposed" && (
                   <div className="flex gap-1.5">
                     <Button type="button" size="sm" onClick={() => approveProposal(proposal.proposal_id)}>
                       <PublicIcon name="check-circle" size={12} />
-                      Approve
+                      {v.approve}
                     </Button>
                     <Button type="button" size="sm" variant="outline" onClick={() => rejectProposal(proposal.proposal_id)}>
                       <PublicIcon name="x-circle" size={12} />
-                      Reject
+                      {v.reject}
                     </Button>
                   </div>
                 )}
                 {proposal.state === "approved" && (
                   <Button type="button" size="sm" onClick={() => publishProposal(proposal.proposal_id)}>
                     <PublicIcon name="paper-plane" size={12} />
-                    Publish
+                    {v.publish}
                   </Button>
                 )}
                 <Button
@@ -409,7 +450,7 @@ export function VersionsTab() {
                   }}
                 >
                   <PublicIcon name="file-01" size={12} />
-                  Details
+                  {v.details}
                 </Button>
               </div>
             ))
@@ -422,22 +463,22 @@ export function VersionsTab() {
           {selectedProposal ? (
             <>
             <DialogHeader>
-              <DialogTitle>Proposal details</DialogTitle>
+              <DialogTitle>{v.proposalModalTitle}</DialogTitle>
               <DialogDescription>{selectedProposal.summary}</DialogDescription>
             </DialogHeader>
             <div className="mb-3">
-              <Label className="text-muted-foreground">Summary</Label>
+              <Label className="text-muted-foreground">{v.summary}</Label>
               <div className="mt-1 text-sm text-foreground">{selectedProposal.summary}</div>
             </div>
             <div className="mb-3">
-              <Label className="text-muted-foreground">State</Label>
+              <Label className="text-muted-foreground">{v.state}</Label>
               <div className="mt-1 flex items-center gap-1.5 text-sm text-foreground">
                 {getStateIcon(selectedProposal.state)}
-                {selectedProposal.state}
+                {v.proposalStates[selectedProposal.state] ?? selectedProposal.state}
               </div>
             </div>
             <div className="mb-3">
-              <Label className="text-muted-foreground">Proposal ID</Label>
+              <Label className="text-muted-foreground">{v.proposalId}</Label>
               <div className="mt-1 flex items-center gap-2">
                 <code className="min-w-0 flex-1 break-all font-mono text-xs text-muted-foreground">
                   {selectedProposal.proposal_id}
@@ -448,41 +489,45 @@ export function VersionsTab() {
                   variant="outline"
                   onClick={() => {
                     void navigator.clipboard.writeText(selectedProposal.proposal_id);
-                    setModalNotice("Proposal ID copied.");
+                    setModalNotice(v.idCopied);
                   }}
                 >
-                  Copy
+                  {t.common.copy}
                 </Button>
               </div>
             </div>
             {selectedProposal.shacl_validation?.conforms === false ? (
               <div className="mb-3 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">
-                {shaclSummaryLine(selectedProposal.shacl_validation)} — publish may be blocked until resolved.
+                {fmt(v.shaclPublishBlocked, {
+                  summary: shaclSummaryLine(locale, selectedProposal.shacl_validation, v.shacl),
+                })}
               </div>
             ) : null}
             {modalNotice ? (
               <div className="mb-3 text-xs text-ok">{modalNotice}</div>
             ) : null}
             <div className="mb-3">
-              <Label className="text-muted-foreground">Impact Analysis</Label>
+              <Label className="text-muted-foreground">{v.impactAnalysis}</Label>
               <div className="mb-1.5 text-xs text-muted-foreground">
-                {impactSummaryLine(selectedProposal.impact_analysis)}
+                {impactSummaryLine(locale, selectedProposal.impact_analysis, v.impact)}
               </div>
               <pre className="max-h-40 overflow-auto rounded-md border bg-muted/50 p-3 font-mono text-xs text-foreground">
                 {JSON.stringify(selectedProposal.impact_analysis, null, 2)}
               </pre>
             </div>
             <div className="mb-3">
-              <Label className="text-muted-foreground">SHACL Validation</Label>
+              <Label className="text-muted-foreground">{v.shaclValidation}</Label>
               <div className="mb-1.5 text-xs text-muted-foreground">
-                {shaclSummaryLine(selectedProposal.shacl_validation)}
+                {shaclSummaryLine(locale, selectedProposal.shacl_validation, v.shacl)}
               </div>
               <pre className="max-h-40 overflow-auto rounded-md border bg-muted/50 p-3 font-mono text-xs text-foreground">
                 {JSON.stringify(selectedProposal.shacl_validation, null, 2)}
               </pre>
             </div>
             <div>
-              <Label className="text-muted-foreground">Comments ({selectedProposal.comments.length})</Label>
+              <Label className="text-muted-foreground">
+                {fmt(v.comments, { count: formatLocaleNumber(locale, selectedProposal.comments.length) })}
+              </Label>
               <div className="mt-1 max-h-[120px] space-y-1.5 overflow-auto">
                 {selectedProposal.comments.map((comment, idx) => (
                   <div key={String(comment.id ?? idx)} className="rounded-md border bg-muted/40 p-2">
@@ -497,22 +542,22 @@ export function VersionsTab() {
                 <>
                   <Button type="button" size="sm" onClick={() => approveProposal(selectedProposal.proposal_id)}>
                     <PublicIcon name="check-circle" size={12} />
-                    Approve
+                    {v.approve}
                   </Button>
                   <Button type="button" size="sm" variant="outline" onClick={() => rejectProposal(selectedProposal.proposal_id)}>
                     <PublicIcon name="x-circle" size={12} />
-                    Reject
+                    {v.reject}
                   </Button>
                 </>
               )}
               {selectedProposal.state === "approved" && (
                 <Button type="button" size="sm" onClick={() => publishProposal(selectedProposal.proposal_id)}>
                   <PublicIcon name="paper-plane" size={12} />
-                  Publish
+                  {v.publish}
                 </Button>
               )}
               <Button type="button" size="sm" variant="ghost" className="ml-auto" onClick={() => setShowProposalModal(false)}>
-                Close
+                {v.close}
               </Button>
             </DialogFooter>
             </>
@@ -523,14 +568,14 @@ export function VersionsTab() {
       <Dialog open={showCompareModal && Boolean(comparePair)} onOpenChange={setShowCompareModal}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Compare versions</DialogTitle>
-            <DialogDescription>Diff two version IDs for the scoped ontology.</DialogDescription>
+            <DialogTitle>{v.compareTitle}</DialogTitle>
+            <DialogDescription>{v.compareDesc}</DialogDescription>
           </DialogHeader>
           {comparePair ? (
             <>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="compare-v1">Version 1</Label>
+                  <Label htmlFor="compare-v1">{v.version1}</Label>
                   <Input
                     id="compare-v1"
                     value={comparePair.v1}
@@ -538,7 +583,7 @@ export function VersionsTab() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="compare-v2">Version 2</Label>
+                  <Label htmlFor="compare-v2">{v.version2}</Label>
                   <Input
                     id="compare-v2"
                     value={comparePair.v2}
@@ -548,11 +593,11 @@ export function VersionsTab() {
               </div>
               <DialogFooter className="gap-2">
                 <Button type="button" variant="outline" onClick={() => setShowCompareModal(false)}>
-                  Cancel
+                  {t.common.cancel}
                 </Button>
                 <Button type="button" disabled={isLoading} onClick={runVersionComparison}>
                   <PublicIcon name="scales" size={12} />
-                  {isLoading ? "Comparing…" : "Compare"}
+                  {isLoading ? v.comparing : v.compare}
                 </Button>
               </DialogFooter>
               {compareResult ? (
@@ -568,21 +613,21 @@ export function VersionsTab() {
       <Dialog open={uriDialogOpen} onOpenChange={setUriDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Ontology scope</DialogTitle>
-            <DialogDescription>Version history loads for this ontology URI.</DialogDescription>
+            <DialogTitle>{v.scopeTitle}</DialogTitle>
+            <DialogDescription>{v.scopeDesc}</DialogDescription>
           </DialogHeader>
           <div className="space-y-2 py-2">
-            <Label htmlFor="ontology-uri-scope">Ontology URI</Label>
+            <Label htmlFor="ontology-uri-scope">{v.ontologyUri}</Label>
             <Input
               id="ontology-uri-scope"
               value={uriDraft}
               onChange={(e) => setUriDraft(e.target.value)}
-              placeholder="https://example.org/onto#"
+              placeholder={v.uriPlaceholder}
             />
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setUriDialogOpen(false)}>
-              Cancel
+              {t.common.cancel}
             </Button>
             <Button
               type="button"
@@ -591,7 +636,7 @@ export function VersionsTab() {
                 setUriDialogOpen(false);
               }}
             >
-              Apply
+              {v.apply}
             </Button>
           </DialogFooter>
         </DialogContent>

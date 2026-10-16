@@ -1,4 +1,16 @@
+import { fmt } from '@/i18n/format.js';
+import type { Locale } from '@/i18n/locale.js';
+import { localeFromBrowser } from '@/i18n/locale.js';
+import { messagesForLocale } from '@/i18n/pick-locale.js';
 import { getToken } from '@/lib/api.js';
+
+function resolveLocale(locale?: Locale): Locale {
+  if (locale) {
+    return locale;
+  }
+  const lang = typeof navigator !== 'undefined' ? navigator.language : 'en';
+  return localeFromBrowser(lang);
+}
 
 export type KbAlertStreamItem = {
   id: string;
@@ -28,8 +40,11 @@ export async function consumeKbAlertsStream(
     since?: string | null;
     signal: AbortSignal;
     onAlert: (alert: KbAlertStreamItem) => void;
+    locale?: Locale;
   },
 ): Promise<void> {
+  const locale = resolveLocale(options.locale);
+  const alertsCopy = messagesForLocale(locale).pages.alerts;
   const headers: HeadersInit = { Accept: 'text/event-stream' };
   const token = getToken();
   if (token) headers.Authorization = `Bearer ${token}`;
@@ -40,11 +55,11 @@ export async function consumeKbAlertsStream(
     signal: options.signal,
   });
   if (!response.ok) {
-    throw new Error(`Alerts stream failed (${response.status})`);
+    throw new Error(fmt(alertsCopy.streamFailed, { status: response.status }));
   }
   const reader = response.body?.getReader();
   if (!reader) {
-    throw new Error('No alerts stream body');
+    throw new Error(alertsCopy.streamNoBody);
   }
   const decoder = new TextDecoder();
   let buffer = '';

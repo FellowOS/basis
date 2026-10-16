@@ -7,7 +7,9 @@ import { Button } from '@/components/ui/button.js';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card.js';
 import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
+import { fmt, formatLocaleDateTime, formatLocaleNumber } from '@/i18n/format.js';
 import type { Locale } from '@/i18n/locale.js';
+import { graphProjectionStatusLabel } from '@/lib/kb-graph-projection-labels.js';
 import { api } from '@/lib/api.js';
 import { formatUserFacingApiError, messageForApiErrorCode } from '@/lib/api-error-message.js';
 import { kbPath } from '@/lib/nav-config.js';
@@ -32,7 +34,9 @@ export function KbGraphProjectionPanel({
   graphEnabled: boolean;
 }) {
   const { t, locale } = useI18n();
+  const loc = locale as Locale;
   const p = t.kbGraphProjection;
+  const emptyCell = t.common.emptyCell;
   const { isAdmin } = useBasisSession();
   const auditGraphUrl = `/audit?kb_id=${encodeURIComponent(kbId)}&action_prefix=${encodeURIComponent('kb.graph.')}`;
   const [loading, setLoading] = useState(true);
@@ -97,21 +101,34 @@ export function KbGraphProjectionPanel({
           <dl className="grid gap-3 text-sm sm:grid-cols-2">
             <div>
               <dt className="text-muted-foreground">{p.ledgerRevision}</dt>
-              <dd className="font-mono font-medium">{status.revision}</dd>
+              <dd className="font-mono font-medium">{formatLocaleNumber(loc, status.revision)}</dd>
             </div>
             <div>
               <dt className="text-muted-foreground">{p.projectionStatus}</dt>
-              <dd className="font-medium">{status.status}</dd>
+              <dd className="font-medium">{graphProjectionStatusLabel(p, status.status)}</dd>
             </div>
             <div>
               <dt className="text-muted-foreground">{p.nodesEdges}</dt>
               <dd className="font-mono">
-                {status.node_count ?? '—'} / {status.edge_count ?? '—'}
+                {fmt(p.nodesEdgesValue, {
+                  nodes:
+                    status.node_count != null
+                      ? formatLocaleNumber(loc, status.node_count)
+                      : emptyCell,
+                  edges:
+                    status.edge_count != null
+                      ? formatLocaleNumber(loc, status.edge_count)
+                      : emptyCell,
+                })}
               </dd>
             </div>
             <div>
               <dt className="text-muted-foreground">{p.lastBuilt}</dt>
-              <dd>{status.last_built_at ?? '—'}</dd>
+              <dd>
+                {status.last_built_at
+                  ? formatLocaleDateTime(loc, status.last_built_at)
+                  : emptyCell}
+              </dd>
             </div>
             {status.last_error_code ? (
               <div className="sm:col-span-2">

@@ -16,6 +16,8 @@ import type { MarkdownResourceRef } from "./markdownEditorState";
 import { isSafeUrl } from "./markdownUrlSafety";
 import { useMarkdownEditor } from "./useMarkdownEditor";
 import type { MarkdownEditorError } from "./markdownEditorState";
+import { useI18n } from "@/i18n/context.js";
+import { fmt } from "@/i18n/format.js";
 import { useApiErrorMessage } from "@/lib/use-api-error-message.js";
 
 export interface MarkdownContentViewerProps {
@@ -73,13 +75,22 @@ export function MarkdownContentViewer({
   defaultMode = "preview",
   allowEdit = true,
 }: MarkdownContentViewerProps) {
+  const { t } = useI18n();
+  const md = t.kbGraphWorkspace.inspector.markdown;
   const apiError = useApiErrorMessage();
   const [activeMode, setActiveMode] = useState<"preview" | "source">(defaultMode);
   const [copied, setCopied] = useState(false);
   const modeBeforeEditRef = useRef<"preview" | "source">(defaultMode);
   const resourceKey = resource ? `${resource.kind}:${resource.id}` : "";
   const [activeResourceKey, setActiveResourceKey] = useState(resourceKey);
-  const editor = useMarkdownEditor({ kbId, resource, onApplied, onDirtyChange });
+  const editor = useMarkdownEditor({
+    kbId,
+    resource,
+    onApplied,
+    onDirtyChange,
+    discardReloadConfirm: md.discardReloadConfirm,
+    networkUnreachableMessage: md.networkUnreachable,
+  });
   const {
     session,
     error,
@@ -215,13 +226,26 @@ export function MarkdownContentViewer({
 
   const hasContent = rawContent.trim().length > 0;
 
+  const markdownComponents = useMemo(
+    (): Components => ({
+      ...MARKDOWN_COMPONENTS,
+      img: ({ src, alt }) => (
+        <span className="graph-md-image-badge" title={src || md.image}>
+          <PublicIcon name="image" size={12} />
+          <span>{fmt(md.imageLabel, { label: alt || src || md.imageUnlabeled })}</span>
+        </span>
+      ),
+    }),
+    [md],
+  );
+
   const renderedMarkdown = useMemo(
     () => (
-      <ReactMarkdown remarkPlugins={REMARK_PLUGINS} components={MARKDOWN_COMPONENTS}>
+      <ReactMarkdown remarkPlugins={REMARK_PLUGINS} components={markdownComponents}>
         {previewContent}
       </ReactMarkdown>
     ),
-    [previewContent],
+    [markdownComponents, previewContent],
   );
 
   const handleCopy = async () => {
@@ -259,7 +283,7 @@ export function MarkdownContentViewer({
   return (
     <div className={cn("graph-markdown-viewer", className)}>
       <div className="graph-markdown-viewer__header">
-        <div className="flex gap-1" role="tablist" aria-label="Content view mode">
+        <div className="flex gap-1" role="tablist" aria-label={md.viewModeAria}>
           <button
             type="button"
             role="tab"
@@ -273,7 +297,7 @@ export function MarkdownContentViewer({
             className="graph-markdown-viewer__tab"
           >
             <PublicIcon name="eye-open" size={12} />
-            Preview
+            {md.preview}
           </button>
           <button
             type="button"
@@ -288,7 +312,7 @@ export function MarkdownContentViewer({
             className="graph-markdown-viewer__tab"
           >
             <PublicIcon name="code-01" size={12} />
-            Source
+            {md.source}
           </button>
         </div>
 
@@ -298,17 +322,17 @@ export function MarkdownContentViewer({
               type="button"
               onClick={() => void handleCopy()}
               className="graph-markdown-viewer__toolbtn"
-              title="Copy raw content"
+              title={md.copyRawTitle}
             >
               {copied ? (
                 <>
                   <PublicIcon name="check-01" size={12} className="text-ok" />
-                  <span className="text-ok">Copied</span>
+                  <span className="text-ok">{md.copied}</span>
                 </>
               ) : (
                 <>
                   <PublicIcon name="copy-left" size={12} />
-                  <span>Copy</span>
+                  <span>{t.common.copy}</span>
                 </>
               )}
             </button>
@@ -316,26 +340,26 @@ export function MarkdownContentViewer({
           {resource && allowEdit && !editing && !loading ? (
             <button type="button" onClick={() => void handleEdit()} className="graph-markdown-viewer__toolbtn">
               <PublicIcon name="edit-01" size={12} />
-              Edit
+              {md.edit}
             </button>
           ) : null}
           {loading ? (
             <button type="button" disabled className="graph-markdown-viewer__toolbtn">
               <PublicIcon name="loader-01" size={12} className="animate-spin" />
-              Loading…
+              {t.common.loading}
             </button>
           ) : null}
           {editing ? (
             <>
               <button type="button" onClick={handleCancel} disabled={saving} className="graph-markdown-viewer__toolbtn">
                 <PublicIcon name="x-02" size={12} />
-                Cancel
+                {t.common.cancel}
               </button>
               <button
                 type="button"
                 onClick={() => void handleApply()}
                 disabled={saving || !dirty}
-                title={!dirty ? "Make a change before applying" : undefined}
+                title={!dirty ? md.applyNeedChange : undefined}
                 className="graph-markdown-viewer__save"
               >
                 {saving ? (
@@ -343,7 +367,7 @@ export function MarkdownContentViewer({
                 ) : (
                   <PublicIcon name="check-01" size={12} />
                 )}
-                {saving ? "Applying…" : "Apply"}
+                {saving ? md.applying : md.apply}
               </button>
             </>
           ) : null}
@@ -360,7 +384,7 @@ export function MarkdownContentViewer({
               className="graph-markdown-viewer__toolbtn graph-markdown-viewer__error-action"
             >
               <PublicIcon name="arrow-refresh-01" size={12} />
-              Reload latest
+              {md.reloadLatest}
             </button>
           ) : null}
         </div>
@@ -384,7 +408,7 @@ export function MarkdownContentViewer({
       >
         {activeMode === "source" && editing ? (
           <textarea
-            aria-label="Markdown source"
+            aria-label={md.sourceAria}
             aria-describedby={error ? "markdown-editor-error" : undefined}
             aria-invalid={error?.kind === "validation" || undefined}
             value={session?.draft ?? ""}
@@ -394,7 +418,7 @@ export function MarkdownContentViewer({
             className="graph-markdown-viewer__editor"
           />
         ) : !hasContent ? (
-          <div className="graph-markdown-viewer__empty">No content available for this node.</div>
+          <div className="graph-markdown-viewer__empty">{md.empty}</div>
         ) : activeMode === "source" ? (
           <pre className="graph-markdown-viewer__source">
             <code>{rawContent}</code>
@@ -458,12 +482,6 @@ const MARKDOWN_COMPONENTS: Components = {
       </a>
     );
   },
-  img: ({ src, alt }) => (
-    <span className="graph-md-image-badge" title={src || "Image"}>
-      <PublicIcon name="image" size={12} />
-      <span>Image: {alt || src || "unlabeled"}</span>
-    </span>
-  ),
   h1: ({ children }) => <h1>{children}</h1>,
   h2: ({ children }) => <h2>{children}</h2>,
   h3: ({ children }) => <h3>{children}</h3>,

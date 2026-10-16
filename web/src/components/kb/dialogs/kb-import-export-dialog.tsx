@@ -36,10 +36,10 @@ export function KbImportExportDialog({
   onOpenChange: (open: boolean) => void;
   focus?: 'import' | 'export';
 }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const ie = t.kbImportExport;
   const navigate = useNavigate();
-  const config = useMemo(() => buildKbExplorerHttpConfig(kbId), [kbId]);
+  const config = useMemo(() => buildKbExplorerHttpConfig(kbId, locale), [kbId, locale]);
   const isImport = focus === 'import';
 
   function goToReviewQueue() {

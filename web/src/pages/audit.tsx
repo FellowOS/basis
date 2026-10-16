@@ -20,10 +20,20 @@ import {
 } from '@/components/ui/select.js';
 import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
-import { fmt } from '@/i18n/format.js';
+import { fmt, formatLocaleDateTime, formatLocaleNumber, pickCountForm } from '@/i18n/format.js';
+import type { LocaleMessages } from '@/i18n/locales/en/index.js';
 import { api } from '@/lib/api.js';
 import { formatUserFacingApiError } from '@/lib/api-error-message.js';
 import type { Locale } from '@/i18n/locale.js';
+import {
+  formatBasisAuditMemberRole,
+  formatBasisAuditModelKind,
+} from '@/lib/basis-audit-detail.js';
+import {
+  formatGraphAuditAction,
+  formatGraphAuditDetail,
+  type KbGraphAuditEvent,
+} from '@/lib/kb-graph-audit.js';
 
 type AuditDetail = Record<string, unknown>;
 
@@ -54,26 +64,81 @@ function actionPresetLabel(
   return p.actionSettings;
 }
 
-function formatDetailSummary(detail: AuditDetail): string {
+type BasisAuditCopy = LocaleMessages['pages']['basisAudit'];
+
+function formatDetailSummary(
+  locale: Locale,
+  p: BasisAuditCopy,
+  detail: AuditDetail,
+  emptyCell: string,
+): string {
   const parts: string[] = [];
-  if (typeof detail.kb_id === 'string') parts.push(`kb=${detail.kb_id}`);
+  if (typeof detail.kb_id === 'string') {
+    parts.push(fmt(p.detailKb, { kbId: detail.kb_id }));
+  }
   if (detail.projection_revision != null) {
-    parts.push(`rev=${String(detail.projection_revision)}`);
+    parts.push(
+      fmt(p.detailRev, {
+        revision: formatLocaleNumber(locale, Number(detail.projection_revision)),
+      }),
+    );
   }
   if (typeof detail.review_item_id === 'string') {
-    parts.push(`review=${detail.review_item_id}`);
+    parts.push(fmt(p.detailReview, { reviewId: detail.review_item_id }));
+  }
+  if (typeof detail.email === 'string') {
+    parts.push(fmt(p.detailEmail, { email: detail.email }));
+  }
+  if (typeof detail.name === 'string') {
+    parts.push(fmt(p.detailKbName, { name: detail.name }));
+  }
+  if (typeof detail.user_id === 'string') {
+    parts.push(fmt(p.detailUser, { userId: detail.user_id }));
+  }
+  if (typeof detail.role === 'string') {
+    parts.push(fmt(p.detailRole, { role: formatBasisAuditMemberRole(locale, detail.role) }));
+  }
+  if (typeof detail.reason === 'string') {
+    parts.push(fmt(p.detailReason, { reason: detail.reason }));
+  }
+  if (Array.isArray(detail.keys) && detail.keys.every((k) => typeof k === 'string')) {
+    parts.push(fmt(p.detailKeys, { keys: detail.keys.join(', ') }));
+  }
+  if (typeof detail.kind === 'string') {
+    parts.push(fmt(p.detailKind, { kind: formatBasisAuditModelKind(locale, detail.kind) }));
   }
   if (parts.length > 0) return parts.join(' · ');
   const keys = Object.keys(detail);
-  if (keys.length === 0) return '—';
+  if (keys.length === 0) return emptyCell;
   return keys.length <= 3
     ? JSON.stringify(detail)
     : `${JSON.stringify(Object.fromEntries(keys.slice(0, 2).map((k) => [k, detail[k]])))}…`;
 }
 
+function formatAuditEventDetail(
+  event: Event,
+  locale: Locale,
+  p: BasisAuditCopy,
+  emptyCell: string,
+): string {
+  const graphEvent: KbGraphAuditEvent = {
+    id: event.id,
+    action: event.action,
+    actor_id: event.actor_id,
+    created_at: event.created_at,
+    detail: event.detail,
+  };
+  const graphLine = formatGraphAuditDetail(graphEvent, locale);
+  if (graphLine && graphLine !== emptyCell) {
+    return graphLine;
+  }
+  return formatDetailSummary(locale, p, event.detail ?? {}, emptyCell);
+}
+
 export function AuditPage() {
   const { locale, t } = useI18n();
   const p = t.pages.basisAudit;
+  const emptyCell = t.common.emptyCell;
   const [searchParams, setSearchParams] = useSearchParams();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
@@ -123,11 +188,19 @@ export function AuditPage() {
 
   const columns = useMemo<DataTableColumn<Event>[]>(
     () => [
-      { key: 'time', header: p.colTime, render: (e) => e.created_at },
+      {
+        key: 'time',
+        header: p.colTime,
+        render: (e) => formatLocaleDateTime(locale as Locale, e.created_at),
+      },
       {
         key: 'action',
         header: p.colAction,
-        render: (e) => <span className="font-mono text-xs">{e.action}</span>,
+        render: (e) => (
+          <span className="font-mono text-xs">
+            {formatGraphAuditAction(e.action, locale as Locale)}
+          </span>
+        ),
       },
       {
         key: 'detail',
@@ -135,19 +208,19 @@ export function AuditPage() {
         hideBelow: 'md',
         render: (e) => (
           <span className="line-clamp-2 text-xs text-muted-foreground">
-            {formatDetailSummary(e.detail ?? {})}
+            {formatAuditEventDetail(e, locale as Locale, p, emptyCell)}
           </span>
         ),
       },
-      { key: 'actor', header: p.colActor, render: (e) => e.actor_id ?? '—' },
+      { key: 'actor', header: p.colActor, render: (e) => e.actor_id ?? emptyCell },
     ],
-    [p],
+    [emptyCell, locale, p],
   );
 
-  const countLabel =
-    locale === 'en' && events.length === 1
-      ? fmt(p.countOne, { count: events.length })
-      : fmt(p.count, { count: events.length });
+  const countLabel = fmt(
+    pickCountForm(locale, events.length, p.countOne, p.count),
+    { count: formatLocaleNumber(locale, events.length) },
+  );
 
   return (
     <ConsolePageLayout crumbs={[{ label: t.menu.platform.audit }]}>
