@@ -305,12 +305,12 @@ export function OntologyEditor() {
         setOntologyUri((current) => current || resolvedOntology || entries[0]?.uri || "");
       })
       .catch((error) => {
-        console.error("Failed to load ontology registry:", error);
+        console.error(t.kbOntology.manager.api.loadRegistryFailed, error);
       });
     return () => {
       cancelled = true;
     };
-  }, [kbId, locale]);
+  }, [kbId, locale, t.kbOntology.manager.api.loadRegistryFailed]);
 
   useEffect(() => {
     if (!ontologyUri) {
@@ -458,7 +458,7 @@ export function OntologyEditor() {
       const data = await parseExplorerJson<{ draft_id: string }>(response, e.draftSaveFailed);
       alert(fmt(e.draftSaved, { id: data.draft_id }));
     } catch (error) {
-      console.error("Failed to save draft:", error);
+      console.error(e.draftSaveFailed, error);
       alert(explorerApiErrorMessage(error, locale as Locale));
     } finally {
       setIsSaving(false);

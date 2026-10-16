@@ -42,7 +42,6 @@ export const menu = {
   },
   groups: {
     platform: '平台',
-    knowledgeBase: '当前知识库',
   },
   kbSwitcher: {
     label: '知识库',
@@ -59,7 +58,6 @@ export const menu = {
       '未安装 Explorer 运行时。请在后端执行 uv sync --extra explorer 后重启服务。',
     unavailable: '当前知识库未启用此能力。',
     workspaceDisabledTitle: '工作区不可用',
-    navDisabled: '此入口已禁用',
     importEditorRequired: '需要编辑者权限才能导入图数据。',
   },
   kbSettings: {
@@ -91,12 +89,10 @@ export const menu = {
     emptyTokens: '暂无访问令牌',
     emptyTokensHint: '创建后可在列表中随时复制密钥',
     tokensTitle: '访问令牌',
-    createToken: '新建令牌',
     nameLabel: '名称',
     createButton: '创建',
     secretOnce: '新令牌密钥（请保存；也可在下方列表中复制）',
     secretDismiss: '关闭',
-    listTitle: '本库令牌',
     scopeLabel: '权限',
     scopeLabels: {
       read: '只读',
@@ -108,7 +104,6 @@ export const menu = {
     lastUsedNever: '从未使用',
     revoke: '撤销',
     revoked: '已撤销',
-    revokeConfirm: '确定撤销此令牌？',
     delete: '删除',
     deleteTitle: '删除访问令牌',
     deleteConfirm: '删除后无法恢复，该密钥将立即失效。',

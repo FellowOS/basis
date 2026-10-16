@@ -20,6 +20,7 @@ import type { Locale } from "@/i18n/locale.js";
 import { cn } from "@/lib/utils.js";
 import { GRAPH_THEME } from "./graphTheme";
 import { DEFAULT_MIN_DATE, resolvePlayStepMs, resolveScrubberBounds } from "./temporalScrubberBounds";
+import { buildTimelineAxisFormat } from "./timelineAxisFormat.js";
 
 export interface TimelinePanelProps {
   onTimeChange: (time: Date) => void;
@@ -91,6 +92,14 @@ export function TimelinePanel({ onTimeChange, minDate, maxDate }: TimelinePanelP
     () => resolveScrubberBounds({ minDate, maxDate, now }),
     [maxDate, minDate, now],
   );
+  const axisFormat = useMemo(
+    () => buildTimelineAxisFormat(locale as Locale),
+    [locale],
+  );
+
+  useEffect(() => {
+    timelineRef.current?.setOptions({ format: axisFormat });
+  }, [axisFormat]);
 
   useEffect(() => {
     if (!containerRef.current) return;

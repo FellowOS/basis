@@ -54,7 +54,6 @@ export const kbIngestSources = {
   addDialogTitle: 'Add ingest source',
   addDialogDesc: 'Configure webhook, HTTP poll, or GitHub file sync.',
   create: 'Create',
-  syncOptionsTitle: 'Sync options',
   syncOptionsSource: 'Source: {name}',
   syncDocTitle: 'Document title',
   emptySourceName: 'Empty = source name',

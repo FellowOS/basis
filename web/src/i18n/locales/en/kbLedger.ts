@@ -1,5 +1,4 @@
 export const kbLedger = {
-  derivedTitle: 'Derived (reasoning)',
   openEvidence: 'Evidence',
   noStatementsOrDerived: 'No statements or derived facts',
   searchChunks: 'Search chunks',
@@ -32,14 +31,12 @@ export const kbLedger = {
   derivedSection: 'Derived',
   recentDerivedFacts: 'Recent reasoning',
   recentDerivedFactsHint: 'Facts written back by inference, newest first.',
-  reasoningWorkspace: 'Reasoning workspace',
   openReasoning: 'Open reasoning',
   loadingDerivedFacts: 'Loading derived facts…',
   noDerivedFacts: 'No recent derived facts',
   noDerivedFactsHint: 'Run reasoning and write results back to see them here.',
   premiseCount: '{count} premises',
   premiseCountOne: '1 premise',
-  premisePrefix: 'Premise: ',
   entityCount: '{start}–{end} of {total} entities',
   entityCountEmpty: '0 entities',
   statementStatusLabels: {

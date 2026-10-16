@@ -42,7 +42,6 @@ export const menu = {
   },
   groups: {
     platform: 'Platform',
-    knowledgeBase: 'Knowledge base',
   },
   kbSwitcher: {
     label: 'Knowledge base',
@@ -59,7 +58,6 @@ export const menu = {
       'Explorer runtime is not installed. Run uv sync --extra explorer on the API host and restart.',
     unavailable: 'This capability is not enabled for this knowledge base.',
     workspaceDisabledTitle: 'Workspace unavailable',
-    navDisabled: 'Disabled',
     importEditorRequired: 'Editor role is required to import graph data.',
   },
   kbSettings: {
@@ -91,12 +89,10 @@ export const menu = {
     emptyTokens: 'No access tokens yet',
     emptyTokensHint: 'Create one, then copy the secret anytime from the list',
     tokensTitle: 'Access tokens',
-    createToken: 'New token',
     nameLabel: 'Name',
     createButton: 'Create',
     secretOnce: 'New token secret — save it; you can also copy from the list below.',
     secretDismiss: 'Dismiss',
-    listTitle: 'Tokens for this KB',
     scopeLabel: 'Scope',
     scopeLabels: {
       read: 'Read',
@@ -108,7 +104,6 @@ export const menu = {
     lastUsedNever: 'Never used',
     revoke: 'Revoke',
     revoked: 'Revoked',
-    revokeConfirm: 'Revoke this token?',
     delete: 'Delete',
     deleteTitle: 'Delete access token',
     deleteConfirm: 'This cannot be undone. The key will stop working immediately.',

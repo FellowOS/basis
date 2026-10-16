@@ -5,7 +5,6 @@ import { marketing } from './marketing.js';
 import { nav } from './nav.js';
 import { pages } from './pages.js';
 import { sidebar } from './sidebar.js';
-import { status } from './status.js';
 import { chat } from './chat.js';
 import { models } from './models.js';
 import { entityResolution } from './entityResolution.js';
@@ -45,7 +44,6 @@ export const zh = {
   login,
   marketing,
   nav,
-  status,
   pages,
   entityResolution,
   kbMappings,

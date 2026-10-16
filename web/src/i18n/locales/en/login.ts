@@ -19,5 +19,4 @@ export const login = {
   switchToLogin: 'Sign in',
   showPassword: 'Show password',
   hidePassword: 'Hide password',
-  backHome: 'Back to home',
 } as const;

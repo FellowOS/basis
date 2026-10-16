@@ -19,5 +19,4 @@ export const login = {
   switchToLogin: '返回登录',
   showPassword: '显示密码',
   hidePassword: '隐藏密码',
-  backHome: '返回首页',
 } as const;

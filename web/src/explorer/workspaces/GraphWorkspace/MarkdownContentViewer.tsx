@@ -75,7 +75,7 @@ export function MarkdownContentViewer({
   defaultMode = "preview",
   allowEdit = true,
 }: MarkdownContentViewerProps) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const md = t.kbGraphWorkspace.inspector.markdown;
   const apiError = useApiErrorMessage();
   const [activeMode, setActiveMode] = useState<"preview" | "source">(defaultMode);
@@ -85,6 +85,7 @@ export function MarkdownContentViewer({
   const [activeResourceKey, setActiveResourceKey] = useState(resourceKey);
   const editor = useMarkdownEditor({
     kbId,
+    locale,
     resource,
     onApplied,
     onDirtyChange,

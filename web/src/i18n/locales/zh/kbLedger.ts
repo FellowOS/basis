@@ -1,5 +1,4 @@
 export const kbLedger = {
-  derivedTitle: '推理派生',
   openEvidence: '证据',
   noStatementsOrDerived: '无陈述或派生事实',
   searchChunks: '搜相关片段',
@@ -31,14 +30,12 @@ export const kbLedger = {
   derivedSection: '推理派生',
   recentDerivedFacts: '最近推理',
   recentDerivedFactsHint: '推理写回账本的结果，按时间从新到旧。',
-  reasoningWorkspace: '推理工作台',
   openReasoning: '打开推理工作台',
   loadingDerivedFacts: '加载派生事实…',
   noDerivedFacts: '暂无推理派生事实',
   noDerivedFactsHint: '在推理工作台运行并写回后，结果会出现在这里。',
   premiseCount: '{count} 条前提',
   premiseCountOne: '1 条前提',
-  premisePrefix: '前提：',
   entityCount: '第 {start}–{end} 条，共 {total} 个实体',
   entityCountEmpty: '共 0 个实体',
   statementStatusLabels: {

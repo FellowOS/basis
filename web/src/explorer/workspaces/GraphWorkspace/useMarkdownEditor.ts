@@ -1,3 +1,4 @@
+import type { Locale } from "@/i18n/locale.js";
 import {
   useCallback,
   useEffect,
@@ -27,6 +28,7 @@ import {
 
 interface MarkdownEditorOptions {
   kbId: string;
+  locale: Locale;
   resource?: MarkdownResourceRef;
   onApplied?: (result: MarkdownApplyResult) => void;
   onDirtyChange?: (dirty: boolean) => void;
@@ -56,6 +58,7 @@ function normalizeError(
 
 export function useMarkdownEditor({
   kbId,
+  locale,
   resource,
   onApplied,
   onDirtyChange,
@@ -113,7 +116,7 @@ export function useMarkdownEditor({
     setViewError(null);
     setSession(createLoadingSession(resource));
     try {
-      const document = await readMarkdownResource(resource, kbId);
+      const document = await readMarkdownResource(resource, kbId, { locale });
       if (loadGeneration !== loadGenerationRef.current) return false;
       setSession(createEditSession(resource, document));
       return true;
@@ -126,7 +129,7 @@ export function useMarkdownEditor({
       });
       return false;
     }
-  }, [kbId, networkUnreachableMessage, resource, resourceKey]);
+  }, [kbId, locale, networkUnreachableMessage, resource, resourceKey]);
 
   const discard = useCallback(() => {
     if (!activeSession || saving) return;
@@ -145,6 +148,7 @@ export function useMarkdownEditor({
         pending.draft,
         pending.baseRevision,
         kbId,
+        { locale },
       );
       if (resourceGeneration !== loadGenerationRef.current) return false;
       setSession(saveSucceeded(pending, result));
@@ -157,7 +161,7 @@ export function useMarkdownEditor({
       );
       return false;
     }
-  }, [activeSession, dirty, kbId, networkUnreachableMessage, onApplied, saving]);
+  }, [activeSession, dirty, kbId, locale, networkUnreachableMessage, onApplied, saving]);
 
   const reloadLatest = useCallback(async () => {
     if (!resource || saving) return;

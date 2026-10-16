@@ -1,3 +1,6 @@
+import type { Locale } from "@/i18n/locale.js";
+import { requestFailedStatusMessage } from "@/i18n/format.js";
+import { messagesForLocale } from "@/i18n/pick-locale.js";
 import type {
   MarkdownEditorError,
   MarkdownResourceRef,
@@ -7,6 +10,20 @@ import {
   explorerFetch,
   resolveExplorerApiUrl,
 } from "../../host/explorerHttp";
+
+export type MarkdownClientOptions = {
+  locale?: Locale;
+};
+
+function markdownClientMessages(locale: Locale = "en") {
+  const messages = messagesForLocale(locale);
+  return {
+    networkUnreachable:
+      messages.kbGraphWorkspace.inspector.markdown.networkUnreachable,
+    requestFailedStatus: (status: number) =>
+      requestFailedStatusMessage(locale, status),
+  };
+}
 
 export interface MarkdownDocument {
   resource: MarkdownResourceRef;
@@ -51,7 +68,10 @@ function resourceUrl(ref: MarkdownResourceRef, kbId: string): string {
   return buildExplorerKbApiPath(segment, kbId);
 }
 
-async function responseError(response: Response): Promise<MarkdownClientError> {
+async function responseError(
+  response: Response,
+  locale: Locale,
+): Promise<MarkdownClientError> {
   let detail: ErrorDetail = {};
   try {
     const payload = (await response.json()) as { detail?: ErrorDetail };
@@ -68,7 +88,8 @@ async function responseError(response: Response): Promise<MarkdownClientError> {
       : response.status === 409
         ? "conflict"
         : "save";
-  const fallback = `Markdown request failed (${response.status}).`;
+  const { requestFailedStatus } = markdownClientMessages(locale);
+  const fallback = requestFailedStatus(response.status);
   const message = detail.code ? "" : (detail.message?.trim() || fallback);
   return new MarkdownClientError({
     kind,
@@ -79,7 +100,13 @@ async function responseError(response: Response): Promise<MarkdownClientError> {
   });
 }
 
-async function request<T>(input: RequestInfo | URL, init?: RequestInit): Promise<T> {
+async function request<T>(
+  input: RequestInfo | URL,
+  init?: RequestInit,
+  options?: MarkdownClientOptions,
+): Promise<T> {
+  const locale = options?.locale ?? "en";
+  const { networkUnreachable } = markdownClientMessages(locale);
   try {
     const resolved =
       typeof input === "string"
@@ -89,14 +116,14 @@ async function request<T>(input: RequestInfo | URL, init?: RequestInit): Promise
           : resolveExplorerApiUrl(input.url);
     const response = await explorerFetch(resolved, init);
     if (!response.ok) {
-      throw await responseError(response);
+      throw await responseError(response, locale);
     }
     return (await response.json()) as T;
   } catch (error) {
     if (error instanceof MarkdownClientError) throw error;
     throw new MarkdownClientError({
       kind: "network",
-      message: "The Markdown service could not be reached. Your draft was kept.",
+      message: networkUnreachable,
     });
   }
 }
@@ -104,8 +131,9 @@ async function request<T>(input: RequestInfo | URL, init?: RequestInit): Promise
 export function readMarkdownResource(
   ref: MarkdownResourceRef,
   kbId: string,
+  options?: MarkdownClientOptions,
 ): Promise<MarkdownDocument> {
-  return request<MarkdownDocument>(resourceUrl(ref, kbId));
+  return request<MarkdownDocument>(resourceUrl(ref, kbId), undefined, options);
 }
 
 export function applyMarkdownResource(
@@ -113,13 +141,18 @@ export function applyMarkdownResource(
   markdown: string,
   expectedRevision: string,
   kbId: string,
+  options?: MarkdownClientOptions,
 ): Promise<MarkdownApplyResult> {
-  return request<MarkdownApplyResult>(resourceUrl(ref, kbId), {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      markdown,
-      expected_revision: expectedRevision,
-    }),
-  });
+  return request<MarkdownApplyResult>(
+    resourceUrl(ref, kbId),
+    {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        markdown,
+        expected_revision: expectedRevision,
+      }),
+    },
+    options,
+  );
 }

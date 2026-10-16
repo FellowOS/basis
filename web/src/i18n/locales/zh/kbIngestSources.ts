@@ -54,7 +54,6 @@ export const kbIngestSources = {
   addDialogTitle: '添加摄入来源',
   addDialogDesc: '配置 Webhook、HTTP 拉取或 GitHub 文件同步。',
   create: '创建',
-  syncOptionsTitle: '同步选项',
   syncOptionsSource: '来源：{name}',
   syncDocTitle: '同步资料标题',
   emptySourceName: '留空则使用来源名称',
