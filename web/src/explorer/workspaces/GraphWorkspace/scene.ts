@@ -67,6 +67,7 @@ export interface GraphSceneProps extends GraphSceneEventMap {
   locale?: GraphWorkspaceLocale;
   hiddenNodeTypes?: readonly string[];
   hiddenEdgeTypes?: readonly string[];
+  keywordFilter?: string;
 }
 
 export interface GraphSceneHandle {

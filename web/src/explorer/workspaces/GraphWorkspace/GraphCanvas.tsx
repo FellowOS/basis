@@ -36,6 +36,7 @@ import {
 } from "./graphSceneState";
 import { fmt, formatLocaleFixedDecimals, formatLocaleNumber } from "@/i18n/format.js";
 import { isEdgeTypeSuppressed, edgeTypeOf } from "./graphEdgeTypes";
+import { isNodeKeywordSuppressed, normalizeKeywordFilter } from "./graphKeywordFilter";
 import { isNodeTypeSuppressed } from "./graphNodeTypes";
 
 import { buildGraphAnalyticsSnapshot, computeGraphAnalyticsBase } from "./graphAnalytics";
@@ -147,6 +148,8 @@ export interface GraphCanvasProps {
   hiddenNodeTypes?: readonly string[];
   /** Edge types switched off in the type filter. Those edges stay in the graph but are not drawn. */
   hiddenEdgeTypes?: readonly string[];
+  /** Non-empty value hides nodes that do not match label, content, type, or id. */
+  keywordFilter?: string;
 }
 
 type EffectReasons = ReturnType<typeof graphEffectReasonsCopy>;
@@ -922,6 +925,7 @@ type ReducerSceneState = {
   distanceVisualState?: GraphDistanceVisualState;
   hiddenNodeTypes: ReadonlySet<string>;
   hiddenEdgeTypes: ReadonlySet<string>;
+  keywordFilter: string;
 };
 
 const FULL_EDGE_CLASSES: GraphFullEdgeClass[] = [
@@ -1052,6 +1056,7 @@ function buildReducerSceneState(
   distanceVisualState?: GraphDistanceVisualState,
   hiddenNodeTypes: ReadonlySet<string> = new Set(),
   hiddenEdgeTypes: ReadonlySet<string> = new Set(),
+  keywordFilter: string = "",
 ): ReducerSceneState {
   const { viewMode, zoomTier, hoveredNodeId, selectedNodeId, selectedEdgeId, activePath } = interactionState;
   const primaryNodeId = hoveredNodeId || selectedNodeId;
@@ -1076,6 +1081,7 @@ function buildReducerSceneState(
     distanceVisualState,
     hiddenNodeTypes,
     hiddenEdgeTypes,
+    keywordFilter,
     highlightedIncidentEdgeIds: buildHighlightedIncidentEdgeIds(
       displayGraph,
       interactionState,
@@ -1202,6 +1208,7 @@ function applySceneState(
       : {};
     const resolvedStyle = { ...style, ...distanceStyle };
     const typeHidden = Boolean(attrs.hidden) || isNodeTypeSuppressed(attrs.nodeType, currentState.hiddenNodeTypes);
+    const keywordHidden = isNodeKeywordSuppressed(attrs, String(node), currentState.keywordFilter);
 
       return {
         ...data,
@@ -1209,11 +1216,11 @@ function applySceneState(
         shellColor: resolvedStyle.shellColor,
         coreScale: resolvedStyle.coreScale,
         size: resolvedStyle.size,
-        forceLabel: typeHidden ? false : resolvedStyle.forceLabel,
-        label: typeHidden ? undefined : resolvedStyle.label,
+        forceLabel: typeHidden || keywordHidden ? false : resolvedStyle.forceLabel,
+        label: typeHidden || keywordHidden ? undefined : resolvedStyle.label,
         suppressNodeChip: state === "hovered",
         zIndex: resolvedStyle.zIndex,
-        hidden: typeHidden || resolvedStyle.hidden,
+        hidden: typeHidden || keywordHidden || resolvedStyle.hidden,
         borderColor: resolvedStyle.borderColor,
         borderSize: resolvedStyle.borderSize,
         ringColor: resolvedStyle.showRing ? resolvedStyle.ringColor : resolvedStyle.borderColor,
@@ -1303,6 +1310,8 @@ function applySceneState(
     const endpointHidden = Boolean(sourceAttrs?.hidden || targetAttrs?.hidden)
       || isNodeTypeSuppressed(sourceAttrs?.nodeType, currentState.hiddenNodeTypes)
       || isNodeTypeSuppressed(targetAttrs?.nodeType, currentState.hiddenNodeTypes)
+      || (sourceAttrs && isNodeKeywordSuppressed(sourceAttrs, String(source), currentState.keywordFilter))
+      || (targetAttrs && isNodeKeywordSuppressed(targetAttrs, String(target), currentState.keywordFilter))
       || isEdgeTypeSuppressed(edgeTypeOf(attrs), currentState.hiddenEdgeTypes);
 
     return {
@@ -1380,6 +1389,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(
       locale = "en",
       hiddenNodeTypes = [],
       hiddenEdgeTypes = [],
+      keywordFilter = "",
     },
     ref,
   ) {
@@ -1509,6 +1519,10 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(
       () => new Set(hiddenEdgeTypes),
       [hiddenEdgeTypes],
     );
+    const normalizedKeywordFilter = useMemo(
+      () => normalizeKeywordFilter(keywordFilter),
+      [keywordFilter],
+    );
     const reducerSceneState = useMemo(
       () => buildReducerSceneState(
         displayGraph,
@@ -1518,8 +1532,9 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(
         distanceVisualState,
         hiddenNodeTypeSet,
         hiddenEdgeTypeSet,
+        normalizedKeywordFilter,
       ),
-      [analyticsSnapshot, displayGraph, displayState, distanceVisualState, hiddenEdgeTypeSet, hiddenNodeTypeSet, interactionState],
+      [analyticsSnapshot, displayGraph, displayState, distanceVisualState, hiddenEdgeTypeSet, hiddenNodeTypeSet, interactionState, normalizedKeywordFilter],
     );
     const reducerSceneStateRef = useRef<ReducerSceneState>(reducerSceneState);
     reducerSceneStateRef.current = reducerSceneState;
@@ -2316,7 +2331,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(
       previousDistanceVisualStateRef.current = undefined;
     }, [displayGraph]);
 
-    const hiddenNodeTypeKey = `${hiddenNodeTypes.join("\0")}\u0001${hiddenEdgeTypes.join("\0")}`;
+    const hiddenNodeTypeKey = `${hiddenNodeTypes.join("\0")}\u0001${hiddenEdgeTypes.join("\0")}\u0002${normalizedKeywordFilter}`;
     const previousHiddenNodeTypeKeyRef = useRef(hiddenNodeTypeKey);
     useEffect(() => {
       const sigma = sigmaRef.current;

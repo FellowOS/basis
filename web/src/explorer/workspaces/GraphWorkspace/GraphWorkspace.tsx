@@ -23,7 +23,8 @@ import { lazy, Suspense } from "react";
 import { SigmaSceneAdapter } from "./SigmaSceneAdapter";
 import { useLoadGraph, useReloadGraph } from "./useLoadGraph";
 import { GraphLoadingOverlay } from "./GraphLoadingOverlay";
-import { GraphSearchDock, type GraphSearchResult } from "./GraphSearchDock";
+import { GraphSearchDock } from "./GraphSearchDock";
+import { isNodeKeywordSuppressed, normalizeKeywordFilter } from "./graphKeywordFilter";
 import { GraphStatusDock } from "./GraphStatusDock";
 import { GraphNodeTypeFilterDock, GraphNodeTypeFilterSidebar } from "./GraphNodeTypeFilterDock";
 import { GraphPluginPanelDialog } from "./GraphPluginPanelDialog";
@@ -1041,9 +1042,7 @@ export function GraphWorkspace({
   const [viewMode, setViewMode] = useState<GraphViewMode>("full");
   const [aggregationEnabled] = useState(true);
   const [collapsedNeighborhoodNodeIds, setCollapsedNeighborhoodNodeIds] = useState<string[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<GraphSearchResult[]>([]);
-  const [searchError, setSearchError] = useState("");
+  const [keywordFilter, setKeywordFilter] = useState("");
   const [predictionType, setPredictionType] = useState("");
   const [isRunningPredictions, setIsRunningPredictions] = useState(false);
   const [predictions, setPredictions] = useState<LinkPrediction[]>([]);
@@ -1154,9 +1153,7 @@ export function GraphWorkspace({
     setFocusedNodeId("");
     setLastGroupedSelectedNodeId("");
     setSelectedEdgeId("");
-    setSearchQuery("");
-    setSearchResults([]);
-    setSearchError("");
+    setKeywordFilter("");
     setPredictionType("");
     setPredictions([]);
     setIsRunningPredictions(false);
@@ -1617,8 +1614,6 @@ export function GraphWorkspace({
     if (requiresDraftConfirm) {
       setSelectedEdgeId("");
       setPathResult(null);
-      setSearchResults([]);
-      setSearchError("");
     }
     setViewMode("focused");
     setIsLayoutRunning(false);
@@ -1685,8 +1680,6 @@ export function GraphWorkspace({
       setSelectedNodeId("");
       setSelectedEdgeId("");
       setPathResult(null);
-      setSearchResults([]);
-      setSearchError("");
       return;
     }
 
@@ -1700,8 +1693,6 @@ export function GraphWorkspace({
     setSelectedNodeId(nextSelectedNodeId);
     setSelectedEdgeId("");
     setPathResult(null);
-    setSearchResults([]);
-    setSearchError("");
     if (viewMode === "focused" && graph.hasNode(nextSelectedNodeId)) {
       setFocusedNodeId(nextSelectedNodeId);
       setIsLayoutRunning(false);
@@ -1745,33 +1736,6 @@ export function GraphWorkspace({
 
   const handleEdgeSelect = useCallback((edgeId: string) => {
     setSelectedEdgeId(edgeId);
-  }, []);
-
-  const handleSearch = useCallback(async () => {
-    if (!searchQuery.trim()) {
-      setSearchResults([]);
-      return;
-    }
-    setSearchError("");
-    try {
-      const response = await explorerFetch(buildExplorerGraphApiPath("search", kbId), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: searchQuery, limit: 8 }),
-      });
-      const data = await parseExplorerJson<{ results?: GraphSearchResult[] }>(
-        response,
-        graphCopy(copyLocale, "apiSearchFailed"),
-      );
-      setSearchResults(data.results || []);
-    } catch (searchFetchError) {
-      setSearchError(formatApiError(searchFetchError));
-    }
-  }, [copyLocale, formatApiError, kbId, searchQuery]);
-
-  const handleClearSearchResults = useCallback(() => {
-    setSearchResults([]);
-    setSearchError("");
   }, []);
 
   const handleRunPredictions = useCallback(async () => {
@@ -2588,6 +2552,18 @@ export function GraphWorkspace({
     structuralSelectedNodeId,
     viewMode,
   ]);
+
+  useEffect(() => {
+    const normalized = normalizeKeywordFilter(keywordFilter);
+    if (!normalized || !selectedNodeId || !displayResult.graph.hasNode(selectedNodeId)) {
+      return;
+    }
+    const attrs = displayResult.graph.getNodeAttributes(selectedNodeId);
+    if (isNodeKeywordSuppressed(attrs, selectedNodeId, normalized)) {
+      setSelectedNodeId("");
+    }
+  }, [displayResult.graph, keywordFilter, selectedNodeId]);
+
   const focusedSummary = useMemo(() => {
     if (!selectedNodeId || !graph.hasNode(selectedNodeId)) {
       if (viewMode === "grouped") {
@@ -3172,8 +3148,6 @@ export function GraphWorkspace({
     [pluginToolbarItems],
   );
 
-  const searchDisabled = showLoadingOverlay || !searchQuery.trim();
-
   const distanceToolbarItems = useMemo<GraphToolbarItem[]>(() => {
     if (!hasGraphContent || viewMode !== "full") {
       return [];
@@ -3337,6 +3311,7 @@ export function GraphWorkspace({
     locale: copyLocale,
     hiddenNodeTypes,
     hiddenEdgeTypes,
+    keywordFilter,
   } as const;
   const showTimelinePanel = Boolean(temporalBounds?.min);
 
@@ -3428,26 +3403,12 @@ export function GraphWorkspace({
               <section className="explore-search-dock" aria-label={graphCopy(copyLocale, "dockSearchAria")}>
                 <div className="flex flex-nowrap items-start gap-2">
                   <GraphSearchDock
-                  locale={copyLocale}
-                  kbId={kbId}
-                  query={searchQuery}
-                  onQueryChange={setSearchQuery}
-                  searchDisabled={searchDisabled}
-                  onSearch={() => void handleSearch()}
-                  onSelectSuggestion={(result) => {
-                    setSearchQuery("");
-                    focusNode(result.node.id);
-                  }}
-                  searchError={searchError}
-                  searchResults={searchResults}
-                  onClearResults={handleClearSearchResults}
-                  onSelectResult={(result) => {
-                    setSearchQuery("");
-                    handleClearSearchResults();
-                    focusNode(result.node.id);
-                  }}
-                  infoMessage={graphLoadInfoMessage}
-                />
+                    locale={copyLocale}
+                    query={keywordFilter}
+                    onQueryChange={setKeywordFilter}
+                    filterDisabled={showLoadingOverlay}
+                    infoMessage={graphLoadInfoMessage}
+                  />
                 </div>
               </section>
 
