@@ -1,4 +1,4 @@
-import { PublicIcon } from "@/components/ui/public-icon.js";
+import { SIDEBAR_ICON_BUTTON_CLASS, SidebarIcon } from "@/components/sidebar-icon.js";
 import { useEffect, useRef, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button.js";
@@ -53,14 +53,22 @@ function KeywordFilterBar({
           <InputGroupButton
             type="button"
             size="icon-sm"
+            className={SIDEBAR_ICON_BUTTON_CLASS}
             aria-label={graphCopy(locale, "searchClearAria")}
             onClick={() => onChange("")}
           >
-            <PublicIcon name="x-02" />
+            <SidebarIcon name="x-02" />
           </InputGroupButton>
         ) : (
-          <InputGroupButton type="button" size="icon-sm" tabIndex={-1} aria-hidden disabled>
-            <PublicIcon name="search-01" />
+          <InputGroupButton
+            type="button"
+            size="icon-sm"
+            className={SIDEBAR_ICON_BUTTON_CLASS}
+            tabIndex={-1}
+            aria-hidden
+            disabled
+          >
+            <SidebarIcon name="search-01" />
           </InputGroupButton>
         )}
       </InputGroup>

@@ -5,18 +5,26 @@ import { cn } from "@/lib/utils"
 function NativeSelect({
   className,
   size = "default",
+  fullWidth = false,
   ...props
-}: Omit<React.ComponentProps<"select">, "size"> & { size?: "sm" | "default" }) {
+}: Omit<React.ComponentProps<"select">, "size"> & {
+  size?: "sm" | "default"
+  fullWidth?: boolean
+}) {
   return (
     <div
-      className="group/native-select relative w-fit max-w-full shrink-0 has-[select:disabled]:opacity-50"
+      className={cn(
+        "group/native-select relative max-w-full shrink-0 has-[select:disabled]:opacity-50",
+        fullWidth ? "w-full" : "w-fit",
+      )}
       data-slot="native-select-wrapper"
     >
       <select
         data-slot="native-select"
         data-size={size}
         className={cn(
-          "h-9 w-auto min-w-[8.25rem] max-w-full appearance-none rounded-md border border-input bg-transparent px-3 py-2 pr-9 text-sm shadow-none transition-[color,box-shadow] outline-none selection:bg-primary selection:text-primary-foreground placeholder:text-muted-foreground disabled:pointer-events-none disabled:cursor-not-allowed data-[size=sm]:h-8 data-[size=sm]:py-1 dark:bg-input/30 dark:hover:bg-input/50",
+          "h-9 min-w-[8.25rem] max-w-full appearance-none rounded-md border border-input bg-transparent px-3 py-2 pr-9 text-sm shadow-none transition-[color,box-shadow] outline-none selection:bg-primary selection:text-primary-foreground placeholder:text-muted-foreground disabled:pointer-events-none disabled:cursor-not-allowed data-[size=sm]:h-8 data-[size=sm]:py-1 dark:bg-input/30 dark:hover:bg-input/50",
+          fullWidth ? "w-full min-w-0" : "w-auto",
           "focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50",
           "aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40",
           className

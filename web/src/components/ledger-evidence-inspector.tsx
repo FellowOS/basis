@@ -238,9 +238,10 @@ export function LedgerEvidenceInspector({ kbId }: { kbId: string }) {
                 const meta = chunkMeta(row);
                 return (
                 <li key={row.id}>
-                  <button
+                  <Button
                     type="button"
-                    className="w-full rounded-md border border-border px-3 py-2 text-left hover:bg-muted"
+                    variant="ghost"
+                    className="h-auto w-full flex-col items-start rounded-md border border-border px-3 py-2 text-left font-normal hover:bg-muted"
                     onClick={() => openChunk(row.id)}
                   >
                     <span className="font-mono text-[11px] text-muted-foreground">
@@ -248,7 +249,7 @@ export function LedgerEvidenceInspector({ kbId }: { kbId: string }) {
                       {meta ? ` · ${meta}` : ''}
                     </span>
                     <p className="mt-1 line-clamp-4 whitespace-pre-wrap text-[13px] leading-snug">{row.text}</p>
-                  </button>
+                  </Button>
                 </li>
                 );
               })

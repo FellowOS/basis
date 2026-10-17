@@ -13,6 +13,7 @@ import {
   login as loginRequest,
   logout as logoutRequest,
   register as registerRequest,
+  setToken,
   type BasisUser,
 } from '@/lib/api.js';
 
@@ -49,6 +50,26 @@ export function BasisSessionProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const magic = params.get('magic_link');
+    if (magic) {
+      const guardKey = `basis.magic_link.${magic}`;
+      if (!sessionStorage.getItem(guardKey)) {
+        sessionStorage.setItem(guardKey, '1');
+        window.location.replace(
+          `/api/auth/magic-link/verify?token=${encodeURIComponent(magic)}`,
+        );
+      }
+      return;
+    }
+    const oauthToken = params.get('basis_token');
+    if (oauthToken) {
+      setToken(oauthToken);
+      params.delete('basis_token');
+      const rest = params.toString();
+      const next = `${window.location.pathname}${rest ? `?${rest}` : ''}${window.location.hash}`;
+      window.history.replaceState(null, '', next);
+    }
     void refresh().finally(() => setReady(true));
   }, [refresh]);
 

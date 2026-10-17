@@ -16,6 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog.js';
+import { Checkbox } from '@/components/ui/checkbox.js';
 import { Input } from '@/components/ui/input.js';
 import { Label } from '@/components/ui/label.js';
 import { Spinner } from '@/components/ui/spinner.js';
@@ -40,6 +41,7 @@ export function UsersPage() {
   const [loading, setLoading] = useState(true);
   const [createOpen, setCreateOpen] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [createIsAdmin, setCreateIsAdmin] = useState(false);
 
   async function load() {
     setLoading(true);
@@ -67,10 +69,11 @@ export function UsersPage() {
           email: form.get('email'),
           password: form.get('password'),
           display_name: form.get('display_name'),
-          is_admin: form.get('is_admin') === 'on',
+          is_admin: createIsAdmin,
         }),
       });
       event.currentTarget.reset();
+      setCreateIsAdmin(false);
       setCreateOpen(false);
       await load();
     } catch (err) {
@@ -138,7 +141,13 @@ export function UsersPage() {
         </DataPanelBody>
       </DataPanel>
 
-      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+      <Dialog
+        open={createOpen}
+        onOpenChange={(open) => {
+          setCreateOpen(open);
+          if (!open) setCreateIsAdmin(false);
+        }}
+      >
         <DialogContent className="sm:max-w-md">
           <form onSubmit={onCreate}>
             <DialogHeader>
@@ -158,10 +167,16 @@ export function UsersPage() {
                 <Label htmlFor="password">{p.passwordLabel}</Label>
                 <Input id="password" name="password" type="password" minLength={8} required />
               </div>
-              <label className="flex items-center gap-2 text-sm">
-                <input type="checkbox" name="is_admin" />
-                {p.systemAdmin}
-              </label>
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="create-is-admin"
+                  checked={createIsAdmin}
+                  onCheckedChange={(checked) => setCreateIsAdmin(checked === true)}
+                />
+                <Label htmlFor="create-is-admin" className="cursor-pointer font-normal">
+                  {p.systemAdmin}
+                </Label>
+              </div>
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setCreateOpen(false)}>

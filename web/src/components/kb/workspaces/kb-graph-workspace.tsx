@@ -7,7 +7,7 @@ import { KbImportExportDialog } from '@/components/kb/dialogs/kb-import-export-d
 import { useKbCapabilities } from '@/lib/kb-capabilities.js';
 import { KbExplorerUnavailable } from '@/components/kb/shell/kb-explorer-unavailable.js';
 import { Button } from '@/components/ui/button.js';
-import { PublicIcon } from '@/components/ui/public-icon.js';
+import { SIDEBAR_ICON_BUTTON_CLASS, SidebarIcon } from '@/components/sidebar-icon.js';
 import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
 import type { Locale } from '@/i18n/locale.js';
@@ -83,21 +83,23 @@ export function KbGraphWorkspace({
                   type="button"
                   variant="outline"
                   size="icon-sm"
+                  className={SIDEBAR_ICON_BUTTON_CLASS}
                   aria-label={g.import}
                   title={g.import}
                   onClick={() => openImportExport('import')}
                 >
-                  <PublicIcon name="upload-01" />
+                  <SidebarIcon name="upload-01" />
                 </Button>
                 <Button
                   type="button"
                   variant="outline"
                   size="icon-sm"
+                  className={SIDEBAR_ICON_BUTTON_CLASS}
                   aria-label={g.export}
                   title={g.export}
                   onClick={() => openImportExport('export')}
                 >
-                  <PublicIcon name="download-01" />
+                  <SidebarIcon name="download-01" />
                 </Button>
               </>
             ) : null}

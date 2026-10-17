@@ -19,4 +19,10 @@ export const login = {
   switchToLogin: 'Sign in',
   showPassword: 'Show password',
   hidePassword: 'Hide password',
+  orContinueWith: 'Or continue with',
+  continueGithub: 'GitHub',
+  continueGoogle: 'Google',
+  magicLinkSend: 'Email me a sign-in link',
+  magicLinkSent: 'If that address is allowed, a sign-in link was sent.',
+  magicLinkFailed: 'Could not send sign-in link',
 } as const;

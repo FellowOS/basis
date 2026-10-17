@@ -41,7 +41,12 @@ async def kb_temporal_bounds(
     session = require_explorer_graph_session(runtime)
     from semantica.explorer.routes.temporal import temporal_bounds
 
-    return await invoke_explorer(temporal_bounds(session=session), context="temporal")
+    payload = await invoke_explorer(temporal_bounds(session=session), context="temporal")
+    if isinstance(payload, dict):
+        ledger = get_knowledge_store(request).get_ledger_temporal_bounds(kb_id)
+        if not payload.get("min") and ledger.get("min"):
+            payload = {**payload, "min": ledger["min"]}
+    return payload
 
 
 @router.get("/{kb_id}/temporal/snapshot")

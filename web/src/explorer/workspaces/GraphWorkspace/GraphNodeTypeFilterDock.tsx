@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button.js";
 import { Checkbox } from "@/components/ui/checkbox.js";
 import { Input } from "@/components/ui/input.js";
-import { PublicIcon } from "@/components/ui/public-icon.js";
+import { SIDEBAR_ICON_BUTTON_CLASS, SidebarIcon } from "@/components/sidebar-icon.js";
 import { fmt, formatLocaleNumber } from "@/i18n/format.js";
 import { cn } from "@/lib/utils.js";
 
@@ -146,9 +146,12 @@ export function GraphNodeTypeFilterDock({
       aria-label={graphCopy(locale, "nodeTypeFilterAria")}
       title={graphCopy(locale, "nodeTypeFilterAria")}
       onClick={() => onOpenChange(!open)}
-      className={cn(open && "bg-[color-mix(in_oklch,var(--foreground)_10%,var(--control))]")}
+      className={cn(
+        SIDEBAR_ICON_BUTTON_CLASS,
+        open && "bg-[color-mix(in_oklch,var(--foreground)_10%,var(--control))]",
+      )}
     >
-      <PublicIcon name="sliders" />
+      <SidebarIcon name="sliders" />
     </Button>
   );
 }
@@ -195,10 +198,11 @@ export function GraphNodeTypeFilterSidebar({
           type="button"
           variant="ghost"
           size="icon-sm"
+          className={SIDEBAR_ICON_BUTTON_CLASS}
           onClick={onClose}
           aria-label={graphCopy(locale, "searchDismiss")}
         >
-          <PublicIcon name="x-02" />
+          <SidebarIcon name="x-02" />
         </Button>
       </header>
       {loadBudget ? (

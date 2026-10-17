@@ -1,3 +1,5 @@
+import { Button } from "@/components/ui/button.js";
+import { cn } from "@/lib/utils.js";
 import {
   graphLegendMeta,
   graphLegendPanel,
@@ -128,22 +130,26 @@ export const neighborhoodPanelPlugin: GraphPlugin = {
             {fmt(p.neighborSummary, { count: graphFormatNumber(context.locale, selected.neighborCount) })}
           </div>
           <div className="flex flex-wrap gap-2">
-            <button
+            <Button
               type="button"
+              variant="secondary"
+              size="sm"
               onClick={() => context.dispatchAction({ type: "collapseNeighborhood" })}
               disabled={!selected.canCollapseNeighborhood || selected.isNeighborhoodCollapsed}
               className={graphPanelControlBtn}
             >
               {p.collapse}
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="secondary"
+              size="sm"
               onClick={() => context.dispatchAction({ type: "expandNeighborhood" })}
               disabled={!selected.isNeighborhoodCollapsed}
               className={graphPanelControlBtn}
             >
               {p.expand}
-            </button>
+            </Button>
           </div>
           {hiddenNeighborCount > 0 ? (
             <div className={graphPanelSummary}>
@@ -166,11 +172,12 @@ export const neighborhoodPanelPlugin: GraphPlugin = {
           {neighbors.length ? (
             <div className="flex flex-col gap-2">
               {neighbors.map((neighbor) => (
-                <button
+                <Button
                   key={neighbor.id}
                   type="button"
+                  variant="ghost"
                   onClick={() => context.dispatchAction({ type: "selectNode", nodeId: neighbor.id })}
-                  className={graphNeighborBtn}
+                  className={cn(graphNeighborBtn, "h-auto justify-start font-normal")}
                 >
                   <span className={graphLegendSwatch} style={graphSemanticSwatchStyle(neighbor.color)} />
                   <div className="min-w-0 flex-1">
@@ -179,7 +186,7 @@ export const neighborhoodPanelPlugin: GraphPlugin = {
                       {formatNeighborMeta(context.locale, neighbor, p)}
                     </div>
                   </div>
-                </button>
+                </Button>
               ))}
             </div>
           ) : (

@@ -345,10 +345,11 @@ export function DecisionWorkspace({
               {filtered.map((row) => {
                 const active = selected?.decision_id === row.decision_id;
                 return (
-                  <button
+                  <Button
                     key={row.decision_id}
                     type="button"
-                    className={cn("ws-list-item", active && "ws-list-item--active")}
+                    variant="ghost"
+                    className={cn("ws-list-item h-auto justify-start font-normal", active && "ws-list-item--active")}
                     onClick={() => void loadChain(row)}
                   >
                     <div className={exWsListItemTitle}>{row.decision_id}</div>
@@ -362,7 +363,7 @@ export function DecisionWorkspace({
                         <OutcomeBadge outcome={row.outcome} copy={dec} />
                       ) : null}
                     </div>
-                  </button>
+                  </Button>
                 );
               })}
             </div>

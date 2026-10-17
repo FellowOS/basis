@@ -186,12 +186,13 @@ export function ModelEndpointForm({ kind, onCreated, onCancel }: Props) {
         <Label>{m.provider}</Label>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
           {providers.map((provider) => (
-            <button
+            <Button
               key={provider.id}
               type="button"
+              variant="ghost"
               className={cn(
                 resourceCardSurfaceClass,
-                'flex items-center gap-2 rounded-xl border px-3 py-2 text-left text-sm font-medium transition-colors',
+                'h-auto flex items-center gap-2 rounded-xl border px-3 py-2 text-left text-sm font-medium transition-colors',
                 providerId === provider.id
                   ? 'border-[var(--acc)] bg-accent/80'
                   : 'border-transparent hover:border-foreground/15 hover:bg-accent/50',
@@ -202,7 +203,7 @@ export function ModelEndpointForm({ kind, onCreated, onCancel }: Props) {
                 {provider.id === 'custom' ? '···' : provider.label.slice(0, 2)}
               </span>
               <span className="min-w-0 truncate">{providerLabel(provider, providerLabels)}</span>
-            </button>
+            </Button>
           ))}
         </div>
       </div>

@@ -1,4 +1,7 @@
+import { useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
+import { isSetupKbId, writeActiveKbId } from '@/lib/kb-active-id.js';
+import { parseKbIdFromPath } from '@/lib/nav-config.js';
 import { BasisSidebar } from '@/components/basis-sidebar.js';
 import { KbProvider } from '@/lib/kb-context.js';
 import { KbCapabilitiesProvider } from '@/lib/kb-capabilities.js';
@@ -16,6 +19,11 @@ export function BasisLayout({ onLogout }: { onLogout: () => void }) {
   const { t } = useI18n();
   const { pathname } = useLocation();
   const graphCanvas = isKbGraphFullBleedPath(pathname);
+
+  useEffect(() => {
+    const kbId = parseKbIdFromPath(pathname);
+    if (kbId && !isSetupKbId(kbId)) writeActiveKbId(kbId);
+  }, [pathname]);
 
   return (
     <TooltipProvider delayDuration={0}>

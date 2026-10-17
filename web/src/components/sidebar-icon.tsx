@@ -6,6 +6,10 @@ import { cn } from '@/lib/utils.js';
 /** Sidebar menu icon slot — fixed 16×16 layout box, 16px glyph. */
 export const SIDEBAR_ICON_PX = 16;
 
+/** Apply on icon-only buttons so nested `SidebarIcon` matches `SidebarMenuButton`. */
+export const SIDEBAR_ICON_BUTTON_CLASS =
+  '[&_[data-sidebar-icon]]:size-4 [&_[data-sidebar-icon]]:shrink-0';
+
 export function getSidebarIconComponent(name: string): IconType {
   return getPublicIconComponent(name);
 }

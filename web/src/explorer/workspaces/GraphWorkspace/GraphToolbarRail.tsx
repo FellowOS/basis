@@ -1,4 +1,4 @@
-import { PublicIcon } from "@/components/ui/public-icon.js";
+import { SidebarIcon } from "@/components/sidebar-icon.js";
 import { cn } from "@/lib/utils.js";
 import { GraphToolButton, GraphToolTower } from "@/components/graph-tool-tower.js";
 
@@ -23,7 +23,7 @@ function RailIcon({ icon }: { icon?: string }) {
   if (!icon) {
     return null;
   }
-  return <PublicIcon name={icon} size={16} />;
+  return <SidebarIcon name={icon} />;
 }
 
 export function GraphToolbarRail({

@@ -1,5 +1,13 @@
 import type { ReactNode } from 'react';
 import { useI18n } from '@/i18n/context.js';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table.js';
 import { cn } from '@/lib/utils.js';
 
 export interface DataTableColumn<T> {
@@ -51,52 +59,52 @@ export function DataTable<T>({
   }
 
   return (
-    <div className={cn('overflow-x-auto rounded-[var(--radius-vela-lg)] border border-line bg-bg-2', className)}>
-      <table className="w-full min-w-[640px] border-collapse text-sm">
-        <thead>
-          <tr className="border-b border-border">
+    <div className={cn('overflow-x-auto border border-line bg-bg-2', className)}>
+      <Table className="min-w-[640px] border-collapse">
+        <TableHeader>
+          <TableRow className="border-b border-border hover:bg-transparent">
             {columns.map((col) => (
-              <th
+              <TableHead
                 key={col.key}
                 style={{ width: col.width }}
                 className={cn(
-                  'px-4 py-3 text-[10.5px] font-bold tracking-wide text-muted-foreground uppercase',
+                  'h-auto px-4 py-3 text-[10.5px] font-bold tracking-wide text-muted-foreground uppercase',
                   alignClasses[col.align ?? 'left'],
                   col.hideBelow && hideBelowClasses[col.hideBelow],
                 )}
               >
                 {col.header}
-              </th>
+              </TableHead>
             ))}
-          </tr>
-        </thead>
-        <tbody>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {data.map((row) => (
-            <tr
+            <TableRow
               key={rowKey(row)}
               data-clickable={onRowClick ? 'true' : undefined}
               onClick={onRowClick ? () => onRowClick(row) : undefined}
               className={cn(
-                'border-b border-border/60 transition-colors last:border-0',
-                onRowClick && 'hover:bg-muted/50',
+                'border-b border-border/60 last:border-0',
+                onRowClick && 'cursor-pointer',
               )}
             >
               {columns.map((col) => (
-                <td
+                <TableCell
                   key={col.key}
                   className={cn(
-                    'px-4 py-3 text-foreground',
+                    'px-4 py-3 text-foreground whitespace-normal',
                     alignClasses[col.align ?? 'left'],
                     col.hideBelow && hideBelowClasses[col.hideBelow],
                   )}
                 >
                   {col.render(row)}
-                </td>
+                </TableCell>
               ))}
-            </tr>
+            </TableRow>
           ))}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
   );
 }

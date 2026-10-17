@@ -9,13 +9,42 @@ export type NavItem = {
   exact?: boolean;
 };
 
+export const PLATFORM_ADMIN_PREFIX = '/admin';
+
 export const PLATFORM_NAV: NavItem[] = [
-  { to: '/kbs', labelKey: 'kbs', icon: 'folder-down-01', exact: true },
-  { to: '/users', labelKey: 'users', icon: 'users-profiles-01', adminOnly: true },
-  { to: '/models', labelKey: 'models', icon: 'atom', adminOnly: true },
-  { to: '/audit', labelKey: 'audit', icon: 'list-dashes-01', adminOnly: true },
-  { to: '/settings', labelKey: 'system', icon: 'settings', adminOnly: true },
+  { to: '/admin/kbs', labelKey: 'kbs', icon: 'folder-down-01', exact: true },
+  { to: '/admin/users', labelKey: 'users', icon: 'users-profiles-01', adminOnly: true },
+  { to: '/admin/models', labelKey: 'models', icon: 'atom', adminOnly: true },
+  { to: '/admin/audit', labelKey: 'audit', icon: 'list-dashes-01', adminOnly: true },
+  { to: '/admin/settings', labelKey: 'system', icon: 'settings' },
 ];
+
+export function platformPathActive(pathname: string, to: string, exact?: boolean): boolean {
+  if (exact) return pathname === to;
+  return pathname === to || pathname.startsWith(`${to}/`);
+}
+
+export function isPlatformAdminPath(pathname: string): boolean {
+  if (pathname === PLATFORM_ADMIN_PREFIX || pathname.startsWith(`${PLATFORM_ADMIN_PREFIX}/`)) {
+    return true;
+  }
+  return PLATFORM_NAV.some((item) => platformPathActive(pathname, item.to, item.exact));
+}
+
+/** Platform section tabs visible to the current user. */
+export function visiblePlatformNavItems(isAdmin: boolean, canSettings: boolean): NavItem[] {
+  return PLATFORM_NAV.filter((item) => {
+    if (item.labelKey === 'kbs') return isAdmin;
+    if (item.adminOnly) return isAdmin;
+    if (item.labelKey === 'system') return canSettings;
+    return false;
+  });
+}
+
+export function platformAdminEntryPath(isAdmin: boolean, canSettings: boolean): string {
+  const items = visiblePlatformNavItems(isAdmin, canSettings);
+  return items[0]?.to ?? '/kbs';
+}
 
 /**
  * KB navigation zones ordered by user mental model & task frequency:

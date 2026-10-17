@@ -19,4 +19,10 @@ export const login = {
   switchToLogin: '返回登录',
   showPassword: '显示密码',
   hidePassword: '隐藏密码',
+  orContinueWith: '或使用',
+  continueGithub: 'GitHub 登录',
+  continueGoogle: 'Google 登录',
+  magicLinkSend: '发送登录链接到邮箱',
+  magicLinkSent: '若该邮箱可用，登录链接已发送。',
+  magicLinkFailed: '无法发送登录链接',
 } as const;

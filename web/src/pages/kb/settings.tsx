@@ -13,7 +13,12 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog.js';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card.js';
+import { Checkbox } from '@/components/ui/checkbox.js';
 import { Input } from '@/components/ui/input.js';
+import {
+  NativeSelect,
+  NativeSelectOption,
+} from '@/components/ui/native-select.js';
 import { Label } from '@/components/ui/label.js';
 import {
   Select,
@@ -203,7 +208,6 @@ export function KbSettingsPage() {
   async function saveSearchConfig(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!id || !searchConfig) return;
-    const form = new FormData(event.currentTarget);
     setError(null);
     try {
       const body = await api<{
@@ -215,12 +219,11 @@ export function KbSettingsPage() {
         body: JSON.stringify({
           chunk_backend: searchConfig.config.chunk_backend,
           vector_backend: searchConfig.config.vector_backend,
-          embedding_model_id:
-            String(form.get('embedding_model_id') ?? '') || null,
-          keyword_enabled: form.get('keyword_enabled') === 'on',
-          semantic_enabled: form.get('semantic_enabled') === 'on',
-          default_mode: String(form.get('default_mode') ?? 'hybrid'),
-          auto_index: form.get('auto_index') === 'on',
+          embedding_model_id: searchConfig.config.embedding_model_id,
+          keyword_enabled: searchConfig.config.keyword_enabled,
+          semantic_enabled: searchConfig.config.semantic_enabled,
+          default_mode: searchConfig.config.default_mode,
+          auto_index: searchConfig.config.auto_index,
         }),
       });
       setSearchConfig((current) =>
@@ -466,15 +469,17 @@ export function KbSettingsPage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="kb-vis">{ks.fields.visibility}</Label>
-                <select
+                <NativeSelect
                   id="kb-vis"
                   name="visibility"
-                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm"
+                  fullWidth
                   defaultValue={kb.visibility}
                 >
-                  <option value="restricted">{ks.visibilityLabels.restricted}</option>
-                  <option value="open">{ks.visibilityLabels.open}</option>
-                </select>
+                  <NativeSelectOption value="restricted">
+                    {ks.visibilityLabels.restricted}
+                  </NativeSelectOption>
+                  <NativeSelectOption value="open">{ks.visibilityLabels.open}</NativeSelectOption>
+                </NativeSelect>
               </div>
             </div>
             <DialogFooter>
@@ -557,49 +562,99 @@ export function KbSettingsPage() {
                         ))}
                     </SelectContent>
                   </Select>
-                  <input
-                    type="hidden"
-                    name="embedding_model_id"
-                    value={searchConfig.config.embedding_model_id ?? ''}
-                  />
                 </div>
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <label className="flex items-center gap-2 text-sm">
-                    <input
-                      type="checkbox"
-                      name="keyword_enabled"
-                      defaultChecked={searchConfig.config.keyword_enabled}
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="search-keyword-enabled"
+                      checked={searchConfig.config.keyword_enabled}
+                      onCheckedChange={(checked) =>
+                        setSearchConfig((current) =>
+                          current
+                            ? {
+                                ...current,
+                                config: {
+                                  ...current.config,
+                                  keyword_enabled: checked === true,
+                                },
+                              }
+                            : current,
+                        )
+                      }
                     />
-                    {ks.keywordSearch}
-                  </label>
-                  <label className="flex items-center gap-2 text-sm">
-                    <input
-                      type="checkbox"
-                      name="semantic_enabled"
-                      defaultChecked={searchConfig.config.semantic_enabled}
+                    <Label htmlFor="search-keyword-enabled" className="cursor-pointer font-normal">
+                      {ks.keywordSearch}
+                    </Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="search-semantic-enabled"
+                      checked={searchConfig.config.semantic_enabled}
+                      onCheckedChange={(checked) =>
+                        setSearchConfig((current) =>
+                          current
+                            ? {
+                                ...current,
+                                config: {
+                                  ...current.config,
+                                  semantic_enabled: checked === true,
+                                },
+                              }
+                            : current,
+                        )
+                      }
                     />
-                    {ks.semanticSearch}
-                  </label>
-                  <label className="flex items-center gap-2 text-sm sm:col-span-2">
-                    <input
-                      type="checkbox"
-                      name="auto_index"
-                      defaultChecked={searchConfig.config.auto_index}
+                    <Label htmlFor="search-semantic-enabled" className="cursor-pointer font-normal">
+                      {ks.semanticSearch}
+                    </Label>
+                  </div>
+                  <div className="flex items-center gap-2 sm:col-span-2">
+                    <Checkbox
+                      id="search-auto-index"
+                      checked={searchConfig.config.auto_index}
+                      onCheckedChange={(checked) =>
+                        setSearchConfig((current) =>
+                          current
+                            ? {
+                                ...current,
+                                config: {
+                                  ...current.config,
+                                  auto_index: checked === true,
+                                },
+                              }
+                            : current,
+                        )
+                      }
                     />
-                    {ks.autoIndexOnUpload}
-                  </label>
+                    <Label htmlFor="search-auto-index" className="cursor-pointer font-normal">
+                      {ks.autoIndexOnUpload}
+                    </Label>
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <Label>{ks.defaultSearchMode}</Label>
-                  <select
-                    name="default_mode"
-                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm"
-                    defaultValue={searchConfig.config.default_mode}
+                  <Select
+                    value={searchConfig.config.default_mode}
+                    onValueChange={(value: SearchConfig['default_mode']) =>
+                      setSearchConfig((current) =>
+                        current
+                          ? {
+                              ...current,
+                              config: { ...current.config, default_mode: value },
+                            }
+                          : current,
+                      )
+                    }
                   >
-                    <option value="keyword">{ks.modeKeyword}</option>
-                    <option value="semantic">{ks.modeSemantic}</option>
-                    <option value="hybrid">{ks.modeHybrid}</option>
-                  </select>
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="keyword">{ks.modeKeyword}</SelectItem>
+                      <SelectItem value="semantic">{ks.modeSemantic}</SelectItem>
+                      <SelectItem value="hybrid">{ks.modeHybrid}</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
               <DialogFooter>

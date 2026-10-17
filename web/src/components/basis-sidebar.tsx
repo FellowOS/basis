@@ -10,7 +10,6 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuBadge,
@@ -29,36 +28,39 @@ import {
   KB_NAV_BY_ZONE,
   KB_WORKSPACE_ZONES,
   type KbNavItem,
-  PLATFORM_NAV,
   isKbScopedPath,
   kbPath,
   parseKbIdFromPath,
 } from '@/lib/nav-config.js';
-import { useBasisSession } from '@/lib/basis-session.js';
+import { isSetupKbId, resolveSidebarKbId } from '@/lib/kb-active-id.js';
+import { useKbCatalog } from '@/lib/kb-context.js';
 import { kbNavSegmentEnabled, useKbCapabilities } from '@/lib/kb-capabilities.js';
 
 export function BasisSidebar({ onLogout }: { onLogout: () => void }) {
   const { t, locale } = useI18n();
   const location = useLocation();
   const { isMobile, setOpenMobile } = useSidebar();
-  const { isAdmin } = useBasisSession();
+  const { kbs } = useKbCatalog();
   const { caps } = useKbCapabilities();
 
   const kbScoped = isKbScopedPath(location.pathname);
-  const kbId = parseKbIdFromPath(location.pathname);
+  const pathKbId = parseKbIdFromPath(location.pathname);
+  const navKbId = resolveSidebarKbId(location.pathname, kbs);
+  const alertsKbId =
+    pathKbId && pathKbId !== 'all' && kbScoped ? pathKbId : navKbId;
   const [unreadAlertsCount, setUnreadAlertsCount] = useState(0);
   const [alertsStreamReady, setAlertsStreamReady] = useState(false);
   const streamSinceRef = useRef<string | undefined>(undefined);
   const seenAlertIdsRef = useRef<Set<string>>(new Set());
 
   const refreshAlertsCount = useCallback(async () => {
-    if (!kbId) {
+    if (!alertsKbId || isSetupKbId(alertsKbId)) {
       setUnreadAlertsCount(0);
       return;
     }
     try {
       const data = await api<{ alerts: KbAlertStreamItem[]; unread_count: number }>(
-        `/api/kbs/${kbId}/alerts?limit=50`,
+        `/api/kbs/${alertsKbId}/alerts?limit=50`,
       );
       seenAlertIdsRef.current = new Set(data.alerts.map((a) => a.id));
       setUnreadAlertsCount(data.unread_count ?? data.alerts.length);
@@ -67,7 +69,7 @@ export function BasisSidebar({ onLogout }: { onLogout: () => void }) {
     } catch {
       /* non-blocking */
     }
-  }, [kbId]);
+  }, [alertsKbId]);
 
   useEffect(() => {
     setAlertsStreamReady(false);
@@ -83,7 +85,7 @@ export function BasisSidebar({ onLogout }: { onLogout: () => void }) {
   }, [refreshAlertsCount]);
 
   useEffect(() => {
-    if (!kbId || !alertsStreamReady) return;
+    if (!alertsKbId || isSetupKbId(alertsKbId) || !alertsStreamReady) return;
     const ac = new AbortController();
     let backoff = 2000;
     let cancelled = false;
@@ -91,7 +93,7 @@ export function BasisSidebar({ onLogout }: { onLogout: () => void }) {
     const run = async () => {
       while (!cancelled && !ac.signal.aborted) {
         try {
-          await consumeKbAlertsStream(kbId, {
+          await consumeKbAlertsStream(alertsKbId, {
             since: streamSinceRef.current,
             signal: ac.signal,
             locale,
@@ -116,20 +118,14 @@ export function BasisSidebar({ onLogout }: { onLogout: () => void }) {
       cancelled = true;
       ac.abort();
     };
-  }, [alertsStreamReady, kbId, locale]);
+  }, [alertsStreamReady, alertsKbId, locale]);
 
   function closeMobile() {
     if (isMobile) setOpenMobile(false);
   }
 
-  function isPlatformActive(path: string, exact?: boolean) {
-    if (exact) return location.pathname === path;
-    return location.pathname === path || location.pathname.startsWith(`${path}/`);
-  }
-
   function isKbActive(segment: string) {
-    if (!kbId) return false;
-    const prefix = `/kbs/${kbId}/${segment}`;
+    const prefix = `/kbs/${navKbId}/${segment}`;
     return location.pathname === prefix || location.pathname.startsWith(`${prefix}/`);
   }
 
@@ -182,8 +178,6 @@ export function BasisSidebar({ onLogout }: { onLogout: () => void }) {
     );
   }
 
-  const platformItems = PLATFORM_NAV.filter((item) => !item.adminOnly || isAdmin);
-
   return (
     <Sidebar collapsible="icon" className="p-0">
       <SidebarHeader className="flex-row items-center gap-1 group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-0">
@@ -204,60 +198,34 @@ export function BasisSidebar({ onLogout }: { onLogout: () => void }) {
       </SidebarHeader>
       <SidebarContent className="overflow-hidden group-data-[collapsible=icon]:overflow-hidden">
         <ScrollShadow hideScrollBar className="min-h-0 flex-1" fadeColor="var(--sidebar)">
-          {kbScoped && kbId ? (
-            <SidebarGroup className="group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:items-center">
-              <SidebarGroupContent>
-                <div className="mb-3 px-0.5 group-data-[collapsible=icon]:mb-1 group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
-                  <KbSwitcher />
-                </div>
-                <div className="flex flex-col gap-3.5 group-data-[collapsible=icon]:gap-2">
-                  {KB_WORKSPACE_ZONES.map((zone, zoneIndex) => {
-                    const zoneLabel = t.menu.kbZones[zone];
-                    const items = KB_NAV_BY_ZONE[zone];
-                    return (
-                      <div key={zone} className="flex flex-col gap-0.5">
-                        {zoneIndex > 0 ? (
-                          <div className="mx-2 my-1 hidden h-px bg-sidebar-border group-data-[collapsible=icon]:block" />
-                        ) : null}
-                        <div
-                          className="px-2 pb-0.5 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/50 group-data-[collapsible=icon]:hidden"
-                        >
-                          {zoneLabel}
-                        </div>
-                        <SidebarMenu>
-                          {items.map((item) => renderKbNavItem(kbId, item))}
-                        </SidebarMenu>
+          <SidebarGroup className="group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:items-center">
+            <SidebarGroupContent>
+              <div className="mb-3 px-0.5 group-data-[collapsible=icon]:mb-1 group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
+                <KbSwitcher />
+              </div>
+              <div className="flex flex-col gap-3.5 group-data-[collapsible=icon]:gap-2">
+                {KB_WORKSPACE_ZONES.map((zone, zoneIndex) => {
+                  const zoneLabel = t.menu.kbZones[zone];
+                  const items = KB_NAV_BY_ZONE[zone];
+                  return (
+                    <div key={zone} className="flex flex-col gap-0.5">
+                      {zoneIndex > 0 ? (
+                        <div className="mx-2 my-1 hidden h-px bg-sidebar-border group-data-[collapsible=icon]:block" />
+                      ) : null}
+                      <div
+                        className="px-2 pb-0.5 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/50 group-data-[collapsible=icon]:hidden"
+                      >
+                        {zoneLabel}
                       </div>
-                    );
-                  })}
-                </div>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          ) : (
-            <SidebarGroup className="group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:items-center">
-              <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden">
-                {t.menu.groups.platform}
-              </SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {platformItems.map((item) => {
-                    const active = isPlatformActive(item.to, item.exact);
-                    const label = t.menu.platform[item.labelKey];
-                    return (
-                      <SidebarMenuItem key={item.to}>
-                        <SidebarMenuButton asChild isActive={active} tooltip={label}>
-                          <Link to={item.to} onClick={closeMobile}>
-                            <SidebarIcon name={item.icon} />
-                            <span className="min-w-0 flex-1 truncate group-data-[collapsible=icon]:hidden">{label}</span>
-                          </Link>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    );
-                  })}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          )}
+                      <SidebarMenu>
+                        {items.map((item) => renderKbNavItem(navKbId, item))}
+                      </SidebarMenu>
+                    </div>
+                  );
+                })}
+              </div>
+            </SidebarGroupContent>
+          </SidebarGroup>
         </ScrollShadow>
       </SidebarContent>
       <SidebarFooter className="group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:items-center">

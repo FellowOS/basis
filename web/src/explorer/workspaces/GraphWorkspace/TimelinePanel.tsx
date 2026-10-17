@@ -3,6 +3,7 @@ import { DataSet } from "vis-data";
 import { Timeline } from "vis-timeline";
 import type { TimelineOptions } from "vis-timeline";
 import "vis-timeline/styles/vis-timeline-graph2d.css";
+import { Button } from "@/components/ui/button.js";
 import {
   graphTimelineCanvasHost,
   graphTimelineControls,
@@ -196,9 +197,11 @@ export function TimelinePanel({ onTimeChange, minDate, maxDate }: TimelinePanelP
     <div className={graphTimelineShell}>
       <style>{VIS_OVERRIDE_CSS}</style>
       <div className={graphTimelineControls}>
-        <button
+        <Button
           id="temporal-play-btn"
           type="button"
+          variant="ghost"
+          size="icon-sm"
           onClick={togglePlay}
           title={isPlaying ? ws.timelinePause : ws.timelinePlay}
           className={cn(graphTimelinePlayBtn, isPlaying && graphTimelinePlayBtnActive)}
@@ -208,7 +211,7 @@ export function TimelinePanel({ onTimeChange, minDate, maxDate }: TimelinePanelP
           ) : (
             <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21" /></svg>
           )}
-        </button>
+        </Button>
         <span className={cn(graphTimelineDate, isPlaying && graphTimelineDateActive)}>
           {displayDate}
         </span>

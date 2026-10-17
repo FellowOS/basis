@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button.js";
 import { PublicIcon } from "@/components/ui/public-icon.js";
 import { Label } from "@/components/ui/label.js";
+import { Textarea } from "@/components/ui/textarea.js";
 import { Switch } from "@/components/ui/switch.js";
 import { cn } from "@/lib/utils.js";
 import { exWsPaddedCol, exWsSplitSidebar } from "@/lib/explorer-ws-classes.js";
@@ -112,15 +113,17 @@ export function ReasoningInputPanel({
         </span>
         <div className="flex rounded-md border border-border p-0.5" role="group" aria-label={copy.templatesTitle}>
           {templateButtons.map(({ key, label }) => (
-            <button
+            <Button
               key={key}
               type="button"
-              className="inline-flex items-center gap-1 rounded-[5px] px-2 py-1 text-[11px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              variant="ghost"
+              size="sm"
+              className="h-auto gap-1 rounded-[5px] px-2 py-1 text-[11px] font-normal text-muted-foreground"
               onClick={() => onLoadTemplate(key)}
             >
               <PublicIcon name={TEMPLATE_ICONS[key]} size={12} />
               {label}
-            </button>
+            </Button>
           ))}
         </div>
       </div>
@@ -134,7 +137,7 @@ export function ReasoningInputPanel({
             title={copy.factsTitle}
             count={factCount}
           />
-          <textarea
+          <Textarea
             className="ws-textarea min-h-[8.5rem] font-mono text-xs leading-relaxed"
             value={facts}
             onChange={(e) => onFactsChange(e.target.value)}
@@ -195,7 +198,7 @@ export function ReasoningInputPanel({
               </Button>
             ) : null}
           </div>
-          <textarea
+          <Textarea
             className="ws-textarea min-h-[8.5rem] font-mono text-xs leading-relaxed"
             value={rules}
             onChange={(e) => onRulesChange(e.target.value)}

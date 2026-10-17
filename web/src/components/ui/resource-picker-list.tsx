@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { useMemo } from "react";
+import { Checkbox } from "@/components/ui/checkbox.js";
 import { PublicIcon } from "@/components/ui/public-icon.js";
 import { cn } from "@/lib/utils.js";
 
@@ -59,17 +60,13 @@ export function ResourcePickerList({
 					const content = (
 						<>
 							{interactive ? (
-								<span
-									className={cn(
-										"mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-[4px] border transition-colors",
-										active
-											? "border-primary bg-primary text-primary-foreground"
-											: "border-muted-foreground/35 bg-background",
-									)}
-									aria-hidden
-								>
-									{active ? <PublicIcon name="check-01" size={10} /> : null}
-								</span>
+								<Checkbox
+									checked={active}
+									disabled={disabled}
+									onCheckedChange={() => onToggle(option.id)}
+									className="mt-0.5"
+									aria-label={option.label ?? option.id}
+								/>
 							) : null}
 							<span className="min-w-0 flex-1">
 								<span className="block font-medium leading-snug">
@@ -105,21 +102,15 @@ export function ResourcePickerList({
 
 					return (
 						<li key={option.id}>
-							{/* biome-ignore lint/a11y/useSemanticElements: custom multi-select row styling */}
-							<button
-								type="button"
-								role="checkbox"
-								aria-checked={active}
-								disabled={disabled}
+							<label
 								className={cn(
-									"flex w-full items-start gap-3 px-3 py-2.5 text-left text-sm transition-colors",
+									"flex w-full cursor-pointer items-start gap-3 px-3 py-2.5 text-left text-sm transition-colors",
 									"hover:bg-muted",
 									disabled && "pointer-events-none opacity-60",
 								)}
-								onClick={() => onToggle(option.id)}
 							>
 								{content}
-							</button>
+							</label>
 						</li>
 					);
 				})

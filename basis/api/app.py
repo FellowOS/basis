@@ -17,6 +17,8 @@ from basis.admin.store import AdminStore
 from basis.api.routes import (
     audit,
     auth,
+    oauth,
+    organizations,
     health,
     kb_chat,
     kb_explorer,
@@ -169,6 +171,8 @@ def create_app(app_settings: Settings | None = None) -> FastAPI:
     app.include_router(health.router)
     app.include_router(platform.router)
     app.include_router(auth.router)
+    app.include_router(oauth.router)
+    app.include_router(organizations.router)
     app.include_router(users.router)
     app.include_router(kbs.router)
     app.include_router(kb_chat.router)

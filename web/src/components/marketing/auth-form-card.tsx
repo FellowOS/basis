@@ -8,9 +8,17 @@ import { PublicIcon } from '@/components/ui/public-icon.js';
 import { useI18n } from '@/i18n/context.js';
 import type { Locale } from '@/i18n/locale.js';
 import { formatUserFacingApiError } from '@/lib/api-error-message.js';
+import { api } from '@/lib/api.js';
 import { useBasisSession } from '@/lib/basis-session.js';
 
 type AuthMode = 'login' | 'register';
+
+type AuthProviders = {
+  password?: boolean;
+  github: boolean;
+  google: boolean;
+  magic_link: boolean;
+};
 
 export function AuthFormCard() {
   const { t, locale } = useI18n();
@@ -24,10 +32,21 @@ export function AuthFormCard() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [magicBusy, setMagicBusy] = useState(false);
+  const [magicNotice, setMagicNotice] = useState<string | null>(null);
+  const [providers, setProviders] = useState<AuthProviders | null>(null);
 
   useEffect(() => {
     setMode(searchParams.get('mode') === 'register' ? 'register' : 'login');
   }, [searchParams]);
+
+  useEffect(() => {
+    api<AuthProviders>('/api/auth/providers')
+      .then(setProviders)
+      .catch(() =>
+        setProviders({ github: false, google: false, magic_link: false }),
+      );
+  }, []);
 
   function switchMode(next: AuthMode) {
     setMode(next);
@@ -37,6 +56,24 @@ export function AuthFormCard() {
       setSearchParams({ mode: 'register' }, { replace: true });
     } else {
       setSearchParams({}, { replace: true });
+    }
+  }
+
+  async function onMagicLink() {
+    setError(null);
+    setMagicNotice(null);
+    setMagicBusy(true);
+    try {
+      await api('/api/auth/magic-link/request', {
+        method: 'POST',
+        body: JSON.stringify({ email }),
+      });
+      setMagicNotice(t.login.magicLinkSent);
+    } catch (err) {
+      const message = formatUserFacingApiError(err, locale as Locale);
+      setError(message || t.login.magicLinkFailed);
+    } finally {
+      setMagicBusy(false);
     }
   }
 
@@ -56,6 +93,10 @@ export function AuthFormCard() {
   }
 
   const isRegister = mode === 'register';
+  const showMagicLink = !isRegister && providers?.magic_link === true;
+  const showGithub = !isRegister && providers?.github === true;
+  const showGoogle = !isRegister && providers?.google === true;
+  const showOAuth = showGithub || showGoogle;
 
   const fieldLabel = 'text-[13px] font-medium text-foreground/75';
   const fieldInput =
@@ -124,15 +165,17 @@ export function AuthFormCard() {
                 className={`${fieldInput} pr-10`}
                 required
               />
-              <button
+              <Button
                 type="button"
-                className="absolute top-1/2 right-1 flex size-8 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-foreground/5 hover:text-foreground"
+                variant="ghost"
+                size="icon-sm"
+                className="absolute top-1/2 right-1 -translate-y-1/2 text-muted-foreground"
                 aria-label={showPassword ? t.login.hidePassword : t.login.showPassword}
                 aria-pressed={showPassword}
                 onClick={() => setShowPassword((visible) => !visible)}
               >
                 <PublicIcon name={showPassword ? 'eye-off' : 'eye-open'} size={16} />
-              </button>
+              </Button>
             </div>
           </div>
           {error && (
@@ -141,7 +184,7 @@ export function AuthFormCard() {
             </p>
           )}
         </div>
-        <div className="px-6 pt-3">
+        <div className="px-6 pt-3 space-y-2">
           <Button
             type="submit"
             size="lg"
@@ -150,18 +193,56 @@ export function AuthFormCard() {
           >
             {busy ? t.login.submitting : isRegister ? t.login.registerSubmit : t.login.submit}
           </Button>
+          {showMagicLink ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="lg"
+              className="w-full"
+              disabled={magicBusy || !email.trim()}
+              onClick={() => void onMagicLink()}
+            >
+              {magicBusy ? t.login.submitting : t.login.magicLinkSend}
+            </Button>
+          ) : null}
+          {magicNotice ? (
+            <p className="text-xs text-muted-foreground">{magicNotice}</p>
+          ) : null}
         </div>
       </form>
 
+      {showOAuth ? (
+        <div className="mx-6 mt-1 space-y-2 pb-2">
+          <p className="text-center text-xs text-muted-foreground">{t.login.orContinueWith}</p>
+          <div
+            className={
+              showGithub && showGoogle ? 'grid grid-cols-2 gap-2' : 'grid grid-cols-1 gap-2'
+            }
+          >
+            {showGithub ? (
+              <Button type="button" variant="outline" size="sm" asChild>
+                <a href="/api/auth/oauth/github/start">{t.login.continueGithub}</a>
+              </Button>
+            ) : null}
+            {showGoogle ? (
+              <Button type="button" variant="outline" size="sm" asChild>
+                <a href="/api/auth/oauth/google/start">{t.login.continueGoogle}</a>
+              </Button>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
+
       <p className="mx-6 mt-3 mb-4 border-t border-foreground/10 pt-3.5 text-sm text-muted-foreground">
         {isRegister ? t.login.hasAccount : t.login.noAccount}{' '}
-        <button
+        <Button
           type="button"
-          className="font-medium text-foreground underline-offset-4 hover:underline"
+          variant="link"
+          className="h-auto p-0 font-medium text-foreground"
           onClick={() => switchMode(isRegister ? 'login' : 'register')}
         >
           {isRegister ? t.login.switchToLogin : t.login.switchToRegister}
-        </button>
+        </Button>
       </p>
     </div>
   );

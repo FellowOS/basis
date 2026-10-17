@@ -16,6 +16,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog.js";
 import { Label } from "@/components/ui/label.js";
+import { Slider } from "@/components/ui/slider.js";
 import { buildExplorerKbApiPath, explorerFetch } from "../../host/explorerHttp";
 import { fetchKbNodeLabels } from "@/lib/kb-node-labels.js";
 import { errorFromApiResponse } from "@/lib/api-error.js";
@@ -163,9 +164,15 @@ function PairRow({
     <div className={exWsErPairCard}>
       <div className="flex items-start gap-3">
         {/* Expand */}
-        <button type="button" onClick={() => setExpanded((v) => !v)} className={exWsErExpandBtn}>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className={exWsErExpandBtn}
+          onClick={() => setExpanded((v) => !v)}
+        >
           {expanded ? <PublicIcon name="chevron-down" size={13} /> : <PublicIcon name="chevron-right" size={13} />}
-        </button>
+        </Button>
 
         {/* Entity Labels */}
         <div className="min-w-0 flex-1">
@@ -420,15 +427,13 @@ export function EntityResolutionTab({
                 {formatLocaleFixedDecimals(locale, threshold, 2)}
               </span>
             </div>
-            <input
+            <Slider
               id="dedup-threshold"
-              type="range"
               min={0.5}
               max={0.99}
               step={0.01}
-              value={threshold}
-              onChange={(e) => setThreshold(parseFloat(e.target.value))}
-              className="w-full accent-primary"
+              value={[threshold]}
+              onValueChange={(value) => setThreshold(value[0] ?? 0.5)}
             />
             <p className="text-[10px] text-muted-foreground">{er.thresholdHint}</p>
           </div>

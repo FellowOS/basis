@@ -1,4 +1,5 @@
 import { PublicIcon } from '@/components/ui/public-icon.js';
+import { SIDEBAR_ICON_BUTTON_CLASS, SidebarIcon } from '@/components/sidebar-icon.js';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { ConfirmAlertDialog } from '@/components/console-ui/ConfirmAlertDialog.js';
@@ -70,14 +71,17 @@ export function KbGraphRebuildButton({
           type="button"
           variant="outline"
           size={iconOnly ? "icon-sm" : "sm"}
+          className={iconOnly ? SIDEBAR_ICON_BUTTON_CLASS : undefined}
           disabled={busy}
           aria-label={iconOnly ? w.rebuildButton : undefined}
           title={iconOnly ? w.rebuildButton : undefined}
         >
           {busy ? (
             <Spinner className={iconOnly ? "size-4" : "size-3.5"} />
+          ) : iconOnly ? (
+            <SidebarIcon name="sync" />
           ) : (
-            <PublicIcon name="sync" className={iconOnly ? undefined : "size-3.5"} />
+            <PublicIcon name="sync" className="size-3.5" />
           )}
           {iconOnly ? null : w.rebuildButton}
         </Button>

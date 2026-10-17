@@ -13,6 +13,7 @@ import { OntologyLoader } from "./OntologyLoader";
 import { OntologySearch } from "./OntologySearch";
 import { SKOSVocabularyManager } from "./SKOSVocabularyManager";
 import { Button } from "@/components/ui/button.js";
+import { Input } from "@/components/ui/input.js";
 import { useI18n } from "@/i18n/context.js";
 import type { Locale } from "@/i18n/locale.js";
 import { fmt, formatLocaleDateTime, formatLocaleNumber, pickCountForm } from "@/i18n/format.js";
@@ -197,8 +198,10 @@ function RegistryRow({
       </div>
 
       <div className={ontManagerRowActions}>
-        <button
+        <Button
           type="button"
+          variant="ghost"
+          size="icon-sm"
           title={entry.enabled ? m.disable : m.enable}
           onClick={handleToggle}
           disabled={busyToggle}
@@ -211,11 +214,13 @@ function RegistryRow({
           ) : (
             <PublicIcon name="toggle-left" size={15} className="text-muted-foreground" />
           )}
-        </button>
+        </Button>
 
         {entry.source_url && (
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="icon-sm"
             title={m.refreshTitle}
             onClick={handleRefresh}
             disabled={busyRefresh}
@@ -226,11 +231,13 @@ function RegistryRow({
             ) : (
               <PublicIcon name="arrow-refresh-01" size={13} className="text-primary" />
             )}
-          </button>
+          </Button>
         )}
 
-        <button
+        <Button
           type="button"
+          variant="ghost"
+          size="icon-sm"
           title={m.removeTitle}
           onClick={handleRemove}
           disabled={busyRemove}
@@ -241,7 +248,7 @@ function RegistryRow({
           ) : (
             <PublicIcon name="trash-01" size={13} />
           )}
-        </button>
+        </Button>
       </div>
     </div>
   );
@@ -424,11 +431,11 @@ export function OntologyManager({
         <div className={ontManagerToolbar}>
           <div className={ontManagerSearchBox}>
             <PublicIcon name="search-01" size={14} className="text-muted-foreground" />
-            <input
+            <Input
               value={searchQ}
               onChange={(e) => setSearchQ(e.target.value)}
               placeholder={m.searchPlaceholder}
-              className={ontManagerSearchInput}
+              className={cn(ontManagerSearchInput, "h-8 border-0 bg-transparent shadow-none focus-visible:ring-0")}
             />
           </div>
 
@@ -538,7 +545,15 @@ export function OntologyManager({
             <div className={ontManagerRightPanel}>
               <div className={ontManagerRightHeader}>
                 <span className="truncate text-sm font-bold text-foreground">{m.entitySearch}</span>
-                <button type="button" onClick={() => setRightPanel("none")} className={ontManagerCloseBtn}>×</button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className={ontManagerCloseBtn}
+                  onClick={() => setRightPanel("none")}
+                >
+                  ×
+                </Button>
               </div>
               <OntologySearch />
             </div>
@@ -550,16 +565,26 @@ export function OntologyManager({
                 <span className="truncate text-sm font-bold text-foreground">{selectedEntry.name}</span>
                 <div className="flex gap-1.5">
                   {isSKOS && (
-                    <button
+                    <Button
                       type="button"
-                      onClick={() => setRightPanel("skos")}
+                      variant="outline"
+                      size="sm"
                       className={ontManagerBrowseBtn}
+                      onClick={() => setRightPanel("skos")}
                     >
                       <PublicIcon name="book-01" size={12} />
                       {m.browseSkos}
-                    </button>
+                    </Button>
                   )}
-                  <button type="button" onClick={() => setSelectedEntry(null)} className={ontManagerCloseBtn}>×</button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className={ontManagerCloseBtn}
+                    onClick={() => setSelectedEntry(null)}
+                  >
+                    ×
+                  </Button>
                 </div>
               </div>
               <div className={ontManagerDetailBody}>
@@ -624,11 +649,25 @@ export function OntologyManager({
                   {fmt(m.skosPanelTitle, { name: selectedEntry.name })}
                 </span>
                 <div className="flex gap-1.5">
-                  <button type="button" onClick={() => setRightPanel("none")} className={ontManagerBrowseBtn}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className={ontManagerBrowseBtn}
+                    onClick={() => setRightPanel("none")}
+                  >
                     <PublicIcon name="stack" size={12} />
                     {m.registryDetail}
-                  </button>
-                  <button type="button" onClick={() => setRightPanel("none")} className={ontManagerCloseBtn}>×</button>
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className={ontManagerCloseBtn}
+                    onClick={() => setRightPanel("none")}
+                  >
+                    ×
+                  </Button>
                 </div>
               </div>
               <SKOSVocabularyManager schemeUri={selectedEntry.uri} />

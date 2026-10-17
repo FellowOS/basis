@@ -10,6 +10,8 @@ web/.env
 web/.env.local
 data/
 data-e2e/
+docker/authentik/data/
+docker/authentik/certs/
 web/test-results/
 web/playwright-report/
 web/blob-report/

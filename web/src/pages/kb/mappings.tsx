@@ -286,7 +286,7 @@ export function KbMappingsPage() {
                 body={m.mappingsEmptyBody}
               />
             ) : (
-              <DataTable columns={mappingColumns} data={rows} rowKey={(row) => row.id} className="rounded-none border-0" />
+              <DataTable columns={mappingColumns} data={rows} rowKey={(row) => row.id} className="border-0" />
             )}
           </div>
         </section>
@@ -316,7 +316,7 @@ export function KbMappingsPage() {
                 body={m.typedFactsEmptyBody}
               />
             ) : (
-              <DataTable columns={factColumns} data={typedFacts} rowKey={(fact) => fact.id} className="rounded-none border-0" />
+              <DataTable columns={factColumns} data={typedFacts} rowKey={(fact) => fact.id} className="border-0" />
             )}
           </div>
         </section>

@@ -2,6 +2,11 @@ import { PublicIcon } from "@/components/ui/public-icon.js";
 import { useCallback, useEffect, useState } from "react";
 import { cn } from "@/lib/utils.js";
 import { Button } from "@/components/ui/button.js";
+import { Label } from "@/components/ui/label.js";
+import {
+  NativeSelect,
+  NativeSelectOption,
+} from "@/components/ui/native-select.js";
 import { useI18n } from "@/i18n/context.js";
 import type { Locale } from "@/i18n/locale.js";
 import { explorerApiErrorMessage } from "../../lib/explorer-api-error";
@@ -9,11 +14,9 @@ import { loadOntologyHealth, loadOntologyRegistry } from "./api";
 import { useOntologyKbId } from "./ontologyKb";
 import type { OntologyEntry, OntologyHealthResponse, HealthIssue } from "./types";
 import {
-  ontBtnSmall,
   ontCard,
   ontErrorBanner,
   ontHero,
-  ontInput,
   ontKicker,
   ontLabel,
   ontLead,
@@ -105,13 +108,19 @@ export function HealthTab({ onFixInEditor }: HealthTabProps) {
           <h2 className="my-2 text-2xl font-bold tracking-tight text-foreground">{h.title}</h2>
           <p className={ontLead}>{h.lead}</p>
         </div>
-        <div className="min-w-[320px]">
-          <label className={ontLabel}>{h.ontologyLabel}</label>
-          <select className={ontInput} value={selectedUri} onChange={(event) => setSelectedUri(event.target.value)}>
+        <div className="min-w-[320px] space-y-2">
+          <Label className={ontLabel}>{h.ontologyLabel}</Label>
+          <NativeSelect
+            fullWidth
+            value={selectedUri}
+            onChange={(event) => setSelectedUri(event.target.value)}
+          >
             {registry.map((entry) => (
-              <option key={entry.uri} value={entry.uri}>{entry.name}</option>
+              <NativeSelectOption key={entry.uri} value={entry.uri}>
+                {entry.name}
+              </NativeSelectOption>
             ))}
-          </select>
+          </NativeSelect>
         </div>
       </section>
 
@@ -205,10 +214,16 @@ function IssueRow({
         {issue.category}
       </span>
       {issue.entity_uri ? (
-        <button type="button" className={ontBtnSmall} onClick={() => onFixInEditor?.(issue.entity_uri || "")}>
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          className="h-8 gap-1.5 px-2.5 text-xs"
+          onClick={() => onFixInEditor?.(issue.entity_uri || "")}
+        >
           <PublicIcon name="wrench" size={13} />
           {fixLabel}
-        </button>
+        </Button>
       ) : (
         <div />
       )}

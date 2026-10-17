@@ -13,4 +13,6 @@ export const sidebar = {
   localeEnglish: 'English',
   localeChinese: '中文',
   logout: '退出',
+  platformAdmin: '平台管理',
+  management: '管理',
 } as const;

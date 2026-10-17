@@ -66,6 +66,7 @@ export const menu = {
     search: 'Search & index',
     explorerGraph: 'Explorer graph',
     members: 'Members',
+    sso: 'SSO',
     danger: 'Danger zone',
     myRole: 'My role',
     deleteKb: 'Delete knowledge base',
@@ -119,6 +120,6 @@ export const menu = {
   },
   system: {
     title: 'System',
-    hint: 'Registration policy and deployment options.',
+    hint: 'Platform registration policy and organization SSO (OIDC).',
   },
 } as const;

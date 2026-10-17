@@ -1,3 +1,5 @@
+import { Button } from "@/components/ui/button.js";
+import { Input } from "@/components/ui/input.js";
 import { PublicIcon } from "@/components/ui/public-icon.js";
 import { useI18n } from "@/i18n/context.js";
 import { fmt, formatLocaleNumber, pickCountForm } from "@/i18n/format.js";
@@ -153,10 +155,16 @@ function ConceptDetailPanel({
       <PropSection label={label}>
         <div className="flex flex-col gap-1">
           {uris.map((u) => (
-            <button key={u} type="button" onClick={() => onNavigate(u)} className={ontSkosNavLink}>
+            <Button
+              key={u}
+              type="button"
+              variant="ghost"
+              className={cn(ontSkosNavLink, "h-auto w-full justify-start font-normal")}
+              onClick={() => onNavigate(u)}
+            >
               <PublicIcon name="chevron-right" className="size-2.5 shrink-0" />
               <UriLink uri={u} />
-            </button>
+            </Button>
           ))}
         </div>
       </PropSection>
@@ -170,9 +178,16 @@ function ConceptDetailPanel({
           <PublicIcon name="book-01" className="size-3.5 shrink-0 text-ok" />
           <span className="truncate text-sm font-bold text-foreground">{s.conceptDetail}</span>
         </div>
-        <button type="button" onClick={onClose} className={ontSkosIconBtn} aria-label={s.closeAria}>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          className={ontSkosIconBtn}
+          onClick={onClose}
+          aria-label={s.closeAria}
+        >
           <PublicIcon name="x-02" className="size-3.5" />
-        </button>
+        </Button>
       </div>
 
       {loading && (
@@ -286,8 +301,10 @@ function ConceptTreeNode({
         )}
       >
         {hasChildren ? (
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="icon-sm"
             onClick={(e) => {
               e.stopPropagation();
               setExpanded((v) => !v);
@@ -296,7 +313,7 @@ function ConceptTreeNode({
             aria-expanded={expanded}
           >
             {expanded ? <PublicIcon name="chevron-down" className="size-2.5" /> : <PublicIcon name="chevron-right" className="size-2.5" />}
-          </button>
+          </Button>
         ) : (
           <span className={ontSkosTreeSpacer} aria-hidden />
         )}
@@ -425,7 +442,12 @@ function SchemePanel({
 
   return (
     <div className={ontSkosSchemePanel}>
-      <button type="button" onClick={() => setExpanded((v) => !v)} className={ontSkosSchemeHeaderBtn}>
+      <Button
+        type="button"
+        variant="ghost"
+        className={cn(ontSkosSchemeHeaderBtn, "h-auto w-full font-normal")}
+        onClick={() => setExpanded((v) => !v)}
+      >
         <div className="flex items-center gap-2">
           {expanded ? (
             <PublicIcon name="chevron-down" className="size-3.5 text-muted-foreground" />
@@ -435,7 +457,7 @@ function SchemePanel({
           <span className={ontSkosSchemeTitle}>{scheme.title}</span>
         </div>
         <span className="text-[11px] text-muted-foreground">{conceptCountLabel}</span>
-      </button>
+      </Button>
 
       {expanded && (
         <div className="pb-2">
@@ -514,16 +536,23 @@ export function SKOSVocabularyManager({ schemeUri }: Props) {
       <div className={ontSkosToolbar}>
         <div className={ontSkosSearchBar}>
           <PublicIcon name="search-01" className="size-3.5 shrink-0 text-muted-foreground" />
-          <input
+          <Input
             value={searchQ}
             onChange={(e) => setSearchQ(e.target.value)}
             placeholder={s.searchPlaceholder}
-            className={ontSkosSearchInput}
+            className={cn(ontSkosSearchInput, "h-8 border-0 bg-transparent shadow-none focus-visible:ring-0")}
           />
           {searchQ ? (
-            <button type="button" onClick={() => setSearchQ("")} className={ontSkosIconBtn} aria-label={s.clearAria}>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              className={ontSkosIconBtn}
+              onClick={() => setSearchQ("")}
+              aria-label={s.clearAria}
+            >
               <PublicIcon name="x-02" className="size-2.5" />
-            </button>
+            </Button>
           ) : null}
         </div>
       </div>

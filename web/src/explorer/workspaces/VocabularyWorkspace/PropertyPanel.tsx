@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button.js';
 import { PublicIcon } from '@/components/ui/public-icon.js';
 import { useI18n } from '@/i18n/context.js';
 import { exWsHint, exWsScrollFill, exWsSplitMain } from '@/lib/explorer-ws-classes.js';
@@ -75,15 +76,16 @@ export function PropertyPanel({ concept, onSelectConcept }: PropertyPanelProps) 
               {narrower.length > 0 ? (
                 <div className="flex flex-col">
                   {narrower.map((child) => (
-                    <button
+                    <Button
                       key={child.uri}
                       type="button"
-                      className="flex h-8 items-center gap-2 rounded-md px-2 text-left text-[13px] text-foreground hover:bg-muted"
+                      variant="ghost"
+                      className="h-8 w-full justify-start gap-2 rounded-md px-2 text-left text-[13px] font-normal text-foreground"
                       onClick={() => onSelectConcept(child)}
                     >
                       <PublicIcon name={child.children?.length ? 'folder' : 'file-01'} size={13} className="shrink-0 text-muted-foreground" />
                       <span className="min-w-0 truncate">{child.pref_label}</span>
-                    </button>
+                    </Button>
                   ))}
                 </div>
               ) : (

@@ -19,6 +19,7 @@ export type ApiErrorDetail = {
 export type ApiErrorWithMeta = Error & {
   code?: string;
   requestId?: string;
+  status?: number;
 };
 
 export function errorFromApiResponse(
@@ -43,6 +44,7 @@ export function errorFromApiResponse(
       : (detail.message?.trim() || defaultMessage),
   );
   const meta = err as ApiErrorWithMeta;
+  meta.status = status;
   if (detail.code) {
     meta.code = detail.code;
   }

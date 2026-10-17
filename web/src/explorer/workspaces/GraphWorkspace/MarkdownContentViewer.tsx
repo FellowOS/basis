@@ -1,3 +1,5 @@
+import { Button } from "@/components/ui/button.js";
+import { Textarea } from "@/components/ui/textarea.js";
 import { PublicIcon } from "@/components/ui/public-icon.js";
 import {
   useEffect,
@@ -285,8 +287,9 @@ export function MarkdownContentViewer({
     <div className={cn("graph-markdown-viewer", className)}>
       <div className="graph-markdown-viewer__header">
         <div className="flex gap-1" role="tablist" aria-label={md.viewModeAria}>
-          <button
+          <Button
             type="button"
+            variant="ghost"
             role="tab"
             id={previewTabId}
             ref={previewTabRef}
@@ -295,13 +298,14 @@ export function MarkdownContentViewer({
             tabIndex={activeMode === "preview" ? 0 : -1}
             onClick={() => selectMode("preview")}
             onKeyDown={handleTabKeyDown}
-            className="graph-markdown-viewer__tab"
+            className="graph-markdown-viewer__tab h-auto gap-1.5 px-2 py-1 font-normal shadow-none focus-visible:ring-0"
           >
             <PublicIcon name="eye-open" size={12} />
             {md.preview}
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            variant="ghost"
             role="tab"
             id={sourceTabId}
             ref={sourceTabRef}
@@ -310,19 +314,21 @@ export function MarkdownContentViewer({
             tabIndex={activeMode === "source" ? 0 : -1}
             onClick={() => selectMode("source")}
             onKeyDown={handleTabKeyDown}
-            className="graph-markdown-viewer__tab"
+            className="graph-markdown-viewer__tab h-auto gap-1.5 px-2 py-1 font-normal shadow-none focus-visible:ring-0"
           >
             <PublicIcon name="code-01" size={12} />
             {md.source}
-          </button>
+          </Button>
         </div>
 
         <div className="flex items-center gap-1.5">
           {hasContent && (
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="sm"
               onClick={() => void handleCopy()}
-              className="graph-markdown-viewer__toolbtn"
+              className="graph-markdown-viewer__toolbtn h-auto px-2 py-1 font-normal"
               title={md.copyRawTitle}
             >
               {copied ? (
@@ -336,32 +342,52 @@ export function MarkdownContentViewer({
                   <span>{t.common.copy}</span>
                 </>
               )}
-            </button>
+            </Button>
           )}
           {resource && allowEdit && !editing && !loading ? (
-            <button type="button" onClick={() => void handleEdit()} className="graph-markdown-viewer__toolbtn">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => void handleEdit()}
+              className="graph-markdown-viewer__toolbtn h-auto px-2 py-1 font-normal"
+            >
               <PublicIcon name="edit-01" size={12} />
               {md.edit}
-            </button>
+            </Button>
           ) : null}
           {loading ? (
-            <button type="button" disabled className="graph-markdown-viewer__toolbtn">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              disabled
+              className="graph-markdown-viewer__toolbtn h-auto px-2 py-1 font-normal"
+            >
               <PublicIcon name="loader-01" size={12} className="animate-spin" />
               {t.common.loading}
-            </button>
+            </Button>
           ) : null}
           {editing ? (
             <>
-              <button type="button" onClick={handleCancel} disabled={saving} className="graph-markdown-viewer__toolbtn">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={handleCancel}
+                disabled={saving}
+                className="graph-markdown-viewer__toolbtn h-auto px-2 py-1 font-normal"
+              >
                 <PublicIcon name="x-02" size={12} />
                 {t.common.cancel}
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
+                size="sm"
                 onClick={() => void handleApply()}
                 disabled={saving || !dirty}
                 title={!dirty ? md.applyNeedChange : undefined}
-                className="graph-markdown-viewer__save"
+                className="graph-markdown-viewer__save h-auto font-normal"
               >
                 {saving ? (
                   <PublicIcon name="loader-01" size={12} className="animate-spin" />
@@ -369,7 +395,7 @@ export function MarkdownContentViewer({
                   <PublicIcon name="check-01" size={12} />
                 )}
                 {saving ? md.applying : md.apply}
-              </button>
+              </Button>
             </>
           ) : null}
         </div>
@@ -379,14 +405,16 @@ export function MarkdownContentViewer({
         <div id="markdown-editor-error" role="alert" className="graph-markdown-viewer__error">
           <span>{markdownErrorText(error, apiError)}</span>
           {error.kind === "conflict" ? (
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="sm"
               onClick={() => void editor.reloadLatest()}
-              className="graph-markdown-viewer__toolbtn graph-markdown-viewer__error-action"
+              className="graph-markdown-viewer__toolbtn graph-markdown-viewer__error-action h-auto px-2 py-1 font-normal"
             >
               <PublicIcon name="arrow-refresh-01" size={12} />
               {md.reloadLatest}
-            </button>
+            </Button>
           ) : null}
         </div>
       ) : null}
@@ -408,7 +436,7 @@ export function MarkdownContentViewer({
         className="graph-markdown-viewer__body"
       >
         {activeMode === "source" && editing ? (
-          <textarea
+          <Textarea
             aria-label={md.sourceAria}
             aria-describedby={error ? "markdown-editor-error" : undefined}
             aria-invalid={error?.kind === "validation" || undefined}
@@ -416,7 +444,7 @@ export function MarkdownContentViewer({
             onChange={(event) => editor.changeDraft(event.target.value)}
             disabled={saving}
             spellCheck={false}
-            className="graph-markdown-viewer__editor"
+            className="graph-markdown-viewer__editor min-h-0 resize-none rounded-none border-0 shadow-none focus-visible:ring-0"
           />
         ) : !hasContent ? (
           <div className="graph-markdown-viewer__empty">{md.empty}</div>

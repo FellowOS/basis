@@ -1,3 +1,5 @@
+import { Button } from "@/components/ui/button.js";
+import { Input } from "@/components/ui/input.js";
 import { PublicIcon } from "@/components/ui/public-icon.js";
 import { useEffect, useRef, useState } from "react";
 import { explorerApiErrorMessage, explorerGetJson, parseExplorerJson } from "../../lib/explorer-api-error";
@@ -147,11 +149,16 @@ function CollapsibleList({ label, items }: { label: string; items: string[] }) {
   if (!items.length) return null;
   return (
     <div>
-      <button type="button" onClick={() => setOpen((v) => !v)} className={ontSearchCollapseBtn}>
+      <Button
+        type="button"
+        variant="ghost"
+        className={cn(ontSearchCollapseBtn, "h-auto justify-start px-0 font-normal")}
+        onClick={() => setOpen((v) => !v)}
+      >
         {open ? <PublicIcon name="chevron-down" size={12} /> : <PublicIcon name="chevron-right" size={12} />}
         <span>{label}</span>
         <span className="text-[10px]">({formatLocaleNumber(locale, items.length)})</span>
-      </button>
+      </Button>
       {open ? (
         <div className="ml-4 mt-1 flex flex-col gap-1">
           {items.slice(0, 12).map((uri) => (
@@ -225,9 +232,16 @@ function DetailPanel({
           <PublicIcon name="book-01" size={14} className="shrink-0 text-primary" />
           <span className="truncate text-sm font-bold text-foreground">{s.entityDetail}</span>
         </div>
-        <button type="button" onClick={onClose} className={ontManagerCloseBtn} aria-label={s.closeAria}>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          className={ontManagerCloseBtn}
+          onClick={onClose}
+          aria-label={s.closeAria}
+        >
           <PublicIcon name="x-02" size={14} />
-        </button>
+        </Button>
       </div>
 
       {loading ? (
@@ -352,41 +366,45 @@ export function OntologySearch() {
       <div className={ontSearchTop}>
         <div className={ontSearchBar}>
           <PublicIcon name="search-01" size={14} className="shrink-0 text-muted-foreground" />
-          <input
+          <Input
             autoFocus
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={s.placeholder}
-            className={ontSearchInput}
+            className={cn(ontSearchInput, "h-8 border-0 bg-transparent shadow-none focus-visible:ring-0")}
           />
           {searching ? (
             <PublicIcon name="loader-01" size={13} className="shrink-0 animate-spin text-primary" />
           ) : null}
           {query && !searching ? (
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="icon-sm"
               onClick={() => { setQuery(""); setResults([]); }}
               className={ontSearchClearBtn}
               aria-label={s.clearAria}
             >
               <PublicIcon name="x-02" size={12} />
-            </button>
+            </Button>
           ) : null}
         </div>
 
         <div className="flex flex-wrap gap-1">
           {filterTypes.map((ft) => (
-            <button
+            <Button
               key={ft}
               type="button"
+              variant="ghost"
               onClick={() => setEntityType(ft)}
               className={cn(
                 ontSearchFilterBtn,
+                "h-auto font-normal",
                 entityType === ft ? ontSearchFilterActive : ontSearchFilterIdle,
               )}
             >
               {s.entityTypes[ft]}
-            </button>
+            </Button>
           ))}
         </div>
       </div>

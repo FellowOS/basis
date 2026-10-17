@@ -25,4 +25,9 @@ describe('errorFromApiResponse', () => {
     expect((err as Error & { requestId?: string }).requestId).toBe('trace-99');
     expect(formatUserFacingApiError(err, 'en')).toContain('trace-99');
   });
+
+  it('attaches HTTP status on the error object', () => {
+    const err = errorFromApiResponse(503, { detail: 'Unavailable' });
+    expect((err as Error & { status?: number }).status).toBe(503);
+  });
 });

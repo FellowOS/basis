@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from basis.admin.store import AdminStore
+from basis.explorer.graph_diff import diff_graph_states
 from basis.graph.projector import graph_projection_signature, rebuild_graph_from_ledger
 from basis.graph.session import GraphSession
 from basis.knowledge.blob_store import BlobStore
@@ -108,6 +109,50 @@ def test_derived_facts_projected_as_edges(tmp_path: Path) -> None:
         src == subj and tgt == obj and label == "knows"
         for src, tgt, label in sig["edges"]
     )
+    store.close()
+
+
+def test_projection_valid_from_enables_temporal_node_diff(tmp_path: Path) -> None:
+    kb_id, store = _kb_store(tmp_path)
+    _, version_id, _, _ = store.store_upload_bytes(
+        kb_id,
+        title="t.txt",
+        mime_type="text/plain",
+        data=b"x",
+        created_by=None,
+        external_key="doc-temporal",
+    )
+    chunk_id = store.create_chunk(kb_id, version_id, ordinal=0, text="Early knows Late.")
+    store.set_version_status(kb_id, version_id, "ready")
+    early = store.create_entity(kb_id, canonical_label="EarlyEnt")
+    late = store.create_entity(kb_id, canonical_label="LateEnt")
+    sid = store.add_open_statement(
+        kb_id,
+        subject_id=early,
+        surface_phrase="knows",
+        object_entity_id=late,
+        object_value=None,
+        status="confirmed",
+        proposed_by="test",
+        chunk_id=chunk_id,
+        quote="knows",
+    )
+    with store._lock:
+        store._conn.execute(
+            "UPDATE statements SET recorded_at = ? WHERE id = ?",
+            ("2020-06-01T00:00:00", sid),
+        )
+        store._conn.commit()
+
+    session = rebuild_graph_from_ledger(store, kb_id)
+    before = session.graph.state_at("2020-01-01T00:00:00")
+    after = session.graph.state_at("2021-01-01T00:00:00")
+    before_ids = {n["id"] for n in before["nodes"]}
+    assert early not in before_ids
+    assert late not in before_ids
+    diff = diff_graph_states(before, after)
+    assert late in diff["added_nodes"]
+    assert early in diff["added_nodes"]
     store.close()
 
 

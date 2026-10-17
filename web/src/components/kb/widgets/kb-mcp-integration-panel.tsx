@@ -196,15 +196,16 @@ export function KbMcpIntegrationPanel({
                 <div className="flex items-center justify-between gap-2">
                   <span className="min-w-0 truncate text-[13px] text-foreground">{row.name}</span>
                   <div className="flex shrink-0 items-center gap-2">
-                    <button
+                    <Button
                       type="button"
-                      className="text-[11px] text-foreground underline-offset-2 hover:underline disabled:text-muted-foreground disabled:no-underline"
+                      variant="link"
+                      className="h-auto p-0 text-[11px]"
                       disabled={!row.secret}
                       title={row.secret ? undefined : t.menu.kbMcp.copyTokenUnavailable}
                       onClick={() => row.secret && void onCopy(row.secret)}
                     >
                       {t.menu.kbMcp.copyToken}
-                    </button>
+                    </Button>
                     {canManageTokens ? (
                       <ConfirmAlertDialog
                         title={t.menu.kbMcp.deleteTitle}
@@ -212,9 +213,13 @@ export function KbMcpIntegrationPanel({
                         destructive
                         onConfirm={() => onDeleteToken(row.id)}
                         trigger={
-                          <button type="button" className="text-[11px] text-destructive underline-offset-2 hover:underline">
+                          <Button
+                            type="button"
+                            variant="link"
+                            className="h-auto p-0 text-[11px] text-destructive"
+                          >
                             {t.menu.kbMcp.delete}
-                          </button>
+                          </Button>
                         }
                       />
                     ) : null}

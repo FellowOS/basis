@@ -12,6 +12,9 @@ import {
 } from "@/components/ui/dialog.js";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs.js";
 import { Button } from "@/components/ui/button.js";
+import { Input } from "@/components/ui/input.js";
+import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select.js";
+import { Textarea } from "@/components/ui/textarea.js";
 import { useI18n } from "@/i18n/context.js";
 import { fmt, formatLocaleNumber } from "@/i18n/format.js";
 import type { Locale } from "@/i18n/locale.js";
@@ -91,52 +94,6 @@ function FieldGroup({
       <label className={ontLabel}>{label}</label>
       {children}
     </div>
-  );
-}
-
-function Input({
-  value,
-  onChange,
-  placeholder,
-  type = "text",
-  className,
-}: {
-  value: string;
-  onChange: (v: string) => void;
-  placeholder?: string;
-  type?: string;
-  className?: string;
-}) {
-  return (
-    <input
-      type={type}
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      placeholder={placeholder}
-      className={cn(ontInput, className)}
-    />
-  );
-}
-
-function Textarea({
-  value,
-  onChange,
-  placeholder,
-  rows = 5,
-}: {
-  value: string;
-  onChange: (v: string) => void;
-  placeholder?: string;
-  rows?: number;
-}) {
-  return (
-    <textarea
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      placeholder={placeholder}
-      rows={rows}
-      className={ontLoaderTextarea}
-    />
   );
 }
 
@@ -263,7 +220,7 @@ function URLImportPanel({ onLoaded }: { onLoaded: () => void }) {
     <div className={ontLoaderPanelBody}>
       <FieldGroup label={l.ontologyUrl}>
         <div className="flex gap-2">
-          <input
+          <Input
             type="url"
             value={url}
             onChange={(e) => {
@@ -300,41 +257,58 @@ function URLImportPanel({ onLoaded }: { onLoaded: () => void }) {
 
       {preview && <PreviewCard preview={preview} />}
 
-      <button
+      <Button
         type="button"
+        variant="ghost"
         onClick={() => setShowAdvanced((v) => !v)}
-        className={ontLoaderAdvancedToggle}
+        className={cn(ontLoaderAdvancedToggle, "h-auto justify-start font-normal")}
       >
         <PublicIcon name="chevron-down"
           size={13}
           className={cn("transition-transform duration-200", showAdvanced && "rotate-180")}
         />
         {l.advancedOptions}
-      </button>
+      </Button>
 
       {showAdvanced && (
         <div className="flex flex-col gap-3">
           <FieldGroup label={l.formatOverride}>
-            <select
+            <NativeSelect
+              fullWidth
               value={format}
               onChange={(e) => setFormat(e.target.value)}
               className={ontLoaderSelect}
             >
-              <option value="">{l.formatAuto}</option>
-              <option value="turtle">{l.formatSelectExtended.turtle}</option>
-              <option value="xml">{l.formatSelectExtended.xml}</option>
-              <option value="nt">{l.formatSelectExtended.nt}</option>
-              <option value="json-ld">{l.formatSelectExtended['json-ld']}</option>
-            </select>
+              <NativeSelectOption value="">{l.formatAuto}</NativeSelectOption>
+              <NativeSelectOption value="turtle">{l.formatSelectExtended.turtle}</NativeSelectOption>
+              <NativeSelectOption value="xml">{l.formatSelectExtended.xml}</NativeSelectOption>
+              <NativeSelectOption value="nt">{l.formatSelectExtended.nt}</NativeSelectOption>
+              <NativeSelectOption value="json-ld">{l.formatSelectExtended['json-ld']}</NativeSelectOption>
+            </NativeSelect>
           </FieldGroup>
           <FieldGroup label={l.customDisplayName}>
-            <Input value={customName} onChange={setCustomName} placeholder={l.customNamePlaceholder} />
+            <Input
+              value={customName}
+              onChange={(e) => setCustomName(e.target.value)}
+              placeholder={l.customNamePlaceholder}
+              className={ontInput}
+            />
           </FieldGroup>
           <FieldGroup label={m.detailDescription}>
-            <Input value={description} onChange={setDescription} placeholder={l.descriptionOptional} />
+            <Input
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder={l.descriptionOptional}
+              className={ontInput}
+            />
           </FieldGroup>
           <FieldGroup label={l.tagsComma}>
-            <Input value={tags} onChange={setTags} placeholder={l.tagsPlaceholderUrl} />
+            <Input
+              value={tags}
+              onChange={(e) => setTags(e.target.value)}
+              placeholder={l.tagsPlaceholderUrl}
+              className={ontInput}
+            />
           </FieldGroup>
         </div>
       )}
@@ -469,16 +443,17 @@ function FileUploadPanel({ onLoaded }: { onLoaded: () => void }) {
 
       {content && (
         <FieldGroup label={l.format}>
-          <select
+          <NativeSelect
+            fullWidth
             value={format}
             onChange={(e) => setFormat(e.target.value)}
             className={ontLoaderSelect}
           >
-            <option value="turtle">{mgr.formatLabels.turtle}</option>
-            <option value="xml">{mgr.formatLabels.xml}</option>
-            <option value="nt">{mgr.formatLabels.nt}</option>
-            <option value="json-ld">{mgr.formatLabels['json-ld']}</option>
-          </select>
+            <NativeSelectOption value="turtle">{mgr.formatLabels.turtle}</NativeSelectOption>
+            <NativeSelectOption value="xml">{mgr.formatLabels.xml}</NativeSelectOption>
+            <NativeSelectOption value="nt">{mgr.formatLabels.nt}</NativeSelectOption>
+            <NativeSelectOption value="json-ld">{mgr.formatLabels['json-ld']}</NativeSelectOption>
+          </NativeSelect>
         </FieldGroup>
       )}
 
@@ -572,12 +547,14 @@ function CreateNewPanel({ onLoaded }: { onLoaded: () => void }) {
     <div className={ontLoaderPanelBody}>
       <div className="flex gap-1.5">
         {(["scratch", "data", "text"] as CreateMode[]).map((mode) => (
-          <button
+          <Button
             key={mode}
             type="button"
+            variant="ghost"
             onClick={() => setCreateMode(mode)}
             className={cn(
               ontLoaderModeTab,
+              "h-auto font-normal",
               createMode === mode ? ontLoaderModeTabActive : ontLoaderModeTabIdle,
             )}
           >
@@ -586,33 +563,54 @@ function CreateNewPanel({ onLoaded }: { onLoaded: () => void }) {
               : mode === "data"
                 ? l.createFromData
                 : l.createFromText}
-          </button>
+          </Button>
         ))}
       </div>
 
       <FieldGroup label={l.displayNameRequired}>
-        <Input value={name} onChange={setName} placeholder={l.namePlaceholder} />
+        <Input
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder={l.namePlaceholder}
+          className={ontInput}
+        />
       </FieldGroup>
 
       <FieldGroup label={l.namespaceRequired}>
-        <Input value={namespace} onChange={setNamespace} placeholder={l.namespacePlaceholder} />
+        <Input
+          value={namespace}
+          onChange={(e) => setNamespace(e.target.value)}
+          placeholder={l.namespacePlaceholder}
+          className={ontInput}
+        />
       </FieldGroup>
 
       <FieldGroup label={m.detailDescription}>
-        <Input value={description} onChange={setDescription} placeholder={l.descriptionOptional} />
+        <Input
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder={l.descriptionOptional}
+          className={ontInput}
+        />
       </FieldGroup>
 
       <FieldGroup label={l.tagsComma}>
-        <Input value={tags} onChange={setTags} placeholder={l.tagsPlaceholderCreate} />
+        <Input
+          value={tags}
+          onChange={(e) => setTags(e.target.value)}
+          placeholder={l.tagsPlaceholderCreate}
+          className={ontInput}
+        />
       </FieldGroup>
 
       {createMode === "data" && (
         <FieldGroup label={l.sampleData}>
           <Textarea
             value={sampleData}
-            onChange={setSampleData}
+            onChange={(e) => setSampleData(e.target.value)}
             placeholder={l.sampleDataPlaceholder}
             rows={6}
+            className={ontLoaderTextarea}
           />
         </FieldGroup>
       )}
@@ -621,9 +619,10 @@ function CreateNewPanel({ onLoaded }: { onLoaded: () => void }) {
         <FieldGroup label={l.schemaRequirements}>
           <Textarea
             value={schemaText}
-            onChange={setSchemaText}
+            onChange={(e) => setSchemaText(e.target.value)}
             placeholder={l.schemaPlaceholder}
             rows={6}
+            className={ontLoaderTextarea}
           />
         </FieldGroup>
       )}

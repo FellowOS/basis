@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button.js";
 import { PublicIcon } from "@/components/ui/public-icon.js";
 import { useEffect, useRef, useState } from "react";
 
@@ -312,10 +313,10 @@ export function GraphLoadingOverlay({
 
           {onRetry ? (
             <div className="mt-4 flex gap-2.5">
-              <button type="button" className="graph-stage-loader-retry" onClick={onRetry}>
+              <Button type="button" className="graph-stage-loader-retry" onClick={onRetry}>
                 <PublicIcon name="arrow-refresh-01" size={14} />
                 {graphCopy(locale, "loadRetry")}
-              </button>
+              </Button>
             </div>
           ) : null}
         </div>

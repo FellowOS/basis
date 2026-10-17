@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any
 
 from basis.admin.errors import AdminError
+from basis.admin.org_store import OrganizationAuthMixin
 from basis.admin.passwords import hash_password, hash_token, verify_password
 from basis.database import Database, get_sqlite_database
 from basis.models.catalog import (
@@ -89,9 +90,10 @@ class KnowledgeBase:
     visibility: str
     created_by: str
     created_at: str
+    organization_id: str | None = None
 
     def public(self) -> dict[str, Any]:
-        return {
+        payload: dict[str, Any] = {
             "id": self.id,
             "name": self.name,
             "description": self.description,
@@ -99,9 +101,12 @@ class KnowledgeBase:
             "created_by": self.created_by,
             "created_at": self.created_at,
         }
+        if self.organization_id:
+            payload["organization_id"] = self.organization_id
+        return payload
 
 
-class AdminStore:
+class AdminStore(OrganizationAuthMixin):
     def __init__(self, path: Path | Database) -> None:
         if isinstance(path, Database):
             self._db = path
@@ -130,9 +135,8 @@ class AdminStore:
             token = self._issue_token(user.id)
             kb_id = None
             if first:
-                kb_id = self._insert_kb(
-                    "公共知识库", "", "open", user.id
-                )
+                org = self._create_organization("公共知识库", owner_user_id=user.id)
+                kb_id = self._insert_kb("公共知识库", "", "open", user.id, org.id)
                 self._set_member(kb_id, user.id, "owner", user.id)
             self._audit(user.id, "auth.register", "user", user.id, {"email": email})
             self._conn.commit()
@@ -412,7 +416,8 @@ class AdminStore:
         if visibility == "open" and not actor.is_admin:
             raise AdminError(403, "forbidden", "只有系统管理员可以创建公开知识库")
         with self._lock:
-            kb_id = self._insert_kb(name, description or "", visibility, actor.id)
+            org = self._create_organization(name, owner_user_id=actor.id)
+            kb_id = self._insert_kb(name, description or "", visibility, actor.id, org.id)
             self._set_member(kb_id, actor.id, "owner", actor.id)
             kb = _kb_from_row(self._kb_row(kb_id))
             self._audit(actor.id, "kb.created", "knowledge_base", kb_id, {"name": name})
@@ -801,6 +806,58 @@ class AdminStore:
                 return self._setting("embed_api_key") or ""
             return self._setting("chat_api_key") or ""
 
+    def default_auth_public_url(self) -> str:
+        return "http://127.0.0.1:8090"
+
+    def default_auth_web_origin(self) -> str:
+        return "http://localhost:5173"
+
+    def build_auth_settings_raw(
+        self,
+        *,
+        default_public_url: str | None = None,
+        default_web_origin: str | None = None,
+    ) -> dict[str, Any]:
+        from basis.admin.auth_platform import build_auth_settings_raw
+
+        return build_auth_settings_raw(
+            self,
+            default_public_url=default_public_url or self.default_auth_public_url(),
+            default_web_origin=default_web_origin or self.default_auth_web_origin(),
+        )
+
+    def get_access_settings(
+        self,
+        *,
+        default_public_url: str | None = None,
+        default_web_origin: str | None = None,
+    ) -> dict[str, Any]:
+        from basis.admin.auth_platform import get_access_settings
+
+        return get_access_settings(
+            self,
+            default_public_url=default_public_url or self.default_auth_public_url(),
+            default_web_origin=default_web_origin or self.default_auth_web_origin(),
+        )
+
+    def update_access_settings(
+        self,
+        actor: User,
+        body: dict[str, Any],
+        *,
+        default_public_url: str | None = None,
+        default_web_origin: str | None = None,
+    ) -> dict[str, Any]:
+        from basis.admin.auth_platform import update_access_settings
+
+        return update_access_settings(
+            self,
+            actor,
+            body,
+            default_public_url=default_public_url or self.default_auth_public_url(),
+            default_web_origin=default_web_origin or self.default_auth_web_origin(),
+        )
+
     def get_settings(self) -> dict[str, Any]:
         with self._lock:
             chat_key = self._setting("chat_api_key")
@@ -955,14 +1012,23 @@ class AdminStore:
         )
         return token
 
-    def _insert_kb(self, name: str, description: str, visibility: str, created_by: str) -> str:
+    def _insert_kb(
+        self,
+        name: str,
+        description: str,
+        visibility: str,
+        created_by: str,
+        organization_id: str,
+    ) -> str:
         kb_id = str(uuid.uuid4())
         self._conn.execute(
             """
-            INSERT INTO knowledge_bases(id, name, description, visibility, created_by, created_at)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO knowledge_bases(
+                id, name, description, visibility, created_by, created_at, organization_id
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
-            (kb_id, name, description, visibility, created_by, _now()),
+            (kb_id, name, description, visibility, created_by, _now(), organization_id),
         )
         return kb_id
 
@@ -1069,6 +1135,8 @@ def _user_from_row(row: sqlite3.Row) -> User:
 
 
 def _kb_from_row(row: sqlite3.Row) -> KnowledgeBase:
+    keys = row.keys()
+    org_id = row["organization_id"] if "organization_id" in keys else None
     return KnowledgeBase(
         id=row["id"],
         name=row["name"],
@@ -1076,6 +1144,7 @@ def _kb_from_row(row: sqlite3.Row) -> KnowledgeBase:
         visibility=row["visibility"],
         created_by=row["created_by"],
         created_at=row["created_at"],
+        organization_id=org_id,
     )
 
 

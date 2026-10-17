@@ -636,13 +636,14 @@ export function KnowledgePage() {
         render: (doc) => (
           <div className="min-w-0">
             {id ? (
-              <button
+              <Button
                 type="button"
-                className="max-w-full truncate text-left font-medium hover:underline"
+                variant="link"
+                className="h-auto max-w-full justify-start truncate p-0 font-medium"
                 onClick={() => openDocument(doc.doc_id)}
               >
                 {doc.doc_id}
-              </button>
+              </Button>
             ) : (
               <span className="font-medium">{doc.doc_id}</span>
             )}

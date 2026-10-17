@@ -73,6 +73,7 @@ import {
   graphPluginOverlayLayer,
   graphPluginOverlaySlot,
 } from "@/lib/graph/graph-ui-classes.js";
+import { Button } from "@/components/ui/button.js";
 import { cn } from "@/lib/utils.js";
 import {
   buildGraphStructureCurveCache,
@@ -2792,9 +2793,9 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(
           </div>
         ) : null}
         {showFitViewButton ? (
-          <button id="graph-fit-view-btn" type="button" onClick={handleFitView} className={graphFitViewBtn}>
+          <Button id="graph-fit-view-btn" type="button" variant="secondary" size="sm" onClick={handleFitView} className={graphFitViewBtn}>
             Fit View
-          </button>
+          </Button>
         ) : null}
       </div>
     );

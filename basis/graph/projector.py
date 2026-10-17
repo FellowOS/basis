@@ -62,6 +62,58 @@ def _canon_entity_id(entity_id: str, merge_redirect: dict[str, str]) -> str:
     return merge_redirect.get(entity_id, entity_id)
 
 
+def _earliest_iso(current: str | None, candidate: str | None) -> str | None:
+    if not candidate:
+        return current
+    if not current:
+        return candidate
+    return min(str(current), str(candidate))
+
+
+def _note_entity_first_seen(
+    seen: dict[str, str],
+    entity_id: str | None,
+    at: str | None,
+    *,
+    merge_redirect: dict[str, str],
+) -> None:
+    if not entity_id or not at:
+        return
+    canon = _canon_entity_id(entity_id, merge_redirect)
+    seen[canon] = _earliest_iso(seen.get(canon), at) or str(at)
+
+
+def _entity_valid_from(
+    entity_id: str,
+    *,
+    entity_first_seen: dict[str, str],
+    entity_created_at: str | None,
+) -> str | None:
+    """First ledger appearance drives graph-diff ``state_at``; fall back to row creation."""
+    return entity_first_seen.get(entity_id) or entity_created_at
+
+
+def _build_entity_first_seen(
+    knowledge: KnowledgeStore,
+    kb_id: str,
+    merge_redirect: dict[str, str],
+) -> dict[str, str]:
+    seen: dict[str, str] = {}
+    for row in knowledge.list_statements_for_projection(kb_id):
+        at = row.get("recorded_at")
+        _note_entity_first_seen(seen, row["subject_id"], at, merge_redirect=merge_redirect)
+        _note_entity_first_seen(seen, row.get("object_entity_id"), at, merge_redirect=merge_redirect)
+    for fact in knowledge.list_typed_facts_for_projection(kb_id):
+        at = fact.get("recorded_at")
+        _note_entity_first_seen(seen, fact["subject_id"], at, merge_redirect=merge_redirect)
+        _note_entity_first_seen(seen, fact.get("object_entity_id"), at, merge_redirect=merge_redirect)
+    for fact in knowledge.list_derived_facts_for_projection(kb_id):
+        at = fact.get("recorded_at")
+        _note_entity_first_seen(seen, fact["subject_id"], at, merge_redirect=merge_redirect)
+        _note_entity_first_seen(seen, fact.get("object_entity_id"), at, merge_redirect=merge_redirect)
+    return seen
+
+
 def rebuild_graph_from_ledger(
     knowledge: KnowledgeStore,
     kb_id: str,
@@ -78,11 +130,14 @@ def rebuild_graph_from_ledger(
         if preserve_from is not None:
             _copy_preserved_nodes(preserve_from, session)
 
+        entity_first_seen = _build_entity_first_seen(knowledge, kb_id, merge_redirect)
+
         for doc in knowledge.list_ready_documents_for_projection(
             kb_id, include_version_ids=include_version_ids
         ):
             graph_doc_id = doc["graph_doc_id"]
             text = doc["text"]
+            doc_valid_from = doc.get("version_created_at")
             session.add_node(
                 graph_doc_id,
                 "document",
@@ -92,12 +147,18 @@ def rebuild_graph_from_ledger(
                 ledger_version_id=doc["version_id"],
                 projection_layer="ledger",
                 projection_schema_version=PROJECTION_SCHEMA_VERSION,
+                **({"valid_from": doc_valid_from} if doc_valid_from else {}),
             )
 
         for entity in knowledge.list_entities_for_projection(kb_id):
             if entity["id"] in merge_redirect:
                 continue
             label = entity["canonical_label"] or ""
+            valid_from = _entity_valid_from(
+                entity["id"],
+                entity_first_seen=entity_first_seen,
+                entity_created_at=entity.get("created_at"),
+            )
             session.add_node(
                 entity["id"],
                 "entity",
@@ -105,6 +166,7 @@ def rebuild_graph_from_ledger(
                 name=label,
                 ledger_entity_id=entity["id"],
                 projection_layer="ledger",
+                **({"valid_from": valid_from} if valid_from else {}),
             )
 
         typed_triples: set[tuple[str, str, str]] = set()
@@ -127,6 +189,7 @@ def rebuild_graph_from_ledger(
             confidence = row.get("confidence")
             graph_doc_id = row.get("graph_doc_id")
             subject_id = _canon_entity_id(row["subject_id"], merge_redirect)
+            recorded_at = row.get("recorded_at")
 
             edge_props: dict[str, Any] = {
                 "statement_id": statement_id,
@@ -148,12 +211,16 @@ def rebuild_graph_from_ledger(
                     content=row["object_value"],
                     projection_layer="ledger",
                     statement_id=statement_id,
+                    **({"valid_from": recorded_at} if recorded_at else {}),
                 )
             else:
                 continue
 
             if (subject_id, target_id, surface) in typed_triples:
                 continue
+
+            if recorded_at:
+                edge_props["valid_from"] = recorded_at
 
             session.add_edge(
                 subject_id,
@@ -164,17 +231,23 @@ def rebuild_graph_from_ledger(
             if graph_doc_id:
                 pair = (subject_id, graph_doc_id)
                 if pair not in mentioned:
+                    mention_props: dict[str, Any] = {
+                        "projection_layer": "ledger",
+                        "chunk_id": chunk_id,
+                    }
+                    if recorded_at:
+                        mention_props["valid_from"] = recorded_at
                     session.add_edge(
                         subject_id,
                         graph_doc_id,
                         "mentioned_in",
-                        projection_layer="ledger",
-                        chunk_id=chunk_id,
+                        **mention_props,
                     )
                     mentioned.add(pair)
 
         for fact in knowledge.list_typed_facts_for_projection(kb_id):
             subject_id = _canon_entity_id(fact["subject_id"], merge_redirect)
+            recorded_at = fact.get("recorded_at")
             if fact["object_entity_id"]:
                 target_id = _canon_entity_id(fact["object_entity_id"], merge_redirect)
             elif fact["object_value"]:
@@ -185,6 +258,7 @@ def rebuild_graph_from_ledger(
                     content=fact["object_value"],
                     projection_layer="typed",
                     typed_fact_id=fact["id"],
+                    **({"valid_from": recorded_at} if recorded_at else {}),
                 )
             else:
                 continue
@@ -198,10 +272,13 @@ def rebuild_graph_from_ledger(
                 edge_props["mapping_id"] = fact["mapping_id"]
             if fact.get("confidence") is not None:
                 edge_props["confidence"] = fact["confidence"]
+            if recorded_at:
+                edge_props["valid_from"] = recorded_at
             session.add_edge(subject_id, target_id, edge_label, **edge_props)
 
         for fact in knowledge.list_derived_facts_for_projection(kb_id):
             subject_id = _canon_entity_id(fact["subject_id"], merge_redirect)
+            recorded_at = fact.get("recorded_at")
             if fact["object_entity_id"]:
                 target_id = _canon_entity_id(fact["object_entity_id"], merge_redirect)
             elif fact["object_value"]:
@@ -212,6 +289,7 @@ def rebuild_graph_from_ledger(
                     content=fact["object_value"],
                     projection_layer="derived",
                     derived_fact_id=fact["id"],
+                    **({"valid_from": recorded_at} if recorded_at else {}),
                 )
             else:
                 continue
@@ -223,6 +301,8 @@ def rebuild_graph_from_ledger(
             }
             if fact.get("rule_id"):
                 edge_props["rule_id"] = fact["rule_id"]
+            if recorded_at:
+                edge_props["valid_from"] = recorded_at
             session.add_edge(subject_id, target_id, edge_label, **edge_props)
 
         knowledge.bump_projection_revision(kb_id)

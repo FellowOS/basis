@@ -66,6 +66,7 @@ export const menu = {
     search: '检索与索引',
     explorerGraph: 'Explorer 图谱',
     members: '成员',
+    sso: 'SSO',
     danger: '危险操作',
     myRole: '我的角色',
     deleteKb: '删除知识库',
@@ -119,6 +120,6 @@ export const menu = {
   },
   system: {
     title: '系统',
-    hint: '注册策略与部署相关选项。',
+    hint: '平台注册策略与组织企业 SSO（OIDC）。',
   },
 } as const;

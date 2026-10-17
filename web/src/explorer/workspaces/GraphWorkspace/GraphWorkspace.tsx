@@ -48,7 +48,7 @@ import { shouldApplyProjectionRevision } from "./graphProjectionRefresh";
 import { parseGraphRealtimeServerMessage } from "./graphRealtimeMessages";
 import { Badge } from "@/components/ui/badge.js";
 import { Button } from "@/components/ui/button.js";
-import { PublicIcon } from "@/components/ui/public-icon.js";
+import { SIDEBAR_ICON_BUTTON_CLASS, SidebarIcon } from "@/components/sidebar-icon.js";
 import { useI18n } from "@/i18n/context.js";
 import { useTheme } from "@/lib/theme.js";
 import {
@@ -3430,12 +3430,13 @@ export function GraphWorkspace({
                     type="button"
                     variant="outline"
                     size="icon-sm"
+                    className={SIDEBAR_ICON_BUTTON_CLASS}
                     disabled={showLoadingOverlay}
                     title={graphCopy(copyLocale, "searchReloadTitle")}
                     aria-label={graphCopy(copyLocale, "searchReloadTitle")}
                     onClick={reload}
                   >
-                    <PublicIcon name="arrow-refresh-01" />
+                    <SidebarIcon name="arrow-refresh-01" />
                   </Button>
                   {graphDataActions}
                   {nodeTypeCounts.length > 0 || edgeTypeCounts.length > 0 ? (

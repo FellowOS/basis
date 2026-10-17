@@ -1,5 +1,6 @@
-import { type FormEvent, useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { KbCreateDialog } from '@/components/kb/shell/kb-create-dialog.js';
 import {
   ConsolePageLayout,
   DataPanel,
@@ -9,20 +10,11 @@ import {
 } from '@/components/console-ui/index.js';
 import { DataTable, type DataTableColumn } from '@/components/console-ui/DataTable.js';
 import { Button } from '@/components/ui/button.js';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog.js';
-import { Input } from '@/components/ui/input.js';
-import { Label } from '@/components/ui/label.js';
 import { useI18n } from '@/i18n/context.js';
 import { fmt, formatLocaleNumber, pickCountForm } from '@/i18n/format.js';
-import { api } from '@/lib/api.js';
+import { writeActiveKbId } from '@/lib/kb-active-id.js';
 import { useKbCatalog } from '@/lib/kb-context.js';
+import { kbPath } from '@/lib/nav-config.js';
 import { kbMemberRoleLabel, kbVisibilityLabel } from '@/lib/kb-settings-labels.js';
 import { useApiErrorMessage } from '@/lib/use-api-error-message.js';
 
@@ -39,33 +31,19 @@ export function KbsPage() {
   const p = t.pages.basisKbs;
   const ks = t.kbSettings;
   const apiError = useApiErrorMessage();
+  const navigate = useNavigate();
   const { kbs, refresh } = useKbCatalog();
-  const [name, setName] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
-  const [creating, setCreating] = useState(false);
 
   useEffect(() => {
     void refresh().catch((err) => setError(apiError(err)));
   }, [refresh, apiError]);
 
-  async function onCreate(event: FormEvent) {
-    event.preventDefault();
-    setCreating(true);
-    setError(null);
-    try {
-      await api('/api/kbs', {
-        method: 'POST',
-        body: JSON.stringify({ name, visibility: 'restricted' }),
-      });
-      setName('');
-      setCreateOpen(false);
-      await refresh();
-    } catch (err) {
-      setError(apiError(err));
-    } finally {
-      setCreating(false);
-    }
+  async function onCreated(kb: { id: string }) {
+    writeActiveKbId(kb.id);
+    await refresh();
+    navigate(kbPath(kb.id, 'graph'));
   }
 
   const columns = useMemo<DataTableColumn<Kb>[]>(
@@ -139,40 +117,7 @@ export function KbsPage() {
         </DataPanelBody>
       </DataPanel>
 
-      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent className="sm:max-w-md">
-          <form
-            onSubmit={(e) => {
-              void onCreate(e);
-            }}
-          >
-            <DialogHeader>
-              <DialogTitle>{p.createDialogTitle}</DialogTitle>
-              <DialogDescription>{p.createDialogDesc}</DialogDescription>
-            </DialogHeader>
-            <div className="py-4">
-              <div className="space-y-2">
-                <Label htmlFor="kb-name">{p.nameLabel}</Label>
-                <Input
-                  id="kb-name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder={p.namePlaceholder}
-                  required
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setCreateOpen(false)}>
-                {t.common.cancel}
-              </Button>
-              <Button type="submit" disabled={creating || !name.trim()}>
-                {creating ? p.creating : p.create}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+      <KbCreateDialog open={createOpen} onOpenChange={setCreateOpen} onCreated={onCreated} />
     </ConsolePageLayout>
   );
 }

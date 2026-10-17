@@ -31,8 +31,15 @@ import {
 } from '@/lazy-pages.js';
 import { HomePage } from '@/pages/home.js';
 import { LoginPage } from '@/pages/login.js';
+import { PlatformAdminLayout } from '@/components/platform/platform-admin-layout.js';
+import { AdminLandingRedirect } from '@/pages/admin-landing-redirect.js';
+import { KbsLandingRedirect } from '@/pages/kbs-landing-redirect.js';
+import { KbSetupWorkspacePage } from '@/pages/kb/setup-workspace.js';
+import { isSetupKbId, KB_SETUP_ID } from '@/lib/kb-active-id.js';
+import { kbPath } from '@/lib/nav-config.js';
 import { KbExplorerShell } from '@/lib/explorer-context.js';
 import { BasisSessionProvider, useBasisSession } from '@/lib/basis-session.js';
+import { useSettingsAccess } from '@/lib/use-settings-access.js';
 
 function AdminOnly({ children }: { children: ReactNode }) {
   const { ready, user, homePath, isAdmin } = useBasisSession();
@@ -41,9 +48,21 @@ function AdminOnly({ children }: { children: ReactNode }) {
   return children;
 }
 
+function SettingsAccess({ children }: { children: ReactNode }) {
+  const { ready, user, homePath } = useBasisSession();
+  const allowed = useSettingsAccess();
+
+  if (!ready) return children;
+  if (!user) return <Navigate to="/login" replace />;
+  if (allowed === null) return null;
+  if (!allowed) return <Navigate to={homePath} replace />;
+  return children;
+}
+
 function KbDefaultRedirect() {
   const { id } = useParams();
   if (!id) return <Navigate to="/kbs" replace />;
+  if (isSetupKbId(id)) return <Navigate to={kbPath(KB_SETUP_ID, 'graph')} replace />;
   return <Navigate to={`/kbs/${id}/graph`} replace />;
 }
 
@@ -92,14 +111,66 @@ function AuthedApp() {
           )
         }
       >
-        <Route
-          path="/kbs"
-          element={
-            <Suspense fallback={null}>
-              <KbsPage />
-            </Suspense>
-          }
-        />
+        <Route path="/kbs" element={<KbsLandingRedirect />} />
+        <Route path="/kbs/setup/*" element={<KbSetupWorkspacePage />} />
+        <Route path="/admin" element={<AdminLandingRedirect />} />
+        <Route element={<PlatformAdminLayout />}>
+          <Route
+            path="/admin/kbs"
+            element={
+              <AdminOnly>
+                <Suspense fallback={null}>
+                  <KbsPage />
+                </Suspense>
+              </AdminOnly>
+            }
+          />
+          <Route
+            path="/admin/users"
+            element={
+              <AdminOnly>
+                <Suspense fallback={null}>
+                  <UsersPage />
+                </Suspense>
+              </AdminOnly>
+            }
+          />
+          <Route
+            path="/admin/models"
+            element={
+              <AdminOnly>
+                <Suspense fallback={null}>
+                  <ModelsPage />
+                </Suspense>
+              </AdminOnly>
+            }
+          />
+          <Route
+            path="/admin/audit"
+            element={
+              <AdminOnly>
+                <Suspense fallback={null}>
+                  <AuditPage />
+                </Suspense>
+              </AdminOnly>
+            }
+          />
+          <Route
+            path="/admin/settings"
+            element={
+              <SettingsAccess>
+                <Suspense fallback={null}>
+                  <SettingsPage />
+                </Suspense>
+              </SettingsAccess>
+            }
+          />
+        </Route>
+        <Route path="/kbs/all" element={<Navigate to="/admin/kbs" replace />} />
+        <Route path="/users" element={<Navigate to="/admin/users" replace />} />
+        <Route path="/models" element={<Navigate to="/admin/models" replace />} />
+        <Route path="/audit" element={<Navigate to="/admin/audit" replace />} />
+        <Route path="/settings" element={<Navigate to="/admin/settings" replace />} />
         <Route path="/kbs/:id" element={<KbDefaultRedirect />} />
         <Route path="/kbs/:id/knowledge" element={<KbLegacyKnowledgeRedirect />} />
         <Route
@@ -295,46 +366,6 @@ function AuthedApp() {
           }
         />
         <Route path="/tokens" element={<Navigate to="/kbs" replace />} />
-        <Route
-          path="/models"
-          element={
-            <AdminOnly>
-              <Suspense fallback={null}>
-                <ModelsPage />
-              </Suspense>
-            </AdminOnly>
-          }
-        />
-        <Route
-          path="/settings"
-          element={
-            <AdminOnly>
-              <Suspense fallback={null}>
-                <SettingsPage />
-              </Suspense>
-            </AdminOnly>
-          }
-        />
-        <Route
-          path="/audit"
-          element={
-            <AdminOnly>
-              <Suspense fallback={null}>
-                <AuditPage />
-              </Suspense>
-            </AdminOnly>
-          }
-        />
-        <Route
-          path="/users"
-          element={
-            <AdminOnly>
-              <Suspense fallback={null}>
-                <UsersPage />
-              </Suspense>
-            </AdminOnly>
-          }
-        />
       </Route>
     </Routes>
   );

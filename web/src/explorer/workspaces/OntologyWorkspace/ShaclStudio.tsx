@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils.js";
 import Editor, { type Monaco } from "@monaco-editor/react";
 import { Button } from "@/components/ui/button.js";
+import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select.js";
 import { useI18n } from "@/i18n/context.js";
 import { fmt, formatLocaleNumber, pickCountForm } from "@/i18n/format.js";
 import type { Locale } from "@/i18n/locale.js";
@@ -211,16 +212,20 @@ export function ShaclStudio({ onJumpToNode }: ShaclStudioProps) {
           SHACL
         </span>
         <label className="sr-only" htmlFor="shacl-ontology">{copy.ontology}</label>
-        <select
+        <NativeSelect
           id="shacl-ontology"
-          className="h-8 min-w-0 max-w-sm flex-1 rounded-md border border-border bg-background px-2 text-xs text-foreground"
+          fullWidth
+          size="sm"
+          className="min-w-0 max-w-sm flex-1 text-xs"
           value={selectedUri}
           onChange={(event) => setSelectedUri(event.target.value)}
         >
           {registry.map((entry) => (
-            <option key={entry.uri} value={entry.uri}>{entry.name}</option>
+            <NativeSelectOption key={entry.uri} value={entry.uri}>
+              {entry.name}
+            </NativeSelectOption>
           ))}
-        </select>
+        </NativeSelect>
         <span className="hidden font-mono text-[11px] text-muted-foreground sm:inline">
           {shapes.length}
         </span>
@@ -263,11 +268,12 @@ export function ShaclStudio({ onJumpToNode }: ShaclStudioProps) {
                 {items.map((shape) => {
                   const isSelected = selectedShapeId === shape.id;
                   return (
-                    <button
+                    <Button
                       key={shape.id}
                       type="button"
+                      variant="ghost"
                       className={cn(
-                        "flex w-full items-start gap-2 rounded-md px-2 py-1.5 text-left hover:bg-muted/60",
+                        "h-auto w-full items-start justify-start gap-2 rounded-md px-2 py-1.5 text-left font-normal hover:bg-muted/60",
                         isSelected && "bg-muted",
                       )}
                       onClick={() => handleSelectShape(shape.id)}
@@ -284,7 +290,7 @@ export function ShaclStudio({ onJumpToNode }: ShaclStudioProps) {
                       {shape.violation_count > 0 ? (
                         <span className="font-mono text-[11px] tabular-nums text-destructive">{shape.violation_count}</span>
                       ) : null}
-                    </button>
+                    </Button>
                   );
                 })}
               </div>

@@ -128,6 +128,10 @@ def run_migrations(conn: sqlite3.Connection) -> list[int]:
         newly_applied.append(migration.version)
         applied[migration.version] = (migration.name, migration.checksum)
 
+    from basis.admin.org_backfill import ensure_organization_backfill
+
+    ensure_organization_backfill(conn)
+
     return newly_applied
 
 

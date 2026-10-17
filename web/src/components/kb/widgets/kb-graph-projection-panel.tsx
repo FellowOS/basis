@@ -38,7 +38,7 @@ export function KbGraphProjectionPanel({
   const p = t.kbGraphProjection;
   const emptyCell = t.common.emptyCell;
   const { isAdmin } = useBasisSession();
-  const auditGraphUrl = `/audit?kb_id=${encodeURIComponent(kbId)}&action_prefix=${encodeURIComponent('kb.graph.')}`;
+  const auditGraphUrl = `/admin/audit?kb_id=${encodeURIComponent(kbId)}&action_prefix=${encodeURIComponent('kb.graph.')}`;
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState<GraphProjectionStatus | null>(null);
   const [error, setError] = useState<string | null>(null);

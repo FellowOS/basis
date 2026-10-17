@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/dialog.js";
 import { Input } from "@/components/ui/input.js";
 import { Label } from "@/components/ui/label.js";
+import { Textarea } from "@/components/ui/textarea.js";
 import { useI18n } from "@/i18n/context.js";
 import { api } from "@/lib/api.js";
 import { useApiErrorMessage } from "@/lib/use-api-error-message.js";
@@ -178,7 +179,7 @@ export function ReasoningRulesDialog({
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="kb-rule-body">{rd.body}</Label>
-                  <textarea
+                  <Textarea
                     id="kb-rule-body"
                     className="ws-textarea min-h-[120px] w-full font-mono text-xs"
                     value={body}

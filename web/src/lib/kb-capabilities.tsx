@@ -11,6 +11,7 @@ import { useLocation } from 'react-router-dom';
 import { devMessage } from '@/i18n/dev-messages.js';
 import { api } from '@/lib/api.js';
 import type { KbNavKey } from '@/lib/nav-config.js';
+import { isSetupKbId } from '@/lib/kb-active-id.js';
 import { parseKbIdFromPath } from '@/lib/nav-config.js';
 
 export type KbCapabilities = {
@@ -53,7 +54,7 @@ export function KbCapabilitiesProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(false);
 
   const refresh = useCallback(async () => {
-    if (!kbId) {
+    if (!kbId || isSetupKbId(kbId)) {
       setCaps(null);
       return;
     }

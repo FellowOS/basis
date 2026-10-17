@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
+import { Button } from "@/components/ui/button.js";
 import { PublicIcon } from "@/components/ui/public-icon.js";
+import { cn } from "@/lib/utils.js";
 import { HealthTab } from "./HealthTab";
 import { OntologyManager } from "./OntologyManager";
 import { OntologyEditor } from "./OntologyEditor";
@@ -77,19 +79,21 @@ export function OntologyWorkspace({
           const label = hubTabs[id];
           const active = activeTab === id;
           return (
-            <button
+            <Button
               key={id}
               type="button"
+              variant="ghost"
               onClick={() => handleTabChange(id)}
-              className={`inline-flex cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
+              className={cn(
+                "h-auto cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors",
                 active
                   ? "border-border bg-primary/10 text-foreground"
-                  : "border-transparent text-muted-foreground hover:bg-muted/50 hover:text-foreground"
-              }`}
+                  : "border-transparent text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+              )}
             >
               <PublicIcon name={icon} size={13} />
               {label}
-            </button>
+            </Button>
           );
         })}
       </div>

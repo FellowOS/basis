@@ -1,4 +1,4 @@
-import { errorFromApiResponse } from '@/lib/api-error.js';
+import { type ApiErrorWithMeta, errorFromApiResponse } from '@/lib/api-error.js';
 import { ensureRequestIdHeader } from '@/lib/request-id.js';
 
 const TOKEN_KEY = 'basis_token';
@@ -50,8 +50,11 @@ export async function fetchSession(): Promise<BasisUser | null> {
   try {
     const body = await api<{ user: BasisUser }>('/api/auth/me');
     return body.user;
-  } catch {
-    setToken(null);
+  } catch (err) {
+    const status = (err as ApiErrorWithMeta).status;
+    if (status === 401 || status === 403) {
+      setToken(null);
+    }
     return null;
   }
 }

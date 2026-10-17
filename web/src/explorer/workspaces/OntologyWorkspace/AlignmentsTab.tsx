@@ -26,6 +26,21 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog.js";
+import { Input } from "@/components/ui/input.js";
+import { Label } from "@/components/ui/label.js";
+import {
+  NativeSelect,
+  NativeSelectOption,
+} from "@/components/ui/native-select.js";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select.js";
+import { Slider } from "@/components/ui/slider.js";
+import { Textarea } from "@/components/ui/textarea.js";
 import {
   loadAlignments,
   loadOntologyRegistry,
@@ -354,15 +369,17 @@ export function AlignmentsTab() {
                   <p className="truncate font-mono text-[11px] text-muted-foreground">{item.target_uri}</p>
                 </div>
                 <span className="shrink-0 font-mono text-[11px] tabular-nums text-muted-foreground">{Math.round(item.confidence * 100)}%</span>
-                <button
+                <Button
                   type="button"
-                  className="shrink-0 text-destructive disabled:opacity-50"
+                  variant="ghost"
+                  size="icon"
+                  className="size-8 shrink-0 text-destructive hover:text-destructive"
                   disabled={busy}
                   title={copy.remove}
                   onClick={() => void handleRemove(item.id)}
                 >
                   <PublicIcon name="trash-01" size={14} />
-                </button>
+                </Button>
               </div>
             ))
           )}
@@ -375,46 +392,64 @@ export function AlignmentsTab() {
             <DialogTitle>{copy.editorTitle}</DialogTitle>
             <DialogDescription>{copy.editorBody}</DialogDescription>
           </DialogHeader>
-          <label className="oh-label">{copy.sourceUri}</label>
-          <input className="oh-field" value={sourceUri} onChange={(event) => setSourceUri(event.target.value)} />
-          <label className="oh-label">{copy.targetUri}</label>
-          <input className="oh-field" value={targetUri} onChange={(event) => setTargetUri(event.target.value)} />
-          <div className="oh-row-2">
-            <div>
-              <label className="oh-label">{copy.relation}</label>
-              <select className="oh-field" value={relation} onChange={(event) => setRelation(event.target.value as AlignmentRelation)}>
-                {RELATIONS.map((item) => (
-                  <option key={item} value={item}>
-                    {alignmentRelationLabel(copy, item)}
-                  </option>
-                ))}
-              </select>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>{copy.sourceUri}</Label>
+              <Input value={sourceUri} onChange={(event) => setSourceUri(event.target.value)} />
             </div>
-            <div>
-              <label className="oh-label">
-                {copy.confidence} {formatLocaleFixedDecimals(locale, confidence, 2)}
-              </label>
-              <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.01"
-                value={confidence}
-                onChange={(event) => setConfidence(Number(event.target.value))}
-                className="w-full"
+            <div className="space-y-2">
+              <Label>{copy.targetUri}</Label>
+              <Input value={targetUri} onChange={(event) => setTargetUri(event.target.value)} />
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label>{copy.relation}</Label>
+                <Select
+                  value={relation}
+                  onValueChange={(value) => setRelation(value as AlignmentRelation)}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {RELATIONS.map((item) => (
+                      <SelectItem key={item} value={item}>
+                        {alignmentRelationLabel(copy, item)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>
+                  {copy.confidence} {formatLocaleFixedDecimals(locale, confidence, 2)}
+                </Label>
+                <Slider
+                  min={0}
+                  max={1}
+                  step={0.01}
+                  value={[confidence]}
+                  onValueChange={(value) => setConfidence(value[0] ?? 0)}
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>{copy.provenance}</Label>
+              <Textarea
+                className="min-h-[74px] resize-y"
+                value={provenance}
+                onChange={(event) => setProvenance(event.target.value)}
               />
             </div>
-          </div>
-          <label className="oh-label">{copy.provenance}</label>
-          <textarea className="oh-field min-h-[74px] resize-y" value={provenance} onChange={(event) => setProvenance(event.target.value)} />
-          <div className="oh-row-2">
-            <div>
-              <label className="oh-label">{copy.source}</label>
-              <input className="oh-field" value={source} onChange={(event) => setSource(event.target.value)} />
-            </div>
-            <div>
-              <label className="oh-label">{copy.reviewer}</label>
-              <input className="oh-field" value={reviewer} onChange={(event) => setReviewer(event.target.value)} />
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label>{copy.source}</Label>
+                <Input value={source} onChange={(event) => setSource(event.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label>{copy.reviewer}</Label>
+                <Input value={reviewer} onChange={(event) => setReviewer(event.target.value)} />
+              </div>
             </div>
           </div>
           <DialogFooter className="gap-2 sm:justify-end">
@@ -435,48 +470,70 @@ export function AlignmentsTab() {
             <DialogTitle>{copy.suggestTitle}</DialogTitle>
             <DialogDescription>{copy.suggestBody}</DialogDescription>
           </DialogHeader>
-          <div className="oh-row-2">
-            <div>
-              <label className="oh-label">{copy.sourceOntology}</label>
-              <select className="oh-field" value={sourceOntology} onChange={(event) => setSourceOntology(event.target.value)}>
-                <option value="">{copy.anyOntology}</option>
-                {registry.map((entry) => <option key={entry.uri} value={entry.uri}>{entry.name}</option>)}
-              </select>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label>{copy.sourceOntology}</Label>
+              <NativeSelect
+                fullWidth
+                value={sourceOntology}
+                onChange={(event) => setSourceOntology(event.target.value)}
+              >
+                <NativeSelectOption value="">{copy.anyOntology}</NativeSelectOption>
+                {registry.map((entry) => (
+                  <NativeSelectOption key={entry.uri} value={entry.uri}>
+                    {entry.name}
+                  </NativeSelectOption>
+                ))}
+              </NativeSelect>
             </div>
-            <div>
-              <label className="oh-label">{copy.targetOntology}</label>
-              <select className="oh-field" value={targetOntology} onChange={(event) => setTargetOntology(event.target.value)}>
-                <option value="">{copy.anyOntology}</option>
-                {registry.map((entry) => <option key={entry.uri} value={entry.uri}>{entry.name}</option>)}
-              </select>
+            <div className="space-y-2">
+              <Label>{copy.targetOntology}</Label>
+              <NativeSelect
+                fullWidth
+                value={targetOntology}
+                onChange={(event) => setTargetOntology(event.target.value)}
+              >
+                <NativeSelectOption value="">{copy.anyOntology}</NativeSelectOption>
+                {registry.map((entry) => (
+                  <NativeSelectOption key={entry.uri} value={entry.uri}>
+                    {entry.name}
+                  </NativeSelectOption>
+                ))}
+              </NativeSelect>
             </div>
           </div>
-          <label className="oh-label">
-            {copy.threshold} {formatLocaleFixedDecimals(locale, threshold, 2)}
-          </label>
-          <input
-            type="range"
-            min="0.25"
-            max="0.95"
-            step="0.01"
-            value={threshold}
-            onChange={(event) => setThreshold(Number(event.target.value))}
-            className="w-full"
-          />
+          <div className="space-y-2">
+            <Label>
+              {copy.threshold} {formatLocaleFixedDecimals(locale, threshold, 2)}
+            </Label>
+            <Slider
+              min={0.25}
+              max={0.95}
+              step={0.01}
+              value={[threshold]}
+              onValueChange={(value) => setThreshold(value[0] ?? 0.25)}
+            />
+          </div>
           <Button type="button" className="mt-3" variant="outline" disabled={busy} onClick={() => void handleSuggest()}>
             <PublicIcon name="stars" size={14} className="mr-1" />
             {copy.runSuggest}
           </Button>
           <div className={ontAlignSuggestList}>
             {suggestions.map((item) => (
-              <button type="button" key={`${item.source_uri}-${item.target_uri}-${item.relation}`} className="oh-suggestion" onClick={() => handleAcceptSuggestion(item)}>
+              <Button
+                type="button"
+                key={`${item.source_uri}-${item.target_uri}-${item.relation}`}
+                variant="outline"
+                className="oh-suggestion h-auto w-full flex-wrap justify-start gap-2 py-2 text-left font-normal"
+                onClick={() => handleAcceptSuggestion(item)}
+              >
                 <span className={ontStrong}>{item.source_label}</span>
                 <span className={relationBadgeClass(item.relation)}>
                   {alignmentRelationLabel(copy, item.relation)}
                 </span>
                 <span className={ontStrong}>{item.target_label}</span>
                 <span className="oh-muted">{Math.round(item.score * 100)}%</span>
-              </button>
+              </Button>
             ))}
             {!suggestions.length ? <p className="text-[11px] text-muted-foreground">{copy.suggestEmpty}</p> : null}
           </div>

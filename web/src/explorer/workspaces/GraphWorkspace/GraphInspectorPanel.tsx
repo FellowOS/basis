@@ -267,13 +267,14 @@ function PathFlowViz({
 
           return (
             <div key={`${nodeId}-${index}`} className="contents">
-              <button
+              <Button
                 type="button"
+                variant="ghost"
                 onClick={() => onFocusNode?.(nodeId)}
                 title={inspectorFocusTitle(locale, nodeId, nodeId === bottleneckNodeId)}
                 data-bottleneck={nodeId === bottleneckNodeId ? "true" : undefined}
                 className={cn(
-                  "graph-inspector-path-chip",
+                  "graph-inspector-path-chip h-auto font-normal",
                   onFocusNode ? "cursor-pointer" : "cursor-default",
                 )}
               >
@@ -281,7 +282,7 @@ function PathFlowViz({
                   {index + 1}
                 </span>
                 <span className="truncate">{label}</span>
-              </button>
+              </Button>
 
               {edgeLabel !== null ? (
                 <div className="inline-flex shrink-0 items-center gap-0.5 px-0.5">
@@ -631,10 +632,11 @@ export function GraphInspectorPanel({
           {predictions.length > 0 ? (
             <div className="flex flex-col gap-2">
               {predictions.map((prediction) => (
-                <button
+                <Button
                   key={`${prediction.target}-${prediction.type}`}
                   type="button"
-                  className="w-full rounded-lg border border-border bg-card px-3 py-2.5 text-left transition-colors hover:bg-muted/50"
+                  variant="ghost"
+                  className="h-auto w-full justify-start rounded-lg border border-border bg-card px-3 py-2.5 text-left font-normal transition-colors hover:bg-muted/50"
                   onClick={() => onPathTargetChange(prediction.target)}
                 >
                   <div className="flex items-start justify-between gap-2">
@@ -648,7 +650,7 @@ export function GraphInspectorPanel({
                       {formatLocalePercent(loc, prediction.score, 1)}
                     </Badge>
                   </div>
-                </button>
+                </Button>
               ))}
             </div>
           ) : isRunningPredictions ? (

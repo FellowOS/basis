@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button.js";
 import { cn } from "@/lib/utils.js";
 import {
   graphEffectsDetails,
@@ -148,13 +149,15 @@ function EffectToggleRow({
         <div className={graphEffectsRowDesc}>{description}</div>
         <div className={graphEffectsRowMeta}>{renderAvailabilityText(availability, effectsCopy)}</div>
       </div>
-      <button
+      <Button
         type="button"
+        variant="secondary"
+        size="sm"
         onClick={onToggle}
         className={cn(graphEffectsToggleBtn, checked && graphEffectsToggleBtnOn)}
       >
         {checked ? effectsCopy.toggleOn : effectsCopy.toggleOff}
-      </button>
+      </Button>
     </div>
   );
 }

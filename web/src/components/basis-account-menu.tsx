@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar.js';
 import {
   DropdownMenu,
@@ -16,7 +17,9 @@ import { SidebarMenuButton } from '@/components/ui/sidebar.js';
 import { useI18n } from '@/i18n/context.js';
 import { LocaleMenuItems } from '@/i18n/locale-menu.js';
 import { useBasisSession } from '@/lib/basis-session.js';
+import { platformAdminEntryPath, visiblePlatformNavItems } from '@/lib/nav-config.js';
 import { useTheme } from '@/lib/theme.js';
+import { useSettingsAccess } from '@/lib/use-settings-access.js';
 
 function MenuIcon({ name, className }: { name: string; className?: string }) {
   return <PublicIcon name={name} size={16} className={className} />;
@@ -25,12 +28,21 @@ function MenuIcon({ name, className }: { name: string; className?: string }) {
 export function BasisAccountMenu({ onLogout }: { onLogout: () => void }) {
   const { t } = useI18n();
   const { user, isAdmin } = useBasisSession();
+  const canSettings = useSettingsAccess();
   const { theme, setTheme } = useTheme();
 
   const accountTitle = user?.display_name || user?.email || t.sidebar.accountTitle;
   const accountRole = isAdmin ? t.sidebar.roleBasisAdmin : t.sidebar.roleBasisUser;
   const initials = (accountTitle[0] ?? 'S').toUpperCase();
 
+  const settingsReady = isAdmin || canSettings !== null;
+  const platformItems = settingsReady
+    ? visiblePlatformNavItems(isAdmin, canSettings === true)
+    : [];
+  const showManagement = platformItems.length > 0;
+  const managementHref = showManagement
+    ? platformAdminEntryPath(isAdmin, canSettings === true)
+    : null;
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -104,6 +116,17 @@ export function BasisAccountMenu({ onLogout }: { onLogout: () => void }) {
             </DropdownMenuSubContent>
           </DropdownMenuPortal>
         </DropdownMenuSub>
+        {managementHref ? (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <Link to={managementHref}>
+                <MenuIcon name="settings" />
+                {t.sidebar.management}
+              </Link>
+            </DropdownMenuItem>
+          </>
+        ) : null}
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onClick={() => {

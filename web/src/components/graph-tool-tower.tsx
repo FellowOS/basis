@@ -1,5 +1,7 @@
 import { createContext, forwardRef, useContext, type ButtonHTMLAttributes, type ReactNode } from "react";
 
+import { Button } from "@/components/ui/button.js";
+import { SIDEBAR_ICON_BUTTON_CLASS } from "@/components/sidebar-icon.js";
 import { cn } from "@/lib/utils.js";
 
 type GraphToolTowerLayout = {
@@ -55,15 +57,18 @@ export const GraphToolButton = forwardRef<
   const expandLeft = expandLabels === "left";
 
   return (
-    <button
+    <Button
       ref={ref}
       type={type}
+      variant="ghost"
       title={label}
       aria-label={label}
       className={cn(
-        "flex items-center p-2 text-sm text-muted-foreground transition-[color,background-color] duration-150",
+        "h-auto gap-0 rounded-none p-2 text-sm font-normal text-muted-foreground shadow-none transition-[color,background-color] duration-150",
+        "hover:bg-transparent dark:hover:bg-transparent",
+        SIDEBAR_ICON_BUTTON_CLASS,
         "hover:not-disabled:text-foreground hover:not-disabled:bg-[color-mix(in_oklch,var(--foreground)_6%,var(--background))]",
-        "focus-visible:outline-2 focus-visible:outline-ring focus-visible:-outline-offset-2",
+        "focus-visible:outline-2 focus-visible:outline-ring focus-visible:-outline-offset-2 focus-visible:ring-0",
         "disabled:cursor-default disabled:opacity-45",
         active && "bg-[color-mix(in_oklch,var(--foreground)_10%,var(--background))] text-foreground",
         expandLeft && "w-full flex-row-reverse justify-start",
@@ -84,6 +89,6 @@ export const GraphToolButton = forwardRef<
       >
         {label}
       </span>
-    </button>
+    </Button>
   );
 });

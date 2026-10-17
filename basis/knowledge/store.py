@@ -1326,6 +1326,36 @@ class KnowledgeStore:
 
     PROJECTION_SCHEMA_VERSION = 1
 
+    def get_ledger_temporal_bounds(self, kb_id: str) -> dict[str, str | None]:
+        """Earliest/latest instants in the ledger (for UI when graph nodes lack valid_from)."""
+        with self._lock:
+            self._assert_kb_exists(kb_id)
+            row = self._conn.execute(
+                """
+                SELECT MIN(ts) AS min_at, MAX(ts) AS max_at
+                FROM (
+                    SELECT recorded_at AS ts FROM statements
+                    WHERE kb_id = ? AND invalidated_at IS NULL
+                    UNION ALL
+                    SELECT recorded_at FROM typed_facts
+                    WHERE kb_id = ? AND invalidated_at IS NULL
+                    UNION ALL
+                    SELECT recorded_at FROM derived_facts
+                    WHERE kb_id = ? AND invalidated_at IS NULL
+                    UNION ALL
+                    SELECT dv.created_at AS ts
+                    FROM documents d
+                    INNER JOIN document_versions dv ON dv.id = d.current_version_id
+                    WHERE d.kb_id = ? AND d.deleted_at IS NULL
+                )
+                WHERE ts IS NOT NULL AND TRIM(ts) != ''
+                """,
+                (kb_id, kb_id, kb_id, kb_id),
+            ).fetchone()
+        if row is None or row["min_at"] is None:
+            return {"min": None, "max": None}
+        return {"min": row["min_at"], "max": row["max_at"]}
+
     def ensure_projection_state(self, kb_id: str) -> None:
         with self._lock:
             self._assert_kb_exists(kb_id)
@@ -1428,7 +1458,8 @@ class KnowledgeStore:
                 params = (kb_id,)
             rows = self._conn.execute(
                 f"""
-                SELECT d.id AS document_id, d.external_key, dv.id AS version_id
+                SELECT d.id AS document_id, d.external_key, dv.id AS version_id,
+                       dv.created_at AS version_created_at
                 FROM documents d
                 INNER JOIN document_versions dv ON dv.id = d.current_version_id
                 WHERE d.kb_id = ? AND d.deleted_at IS NULL AND {status_clause}
@@ -1455,6 +1486,7 @@ class KnowledgeStore:
                         "version_id": version_id,
                         "graph_doc_id": graph_doc_id,
                         "text": text,
+                        "version_created_at": row["version_created_at"],
                     }
                 )
         return items
@@ -1463,7 +1495,7 @@ class KnowledgeStore:
         with self._lock:
             rows = self._conn.execute(
                 """
-                SELECT id, canonical_label, description, entity_kind
+                SELECT id, canonical_label, description, entity_kind, created_at
                 FROM entities
                 WHERE kb_id = ? AND invalidated_at IS NULL
                 ORDER BY created_at ASC
@@ -1484,6 +1516,7 @@ class KnowledgeStore:
                     s.object_value,
                     s.confidence,
                     s.status,
+                    s.recorded_at,
                     e.id AS evidence_id,
                     e.chunk_id,
                     d.external_key,
@@ -1515,6 +1548,7 @@ class KnowledgeStore:
                         "evidence_id": row["evidence_id"],
                         "chunk_id": row["chunk_id"],
                         "graph_doc_id": graph_doc_id,
+                        "recorded_at": row["recorded_at"],
                     }
                 )
         return items
@@ -2571,7 +2605,7 @@ class KnowledgeStore:
             rows = self._conn.execute(
                 """
                 SELECT id, subject_id, predicate_uri, object_entity_id, object_value,
-                       mapping_id, confidence
+                       mapping_id, confidence, recorded_at
                 FROM typed_facts
                 WHERE kb_id = ? AND invalidated_at IS NULL
                 ORDER BY recorded_at ASC
@@ -2587,6 +2621,7 @@ class KnowledgeStore:
                 "object_value": row["object_value"],
                 "mapping_id": row["mapping_id"],
                 "confidence": row["confidence"],
+                "recorded_at": row["recorded_at"],
             }
             for row in rows
         ]
@@ -2596,7 +2631,8 @@ class KnowledgeStore:
             self._assert_kb_exists(kb_id)
             rows = self._conn.execute(
                 """
-                SELECT id, subject_id, predicate_uri, object_entity_id, object_value, rule_id
+                SELECT id, subject_id, predicate_uri, object_entity_id, object_value, rule_id,
+                       recorded_at
                 FROM derived_facts
                 WHERE kb_id = ? AND invalidated_at IS NULL
                 ORDER BY recorded_at ASC
@@ -2611,6 +2647,7 @@ class KnowledgeStore:
                 "object_entity_id": row["object_entity_id"],
                 "object_value": row["object_value"],
                 "rule_id": row["rule_id"],
+                "recorded_at": row["recorded_at"],
             }
             for row in rows
         ]

@@ -517,9 +517,10 @@ export function KbReviewQueueTab({
                     ) : null}
                     {isEntityMerge && primaryId !== emptyCell && firstDuplicate ? (
                       <>
-                        <button
+                        <Button
                           type="button"
-                          className="mt-2 inline-flex items-center gap-1 text-[11px] text-foreground underline-offset-2 hover:underline"
+                          variant="link"
+                          className="mt-2 h-auto gap-1 p-0 text-[11px] text-foreground"
                           onClick={() =>
                             setDiffExpandedId(showDiff ? null : item.id)
                           }
@@ -530,7 +531,7 @@ export function KbReviewQueueTab({
                             <PublicIcon name="chevron-right" size={12} />
                           )}
                           {r.propertyDiff}
-                        </button>
+                        </Button>
                         {showDiff ? (
                           <KbEntityMergePropertyDiff
                             kbId={kbId}

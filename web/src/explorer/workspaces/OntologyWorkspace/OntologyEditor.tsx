@@ -31,11 +31,13 @@ import type { EditorEntityType, RegistryEntry } from "./ontologyEditorModel";
 import { Button } from "@/components/ui/button.js";
 import { Input } from "@/components/ui/input.js";
 import { Label } from "@/components/ui/label.js";
+import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select.js";
 import { clearEntitySelection, readOntologyUrlState, writeEntitySelection } from "./ontologyUrlState";
 import { useI18n } from "@/i18n/context.js";
 import { fmt } from "@/i18n/format.js";
 import type { Locale } from "@/i18n/locale.js";
 import { ontologyOwlTypeLabel } from "./ontologyEditorCopy.js";
+import { cn } from "@/lib/utils.js";
 
 type OntologyNodeData = {
   label?: string;
@@ -529,7 +531,7 @@ export function OntologyEditor() {
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-background">
       <style>{ontologyFlowThemeCss}</style>
       <div className="flex shrink-0 flex-wrap items-center gap-2 border-b border-border bg-card px-4 py-3">
-        <select
+        <NativeSelect
           aria-label={e.activeOntologyAria}
           value={ontologyUri}
           onChange={(event) => {
@@ -538,15 +540,16 @@ export function OntologyEditor() {
             setUnownedEntity("");
             clearEntitySelection();
           }}
-          className="min-w-[260px] rounded-md border border-input bg-background px-3 py-2 text-xs text-foreground"
+          className="min-w-[260px] text-xs"
+          size="sm"
         >
-          <option value="">{e.selectOntology}</option>
+          <NativeSelectOption value="">{e.selectOntology}</NativeSelectOption>
           {registry.map((entry) => (
-            <option key={entry.uri} value={entry.uri}>
+            <NativeSelectOption key={entry.uri} value={entry.uri}>
               {entry.name || entry.uri}
-            </option>
+            </NativeSelectOption>
           ))}
-        </select>
+        </NativeSelect>
         <Button type="button" size="sm" variant="outline" className="h-8" onClick={addClass}>
           <PublicIcon name="plus-01" size={14} />
           {e.addClass}
@@ -630,15 +633,25 @@ export function OntologyEditor() {
               {"source" in showContext.element || isEditableEntityType(showContext.element.data.entityType) ? (
                 <>
                   {!("source" in showContext.element) && (
-                    <button type="button" className={contextItemClassName} onClick={renameSelected}>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      className={cn(contextItemClassName, "h-auto w-full justify-start rounded-none font-normal")}
+                      onClick={renameSelected}
+                    >
                       <PublicIcon name="edit-01" size={14} />
                       {e.rename}
-                    </button>
+                    </Button>
                   )}
-                  <button type="button" className={contextItemClassName} onClick={deleteSelected}>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className={cn(contextItemClassName, "h-auto w-full justify-start rounded-none font-normal")}
+                    onClick={deleteSelected}
+                  >
                     <PublicIcon name="trash-01" size={14} />
                     {e.delete}
-                  </button>
+                  </Button>
                 </>
               ) : (
                 <div className={`${contextItemClassName} cursor-default text-muted-foreground`}>

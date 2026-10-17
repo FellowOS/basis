@@ -20,6 +20,7 @@ import { buildExplorerKbApiPath, explorerFetch } from "../../host/explorerHttp";
 import { errorFromApiResponse } from "@/lib/api-error.js";
 import { useApiErrorMessage } from "@/lib/use-api-error-message.js";
 import { useTheme } from "@/lib/theme.js";
+import { cn } from "@/lib/utils.js";
 import {
   exWsDataTable,
   exWsErrorBanner,
@@ -224,15 +225,20 @@ export function SparqlWorkspace({ kbId }: { kbId: string }) {
             {TEMPLATES.map((template) => {
               const active = query === template.query;
               return (
-                <button
+                <Button
                   key={template.id}
                   type="button"
-                  className={`inline-flex items-center gap-1 rounded-[5px] px-2 py-1 text-[11px] transition-colors ${active ? "bg-muted text-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
+                  variant="ghost"
+                  size="sm"
+                  className={cn(
+                    "h-auto gap-1 rounded-[5px] px-2 py-1 text-[11px] font-normal",
+                    active ? "bg-muted text-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                  )}
                   onClick={() => requestTemplate(template.query)}
                 >
                   <PublicIcon name={template.icon} size={12} />
                   {copy.templateLabels[template.id]}
-                </button>
+                </Button>
               );
             })}
           </div>

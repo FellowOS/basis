@@ -13,7 +13,7 @@ from basis.api.deps import get_current_user, get_knowledge_store, get_store, get
 
 router = APIRouter(prefix="/api/kbs", tags=["realtime"])
 
-_ALLOWED_WS_ORIGINS = frozenset(
+_DEV_WS_ORIGINS = frozenset(
     {
         "http://127.0.0.1:5173",
         "http://localhost:5173",
@@ -21,11 +21,28 @@ _ALLOWED_WS_ORIGINS = frozenset(
 )
 
 
+def _allowed_ws_origins(websocket: WebSocket) -> frozenset[str]:
+    allowed = set(_DEV_WS_ORIGINS)
+    store: AdminStore = websocket.app.state.store
+    app_settings = websocket.app.state.settings
+    public = f"http://{app_settings.host}:{app_settings.port}".rstrip("/")
+    from basis.auth.settings import load_auth_settings_from_store
+
+    auth = load_auth_settings_from_store(
+        store,
+        default_public_url=public,
+    )
+    for candidate in (auth.web_origin, auth.public_url):
+        if candidate:
+            allowed.add(candidate.rstrip("/"))
+    return frozenset(allowed)
+
+
 def _check_ws_origin(websocket: WebSocket) -> None:
     origin = websocket.headers.get("origin")
     if origin is None:
         return
-    if origin not in _ALLOWED_WS_ORIGINS:
+    if origin.rstrip("/") not in _allowed_ws_origins(websocket):
         raise AdminError(403, "forbidden_origin", "来源不被允许")
 
 

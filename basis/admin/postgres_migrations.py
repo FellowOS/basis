@@ -287,4 +287,43 @@ def run_postgres_migrations(engine: Engine) -> list[int]:
                 },
             )
             applied_now.append(10)
+
+        # SQLite file 0010; PG version 10 is vector bootstrap — org/SSO is version 11.
+        org_path = _migration_root() / "0010_organizations_sso.sql"
+        org_source = org_path.read_text(encoding="utf-8")
+        org_checksum = _checksum(org_source)
+        if 11 in applied:
+            if applied[11] != org_checksum:
+                raise RuntimeError("PostgreSQL migration 11 checksum mismatch")
+        else:
+            for statement in _statements(_postgresize(org_source)):
+                if statement.upper().startswith("ALTER TABLE KNOWLEDGE_BASES ADD COLUMN"):
+                    _exec_sql_best_effort(
+                        conn,
+                        """
+                        ALTER TABLE knowledge_bases
+                        ADD COLUMN IF NOT EXISTS organization_id TEXT
+                        REFERENCES organizations(id)
+                        """,
+                        skip_owner_errors=True,
+                    )
+                else:
+                    conn.exec_driver_sql(statement)
+            conn.execute(
+                text(
+                    """
+                    INSERT INTO schema_migrations(version, name, checksum, applied_at)
+                    VALUES (11, :name, :checksum, :applied_at)
+                    """
+                ),
+                {
+                    "name": org_path.name,
+                    "checksum": org_checksum,
+                    "applied_at": datetime.now(timezone.utc).isoformat(),
+                },
+            )
+            applied_now.append(11)
+            from basis.admin.org_backfill import ensure_organization_backfill_postgres
+
+            ensure_organization_backfill_postgres(conn)
     return applied_now

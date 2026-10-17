@@ -29,6 +29,7 @@ import { kbGraphProjection } from './kbGraphProjection.js';
 import { kbSparql } from './kbSparql.js';
 import { kbLineage } from './kbLineage.js';
 import { kbSettings } from './kbSettings.js';
+import { kbOrgSso } from './kbOrgSso.js';
 import { platformSettings } from './platformSettings.js';
 import { kbOntology } from './kbOntology.js';
 import { kbDecisions } from './kbDecisions.js';
@@ -67,6 +68,7 @@ export const zh = {
   kbSparql,
   kbLineage,
   kbSettings,
+  kbOrgSso,
   platformSettings,
   kbOntology,
   kbDecisions,
