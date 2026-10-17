@@ -14,7 +14,7 @@ def _auth(token: str) -> dict[str, str]:
 
 def _register(client: TestClient, email: str, name: str = "用户") -> dict:
     response = client.post(
-        "/api/auth/register",
+        "/api/v1/auth/register",
         json={"email": email, "password": "password1", "display_name": name},
     )
     assert response.status_code == 200, response.text
@@ -32,7 +32,7 @@ def test_first_user_is_admin_and_owns_the_public_kb(tmp_path) -> None:
     admin = _register(client, "admin@example.com", "管理员")
     assert admin["user"]["is_admin"] is True
 
-    kbs = client.get("/api/kbs", headers=_auth(admin["token"])).json()["kbs"]
+    kbs = client.get("/api/v1/kbs", headers=_auth(admin["token"])).json()["kbs"]
     assert len(kbs) == 1
     assert kbs[0]["name"] == "公共知识库"
     assert kbs[0]["visibility"] == "open"
@@ -46,7 +46,7 @@ def test_registration_switch_and_admin_provisioning(tmp_path) -> None:
     _register(client, "editor@example.com", "编辑")
 
     closed = client.put(
-        "/api/settings",
+        "/api/v1/settings",
         headers=headers,
         json={"open_registration": False},
     )
@@ -54,14 +54,14 @@ def test_registration_switch_and_admin_provisioning(tmp_path) -> None:
     assert closed.json()["open_registration"] is False
 
     blocked = client.post(
-        "/api/auth/register",
+        "/api/v1/auth/register",
         json={"email": "new@example.com", "password": "password1", "display_name": "新用户"},
     )
     assert blocked.status_code == 403
     assert blocked.json()["detail"]["code"] == "registration_closed"
 
     created = client.post(
-        "/api/admin/users",
+        "/api/v1/admin/users",
         headers=headers,
         json={
             "email": "provisioned@example.com",
@@ -79,7 +79,7 @@ def test_cannot_deactivate_self_or_the_last_admin(tmp_path) -> None:
     admin = _register(client, "admin@example.com")
     headers = _auth(admin["token"])
     other = client.post(
-        "/api/admin/users",
+        "/api/v1/admin/users",
         headers=headers,
         json={
             "email": "other-admin@example.com",
@@ -90,16 +90,16 @@ def test_cannot_deactivate_self_or_the_last_admin(tmp_path) -> None:
     ).json()["user"]
 
     self_deactivate = client.post(
-        f"/api/admin/users/{admin['user']['id']}/deactivate",
+        f"/api/v1/admin/users/{admin['user']['id']}/deactivate",
         headers=headers,
     )
     assert self_deactivate.status_code == 409
 
     assert client.post(
-        f"/api/admin/users/{other['id']}/deactivate", headers=headers
+        f"/api/v1/admin/users/{other['id']}/deactivate", headers=headers
     ).status_code == 200
     last = client.post(
-        f"/api/admin/users/{admin['user']['id']}/deactivate", headers=headers
+        f"/api/v1/admin/users/{admin['user']['id']}/deactivate", headers=headers
     )
     assert last.status_code == 409
     assert last.json()["detail"]["code"] == "last_admin"
@@ -114,35 +114,35 @@ def test_restricted_kb_is_hidden_and_roles_are_enforced(tmp_path) -> None:
     editor_headers = _auth(editor["token"])
 
     created = client.post(
-        "/api/kbs",
+        "/api/v1/kbs",
         headers=editor_headers,
         json={"name": "合同库", "visibility": "restricted"},
     )
     assert created.status_code == 200
     kb_id = created.json()["id"]
 
-    outsider_list = client.get("/api/kbs", headers=_auth(outsider["token"])).json()["kbs"]
+    outsider_list = client.get("/api/v1/kbs", headers=_auth(outsider["token"])).json()["kbs"]
     assert kb_id not in {item["id"] for item in outsider_list}
 
-    admin_list = client.get("/api/kbs", headers=admin_headers).json()["kbs"]
+    admin_list = client.get("/api/v1/kbs", headers=admin_headers).json()["kbs"]
     assert kb_id in {item["id"] for item in admin_list}
 
     open_attempt = client.post(
-        "/api/kbs",
+        "/api/v1/kbs",
         headers=editor_headers,
         json={"name": "公开库", "visibility": "open"},
     )
     assert open_attempt.status_code == 403
 
     added = client.put(
-        f"/api/kbs/{kb_id}/members/{outsider['user']['id']}",
+        f"/api/v1/kbs/{kb_id}/members/{outsider['user']['id']}",
         headers=editor_headers,
         json={"role": "viewer"},
     )
     assert added.status_code == 200
 
     demote = client.put(
-        f"/api/kbs/{kb_id}/members/{editor['user']['id']}",
+        f"/api/v1/kbs/{kb_id}/members/{editor['user']['id']}",
         headers=editor_headers,
         json={"role": "editor"},
     )
@@ -150,7 +150,7 @@ def test_restricted_kb_is_hidden_and_roles_are_enforced(tmp_path) -> None:
     assert demote.json()["detail"]["code"] == "last_owner"
 
     denied = client.post(
-        f"/api/kbs/{kb_id}/documents",
+        f"/api/v1/kbs/{kb_id}/documents",
         headers=_auth(outsider["token"]),
         json={"doc_id": "doc-1", "text": "条款"},
     )
@@ -164,7 +164,7 @@ def test_model_settings_hide_secrets(tmp_path) -> None:
     headers = _auth(admin["token"])
 
     saved = client.put(
-        "/api/settings",
+        "/api/v1/settings",
         headers=headers,
         json={
             "chat_base_url": "http://localhost:11434/v1",
@@ -177,8 +177,8 @@ def test_model_settings_hide_secrets(tmp_path) -> None:
     assert body["has_chat_key"] is True
     assert "secret-key" not in saved.text
 
-    denied = client.get("/api/settings", headers=_auth(editor["token"]))
+    denied = client.get("/api/v1/settings", headers=_auth(editor["token"]))
     assert denied.status_code == 403
 
-    events = client.get("/api/audit", headers=headers).json()["events"]
+    events = client.get("/api/v1/audit", headers=headers).json()["events"]
     assert any(event["action"] == "settings.updated" for event in events)

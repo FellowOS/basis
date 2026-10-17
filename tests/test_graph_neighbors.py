@@ -15,27 +15,27 @@ def _auth(token: str) -> dict[str, str]:
 def test_neighbors_and_path_on_document_node(tmp_path) -> None:
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
     admin = client.post(
-        "/api/auth/register",
+        "/api/v1/auth/register",
         json={"email": "p@example.com", "password": "password1", "display_name": "U"},
     ).json()
     headers = _auth(admin["token"])
-    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
 
     client.post(
-        f"/api/kbs/{kb_id}/documents",
+        f"/api/v1/kbs/{kb_id}/documents",
         headers=headers,
         json={"doc_id": "path-doc", "text": "hello", "extract": False},
     )
 
     neighbors = client.get(
-        f"/api/kbs/{kb_id}/graph/nodes/path-doc/neighbors",
+        f"/api/v1/kbs/{kb_id}/graph/nodes/path-doc/neighbors",
         headers=headers,
     )
     assert neighbors.status_code == 200
     assert neighbors.json()["node_id"] == "path-doc"
 
     path = client.get(
-        f"/api/kbs/{kb_id}/graph/path",
+        f"/api/v1/kbs/{kb_id}/graph/path",
         headers=headers,
         params={"source": "path-doc", "target": "path-doc"},
     )

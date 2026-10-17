@@ -41,7 +41,7 @@ def test_postgres_backup_restore_scripts_preserve_ledger(
     )
     client = TestClient(create_app(settings))
     registered = client.post(
-        "/api/auth/register",
+        "/api/v1/auth/register",
         json={
             "email": "pgbackup@example.com",
             "password": "password1",
@@ -50,9 +50,9 @@ def test_postgres_backup_restore_scripts_preserve_ledger(
     )
     assert registered.status_code == 200
     headers = _auth(registered.json()["token"])
-    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
     uploaded = client.post(
-        f"/api/kbs/{kb_id}/documents/upload",
+        f"/api/v1/kbs/{kb_id}/documents/upload",
         headers=headers,
         files={
             "file": (
@@ -64,7 +64,7 @@ def test_postgres_backup_restore_scripts_preserve_ledger(
         data={"extract": "false", "wait": "true"},
     )
     assert uploaded.status_code == 200
-    client.post(f"/api/kbs/{kb_id}/graph/rebuild", headers=headers)
+    client.post(f"/api/v1/kbs/{kb_id}/graph/rebuild", headers=headers)
     client.close()
 
     backup_env = {
@@ -108,20 +108,20 @@ def test_postgres_backup_restore_scripts_preserve_ledger(
             )
         )
         login = client2.post(
-            "/api/auth/login",
+            "/api/v1/auth/login",
             json={"email": "pgbackup@example.com", "password": "password1"},
         )
         assert login.status_code == 200
         headers2 = _auth(login.json()["token"])
         docs = client2.get(
-            f"/api/kbs/{kb_id}/documents", headers=headers2
+            f"/api/v1/kbs/{kb_id}/documents", headers=headers2
         ).json()["documents"]
         assert any(d.get("filename") == "ledger.txt" for d in docs)
 
-        rebuild = client2.post(f"/api/kbs/{kb_id}/graph/rebuild", headers=headers2)
+        rebuild = client2.post(f"/api/v1/kbs/{kb_id}/graph/rebuild", headers=headers2)
         assert rebuild.status_code == 200
         snap = client2.get(
-            f"/api/kbs/{kb_id}/graph/snapshot", headers=headers2
+            f"/api/v1/kbs/{kb_id}/graph/snapshot", headers=headers2
         ).json()
         node_ids = {n["id"] for n in snap["nodes"]}
         assert any("ledger" in nid for nid in node_ids)

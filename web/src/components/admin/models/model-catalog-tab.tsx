@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/dialog.js';
 import { Switch } from '@/components/ui/switch.js';
 import { useI18n } from '@/i18n/context.js';
-import { api } from '@/lib/api.js';
+import { openApiDELETE, openApiGET, openApiPATCH } from '@/lib/openapi-client.js';
 import { useApiErrorMessage } from '@/lib/use-api-error-message.js';
 import { cn } from '@/lib/utils.js';
 
@@ -48,7 +48,9 @@ export function ModelCatalogTab({ kind, addOpen, onAddOpenChange }: Props) {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const body = await api<{ models: ConfiguredModel[] }>(`/api/models?kind=${kind}`);
+      const body = await openApiGET<{ models: ConfiguredModel[] }>('/api/v1/models', {
+        params: { query: { kind } },
+      });
       setModels(body.models);
     } catch (err) {
       toast.error(apiError(err));
@@ -69,10 +71,13 @@ export function ModelCatalogTab({ kind, addOpen, onAddOpenChange }: Props) {
   async function toggleEnabled(model: ConfiguredModel, enabled: boolean) {
     setBusyId(model.id);
     try {
-      const body = await api<{ model: ConfiguredModel }>(`/api/models/${model.id}`, {
-        method: 'PATCH',
-        body: JSON.stringify({ enabled }),
-      });
+      const body = await openApiPATCH<{ model: ConfiguredModel }>(
+        '/api/v1/models/{model_id}',
+        {
+          params: { path: { model_id: model.id } },
+          body: { enabled },
+        },
+      );
       setModels((prev) => prev.map((row) => (row.id === model.id ? body.model : row)));
     } catch (err) {
       toast.error(apiError(err));
@@ -84,7 +89,9 @@ export function ModelCatalogTab({ kind, addOpen, onAddOpenChange }: Props) {
   async function removeModel(model: ConfiguredModel) {
     setBusyId(model.id);
     try {
-      await api(`/api/models/${model.id}`, { method: 'DELETE' });
+      await openApiDELETE('/api/v1/models/{model_id}', {
+        params: { path: { model_id: model.id } },
+      });
       toast.success(m.removedToast);
       await load();
     } catch (err) {

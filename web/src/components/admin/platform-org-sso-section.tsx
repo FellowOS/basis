@@ -9,7 +9,7 @@ import {
   SelectValue,
 } from '@/components/ui/select.js';
 import { useI18n } from '@/i18n/context.js';
-import { api } from '@/lib/api.js';
+import { openApiGET } from '@/lib/openapi-client.js';
 import { useBasisSession } from '@/lib/basis-session.js';
 import { useApiErrorMessage } from '@/lib/use-api-error-message.js';
 
@@ -35,7 +35,7 @@ export function PlatformOrgSsoSection({ siteBaseUrl }: { siteBaseUrl?: string })
   useEffect(() => {
     setLoading(true);
     setError(null);
-    api<{ organizations: OrgRow[] }>('/api/orgs')
+    openApiGET<{ organizations: OrgRow[] }>('/api/v1/orgs')
       .then((body) => {
         const manageable = isAdmin
           ? body.organizations

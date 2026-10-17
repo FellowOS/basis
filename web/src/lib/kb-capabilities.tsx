@@ -9,10 +9,10 @@ import {
 } from 'react';
 import { useLocation } from 'react-router-dom';
 import { devMessage } from '@/i18n/dev-messages.js';
-import { api } from '@/lib/api.js';
 import type { KbNavKey } from '@/lib/nav-config.js';
 import { isSetupKbId } from '@/lib/kb-active-id.js';
 import { parseKbIdFromPath } from '@/lib/nav-config.js';
+import { kbOpenApiGET } from '@/lib/openapi-client.js';
 
 export type KbCapabilities = {
   kb_id: string;
@@ -60,7 +60,7 @@ export function KbCapabilitiesProvider({ children }: { children: ReactNode }) {
     }
     setLoading(true);
     try {
-      const body = await api<KbCapabilities>(`/api/kbs/${kbId}/capabilities`);
+      const body = await kbOpenApiGET<KbCapabilities>(kbId, 'capabilities');
       setCaps(body);
     } catch {
       setCaps(null);

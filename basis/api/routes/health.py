@@ -8,6 +8,7 @@ router = APIRouter(tags=["health"])
 
 
 @router.get("/health")
+@router.get("/api/v1/health")
 async def health(request: Request) -> dict[str, str]:
     database = request.app.state.database
     await asyncio.to_thread(database.conn.execute, "SELECT 1")

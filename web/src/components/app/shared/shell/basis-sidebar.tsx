@@ -22,8 +22,8 @@ import { ScrollShadow } from '@/components/app/shared/primitives/scroll-shadow.j
 import { useI18n } from '@/i18n/context.js';
 import { formatBadgeCount } from '@/i18n/format.js';
 import type { Locale } from '@/i18n/locale.js';
-import { api } from '@/lib/api.js';
 import { consumeKbAlertsStream, type KbAlertStreamItem } from '@/lib/kb-alerts-stream.js';
+import { kbOpenApiGET } from '@/lib/openapi-client.js';
 import {
   KB_NAV_BY_ZONE,
   KB_WORKSPACE_ZONES,
@@ -59,8 +59,10 @@ export function BasisSidebar({ onLogout }: { onLogout: () => void }) {
       return;
     }
     try {
-      const data = await api<{ alerts: KbAlertStreamItem[]; unread_count: number }>(
-        `/api/kbs/${alertsKbId}/alerts?limit=50`,
+      const data = await kbOpenApiGET<{ alerts: KbAlertStreamItem[]; unread_count: number }>(
+        alertsKbId,
+        'alerts',
+        { params: { query: { limit: 50 } } },
       );
       seenAlertIdsRef.current = new Set(data.alerts.map((a) => a.id));
       setUnreadAlertsCount(data.unread_count ?? data.alerts.length);

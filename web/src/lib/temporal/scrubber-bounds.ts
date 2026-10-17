@@ -27,7 +27,7 @@ function clamp(value: Date, minBound: Date, maxBound: Date): Date {
 }
 
 /**
- * `/api/temporal/bounds` reports `max: null` for graphs whose nodes carry
+ * `GET .../temporal/bounds` reports `max: null` for graphs whose nodes carry
  * `valid_from` instants and no `valid_until`, which is the common case rather
  * than malformed data. Such a graph is known up to the present and no further,
  * so `now` is the honest upper bound and the honest starting playhead.

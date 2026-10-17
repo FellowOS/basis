@@ -11,20 +11,20 @@ from basis.config import Settings
 def test_mcp_read_token_cannot_propose_remember(tmp_path) -> None:
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
     admin = client.post(
-        "/api/auth/register",
+        "/api/v1/auth/register",
         json={"email": "rd@example.com", "password": "password1", "display_name": "Rd"},
     ).json()
     session_headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_id = client.get("/api/kbs", headers=session_headers).json()["kbs"][0]["id"]
+    kb_id = client.get("/api/v1/kbs", headers=session_headers).json()["kbs"][0]["id"]
     created = client.post(
-        f"/api/kbs/{kb_id}/tokens",
+        f"/api/v1/kbs/{kb_id}/tokens",
         headers=session_headers,
         json={"name": "read-agent", "scope": "read"},
     ).json()
     api_headers = {"Authorization": f"Bearer {created['secret']}"}
 
     denied = client.post(
-        f"/api/kbs/{kb_id}/mcp",
+        f"/api/v1/kbs/{kb_id}/mcp",
         headers=api_headers,
         json={
             "jsonrpc": "2.0",
@@ -41,11 +41,11 @@ def test_mcp_read_token_cannot_propose_remember(tmp_path) -> None:
 def test_chat_playground_rejects_concurrent_request(tmp_path) -> None:
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
     admin = client.post(
-        "/api/auth/register",
+        "/api/v1/auth/register",
         json={"email": "cf@example.com", "password": "password1", "display_name": "Cf"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
 
     store = client.app.state.store
     barrier = {"entered": False}
@@ -71,7 +71,7 @@ def test_chat_playground_rejects_concurrent_request(tmp_path) -> None:
 
         def first():
             r = client.post(
-                f"/api/kbs/{kb_id}/chat/playground",
+                f"/api/v1/kbs/{kb_id}/chat/playground",
                 headers=headers,
                 json={"messages": [{"role": "user", "content": "hi"}]},
             )
@@ -82,7 +82,7 @@ def test_chat_playground_rejects_concurrent_request(tmp_path) -> None:
 
             time.sleep(0.05)
             r = client.post(
-                f"/api/kbs/{kb_id}/chat/playground",
+                f"/api/v1/kbs/{kb_id}/chat/playground",
                 headers=headers,
                 json={"messages": [{"role": "user", "content": "again"}]},
             )

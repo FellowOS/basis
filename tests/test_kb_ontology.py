@@ -17,13 +17,13 @@ def test_vocabulary_schemes_empty_graph(tmp_path) -> None:
 
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
     admin = client.post(
-        "/api/auth/register",
+        "/api/v1/auth/register",
         json={"email": "voc@example.com", "password": "password1", "display_name": "Voc"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
 
-    response = client.get(f"/api/kbs/{kb_id}/vocabulary/schemes", headers=headers)
+    response = client.get(f"/api/v1/kbs/{kb_id}/vocabulary/schemes", headers=headers)
     assert response.status_code == 200
     assert response.json() == []
 
@@ -34,13 +34,13 @@ def test_alignments_isolated_between_kbs(tmp_path) -> None:
 
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
     admin = client.post(
-        "/api/auth/register",
+        "/api/v1/auth/register",
         json={"email": "ali@example.com", "password": "password1", "display_name": "Ali"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_a = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    kb_a = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
     kb_b = client.post(
-        "/api/kbs",
+        "/api/v1/kbs",
         headers=headers,
         json={"name": "Other", "visibility": "restricted"},
     ).json()["id"]
@@ -51,16 +51,16 @@ def test_alignments_isolated_between_kbs(tmp_path) -> None:
         "relation": "skos:exactMatch",
         "confidence": 0.9,
     }
-    created = client.post(f"/api/kbs/{kb_a}/ontology/alignments", headers=headers, json=payload)
+    created = client.post(f"/api/v1/kbs/{kb_a}/ontology/alignments", headers=headers, json=payload)
     assert created.status_code == 200
     alignment_id = created.json()["id"]
 
-    list_a = client.get(f"/api/kbs/{kb_a}/ontology/alignments", headers=headers)
+    list_a = client.get(f"/api/v1/kbs/{kb_a}/ontology/alignments", headers=headers)
     assert list_a.status_code == 200
     assert len(list_a.json()) == 1
     assert list_a.json()[0]["id"] == alignment_id
 
-    list_b = client.get(f"/api/kbs/{kb_b}/ontology/alignments", headers=headers)
+    list_b = client.get(f"/api/v1/kbs/{kb_b}/ontology/alignments", headers=headers)
     assert list_b.status_code == 200
     assert list_b.json() == []
 
@@ -71,22 +71,22 @@ def test_ontology_graph_requires_uri(tmp_path) -> None:
 
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
     admin = client.post(
-        "/api/auth/register",
+        "/api/v1/auth/register",
         json={"email": "ogr@example.com", "password": "password1", "display_name": "Ogr"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
 
-    missing = client.get(f"/api/kbs/{kb_id}/ontology/graph", headers=headers)
+    missing = client.get(f"/api/v1/kbs/{kb_id}/ontology/graph", headers=headers)
     assert missing.status_code == 422
 
     client.post(
-        f"/api/kbs/{kb_id}/ontology",
+        f"/api/v1/kbs/{kb_id}/ontology",
         headers=headers,
         json={"name": "Demo", "namespace": "http://example.org/demo"},
     )
     graph = client.get(
-        f"/api/kbs/{kb_id}/ontology/graph",
+        f"/api/v1/kbs/{kb_id}/ontology/graph",
         headers=headers,
         params={"uri": "http://example.org/demo#ontology"},
     )
@@ -94,7 +94,7 @@ def test_ontology_graph_requires_uri(tmp_path) -> None:
     assert graph.json()["uri"] == "http://example.org/demo#ontology"
 
     audit = client.get(
-        f"/api/kbs/{kb_id}/audit/graph-mutations",
+        f"/api/v1/kbs/{kb_id}/audit/graph-mutations",
         headers=headers,
         params={"action_prefix": "kb.graph.ontology"},
     )

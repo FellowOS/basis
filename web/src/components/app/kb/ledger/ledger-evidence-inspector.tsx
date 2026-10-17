@@ -16,9 +16,9 @@ import {
   ledgerChunkOriginLabel,
   ledgerStatementStatusLabel,
 } from '@/lib/kb-ledger-labels.js';
-import { api } from '@/lib/api.js';
 import { useKbNodeLabels } from '@/lib/kb-node-labels.js';
 import { kbPath } from '@/lib/nav-config.js';
+import { kbOpenApiGET } from '@/lib/openapi-client.js';
 import { useApiErrorMessage } from '@/lib/use-api-error-message.js';
 
 type ChunkFields = {
@@ -85,8 +85,9 @@ export function LedgerEvidenceInspector({ kbId }: { kbId: string }) {
     let cancelled = false;
     setLoading(true);
     setError(null);
-    void api<{ document: { title?: string; doc_id?: string } }>(
-      `/api/kbs/${kbId}/ledger/documents/${encodeURIComponent(docRef)}`,
+    void kbOpenApiGET<{ document: { title?: string; doc_id?: string } }>(
+      kbId,
+      `ledger/documents/${encodeURIComponent(docRef)}`,
     )
       .then((meta) => {
         if (!cancelled) {
@@ -96,8 +97,9 @@ export function LedgerEvidenceInspector({ kbId }: { kbId: string }) {
       .catch(() => {
         if (!cancelled) setDocTitle(docRef);
       });
-    void api<{ chunks: ChunkSummary[] }>(
-      `/api/kbs/${kbId}/ledger/documents/${encodeURIComponent(docRef)}/chunks`,
+    void kbOpenApiGET<{ chunks: ChunkSummary[] }>(
+      kbId,
+      `ledger/documents/${encodeURIComponent(docRef)}/chunks`,
     )
       .then((data) => {
         if (!cancelled) setDocChunks(data.chunks ?? []);
@@ -125,8 +127,9 @@ export function LedgerEvidenceInspector({ kbId }: { kbId: string }) {
     let cancelled = false;
     setLoading(true);
     setError(null);
-    void api<{ chunk: ChunkDetail; statements: ChunkStatement[] }>(
-      `/api/kbs/${kbId}/ledger/chunks/${encodeURIComponent(chunkId)}`,
+    void kbOpenApiGET<{ chunk: ChunkDetail; statements: ChunkStatement[] }>(
+      kbId,
+      `ledger/chunks/${encodeURIComponent(chunkId)}`,
     )
       .then((data) => {
         if (!cancelled) {

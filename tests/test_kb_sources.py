@@ -15,14 +15,14 @@ def _test_settings(tmp_path) -> Settings:
 def test_webhook_source_crud_and_ingest(tmp_path) -> None:
     client = TestClient(create_app(_test_settings(tmp_path)))
     admin = client.post(
-        "/api/auth/register",
+        "/api/v1/auth/register",
         json={"email": "src@example.com", "password": "password1", "display_name": "Src"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
 
     created = client.post(
-        f"/api/kbs/{kb_id}/sources",
+        f"/api/v1/kbs/{kb_id}/sources",
         headers=headers,
         json={"kind": "webhook", "name": "HR feed"},
     )
@@ -33,18 +33,18 @@ def test_webhook_source_crud_and_ingest(tmp_path) -> None:
     assert token
     assert f"/sources/{source_id}/webhook" in body["webhook_path"]
 
-    listed = client.get(f"/api/kbs/{kb_id}/sources", headers=headers)
+    listed = client.get(f"/api/v1/kbs/{kb_id}/sources", headers=headers)
     assert listed.status_code == 200
     assert any(s["id"] == source_id for s in listed.json()["sources"])
 
     bad = client.post(
-        f"/api/kbs/{kb_id}/sources/{source_id}/webhook",
+        f"/api/v1/kbs/{kb_id}/sources/{source_id}/webhook",
         json={"text": "hello"},
     )
     assert bad.status_code == 401
 
     ingested = client.post(
-        f"/api/kbs/{kb_id}/sources/{source_id}/webhook",
+        f"/api/v1/kbs/{kb_id}/sources/{source_id}/webhook",
         headers={"Authorization": f"Bearer {token}"},
         json={"title": "Note", "text": "Webhook body", "external_key": "wh-1"},
     )
@@ -53,14 +53,14 @@ def test_webhook_source_crud_and_ingest(tmp_path) -> None:
     assert ingested.json()["status"] == "queued"
 
     disabled = client.patch(
-        f"/api/kbs/{kb_id}/sources/{source_id}",
+        f"/api/v1/kbs/{kb_id}/sources/{source_id}",
         headers=headers,
         json={"enabled": False},
     )
     assert disabled.status_code == 200
 
     blocked = client.post(
-        f"/api/kbs/{kb_id}/sources/{source_id}/webhook",
+        f"/api/v1/kbs/{kb_id}/sources/{source_id}/webhook",
         headers={"Authorization": f"Bearer {token}"},
         json={"text": "nope"},
     )
@@ -70,38 +70,38 @@ def test_webhook_source_crud_and_ingest(tmp_path) -> None:
 def test_sources_kb_isolation(tmp_path) -> None:
     client = TestClient(create_app(_test_settings(tmp_path)))
     a = client.post(
-        "/api/auth/register",
+        "/api/v1/auth/register",
         json={"email": "iso@example.com", "password": "password1", "display_name": "Iso"},
     ).json()
     headers = {"Authorization": f"Bearer {a['token']}"}
-    kb_a = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    kb_a = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
     kb_b = client.post(
-        "/api/kbs",
+        "/api/v1/kbs",
         headers=headers,
         json={"name": "Other", "visibility": "restricted"},
     ).json()["id"]
 
     created = client.post(
-        f"/api/kbs/{kb_a}/sources",
+        f"/api/v1/kbs/{kb_a}/sources",
         headers=headers,
         json={"kind": "webhook", "name": "A only"},
     ).json()
     source_id = created["source"]["id"]
 
-    denied = client.get(f"/api/kbs/{kb_b}/sources/{source_id}", headers=headers)
+    denied = client.get(f"/api/v1/kbs/{kb_b}/sources/{source_id}", headers=headers)
     assert denied.status_code == 404
 
 
 def test_ingest_source_audit_never_contains_token(tmp_path) -> None:
     client = TestClient(create_app(_test_settings(tmp_path)))
     admin = client.post(
-        "/api/auth/register",
+        "/api/v1/auth/register",
         json={"email": "aud@example.com", "password": "password1", "display_name": "Aud"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
     created = client.post(
-        f"/api/kbs/{kb_id}/sources",
+        f"/api/v1/kbs/{kb_id}/sources",
         headers=headers,
         json={"kind": "webhook", "name": "Audit"},
     )
@@ -109,12 +109,12 @@ def test_ingest_source_audit_never_contains_token(tmp_path) -> None:
     token = created.json()["ingest_token"]
     source_id = created.json()["source"]["id"]
 
-    rotated = client.post(f"/api/kbs/{kb_id}/sources/{source_id}/rotate-token", headers=headers)
+    rotated = client.post(f"/api/v1/kbs/{kb_id}/sources/{source_id}/rotate-token", headers=headers)
     assert rotated.status_code == 200
     new_token = rotated.json()["ingest_token"]
 
     audit = client.get(
-        f"/api/kbs/{kb_id}/audit/graph-mutations?action_prefix=kb.ingest_source.",
+        f"/api/v1/kbs/{kb_id}/audit/graph-mutations?action_prefix=kb.ingest_source.",
         headers=headers,
     )
     assert audit.status_code == 200
@@ -129,27 +129,27 @@ def test_ingest_source_audit_never_contains_token(tmp_path) -> None:
 def test_webhook_token_rotation(tmp_path) -> None:
     client = TestClient(create_app(_test_settings(tmp_path)))
     admin = client.post(
-        "/api/auth/register",
+        "/api/v1/auth/register",
         json={"email": "rot@example.com", "password": "password1", "display_name": "Rot"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
     created = client.post(
-        f"/api/kbs/{kb_id}/sources",
+        f"/api/v1/kbs/{kb_id}/sources",
         headers=headers,
         json={"kind": "webhook", "name": "Rot"},
     ).json()
     source_id = created["source"]["id"]
     old_token = created["ingest_token"]
 
-    rotated = client.post(f"/api/kbs/{kb_id}/sources/{source_id}/rotate-token", headers=headers)
+    rotated = client.post(f"/api/v1/kbs/{kb_id}/sources/{source_id}/rotate-token", headers=headers)
     assert rotated.status_code == 200
     new_token = rotated.json()["ingest_token"]
     assert new_token != old_token
 
     assert (
         client.post(
-            f"/api/kbs/{kb_id}/sources/{source_id}/webhook",
+            f"/api/v1/kbs/{kb_id}/sources/{source_id}/webhook",
             headers={"Authorization": f"Bearer {old_token}"},
             json={"text": "x"},
         ).status_code
@@ -157,7 +157,7 @@ def test_webhook_token_rotation(tmp_path) -> None:
     )
     assert (
         client.post(
-            f"/api/kbs/{kb_id}/sources/{source_id}/webhook",
+            f"/api/v1/kbs/{kb_id}/sources/{source_id}/webhook",
             headers={"Authorization": f"Bearer {new_token}"},
             json={"text": "ok"},
         ).status_code
@@ -168,13 +168,13 @@ def test_webhook_token_rotation(tmp_path) -> None:
 def test_http_poll_sync(tmp_path) -> None:
     client = TestClient(create_app(_test_settings(tmp_path)))
     admin = client.post(
-        "/api/auth/register",
+        "/api/v1/auth/register",
         json={"email": "poll@example.com", "password": "password1", "display_name": "Poll"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
     created = client.post(
-        f"/api/kbs/{kb_id}/sources",
+        f"/api/v1/kbs/{kb_id}/sources",
         headers=headers,
         json={
             "kind": "http_poll",
@@ -196,16 +196,16 @@ def test_http_poll_sync(tmp_path) -> None:
     mock_http.__exit__ = MagicMock(return_value=False)
 
     with patch("basis.knowledge.ingest_source_service.httpx.Client", return_value=mock_http):
-        synced = client.post(f"/api/kbs/{kb_id}/sources/{source_id}/sync", headers=headers, json={})
+        synced = client.post(f"/api/v1/kbs/{kb_id}/sources/{source_id}/sync", headers=headers, json={})
 
     assert synced.status_code == 200
     assert synced.json()["result"]["status"] == "queued"
 
-    detail = client.get(f"/api/kbs/{kb_id}/sources/{source_id}", headers=headers).json()["source"]
+    detail = client.get(f"/api/v1/kbs/{kb_id}/sources/{source_id}", headers=headers).json()["source"]
     events = detail["config"].get("sync_events") or []
     assert events and events[0]["status"] == "succeeded"
 
-    history = client.get(f"/api/kbs/{kb_id}/sources/{source_id}/sync-history", headers=headers)
+    history = client.get(f"/api/v1/kbs/{kb_id}/sources/{source_id}/sync-history", headers=headers)
     assert history.status_code == 200
     hist = history.json()
     assert hist["source_id"] == source_id
@@ -215,13 +215,13 @@ def test_http_poll_sync(tmp_path) -> None:
 def test_git_source_sync(tmp_path) -> None:
     client = TestClient(create_app(_test_settings(tmp_path)))
     admin = client.post(
-        "/api/auth/register",
+        "/api/v1/auth/register",
         json={"email": "git@example.com", "password": "password1", "display_name": "Git"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
     created = client.post(
-        f"/api/kbs/{kb_id}/sources",
+        f"/api/v1/kbs/{kb_id}/sources",
         headers=headers,
         json={
             "kind": "git",
@@ -247,13 +247,13 @@ def test_git_source_sync(tmp_path) -> None:
     mock_http.__exit__ = MagicMock(return_value=False)
 
     with patch("basis.knowledge.ingest_source_service.httpx.Client", return_value=mock_http):
-        synced = client.post(f"/api/kbs/{kb_id}/sources/{source_id}/sync", headers=headers, json={})
+        synced = client.post(f"/api/v1/kbs/{kb_id}/sources/{source_id}/sync", headers=headers, json={})
 
     assert synced.status_code == 200
     mock_http.get.assert_called_once()
     called_url = mock_http.get.call_args[0][0]
     assert "raw.githubusercontent.com/org/repo/main/README.md" in called_url
 
-    detail = client.get(f"/api/kbs/{kb_id}/sources/{source_id}", headers=headers).json()["source"]
+    detail = client.get(f"/api/v1/kbs/{kb_id}/sources/{source_id}", headers=headers).json()["source"]
     assert detail["config"]["sync_events"][0]["status"] == "succeeded"
     assert detail["config"]["sync_events"][0]["mode"] == "git"

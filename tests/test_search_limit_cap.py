@@ -15,11 +15,11 @@ def test_chunk_search_route_caps_limit(tmp_path: Path) -> None:
     settings = Settings(data_dir=tmp_path)
     client = TestClient(create_app(settings))
     admin = client.post(
-        "/api/auth/register",
+        "/api/v1/auth/register",
         json={"email": "cap@example.com", "password": "password1", "display_name": "Cap"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
 
     store = KnowledgeStore(tmp_path / "basis.db", BlobStore(tmp_path))
     _, version_id, _, _ = store.store_upload_bytes(
@@ -35,7 +35,7 @@ def test_chunk_search_route_caps_limit(tmp_path: Path) -> None:
     store.close()
 
     res = client.get(
-        f"/api/kbs/{kb_id}/search?q=alpha&limit=999",
+        f"/api/v1/kbs/{kb_id}/search?q=alpha&limit=999",
         headers=headers,
     )
     assert res.status_code == 200
@@ -43,7 +43,7 @@ def test_chunk_search_route_caps_limit(tmp_path: Path) -> None:
     assert len(chunks) <= CHUNK_SEARCH_MAX_LIMIT
 
     scoped = client.get(
-        f"/api/kbs/{kb_id}/search?q=alpha&document_id=one",
+        f"/api/v1/kbs/{kb_id}/search?q=alpha&document_id=one",
         headers=headers,
     )
     assert scoped.status_code == 200

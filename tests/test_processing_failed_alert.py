@@ -11,15 +11,15 @@ from basis.config import Settings
 def test_fail_job_emits_processing_failed_alert(tmp_path: Path) -> None:
     client = TestClient(create_app(Settings(data_dir=tmp_path, ingest_inline=True)))
     admin = client.post(
-        "/api/auth/register",
+        "/api/v1/auth/register",
         json={"email": "pf@example.com", "password": "password1", "display_name": "PF"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
     knowledge = client.app.state.knowledge_store
 
     source = client.post(
-        f"/api/kbs/{kb_id}/documents",
+        f"/api/v1/kbs/{kb_id}/documents",
         headers=headers,
         json={"doc_id": "fail-doc", "text": "x", "wait": False, "extract": False},
     ).json()
@@ -30,7 +30,7 @@ def test_fail_job_emits_processing_failed_alert(tmp_path: Path) -> None:
     )
     knowledge.fail_job(kb_id, job["id"], "parse_failed", "bad file")
 
-    alerts = client.get(f"/api/kbs/{kb_id}/alerts", headers=headers).json()["alerts"]
+    alerts = client.get(f"/api/v1/kbs/{kb_id}/alerts", headers=headers).json()["alerts"]
     match = next((a for a in alerts if a["kind"] == "processing.failed"), None)
     assert match is not None
     assert match["detail"]["job_id"] == job["id"]

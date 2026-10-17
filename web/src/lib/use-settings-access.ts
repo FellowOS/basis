@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { api } from '@/lib/api.js';
+import { openApiGET } from '@/lib/openapi-client.js';
 import { useBasisSession } from '@/lib/basis-session.js';
 
 const ORG_SSO_ADMIN_ROLES = new Set(['owner', 'admin']);
@@ -18,7 +18,7 @@ export function useSettingsAccess(): boolean | null {
       setAllowed(true);
       return;
     }
-    api<{ organizations: Array<{ my_org_role: string | null }> }>('/api/orgs')
+    openApiGET<{ organizations: Array<{ my_org_role: string | null }> }>('/api/v1/orgs')
       .then((body) => {
         setAllowed(
           body.organizations.some(

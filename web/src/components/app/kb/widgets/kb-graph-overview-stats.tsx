@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { api } from '@/lib/api.js';
 import { formatUserFacingApiError } from '@/lib/api-error-message.js';
 import { kbPath } from '@/lib/nav-config.js';
+import { kbOpenApiGET } from '@/lib/openapi-client.js';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card.js';
 import { Spinner } from '@/components/ui/spinner.js';
 import { graphProgressWidthStyle } from '@/lib/graph/graph-ui-classes.js';
@@ -64,11 +64,13 @@ export function KbGraphOverviewStats({ kbId }: { kbId: string }) {
     setError(null);
     try {
       const [statsBody, nodesBody, edgesBody] = await Promise.all([
-        api<GraphStats>(`/api/kbs/${kbId}/graph/stats`),
-        api<{ nodes: NodeItem[] }>(`/api/kbs/${kbId}/graph/nodes?limit=500`),
-        api<{ edges: Array<{ source: string; target: string }> }>(
-          `/api/kbs/${kbId}/graph/edges?limit=2000`,
-        ),
+        kbOpenApiGET<GraphStats>(kbId, 'graph/stats'),
+        kbOpenApiGET<{ nodes: NodeItem[] }>(kbId, 'graph/nodes', {
+          params: { query: { limit: 500 } },
+        }),
+        kbOpenApiGET<{ edges: Array<{ source: string; target: string }> }>(kbId, 'graph/edges', {
+          params: { query: { limit: 2000 } },
+        }),
       ]);
       setStats(statsBody);
       const nodes = nodesBody.nodes ?? [];

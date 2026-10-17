@@ -14,11 +14,11 @@ def test_find_entities_and_facts(tmp_path: Path) -> None:
     settings = Settings(data_dir=tmp_path)
     client = TestClient(create_app(settings))
     admin = client.post(
-        "/api/auth/register",
+        "/api/v1/auth/register",
         json={"email": "ent@example.com", "password": "password1", "display_name": "Ent"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
 
     store = KnowledgeStore(tmp_path / "basis.db", BlobStore(tmp_path))
     _, version_id, _, _ = store.store_upload_bytes(
@@ -47,7 +47,7 @@ def test_find_entities_and_facts(tmp_path: Path) -> None:
     store.close()
 
     found = client.get(
-        f"/api/kbs/{kb_id}/ledger/entities?query=Alice",
+        f"/api/v1/kbs/{kb_id}/ledger/entities?query=Alice",
         headers=headers,
     )
     assert found.status_code == 200
@@ -57,7 +57,7 @@ def test_find_entities_and_facts(tmp_path: Path) -> None:
     assert entities[0]["entity_id"] == alice
 
     facts = client.get(
-        f"/api/kbs/{kb_id}/ledger/entities/{alice}/facts",
+        f"/api/v1/kbs/{kb_id}/ledger/entities/{alice}/facts",
         headers=headers,
     )
     assert facts.status_code == 200
@@ -68,7 +68,7 @@ def test_find_entities_and_facts(tmp_path: Path) -> None:
     assert body["facts"][0]["evidence_chunk_id"] == chunk_id
     assert body["facts"][0]["evidence_quote"] == "knows Bob"
 
-    recent = client.get(f"/api/kbs/{kb_id}/ledger/entities?limit=10", headers=headers)
+    recent = client.get(f"/api/v1/kbs/{kb_id}/ledger/entities?limit=10", headers=headers)
     assert recent.status_code == 200
     recent_body = recent.json()
     assert recent_body["total"] >= 2
@@ -77,7 +77,7 @@ def test_find_entities_and_facts(tmp_path: Path) -> None:
     assert bob in recent_ids
 
     page2 = client.get(
-        f"/api/kbs/{kb_id}/ledger/entities?limit=1&offset=1",
+        f"/api/v1/kbs/{kb_id}/ledger/entities?limit=1&offset=1",
         headers=headers,
     )
     assert page2.status_code == 200

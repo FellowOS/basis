@@ -17,14 +17,14 @@ def test_same_doc_id_appends_version_and_supersedes_ready(tmp_path: Path) -> Non
     app = create_app(Settings(data_dir=tmp_path))
     client = TestClient(app)
     admin = client.post(
-        "/api/auth/register",
+        "/api/v1/auth/register",
         json={"email": "ver@example.com", "password": "password1", "display_name": "Ver"},
     ).json()
     headers = _auth(admin["token"])
-    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
 
     first = client.post(
-        f"/api/kbs/{kb_id}/documents",
+        f"/api/v1/kbs/{kb_id}/documents",
         headers=headers,
         json={"doc_id": "policy", "text": "Version one content."},
     )
@@ -35,7 +35,7 @@ def test_same_doc_id_appends_version_and_supersedes_ready(tmp_path: Path) -> Non
     document_id = body["document_id"]
 
     processed = client.post(
-        f"/api/kbs/{kb_id}/processing/jobs",
+        f"/api/v1/kbs/{kb_id}/processing/jobs",
         headers=headers,
         json={"version_id": body["version_id"], "wait": True, "chunk": False, "extract": False},
     )
@@ -43,7 +43,7 @@ def test_same_doc_id_appends_version_and_supersedes_ready(tmp_path: Path) -> Non
     assert processed.json()["ledger_status"] == "ready"
 
     second = client.post(
-        f"/api/kbs/{kb_id}/documents",
+        f"/api/v1/kbs/{kb_id}/documents",
         headers=headers,
         json={"doc_id": "policy", "text": "Version two content."},
     )
@@ -55,7 +55,7 @@ def test_same_doc_id_appends_version_and_supersedes_ready(tmp_path: Path) -> Non
     assert second_body["new_version"] is True
     assert second_body["status"] == "uploaded"
 
-    docs = client.get(f"/api/kbs/{kb_id}/documents", headers=headers).json()["documents"]
+    docs = client.get(f"/api/v1/kbs/{kb_id}/documents", headers=headers).json()["documents"]
     policy_rows = [d for d in docs if d.get("doc_id") == "policy"]
     assert len(policy_rows) == 1
     assert policy_rows[0]["version_no"] == 2
@@ -67,19 +67,19 @@ def test_unchanged_content_skips_new_version(tmp_path: Path) -> None:
     app = create_app(Settings(data_dir=tmp_path))
     client = TestClient(app)
     admin = client.post(
-        "/api/auth/register",
+        "/api/v1/auth/register",
         json={"email": "same@example.com", "password": "password1", "display_name": "Same"},
     ).json()
     headers = _auth(admin["token"])
-    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
     text = "Identical bytes."
     first = client.post(
-        f"/api/kbs/{kb_id}/documents",
+        f"/api/v1/kbs/{kb_id}/documents",
         headers=headers,
         json={"doc_id": "stable", "text": text},
     ).json()
     again = client.post(
-        f"/api/kbs/{kb_id}/documents",
+        f"/api/v1/kbs/{kb_id}/documents",
         headers=headers,
         json={"doc_id": "stable", "text": text},
     )
@@ -95,19 +95,19 @@ def test_explicit_version_upload_route(tmp_path: Path) -> None:
     app = create_app(Settings(data_dir=tmp_path))
     client = TestClient(app)
     admin = client.post(
-        "/api/auth/register",
+        "/api/v1/auth/register",
         json={"email": "up@example.com", "password": "password1", "display_name": "Up"},
     ).json()
     headers = _auth(admin["token"])
-    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
     created = client.post(
-        f"/api/kbs/{kb_id}/documents",
+        f"/api/v1/kbs/{kb_id}/documents",
         headers=headers,
         json={"doc_id": "manual", "text": "first"},
     ).json()
 
     updated = client.post(
-        f"/api/kbs/{kb_id}/documents/{created['document_id']}/versions",
+        f"/api/v1/kbs/{kb_id}/documents/{created['document_id']}/versions",
         headers=headers,
         json={"text": "second"},
     )
@@ -120,27 +120,27 @@ def test_filename_only_for_uploaded_files(tmp_path: Path) -> None:
     app = create_app(Settings(data_dir=tmp_path))
     client = TestClient(app)
     admin = client.post(
-        "/api/auth/register",
+        "/api/v1/auth/register",
         json={"email": "name@example.com", "password": "password1", "display_name": "Name"},
     ).json()
     headers = _auth(admin["token"])
-    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
 
     pasted = client.post(
-        f"/api/kbs/{kb_id}/documents",
+        f"/api/v1/kbs/{kb_id}/documents",
         headers=headers,
         json={"doc_id": "note", "text": "pasted body"},
     )
     assert pasted.status_code == 200
 
     uploaded = client.post(
-        f"/api/kbs/{kb_id}/documents/upload",
+        f"/api/v1/kbs/{kb_id}/documents/upload",
         headers=headers,
         files={"file": ("规范说明.md", BytesIO(b"# hello"), "text/markdown")},
     )
     assert uploaded.status_code == 200
 
-    docs = client.get(f"/api/kbs/{kb_id}/documents", headers=headers).json()["documents"]
+    docs = client.get(f"/api/v1/kbs/{kb_id}/documents", headers=headers).json()["documents"]
     by_id = {row["doc_id"]: row for row in docs}
     assert by_id["note"]["filename"] is None
     uploaded_row = next(row for row in docs if row.get("filename") == "规范说明.md")
@@ -151,22 +151,22 @@ def test_filename_only_for_uploaded_files(tmp_path: Path) -> None:
 def test_document_list_is_newest_upload_first(tmp_path: Path) -> None:
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
     admin = client.post(
-        "/api/auth/register",
+        "/api/v1/auth/register",
         json={"email": "order@example.com", "password": "password1", "display_name": "Order"},
     ).json()
     headers = _auth(admin["token"])
-    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
     client.post(
-        f"/api/kbs/{kb_id}/documents",
+        f"/api/v1/kbs/{kb_id}/documents",
         headers=headers,
         json={"doc_id": "older", "text": "first"},
     )
     client.post(
-        f"/api/kbs/{kb_id}/documents",
+        f"/api/v1/kbs/{kb_id}/documents",
         headers=headers,
         json={"doc_id": "newer", "text": "second"},
     )
-    docs = client.get(f"/api/kbs/{kb_id}/documents", headers=headers).json()["documents"]
+    docs = client.get(f"/api/v1/kbs/{kb_id}/documents", headers=headers).json()["documents"]
     ids = [row["doc_id"] for row in docs]
     assert ids.index("newer") < ids.index("older")
     created = [row["created_at"] for row in docs]

@@ -1,5 +1,7 @@
 import { expect, type Page } from '@playwright/test';
 
+import { E2E_KBS_COLLECTION, e2eKbPath } from './api-v1-path.js';
+
 export async function bearerToken(page: Page): Promise<string> {
   const token = await page.evaluate(() => localStorage.getItem('basis_token'));
   if (!token) {
@@ -29,7 +31,7 @@ function isEditableRole(role: string | undefined): boolean {
 
 export async function defaultKbId(page: Page): Promise<string> {
   const token = await bearerToken(page);
-  const response = await page.request.get('/api/kbs', {
+  const response = await page.request.get(E2E_KBS_COLLECTION, {
     headers: { Authorization: `Bearer ${token}` },
   });
   expect(response.ok()).toBeTruthy();
@@ -43,7 +45,7 @@ export async function defaultKbId(page: Page): Promise<string> {
   }
 
   const stamp = Date.now();
-  const created = await page.request.post('/api/kbs', {
+  const created = await page.request.post(E2E_KBS_COLLECTION, {
     headers: {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
@@ -57,7 +59,7 @@ export async function defaultKbId(page: Page): Promise<string> {
   expect(created.ok()).toBeTruthy();
   const kb = (await created.json()) as { id: string };
   if (!kb.id) {
-    throw new Error('POST /api/kbs did not return id');
+    throw new Error('POST /api/v1/kbs did not return id');
   }
   return kb.id;
 }
@@ -67,7 +69,7 @@ export async function fetchGraphStats(
   kbId: string,
 ): Promise<{ node_count: number; edge_count: number }> {
   const token = await bearerToken(page);
-  const response = await page.request.get(`/api/kbs/${kbId}/graph/stats`, {
+  const response = await page.request.get(e2eKbPath(kbId, 'graph/stats'), {
     headers: { Authorization: `Bearer ${token}` },
   });
   expect(response.ok()).toBeTruthy();
@@ -80,7 +82,7 @@ export async function searchGraphNodes(
   query: string,
 ): Promise<Array<{ node: { id: string; content?: string; label?: string } }>> {
   const token = await bearerToken(page);
-  const response = await page.request.post(`/api/kbs/${kbId}/graph/search`, {
+  const response = await page.request.post(e2eKbPath(kbId, 'graph/search'), {
     headers: {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
@@ -96,7 +98,7 @@ export async function searchGraphNodes(
 
 export async function fetchFirstGraphNodeId(page: Page, kbId: string): Promise<string> {
   const token = await bearerToken(page);
-  const response = await page.request.get(`/api/kbs/${kbId}/graph/nodes?limit=1`, {
+  const response = await page.request.get(`${e2eKbPath(kbId, 'graph/nodes')}?limit=1`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   expect(response.ok()).toBeTruthy();
@@ -115,7 +117,7 @@ export async function fetchProvenanceLineage(
 ): Promise<{ nodes: unknown[]; edges: unknown[] }> {
   const token = await bearerToken(page);
   const response = await page.request.get(
-    `/api/kbs/${kbId}/provenance?node_id=${encodeURIComponent(nodeId)}`,
+    `${e2eKbPath(kbId, 'provenance')}?node_id=${encodeURIComponent(nodeId)}`,
     { headers: { Authorization: `Bearer ${token}` } },
   );
   expect(response.ok()).toBeTruthy();
@@ -129,7 +131,7 @@ export async function ingestDocumentViaApi(
   text: string,
 ): Promise<void> {
   const token = await bearerToken(page);
-  const response = await page.request.post(`/api/kbs/${kbId}/documents`, {
+  const response = await page.request.post(e2eKbPath(kbId, 'documents'), {
     headers: {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
@@ -149,7 +151,7 @@ export async function ingestDocumentViaApi(
 /** Minimal document ingest (pattern extract) for graph projection smoke. */
 export async function fetchLatestIngestJobId(page: Page, kbId: string): Promise<string> {
   const token = await bearerToken(page);
-  const response = await page.request.get(`/api/kbs/${kbId}/ingest/jobs?limit=5`, {
+  const response = await page.request.get(`${e2eKbPath(kbId, 'ingest/jobs')}?limit=5`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   expect(response.ok()).toBeTruthy();
@@ -166,7 +168,7 @@ export async function fetchTemporalBounds(
   kbId: string,
 ): Promise<{ min?: string; max?: string }> {
   const token = await bearerToken(page);
-  const response = await page.request.get(`/api/kbs/${kbId}/temporal/bounds`, {
+  const response = await page.request.get(e2eKbPath(kbId, 'temporal/bounds'), {
     headers: { Authorization: `Bearer ${token}` },
   });
   expect(response.ok()).toBeTruthy();
@@ -180,7 +182,7 @@ export async function runReasoningApplyViaApi(
   rules: string[],
 ): Promise<{ derived_facts_persisted?: { created?: number } }> {
   const token = await bearerToken(page);
-  const response = await page.request.post(`/api/kbs/${kbId}/reasoning/run`, {
+  const response = await page.request.post(e2eKbPath(kbId, 'reasoning/run'), {
     headers: {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
@@ -205,7 +207,7 @@ export async function seedGovernanceTrippedViaApi(
   kbId: string,
 ): Promise<{ decisionId: string | null }> {
   const token = await bearerToken(page);
-  const response = await page.request.post(`/api/kbs/${kbId}/_e2e/governance-trip`, {
+  const response = await page.request.post(e2eKbPath(kbId, '_e2e/governance-trip'), {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (response.status() === 404) {
@@ -222,7 +224,7 @@ export async function seedStatementConflictViaApi(
   kbId: string,
 ): Promise<{ reviewItemId: string; surfacePhrase: string }> {
   const token = await bearerToken(page);
-  const response = await page.request.post(`/api/kbs/${kbId}/_e2e/statement-conflict`, {
+  const response = await page.request.post(e2eKbPath(kbId, '_e2e/statement-conflict'), {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (response.status() === 404) {
@@ -248,7 +250,7 @@ export async function proposeRememberViaApi(
   content: string,
 ): Promise<{ reviewItemId: string }> {
   const token = await bearerToken(page);
-  const response = await page.request.post(`/api/kbs/${kbId}/chat/remember`, {
+  const response = await page.request.post(e2eKbPath(kbId, 'chat/remember'), {
     headers: {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',

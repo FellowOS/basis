@@ -70,18 +70,18 @@ def test_version_ingest_writes_entities_to_ledger(tmp_path) -> None:
 def test_documents_api_english_extract(tmp_path) -> None:
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
     admin = client.post(
-        "/api/auth/register",
+        "/api/v1/auth/register",
         json={"email": "api@example.com", "password": "password1", "display_name": "U"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
 
     body = client.post(
-        f"/api/kbs/{kb_id}/documents",
+        f"/api/v1/kbs/{kb_id}/documents",
         headers=headers,
         json={"doc_id": "en-1", "text": "Alice knows Bob.", "wait": True, "chunk": False},
     ).json()
     assert body.get("ledger_entities_written", 0) >= 2
-    stats = client.get(f"/api/kbs/{kb_id}/graph/stats", headers=headers).json()
+    stats = client.get(f"/api/v1/kbs/{kb_id}/graph/stats", headers=headers).json()
     assert stats["node_count"] >= 3
     assert stats["edge_count"] >= 1

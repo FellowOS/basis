@@ -8,7 +8,8 @@
     "lib": ["ES2023", "DOM", "DOM.Iterable"],
     "noEmit": true,
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@basis/client": ["../packages/client/src/index.ts"]
     }
   },
   "include": ["src"],

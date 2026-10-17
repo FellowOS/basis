@@ -19,7 +19,7 @@ paths:
       tags:
       - users
       summary: List Users
-      operationId: list_users_api_admin_users_get
+      operationId: list_users_api_v1_admin_users_get
       parameters:
       - name: deactivated
         in: query
@@ -44,7 +44,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response List Users Api Admin Users Get
+                title: Response List Users Api V1 Admin Users Get
         '422':
           description: Validation Error
           content:
@@ -57,7 +57,7 @@ paths:
       tags:
       - users
       summary: Create User
-      operationId: create_user_api_admin_users_post
+      operationId: create_user_api_v1_admin_users_post
       parameters:
       - name: authorization
         in: header
@@ -81,7 +81,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Create User Api Admin Users Post
+                title: Response Create User Api V1 Admin Users Post
         '422':
           description: Validation Error
           content:
@@ -95,7 +95,7 @@ paths:
       tags:
       - users
       summary: Deactivate User
-      operationId: deactivate_user_api_admin_users__user_id__deactivate_post
+      operationId: deactivate_user_api_v1_admin_users__user_id__deactivate_post
       parameters:
       - name: user_id
         in: path
@@ -119,7 +119,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Deactivate User Api Admin Users  User Id  Deactivate Post
+                title: Response Deactivate User Api V1 Admin Users  User Id  Deactivate Post
         '422':
           description: Validation Error
           content:
@@ -133,7 +133,7 @@ paths:
       tags:
       - users
       summary: Reactivate User
-      operationId: reactivate_user_api_admin_users__user_id__reactivate_post
+      operationId: reactivate_user_api_v1_admin_users__user_id__reactivate_post
       parameters:
       - name: user_id
         in: path
@@ -157,7 +157,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Reactivate User Api Admin Users  User Id  Reactivate Post
+                title: Response Reactivate User Api V1 Admin Users  User Id  Reactivate Post
         '422':
           description: Validation Error
           content:
@@ -171,7 +171,7 @@ paths:
       tags:
       - audit
       summary: List Audit
-      operationId: list_audit_api_audit_get
+      operationId: list_audit_api_v1_audit_get
       parameters:
       - name: kb_id
         in: query
@@ -214,7 +214,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response List Audit Api Audit Get
+                title: Response List Audit Api V1 Audit Get
         '422':
           description: Validation Error
           content:
@@ -228,7 +228,7 @@ paths:
       tags:
       - auth
       summary: Login
-      operationId: login_api_auth_login_post
+      operationId: login_api_v1_auth_login_post
       requestBody:
         content:
           application/json:
@@ -243,7 +243,7 @@ paths:
               schema:
                 additionalProperties: true
                 type: object
-                title: Response Login Api Auth Login Post
+                title: Response Login Api V1 Auth Login Post
         '422':
           description: Validation Error
           content:
@@ -257,7 +257,7 @@ paths:
       tags:
       - auth
       summary: Logout
-      operationId: logout_api_auth_logout_post
+      operationId: logout_api_v1_auth_logout_post
       parameters:
       - name: authorization
         in: header
@@ -275,7 +275,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Logout Api Auth Logout Post
+                title: Response Logout Api V1 Auth Logout Post
         '422':
           description: Validation Error
           content:
@@ -289,7 +289,7 @@ paths:
       tags:
       - auth
       summary: Magic Link Request
-      operationId: magic_link_request_api_auth_magic_link_request_post
+      operationId: magic_link_request_api_v1_auth_magic_link_request_post
       requestBody:
         content:
           application/json:
@@ -305,7 +305,7 @@ paths:
                 additionalProperties:
                   type: boolean
                 type: object
-                title: Response Magic Link Request Api Auth Magic Link Request Post
+                title: Response Magic Link Request Api V1 Auth Magic Link Request Post
         '422':
           description: Validation Error
           content:
@@ -319,7 +319,7 @@ paths:
       tags:
       - auth
       summary: Magic Link Verify
-      operationId: magic_link_verify_api_auth_magic_link_verify_get
+      operationId: magic_link_verify_api_v1_auth_magic_link_verify_get
       parameters:
       - name: token
         in: query
@@ -346,7 +346,7 @@ paths:
       tags:
       - auth
       summary: Me
-      operationId: me_api_auth_me_get
+      operationId: me_api_v1_auth_me_get
       parameters:
       - name: authorization
         in: header
@@ -364,7 +364,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Me Api Auth Me Get
+                title: Response Me Api V1 Auth Me Get
         '422':
           description: Validation Error
           content:
@@ -378,7 +378,7 @@ paths:
       tags:
       - auth
       summary: Github Callback
-      operationId: github_callback_api_auth_oauth_github_callback_get
+      operationId: github_callback_api_v1_auth_oauth_github_callback_get
       parameters:
       - name: code
         in: query
@@ -411,7 +411,7 @@ paths:
       tags:
       - auth
       summary: Github Start
-      operationId: github_start_api_auth_oauth_github_start_get
+      operationId: github_start_api_v1_auth_oauth_github_start_get
       responses:
         '200':
           description: Successful Response
@@ -425,7 +425,7 @@ paths:
       tags:
       - auth
       summary: Google Callback
-      operationId: google_callback_api_auth_oauth_google_callback_get
+      operationId: google_callback_api_v1_auth_oauth_google_callback_get
       parameters:
       - name: code
         in: query
@@ -458,7 +458,7 @@ paths:
       tags:
       - auth
       summary: Google Start
-      operationId: google_start_api_auth_oauth_google_start_get
+      operationId: google_start_api_v1_auth_oauth_google_start_get
       responses:
         '200':
           description: Successful Response
@@ -472,7 +472,7 @@ paths:
       tags:
       - auth
       summary: Org Oidc Callback
-      operationId: org_oidc_callback_api_auth_oidc_callback_get
+      operationId: org_oidc_callback_api_v1_auth_oidc_callback_get
       parameters:
       - name: code
         in: query
@@ -505,7 +505,7 @@ paths:
       tags:
       - auth
       summary: Org Oidc Start
-      operationId: org_oidc_start_api_auth_oidc__org_slug__start_get
+      operationId: org_oidc_start_api_v1_auth_oidc__org_slug__start_get
       parameters:
       - name: org_slug
         in: path
@@ -532,7 +532,7 @@ paths:
       tags:
       - auth
       summary: Auth Providers
-      operationId: auth_providers_api_auth_providers_get
+      operationId: auth_providers_api_v1_auth_providers_get
       responses:
         '200':
           description: Successful Response
@@ -541,7 +541,7 @@ paths:
               schema:
                 additionalProperties: true
                 type: object
-                title: Response Auth Providers Api Auth Providers Get
+                title: Response Auth Providers Api V1 Auth Providers Get
       x-basis-surface: public
       x-basis-auth: public-or-session
   /api/v1/auth/register:
@@ -549,7 +549,7 @@ paths:
       tags:
       - auth
       summary: Register
-      operationId: register_api_auth_register_post
+      operationId: register_api_v1_auth_register_post
       requestBody:
         content:
           application/json:
@@ -564,7 +564,7 @@ paths:
               schema:
                 additionalProperties: true
                 type: object
-                title: Response Register Api Auth Register Post
+                title: Response Register Api V1 Auth Register Post
         '422':
           description: Validation Error
           content:
@@ -596,7 +596,7 @@ paths:
       tags:
       - knowledge-bases
       summary: List Kbs
-      operationId: list_kbs_api_kbs_get
+      operationId: list_kbs_api_v1_kbs_get
       parameters:
       - name: authorization
         in: header
@@ -614,7 +614,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response List Kbs Api Kbs Get
+                title: Response List Kbs Api V1 Kbs Get
         '422':
           description: Validation Error
           content:
@@ -627,7 +627,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Create Kb
-      operationId: create_kb_api_kbs_post
+      operationId: create_kb_api_v1_kbs_post
       parameters:
       - name: authorization
         in: header
@@ -651,7 +651,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Create Kb Api Kbs Post
+                title: Response Create Kb Api V1 Kbs Post
         '422':
           description: Validation Error
           content:
@@ -665,7 +665,7 @@ paths:
       tags:
       - knowledge-bases
       summary: List Members
-      operationId: list_members_api_kbs__kb_id__members_get
+      operationId: list_members_api_v1_kbs__kb_id__members_get
       parameters:
       - name: kb_id
         in: path
@@ -689,7 +689,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response List Members Api Kbs  Kb Id  Members Get
+                title: Response List Members Api V1 Kbs  Kb Id  Members Get
         '422':
           description: Validation Error
           content:
@@ -703,7 +703,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Set Member Role
-      operationId: set_member_role_api_kbs__kb_id__members__user_id__put
+      operationId: set_member_role_api_v1_kbs__kb_id__members__user_id__put
       parameters:
       - name: kb_id
         in: path
@@ -739,7 +739,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Set Member Role Api Kbs  Kb Id  Members  User Id  Put
+                title: Response Set Member Role Api V1 Kbs  Kb Id  Members  User Id  Put
         '422':
           description: Validation Error
           content:
@@ -752,7 +752,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Remove Member
-      operationId: remove_member_api_kbs__kb_id__members__user_id__delete
+      operationId: remove_member_api_v1_kbs__kb_id__members__user_id__delete
       parameters:
       - name: kb_id
         in: path
@@ -782,7 +782,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Remove Member Api Kbs  Kb Id  Members  User Id  Delete
+                title: Response Remove Member Api V1 Kbs  Kb Id  Members  User Id  Delete
         '422':
           description: Validation Error
           content:
@@ -796,7 +796,7 @@ paths:
       tags:
       - knowledge-bases
       summary: List Kb Tokens
-      operationId: list_kb_tokens_api_kbs__kb_id__tokens_get
+      operationId: list_kb_tokens_api_v1_kbs__kb_id__tokens_get
       parameters:
       - name: kb_id
         in: path
@@ -820,7 +820,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response List Kb Tokens Api Kbs  Kb Id  Tokens Get
+                title: Response List Kb Tokens Api V1 Kbs  Kb Id  Tokens Get
         '422':
           description: Validation Error
           content:
@@ -833,7 +833,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Create Kb Token
-      operationId: create_kb_token_api_kbs__kb_id__tokens_post
+      operationId: create_kb_token_api_v1_kbs__kb_id__tokens_post
       parameters:
       - name: kb_id
         in: path
@@ -863,7 +863,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Create Kb Token Api Kbs  Kb Id  Tokens Post
+                title: Response Create Kb Token Api V1 Kbs  Kb Id  Tokens Post
         '422':
           description: Validation Error
           content:
@@ -877,7 +877,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Delete Kb Token
-      operationId: delete_kb_token_api_kbs__kb_id__tokens__token_id__delete
+      operationId: delete_kb_token_api_v1_kbs__kb_id__tokens__token_id__delete
       parameters:
       - name: kb_id
         in: path
@@ -908,7 +908,7 @@ paths:
                 type: object
                 additionalProperties:
                   type: string
-                title: Response Delete Kb Token Api Kbs  Kb Id  Tokens  Token Id  Delete
+                title: Response Delete Kb Token Api V1 Kbs  Kb Id  Tokens  Token Id  Delete
         '422':
           description: Validation Error
           content:
@@ -922,7 +922,7 @@ paths:
       tags:
       - model-providers
       summary: List Model Providers
-      operationId: list_model_providers_api_model_providers_get
+      operationId: list_model_providers_api_v1_model_providers_get
       parameters:
       - name: kind
         in: query
@@ -950,7 +950,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response List Model Providers Api Model Providers Get
+                title: Response List Model Providers Api V1 Model Providers Get
         '422':
           description: Validation Error
           content:
@@ -964,7 +964,7 @@ paths:
       tags:
       - model-providers
       summary: Probe Remote Models
-      operationId: probe_remote_models_api_model_providers_probe_post
+      operationId: probe_remote_models_api_v1_model_providers_probe_post
       parameters:
       - name: authorization
         in: header
@@ -988,7 +988,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Probe Remote Models Api Model Providers Probe Post
+                title: Response Probe Remote Models Api V1 Model Providers Probe Post
         '422':
           description: Validation Error
           content:
@@ -1002,7 +1002,7 @@ paths:
       tags:
       - model-providers
       summary: Resolve Provider From Settings
-      operationId: resolve_provider_from_settings_api_model_providers_resolve_get
+      operationId: resolve_provider_from_settings_api_v1_model_providers_resolve_get
       parameters:
       - name: kind
         in: query
@@ -1030,7 +1030,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Resolve Provider From Settings Api Model Providers Resolve Get
+                title: Response Resolve Provider From Settings Api V1 Model Providers Resolve Get
         '422':
           description: Validation Error
           content:
@@ -1044,7 +1044,7 @@ paths:
       tags:
       - models
       summary: List Models
-      operationId: list_models_api_models_get
+      operationId: list_models_api_v1_models_get
       parameters:
       - name: kind
         in: query
@@ -1073,7 +1073,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response List Models Api Models Get
+                title: Response List Models Api V1 Models Get
         '422':
           description: Validation Error
           content:
@@ -1086,7 +1086,7 @@ paths:
       tags:
       - models
       summary: Create Model
-      operationId: create_model_api_models_post
+      operationId: create_model_api_v1_models_post
       parameters:
       - name: authorization
         in: header
@@ -1110,7 +1110,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Create Model Api Models Post
+                title: Response Create Model Api V1 Models Post
         '422':
           description: Validation Error
           content:
@@ -1124,7 +1124,7 @@ paths:
       tags:
       - models
       summary: Patch Model
-      operationId: patch_model_api_models__model_id__patch
+      operationId: patch_model_api_v1_models__model_id__patch
       parameters:
       - name: model_id
         in: path
@@ -1154,7 +1154,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Patch Model Api Models  Model Id  Patch
+                title: Response Patch Model Api V1 Models  Model Id  Patch
         '422':
           description: Validation Error
           content:
@@ -1167,7 +1167,7 @@ paths:
       tags:
       - models
       summary: Delete Model
-      operationId: delete_model_api_models__model_id__delete
+      operationId: delete_model_api_v1_models__model_id__delete
       parameters:
       - name: model_id
         in: path
@@ -1191,7 +1191,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Delete Model Api Models  Model Id  Delete
+                title: Response Delete Model Api V1 Models  Model Id  Delete
         '422':
           description: Validation Error
           content:
@@ -1205,7 +1205,7 @@ paths:
       tags:
       - organizations
       summary: List Orgs
-      operationId: list_orgs_api_orgs_get
+      operationId: list_orgs_api_v1_orgs_get
       parameters:
       - name: authorization
         in: header
@@ -1223,7 +1223,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response List Orgs Api Orgs Get
+                title: Response List Orgs Api V1 Orgs Get
         '422':
           description: Validation Error
           content:
@@ -1237,7 +1237,7 @@ paths:
       tags:
       - organizations
       summary: List My Orgs
-      operationId: list_my_orgs_api_orgs_mine_get
+      operationId: list_my_orgs_api_v1_orgs_mine_get
       parameters:
       - name: authorization
         in: header
@@ -1255,7 +1255,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response List My Orgs Api Orgs Mine Get
+                title: Response List My Orgs Api V1 Orgs Mine Get
         '422':
           description: Validation Error
           content:
@@ -1269,7 +1269,7 @@ paths:
       tags:
       - organizations
       summary: Get Org
-      operationId: get_org_api_orgs__org_id__get
+      operationId: get_org_api_v1_orgs__org_id__get
       parameters:
       - name: org_id
         in: path
@@ -1293,7 +1293,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Get Org Api Orgs  Org Id  Get
+                title: Response Get Org Api V1 Orgs  Org Id  Get
         '422':
           description: Validation Error
           content:
@@ -1307,7 +1307,7 @@ paths:
       tags:
       - organizations
       summary: Get Org Oidc
-      operationId: get_org_oidc_api_orgs__org_id__oidc_get
+      operationId: get_org_oidc_api_v1_orgs__org_id__oidc_get
       parameters:
       - name: org_id
         in: path
@@ -1331,7 +1331,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Get Org Oidc Api Orgs  Org Id  Oidc Get
+                title: Response Get Org Oidc Api V1 Orgs  Org Id  Oidc Get
         '422':
           description: Validation Error
           content:
@@ -1344,7 +1344,7 @@ paths:
       tags:
       - organizations
       summary: Put Org Oidc
-      operationId: put_org_oidc_api_orgs__org_id__oidc_put
+      operationId: put_org_oidc_api_v1_orgs__org_id__oidc_put
       parameters:
       - name: org_id
         in: path
@@ -1374,7 +1374,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Put Org Oidc Api Orgs  Org Id  Oidc Put
+                title: Response Put Org Oidc Api V1 Orgs  Org Id  Oidc Put
         '422':
           description: Validation Error
           content:
@@ -1388,7 +1388,7 @@ paths:
       tags:
       - platform
       summary: Platform Info
-      operationId: platform_info_api_platform_get
+      operationId: platform_info_api_v1_platform_get
       responses:
         '200':
           description: Successful Response
@@ -1397,7 +1397,7 @@ paths:
               schema:
                 additionalProperties: true
                 type: object
-                title: Response Platform Info Api Platform Get
+                title: Response Platform Info Api V1 Platform Get
       x-basis-surface: platform
       x-basis-auth: session
   /api/v1/reason:
@@ -1405,7 +1405,7 @@ paths:
       tags:
       - reasoning
       summary: Reason
-      operationId: reason_api_reason_post
+      operationId: reason_api_v1_reason_post
       parameters:
       - name: authorization
         in: header
@@ -1429,7 +1429,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Reason Api Reason Post
+                title: Response Reason Api V1 Reason Post
         '422':
           description: Validation Error
           content:
@@ -1443,7 +1443,7 @@ paths:
       tags:
       - settings
       summary: Get Settings
-      operationId: get_settings_api_settings_get
+      operationId: get_settings_api_v1_settings_get
       parameters:
       - name: authorization
         in: header
@@ -1461,7 +1461,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Get Settings Api Settings Get
+                title: Response Get Settings Api V1 Settings Get
         '422':
           description: Validation Error
           content:
@@ -1474,7 +1474,7 @@ paths:
       tags:
       - settings
       summary: Put Settings
-      operationId: put_settings_api_settings_put
+      operationId: put_settings_api_v1_settings_put
       parameters:
       - name: authorization
         in: header
@@ -1498,7 +1498,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Put Settings Api Settings Put
+                title: Response Put Settings Api V1 Settings Put
         '422':
           description: Validation Error
           content:
@@ -1512,7 +1512,7 @@ paths:
       tags:
       - settings
       summary: Get Access
-      operationId: get_access_api_settings_access_get
+      operationId: get_access_api_v1_settings_access_get
       parameters:
       - name: authorization
         in: header
@@ -1530,7 +1530,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Get Access Api Settings Access Get
+                title: Response Get Access Api V1 Settings Access Get
         '422':
           description: Validation Error
           content:
@@ -1543,7 +1543,7 @@ paths:
       tags:
       - settings
       summary: Put Access
-      operationId: put_access_api_settings_access_put
+      operationId: put_access_api_v1_settings_access_put
       parameters:
       - name: authorization
         in: header
@@ -1567,7 +1567,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Put Access Api Settings Access Put
+                title: Response Put Access Api V1 Settings Access Put
         '422':
           description: Validation Error
           content:
@@ -1581,7 +1581,7 @@ paths:
       tags:
       - users
       summary: List Active Users
-      operationId: list_active_users_api_users_get
+      operationId: list_active_users_api_v1_users_get
       parameters:
       - name: authorization
         in: header
@@ -1599,13 +1599,55 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response List Active Users Api Users Get
+                title: Response List Active Users Api V1 Users Get
         '422':
           description: Validation Error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+      x-basis-surface: platform
+      x-basis-auth: session
+  /openapi/v1.json:
+    get:
+      tags:
+      - openapi
+      summary: Get Openapi V1 Full
+      operationId: get_openapi_v1_full_openapi_v1_json_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+      x-basis-surface: platform
+      x-basis-auth: session
+  /openapi/v1/kb.json:
+    get:
+      tags:
+      - openapi
+      summary: Get Openapi V1 Kb
+      operationId: get_openapi_v1_kb_openapi_v1_kb_json_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+      x-basis-surface: platform
+      x-basis-auth: session
+  /openapi/v1/platform.json:
+    get:
+      tags:
+      - openapi
+      summary: Get Openapi V1 Platform
+      operationId: get_openapi_v1_platform_openapi_v1_platform_json_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
       x-basis-surface: platform
       x-basis-auth: session
 components:
@@ -1669,7 +1711,7 @@ components:
       required:
       - text
       title: AppendTextVersionRequest
-    Body_append_document_version_upload_api_kbs__kb_id__documents__document_id__versions_upload_post:
+    Body_append_document_version_upload_api_v1_kbs__kb_id__documents__document_id__versions_upload_post:
       properties:
         file:
           type: string
@@ -1678,8 +1720,8 @@ components:
       type: object
       required:
       - file
-      title: Body_append_document_version_upload_api_kbs__kb_id__documents__document_id__versions_upload_post
-    Body_kb_vocabulary_import_api_kbs__kb_id__vocabulary_import_post:
+      title: Body_append_document_version_upload_api_v1_kbs__kb_id__documents__document_id__versions_upload_post
+    Body_kb_vocabulary_import_api_v1_kbs__kb_id__vocabulary_import_post:
       properties:
         file:
           anyOf:
@@ -1698,8 +1740,8 @@ components:
           - type: 'null'
           title: Format
       type: object
-      title: Body_kb_vocabulary_import_api_kbs__kb_id__vocabulary_import_post
-    Body_propose_graph_import_api_kbs__kb_id__review_items_graph_import_post:
+      title: Body_kb_vocabulary_import_api_v1_kbs__kb_id__vocabulary_import_post
+    Body_propose_graph_import_api_v1_kbs__kb_id__review_items_graph_import_post:
       properties:
         file:
           type: string
@@ -1708,8 +1750,8 @@ components:
       type: object
       required:
       - file
-      title: Body_propose_graph_import_api_kbs__kb_id__review_items_graph_import_post
-    Body_upload_document_api_kbs__kb_id__documents_upload_post:
+      title: Body_propose_graph_import_api_v1_kbs__kb_id__review_items_graph_import_post
+    Body_upload_document_api_v1_kbs__kb_id__documents_upload_post:
       properties:
         file:
           type: string
@@ -1758,7 +1800,7 @@ components:
       type: object
       required:
       - file
-      title: Body_upload_document_api_kbs__kb_id__documents_upload_post
+      title: Body_upload_document_api_v1_kbs__kb_id__documents_upload_post
     CommentRequest:
       properties:
         element_uri:
@@ -2869,7 +2911,7 @@ components:
       required:
       - text
       title: WebhookIngestRequest
-    basis__api__routes__kbs__CreateOntologyRequest:
+    basis__api__routes__v1__kbs__CreateOntologyRequest:
       properties:
         namespace:
           type: string

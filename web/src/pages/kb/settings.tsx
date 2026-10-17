@@ -53,8 +53,15 @@ import { KbGraphOverviewStats } from '@/components/app/kb/widgets/kb-graph-overv
 import { KbGraphProjectionPanel } from '@/components/app/kb/widgets/kb-graph-projection-panel.js';
 import { useKbCatalog } from '@/lib/kb-context.js';
 import { useKbCapabilities } from '@/lib/kb-capabilities.js';
-import { api } from '@/lib/api.js';
 import { kbMemberRoleLabel, kbVisibilityLabel } from '@/lib/kb-settings-labels.js';
+import {
+  kbOpenApiDELETE,
+  kbOpenApiGET,
+  kbOpenApiPATCH,
+  kbOpenApiPOST,
+  kbOpenApiPUT,
+  openApiGET,
+} from '@/lib/openapi-client.js';
 import { useApiErrorMessage } from '@/lib/use-api-error-message.js';
 
 type Member = {
@@ -159,10 +166,10 @@ export function KbSettingsPage() {
   useEffect(() => {
     if (!id) return;
     Promise.all([
-      api<KbRow>(`/api/kbs/${id}`),
-      api<{ members: Member[] }>(`/api/kbs/${id}/members`),
-      api<{ users: UserRow[] }>('/api/users'),
-      api<SearchConfigResponse>(`/api/kbs/${id}/search/config`),
+      kbOpenApiGET<KbRow>(id, ''),
+      kbOpenApiGET<{ members: Member[] }>(id, 'members'),
+      openApiGET<{ users: UserRow[] }>('/api/v1/users'),
+      kbOpenApiGET<SearchConfigResponse>(id, 'search/config'),
     ])
       .then(([kbBody, membersBody, usersBody, searchBody]) => {
         setKb(kbBody);
@@ -187,13 +194,12 @@ export function KbSettingsPage() {
     if (!id) return;
     setError(null);
     try {
-      const body = await api<KbRow>(`/api/kbs/${id}`, {
-        method: 'PATCH',
-        body: JSON.stringify({
+      const body = await kbOpenApiPATCH<KbRow>(id, '', {
+        body: {
           name: values.name,
           description: values.description,
           visibility: values.visibility,
-        }),
+        },
       });
       setKb(body);
       await refreshKbs();
@@ -208,11 +214,8 @@ export function KbSettingsPage() {
     setAddingMember(true);
     setError(null);
     try {
-      await api(`/api/kbs/${id}/members/${targetUser}`, {
-        method: 'PUT',
-        body: JSON.stringify({ role }),
-      });
-      const body = await api<{ members: Member[] }>(`/api/kbs/${id}/members`);
+      await kbOpenApiPUT(id, `members/${targetUser}`, { body: { role } });
+      const body = await kbOpenApiGET<{ members: Member[] }>(id, 'members');
       setMembers(body.members);
       setMemberAddOpen(false);
       setTargetUser('');
@@ -228,7 +231,7 @@ export function KbSettingsPage() {
     if (!id) return;
     setError(null);
     try {
-      await api(`/api/kbs/${id}`, { method: 'DELETE' });
+      await kbOpenApiDELETE(id, '');
       await refreshKbs();
       toast.success(t.common.deleteSuccess);
       navigate('/kbs');
@@ -242,13 +245,12 @@ export function KbSettingsPage() {
     if (!id || !searchConfig) return;
     setError(null);
     try {
-      const body = await api<{
+      const body = await kbOpenApiPUT<{
         config: SearchConfig;
         status: SearchConfigResponse['status'];
         reindex_required: boolean;
-      }>(`/api/kbs/${id}/search/config`, {
-        method: 'PUT',
-        body: JSON.stringify({
+      }>(id, 'search/config', {
+        body: {
           chunk_backend: searchConfig.config.chunk_backend,
           vector_backend: searchConfig.config.vector_backend,
           embedding_model_id: searchConfig.config.embedding_model_id,
@@ -256,7 +258,7 @@ export function KbSettingsPage() {
           semantic_enabled: searchConfig.config.semantic_enabled,
           default_mode: searchConfig.config.default_mode,
           auto_index: searchConfig.config.auto_index,
-        }),
+        },
       });
       setSearchConfig((current) =>
         current
@@ -277,11 +279,8 @@ export function KbSettingsPage() {
     setReindexing(true);
     setError(null);
     try {
-      await api(`/api/kbs/${id}/search/reindex`, {
-        method: 'POST',
-        body: JSON.stringify({}),
-      });
-      const current = await api<SearchConfigResponse>(`/api/kbs/${id}/search/config`);
+      await kbOpenApiPOST(id, 'search/reindex', { body: {} });
+      const current = await kbOpenApiGET<SearchConfigResponse>(id, 'search/config');
       setSearchConfig(current);
       toast.success(ks.toastReindexDone);
     } catch (err) {

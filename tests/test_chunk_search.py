@@ -68,26 +68,26 @@ def test_index_and_hybrid_search(tmp_path: Path) -> None:
 def test_search_api(tmp_path: Path) -> None:
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
     reg = client.post(
-        "/api/auth/register",
+        "/api/v1/auth/register",
         json={"email": "api@example.com", "password": "password1", "display_name": "U"},
     ).json()
     headers = {"Authorization": f"Bearer {reg['token']}"}
-    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
     files = {"file": ("note.txt", b"Semantic retrieval test content about Berlin.", "text/plain")}
     client.post(
-        f"/api/kbs/{kb_id}/documents/upload",
+        f"/api/v1/kbs/{kb_id}/documents/upload",
         headers=headers,
         files=files,
         data={"extract": "false", "wait": "true"},
     )
-    resp = client.get(f"/api/kbs/{kb_id}/search", headers=headers, params={"q": "Berlin"})
+    resp = client.get(f"/api/v1/kbs/{kb_id}/search", headers=headers, params={"q": "Berlin"})
     assert resp.status_code == 200
     body = resp.json()
     assert body.get("chunks") is not None
     assert body.get("mode") in ("none", "keyword", "hybrid", "semantic")
 
     future = client.get(
-        f"/api/kbs/{kb_id}/search",
+        f"/api/v1/kbs/{kb_id}/search",
         headers=headers,
         params={"q": "Berlin", "created_after": "2099-01-01T00:00:00Z"},
     )
@@ -95,7 +95,7 @@ def test_search_api(tmp_path: Path) -> None:
     assert future.json().get("chunks") == []
 
     past = client.get(
-        f"/api/kbs/{kb_id}/search",
+        f"/api/v1/kbs/{kb_id}/search",
         headers=headers,
         params={"q": "Berlin", "as_of": "2000-01-01T00:00:00Z"},
     )
@@ -107,19 +107,19 @@ def test_search_api(tmp_path: Path) -> None:
 def test_kb_search_config_controls_modes(tmp_path: Path) -> None:
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
     reg = client.post(
-        "/api/auth/register",
+        "/api/v1/auth/register",
         json={"email": "config@example.com", "password": "password1", "display_name": "U"},
     ).json()
     headers = {"Authorization": f"Bearer {reg['token']}"}
-    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
 
-    initial = client.get(f"/api/kbs/{kb_id}/search/config", headers=headers)
+    initial = client.get(f"/api/v1/kbs/{kb_id}/search/config", headers=headers)
     assert initial.status_code == 200
     assert initial.json()["config"]["vector_backend"] == "sqlite_vec"
     assert initial.json()["status"]["storage_ready"] is True
 
     updated = client.put(
-        f"/api/kbs/{kb_id}/search/config",
+        f"/api/v1/kbs/{kb_id}/search/config",
         headers=headers,
         json={
             "chunk_backend": "sqlite_ledger",
@@ -135,7 +135,7 @@ def test_kb_search_config_controls_modes(tmp_path: Path) -> None:
     assert updated.json()["status"]["vector_state"] == "disabled"
 
     disabled = client.get(
-        f"/api/kbs/{kb_id}/search",
+        f"/api/v1/kbs/{kb_id}/search",
         headers=headers,
         params={"q": "anything", "mode": "semantic"},
     )

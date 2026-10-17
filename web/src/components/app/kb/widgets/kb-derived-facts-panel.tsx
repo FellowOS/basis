@@ -9,9 +9,9 @@ import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
 import { fmt, formatLocaleDateTime, formatLocaleNumber, pickCountForm } from '@/i18n/format.js';
 import type { Locale } from '@/i18n/locale.js';
-import { api } from '@/lib/api.js';
 import { useKbNodeLabels } from '@/lib/kb-node-labels.js';
 import { kbPath } from '@/lib/nav-config.js';
+import { kbOpenApiGET } from '@/lib/openapi-client.js';
 
 export type DerivedFactView = {
   id: string;
@@ -95,7 +95,9 @@ export function KbDerivedFactsPanel({ kbId }: { kbId: string }) {
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    void api<{ derived_facts: DerivedFactRow[] }>(`/api/kbs/${kbId}/ledger/derived-facts?limit=12`)
+    void kbOpenApiGET<{ derived_facts: DerivedFactRow[] }>(kbId, 'ledger/derived-facts', {
+      params: { query: { limit: 12 } },
+    })
       .then((data) => {
         if (!cancelled) setFacts(data.derived_facts ?? []);
       })

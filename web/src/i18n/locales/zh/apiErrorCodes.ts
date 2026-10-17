@@ -35,6 +35,8 @@ export const apiErrorCodes = {
   merge_requires_review: "图节点合并需经审核队列批准后再应用。",
   import_requires_review: "图导入需经审核队列批准后再应用。",
   mcp_busy: "MCP 请求过多，请稍后重试。",
+  api_busy: "API 请求过多，请稍后重试。",
+  legacy_api_removed: "该 API 路径已下线，请改用 /api/v1。",
   mcp_timeout: "MCP 工具执行超时。",
   no_current_version: "该文档没有可用版本。",
   mapping_invalidated: "该映射已失效。",

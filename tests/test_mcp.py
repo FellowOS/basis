@@ -13,13 +13,13 @@ from basis.config import Settings
 def test_mcp_tools_with_api_token(tmp_path) -> None:
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
     admin = client.post(
-        "/api/auth/register",
+        "/api/v1/auth/register",
         json={"email": "mcp@example.com", "password": "password1", "display_name": "M"},
     ).json()
     session_headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_id = client.get("/api/kbs", headers=session_headers).json()["kbs"][0]["id"]
+    kb_id = client.get("/api/v1/kbs", headers=session_headers).json()["kbs"][0]["id"]
     client.post(
-        f"/api/kbs/{kb_id}/documents",
+        f"/api/v1/kbs/{kb_id}/documents",
         headers=session_headers,
         json={
             "doc_id": "mcp-doc",
@@ -31,22 +31,22 @@ def test_mcp_tools_with_api_token(tmp_path) -> None:
     )
 
     created = client.post(
-        f"/api/kbs/{kb_id}/tokens",
+        f"/api/v1/kbs/{kb_id}/tokens",
         headers=session_headers,
         json={"name": "agent", "scope": "read"},
     )
     assert created.status_code == 200
     secret = created.json()["secret"]
-    listed = client.get(f"/api/kbs/{kb_id}/tokens", headers=session_headers).json()
+    listed = client.get(f"/api/v1/kbs/{kb_id}/tokens", headers=session_headers).json()
     assert listed["tokens"][0].get("secret") == secret
     api_headers = {"Authorization": f"Bearer {secret}"}
 
-    info = client.get(f"/api/kbs/{kb_id}/mcp", headers=api_headers)
+    info = client.get(f"/api/v1/kbs/{kb_id}/mcp", headers=api_headers)
     assert info.status_code == 200
-    assert info.json()["mcp_url"].endswith(f"/api/kbs/{kb_id}/mcp")
+    assert info.json()["mcp_url"].endswith(f"/api/v1/kbs/{kb_id}/mcp")
 
     init = client.post(
-        f"/api/kbs/{kb_id}/mcp",
+        f"/api/v1/kbs/{kb_id}/mcp",
         headers=api_headers,
         json={"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {}},
     )
@@ -54,7 +54,7 @@ def test_mcp_tools_with_api_token(tmp_path) -> None:
     assert init.json()["result"]["serverInfo"]["name"] == "basis-kb-mcp"
 
     tools = client.post(
-        f"/api/kbs/{kb_id}/mcp",
+        f"/api/v1/kbs/{kb_id}/mcp",
         headers=api_headers,
         json={"jsonrpc": "2.0", "id": 2, "method": "tools/list", "params": {}},
     ).json()
@@ -63,7 +63,7 @@ def test_mcp_tools_with_api_token(tmp_path) -> None:
     assert "propose_remember" in names
 
     search = client.post(
-        f"/api/kbs/{kb_id}/mcp",
+        f"/api/v1/kbs/{kb_id}/mcp",
         headers=api_headers,
         json={
             "jsonrpc": "2.0",
@@ -76,14 +76,14 @@ def test_mcp_tools_with_api_token(tmp_path) -> None:
     assert "Paris" in search["result"]["content"][0]["text"]
 
     wrong_kb = client.post(
-        "/api/kbs/00000000-0000-0000-0000-000000000000/mcp",
+        "/api/v1/kbs/00000000-0000-0000-0000-000000000000/mcp",
         headers=api_headers,
         json={"jsonrpc": "2.0", "id": 4, "method": "ping", "params": {}},
     )
     assert wrong_kb.status_code == 403
 
     remember = client.post(
-        f"/api/kbs/{kb_id}/mcp",
+        f"/api/v1/kbs/{kb_id}/mcp",
         headers=session_headers,
         json={
             "jsonrpc": "2.0",
@@ -103,14 +103,14 @@ def test_mcp_tools_with_api_token(tmp_path) -> None:
 def test_mcp_busy_when_semaphore_saturated(tmp_path) -> None:
     client = TestClient(create_app(Settings(data_dir=tmp_path, mcp_max_inflight=0)))
     admin = client.post(
-        "/api/auth/register",
+        "/api/v1/auth/register",
         json={"email": "busy@example.com", "password": "password1", "display_name": "Busy"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
 
     resp = client.post(
-        f"/api/kbs/{kb_id}/mcp",
+        f"/api/v1/kbs/{kb_id}/mcp",
         headers=headers,
         json={"jsonrpc": "2.0", "id": 1, "method": "ping", "params": {}},
     )
@@ -121,19 +121,19 @@ def test_mcp_busy_when_semaphore_saturated(tmp_path) -> None:
 def test_mcp_timeout(tmp_path) -> None:
     client = TestClient(create_app(Settings(data_dir=tmp_path, mcp_timeout_seconds=1)))
     admin = client.post(
-        "/api/auth/register",
+        "/api/v1/auth/register",
         json={"email": "to@example.com", "password": "password1", "display_name": "To"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
 
     def slow_batch(*_args, **_kwargs):
         time.sleep(2)
         return {"jsonrpc": "2.0", "id": 1, "result": {}}
 
-    with patch("basis.api.routes.mcp.handle_batch", side_effect=slow_batch):
+    with patch("basis.api.routes.v1.mcp.handle_batch", side_effect=slow_batch):
         resp = client.post(
-            f"/api/kbs/{kb_id}/mcp",
+            f"/api/v1/kbs/{kb_id}/mcp",
             headers=headers,
             json={"jsonrpc": "2.0", "id": 1, "method": "ping", "params": {}},
         )

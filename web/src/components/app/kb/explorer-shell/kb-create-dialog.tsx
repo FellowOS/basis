@@ -21,7 +21,8 @@ import {
 } from '@/components/ui/form.js';
 import { Input } from '@/components/ui/input.js';
 import { useI18n } from '@/i18n/context.js';
-import { api } from '@/lib/api.js';
+import { basisSessionClient } from '@/lib/basis-session-client.js';
+import { unwrapOpenApi } from '@/lib/openapi-response.js';
 import { useApiErrorMessage } from '@/lib/use-api-error-message.js';
 
 export type CreatedKb = {
@@ -55,10 +56,11 @@ export function KbCreateDialog({ open, onOpenChange, onCreated }: KbCreateDialog
     setCreating(true);
     setError(null);
     try {
-      const kb = await api<CreatedKb>('/api/kbs', {
-        method: 'POST',
-        body: JSON.stringify({ name: values.name.trim(), visibility: 'restricted' }),
-      });
+      const kb = unwrapOpenApi(
+        await basisSessionClient().openapi().POST('/api/v1/kbs', {
+          body: { name: values.name.trim(), visibility: 'restricted' },
+        }),
+      ) as CreatedKb;
       form.reset();
       onOpenChange(false);
       await onCreated(kb);

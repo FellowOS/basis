@@ -12,7 +12,9 @@ from basis.admin.errors import AdminError
 from basis.admin.store import AdminStore, User
 from basis.api.deps import get_chunk_search, get_explorer_registry, get_knowledge_store, get_store
 from basis.knowledge.kb_alerts_emit import emit_llm_playground_alert
-from basis.mcp.tools import TOOL_DEFINITIONS, KbToolContext, call_tool
+from basis.core import KbCoreContext, TOOL_DEFINITIONS, execute as call_tool
+
+KbToolContext = KbCoreContext
 
 Role = Literal["user", "assistant", "system"]
 

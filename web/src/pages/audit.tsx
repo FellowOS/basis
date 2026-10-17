@@ -22,7 +22,7 @@ import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
 import { fmt, formatLocaleDateTime, formatLocaleNumber, pickCountForm } from '@/i18n/format.js';
 import type { LocaleMessages } from '@/i18n/locales/en/index.js';
-import { api } from '@/lib/api.js';
+import { openApiGET } from '@/lib/openapi-client.js';
 import { formatUserFacingApiError } from '@/lib/api-error-message.js';
 import type { Locale } from '@/i18n/locale.js';
 import {
@@ -159,13 +159,13 @@ export function AuditPage() {
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
-    const params = new URLSearchParams({ limit: '100' });
-    if (kbFilter.trim()) params.set('kb_id', kbFilter.trim());
+    const query: Record<string, string> = { limit: '100' };
+    if (kbFilter.trim()) query.kb_id = kbFilter.trim();
     if (actionPreset && actionPreset !== 'all') {
-      params.set('action_prefix', actionPreset);
+      query.action_prefix = actionPreset;
     }
     try {
-      const body = await api<{ events: Event[] }>(`/api/audit?${params}`);
+      const body = await openApiGET<{ events: Event[] }>('/api/v1/audit', { params: { query } });
       setEvents(body.events);
     } catch (err) {
       setError(formatUserFacingApiError(err, locale as Locale));

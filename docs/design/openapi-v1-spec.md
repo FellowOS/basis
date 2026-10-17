@@ -144,13 +144,15 @@ MCP tools are a **named subset** of core operations. Each tool:
 | `describe_kb` | `GET /api/v1/kbs/{kb_id}` or dedicated `.../describe` |
 | `search_chunks` | `GET` or `POST .../search/chunks` |
 | `get_chunk` | `GET .../chunks/{chunk_id}` |
-| `find_entities` | `GET .../entities/search` |
+| `find_entities` | `GET .../entities/find` |
 | `neighbors` | `POST .../graph/neighbors` |
 | `paths` | `POST .../graph/paths` |
 | `entity_facts` | `GET .../entities/{entity_id}/facts` |
 | `propose_remember` | `POST .../remember/proposals` |
 
-Exact paths **must match** the YAML once written; table above is illustrative until inventory PR locks paths.
+`graph_search` is registered in core for HTTP only (`mcp: false`); OpenAPI: `POST .../graph/search`.
+
+Paths above match `openapi/basis-v1-kb.yaml` (inventory locked in R1).
 
 **Rule:** MCP `inputSchema` = OpenAPI request body schema for the linked operation.
 

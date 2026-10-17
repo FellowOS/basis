@@ -28,11 +28,10 @@ import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
 import { fmt, formatLocaleNumber, pickCountForm } from '@/i18n/format.js';
 import type { Locale } from '@/i18n/locale.js';
-import { api } from '@/lib/api.js';
+import { kbApiClient } from '@/lib/kb-api-client.js';
 import { formatUserFacingApiError } from '@/lib/api-error-message.js';
 import { useKbCatalog } from '@/lib/kb-context.js';
 import { useKbCapabilities } from '@/lib/kb-capabilities.js';
-import { useExplorerClient } from '@/lib/explorer-context.js';
 import type { LedgerEntityHit } from '@/components/app/kb/ledger/ledger-entity-browser.js';
 import { useKbNodeLabels } from '@/lib/kb-node-labels.js';
 import { kbPath } from '@/lib/nav-config.js';
@@ -55,7 +54,6 @@ export function KbSearchPage() {
   const { getKb } = useKbCatalog();
   const { caps, loading: capsLoading } = useKbCapabilities();
   const kb = id ? getKb(id) : undefined;
-  const client = useExplorerClient();
 
   const urlState = useMemo(
     () => parseKbSearchUrlState(searchParams.toString()),
@@ -95,29 +93,31 @@ export function KbSearchPage() {
   const fetchChunks = useCallback(
     async (q: string, limit: number) => {
       if (!id) return [] as ChunkHit[];
-      const params = new URLSearchParams({ q, limit: String(limit) });
-      const data = await api<{ chunks: ChunkHit[] }>(`/api/kbs/${id}/search?${params}`);
-      return data.chunks ?? [];
+      const data = await kbApiClient(id).searchChunks(q, limit);
+      return (data.chunks ?? []) as ChunkHit[];
     },
     [id],
   );
 
   const fetchGraph = useCallback(
     async (q: string, limit: number) => {
-      const data = await client.graph.search({ query: q, limit });
+      if (!id) return [] as GraphSearchHit[];
+      const data = await kbApiClient(id).searchGraph(q, limit);
       return data.results as GraphSearchHit[];
     },
-    [client],
+    [id],
   );
 
   const fetchEntities = useCallback(
     async (q: string, limit: number) => {
       if (!id) return [] as LedgerEntityHit[];
-      const path = q
-        ? `/api/kbs/${id}/ledger/entities?query=${encodeURIComponent(q)}&limit=${limit}`
-        : `/api/kbs/${id}/ledger/entities?limit=${limit}`;
-      const data = await api<{ entities: LedgerEntityHit[] }>(path);
-      return data.entities ?? [];
+      const kb = kbApiClient(id);
+      if (q.trim()) {
+        const data = await kb.findEntities(q, limit);
+        return (data.ledger_entities ?? []) as LedgerEntityHit[];
+      }
+      const data = await kb.listLedgerEntities(limit);
+      return (data.entities ?? []) as LedgerEntityHit[];
     },
     [id],
   );

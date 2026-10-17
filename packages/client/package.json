@@ -1,0 +1,22 @@
+{
+  "name": "@basis/client",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "gen:types": "openapi-typescript ../../openapi/basis-v1.yaml -o src/schema.d.ts && openapi-typescript ../../openapi/basis-v1-kb.yaml -o src/schema-kb.d.ts"
+  },
+  "dependencies": {
+    "openapi-fetch": "^0.15.0"
+  },
+  "devDependencies": {
+    "openapi-typescript": "^7.10.1",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  }
+}

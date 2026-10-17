@@ -4,8 +4,8 @@ import {
   formatGraphAuditDetail,
   type KbGraphAuditEvent,
 } from '@/lib/kb-graph-audit.js';
-import { api } from '@/lib/api.js';
 import { formatUserFacingApiError } from '@/lib/api-error-message.js';
+import { kbOpenApiGET } from '@/lib/openapi-client.js';
 import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
 import { formatLocaleDateTime } from '@/i18n/format.js';
@@ -33,12 +33,10 @@ export function KbGraphAuditRecent({
     setLoading(true);
     setError(null);
     try {
-      const params = new URLSearchParams({
-        limit: String(limit),
-        action_prefix: actionPrefix,
-      });
-      const body = await api<{ events: KbGraphAuditEvent[] }>(
-        `/api/kbs/${kbId}/audit/graph-mutations?${params}`,
+      const body = await kbOpenApiGET<{ events: KbGraphAuditEvent[] }>(
+        kbId,
+        'audit/graph-mutations',
+        { params: { query: { limit, action_prefix: actionPrefix } } },
       );
       setEvents(body.events ?? []);
     } catch (err) {

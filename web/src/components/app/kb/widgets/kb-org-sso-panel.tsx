@@ -19,7 +19,7 @@ import { Spinner } from '@/components/ui/spinner.js';
 import { Switch } from '@/components/ui/switch.js';
 import { useI18n } from '@/i18n/context.js';
 import type { Locale } from '@/i18n/locale.js';
-import { api } from '@/lib/api.js';
+import { openApiGET, openApiPUT } from '@/lib/openapi-client.js';
 import { formatUserFacingApiError } from '@/lib/api-error-message.js';
 import { orgSsoPublicUrls } from '@/lib/auth-site-url.js';
 
@@ -101,7 +101,9 @@ export function OrgSsoPanel({
     setLoading(true);
     setError(null);
     try {
-      const body = await api<OrgOidcResponse>(`/api/orgs/${organizationId}/oidc`);
+      const body = await openApiGET<OrgOidcResponse>('/api/v1/orgs/{org_id}/oidc', {
+        params: { path: { org_id: organizationId } },
+      });
       setData(body);
       if (body.configured) {
         form.reset({
@@ -136,16 +138,16 @@ export function OrgSsoPanel({
       .map((d) => d.trim())
       .filter(Boolean);
     try {
-      await api(`/api/orgs/${organizationId}/oidc`, {
-        method: 'PUT',
-        body: JSON.stringify({
+      await openApiPUT('/api/v1/orgs/{org_id}/oidc', {
+        params: { path: { org_id: organizationId } },
+        body: {
           issuer: values.issuer,
           client_id: values.clientId,
           client_secret: values.clientSecret,
           scopes: values.scopes,
           email_domains: domains,
           enabled: values.enabled,
-        }),
+        },
       });
       toast.success(copy.saved);
       await refresh();

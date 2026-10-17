@@ -101,15 +101,15 @@ def test_ingest_failure_before_rebuild_marks_projection_dirty(tmp_path: Path) ->
 def test_upload_api_async_accept_and_polls_succeeded(tmp_path: Path) -> None:
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
     admin = client.post(
-        "/api/auth/register",
+        "/api/v1/auth/register",
         json={"email": "async@example.com", "password": "password1", "display_name": "U"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
 
     files = {"file": ("async.txt", BytesIO(b"async ingest body"), "text/plain")}
     uploaded = client.post(
-        f"/api/kbs/{kb_id}/documents/upload",
+        f"/api/v1/kbs/{kb_id}/documents/upload",
         headers=headers,
         files=files,
         data={"extract": "false", "wait": "false"},
@@ -121,7 +121,7 @@ def test_upload_api_async_accept_and_polls_succeeded(tmp_path: Path) -> None:
 
     for _ in range(60):
         job = client.get(
-            f"/api/kbs/{kb_id}/ingest/jobs/{body['job_id']}",
+            f"/api/v1/kbs/{kb_id}/ingest/jobs/{body['job_id']}",
             headers=headers,
         )
         assert job.status_code == 200
@@ -137,15 +137,15 @@ def test_upload_api_async_accept_and_polls_succeeded(tmp_path: Path) -> None:
 def test_upload_api_returns_job_and_polls_succeeded(tmp_path: Path) -> None:
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
     admin = client.post(
-        "/api/auth/register",
+        "/api/v1/auth/register",
         json={"email": "up@example.com", "password": "password1", "display_name": "U"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
 
     files = {"file": ("demo.txt", BytesIO(b"payment terms and delivery"), "text/plain")}
     uploaded = client.post(
-        f"/api/kbs/{kb_id}/documents/upload",
+        f"/api/v1/kbs/{kb_id}/documents/upload",
         headers=headers,
         files=files,
         data={"extract": "false"},
@@ -156,7 +156,7 @@ def test_upload_api_returns_job_and_polls_succeeded(tmp_path: Path) -> None:
     assert body.get("ledger_status") == "ready"
 
     job = client.get(
-        f"/api/kbs/{kb_id}/ingest/jobs/{body['job_id']}",
+        f"/api/v1/kbs/{kb_id}/ingest/jobs/{body['job_id']}",
         headers=headers,
     )
     assert job.status_code == 200

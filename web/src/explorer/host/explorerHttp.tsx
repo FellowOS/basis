@@ -9,11 +9,13 @@ import { fmt } from "@/i18n/format.js";
 import { localeFromBrowser, type Locale } from "@/i18n/locale.js";
 import { messagesForLocale } from "@/i18n/pick-locale.js";
 import { errorFromApiResponse } from "@/lib/api-error.js";
+import { basisApiUrl } from "@/lib/basis-session-fetch.js";
+import { isKbScopedApiPath, kbApiRoot } from "@/lib/kb-api-path.js";
 import { ensureRequestIdHeader } from "@/lib/request-id.js";
 
 export type ExplorerHttpConfig = {
   /**
-   * KB-scoped API root, e.g. `/api/kbs/{kb_id}`.
+   * KB-scoped API root, e.g. `/api/v1/kbs/{kb_id}`.
    * Rewrites Explorer `/api/graph/...` calls to `${apiRoot}/graph/...`.
    */
   apiRoot?: string;
@@ -64,7 +66,7 @@ export function resolveExplorerApiUrl(pathOrUrl: string): string {
   if (
     !apiRoot &&
     pathOrUrl.startsWith("/api/") &&
-    !pathOrUrl.startsWith("/api/kbs/")
+    !isKbScopedApiPath(pathOrUrl)
   ) {
     throw new Error(kbContextRequiredMessage());
   }
@@ -97,11 +99,11 @@ function normalizeRoot(apiRoot: string): string {
   return apiRoot.endsWith("/") ? apiRoot.slice(0, -1) : apiRoot;
 }
 
-/** KB-scoped API path (`/api/kbs/{id}/...`). Requires `kbId` or active `apiRoot`. */
+/** KB-scoped API path (`/api/v1/kbs/{id}/...`). Requires `kbId` or active `apiRoot`. */
 export function buildExplorerKbApiPath(subpath: string, kbId?: string): string {
   const segment = subpath.replace(/^\//, "");
   if (kbId) {
-    return `/api/kbs/${kbId}/${segment}`;
+    return `${kbApiRoot(kbId)}/${segment}`;
   }
   const { apiRoot } = getActiveExplorerHttpConfig();
   if (apiRoot) {
@@ -110,7 +112,7 @@ export function buildExplorerKbApiPath(subpath: string, kbId?: string): string {
   throw new Error(kbContextRequiredMessage());
 }
 
-/** Graph routes under `/api/kbs/{id}/graph/...`. */
+/** Graph routes under `/api/v1/kbs/{id}/graph/...`. */
 export function buildExplorerGraphApiPath(resource: string, kbId?: string): string {
   const segment = resource.replace(/^\//, "");
   return buildExplorerKbApiPath(`graph/${segment}`, kbId);
@@ -122,7 +124,7 @@ function rewriteApiPath(pathname: string, apiRoot: string): string {
     return pathname;
   }
   // Already KB-scoped (Basis or another host); do not prepend apiRoot again.
-  if (pathname.startsWith("/api/kbs/")) {
+  if (isKbScopedApiPath(pathname)) {
     return pathname;
   }
   if (!pathname.startsWith("/api/")) {
@@ -150,7 +152,9 @@ export async function explorerFetch(
       }
     });
   }
-  return fetch(url, { ...init, headers });
+  const absolute =
+    url.startsWith("http://") || url.startsWith("https://") ? url : basisApiUrl(url);
+  return fetch(absolute, { ...init, headers });
 }
 
 /** KB-scoped fetch with auth, request ID, and coded API errors (X-01). */

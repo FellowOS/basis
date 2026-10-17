@@ -32,7 +32,7 @@ import { Input } from '@/components/ui/input.js';
 import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
 import { fmt, formatLocaleNumber, pickCountForm } from '@/i18n/format.js';
-import { api } from '@/lib/api.js';
+import { openApiGET, openApiPOST } from '@/lib/openapi-client.js';
 import { useApiErrorMessage } from '@/lib/use-api-error-message.js';
 
 type UserRow = {
@@ -74,7 +74,7 @@ export function UsersPage() {
   async function load() {
     setLoading(true);
     try {
-      const body = await api<{ users: UserRow[] }>('/api/admin/users');
+      const body = await openApiGET<{ users: UserRow[] }>('/api/v1/admin/users');
       setUsers(body.users);
     } finally {
       setLoading(false);
@@ -89,10 +89,7 @@ export function UsersPage() {
     setCreating(true);
     setError(null);
     try {
-      await api('/api/admin/users', {
-        method: 'POST',
-        body: JSON.stringify(values),
-      });
+      await openApiPOST('/api/v1/admin/users', { body: values });
       createForm.reset();
       setCreateOpen(false);
       await load();

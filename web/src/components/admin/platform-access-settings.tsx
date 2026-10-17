@@ -20,7 +20,7 @@ import { Spinner } from '@/components/ui/spinner.js';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group.js';
 import { Switch } from '@/components/ui/switch.js';
 import { useI18n } from '@/i18n/context.js';
-import { api } from '@/lib/api.js';
+import { openApiGET, openApiPUT } from '@/lib/openapi-client.js';
 import { useApiErrorMessage } from '@/lib/use-api-error-message.js';
 import { normalizeSiteUrl, platformAuthCallbacks } from '@/lib/auth-site-url.js';
 import { cn } from '@/lib/utils.js';
@@ -326,7 +326,7 @@ export function PlatformAccessSettings({
     let cancelled = false;
     setLoading(true);
     setError(null);
-    api<AccessSettings>('/api/settings/access')
+    openApiGET<AccessSettings>('/api/v1/settings/access')
       .then((data) => {
         if (!cancelled) applyAccess(data);
       })
@@ -349,9 +349,8 @@ export function PlatformAccessSettings({
     setError(null);
     const origin = normalizeSiteUrl(values.siteUrl);
     try {
-      const data = await api<AccessSettings>('/api/settings/access', {
-        method: 'PUT',
-        body: JSON.stringify({
+      const data = await openApiPUT<AccessSettings>('/api/v1/settings/access', {
+        body: {
           auth_providers: values.providers,
           signup_policy: values.signupPolicy,
           magic_link_dev_log: values.magicLinkDevLog,
@@ -382,7 +381,7 @@ export function PlatformAccessSettings({
               },
             },
           },
-        }),
+        },
       });
       applyAccess(data);
       toast.success(t.common.save);

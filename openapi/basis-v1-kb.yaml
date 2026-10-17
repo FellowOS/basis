@@ -19,7 +19,7 @@ paths:
       tags:
       - auth
       summary: Login
-      operationId: login_api_auth_login_post
+      operationId: login_api_v1_auth_login_post
       requestBody:
         content:
           application/json:
@@ -34,7 +34,7 @@ paths:
               schema:
                 additionalProperties: true
                 type: object
-                title: Response Login Api Auth Login Post
+                title: Response Login Api V1 Auth Login Post
         '422':
           description: Validation Error
           content:
@@ -48,7 +48,7 @@ paths:
       tags:
       - auth
       summary: Logout
-      operationId: logout_api_auth_logout_post
+      operationId: logout_api_v1_auth_logout_post
       parameters:
       - name: authorization
         in: header
@@ -66,7 +66,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Logout Api Auth Logout Post
+                title: Response Logout Api V1 Auth Logout Post
         '422':
           description: Validation Error
           content:
@@ -80,7 +80,7 @@ paths:
       tags:
       - auth
       summary: Magic Link Request
-      operationId: magic_link_request_api_auth_magic_link_request_post
+      operationId: magic_link_request_api_v1_auth_magic_link_request_post
       requestBody:
         content:
           application/json:
@@ -96,7 +96,7 @@ paths:
                 additionalProperties:
                   type: boolean
                 type: object
-                title: Response Magic Link Request Api Auth Magic Link Request Post
+                title: Response Magic Link Request Api V1 Auth Magic Link Request Post
         '422':
           description: Validation Error
           content:
@@ -110,7 +110,7 @@ paths:
       tags:
       - auth
       summary: Magic Link Verify
-      operationId: magic_link_verify_api_auth_magic_link_verify_get
+      operationId: magic_link_verify_api_v1_auth_magic_link_verify_get
       parameters:
       - name: token
         in: query
@@ -137,7 +137,7 @@ paths:
       tags:
       - auth
       summary: Me
-      operationId: me_api_auth_me_get
+      operationId: me_api_v1_auth_me_get
       parameters:
       - name: authorization
         in: header
@@ -155,7 +155,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Me Api Auth Me Get
+                title: Response Me Api V1 Auth Me Get
         '422':
           description: Validation Error
           content:
@@ -169,7 +169,7 @@ paths:
       tags:
       - auth
       summary: Github Callback
-      operationId: github_callback_api_auth_oauth_github_callback_get
+      operationId: github_callback_api_v1_auth_oauth_github_callback_get
       parameters:
       - name: code
         in: query
@@ -202,7 +202,7 @@ paths:
       tags:
       - auth
       summary: Github Start
-      operationId: github_start_api_auth_oauth_github_start_get
+      operationId: github_start_api_v1_auth_oauth_github_start_get
       responses:
         '200':
           description: Successful Response
@@ -216,7 +216,7 @@ paths:
       tags:
       - auth
       summary: Google Callback
-      operationId: google_callback_api_auth_oauth_google_callback_get
+      operationId: google_callback_api_v1_auth_oauth_google_callback_get
       parameters:
       - name: code
         in: query
@@ -249,7 +249,7 @@ paths:
       tags:
       - auth
       summary: Google Start
-      operationId: google_start_api_auth_oauth_google_start_get
+      operationId: google_start_api_v1_auth_oauth_google_start_get
       responses:
         '200':
           description: Successful Response
@@ -263,7 +263,7 @@ paths:
       tags:
       - auth
       summary: Org Oidc Callback
-      operationId: org_oidc_callback_api_auth_oidc_callback_get
+      operationId: org_oidc_callback_api_v1_auth_oidc_callback_get
       parameters:
       - name: code
         in: query
@@ -296,7 +296,7 @@ paths:
       tags:
       - auth
       summary: Org Oidc Start
-      operationId: org_oidc_start_api_auth_oidc__org_slug__start_get
+      operationId: org_oidc_start_api_v1_auth_oidc__org_slug__start_get
       parameters:
       - name: org_slug
         in: path
@@ -323,7 +323,7 @@ paths:
       tags:
       - auth
       summary: Auth Providers
-      operationId: auth_providers_api_auth_providers_get
+      operationId: auth_providers_api_v1_auth_providers_get
       responses:
         '200':
           description: Successful Response
@@ -332,7 +332,7 @@ paths:
               schema:
                 additionalProperties: true
                 type: object
-                title: Response Auth Providers Api Auth Providers Get
+                title: Response Auth Providers Api V1 Auth Providers Get
       x-basis-surface: public
       x-basis-auth: public-or-session
   /api/v1/auth/register:
@@ -340,7 +340,7 @@ paths:
       tags:
       - auth
       summary: Register
-      operationId: register_api_auth_register_post
+      operationId: register_api_v1_auth_register_post
       requestBody:
         content:
           application/json:
@@ -355,7 +355,7 @@ paths:
               schema:
                 additionalProperties: true
                 type: object
-                title: Response Register Api Auth Register Post
+                title: Response Register Api V1 Auth Register Post
         '422':
           description: Validation Error
           content:
@@ -387,7 +387,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Get Kb
-      operationId: get_kb_api_kbs__kb_id__get
+      operationId: get_kb_api_v1_kbs__kb_id__get
       parameters:
       - name: kb_id
         in: path
@@ -411,7 +411,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Get Kb Api Kbs  Kb Id  Get
+                title: Response Get Kb Api V1 Kbs  Kb Id  Get
         '422':
           description: Validation Error
           content:
@@ -424,7 +424,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Update Kb
-      operationId: update_kb_api_kbs__kb_id__patch
+      operationId: update_kb_api_v1_kbs__kb_id__patch
       parameters:
       - name: kb_id
         in: path
@@ -454,7 +454,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Update Kb Api Kbs  Kb Id  Patch
+                title: Response Update Kb Api V1 Kbs  Kb Id  Patch
         '422':
           description: Validation Error
           content:
@@ -467,7 +467,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Delete Kb
-      operationId: delete_kb_api_kbs__kb_id__delete
+      operationId: delete_kb_api_v1_kbs__kb_id__delete
       parameters:
       - name: kb_id
         in: path
@@ -491,7 +491,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Delete Kb Api Kbs  Kb Id  Delete
+                title: Response Delete Kb Api V1 Kbs  Kb Id  Delete
         '422':
           description: Validation Error
           content:
@@ -505,7 +505,7 @@ paths:
       tags:
       - knowledge-bases
       summary: List Kb Alerts
-      operationId: list_kb_alerts_api_kbs__kb_id__alerts_get
+      operationId: list_kb_alerts_api_v1_kbs__kb_id__alerts_get
       parameters:
       - name: kb_id
         in: path
@@ -538,7 +538,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response List Kb Alerts Api Kbs  Kb Id  Alerts Get
+                title: Response List Kb Alerts Api V1 Kbs  Kb Id  Alerts Get
         '422':
           description: Validation Error
           content:
@@ -552,7 +552,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Stream Kb Alerts
-      operationId: stream_kb_alerts_api_kbs__kb_id__alerts_stream_get
+      operationId: stream_kb_alerts_api_v1_kbs__kb_id__alerts_stream_get
       parameters:
       - name: kb_id
         in: path
@@ -597,7 +597,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Dismiss Kb Alert
-      operationId: dismiss_kb_alert_api_kbs__kb_id__alerts__alert_id__dismiss_post
+      operationId: dismiss_kb_alert_api_v1_kbs__kb_id__alerts__alert_id__dismiss_post
       parameters:
       - name: kb_id
         in: path
@@ -627,7 +627,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Dismiss Kb Alert Api Kbs  Kb Id  Alerts  Alert Id  Dismiss Post
+                title: Response Dismiss Kb Alert Api V1 Kbs  Kb Id  Alerts  Alert Id  Dismiss Post
         '422':
           description: Validation Error
           content:
@@ -641,7 +641,7 @@ paths:
       tags:
       - knowledge-bases
       summary: List Kb Graph Audit
-      operationId: list_kb_graph_audit_api_kbs__kb_id__audit_graph_mutations_get
+      operationId: list_kb_graph_audit_api_v1_kbs__kb_id__audit_graph_mutations_get
       parameters:
       - name: kb_id
         in: path
@@ -681,7 +681,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response List Kb Graph Audit Api Kbs  Kb Id  Audit Graph Mutations Get
+                title: Response List Kb Graph Audit Api V1 Kbs  Kb Id  Audit Graph Mutations Get
         '422':
           description: Validation Error
           content:
@@ -695,7 +695,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Get Kb Capabilities
-      operationId: get_kb_capabilities_api_kbs__kb_id__capabilities_get
+      operationId: get_kb_capabilities_api_v1_kbs__kb_id__capabilities_get
       parameters:
       - name: kb_id
         in: path
@@ -719,7 +719,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Get Kb Capabilities Api Kbs  Kb Id  Capabilities Get
+                title: Response Get Kb Capabilities Api V1 Kbs  Kb Id  Capabilities Get
         '422':
           description: Validation Error
           content:
@@ -733,7 +733,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Kb Chat Playground
-      operationId: kb_chat_playground_api_kbs__kb_id__chat_playground_post
+      operationId: kb_chat_playground_api_v1_kbs__kb_id__chat_playground_post
       parameters:
       - name: kb_id
         in: path
@@ -763,7 +763,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Kb Chat Playground Api Kbs  Kb Id  Chat Playground Post
+                title: Response Kb Chat Playground Api V1 Kbs  Kb Id  Chat Playground Post
         '422':
           description: Validation Error
           content:
@@ -777,7 +777,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Kb Chat Playground Stream
-      operationId: kb_chat_playground_stream_api_kbs__kb_id__chat_playground_stream_post
+      operationId: kb_chat_playground_stream_api_v1_kbs__kb_id__chat_playground_stream_post
       parameters:
       - name: kb_id
         in: path
@@ -818,7 +818,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Kb Chat Remember
-      operationId: kb_chat_remember_api_kbs__kb_id__chat_remember_post
+      operationId: kb_chat_remember_api_v1_kbs__kb_id__chat_remember_post
       parameters:
       - name: kb_id
         in: path
@@ -848,7 +848,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Kb Chat Remember Api Kbs  Kb Id  Chat Remember Post
+                title: Response Kb Chat Remember Api V1 Kbs  Kb Id  Chat Remember Post
         '422':
           description: Validation Error
           content:
@@ -862,7 +862,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Kb List Decisions
-      operationId: kb_list_decisions_api_kbs__kb_id__decisions_get
+      operationId: kb_list_decisions_api_v1_kbs__kb_id__decisions_get
       parameters:
       - name: kb_id
         in: path
@@ -908,7 +908,7 @@ paths:
           content:
             application/json:
               schema:
-                title: Response Kb List Decisions Api Kbs  Kb Id  Decisions Get
+                title: Response Kb List Decisions Api V1 Kbs  Kb Id  Decisions Get
         '422':
           description: Validation Error
           content:
@@ -922,7 +922,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Kb Decision Chain
-      operationId: kb_decision_chain_api_kbs__kb_id__decisions__decision_id__chain_get
+      operationId: kb_decision_chain_api_v1_kbs__kb_id__decisions__decision_id__chain_get
       parameters:
       - name: kb_id
         in: path
@@ -950,7 +950,7 @@ paths:
           content:
             application/json:
               schema:
-                title: Response Kb Decision Chain Api Kbs  Kb Id  Decisions  Decision Id  Chain Get
+                title: Response Kb Decision Chain Api V1 Kbs  Kb Id  Decisions  Decision Id  Chain Get
         '422':
           description: Validation Error
           content:
@@ -964,7 +964,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Ingest Document
-      operationId: ingest_document_api_kbs__kb_id__documents_post
+      operationId: ingest_document_api_v1_kbs__kb_id__documents_post
       parameters:
       - name: kb_id
         in: path
@@ -1004,7 +1004,7 @@ paths:
       tags:
       - knowledge-bases
       summary: List Kb Documents
-      operationId: list_kb_documents_api_kbs__kb_id__documents_get
+      operationId: list_kb_documents_api_v1_kbs__kb_id__documents_get
       parameters:
       - name: kb_id
         in: path
@@ -1028,7 +1028,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response List Kb Documents Api Kbs  Kb Id  Documents Get
+                title: Response List Kb Documents Api V1 Kbs  Kb Id  Documents Get
         '422':
           description: Validation Error
           content:
@@ -1042,7 +1042,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Upload Document
-      operationId: upload_document_api_kbs__kb_id__documents_upload_post
+      operationId: upload_document_api_v1_kbs__kb_id__documents_upload_post
       parameters:
       - name: kb_id
         in: path
@@ -1063,7 +1063,7 @@ paths:
         content:
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/Body_upload_document_api_kbs__kb_id__documents_upload_post'
+              $ref: '#/components/schemas/Body_upload_document_api_v1_kbs__kb_id__documents_upload_post'
       responses:
         '200':
           description: Successful Response
@@ -1083,7 +1083,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Delete Kb Document
-      operationId: delete_kb_document_api_kbs__kb_id__documents__document_id__delete
+      operationId: delete_kb_document_api_v1_kbs__kb_id__documents__document_id__delete
       parameters:
       - name: kb_id
         in: path
@@ -1113,7 +1113,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Delete Kb Document Api Kbs  Kb Id  Documents  Document Id  Delete
+                title: Response Delete Kb Document Api V1 Kbs  Kb Id  Documents  Document Id  Delete
         '422':
           description: Validation Error
           content:
@@ -1127,7 +1127,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Append Document Version Text
-      operationId: append_document_version_text_api_kbs__kb_id__documents__document_id__versions_post
+      operationId: append_document_version_text_api_v1_kbs__kb_id__documents__document_id__versions_post
       parameters:
       - name: kb_id
         in: path
@@ -1174,7 +1174,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Append Document Version Upload
-      operationId: append_document_version_upload_api_kbs__kb_id__documents__document_id__versions_upload_post
+      operationId: append_document_version_upload_api_v1_kbs__kb_id__documents__document_id__versions_upload_post
       parameters:
       - name: kb_id
         in: path
@@ -1201,7 +1201,7 @@ paths:
         content:
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/Body_append_document_version_upload_api_kbs__kb_id__documents__document_id__versions_upload_post'
+              $ref: '#/components/schemas/Body_append_document_version_upload_api_v1_kbs__kb_id__documents__document_id__versions_upload_post'
       responses:
         '200':
           description: Successful Response
@@ -1221,7 +1221,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Kb Enrich Dedup
-      operationId: kb_enrich_dedup_api_kbs__kb_id__enrich_dedup_post
+      operationId: kb_enrich_dedup_api_v1_kbs__kb_id__enrich_dedup_post
       parameters:
       - name: kb_id
         in: path
@@ -1243,7 +1243,7 @@ paths:
           content:
             application/json:
               schema:
-                title: Response Kb Enrich Dedup Api Kbs  Kb Id  Enrich Dedup Post
+                title: Response Kb Enrich Dedup Api V1 Kbs  Kb Id  Enrich Dedup Post
         '422':
           description: Validation Error
           content:
@@ -1257,7 +1257,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Kb Enrich Links
-      operationId: kb_enrich_links_api_kbs__kb_id__enrich_links_post
+      operationId: kb_enrich_links_api_v1_kbs__kb_id__enrich_links_post
       parameters:
       - name: kb_id
         in: path
@@ -1279,7 +1279,7 @@ paths:
           content:
             application/json:
               schema:
-                title: Response Kb Enrich Links Api Kbs  Kb Id  Enrich Links Post
+                title: Response Kb Enrich Links Api V1 Kbs  Kb Id  Enrich Links Post
         '422':
           description: Validation Error
           content:
@@ -1294,7 +1294,7 @@ paths:
       - knowledge-bases
       summary: Kb Enrich Merge
       description: Direct graph merge is disabled; use the review queue (Gate D).
-      operationId: kb_enrich_merge_api_kbs__kb_id__enrich_merge_post
+      operationId: kb_enrich_merge_api_v1_kbs__kb_id__enrich_merge_post
       parameters:
       - name: kb_id
         in: path
@@ -1316,7 +1316,58 @@ paths:
           content:
             application/json:
               schema:
-                title: Response Kb Enrich Merge Api Kbs  Kb Id  Enrich Merge Post
+                title: Response Kb Enrich Merge Api V1 Kbs  Kb Id  Enrich Merge Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      x-basis-surface: knowledge-base
+      x-basis-auth: session-or-kb-api-token
+  /api/v1/kbs/{kb_id}/entities/find:
+    get:
+      tags:
+      - knowledge-bases
+      summary: Find Entities Route
+      operationId: find_entities_route_api_v1_kbs__kb_id__entities_find_get
+      parameters:
+      - name: kb_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Kb Id
+      - name: q
+        in: query
+        required: true
+        schema:
+          type: string
+          title: Q
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 20
+          title: Limit
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Find Entities Route Api V1 Kbs  Kb Id  Entities Find Get
         '422':
           description: Validation Error
           content:
@@ -1330,7 +1381,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Kb Export Graph
-      operationId: kb_export_graph_api_kbs__kb_id__export_post
+      operationId: kb_export_graph_api_v1_kbs__kb_id__export_post
       parameters:
       - name: kb_id
         in: path
@@ -1366,7 +1417,7 @@ paths:
       - knowledge-bases
       summary: Kb Graph Diff
       description: Whole-graph diff between two instants (F-DIFF-01); nodes + edges + property changes.
-      operationId: kb_graph_diff_api_kbs__kb_id__graph_diff_get
+      operationId: kb_graph_diff_api_v1_kbs__kb_id__graph_diff_get
       parameters:
       - name: kb_id
         in: path
@@ -1400,7 +1451,7 @@ paths:
           content:
             application/json:
               schema:
-                title: Response Kb Graph Diff Api Kbs  Kb Id  Graph Diff Get
+                title: Response Kb Graph Diff Api V1 Kbs  Kb Id  Graph Diff Get
         '422':
           description: Validation Error
           content:
@@ -1414,7 +1465,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Kb Graph Distance Matrix
-      operationId: kb_graph_distance_matrix_api_kbs__kb_id__graph_distance_matrix_post
+      operationId: kb_graph_distance_matrix_api_v1_kbs__kb_id__graph_distance_matrix_post
       parameters:
       - name: kb_id
         in: path
@@ -1436,7 +1487,7 @@ paths:
           content:
             application/json:
               schema:
-                title: Response Kb Graph Distance Matrix Api Kbs  Kb Id  Graph Distance Matrix Post
+                title: Response Kb Graph Distance Matrix Api V1 Kbs  Kb Id  Graph Distance Matrix Post
         '422':
           description: Validation Error
           content:
@@ -1450,7 +1501,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Graph Edges Route
-      operationId: graph_edges_route_api_kbs__kb_id__graph_edges_get
+      operationId: graph_edges_route_api_v1_kbs__kb_id__graph_edges_get
       parameters:
       - name: kb_id
         in: path
@@ -1513,7 +1564,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Graph Edges Route Api Kbs  Kb Id  Graph Edges Get
+                title: Response Graph Edges Route Api V1 Kbs  Kb Id  Graph Edges Get
         '422':
           description: Validation Error
           content:
@@ -1527,7 +1578,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Graph Nodes Route
-      operationId: graph_nodes_route_api_kbs__kb_id__graph_nodes_get
+      operationId: graph_nodes_route_api_v1_kbs__kb_id__graph_nodes_get
       parameters:
       - name: kb_id
         in: path
@@ -1582,7 +1633,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Graph Nodes Route Api Kbs  Kb Id  Graph Nodes Get
+                title: Response Graph Nodes Route Api V1 Kbs  Kb Id  Graph Nodes Get
         '422':
           description: Validation Error
           content:
@@ -1596,7 +1647,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Graph Node Route
-      operationId: graph_node_route_api_kbs__kb_id__graph_nodes__node_id__get
+      operationId: graph_node_route_api_v1_kbs__kb_id__graph_nodes__node_id__get
       parameters:
       - name: kb_id
         in: path
@@ -1626,7 +1677,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Graph Node Route Api Kbs  Kb Id  Graph Nodes  Node Id  Get
+                title: Response Graph Node Route Api V1 Kbs  Kb Id  Graph Nodes  Node Id  Get
         '422':
           description: Validation Error
           content:
@@ -1640,7 +1691,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Graph Neighbors Route
-      operationId: graph_neighbors_route_api_kbs__kb_id__graph_nodes__node_id__neighbors_get
+      operationId: graph_neighbors_route_api_v1_kbs__kb_id__graph_nodes__node_id__neighbors_get
       parameters:
       - name: kb_id
         in: path
@@ -1677,7 +1728,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Graph Neighbors Route Api Kbs  Kb Id  Graph Nodes  Node Id  Neighbors Get
+                title: Response Graph Neighbors Route Api V1 Kbs  Kb Id  Graph Nodes  Node Id  Neighbors Get
         '422':
           description: Validation Error
           content:
@@ -1691,7 +1742,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Graph Path Route
-      operationId: graph_path_route_api_kbs__kb_id__graph_path_get
+      operationId: graph_path_route_api_v1_kbs__kb_id__graph_path_get
       parameters:
       - name: kb_id
         in: path
@@ -1741,7 +1792,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Graph Path Route Api Kbs  Kb Id  Graph Path Get
+                title: Response Graph Path Route Api V1 Kbs  Kb Id  Graph Path Get
         '422':
           description: Validation Error
           content:
@@ -1755,7 +1806,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Graph Projection Status
-      operationId: graph_projection_status_api_kbs__kb_id__graph_projection_get
+      operationId: graph_projection_status_api_v1_kbs__kb_id__graph_projection_get
       parameters:
       - name: kb_id
         in: path
@@ -1779,7 +1830,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Graph Projection Status Api Kbs  Kb Id  Graph Projection Get
+                title: Response Graph Projection Status Api V1 Kbs  Kb Id  Graph Projection Get
         '422':
           description: Validation Error
           content:
@@ -1793,7 +1844,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Rebuild Graph
-      operationId: rebuild_graph_api_kbs__kb_id__graph_rebuild_post
+      operationId: rebuild_graph_api_v1_kbs__kb_id__graph_rebuild_post
       parameters:
       - name: kb_id
         in: path
@@ -1817,7 +1868,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Rebuild Graph Api Kbs  Kb Id  Graph Rebuild Post
+                title: Response Rebuild Graph Api V1 Kbs  Kb Id  Graph Rebuild Post
         '422':
           description: Validation Error
           content:
@@ -1831,7 +1882,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Resolve Graph Node Labels
-      operationId: resolve_graph_node_labels_api_kbs__kb_id__graph_resolve_labels_post
+      operationId: resolve_graph_node_labels_api_v1_kbs__kb_id__graph_resolve_labels_post
       parameters:
       - name: kb_id
         in: path
@@ -1861,7 +1912,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Resolve Graph Node Labels Api Kbs  Kb Id  Graph Resolve Labels Post
+                title: Response Resolve Graph Node Labels Api V1 Kbs  Kb Id  Graph Resolve Labels Post
         '422':
           description: Validation Error
           content:
@@ -1875,7 +1926,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Graph Search Route
-      operationId: graph_search_route_api_kbs__kb_id__graph_search_post
+      operationId: graph_search_route_api_v1_kbs__kb_id__graph_search_post
       parameters:
       - name: kb_id
         in: path
@@ -1905,7 +1956,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Graph Search Route Api Kbs  Kb Id  Graph Search Post
+                title: Response Graph Search Route Api V1 Kbs  Kb Id  Graph Search Post
         '422':
           description: Validation Error
           content:
@@ -1919,7 +1970,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Kb Graph Semantic Neighborhood
-      operationId: kb_graph_semantic_neighborhood_api_kbs__kb_id__graph_semantic_neighborhood_get
+      operationId: kb_graph_semantic_neighborhood_api_v1_kbs__kb_id__graph_semantic_neighborhood_get
       parameters:
       - name: kb_id
         in: path
@@ -1965,7 +2016,7 @@ paths:
           content:
             application/json:
               schema:
-                title: Response Kb Graph Semantic Neighborhood Api Kbs  Kb Id  Graph Semantic Neighborhood Get
+                title: Response Kb Graph Semantic Neighborhood Api V1 Kbs  Kb Id  Graph Semantic Neighborhood Get
         '422':
           description: Validation Error
           content:
@@ -1979,7 +2030,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Graph Snapshot Route
-      operationId: graph_snapshot_route_api_kbs__kb_id__graph_snapshot_get
+      operationId: graph_snapshot_route_api_v1_kbs__kb_id__graph_snapshot_get
       parameters:
       - name: kb_id
         in: path
@@ -2017,7 +2068,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Graph Snapshot Route Api Kbs  Kb Id  Graph Snapshot Get
+                title: Response Graph Snapshot Route Api V1 Kbs  Kb Id  Graph Snapshot Get
         '422':
           description: Validation Error
           content:
@@ -2031,7 +2082,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Graph Stats
-      operationId: graph_stats_api_kbs__kb_id__graph_stats_get
+      operationId: graph_stats_api_v1_kbs__kb_id__graph_stats_get
       parameters:
       - name: kb_id
         in: path
@@ -2056,7 +2107,7 @@ paths:
                 type: object
                 additionalProperties:
                   type: integer
-                title: Response Graph Stats Api Kbs  Kb Id  Graph Stats Get
+                title: Response Graph Stats Api V1 Kbs  Kb Id  Graph Stats Get
         '422':
           description: Validation Error
           content:
@@ -2070,7 +2121,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Kb Import Graph
-      operationId: kb_import_graph_api_kbs__kb_id__import_post
+      operationId: kb_import_graph_api_v1_kbs__kb_id__import_post
       parameters:
       - name: kb_id
         in: path
@@ -2092,7 +2143,7 @@ paths:
           content:
             application/json:
               schema:
-                title: Response Kb Import Graph Api Kbs  Kb Id  Import Post
+                title: Response Kb Import Graph Api V1 Kbs  Kb Id  Import Post
         '422':
           description: Validation Error
           content:
@@ -2107,7 +2158,7 @@ paths:
       - knowledge-bases
       summary: List Ingest Jobs
       description: 'F-SRC-08: document ingest jobs (alias of ``GET .../processing/jobs``).'
-      operationId: list_ingest_jobs_api_kbs__kb_id__ingest_jobs_get
+      operationId: list_ingest_jobs_api_v1_kbs__kb_id__ingest_jobs_get
       parameters:
       - name: kb_id
         in: path
@@ -2146,7 +2197,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response List Ingest Jobs Api Kbs  Kb Id  Ingest Jobs Get
+                title: Response List Ingest Jobs Api V1 Kbs  Kb Id  Ingest Jobs Get
         '422':
           description: Validation Error
           content:
@@ -2160,7 +2211,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Get Ingest Job
-      operationId: get_ingest_job_api_kbs__kb_id__ingest_jobs__job_id__get
+      operationId: get_ingest_job_api_v1_kbs__kb_id__ingest_jobs__job_id__get
       parameters:
       - name: kb_id
         in: path
@@ -2190,7 +2241,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Get Ingest Job Api Kbs  Kb Id  Ingest Jobs  Job Id  Get
+                title: Response Get Ingest Job Api V1 Kbs  Kb Id  Ingest Jobs  Job Id  Get
         '422':
           description: Validation Error
           content:
@@ -2204,7 +2255,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Get Ledger Chunk Route
-      operationId: get_ledger_chunk_route_api_kbs__kb_id__ledger_chunks__chunk_id__get
+      operationId: get_ledger_chunk_route_api_v1_kbs__kb_id__ledger_chunks__chunk_id__get
       parameters:
       - name: kb_id
         in: path
@@ -2234,7 +2285,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Get Ledger Chunk Route Api Kbs  Kb Id  Ledger Chunks  Chunk Id  Get
+                title: Response Get Ledger Chunk Route Api V1 Kbs  Kb Id  Ledger Chunks  Chunk Id  Get
         '422':
           description: Validation Error
           content:
@@ -2248,7 +2299,7 @@ paths:
       tags:
       - knowledge-bases
       summary: List Derived Facts Route
-      operationId: list_derived_facts_route_api_kbs__kb_id__ledger_derived_facts_get
+      operationId: list_derived_facts_route_api_v1_kbs__kb_id__ledger_derived_facts_get
       parameters:
       - name: kb_id
         in: path
@@ -2290,7 +2341,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response List Derived Facts Route Api Kbs  Kb Id  Ledger Derived Facts Get
+                title: Response List Derived Facts Route Api V1 Kbs  Kb Id  Ledger Derived Facts Get
         '422':
           description: Validation Error
           content:
@@ -2304,7 +2355,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Get Ledger Document Route
-      operationId: get_ledger_document_route_api_kbs__kb_id__ledger_documents__doc_ref__get
+      operationId: get_ledger_document_route_api_v1_kbs__kb_id__ledger_documents__doc_ref__get
       parameters:
       - name: kb_id
         in: path
@@ -2334,7 +2385,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Get Ledger Document Route Api Kbs  Kb Id  Ledger Documents  Doc Ref  Get
+                title: Response Get Ledger Document Route Api V1 Kbs  Kb Id  Ledger Documents  Doc Ref  Get
         '422':
           description: Validation Error
           content:
@@ -2348,7 +2399,7 @@ paths:
       tags:
       - knowledge-bases
       summary: List Document Chunks Route
-      operationId: list_document_chunks_route_api_kbs__kb_id__ledger_documents__doc_ref__chunks_get
+      operationId: list_document_chunks_route_api_v1_kbs__kb_id__ledger_documents__doc_ref__chunks_get
       parameters:
       - name: kb_id
         in: path
@@ -2378,7 +2429,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response List Document Chunks Route Api Kbs  Kb Id  Ledger Documents  Doc Ref  Chunks Get
+                title: Response List Document Chunks Route Api V1 Kbs  Kb Id  Ledger Documents  Doc Ref  Chunks Get
         '422':
           description: Validation Error
           content:
@@ -2392,7 +2443,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Search Ledger Entities
-      operationId: search_ledger_entities_api_kbs__kb_id__ledger_entities_get
+      operationId: search_ledger_entities_api_v1_kbs__kb_id__ledger_entities_get
       parameters:
       - name: kb_id
         in: path
@@ -2441,7 +2492,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Search Ledger Entities Api Kbs  Kb Id  Ledger Entities Get
+                title: Response Search Ledger Entities Api V1 Kbs  Kb Id  Ledger Entities Get
         '422':
           description: Validation Error
           content:
@@ -2455,7 +2506,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Delete Ledger Entity
-      operationId: delete_ledger_entity_api_kbs__kb_id__ledger_entities__entity_id__delete
+      operationId: delete_ledger_entity_api_v1_kbs__kb_id__ledger_entities__entity_id__delete
       parameters:
       - name: kb_id
         in: path
@@ -2485,7 +2536,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Delete Ledger Entity Api Kbs  Kb Id  Ledger Entities  Entity Id  Delete
+                title: Response Delete Ledger Entity Api V1 Kbs  Kb Id  Ledger Entities  Entity Id  Delete
         '422':
           description: Validation Error
           content:
@@ -2499,7 +2550,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Preview Delete Ledger Entity
-      operationId: preview_delete_ledger_entity_api_kbs__kb_id__ledger_entities__entity_id__delete_preview_get
+      operationId: preview_delete_ledger_entity_api_v1_kbs__kb_id__ledger_entities__entity_id__delete_preview_get
       parameters:
       - name: kb_id
         in: path
@@ -2529,7 +2580,8 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Preview Delete Ledger Entity Api Kbs  Kb Id  Ledger Entities  Entity Id  Delete Preview Get
+                title: Response Preview Delete Ledger Entity Api V1 Kbs  Kb Id  Ledger Entities  Entity Id  Delete Preview
+                  Get
         '422':
           description: Validation Error
           content:
@@ -2543,7 +2595,7 @@ paths:
       tags:
       - knowledge-bases
       summary: List Entity Facts Route
-      operationId: list_entity_facts_route_api_kbs__kb_id__ledger_entities__entity_id__facts_get
+      operationId: list_entity_facts_route_api_v1_kbs__kb_id__ledger_entities__entity_id__facts_get
       parameters:
       - name: kb_id
         in: path
@@ -2582,7 +2634,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response List Entity Facts Route Api Kbs  Kb Id  Ledger Entities  Entity Id  Facts Get
+                title: Response List Entity Facts Route Api V1 Kbs  Kb Id  Ledger Entities  Entity Id  Facts Get
         '422':
           description: Validation Error
           content:
@@ -2596,7 +2648,7 @@ paths:
       tags:
       - knowledge-bases
       summary: List Entity Merges Route
-      operationId: list_entity_merges_route_api_kbs__kb_id__ledger_entity_merges_get
+      operationId: list_entity_merges_route_api_v1_kbs__kb_id__ledger_entity_merges_get
       parameters:
       - name: kb_id
         in: path
@@ -2636,7 +2688,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response List Entity Merges Route Api Kbs  Kb Id  Ledger Entity Merges Get
+                title: Response List Entity Merges Route Api V1 Kbs  Kb Id  Ledger Entity Merges Get
         '422':
           description: Validation Error
           content:
@@ -2650,7 +2702,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Revert Entity Merge Route
-      operationId: revert_entity_merge_route_api_kbs__kb_id__ledger_entity_merges__merge_id__revert_post
+      operationId: revert_entity_merge_route_api_v1_kbs__kb_id__ledger_entity_merges__merge_id__revert_post
       parameters:
       - name: kb_id
         in: path
@@ -2680,7 +2732,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Revert Entity Merge Route Api Kbs  Kb Id  Ledger Entity Merges  Merge Id  Revert Post
+                title: Response Revert Entity Merge Route Api V1 Kbs  Kb Id  Ledger Entity Merges  Merge Id  Revert Post
         '422':
           description: Validation Error
           content:
@@ -2694,7 +2746,7 @@ paths:
       tags:
       - knowledge-bases
       summary: List Surface Phrases
-      operationId: list_surface_phrases_api_kbs__kb_id__ledger_surface_phrases_get
+      operationId: list_surface_phrases_api_v1_kbs__kb_id__ledger_surface_phrases_get
       parameters:
       - name: kb_id
         in: path
@@ -2727,7 +2779,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response List Surface Phrases Api Kbs  Kb Id  Ledger Surface Phrases Get
+                title: Response List Surface Phrases Api V1 Kbs  Kb Id  Ledger Surface Phrases Get
         '422':
           description: Validation Error
           content:
@@ -2741,7 +2793,7 @@ paths:
       tags:
       - knowledge-bases
       summary: List Typed Facts Route
-      operationId: list_typed_facts_route_api_kbs__kb_id__ledger_typed_facts_get
+      operationId: list_typed_facts_route_api_v1_kbs__kb_id__ledger_typed_facts_get
       parameters:
       - name: kb_id
         in: path
@@ -2774,7 +2826,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response List Typed Facts Route Api Kbs  Kb Id  Ledger Typed Facts Get
+                title: Response List Typed Facts Route Api V1 Kbs  Kb Id  Ledger Typed Facts Get
         '422':
           description: Validation Error
           content:
@@ -2788,7 +2840,7 @@ paths:
       tags:
       - knowledge-bases
       summary: List Kb Mappings
-      operationId: list_kb_mappings_api_kbs__kb_id__mappings_get
+      operationId: list_kb_mappings_api_v1_kbs__kb_id__mappings_get
       parameters:
       - name: kb_id
         in: path
@@ -2829,7 +2881,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response List Kb Mappings Api Kbs  Kb Id  Mappings Get
+                title: Response List Kb Mappings Api V1 Kbs  Kb Id  Mappings Get
         '422':
           description: Validation Error
           content:
@@ -2842,7 +2894,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Create Kb Mapping
-      operationId: create_kb_mapping_api_kbs__kb_id__mappings_post
+      operationId: create_kb_mapping_api_v1_kbs__kb_id__mappings_post
       parameters:
       - name: kb_id
         in: path
@@ -2872,7 +2924,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Create Kb Mapping Api Kbs  Kb Id  Mappings Post
+                title: Response Create Kb Mapping Api V1 Kbs  Kb Id  Mappings Post
         '422':
           description: Validation Error
           content:
@@ -2886,7 +2938,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Update Kb Mapping Status
-      operationId: update_kb_mapping_status_api_kbs__kb_id__mappings__mapping_id__status_post
+      operationId: update_kb_mapping_status_api_v1_kbs__kb_id__mappings__mapping_id__status_post
       parameters:
       - name: kb_id
         in: path
@@ -2922,7 +2974,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Update Kb Mapping Status Api Kbs  Kb Id  Mappings  Mapping Id  Status Post
+                title: Response Update Kb Mapping Status Api V1 Kbs  Kb Id  Mappings  Mapping Id  Status Post
         '422':
           description: Validation Error
           content:
@@ -2936,7 +2988,7 @@ paths:
       tags:
       - mcp
       summary: Mcp Integration Info
-      operationId: mcp_integration_info_api_kbs__kb_id__mcp_get
+      operationId: mcp_integration_info_api_v1_kbs__kb_id__mcp_get
       parameters:
       - name: kb_id
         in: path
@@ -2960,7 +3012,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Mcp Integration Info Api Kbs  Kb Id  Mcp Get
+                title: Response Mcp Integration Info Api V1 Kbs  Kb Id  Mcp Get
         '422':
           description: Validation Error
           content:
@@ -2973,7 +3025,7 @@ paths:
       tags:
       - mcp
       summary: Mcp Jsonrpc
-      operationId: mcp_jsonrpc_api_kbs__kb_id__mcp_post
+      operationId: mcp_jsonrpc_api_v1_kbs__kb_id__mcp_post
       parameters:
       - name: kb_id
         in: path
@@ -2995,7 +3047,7 @@ paths:
           content:
             application/json:
               schema:
-                title: Response Mcp Jsonrpc Api Kbs  Kb Id  Mcp Post
+                title: Response Mcp Jsonrpc Api V1 Kbs  Kb Id  Mcp Post
         '422':
           description: Validation Error
           content:
@@ -3009,7 +3061,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Create Ontology
-      operationId: create_ontology_api_kbs__kb_id__ontology_post
+      operationId: create_ontology_api_v1_kbs__kb_id__ontology_post
       parameters:
       - name: kb_id
         in: path
@@ -3030,7 +3082,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/basis__api__routes__kbs__CreateOntologyRequest'
+              $ref: '#/components/schemas/basis__api__routes__v1__kbs__CreateOntologyRequest'
       responses:
         '200':
           description: Successful Response
@@ -3039,7 +3091,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Create Ontology Api Kbs  Kb Id  Ontology Post
+                title: Response Create Ontology Api V1 Kbs  Kb Id  Ontology Post
         '422':
           description: Validation Error
           content:
@@ -3053,7 +3105,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Kb List Alignments
-      operationId: kb_list_alignments_api_kbs__kb_id__ontology_alignments_get
+      operationId: kb_list_alignments_api_v1_kbs__kb_id__ontology_alignments_get
       parameters:
       - name: kb_id
         in: path
@@ -3083,7 +3135,7 @@ paths:
           content:
             application/json:
               schema:
-                title: Response Kb List Alignments Api Kbs  Kb Id  Ontology Alignments Get
+                title: Response Kb List Alignments Api V1 Kbs  Kb Id  Ontology Alignments Get
         '422':
           description: Validation Error
           content:
@@ -3096,7 +3148,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Kb Upsert Alignment
-      operationId: kb_upsert_alignment_api_kbs__kb_id__ontology_alignments_post
+      operationId: kb_upsert_alignment_api_v1_kbs__kb_id__ontology_alignments_post
       parameters:
       - name: kb_id
         in: path
@@ -3118,7 +3170,7 @@ paths:
           content:
             application/json:
               schema:
-                title: Response Kb Upsert Alignment Api Kbs  Kb Id  Ontology Alignments Post
+                title: Response Kb Upsert Alignment Api V1 Kbs  Kb Id  Ontology Alignments Post
         '422':
           description: Validation Error
           content:
@@ -3131,7 +3183,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Kb Delete Alignment
-      operationId: kb_delete_alignment_api_kbs__kb_id__ontology_alignments_delete
+      operationId: kb_delete_alignment_api_v1_kbs__kb_id__ontology_alignments_delete
       parameters:
       - name: kb_id
         in: path
@@ -3159,7 +3211,7 @@ paths:
           content:
             application/json:
               schema:
-                title: Response Kb Delete Alignment Api Kbs  Kb Id  Ontology Alignments Delete
+                title: Response Kb Delete Alignment Api V1 Kbs  Kb Id  Ontology Alignments Delete
         '422':
           description: Validation Error
           content:
@@ -3173,7 +3225,7 @@ paths:
       tags:
       - knowledge-bases
       summary: ' Kb Ont 3 Create Ontology'
-      operationId: _kb_ont_3_create_ontology_api_kbs__kb_id__ontology_create_post
+      operationId: _kb_ont_3_create_ontology_api_v1_kbs__kb_id__ontology_create_post
       parameters:
       - name: kb_id
         in: path
@@ -3201,7 +3253,7 @@ paths:
           content:
             application/json:
               schema:
-                title: Response  Kb Ont 3 Create Ontology Api Kbs  Kb Id  Ontology Create Post
+                title: Response  Kb Ont 3 Create Ontology Api V1 Kbs  Kb Id  Ontology Create Post
         '422':
           description: Validation Error
           content:
@@ -3215,7 +3267,7 @@ paths:
       tags:
       - knowledge-bases
       summary: ' Kb Ont 17 Save Draft'
-      operationId: _kb_ont_17_save_draft_api_kbs__kb_id__ontology_draft_patch
+      operationId: _kb_ont_17_save_draft_api_v1_kbs__kb_id__ontology_draft_patch
       parameters:
       - name: kb_id
         in: path
@@ -3243,7 +3295,7 @@ paths:
           content:
             application/json:
               schema:
-                title: Response  Kb Ont 17 Save Draft Api Kbs  Kb Id  Ontology Draft Patch
+                title: Response  Kb Ont 17 Save Draft Api V1 Kbs  Kb Id  Ontology Draft Patch
         '422':
           description: Validation Error
           content:
@@ -3257,7 +3309,7 @@ paths:
       tags:
       - knowledge-bases
       summary: ' Kb Ont 19 Get Draft'
-      operationId: _kb_ont_19_get_draft_api_kbs__kb_id__ontology_draft__draft_id__get
+      operationId: _kb_ont_19_get_draft_api_v1_kbs__kb_id__ontology_draft__draft_id__get
       parameters:
       - name: kb_id
         in: path
@@ -3285,7 +3337,7 @@ paths:
           content:
             application/json:
               schema:
-                title: Response  Kb Ont 19 Get Draft Api Kbs  Kb Id  Ontology Draft  Draft Id  Get
+                title: Response  Kb Ont 19 Get Draft Api V1 Kbs  Kb Id  Ontology Draft  Draft Id  Get
         '422':
           description: Validation Error
           content:
@@ -3299,7 +3351,7 @@ paths:
       tags:
       - knowledge-bases
       summary: ' Kb Ont 18 List Drafts'
-      operationId: _kb_ont_18_list_drafts_api_kbs__kb_id__ontology_drafts__ontology_uri__get
+      operationId: _kb_ont_18_list_drafts_api_v1_kbs__kb_id__ontology_drafts__ontology_uri__get
       parameters:
       - name: kb_id
         in: path
@@ -3327,7 +3379,7 @@ paths:
           content:
             application/json:
               schema:
-                title: Response  Kb Ont 18 List Drafts Api Kbs  Kb Id  Ontology Drafts  Ontology Uri  Get
+                title: Response  Kb Ont 18 List Drafts Api V1 Kbs  Kb Id  Ontology Drafts  Ontology Uri  Get
         '422':
           description: Validation Error
           content:
@@ -3341,7 +3393,7 @@ paths:
       tags:
       - knowledge-bases
       summary: ' Kb Ont 6 Get Entity Detail'
-      operationId: _kb_ont_6_get_entity_detail_api_kbs__kb_id__ontology_entity__entity_uri__get
+      operationId: _kb_ont_6_get_entity_detail_api_v1_kbs__kb_id__ontology_entity__entity_uri__get
       parameters:
       - name: kb_id
         in: path
@@ -3369,7 +3421,7 @@ paths:
           content:
             application/json:
               schema:
-                title: Response  Kb Ont 6 Get Entity Detail Api Kbs  Kb Id  Ontology Entity  Entity Uri  Get
+                title: Response  Kb Ont 6 Get Entity Detail Api V1 Kbs  Kb Id  Ontology Entity  Entity Uri  Get
         '422':
           description: Validation Error
           content:
@@ -3383,7 +3435,7 @@ paths:
       tags:
       - knowledge-bases
       summary: ' Kb Ont 5 Get Ontology Graph'
-      operationId: _kb_ont_5_get_ontology_graph_api_kbs__kb_id__ontology_graph_get
+      operationId: _kb_ont_5_get_ontology_graph_api_v1_kbs__kb_id__ontology_graph_get
       parameters:
       - name: kb_id
         in: path
@@ -3411,7 +3463,7 @@ paths:
           content:
             application/json:
               schema:
-                title: Response  Kb Ont 5 Get Ontology Graph Api Kbs  Kb Id  Ontology Graph Get
+                title: Response  Kb Ont 5 Get Ontology Graph Api V1 Kbs  Kb Id  Ontology Graph Get
         '422':
           description: Validation Error
           content:
@@ -3425,7 +3477,7 @@ paths:
       tags:
       - knowledge-bases
       summary: ' Kb Ont 10 Ontology Health'
-      operationId: _kb_ont_10_ontology_health_api_kbs__kb_id__ontology_health_get
+      operationId: _kb_ont_10_ontology_health_api_v1_kbs__kb_id__ontology_health_get
       parameters:
       - name: kb_id
         in: path
@@ -3453,7 +3505,7 @@ paths:
           content:
             application/json:
               schema:
-                title: Response  Kb Ont 10 Ontology Health Api Kbs  Kb Id  Ontology Health Get
+                title: Response  Kb Ont 10 Ontology Health Api V1 Kbs  Kb Id  Ontology Health Get
         '422':
           description: Validation Error
           content:
@@ -3467,7 +3519,7 @@ paths:
       tags:
       - knowledge-bases
       summary: ' Kb Ont 2 Load Ontology'
-      operationId: _kb_ont_2_load_ontology_api_kbs__kb_id__ontology_load_post
+      operationId: _kb_ont_2_load_ontology_api_v1_kbs__kb_id__ontology_load_post
       parameters:
       - name: kb_id
         in: path
@@ -3495,7 +3547,7 @@ paths:
           content:
             application/json:
               schema:
-                title: Response  Kb Ont 2 Load Ontology Api Kbs  Kb Id  Ontology Load Post
+                title: Response  Kb Ont 2 Load Ontology Api V1 Kbs  Kb Id  Ontology Load Post
         '422':
           description: Validation Error
           content:
@@ -3509,7 +3561,7 @@ paths:
       tags:
       - knowledge-bases
       summary: ' Kb Ont 1 Preview Ontology'
-      operationId: _kb_ont_1_preview_ontology_api_kbs__kb_id__ontology_preview_post
+      operationId: _kb_ont_1_preview_ontology_api_v1_kbs__kb_id__ontology_preview_post
       parameters:
       - name: kb_id
         in: path
@@ -3537,7 +3589,7 @@ paths:
           content:
             application/json:
               schema:
-                title: Response  Kb Ont 1 Preview Ontology Api Kbs  Kb Id  Ontology Preview Post
+                title: Response  Kb Ont 1 Preview Ontology Api V1 Kbs  Kb Id  Ontology Preview Post
         '422':
           description: Validation Error
           content:
@@ -3551,7 +3603,7 @@ paths:
       tags:
       - knowledge-bases
       summary: ' Kb Ont 21 List Proposals'
-      operationId: _kb_ont_21_list_proposals_api_kbs__kb_id__ontology_proposals_get
+      operationId: _kb_ont_21_list_proposals_api_v1_kbs__kb_id__ontology_proposals_get
       parameters:
       - name: kb_id
         in: path
@@ -3589,7 +3641,7 @@ paths:
           content:
             application/json:
               schema:
-                title: Response  Kb Ont 21 List Proposals Api Kbs  Kb Id  Ontology Proposals Get
+                title: Response  Kb Ont 21 List Proposals Api V1 Kbs  Kb Id  Ontology Proposals Get
         '422':
           description: Validation Error
           content:
@@ -3603,7 +3655,7 @@ paths:
       tags:
       - knowledge-bases
       summary: ' Kb Ont 22 Get Proposal'
-      operationId: _kb_ont_22_get_proposal_api_kbs__kb_id__ontology_proposals__proposal_id__get
+      operationId: _kb_ont_22_get_proposal_api_v1_kbs__kb_id__ontology_proposals__proposal_id__get
       parameters:
       - name: kb_id
         in: path
@@ -3631,7 +3683,7 @@ paths:
           content:
             application/json:
               schema:
-                title: Response  Kb Ont 22 Get Proposal Api Kbs  Kb Id  Ontology Proposals  Proposal Id  Get
+                title: Response  Kb Ont 22 Get Proposal Api V1 Kbs  Kb Id  Ontology Proposals  Proposal Id  Get
         '422':
           description: Validation Error
           content:
@@ -3645,7 +3697,7 @@ paths:
       tags:
       - knowledge-bases
       summary: ' Kb Ont 23 Approve Proposal'
-      operationId: _kb_ont_23_approve_proposal_api_kbs__kb_id__ontology_proposals__proposal_id__approve_post
+      operationId: _kb_ont_23_approve_proposal_api_v1_kbs__kb_id__ontology_proposals__proposal_id__approve_post
       parameters:
       - name: kb_id
         in: path
@@ -3673,7 +3725,7 @@ paths:
           content:
             application/json:
               schema:
-                title: Response  Kb Ont 23 Approve Proposal Api Kbs  Kb Id  Ontology Proposals  Proposal Id  Approve Post
+                title: Response  Kb Ont 23 Approve Proposal Api V1 Kbs  Kb Id  Ontology Proposals  Proposal Id  Approve Post
         '422':
           description: Validation Error
           content:
@@ -3687,7 +3739,7 @@ paths:
       tags:
       - knowledge-bases
       summary: ' Kb Ont 26 Add Comment'
-      operationId: _kb_ont_26_add_comment_api_kbs__kb_id__ontology_proposals__proposal_id__comment_post
+      operationId: _kb_ont_26_add_comment_api_v1_kbs__kb_id__ontology_proposals__proposal_id__comment_post
       parameters:
       - name: kb_id
         in: path
@@ -3721,7 +3773,7 @@ paths:
           content:
             application/json:
               schema:
-                title: Response  Kb Ont 26 Add Comment Api Kbs  Kb Id  Ontology Proposals  Proposal Id  Comment Post
+                title: Response  Kb Ont 26 Add Comment Api V1 Kbs  Kb Id  Ontology Proposals  Proposal Id  Comment Post
         '422':
           description: Validation Error
           content:
@@ -3735,7 +3787,7 @@ paths:
       tags:
       - knowledge-bases
       summary: ' Kb Ont 25 Publish Proposal'
-      operationId: _kb_ont_25_publish_proposal_api_kbs__kb_id__ontology_proposals__proposal_id__publish_post
+      operationId: _kb_ont_25_publish_proposal_api_v1_kbs__kb_id__ontology_proposals__proposal_id__publish_post
       parameters:
       - name: kb_id
         in: path
@@ -3763,7 +3815,7 @@ paths:
           content:
             application/json:
               schema:
-                title: Response  Kb Ont 25 Publish Proposal Api Kbs  Kb Id  Ontology Proposals  Proposal Id  Publish Post
+                title: Response  Kb Ont 25 Publish Proposal Api V1 Kbs  Kb Id  Ontology Proposals  Proposal Id  Publish Post
         '422':
           description: Validation Error
           content:
@@ -3777,7 +3829,7 @@ paths:
       tags:
       - knowledge-bases
       summary: ' Kb Ont 24 Reject Proposal'
-      operationId: _kb_ont_24_reject_proposal_api_kbs__kb_id__ontology_proposals__proposal_id__reject_post
+      operationId: _kb_ont_24_reject_proposal_api_v1_kbs__kb_id__ontology_proposals__proposal_id__reject_post
       parameters:
       - name: kb_id
         in: path
@@ -3805,7 +3857,7 @@ paths:
           content:
             application/json:
               schema:
-                title: Response  Kb Ont 24 Reject Proposal Api Kbs  Kb Id  Ontology Proposals  Proposal Id  Reject Post
+                title: Response  Kb Ont 24 Reject Proposal Api V1 Kbs  Kb Id  Ontology Proposals  Proposal Id  Reject Post
         '422':
           description: Validation Error
           content:
@@ -3819,7 +3871,7 @@ paths:
       tags:
       - knowledge-bases
       summary: ' Kb Ont 20 Submit Proposal'
-      operationId: _kb_ont_20_submit_proposal_api_kbs__kb_id__ontology_propose_post
+      operationId: _kb_ont_20_submit_proposal_api_v1_kbs__kb_id__ontology_propose_post
       parameters:
       - name: kb_id
         in: path
@@ -3847,7 +3899,7 @@ paths:
           content:
             application/json:
               schema:
-                title: Response  Kb Ont 20 Submit Proposal Api Kbs  Kb Id  Ontology Propose Post
+                title: Response  Kb Ont 20 Submit Proposal Api V1 Kbs  Kb Id  Ontology Propose Post
         '422':
           description: Validation Error
           content:
@@ -3861,7 +3913,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Kb Ontology Registry
-      operationId: kb_ontology_registry_api_kbs__kb_id__ontology_registry_get
+      operationId: kb_ontology_registry_api_v1_kbs__kb_id__ontology_registry_get
       parameters:
       - name: kb_id
         in: path
@@ -3907,7 +3959,7 @@ paths:
           content:
             application/json:
               schema:
-                title: Response Kb Ontology Registry Api Kbs  Kb Id  Ontology Registry Get
+                title: Response Kb Ontology Registry Api V1 Kbs  Kb Id  Ontology Registry Get
         '422':
           description: Validation Error
           content:
@@ -3921,7 +3973,7 @@ paths:
       tags:
       - knowledge-bases
       summary: ' Kb Ont 4 Search Entities'
-      operationId: _kb_ont_4_search_entities_api_kbs__kb_id__ontology_search_get
+      operationId: _kb_ont_4_search_entities_api_v1_kbs__kb_id__ontology_search_get
       parameters:
       - name: kb_id
         in: path
@@ -3964,7 +4016,7 @@ paths:
           content:
             application/json:
               schema:
-                title: Response  Kb Ont 4 Search Entities Api Kbs  Kb Id  Ontology Search Get
+                title: Response  Kb Ont 4 Search Entities Api V1 Kbs  Kb Id  Ontology Search Get
         '422':
           description: Validation Error
           content:
@@ -3978,7 +4030,7 @@ paths:
       tags:
       - knowledge-bases
       summary: ' Kb Ont 11 Generate Shacl'
-      operationId: _kb_ont_11_generate_shacl_api_kbs__kb_id__ontology_shacl_generate_post
+      operationId: _kb_ont_11_generate_shacl_api_v1_kbs__kb_id__ontology_shacl_generate_post
       parameters:
       - name: kb_id
         in: path
@@ -4006,7 +4058,7 @@ paths:
           content:
             application/json:
               schema:
-                title: Response  Kb Ont 11 Generate Shacl Api Kbs  Kb Id  Ontology Shacl Generate Post
+                title: Response  Kb Ont 11 Generate Shacl Api V1 Kbs  Kb Id  Ontology Shacl Generate Post
         '422':
           description: Validation Error
           content:
@@ -4020,7 +4072,7 @@ paths:
       tags:
       - knowledge-bases
       summary: ' Kb Ont 12 List Shacl Shapes'
-      operationId: _kb_ont_12_list_shacl_shapes_api_kbs__kb_id__ontology_shacl_shapes_get
+      operationId: _kb_ont_12_list_shacl_shapes_api_v1_kbs__kb_id__ontology_shacl_shapes_get
       parameters:
       - name: kb_id
         in: path
@@ -4048,7 +4100,7 @@ paths:
           content:
             application/json:
               schema:
-                title: Response  Kb Ont 12 List Shacl Shapes Api Kbs  Kb Id  Ontology Shacl Shapes Get
+                title: Response  Kb Ont 12 List Shacl Shapes Api V1 Kbs  Kb Id  Ontology Shacl Shapes Get
         '422':
           description: Validation Error
           content:
@@ -4062,7 +4114,7 @@ paths:
       tags:
       - knowledge-bases
       summary: ' Kb Ont 13 Validate Shacl'
-      operationId: _kb_ont_13_validate_shacl_api_kbs__kb_id__ontology_shacl_validate_post
+      operationId: _kb_ont_13_validate_shacl_api_v1_kbs__kb_id__ontology_shacl_validate_post
       parameters:
       - name: kb_id
         in: path
@@ -4090,7 +4142,7 @@ paths:
           content:
             application/json:
               schema:
-                title: Response  Kb Ont 13 Validate Shacl Api Kbs  Kb Id  Ontology Shacl Validate Post
+                title: Response  Kb Ont 13 Validate Shacl Api V1 Kbs  Kb Id  Ontology Shacl Validate Post
         '422':
           description: Validation Error
           content:
@@ -4104,7 +4156,7 @@ paths:
       tags:
       - knowledge-bases
       summary: ' Kb Ont 9 Get Skos Concept'
-      operationId: _kb_ont_9_get_skos_concept_api_kbs__kb_id__ontology_skos_concept__concept_uri__get
+      operationId: _kb_ont_9_get_skos_concept_api_v1_kbs__kb_id__ontology_skos_concept__concept_uri__get
       parameters:
       - name: kb_id
         in: path
@@ -4132,7 +4184,7 @@ paths:
           content:
             application/json:
               schema:
-                title: Response  Kb Ont 9 Get Skos Concept Api Kbs  Kb Id  Ontology Skos Concept  Concept Uri  Get
+                title: Response  Kb Ont 9 Get Skos Concept Api V1 Kbs  Kb Id  Ontology Skos Concept  Concept Uri  Get
         '422':
           description: Validation Error
           content:
@@ -4146,7 +4198,7 @@ paths:
       tags:
       - knowledge-bases
       summary: ' Kb Ont 7 List Skos Schemes'
-      operationId: _kb_ont_7_list_skos_schemes_api_kbs__kb_id__ontology_skos_schemes_get
+      operationId: _kb_ont_7_list_skos_schemes_api_v1_kbs__kb_id__ontology_skos_schemes_get
       parameters:
       - name: kb_id
         in: path
@@ -4168,7 +4220,7 @@ paths:
           content:
             application/json:
               schema:
-                title: Response  Kb Ont 7 List Skos Schemes Api Kbs  Kb Id  Ontology Skos Schemes Get
+                title: Response  Kb Ont 7 List Skos Schemes Api V1 Kbs  Kb Id  Ontology Skos Schemes Get
         '422':
           description: Validation Error
           content:
@@ -4182,7 +4234,7 @@ paths:
       tags:
       - knowledge-bases
       summary: ' Kb Ont 8 Search Skos Concepts'
-      operationId: _kb_ont_8_search_skos_concepts_api_kbs__kb_id__ontology_skos_search_post
+      operationId: _kb_ont_8_search_skos_concepts_api_v1_kbs__kb_id__ontology_skos_search_post
       parameters:
       - name: kb_id
         in: path
@@ -4210,7 +4262,7 @@ paths:
           content:
             application/json:
               schema:
-                title: Response  Kb Ont 8 Search Skos Concepts Api Kbs  Kb Id  Ontology Skos Search Post
+                title: Response  Kb Ont 8 Search Skos Concepts Api V1 Kbs  Kb Id  Ontology Skos Search Post
         '422':
           description: Validation Error
           content:
@@ -4224,7 +4276,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Kb Suggest Alignments
-      operationId: kb_suggest_alignments_api_kbs__kb_id__ontology_suggest_alignments_post
+      operationId: kb_suggest_alignments_api_v1_kbs__kb_id__ontology_suggest_alignments_post
       parameters:
       - name: kb_id
         in: path
@@ -4246,7 +4298,7 @@ paths:
           content:
             application/json:
               schema:
-                title: Response Kb Suggest Alignments Api Kbs  Kb Id  Ontology Suggest Alignments Post
+                title: Response Kb Suggest Alignments Api V1 Kbs  Kb Id  Ontology Suggest Alignments Post
         '422':
           description: Validation Error
           content:
@@ -4260,7 +4312,7 @@ paths:
       tags:
       - knowledge-bases
       summary: ' Kb Ont 27 List Versions'
-      operationId: _kb_ont_27_list_versions_api_kbs__kb_id__ontology_versions__ontology_uri__get
+      operationId: _kb_ont_27_list_versions_api_v1_kbs__kb_id__ontology_versions__ontology_uri__get
       parameters:
       - name: kb_id
         in: path
@@ -4288,7 +4340,7 @@ paths:
           content:
             application/json:
               schema:
-                title: Response  Kb Ont 27 List Versions Api Kbs  Kb Id  Ontology Versions  Ontology Uri  Get
+                title: Response  Kb Ont 27 List Versions Api V1 Kbs  Kb Id  Ontology Versions  Ontology Uri  Get
         '422':
           description: Validation Error
           content:
@@ -4302,7 +4354,7 @@ paths:
       tags:
       - knowledge-bases
       summary: ' Kb Ont 28 Compare Versions'
-      operationId: _kb_ont_28_compare_versions_api_kbs__kb_id__ontology_versions__ontology_uri__compare_post
+      operationId: _kb_ont_28_compare_versions_api_v1_kbs__kb_id__ontology_versions__ontology_uri__compare_post
       parameters:
       - name: kb_id
         in: path
@@ -4336,7 +4388,7 @@ paths:
           content:
             application/json:
               schema:
-                title: Response  Kb Ont 28 Compare Versions Api Kbs  Kb Id  Ontology Versions  Ontology Uri  Compare Post
+                title: Response  Kb Ont 28 Compare Versions Api V1 Kbs  Kb Id  Ontology Versions  Ontology Uri  Compare Post
         '422':
           description: Validation Error
           content:
@@ -4350,7 +4402,7 @@ paths:
       tags:
       - knowledge-bases
       summary: ' Kb Ont 14 Remove Ontology'
-      operationId: _kb_ont_14_remove_ontology_api_kbs__kb_id__ontology__ontology_uri__delete
+      operationId: _kb_ont_14_remove_ontology_api_v1_kbs__kb_id__ontology__ontology_uri__delete
       parameters:
       - name: kb_id
         in: path
@@ -4378,7 +4430,7 @@ paths:
           content:
             application/json:
               schema:
-                title: Response  Kb Ont 14 Remove Ontology Api Kbs  Kb Id  Ontology  Ontology Uri  Delete
+                title: Response  Kb Ont 14 Remove Ontology Api V1 Kbs  Kb Id  Ontology  Ontology Uri  Delete
         '422':
           description: Validation Error
           content:
@@ -4392,7 +4444,7 @@ paths:
       tags:
       - knowledge-bases
       summary: ' Kb Ont 16 Refresh Ontology'
-      operationId: _kb_ont_16_refresh_ontology_api_kbs__kb_id__ontology__ontology_uri__refresh_post
+      operationId: _kb_ont_16_refresh_ontology_api_v1_kbs__kb_id__ontology__ontology_uri__refresh_post
       parameters:
       - name: kb_id
         in: path
@@ -4420,7 +4472,7 @@ paths:
           content:
             application/json:
               schema:
-                title: Response  Kb Ont 16 Refresh Ontology Api Kbs  Kb Id  Ontology  Ontology Uri  Refresh Post
+                title: Response  Kb Ont 16 Refresh Ontology Api V1 Kbs  Kb Id  Ontology  Ontology Uri  Refresh Post
         '422':
           description: Validation Error
           content:
@@ -4434,7 +4486,7 @@ paths:
       tags:
       - knowledge-bases
       summary: ' Kb Ont 15 Toggle Ontology'
-      operationId: _kb_ont_15_toggle_ontology_api_kbs__kb_id__ontology__ontology_uri__toggle_patch
+      operationId: _kb_ont_15_toggle_ontology_api_v1_kbs__kb_id__ontology__ontology_uri__toggle_patch
       parameters:
       - name: kb_id
         in: path
@@ -4462,7 +4514,7 @@ paths:
           content:
             application/json:
               schema:
-                title: Response  Kb Ont 15 Toggle Ontology Api Kbs  Kb Id  Ontology  Ontology Uri  Toggle Patch
+                title: Response  Kb Ont 15 Toggle Ontology Api V1 Kbs  Kb Id  Ontology  Ontology Uri  Toggle Patch
         '422':
           description: Validation Error
           content:
@@ -4476,7 +4528,7 @@ paths:
       tags:
       - knowledge-bases
       summary: List Processing Jobs
-      operationId: list_processing_jobs_api_kbs__kb_id__processing_jobs_get
+      operationId: list_processing_jobs_api_v1_kbs__kb_id__processing_jobs_get
       parameters:
       - name: kb_id
         in: path
@@ -4515,7 +4567,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response List Processing Jobs Api Kbs  Kb Id  Processing Jobs Get
+                title: Response List Processing Jobs Api V1 Kbs  Kb Id  Processing Jobs Get
         '422':
           description: Validation Error
           content:
@@ -4528,7 +4580,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Start Processing Job
-      operationId: start_processing_job_api_kbs__kb_id__processing_jobs_post
+      operationId: start_processing_job_api_v1_kbs__kb_id__processing_jobs_post
       parameters:
       - name: kb_id
         in: path
@@ -4569,7 +4621,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Get Processing Job
-      operationId: get_processing_job_api_kbs__kb_id__processing_jobs__job_id__get
+      operationId: get_processing_job_api_v1_kbs__kb_id__processing_jobs__job_id__get
       parameters:
       - name: kb_id
         in: path
@@ -4599,7 +4651,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Get Processing Job Api Kbs  Kb Id  Processing Jobs  Job Id  Get
+                title: Response Get Processing Job Api V1 Kbs  Kb Id  Processing Jobs  Job Id  Get
         '422':
           description: Validation Error
           content:
@@ -4613,7 +4665,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Retry Processing Job
-      operationId: retry_processing_job_api_kbs__kb_id__processing_jobs__job_id__retry_post
+      operationId: retry_processing_job_api_v1_kbs__kb_id__processing_jobs__job_id__retry_post
       parameters:
       - name: kb_id
         in: path
@@ -4660,7 +4712,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Kb Provenance Lineage
-      operationId: kb_provenance_lineage_api_kbs__kb_id__provenance_get
+      operationId: kb_provenance_lineage_api_v1_kbs__kb_id__provenance_get
       parameters:
       - name: kb_id
         in: path
@@ -4690,7 +4742,7 @@ paths:
           content:
             application/json:
               schema:
-                title: Response Kb Provenance Lineage Api Kbs  Kb Id  Provenance Get
+                title: Response Kb Provenance Lineage Api V1 Kbs  Kb Id  Provenance Get
         '422':
           description: Validation Error
           content:
@@ -4704,7 +4756,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Kb Provenance Report
-      operationId: kb_provenance_report_api_kbs__kb_id__provenance_report_get
+      operationId: kb_provenance_report_api_v1_kbs__kb_id__provenance_report_get
       parameters:
       - name: kb_id
         in: path
@@ -4752,7 +4804,7 @@ paths:
       tags:
       - realtime
       summary: Create Realtime Ticket
-      operationId: create_realtime_ticket_api_kbs__kb_id__realtime_ticket_post
+      operationId: create_realtime_ticket_api_v1_kbs__kb_id__realtime_ticket_post
       parameters:
       - name: kb_id
         in: path
@@ -4776,7 +4828,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Create Realtime Ticket Api Kbs  Kb Id  Realtime Ticket Post
+                title: Response Create Realtime Ticket Api V1 Kbs  Kb Id  Realtime Ticket Post
         '422':
           description: Validation Error
           content:
@@ -4790,7 +4842,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Kb Reasoning Run
-      operationId: kb_reasoning_run_api_kbs__kb_id__reasoning_run_post
+      operationId: kb_reasoning_run_api_v1_kbs__kb_id__reasoning_run_post
       parameters:
       - name: kb_id
         in: path
@@ -4812,7 +4864,7 @@ paths:
           content:
             application/json:
               schema:
-                title: Response Kb Reasoning Run Api Kbs  Kb Id  Reasoning Run Post
+                title: Response Kb Reasoning Run Api V1 Kbs  Kb Id  Reasoning Run Post
         '422':
           description: Validation Error
           content:
@@ -4826,7 +4878,7 @@ paths:
       tags:
       - knowledge-bases
       summary: List Review Items
-      operationId: list_review_items_api_kbs__kb_id__review_items_get
+      operationId: list_review_items_api_v1_kbs__kb_id__review_items_get
       parameters:
       - name: kb_id
         in: path
@@ -4876,7 +4928,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response List Review Items Api Kbs  Kb Id  Review Items Get
+                title: Response List Review Items Api V1 Kbs  Kb Id  Review Items Get
         '422':
           description: Validation Error
           content:
@@ -4890,7 +4942,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Propose Entity Merge
-      operationId: propose_entity_merge_api_kbs__kb_id__review_items_entity_merge_post
+      operationId: propose_entity_merge_api_v1_kbs__kb_id__review_items_entity_merge_post
       parameters:
       - name: kb_id
         in: path
@@ -4920,7 +4972,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Propose Entity Merge Api Kbs  Kb Id  Review Items Entity Merge Post
+                title: Response Propose Entity Merge Api V1 Kbs  Kb Id  Review Items Entity Merge Post
         '422':
           description: Validation Error
           content:
@@ -4934,7 +4986,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Propose Graph Import
-      operationId: propose_graph_import_api_kbs__kb_id__review_items_graph_import_post
+      operationId: propose_graph_import_api_v1_kbs__kb_id__review_items_graph_import_post
       parameters:
       - name: kb_id
         in: path
@@ -4955,7 +5007,7 @@ paths:
         content:
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/Body_propose_graph_import_api_kbs__kb_id__review_items_graph_import_post'
+              $ref: '#/components/schemas/Body_propose_graph_import_api_v1_kbs__kb_id__review_items_graph_import_post'
       responses:
         '200':
           description: Successful Response
@@ -4964,7 +5016,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Propose Graph Import Api Kbs  Kb Id  Review Items Graph Import Post
+                title: Response Propose Graph Import Api V1 Kbs  Kb Id  Review Items Graph Import Post
         '422':
           description: Validation Error
           content:
@@ -4978,7 +5030,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Approve Review Item
-      operationId: approve_review_item_api_kbs__kb_id__review_items__item_id__approve_post
+      operationId: approve_review_item_api_v1_kbs__kb_id__review_items__item_id__approve_post
       parameters:
       - name: kb_id
         in: path
@@ -5014,7 +5066,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Approve Review Item Api Kbs  Kb Id  Review Items  Item Id  Approve Post
+                title: Response Approve Review Item Api V1 Kbs  Kb Id  Review Items  Item Id  Approve Post
         '422':
           description: Validation Error
           content:
@@ -5028,7 +5080,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Reject Review Item
-      operationId: reject_review_item_api_kbs__kb_id__review_items__item_id__reject_post
+      operationId: reject_review_item_api_v1_kbs__kb_id__review_items__item_id__reject_post
       parameters:
       - name: kb_id
         in: path
@@ -5064,7 +5116,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Reject Review Item Api Kbs  Kb Id  Review Items  Item Id  Reject Post
+                title: Response Reject Review Item Api V1 Kbs  Kb Id  Review Items  Item Id  Reject Post
         '422':
           description: Validation Error
           content:
@@ -5079,7 +5131,7 @@ paths:
       - knowledge-bases
       summary: Scan Statement Conflicts Route
       description: Re-scan ledger statements and enqueue `statement_conflict` review items (F-RUL-04).
-      operationId: scan_statement_conflicts_route_api_kbs__kb_id__review_scan_statement_conflicts_post
+      operationId: scan_statement_conflicts_route_api_v1_kbs__kb_id__review_scan_statement_conflicts_post
       parameters:
       - name: kb_id
         in: path
@@ -5103,7 +5155,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Scan Statement Conflicts Route Api Kbs  Kb Id  Review Scan Statement Conflicts Post
+                title: Response Scan Statement Conflicts Route Api V1 Kbs  Kb Id  Review Scan Statement Conflicts Post
         '422':
           description: Validation Error
           content:
@@ -5117,7 +5169,7 @@ paths:
       tags:
       - knowledge-bases
       summary: List Kb Reasoning Rules
-      operationId: list_kb_reasoning_rules_api_kbs__kb_id__rules_get
+      operationId: list_kb_reasoning_rules_api_v1_kbs__kb_id__rules_get
       parameters:
       - name: kb_id
         in: path
@@ -5150,7 +5202,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response List Kb Reasoning Rules Api Kbs  Kb Id  Rules Get
+                title: Response List Kb Reasoning Rules Api V1 Kbs  Kb Id  Rules Get
         '422':
           description: Validation Error
           content:
@@ -5163,7 +5215,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Create Kb Reasoning Rule
-      operationId: create_kb_reasoning_rule_api_kbs__kb_id__rules_post
+      operationId: create_kb_reasoning_rule_api_v1_kbs__kb_id__rules_post
       parameters:
       - name: kb_id
         in: path
@@ -5193,7 +5245,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Create Kb Reasoning Rule Api Kbs  Kb Id  Rules Post
+                title: Response Create Kb Reasoning Rule Api V1 Kbs  Kb Id  Rules Post
         '422':
           description: Validation Error
           content:
@@ -5207,7 +5259,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Update Kb Reasoning Rule
-      operationId: update_kb_reasoning_rule_api_kbs__kb_id__rules__rule_id__patch
+      operationId: update_kb_reasoning_rule_api_v1_kbs__kb_id__rules__rule_id__patch
       parameters:
       - name: kb_id
         in: path
@@ -5243,7 +5295,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Update Kb Reasoning Rule Api Kbs  Kb Id  Rules  Rule Id  Patch
+                title: Response Update Kb Reasoning Rule Api V1 Kbs  Kb Id  Rules  Rule Id  Patch
         '422':
           description: Validation Error
           content:
@@ -5256,7 +5308,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Delete Kb Reasoning Rule
-      operationId: delete_kb_reasoning_rule_api_kbs__kb_id__rules__rule_id__delete
+      operationId: delete_kb_reasoning_rule_api_v1_kbs__kb_id__rules__rule_id__delete
       parameters:
       - name: kb_id
         in: path
@@ -5286,7 +5338,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Delete Kb Reasoning Rule Api Kbs  Kb Id  Rules  Rule Id  Delete
+                title: Response Delete Kb Reasoning Rule Api V1 Kbs  Kb Id  Rules  Rule Id  Delete
         '422':
           description: Validation Error
           content:
@@ -5300,7 +5352,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Chunk Search Route
-      operationId: chunk_search_route_api_kbs__kb_id__search_get
+      operationId: chunk_search_route_api_v1_kbs__kb_id__search_get
       parameters:
       - name: kb_id
         in: path
@@ -5391,7 +5443,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Chunk Search Route Api Kbs  Kb Id  Search Get
+                title: Response Chunk Search Route Api V1 Kbs  Kb Id  Search Get
         '422':
           description: Validation Error
           content:
@@ -5405,7 +5457,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Get Chunk Search Config Route
-      operationId: get_chunk_search_config_route_api_kbs__kb_id__search_config_get
+      operationId: get_chunk_search_config_route_api_v1_kbs__kb_id__search_config_get
       parameters:
       - name: kb_id
         in: path
@@ -5429,7 +5481,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Get Chunk Search Config Route Api Kbs  Kb Id  Search Config Get
+                title: Response Get Chunk Search Config Route Api V1 Kbs  Kb Id  Search Config Get
         '422':
           description: Validation Error
           content:
@@ -5442,7 +5494,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Update Chunk Search Config Route
-      operationId: update_chunk_search_config_route_api_kbs__kb_id__search_config_put
+      operationId: update_chunk_search_config_route_api_v1_kbs__kb_id__search_config_put
       parameters:
       - name: kb_id
         in: path
@@ -5472,7 +5524,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Update Chunk Search Config Route Api Kbs  Kb Id  Search Config Put
+                title: Response Update Chunk Search Config Route Api V1 Kbs  Kb Id  Search Config Put
         '422':
           description: Validation Error
           content:
@@ -5486,7 +5538,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Chunk Search Reindex Route
-      operationId: chunk_search_reindex_route_api_kbs__kb_id__search_reindex_post
+      operationId: chunk_search_reindex_route_api_v1_kbs__kb_id__search_reindex_post
       parameters:
       - name: kb_id
         in: path
@@ -5518,7 +5570,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Chunk Search Reindex Route Api Kbs  Kb Id  Search Reindex Post
+                title: Response Chunk Search Reindex Route Api V1 Kbs  Kb Id  Search Reindex Post
         '422':
           description: Validation Error
           content:
@@ -5532,7 +5584,7 @@ paths:
       tags:
       - knowledge-bases
       summary: List Ingest Sources
-      operationId: list_ingest_sources_api_kbs__kb_id__sources_get
+      operationId: list_ingest_sources_api_v1_kbs__kb_id__sources_get
       parameters:
       - name: kb_id
         in: path
@@ -5556,7 +5608,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response List Ingest Sources Api Kbs  Kb Id  Sources Get
+                title: Response List Ingest Sources Api V1 Kbs  Kb Id  Sources Get
         '422':
           description: Validation Error
           content:
@@ -5569,7 +5621,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Create Ingest Source
-      operationId: create_ingest_source_api_kbs__kb_id__sources_post
+      operationId: create_ingest_source_api_v1_kbs__kb_id__sources_post
       parameters:
       - name: kb_id
         in: path
@@ -5599,7 +5651,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Create Ingest Source Api Kbs  Kb Id  Sources Post
+                title: Response Create Ingest Source Api V1 Kbs  Kb Id  Sources Post
         '422':
           description: Validation Error
           content:
@@ -5613,7 +5665,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Get Ingest Source
-      operationId: get_ingest_source_api_kbs__kb_id__sources__source_id__get
+      operationId: get_ingest_source_api_v1_kbs__kb_id__sources__source_id__get
       parameters:
       - name: kb_id
         in: path
@@ -5643,7 +5695,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Get Ingest Source Api Kbs  Kb Id  Sources  Source Id  Get
+                title: Response Get Ingest Source Api V1 Kbs  Kb Id  Sources  Source Id  Get
         '422':
           description: Validation Error
           content:
@@ -5656,7 +5708,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Update Ingest Source
-      operationId: update_ingest_source_api_kbs__kb_id__sources__source_id__patch
+      operationId: update_ingest_source_api_v1_kbs__kb_id__sources__source_id__patch
       parameters:
       - name: kb_id
         in: path
@@ -5692,7 +5744,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Update Ingest Source Api Kbs  Kb Id  Sources  Source Id  Patch
+                title: Response Update Ingest Source Api V1 Kbs  Kb Id  Sources  Source Id  Patch
         '422':
           description: Validation Error
           content:
@@ -5705,7 +5757,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Delete Ingest Source
-      operationId: delete_ingest_source_api_kbs__kb_id__sources__source_id__delete
+      operationId: delete_ingest_source_api_v1_kbs__kb_id__sources__source_id__delete
       parameters:
       - name: kb_id
         in: path
@@ -5735,7 +5787,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Delete Ingest Source Api Kbs  Kb Id  Sources  Source Id  Delete
+                title: Response Delete Ingest Source Api V1 Kbs  Kb Id  Sources  Source Id  Delete
         '422':
           description: Validation Error
           content:
@@ -5749,7 +5801,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Rotate Ingest Source Token
-      operationId: rotate_ingest_source_token_api_kbs__kb_id__sources__source_id__rotate_token_post
+      operationId: rotate_ingest_source_token_api_v1_kbs__kb_id__sources__source_id__rotate_token_post
       parameters:
       - name: kb_id
         in: path
@@ -5779,7 +5831,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Rotate Ingest Source Token Api Kbs  Kb Id  Sources  Source Id  Rotate Token Post
+                title: Response Rotate Ingest Source Token Api V1 Kbs  Kb Id  Sources  Source Id  Rotate Token Post
         '422':
           description: Validation Error
           content:
@@ -5793,7 +5845,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Sync Ingest Source
-      operationId: sync_ingest_source_api_kbs__kb_id__sources__source_id__sync_post
+      operationId: sync_ingest_source_api_v1_kbs__kb_id__sources__source_id__sync_post
       parameters:
       - name: kb_id
         in: path
@@ -5829,7 +5881,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Sync Ingest Source Api Kbs  Kb Id  Sources  Source Id  Sync Post
+                title: Response Sync Ingest Source Api V1 Kbs  Kb Id  Sources  Source Id  Sync Post
         '422':
           description: Validation Error
           content:
@@ -5844,7 +5896,7 @@ paths:
       - knowledge-bases
       summary: List Ingest Source Sync History
       description: Recent sync runs stored on the source config (`sync_events`, newest first).
-      operationId: list_ingest_source_sync_history_api_kbs__kb_id__sources__source_id__sync_history_get
+      operationId: list_ingest_source_sync_history_api_v1_kbs__kb_id__sources__source_id__sync_history_get
       parameters:
       - name: kb_id
         in: path
@@ -5883,7 +5935,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response List Ingest Source Sync History Api Kbs  Kb Id  Sources  Source Id  Sync History Get
+                title: Response List Ingest Source Sync History Api V1 Kbs  Kb Id  Sources  Source Id  Sync History Get
         '422':
           description: Validation Error
           content:
@@ -5897,7 +5949,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Ingest Via Webhook
-      operationId: ingest_via_webhook_api_kbs__kb_id__sources__source_id__webhook_post
+      operationId: ingest_via_webhook_api_v1_kbs__kb_id__sources__source_id__webhook_post
       parameters:
       - name: kb_id
         in: path
@@ -5933,7 +5985,7 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Ingest Via Webhook Api Kbs  Kb Id  Sources  Source Id  Webhook Post
+                title: Response Ingest Via Webhook Api V1 Kbs  Kb Id  Sources  Source Id  Webhook Post
         '422':
           description: Validation Error
           content:
@@ -5947,7 +5999,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Kb Sparql Execute
-      operationId: kb_sparql_execute_api_kbs__kb_id__sparql_post
+      operationId: kb_sparql_execute_api_v1_kbs__kb_id__sparql_post
       parameters:
       - name: kb_id
         in: path
@@ -5969,7 +6021,7 @@ paths:
           content:
             application/json:
               schema:
-                title: Response Kb Sparql Execute Api Kbs  Kb Id  Sparql Post
+                title: Response Kb Sparql Execute Api V1 Kbs  Kb Id  Sparql Post
         '422':
           description: Validation Error
           content:
@@ -5983,7 +6035,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Kb Temporal Bounds
-      operationId: kb_temporal_bounds_api_kbs__kb_id__temporal_bounds_get
+      operationId: kb_temporal_bounds_api_v1_kbs__kb_id__temporal_bounds_get
       parameters:
       - name: kb_id
         in: path
@@ -6005,7 +6057,7 @@ paths:
           content:
             application/json:
               schema:
-                title: Response Kb Temporal Bounds Api Kbs  Kb Id  Temporal Bounds Get
+                title: Response Kb Temporal Bounds Api V1 Kbs  Kb Id  Temporal Bounds Get
         '422':
           description: Validation Error
           content:
@@ -6019,7 +6071,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Kb Temporal Diff
-      operationId: kb_temporal_diff_api_kbs__kb_id__temporal_diff_get
+      operationId: kb_temporal_diff_api_v1_kbs__kb_id__temporal_diff_get
       parameters:
       - name: kb_id
         in: path
@@ -6053,7 +6105,7 @@ paths:
           content:
             application/json:
               schema:
-                title: Response Kb Temporal Diff Api Kbs  Kb Id  Temporal Diff Get
+                title: Response Kb Temporal Diff Api V1 Kbs  Kb Id  Temporal Diff Get
         '422':
           description: Validation Error
           content:
@@ -6067,7 +6119,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Kb Temporal Snapshot
-      operationId: kb_temporal_snapshot_api_kbs__kb_id__temporal_snapshot_get
+      operationId: kb_temporal_snapshot_api_v1_kbs__kb_id__temporal_snapshot_get
       parameters:
       - name: kb_id
         in: path
@@ -6097,7 +6149,7 @@ paths:
           content:
             application/json:
               schema:
-                title: Response Kb Temporal Snapshot Api Kbs  Kb Id  Temporal Snapshot Get
+                title: Response Kb Temporal Snapshot Api V1 Kbs  Kb Id  Temporal Snapshot Get
         '422':
           description: Validation Error
           content:
@@ -6111,7 +6163,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Kb Vocabulary Concepts
-      operationId: kb_vocabulary_concepts_api_kbs__kb_id__vocabulary_concepts_get
+      operationId: kb_vocabulary_concepts_api_v1_kbs__kb_id__vocabulary_concepts_get
       parameters:
       - name: kb_id
         in: path
@@ -6147,7 +6199,7 @@ paths:
           content:
             application/json:
               schema:
-                title: Response Kb Vocabulary Concepts Api Kbs  Kb Id  Vocabulary Concepts Get
+                title: Response Kb Vocabulary Concepts Api V1 Kbs  Kb Id  Vocabulary Concepts Get
         '422':
           description: Validation Error
           content:
@@ -6161,7 +6213,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Kb Vocabulary Hierarchy
-      operationId: kb_vocabulary_hierarchy_api_kbs__kb_id__vocabulary_hierarchy_get
+      operationId: kb_vocabulary_hierarchy_api_v1_kbs__kb_id__vocabulary_hierarchy_get
       parameters:
       - name: kb_id
         in: path
@@ -6189,7 +6241,7 @@ paths:
           content:
             application/json:
               schema:
-                title: Response Kb Vocabulary Hierarchy Api Kbs  Kb Id  Vocabulary Hierarchy Get
+                title: Response Kb Vocabulary Hierarchy Api V1 Kbs  Kb Id  Vocabulary Hierarchy Get
         '422':
           description: Validation Error
           content:
@@ -6203,7 +6255,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Kb Vocabulary Import
-      operationId: kb_vocabulary_import_api_kbs__kb_id__vocabulary_import_post
+      operationId: kb_vocabulary_import_api_v1_kbs__kb_id__vocabulary_import_post
       parameters:
       - name: kb_id
         in: path
@@ -6223,14 +6275,14 @@ paths:
         content:
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/Body_kb_vocabulary_import_api_kbs__kb_id__vocabulary_import_post'
+              $ref: '#/components/schemas/Body_kb_vocabulary_import_api_v1_kbs__kb_id__vocabulary_import_post'
       responses:
         '200':
           description: Successful Response
           content:
             application/json:
               schema:
-                title: Response Kb Vocabulary Import Api Kbs  Kb Id  Vocabulary Import Post
+                title: Response Kb Vocabulary Import Api V1 Kbs  Kb Id  Vocabulary Import Post
         '422':
           description: Validation Error
           content:
@@ -6244,7 +6296,7 @@ paths:
       tags:
       - knowledge-bases
       summary: Kb Vocabulary Schemes
-      operationId: kb_vocabulary_schemes_api_kbs__kb_id__vocabulary_schemes_get
+      operationId: kb_vocabulary_schemes_api_v1_kbs__kb_id__vocabulary_schemes_get
       parameters:
       - name: kb_id
         in: path
@@ -6266,7 +6318,7 @@ paths:
           content:
             application/json:
               schema:
-                title: Response Kb Vocabulary Schemes Api Kbs  Kb Id  Vocabulary Schemes Get
+                title: Response Kb Vocabulary Schemes Api V1 Kbs  Kb Id  Vocabulary Schemes Get
         '422':
           description: Validation Error
           content:
@@ -6336,7 +6388,7 @@ components:
       required:
       - text
       title: AppendTextVersionRequest
-    Body_append_document_version_upload_api_kbs__kb_id__documents__document_id__versions_upload_post:
+    Body_append_document_version_upload_api_v1_kbs__kb_id__documents__document_id__versions_upload_post:
       properties:
         file:
           type: string
@@ -6345,8 +6397,8 @@ components:
       type: object
       required:
       - file
-      title: Body_append_document_version_upload_api_kbs__kb_id__documents__document_id__versions_upload_post
-    Body_kb_vocabulary_import_api_kbs__kb_id__vocabulary_import_post:
+      title: Body_append_document_version_upload_api_v1_kbs__kb_id__documents__document_id__versions_upload_post
+    Body_kb_vocabulary_import_api_v1_kbs__kb_id__vocabulary_import_post:
       properties:
         file:
           anyOf:
@@ -6365,8 +6417,8 @@ components:
           - type: 'null'
           title: Format
       type: object
-      title: Body_kb_vocabulary_import_api_kbs__kb_id__vocabulary_import_post
-    Body_propose_graph_import_api_kbs__kb_id__review_items_graph_import_post:
+      title: Body_kb_vocabulary_import_api_v1_kbs__kb_id__vocabulary_import_post
+    Body_propose_graph_import_api_v1_kbs__kb_id__review_items_graph_import_post:
       properties:
         file:
           type: string
@@ -6375,8 +6427,8 @@ components:
       type: object
       required:
       - file
-      title: Body_propose_graph_import_api_kbs__kb_id__review_items_graph_import_post
-    Body_upload_document_api_kbs__kb_id__documents_upload_post:
+      title: Body_propose_graph_import_api_v1_kbs__kb_id__review_items_graph_import_post
+    Body_upload_document_api_v1_kbs__kb_id__documents_upload_post:
       properties:
         file:
           type: string
@@ -6425,7 +6477,7 @@ components:
       type: object
       required:
       - file
-      title: Body_upload_document_api_kbs__kb_id__documents_upload_post
+      title: Body_upload_document_api_v1_kbs__kb_id__documents_upload_post
     CommentRequest:
       properties:
         element_uri:
@@ -7536,7 +7588,7 @@ components:
       required:
       - text
       title: WebhookIngestRequest
-    basis__api__routes__kbs__CreateOntologyRequest:
+    basis__api__routes__v1__kbs__CreateOntologyRequest:
       properties:
         namespace:
           type: string

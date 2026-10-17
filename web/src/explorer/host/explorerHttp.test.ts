@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { kbApiRoot } from '@/lib/kb-api-path.js';
+
 import {
   buildExplorerGraphApiPath,
   buildExplorerKbApiPath,
@@ -9,35 +11,34 @@ import {
 } from './explorerHttp.js';
 
 const kbId = 'kb-test-uuid';
+const root = kbApiRoot(kbId);
 
 describe('explorerHttp KB injection (§9.6)', () => {
 
   beforeEach(() => {
-    setActiveExplorerHttpConfig({ apiRoot: `/api/kbs/${kbId}` });
+    setActiveExplorerHttpConfig({ apiRoot: root });
   });
 
   it('buildExplorerGraphApiPath scopes graph routes under the KB', () => {
-    expect(buildExplorerGraphApiPath('snapshot', kbId)).toBe(
-      `/api/kbs/${kbId}/graph/snapshot`,
-    );
-    expect(buildExplorerGraphApiPath('stats', kbId)).toBe(`/api/kbs/${kbId}/graph/stats`);
-    expect(buildExplorerGraphApiPath('search', kbId)).toBe(`/api/kbs/${kbId}/graph/search`);
+    expect(buildExplorerGraphApiPath('snapshot', kbId)).toBe(`${root}/graph/snapshot`);
+    expect(buildExplorerGraphApiPath('stats', kbId)).toBe(`${root}/graph/stats`);
+    expect(buildExplorerGraphApiPath('search', kbId)).toBe(`${root}/graph/search`);
   });
 
   it('buildExplorerKbApiPath uses apiRoot when kbId is omitted', () => {
-    expect(buildExplorerKbApiPath('realtime-ticket')).toBe(`/api/kbs/${kbId}/realtime-ticket`);
+    expect(buildExplorerKbApiPath('realtime-ticket')).toBe(`${root}/realtime-ticket`);
   });
 
   it('resolveExplorerApiUrl rewrites standalone Explorer /api/graph paths', () => {
-    expect(resolveExplorerApiUrl('/api/graph/stats')).toBe(`/api/kbs/${kbId}/graph/stats`);
+    expect(resolveExplorerApiUrl('/api/graph/stats')).toBe(`${root}/graph/stats`);
     expect(resolveExplorerApiUrl('/api/graph/nodes?limit=200')).toBe(
-      `/api/kbs/${kbId}/graph/nodes?limit=200`,
+      `${root}/graph/nodes?limit=200`,
     );
   });
 
   it('does not double-rewrite already KB-scoped paths', () => {
-    expect(resolveExplorerApiUrl('/api/kbs/other-kb/graph/stats')).toBe(
-      '/api/kbs/other-kb/graph/stats',
+    expect(resolveExplorerApiUrl('/api/v1/kbs/other-kb/graph/stats')).toBe(
+      '/api/v1/kbs/other-kb/graph/stats',
     );
   });
 
@@ -50,7 +51,7 @@ describe('explorerHttp KB injection (§9.6)', () => {
 
 describe('explorerFetchJson', () => {
   beforeEach(() => {
-    setActiveExplorerHttpConfig({ apiRoot: `/api/kbs/${kbId}` });
+    setActiveExplorerHttpConfig({ apiRoot: root });
   });
 
   afterEach(() => {

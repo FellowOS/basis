@@ -1,3 +1,5 @@
+import { authV1Path } from '@/lib/api-v1-path.js';
+
 /** Normalize public site URL (no trailing slash). */
 export function normalizeSiteUrl(url: string): string {
   return url.trim().replace(/\/+$/, '');
@@ -7,9 +9,9 @@ export function platformAuthCallbacks(publicBase: string): Record<string, string
   const base = normalizeSiteUrl(publicBase);
   if (!base) return null;
   return {
-    github: `${base}/api/auth/oauth/github/callback`,
-    google: `${base}/api/auth/oauth/google/callback`,
-    org_oidc: `${base}/api/auth/oidc/callback`,
+    github: `${base}${authV1Path('oauth/github/callback')}`,
+    google: `${base}${authV1Path('oauth/google/callback')}`,
+    org_oidc: `${base}${authV1Path('oidc/callback')}`,
   };
 }
 
@@ -21,7 +23,7 @@ export function orgSsoPublicUrls(
   const slug = orgSlug.trim();
   if (!base || !slug) return null;
   return {
-    login_url: `${base}/api/auth/oidc/${slug}/start`,
-    callback_url: `${base}/api/auth/oidc/callback`,
+    login_url: `${base}${authV1Path(`oidc/${slug}/start`)}`,
+    callback_url: `${base}${authV1Path('oidc/callback')}`,
   };
 }

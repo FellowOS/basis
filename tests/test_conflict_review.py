@@ -113,11 +113,11 @@ def test_scan_enqueues_review_item(tmp_path: Path) -> None:
 def test_scan_statement_conflicts_route(tmp_path: Path) -> None:
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
     admin = client.post(
-        "/api/auth/register",
+        "/api/v1/auth/register",
         json={"email": "scan@example.com", "password": "password1", "display_name": "Scan"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
     store = KnowledgeStore(tmp_path / "basis.db", BlobStore(tmp_path))
     chunk_id = _chunk(store, kb_id)
     alice = store.create_entity(kb_id, canonical_label="Alice")
@@ -136,7 +136,7 @@ def test_scan_statement_conflicts_route(tmp_path: Path) -> None:
             quote="works_with",
         )
     res = client.post(
-        f"/api/kbs/{kb_id}/review/scan-statement-conflicts",
+        f"/api/v1/kbs/{kb_id}/review/scan-statement-conflicts",
         headers=headers,
     )
     assert res.status_code == 200
@@ -146,11 +146,11 @@ def test_scan_statement_conflicts_route(tmp_path: Path) -> None:
 def test_acknowledge_conflict_review_item(tmp_path: Path) -> None:
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
     admin = client.post(
-        "/api/auth/register",
+        "/api/v1/auth/register",
         json={"email": "rc@example.com", "password": "password1", "display_name": "RC"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
     store = KnowledgeStore(tmp_path / "basis.db", BlobStore(tmp_path))
     chunk_id = _chunk(store, kb_id)
     alice = store.create_entity(kb_id, canonical_label="Alice")
@@ -182,7 +182,7 @@ def test_acknowledge_conflict_review_item(tmp_path: Path) -> None:
     item_id = store.list_review_items(kb_id, kind=STATEMENT_CONFLICT_KIND)[0]["id"]
 
     approved = client.post(
-        f"/api/kbs/{kb_id}/review/items/{item_id}/approve",
+        f"/api/v1/kbs/{kb_id}/review/items/{item_id}/approve",
         headers=headers,
         json={"rationale": "reviewed"},
     )

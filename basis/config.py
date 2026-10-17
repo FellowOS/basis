@@ -29,6 +29,8 @@ class Settings:
     db_pool_timeout_seconds: int = 30
     mcp_max_inflight: int = 32
     mcp_timeout_seconds: int = 60
+    rest_v1_max_inflight: int = 64
+    legacy_api_enabled: bool = False
     ingest_inline: bool = False
     http_poll_tick_seconds: int = 0
     log_json: bool = False
@@ -77,6 +79,9 @@ class Settings:
             db_pool_timeout_seconds=int(os.environ.get("BASIS_DB_POOL_TIMEOUT_SECONDS", "30")),
             mcp_max_inflight=int(os.environ.get("BASIS_MCP_MAX_INFLIGHT", "32")),
             mcp_timeout_seconds=int(os.environ.get("BASIS_MCP_TIMEOUT_SECONDS", "60")),
+            rest_v1_max_inflight=int(os.environ.get("BASIS_REST_V1_MAX_INFLIGHT", "64")),
+            legacy_api_enabled=os.environ.get("BASIS_LEGACY_API_ENABLED", "0").lower()
+            in ("1", "true", "yes"),
             ingest_inline=os.environ.get("BASIS_INGEST_INLINE", "").lower() in ("1", "true", "yes"),
             http_poll_tick_seconds=int(os.environ.get("BASIS_HTTP_POLL_TICK_SECONDS", "0")),
             log_json=os.environ.get("BASIS_LOG_JSON", "").lower() in ("1", "true", "yes"),

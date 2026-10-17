@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea.js';
 import { useI18n } from '@/i18n/context.js';
 import { fmt, formatLocaleNumber } from '@/i18n/format.js';
 import type { Locale } from '@/i18n/locale.js';
-import { api } from '@/lib/api.js';
+import { kbOpenApiPOST } from '@/lib/openapi-client.js';
 import { formatUserFacingApiError } from '@/lib/api-error-message.js';
 import {
   chatCitationHref,
@@ -14,6 +14,8 @@ import {
   type ChatCitationLink,
 } from '@/lib/chat-tool-links.js';
 import { cn } from '@/lib/utils.js';
+import { basisSessionFetch } from '@/lib/basis-session-fetch.js';
+import { kbApiPath } from '@/lib/kb-api-path.js';
 
 type ChatMessage = {
   id: string;
@@ -41,12 +43,9 @@ async function readPlaygroundStream(
   onContextTrimmed?: (removedTurns: number) => void,
   streamErrors?: { noBody: string; failed: string },
 ): Promise<{ content: string; tool_traces: PlaygroundToolTrace[] }> {
-  const token = localStorage.getItem('basis_token');
-  const headers: HeadersInit = { 'Content-Type': 'application/json' };
-  if (token) headers.Authorization = `Bearer ${token}`;
-  const response = await fetch(`/api/kbs/${kbId}/chat/playground/stream`, {
+  const response = await basisSessionFetch(kbApiPath(kbId, 'chat/playground/stream'), {
     method: 'POST',
-    headers,
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ messages }),
     signal,
   });
@@ -225,10 +224,7 @@ export function KbChatPlayground({
     setNotice(null);
     setLoading(true);
     try {
-      await api(`/api/kbs/${kbId}/chat/remember`, {
-        method: 'POST',
-        body: JSON.stringify({ content: text }),
-      });
+      await kbOpenApiPOST(kbId, 'chat/remember', { body: { content: text } });
       setInput('');
       setNotice(t.chat.rememberQueued);
     } catch (err) {

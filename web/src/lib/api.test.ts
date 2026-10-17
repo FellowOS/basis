@@ -1,6 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { fetchSession, getToken, setToken } from './api.js';
+import { basisSessionClient } from './basis-session-client.js';
+
+vi.mock('./basis-session-client.js', () => ({
+  basisSessionClient: vi.fn(),
+}));
 
 function installLocalStorageMock() {
   const store = new Map<string, string>();
@@ -19,18 +24,14 @@ function installLocalStorageMock() {
 }
 
 describe('fetchSession', () => {
+  const getMock = vi.fn();
+
   beforeEach(() => {
     installLocalStorageMock();
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(() =>
-        Promise.resolve({
-          ok: false,
-          status: 401,
-          json: () => Promise.resolve({ detail: 'Unauthorized' }),
-        }),
-      ),
-    );
+    getMock.mockReset();
+    vi.mocked(basisSessionClient).mockReturnValue({
+      openapi: () => ({ GET: getMock }),
+    } as ReturnType<typeof basisSessionClient>);
     setToken('session-token');
   });
 
@@ -42,26 +43,24 @@ describe('fetchSession', () => {
     setToken(null);
     const user = await fetchSession();
     expect(user).toBeNull();
-    expect(fetch).not.toHaveBeenCalled();
+    expect(getMock).not.toHaveBeenCalled();
   });
 
-  it('clears the token on 401 from /api/auth/me', async () => {
+  it('clears the token on 401 from /api/v1/auth/me', async () => {
+    getMock.mockResolvedValue({
+      error: { detail: 'Unauthorized' },
+      response: { status: 401 },
+    });
     const user = await fetchSession();
     expect(user).toBeNull();
     expect(getToken()).toBeNull();
   });
 
   it('keeps the token on non-auth failures (e.g. 503)', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(() =>
-        Promise.resolve({
-          ok: false,
-          status: 503,
-          json: () => Promise.resolve({ detail: 'Unavailable' }),
-        }),
-      ),
-    );
+    getMock.mockResolvedValue({
+      error: { detail: 'Unavailable' },
+      response: { status: 503 },
+    });
     const user = await fetchSession();
     expect(user).toBeNull();
     expect(getToken()).toBe('session-token');

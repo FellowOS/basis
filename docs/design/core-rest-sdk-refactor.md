@@ -2,7 +2,7 @@
 
 ## Status
 
-- **Decision:** proposed (2026-03)
+- **Decision:** accepted in repo (2026-03); S0–R6 implemented on `main`-line branch work
 - **Scope:** normative **OpenAPI v1** (complete HTTP contract), **`basis/core`**, **MCP** adapter, **application-layer** client SDK
 - **First priority:** [openapi-v1-spec.md](openapi-v1-spec.md) + [`openapi/basis-v1.yaml`](../../openapi/basis-v1.yaml) — **spec complete before route refactors**
 - **Server product surfaces:** **only OpenAPI (HTTP)** and **MCP** — no separate “console backend”
@@ -19,7 +19,7 @@ Today Basis exposes integration capabilities through overlapping paths:
 | `basis/chat/playground.py` | Reuses `call_tool` from `mcp/tools.py` |
 | `/api/kbs/...` (many routers) | Console, ingest, Explorer, search — hand-overlapping with MCP |
 | `GET /openapi.json` | **Full** FastAPI schema (internal + public mixed) |
-| `web/src/lib/api.ts` | Hand-written `fetch('/api/...')` — not an SDK, not tied to a stable OpenAPI subset |
+| `web/src/lib/openapi-client.ts` + `@basis/client` | Typed OpenAPI v1 (`openapi-fetch`); `api.ts` is session auth only |
 
 Gaps:
 
@@ -196,9 +196,9 @@ Python client optional in R5+ (`basis-client` on PyPI or `packages/client-py/`).
 
 | Phase | Console behavior |
 | --- | --- |
-| Now | `web/src/lib/api.ts` → legacy `/api/*` |
-| After v1 GA | **All** fetches via `@basis/client` + OpenAPI types |
-| Explorer | Client module covers documented WS/SSE where OpenAPI extensions define them |
+| **Done (2026-03)** | JSON via `web/src/lib/openapi-client.ts` (`openApi*` / `kbOpenApi*` / `publicOpenApi*`); auth session in `api.ts`; SSE/stream via `basisSessionClient().sessionFetch` (`basis-session-fetch.ts`) |
+| Explorer | `explorerFetch` + path rewrite; graph WS ticket via `kbOpenApiPOST`; vendored `/api/graph/*` → KB-scoped v1 |
+| Intentional raw fetch | OAuth/magic-link redirects, multipart upload, SSE bodies |
 
 **End state:** no console-only HTTP surface; web is the first-party OpenAPI client.
 
@@ -214,13 +214,15 @@ Python client optional in R5+ (`basis-client` on PyPI or `packages/client-py/`).
 
 ### S0 — Complete OpenAPI v1 spec (≈ 2–4 weeks, ongoing)
 
+**Status (2026-03):** CI gates Spectral + YAML drift + path audit + `scripts/audit-web-operation-ids.py` → [web-openapi-operation-audit.md](web-openapi-operation-audit.md).
+
 | Task | Output |
 | --- | --- |
 | Follow [openapi-v1-spec.md](openapi-v1-spec.md) §4–§6 | All tags checked in inventory |
 | Fill [`openapi/basis-v1.yaml`](../../openapi/basis-v1.yaml) | ~150 operations, shared `components.schemas` |
-| Web call-site audit | Every `api()` path maps to `operationId` |
+| Web call-site audit | Done — audit script; Explorer `/api/graph/*` suffixes excluded |
 | MCP ↔ operation mapping | §5 of openapi-v1-spec locked |
-| CI: Spectral + YAML ↔ served JSON | Gate on PR |
+| CI: Spectral + YAML ↔ served JSON | Done — `ci.yml` openapi job |
 
 **Acceptance:** reviewers sign off YAML; **no “TBD path”** for console-critical flows (auth, KB list, sources, search, graph read, review, chat).
 
@@ -239,14 +241,16 @@ Python client optional in R5+ (`basis-client` on PyPI or `packages/client-py/`).
 
 ### R1 — Extract core (≈ 1–2 weeks)
 
+**Status (2026-03):** Request + best-effort response validation in `registry.run()`.
+
 | Task | Details |
 | --- | --- |
-| Create `basis/core/` with `context`, `execute`, `operations/*` | Move logic from `basis/mcp/tools.py` |
-| Pydantic models per operation | Request/response types |
-| `core.registry` | Names, descriptions, JSON Schema |
-| Refactor `basis/mcp/tools.py` | Re-export or delegate to `core.execute` |
-| Refactor `basis/chat/playground.py` | Import from `core` only |
-| Tests | `tests/test_core_operations.py`; keep `tests/test_mcp.py` green |
+| Create `basis/core/` with `context`, `execute`, `operations/*` | Done — logic moved from `basis/mcp/tools.py` |
+| Pydantic models per operation | Done — `basis/core/models.py` (inputs + response models) |
+| `core.registry` | Done — `OPERATIONS`, MCP subset, `mcp: false` for HTTP-only ops |
+| Refactor `basis/mcp/tools.py` | Done — delegates to `core.execute` |
+| Refactor `basis/chat/playground.py` | Done — imports from `core` |
+| Tests | Done — `test_core_*`, `test_mcp`, `test_openapi_contract_smoke` |
 
 **Acceptance:** MCP + chat behavior unchanged; pytest `-q` pass.
 
@@ -254,12 +258,14 @@ Python client optional in R5+ (`basis-client` on PyPI or `packages/client-py/`).
 
 ### R2 — Implement `/api/v1` to match YAML (≈ 2–3 weeks, incremental by tag)
 
+**Status (2026-03):** Handlers live under `basis/api/routes/v1/`; mounted via `register_v1_api_routers` (optional legacy duplicate prefix).
+
 | Task | Details |
 | --- | --- |
-| `basis/api/routes/v1/*` | Handlers call `core` only |
-| Serve `GET /openapi/v1.json` from YAML | Single served document |
-| Deprecation headers on legacy `/api/*` | `Sunset` / docs |
-| Contract tests | Schemathesis or openapi-driven pytest |
+| `basis/api/routes/v1/*` | Done — v1 prefixes on `basis/api/routes/*`; see `routes/v1/README.md` |
+| Serve `GET /openapi/v1.json` from YAML | Done — `/openapi/v1.json`, `kb.json`, `platform.json` |
+| Deprecation headers on legacy `/api/*` | Done — `Deprecation` + `Link` |
+| Contract tests | Done — `test_openapi_contract_smoke.py`, `test_schemathesis_smoke.py` |
 
 **Acceptance:** MVP tag set in S0 passes contract tests.
 
@@ -267,10 +273,12 @@ Python client optional in R5+ (`basis-client` on PyPI or `packages/client-py/`).
 
 ### R3 — MCP from spec (≈ 0.5 week)
 
+**Status (2026-03):** `basis/core/mcp_openapi.py` derives MCP `inputSchema` from KB YAML (`test_mcp_openapi_schemas.py`).
+
 | Task | Details |
 | --- | --- |
-| `TOOL_DEFINITIONS` from OpenAPI/core registry | No drift |
-| MCP POST path aligned to v1 | e.g. `/api/v1/kbs/{kb_id}/mcp` |
+| `TOOL_DEFINITIONS` from OpenAPI/core registry | Done — OpenAPI-backed schemas; `describe_kb` hand-written |
+| MCP POST path aligned to v1 | Done — `/api/v1/kbs/{kb_id}/mcp` |
 
 **Acceptance:** MCP tools match YAML-linked operations.
 
@@ -278,12 +286,15 @@ Python client optional in R5+ (`basis-client` on PyPI or `packages/client-py/`).
 
 ### R4 — Client package + codegen (≈ 1 week)
 
+**Status (2026-03):** Full v1 typing + web cutover; `createBasisPublicOpenApiClient` for unauthenticated auth routes.
+
 | Task | Details |
 | --- | --- |
-| `packages/client` with `createBasisClient`, `kb().rpc()` | Minimal deps |
-| `scripts/gen-client-types.ts` | openapi-typescript |
-| Wire into `web` for **one** feature | e.g. MCP panel “test call” or search chunks |
-| Document in README | Env `BASIS_API_URL` |
+| `packages/client` with `createBasisClient`, `kb().rpc()` | Done — search, entities, graph, MCP info |
+| `createBasisSessionClient` | Done — `fetchJson`, `sessionFetch`, `apiUrl`, `openapi()` |
+| `scripts/gen-client-types.mjs` | Done — CI `client-types` job |
+| Wire into `web` | Done — console + Explorer session transport |
+| Document in README | Done — `BASIS_API_URL`, `VITE_BASIS_API_URL` |
 
 **Acceptance:** `npm run typecheck` in web; client unit test with mocked fetch.
 
@@ -291,12 +302,14 @@ Python client optional in R5+ (`basis-client` on PyPI or `packages/client-py/`).
 
 ### R5 — Hardening (≈ 1 week, parallelizable)
 
+**Status (2026-03):** REST v1 concurrency limit + i18n `api_busy` / `legacy_api_removed`.
+
 | Task | Details |
 | --- | --- |
-| Rate limits | Reuse or extend MCP semaphore for REST v1 |
-| Error code table | Sync with `web/src/i18n/locales/*/apiErrorCodes.ts` |
-| Optional Python client | Thin httpx wrapper |
-| nginx / docker | Proxy `/rest/v1/openapi.json` like `/openapi.json` |
+| Rate limits | Done — `RestV1ConcurrencyMiddleware` (`BASIS_REST_V1_MAX_INFLIGHT`) |
+| Error code table | Done — en/zh `apiErrorCodes.ts` |
+| Optional Python client | Done — `packages/client-py` + `scripts/gen-python-client.py` |
+| nginx / docker | Done — `docker/production/nginx.conf` proxies `/openapi/` |
 
 **Acceptance:** `mcp_busy`-style behavior documented for REST; e2e smoke optional.
 
@@ -304,9 +317,11 @@ Python client optional in R5+ (`basis-client` on PyPI or `packages/client-py/`).
 
 ### R6 — Legacy `/api/*` removal (after web cutover)
 
+**Status (2026-03):** Web + pytest use `/api/v1/*`; handlers mounted on v1 only; default gate **410** on unversioned `/api/*`. **`/health`** + **`/api/v1/health`** kept for probes.
+
 | Task | Details |
 | --- | --- |
-| Delete unversioned routers | Only `/api/v1` + MCP remain |
+| Delete unversioned routers | Done — `BASIS_LEGACY_API_ENABLED=1` remounts same handlers at `/api/*` (with `Deprecation`) |
 | nginx / docs | Single OpenAPI URL |
 
 **Acceptance:** `web/` has zero legacy path strings; pytest + e2e green.

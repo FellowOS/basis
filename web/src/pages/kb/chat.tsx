@@ -10,7 +10,7 @@ import { useKbMcpIntegration } from '@/lib/use-kb-mcp-integration.js';
 import { useKbCatalog } from '@/lib/kb-context.js';
 import { useKbCapabilities } from '@/lib/kb-capabilities.js';
 import { kbPath } from '@/lib/nav-config.js';
-import { api } from '@/lib/api.js';
+import { kbOpenApiGET } from '@/lib/openapi-client.js';
 
 type KbRow = { my_role: string };
 
@@ -32,7 +32,7 @@ export function KbChatPage() {
 
   useEffect(() => {
     if (!id) return;
-    api<KbRow>(`/api/kbs/${id}`)
+    kbOpenApiGET<KbRow>(id, '')
       .then((kb) => setMyRole(kb.my_role))
       .catch(() => setMyRole(undefined));
   }, [id]);

@@ -14,32 +14,8 @@ from fastapi.responses import JSONResponse
 from basis import __version__
 from basis.admin.errors import AdminError
 from basis.admin.store import AdminStore
-from basis.api.routes import (
-    audit,
-    auth,
-    oauth,
-    organizations,
-    health,
-    kb_chat,
-    kb_explorer,
-    kb_ledger,
-    kb_mappings,
-    kb_ontology,
-    kb_alerts,
-    kb_reasoning_rules,
-    kb_review,
-    kb_sources,
-    kb_tokens,
-    kbs,
-    mcp,
-    model_providers,
-    models as models_routes,
-    platform,
-    realtime,
-    reasoning,
-    users,
-)
-from basis.api.routes import settings as settings_routes
+from basis.api.routes import health
+from basis.api.routes.v1.mount import register_v1_api_routers
 from basis.config import Settings
 from basis.limits import RuntimeLimits
 from basis.database import get_database
@@ -51,10 +27,14 @@ from basis.knowledge.store import KnowledgeStore
 from basis.realtime.hub import GraphWsHub
 from basis.realtime.tickets import RealtimeTicketStore
 from basis.capabilities import explorer_available
+from basis.api.legacy_api_gate import LegacyApiGateMiddleware
+from basis.api.legacy_deprecation import LegacyApiDeprecationMiddleware
+from basis.api.rest_v1_concurrency import RestV1ConcurrencyMiddleware
 from basis.api.request_id import (
     RequestIdMiddleware,
     attach_request_id_to_detail,
 )
+from basis.api.routes import openapi_v1 as openapi_v1_routes
 from basis.observability.logging_setup import configure_basis_logging
 
 
@@ -136,6 +116,7 @@ def create_app(app_settings: Settings | None = None) -> FastAPI:
     app.state.realtime_tickets = RealtimeTicketStore()
     app.state.ws_hub = GraphWsHub()
     app.state.mcp_semaphore = asyncio.Semaphore(app_settings.mcp_max_inflight)
+    app.state.rest_v1_semaphore = asyncio.Semaphore(app_settings.rest_v1_max_inflight)
 
     app.add_middleware(
         CORSMiddleware,
@@ -147,6 +128,12 @@ def create_app(app_settings: Settings | None = None) -> FastAPI:
         allow_methods=["*"],
         allow_headers=["Authorization", "Content-Type", "X-Request-ID"],
     )
+    app.add_middleware(LegacyApiDeprecationMiddleware)
+    app.add_middleware(
+        LegacyApiGateMiddleware,
+        legacy_enabled=app_settings.legacy_api_enabled,
+    )
+    app.add_middleware(RestV1ConcurrencyMiddleware)
     app.add_middleware(RequestIdMiddleware)
 
     @app.exception_handler(AdminError)
@@ -169,31 +156,11 @@ def create_app(app_settings: Settings | None = None) -> FastAPI:
         return JSONResponse(status_code=exc.status_code, content={"detail": detail})
 
     app.include_router(health.router)
-    app.include_router(platform.router)
-    app.include_router(auth.router)
-    app.include_router(oauth.router)
-    app.include_router(organizations.router)
-    app.include_router(users.router)
-    app.include_router(kbs.router)
-    app.include_router(kb_chat.router)
-    app.include_router(mcp.router)
-    app.include_router(kb_tokens.router)
-    app.include_router(kb_explorer.router)
-    app.include_router(kb_ontology.router)
-    app.include_router(kb_review.router)
-    app.include_router(kb_ledger.router)
-    app.include_router(kb_mappings.router)
-    app.include_router(kb_reasoning_rules.router)
-    app.include_router(kb_alerts.router)
-    if app_settings.data_dir.name == "data-e2e":
-        from basis.api.routes import kb_e2e_helpers
+    register_v1_api_routers(
+        app,
+        legacy_api_enabled=app_settings.legacy_api_enabled,
+        include_e2e_helpers=app_settings.data_dir.name == "data-e2e",
+    )
+    app.include_router(openapi_v1_routes.router)
 
-        app.include_router(kb_e2e_helpers.router)
-    app.include_router(kb_sources.router)
-    app.include_router(realtime.router)
-    app.include_router(settings_routes.router)
-    app.include_router(model_providers.router)
-    app.include_router(models_routes.router)
-    app.include_router(audit.router)
-    app.include_router(reasoning.router)
     return app

@@ -36,7 +36,7 @@ def test_redact_string_masks_bearer_and_sk_tokens() -> None:
 
 
 def test_redact_string_masks_sensitive_query_params() -> None:
-    out = redact_string("/api/kbs?token=secret-value&page=1")
+    out = redact_string("/api/v1/kbs?token=secret-value&page=1")
     assert "secret-value" not in out
     assert "page=1" in out
 
@@ -62,7 +62,7 @@ def test_uvicorn_access_json_formatter_structures_request() -> None:
         pathname=__file__,
         lineno=1,
         msg='%s - "%s %s HTTP/%s" %d',
-        args=("127.0.0.1:12345", "GET", "/api/kbs?token=secret", "1.1", 200),
+        args=("127.0.0.1:12345", "GET", "/api/v1/kbs?token=secret", "1.1", 200),
         exc_info=None,
     )
     record.request_id = "trace-access"

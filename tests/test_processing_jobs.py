@@ -16,14 +16,14 @@ def test_upload_then_process_with_immutable_options(tmp_path: Path) -> None:
     app = create_app(Settings(data_dir=tmp_path))
     client = TestClient(app)
     admin = client.post(
-        "/api/auth/register",
+        "/api/v1/auth/register",
         json={"email": "flow@example.com", "password": "password1", "display_name": "Flow"},
     ).json()
     headers = _auth(admin["token"])
-    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
 
     uploaded = client.post(
-        f"/api/kbs/{kb_id}/documents",
+        f"/api/v1/kbs/{kb_id}/documents",
         headers=headers,
         json={"doc_id": "source-only", "text": "Alice knows Bob."},
     )
@@ -31,12 +31,12 @@ def test_upload_then_process_with_immutable_options(tmp_path: Path) -> None:
     source = uploaded.json()
     assert source["status"] == "uploaded"
 
-    before = client.get(f"/api/kbs/{kb_id}/processing/jobs", headers=headers)
+    before = client.get(f"/api/v1/kbs/{kb_id}/processing/jobs", headers=headers)
     assert before.status_code == 200
     assert before.json()["jobs"] == []
 
     processed = client.post(
-        f"/api/kbs/{kb_id}/processing/jobs",
+        f"/api/v1/kbs/{kb_id}/processing/jobs",
         headers=headers,
         json={
             "version_id": source["version_id"],
@@ -50,7 +50,7 @@ def test_upload_then_process_with_immutable_options(tmp_path: Path) -> None:
     assert processed.status_code == 200
     assert processed.json()["ledger_status"] == "ready"
 
-    jobs = client.get(f"/api/kbs/{kb_id}/processing/jobs", headers=headers).json()["jobs"]
+    jobs = client.get(f"/api/v1/kbs/{kb_id}/processing/jobs", headers=headers).json()["jobs"]
     assert len(jobs) == 1
     assert jobs[0]["status"] == "succeeded"
     assert jobs[0]["options"]["chunk"] is False
@@ -61,19 +61,19 @@ def test_upload_then_process_with_immutable_options(tmp_path: Path) -> None:
 def test_processing_job_persists_request_id_in_options(tmp_path: Path) -> None:
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
     admin = client.post(
-        "/api/auth/register",
+        "/api/v1/auth/register",
         json={"email": "rid@example.com", "password": "password1", "display_name": "Rid"},
     ).json()
     headers = _auth(admin["token"])
-    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
     source = client.post(
-        f"/api/kbs/{kb_id}/documents",
+        f"/api/v1/kbs/{kb_id}/documents",
         headers=headers,
         json={"doc_id": "rid-doc", "text": "trace me"},
     ).json()
     trace = "proc-job-trace-99"
     accepted = client.post(
-        f"/api/kbs/{kb_id}/processing/jobs",
+        f"/api/v1/kbs/{kb_id}/processing/jobs",
         headers={**headers, "X-Request-ID": trace},
         json={
             "version_id": source["version_id"],
@@ -87,7 +87,7 @@ def test_processing_job_persists_request_id_in_options(tmp_path: Path) -> None:
     assert accepted.status_code == 202
     job_id = accepted.json()["job_id"]
     detail = client.get(
-        f"/api/kbs/{kb_id}/processing/jobs/{job_id}",
+        f"/api/v1/kbs/{kb_id}/processing/jobs/{job_id}",
         headers=headers,
     ).json()
     assert detail["job"]["options"]["request_id"] == trace
@@ -97,13 +97,13 @@ def test_active_job_conflict_and_retry_attempt(tmp_path: Path) -> None:
     app = create_app(Settings(data_dir=tmp_path))
     client = TestClient(app)
     admin = client.post(
-        "/api/auth/register",
+        "/api/v1/auth/register",
         json={"email": "retry@example.com", "password": "password1", "display_name": "Retry"},
     ).json()
     headers = _auth(admin["token"])
-    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
     source = client.post(
-        f"/api/kbs/{kb_id}/documents",
+        f"/api/v1/kbs/{kb_id}/documents",
         headers=headers,
         json={"doc_id": "retry-doc", "text": "plain text"},
     ).json()
@@ -124,7 +124,7 @@ def test_active_job_conflict_and_retry_attempt(tmp_path: Path) -> None:
         options=options,
     )
     conflict = client.post(
-        f"/api/kbs/{kb_id}/processing/jobs",
+        f"/api/v1/kbs/{kb_id}/processing/jobs",
         headers=headers,
         json={"version_id": source["version_id"]},
     )
@@ -134,12 +134,12 @@ def test_active_job_conflict_and_retry_attempt(tmp_path: Path) -> None:
     app.state.knowledge_store.fail_job(kb_id, first["id"], "forced", "forced")
     app.state.knowledge_store.fail_version(kb_id, source["version_id"], "forced", "forced")
     retried = client.post(
-        f"/api/kbs/{kb_id}/processing/jobs/{first['id']}/retry",
+        f"/api/v1/kbs/{kb_id}/processing/jobs/{first['id']}/retry",
         headers=headers,
         json={"wait": True},
     )
     assert retried.status_code == 200
-    jobs = client.get(f"/api/kbs/{kb_id}/processing/jobs", headers=headers).json()["jobs"]
+    jobs = client.get(f"/api/v1/kbs/{kb_id}/processing/jobs", headers=headers).json()["jobs"]
     assert jobs[0]["attempt"] == 2
     assert jobs[0]["status"] == "succeeded"
 
@@ -148,13 +148,13 @@ def test_processing_job_idempotency_key_replay(tmp_path: Path) -> None:
     app = create_app(Settings(data_dir=tmp_path))
     client = TestClient(app)
     admin = client.post(
-        "/api/auth/register",
+        "/api/v1/auth/register",
         json={"email": "idem@example.com", "password": "password1", "display_name": "Idem"},
     ).json()
     headers = _auth(admin["token"])
-    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
     source = client.post(
-        f"/api/kbs/{kb_id}/documents",
+        f"/api/v1/kbs/{kb_id}/documents",
         headers=headers,
         json={"doc_id": "idem-doc", "text": "repeat me"},
     ).json()
@@ -168,29 +168,29 @@ def test_processing_job_idempotency_key_replay(tmp_path: Path) -> None:
         "relation_method": "pattern",
         "idempotency_key": "process-once",
     }
-    first = client.post(f"/api/kbs/{kb_id}/processing/jobs", headers=headers, json=payload)
+    first = client.post(f"/api/v1/kbs/{kb_id}/processing/jobs", headers=headers, json=payload)
     assert first.status_code == 200
     first_job_id = first.json()["job_id"]
 
-    second = client.post(f"/api/kbs/{kb_id}/processing/jobs", headers=headers, json=payload)
+    second = client.post(f"/api/v1/kbs/{kb_id}/processing/jobs", headers=headers, json=payload)
     assert second.status_code == 200
     assert second.json()["idempotent_replay"] is True
     assert second.json()["job_id"] == first_job_id
 
-    jobs = client.get(f"/api/kbs/{kb_id}/processing/jobs", headers=headers).json()["jobs"]
+    jobs = client.get(f"/api/v1/kbs/{kb_id}/processing/jobs", headers=headers).json()["jobs"]
     assert len(jobs) == 1
 
 
 def test_markdown_defaults_to_structural_chunking(tmp_path: Path) -> None:
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
     admin = client.post(
-        "/api/auth/register",
+        "/api/v1/auth/register",
         json={"email": "md@example.com", "password": "password1", "display_name": "Md"},
     ).json()
     headers = _auth(admin["token"])
-    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
     uploaded = client.post(
-        f"/api/kbs/{kb_id}/documents/upload",
+        f"/api/v1/kbs/{kb_id}/documents/upload",
         headers=headers,
         files={"file": ("readme.md", b"# Title\n\nBody\n", "text/markdown")},
     )
@@ -198,12 +198,12 @@ def test_markdown_defaults_to_structural_chunking(tmp_path: Path) -> None:
     version_id = uploaded.json()["version_id"]
 
     omitted = client.post(
-        f"/api/kbs/{kb_id}/processing/jobs",
+        f"/api/v1/kbs/{kb_id}/processing/jobs",
         headers=headers,
         json={"version_id": version_id, "chunk": False, "extract": False},
     )
     assert omitted.status_code in {200, 202}
-    jobs = client.get(f"/api/kbs/{kb_id}/processing/jobs", headers=headers).json()["jobs"]
+    jobs = client.get(f"/api/v1/kbs/{kb_id}/processing/jobs", headers=headers).json()["jobs"]
     assert jobs[0]["options"]["chunk_method"] == "structural"
 
 
@@ -211,19 +211,19 @@ def test_rejects_unknown_chunk_method(tmp_path: Path) -> None:
     app = create_app(Settings(data_dir=tmp_path))
     client = TestClient(app)
     admin = client.post(
-        "/api/auth/register",
+        "/api/v1/auth/register",
         json={"email": "chunk@example.com", "password": "password1", "display_name": "Chunk"},
     ).json()
     headers = _auth(admin["token"])
-    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
     source = client.post(
-        f"/api/kbs/{kb_id}/documents",
+        f"/api/v1/kbs/{kb_id}/documents",
         headers=headers,
         json={"doc_id": "chunk-method", "text": "Hello world."},
     ).json()
 
     response = client.post(
-        f"/api/kbs/{kb_id}/processing/jobs",
+        f"/api/v1/kbs/{kb_id}/processing/jobs",
         headers=headers,
         json={
             "version_id": source["version_id"],

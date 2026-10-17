@@ -28,7 +28,7 @@ export function useOntologyKbId(): string {
   return kbId;
 }
 
-/** `/api/kbs/{kbId}/ontology/{suffix}` with optional query string (no leading `?`). */
+/** `/api/v1/kbs/{kbId}/ontology/{suffix}` with optional query string (no leading `?`). */
 export function ontologyPath(kbId: string, suffix: string, query?: string): string {
   const path = buildExplorerKbApiPath(
     `ontology/${suffix.replace(/^\//, "")}`,
@@ -37,7 +37,7 @@ export function ontologyPath(kbId: string, suffix: string, query?: string): stri
   return query ? `${path}?${query}` : path;
 }
 
-/** `/api/kbs/{kbId}/vocabulary/{suffix}` */
+/** `/api/v1/kbs/{kbId}/vocabulary/{suffix}` */
 export function vocabularyPath(kbId: string, suffix: string, query?: string): string {
   const path = buildExplorerKbApiPath(
     `vocabulary/${suffix.replace(/^\//, "")}`,

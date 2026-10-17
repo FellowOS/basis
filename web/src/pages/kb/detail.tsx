@@ -34,7 +34,7 @@ import {
 import { useI18n } from '@/i18n/context.js';
 import { fmt } from '@/i18n/format.js';
 import { kbMemberRoleLabel } from '@/lib/kb-settings-labels.js';
-import { api } from '@/lib/api.js';
+import { kbOpenApiGET, kbOpenApiPUT, openApiGET } from '@/lib/openapi-client.js';
 import { useApiErrorMessage } from '@/lib/use-api-error-message.js';
 
 type Member = {
@@ -63,9 +63,9 @@ export function KbDetailPage() {
   useEffect(() => {
     if (!id) return;
     Promise.all([
-      api<{ name: string; my_role: string }>(`/api/kbs/${id}`),
-      api<{ members: Member[] }>(`/api/kbs/${id}/members`),
-      api<{ users: UserRow[] }>('/api/users'),
+      kbOpenApiGET<{ name: string; my_role: string }>(id, ''),
+      kbOpenApiGET<{ members: Member[] }>(id, 'members'),
+      openApiGET<{ users: UserRow[] }>('/api/v1/users'),
     ])
       .then(([kbBody, membersBody, usersBody]) => {
         setKb(kbBody);
@@ -80,11 +80,8 @@ export function KbDetailPage() {
     setAdding(true);
     setError(null);
     try {
-      await api(`/api/kbs/${id}/members/${targetUser}`, {
-        method: 'PUT',
-        body: JSON.stringify({ role }),
-      });
-      const body = await api<{ members: Member[] }>(`/api/kbs/${id}/members`);
+      await kbOpenApiPUT(id, `members/${targetUser}`, { body: { role } });
+      const body = await kbOpenApiGET<{ members: Member[] }>(id, 'members');
       setMembers(body.members);
       setAddOpen(false);
       setTargetUser('');

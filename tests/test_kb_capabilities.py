@@ -21,13 +21,13 @@ def test_kb_capabilities_unit_viewer_vs_editor() -> None:
 def test_kb_capabilities_http(tmp_path) -> None:
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
     admin = client.post(
-        "/api/auth/register",
+        "/api/v1/auth/register",
         json={"email": "cap@example.com", "password": "password1", "display_name": "Cap"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
 
-    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
-    response = client.get(f"/api/kbs/{kb_id}/capabilities", headers=headers)
+    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+    response = client.get(f"/api/v1/kbs/{kb_id}/capabilities", headers=headers)
     assert response.status_code == 200
     body = response.json()
     assert body["kb_id"] == kb_id

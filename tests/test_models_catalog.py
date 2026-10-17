@@ -14,7 +14,7 @@ def _auth(token: str) -> dict[str, str]:
 
 def _register(client: TestClient, email: str) -> dict:
     response = client.post(
-        "/api/auth/register",
+        "/api/v1/auth/register",
         json={"email": email, "password": "password1", "display_name": "管理员"},
     )
     assert response.status_code == 200, response.text
@@ -26,12 +26,12 @@ def test_model_catalog_crud(tmp_path) -> None:
     admin = _register(client, "admin@example.com")
     headers = _auth(admin["token"])
 
-    empty = client.get("/api/models?kind=llm", headers=headers)
+    empty = client.get("/api/v1/models?kind=llm", headers=headers)
     assert empty.status_code == 200
     assert empty.json()["models"] == []
 
     created = client.post(
-        "/api/models",
+        "/api/v1/models",
         headers=headers,
         json={
             "kind": "llm",
@@ -47,12 +47,12 @@ def test_model_catalog_crud(tmp_path) -> None:
     assert body["configured"] is True
     model_id = body["id"]
 
-    listed = client.get("/api/models?kind=llm", headers=headers).json()["models"]
+    listed = client.get("/api/v1/models?kind=llm", headers=headers).json()["models"]
     assert len(listed) == 1
 
-    settings = client.get("/api/settings", headers=headers).json()
+    settings = client.get("/api/v1/settings", headers=headers).json()
     assert settings["chat_model"] == "gpt-4o-mini"
     assert settings["has_chat_key"] is True
 
-    client.delete(f"/api/models/{model_id}", headers=headers)
-    assert client.get("/api/models?kind=llm", headers=headers).json()["models"] == []
+    client.delete(f"/api/v1/models/{model_id}", headers=headers)
+    assert client.get("/api/v1/models?kind=llm", headers=headers).json()["models"] == []

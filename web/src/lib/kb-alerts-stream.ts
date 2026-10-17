@@ -2,7 +2,8 @@ import { fmt } from '@/i18n/format.js';
 import type { Locale } from '@/i18n/locale.js';
 import { localeFromBrowser } from '@/i18n/locale.js';
 import { messagesForLocale } from '@/i18n/pick-locale.js';
-import { getToken } from '@/lib/api.js';
+import { basisSessionFetch } from '@/lib/basis-session-fetch.js';
+import { kbApiPath } from '@/lib/kb-api-path.js';
 
 function resolveLocale(locale?: Locale): Locale {
   if (locale) {
@@ -45,13 +46,10 @@ export async function consumeKbAlertsStream(
 ): Promise<void> {
   const locale = resolveLocale(options.locale);
   const alertsCopy = messagesForLocale(locale).pages.alerts;
-  const headers: HeadersInit = { Accept: 'text/event-stream' };
-  const token = getToken();
-  if (token) headers.Authorization = `Bearer ${token}`;
   const qs = options.since ? `?since=${encodeURIComponent(options.since)}` : '';
-  const response = await fetch(`/api/kbs/${kbId}/alerts/stream${qs}`, {
+  const response = await basisSessionFetch(`${kbApiPath(kbId, 'alerts/stream')}${qs}`, {
     method: 'GET',
-    headers,
+    headers: { Accept: 'text/event-stream' },
     signal: options.signal,
   });
   if (!response.ok) {

@@ -34,10 +34,10 @@ import { useI18n } from '@/i18n/context.js';
 import { fmt, formatLocaleNumber } from '@/i18n/format.js';
 import type { Locale } from '@/i18n/locale.js';
 import { ledgerStatementStatusLabel } from '@/lib/kb-ledger-labels.js';
-import { api } from '@/lib/api.js';
 import { useKbNodeLabels } from '@/lib/kb-node-labels.js';
 import { kbPath } from '@/lib/nav-config.js';
 import { useKbCapabilities } from '@/lib/kb-capabilities.js';
+import { kbOpenApiDELETE, kbOpenApiGET } from '@/lib/openapi-client.js';
 import { useApiErrorMessage } from '@/lib/use-api-error-message.js';
 
 const ENTITY_PAGE_SIZE = 10;
@@ -129,9 +129,10 @@ function EntityFactsPanel({
     setLoading(true);
     void (async () => {
       try {
-        const data = await api<{ facts: EntityFactHit[]; derived_facts?: DerivedFactHit[] }>(
-          `/api/kbs/${kbId}/ledger/entities/${encodeURIComponent(entityId)}/facts`,
-        );
+        const data = await kbOpenApiGET<{
+          facts: EntityFactHit[];
+          derived_facts?: DerivedFactHit[];
+        }>(kbId, `ledger/entities/${encodeURIComponent(entityId)}/facts`);
         if (cancelled) return;
         setEntityFacts(data.facts ?? []);
         setEntityDerivedFacts(data.derived_facts ?? []);
@@ -366,15 +367,15 @@ export function LedgerEntityBrowser({
       setError(null);
       try {
         const offset = (pageIndex - 1) * ENTITY_PAGE_SIZE;
-        const params = new URLSearchParams({
-          limit: String(ENTITY_PAGE_SIZE),
-          offset: String(offset),
-        });
-        if (q.trim()) params.set('query', q.trim());
-        const data = await api<{
+        const query: Record<string, unknown> = {
+          limit: ENTITY_PAGE_SIZE,
+          offset,
+        };
+        if (q.trim()) query.query = q.trim();
+        const data = await kbOpenApiGET<{
           entities: LedgerEntityHit[];
           total: number;
-        }>(`/api/kbs/${kbId}/ledger/entities?${params}`);
+        }>(kbId, 'ledger/entities', { params: { query } });
         setEntities(data.entities ?? []);
         setTotal(data.total ?? 0);
       } catch (err) {
@@ -406,8 +407,9 @@ export function LedgerEntityBrowser({
     setDeletePreviewLoading(true);
     void (async () => {
       try {
-        const preview = await api<EntityDeletePreview>(
-          `/api/kbs/${kbId}/ledger/entities/${encodeURIComponent(entityId)}/delete-preview`,
+        const preview = await kbOpenApiGET<EntityDeletePreview>(
+          kbId,
+          `ledger/entities/${encodeURIComponent(entityId)}/delete-preview`,
         );
         if (!cancelled) setDeletePreview(preview);
       } catch (err) {
@@ -427,9 +429,7 @@ export function LedgerEntityBrowser({
     setDeleting(true);
     setError(null);
     try {
-      await api(`/api/kbs/${kbId}/ledger/entities/${encodeURIComponent(entityId)}`, {
-        method: 'DELETE',
-      });
+      await kbOpenApiDELETE(kbId, `ledger/entities/${encodeURIComponent(entityId)}`);
       if (factsTarget && ledgerEntityId(factsTarget) === entityId) setFactsTarget(null);
       setDeleteTarget(null);
       await fetchEntities(appliedQuery, safePage);

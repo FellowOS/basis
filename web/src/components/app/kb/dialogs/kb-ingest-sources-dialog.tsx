@@ -22,7 +22,7 @@ import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
 import { fmt } from '@/i18n/format.js';
 import type { Locale } from '@/i18n/locale.js';
-import { api } from '@/lib/api.js';
+import { kbOpenApiGET, kbOpenApiPATCH, kbOpenApiPOST } from '@/lib/openapi-client.js';
 import { formatUserFacingApiError } from '@/lib/api-error-message.js';
 import { cn } from '@/lib/utils.js';
 
@@ -119,7 +119,7 @@ export function KbIngestSourcesDialog({
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await api<{ sources: IngestSource[] }>(`/api/kbs/${kbId}/sources`);
+      const data = await kbOpenApiGET<{ sources: IngestSource[] }>(kbId, 'sources');
       setSources(data.sources);
     } catch (err) {
       toast.error(apiError(err));
@@ -178,9 +178,8 @@ export function KbIngestSourcesDialog({
 
     setLoading(true);
     try {
-      const data = await api<CreateResponse>(`/api/kbs/${kbId}/sources`, {
-        method: 'POST',
-        body: JSON.stringify({
+      const data = await kbOpenApiPOST<CreateResponse>(kbId, 'sources', {
+        body: {
           kind,
           name: trimmed,
           config:
@@ -206,7 +205,7 @@ export function KbIngestSourcesDialog({
                       : {}),
                   }
                 : {},
-        }),
+        },
       });
       if (data.ingest_token) {
         setCreatedSecret(data);
@@ -225,9 +224,8 @@ export function KbIngestSourcesDialog({
 
   const toggleEnabled = async (source: IngestSource) => {
     try {
-      await api(`/api/kbs/${kbId}/sources/${source.id}`, {
-        method: 'PATCH',
-        body: JSON.stringify({ enabled: !source.enabled }),
+      await kbOpenApiPATCH(kbId, `sources/${source.id}`, {
+        body: { enabled: !source.enabled },
       });
       await load();
     } catch (err) {
@@ -238,9 +236,7 @@ export function KbIngestSourcesDialog({
   const rotateToken = async (sourceId: string) => {
     setLoading(true);
     try {
-      const data = await api<CreateResponse>(`/api/kbs/${kbId}/sources/${sourceId}/rotate-token`, {
-        method: 'POST',
-      });
+      const data = await kbOpenApiPOST<CreateResponse>(kbId, `sources/${sourceId}/rotate-token`);
       setRotatedSecret({
         ...data,
         source: { id: sourceId, kind: 'webhook', name: '', enabled: true },
@@ -268,14 +264,13 @@ export function KbIngestSourcesDialog({
     if (!sourceId) return;
     setLoading(true);
     try {
-      await api(`/api/kbs/${kbId}/sources/${sourceId}`, {
-        method: 'PATCH',
-        body: JSON.stringify({
+      await kbOpenApiPATCH(kbId, `sources/${sourceId}`, {
+        body: {
           config: {
             title: editSyncTitle.trim(),
             external_key_prefix: editSyncPrefix.trim(),
           },
-        }),
+        },
       });
       toast.success(i.syncOptionsSaved);
       closeSyncOptionsDialog();
@@ -290,8 +285,9 @@ export function KbIngestSourcesDialog({
   const loadSyncHistory = async (sourceId: string) => {
     setSyncHistory((prev) => ({ ...prev, [sourceId]: { ...prev[sourceId], loading: true, events: [] } }));
     try {
-      const data = await api<{ events: SyncEvent[] }>(
-        `/api/kbs/${kbId}/sources/${sourceId}/sync-history`,
+      const data = await kbOpenApiGET<{ events: SyncEvent[] }>(
+        kbId,
+        `sources/${sourceId}/sync-history`,
       );
       setSyncHistory((prev) => ({ ...prev, [sourceId]: { loading: false, events: data.events ?? [] } }));
     } catch (err) {
@@ -338,7 +334,7 @@ export function KbIngestSourcesDialog({
   const runSync = async (sourceId: string) => {
     setLoading(true);
     try {
-      await api(`/api/kbs/${kbId}/sources/${sourceId}/sync`, { method: 'POST', body: '{}' });
+      await kbOpenApiPOST(kbId, `sources/${sourceId}/sync`, { body: {} });
       toast.success(i.fetchedAndQueued);
       await load();
     } catch (err) {

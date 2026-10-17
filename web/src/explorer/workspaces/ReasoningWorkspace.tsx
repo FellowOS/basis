@@ -33,8 +33,8 @@ import { buildExplorerKbApiPath, explorerFetch } from "../host/explorerHttp";
 import { errorFromApiResponse } from "@/lib/api-error.js";
 import { useApiErrorMessage } from "@/lib/use-api-error-message.js";
 import { useKbCapabilitiesOptional } from "@/lib/kb-capabilities.js";
-import { api } from "@/lib/api.js";
 import { exWsPageRow } from "@/lib/explorer-ws-classes.js";
+import { kbOpenApiGET, kbOpenApiPOST } from '@/lib/openapi-client.js';
 
 type SavedRule = KbReasoningRule;
 
@@ -107,7 +107,7 @@ export function ReasoningWorkspace({
   const loadSavedRules = useCallback(async () => {
     if (!kbId) return;
     try {
-      const data = await api<{ rules: SavedRule[] }>(`/api/kbs/${kbId}/rules`);
+      const data = await kbOpenApiGET<{ rules: SavedRule[] }>(kbId, "rules");
       const list = data.rules;
       setSavedRules(list);
       setRunIncludedIds((prev) => {
@@ -133,9 +133,8 @@ export function ReasoningWorkspace({
     setSavingRule(true);
     setError("");
     try {
-      const created = await api<{ rule: SavedRule }>(`/api/kbs/${kbId}/rules`, {
-        method: "POST",
-        body: JSON.stringify({ name, body, enabled: false }),
+      const created = await kbOpenApiPOST<{ rule: SavedRule }>(kbId, "rules", {
+        body: { name, body, enabled: false },
       });
       if (saveIncludeInRun && created.rule?.id) {
         setRunIncludedIds((prev) => new Set(prev).add(created.rule.id));

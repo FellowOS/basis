@@ -1,4 +1,4 @@
-/** Parsed server envelopes from `/api/kbs/{id}/ws/graph-updates` (Basis realtime hub). */
+/** Parsed server envelopes from KB graph WebSocket updates (Basis realtime hub). */
 
 export type GraphRealtimeServerMessage =
   | { type: "projection_updated"; projectionRevision?: number }

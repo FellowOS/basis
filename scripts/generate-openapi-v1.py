@@ -35,6 +35,8 @@ def _v1_path(path: str) -> str | None:
         return None
     if path == "/health":
         return "/api/v1/health"
+    if path.startswith("/api/v1/"):
+        return path
     if path.startswith("/api/"):
         return "/api/v1/" + path[len("/api/") :]
     return path

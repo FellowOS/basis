@@ -2,7 +2,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { useI18n } from '@/i18n/context.js';
 import type { ApiTokenRow, McpIntegrationInfo } from '@/components/app/kb/widgets/kb-mcp-integration-panel.js';
-import { api } from '@/lib/api.js';
+import { kbApiClient } from '@/lib/kb-api-client.js';
+import { kbOpenApiDELETE, kbOpenApiGET, kbOpenApiPOST } from '@/lib/openapi-client.js';
 import { useApiErrorMessage } from '@/lib/use-api-error-message.js';
 
 export function useKbMcpIntegration(kbId: string | undefined, canManageTokens: boolean) {
@@ -17,14 +18,15 @@ export function useKbMcpIntegration(kbId: string | undefined, canManageTokens: b
       setApiTokens([]);
       return;
     }
-    const listed = await api<{ tokens: ApiTokenRow[] }>(`/api/kbs/${kbId}/tokens`);
+    const listed = await kbOpenApiGET<{ tokens: ApiTokenRow[] }>(kbId, 'tokens');
     setApiTokens(listed.tokens);
   }, [kbId, canManageTokens]);
 
   useEffect(() => {
     if (!kbId) return;
-    api<McpIntegrationInfo>(`/api/kbs/${kbId}/mcp`)
-      .then(setMcpInfo)
+    kbApiClient(kbId)
+      .mcpInfo()
+      .then((info) => setMcpInfo(info as McpIntegrationInfo))
       .catch(() => setMcpInfo(null));
     if (canManageTokens) {
       reloadTokens().catch(() => setApiTokens([]));
@@ -48,9 +50,8 @@ export function useKbMcpIntegration(kbId: string | undefined, canManageTokens: b
       const trimmed = name.trim();
       if (!kbId || !trimmed) return;
       try {
-        const body = await api<{ secret: string }>(`/api/kbs/${kbId}/tokens`, {
-          method: 'POST',
-          body: JSON.stringify({ name: trimmed, scope: 'read' }),
+        const body = await kbOpenApiPOST<{ secret: string }>(kbId, 'tokens', {
+          body: { name: trimmed, scope: 'read' },
         });
         setCreatedSecret(body.secret);
         await reloadTokens();
@@ -67,7 +68,7 @@ export function useKbMcpIntegration(kbId: string | undefined, canManageTokens: b
     async (tokenId: string) => {
       if (!kbId) return;
       try {
-        await api(`/api/kbs/${kbId}/tokens/${tokenId}`, { method: 'DELETE' });
+        await kbOpenApiDELETE(kbId, `tokens/${tokenId}`);
         await reloadTokens();
         toast.success(t.common.deleteSuccess);
       } catch (err) {

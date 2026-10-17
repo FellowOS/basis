@@ -8,7 +8,8 @@ import {
   useState,
 } from 'react';
 import { devMessage } from '@/i18n/dev-messages.js';
-import { api } from '@/lib/api.js';
+import { basisSessionClient } from '@/lib/basis-session-client.js';
+import { unwrapOpenApi } from '@/lib/openapi-response.js';
 
 export type KbSummary = {
   id: string;
@@ -40,7 +41,9 @@ export function KbProvider({ children }: { children: ReactNode }) {
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
-      const body = await api<{ kbs: KbSummary[] }>('/api/kbs');
+      const body = unwrapOpenApi(
+        await basisSessionClient().openapi().GET('/api/v1/kbs'),
+      ) as { kbs: KbSummary[] };
       setKbs(body.kbs);
     } finally {
       setLoading(false);

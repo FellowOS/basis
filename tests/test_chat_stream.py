@@ -11,11 +11,11 @@ from basis.config import Settings
 def test_playground_stream_emits_delta_and_done(tmp_path) -> None:
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
     admin = client.post(
-        "/api/auth/register",
+        "/api/v1/auth/register",
         json={"email": "st@example.com", "password": "password1", "display_name": "St"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
     store = client.app.state.store
 
     chunk = MagicMock()
@@ -36,7 +36,7 @@ def test_playground_stream_emits_delta_and_done(tmp_path) -> None:
         patch("openai.OpenAI", return_value=mock_client),
     ):
         response = client.post(
-            f"/api/kbs/{kb_id}/chat/playground/stream",
+            f"/api/v1/kbs/{kb_id}/chat/playground/stream",
             headers=headers,
             json={"messages": [{"role": "user", "content": "hi"}]},
         )

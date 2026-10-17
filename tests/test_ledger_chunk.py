@@ -14,11 +14,11 @@ def test_chunk_detail_and_document_chunks(tmp_path: Path) -> None:
     settings = Settings(data_dir=tmp_path)
     client = TestClient(create_app(settings))
     admin = client.post(
-        "/api/auth/register",
+        "/api/v1/auth/register",
         json={"email": "ch@example.com", "password": "password1", "display_name": "Ch"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
 
     store = KnowledgeStore(tmp_path / "basis.db", BlobStore(tmp_path))
     _, version_id, _, _ = store.store_upload_bytes(
@@ -46,12 +46,12 @@ def test_chunk_detail_and_document_chunks(tmp_path: Path) -> None:
     )
     store.close()
 
-    meta = client.get(f"/api/kbs/{kb_id}/ledger/documents/my-doc", headers=headers)
+    meta = client.get(f"/api/v1/kbs/{kb_id}/ledger/documents/my-doc", headers=headers)
     assert meta.status_code == 200
     assert meta.json()["document"]["doc_id"] == "my-doc"
 
     listed = client.get(
-        f"/api/kbs/{kb_id}/ledger/documents/my-doc/chunks",
+        f"/api/v1/kbs/{kb_id}/ledger/documents/my-doc/chunks",
         headers=headers,
     )
     assert listed.status_code == 200
@@ -60,7 +60,7 @@ def test_chunk_detail_and_document_chunks(tmp_path: Path) -> None:
     assert len(body["chunks"]) == 1
     assert body["chunks"][0]["id"] == chunk_id
 
-    detail = client.get(f"/api/kbs/{kb_id}/ledger/chunks/{chunk_id}", headers=headers)
+    detail = client.get(f"/api/v1/kbs/{kb_id}/ledger/chunks/{chunk_id}", headers=headers)
     assert detail.status_code == 200
     detail_body = detail.json()
     assert detail_body["chunk"]["chunk_id"] == chunk_id

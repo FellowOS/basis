@@ -1,4 +1,4 @@
-import { api } from '@/lib/api.js';
+import { kbOpenApiGET } from '@/lib/openapi-client.js';
 
 export type GraphNodeRecord = {
   id: string;
@@ -11,8 +11,9 @@ export async function fetchKbGraphNode(
   kbId: string,
   nodeId: string,
 ): Promise<GraphNodeRecord | null> {
-  const body = await api<{ node: GraphNodeRecord | null }>(
-    `/api/kbs/${kbId}/graph/nodes/${encodeURIComponent(nodeId)}`,
+  const body = await kbOpenApiGET<{ node: GraphNodeRecord | null }>(
+    kbId,
+    `graph/nodes/${encodeURIComponent(nodeId)}`,
   );
   return body.node ?? null;
 }

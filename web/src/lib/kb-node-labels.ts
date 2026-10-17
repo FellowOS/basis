@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 
-import { api } from '@/lib/api.js';
+import { kbOpenApiPOST } from '@/lib/openapi-client.js';
 
 export async function fetchKbNodeLabels(
   kbId: string,
@@ -10,12 +10,10 @@ export async function fetchKbNodeLabels(
   if (!unique.length) {
     return {};
   }
-  const data = await api<{ labels: Record<string, string | null> }>(
-    `/api/kbs/${kbId}/graph/resolve-labels`,
-    {
-      method: 'POST',
-      body: JSON.stringify({ ids: unique }),
-    },
+  const data = await kbOpenApiPOST<{ labels: Record<string, string | null> }>(
+    kbId,
+    'graph/resolve-labels',
+    { body: { ids: unique } },
   );
   return data.labels ?? {};
 }

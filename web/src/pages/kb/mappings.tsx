@@ -36,7 +36,7 @@ import {
 import { useI18n } from '@/i18n/context.js';
 import { formatLocaleDateTime, formatLocaleNumber } from '@/i18n/format.js';
 import type { Locale } from '@/i18n/locale.js';
-import { api } from '@/lib/api.js';
+import { kbOpenApiGET, kbOpenApiPOST } from '@/lib/openapi-client.js';
 import { useApiErrorMessage } from '@/lib/use-api-error-message.js';
 import { useKbCatalog } from '@/lib/kb-context.js';
 import { EntityRefLine } from '@/components/app/kb/ledger/entity-ref-line.js';
@@ -121,9 +121,9 @@ export function KbMappingsPage() {
     setError(null);
     try {
       const [mappingData, phraseData, factData] = await Promise.all([
-        api<{ mappings: MappingRow[] }>(`/api/kbs/${id}/mappings`),
-        api<{ phrases: string[] }>(`/api/kbs/${id}/ledger/surface-phrases`),
-        api<{ facts: TypedFactRow[] }>(`/api/kbs/${id}/ledger/typed-facts`),
+        kbOpenApiGET<{ mappings: MappingRow[] }>(id, 'mappings'),
+        kbOpenApiGET<{ phrases: string[] }>(id, 'ledger/surface-phrases'),
+        kbOpenApiGET<{ facts: TypedFactRow[] }>(id, 'ledger/typed-facts'),
       ]);
       setRows(mappingData.mappings);
       setPhrases(phraseData.phrases);
@@ -143,15 +143,14 @@ export function KbMappingsPage() {
     if (!id) return;
     setError(null);
     try {
-      await api(`/api/kbs/${id}/mappings`, {
-        method: 'POST',
-        body: JSON.stringify({
+      await kbOpenApiPOST(id, 'mappings', {
+        body: {
           signature: values.signature.trim(),
           target_uri: values.targetUri.trim() || null,
           target_kind: values.targetKind,
           direction: values.direction,
           status: 'proposed',
-        }),
+        },
       });
       setCreateOpen(false);
       await load();

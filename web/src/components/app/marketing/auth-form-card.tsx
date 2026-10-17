@@ -17,8 +17,9 @@ import { PublicIcon } from '@/components/app/shared/primitives/public-icon.js';
 import { useI18n } from '@/i18n/context.js';
 import type { Locale } from '@/i18n/locale.js';
 import { formatUserFacingApiError } from '@/lib/api-error-message.js';
-import { api } from '@/lib/api.js';
+import { authV1Path } from '@/lib/api-v1-path.js';
 import { useBasisSession } from '@/lib/basis-session.js';
+import { publicOpenApiGET, publicOpenApiPOST } from '@/lib/openapi-client.js';
 
 type AuthMode = 'login' | 'register';
 
@@ -76,7 +77,7 @@ export function AuthFormCard() {
   }, [searchParams]);
 
   useEffect(() => {
-    api<AuthProviders>('/api/auth/providers')
+    publicOpenApiGET<AuthProviders>('/api/v1/auth/providers')
       .then(setProviders)
       .catch(() =>
         setProviders({ github: false, google: false, magic_link: false }),
@@ -100,9 +101,8 @@ export function AuthFormCard() {
     setMagicNotice(null);
     setMagicBusy(true);
     try {
-      await api('/api/auth/magic-link/request', {
-        method: 'POST',
-        body: JSON.stringify({ email }),
+      await publicOpenApiPOST('/api/v1/auth/magic-link/request', {
+        body: { email },
       });
       setMagicNotice(t.login.magicLinkSent);
     } catch (err) {
@@ -263,12 +263,12 @@ export function AuthFormCard() {
           >
             {showGithub ? (
               <Button type="button" variant="outline" size="sm" asChild>
-                <a href="/api/auth/oauth/github/start">{t.login.continueGithub}</a>
+                <a href={authV1Path('oauth/github/start')}>{t.login.continueGithub}</a>
               </Button>
             ) : null}
             {showGoogle ? (
               <Button type="button" variant="outline" size="sm" asChild>
-                <a href="/api/auth/oauth/google/start">{t.login.continueGoogle}</a>
+                <a href={authV1Path('oauth/google/start')}>{t.login.continueGoogle}</a>
               </Button>
             ) : null}
           </div>

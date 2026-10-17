@@ -23,7 +23,7 @@ import {
   SelectValue,
 } from '@/components/ui/select.js';
 import { useI18n } from '@/i18n/context.js';
-import { api } from '@/lib/api.js';
+import { openApiGET, openApiPOST } from '@/lib/openapi-client.js';
 import { useApiErrorMessage } from '@/lib/use-api-error-message.js';
 import { cn } from '@/lib/utils.js';
 import type { ModelKind } from '@/components/admin/models/model-endpoint-panel.js';
@@ -130,7 +130,9 @@ export function ModelEndpointForm({ kind, onCreated, onCancel }: Props) {
   }, [selected, remoteModels]);
 
   useEffect(() => {
-    api<{ providers: ProviderInfo[] }>(`/api/model-providers?kind=${kind}`)
+    openApiGET<{ providers: ProviderInfo[] }>('/api/v1/model-providers', {
+      params: { query: { kind } },
+    })
       .then((body) => {
         setProviders(body.providers);
         const first = body.providers[0];
@@ -174,18 +176,17 @@ export function ModelEndpointForm({ kind, onCreated, onCancel }: Props) {
     setFetching(true);
     const values = form.getValues();
     try {
-      const data = await api<{
+      const data = await openApiPOST<{
         ok: boolean;
         error?: string;
         models?: RemoteModel[];
-      }>('/api/model-providers/probe', {
-        method: 'POST',
-        body: JSON.stringify({
+      }>('/api/v1/model-providers/probe', {
+        body: {
           kind,
           provider: values.providerId,
           api_key: values.apiKey.trim(),
           api_base: values.apiBase.trim(),
-        }),
+        },
       });
       if (!data.ok) {
         setLoadError(data.error ?? m.probeFailed);
@@ -209,15 +210,14 @@ export function ModelEndpointForm({ kind, onCreated, onCancel }: Props) {
     setSaving(true);
     setLoadError(null);
     try {
-      await api('/api/models', {
-        method: 'POST',
-        body: JSON.stringify({
+      await openApiPOST('/api/v1/models', {
+        body: {
           kind,
           provider: values.providerId,
           api_base: base,
           model: resolved,
           api_key: values.apiKey.trim(),
-        }),
+        },
       });
       toast.success(m.addedToast);
       onCreated();

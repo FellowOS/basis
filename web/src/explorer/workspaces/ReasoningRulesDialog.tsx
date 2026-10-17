@@ -24,10 +24,14 @@ import { Input } from "@/components/ui/input.js";
 import { Label } from "@/components/ui/label.js";
 import { Textarea } from "@/components/ui/textarea.js";
 import { useI18n } from "@/i18n/context.js";
-import { api } from "@/lib/api.js";
 import { useApiErrorMessage } from "@/lib/use-api-error-message.js";
 import { cn } from "@/lib/utils.js";
 import { exWsHint, exWsMonoMuted, exWsRuleRow } from "@/lib/explorer-ws-classes.js";
+import {
+  kbOpenApiDELETE,
+  kbOpenApiPATCH,
+  kbOpenApiPOST,
+} from "@/lib/openapi-client.js";
 
 export type KbReasoningRule = {
   id: string;
@@ -107,17 +111,15 @@ export function ReasoningRulesDialog({
     setError("");
     try {
       if (editor.kind === "create") {
-        const created = await api<{ rule: KbReasoningRule }>(`/api/kbs/${kbId}/rules`, {
-          method: "POST",
-          body: JSON.stringify({ name: trimmedName, body: trimmedBody, enabled: false }),
+        const created = await kbOpenApiPOST<{ rule: KbReasoningRule }>(kbId, "rules", {
+          body: { name: trimmedName, body: trimmedBody, enabled: false },
         });
         if (created.rule?.id) {
           onRuleCreated(created.rule.id, includeInRun);
         }
       } else if (editor.kind === "edit") {
-        await api(`/api/kbs/${kbId}/rules/${editor.rule.id}`, {
-          method: "PATCH",
-          body: JSON.stringify({ name: trimmedName, body: trimmedBody }),
+        await kbOpenApiPATCH(kbId, `rules/${editor.rule.id}`, {
+          body: { name: trimmedName, body: trimmedBody },
         });
       }
       await onRulesChange();
@@ -133,7 +135,7 @@ export function ReasoningRulesDialog({
     if (!deleteId || !kbId || !canWrite) return;
     setError("");
     try {
-      await api(`/api/kbs/${kbId}/rules/${deleteId}`, { method: "DELETE" });
+      await kbOpenApiDELETE(kbId, `rules/${deleteId}`);
       setDeleteId(null);
       if (editor.kind === "edit" && editor.rule.id === deleteId) {
         resetEditor();

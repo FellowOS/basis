@@ -1,0 +1,14 @@
+extends: spectral:oas
+rules:
+  info-contact: off
+  info-description: off
+  info-license: off
+  openapi-tags-alphabetical: off
+  operation-operationId-unique: error
+  operation-operationId: error
+  operation-description: off
+  operation-tag-defined: off
+  path-params: error
+  no-$ref-siblings: off
+  oas3-valid-media-example: off
+  oas3-unused-component: off

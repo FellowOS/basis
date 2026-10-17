@@ -8,8 +8,8 @@ import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
 import { fmt, formatLocaleNumber } from '@/i18n/format.js';
 import type { Locale } from '@/i18n/locale.js';
-import { api } from '@/lib/api.js';
 import { formatUserFacingApiError } from '@/lib/api-error-message.js';
+import { kbOpenApiPOST } from '@/lib/openapi-client.js';
 
 type GraphRebuildMeta = {
   projection_revision?: number;
@@ -34,9 +34,7 @@ export function KbGraphRebuildButton({
   async function rebuild() {
     setBusy(true);
     try {
-      const meta = await api<GraphRebuildMeta>(`/api/kbs/${kbId}/graph/rebuild`, {
-        method: 'POST',
-      });
+      const meta = await kbOpenApiPOST<GraphRebuildMeta>(kbId, 'graph/rebuild');
       const revision =
         typeof meta.projection_revision === 'number'
           ? meta.projection_revision

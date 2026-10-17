@@ -30,6 +30,8 @@ dependencies = [
 dev = [
   "pytest>=8",
   "httpx>=0.27",
+  "PyYAML>=6",
+  "schemathesis>=3.38",
 ]
 # 扫描件 PDF、更多向量后端、多 LLM 网关（体积大，按需装）
 heavy = [

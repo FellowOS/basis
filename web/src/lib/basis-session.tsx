@@ -57,7 +57,7 @@ export function BasisSessionProvider({ children }: { children: ReactNode }) {
       if (!sessionStorage.getItem(guardKey)) {
         sessionStorage.setItem(guardKey, '1');
         window.location.replace(
-          `/api/auth/magic-link/verify?token=${encodeURIComponent(magic)}`,
+          `/api/v1/auth/magic-link/verify?token=${encodeURIComponent(magic)}`,
         );
       }
       return;

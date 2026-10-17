@@ -4,14 +4,11 @@ from __future__ import annotations
 
 from typing import Any
 
-from basis.mcp.tools import (
-    CAPABILITIES,
-    PROTOCOL_VERSION,
-    SERVER_INFO,
-    TOOL_DEFINITIONS,
-    KbToolContext,
-    call_tool,
-)
+from basis.core import KbCoreContext, TOOL_DEFINITIONS, execute
+from basis.mcp.tools import CAPABILITIES, PROTOCOL_VERSION, SERVER_INFO
+
+KbToolContext = KbCoreContext
+call_tool = execute
 
 
 def handle_jsonrpc(ctx: KbToolContext, req: dict[str, Any]) -> dict[str, Any] | None:

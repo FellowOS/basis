@@ -15,11 +15,11 @@ import { useI18n } from '@/i18n/context.js';
 import { formatLocaleDateTime } from '@/i18n/format.js';
 import type { Locale } from '@/i18n/locale.js';
 import { kbAlertKindLabel, kbAlertSeverityLabel } from '@/lib/kb-alert-labels.js';
-import { api } from '@/lib/api.js';
 import { kbAlertAction } from '@/lib/kb-alert-actions.js';
 import { consumeKbAlertsStream, type KbAlertStreamItem } from '@/lib/kb-alerts-stream.js';
 import { useKbCatalog } from '@/lib/kb-context.js';
 import { kbPath } from '@/lib/nav-config.js';
+import { kbOpenApiGET, kbOpenApiPOST } from '@/lib/openapi-client.js';
 
 type AlertsResponse = {
   alerts: KbAlertStreamItem[];
@@ -68,7 +68,9 @@ export function KbAlertsPage() {
     if (!id) return;
     setLoading(true);
     try {
-      const data = await api<AlertsResponse>(`/api/kbs/${id}/alerts?limit=100`);
+      const data = await kbOpenApiGET<AlertsResponse>(id, 'alerts', {
+        params: { query: { limit: 100 } },
+      });
       setAlerts(data.alerts);
       streamSinceRef.current = data.alerts[0]?.created_at ?? new Date().toISOString();
       setStreamReady(true);
@@ -122,7 +124,7 @@ export function KbAlertsPage() {
   const dismiss = async (alertId: string) => {
     if (!id) return;
     try {
-      await api(`/api/kbs/${id}/alerts/${alertId}/dismiss`, { method: 'POST' });
+      await kbOpenApiPOST(id, `alerts/${alertId}/dismiss`);
       setAlerts((prev) => prev.filter((a) => a.id !== alertId));
       notifyBadgeSync();
     } catch {
@@ -134,7 +136,7 @@ export function KbAlertsPage() {
     if (!id || alerts.length === 0) return;
     const current = [...alerts];
     await Promise.allSettled(
-      current.map((a) => api(`/api/kbs/${id}/alerts/${a.id}/dismiss`, { method: 'POST' })),
+      current.map((a) => kbOpenApiPOST(id, `alerts/${a.id}/dismiss`)),
     );
     setAlerts([]);
     notifyBadgeSync();

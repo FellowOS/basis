@@ -67,11 +67,11 @@ def test_persist_reasoning_derived_from_proof_chains(tmp_path) -> None:
 def test_ledger_derived_facts_route(tmp_path) -> None:
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
     admin = client.post(
-        "/api/auth/register",
+        "/api/v1/auth/register",
         json={"email": "df2@example.com", "password": "password1", "display_name": "DF2"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
     store = _knowledge(tmp_path)
     subj = store.get_or_create_entity_by_label(kb_id, "X")
     obj = store.get_or_create_entity_by_label(kb_id, "Y")
@@ -84,7 +84,7 @@ def test_ledger_derived_facts_route(tmp_path) -> None:
         rule_id=None,
         derivations=[],
     )
-    res = client.get(f"/api/kbs/{kb_id}/ledger/derived-facts", headers=headers)
+    res = client.get(f"/api/v1/kbs/{kb_id}/ledger/derived-facts", headers=headers)
     assert res.status_code == 200
     assert len(res.json()["derived_facts"]) >= 1
 
@@ -99,7 +99,7 @@ def test_ledger_derived_facts_route(tmp_path) -> None:
         derivations=[],
     )
     filtered = client.get(
-        f"/api/kbs/{kb_id}/ledger/derived-facts?entity_id={subj}",
+        f"/api/v1/kbs/{kb_id}/ledger/derived-facts?entity_id={subj}",
         headers=headers,
     )
     assert filtered.status_code == 200
@@ -160,14 +160,14 @@ def test_reasoning_apply_persists_derived_facts(tmp_path) -> None:
 
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
     admin = client.post(
-        "/api/auth/register",
+        "/api/v1/auth/register",
         json={"email": "ra@example.com", "password": "password1", "display_name": "RA"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
 
     run = client.post(
-        f"/api/kbs/{kb_id}/reasoning/run",
+        f"/api/v1/kbs/{kb_id}/reasoning/run",
         headers=headers,
         json={
             "facts": ["parent(PersistA, PersistB)"],
@@ -181,7 +181,7 @@ def test_reasoning_apply_persists_derived_facts(tmp_path) -> None:
     assert body.get("derived_facts_persisted", {}).get("created", 0) >= 1
     assert isinstance(body.get("projection"), dict)
     assert body["projection"].get("projection_revision") is not None
-    listed = client.get(f"/api/kbs/{kb_id}/ledger/derived-facts", headers=headers)
+    listed = client.get(f"/api/v1/kbs/{kb_id}/ledger/derived-facts", headers=headers)
     assert listed.status_code == 200
     assert len(listed.json()["derived_facts"]) >= 1
 
@@ -189,12 +189,12 @@ def test_reasoning_apply_persists_derived_facts(tmp_path) -> None:
 def test_list_ingest_jobs_alias(tmp_path) -> None:
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
     admin = client.post(
-        "/api/auth/register",
+        "/api/v1/auth/register",
         json={"email": "ij@example.com", "password": "password1", "display_name": "IJ"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
-    listed = client.get(f"/api/kbs/{kb_id}/ingest/jobs", headers=headers)
+    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+    listed = client.get(f"/api/v1/kbs/{kb_id}/ingest/jobs", headers=headers)
     assert listed.status_code == 200
     assert "jobs" in listed.json()
     assert "processing_jobs_path" in listed.json()

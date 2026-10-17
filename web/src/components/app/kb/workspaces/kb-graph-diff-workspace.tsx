@@ -30,8 +30,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs.j
 import { useI18n } from '@/i18n/context.js';
 import { formatLocaleDateTime, formatLocaleNumber } from '@/i18n/format.js';
 import type { Locale } from '@/i18n/locale.js';
-import { api } from '@/lib/api.js';
 import { formatUserFacingApiError } from '@/lib/api-error-message.js';
+import { kbOpenApiGET } from '@/lib/openapi-client.js';
 import { kbGraphPath } from '@/lib/graphUrlState.js';
 import { useKbNodeLabels } from '@/lib/kb-node-labels.js';
 import { kbPath } from '@/lib/nav-config.js';
@@ -163,7 +163,7 @@ export function KbGraphDiffWorkspace({
     setBoundsLoading(true);
     void (async () => {
       try {
-        const bounds = await api<{ min?: string; max?: string }>(`/api/kbs/${kbId}/temporal/bounds`);
+        const bounds = await kbOpenApiGET<{ min?: string; max?: string }>(kbId, 'temporal/bounds');
         if (cancelled) return;
         setLedgerBounds(bounds);
         const resolved = resolveScrubberBounds({
@@ -194,8 +194,9 @@ export function KbGraphDiffWorkspace({
     setError('');
     setDiff(null);
     try {
-      const params = new URLSearchParams({ from: fromTime.trim(), to: toTime.trim() });
-      const data = await api<GraphDiffResponse>(`/api/kbs/${kbId}/graph/diff?${params}`);
+      const data = await kbOpenApiGET<GraphDiffResponse>(kbId, 'graph/diff', {
+        params: { query: { from: fromTime.trim(), to: toTime.trim() } },
+      });
       setDiff(data);
       setSearchParams({ from: fromTime.trim(), to: toTime.trim() }, { replace: true });
     } catch (err) {

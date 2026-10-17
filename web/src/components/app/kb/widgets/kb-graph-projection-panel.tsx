@@ -10,7 +10,7 @@ import { useI18n } from '@/i18n/context.js';
 import { fmt, formatLocaleDateTime, formatLocaleNumber } from '@/i18n/format.js';
 import type { Locale } from '@/i18n/locale.js';
 import { graphProjectionStatusLabel } from '@/lib/kb-graph-projection-labels.js';
-import { api } from '@/lib/api.js';
+import { kbOpenApiGET } from '@/lib/openapi-client.js';
 import { formatUserFacingApiError, messageForApiErrorCode } from '@/lib/api-error-message.js';
 import { kbPath } from '@/lib/nav-config.js';
 
@@ -53,7 +53,7 @@ export function KbGraphProjectionPanel({
     setLoading(true);
     setError(null);
     try {
-      const body = await api<GraphProjectionStatus>(`/api/kbs/${kbId}/graph/projection`);
+      const body = await kbOpenApiGET<GraphProjectionStatus>(kbId, 'graph/projection');
       setStatus(body);
     } catch (err) {
       setError(formatUserFacingApiError(err, locale as Locale));

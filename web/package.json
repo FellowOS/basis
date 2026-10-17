@@ -16,6 +16,7 @@
     "clean": "rm -rf ../dist/web"
   },
   "dependencies": {
+    "@basis/client": "file:../packages/client",
     "@base-ui/react": "^1.7.0",
     "@hookform/resolvers": "^5.9.1",
     "@monaco-editor/react": "^4.7.0",

@@ -15,11 +15,11 @@ from basis.knowledge.store import KnowledgeStore
 def test_sync_graph_to_ledger_keeps_imported_edge_across_rebuild(tmp_path: Path) -> None:
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
     admin = client.post(
-        "/api/auth/register",
+        "/api/v1/auth/register",
         json={"email": "sync@example.com", "password": "password1", "display_name": "Sync"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
     knowledge: KnowledgeStore = client.app.state.knowledge_store
 
     session = GraphSession()
@@ -39,7 +39,7 @@ def test_sync_graph_to_ledger_keeps_imported_edge_across_rebuild(tmp_path: Path)
 
     labels = {
         row["canonical_label"]
-        for row in client.get(f"/api/kbs/{kb_id}/ledger/entities?limit=20", headers=headers).json()[
+        for row in client.get(f"/api/v1/kbs/{kb_id}/ledger/entities?limit=20", headers=headers).json()[
             "entities"
         ]
     }

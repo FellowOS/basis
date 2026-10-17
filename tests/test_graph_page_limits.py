@@ -13,14 +13,14 @@ def test_graph_nodes_limit_capped(tmp_path: Path) -> None:
     settings = Settings(data_dir=tmp_path)
     client = TestClient(create_app(settings))
     admin = client.post(
-        "/api/auth/register",
+        "/api/v1/auth/register",
         json={"email": "lim@example.com", "password": "password1", "display_name": "Lim"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
 
     res = client.get(
-        f"/api/kbs/{kb_id}/graph/nodes?limit=9999",
+        f"/api/v1/kbs/{kb_id}/graph/nodes?limit=9999",
         headers=headers,
     )
     assert res.status_code == 200
@@ -33,14 +33,14 @@ def test_graph_snapshot_limits_capped(tmp_path: Path) -> None:
     settings = Settings(data_dir=tmp_path)
     client = TestClient(create_app(settings))
     admin = client.post(
-        "/api/auth/register",
+        "/api/v1/auth/register",
         json={"email": "snap@example.com", "password": "password1", "display_name": "Snap"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
 
     res = client.get(
-        f"/api/kbs/{kb_id}/graph/snapshot?limit_nodes=99999&limit_edges=99999",
+        f"/api/v1/kbs/{kb_id}/graph/snapshot?limit_nodes=99999&limit_edges=99999",
         headers=headers,
     )
     assert res.status_code == 200

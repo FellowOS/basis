@@ -15,14 +15,14 @@ def test_settings_override_graph_snapshot_cap(tmp_path: Path) -> None:
     settings = Settings(data_dir=tmp_path, graph_page_max_nodes=8, graph_page_max_edges=12)
     client = TestClient(create_app(settings))
     admin = client.post(
-        "/api/auth/register",
+        "/api/v1/auth/register",
         json={"email": "cap@example.com", "password": "password1", "display_name": "Cap"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
 
     res = client.get(
-        f"/api/kbs/{kb_id}/graph/snapshot?limit_nodes=999&limit_edges=999",
+        f"/api/v1/kbs/{kb_id}/graph/snapshot?limit_nodes=999&limit_edges=999",
         headers=headers,
     )
     assert res.status_code == 200
@@ -35,11 +35,11 @@ def test_settings_override_chunk_search_cap(tmp_path: Path) -> None:
     settings = Settings(data_dir=tmp_path, chunk_search_max_limit=2)
     client = TestClient(create_app(settings))
     admin = client.post(
-        "/api/auth/register",
+        "/api/v1/auth/register",
         json={"email": "search@example.com", "password": "password1", "display_name": "S"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
 
     store = KnowledgeStore(tmp_path / "basis.db", BlobStore(tmp_path))
     _, version_id, _, _ = store.store_upload_bytes(
@@ -55,7 +55,7 @@ def test_settings_override_chunk_search_cap(tmp_path: Path) -> None:
     store.set_version_status(kb_id, version_id, "ready")
     store.close()
 
-    res = client.get(f"/api/kbs/{kb_id}/search?q=token&limit=50", headers=headers)
+    res = client.get(f"/api/v1/kbs/{kb_id}/search?q=token&limit=50", headers=headers)
     assert res.status_code == 200
     assert len(res.json()["chunks"]) <= 2
 
@@ -64,14 +64,14 @@ def test_document_upload_rejected_over_byte_cap(tmp_path: Path) -> None:
     settings = Settings(data_dir=tmp_path, upload_max_bytes=64)
     client = TestClient(create_app(settings))
     admin = client.post(
-        "/api/auth/register",
+        "/api/v1/auth/register",
         json={"email": "up@example.com", "password": "password1", "display_name": "Up"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
 
     over = client.post(
-        f"/api/kbs/{kb_id}/documents/upload",
+        f"/api/v1/kbs/{kb_id}/documents/upload",
         headers=headers,
         files={"file": ("big.bin", b"x" * 128, "application/octet-stream")},
     )
@@ -80,7 +80,7 @@ def test_document_upload_rejected_over_byte_cap(tmp_path: Path) -> None:
     assert detail["code"] == "upload_too_large"
 
     text_over = client.post(
-        f"/api/kbs/{kb_id}/documents",
+        f"/api/v1/kbs/{kb_id}/documents",
         headers=headers,
         json={"doc_id": "big-text", "text": "y" * 128},
     )
@@ -96,19 +96,19 @@ def test_processing_fails_when_extracted_text_exceeds_cap(tmp_path: Path) -> Non
     )
     client = TestClient(create_app(settings))
     admin = client.post(
-        "/api/auth/register",
+        "/api/v1/auth/register",
         json={"email": "ext@example.com", "password": "password1", "display_name": "Ext"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
     source = client.post(
-        f"/api/kbs/{kb_id}/documents",
+        f"/api/v1/kbs/{kb_id}/documents",
         headers=headers,
         json={"doc_id": "long-doc", "text": "word " * 20},
     ).json()
 
     failed = client.post(
-        f"/api/kbs/{kb_id}/processing/jobs",
+        f"/api/v1/kbs/{kb_id}/processing/jobs",
         headers=headers,
         json={
             "version_id": source["version_id"],
@@ -122,7 +122,7 @@ def test_processing_fails_when_extracted_text_exceeds_cap(tmp_path: Path) -> Non
     assert failed.status_code == 413
     assert failed.json()["detail"]["code"] == "extract_text_too_large"
     job = client.get(
-        f"/api/kbs/{kb_id}/processing/jobs",
+        f"/api/v1/kbs/{kb_id}/processing/jobs",
         headers=headers,
     ).json()["jobs"][0]
     assert job["status"] == "failed"
@@ -144,19 +144,19 @@ def test_processing_fails_when_chunk_count_exceeds_cap(tmp_path: Path, monkeypat
     )
     client = TestClient(create_app(settings))
     admin = client.post(
-        "/api/auth/register",
+        "/api/v1/auth/register",
         json={"email": "chk@example.com", "password": "password1", "display_name": "Chk"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
     source = client.post(
-        f"/api/kbs/{kb_id}/documents",
+        f"/api/v1/kbs/{kb_id}/documents",
         headers=headers,
         json={"doc_id": "chunky", "text": "hello world"},
     ).json()
 
     failed = client.post(
-        f"/api/kbs/{kb_id}/processing/jobs",
+        f"/api/v1/kbs/{kb_id}/processing/jobs",
         headers=headers,
         json={
             "version_id": source["version_id"],
@@ -189,19 +189,19 @@ def test_processing_fails_when_extraction_times_out(tmp_path: Path, monkeypatch)
     )
     client = TestClient(create_app(settings))
     admin = client.post(
-        "/api/auth/register",
+        "/api/v1/auth/register",
         json={"email": "to@example.com", "password": "password1", "display_name": "To"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
     source = client.post(
-        f"/api/kbs/{kb_id}/documents",
+        f"/api/v1/kbs/{kb_id}/documents",
         headers=headers,
         json={"doc_id": "slow-ext", "text": "Alice knows Bob."},
     ).json()
 
     failed = client.post(
-        f"/api/kbs/{kb_id}/processing/jobs",
+        f"/api/v1/kbs/{kb_id}/processing/jobs",
         headers=headers,
         json={
             "version_id": source["version_id"],
@@ -236,18 +236,18 @@ def test_async_ingest_fails_with_ingest_overloaded_when_pending_full(
     )
     client = TestClient(create_app(settings))
     admin = client.post(
-        "/api/auth/register",
+        "/api/v1/auth/register",
         json={"email": "q@example.com", "password": "password1", "display_name": "Q"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_id = client.get("/api/kbs", headers=headers).json()["kbs"][0]["id"]
+    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
     a = client.post(
-        f"/api/kbs/{kb_id}/documents",
+        f"/api/v1/kbs/{kb_id}/documents",
         headers=headers,
         json={"doc_id": "qa", "text": "one"},
     ).json()
     b = client.post(
-        f"/api/kbs/{kb_id}/documents",
+        f"/api/v1/kbs/{kb_id}/documents",
         headers=headers,
         json={"doc_id": "qb", "text": "two"},
     ).json()
@@ -259,18 +259,18 @@ def test_async_ingest_fails_with_ingest_overloaded_when_pending_full(
         "relation_method": "pattern",
     }
     first = client.post(
-        f"/api/kbs/{kb_id}/processing/jobs",
+        f"/api/v1/kbs/{kb_id}/processing/jobs",
         headers=headers,
         json={**payload, "version_id": a["version_id"]},
     )
     assert first.status_code == 202
     second = client.post(
-        f"/api/kbs/{kb_id}/processing/jobs",
+        f"/api/v1/kbs/{kb_id}/processing/jobs",
         headers=headers,
         json={**payload, "version_id": b["version_id"]},
     )
     assert second.status_code == 202
-    jobs = client.get(f"/api/kbs/{kb_id}/processing/jobs", headers=headers).json()["jobs"]
+    jobs = client.get(f"/api/v1/kbs/{kb_id}/processing/jobs", headers=headers).json()["jobs"]
     overloaded = [j for j in jobs if j.get("error_code") == "ingest_overloaded"]
     assert len(overloaded) == 1
 

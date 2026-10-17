@@ -7,7 +7,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover.js';
-import { api } from '@/lib/api.js';
+import { kbOpenApiGET, kbOpenApiPOST } from '@/lib/openapi-client.js';
 import { consumeKbAlertsStream, type KbAlertStreamItem } from '@/lib/kb-alerts-stream.js';
 import { useI18n } from '@/i18n/context.js';
 import { formatBadgeCount, formatLocaleDateTime } from '@/i18n/format.js';
@@ -50,7 +50,9 @@ export function KbAlertsBell() {
     if (!kbId) return;
     setLoading(true);
     try {
-      const data = await api<AlertsResponse>(`/api/kbs/${kbId}/alerts?limit=20`);
+      const data = await kbOpenApiGET<AlertsResponse>(kbId, 'alerts', {
+        params: { query: { limit: 20 } },
+      });
       setAlerts(data.alerts);
       setBadge(data.unread_count || data.alerts.length);
       streamSinceRef.current =
@@ -118,7 +120,7 @@ export function KbAlertsBell() {
   const dismiss = async (alertId: string) => {
     if (!kbId) return;
     try {
-      await api(`/api/kbs/${kbId}/alerts/${alertId}/dismiss`, { method: 'POST' });
+      await kbOpenApiPOST(kbId, `alerts/${alertId}/dismiss`);
       setAlerts((prev) => prev.filter((a) => a.id !== alertId));
       setBadge((n) => Math.max(0, n - 1));
     } catch {

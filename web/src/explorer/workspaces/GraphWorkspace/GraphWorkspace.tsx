@@ -979,7 +979,7 @@ function collectPluginOverlays(
 }
 
 interface GraphWorkspaceProps {
-  /** KB id — all graph APIs use `/api/kbs/{kbId}/graph/...`. */
+  /** KB id — graph APIs use `/api/v1/kbs/{kbId}/graph/...` via Explorer HTTP config. */
   kbId: string;
   externalFocusNodeId?: string;
   externalFocusToken?: number;

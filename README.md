@@ -51,7 +51,10 @@ Full capability map: [product-and-roadmap.md](docs/design/product-and-roadmap.md
 | `BASIS_HOST` / `BASIS_PORT` | `127.0.0.1` / `8090` | API bind |
 | `BASIS_DATA_DIR` | `./data` | SQLite, blobs, graph JSON |
 | `BASIS_DATABASE_URL` | *(unset → SQLite)* | PostgreSQL for production |
-| `BASIS_API_URL` | `http://127.0.0.1:8090` | Web → API (`web/.env`) |
+| `BASIS_API_URL` | `http://127.0.0.1:8090` | Vite dev proxy target (`web/.env`) |
+| `VITE_BASIS_API_URL` | *(unset → same-origin)* | Browser fetch base when not using the dev proxy |
+| `BASIS_LEGACY_API_ENABLED` | `0` | Set `1` to allow unversioned `/api/*` (deprecated) |
+| `BASIS_REST_V1_MAX_INFLIGHT` | `64` | Concurrent `/api/v1/*` requests (503 `api_busy`) |
 
 PostgreSQL: `docker compose -f compose.postgres.yml up -d`, then set `BASIS_DATABASE_URL=postgresql://basis:basis@127.0.0.1:5432/basis`.
 

@@ -15,7 +15,7 @@ def _auth(token: str) -> dict[str, str]:
 
 def _register(client: TestClient, email: str) -> dict:
     response = client.post(
-        "/api/auth/register",
+        "/api/v1/auth/register",
         json={"email": email, "password": "password1", "display_name": "管理员"},
     )
     assert response.status_code == 200, response.text
@@ -25,7 +25,7 @@ def _register(client: TestClient, email: str) -> dict:
 def test_list_llm_providers_shape(tmp_path) -> None:
     client = _client(tmp_path)
     admin = _register(client, "admin@example.com")
-    res = client.get("/api/model-providers?kind=llm", headers=_auth(admin["token"]))
+    res = client.get("/api/v1/model-providers?kind=llm", headers=_auth(admin["token"]))
     assert res.status_code == 200
     body = res.json()
     assert body["kind"] == "llm"

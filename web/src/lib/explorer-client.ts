@@ -1,8 +1,14 @@
 import type { Locale } from '@/i18n/locale.js';
 import { requestFailedStatusMessage } from '@/i18n/format.js';
 import { messagesForLocale } from '@/i18n/pick-locale.js';
+import type { BasisApiError } from '@basis/client';
+
 import { errorFromApiResponse } from '@/lib/api-error.js';
-import { getToken } from '@/lib/api.js';
+import { getToken } from '@/lib/auth-token.js';
+import { basisApiUrl } from '@/lib/basis-session-fetch.js';
+import { basisSessionClient } from '@/lib/basis-session-client.js';
+import { kbApiRoot } from '@/lib/kb-api-path.js';
+import { ensureRequestIdHeader } from '@/lib/request-id.js';
 
 function ingestPollTimeoutMessage(locale: Locale): string {
   return messagesForLocale(locale).kbIngestSources.ingestPollTimeout;
@@ -40,16 +46,17 @@ export class ExplorerClient {
   path(subpath: string): string {
     const suffix = subpath.startsWith('/') ? subpath : `/${subpath}`;
     if (!suffix.startsWith('/api/')) {
-      return `/api/kbs/${this.kbId}${suffix}`;
+      return `${kbApiRoot(this.kbId)}${suffix}`;
     }
     return suffix;
   }
 
   async requestMultipart<T>(subpath: string, form: FormData): Promise<{ data: T; status: number }> {
     const headers = new Headers();
+    ensureRequestIdHeader(headers);
     const token = getToken();
     if (token) headers.set('Authorization', `Bearer ${token}`);
-    const response = await fetch(this.path(subpath), {
+    const response = await fetch(basisApiUrl(this.path(subpath)), {
       method: 'POST',
       headers,
       body: form,
@@ -68,27 +75,23 @@ export class ExplorerClient {
   }
 
   async request<T>(subpath: string, init: RequestInit = {}): Promise<T> {
-    const headers = new Headers(init.headers);
-    const token = getToken();
-    if (token) headers.set('Authorization', `Bearer ${token}`);
-    if (init.body && !headers.has('Content-Type')) {
-      headers.set('Content-Type', 'application/json');
+    try {
+      return await basisSessionClient().fetchJson<T>(this.path(subpath), {
+        ...init,
+        signal: this.signal ?? init.signal,
+      });
+    } catch (err) {
+      const apiErr = err as BasisApiError;
+      if (typeof apiErr.status === 'number') {
+        throw errorFromApiResponse(
+          apiErr.status,
+          apiErr.data,
+          requestFailedStatusMessage(this.locale, apiErr.status),
+          this.locale,
+        );
+      }
+      throw err;
     }
-    const response = await fetch(this.path(subpath), {
-      ...init,
-      headers,
-      signal: this.signal ?? init.signal,
-    });
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok) {
-      throw errorFromApiResponse(
-        response.status,
-        data,
-        requestFailedStatusMessage(this.locale, response.status),
-        this.locale,
-      );
-    }
-    return data as T;
   }
 
   realtimeTicket() {
