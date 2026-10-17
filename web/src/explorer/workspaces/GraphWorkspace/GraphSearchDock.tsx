@@ -1,4 +1,4 @@
-import { SIDEBAR_ICON_BUTTON_CLASS, SidebarIcon } from "@/components/sidebar-icon.js";
+import { SIDEBAR_ICON_BUTTON_CLASS, SidebarIcon } from "@/components/app/shared/shell/sidebar-icon.js";
 import { useEffect, useRef, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button.js";

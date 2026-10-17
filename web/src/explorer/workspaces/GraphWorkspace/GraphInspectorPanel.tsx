@@ -1,4 +1,4 @@
-import { PublicIcon } from "@/components/ui/public-icon.js";
+import { PublicIcon } from "@/components/app/shared/primitives/public-icon.js";
 import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge.js";
 import { Button } from "@/components/ui/button.js";
@@ -474,7 +474,9 @@ export function GraphInspectorPanel({
         {(attributes?.valid_from || attributes?.valid_until || attribution.length > 0 || predictions.length > 0) ? (
           <div className="flex flex-wrap gap-1.5">
             {attributes?.valid_from || attributes?.valid_until ? (
-              <Badge variant="warning">{inspectorCopy(loc, "temporalBadge")}</Badge>
+              <Badge variant="outline" className="badge-status-warning">
+                {inspectorCopy(loc, "temporalBadge")}
+              </Badge>
             ) : null}
             {attribution.length ? (
               <Badge variant="outline">{inspectorBadgeCount(loc, attribution.length, "sourceFields")}</Badge>

@@ -5,7 +5,7 @@
  * perform one-click merges, and view merge history from the Registry.
  */
 import { useState, useCallback, useEffect } from "react";
-import { PublicIcon } from "@/components/ui/public-icon.js";
+import { PublicIcon } from "@/components/app/shared/primitives/public-icon.js";
 import { Button } from "@/components/ui/button.js";
 import {
   Dialog,
@@ -22,7 +22,7 @@ import { fetchKbNodeLabels } from "@/lib/kb-node-labels.js";
 import { errorFromApiResponse } from "@/lib/api-error.js";
 import { useApiErrorMessage } from "@/lib/use-api-error-message.js";
 import { logEvent, useRegistry } from "../../store/registryStore";
-import { KbEntityMergePropertyDiff } from "@/components/kb/widgets/kb-entity-merge-property-diff.js";
+import { KbEntityMergePropertyDiff } from "@/components/app/kb/widgets/kb-entity-merge-property-diff.js";
 import { useI18n } from "@/i18n/context.js";
 import {
   fmt,

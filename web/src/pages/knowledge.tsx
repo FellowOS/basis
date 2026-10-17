@@ -12,9 +12,9 @@ import {
   DataPanelToolbar,
   EmptyState,
   ToolbarSearch,
-} from '@/components/console-ui/index.js';
-import { DataTable, type DataTableColumn } from '@/components/console-ui/DataTable.js';
-import { ConsolePageLayout } from '@/components/console-ui/index.js';
+} from '@/components/app/shared/console/index.js';
+import { DataTable, type DataTableColumn } from '@/components/app/shared/console/DataTable.js';
+import { ConsolePageLayout } from '@/components/app/shared/console/index.js';
 import { Button } from '@/components/ui/button.js';
 import { Checkbox } from '@/components/ui/checkbox.js';
 import {
@@ -63,7 +63,7 @@ import { messageForApiErrorCode } from '@/lib/api-error-message.js';
 import { useKbCatalog } from '@/lib/kb-context.js';
 import { useKbCapabilities } from '@/lib/kb-capabilities.js';
 import { useExplorerClient } from '@/lib/explorer-context.js';
-import { KbIngestSourcesDialog } from '@/components/kb/dialogs/kb-ingest-sources-dialog.js';
+import { KbIngestSourcesDialog } from '@/components/app/kb/dialogs/kb-ingest-sources-dialog.js';
 import { kbPath } from '@/lib/nav-config.js';
 import { parseProcessingUrlState } from '@/lib/processingUrlState.js';
 import { parseSourcesUrlState } from '@/lib/sourcesUrlState.js';

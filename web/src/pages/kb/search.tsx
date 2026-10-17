@@ -1,52 +1,50 @@
-import { type FormEvent, useCallback, useEffect, useRef, useState } from 'react';
+import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import {
   DataPanel,
-  DataPanelBody,
   DataPanelToolbar,
   EmptyState,
   ToolbarSearch,
-} from '@/components/console-ui/index.js';
-import { ConsolePageLayout } from '@/components/console-ui/index.js';
-import { KbExplorerUnavailable } from '@/components/kb/shell/kb-explorer-unavailable.js';
+} from '@/components/app/shared/console/index.js';
+import { ConsolePageLayout } from '@/components/app/shared/console/index.js';
+import { KbExplorerUnavailable } from '@/components/app/kb/explorer-shell/kb-explorer-unavailable.js';
+import {
+  KbSearchChunkList,
+  KbSearchEntityList,
+  KbSearchGraphList,
+  type ChunkHit,
+  type GraphSearchHit,
+} from '@/components/app/kb/search/kb-search-results.js';
 import { Button } from '@/components/ui/button.js';
-import { Input } from '@/components/ui/input.js';
+import { Label } from '@/components/ui/label.js';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select.js';
 import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
-import { fmt, formatLocaleFixedDecimals, formatLocaleNumber, pickCountForm } from '@/i18n/format.js';
+import { fmt, formatLocaleNumber, pickCountForm } from '@/i18n/format.js';
 import type { Locale } from '@/i18n/locale.js';
 import { api } from '@/lib/api.js';
 import { formatUserFacingApiError } from '@/lib/api-error-message.js';
 import { useKbCatalog } from '@/lib/kb-context.js';
 import { useKbCapabilities } from '@/lib/kb-capabilities.js';
 import { useExplorerClient } from '@/lib/explorer-context.js';
-import { EntityRefLine } from '@/components/entity-ref-line.js';
-import {
-  LedgerEntityList,
-  type LedgerEntityHit,
-} from '@/components/ledger-entity-browser.js';
+import type { LedgerEntityHit } from '@/components/app/kb/ledger/ledger-entity-browser.js';
 import { useKbNodeLabels } from '@/lib/kb-node-labels.js';
 import { kbPath } from '@/lib/nav-config.js';
-import { kbGraphPath } from '@/lib/graphUrlState.js';
-import { graphNodeTypeLabel } from '@/explorer/workspaces/GraphWorkspace/graphWorkspaceCopy.js';
 import {
   kbSearchPath,
-  parseKbSearchTab,
-  type KbSearchTab,
+  parseKbSearchUrlState,
+  resolveKbSearchScope,
+  type KbSearchScope,
 } from '@/lib/searchUrlState.js';
 
-type GraphSearchHit = {
-  node: { id: string; type: string; content: string };
-  score: number;
-};
-
-type ChunkHit = {
-  chunk_id: string;
-  document_id: string;
-  document_title: string;
-  snippet: string;
-  ordinal: number;
-};
+const PREVIEW_LIMIT = 8;
+const SEARCH_LIMIT = 30;
 
 export function KbSearchPage() {
   const { t, locale } = useI18n();
@@ -58,38 +56,149 @@ export function KbSearchPage() {
   const { caps, loading: capsLoading } = useKbCapabilities();
   const kb = id ? getKb(id) : undefined;
   const client = useExplorerClient();
-  const [tab, setTab] = useState<KbSearchTab>(
-    () => parseKbSearchTab(searchParams.get('tab')) ?? 'chunks',
+
+  const urlState = useMemo(
+    () => parseKbSearchUrlState(searchParams.toString()),
+    [searchParams],
+  );
+
+  const [scope, setScope] = useState<KbSearchScope>(() =>
+    resolveKbSearchScope(searchParams.get('scope'), searchParams.get('tab')),
   );
   const [query, setQuery] = useState(() => searchParams.get('q') ?? '');
-  const ranUrlQueryKey = useRef<string | null>(null);
+
   const [graphResults, setGraphResults] = useState<GraphSearchHit[]>([]);
   const [chunkResults, setChunkResults] = useState<ChunkHit[]>([]);
   const [entityResults, setEntityResults] = useState<LedgerEntityHit[]>([]);
-  const [chunkMode, setChunkMode] = useState<string | null>(null);
-  const [engine, setEngine] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [filterDoc, setFilterDoc] = useState(() => searchParams.get('doc') ?? '');
-  const [filterEntity, setFilterEntity] = useState(() => searchParams.get('entity') ?? '');
-  const [filterCreatedAfter, setFilterCreatedAfter] = useState(
-    () => searchParams.get('created_after') ?? '',
-  );
-  const [filterCreatedBefore, setFilterCreatedBefore] = useState(
-    () => searchParams.get('created_before') ?? '',
-  );
-  const [filterAsOf, setFilterAsOf] = useState(() => searchParams.get('as_of') ?? '');
+  const [hasSearched, setHasSearched] = useState(() => Boolean(searchParams.get('q')?.trim()));
 
-  const graphBlocked = id && !capsLoading && caps && !caps.graph;
+  const ranUrlQueryKey = useRef<string | null>(null);
+
+  const graphEnabled = !capsLoading && caps?.graph === true;
+  const graphScopeBlocked = scope === 'graph' && id && !capsLoading && caps && !caps.graph;
+
   const graphLabelIds = graphResults.map((hit) => hit.node.id);
   const graphLabels = useKbNodeLabels(id, graphLabelIds);
 
+  const syncSearchUrl = useCallback(
+    (opts: { q: string; scope: KbSearchScope }) => {
+      if (!id) return;
+      const href = kbSearchPath(id, { scope: opts.scope, q: opts.q });
+      const next = href.split('?')[1] ?? '';
+      setSearchParams(new URLSearchParams(next), { replace: true });
+    },
+    [id, setSearchParams],
+  );
+
+  const fetchChunks = useCallback(
+    async (q: string, limit: number) => {
+      if (!id) return [] as ChunkHit[];
+      const params = new URLSearchParams({ q, limit: String(limit) });
+      const data = await api<{ chunks: ChunkHit[] }>(`/api/kbs/${id}/search?${params}`);
+      return data.chunks ?? [];
+    },
+    [id],
+  );
+
+  const fetchGraph = useCallback(
+    async (q: string, limit: number) => {
+      const data = await client.graph.search({ query: q, limit });
+      return data.results as GraphSearchHit[];
+    },
+    [client],
+  );
+
+  const fetchEntities = useCallback(
+    async (q: string, limit: number) => {
+      if (!id) return [] as LedgerEntityHit[];
+      const path = q
+        ? `/api/kbs/${id}/ledger/entities?query=${encodeURIComponent(q)}&limit=${limit}`
+        : `/api/kbs/${id}/ledger/entities?limit=${limit}`;
+      const data = await api<{ entities: LedgerEntityHit[] }>(path);
+      return data.entities ?? [];
+    },
+    [id],
+  );
+
+  const runSearch = useCallback(
+    async (activeScope: KbSearchScope, q: string) => {
+      if (!id) return;
+      const trimmed = q.trim();
+      const needsQuery = activeScope !== 'entities';
+      if (needsQuery && !trimmed) return;
+
+      setLoading(true);
+      setError(null);
+      setHasSearched(true);
+
+      const limit = SEARCH_LIMIT;
+
+      try {
+        if (activeScope === 'chunks') {
+          const chunks = await fetchChunks(trimmed, limit);
+          setChunkResults(chunks);
+          setGraphResults([]);
+          setEntityResults([]);
+        } else if (activeScope === 'graph') {
+          if (!graphEnabled) {
+            setGraphResults([]);
+            setChunkResults([]);
+            setEntityResults([]);
+            return;
+          }
+          const graph = await fetchGraph(trimmed, limit);
+          setGraphResults(graph);
+          setChunkResults([]);
+          setEntityResults([]);
+        } else {
+          const entities = await fetchEntities(trimmed, limit);
+          setEntityResults(entities);
+          setChunkResults([]);
+          setGraphResults([]);
+        }
+      } catch (err) {
+        setError(formatUserFacingApiError(err, locale as Locale));
+        setChunkResults([]);
+        setGraphResults([]);
+        setEntityResults([]);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [id, fetchChunks, fetchGraph, fetchEntities, graphEnabled, locale],
+  );
+
   useEffect(() => {
-    if (tab !== 'entities' || !id || entityResults.length > 0) return;
+    const parsed = parseKbSearchUrlState(searchParams.toString());
+    setScope(parsed.scope);
+    const q = searchParams.get('q');
+    if (q != null) setQuery(q);
+  }, [searchParams]);
+
+  useEffect(() => {
+    const q = searchParams.get('q')?.trim();
+    if (!q || !id) return;
+    const key = [urlState.scope, q].join('|');
+    if (ranUrlQueryKey.current === key) return;
+    if (urlState.scope === 'graph' && capsLoading) return;
+    if (urlState.scope === 'graph' && caps && !caps.graph) {
+      ranUrlQueryKey.current = key;
+      return;
+    }
+    ranUrlQueryKey.current = key;
+    setQuery(q);
+    setScope(urlState.scope);
+    void runSearch(urlState.scope, q);
+  }, [id, searchParams, urlState.scope, capsLoading, caps, runSearch]);
+
+  useEffect(() => {
+    if (scope !== 'entities' || !id || hasSearched) return;
     let cancelled = false;
-    void api<{ entities: LedgerEntityHit[] }>(`/api/kbs/${id}/ledger/entities?limit=30`)
-      .then((data) => {
-        if (!cancelled) setEntityResults(data.entities ?? []);
+    void fetchEntities('', PREVIEW_LIMIT)
+      .then((rows) => {
+        if (!cancelled) setEntityResults(rows);
       })
       .catch(() => {
         if (!cancelled) setEntityResults([]);
@@ -97,168 +206,50 @@ export function KbSearchPage() {
     return () => {
       cancelled = true;
     };
-  }, [tab, id, entityResults.length]);
+  }, [scope, id, hasSearched, fetchEntities]);
 
-  useEffect(() => {
-    const q = searchParams.get('q')?.trim();
-    if (q) setQuery(q);
-  }, [searchParams]);
+  function placeholderForScope(activeScope: KbSearchScope): string {
+    if (activeScope === 'chunks') return s.chunkPlaceholder;
+    if (activeScope === 'graph') return s.graphPlaceholder;
+    return s.entityPlaceholder;
+  }
 
-  const syncSearchUrl = useCallback(
-    (q: string, activeTab: KbSearchTab) => {
-      if (!id) return;
-      const href = kbSearchPath(id, {
-        tab: activeTab,
-        q,
-        doc: filterDoc.trim() || undefined,
-        entity: filterEntity.trim() || undefined,
-        created_after: filterCreatedAfter.trim() || undefined,
-        created_before: filterCreatedBefore.trim() || undefined,
-        as_of: filterAsOf.trim() || undefined,
-      });
-      const next = href.split('?')[1] ?? '';
-      setSearchParams(new URLSearchParams(next), { replace: true });
-    },
-    [
-      id,
-      filterDoc,
-      filterEntity,
-      filterCreatedAfter,
-      filterCreatedBefore,
-      filterAsOf,
-      setSearchParams,
-    ],
-  );
-
-  const runSearch = useCallback(
-    async (activeTab: KbSearchTab, q: string, syncUrl: boolean) => {
-      if (!q || !id) return;
-      if (syncUrl) syncSearchUrl(q, activeTab);
-      setLoading(true);
-      setError(null);
-      try {
-        if (activeTab === 'graph') {
-          const asOf = filterAsOf.trim();
-          const data = await client.graph.search({
-            query: q,
-            limit: 30,
-            ...(asOf ? { at: asOf } : {}),
-          });
-          setGraphResults(data.results as GraphSearchHit[]);
-          setEngine(
-            data.temporal_filter
-              ? 'temporal'
-              : ((data as { engine?: string }).engine ?? null),
-          );
-          setChunkResults([]);
-          setChunkMode(null);
-          setEntityResults([]);
-        } else if (activeTab === 'entities') {
-          const data = await api<{ entities: LedgerEntityHit[] }>(
-            `/api/kbs/${id}/ledger/entities?query=${encodeURIComponent(q)}&limit=30`,
-          );
-          setEntityResults(data.entities ?? []);
-          setGraphResults([]);
-          setChunkResults([]);
-          setChunkMode(null);
-          setEngine(null);
-        } else {
-          const params = new URLSearchParams({ q, limit: '30' });
-          const docFilter = filterDoc.trim();
-          const entityFilter = filterEntity.trim();
-          if (docFilter) params.set('document_id', docFilter);
-          if (entityFilter) params.set('entity_id', entityFilter);
-          const after = filterCreatedAfter.trim();
-          const before = filterCreatedBefore.trim();
-          if (after) params.set('created_after', after);
-          const asOf = filterAsOf.trim();
-          if (asOf) params.set('as_of', asOf);
-          else if (before) params.set('created_before', before);
-          const data = await api<{ chunks: ChunkHit[]; mode?: string }>(
-            `/api/kbs/${id}/search?${params}`,
-          );
-          setChunkResults(data.chunks ?? []);
-          setChunkMode(data.mode ?? null);
-          setGraphResults([]);
-          setEntityResults([]);
-          setEngine(null);
-        }
-      } catch (err) {
-        setError(formatUserFacingApiError(err, locale as Locale));
-        setGraphResults([]);
-        setChunkResults([]);
-        setEntityResults([]);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [
-      id,
-      client,
-      filterAsOf,
-      filterDoc,
-      filterEntity,
-      filterCreatedAfter,
-      filterCreatedBefore,
-      locale,
-      syncSearchUrl,
-    ],
-  );
-
-  useEffect(() => {
-    const q = searchParams.get('q')?.trim();
-    if (!q || !id) return;
-    const urlTab = parseKbSearchTab(searchParams.get('tab')) ?? 'chunks';
-    const key = `${urlTab}:${q}:${searchParams.toString()}`;
-    if (ranUrlQueryKey.current === key) return;
-    if (urlTab === 'graph' && capsLoading) return;
-    if (urlTab === 'graph' && caps && !caps.graph) {
-      ranUrlQueryKey.current = key;
-      return;
-    }
-    ranUrlQueryKey.current = key;
-    setQuery(q);
-    setTab(urlTab);
-    void runSearch(urlTab, q, false);
-  }, [id, searchParams, capsLoading, caps, runSearch]);
-
-  async function onSubmit(event: FormEvent) {
+  function onSubmit(event: FormEvent) {
     event.preventDefault();
     const q = query.trim();
-    if (!q || !id) return;
-    await runSearch(tab, q, true);
+    if (!id) return;
+    if (scope !== 'entities' && !q) return;
+    syncSearchUrl({ q, scope });
+    void runSearch(scope, q);
+  }
+
+  function changeScope(next: KbSearchScope) {
+    setScope(next);
+    syncSearchUrl({ q: query.trim(), scope: next });
+    const q = query.trim();
+    if (q || next === 'entities') {
+      void runSearch(next, q);
+    } else {
+      setChunkResults([]);
+      setGraphResults([]);
+      setEntityResults([]);
+      setHasSearched(false);
+      setError(null);
+    }
   }
 
   const name = kb?.name ?? id ?? t.common.ellipsis;
 
-  useEffect(() => {
-    const doc = searchParams.get('doc');
-    const entity = searchParams.get('entity');
-    if (doc) setFilterDoc(doc);
-    if (entity) {
-      setFilterEntity(entity);
-      setTab('chunks');
-    }
-    const createdAfter = searchParams.get('created_after');
-    const createdBefore = searchParams.get('created_before');
-    if (createdAfter) setFilterCreatedAfter(createdAfter);
-    if (createdBefore) setFilterCreatedBefore(createdBefore);
-    const asOf = searchParams.get('as_of');
-    if (asOf) setFilterAsOf(asOf);
-    const urlTab = parseKbSearchTab(searchParams.get('tab'));
-    if (urlTab) setTab(urlTab);
-  }, [searchParams]);
-
-  if (tab === 'graph' && graphBlocked) {
-    return <KbExplorerUnavailable kbId={id!} feature="graph" />;
+  if (graphScopeBlocked && id) {
+    return <KbExplorerUnavailable kbId={id} feature="graph" />;
   }
 
   const resultCount =
-    tab === 'chunks'
+    scope === 'chunks'
       ? chunkResults.length
-      : tab === 'entities'
-        ? entityResults.length
-        : graphResults.length;
+      : scope === 'graph'
+        ? graphResults.length
+        : entityResults.length;
   const countLabel = fmt(
     pickCountForm(locale, resultCount, s.resultCountOne, s.resultCount),
     { count: formatLocaleNumber(locale, resultCount) },
@@ -273,14 +264,14 @@ export function KbSearchPage() {
       ]}
       subtitle={
         <>
-          {t.pages.kbSubtitles.search}
+          {t.pages.kbSubtitles.search}{' '}
           {id ? (
-            <>
-              {' '}
-              <Link to={kbPath(id, 'graph')} className="text-primary underline-offset-2 hover:underline">
-                {s.openGraphLink}
-              </Link>
-            </>
+            <Link
+              to={kbPath(id, 'settings') + '?tab=search'}
+              className="text-primary underline-offset-2 hover:underline"
+            >
+              {s.searchSettingsLink}
+            </Link>
           ) : null}
         </>
       }
@@ -288,200 +279,74 @@ export function KbSearchPage() {
       <DataPanel>
         <form onSubmit={onSubmit}>
           <DataPanelToolbar
+            className="gap-3"
             search={
-              <ToolbarSearch
-                className="w-full min-w-[12rem] max-w-md sm:w-72"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder={
-                  tab === 'chunks'
-                    ? s.chunkPlaceholder
-                    : tab === 'entities'
-                      ? s.entityPlaceholder
-                      : s.graphPlaceholder
-                }
-              />
+              <div className="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row sm:items-center">
+                <ToolbarSearch
+                  className="min-w-0 flex-1"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder={placeholderForScope(scope)}
+                />
+                <div className="flex shrink-0 items-center gap-2">
+                  <Label htmlFor="kb-search-scope" className="sr-only">
+                    {s.scopeLabel}
+                  </Label>
+                  <Select
+                    value={scope}
+                    onValueChange={(v) => changeScope(v as KbSearchScope)}
+                  >
+                    <SelectTrigger id="kb-search-scope" className="h-9 w-[9.5rem]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="chunks">{s.scopeDocuments}</SelectItem>
+                      <SelectItem value="graph" disabled={!graphEnabled}>
+                        {s.scopeGraph}
+                      </SelectItem>
+                      <SelectItem value="entities">{s.scopeEntities}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
             }
             actions={
-              <>
-                <div className="flex flex-wrap gap-1">
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant={tab === 'chunks' ? 'default' : 'outline'}
-                    onClick={() => setTab('chunks')}
-                  >
-                    {s.tabChunks}
-                  </Button>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant={tab === 'graph' ? 'default' : 'outline'}
-                    onClick={() => setTab('graph')}
-                    disabled={!!graphBlocked}
-                  >
-                    {s.tabGraph}
-                  </Button>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant={tab === 'entities' ? 'default' : 'outline'}
-                    onClick={() => setTab('entities')}
-                  >
-                    {s.tabEntities}
-                  </Button>
-                </div>
-                <Button type="submit" size="sm" disabled={loading}>
-                  {loading ? <Spinner className="size-4" /> : null}
-                  {loading ? s.searching : s.search}
-                </Button>
-              </>
+              <Button type="submit" size="sm" className="h-9 min-w-[5.5rem]" disabled={loading}>
+                {loading ? <Spinner className="size-4" /> : null}
+                {loading ? s.searching : s.search}
+              </Button>
             }
           />
-          {tab === 'graph' && id && !graphBlocked ? (
-            <div className="mt-2 space-y-2 px-1">
-              <p className="text-xs text-muted-foreground">
-                {s.graphTemporalHint}{' '}
-                <Link to={kbPath(id, 'graph')} className="text-primary underline-offset-2 hover:underline">
-                  {s.openInGraph}
-                </Link>
-              </p>
-              <Input
-                value={filterAsOf}
-                onChange={(e) => setFilterAsOf(e.target.value)}
-                placeholder={s.filterAsOf}
-                className="text-xs"
-              />
-            </div>
-          ) : null}
-          {tab === 'chunks' ? (
-            <div className="mt-2 grid gap-2 px-1 sm:grid-cols-2">
-              <Input
-                value={filterDoc}
-                onChange={(e) => setFilterDoc(e.target.value)}
-                placeholder={s.filterDoc}
-                className="text-xs"
-              />
-              <Input
-                value={filterEntity}
-                onChange={(e) => setFilterEntity(e.target.value)}
-                placeholder={s.filterEntity}
-                className="text-xs"
-              />
-              <Input
-                value={filterCreatedAfter}
-                onChange={(e) => setFilterCreatedAfter(e.target.value)}
-                placeholder={s.filterCreatedAfter}
-                className="text-xs sm:col-span-1"
-              />
-              <Input
-                value={filterCreatedBefore}
-                onChange={(e) => setFilterCreatedBefore(e.target.value)}
-                placeholder={s.filterCreatedBefore}
-                className="text-xs sm:col-span-1"
-                disabled={Boolean(filterAsOf.trim())}
-              />
-              <Input
-                value={filterAsOf}
-                onChange={(e) => setFilterAsOf(e.target.value)}
-                placeholder={s.filterAsOf}
-                className="text-xs sm:col-span-2"
-              />
-            </div>
-          ) : null}
         </form>
-        {(engine || chunkMode || error) && (
-          <div className="space-y-1 px-1 text-xs">
-            {engine ? (
-              <p className="text-muted-foreground">
-                {s.engineLabel}：{engine}
-              </p>
-            ) : null}
-            {chunkMode ? (
-              <p className="text-muted-foreground">
-                {s.modeLabel}：{chunkMode}
-              </p>
-            ) : null}
-            {error ? <p className="text-sm text-destructive">{error}</p> : null}
+
+        {error ? (
+          <div className="mt-2 px-1">
+            <p className="text-sm text-destructive">{error}</p>
           </div>
-        )}
-        <DataPanelBody padded={false} className="mt-2">
-          <div className="border-b border-border px-4 py-2 text-xs text-muted-foreground">
-            {s.resultsTitle}
-            {loading ? null : ` · ${countLabel}`}
-          </div>
-          <div className="space-y-3 p-4">
-          {tab === 'chunks' ? (
-            chunkResults.length === 0 ? (
-              <EmptyState title={s.noResults} description={s.chunkPlaceholder} />
-            ) : (
-              chunkResults.map((hit) => (
-                <div key={hit.chunk_id} className="rounded-md border p-3 text-sm">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <div className="font-medium">{hit.document_title || hit.document_id}</div>
-                      <div className="text-xs text-muted-foreground">
-                        chunk #{hit.ordinal} · {hit.chunk_id}
-                      </div>
-                    </div>
-                    {id ? (
-                      <Button variant="outline" size="sm" className="h-7 shrink-0 text-xs" asChild>
-                        <Link
-                          to={`${kbPath(id, 'sources')}?chunk=${encodeURIComponent(hit.chunk_id)}`}
-                        >
-                          {s.evidence}
-                        </Link>
-                      </Button>
-                    ) : null}
-                  </div>
-                  <div className="mt-1 line-clamp-3">{hit.snippet || emptyCell}</div>
-                </div>
-              ))
-            )
-          ) : tab === 'entities' ? (
-            id ? (
-              entityResults.length === 0 ? (
-                <EmptyState title={s.noResults} description={s.entityPlaceholder} />
-              ) : (
-                <LedgerEntityList kbId={id} entities={entityResults} emptyLabel={s.noResults} />
-              )
-            ) : (
-              <EmptyState title={s.noResults} />
-            )
-          ) : graphResults.length === 0 ? (
-            <EmptyState title={s.noResults} description={s.graphPlaceholder} />
+        ) : null}
+
+        <div className="mt-6 min-w-0 w-full">
+          {!loading && hasSearched ? (
+            <p className="mb-3 text-xs text-muted-foreground tabular-nums">{countLabel}</p>
+          ) : null}
+          {!hasSearched && !query.trim() && scope !== 'entities' ? (
+            <EmptyState title={s.landingTitle} description={s.landingBody} />
+          ) : !id ? (
+            <EmptyState title={s.noResults} />
+          ) : scope === 'chunks' ? (
+            <KbSearchChunkList kbId={id} hits={chunkResults} copy={s} emptyCell={emptyCell} />
+          ) : scope === 'graph' ? (
+            <KbSearchGraphList
+              kbId={id}
+              hits={graphResults}
+              labels={graphLabels}
+              copy={s}
+              locale={locale as Locale}
+            />
           ) : (
-            graphResults.map((hit) => (
-              <div key={hit.node.id} className="rounded-md border p-3 text-sm">
-                <div className="flex items-start justify-between gap-2">
-                  <EntityRefLine id={hit.node.id} labels={graphLabels} className="min-w-0" />
-                  {id ? (
-                    <Button variant="ghost" size="sm" className="h-7 shrink-0 text-xs" asChild>
-                      <Link
-                        to={kbGraphPath(id, {
-                          focus: hit.node.id,
-                          at: filterAsOf.trim() || undefined,
-                        })}
-                      >
-                        {s.openInGraph}
-                      </Link>
-                    </Button>
-                  ) : null}
-                </div>
-                <div className="text-muted-foreground">
-                  {fmt(s.graphScoreLine, {
-                    type: graphNodeTypeLabel(locale as Locale, hit.node.type),
-                    score: formatLocaleFixedDecimals(locale, hit.score, 3),
-                  })}
-                </div>
-                {hit.node.content && hit.node.content !== graphLabels[hit.node.id] ? (
-                  <div className="mt-1 line-clamp-2 text-muted-foreground">{hit.node.content}</div>
-                ) : null}
-              </div>
-            ))
+            <KbSearchEntityList kbId={id} hits={entityResults} copy={s} />
           )}
-          </div>
-        </DataPanelBody>
+        </div>
       </DataPanel>
     </ConsolePageLayout>
   );

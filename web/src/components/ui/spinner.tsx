@@ -1,17 +1,14 @@
-import { useI18n } from "@/i18n/context.js"
-import { PublicIcon } from "@/components/ui/public-icon"
-import { cn } from "@/lib/utils"
+import { cn } from "cn"
+import { Loader2Icon } from "lucide-react"
 
-function Spinner({ className }: { className?: string }) {
-  const { t } = useI18n()
+function Spinner({ className, ...props }: React.ComponentProps<"svg">) {
   return (
-    <span data-slot="spinner" className="inline-flex" role="status" aria-label={t.common.loading}>
-      <PublicIcon
-        name="loader-01"
-        size={16}
-        className={cn("animate-spin", className)}
-      />
-    </span>
+    <Loader2Icon
+      role="status"
+      aria-label="Loading"
+      className={cn("size-4 animate-spin", className)}
+      {...props}
+    />
   )
 }
 

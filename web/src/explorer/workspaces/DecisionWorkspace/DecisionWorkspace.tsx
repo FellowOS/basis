@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from "react";
-import { PublicIcon } from "@/components/ui/public-icon.js";
+import { PublicIcon } from "@/components/app/shared/primitives/public-icon.js";
 import { Button } from "@/components/ui/button.js";
 import { Input } from "@/components/ui/input.js";
 import { buildExplorerKbApiPath, explorerFetch } from "../../host/explorerHttp";

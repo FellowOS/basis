@@ -1,7 +1,7 @@
 /**
  * ConceptTree.tsx — react-arborist SKOS hierarchy viewer.
  */
-import { PublicIcon } from '@/components/ui/public-icon.js';
+import { PublicIcon } from '@/components/app/shared/primitives/public-icon.js';
 import React, { useLayoutEffect, useRef, useState } from 'react';
 import { Tree } from 'react-arborist';
 import type { NodeRendererProps } from 'react-arborist';

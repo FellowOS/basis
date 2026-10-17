@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { PublicIcon } from "@/components/ui/public-icon.js";
+import { PublicIcon } from "@/components/app/shared/primitives/public-icon.js";
 import { cn } from "@/lib/utils.js";
 import {
   exWsErrorBanner,

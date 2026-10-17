@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button.js";
-import { PublicIcon } from "@/components/ui/public-icon.js";
+import { PublicIcon } from "@/components/app/shared/primitives/public-icon.js";
 import { Checkbox } from "@/components/ui/checkbox.js";
 import {
   AlertDialog,

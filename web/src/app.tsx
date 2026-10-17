@@ -31,7 +31,7 @@ import {
 } from '@/lazy-pages.js';
 import { HomePage } from '@/pages/home.js';
 import { LoginPage } from '@/pages/login.js';
-import { PlatformAdminLayout } from '@/components/platform/platform-admin-layout.js';
+import { PlatformAdminLayout } from '@/components/admin/platform-admin-layout.js';
 import { AdminLandingRedirect } from '@/pages/admin-landing-redirect.js';
 import { KbsLandingRedirect } from '@/pages/kbs-landing-redirect.js';
 import { KbSetupWorkspacePage } from '@/pages/kb/setup-workspace.js';

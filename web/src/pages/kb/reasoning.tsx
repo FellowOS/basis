@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom';
-import { ConsolePageLayout } from '@/components/console-ui/index.js';
-import { KbReasoningWorkspace } from '@/components/kb/workspaces/kb-reasoning-workspace.js';
+import { ConsolePageLayout } from '@/components/app/shared/console/index.js';
+import { KbReasoningWorkspace } from '@/components/app/kb/workspaces/kb-reasoning-workspace.js';
 import { useI18n } from '@/i18n/context.js';
 import { useKbCatalog } from '@/lib/kb-context.js';
 import { kbPath } from '@/lib/nav-config.js';

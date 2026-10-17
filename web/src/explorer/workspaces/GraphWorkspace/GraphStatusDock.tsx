@@ -17,8 +17,13 @@ function StatusBadge({
   children: ReactNode;
   tone?: "default" | "warm" | "success";
 }) {
-  const variant = tone === "success" ? "success" : tone === "warm" ? "warning" : "secondary";
-  return <Badge variant={variant}>{children}</Badge>;
+  const className =
+    tone === "success" ? "badge-status-success" : tone === "warm" ? "badge-status-warning" : undefined;
+  return (
+    <Badge variant={tone === "default" ? "secondary" : "outline"} className={className}>
+      {children}
+    </Badge>
+  );
 }
 
 export type GraphStatusSummary = {

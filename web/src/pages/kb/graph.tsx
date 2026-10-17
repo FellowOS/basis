@@ -1,5 +1,5 @@
 import { useParams, useSearchParams } from 'react-router-dom';
-import { KbGraphWorkspace } from '@/components/kb/workspaces/kb-graph-workspace.js';
+import { KbGraphWorkspace } from '@/components/app/kb/workspaces/kb-graph-workspace.js';
 
 export function KbGraphPage() {
   const { id } = useParams();

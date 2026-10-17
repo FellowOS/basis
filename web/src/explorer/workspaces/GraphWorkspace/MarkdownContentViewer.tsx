@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button.js";
 import { Textarea } from "@/components/ui/textarea.js";
-import { PublicIcon } from "@/components/ui/public-icon.js";
+import { PublicIcon } from "@/components/app/shared/primitives/public-icon.js";
 import {
   useEffect,
   useId,

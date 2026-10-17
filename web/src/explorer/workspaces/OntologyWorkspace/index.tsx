@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button.js";
-import { PublicIcon } from "@/components/ui/public-icon.js";
+import { PublicIcon } from "@/components/app/shared/primitives/public-icon.js";
 import { cn } from "@/lib/utils.js";
 import { HealthTab } from "./HealthTab";
 import { OntologyManager } from "./OntologyManager";

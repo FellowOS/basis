@@ -1,13 +1,17 @@
-import { type FormEvent, useEffect, useMemo, useState } from 'react';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useEffect, useMemo, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
 import {
   ConsolePageLayout,
   DataPanel,
   DataPanelBody,
   DataPanelTableFooter,
   EmptyState,
-} from '@/components/console-ui/index.js';
-import { DataTable, type DataTableColumn } from '@/components/console-ui/DataTable.js';
+} from '@/components/app/shared/console/index.js';
+import { DataTable, type DataTableColumn } from '@/components/app/shared/console/DataTable.js';
 import { Button } from '@/components/ui/button.js';
+import { Checkbox } from '@/components/ui/checkbox.js';
 import {
   Dialog,
   DialogContent,
@@ -16,9 +20,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog.js';
-import { Checkbox } from '@/components/ui/checkbox.js';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form.js';
 import { Input } from '@/components/ui/input.js';
-import { Label } from '@/components/ui/label.js';
 import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
 import { fmt, formatLocaleNumber, pickCountForm } from '@/i18n/format.js';
@@ -32,6 +42,15 @@ type UserRow = {
   is_admin: boolean;
 };
 
+const createUserSchema = z.object({
+  email: z.string().email(),
+  display_name: z.string().min(1),
+  password: z.string().min(8),
+  is_admin: z.boolean(),
+});
+
+type CreateUserValues = z.infer<typeof createUserSchema>;
+
 export function UsersPage() {
   const { t, locale } = useI18n();
   const p = t.pages.basisUsers;
@@ -41,7 +60,16 @@ export function UsersPage() {
   const [loading, setLoading] = useState(true);
   const [createOpen, setCreateOpen] = useState(false);
   const [creating, setCreating] = useState(false);
-  const [createIsAdmin, setCreateIsAdmin] = useState(false);
+
+  const createForm = useForm<CreateUserValues>({
+    resolver: zodResolver(createUserSchema),
+    defaultValues: {
+      email: '',
+      display_name: '',
+      password: '',
+      is_admin: false,
+    },
+  });
 
   async function load() {
     setLoading(true);
@@ -57,23 +85,15 @@ export function UsersPage() {
     load().catch((err) => setError(apiError(err)));
   }, [apiError]);
 
-  async function onCreate(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const form = new FormData(event.currentTarget);
+  async function onCreate(values: CreateUserValues) {
     setCreating(true);
     setError(null);
     try {
       await api('/api/admin/users', {
         method: 'POST',
-        body: JSON.stringify({
-          email: form.get('email'),
-          password: form.get('password'),
-          display_name: form.get('display_name'),
-          is_admin: createIsAdmin,
-        }),
+        body: JSON.stringify(values),
       });
-      event.currentTarget.reset();
-      setCreateIsAdmin(false);
+      createForm.reset();
       setCreateOpen(false);
       await load();
     } catch (err) {
@@ -145,48 +165,82 @@ export function UsersPage() {
         open={createOpen}
         onOpenChange={(open) => {
           setCreateOpen(open);
-          if (!open) setCreateIsAdmin(false);
+          if (!open) createForm.reset();
         }}
       >
         <DialogContent className="sm:max-w-md">
-          <form onSubmit={onCreate}>
-            <DialogHeader>
-              <DialogTitle>{p.createDialogTitle}</DialogTitle>
-              <DialogDescription>{p.createDialogDesc}</DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">{p.emailLabel}</Label>
-                <Input id="email" name="email" type="email" required />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="display_name">{p.displayNameLabel}</Label>
-                <Input id="display_name" name="display_name" required />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">{p.passwordLabel}</Label>
-                <Input id="password" name="password" type="password" minLength={8} required />
-              </div>
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id="create-is-admin"
-                  checked={createIsAdmin}
-                  onCheckedChange={(checked) => setCreateIsAdmin(checked === true)}
+          <Form {...createForm}>
+            <form onSubmit={createForm.handleSubmit(onCreate)}>
+              <DialogHeader>
+                <DialogTitle>{p.createDialogTitle}</DialogTitle>
+                <DialogDescription>{p.createDialogDesc}</DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <FormField
+                  control={createForm.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{p.emailLabel}</FormLabel>
+                      <FormControl>
+                        <Input type="email" autoComplete="email" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-                <Label htmlFor="create-is-admin" className="cursor-pointer font-normal">
-                  {p.systemAdmin}
-                </Label>
+                <FormField
+                  control={createForm.control}
+                  name="display_name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{p.displayNameLabel}</FormLabel>
+                      <FormControl>
+                        <Input autoComplete="name" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={createForm.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{p.passwordLabel}</FormLabel>
+                      <FormControl>
+                        <Input type="password" autoComplete="new-password" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={createForm.control}
+                  name="is_admin"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center gap-2 space-y-0">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={(checked) => field.onChange(checked === true)}
+                        />
+                      </FormControl>
+                      <FormLabel className="cursor-pointer font-normal">{p.systemAdmin}</FormLabel>
+                    </FormItem>
+                  )}
+                />
               </div>
-            </div>
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setCreateOpen(false)}>
-                {t.common.cancel}
-              </Button>
-              <Button type="submit" disabled={creating}>
-                {creating ? p.creating : p.create}
-              </Button>
-            </DialogFooter>
-          </form>
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setCreateOpen(false)}>
+                  {t.common.cancel}
+                </Button>
+                <Button type="submit" disabled={creating}>
+                  {creating ? p.creating : p.create}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
         </DialogContent>
       </Dialog>
     </ConsolePageLayout>

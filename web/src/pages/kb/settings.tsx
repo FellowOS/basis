@@ -1,8 +1,11 @@
+import { zodResolver } from '@hookform/resolvers/zod';
 import { type FormEvent, useCallback, useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import { ConfirmAlertDialog } from '@/components/console-ui/ConfirmAlertDialog.js';
-import { ConsolePageLayout } from '@/components/console-ui/index.js';
+import { ConfirmAlertDialog } from '@/components/app/shared/console/ConfirmAlertDialog.js';
+import { ConsolePageLayout } from '@/components/app/shared/console/index.js';
 import { Button } from '@/components/ui/button.js';
 import {
   Dialog,
@@ -14,6 +17,14 @@ import {
 } from '@/components/ui/dialog.js';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card.js';
 import { Checkbox } from '@/components/ui/checkbox.js';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form.js';
 import { Input } from '@/components/ui/input.js';
 import {
   NativeSelect,
@@ -38,8 +49,8 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs.js';
 import { useI18n } from '@/i18n/context.js';
 import { fmt } from '@/i18n/format.js';
-import { KbGraphOverviewStats } from '@/components/kb/widgets/kb-graph-overview-stats.js';
-import { KbGraphProjectionPanel } from '@/components/kb/widgets/kb-graph-projection-panel.js';
+import { KbGraphOverviewStats } from '@/components/app/kb/widgets/kb-graph-overview-stats.js';
+import { KbGraphProjectionPanel } from '@/components/app/kb/widgets/kb-graph-projection-panel.js';
 import { useKbCatalog } from '@/lib/kb-context.js';
 import { useKbCapabilities } from '@/lib/kb-capabilities.js';
 import { api } from '@/lib/api.js';
@@ -125,6 +136,19 @@ export function KbSettingsPage() {
   const [searchConfig, setSearchConfig] = useState<SearchConfigResponse | null>(null);
   const [reindexing, setReindexing] = useState(false);
   const [generalEditOpen, setGeneralEditOpen] = useState(false);
+
+  const generalFormSchema = z.object({
+    name: z.string().min(1),
+    description: z.string(),
+    visibility: z.enum(['restricted', 'open']),
+  });
+
+  type GeneralFormValues = z.infer<typeof generalFormSchema>;
+
+  const generalForm = useForm<GeneralFormValues>({
+    resolver: zodResolver(generalFormSchema),
+    defaultValues: { name: '', description: '', visibility: 'restricted' },
+  });
   const [searchEditOpen, setSearchEditOpen] = useState(false);
   const [memberAddOpen, setMemberAddOpen] = useState(false);
   const [addingMember, setAddingMember] = useState(false);
@@ -149,18 +173,26 @@ export function KbSettingsPage() {
       .catch((err) => setError(apiError(err)));
   }, [apiError, id]);
 
-  async function saveGeneral(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  useEffect(() => {
+    if (generalEditOpen && kb) {
+      generalForm.reset({
+        name: kb.name,
+        description: kb.description,
+        visibility: kb.visibility === 'open' ? 'open' : 'restricted',
+      });
+    }
+  }, [generalEditOpen, kb, generalForm]);
+
+  async function saveGeneral(values: GeneralFormValues) {
     if (!id) return;
-    const form = new FormData(event.currentTarget);
     setError(null);
     try {
       const body = await api<KbRow>(`/api/kbs/${id}`, {
         method: 'PATCH',
         body: JSON.stringify({
-          name: String(form.get('name') ?? ''),
-          description: String(form.get('description') ?? ''),
-          visibility: String(form.get('visibility') ?? 'restricted'),
+          name: values.name,
+          description: values.description,
+          visibility: values.visibility,
         }),
       });
       setKb(body);
@@ -453,42 +485,68 @@ export function KbSettingsPage() {
 
       <Dialog open={generalEditOpen} onOpenChange={setGeneralEditOpen}>
         <DialogContent className="sm:max-w-md">
-          <form className="space-y-4" onSubmit={saveGeneral}>
-            <DialogHeader>
-              <DialogTitle>{t.menu.kbSettings.general}</DialogTitle>
-              <DialogDescription>{ks.generalEditDesc}</DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4 py-2">
-              <div className="space-y-2">
-                <Label htmlFor="kb-name">{ks.fields.name}</Label>
-                <Input id="kb-name" name="name" defaultValue={kb.name} required />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="kb-desc">{ks.fields.description}</Label>
-                <Input id="kb-desc" name="description" defaultValue={kb.description} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="kb-vis">{ks.fields.visibility}</Label>
-                <NativeSelect
-                  id="kb-vis"
+          <Form {...generalForm}>
+            <form className="space-y-4" onSubmit={generalForm.handleSubmit(saveGeneral)}>
+              <DialogHeader>
+                <DialogTitle>{t.menu.kbSettings.general}</DialogTitle>
+                <DialogDescription>{ks.generalEditDesc}</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-2">
+                <FormField
+                  control={generalForm.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{ks.fields.name}</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={generalForm.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{ks.fields.description}</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={generalForm.control}
                   name="visibility"
-                  fullWidth
-                  defaultValue={kb.visibility}
-                >
-                  <NativeSelectOption value="restricted">
-                    {ks.visibilityLabels.restricted}
-                  </NativeSelectOption>
-                  <NativeSelectOption value="open">{ks.visibilityLabels.open}</NativeSelectOption>
-                </NativeSelect>
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{ks.fields.visibility}</FormLabel>
+                      <FormControl>
+                        <div className="native-select--full">
+                          <NativeSelect value={field.value} onChange={field.onChange}>
+                            <NativeSelectOption value="restricted">
+                              {ks.visibilityLabels.restricted}
+                            </NativeSelectOption>
+                            <NativeSelectOption value="open">{ks.visibilityLabels.open}</NativeSelectOption>
+                          </NativeSelect>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
-            </div>
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setGeneralEditOpen(false)}>
-                {t.common.cancel}
-              </Button>
-              <Button type="submit">{t.common.save}</Button>
-            </DialogFooter>
-          </form>
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setGeneralEditOpen(false)}>
+                  {t.common.cancel}
+                </Button>
+                <Button type="submit">{t.common.save}</Button>
+              </DialogFooter>
+            </form>
+          </Form>
         </DialogContent>
       </Dialog>
 

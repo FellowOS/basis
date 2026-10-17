@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { ConsolePageLayout } from '@/components/console-ui/index.js';
-import { ModelCatalogTab } from '@/components/model-catalog-tab.js';
+import { ConsolePageLayout } from '@/components/app/shared/console/index.js';
+import { ModelCatalogTab } from '@/components/admin/models/model-catalog-tab.js';
 import { Button } from '@/components/ui/button.js';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs.js';
 import { useI18n } from '@/i18n/context.js';

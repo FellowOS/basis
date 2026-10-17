@@ -1,11 +1,11 @@
-import { PublicIcon } from '@/components/ui/public-icon.js';
+import { PublicIcon } from '@/components/app/shared/primitives/public-icon.js';
 import { useCallback, useState } from 'react';
 import { Navigate, useParams, useSearchParams } from 'react-router-dom';
-import { ConsolePageLayout } from '@/components/console-ui/index.js';
+import { ConsolePageLayout } from '@/components/app/shared/console/index.js';
 import {
   KbOntologyWorkspace,
   type OntologyHubPageActions,
-} from '@/components/kb/workspaces/kb-ontology-workspace.js';
+} from '@/components/app/kb/workspaces/kb-ontology-workspace.js';
 import { Button } from '@/components/ui/button.js';
 import { useI18n } from '@/i18n/context.js';
 import { useKbCatalog } from '@/lib/kb-context.js';

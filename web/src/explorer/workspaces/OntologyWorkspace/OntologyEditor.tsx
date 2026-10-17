@@ -1,4 +1,4 @@
-import { PublicIcon } from "@/components/ui/public-icon.js";
+import { PublicIcon } from "@/components/app/shared/primitives/public-icon.js";
 import { useCallback, useEffect, useState } from "react";
 import { explorerFetch } from "../../host/explorerHttp";
 import {

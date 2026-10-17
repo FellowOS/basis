@@ -1,4 +1,4 @@
-import { PublicIcon } from "@/components/ui/public-icon.js";
+import { PublicIcon } from "@/components/app/shared/primitives/public-icon.js";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 

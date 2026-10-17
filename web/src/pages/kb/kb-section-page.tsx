@@ -1,5 +1,5 @@
 import { useParams } from 'react-router-dom';
-import { PlaceholderPage } from '@/components/placeholder-page.js';
+import { PlaceholderPage } from '@/components/app/kb/placeholder-page.js';
 import { useI18n } from '@/i18n/context.js';
 import { useKbCatalog } from '@/lib/kb-context.js';
 import type { KbNavKey } from '@/lib/nav-config.js';

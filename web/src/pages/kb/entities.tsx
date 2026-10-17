@@ -1,7 +1,7 @@
 import { useParams } from 'react-router-dom';
-import { ConsolePageLayout } from '@/components/console-ui/index.js';
-import { KbDerivedFactsPanel } from '@/components/kb/widgets/kb-derived-facts-panel.js';
-import { LedgerEntityBrowser } from '@/components/ledger-entity-browser.js';
+import { ConsolePageLayout } from '@/components/app/shared/console/index.js';
+import { KbDerivedFactsPanel } from '@/components/app/kb/widgets/kb-derived-facts-panel.js';
+import { LedgerEntityBrowser } from '@/components/app/kb/ledger/ledger-entity-browser.js';
 import { useI18n } from '@/i18n/context.js';
 import { useKbCatalog } from '@/lib/kb-context.js';
 import { kbPath } from '@/lib/nav-config.js';

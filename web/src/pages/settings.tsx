@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react';
 import { useState } from 'react';
-import { PlatformAccessSettings } from '@/components/platform/platform-access-settings.js';
-import { PlatformOrgSsoSection } from '@/components/platform/platform-org-sso-section.js';
-import { ConsolePageLayout } from '@/components/console-ui/index.js';
+import { PlatformAccessSettings } from '@/components/admin/platform-access-settings.js';
+import { PlatformOrgSsoSection } from '@/components/admin/platform-org-sso-section.js';
+import { ConsolePageLayout } from '@/components/app/shared/console/index.js';
 import { useI18n } from '@/i18n/context.js';
 import { useBasisSession } from '@/lib/basis-session.js';
 

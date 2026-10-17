@@ -1,6 +1,10 @@
-"use client"
-
 import * as React from "react"
+import { cn } from "cn"
+import {
+  ChevronDownIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+} from "lucide-react"
 import {
   DayPicker,
   getDefaultClassNames,
@@ -8,10 +12,6 @@ import {
 } from "react-day-picker"
 
 import { Button, buttonVariants } from "@/components/ui/button"
-import { PublicIcon } from "@/components/ui/public-icon"
-import { useI18n } from "@/i18n/context.js"
-import { LOCALE_HTML_LANG } from "@/i18n/locale.js"
-import { cn } from "@/lib/utils"
 
 function Calendar({
   className,
@@ -26,8 +26,6 @@ function Calendar({
   buttonVariant?: React.ComponentProps<typeof Button>["variant"]
 }) {
   const defaultClassNames = getDefaultClassNames()
-  const { locale } = useI18n()
-  const monthHtmlLang = LOCALE_HTML_LANG[locale]
 
   return (
     <DayPicker
@@ -41,7 +39,7 @@ function Calendar({
       captionLayout={captionLayout}
       formatters={{
         formatMonthDropdown: (date) =>
-          date.toLocaleString(monthHtmlLang, { month: "short" }),
+          date.toLocaleString("default", { month: "short" }),
         ...formatters,
       }}
       classNames={{
@@ -142,14 +140,25 @@ function Calendar({
             />
           )
         },
-        Chevron: ({ className, orientation }) => {
-          const name =
-            orientation === "left"
-              ? "chevron-left"
-              : orientation === "right"
-                ? "chevron-right"
-                : "chevron-down"
-          return <PublicIcon name={name} size={16} className={className} />
+        Chevron: ({ className, orientation, ...props }) => {
+          if (orientation === "left") {
+            return (
+              <ChevronLeftIcon className={cn("size-4", className)} {...props} />
+            )
+          }
+
+          if (orientation === "right") {
+            return (
+              <ChevronRightIcon
+                className={cn("size-4", className)}
+                {...props}
+              />
+            )
+          }
+
+          return (
+            <ChevronDownIcon className={cn("size-4", className)} {...props} />
+          )
         },
         DayButton: CalendarDayButton,
         WeekNumber: ({ children, ...props }) => {
@@ -175,8 +184,6 @@ function CalendarDayButton({
   ...props
 }: React.ComponentProps<typeof DayButton>) {
   const defaultClassNames = getDefaultClassNames()
-  const { locale } = useI18n()
-  const monthHtmlLang = LOCALE_HTML_LANG[locale]
 
   const ref = React.useRef<HTMLButtonElement>(null)
   React.useEffect(() => {
@@ -188,7 +195,7 @@ function CalendarDayButton({
       ref={ref}
       variant="ghost"
       size="icon"
-      data-day={day.date.toLocaleDateString(monthHtmlLang)}
+      data-day={day.date.toLocaleDateString()}
       data-selected-single={
         modifiers.selected &&
         !modifiers.range_start &&

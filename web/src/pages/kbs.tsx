@@ -1,14 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { KbCreateDialog } from '@/components/kb/shell/kb-create-dialog.js';
+import { KbCreateDialog } from '@/components/app/kb/explorer-shell/kb-create-dialog.js';
 import {
   ConsolePageLayout,
   DataPanel,
   DataPanelBody,
   DataPanelTableFooter,
   EmptyState,
-} from '@/components/console-ui/index.js';
-import { DataTable, type DataTableColumn } from '@/components/console-ui/DataTable.js';
+} from '@/components/app/shared/console/index.js';
+import { DataTable, type DataTableColumn } from '@/components/app/shared/console/DataTable.js';
 import { Button } from '@/components/ui/button.js';
 import { useI18n } from '@/i18n/context.js';
 import { fmt, formatLocaleNumber, pickCountForm } from '@/i18n/format.js';

@@ -1,7 +1,8 @@
-import { PublicIcon } from "@/components/ui/public-icon"
-import * as ResizablePrimitive from "react-resizable-panels"
+"use client"
 
-import { cn } from "@/lib/utils"
+import { cn } from "cn"
+import { GripVerticalIcon } from "lucide-react"
+import * as ResizablePrimitive from "react-resizable-panels"
 
 function ResizablePanelGroup({
   className,
@@ -41,7 +42,7 @@ function ResizableHandle({
     >
       {withHandle && (
         <div className="z-10 flex h-4 w-3 items-center justify-center rounded-xs border bg-border">
-          <PublicIcon name="grip-vertical" size={10} />
+          <GripVerticalIcon className="size-2.5" />
         </div>
       )}
     </ResizablePrimitive.Separator>

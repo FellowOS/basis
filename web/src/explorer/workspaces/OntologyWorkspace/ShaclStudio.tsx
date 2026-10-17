@@ -1,9 +1,12 @@
-import { PublicIcon } from "@/components/ui/public-icon.js";
+import { PublicIcon } from "@/components/app/shared/primitives/public-icon.js";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils.js";
 import Editor, { type Monaco } from "@monaco-editor/react";
 import { Button } from "@/components/ui/button.js";
-import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select.js";
+import {
+  NativeSelect,
+  NativeSelectOption,
+} from "@/components/ui/native-select.js";
 import { useI18n } from "@/i18n/context.js";
 import { fmt, formatLocaleNumber, pickCountForm } from "@/i18n/format.js";
 import type { Locale } from "@/i18n/locale.js";
@@ -212,20 +215,21 @@ export function ShaclStudio({ onJumpToNode }: ShaclStudioProps) {
           SHACL
         </span>
         <label className="sr-only" htmlFor="shacl-ontology">{copy.ontology}</label>
-        <NativeSelect
-          id="shacl-ontology"
-          fullWidth
-          size="sm"
-          className="min-w-0 max-w-sm flex-1 text-xs"
-          value={selectedUri}
-          onChange={(event) => setSelectedUri(event.target.value)}
-        >
-          {registry.map((entry) => (
-            <NativeSelectOption key={entry.uri} value={entry.uri}>
-              {entry.name}
-            </NativeSelectOption>
-          ))}
-        </NativeSelect>
+        <div className="native-select--full min-w-0 max-w-sm flex-1">
+          <NativeSelect
+            id="shacl-ontology"
+            size="sm"
+            className="text-xs"
+            value={selectedUri}
+            onChange={(event) => setSelectedUri(event.target.value)}
+          >
+            {registry.map((entry) => (
+              <NativeSelectOption key={entry.uri} value={entry.uri}>
+                {entry.name}
+              </NativeSelectOption>
+            ))}
+          </NativeSelect>
+        </div>
         <span className="hidden font-mono text-[11px] text-muted-foreground sm:inline">
           {shapes.length}
         </span>

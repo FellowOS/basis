@@ -1,0 +1,343 @@
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
+import { z } from 'zod';
+import { Button } from '@/components/ui/button.js';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card.js';
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form.js';
+import { Input } from '@/components/ui/input.js';
+import { Spinner } from '@/components/ui/spinner.js';
+import { Switch } from '@/components/ui/switch.js';
+import { useI18n } from '@/i18n/context.js';
+import type { Locale } from '@/i18n/locale.js';
+import { api } from '@/lib/api.js';
+import { formatUserFacingApiError } from '@/lib/api-error-message.js';
+import { orgSsoPublicUrls } from '@/lib/auth-site-url.js';
+
+type OrgPublic = { id: string; name: string; slug: string };
+
+type OrgOidcResponse = {
+  configured: boolean;
+  can_edit?: boolean;
+  organization: OrgPublic;
+  login_url: string;
+  callback_url: string;
+  issuer?: string;
+  client_id?: string;
+  scopes?: string;
+  email_domains?: string[];
+  enabled?: boolean;
+};
+
+const orgSsoFormSchema = z.object({
+  issuer: z.string().min(1),
+  clientId: z.string().min(1),
+  clientSecret: z.string(),
+  scopes: z.string(),
+  emailDomains: z.string(),
+  enabled: z.boolean(),
+});
+
+type OrgSsoFormValues = z.infer<typeof orgSsoFormSchema>;
+
+function orgSsoSchema(configured: boolean) {
+  return orgSsoFormSchema.superRefine((data, ctx) => {
+    if (!configured && !data.clientSecret.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['clientSecret'],
+        message: 'Required',
+      });
+    }
+  });
+}
+
+const emptyOrgSsoValues: OrgSsoFormValues = {
+  issuer: '',
+  clientId: '',
+  clientSecret: '',
+  scopes: 'openid email profile',
+  emailDomains: '',
+  enabled: true,
+};
+
+export function OrgSsoPanel({
+  organizationId,
+  siteBaseUrl,
+}: {
+  organizationId: string | null | undefined;
+  siteBaseUrl?: string;
+}) {
+  const { t, locale } = useI18n();
+  const copy = t.kbOrgSso;
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [data, setData] = useState<OrgOidcResponse | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const configured = data?.configured === true;
+  const resolver = useMemo(() => zodResolver(orgSsoSchema(configured)), [configured]);
+
+  const form = useForm<OrgSsoFormValues>({
+    resolver,
+    defaultValues: emptyOrgSsoValues,
+  });
+
+  const refresh = useCallback(async () => {
+    if (!organizationId) {
+      setData(null);
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    try {
+      const body = await api<OrgOidcResponse>(`/api/orgs/${organizationId}/oidc`);
+      setData(body);
+      if (body.configured) {
+        form.reset({
+          issuer: body.issuer ?? '',
+          clientId: body.client_id ?? '',
+          clientSecret: '',
+          scopes: body.scopes ?? 'openid email profile',
+          emailDomains: (body.email_domains ?? []).join(', '),
+          enabled: body.enabled ?? true,
+        });
+      } else {
+        form.reset({ ...emptyOrgSsoValues, clientSecret: '' });
+      }
+    } catch (err) {
+      setError(formatUserFacingApiError(err, locale as Locale));
+      setData(null);
+    } finally {
+      setLoading(false);
+    }
+  }, [organizationId, locale]);
+
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
+
+  async function onSubmit(values: OrgSsoFormValues) {
+    if (!organizationId || !data?.can_edit) return;
+    setSaving(true);
+    setError(null);
+    const domains = values.emailDomains
+      .split(',')
+      .map((d) => d.trim())
+      .filter(Boolean);
+    try {
+      await api(`/api/orgs/${organizationId}/oidc`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          issuer: values.issuer,
+          client_id: values.clientId,
+          client_secret: values.clientSecret,
+          scopes: values.scopes,
+          email_domains: domains,
+          enabled: values.enabled,
+        }),
+      });
+      toast.success(copy.saved);
+      await refresh();
+    } catch (err) {
+      setError(formatUserFacingApiError(err, locale as Locale));
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function copyText(text: string) {
+    void navigator.clipboard.writeText(text).then(() => {
+      toast.success(copy.copied);
+    });
+  }
+
+  const publicUrls = useMemo(() => {
+    const base = siteBaseUrl?.trim();
+    const slug = data?.organization.slug;
+    if (!base || !slug) return null;
+    return orgSsoPublicUrls(base, slug);
+  }, [data?.organization.slug, siteBaseUrl]);
+
+  const loginUrl = publicUrls?.login_url ?? data?.login_url ?? '';
+  const callbackUrl = publicUrls?.callback_url ?? data?.callback_url ?? '';
+
+  if (!organizationId) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">{copy.title}</CardTitle>
+          <CardDescription>{copy.noOrganization}</CardDescription>
+        </CardHeader>
+      </Card>
+    );
+  }
+
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">{copy.title}</CardTitle>
+        </CardHeader>
+        <CardContent className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Spinner className="size-4" />
+          {t.common.loading}
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!data) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">{copy.title}</CardTitle>
+          <CardDescription>{copy.loadFailed}</CardDescription>
+        </CardHeader>
+        {error ? <CardContent className="text-sm text-destructive">{error}</CardContent> : null}
+      </Card>
+    );
+  }
+
+  const canEdit = data.can_edit === true;
+  const readOnly = !canEdit;
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">{copy.title}</CardTitle>
+        <CardDescription>{copy.description}</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {error ? <p className="text-sm text-destructive">{error}</p> : null}
+
+        <dl className="grid gap-2 text-sm sm:grid-cols-[minmax(8rem,auto)_1fr]">
+          <dt className="text-muted-foreground">{copy.orgLabel}</dt>
+          <dd>{data.organization.name}</dd>
+          <dt className="text-muted-foreground">{copy.slugLabel}</dt>
+          <dd className="font-mono text-xs">{data.organization.slug}</dd>
+          <dt className="text-muted-foreground">{copy.loginUrlLabel}</dt>
+          <dd className="flex flex-wrap items-center gap-2">
+            <code className="break-all text-xs">{loginUrl}</code>
+            <Button type="button" size="sm" variant="outline" onClick={() => copyText(loginUrl)}>
+              {t.common.copy}
+            </Button>
+          </dd>
+          <dt className="text-muted-foreground">{copy.callbackHint}</dt>
+          <dd className="flex flex-wrap items-center gap-2">
+            <code className="break-all text-xs">{callbackUrl}</code>
+            <Button type="button" size="sm" variant="outline" onClick={() => copyText(callbackUrl)}>
+              {t.common.copy}
+            </Button>
+          </dd>
+        </dl>
+        <p className="text-sm text-muted-foreground">
+          {data.configured ? copy.configured : copy.notConfigured}
+        </p>
+
+        {readOnly ? (
+          <p className="text-sm text-muted-foreground">{copy.forbidden}</p>
+        ) : (
+          <Form {...form}>
+            <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
+              <FormField
+                control={form.control}
+                name="issuer"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{copy.fields.issuer}</FormLabel>
+                    <FormControl>
+                      <Input placeholder={copy.issuerPlaceholder} {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="clientId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{copy.fields.clientId}</FormLabel>
+                    <FormControl>
+                      <Input placeholder={copy.clientIdPlaceholder} {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="clientSecret"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{copy.fields.clientSecret}</FormLabel>
+                    <FormControl>
+                      <Input type="password" autoComplete="off" placeholder={copy.clientSecretPlaceholder} {...field} />
+                    </FormControl>
+                    {data.configured ? (
+                      <FormDescription>{copy.clientSecretKeepHint}</FormDescription>
+                    ) : null}
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="scopes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{copy.fields.scopes}</FormLabel>
+                    <FormControl>
+                      <Input placeholder={copy.scopesPlaceholder} {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="emailDomains"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{copy.fields.emailDomains}</FormLabel>
+                    <FormControl>
+                      <Input placeholder="acme.com, acme.cn" {...field} />
+                    </FormControl>
+                    <FormDescription>{copy.emailDomainsHint}</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="enabled"
+                render={({ field }) => (
+                  <FormItem className="flex items-center gap-3 space-y-0">
+                    <FormControl>
+                      <Switch checked={field.value} onCheckedChange={field.onChange} />
+                    </FormControl>
+                    <FormLabel className="font-normal">{copy.fields.enabled}</FormLabel>
+                  </FormItem>
+                )}
+              />
+              <Button type="submit" disabled={saving}>
+                {saving ? copy.saving : copy.save}
+              </Button>
+            </form>
+          </Form>
+        )}
+      </CardContent>
+    </Card>
+  );
+}

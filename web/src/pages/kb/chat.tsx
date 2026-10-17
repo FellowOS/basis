@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
-import { KbChatPlayground } from '@/components/kb/widgets/kb-chat-playground.js';
-import { KbMcpIntegrationPanel } from '@/components/kb/widgets/kb-mcp-integration-panel.js';
-import { ConsolePageLayout } from '@/components/console-ui/index.js';
+import { KbChatPlayground } from '@/components/app/kb/widgets/kb-chat-playground.js';
+import { KbMcpIntegrationPanel } from '@/components/app/kb/widgets/kb-mcp-integration-panel.js';
+import { ConsolePageLayout } from '@/components/app/shared/console/index.js';
 import { Button } from '@/components/ui/button.js';
-import { PublicIcon } from '@/components/ui/public-icon.js';
+import { PublicIcon } from '@/components/app/shared/primitives/public-icon.js';
 import { useI18n } from '@/i18n/context.js';
 import { useKbMcpIntegration } from '@/lib/use-kb-mcp-integration.js';
 import { useKbCatalog } from '@/lib/kb-context.js';
@@ -107,8 +107,6 @@ export function KbChatPage() {
             mcpInfo={mcp.mcpInfo}
             apiTokens={mcp.apiTokens}
             canManageTokens={canManageTokens}
-            tokenName={mcp.tokenName}
-            onTokenNameChange={mcp.setTokenName}
             onCreateToken={mcp.createApiToken}
             createdSecret={mcp.createdSecret}
             onDismissCreatedSecret={mcp.clearCreatedSecret}

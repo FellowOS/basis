@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button.js";
 import { Input } from "@/components/ui/input.js";
-import { PublicIcon } from "@/components/ui/public-icon.js";
+import { PublicIcon } from "@/components/app/shared/primitives/public-icon.js";
 import { useI18n } from "@/i18n/context.js";
 import { fmt, formatLocaleNumber, pickCountForm } from "@/i18n/format.js";
 import type { Locale } from "@/i18n/locale.js";

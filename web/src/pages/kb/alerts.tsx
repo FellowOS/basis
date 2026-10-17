@@ -1,4 +1,4 @@
-import { PublicIcon } from '@/components/ui/public-icon.js';
+import { PublicIcon } from '@/components/app/shared/primitives/public-icon.js';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import {
@@ -7,7 +7,7 @@ import {
   DataPanelBody,
   DataPanelToolbar,
   EmptyState,
-} from '@/components/console-ui/index.js';
+} from '@/components/app/shared/console/index.js';
 import { Badge } from '@/components/ui/badge.js';
 import { Button } from '@/components/ui/button.js';
 import { Spinner } from '@/components/ui/spinner.js';
@@ -26,15 +26,18 @@ type AlertsResponse = {
   unread_count: number;
 };
 
-function severityBadgeVariant(severity: string): 'destructive' | 'warning' | 'secondary' {
+function severityBadgeProps(severity: string): {
+  variant: 'destructive' | 'outline' | 'secondary';
+  className?: string;
+} {
   const normalized = severity.toLowerCase();
   if (normalized === 'critical' || normalized === 'error' || normalized === 'high') {
-    return 'destructive';
+    return { variant: 'destructive' };
   }
   if (normalized === 'warning' || normalized === 'warn' || normalized === 'medium') {
-    return 'warning';
+    return { variant: 'outline', className: 'badge-status-warning' };
   }
-  return 'secondary';
+  return { variant: 'secondary' };
 }
 
 export function KbAlertsPage() {
@@ -204,7 +207,7 @@ export function KbAlertsPage() {
                   >
                     <div className="min-w-0 flex-1 space-y-1.5">
                       <div className="flex flex-wrap items-center gap-2">
-                        <Badge variant={severityBadgeVariant(alert.severity)}>
+                        <Badge {...severityBadgeProps(alert.severity)}>
                           {kbAlertSeverityLabel(t.pages.alerts, alert.severity)}
                         </Badge>
                         <span className="text-xs text-muted-foreground">

@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button.js';
-import { PublicIcon } from '@/components/ui/public-icon.js';
+import { PublicIcon } from '@/components/app/shared/primitives/public-icon.js';
 import { useI18n } from '@/i18n/context.js';
 import { exWsHint, exWsScrollFill, exWsSplitMain } from '@/lib/explorer-ws-classes.js';
 import type { ConceptNode } from './types';

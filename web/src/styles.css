@@ -352,6 +352,69 @@ body {
   [data-disabled='true'] {
     cursor: default;
   }
+
+  /*
+   * Text fields (shadcn ui): border-only focus — no outer ring glow.
+   * Keeps components/ui vendor-clean; policy lives in project CSS.
+   */
+  [data-slot='input']:focus-visible,
+  [data-slot='textarea']:focus-visible,
+  [data-slot='native-select']:focus-visible {
+    @apply ring-0 border-ring;
+  }
+
+  [data-slot='input'][aria-invalid='true'],
+  [data-slot='textarea'][aria-invalid='true'],
+  [data-slot='native-select'][aria-invalid='true'] {
+    @apply ring-0;
+  }
+
+  [data-slot='badge']:focus-visible {
+    @apply ring-0;
+  }
+
+  [data-slot='native-select'] {
+    @apply min-w-[8.25rem] shadow-none;
+  }
+
+  [data-slot='badge'].badge-status-success {
+    @apply border-0 bg-ok-soft text-ok;
+  }
+
+  [data-slot='badge'].badge-status-warning {
+    @apply border-0 bg-warn-soft text-warn;
+  }
+
+  .native-select--full > [data-slot='native-select-wrapper'] {
+    @apply w-full max-w-full;
+  }
+
+  .native-select--full [data-slot='native-select'] {
+    @apply w-full min-w-0;
+  }
+
+  [data-basis-app] [data-slot='button'][data-variant='outline']:focus-visible {
+    @apply border-transparent ring-0;
+    box-shadow: 0 0 0 3px var(--focus);
+  }
+
+  [data-basis-app] [data-slot='button'][data-variant='outline'] {
+    @apply max-w-full border-0 bg-[var(--control)] text-sm leading-none shadow-none;
+    @apply hover:bg-[color-mix(in_oklch,var(--foreground)_6%,var(--control))];
+  }
+
+  [data-basis-app] [data-slot='button'][data-variant='outline'][data-size='default'],
+  [data-basis-app] [data-slot='button'][data-variant='outline']:not([data-size]) {
+    @apply h-8 px-2.5 text-[13px];
+  }
+
+  [data-slot='input-group']:has([data-slot='input-group-control']:focus-visible) {
+    @apply ring-0 border-ring;
+  }
+
+  [data-slot='input-group']:has([data-slot][aria-invalid='true']) {
+    @apply ring-0;
+  }
 }
 
 input[type="checkbox"] {
@@ -503,4 +566,26 @@ input[type="checkbox"] {
   border-color: var(--acc);
   box-shadow: none;
   outline: none;
+}
+
+:root {
+  --sidebar: hsl(0 0% 98%);
+  --sidebar-foreground: hsl(240 5.3% 26.1%);
+  --sidebar-primary: hsl(240 5.9% 10%);
+  --sidebar-primary-foreground: hsl(0 0% 98%);
+  --sidebar-accent: hsl(240 4.8% 95.9%);
+  --sidebar-accent-foreground: hsl(240 5.9% 10%);
+  --sidebar-border: hsl(220 13% 91%);
+  --sidebar-ring: hsl(217.2 91.2% 59.8%);
+}
+
+.dark {
+  --sidebar: hsl(240 5.9% 10%);
+  --sidebar-foreground: hsl(240 4.8% 95.9%);
+  --sidebar-primary: hsl(224.3 76.3% 48%);
+  --sidebar-primary-foreground: hsl(0 0% 100%);
+  --sidebar-accent: hsl(240 3.7% 15.9%);
+  --sidebar-accent-foreground: hsl(240 4.8% 95.9%);
+  --sidebar-border: hsl(240 3.7% 15.9%);
+  --sidebar-ring: hsl(217.2 91.2% 59.8%);
 }

@@ -1,5 +1,5 @@
 import { useParams } from 'react-router-dom';
-import { KbLibraryWorkspace } from '@/components/kb/workspaces/kb-library-workspace.js';
+import { KbLibraryWorkspace } from '@/components/app/kb/workspaces/kb-library-workspace.js';
 import { KbExplorerShell } from '@/lib/explorer-context.js';
 
 export function KbLibraryPage() {

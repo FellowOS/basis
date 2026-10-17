@@ -1,7 +1,7 @@
 /**
  * Left sidebar for the Vocabulary workspace.
  */
-import { PublicIcon } from '@/components/ui/public-icon.js';
+import { PublicIcon } from '@/components/app/shared/primitives/public-icon.js';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button.js';
 import {

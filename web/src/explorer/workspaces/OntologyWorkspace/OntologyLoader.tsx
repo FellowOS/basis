@@ -1,4 +1,4 @@
-import { PublicIcon } from "@/components/ui/public-icon.js";
+import { PublicIcon } from "@/components/app/shared/primitives/public-icon.js";
 import { useRef, useState } from "react";
 import { explorerApiErrorMessage, parseExplorerJson } from "../../lib/explorer-api-error";
 import { explorerFetch } from "../../host/explorerHttp";
@@ -13,7 +13,10 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs.js";
 import { Button } from "@/components/ui/button.js";
 import { Input } from "@/components/ui/input.js";
-import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select.js";
+import {
+  NativeSelect,
+  NativeSelectOption,
+} from "@/components/ui/native-select.js";
 import { Textarea } from "@/components/ui/textarea.js";
 import { useI18n } from "@/i18n/context.js";
 import { fmt, formatLocaleNumber } from "@/i18n/format.js";
@@ -273,18 +276,19 @@ function URLImportPanel({ onLoaded }: { onLoaded: () => void }) {
       {showAdvanced && (
         <div className="flex flex-col gap-3">
           <FieldGroup label={l.formatOverride}>
-            <NativeSelect
-              fullWidth
-              value={format}
-              onChange={(e) => setFormat(e.target.value)}
-              className={ontLoaderSelect}
-            >
-              <NativeSelectOption value="">{l.formatAuto}</NativeSelectOption>
-              <NativeSelectOption value="turtle">{l.formatSelectExtended.turtle}</NativeSelectOption>
-              <NativeSelectOption value="xml">{l.formatSelectExtended.xml}</NativeSelectOption>
-              <NativeSelectOption value="nt">{l.formatSelectExtended.nt}</NativeSelectOption>
-              <NativeSelectOption value="json-ld">{l.formatSelectExtended['json-ld']}</NativeSelectOption>
-            </NativeSelect>
+            <div className="native-select--full">
+              <NativeSelect
+                value={format}
+                onChange={(e) => setFormat(e.target.value)}
+                className={ontLoaderSelect}
+              >
+                <NativeSelectOption value="">{l.formatAuto}</NativeSelectOption>
+                <NativeSelectOption value="turtle">{l.formatSelectExtended.turtle}</NativeSelectOption>
+                <NativeSelectOption value="xml">{l.formatSelectExtended.xml}</NativeSelectOption>
+                <NativeSelectOption value="nt">{l.formatSelectExtended.nt}</NativeSelectOption>
+                <NativeSelectOption value="json-ld">{l.formatSelectExtended['json-ld']}</NativeSelectOption>
+              </NativeSelect>
+            </div>
           </FieldGroup>
           <FieldGroup label={l.customDisplayName}>
             <Input
@@ -443,17 +447,18 @@ function FileUploadPanel({ onLoaded }: { onLoaded: () => void }) {
 
       {content && (
         <FieldGroup label={l.format}>
-          <NativeSelect
-            fullWidth
-            value={format}
-            onChange={(e) => setFormat(e.target.value)}
-            className={ontLoaderSelect}
-          >
-            <NativeSelectOption value="turtle">{mgr.formatLabels.turtle}</NativeSelectOption>
-            <NativeSelectOption value="xml">{mgr.formatLabels.xml}</NativeSelectOption>
-            <NativeSelectOption value="nt">{mgr.formatLabels.nt}</NativeSelectOption>
-            <NativeSelectOption value="json-ld">{mgr.formatLabels['json-ld']}</NativeSelectOption>
-          </NativeSelect>
+          <div className="native-select--full">
+            <NativeSelect
+              value={format}
+              onChange={(e) => setFormat(e.target.value)}
+              className={ontLoaderSelect}
+            >
+              <NativeSelectOption value="turtle">{mgr.formatLabels.turtle}</NativeSelectOption>
+              <NativeSelectOption value="xml">{mgr.formatLabels.xml}</NativeSelectOption>
+              <NativeSelectOption value="nt">{mgr.formatLabels.nt}</NativeSelectOption>
+              <NativeSelectOption value="json-ld">{mgr.formatLabels['json-ld']}</NativeSelectOption>
+            </NativeSelect>
+          </div>
         </FieldGroup>
       )}
 

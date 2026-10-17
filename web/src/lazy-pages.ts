@@ -1,7 +1,7 @@
 import { lazy } from 'react';
 
 export const BasisLayout = lazy(() =>
-  import('@/components/basis-layout').then((m) => ({ default: m.BasisLayout })),
+  import('@/components/app/shared/shell/basis-layout').then((m) => ({ default: m.BasisLayout })),
 );
 export const KbsPage = lazy(() => import('@/pages/kbs').then((m) => ({ default: m.KbsPage })));
 export const KbSettingsPage = lazy(() =>

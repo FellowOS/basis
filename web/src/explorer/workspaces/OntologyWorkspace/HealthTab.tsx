@@ -1,4 +1,4 @@
-import { PublicIcon } from "@/components/ui/public-icon.js";
+import { PublicIcon } from "@/components/app/shared/primitives/public-icon.js";
 import { useCallback, useEffect, useState } from "react";
 import { cn } from "@/lib/utils.js";
 import { Button } from "@/components/ui/button.js";
@@ -110,17 +110,18 @@ export function HealthTab({ onFixInEditor }: HealthTabProps) {
         </div>
         <div className="min-w-[320px] space-y-2">
           <Label className={ontLabel}>{h.ontologyLabel}</Label>
-          <NativeSelect
-            fullWidth
-            value={selectedUri}
-            onChange={(event) => setSelectedUri(event.target.value)}
-          >
-            {registry.map((entry) => (
-              <NativeSelectOption key={entry.uri} value={entry.uri}>
-                {entry.name}
-              </NativeSelectOption>
-            ))}
-          </NativeSelect>
+          <div className="native-select--full">
+            <NativeSelect
+              value={selectedUri}
+              onChange={(event) => setSelectedUri(event.target.value)}
+            >
+              {registry.map((entry) => (
+                <NativeSelectOption key={entry.uri} value={entry.uri}>
+                  {entry.name}
+                </NativeSelectOption>
+              ))}
+            </NativeSelect>
+          </div>
         </div>
       </section>
 

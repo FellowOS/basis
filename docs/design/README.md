@@ -6,6 +6,8 @@
 | [data-model.md](data-model.md) | SQLite、blob、账本、审核、Chat、图投影的数据结构与迁移约束 |
 | [explorer-integration.md](explorer-integration.md) | Explorer 多 KB Session、路由、JWT/角色、WS、持久化与前端组件复用契约 |
 | [implementation-backlog.md](implementation-backlog.md) | 首个「证据摄入 → 图投影 → Explorer 图页面」纵向切片的任务、依赖与验收 |
+| [openapi-v1-spec.md](openapi-v1-spec.md) | **OpenAPI v1** — 平台面 vs 知识库面（Access token / MCP）、`basis-v1-{platform,kb}.yaml` |
+| [core-rest-sdk-refactor.md](core-rest-sdk-refactor.md) | **Core + OpenAPI + MCP + client SDK** 重构与实施（服务端仅 OpenAPI + MCP 两面） |
 
 ## 已接受决策
 

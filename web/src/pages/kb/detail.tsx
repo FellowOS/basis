@@ -4,7 +4,7 @@
  */
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ConsolePageLayout } from '@/components/console-ui/index.js';
+import { ConsolePageLayout } from '@/components/app/shared/console/index.js';
 import { Button } from '@/components/ui/button.js';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card.js';
 import {

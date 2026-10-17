@@ -13,7 +13,7 @@ import {
   ontAlignSuggestList,
   ontStrong,
 } from "./ontologyUiClasses";
-import { PublicIcon } from "@/components/ui/public-icon.js";
+import { PublicIcon } from "@/components/app/shared/primitives/public-icon.js";
 import { useI18n } from "@/i18n/context.js";
 import { formatLocaleFixedDecimals } from "@/i18n/format.js";
 import type { Locale } from "@/i18n/locale.js";
@@ -473,33 +473,35 @@ export function AlignmentsTab() {
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label>{copy.sourceOntology}</Label>
-              <NativeSelect
-                fullWidth
-                value={sourceOntology}
-                onChange={(event) => setSourceOntology(event.target.value)}
-              >
-                <NativeSelectOption value="">{copy.anyOntology}</NativeSelectOption>
-                {registry.map((entry) => (
-                  <NativeSelectOption key={entry.uri} value={entry.uri}>
-                    {entry.name}
-                  </NativeSelectOption>
-                ))}
-              </NativeSelect>
+              <div className="native-select--full">
+                <NativeSelect
+                  value={sourceOntology}
+                  onChange={(event) => setSourceOntology(event.target.value)}
+                >
+                  <NativeSelectOption value="">{copy.anyOntology}</NativeSelectOption>
+                  {registry.map((entry) => (
+                    <NativeSelectOption key={entry.uri} value={entry.uri}>
+                      {entry.name}
+                    </NativeSelectOption>
+                  ))}
+                </NativeSelect>
+              </div>
             </div>
             <div className="space-y-2">
               <Label>{copy.targetOntology}</Label>
-              <NativeSelect
-                fullWidth
-                value={targetOntology}
-                onChange={(event) => setTargetOntology(event.target.value)}
-              >
-                <NativeSelectOption value="">{copy.anyOntology}</NativeSelectOption>
-                {registry.map((entry) => (
-                  <NativeSelectOption key={entry.uri} value={entry.uri}>
-                    {entry.name}
-                  </NativeSelectOption>
-                ))}
-              </NativeSelect>
+              <div className="native-select--full">
+                <NativeSelect
+                  value={targetOntology}
+                  onChange={(event) => setTargetOntology(event.target.value)}
+                >
+                  <NativeSelectOption value="">{copy.anyOntology}</NativeSelectOption>
+                  {registry.map((entry) => (
+                    <NativeSelectOption key={entry.uri} value={entry.uri}>
+                      {entry.name}
+                    </NativeSelectOption>
+                  ))}
+                </NativeSelect>
+              </div>
             </div>
           </div>
           <div className="space-y-2">

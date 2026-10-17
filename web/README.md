@@ -7,28 +7,52 @@ Vite + React front end for the Basis platform and per–knowledge-base Explorer 
 | Path | Role |
 |------|------|
 | `src/pages/` | **Routes** — thin pages: params, `ConsolePageLayout`, i18n. KB features live under `pages/kb/<segment>.tsx`. |
-| `src/components/kb/` | **KB product shell** — wraps Explorer; no heavy graph/ontology logic here. |
+| `src/components/` | React UI — three roots: **`ui`**, **`admin`**, **`app`** (see below). |
 | `src/explorer/` | **Explorer implementation** (vendored from semantica); see `src/explorer/README.md`. |
 | `src/lib/` | Shared app logic: API, nav, URL state, session, graph theme sync, `use-*` hooks. |
-| `src/components/ui/` | shadcn primitives. |
-| `src/components/console-ui/` | Basis console patterns (tables, page header, empty states). |
 | `src/styles/explorer/` | Explorer-specific CSS loaded from `styles.css`. |
 | `e2e/` | Playwright specs. |
+
+## `src/components/` — three roots
+
+| Root | Role |
+|------|------|
+| **`ui/`** | shadcn registry only — update with `npx shadcn add -o`, no hand edits. |
+| **`admin/`** | `/admin/*` UI — layout, section nav, org SSO, access settings; `admin/models/` for model catalog. |
+| **`app/`** | Main product experience (KB, global shell, marketing, shared patterns, design extensions). |
+
+**Dependency:** `admin/` and `app/` may import `ui/` and `app/*` shared layers; `ui/` must not import `admin/` or `app/`. No files at `components/` root except the three folders above.
+
+### `app/` subfolders
+
+| Path | Role |
+|------|------|
+| `app/shared/` | Cross-product UI (KB, marketing, admin pages, Explorer chrome). |
+| `app/shared/primitives/` | Non-registry controls (icons, editors, date picker, …). |
+| `app/shared/effects/` | Decorative motion. |
+| `app/shared/console/` | List/data page patterns — used by `pages/*` and KB blocks. |
+| `app/shared/shell/` | Global app chrome — `BasisLayout`, sidebar, account menu. |
+| `app/kb/` | KB-only product UI — see [KB grouping](#appkb-grouping). |
+| `app/marketing/` | Login and landing; `marketing/blocks/`. |
+
+Style helpers without React components: `@/lib/ui/*` (e.g. `card-surface`).
 
 ## Three-layer flow (KB Explorer features)
 
 1. **`pages/kb/*.tsx`** — routing, breadcrumbs, page-level actions, capability gates.
-2. **`components/kb/workspaces/kb-*-workspace.tsx`** — `KbExplorerConsoleShell`, lazy `import()` of Explorer, loading copy.
+2. **`components/app/kb/workspaces/kb-*-workspace.tsx`** — `KbExplorerConsoleShell`, lazy `import()` of Explorer, loading copy.
 3. **`explorer/workspaces/*/`** — screens, stores, Sigma/graph/ontology UI.
 
 Platform-only pages (e.g. `pages/kbs.tsx`, `pages/settings.tsx`) skip layer 2–3.
 
-## `components/kb/` grouping
+## `app/kb/` grouping {#appkb-grouping}
 
-- `shell/` — console shell, zone tabs, switcher, unavailable state.
+- `explorer-shell/` — KB Explorer console frame (zone tabs, switcher, unavailable). Not `app/shared/shell/` (global layout).
 - `workspaces/` — one file per KB nav destination that embeds Explorer.
 - `widgets/` — panels, stats, bells, merge diff, chat/MCP pieces used by pages.
 - `dialogs/` — import/export and ingest modals shared across KB UI.
+- `ledger/` — entity browser, evidence inspector, entity ref line.
+- `graph/` — graph toolbar / overview chrome (full graph UI stays in `src/explorer/`).
 
 ## Styling conventions
 

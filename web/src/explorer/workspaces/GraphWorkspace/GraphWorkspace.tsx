@@ -48,7 +48,7 @@ import { shouldApplyProjectionRevision } from "./graphProjectionRefresh";
 import { parseGraphRealtimeServerMessage } from "./graphRealtimeMessages";
 import { Badge } from "@/components/ui/badge.js";
 import { Button } from "@/components/ui/button.js";
-import { SIDEBAR_ICON_BUTTON_CLASS, SidebarIcon } from "@/components/sidebar-icon.js";
+import { SIDEBAR_ICON_BUTTON_CLASS, SidebarIcon } from "@/components/app/shared/shell/sidebar-icon.js";
 import { useI18n } from "@/i18n/context.js";
 import { useTheme } from "@/lib/theme.js";
 import {

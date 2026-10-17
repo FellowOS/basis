@@ -1,10 +1,10 @@
 import { useCallback, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { ConsolePageLayout } from '@/components/console-ui/index.js';
+import { ConsolePageLayout } from '@/components/app/shared/console/index.js';
 import {
   KbEntityResolutionWorkspace,
   type EntityResolutionPageActions,
-} from '@/components/kb/workspaces/kb-entity-resolution-workspace.js';
+} from '@/components/app/kb/workspaces/kb-entity-resolution-workspace.js';
 import { Button } from '@/components/ui/button.js';
 import { useI18n } from '@/i18n/context.js';
 import { useKbCatalog } from '@/lib/kb-context.js';

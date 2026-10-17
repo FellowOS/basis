@@ -1,7 +1,7 @@
-import { type FormEvent, useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { useI18n } from '@/i18n/context.js';
-import type { ApiTokenRow, McpIntegrationInfo } from '@/components/kb/widgets/kb-mcp-integration-panel.js';
+import type { ApiTokenRow, McpIntegrationInfo } from '@/components/app/kb/widgets/kb-mcp-integration-panel.js';
 import { api } from '@/lib/api.js';
 import { useApiErrorMessage } from '@/lib/use-api-error-message.js';
 
@@ -10,7 +10,6 @@ export function useKbMcpIntegration(kbId: string | undefined, canManageTokens: b
   const apiError = useApiErrorMessage();
   const [mcpInfo, setMcpInfo] = useState<McpIntegrationInfo | null>(null);
   const [apiTokens, setApiTokens] = useState<ApiTokenRow[]>([]);
-  const [tokenName, setTokenName] = useState('');
   const [createdSecret, setCreatedSecret] = useState<string | null>(null);
 
   const reloadTokens = useCallback(async () => {
@@ -45,23 +44,23 @@ export function useKbMcpIntegration(kbId: string | undefined, canManageTokens: b
   );
 
   const createApiToken = useCallback(
-    async (event: FormEvent) => {
-      event.preventDefault();
-      if (!kbId || !tokenName.trim()) return;
+    async (name: string) => {
+      const trimmed = name.trim();
+      if (!kbId || !trimmed) return;
       try {
         const body = await api<{ secret: string }>(`/api/kbs/${kbId}/tokens`, {
           method: 'POST',
-          body: JSON.stringify({ name: tokenName.trim(), scope: 'read' }),
+          body: JSON.stringify({ name: trimmed, scope: 'read' }),
         });
         setCreatedSecret(body.secret);
-        setTokenName('');
         await reloadTokens();
         toast.success(t.menu.kbMcp.secretOnce);
       } catch (err) {
         toast.error(apiError(err));
+        throw err;
       }
     },
-    [kbId, tokenName, reloadTokens, t],
+    [kbId, reloadTokens, t, apiError],
   );
 
   const deleteApiToken = useCallback(
@@ -81,8 +80,6 @@ export function useKbMcpIntegration(kbId: string | undefined, canManageTokens: b
   return {
     mcpInfo,
     apiTokens,
-    tokenName,
-    setTokenName,
     createdSecret,
     clearCreatedSecret: () => setCreatedSecret(null),
     copyToClipboard,

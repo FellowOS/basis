@@ -1,11 +1,14 @@
-import { type FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import { ConsolePageLayout } from '@/components/console-ui/index.js';
-import { DataTable, type DataTableColumn } from '@/components/console-ui/DataTable.js';
+import { ConsolePageLayout } from '@/components/app/shared/console/index.js';
+import { DataTable, type DataTableColumn } from '@/components/app/shared/console/DataTable.js';
 import { Badge } from '@/components/ui/badge.js';
 import { Button } from '@/components/ui/button.js';
-import { PublicIcon } from '@/components/ui/public-icon.js';
+import { PublicIcon } from '@/components/app/shared/primitives/public-icon.js';
 import {
   Dialog,
   DialogContent,
@@ -14,8 +17,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog.js';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form.js';
 import { Input } from '@/components/ui/input.js';
-import { Label } from '@/components/ui/label.js';
 import {
   Select,
   SelectContent,
@@ -29,9 +39,10 @@ import type { Locale } from '@/i18n/locale.js';
 import { api } from '@/lib/api.js';
 import { useApiErrorMessage } from '@/lib/use-api-error-message.js';
 import { useKbCatalog } from '@/lib/kb-context.js';
-import { EntityRefLine } from '@/components/entity-ref-line.js';
+import { EntityRefLine } from '@/components/app/kb/ledger/entity-ref-line.js';
 import { useKbNodeLabels } from '@/lib/kb-node-labels.js';
 import { kbPath } from '@/lib/nav-config.js';
+import { cn } from '@/lib/utils.js';
 import type { LocaleMessages } from '@/i18n/locales/en/index.js';
 
 type MappingRow = {
@@ -56,6 +67,22 @@ type TypedFactRow = {
 
 type KbMappingsCopy = LocaleMessages['kbMappings'];
 
+const createMappingSchema = z.object({
+  signature: z.string().trim().min(1),
+  targetUri: z.string(),
+  targetKind: z.enum(['property', 'class', 'none']),
+  direction: z.enum(['forward', 'reverse', 'n/a']),
+});
+
+type CreateMappingValues = z.infer<typeof createMappingSchema>;
+
+const defaultCreateMappingValues: CreateMappingValues = {
+  signature: '',
+  targetUri: '',
+  targetKind: 'property',
+  direction: 'forward',
+};
+
 export function KbMappingsPage() {
   const { t, locale } = useI18n();
   const m = t.kbMappings;
@@ -68,11 +95,6 @@ export function KbMappingsPage() {
   const [rows, setRows] = useState<MappingRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [signature, setSignature] = useState('');
-  const [targetUri, setTargetUri] = useState('');
-  const [targetKind, setTargetKind] = useState<'property' | 'class' | 'none'>('property');
-  const [direction, setDirection] = useState<'forward' | 'reverse' | 'n/a'>('forward');
-  const [saving, setSaving] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [phrases, setPhrases] = useState<string[]>([]);
   const [typedFacts, setTypedFacts] = useState<TypedFactRow[]>([]);
@@ -83,6 +105,15 @@ export function KbMappingsPage() {
   const entityLabels = useKbNodeLabels(id, entityIdsForLabels);
 
   const apiError = useApiErrorMessage();
+
+  const createForm = useForm<CreateMappingValues>({
+    resolver: zodResolver(createMappingSchema),
+    defaultValues: defaultCreateMappingValues,
+  });
+
+  useEffect(() => {
+    if (!createOpen) createForm.reset(defaultCreateMappingValues);
+  }, [createOpen, createForm]);
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -108,24 +139,20 @@ export function KbMappingsPage() {
     void load();
   }, [load]);
 
-  async function onSubmit(e: FormEvent) {
-    e.preventDefault();
-    if (!id || !signature.trim()) return;
-    setSaving(true);
+  async function onCreateMapping(values: CreateMappingValues) {
+    if (!id) return;
     setError(null);
     try {
       await api(`/api/kbs/${id}/mappings`, {
         method: 'POST',
         body: JSON.stringify({
-          signature: signature.trim(),
-          target_uri: targetUri.trim() || null,
-          target_kind: targetKind,
-          direction,
+          signature: values.signature.trim(),
+          target_uri: values.targetUri.trim() || null,
+          target_kind: values.targetKind,
+          direction: values.direction,
           status: 'proposed',
         }),
       });
-      setSignature('');
-      setTargetUri('');
       setCreateOpen(false);
       await load();
       toast.success(m.toastSubmitted, {
@@ -138,8 +165,6 @@ export function KbMappingsPage() {
       });
     } catch (err) {
       setError(apiError(err));
-    } finally {
-      setSaving(false);
     }
   }
 
@@ -324,70 +349,100 @@ export function KbMappingsPage() {
 
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
         <DialogContent className="sm:max-w-lg">
-          <form className="grid gap-4 sm:grid-cols-2" onSubmit={onSubmit}>
-            <DialogHeader className="sm:col-span-2">
-              <DialogTitle>{m.createDialogTitle}</DialogTitle>
-              <DialogDescription>{m.createDialogDesc}</DialogDescription>
-            </DialogHeader>
-            <div className="space-y-2 sm:col-span-2">
-              <Label htmlFor="sig">{m.labelSignature}</Label>
-              <Input
-                id="sig"
-                list="kb-surface-phrases-dialog"
-                value={signature}
-                onChange={(e) => setSignature(e.target.value)}
-                placeholder={m.signaturePlaceholder}
+          <Form {...createForm}>
+            <form
+              className="grid gap-4 sm:grid-cols-2"
+              onSubmit={createForm.handleSubmit(onCreateMapping)}
+            >
+              <DialogHeader className="sm:col-span-2">
+                <DialogTitle>{m.createDialogTitle}</DialogTitle>
+                <DialogDescription>{m.createDialogDesc}</DialogDescription>
+              </DialogHeader>
+              <FormField
+                control={createForm.control}
+                name="signature"
+                render={({ field }) => (
+                  <FormItem className="sm:col-span-2">
+                    <FormLabel>{m.labelSignature}</FormLabel>
+                    <FormControl>
+                      <Input list="kb-surface-phrases-dialog" placeholder={m.signaturePlaceholder} {...field} />
+                    </FormControl>
+                    <datalist id="kb-surface-phrases-dialog">
+                      {phrases.map((phrase) => (
+                        <option key={phrase} value={phrase} />
+                      ))}
+                    </datalist>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-              <datalist id="kb-surface-phrases-dialog">
-                {phrases.map((phrase) => (
-                  <option key={phrase} value={phrase} />
-                ))}
-              </datalist>
-            </div>
-            <div className="space-y-2 sm:col-span-2">
-              <Label htmlFor="uri">{m.labelTargetUri}</Label>
-              <Input
-                id="uri"
-                value={targetUri}
-                onChange={(e) => setTargetUri(e.target.value)}
-                placeholder={m.targetUriPlaceholder}
+              <FormField
+                control={createForm.control}
+                name="targetUri"
+                render={({ field }) => (
+                  <FormItem className="sm:col-span-2">
+                    <FormLabel>{m.labelTargetUri}</FormLabel>
+                    <FormControl>
+                      <Input placeholder={m.targetUriPlaceholder} {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
-            <div className="space-y-2">
-              <Label>{m.labelTargetKind}</Label>
-              <Select value={targetKind} onValueChange={(v) => setTargetKind(v as typeof targetKind)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="property">{m.targetKindProperty}</SelectItem>
-                  <SelectItem value="class">{m.targetKindClass}</SelectItem>
-                  <SelectItem value="none">{m.targetKindNone}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>{m.labelDirection}</Label>
-              <Select value={direction} onValueChange={(v) => setDirection(v as typeof direction)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="forward">{m.directionForward}</SelectItem>
-                  <SelectItem value="reverse">{m.directionReverse}</SelectItem>
-                  <SelectItem value="n/a">{m.directionNa}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <DialogFooter className="sm:col-span-2">
-              <Button type="button" variant="outline" onClick={() => setCreateOpen(false)}>
-                {t.common.cancel}
-              </Button>
-              <Button type="submit" disabled={saving || !signature.trim()}>
-                {saving ? m.saving : m.submitProposal}
-              </Button>
-            </DialogFooter>
-          </form>
+              <FormField
+                control={createForm.control}
+                name="targetKind"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{m.labelTargetKind}</FormLabel>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="property">{m.targetKindProperty}</SelectItem>
+                        <SelectItem value="class">{m.targetKindClass}</SelectItem>
+                        <SelectItem value="none">{m.targetKindNone}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={createForm.control}
+                name="direction"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{m.labelDirection}</FormLabel>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="forward">{m.directionForward}</SelectItem>
+                        <SelectItem value="reverse">{m.directionReverse}</SelectItem>
+                        <SelectItem value="n/a">{m.directionNa}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <DialogFooter className="sm:col-span-2">
+                <Button type="button" variant="outline" onClick={() => setCreateOpen(false)}>
+                  {t.common.cancel}
+                </Button>
+                <Button type="submit" disabled={createForm.formState.isSubmitting}>
+                  {createForm.formState.isSubmitting ? m.saving : m.submitProposal}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
         </DialogContent>
       </Dialog>
     </ConsolePageLayout>
@@ -409,14 +464,16 @@ function mappingDirectionLabel(copy: KbMappingsCopy, direction: string): string 
 }
 
 function MappingStatus({ status, copy }: { status: string; copy: KbMappingsCopy }) {
-  const variant =
+  const statusClass =
     status === 'proposed'
-      ? 'warning'
+      ? 'badge-status-warning'
       : status === 'confirmed' || status === 'approved' || status === 'active'
-        ? 'success'
-        : status === 'rejected' || status === 'dismissed'
-          ? 'destructive'
-          : 'outline';
+        ? 'badge-status-success'
+        : '';
+  const variant =
+    status === 'rejected' || status === 'dismissed'
+      ? 'destructive'
+      : 'outline';
   const label =
     status === 'proposed'
       ? copy.statusProposed
@@ -432,7 +489,7 @@ function MappingStatus({ status, copy }: { status: string; copy: KbMappingsCopy 
                 ? copy.statusDismissed
                 : status;
   return (
-    <Badge variant={variant} className="text-[11px] font-normal">
+    <Badge variant={variant} className={cn('text-[11px] font-normal', statusClass)}>
       {label}
     </Badge>
   );

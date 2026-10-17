@@ -7,9 +7,9 @@ import {
   DataPanelToolbar,
   EmptyState,
   ToolbarSearch,
-} from '@/components/console-ui/index.js';
-import { DataTable, type DataTableColumn } from '@/components/console-ui/DataTable.js';
-import { ConsolePageLayout } from '@/components/console-ui/index.js';
+} from '@/components/app/shared/console/index.js';
+import { DataTable, type DataTableColumn } from '@/components/app/shared/console/DataTable.js';
+import { ConsolePageLayout } from '@/components/app/shared/console/index.js';
 import { Button } from '@/components/ui/button.js';
 import {
   Select,

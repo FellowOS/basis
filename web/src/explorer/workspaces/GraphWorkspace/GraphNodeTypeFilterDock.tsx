@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button.js";
 import { Checkbox } from "@/components/ui/checkbox.js";
 import { Input } from "@/components/ui/input.js";
-import { SIDEBAR_ICON_BUTTON_CLASS, SidebarIcon } from "@/components/sidebar-icon.js";
+import { SIDEBAR_ICON_BUTTON_CLASS, SidebarIcon } from "@/components/app/shared/shell/sidebar-icon.js";
 import { fmt, formatLocaleNumber } from "@/i18n/format.js";
 import { cn } from "@/lib/utils.js";
 

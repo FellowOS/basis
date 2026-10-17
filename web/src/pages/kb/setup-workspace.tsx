@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { EmptyState } from '@/components/console-ui/index.js';
-import { ConsolePageLayout } from '@/components/console-ui/ConsolePageLayout.js';
+import { EmptyState } from '@/components/app/shared/console/index.js';
+import { ConsolePageLayout } from '@/components/app/shared/console/ConsolePageLayout.js';
 import { Button } from '@/components/ui/button.js';
-import { KbCreateDialog } from '@/components/kb/shell/kb-create-dialog.js';
+import { KbCreateDialog } from '@/components/app/kb/explorer-shell/kb-create-dialog.js';
 import { useI18n } from '@/i18n/context.js';
 import { pickDefaultKbId, writeActiveKbId } from '@/lib/kb-active-id.js';
 import { useKbCatalog } from '@/lib/kb-context.js';

@@ -1,4 +1,4 @@
-import { PublicIcon } from "@/components/ui/public-icon.js";
+import { PublicIcon } from "@/components/app/shared/primitives/public-icon.js";
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useDropzone } from "react-dropzone";
 import { Button } from "@/components/ui/button.js";

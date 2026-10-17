@@ -1,6 +1,6 @@
-import { SidebarIcon } from "@/components/sidebar-icon.js";
+import { SidebarIcon } from "@/components/app/shared/shell/sidebar-icon.js";
 import { cn } from "@/lib/utils.js";
-import { GraphToolButton, GraphToolTower } from "@/components/graph-tool-tower.js";
+import { GraphToolButton, GraphToolTower } from "@/components/app/kb/graph/graph-tool-tower.js";
 
 export type GraphToolbarRailItem = {
   id: string;

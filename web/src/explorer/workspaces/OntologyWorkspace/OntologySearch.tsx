@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button.js";
 import { Input } from "@/components/ui/input.js";
-import { PublicIcon } from "@/components/ui/public-icon.js";
+import { PublicIcon } from "@/components/app/shared/primitives/public-icon.js";
 import { useEffect, useRef, useState } from "react";
 import { explorerApiErrorMessage, explorerGetJson, parseExplorerJson } from "../../lib/explorer-api-error";
 import { explorerFetch } from "../../host/explorerHttp";
