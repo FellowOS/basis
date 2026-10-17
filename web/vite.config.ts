@@ -49,6 +49,7 @@ export default defineConfig({
     proxy: {
       '/api': { target: apiTarget, ws: true },
       '/health': apiTarget,
+      '/openapi': apiTarget,
     },
   },
 });

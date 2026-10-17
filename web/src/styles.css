@@ -2,6 +2,7 @@
 @import "shadcn/tailwind.css";
 @import "flag-icons/css/flag-icons.min.css";
 @import "./styles/explorer/index.css";
+@import "./styles/swagger-ui-basis.css";
 
 @source "./";
 @source "./components/ui";
@@ -353,19 +354,10 @@ body {
     cursor: default;
   }
 
-  /*
-   * Text fields (shadcn ui): border-only focus — no outer ring glow.
-   * Keeps components/ui vendor-clean; policy lives in project CSS.
-   */
-  [data-slot='input']:focus-visible,
-  [data-slot='textarea']:focus-visible,
-  [data-slot='native-select']:focus-visible {
-    @apply ring-0 border-ring;
-  }
-
-  [data-slot='input'][aria-invalid='true'],
-  [data-slot='textarea'][aria-invalid='true'],
-  [data-slot='native-select'][aria-invalid='true'] {
+  /* Text field focus policy: unlayered rules below (override shadcn ring utilities). */
+  [data-slot='input'][aria-invalid='true']:not(:focus-visible),
+  [data-slot='textarea'][aria-invalid='true']:not(:focus-visible),
+  [data-slot='native-select'][aria-invalid='true']:not(:focus-visible) {
     @apply ring-0;
   }
 
@@ -408,13 +400,48 @@ body {
     @apply h-8 px-2.5 text-[13px];
   }
 
-  [data-slot='input-group']:has([data-slot='input-group-control']:focus-visible) {
-    @apply ring-0 border-ring;
-  }
-
   [data-slot='input-group']:has([data-slot][aria-invalid='true']) {
     @apply ring-0;
   }
+}
+
+/*
+ * Text fields (shadcn ui): border-only focus — no outer ring glow.
+ * Unlayered so it wins over component `focus-visible:ring-*` utilities.
+ */
+[data-slot='input']:focus-visible,
+[data-slot='textarea']:focus-visible,
+[data-slot='native-select']:focus-visible,
+[data-slot='input-group-control']:focus-visible,
+input[data-slot='form-control']:focus-visible,
+textarea[data-slot='form-control']:focus-visible {
+  --tw-ring-shadow: 0 0 #0000 !important;
+  --tw-ring-offset-shadow: 0 0 #0000 !important;
+  box-shadow: none !important;
+  outline: none;
+  border-color: var(--ring);
+}
+
+[data-slot='input'][aria-invalid='true']:focus-visible,
+[data-slot='textarea'][aria-invalid='true']:focus-visible,
+[data-slot='native-select'][aria-invalid='true']:focus-visible,
+input[data-slot='form-control'][aria-invalid='true']:focus-visible,
+textarea[data-slot='form-control'][aria-invalid='true']:focus-visible {
+  --tw-ring-shadow: 0 0 #0000 !important;
+  box-shadow: none !important;
+  border-color: var(--destructive);
+}
+
+[data-slot='input-group']:has([data-slot='input-group-control']:focus-visible) {
+  --tw-ring-shadow: 0 0 #0000 !important;
+  --tw-ring-offset-shadow: 0 0 #0000 !important;
+  box-shadow: none !important;
+  outline: none;
+  border-color: var(--ring);
+}
+
+[data-slot='input-group']:has([data-slot='input-group-control'][aria-invalid='true']:focus-visible) {
+  border-color: var(--destructive);
 }
 
 input[type="checkbox"] {

@@ -9,8 +9,7 @@ Vite + React front end for the Basis platform and per–knowledge-base Explorer 
 | `src/pages/` | **Routes** — thin pages: params, `ConsolePageLayout`, i18n. KB features live under `pages/kb/<segment>.tsx`. |
 | `src/components/` | React UI — three roots: **`ui`**, **`admin`**, **`app`** (see below). |
 | `src/explorer/` | **Explorer implementation** (vendored from semantica); see `src/explorer/README.md`. |
-| `src/lib/` | `openapi-client.ts` (typed OpenAPI), `basis-session-client.ts` + `basis-session-fetch.ts` (SSE/stream), `api.ts` (login/session only), `kb-api-path.ts`, `kb-api-client.ts`. New JSON calls: `openApi*` / `kbOpenApi*` helpers. |
-| `../packages/client/` | Generated OpenAPI types + thin fetch client (`file:` dependency from `package.json`). |
+| `src/lib/` | `basis-openapi/` (generated types + `transport.ts`), `openapi-client.ts` (app helpers), session fetch, `kb-api-path.ts`. JSON: `openApi*` / `kbOpenApi*`. Regen types: `npm run gen:openapi-types`. |
 | `src/styles/explorer/` | Explorer-specific CSS loaded from `styles.css`. |
 | `e2e/` | Playwright specs. |
 

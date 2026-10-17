@@ -1,0 +1,69 @@
+import { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
+import SwaggerUI from 'swagger-ui-react';
+import 'swagger-ui-react/swagger-ui.css';
+import { ProductSiteHeader } from '@/components/app/marketing/product-site-header.js';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select.js';
+import { useI18n } from '@/i18n/context.js';
+import { getToken } from '@/lib/auth-token.js';
+import { openapiSpecUrl, type OpenApiSpecVariant } from '@/lib/openapi-spec-url.js';
+
+export function SwaggerPage() {
+  const { t } = useI18n();
+  const p = t.pages.swagger;
+  const [variant, setVariant] = useState<OpenApiSpecVariant>('full');
+  const specUrl = useMemo(() => openapiSpecUrl(variant), [variant]);
+
+  const requestInterceptor = useMemo(
+    () => (req: { headers?: Record<string, string> }) => {
+      const token = getToken();
+      if (token) {
+        req.headers = { ...req.headers, Authorization: `Bearer ${token}` };
+      }
+      return req;
+    },
+    [],
+  );
+
+  return (
+    <div className="flex h-dvh max-h-dvh flex-col overflow-hidden bg-background text-foreground">
+      <ProductSiteHeader activeKey="developers" />
+      <div className="flex min-h-0 flex-1 flex-col border-t border-border">
+        <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 px-5 py-3 sm:px-8">
+          <p className="text-sm text-muted-foreground">
+            {p.subtitle}{' '}
+            <Link to="/docs/api-reference" className="text-foreground underline-offset-4 hover:underline">
+              {t.docs.pages['api-reference'].navTitle}
+            </Link>
+          </p>
+          <Select value={variant} onValueChange={(v) => setVariant(v as OpenApiSpecVariant)}>
+            <SelectTrigger className="w-[220px]" size="sm">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="full">{p.specFull}</SelectItem>
+              <SelectItem value="platform">{p.specPlatform}</SelectItem>
+              <SelectItem value="kb">{p.specKb}</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="basis-swagger-panel min-h-0 flex-1 overflow-auto">
+          <SwaggerUI
+            key={specUrl}
+            url={specUrl}
+            docExpansion="list"
+            defaultModelsExpandDepth={-1}
+            tryItOutEnabled
+            requestInterceptor={requestInterceptor}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}

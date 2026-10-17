@@ -1,4 +1,4 @@
-import { createBasisPublicOpenApiClient } from '@basis/client';
+import { createBasisPublicOpenApiClient } from '@/lib/basis-openapi/transport.js';
 
 import { basisApiBaseUrl } from '@/lib/basis-api-url.js';
 import { basisSessionClient } from '@/lib/basis-session-client.js';

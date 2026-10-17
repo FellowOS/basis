@@ -77,12 +77,6 @@ jobs:
       - name: Web ↔ operationId audit (S0)
         run: uv run python scripts/audit-web-operation-ids.py
 
-      - name: Regenerate Python client manifest
-        run: uv run python scripts/gen-python-client.py
-
-      - name: Fail on Python client drift
-        run: git diff --exit-code packages/client-py/basis_client/_generated.py
-
   client-types:
     runs-on: ubuntu-latest
     steps:
@@ -92,14 +86,14 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: packages/client/package-lock.json
+          cache-dependency-path: web/package-lock.json
 
-      - name: Regenerate @basis/client types
-        working-directory: packages/client
-        run: npm ci && npm run gen:types
+      - name: Regenerate web OpenAPI types
+        working-directory: web
+        run: npm ci && npm run gen:openapi-types
 
       - name: Fail on schema drift
-        run: git diff --exit-code packages/client/src/schema.d.ts packages/client/src/schema-kb.d.ts
+        run: git diff --exit-code web/src/lib/basis-openapi/schema.d.ts web/src/lib/basis-openapi/schema-kb.d.ts
 
   pytest:
     runs-on: ubuntu-latest

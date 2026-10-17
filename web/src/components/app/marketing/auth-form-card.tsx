@@ -194,8 +194,8 @@ export function AuthFormCard() {
               render={({ field }) => (
                 <FormItem className="space-y-1.5">
                   <FormLabel className={fieldLabel}>{t.login.passwordLabel}</FormLabel>
-                  <FormControl>
-                    <div className="relative">
+                  <div className="relative">
+                    <FormControl>
                       <Input
                         type={showPassword ? 'text' : 'password'}
                         autoComplete={isRegister ? 'new-password' : 'current-password'}
@@ -203,19 +203,19 @@ export function AuthFormCard() {
                         className={`${fieldInput} pr-10`}
                         {...field}
                       />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon-sm"
-                        className="absolute top-1/2 right-1 -translate-y-1/2 text-muted-foreground"
-                        aria-label={showPassword ? t.login.hidePassword : t.login.showPassword}
-                        aria-pressed={showPassword}
-                        onClick={() => setShowPassword((visible) => !visible)}
-                      >
-                        <PublicIcon name={showPassword ? 'eye-off' : 'eye-open'} size={16} />
-                      </Button>
-                    </div>
-                  </FormControl>
+                    </FormControl>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-sm"
+                      className="absolute top-1/2 right-1 -translate-y-1/2 text-muted-foreground"
+                      aria-label={showPassword ? t.login.hidePassword : t.login.showPassword}
+                      aria-pressed={showPassword}
+                      onClick={() => setShowPassword((visible) => !visible)}
+                    >
+                      <PublicIcon name={showPassword ? 'eye-off' : 'eye-open'} size={16} />
+                    </Button>
+                  </div>
                 </FormItem>
               )}
             />

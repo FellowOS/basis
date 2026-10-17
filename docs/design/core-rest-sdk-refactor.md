@@ -19,13 +19,13 @@ Today Basis exposes integration capabilities through overlapping paths:
 | `basis/chat/playground.py` | Reuses `call_tool` from `mcp/tools.py` |
 | `/api/kbs/...` (many routers) | Console, ingest, Explorer, search — hand-overlapping with MCP |
 | `GET /openapi.json` | **Full** FastAPI schema (internal + public mixed) |
-| `web/src/lib/openapi-client.ts` + `@basis/client` | Typed OpenAPI v1 (`openapi-fetch`); `api.ts` is session auth only |
+| `web/src/lib/basis-openapi/` + `openapi-client.ts` | Typed OpenAPI v1 in-app transport; `api.ts` is session auth only |
 
 Gaps:
 
 1. No **single server core** for “agent integration” operations (search chunks, graph read, remember, …).
 2. No **versioned, stable REST** that matches MCP tools one-to-one.
-3. No **application SDK** (`@basis/client`) generated from that REST spec.
+3. ~~Separate published SDK~~ — web embeds OpenAPI transport under `web/src/lib/basis-openapi/`.
 4. Naming confusion: “SDK” in product docs (OSDK-lite) vs **semantica** (runtime library) vs **MCP tools**.
 
 ## 2. Goals and non-goals
@@ -35,14 +35,14 @@ Gaps:
 1. **Complete OpenAPI v1** — every console and integration HTTP call documented in [`openapi/basis-v1.yaml`](../../openapi/basis-v1.yaml); served at `GET /openapi/v1.json`.
 2. **`basis/core/`** — implements operations defined in the spec; **HTTP and MCP call only core**.
 3. **Two server surfaces:** OpenAPI + MCP (same process is fine; not a third API for the web app).
-4. **`packages/client`** — generated/typed from OpenAPI; **`web/`** migrates to it (no permanent shadow `/api/*` only the console knows).
+4. **`web/`** uses generated OpenAPI types + thin fetch (no standalone npm SDK for now).
 5. **MCP** — tool schemas derived from the same operations as OpenAPI (subset or 1:1 where appropriate).
 
 ### Non-goals (this program)
 
 - Auto-generating REST from SQL (PostgREST-style); operations stay **explicit** in core + YAML.
 - Platform-wide single MCP URL for all KBs — optional later.
-- Publishing npm/PyPI before monorepo `packages/client` dogfoods the spec.
+- Publishing a standalone npm SDK before the web app dogfoods the spec.
 
 ## 3. Terminology
 
@@ -50,7 +50,7 @@ Gaps:
 | --- | --- |
 | **core** | Python package `basis/core/` — integration operations, Pydantic I/O, auth checks |
 | **OpenAPI v1** | Normative YAML + `/api/v1/*` HTTP routes implementing `basis/core` |
-| **Basis client SDK** | TS (primary) / Py clients generated from OpenAPI — **web included** |
+| **Web OpenAPI transport** | `web/src/lib/basis-openapi/` — generated types + session fetch (in-repo only) |
 | **semantica** | Third-party runtime used **inside** the API process — not the public integration SDK |
 | **MCP adapter** | `basis/mcp/` — JSON-RPC transport → `core.execute()` |
 
@@ -91,7 +91,7 @@ flowchart TB
 | Supabase | Basis target |
 | --- | --- |
 | PostgREST + project REST | **`/api/v1` OpenAPI** (full product HTTP) |
-| `supabase-js` | `@basis/client` |
+| `supabase-js` | web OpenAPI transport (future: optional published client) |
 | Dashboard | `web/` — **only** OpenAPI (+ WS/SSE as documented) |
 | GoTrue | Auth paths in same OpenAPI |
 | Realtime | WS/SSE extensions in same spec |
@@ -120,12 +120,10 @@ basis/
     mcp.py              # JSON-RPC → core
     # legacy /api/* removed after cutover
 
-packages/
-  client/               # @basis/client — createBasisClient(url, { accessToken })
-  # optional: client-auth, client-realtime
+web/src/lib/basis-openapi/  # generated schema.d.ts + transport.ts (in-app only)
 
 scripts/
-  gen-client-types.ts   # openapi-typescript from openapi/basis-v1.yaml
+  gen-client-types.mjs      # → web npm run gen:openapi-types
 ```
 
 ## 6. API conventions
@@ -170,27 +168,9 @@ Match current MCP (`basis/mcp/tools.py`):
 
 **Later v1 additions (explicit backlog):** `search_graph` (parity with `POST .../graph/search`, optional `at`), `get_node`, paginated edges — only after schema design in core.
 
-## 7. Client SDK shape (TypeScript)
+## 7. Web OpenAPI transport (TypeScript)
 
-```ts
-import { createBasisClient } from '@basis/client'
-
-const basis = createBasisClient(process.env.BASIS_URL!, {
-  accessToken: token,
-})
-
-const { data, error } = await basis
-  .kb(kbId)
-  .rpc('search_chunks', { query: 'evidence', limit: 10 })
-```
-
-Implementation:
-
-- Thin `fetch` wrapper (request ID header, Bearer, JSON).
-- `kb(kbId).rpc(name, args)` → `POST /rest/v1/kbs/{kbId}/rpc/{name}`.
-- Types from OpenAPI codegen in CI or `npm run gen:client`.
-
-Python client optional in R5+ (`basis-client` on PyPI or `packages/client-py/`).
+Console code uses `web/src/lib/basis-openapi/transport.ts` (`createBasisSessionClient`, `createBasisOpenApiClient`) and app helpers in `openapi-client.ts`. Types from `npm run gen:openapi-types` in CI.
 
 ## 8. Web console migration
 
@@ -290,7 +270,7 @@ Python client optional in R5+ (`basis-client` on PyPI or `packages/client-py/`).
 
 | Task | Details |
 | --- | --- |
-| `packages/client` with `createBasisClient`, `kb().rpc()` | Done — search, entities, graph, MCP info |
+| Web `basis-openapi/transport.ts` | Done — session + optional KB shortcuts; types from YAML |
 | `createBasisSessionClient` | Done — `fetchJson`, `sessionFetch`, `apiUrl`, `openapi()` |
 | `scripts/gen-client-types.mjs` | Done — CI `client-types` job |
 | Wire into `web` | Done — console + Explorer session transport |
@@ -308,7 +288,6 @@ Python client optional in R5+ (`basis-client` on PyPI or `packages/client-py/`).
 | --- | --- |
 | Rate limits | Done — `RestV1ConcurrencyMiddleware` (`BASIS_REST_V1_MAX_INFLIGHT`) |
 | Error code table | Done — en/zh `apiErrorCodes.ts` |
-| Optional Python client | Done — `packages/client-py` + `scripts/gen-python-client.py` |
 | nginx / docker | Done — `docker/production/nginx.conf` proxies `/openapi/` |
 
 **Acceptance:** `mcp_busy`-style behavior documented for REST; e2e smoke optional.

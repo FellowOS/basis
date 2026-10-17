@@ -112,4 +112,10 @@ export const pages = {
     settings:
       'Members, search backends, graph projection, and KB metadata — changes here apply only to this knowledge base.',
   },
+  swagger: {
+    subtitle: 'Interactive OpenAPI v1 reference (Try it out uses your session token).',
+    specFull: 'Full API',
+    specPlatform: 'Platform',
+    specKb: 'Knowledge base',
+  },
 } as const;

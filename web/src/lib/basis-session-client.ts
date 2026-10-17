@@ -1,4 +1,4 @@
-import { createBasisSessionClient } from '@basis/client';
+import { createBasisSessionClient } from '@/lib/basis-openapi/transport.js';
 
 import { basisApiBaseUrl } from '@/lib/basis-api-url.js';
 import { getToken } from '@/lib/auth-token.js';

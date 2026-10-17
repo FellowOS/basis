@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createBasisClient, createBasisSessionClient } from "./index.js";
+import { createBasisClient, createBasisSessionClient } from './transport.js';
 
 describe("createBasisSessionClient", () => {
   it("sessionFetch attaches bearer and base URL", async () => {

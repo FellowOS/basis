@@ -1,6 +1,7 @@
 import { type ApiErrorWithMeta } from '@/lib/api-error.js';
 import { getToken, setToken } from '@/lib/auth-token.js';
 import { basisSessionClient } from '@/lib/basis-session-client.js';
+import { publicOpenApiPOST } from '@/lib/openapi-client.js';
 import { unwrapOpenApi } from '@/lib/openapi-response.js';
 
 export { getToken, setToken } from '@/lib/auth-token.js';
@@ -33,11 +34,9 @@ export async function login(input: {
   email: string;
   password: string;
 }): Promise<{ user: BasisUser; token: string }> {
-  const body = unwrapOpenApi(
-    await basisSessionClient().openapi().POST('/api/v1/auth/login', {
-      body: { email: input.email, password: input.password },
-    }),
-  ) as { user: BasisUser; token: string };
+  const body = (await publicOpenApiPOST('/api/v1/auth/login', {
+    body: { email: input.email, password: input.password },
+  })) as { user: BasisUser; token: string };
   setToken(body.token);
   return body;
 }
@@ -47,18 +46,18 @@ export async function register(input: {
   password: string;
   display_name: string;
 }): Promise<{ user: BasisUser; token: string }> {
-  const body = unwrapOpenApi(
-    await basisSessionClient().openapi().POST('/api/v1/auth/register', {
-      body: input,
-    }),
-  ) as { user: BasisUser; token: string };
+  const body = (await publicOpenApiPOST('/api/v1/auth/register', {
+    body: input,
+  })) as { user: BasisUser; token: string };
   setToken(body.token);
   return body;
 }
 
 export async function logout(): Promise<void> {
   try {
-    unwrapOpenApi(await basisSessionClient().openapi().POST('/api/v1/auth/logout'));
+    if (getToken()) {
+      unwrapOpenApi(await basisSessionClient().openapi().POST('/api/v1/auth/logout'));
+    }
   } finally {
     setToken(null);
   }

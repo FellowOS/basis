@@ -130,12 +130,11 @@ Run relevant checks after substantive edits; say if something was not run.
 | Product / architecture | [docs/design/README.md](./docs/design/README.md) |
 | OpenAPI v1 (platform + KB surfaces) | [docs/design/openapi-v1-spec.md](./docs/design/openapi-v1-spec.md), [openapi/basis-v1-platform.yaml](./openapi/basis-v1-platform.yaml), [openapi/basis-v1-kb.yaml](./openapi/basis-v1-kb.yaml) |
 | Core / MCP / client SDK refactor | [docs/design/core-rest-sdk-refactor.md](./docs/design/core-rest-sdk-refactor.md) |
-| KB HTTP client (`@basis/client`) | [packages/client/README.md](./packages/client/README.md) — web imports via `file:../packages/client`; full OpenAPI via `createBasisOpenApiClient` |
-| Python HTTP client | [packages/client-py/README.md](./packages/client-py/README.md) — `scripts/gen-python-client.py` |
+| Web OpenAPI transport | `web/src/lib/basis-openapi/` (`transport.ts` + generated `schema.d.ts`); app helpers in `web/src/lib/openapi-client.ts` |
 | Web ↔ operationId audit | [docs/design/web-openapi-operation-audit.md](./docs/design/web-openapi-operation-audit.md) — `scripts/audit-web-operation-ids.py` |
 | HTTP in web | Typed: `openapi-client.ts` (`openApi*` / `kbOpenApi*` / `publicOpenApi*`); stream/multipart: `basis-session-fetch.ts`; paths: `kb-api-path.ts`, `api-v1-path.ts`; E2E `e2e/api-v1-path.ts` |
 
-**Naming:** Normative HTTP = **`openapi/basis-v1.yaml`**. `basis/core/` = server operations (OpenAPI + MCP call this). **semantica** = in-process runtime. **Application SDK** = `@basis/client` (generated from OpenAPI). Server exposes **only OpenAPI + MCP** to clients.
+**Naming:** Normative HTTP = **`openapi/basis-v1.yaml`**. `basis/core/` = server operations (OpenAPI + MCP call this). **semantica** = in-process runtime. **Application HTTP client** = web `basis-openapi/` transport (OpenAPI-generated types; not a published SDK). Server exposes **only OpenAPI + MCP** to clients.
 
 ## Out of scope unless asked
 

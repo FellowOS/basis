@@ -1,7 +1,7 @@
 import type { Locale } from '@/i18n/locale.js';
 import { requestFailedStatusMessage } from '@/i18n/format.js';
 import { messagesForLocale } from '@/i18n/pick-locale.js';
-import type { BasisApiError } from '@basis/client';
+import type { BasisApiError } from '@/lib/basis-openapi/transport.js';
 
 import { errorFromApiResponse } from '@/lib/api-error.js';
 import { getToken } from '@/lib/auth-token.js';

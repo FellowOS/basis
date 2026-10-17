@@ -2,6 +2,7 @@ import { menu } from './menu.js';
 import { common } from './common.js';
 import { login } from './login.js';
 import { marketing } from './marketing.js';
+import { docs } from './docs.js';
 import { nav } from './nav.js';
 import { pages } from './pages.js';
 import { sidebar } from './sidebar.js';
@@ -44,6 +45,7 @@ export const zh = {
   sidebar,
   login,
   marketing,
+  docs,
   nav,
   pages,
   entityResolution,

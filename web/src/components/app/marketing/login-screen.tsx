@@ -1,7 +1,7 @@
 import { useEffect, useState, type CSSProperties } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 
-import { AppLogo } from '@/components/app/shared/shell/app-logo.js';
+import { ProductSiteHeader } from '@/components/app/marketing/product-site-header.js';
 import { Button } from '@/components/ui/button.js';
 import {
   Dialog,
@@ -9,16 +9,9 @@ import {
   DialogDescription,
   DialogTitle,
 } from '@/components/ui/dialog.js';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu.js';
-import { PublicIcon } from '@/components/app/shared/primitives/public-icon.js';
 import { useI18n } from '@/i18n/context.js';
 import { fmt, formatLocaleNumber } from '@/i18n/format.js';
 import type { Locale } from '@/i18n/locale.js';
-import { LocaleMenuItems } from '@/i18n/locale-menu.js';
 import { useTheme } from '@/lib/theme.js';
 
 import { AuthFormCard } from './auth-form-card.js';
@@ -26,7 +19,7 @@ import { BinaryOrbits } from './binary-orbits.js';
 
 export function LoginScreen() {
   const { t, locale } = useI18n();
-  const { theme, toggleTheme } = useTheme();
+  const { theme } = useTheme();
   const m = t.marketing;
   const year = formatLocaleNumber(locale as Locale, new Date().getFullYear());
   const [searchParams, setSearchParams] = useSearchParams();
@@ -35,12 +28,12 @@ export function LoginScreen() {
   const isDark = theme === 'dark';
 
   useEffect(() => {
-    if (searchParams.get('mode') === 'register') setOpen(true);
+    const mode = searchParams.get('mode');
+    if (mode === 'register' || mode === 'login') setOpen(true);
   }, [searchParams]);
 
   function openAuth(mode: 'login' | 'register') {
-    if (mode === 'register') setSearchParams({ mode: 'register' }, { replace: true });
-    else setSearchParams({}, { replace: true });
+    setSearchParams({ mode }, { replace: true });
     setOpen(true);
   }
 
@@ -83,42 +76,16 @@ export function LoginScreen() {
         />
       </div>
 
-      <header className="relative z-20 flex h-14 shrink-0 items-center gap-3 px-5 sm:h-16 sm:px-8">
-        <Link to="/" className="inline-flex items-center gap-2.5 text-foreground no-underline">
-          <AppLogo size={28} label={m.brand} />
-          <span className="text-base font-semibold tracking-tight">{m.brand}</span>
-        </Link>
-        <div className="ml-auto flex items-center gap-0.5">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-sm"
-            onClick={toggleTheme}
-            aria-label={isDark ? m.a11yThemeLight : m.a11yThemeDark}
-            className="text-muted-foreground hover:text-foreground"
-          >
-            <PublicIcon name={isDark ? 'sun-01' : 'moon-01'} size={18} />
-          </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-sm"
-                aria-label={t.sidebar.language}
-                className="text-muted-foreground hover:text-foreground"
-              >
-                <PublicIcon name="globe-02" size={18} />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <LocaleMenuItems />
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </header>
+      <ProductSiteHeader
+        activeKey="product"
+        onSignIn={() => openAuth('login')}
+        onRegister={() => openAuth('register')}
+      />
 
-      <main className="pointer-events-none relative z-10 flex min-h-0 flex-1 items-center overflow-y-auto px-5 py-8 sm:pr-[62%] sm:pl-8 lg:pr-[58%]">
+      <main
+        id="product"
+        className="pointer-events-none relative z-10 flex min-h-0 flex-1 scroll-mt-24 items-center overflow-y-auto px-5 py-8 sm:pr-[62%] sm:pl-8 lg:pr-[58%]"
+      >
         <div className="pointer-events-auto w-full">
           <p className="text-xs tracking-[0.08em] text-muted-foreground">{m.heroEyebrow}</p>
           <h1
@@ -150,7 +117,7 @@ export function LoginScreen() {
               {m.ctaRegister}
             </Button>
           </div>
-          <ol className="m-0 mt-10 hidden list-none p-0 sm:block">
+          <ol id="capabilities" className="m-0 mt-10 hidden list-none scroll-mt-24 p-0 sm:block">
             {m.highlights.map((layer) => (
               <li
                 key={layer.index}
@@ -169,9 +136,17 @@ export function LoginScreen() {
         </div>
       </main>
 
-      <footer className="pointer-events-none relative z-10 flex shrink-0 items-center justify-between gap-6 px-5 py-3 text-[11px] text-muted-foreground sm:px-8">
+      <footer
+        id="self-host"
+        className="pointer-events-none relative z-10 flex shrink-0 scroll-mt-24 flex-col gap-1 px-5 py-3 text-[11px] text-muted-foreground sm:px-8"
+      >
+        <p id="pricing" className="scroll-mt-24 sr-only">
+          {m.nav.pricing}
+        </p>
+        <div className="flex items-center justify-between gap-6">
         <p className="shrink-0">{fmt(m.footerCopyright, { year })}</p>
         <p className="min-w-0 truncate">{m.footerTagline}</p>
+        </div>
       </footer>
 
       <Dialog open={open} onOpenChange={onOpenChange}>

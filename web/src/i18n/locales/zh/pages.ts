@@ -105,4 +105,10 @@ export const pages = {
     alerts: '当前知识库的处理异常、陈述冲突、本体提案与治理提醒；支持直达对应工作区。',
     settings: '成员、检索后端、图谱投影与本库元数据；仅作用于当前知识库。',
   },
+  swagger: {
+    subtitle: 'OpenAPI v1 交互文档（Try it out 会使用当前登录会话 token）。',
+    specFull: '完整 API',
+    specPlatform: '平台',
+    specKb: '知识库',
+  },
 } as const;

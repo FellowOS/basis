@@ -23,7 +23,7 @@ HTTP OpenAPI is **one implementation**, but **two documented contracts** — dif
 
 **MCP** remains JSON-RPC on `POST /api/v1/kbs/{kb_id}/mcp` but is **documented in the KB OpenAPI** surface (same token as HTTP).
 
-**Application SDK:** may ship `@basis/client` with `.platform` and `.kb(kbId)` namespaces matching the two specs; codegen runs separately on each YAML or on the merged `basis-v1.yaml`.
+**Application client:** the web app embeds OpenAPI types under `web/src/lib/basis-openapi/`; a standalone npm SDK is optional later.
 
 ## 2. Why spec comes first
 
@@ -34,7 +34,7 @@ Implementation today leads the contract (`FastAPI` routes → auto `/openapi.jso
 1. **Write and review** `openapi/basis-v1.yaml` (complete, normative).
 2. **`basis/core`** implements operations defined in the spec (and shared with MCP).
 3. **HTTP handlers** are generated or hand-written to **match the spec** (no undocumented `/api` behavior).
-4. **`web/` and `@basis/client`** consume **only** this spec (codegen types + SDK).
+4. **`web/`** consumes **only** this spec (codegen types + in-app transport).
 
 Until the YAML is complete and reviewed, **no new public HTTP endpoints** outside the spec.
 

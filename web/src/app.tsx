@@ -27,6 +27,8 @@ import {
   ModelsPage,
   BasisLayout,
   SettingsPage,
+  SwaggerPage,
+  DocsPage,
   UsersPage,
 } from '@/lazy-pages.js';
 import { HomePage } from '@/pages/home.js';
@@ -98,6 +100,30 @@ function AuthedApp() {
         path="/login"
         element={
           ready && user ? <Navigate to={homePath} replace /> : <LoginPage />
+        }
+      />
+      <Route
+        path="/swagger"
+        element={
+          <Suspense fallback={null}>
+            <SwaggerPage />
+          </Suspense>
+        }
+      />
+      <Route
+        path="/docs"
+        element={
+          <Suspense fallback={null}>
+            <DocsPage />
+          </Suspense>
+        }
+      />
+      <Route
+        path="/docs/:slug"
+        element={
+          <Suspense fallback={null}>
+            <DocsPage />
+          </Suspense>
         }
       />
       <Route

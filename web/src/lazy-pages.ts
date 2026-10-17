@@ -16,6 +16,12 @@ export const ModelsPage = lazy(() =>
 export const AuditPage = lazy(() =>
   import('@/pages/audit').then((m) => ({ default: m.AuditPage })),
 );
+export const SwaggerPage = lazy(() =>
+  import('@/pages/swagger').then((m) => ({ default: m.SwaggerPage })),
+);
+export const DocsPage = lazy(() =>
+  import('@/pages/docs').then((m) => ({ default: m.DocsPage })),
+);
 export const UsersPage = lazy(() =>
   import('@/pages/users').then((m) => ({ default: m.UsersPage })),
 );

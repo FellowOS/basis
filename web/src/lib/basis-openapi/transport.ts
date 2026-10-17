@@ -1,4 +1,4 @@
-/** Basis API client — full OpenAPI typing via `openapi-fetch` (`npm run gen:types`). */
+/** OpenAPI v1 transport for the web app (`openapi-fetch`; regen via `npm run gen:openapi-types`). */
 
 import createOpenApiClient from "openapi-fetch";
 
