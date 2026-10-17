@@ -37,11 +37,10 @@ type MenuSection =
   | { id: string; label: string; href: string; external?: boolean; children?: null };
 
 type ProductMobileNavMenuProps = {
-  onSignIn?: () => void;
-  onRegister?: () => void;
+  onGetStarted?: () => void;
 };
 
-export function ProductMobileNavMenu({ onSignIn, onRegister }: ProductMobileNavMenuProps) {
+export function ProductMobileNavMenu({ onGetStarted }: ProductMobileNavMenuProps) {
   const reduce = useReducedMotion();
   const { t } = useI18n();
   const m = t.marketing;
@@ -299,23 +298,12 @@ export function ProductMobileNavMenu({ onSignIn, onRegister }: ProductMobileNavM
                 </span>
               </Link>
             ) : (
-              <div className="flex flex-col gap-2 rounded-2xl bg-muted/80 p-3">
-                {onSignIn != null ? (
-                  <Button type="button" variant="outline" className="w-full" onClick={() => { onSignIn(); close(); }}>
-                    {m.ctaLogin}
-                  </Button>
-                ) : (
-                  <Button type="button" variant="outline" className="w-full" asChild>
-                    <Link to="/?mode=login" onClick={close}>
-                      {m.ctaLogin}
-                    </Link>
-                  </Button>
-                )}
-                {onRegister != null ? (
+              <div className="rounded-2xl bg-muted/80 p-3">
+                {onGetStarted != null ? (
                   <Button
                     type="button"
                     className="w-full rounded-full bg-[var(--login-cta-bg,#152033)] text-[var(--login-cta-fg,#f6f4ef)]"
-                    onClick={() => { onRegister(); close(); }}
+                    onClick={() => { onGetStarted(); close(); }}
                   >
                     {m.ctaGetStarted}
                   </Button>
@@ -325,7 +313,7 @@ export function ProductMobileNavMenu({ onSignIn, onRegister }: ProductMobileNavM
                     className="w-full rounded-full bg-[var(--login-cta-bg,#152033)] text-[var(--login-cta-fg,#f6f4ef)]"
                     asChild
                   >
-                    <Link to="/?mode=register" onClick={close}>
+                    <Link to="/?mode=login" onClick={close}>
                       {m.ctaGetStarted}
                     </Link>
                   </Button>

@@ -20,15 +20,25 @@ import { formatUserFacingApiError } from '@/lib/api-error-message.js';
 import { authV1Path } from '@/lib/api-v1-path.js';
 import { useBasisSession } from '@/lib/basis-session.js';
 import { publicOpenApiGET, publicOpenApiPOST } from '@/lib/openapi-client.js';
+import { cn } from '@/lib/utils.js';
 
 type AuthMode = 'login' | 'register';
+type AuthPanel = 'password' | 'magic';
 
-type AuthProviders = {
+export type AuthProviders = {
   password?: boolean;
   github: boolean;
   google: boolean;
   magic_link: boolean;
 };
+
+export async function loadAuthProviders(): Promise<AuthProviders> {
+  try {
+    return await publicOpenApiGET<AuthProviders>('/api/v1/auth/providers');
+  } catch {
+    return { github: false, google: false, magic_link: false };
+  }
+}
 
 const authFormSchema = z.object({
   email: z.string().email(),
@@ -50,19 +60,21 @@ function authSchemaForMode(mode: AuthMode) {
   });
 }
 
-export function AuthFormCard() {
+type AuthFormCardProps = {
+  providers: AuthProviders | null;
+};
+
+export function AuthFormCard({ providers }: AuthFormCardProps) {
   const { t, locale } = useI18n();
   const { login, register } = useBasisSession();
   const [searchParams, setSearchParams] = useSearchParams();
-  const initialMode: AuthMode = searchParams.get('mode') === 'register' ? 'register' : 'login';
-  const [mode, setMode] = useState<AuthMode>(initialMode);
+  const mode: AuthMode = searchParams.get('mode') === 'register' ? 'register' : 'login';
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [authPanel, setAuthPanel] = useState<AuthPanel>('password');
   const [magicBusy, setMagicBusy] = useState(false);
   const [magicNotice, setMagicNotice] = useState<string | null>(null);
-  const [providers, setProviders] = useState<AuthProviders | null>(null);
-
   const resolver = useMemo(() => zodResolver(authSchemaForMode(mode)), [mode]);
 
   const form = useForm<AuthFormValues>({
@@ -70,23 +82,14 @@ export function AuthFormCard() {
     defaultValues: { email: '', password: '', displayName: '' },
   });
 
-  const email = form.watch('email');
-
   useEffect(() => {
-    setMode(searchParams.get('mode') === 'register' ? 'register' : 'login');
-  }, [searchParams]);
-
-  useEffect(() => {
-    publicOpenApiGET<AuthProviders>('/api/v1/auth/providers')
-      .then(setProviders)
-      .catch(() =>
-        setProviders({ github: false, google: false, magic_link: false }),
-      );
-  }, []);
+    setAuthPanel('password');
+  }, [mode]);
 
   function switchMode(next: AuthMode) {
-    setMode(next);
     setError(null);
+    setAuthPanel('password');
+    setMagicNotice(null);
     setShowPassword(false);
     form.clearErrors();
     if (next === 'register') {
@@ -99,10 +102,13 @@ export function AuthFormCard() {
   async function onMagicLink() {
     setError(null);
     setMagicNotice(null);
+    const ok = await form.trigger('email');
+    if (!ok) return;
+    const address = form.getValues('email').trim();
     setMagicBusy(true);
     try {
       await publicOpenApiPOST('/api/v1/auth/magic-link/request', {
-        body: { email },
+        body: { email: address },
       });
       setMagicNotice(t.login.magicLinkSent);
     } catch (err) {
@@ -128,10 +134,25 @@ export function AuthFormCard() {
   }
 
   const isRegister = mode === 'register';
-  const showMagicLink = !isRegister && providers?.magic_link === true;
+  const isMagicPanel = authPanel === 'magic' && !isRegister;
+  const showMagicLink = !isRegister && !isMagicPanel && providers?.magic_link === true;
   const showGithub = !isRegister && providers?.github === true;
   const showGoogle = !isRegister && providers?.google === true;
-  const showOAuth = showGithub || showGoogle;
+  const showOAuth = !isMagicPanel && (showGithub || showGoogle);
+
+  function openMagicPanel() {
+    setError(null);
+    setMagicNotice(null);
+    form.clearErrors('password');
+    setAuthPanel('magic');
+  }
+
+  function backToPasswordPanel() {
+    setError(null);
+    setMagicNotice(null);
+    form.clearErrors();
+    setAuthPanel('password');
+  }
 
   const fieldLabel = 'text-[13px] font-medium text-foreground/75';
   const fieldInput =
@@ -141,35 +162,62 @@ export function AuthFormCard() {
     <div className="flex min-h-0 flex-col">
       <div className="pt-5 pr-12 pb-0 pl-6">
         <h2 className="text-xl font-semibold tracking-[-0.03em] text-foreground">
-          {isRegister ? t.login.registerTitle : t.login.title}
+          {isMagicPanel
+            ? t.login.magicLinkTitle
+            : isRegister
+              ? t.login.registerTitle
+              : t.login.title}
         </h2>
         <p className="mt-1.5 text-sm leading-snug text-muted-foreground">
-          {isRegister ? t.login.registerSubtitle : t.login.subtitle}
+          {isMagicPanel
+            ? t.login.magicLinkSubtitle
+            : isRegister
+              ? t.login.registerSubtitle
+              : t.login.subtitle}
         </p>
       </div>
 
       <Form {...form}>
-        <form className="mt-4 flex min-h-0 flex-col" onSubmit={form.handleSubmit(onSubmit)}>
+        <form
+          className="mt-4 flex min-h-0 flex-col"
+          onSubmit={
+            isMagicPanel
+              ? (event) => {
+                  event.preventDefault();
+                  void onMagicLink();
+                }
+              : form.handleSubmit(onSubmit)
+          }
+        >
           <div className="min-h-0 space-y-3 overflow-y-auto px-6">
-            {isRegister && (
-              <FormField
-                control={form.control}
-                name="displayName"
-                render={({ field }) => (
-                  <FormItem className="space-y-1.5">
-                    <FormLabel className={fieldLabel}>{t.login.displayNameLabel}</FormLabel>
-                    <FormControl>
-                      <Input
-                        autoComplete="name"
-                        placeholder={t.login.displayNamePlaceholder}
-                        className={fieldInput}
-                        {...field}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-            )}
+            <div
+              className={cn(
+                'grid transition-[grid-template-rows] duration-200 ease-out',
+                isRegister && !isMagicPanel ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]',
+              )}
+            >
+              <div className="min-h-0 overflow-hidden">
+                <FormField
+                  control={form.control}
+                  name="displayName"
+                  render={({ field }) => (
+                    <FormItem className="space-y-1.5 pb-3">
+                      <FormLabel className={fieldLabel}>{t.login.displayNameLabel}</FormLabel>
+                      <FormControl>
+                        <Input
+                          autoComplete="name"
+                          placeholder={t.login.displayNamePlaceholder}
+                          className={fieldInput}
+                          tabIndex={isRegister ? 0 : -1}
+                          aria-hidden={!isRegister}
+                          {...field}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
             <FormField
               control={form.control}
               name="email"
@@ -188,37 +236,49 @@ export function AuthFormCard() {
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem className="space-y-1.5">
-                  <FormLabel className={fieldLabel}>{t.login.passwordLabel}</FormLabel>
-                  <div className="relative">
-                    <FormControl>
-                      <Input
-                        type={showPassword ? 'text' : 'password'}
-                        autoComplete={isRegister ? 'new-password' : 'current-password'}
-                        placeholder={t.login.passwordPlaceholder}
-                        className={`${fieldInput} pr-10`}
-                        {...field}
-                      />
-                    </FormControl>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon-sm"
-                      className="absolute top-1/2 right-1 -translate-y-1/2 text-muted-foreground"
-                      aria-label={showPassword ? t.login.hidePassword : t.login.showPassword}
-                      aria-pressed={showPassword}
-                      onClick={() => setShowPassword((visible) => !visible)}
-                    >
-                      <PublicIcon name={showPassword ? 'eye-off' : 'eye-open'} size={16} />
-                    </Button>
-                  </div>
-                </FormItem>
+            <div
+              className={cn(
+                'grid transition-[grid-template-rows] duration-200 ease-out',
+                isMagicPanel ? 'grid-rows-[0fr]' : 'grid-rows-[1fr]',
               )}
-            />
+            >
+              <div className="min-h-0 overflow-hidden">
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem className="space-y-1.5">
+                      <FormLabel className={fieldLabel}>{t.login.passwordLabel}</FormLabel>
+                      <div className="relative">
+                        <FormControl>
+                          <Input
+                            type={showPassword ? 'text' : 'password'}
+                            autoComplete={isRegister ? 'new-password' : 'current-password'}
+                            placeholder={t.login.passwordPlaceholder}
+                            className={`${fieldInput} pr-10`}
+                            tabIndex={isMagicPanel ? -1 : 0}
+                            aria-hidden={isMagicPanel}
+                            {...field}
+                          />
+                        </FormControl>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon-sm"
+                          className="absolute top-1/2 right-1 -translate-y-1/2 text-muted-foreground"
+                          aria-label={showPassword ? t.login.hidePassword : t.login.showPassword}
+                          aria-pressed={showPassword}
+                          tabIndex={isMagicPanel ? -1 : 0}
+                          onClick={() => setShowPassword((visible) => !visible)}
+                        >
+                          <PublicIcon name={showPassword ? 'eye-off' : 'eye-open'} size={16} />
+                        </Button>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
             {error && (
               <p role="alert" className="rounded-md bg-destructive/10 px-3 py-2 text-sm leading-relaxed text-destructive">
                 {error}
@@ -226,26 +286,45 @@ export function AuthFormCard() {
             )}
           </div>
           <div className="px-6 pt-3 space-y-2">
-            <Button
-              type="submit"
-              size="lg"
-              disabled={busy}
-              className="w-full bg-[#152033] text-[#f6f4ef] hover:bg-[#152033] hover:brightness-110 dark:bg-[#f3ead7] dark:text-[#152033] dark:hover:bg-[#f3ead7]"
-            >
-              {busy ? t.login.submitting : isRegister ? t.login.registerSubmit : t.login.submit}
-            </Button>
-            {showMagicLink ? (
+            {isMagicPanel ? (
               <Button
                 type="button"
-                variant="outline"
                 size="lg"
-                className="w-full"
-                disabled={magicBusy || !email.trim()}
+                disabled={magicBusy}
+                className="w-full bg-[#152033] text-[#f6f4ef] hover:bg-[#152033] hover:brightness-110 dark:bg-[#f3ead7] dark:text-[#152033] dark:hover:bg-[#f3ead7]"
                 onClick={() => void onMagicLink()}
               >
                 {magicBusy ? t.login.submitting : t.login.magicLinkSend}
               </Button>
-            ) : null}
+            ) : (
+              <Button
+                type="submit"
+                size="lg"
+                disabled={busy}
+                className="w-full bg-[#152033] text-[#f6f4ef] hover:bg-[#152033] hover:brightness-110 dark:bg-[#f3ead7] dark:text-[#152033] dark:hover:bg-[#f3ead7]"
+              >
+                {busy ? t.login.submitting : isRegister ? t.login.registerSubmit : t.login.submit}
+              </Button>
+            )}
+            <div
+              className={cn(
+                'grid transition-[grid-template-rows] duration-200 ease-out',
+                showMagicLink ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]',
+              )}
+            >
+              <div className="min-h-0 space-y-2 overflow-hidden">
+                <p className="text-center text-xs text-muted-foreground">{t.login.or}</p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="lg"
+                  className="w-full"
+                  onClick={openMagicPanel}
+                >
+                  {t.login.magicLinkEntry}
+                </Button>
+              </div>
+            </div>
             {magicNotice ? (
               <p className="text-xs text-muted-foreground">{magicNotice}</p>
             ) : null}
@@ -253,8 +332,14 @@ export function AuthFormCard() {
         </form>
       </Form>
 
-      {showOAuth ? (
-        <div className="mx-6 mt-1 space-y-2 pb-2">
+      <div
+        className={cn(
+          'grid transition-[grid-template-rows] duration-200 ease-out',
+          showOAuth ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]',
+        )}
+      >
+        <div className="min-h-0 overflow-hidden">
+          <div className="mx-6 mt-1 space-y-2 pb-2">
           <p className="text-center text-xs text-muted-foreground">{t.login.orContinueWith}</p>
           <div
             className={
@@ -272,19 +357,33 @@ export function AuthFormCard() {
               </Button>
             ) : null}
           </div>
+          </div>
         </div>
-      ) : null}
+      </div>
 
       <p className="mx-6 mt-3 mb-4 border-t border-foreground/10 pt-3.5 text-sm text-muted-foreground">
-        {isRegister ? t.login.hasAccount : t.login.noAccount}{' '}
-        <Button
-          type="button"
-          variant="link"
-          className="h-auto p-0 font-medium text-foreground"
-          onClick={() => switchMode(isRegister ? 'login' : 'register')}
-        >
-          {isRegister ? t.login.switchToLogin : t.login.switchToRegister}
-        </Button>
+        {isMagicPanel ? (
+          <Button
+            type="button"
+            variant="link"
+            className="h-auto p-0 font-medium text-foreground"
+            onClick={backToPasswordPanel}
+          >
+            {t.login.backToPasswordLogin}
+          </Button>
+        ) : (
+          <>
+            {isRegister ? t.login.hasAccount : t.login.noAccount}{' '}
+            <Button
+              type="button"
+              variant="link"
+              className="h-auto p-0 font-medium text-foreground"
+              onClick={() => switchMode(isRegister ? 'login' : 'register')}
+            >
+              {isRegister ? t.login.switchToLogin : t.login.switchToRegister}
+            </Button>
+          </>
+        )}
       </p>
     </div>
   );

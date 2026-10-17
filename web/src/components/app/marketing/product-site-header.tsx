@@ -20,11 +20,11 @@ import { useTheme } from '@/lib/theme.js';
 
 type ProductSiteHeaderProps = {
   activeKey?: ProductNavKey;
-  onSignIn?: () => void;
-  onRegister?: () => void;
+  /** Home hero: open auth dialog instead of navigating. */
+  onGetStarted?: () => void;
 };
 
-export function ProductSiteHeader({ activeKey, onSignIn, onRegister }: ProductSiteHeaderProps) {
+export function ProductSiteHeader({ activeKey, onGetStarted }: ProductSiteHeaderProps) {
   const { t } = useI18n();
   const { theme, toggleTheme } = useTheme();
   const { ready, user, homePath } = useBasisSession();
@@ -39,24 +39,13 @@ export function ProductSiteHeader({ activeKey, onSignIn, onRegister }: ProductSi
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  const signInControl =
-    onSignIn != null ? (
-      <Button type="button" variant="ghost" size="sm" className="hidden sm:inline-flex" onClick={onSignIn}>
-        {m.ctaLogin}
-      </Button>
-    ) : (
-      <Button type="button" variant="ghost" size="sm" className="hidden sm:inline-flex" asChild>
-        <Link to="/?mode=login">{m.ctaLogin}</Link>
-      </Button>
-    );
-
-  const registerControl =
-    onRegister != null ? (
+  const getStartedControl =
+    onGetStarted != null ? (
       <Button
         type="button"
         size="sm"
         className="rounded-full bg-[var(--login-cta-bg,#152033)] px-4 text-[var(--login-cta-fg,#f6f4ef)] hover:brightness-110"
-        onClick={onRegister}
+        onClick={onGetStarted}
       >
         {m.ctaGetStarted}
       </Button>
@@ -67,7 +56,7 @@ export function ProductSiteHeader({ activeKey, onSignIn, onRegister }: ProductSi
         className="rounded-full bg-[var(--login-cta-bg,#152033)] px-4 text-[var(--login-cta-fg,#f6f4ef)] hover:brightness-110"
         asChild
       >
-        <Link to="/?mode=register">{m.ctaGetStarted}</Link>
+        <Link to="/?mode=login">{m.ctaGetStarted}</Link>
       </Button>
     );
 
@@ -84,8 +73,9 @@ export function ProductSiteHeader({ activeKey, onSignIn, onRegister }: ProductSi
           <span className="font-display text-base font-semibold tracking-tight">{m.brand}</span>
         </Link>
 
-        <div className="hidden flex-1 justify-center lg:flex">
+        <div className="hidden min-w-0 flex-1 items-center justify-center gap-3 lg:flex">
           <ProductSiteNav activeKey={activeKey} />
+          {!(ready && user) ? <div className="shrink-0">{getStartedControl}</div> : null}
         </div>
 
         <div className="ml-auto flex items-center gap-0.5 sm:gap-1">
@@ -93,12 +83,7 @@ export function ProductSiteHeader({ activeKey, onSignIn, onRegister }: ProductSi
             <Button type="button" variant="ghost" size="sm" className="hidden md:inline-flex" asChild>
               <Link to={homePath}>{m.openConsole}</Link>
             </Button>
-          ) : (
-            <>
-              {signInControl}
-              {registerControl}
-            </>
-          )}
+          ) : null}
 
           <Button
             type="button"
@@ -127,7 +112,7 @@ export function ProductSiteHeader({ activeKey, onSignIn, onRegister }: ProductSi
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <ProductMobileNavMenu onSignIn={onSignIn} onRegister={onRegister} />
+          <ProductMobileNavMenu onGetStarted={onGetStarted} />
         </div>
       </div>
     </header>

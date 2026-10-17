@@ -22,7 +22,12 @@ export const login = {
   orContinueWith: 'Or continue with',
   continueGithub: 'GitHub',
   continueGoogle: 'Google',
-  magicLinkSend: 'Email me a sign-in link',
+  or: 'or',
+  magicLinkTitle: 'Sign in with email',
+  magicLinkSubtitle: 'We will email you a one-time sign-in link.',
+  magicLinkEntry: 'Email me a sign-in link',
+  magicLinkSend: 'Send sign-in link',
+  backToPasswordLogin: 'Use password instead',
   magicLinkSent: 'If that address is allowed, a sign-in link was sent.',
   magicLinkFailed: 'Could not send sign-in link',
 } as const;

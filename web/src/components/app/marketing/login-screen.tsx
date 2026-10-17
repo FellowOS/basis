@@ -1,6 +1,7 @@
 import { useEffect, useState, type CSSProperties } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
+import { ProductSiteFooter } from '@/components/app/marketing/product-site-footer.js';
 import { ProductSiteHeader } from '@/components/app/marketing/product-site-header.js';
 import { Button } from '@/components/ui/button.js';
 import {
@@ -10,22 +11,31 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog.js';
 import { useI18n } from '@/i18n/context.js';
-import { fmt, formatLocaleNumber } from '@/i18n/format.js';
-import type { Locale } from '@/i18n/locale.js';
 import { useTheme } from '@/lib/theme.js';
 
-import { AuthFormCard } from './auth-form-card.js';
+import {
+  AuthFormCard,
+  loadAuthProviders,
+  type AuthProviders,
+} from './auth-form-card.js';
 import { BinaryOrbits } from './binary-orbits.js';
 
 export function LoginScreen() {
-  const { t, locale } = useI18n();
+  const { t } = useI18n();
   const { theme } = useTheme();
   const m = t.marketing;
-  const year = formatLocaleNumber(locale as Locale, new Date().getFullYear());
   const [searchParams, setSearchParams] = useSearchParams();
-  const [open, setOpen] = useState(() => searchParams.get('mode') === 'register');
+  const [open, setOpen] = useState(() => {
+    const mode = searchParams.get('mode');
+    return mode === 'register' || mode === 'login';
+  });
   const isRegister = searchParams.get('mode') === 'register';
   const isDark = theme === 'dark';
+  const [authProviders, setAuthProviders] = useState<AuthProviders | null>(null);
+
+  useEffect(() => {
+    void loadAuthProviders().then(setAuthProviders);
+  }, []);
 
   useEffect(() => {
     const mode = searchParams.get('mode');
@@ -39,7 +49,8 @@ export function LoginScreen() {
 
   function onOpenChange(next: boolean) {
     setOpen(next);
-    if (!next && searchParams.get('mode') === 'register') {
+    const mode = searchParams.get('mode');
+    if (!next && (mode === 'register' || mode === 'login')) {
       setSearchParams({}, { replace: true });
     }
   }
@@ -76,18 +87,16 @@ export function LoginScreen() {
         />
       </div>
 
-      <ProductSiteHeader
-        activeKey="product"
-        onSignIn={() => openAuth('login')}
-        onRegister={() => openAuth('register')}
-      />
+      <ProductSiteHeader activeKey="product" onGetStarted={() => openAuth('login')} />
 
       <main
         id="product"
         className="pointer-events-none relative z-10 flex min-h-0 flex-1 scroll-mt-24 items-center overflow-y-auto px-5 py-8 sm:pr-[62%] sm:pl-8 lg:pr-[58%]"
       >
         <div className="pointer-events-auto w-full">
-          <p className="text-xs tracking-[0.08em] text-muted-foreground">{m.heroEyebrow}</p>
+          <p className="text-xs leading-relaxed text-pretty text-muted-foreground sm:text-[13px]">
+            {m.footerTagline}
+          </p>
           <h1
             className="mt-4 text-4xl font-semibold leading-[1.08] tracking-[-0.035em] sm:text-5xl"
             aria-label={`${m.heroHeadline} ${m.heroHeadlineRest}`}
@@ -136,28 +145,17 @@ export function LoginScreen() {
         </div>
       </main>
 
-      <footer
-        id="self-host"
-        className="pointer-events-none relative z-10 flex shrink-0 scroll-mt-24 flex-col gap-1 px-5 py-3 text-[11px] text-muted-foreground sm:px-8"
-      >
-        <p id="pricing" className="scroll-mt-24 sr-only">
-          {m.nav.pricing}
-        </p>
-        <div className="flex items-center justify-between gap-6">
-        <p className="shrink-0">{fmt(m.footerCopyright, { year })}</p>
-        <p className="min-w-0 truncate">{m.footerTagline}</p>
-        </div>
-      </footer>
+      <ProductSiteFooter />
 
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="flex max-h-[calc(100%-1rem)] flex-col gap-0 overflow-hidden border-black/10 bg-white p-0 shadow-[0_24px_64px_-20px_rgb(0_0_0_/_0.45)] sm:max-w-[24.5rem] dark:border-white/10 dark:bg-[#141a22] [&_[data-slot=dialog-close]]:top-3.5 [&_[data-slot=dialog-close]]:right-3.5">
+        <DialogContent className="flex max-h-[calc(100%-1rem)] flex-col gap-0 overflow-hidden border-black/10 bg-white p-0 shadow-[0_24px_64px_-20px_rgb(0_0_0_/_0.45)] sm:max-w-[24.5rem] data-[state=closed]:[--tw-exit-scale:1] data-[state=open]:[--tw-enter-scale:1] dark:border-white/10 dark:bg-[#141a22] [&_[data-slot=dialog-close]]:top-3.5 [&_[data-slot=dialog-close]]:right-3.5">
           <DialogTitle className="sr-only">
             {isRegister ? t.login.registerTitle : t.login.title}
           </DialogTitle>
           <DialogDescription className="sr-only">
             {isRegister ? t.login.registerSubtitle : t.login.subtitle}
           </DialogDescription>
-          <AuthFormCard />
+          <AuthFormCard providers={authProviders} />
         </DialogContent>
       </Dialog>
     </div>
