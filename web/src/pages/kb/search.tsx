@@ -377,7 +377,7 @@ export function KbSearchPage() {
                 {scope === 'chunks' && graphEnabled && id && asOf.trim() ? (
                   <Button type="button" variant="outline" size="sm" asChild>
                     <Link
-                      to={kbGraphPath(id, { at: asOf.trim() })}
+                      to={kbGraphPath(id, { at: asOf.trim(), timeline: true })}
                       data-testid="kb-search-open-graph-timeline"
                     >
                       {s.openGraphAtTime}

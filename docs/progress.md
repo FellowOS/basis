@@ -117,7 +117,7 @@
 | F-GOV-06 | Registry 可读产品面（非 Explorer 专页） | `done` | P1 | Review timeline + 设置 **Recent graph audit** 深链；**平台 `/admin/audit` Links 列**；管理员 → 平台审计（本库）；E2E `settings-graph-audit.spec.ts` |
 | F-RUL-03 | Entities / 证明链 UI | `done` | P1 | Entities + derived 侧栏；前提/主客体深链（statement→entities、实体→graph）；E2E/单测 `derived-fact-premise-link` |
 | — | Reasoning workspace UX | `partial` | P1 | Rules/run → §0.1；Explorer WS 启停与试跑（**F-ONT-09**） |
-| F-SRC-08 | 超大文件 / 队列运维 UX | `partial` | P1 | Sources **Job history**：`?job=` 深链、失败 **Retry**、**复制任务链接**；E2E `processing-job.spec.ts`；ingest/jobs API → §0.2 |
+| F-SRC-08 | 超大文件 / 队列运维 UX | `partial` | P1 | Job history + **`?job=`** 深链、Retry、复制链接；工具栏 **进行中/失败** 角标 + 2s 轮询；E2E `processing-job.spec.ts` |
 | F-CHAT-05 | 集成控制台（OpenAPI + MCP） | `done` | P1 | `/kbs/:id/integration` 三 tab：**MCP** / **OpenAPI** / **访问令牌**；legacy `/mcp`、`chat?tab=connect` 重定向；E2E `mcp-integration.spec.ts` |
 | F-KB-06 | 导出 pack 控制台入口与文档 | `partial` | P2 | KB 设置 → Graph **导出图谱**（`ImportExportWorkspace`）；`POST .../export` API → §0.2 |
 
@@ -130,7 +130,7 @@
 | F-SRC-05 | Extract pattern / ml / llm 作业选项与可观测 | `partial` | P1 | spaCy + Models Chat for `llm` NER |
 | F-RUL-04 | Contradiction → governance queue | `partial` | P2 | `statement_conflict` queue + scan API |
 | F-TIM-01–03 | valid_from/to, doc events, ingest vs graph 时态一致 | `partial` | P1 | Chunk filters vs graph `temporal/snapshot` |
-| F-TIM-04 | Timeline playback（产品导航） | `partial` | P1 | Graph scrubber↔URL；Search **Open graph timeline** → `?timeline=1`；`as_of` → Open graph at this time |
+| F-TIM-04 | Timeline playback（产品导航） | `partial` | P1 | Graph scrubber↔URL；Search **Open graph timeline** / **as_of 时刻** → `?at=` + **`timeline=1`**；graph-diff 结束时刻深链 |
 | — | `POST .../graph/distance-matrix` | `partial` | P2 | Server hop matrix when graph &gt; 2500 nodes |
 | F-CHAT-01–03 | Web KB Playground | `replaced` | — | 控制台问答已移除；智能体用 MCP（§0.1 **F-CHAT-04–05**） |
 | F-CHAT-06 | Playground 客户端控制 | `replaced` | — | 随 Playground 移除 |
@@ -172,4 +172,4 @@
 
 ---
 
-_Last updated: 2026-10-18 — F-RUL-03 done；KB 设置图导出；集成 Access tokens tab。_
+_Last updated: 2026-10-18 — Sources 任务角标；Search as_of→graph timeline；F-RUL-03 / 图导出。_

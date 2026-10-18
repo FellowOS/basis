@@ -15,6 +15,10 @@ test('sources job query opens processing history for job', async ({ page }) => {
   await ingestDocumentViaApi(page, kbId, 'Processing job deep link smoke.');
   const jobId = await fetchLatestIngestJobId(page, kbId);
 
+  await page.goto(`/kbs/${kbId}/sources`);
+  await expect(page.locator('.kb-library-workspace')).toBeVisible({ timeout: 60_000 });
+  await expect(page.getByTestId('sources-job-history')).toBeVisible();
+
   await page.goto(`/kbs/${kbId}/sources?job=${encodeURIComponent(jobId)}`);
   await expect(page.locator('.kb-library-workspace')).toBeVisible({ timeout: 60_000 });
 

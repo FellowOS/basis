@@ -26,6 +26,7 @@ test('search URL keeps as_of and at for shareable links', async ({ page }) => {
   const graphTimeline = page.getByTestId('kb-search-open-graph-timeline');
   if ((await graphTimeline.count()) > 0) {
     await graphTimeline.click();
+    await expect(page).toHaveURL(/timeline=1/);
     await expect(page).toHaveURL(new RegExp(`[?&]at=${encodeURIComponent(asOf).replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')}`));
     await page.goBack();
   }

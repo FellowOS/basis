@@ -325,6 +325,15 @@ export function KnowledgePage() {
     return result;
   }, [jobs]);
 
+  const activeJobCount = useMemo(
+    () => jobs.filter((job) => job.status === 'queued' || job.status === 'running').length,
+    [jobs],
+  );
+  const failedJobCount = useMemo(
+    () => jobs.filter((job) => job.status === 'failed').length,
+    [jobs],
+  );
+
   const filteredDocuments = useMemo(() => {
     const q = search.trim().toLowerCase();
     const matched = !q
@@ -876,8 +885,29 @@ export function KnowledgePage() {
           }
           actions={
             <>
-              <Button type="button" variant="outline" size="sm" onClick={() => setHistoryOpen(true)}>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                data-testid="sources-job-history"
+                onClick={() => setHistoryOpen(true)}
+              >
                 {k.jobHistory}
+                {activeJobCount > 0 ? (
+                  <span
+                    className="ml-1.5 inline-flex min-w-[1.25rem] items-center justify-center rounded-md bg-primary/15 px-1.5 text-xs font-medium tabular-nums text-primary"
+                    data-testid="sources-active-jobs-badge"
+                  >
+                    {formatLocaleNumber(locale as Locale, activeJobCount)}
+                  </span>
+                ) : failedJobCount > 0 ? (
+                  <span
+                    className="ml-1.5 inline-flex min-w-[1.25rem] items-center justify-center rounded-md bg-destructive/15 px-1.5 text-xs font-medium tabular-nums text-destructive"
+                    data-testid="sources-failed-jobs-badge"
+                  >
+                    {formatLocaleNumber(locale as Locale, failedJobCount)}
+                  </span>
+                ) : null}
               </Button>
               {canEdit ? (
                 <Button type="button" variant="outline" size="sm" onClick={() => setSourcesOpen(true)}>
