@@ -65,7 +65,11 @@ import { useKbCapabilities } from '@/lib/kb-capabilities.js';
 import { useExplorerClient } from '@/lib/explorer-context.js';
 import { KbIngestSourcesDialog } from '@/components/app/kb/dialogs/kb-ingest-sources-dialog.js';
 import { kbPath } from '@/lib/nav-config.js';
-import { kbProcessingJobPath, parseProcessingUrlState } from '@/lib/processingUrlState.js';
+import {
+  kbProcessingJobPath,
+  kbProcessingPath,
+  parseProcessingUrlState,
+} from '@/lib/processingUrlState.js';
 import { type ProcessingJob, jobIsActive, statusIsProcessing } from '@/lib/kb-processing-job.js';
 import { parseSourcesUrlState } from '@/lib/sourcesUrlState.js';
 import { formatByteSize } from '@/lib/format-byte-size.js';
@@ -659,8 +663,8 @@ export function KnowledgePage() {
               : job?.status === 'queued'
                 ? 'queued'
                 : doc.version_status ?? job?.status;
-          return (
-            <span className="inline-flex items-center gap-1.5 text-xs">
+          const statusBody = (
+            <>
               {status === 'ready' ? (
                 <span className="size-1.5 shrink-0 rounded-full bg-ok" aria-hidden />
               ) : statusIsProcessing(status) ? (
@@ -669,8 +673,20 @@ export function KnowledgePage() {
               <span className={status === 'failed' ? 'text-destructive' : undefined}>
                 {versionStatusLabel(status, k.versionStatus, emptyCell)}
               </span>
-            </span>
+            </>
           );
+          if (job && id) {
+            return (
+              <Link
+                to={kbProcessingJobPath(id, job.id)}
+                className="inline-flex items-center gap-1.5 text-xs underline-offset-2 hover:underline"
+                data-testid={`sources-job-status-${job.id}`}
+              >
+                {statusBody}
+              </Link>
+            );
+          }
+          return <span className="inline-flex items-center gap-1.5 text-xs">{statusBody}</span>;
         },
       },
       {
@@ -846,7 +862,15 @@ export function KnowledgePage() {
                 data-testid="sources-job-history"
                 asChild
               >
-                <Link to={id ? kbPath(id, 'processing') : '#'}>
+                <Link
+                  to={
+                    id
+                      ? kbProcessingPath(id, {
+                          filter: failedJobCount > 0 ? 'failed' : undefined,
+                        })
+                      : '#'
+                  }
+                >
                   {k.jobHistory}
                   {activeJobCount > 0 ? (
                     <span

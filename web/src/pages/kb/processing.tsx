@@ -6,14 +6,18 @@ import { parseProcessingUrlState } from '@/lib/processingUrlState.js';
 export function KbProcessingPage() {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
-  const jobFocusId = parseProcessingUrlState(searchParams.toString()).jobId;
+  const parsed = parseProcessingUrlState(searchParams.toString());
 
   if (!id) return null;
 
   return (
     <KbExplorerShell>
       <div className="flex w-full min-w-0 flex-col">
-        <KbProcessingWorkspace kbId={id} jobFocusId={jobFocusId} />
+        <KbProcessingWorkspace
+          kbId={id}
+          jobFocusId={parsed.jobId}
+          initialFilter={parsed.filter ?? 'all'}
+        />
       </div>
     </KbExplorerShell>
   );

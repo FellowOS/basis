@@ -16,4 +16,6 @@ export const kbProcessing = {
   viewAlerts: '查看告警',
   limitsHint:
     '服务端限制：上传 ≤ {upload}；并发 {inflight} 个任务、排队 {pending} 个；单任务超时 {timeoutMin} 分钟。',
+  retryAllFailed: '重试全部失败',
+  retryAllQueued: '已为全部失败任务排队重试',
 } as const;

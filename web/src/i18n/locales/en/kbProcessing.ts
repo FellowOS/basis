@@ -16,4 +16,6 @@ export const kbProcessing = {
   viewAlerts: 'View alerts',
   limitsHint:
     'Server limits: upload ≤ {upload}; up to {inflight} jobs at once, {pending} queued; timeout {timeoutMin} min.',
+  retryAllFailed: 'Retry all failed',
+  retryAllQueued: 'Retry queued for all failed jobs',
 } as const;

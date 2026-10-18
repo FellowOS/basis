@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { PublicIcon } from '@/components/app/shared/primitives/public-icon.js';
 import {
@@ -35,10 +35,13 @@ import { kbPath } from '@/lib/nav-config.js';
 export function KbProcessingWorkspace({
   kbId,
   jobFocusId,
+  initialFilter = 'all',
 }: {
   kbId: string;
   jobFocusId?: string;
+  initialFilter?: ProcessingJobFilter;
 }) {
+  const [, setSearchParams] = useSearchParams();
   const client = useExplorerClient();
   const { t, locale } = useI18n();
   const { getKb } = useKbCatalog();
@@ -50,7 +53,30 @@ export function KbProcessingWorkspace({
   const [refreshing, setRefreshing] = useState(false);
   const [busyVersionId, setBusyVersionId] = useState<string | null>(null);
   const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState<ProcessingJobFilter>('all');
+  const [filter, setFilter] = useState<ProcessingJobFilter>(initialFilter);
+
+  useEffect(() => {
+    setFilter(initialFilter);
+  }, [initialFilter]);
+
+  const onFilterChange = useCallback(
+    (value: ProcessingJobFilter) => {
+      setFilter(value);
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          if (value === 'all') {
+            next.delete('filter');
+          } else {
+            next.set('filter', value);
+          }
+          return next;
+        },
+        { replace: true },
+      );
+    },
+    [setSearchParams],
+  );
 
   const k = t.kbSources;
   const p = t.kbProcessing;
@@ -139,6 +165,21 @@ export function KbProcessingWorkspace({
     }
   }
 
+  async function retryAllFailed() {
+    const failed = jobs.filter((job) => job.status === 'failed');
+    if (failed.length === 0) return;
+    setBusyVersionId('bulk');
+    try {
+      await Promise.allSettled(failed.map((job) => client.processing.retry(job.id)));
+      toast.success(p.retryAllQueued);
+      await refresh(true);
+    } catch (err) {
+      toast.error(apiErrorMessage(err));
+    } finally {
+      setBusyVersionId(null);
+    }
+  }
+
   async function copyJobDeepLink(jobId: string) {
     const url = `${window.location.origin}${kbPath(kbId, 'processing')}?job=${encodeURIComponent(jobId)}`;
     try {
@@ -218,6 +259,18 @@ export function KbProcessingWorkspace({
                   />
                   {p.refresh}
                 </Button>
+                {canEdit && failedJobCount > 0 ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={busyVersionId !== null}
+                    data-testid="processing-retry-all-failed"
+                    onClick={() => void retryAllFailed()}
+                  >
+                    {p.retryAllFailed}
+                  </Button>
+                ) : null}
                 <Button type="button" variant="outline" size="sm" asChild>
                   <Link to={kbPath(kbId, 'sources')}>{t.menu.kb.sources}</Link>
                 </Button>
@@ -229,7 +282,7 @@ export function KbProcessingWorkspace({
               <div className="border-b border-border px-3 py-2 sm:px-4">
                 <Tabs
                   value={filter}
-                  onValueChange={(value) => setFilter(value as ProcessingJobFilter)}
+                  onValueChange={(value) => onFilterChange(value as ProcessingJobFilter)}
                 >
                   <TabsList className="h-8">
                     <TabsTrigger value="all" className="px-3 text-xs">
