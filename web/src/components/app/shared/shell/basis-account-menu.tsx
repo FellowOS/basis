@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar.js';
 import {
   DropdownMenu,
@@ -13,11 +13,19 @@ import {
 } from '@/components/ui/dropdown-menu.js';
 import { AccountMenuSubTrigger } from '@/components/app/shared/shell/account-menu-sub-trigger.js';
 import { PublicIcon } from '@/components/app/shared/primitives/public-icon.js';
-import { SidebarMenuButton } from '@/components/ui/sidebar.js';
+import { SidebarMenuBadge, SidebarMenuButton } from '@/components/ui/sidebar.js';
 import { useI18n } from '@/i18n/context.js';
+import { formatBadgeCount } from '@/i18n/format.js';
+import type { Locale } from '@/i18n/locale.js';
 import { LocaleMenuItems } from '@/i18n/locale-menu.js';
+import { isSetupKbId } from '@/lib/kb-active-id.js';
 import { useBasisSession } from '@/lib/basis-session.js';
-import { platformAdminEntryPath, visiblePlatformNavItems } from '@/lib/nav-config.js';
+import {
+  kbPath,
+  platformAdminEntryPath,
+  visiblePlatformNavItems,
+} from '@/lib/nav-config.js';
+import { useKbAlertsNavKbId, useKbUnreadAlerts } from '@/lib/use-kb-unread-alerts.js';
 import { useTheme } from '@/lib/theme.js';
 import { useSettingsAccess } from '@/lib/use-settings-access.js';
 
@@ -26,8 +34,16 @@ function MenuIcon({ name, className }: { name: string; className?: string }) {
 }
 
 export function BasisAccountMenu({ onLogout }: { onLogout: () => void }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
+  const location = useLocation();
   const { user, isAdmin } = useBasisSession();
+  const alertsKbId = useKbAlertsNavKbId();
+  const unreadAlertsCount = useKbUnreadAlerts();
+  const showAlertsLink = !isSetupKbId(alertsKbId);
+  const alertsActive =
+    showAlertsLink &&
+    (location.pathname === kbPath(alertsKbId, 'alerts') ||
+      location.pathname.startsWith(`${kbPath(alertsKbId, 'alerts')}/`));
   const canSettings = useSettingsAccess();
   const { theme, setTheme } = useTheme();
 
@@ -43,16 +59,26 @@ export function BasisAccountMenu({ onLogout }: { onLogout: () => void }) {
   const managementHref = showManagement
     ? platformAdminEntryPath(isAdmin, canSettings === true)
     : null;
+  const showAlertsBadge = showAlertsLink && unreadAlertsCount > 0;
+  const alertsBadgeLabel = formatBadgeCount(locale as Locale, unreadAlertsCount, 99);
+
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <SidebarMenuButton
-          size="lg"
-          className="min-w-0 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground group-data-[collapsible=icon]:justify-center"
-        >
-          <Avatar className="size-8">
-            <AvatarFallback className="text-xs font-semibold">{initials}</AvatarFallback>
-          </Avatar>
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <SidebarMenuButton
+            size="lg"
+            className="min-w-0 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground group-data-[collapsible=icon]:justify-center"
+          >
+            <Avatar className="relative size-8 shrink-0">
+              <AvatarFallback className="text-xs font-semibold">{initials}</AvatarFallback>
+              {showAlertsBadge ? (
+                <span
+                  className="absolute -right-0.5 -top-0.5 hidden size-2 rounded-full bg-destructive group-data-[collapsible=icon]:block"
+                  aria-hidden
+                />
+              ) : null}
+            </Avatar>
           <div className="min-w-0 flex-1 text-left group-data-[collapsible=icon]:hidden">
             <div className="text-sidebar-foreground truncate text-xs leading-4">{accountTitle}</div>
             <div className="text-muted-foreground truncate text-[11px] leading-4">{accountRole}</div>
@@ -116,6 +142,22 @@ export function BasisAccountMenu({ onLogout }: { onLogout: () => void }) {
             </DropdownMenuSubContent>
           </DropdownMenuPortal>
         </DropdownMenuSub>
+        {showAlertsLink ? (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild data-active={alertsActive ? true : undefined}>
+              <Link to={kbPath(alertsKbId, 'alerts')}>
+                <MenuIcon name="bell-01" />
+                {t.menu.kb.alerts}
+                {unreadAlertsCount > 0 ? (
+                  <span className="ml-auto rounded-md bg-destructive/15 px-1.5 text-xs font-medium tabular-nums text-destructive">
+                    {formatBadgeCount(locale as Locale, unreadAlertsCount, 99)}
+                  </span>
+                ) : null}
+              </Link>
+            </DropdownMenuItem>
+          </>
+        ) : null}
         {managementHref ? (
           <>
             <DropdownMenuSeparator />
@@ -137,6 +179,12 @@ export function BasisAccountMenu({ onLogout }: { onLogout: () => void }) {
           {t.sidebar.logout}
         </DropdownMenuItem>
       </DropdownMenuContent>
-    </DropdownMenu>
+      </DropdownMenu>
+      {showAlertsBadge ? (
+        <SidebarMenuBadge className="bg-destructive/15 text-destructive">
+          {alertsBadgeLabel}
+        </SidebarMenuBadge>
+      ) : null}
+    </>
   );
 }

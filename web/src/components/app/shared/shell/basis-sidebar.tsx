@@ -1,4 +1,3 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { AppLogo } from '@/components/app/shared/shell/app-logo.js';
 import { KbSwitcher } from '@/components/app/kb/explorer-shell/kb-switcher.js';
@@ -12,7 +11,6 @@ import {
   SidebarGroupContent,
   SidebarHeader,
   SidebarMenu,
-  SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarTrigger,
@@ -20,107 +18,24 @@ import {
 } from '@/components/ui/sidebar.js';
 import { ScrollShadow } from '@/components/app/shared/primitives/scroll-shadow.js';
 import { useI18n } from '@/i18n/context.js';
-import { formatBadgeCount } from '@/i18n/format.js';
-import type { Locale } from '@/i18n/locale.js';
-import { consumeKbAlertsStream, type KbAlertStreamItem } from '@/lib/kb-alerts-stream.js';
-import { kbOpenApiGET } from '@/lib/openapi-client.js';
 import {
   KB_NAV_BY_ZONE,
   KB_WORKSPACE_ZONES,
   type KbNavItem,
-  isKbScopedPath,
   kbPath,
-  parseKbIdFromPath,
 } from '@/lib/nav-config.js';
-import { isSetupKbId, resolveSidebarKbId } from '@/lib/kb-active-id.js';
+import { resolveSidebarKbId } from '@/lib/kb-active-id.js';
 import { useKbCatalog } from '@/lib/kb-context.js';
 import { kbNavSegmentEnabled, useKbCapabilities } from '@/lib/kb-capabilities.js';
 
 export function BasisSidebar({ onLogout }: { onLogout: () => void }) {
-  const { t, locale } = useI18n();
+  const { t } = useI18n();
   const location = useLocation();
   const { isMobile, setOpenMobile } = useSidebar();
   const { kbs } = useKbCatalog();
   const { caps } = useKbCapabilities();
 
-  const kbScoped = isKbScopedPath(location.pathname);
-  const pathKbId = parseKbIdFromPath(location.pathname);
   const navKbId = resolveSidebarKbId(location.pathname, kbs);
-  const alertsKbId =
-    pathKbId && pathKbId !== 'all' && kbScoped ? pathKbId : navKbId;
-  const [unreadAlertsCount, setUnreadAlertsCount] = useState(0);
-  const [alertsStreamReady, setAlertsStreamReady] = useState(false);
-  const streamSinceRef = useRef<string | undefined>(undefined);
-  const seenAlertIdsRef = useRef<Set<string>>(new Set());
-
-  const refreshAlertsCount = useCallback(async () => {
-    if (!alertsKbId || isSetupKbId(alertsKbId)) {
-      setUnreadAlertsCount(0);
-      return;
-    }
-    try {
-      const data = await kbOpenApiGET<{ alerts: KbAlertStreamItem[]; unread_count: number }>(
-        alertsKbId,
-        'alerts',
-        { params: { query: { limit: 50 } } },
-      );
-      seenAlertIdsRef.current = new Set(data.alerts.map((a) => a.id));
-      setUnreadAlertsCount(data.unread_count ?? data.alerts.length);
-      streamSinceRef.current = data.alerts[0]?.created_at ?? new Date().toISOString();
-      setAlertsStreamReady(true);
-    } catch {
-      /* non-blocking */
-    }
-  }, [alertsKbId]);
-
-  useEffect(() => {
-    setAlertsStreamReady(false);
-    void refreshAlertsCount();
-  }, [refreshAlertsCount]);
-
-  useEffect(() => {
-    const onChanged = () => {
-      void refreshAlertsCount();
-    };
-    window.addEventListener('kb-alerts-changed', onChanged);
-    return () => window.removeEventListener('kb-alerts-changed', onChanged);
-  }, [refreshAlertsCount]);
-
-  useEffect(() => {
-    if (!alertsKbId || isSetupKbId(alertsKbId) || !alertsStreamReady) return;
-    const ac = new AbortController();
-    let backoff = 2000;
-    let cancelled = false;
-
-    const run = async () => {
-      while (!cancelled && !ac.signal.aborted) {
-        try {
-          await consumeKbAlertsStream(alertsKbId, {
-            since: streamSinceRef.current,
-            signal: ac.signal,
-            locale,
-            onAlert: (alert) => {
-              streamSinceRef.current = alert.created_at;
-              if (!seenAlertIdsRef.current.has(alert.id)) {
-                seenAlertIdsRef.current.add(alert.id);
-                setUnreadAlertsCount((prev) => prev + 1);
-              }
-            },
-          });
-          backoff = 2000;
-        } catch {
-          if (ac.signal.aborted || cancelled) break;
-          await new Promise((r) => window.setTimeout(r, backoff));
-          backoff = Math.min(backoff * 2, 30_000);
-        }
-      }
-    };
-    void run();
-    return () => {
-      cancelled = true;
-      ac.abort();
-    };
-  }, [alertsStreamReady, alertsKbId, locale]);
 
   function closeMobile() {
     if (isMobile) setOpenMobile(false);
@@ -135,8 +50,6 @@ export function BasisSidebar({ onLogout }: { onLogout: () => void }) {
     const active = isKbActive(item.segment);
     const label = t.menu.kb[item.labelKey];
     const enabled = kbNavSegmentEnabled(item.segment, caps);
-    const isAlerts = item.segment === 'alerts';
-    const showBadge = isAlerts && unreadAlertsCount > 0;
     const disabledTooltip =
       caps?.diagnostic === 'explorer_unavailable'
         ? t.menu.capabilities.explorerUnavailable
@@ -144,26 +57,14 @@ export function BasisSidebar({ onLogout }: { onLogout: () => void }) {
     return (
       <SidebarMenuItem key={item.segment}>
         {enabled ? (
-          <>
-            <SidebarMenuButton asChild isActive={active} tooltip={label}>
-              <Link to={kbPath(currentKbId, item.segment)} onClick={closeMobile}>
-                <span className="relative inline-flex shrink-0">
-                  <SidebarIcon name={item.icon} />
-                  {showBadge ? (
-                    <span className="absolute -right-0.5 -top-0.5 hidden size-2 rounded-full bg-destructive group-data-[collapsible=icon]:block" />
-                  ) : null}
-                </span>
-                <span className="min-w-0 flex-1 truncate group-data-[collapsible=icon]:hidden">
-                  {label}
-                </span>
-              </Link>
-            </SidebarMenuButton>
-            {showBadge ? (
-              <SidebarMenuBadge className="bg-destructive/15 text-destructive">
-                {formatBadgeCount(locale as Locale, unreadAlertsCount, 99)}
-              </SidebarMenuBadge>
-            ) : null}
-          </>
+          <SidebarMenuButton asChild isActive={active} tooltip={label}>
+            <Link to={kbPath(currentKbId, item.segment)} onClick={closeMobile}>
+              <SidebarIcon name={item.icon} />
+              <span className="min-w-0 flex-1 truncate group-data-[collapsible=icon]:hidden">
+                {label}
+              </span>
+            </Link>
+          </SidebarMenuButton>
         ) : (
           <SidebarMenuButton
             disabled

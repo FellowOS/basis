@@ -52,7 +52,7 @@ export function platformAdminEntryPath(isAdmin: boolean, canSettings: boolean): 
  * 2. knowledge (sources, entities, entity resolution, decisions, review queue)
  * 3. schema (ontology hub, OWL versions, SHACL, SPARQL, reasoning, vocabulary, alignments, mappings)
  * 4. audit (provenance & temporal diff: Lineage, Graph Diff)
- * 5. system (KB alerts & settings)
+ * 5. system (integration & settings; alerts live in the account menu)
  */
 export type KbWorkspaceZone =
   | 'explore'
@@ -126,15 +126,24 @@ export const KB_NAV_BY_ZONE: Record<KbWorkspaceZone, KbNavItem[]> = {
     { segment: 'graph-diff', labelKey: 'graphDiff', icon: 'git-diff' },
   ],
   system: [
-    { segment: 'alerts', labelKey: 'alerts', icon: 'bell-01' },
     { segment: 'integration', labelKey: 'integration', icon: 'plug-01' },
     { segment: 'settings', labelKey: 'settings', icon: 'settings' },
   ],
 };
 
-export const KB_SETTINGS_NAV_ITEM: KbNavItem = KB_NAV_BY_ZONE.system[2];
+/** KB alerts page (account menu entry; not in the sidebar). */
+export const KB_ALERTS_NAV_ITEM: KbNavItem = {
+  segment: 'alerts',
+  labelKey: 'alerts',
+  icon: 'bell-01',
+};
 
-export const KB_NAV: KbNavItem[] = KB_WORKSPACE_ZONES.flatMap((zone) => KB_NAV_BY_ZONE[zone]);
+export const KB_SETTINGS_NAV_ITEM: KbNavItem = KB_NAV_BY_ZONE.system[1];
+
+export const KB_NAV: KbNavItem[] = [
+  ...KB_WORKSPACE_ZONES.flatMap((zone) => KB_NAV_BY_ZONE[zone]),
+  KB_ALERTS_NAV_ITEM,
+];
 
 export function kbPath(kbId: string, segment: string): string {
   return `/kbs/${kbId}/${segment}`;
