@@ -803,7 +803,7 @@ export function KbReviewQueueTab({
                         className="mt-1 inline-block text-[11px] text-foreground underline-offset-2 hover:underline"
                         data-testid={`review-timeline-review-${linkedReviewItemId}`}
                       >
-                        {t.chat.openReviewItem}
+                        {t.kbReview.openReviewItem}
                       </Link>
                     ) : null}
                     {proposalId ? (

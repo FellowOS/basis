@@ -305,20 +305,20 @@
 
 ---
 
-### 5.13 对话与 MCP `F-CHAT`
+### 5.13 Agent 集成与 remember `F-CHAT`
 
-Basis **不在 API 层提供** Utopia 式「服务端 Chat 会话 + SSE LLM」；Playground 在 **Web** 编排：**浏览器直连** OpenAI 兼容 Chat API + **同域 MCP**（`basis/integration` 与 OpenAPI 对齐）。
+Basis **不在 API 层提供** Utopia 式「服务端 Chat 会话 + SSE LLM」，**控制台也不再提供** KB 内浏览器 Playground。智能体经 **HTTP MCP**（与 OpenAPI 对齐的 `basis/integration` 操作）集成。
 
 | ID | 能力 | 实现落点 |
 | --- | --- | --- |
-| F-CHAT-01 | KB 内多轮对话、流式 | Web Playground（`/kbs/:id/chat`）；模型配置 **localStorage**（非 Basis OpenAPI） |
-| F-CHAT-02 | RAG：检索引用 | Playground 调 MCP `search_chunks` 等 |
+| F-CHAT-01 | KB 内多轮对话、流式 | `excluded`（原 Web Playground 已移除） |
+| F-CHAT-02 | RAG：检索引用 | 智能体侧 MCP `search_chunks` 等 |
 | F-CHAT-03 | 工具子集 | MCP **13 工具**（读图 + `propose_remember` + 审核读/批）；见 [openapi-v1.md §6.1](architecture/openapi-v1.md) |
-| F-CHAT-04 | remember → pending 审核 | **服务端：** `POST /api/v1/kbs/{id}/remember/proposals`、MCP `propose_remember`、review get/approve（`statement_remember`）。**控制台：** Playground 与 Review 互跳（见 progress） |
+| F-CHAT-04 | remember → pending 审核 | **服务端：** `POST /api/v1/kbs/{id}/remember/proposals`、MCP `propose_remember`、review get/approve（`statement_remember`）。**控制台：** Review 队列 |
 | F-CHAT-05 | MCP over HTTP（JSON-RPC） | `GET/POST /api/v1/kbs/{id}/mcp` + KB API token；**无** 平台级 `/api/mcp` |
-| F-CHAT-06 | 停止生成、并发、上下文裁剪 | Playground 客户端 abort + 消息裁剪（无服务端 token 预算） |
+| F-CHAT-06 | 停止生成、并发、上下文裁剪 | `excluded`（随 Playground 移除） |
 
-**界面**：`/kbs/:id/chat`（Playground）。
+**界面**：`/kbs/:id/integration`（侧栏 **系统 → 集成**，**OpenAPI** / **MCP** 两个 tab；MCP 含 URL / Cursor 配置 / KB 访问令牌）。旧 `/kbs/:id/mcp` → `integration?tab=mcp`；`/kbs/:id/chat` 重定向至检索（`?tab=connect` → MCP tab）。
 
 ---
 
@@ -440,9 +440,9 @@ semantica SDK（parse, kg, ontology, reasoning, embeddings, …）
 | **§3.1** | 上表 F-* 的 **UI、深链、可分享 URL、运维叙事** 等缺口 |
 | **§3.2** | **Pipeline、新 API 或体验** 均未闭环（含 P0 Playground polish） |
 
-例：**F-GOV-07** — decisions/chain 在 §0.2；Decisions 页与 `?decision=` 在 §3.1。**F-CHAT-04** — remember MCP/HTTP 在 §0.1；Playground↔Review 在 §3.1。**F-CHAT-01–03** P0 拆验收见 progress **§6**。
+例：**F-GOV-07** — decisions/chain 在 §0.2；Decisions 页与 `?decision=` 在 §3.1。**F-CHAT-04–05** — remember/MCP 在 §0.1；**F-CHAT-01–03** Web Playground 已移除（progress **§6**）。
 
-**完整性结论（设计层）**：§5 覆盖 Utopia 十二域 + Explorer 主要 Workspace。**实现层**已打通纵向主干：文库 → 处理 → 图/搜 → Playground+MCP → 审核闭环 → 本体/SPARQL/映射/连接器 MVP；独立 Explorer 产品壳已移除。差距与 **§4 排期** 见 progress。
+**完整性结论（设计层）**：§5 覆盖 Utopia 十二域 + Explorer 主要 Workspace。**实现层**已打通纵向主干：文库 → 处理 → 图/搜 → MCP → 审核闭环 → 本体/SPARQL/映射/连接器 MVP；独立 Explorer 产品壳已移除。差距与 **§4 排期** 见 progress。
 
 ---
 
@@ -476,7 +476,7 @@ semantica SDK（parse, kg, ontology, reasoning, embeddings, …）
 | `/kbs` | F-KB-01 |
 | `/kbs/:id/graph` | F-GRAPH, F-UI, F-TIM-04 |
 | `/kbs/:id/search` | F-SRCH |
-| `/kbs/:id/chat` | F-CHAT |
+| `/kbs/:id/integration` | F-CHAT-05 |
 | `/kbs/:id/library` | F-SRC |
 | `/kbs/:id/review` | F-GOV, F-IDN |
 | `/kbs/:id/decisions` | F-GOV-07 |
@@ -540,9 +540,9 @@ F-GRAPH-02–04, F-SRCH-01–02, F-SRC-04–05, F-PLAT-02, F-UI-01（图只读�
 
 ### Phase 2 — 问与审
 
-F-CHAT-01–03（Playground + MCP 工具）, F-GOV-02–03, F-GOV-07（简版）, F-IDN-01–02, F-KB-04, F-ONT-01（只读浏览）, F-GOV-06（简版 registry）。
+F-CHAT-04–05（MCP + remember）, F-GOV-02–03, F-GOV-07（简版）, F-IDN-01–02, F-KB-04, F-ONT-01（只读浏览）, F-GOV-06（简版 registry）。（F-CHAT-01–03 Web Playground 已移除，见 progress §6。）
 
-验收：Playground 带检索引用；editor 完成一次合并；决策/审核可追踪。
+验收：MCP 工具环 + remember→审核；editor 完成一次合并；决策/审核可追踪。
 
 ### Phase 3 — 本体、查询、来源
 
@@ -552,7 +552,7 @@ F-ONT-02–08, F-GOV-07（完整）, F-SRC-06–07, F-LDG-02, F-IO-01, F-DIFF-01
 
 ### Phase 4 — 平台化与深度
 
-F-ACC-04, F-CHAT-04–05（remember API/MCP + Playground 深链）, F-RUL-01–03, F-TIM-01–04, F-ALT-01–02, F-KB-06, F-GOV-04–05.
+F-ACC-04, F-CHAT-04–05（remember API/MCP + `/integration` 控制台）, F-RUL-01–03, F-TIM-01–04, F-ALT-01–02, F-KB-06, F-GOV-04–05.
 
 ### Phase 5+ — 可选（企业语义层与平台）
 

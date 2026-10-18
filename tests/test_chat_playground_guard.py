@@ -1,4 +1,4 @@
-"""MCP remember guard (playground orchestration lives in web)."""
+"""MCP remember guard for read-scoped API tokens."""
 
 from fastapi.testclient import TestClient
 

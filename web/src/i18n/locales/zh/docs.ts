@@ -141,7 +141,9 @@ export const docs = {
         },
         {
           heading: '配置概要',
-          paragraphs: ['在知识库设置中创建访问令牌并记录该库的 MCP URL；在 Agent 主机中以 Bearer 配置令牌。'],
+          paragraphs: [
+            '在侧栏「系统 → 集成」的 MCP 标签页创建访问令牌并记录 MCP URL；在 Agent 主机中以 Bearer 配置令牌。',
+          ],
         },
       ],
     },

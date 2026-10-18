@@ -9,7 +9,6 @@ export const menu = {
   kb: {
     graph: 'Graph',
     search: 'Search',
-    chat: 'Ask',
     sources: 'Sources',
     processing: 'Processing jobs',
     entities: 'Entities',
@@ -27,10 +26,11 @@ export const menu = {
     lineage: 'Lineage',
     graphDiff: 'Graph diff',
     alerts: 'Alerts',
+    integration: 'Integration',
     settings: 'KB settings',
   },
   kbZones: {
-    explore: 'Explore & Ask',
+    explore: 'Explore',
     knowledge: 'Data & Ledger',
     schema: 'Semantic Schema',
     audit: 'Lineage & Diff',
@@ -71,6 +71,19 @@ export const menu = {
     myRole: 'My role',
     deleteKb: 'Delete knowledge base',
     deleteConfirm: 'Delete this knowledge base? This cannot be undone.',
+  },
+  kbIntegration: {
+    tabs: {
+      openapi: 'OpenAPI',
+      mcp: 'MCP',
+    },
+    openapi: {
+      hint: 'REST integration for this knowledge base — same operations as MCP tools.',
+      downloadJson: 'Download KB OpenAPI JSON',
+      openSwagger: 'Open full Swagger UI',
+      apiBaseLabel: 'API base path for this KB:',
+      kbIdTryItOut: 'In Try it out, set kb_id to this knowledge base id. Bearer token uses your console session.',
+    },
   },
   kbMcp: {
     title: 'MCP & access tokens',

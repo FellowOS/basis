@@ -38,11 +38,11 @@
 | **本体与推理** | Ontology Hub、SPARQL、映射；**rules REST CRUD**、`POST /api/v1/kbs/{id}/reasoning/run`；derived facts 投影 |
 | **治理读 API** | Decisions list + chain（**F-GOV-07** API）；Review Decisions 页（UX 仍 §3.1） |
 | **Diff / 时态 / 任务** | `GET .../graph/diff` + 对比页（**F-DIFF-01** 读路径）；search/graph 时间 query（**F-SRCH-03**）；`GET .../ingest/jobs`（**F-SRC-08**） |
-| **Agent 面** | MCP 13 工具 + JSON-RPC（`test_mcp_basic_graph_closed_loop`）、**remember 闭环**（propose + review approve）、Playground（浏览器 LLM + MCP） |
+| **Agent 面** | MCP 13 工具 + JSON-RPC（`test_mcp_basic_graph_closed_loop`）、**remember 闭环**（propose + review approve） |
 | **连接器** | Sources CRUD + sync（**F-SRC-06–07**，冻结 kind：webhook / http_poll / GitHub raw） |
 | **其它** | Lineage、告警 SSE、图 import 经审核、KB 页副标题（**F-IF-03**） |
 
-**§0.1 基线 `done`（F-ID）** — 不在 §3 重复：`F-RUL-01`–`02`、`F-SRC-06`–`07`、`F-CHAT-04`（MCP/HTTP remember）、`F-CHAT-05`、`F-IF-03`、`F-SRCH-03`（Search↔Graph 时态 URL/深链）、**F-CHAT-01–03**（Playground P0，见 **§6**；不含 F-CHAT-06 并发/token 预算）。
+**§0.1 基线 `done`（F-ID）** — 不在 §3 重复：`F-RUL-01`–`02`、`F-SRC-06`–`07`、`F-CHAT-04`（MCP/HTTP remember）、`F-CHAT-05`、`F-IF-03`、`F-SRCH-03`（Search↔Graph 时态 URL/深链）。**F-CHAT-01–03 / F-CHAT-06**（Web Playground）已 **`replaced`** — 见 **§6**。
 
 **§0.2 API 基线（F-* 仍可能有 §3.1 产品化 gap）**
 
@@ -62,7 +62,6 @@
 | F-DIFF-01 | `GET .../graph/diff` | `tests/test_kb_explorer_routes.py`；`web/e2e/graph-diff.spec.ts` |
 | F-SRCH-03 | search：`as_of`、`created_after`/`created_before`；graph read：`at` | `tests/test_chunk_search.py`（`as_of`） |
 | F-SRC-08 | `GET .../ingest/jobs`、`GET .../ingest/jobs/{job_id}` | `tests/test_version_ingest.py`、`tests/test_m6_smoke.py`；Sources `?job=` → `web/e2e/processing-job.spec.ts` |
-| — | Playground remember → review 深链 | `web/e2e/chat-playground.spec.ts`（§3.1 UX） |
 | F-CHAT-04 | MCP `approve_statement_remember_review` → `decision_id` | `tests/test_mcp.py` · `test_mcp_basic_graph_closed_loop` |
 | F-ONT-05 | OWL 提案深链 | `kbOntologyProposalPath` · `web/src/lib/nav-config.test.ts`；Explorer `VersionsTab` |
 | F-GOV-07 | Decisions `?decision=` 双向 + 复制深链 | `web/e2e/decisions-deep-link.spec.ts`（§3.1 UX） |
@@ -100,7 +99,7 @@
 | — | Direct graph merge/import (Explorer-style) | `excluded` | — | `409` → review queue by design |
 | — | SPARQL UPDATE | `excluded` | — | Disabled by design |
 | — | Global `/api/reason` | `excluded` | — | `410`; use `POST .../reasoning/run` |
-| — | Server-side KB Chat API (`.../chat/sessions`) | `excluded` | — | Playground + MCP instead (see features §5.13) |
+| — | Server-side KB Chat API (`.../chat/sessions`) | `excluded` | — | MCP + Review（见 features §5.13；Web Playground 已 **replaced** §6） |
 
 ---
 
@@ -119,7 +118,7 @@
 | F-RUL-03 | Entities / 证明链 UI | `partial` | P1 | Entities 侧栏 + derived 主客体→图谱；前提 UUID/**statement** 深链 `derived-fact-premise-link` |
 | — | Reasoning workspace UX | `partial` | P1 | Rules/run → §0.1；Explorer WS 启停与试跑（**F-ONT-09**） |
 | F-SRC-08 | 超大文件 / 队列运维 UX | `partial` | P1 | Jobs API → §0.2 |
-| — | remember Playground ↔ Review 深链 | `done` | P1 | `kbReviewItemPath` + `chat-remember-review-link`；E2E `chat-playground.spec.ts` |
+| F-CHAT-05 | 集成控制台（OpenAPI + MCP） | `done` | P1 | `/kbs/:id/integration`（系统 → 集成）；`/mcp` 重定向；`chat?tab=connect` → `?tab=mcp`；E2E `mcp-integration.spec.ts` |
 | F-KB-06 | 导出 pack 控制台入口与文档 | `partial` | P2 | 部分 export API 已有 |
 
 ### 3.2 端到端缺口（pipeline / 能力仍 partial 或 not）
@@ -133,8 +132,8 @@
 | F-TIM-01–03 | valid_from/to, doc events, ingest vs graph 时态一致 | `partial` | P1 | Chunk filters vs graph `temporal/snapshot` |
 | F-TIM-04 | Timeline playback（产品导航） | `partial` | P1 | Graph scrubber↔URL；Search **Open graph timeline** → `?timeline=1`；`as_of` → Open graph at this time |
 | — | `POST .../graph/distance-matrix` | `partial` | P2 | Server hop matrix when graph &gt; 2500 nodes |
-| F-CHAT-01–03 | Playground + RAG + MCP tools（P0 体验） | `done` | P0 | 基线 → **§0.1** + **§6**；细项 polish（引用 E2E、F-CHAT-06）不再阻塞 P0 |
-| F-CHAT-06 | Stop gen, concurrency, context trim | `partial` | P1 | Client abort + trim + **KB 级 inflight**（`chat_in_flight` i18n）；token budget deferred |
+| F-CHAT-01–03 | Web KB Playground | `replaced` | — | 控制台问答已移除；智能体用 MCP（§0.1 **F-CHAT-04–05**） |
+| F-CHAT-06 | Playground 客户端控制 | `replaced` | — | 随 Playground 移除 |
 | F-ALT-01–02 | Alert episodes + SSE refetch | `partial` | P1 | **Bell 已挂入 KB 顶栏**（`basis-layout`）；SSE + 深链；E2E bell popover `governance.spec.ts` |
 | F-ACC-07 | Enterprise SSO / org | `partial` | P1 | Orgs + magic link/OAuth；full OIDC SSO TBD |
 | F-IO-01 | Graph import/export | `partial` | — | Import via review；export 面不全 |
@@ -165,29 +164,12 @@
 
 ---
 
-## 6. P0 验收要点（F-CHAT-01–03，可拆 issue）
+## 6. Web Playground（F-CHAT-01–03）— `replaced`
 
-Web：`/kbs/:id/chat` · `web/src/components/app/kb/widgets/kb-chat-playground.tsx` · `web/src/lib/kb-chat-playground/*`。
+控制台 KB 问答 Playground（`/kbs/:id/chat`、浏览器 LLM + MCP 编排）已移除。产品内 agent 集成保留 **MCP + Review**（**F-CHAT-04–05**，§0.1）。
 
-| 项 | 状态 | 说明 |
-| --- | --- | --- |
-| 多轮 + 流式 | 已有 | 浏览器 OpenAI-compatible Chat API（`stream-playground.ts`） |
-| LLM 配置 | 已有 | localStorage（`chat-llm-config.js`）；首访无配置时展开设置 |
-| MCP 工具环 | 已有 | `listKbMcpTools` → 最多 8 轮；与 KB `.../mcp` 同域 |
-| RAG / 引用 | 已有 | 工具结果 → `chatCitationHref` 链到 chunk/entity/graph |
-| 停止生成 | 已有 | AbortController（**F-CHAT-06** 其余：并发 gate、token 预算仍缺） |
-| 上下文裁剪 | 已有 | `trimPlaygroundMessages` + UI notice |
-| 手动 remember | 已有 | `POST remember/proposals` + toast（**非** MCP 闭环 UI） |
-| Playwright E2E | **已有** | `chat-playground.spec.ts`（LLM 未配置、remember、mock 工具环、**search_chunks → citation 链接**） |
-| LLM 未配置 | **已有** | 发送前校验 + 展开设置 |
-| 引用 / 工具元数据 | **已有** | `citationsHeading`、`toolsUsed` 列表 |
-| propose 后 → Review | **已有** | 手动 + MCP `propose_remember` → `chat-remember-review-link` |
-| 系统提示 i18n | **已有** | `chat.playgroundSystemPrompt` + `toolLoopLimit`（`stream-playground.ts` 随 UI locale） |
-| 图聚焦 seed | **已有** | `?focus=` 预填 + `chat-graph-focus-banner` 回图谱 |
-| 工具调用反馈 | **已有** | 流式期间 `toolRunning` 条 |
-
-闭环 **agent** 路径（与控制台并列）：`tests/test_mcp.py` · `test_mcp_basic_graph_closed_loop`（**F-CHAT-04** §0.1）；MCP `approve_statement_remember_review` 与 HTTP 同返回 **`decision_id`**（`KbCoreContext.http_request`）；HTTP OpenAPI **`ApproveReviewItemResponse`**；MCP `describe_kb` inputSchema ← `GET .../kbs/{kb_id}`。
+闭环 **agent** 路径：`tests/test_mcp.py` · `test_mcp_basic_graph_closed_loop`；MCP `approve_statement_remember_review` 与 HTTP 同返回 **`decision_id`**；控制台 **`/kbs/:id/integration`**（E2E `mcp-integration.spec.ts`）。
 
 ---
 
-_Last updated: 2026-10-18 — F-GOV-07 审核↔决策深链/E2E；F-ONT-05 ontology proposal E2E；OpenAPI `ApproveReviewItemResponse` + web typegen。_
+_Last updated: 2026-10-18 — F-CHAT-05 `/integration`（OpenAPI + MCP tabs）+ 移除 Web Playground（§6）；Review 深链 → `kbReview`；告警 llm.* → settings。_

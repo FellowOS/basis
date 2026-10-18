@@ -99,7 +99,6 @@ export const kbGraphWorkspace = {
   computingCandidates: "Computing candidate links…",
   confidenceDecay: "Confidence Decay",
   content: "Content",
-  continueInChat: "Continue in chat",
   decisionsLoadFailed: "Failed to load decisions",
   decisionsLoading: "Loading…",
   emptyHint: "Search for a node or click one in the canvas to inspect its properties.",

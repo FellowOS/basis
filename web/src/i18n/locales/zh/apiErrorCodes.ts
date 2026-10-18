@@ -36,7 +36,6 @@ export const apiErrorCodes = {
   import_requires_review: "图导入需经审核队列批准后再应用。",
   mcp_busy: "MCP 请求过多，请稍后重试。",
   api_busy: "API 请求过多，请稍后重试。",
-  chat_in_flight: "该知识库已有进行中的对话请求，请稍候或停止后再试。",
   legacy_api_removed: "该 API 路径已下线，请改用 /api/v1。",
   mcp_timeout: "MCP 工具执行超时。",
   no_current_version: "该文档没有可用版本。",

@@ -73,8 +73,8 @@ export const KbMappingsPage = lazy(() =>
 export const KbVocabularyPage = lazy(() =>
   import('@/pages/kb/vocabulary').then((m) => ({ default: m.KbVocabularyPage })),
 );
-export const KbChatPage = lazy(() =>
-  import('@/pages/kb/chat').then((m) => ({ default: m.KbChatPage })),
+export const KbIntegrationPage = lazy(() =>
+  import('@/pages/kb/integration').then((m) => ({ default: m.KbIntegrationPage })),
 );
 export const KbLineagePage = lazy(() =>
   import('@/pages/kb/lineage').then((m) => ({ default: m.KbLineagePage })),

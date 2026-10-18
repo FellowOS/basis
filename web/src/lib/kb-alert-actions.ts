@@ -8,7 +8,7 @@ export type KbAlertActionLabelKey =
   | 'viewProposal'
   | 'viewSources'
   | 'viewReview'
-  | 'viewChat'
+  | 'viewSettings'
   | 'viewDecisions'
   | 'viewProcessingJob';
 
@@ -74,7 +74,7 @@ export function kbAlertAction(kbId: string, alert: KbAlertStreamItem): KbAlertAc
   }
 
   if (alert.kind.startsWith('llm.')) {
-    return { href: kbPath(kbId, 'chat'), labelKey: 'viewChat' };
+    return { href: kbPath(kbId, 'settings'), labelKey: 'viewSettings' };
   }
 
   return null;

@@ -99,7 +99,6 @@ export const kbGraphWorkspace = {
   computingCandidates: "正在计算候选关系…",
   confidenceDecay: "置信衰减",
   content: "内容",
-  continueInChat: "在对话中继续",
   decisionsLoadFailed: "加载决策失败",
   decisionsLoading: "加载中…",
   emptyHint: "搜索节点或点击画布上的节点以查看属性。",

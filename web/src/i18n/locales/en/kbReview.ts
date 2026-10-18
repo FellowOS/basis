@@ -43,4 +43,5 @@ export const kbReview = {
   importDefaultFilename: 'import',
   importByteSize: '{size} B',
   mappingKindUnknown: '?',
+  openReviewItem: 'Open in review queue',
 } as const;

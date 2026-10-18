@@ -7,30 +7,6 @@ from typing import Any
 from basis.platform.admin.errors import AdminError
 from basis.domain.kb.store import KnowledgeStore
 
-_SKIP_LLM_ALERT_CODES = frozenset({"chat_in_flight", "chat_not_configured"})
-
-
-def emit_llm_playground_alert(
-    knowledge: KnowledgeStore,
-    kb_id: str,
-    *,
-    code: str,
-    message: str,
-    detail: dict[str, Any] | None = None,
-) -> None:
-    if code in _SKIP_LLM_ALERT_CODES:
-        return
-    kind = f"llm.{code}" if not code.startswith("llm.") else code
-    payload = {"code": code, **(detail or {})}
-    knowledge.create_kb_alert(
-        kb_id,
-        kind=kind,
-        message=message[:500] or f"Chat error ({code})",
-        severity="warning",
-        detail=payload,
-    )
-
-
 def emit_governance_proposal_proposed_alert(
     knowledge: KnowledgeStore,
     kb_id: str,

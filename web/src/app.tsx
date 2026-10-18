@@ -15,7 +15,7 @@ import {
   KbReviewPage,
   KbEntityResolutionPage,
   KbDecisionsPage,
-  KbChatPage,
+  KbIntegrationPage,
   KbMappingsPage,
   KbVocabularyPage,
   KbLineagePage,
@@ -85,6 +85,24 @@ function KbLegacyProcessingRedirect() {
   const location = useLocation();
   if (!id) return <Navigate to="/kbs" replace />;
   return <Navigate to={`/kbs/${id}/sources${location.search}`} replace />;
+}
+
+/** Legacy Playground URL; F-CHAT-01–03 removed from console (see progress §6). */
+function KbLegacyChatRedirect() {
+  const { id } = useParams();
+  const location = useLocation();
+  if (!id) return <Navigate to="/kbs" replace />;
+  const params = new URLSearchParams(location.search);
+  if (params.get('tab') === 'connect') {
+    return <Navigate to={`${kbPath(id, 'integration')}?tab=mcp`} replace />;
+  }
+  return <Navigate to={kbPath(id, 'search')} replace />;
+}
+
+function KbLegacyMcpRedirect() {
+  const { id } = useParams();
+  if (!id) return <Navigate to="/kbs" replace />;
+  return <Navigate to={`${kbPath(id, 'integration')}?tab=mcp`} replace />;
 }
 
 function AuthedApp() {
@@ -229,14 +247,7 @@ function AuthedApp() {
             </KbExplorerShell>
           }
         />
-        <Route
-          path="/kbs/:id/chat"
-          element={
-            <Suspense fallback={null}>
-              <KbChatPage />
-            </Suspense>
-          }
-        />
+        <Route path="/kbs/:id/chat" element={<KbLegacyChatRedirect />} />
         <Route path="/kbs/:id/library" element={<KbLegacyLibraryRedirect />} />
         <Route
           path="/kbs/:id/sources"
@@ -383,6 +394,15 @@ function AuthedApp() {
             </Suspense>
           }
         />
+        <Route
+          path="/kbs/:id/integration"
+          element={
+            <Suspense fallback={null}>
+              <KbIntegrationPage />
+            </Suspense>
+          }
+        />
+        <Route path="/kbs/:id/mcp" element={<KbLegacyMcpRedirect />} />
         <Route
           path="/kbs/:id/settings"
           element={

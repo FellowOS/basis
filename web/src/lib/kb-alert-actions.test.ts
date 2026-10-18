@@ -84,9 +84,9 @@ describe('kbAlertAction', () => {
     expect(action?.href).toBe('/kbs/kb-1/sources?connectors=1&ingestSource=s1');
   });
 
-  it('links llm alerts to chat', () => {
+  it('links llm alerts to kb settings', () => {
     const action = kbAlertAction('kb-1', alert({ kind: 'llm.tool_loop_limit' }));
-    expect(action?.href).toBe('/kbs/kb-1/chat');
-    expect(action?.labelKey).toBe('viewChat');
+    expect(action?.href).toBe('/kbs/kb-1/settings');
+    expect(action?.labelKey).toBe('viewSettings');
   });
 });

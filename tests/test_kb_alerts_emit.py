@@ -7,41 +7,7 @@ from basis.infra.config import Settings
 from basis.domain.kb.kb_alerts_emit import (
     emit_governance_proposal_proposed_alert,
     emit_governance_tripped_alert,
-    emit_llm_playground_alert,
 )
-
-
-def test_emit_llm_playground_alert_skips_noise(tmp_path) -> None:
-    client = TestClient(create_app(Settings(data_dir=tmp_path)))
-    admin = client.post(
-        "/api/v1/auth/register",
-        json={"email": "emit@example.com", "password": "password1", "display_name": "Emit"},
-    ).json()
-    kb_id = client.get(
-        "/api/v1/kbs",
-        headers={"Authorization": f"Bearer {admin['token']}"},
-    ).json()["kbs"][0]["id"]
-    knowledge = client.app.state.knowledge_store
-
-    emit_llm_playground_alert(
-        knowledge,
-        kb_id,
-        code="chat_in_flight",
-        message="busy",
-    )
-    emit_llm_playground_alert(
-        knowledge,
-        kb_id,
-        code="tool_loop_limit",
-        message="too many tools",
-    )
-    listed = client.get(
-        f"/api/v1/kbs/{kb_id}/alerts",
-        headers={"Authorization": f"Bearer {admin['token']}"},
-    ).json()["alerts"]
-    kinds = {a["kind"] for a in listed}
-    assert "llm.chat_in_flight" not in kinds
-    assert "llm.tool_loop_limit" in kinds
 
 
 def test_emit_governance_tripped(tmp_path) -> None:

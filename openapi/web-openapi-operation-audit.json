@@ -1957,12 +1957,6 @@
       "operationId": "list_kbs_api_v1_kbs_get"
     },
     {
-      "file": "web/src/lib/kb-chat-playground/mcp-kb.ts",
-      "kind": "helper",
-      "path": "/api/v1/kbs/{kb_id}/mcp",
-      "operationId": "mcp_integration_info_api_v1_kbs__kb_id__mcp_get"
-    },
-    {
       "file": "web/src/lib/kb-context.tsx",
       "kind": "literal",
       "path": "/api/v1/kbs",

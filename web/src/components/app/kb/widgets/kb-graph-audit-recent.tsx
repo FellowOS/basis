@@ -104,7 +104,7 @@ export function KbGraphAuditRecent({
                           className={linkClass}
                           data-testid={`graph-audit-review-${reviewItemId}`}
                         >
-                          {t.chat.openReviewItem}
+                          {t.kbReview.openReviewItem}
                         </Link>
                       ) : null}
                       {decisionId ? (

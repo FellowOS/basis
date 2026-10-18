@@ -514,16 +514,6 @@ export function GraphInspectorPanel({
             {inspectorCopy(loc, "knowledgeLinks")}
           </h3>
           <div className="flex flex-col gap-2">
-            {kbId ? (
-              <Button variant="outline" size="sm" className="justify-start gap-2" asChild>
-                <Link
-                  to={`${kbPath(kbId, 'chat')}?focus=${encodeURIComponent(effectiveNodeId)}`}
-                >
-                  <PublicIcon name="message-chat-01" size={14} className="shrink-0 opacity-70" />
-                  {inspectorCopy(loc, "continueInChat")}
-                </Link>
-              </Button>
-            ) : null}
             {kbId && provenanceEnabled ? (
               <Button variant="outline" size="sm" className="justify-start gap-2" asChild>
                 <Link

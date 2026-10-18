@@ -111,8 +111,6 @@ export function kbNavSegmentEnabled(segment: string, caps: KbCapabilities | null
       return caps.graph;
     case 'lineage':
       return caps.provenance && caps.graph;
-    case 'chat':
-      return true;
     case 'ontology':
       return caps.explorer_runtime && caps.graph;
     case 'sparql':
@@ -128,6 +126,7 @@ export function kbNavSegmentEnabled(segment: string, caps: KbCapabilities | null
     case 'vocabulary':
       return caps.vocabulary;
     case 'mappings':
+    case 'integration':
     case 'settings':
       return true;
     default:

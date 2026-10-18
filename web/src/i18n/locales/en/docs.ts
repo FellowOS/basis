@@ -20,7 +20,7 @@ export const docs = {
           ],
           bullets: [
             'Platform API — users, knowledge bases, models, audit, settings',
-            'Knowledge base API — ingest, ledger, search, graph, ontology, chat',
+            'Knowledge base API — ingest, ledger, search, graph, ontology, MCP',
             'MCP — tool surface aligned with the same operations as OpenAPI',
           ],
         },
@@ -157,7 +157,7 @@ export const docs = {
         {
           heading: 'Setup outline',
           paragraphs: [
-            'In KB settings, create an access token and note the MCP URL for that knowledge base. Configure your agent host with the token as Bearer credentials.',
+            'Open Integration under System in the KB sidebar (MCP tab), create an access token, and note the MCP URL. Configure your agent host with the token as Bearer credentials.',
           ],
         },
       ],

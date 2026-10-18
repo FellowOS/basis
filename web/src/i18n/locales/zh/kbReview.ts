@@ -42,4 +42,5 @@ export const kbReview = {
   importDefaultFilename: '导入',
   importByteSize: '{size} B',
   mappingKindUnknown: '?',
+  openReviewItem: '在审核队列中打开',
 } as const;

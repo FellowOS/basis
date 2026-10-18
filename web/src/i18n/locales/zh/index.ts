@@ -6,7 +6,6 @@ import { docs } from './docs.js';
 import { nav } from './nav.js';
 import { pages } from './pages.js';
 import { sidebar } from './sidebar.js';
-import { chat } from './chat.js';
 import { models } from './models.js';
 import { entityResolution } from './entityResolution.js';
 import { kbMappings } from './kbMappings.js';
@@ -39,7 +38,6 @@ import { dev } from './dev.js';
 
 export const zh = {
   menu,
-  chat,
   models,
   common,
   sidebar,

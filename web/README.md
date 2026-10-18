@@ -50,7 +50,7 @@ Platform-only pages (e.g. `pages/kbs.tsx`, `pages/settings.tsx`) skip layer 2–
 
 - `explorer-shell/` — KB Explorer console frame (zone tabs, switcher, unavailable). Not `app/shared/shell/` (global layout).
 - `workspaces/` — one file per KB nav destination that embeds Explorer.
-- `widgets/` — panels, stats, bells, merge diff, chat/MCP pieces used by pages.
+- `widgets/` — panels, stats, bells, merge diff, KB integration (OpenAPI + MCP) pieces used by pages.
 - `dialogs/` — import/export and ingest modals shared across KB UI.
 - `ledger/` — entity browser, evidence inspector, entity ref line.
 - `graph/` — graph toolbar / overview chrome (full graph UI stays in `src/explorer/`).
@@ -74,4 +74,4 @@ Run these from the `web/` directory (`cd web` after cloning the repo).
 
 ### E2E (Playwright)
 
-`playwright.config.ts` starts **Basis API** with `BASIS_DATA_DIR=data-e2e` (enables `/_e2e/*` helpers) and the **Hono dev server**. Use `CI=1 npm run test:e2e` for a clean run with fixed ports. Specs live under `web/e2e/` (governance, chat playground, search temporal URL, ontology proposal, graph diff cross-links, processing jobs, …).
+`playwright.config.ts` starts **Basis API** with `BASIS_DATA_DIR=data-e2e` (enables `/_e2e/*` helpers) and the **Hono dev server**. Use `CI=1 npm run test:e2e` for a clean run with fixed ports. Specs live under `web/e2e/` (governance, MCP integration, search temporal URL, ontology proposal, graph diff cross-links, processing jobs, …).

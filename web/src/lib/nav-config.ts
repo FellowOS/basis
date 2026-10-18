@@ -48,7 +48,7 @@ export function platformAdminEntryPath(isAdmin: boolean, canSettings: boolean): 
 
 /**
  * KB navigation zones ordered by user mental model & task frequency:
- * 1. explore (high-frequency consumption: Graph, Search, Ask)
+ * 1. explore (high-frequency consumption: Graph, Search)
  * 2. knowledge (sources, entities, entity resolution, decisions, review queue)
  * 3. schema (ontology hub, OWL versions, SHACL, SPARQL, reasoning, vocabulary, alignments, mappings)
  * 4. audit (provenance & temporal diff: Lineage, Graph Diff)
@@ -72,7 +72,6 @@ export const KB_WORKSPACE_ZONES: KbWorkspaceZone[] = [
 export type KbNavKey =
   | 'graph'
   | 'search'
-  | 'chat'
   | 'sources'
   | 'processing'
   | 'entities'
@@ -90,6 +89,7 @@ export type KbNavKey =
   | 'lineage'
   | 'graphDiff'
   | 'alerts'
+  | 'integration'
   | 'settings';
 
 export type KbNavItem = {
@@ -103,7 +103,6 @@ export const KB_NAV_BY_ZONE: Record<KbWorkspaceZone, KbNavItem[]> = {
   explore: [
     { segment: 'graph', labelKey: 'graph', icon: 'graph' },
     { segment: 'search', labelKey: 'search', icon: 'search-01' },
-    { segment: 'chat', labelKey: 'chat', icon: 'message-chat-01' },
   ],
   knowledge: [
     { segment: 'sources', labelKey: 'sources', icon: 'book-01' },
@@ -128,11 +127,12 @@ export const KB_NAV_BY_ZONE: Record<KbWorkspaceZone, KbNavItem[]> = {
   ],
   system: [
     { segment: 'alerts', labelKey: 'alerts', icon: 'bell-01' },
+    { segment: 'integration', labelKey: 'integration', icon: 'plug-01' },
     { segment: 'settings', labelKey: 'settings', icon: 'settings' },
   ],
 };
 
-export const KB_SETTINGS_NAV_ITEM: KbNavItem = KB_NAV_BY_ZONE.system[1];
+export const KB_SETTINGS_NAV_ITEM: KbNavItem = KB_NAV_BY_ZONE.system[2];
 
 export const KB_NAV: KbNavItem[] = KB_WORKSPACE_ZONES.flatMap((zone) => KB_NAV_BY_ZONE[zone]);
 

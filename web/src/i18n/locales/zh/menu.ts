@@ -9,7 +9,6 @@ export const menu = {
   kb: {
     graph: '图谱',
     search: '检索',
-    chat: '问答',
     sources: '资料源',
     processing: '处理任务',
     entities: '实体账本',
@@ -27,10 +26,11 @@ export const menu = {
     lineage: '溯源血缘',
     graphDiff: '版本对比',
     alerts: '消息提醒',
+    integration: '集成',
     settings: '知识库设置',
   },
   kbZones: {
-    explore: '探索与问答',
+    explore: '探索',
     knowledge: '数据与抽取',
     schema: '语义建模',
     audit: '追溯与对比',
@@ -71,6 +71,19 @@ export const menu = {
     myRole: '我的角色',
     deleteKb: '删除知识库',
     deleteConfirm: '确定删除此知识库？此操作不可恢复。',
+  },
+  kbIntegration: {
+    tabs: {
+      openapi: 'OpenAPI',
+      mcp: 'MCP',
+    },
+    openapi: {
+      hint: '本知识库的 REST 集成 — 与 MCP 工具对应同一套操作。',
+      downloadJson: '下载 KB OpenAPI JSON',
+      openSwagger: '打开完整 Swagger UI',
+      apiBaseLabel: '本库 API 根路径：',
+      kbIdTryItOut: 'Try it out 时将 kb_id 设为当前知识库 id；Bearer 使用控制台登录会话令牌。',
+    },
   },
   kbMcp: {
     title: 'MCP 与访问令牌',
