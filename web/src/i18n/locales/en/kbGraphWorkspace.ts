@@ -240,6 +240,7 @@ export const kbGraphWorkspace = {
     rebuildButton: "Rebuild",
     auditTitle: "Recent graph audit",
     auditDescription: "Explorer graph actions for this KB (visible to KB members).",
+    auditOpenPlatform: "Platform audit (this KB)",
     auditEmpty: "No events yet",
     overviewTitle: "Graph overview",
     overviewDescription: "Scale and type distribution from sampled nodes and edges.",

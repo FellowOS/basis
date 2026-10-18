@@ -49,6 +49,7 @@ export const pages = {
     colTime: 'Time',
     colAction: 'Action',
     colSummary: 'Summary',
+    colLinks: 'Links',
     colActor: 'Actor',
     count: '{count} records',
     countOne: '{count} record',

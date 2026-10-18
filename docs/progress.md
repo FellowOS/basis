@@ -42,7 +42,7 @@
 | **连接器** | Sources CRUD + sync（**F-SRC-06–07**，冻结 kind：webhook / http_poll / GitHub raw） |
 | **其它** | Lineage、告警 SSE、图 import 经审核、KB 页副标题（**F-IF-03**） |
 
-**§0.1 基线 `done`（F-ID）** — 不在 §3 重复：`F-RUL-01`–`02`、`F-SRC-06`–`07`、`F-CHAT-04`（MCP/HTTP remember）、`F-CHAT-05`、`F-GOV-07`（Review 决策叙事）、`F-IF-03`、`F-SRCH-03`（Search↔Graph 时态 URL/深链）。**F-CHAT-01–03 / F-CHAT-06**（Web Playground）已 **`replaced`** — 见 **§6**。
+**§0.1 基线 `done`（F-ID）** — 不在 §3 重复：`F-RUL-01`–`02`、`F-SRC-06`–`07`、`F-CHAT-04`（MCP/HTTP remember）、`F-CHAT-05`、`F-GOV-06`（Registry 读面）、`F-GOV-07`（Review 决策叙事）、`F-ONT-05`（本体提案评审 UI）、`F-IF-03`、`F-SRCH-03`（Search↔Graph 时态 URL/深链）。**F-CHAT-01–03 / F-CHAT-06**（Web Playground）已 **`replaced`** — 见 **§6**。
 
 **§0.2 API 基线（F-* 仍可能有 §3.1 产品化 gap）**
 
@@ -113,9 +113,9 @@
 | --- | --- | --- | --- | --- |
 | F-GOV-07 | 审核项详情内嵌决策叙事 | `done` | P1 | 主栏 **embedded** `review-item-decision-narrative`（批准横幅、已关闭深链、聚焦项）+ 侧栏 chain；E2E `governance.spec.ts` |
 | F-DIFF-01 | 全图画布合并工作室（publish/staging） | `partial` | P1 | diff 读 + 对比页；图谱↔diff 工具栏 + **结束时刻→timeline** 深链；E2E `graph-diff-cross-link.spec.ts`；工作室 **not** |
-| F-ONT-05 | 本体提案评审全流程 UI | `partial` | P1 | `VersionsTab` 审批/发布 + `?ontologyProposal=` 高亮/弹窗 + **复制评审链接**；E2E `ontology-proposal-url.spec.ts` + `_e2e/ontology-proposal` |
-| F-GOV-06 | Registry 可读产品面（非 Explorer 专页） | `partial` | P1 | Review 侧栏 timeline + KB 设置 **Recent graph audit** 深链；E2E `settings-graph-audit.spec.ts`；平台 audit 摘要含 `decision_id` |
-| F-RUL-03 | Entities / 证明链 UI | `partial` | P1 | Entities 侧栏 + derived 主客体→图谱；statement 前提 → **`/entities?statement=`** + `GET .../ledger/statements/{id}` 高亮 |
+| F-ONT-05 | 本体提案评审全流程 UI | `done` | P1 | `VersionsTab` 审批/发布 + `?ontologyProposal=` 高亮/弹窗 + 复制评审链接；E2E `ontology-proposal-url.spec.ts` |
+| F-GOV-06 | Registry 可读产品面（非 Explorer 专页） | `done` | P1 | Review timeline + 设置 **Recent graph audit** 深链；**平台 `/admin/audit` Links 列**；管理员 → 平台审计（本库）；E2E `settings-graph-audit.spec.ts` |
+| F-RUL-03 | Entities / 证明链 UI | `partial` | P1 | Entities 侧栏 derived + statement **`/entities?statement=`** 高亮；主客体→图谱深链可继续 polish |
 | — | Reasoning workspace UX | `partial` | P1 | Rules/run → §0.1；Explorer WS 启停与试跑（**F-ONT-09**） |
 | F-SRC-08 | 超大文件 / 队列运维 UX | `partial` | P1 | Sources **Job history**：`?job=` 深链、失败 **Retry**、**复制任务链接**；E2E `processing-job.spec.ts`；ingest/jobs API → §0.2 |
 | F-CHAT-05 | 集成控制台（OpenAPI + MCP） | `done` | P1 | `/kbs/:id/integration`（系统 → 集成）；`/mcp` 重定向；`chat?tab=connect` → `?tab=mcp`；E2E `mcp-integration.spec.ts` |
@@ -148,7 +148,7 @@
 | Phase | Focus | Checklist rows |
 | --- | --- | --- |
 | **Now** | Operational KB loop | §3.2 F-TIM（F-SRCH-03 done）；§3.1 治理/本体（F-ONT-05、F-GOV-07） |
-| **Next** | Multi-editor governance | §3.1 F-ONT-05, F-RUL-03, F-GOV-06 |
+| **Next** | Multi-editor governance | §3.1 F-RUL-03 polish；§3.2 F-GOV-05、F-TIM |
 | **Then** | Time + ops visibility | §3.2 F-TIM-01–04, F-ALT-01–02 |
 | **On demand** | Release engineering | §3.1 F-DIFF-01 工作室；§3.2 distance-matrix |
 | **Enterprise option** | Data platform + operational ontology | F-LAKE-01–03 → F-OPS-* |

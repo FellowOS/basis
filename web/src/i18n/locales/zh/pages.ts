@@ -49,6 +49,7 @@ export const pages = {
     colTime: '时间',
     colAction: '动作',
     colSummary: '摘要',
+    colLinks: '关联',
     colActor: '操作者',
     count: '共 {count} 条记录',
     countOne: '共 {count} 条记录',

@@ -88,6 +88,24 @@ export function proposalIdFromGraphAuditDetail(
   return null;
 }
 
+export function kbIdFromAuditDetail(detail: Record<string, unknown> | undefined): string | null {
+  if (!detail) return null;
+  const kb = detail.kb_id;
+  if (typeof kb === 'string' && kb.trim()) return kb.trim();
+  return null;
+}
+
+/** Resolve KB scope for platform audit rows (graph registry deep links). */
+export function kbIdFromPlatformAuditEvent(event: {
+  target_type: string;
+  target_id: string | null;
+  detail?: Record<string, unknown>;
+}): string | null {
+  return kbIdFromAuditDetail(event.detail) ?? (event.target_type === 'knowledge_base' && event.target_id
+    ? event.target_id
+    : null);
+}
+
 export function reviewItemIdFromGraphAuditDetail(
   detail: Record<string, unknown> | undefined,
 ): string | null {

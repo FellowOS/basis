@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { KbGraphAuditEventLinks } from '@/components/app/kb/widgets/kb-graph-audit-event-links.js';
 import {
   DataPanel,
   DataPanelBody,
@@ -32,6 +33,7 @@ import {
 import {
   formatGraphAuditAction,
   formatGraphAuditDetail,
+  kbIdFromPlatformAuditEvent,
   type KbGraphAuditEvent,
 } from '@/lib/kb-graph-audit.js';
 import { decisionIdFromDetail } from '@/lib/reviewUrlState.js';
@@ -216,6 +218,22 @@ export function AuditPage() {
             {formatAuditEventDetail(e, locale as Locale, p, emptyCell)}
           </span>
         ),
+      },
+      {
+        key: 'links',
+        header: p.colLinks,
+        hideBelow: 'lg',
+        render: (e) => {
+          const kbId = kbIdFromPlatformAuditEvent(e);
+          if (!kbId) return emptyCell;
+          return (
+            <KbGraphAuditEventLinks
+              kbId={kbId}
+              detail={e.detail}
+              testIdPrefix={`platform-audit-${e.id}`}
+            />
+          );
+        },
       },
       { key: 'actor', header: p.colActor, render: (e) => e.actor_id ?? emptyCell },
     ],

@@ -238,6 +238,7 @@ export const kbGraphWorkspace = {
     rebuildButton: "重建投影",
     auditTitle: "近期图谱审计",
     auditDescription: "本知识库内与 Explorer 图相关的操作（成员可见）。",
+    auditOpenPlatform: "平台审计（本库）",
     auditEmpty: "暂无记录",
     overviewTitle: "图谱概览",
     overviewDescription: "节点/边规模与类型分布（基于采样节点与边列表）。",

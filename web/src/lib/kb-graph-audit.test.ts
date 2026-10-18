@@ -1,10 +1,28 @@
 import { describe, expect, it } from 'vitest';
 import {
+  kbIdFromPlatformAuditEvent,
   proposalIdFromGraphAuditDetail,
   reviewItemIdFromGraphAuditDetail,
 } from '@/lib/kb-graph-audit.js';
 
 describe('graph audit detail ids', () => {
+  it('resolves kb id from platform audit rows', () => {
+    expect(
+      kbIdFromPlatformAuditEvent({
+        target_type: 'knowledge_base',
+        target_id: 'kb-9',
+        detail: {},
+      }),
+    ).toBe('kb-9');
+    expect(
+      kbIdFromPlatformAuditEvent({
+        target_type: 'user',
+        target_id: null,
+        detail: { kb_id: 'kb-2' },
+      }),
+    ).toBe('kb-2');
+  });
+
   it('extracts review item ids', () => {
     expect(reviewItemIdFromGraphAuditDetail({ review_item_id: 'ri-1' })).toBe('ri-1');
     expect(reviewItemIdFromGraphAuditDetail({ item_id: 'ri-2' })).toBe('ri-2');
