@@ -79,9 +79,9 @@ describe('kbAlertAction', () => {
     expect(action?.labelKey).toBe('viewProcessingJob');
   });
 
-  it('links sync_failed to sources connector focus', () => {
+  it('links sync_failed to sources page', () => {
     const action = kbAlertAction('kb-1', alert({ kind: 'sync_failed', detail: { source_id: 's1' } }));
-    expect(action?.href).toBe('/kbs/kb-1/sources?connectors=1&ingestSource=s1');
+    expect(action?.href).toBe('/kbs/kb-1/sources');
   });
 
   it('links llm alerts to kb settings', () => {

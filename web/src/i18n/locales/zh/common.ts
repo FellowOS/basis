@@ -18,6 +18,7 @@ export const common = {
   open: '打开',
   copy: '复制',
   copySuccess: '已复制到剪贴板',
+  copyFailed: '复制失败',
   stop: '停止',
   saveFailed: '保存失败',
   deleteSuccess: '已删除',

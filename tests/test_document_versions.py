@@ -2,6 +2,7 @@
 
 from io import BytesIO
 from pathlib import Path
+from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 
@@ -171,3 +172,30 @@ def test_document_list_is_newest_upload_first(tmp_path: Path) -> None:
     assert ids.index("newer") < ids.index("older")
     created = [row["created_at"] for row in docs]
     assert created == sorted(created, reverse=True)
+
+
+def test_ingest_document_from_url(tmp_path: Path) -> None:
+    client = TestClient(create_app(Settings(data_dir=tmp_path)))
+    admin = client.post(
+        "/api/v1/auth/register",
+        json={"email": "url@example.com", "password": "password1", "display_name": "Url"},
+    ).json()
+    headers = _auth(admin["token"])
+    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+
+    with patch(
+        "basis.domain.kb.ingest_source_service.fetch_http_poll_text",
+        return_value="Fetched from remote URL.",
+    ) as mock_fetch:
+        resp = client.post(
+            f"/api/v1/kbs/{kb_id}/documents",
+            headers=headers,
+            json={"doc_id": "remote-doc", "url": "https://example.com/notes.txt"},
+        )
+    assert resp.status_code == 200
+    mock_fetch.assert_called_once_with("https://example.com/notes.txt")
+    body = resp.json()
+    assert body["doc_id"] == "remote-doc"
+    assert body["version_no"] == 1
+    assert body["status"] == "uploaded"
+

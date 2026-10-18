@@ -23,4 +23,13 @@ test('graph diff page compares projection between bounds', async ({ page }) => {
   await page.getByRole('button', { name: /^Compare$|^对比$/ }).click();
   await expect(page.getByText(/nodes|节点/i).first()).toBeVisible({ timeout: 60_000 });
   await expect(page).toHaveURL(new RegExp(`from=${encodeURIComponent(from).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`));
+
+  const preview = page.getByTestId('graph-diff-preview-on-graph');
+  if ((await preview.count()) > 0) {
+    await preview.click();
+    await expect(page.locator('[data-testid="kb-graph-diff-preview-bar"]')).toBeVisible({
+      timeout: 60_000,
+    });
+    await expect(page).toHaveURL(/diff_from=/);
+  }
 });

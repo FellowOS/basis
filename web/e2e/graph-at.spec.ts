@@ -92,3 +92,30 @@ test('search open in graph focuses node', async ({ page }) => {
   });
   await expect(page).toHaveURL(new RegExp(`at=${encodeURIComponent(at).replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')}`));
 });
+
+test('search graph scope opens timeline playback deep link', async ({ page }) => {
+  test.setTimeout(120_000);
+
+  await registerFreshUser(page);
+  const kbId = await defaultKbId(page);
+  await ingestDocumentViaApi(page, kbId, 'Search timeline link smoke.');
+
+  const bounds = await fetchTemporalBounds(page, kbId);
+  const at = bounds.max ?? bounds.min ?? '2030-01-01T00:00:00Z';
+  await page.goto(
+    `/kbs/${kbId}/search?tab=graph&q=smoke&at=${encodeURIComponent(at)}`,
+  );
+
+  const unavailable = page.getByRole('heading', {
+    name: /工作区不可用|Workspace unavailable/i,
+  });
+  if ((await unavailable.count()) > 0) {
+    test.skip(true, 'graph search requires explorer_runtime');
+  }
+
+  await page.getByTestId('kb-search-open-graph-timeline').click();
+  await expect(page).toHaveURL(/timeline=1/);
+  await expect(page.locator('.explore-shell[data-timeline="true"]')).toBeVisible({
+    timeout: 60_000,
+  });
+});

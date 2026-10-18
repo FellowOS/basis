@@ -93,8 +93,8 @@
 
 | F-* | Capability | Status | Priority | Value (when it matters) |
 | --- | --- | --- | --- | --- |
-| F-LAKE-01–03 | Lakehouse: mount tables/Parquet, Ontology2SQL, declared actions | `not` | P2 | Pairs with **F-OPS**; not required for document→graph KB loop |
-| F-OPS-01–07 | Operational ontology (Palantir-style actions, functions, object↔dataset, OSDK-lite) | `not` | P2 | Second product track on ADR 0001; see [features.md §5.18](features.md) |
+| F-LAKE-01–03 | Structured source sync & table-to-entity mapping | `not` | P2 | Unified ledger ([ADR 0003](architecture/0003-lakehouse-datasets.md)); no separate Parquet/SQL warehouse |
+| F-OPS-01–07 | Bidirectional entity sync (DB write-back) & declared actions | `not` | P2 | Same menu & ledger as document KB; see [features.md §5.18](features.md) + [adoption doc](architecture/helix-foundry-adoption.md) |
 | F-MEM-* | Agent Memory browser + `/api/memories` | `excluded` | P2 | Long-lived agent notes separate from canonical KB |
 | — | Direct graph merge/import (Explorer-style) | `excluded` | — | `409` → review queue by design |
 | — | SPARQL UPDATE | `excluded` | — | Disabled by design |
@@ -112,34 +112,45 @@
 | F-* | 仍缺 | Status | Priority | Notes |
 | --- | --- | --- | --- | --- |
 | F-GOV-07 | 审核项详情内嵌决策叙事 | `done` | P1 | 主栏 **embedded** `review-item-decision-narrative`（批准横幅、已关闭深链、聚焦项）+ 侧栏 chain；E2E `governance.spec.ts` |
-| F-DIFF-01 | 全图画布合并工作室（publish/staging） | `partial` | P1 | diff 读 + 对比页 **as_of/at 说明** + 治理 callout + 复制链接；全画布 staging **not**；E2E `graph-diff-cross-link.spec.ts` |
+| F-DIFF-01 | 全图画布合并工作室（publish/staging） | `partial` | P1 | diff + **画布 diff 预览条**（`diff_from`/`diff_to`）+ 发布清单 + import 深链；可交互 merge staging **not**；E2E `graph-diff.spec.ts` |
 | F-ONT-05 | 本体提案评审全流程 UI | `done` | P1 | `VersionsTab` 审批/发布 + `?ontologyProposal=` 高亮/弹窗 + 复制评审链接；E2E `ontology-proposal-url.spec.ts` |
 | F-GOV-06 | Registry 可读产品面（非 Explorer 专页） | `done` | P1 | Review timeline + 设置 **Recent graph audit** 深链；**平台 `/admin/audit` Links 列**；管理员 → 平台审计（本库）；E2E `settings-graph-audit.spec.ts` |
 | F-RUL-03 | Entities / 证明链 UI | `done` | P1 | Entities + derived 侧栏；前提/主客体深链（statement→entities、实体→graph）；E2E/单测 `derived-fact-premise-link` |
 | F-ONT-09 | 推理工作台（规则试跑） | `done` | P1 | **Analyze** hub + legacy `/reasoning`；试跑 → 派生深链 **Entities**；Integration OpenAPI 提示；E2E `analyze-hub.spec.ts`、`reasoning-derived.spec.ts` |
-| F-SRC-08 | 超大文件 / 队列运维 UX | `partial` | P1 | 上传前校验 + capabilities **upload-only** 提示；processing↔资料深链；E2E `processing-job.spec.ts` |
+| F-SRC-08 | 超大文件 / 队列运维 UX | `partial` | P1 | limits/queue hint + OpenAPI；**侧栏 Processing 失败角标**；processing↔资料/告警；E2E `processing-job.spec.ts` |
 | F-CHAT-05 | 集成控制台（OpenAPI + MCP） | `done` | P1 | Integration OpenAPI：**导出** + **告警 REST** 提示；告警页 → OpenAPI 互链；E2E `mcp-integration.spec.ts` |
-| F-KB-06 | 导出 pack 控制台入口与文档 | `partial` | P2 | 设置 Graph **导出** ↔ 集成 **OpenAPI** 互链（`POST .../export`）；E2E `settings-graph-audit.spec.ts` |
+| F-KB-06 | 导出 pack 控制台入口与文档 | `done` | P2 | 设置 Graph **导出** ↔ 集成 **OpenAPI**；graph-diff **导出包**深链；E2E `settings-graph-audit.spec.ts` |
 
 ### 3.2 端到端缺口（pipeline / 能力仍 partial 或 not）
 
 | F-* | Capability | Status | Priority | Notes |
 | --- | --- | --- | --- | --- |
 | F-GOV-04 | Agent governor（batch clustering, gates） | `not` | P2 | Scale governance automation |
-| F-GOV-05 | Impact gates + `governance.tripped` alerts | `partial` | P1 | review（`maybe_emit_governance_tripped_on_review_approve`）+ 本体 approve/publish（AdminError + **SHACL 结果**）；merge/import `invoke_explorer`；E2E `governance.spec.ts` |
+| F-GOV-05 | Impact gates + `governance.tripped` alerts | `partial` | P1 | emit + 告警 detail；**Review 批准失败→告警深链**；E2E `governance.spec.ts` |
 | F-SRC-05 | Extract pattern / ml / llm 作业选项与可观测 | `partial` | P1 | 处理对话框 **LLM NER** → 平台模型链接（`sources-llm-ner-hint`）；spaCy 字段已有 |
 | F-RUL-04 | Contradiction → governance queue | `partial` | P2 | `statement_conflict` queue + scan API |
-| F-TIM-01–03 | valid_from/to, doc events, ingest vs graph 时态一致 | `partial` | P1 | 检索 + 图谱 scrubber + **graph-diff `temporalCompareHint`**；引擎/API 仍 partial |
-| F-TIM-04 | Timeline playback（产品导航） | `partial` | P1 | 底部 scrubber↔URL **`at`** + 回放说明；检索无「打开时间轴」；dock `timeline=1`；E2E `graph-at.spec.ts` |
+| F-TIM-01–03 | valid_from/to, doc events, ingest vs graph 时态一致 | `partial` | P1 | scrubber + graph-diff 说明；Search **as_of→ledger 范围对比**；引擎/API 仍 partial |
+| F-TIM-04 | Timeline playback（产品导航） | `partial` | P1 | scrubber↔URL **`at`**；Search **打开时间轴回放**（`timeline=1`）；graph-diff 终点链接；E2E `graph-at.spec.ts` |
 | — | `POST .../graph/distance-matrix` | `partial` | P2 | Server hop matrix when graph &gt; 2500 nodes |
 | F-CHAT-01–03 | Web KB Playground | `replaced` | — | 控制台问答已移除；智能体用 MCP（§0.1 **F-CHAT-04–05**） |
 | F-CHAT-06 | Playground 客户端控制 | `replaced` | — | 随 Playground 移除 |
-| F-ALT-01–02 | Alert episodes + SSE refetch | `partial` | P1 | **账户菜单「消息提醒」** + unread 角标；dismiss-all；深链 E2E `governance.spec.ts` |
+| F-ALT-01–02 | Alert episodes + SSE refetch | `partial` | P1 | 账户菜单提醒 + SSE **Live** + **按 kind 分组** + detail 行；dismiss-all；E2E `governance.spec.ts` |
 | F-ACC-07 | Enterprise SSO / org | `partial` | P1 | Orgs + magic link/OAuth；full OIDC SSO TBD |
 | F-IO-01 | Graph import/export | `partial` | — | Import via review；export 面不全 |
 | — | Markdown node resources persistence | `open` | P2 | Policy TBD |
 | M5-02 | semantica package entry for Graph workspace | `not` | P2 | Still vendored `web/src/explorer` |
 | M4-04 | Cross-instance WS (Redis pub/sub) | `deferred` | P1 | Single worker or sticky sessions |
+
+### 3.3 结构化数据源与实体双向同步设计跟踪（`F-LAKE` / `F-OPS`，统一账本，未编码）
+
+架构已收敛为**同一套菜单、同一套证据账本（`entities` + `statements`），仅扩展入向（结构化表映射同步）与出向（实体变更写回业务库）**，不建独立 Parquet 数仓或 DuckDB 沙箱。详见 [ADR 0003](architecture/0003-lakehouse-datasets.md)、[data-model §18](architecture/data-model.md)、[helix-foundry-adoption.md](architecture/helix-foundry-adoption.md)。
+
+| 项 | Status | Notes |
+| --- | --- | --- |
+| 统一账本与双向同步架构（[ADR 0003](architecture/0003-lakehouse-datasets.md)） | `done` | 同一套菜单与 MCP；砍掉独立 Parquet/SQL 数仓轨道 |
+| 规划表 `source_table_mappings` / `entity_external_refs` / `entity_sync_outbox` | `open` | [data-model §18](architecture/data-model.md) Planned DDL；随一期编码合入迁移 |
+| 一期：入向同步（`postgres_table` / `tabular_upload` → 实体与陈述） | `open` | 按主键/列映射进账本，支持 `row_hash` 增量与跨源实体对齐 |
+| 二期：出向写回与冲突审核（`entity_sync_outbox` + Review） | `open` | 实体修改经 Review 批准后参数化 `UPDATE` 写回业务库，防回环 |
 
 ---
 
@@ -151,7 +162,7 @@
 | **Next** | Time + ops | §3.2 F-GOV-05、F-TIM；§3.1 F-DIFF-01 工作室、F-SRC-08 ingest UX |
 | **Then** | Time + ops visibility | §3.2 F-TIM-01–04, F-ALT-01–02 |
 | **On demand** | Release engineering | §3.1 F-DIFF-01 工作室；§3.2 distance-matrix |
-| **Enterprise option** | Data platform + operational ontology | F-LAKE-01–03 → F-OPS-* |
+| **Enterprise option** | Data platform + operational ontology | F-LAKE-01–03 → F-OPS-*；MVP 验收 [adoption §8](architecture/helix-foundry-adoption.md) |
 | **If agents are first-class** | Memory separate from KB | F-MEM-* |
 
 ---
@@ -172,4 +183,4 @@
 
 ---
 
-_Last updated: 2026-10-18 — 告警页 ↔ Integration OpenAPI 互链。_
+_Last updated: 2026-10-18 — 轨道 B 设计跟踪 §3.3；[helix-foundry-adoption.md](architecture/helix-foundry-adoption.md) 补全。_

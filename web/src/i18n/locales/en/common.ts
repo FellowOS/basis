@@ -18,6 +18,7 @@ export const common = {
   open: 'Open',
   copy: 'Copy',
   copySuccess: 'Copied to clipboard',
+  copyFailed: 'Copy failed',
   stop: 'Stop',
   saveFailed: 'Save failed',
   deleteSuccess: 'Removed',

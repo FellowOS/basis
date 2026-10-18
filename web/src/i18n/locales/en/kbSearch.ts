@@ -15,6 +15,7 @@ export const kbSearch = {
     'Find evidence in documents, nodes in the graph projection, or entities in the ledger. Pick what to search, then run your query.',
   openInGraph: 'Open in graph',
   openGraphLink: 'Open graph',
+  openGraphTimelineLink: 'Open timeline playback',
   searchSettingsLink: 'Search settings',
   evidence: 'View evidence',
   resultCount: '{count} results',
@@ -26,4 +27,5 @@ export const kbSearch = {
   temporalHint:
     'Documents: chunks ingested on or before the instant. Graph: current projection with optional at for point-in-time—use the graph page scrubber for playback.',
   clearTemporal: 'Clear time filter',
+  openGraphDiffLink: 'Compare graph over time',
 } as const;

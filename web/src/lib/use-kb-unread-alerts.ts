@@ -74,6 +74,7 @@ export function useKbUnreadAlerts(): number {
             locale,
             onAlert: (alert) => {
               streamSinceRef.current = alert.created_at;
+              setUnreadCount((count) => count + 1);
               window.dispatchEvent(new CustomEvent('kb-alerts-changed'));
             },
           });

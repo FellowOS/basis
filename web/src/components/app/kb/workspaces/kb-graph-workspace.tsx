@@ -1,9 +1,11 @@
-import { lazy, Suspense, useMemo, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ExplorerHostProvider } from '@/explorer/host/explorerHttp.js';
 import { buildKbExplorerHttpConfig } from '@/lib/kb-explorer-host.js';
+import { KbGraphDiffPreviewBar } from '@/components/app/kb/widgets/kb-graph-diff-preview-bar.js';
 import { KbGraphRebuildButton } from '@/components/app/kb/widgets/kb-graph-rebuild-button.js';
+import type { KbGraphDiffPreviewParams } from '@/lib/graphUrlState.js';
 import { KbImportExportDialog } from '@/components/app/kb/dialogs/kb-import-export-dialog.js';
 import { useKbCapabilities } from '@/lib/kb-capabilities.js';
 import { KbExplorerUnavailable } from '@/components/app/kb/explorer-shell/kb-explorer-unavailable.js';
@@ -36,6 +38,9 @@ export function KbGraphWorkspace({
   focusAtInstant,
   openTimelinePanel,
   timelineEntryHref,
+  openImportDialog,
+  openExportDialog,
+  diffPreview,
   onScrubberAtChange,
 }: {
   kbId: string;
@@ -44,6 +49,10 @@ export function KbGraphWorkspace({
   openTimelinePanel?: boolean;
   /** Deep link to open temporal playback (`?timeline=1`, F-TIM-04). */
   timelineEntryHref?: string;
+  /** Deep link `?import=1` / `?export=1` (F-IO / F-DIFF staging path). */
+  openImportDialog?: boolean;
+  openExportDialog?: boolean;
+  diffPreview?: KbGraphDiffPreviewParams;
   onScrubberAtChange?: (atIso: string) => void;
 }) {
   const { t, locale } = useI18n();
@@ -54,6 +63,20 @@ export function KbGraphWorkspace({
   const [importExportOpen, setImportExportOpen] = useState(false);
   const [importExportFocus, setImportExportFocus] = useState<'import' | 'export'>('export');
   const [reloadToken, setReloadToken] = useState(0);
+  const deepLinkDialogOpenedRef = useRef(false);
+
+  useEffect(() => {
+    if (deepLinkDialogOpenedRef.current) return;
+    if (openImportDialog) {
+      deepLinkDialogOpenedRef.current = true;
+      setImportExportFocus('import');
+      setImportExportOpen(true);
+    } else if (openExportDialog) {
+      deepLinkDialogOpenedRef.current = true;
+      setImportExportFocus('export');
+      setImportExportOpen(true);
+    }
+  }, [openExportDialog, openImportDialog]);
 
   const focusToken = useMemo(() => {
     if (!focusNodeId) return undefined;
@@ -181,6 +204,13 @@ export function KbGraphWorkspace({
       <QueryClientProvider client={graphQueryClient}>
         <ExplorerHostProvider config={config}>
           <div className="flex h-full min-h-0 flex-1 flex-col">
+            {diffPreview ? (
+              <KbGraphDiffPreviewBar
+                kbId={kbId}
+                diffFrom={diffPreview.diffFrom}
+                diffTo={diffPreview.diffTo}
+              />
+            ) : null}
             <Suspense
               fallback={
                 <div className="flex flex-1 items-center justify-center gap-2 text-sm text-muted-foreground">

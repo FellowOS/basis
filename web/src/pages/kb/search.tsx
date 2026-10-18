@@ -33,10 +33,11 @@ import { kbApiClient } from '@/lib/kb-api-client.js';
 import { formatUserFacingApiError } from '@/lib/api-error-message.js';
 import { useKbCatalog } from '@/lib/kb-context.js';
 import { useKbCapabilities } from '@/lib/kb-capabilities.js';
+import { useKbTemporalBounds } from '@/lib/use-kb-temporal-bounds.js';
 import type { LedgerEntityHit } from '@/components/app/kb/ledger/ledger-entity-browser.js';
 import { useKbNodeLabels } from '@/lib/kb-node-labels.js';
 import { kbGraphPath } from '@/lib/graphUrlState.js';
-import { kbPath } from '@/lib/nav-config.js';
+import { kbGraphDiffPath, kbPath } from '@/lib/nav-config.js';
 import {
   kbSearchPath,
   parseKbSearchUrlState,
@@ -55,6 +56,7 @@ export function KbSearchPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { getKb } = useKbCatalog();
   const { caps, loading: capsLoading } = useKbCapabilities();
+  const { bounds: temporalBounds } = useKbTemporalBounds(id ?? undefined);
   const kb = id ? getKb(id) : undefined;
 
   const [scope, setScope] = useState<KbSearchScope>(() =>
@@ -365,14 +367,57 @@ export function KbSearchPage() {
               </div>
               <div className="flex shrink-0 flex-wrap gap-2">
                 {scope === 'graph' && graphEnabled && id ? (
-                  <Button type="button" variant="outline" size="sm" asChild>
-                    <Link
-                      to={kbGraphPath(id, { at: at.trim() || undefined })}
-                      data-testid="kb-search-open-graph"
-                    >
-                      {s.openGraphLink}
-                    </Link>
-                  </Button>
+                  <>
+                    <Button type="button" variant="outline" size="sm" asChild>
+                      <Link
+                        to={kbGraphPath(id, { at: at.trim() || undefined })}
+                        data-testid="kb-search-open-graph"
+                      >
+                        {s.openGraphLink}
+                      </Link>
+                    </Button>
+                    {at.trim() ? (
+                      <Button type="button" variant="outline" size="sm" asChild>
+                        <Link
+                          to={kbGraphPath(id, { at: at.trim(), timeline: true })}
+                          data-testid="kb-search-open-graph-timeline"
+                        >
+                          {s.openGraphTimelineLink}
+                        </Link>
+                      </Button>
+                    ) : null}
+                    <Button type="button" variant="outline" size="sm" asChild>
+                      <Link to={kbGraphDiffPath(id)} data-testid="kb-search-open-graph-diff">
+                        {s.openGraphDiffLink}
+                      </Link>
+                    </Button>
+                  </>
+                ) : null}
+                {scope === 'chunks' && graphEnabled && id ? (
+                  <>
+                    {asOf.trim() ? (
+                      <Button type="button" variant="outline" size="sm" asChild>
+                        <Link
+                          to={kbGraphPath(id, { at: asOf.trim(), timeline: true })}
+                          data-testid="kb-search-chunks-open-timeline"
+                        >
+                          {s.openGraphTimelineLink}
+                        </Link>
+                      </Button>
+                    ) : null}
+                    <Button type="button" variant="outline" size="sm" asChild>
+                      <Link
+                        to={
+                          asOf.trim() && temporalBounds?.min
+                            ? kbGraphDiffPath(id, temporalBounds.min, asOf.trim())
+                            : kbGraphDiffPath(id)
+                        }
+                        data-testid="kb-search-chunks-open-graph-diff"
+                      >
+                        {s.openGraphDiffLink}
+                      </Link>
+                    </Button>
+                  </>
                 ) : null}
                 {(scope === 'chunks' ? asOf : at).trim() ? (
                   <Button

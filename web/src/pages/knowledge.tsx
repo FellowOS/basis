@@ -64,7 +64,6 @@ import { messageForApiErrorCode } from '@/lib/api-error-message.js';
 import { useKbCatalog } from '@/lib/kb-context.js';
 import { useKbCapabilities } from '@/lib/kb-capabilities.js';
 import { useExplorerClient } from '@/lib/explorer-context.js';
-import { KbIngestSourcesDialog } from '@/components/app/kb/dialogs/kb-ingest-sources-dialog.js';
 import { kbPath } from '@/lib/nav-config.js';
 import {
   kbProcessingJobPath,
@@ -106,6 +105,21 @@ function versionStatusLabel(
 function docReadyForGraph(doc: DocRow, job?: ProcessingJob): boolean {
   if (doc.version_status === 'ready') return true;
   return job?.status === 'succeeded';
+}
+
+function docIdFromUrl(rawUrl: string): string {
+  try {
+    const parsed = new URL(rawUrl);
+    const seg = parsed.pathname.split('/').filter(Boolean).pop() || parsed.hostname;
+    const stem = seg
+      .replace(/\.[^.]+$/, '')
+      .replace(/[^a-zA-Z0-9._-]+/g, '-')
+      .replace(/^[-._]+|[-._]+$/g, '');
+    if (stem) return stem;
+  } catch {
+    // fallback below
+  }
+  return `url-${Date.now()}`;
 }
 
 const DEFAULT_CHUNK_SIZE = 1800;
@@ -226,9 +240,6 @@ export function KnowledgePage() {
   const sourcesUrl = parseSourcesUrlState(searchParams.toString());
   const processingUrl = parseProcessingUrlState(searchParams.toString());
   const jobFocusId = processingUrl.jobId;
-  const [sourcesOpen, setSourcesOpen] = useState(
-    sourcesUrl.openConnectors || Boolean(sourcesUrl.ingestSourceId),
-  );
   const [updateTarget, setUpdateTarget] = useState<{
     document_id: string;
     doc_id: string;
@@ -241,6 +252,7 @@ export function KnowledgePage() {
 
   const [docId, setDocId] = useState('');
   const [docText, setDocText] = useState('');
+  const [docUrl, setDocUrl] = useState('');
   const [updateText, setUpdateText] = useState('');
   const [uploading, setUploading] = useState(false);
   const [processImmediately, setProcessImmediately] = useState(false);
@@ -254,12 +266,6 @@ export function KnowledgePage() {
   const [nerMethod, setNerMethod] = useState('pattern');
   const [nerModel, setNerModel] = useState('');
   const [relationMethod, setRelationMethod] = useState('pattern');
-
-  useEffect(() => {
-    if (sourcesUrl.openConnectors || sourcesUrl.ingestSourceId) {
-      setSourcesOpen(true);
-    }
-  }, [sourcesUrl.ingestSourceId, sourcesUrl.openConnectors]);
 
   const k = t.kbSources;
   const uploadLimitsHint = useMemo(() => {
@@ -350,6 +356,7 @@ export function KnowledgePage() {
     ]);
     setDocuments(docs.documents as DocRow[]);
     setJobs(taskData.jobs as ProcessingJob[]);
+    window.dispatchEvent(new CustomEvent('kb-processing-changed'));
   }, [id, client]);
 
   useEffect(() => {
@@ -413,6 +420,7 @@ export function KnowledgePage() {
   function resetAddForm() {
     setDocId('');
     setDocText('');
+    setDocUrl('');
     if (fileRef.current) fileRef.current.value = '';
   }
 
@@ -457,6 +465,31 @@ export function KnowledgePage() {
       const created = await client.documents.ingestText({
         doc_id: docId.trim() || `text-${Date.now()}`,
         text: docText,
+      });
+      await afterStore(created, () => {
+        resetAddForm();
+        setAddOpen(false);
+      });
+    } catch (err) {
+      toast.error(apiErrorMessage(err));
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  async function saveUrl(event: FormEvent) {
+    event.preventDefault();
+    if (!id) return;
+    const trimmedUrl = docUrl.trim();
+    if (!trimmedUrl.startsWith('http://') && !trimmedUrl.startsWith('https://')) {
+      toast.error(k.invalidUrl);
+      return;
+    }
+    setUploading(true);
+    try {
+      const created = await client.documents.ingestUrl({
+        doc_id: docId.trim() || docIdFromUrl(trimmedUrl),
+        url: trimmedUrl,
       });
       await afterStore(created, () => {
         resetAddForm();
@@ -937,11 +970,6 @@ export function KnowledgePage() {
                 </Link>
               </Button>
               {canEdit ? (
-                <Button type="button" variant="outline" size="sm" onClick={() => setSourcesOpen(true)}>
-                  {k.connectors}
-                </Button>
-              ) : null}
-              {canEdit ? (
                 <Button type="button" size="sm" onClick={openAdd}>
                   {k.addDocument}
                 </Button>
@@ -1009,6 +1037,9 @@ export function KnowledgePage() {
               <TabsTrigger value="text" className="flex-1">
                 {k.tabPaste}
               </TabsTrigger>
+              <TabsTrigger value="url" className="flex-1">
+                {k.tabUrl}
+              </TabsTrigger>
             </TabsList>
             <TabsContent value="file">
               <form className="space-y-4 pt-2" onSubmit={uploadFile}>
@@ -1065,6 +1096,34 @@ export function KnowledgePage() {
                 <DialogFooter className="px-0">
                   <Button type="submit" disabled={uploading}>
                     {k.save}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </TabsContent>
+            <TabsContent value="url">
+              <form className="space-y-4 pt-2" onSubmit={saveUrl}>
+                <div className="space-y-2">
+                  <Label htmlFor="add-url-doc-id">{k.docIdOptional}</Label>
+                  <Input
+                    id="add-url-doc-id"
+                    value={docId}
+                    onChange={(event) => setDocId(event.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="add-url">{k.labelUrl}</Label>
+                  <Input
+                    id="add-url"
+                    type="url"
+                    placeholder={k.urlPlaceholder}
+                    value={docUrl}
+                    onChange={(event) => setDocUrl(event.target.value)}
+                    required
+                  />
+                </div>
+                <DialogFooter className="px-0">
+                  <Button type="submit" disabled={uploading}>
+                    {uploading ? k.fetchingUrl : k.fetchUrl}
                   </Button>
                 </DialogFooter>
               </form>
@@ -1316,15 +1375,6 @@ export function KnowledgePage() {
           </form>
         </DialogContent>
       </Dialog>
-
-      {id ? (
-        <KbIngestSourcesDialog
-          kbId={id}
-          open={sourcesOpen}
-          onOpenChange={setSourcesOpen}
-          focusSourceId={sourcesUrl.ingestSourceId}
-        />
-      ) : null}
 
       <AlertDialog
         open={deleteTarget !== null}

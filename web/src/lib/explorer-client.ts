@@ -11,7 +11,7 @@ import { kbApiRoot } from '@/lib/kb-api-path.js';
 import { ensureRequestIdHeader } from '@/lib/request-id.js';
 
 function ingestPollTimeoutMessage(locale: Locale): string {
-  return messagesForLocale(locale).kbIngestSources.ingestPollTimeout;
+  return messagesForLocale(locale).kbSources.ingestPollTimeout;
 }
 
 export type ExplorerCapabilities = {
@@ -105,6 +105,14 @@ export class ExplorerClient {
     ingestText: (body: {
       doc_id: string;
       text: string;
+    }) =>
+      this.request<DocumentStoreResult>('documents', {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
+    ingestUrl: (body: {
+      doc_id: string;
+      url: string;
     }) =>
       this.request<DocumentStoreResult>('documents', {
         method: 'POST',

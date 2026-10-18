@@ -8,7 +8,7 @@ and Explorer integration.
 
 | Store | Canonical | Contents |
 | --- | --- | --- |
-| `data/basis.db` | Yes | accounts, KBs, documents, chunks, ledger, review, mappings, decisions, audit |
+| `data/basis.db` | Yes | accounts, KBs, documents, chunks, ledger, review, mappings, decisions, audit; external entity refs & sync outbox ([ADR 0003](0003-lakehouse-datasets.md) §18) |
 | `data/blobs/{kb_id}/...` | Yes | original uploaded/connector payloads, content-addressed |
 | `data/graphs/{kb_id}.json` | No | rebuildable ContextGraph projection |
 | `data/indexes/{kb_id}/...` | No | vector/search indexes |
@@ -192,6 +192,11 @@ Allowed version status:
 
 Blob key is content-addressed, for example
 `{kb_id}/{sha256[0:2]}/{sha256}`. Original filename is metadata, never the path.
+
+**Ingest source `kind` (today):** `webhook`, `http_poll`, `git` (GitHub raw paths).
+
+**Planned structured kinds ([ADR 0003](0003-lakehouse-datasets.md)):** `postgres_table`, `tabular_upload`, `rest_records`
+(mapping table rows directly into canonical `entities` and `statements`, plus optional bidirectional write-back).
 
 ## 6. Chunks and extraction diagnostics
 
@@ -599,3 +604,228 @@ Current data is migrated as follows:
 - original graph JSON is retained until migration verification passes.
 
 The migration command must support dry-run, report unmappable nodes/edges, and be idempotent.
+
+Structured source binding and bidirectional entity sync ([ADR 0003](0003-lakehouse-datasets.md)) plan migration
+**`0011_entity_external_sync.sql`** (tables in §18) when implementation begins; no empty tables are applied beforehand.
+
+## 18. Structured sources and bidirectional entity sync (F-LAKE / F-OPS — planned DDL)
+
+**Status:** planned schema ([ADR 0003](0003-lakehouse-datasets.md)). Ships as migration `0011_entity_external_sync.sql` when structured source sync implementation starts.
+
+Instead of a parallel Parquet warehouse, structured database rows map directly into canonical **`entities`**,
+**`statements`**, and **`typed_facts`**. Three tables track column mappings, external primary-key identity, and outbound
+write-back to business databases.
+
+### 18.1 Basis Connector runtime tables (migrated from AnyConnect, `kb_id === app_id`)
+
+Because **1 Knowledge Base (`kb_id`) === 1 AnyConnect App (`app_id`)**, AnyConnect’s `apps` table is eliminated—its
+policy columns (`allowed_providers`, `action_policy_json`) live on the KB connector policy, and AnyConnect’s
+`connections`, `oauth_client_configs`, `oauth_states`, and `runs` tables migrate directly into Basis keyed by `kb_id`:
+
+```sql
+CREATE TABLE IF NOT EXISTS kb_connector_policies (
+  kb_id TEXT PRIMARY KEY REFERENCES knowledge_bases(id) ON DELETE CASCADE,
+  allowed_providers_json TEXT NOT NULL DEFAULT '"*"', -- "*" or ["postgres", "airtable", "github", ...]
+  action_policy_json TEXT NOT NULL DEFAULT '{}',      -- {"allowedActions": [...], "blockedActions": [...]} (F-OPS-02)
+  updated_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS kb_connections (
+  kb_id TEXT NOT NULL REFERENCES knowledge_bases(id) ON DELETE CASCADE,
+  service TEXT NOT NULL,              -- provider id, e.g. "postgres", "mysql", "airtable", "hubspot"
+  connection_name TEXT NOT NULL,      -- "default" for KB-level sync, or Basis users.id for per-user OAuth
+  value_encrypted TEXT NOT NULL,      -- AES-256-GCM encrypted credential / OAuth token JSON
+  revision INTEGER NOT NULL DEFAULT 1,
+  updated_at TEXT NOT NULL,
+  PRIMARY KEY (kb_id, service, connection_name)
+);
+
+CREATE TABLE IF NOT EXISTS kb_oauth_configs (
+  kb_id TEXT NOT NULL REFERENCES knowledge_bases(id) ON DELETE CASCADE,
+  service TEXT NOT NULL,
+  value_encrypted TEXT NOT NULL,      -- custom OAuth client_id / client_secret for this KB
+  updated_at TEXT NOT NULL,
+  PRIMARY KEY (kb_id, service)
+);
+
+CREATE TABLE IF NOT EXISTS kb_connector_runs (
+  id TEXT PRIMARY KEY,
+  kb_id TEXT NOT NULL REFERENCES knowledge_bases(id) ON DELETE CASCADE,
+  service TEXT NOT NULL,
+  action_id TEXT NOT NULL,            -- e.g. "postgres.list_records", "hubspot.update_contact"
+  connection_name TEXT NOT NULL DEFAULT 'default',
+  started_at TEXT NOT NULL,
+  completed_at TEXT NOT NULL,
+  ok INTEGER NOT NULL,
+  value_json TEXT NOT NULL            -- redacted input/output/timing snapshot
+);
+
+CREATE INDEX IF NOT EXISTS idx_kb_connector_runs_kb_started
+  ON kb_connector_runs(kb_id, started_at DESC);
+```
+
+### 18.2 Table/Resource-to-ontology mappings and external entity identity
+
+All structured sources—whether relational databases (`postgres`, `mysql`) or SaaS applications (`airtable`, `hubspot`,
+`jira`, `notion`)—are unified under a single **Provider + Read/Write Action** contract (`ingest_sources.kind = 'connector'`).
+
+```sql
+CREATE TABLE IF NOT EXISTS source_table_mappings (
+  id TEXT PRIMARY KEY,
+  kb_id TEXT NOT NULL REFERENCES knowledge_bases(id) ON DELETE CASCADE,
+  source_id TEXT NOT NULL REFERENCES ingest_sources(id) ON DELETE CASCADE,
+  external_table TEXT NOT NULL,       -- table or resource key, e.g. "public.suppliers" or "contacts"
+  read_action_id TEXT NOT NULL,       -- e.g. "postgres.list_records" or "hubspot.list_contacts"
+  write_action_id TEXT,               -- e.g. "postgres.update_record" or "hubspot.update_contact"
+  action_params_json TEXT NOT NULL DEFAULT '{}', -- static input params for the action (e.g. schema/table or baseId)
+  records_json_path TEXT NOT NULL DEFAULT 'records', -- key in action output holding the row array
+  primary_key_column TEXT NOT NULL,   -- e.g. "supplier_id" or "id"
+  label_column TEXT NOT NULL,         -- field mapped to entities.canonical_label, e.g. "company_name"
+  target_class_uri TEXT NOT NULL,     -- ontology class URI (written as rdf:type in typed_facts)
+  column_mappings_json TEXT NOT NULL, -- JSON array of ColumnMappingSpec (see §18.4)
+  sync_direction TEXT NOT NULL DEFAULT 'inbound', -- 'inbound' | 'bidirectional'
+  writeback_mode TEXT NOT NULL DEFAULT 'review',  -- 'review' | 'direct'
+  max_rows INTEGER NOT NULL DEFAULT 10000,
+  status TEXT NOT NULL DEFAULT 'active',          -- 'active' | 'paused'
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  UNIQUE(kb_id, source_id, external_table)
+);
+
+CREATE INDEX IF NOT EXISTS idx_source_table_mappings_kb_source
+  ON source_table_mappings(kb_id, source_id);
+
+CREATE TABLE IF NOT EXISTS entity_external_refs (
+  id TEXT PRIMARY KEY,
+  kb_id TEXT NOT NULL REFERENCES knowledge_bases(id) ON DELETE CASCADE,
+  entity_id TEXT NOT NULL REFERENCES entities(id) ON DELETE CASCADE,
+  source_id TEXT NOT NULL REFERENCES ingest_sources(id) ON DELETE CASCADE,
+  mapping_id TEXT NOT NULL REFERENCES source_table_mappings(id) ON DELETE CASCADE,
+  external_table TEXT NOT NULL,
+  external_pk TEXT NOT NULL,          -- stringified upstream primary key
+  row_hash TEXT NOT NULL,             -- SHA-256 hex of canonical JSON of mapped columns (§18.5)
+  last_synced_at TEXT NOT NULL,
+  deleted_upstream_at TEXT,
+  UNIQUE(kb_id, source_id, external_table, external_pk)
+);
+
+CREATE INDEX IF NOT EXISTS idx_entity_external_refs_entity
+  ON entity_external_refs(kb_id, entity_id);
+```
+
+### 18.3 Outbound write-back outbox (Basis → Provider Write Action)
+
+Note: references **`agent_decisions(id)`** (actual table name in `0002_knowledge_ledger.sql`), not `decisions(id)`.
+
+```sql
+CREATE TABLE IF NOT EXISTS entity_sync_outbox (
+  id TEXT PRIMARY KEY,
+  kb_id TEXT NOT NULL REFERENCES knowledge_bases(id) ON DELETE CASCADE,
+  entity_id TEXT NOT NULL REFERENCES entities(id) ON DELETE CASCADE,
+  external_ref_id TEXT NOT NULL REFERENCES entity_external_refs(id) ON DELETE CASCADE,
+  statement_id TEXT REFERENCES statements(id) ON DELETE SET NULL,
+  typed_fact_id TEXT REFERENCES typed_facts(id) ON DELETE SET NULL,
+  action_kind TEXT NOT NULL,          -- 'update_attributes' | 'declared_action'
+  patch_json TEXT NOT NULL,           -- JSON object of OutboxPatchSpec (see §18.3)
+  status TEXT NOT NULL,               -- 'pending_review' | 'queued' | 'synced' | 'failed' | 'rejected'
+  review_item_id TEXT REFERENCES review_items(id) ON DELETE SET NULL,
+  decision_id TEXT REFERENCES agent_decisions(id) ON DELETE SET NULL,
+  job_id TEXT REFERENCES jobs(id) ON DELETE SET NULL,
+  error_code TEXT,
+  error_detail_json TEXT,
+  created_by TEXT REFERENCES users(id),
+  created_at TEXT NOT NULL,
+  synced_at TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_entity_sync_outbox_kb_status
+  ON entity_sync_outbox(kb_id, status, created_at);
+```
+
+### 18.4 Normative JSON contracts (`config_json`, `column_mappings_json`, `patch_json`, `import_provenance_json`)
+
+1. **`ingest_sources` for `kind = 'connector'` (unified across DBs and 1,390+ SaaS providers):**
+   - `secret_ref`: encrypted credential payload (`dsn`, `apiKey`, or OAuth2 connection token) stored via platform secret helper (never returned in plaintext by `GET /sources`).
+   - `config_json` (identical envelope for PostgreSQL, MySQL, Airtable, HubSpot, etc.):
+     ```json
+     {
+       "provider": "postgres",
+       "connection_id": "conn_pg_erp",
+       "poll_interval_minutes": 60,
+       "last_sync_at": "2026-10-18T12:00:00Z"
+     }
+     ```
+   - And in `source_table_mappings.action_params_json`:
+     - For `provider = "postgres"`: `{"schema": "public", "table": "suppliers"}` with `read_action_id = "postgres.list_records"`, `write_action_id = "postgres.update_record"`.
+     - For `provider = "airtable"`: `{"baseId": "appXXX", "tableIdOrName": "Suppliers"}` with `read_action_id = "airtable.list_records"`, `write_action_id = "airtable.update_records"`.
+2. **`source_table_mappings.column_mappings_json` (`ColumnMappingSpec[]`):**
+   ```json
+   [
+     {
+       "column": "credit_rating",
+       "kind": "literal",
+       "surface_phrase": "credit_rating",
+       "predicate_uri": "https://basis.local/ontology#creditRating",
+       "datatype": "xsd:string",
+       "writable": true
+     },
+     {
+       "column": "parent_supplier_id",
+       "kind": "relation",
+       "surface_phrase": "parent_supplier",
+       "predicate_uri": "https://basis.local/ontology#hasParentSupplier",
+       "fk_target_table": "public.suppliers",
+       "writable": false
+     }
+   ]
+   ```
+3. **`typed_facts.import_provenance_json` (how structured rows fit `0002_knowledge_ledger.sql`):**
+   - Because `statement_evidence.chunk_id` is `NOT NULL REFERENCES chunks(id)` in `0002_knowledge_ledger.sql`, structured rows **must not** insert into `statement_evidence`.
+   - Instead, each mapped column writes:
+     - a `statements` row (`proposed_by = 'connector'`, `status = 'confirmed'`, `surface_phrase = spec.surface_phrase`, no `statement_evidence` row—`list_statements_for_projection` uses `LEFT JOIN statement_evidence`), and
+     - when `predicate_uri` is configured, a `typed_facts` row with `from_statement_id = statement.id` and `import_provenance_json`:
+       ```json
+       {
+         "kind": "structured_source",
+         "provider": "postgres",
+         "source_id": "<ingest_sources.id>",
+         "mapping_id": "<source_table_mappings.id>",
+         "external_ref_id": "<entity_external_refs.id>",
+         "external_table": "public.suppliers",
+         "external_pk": "SUP-10042",
+         "column": "credit_rating"
+       }
+       ```
+4. **`entity_sync_outbox.patch_json` (`OutboxPatchSpec` — unified action execution payload):**
+   ```json
+   {
+     "provider": "postgres",
+     "write_action_id": "postgres.update_record",
+     "external_table": "public.suppliers",
+     "primary_key_column": "supplier_id",
+     "external_pk": "SUP-10042",
+     "action_input": {
+       "schema": "public",
+       "table": "suppliers",
+       "primaryKeyColumn": "supplier_id",
+       "primaryKeyValue": "SUP-10042",
+       "values": { "credit_rating": "A" }
+     },
+     "changes": {
+       "credit_rating": {
+         "old": "BBB",
+         "new": "A",
+         "predicate_uri": "https://basis.local/ontology#creditRating",
+         "statement_id": "<new_or_updated_statement_id>"
+       }
+     }
+   }
+   ```
+
+### 18.5 Canonical `row_hash` algorithm & unified Action execution
+
+- **Deterministic `row_hash`:** build a dict containing only `{label_column: val, **{m["column"]: val for m in column_mappings}}` with `None` preserved and dates/decimals converted to ISO/string; serialize with `json.dumps(payload, sort_keys=True, ensure_ascii=False, separators=(",", ":"))`; compute `hashlib.sha256(raw.encode("utf-8")).hexdigest()`.
+- **Inbound pull (Provider Read Action → Basis):** invoke `read_action_id` (whether `postgres.list_records` or `hubspot.list_contacts`) to obtain `records: list[dict]`, and compare each record against `entity_external_refs.row_hash`. Unchanged rows are skipped. Changed fields supersede previous `proposed_by = 'connector'` statements/typed_facts in a single transaction—unless an active statement on the same `(subject_id, surface_phrase)` was authored by `user` or `agent` (`proposed_by IN ('user', 'agent')`), which triggers `scan_statement_conflicts()` (`kind = 'statement_conflict'` in `review_items`).
+- **Outbound write-back (Basis → Provider Write Action):** when `writeback_mode = 'review'`, editing a writable mapped attribute creates a `pending_review` outbox row and a `review_items` entry (`kind = 'entity_writeback'`, `subject_type = 'entity_sync_outbox'`, `subject_id = outbox.id`). Approving the review item records an `agent_decisions` row, transitions the outbox row to `queued`, and enqueues a `jobs` worker (`kind = 'entity_writeback'`), which executes `write_action_id` with `patch_json.action_input` (under the hood, the `postgres`/`mysql` provider uses **SQLAlchemy 2.0 Core** `Table` + `update()`, while SaaS providers call their AnyConnect executor), recomputes `entity_external_refs.row_hash` (preventing echo loops), and marks `status = 'synced'`.
+- **Framework discipline:** all JSON payloads in §18.3 are validated via **Pydantic v2** models (`basis/domain/kb/structured_models.py`), and the built-in `postgres`/`mysql` provider actions use **`sqlalchemy.inspect(engine)`** and **SQLAlchemy Core** rather than hand-written SQL.
+- **Entity / Source deletion cascade:** `basis/domain/kb/entity_delete.py` must delete `entity_sync_outbox` and `entity_external_refs` rows for `entity_id` (and `review_items` with `subject_type = 'entity_sync_outbox'`) before deleting `entities`.

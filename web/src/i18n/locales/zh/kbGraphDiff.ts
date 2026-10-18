@@ -54,4 +54,10 @@ export const kbGraphDiff = {
     '此处对比为只读。图导入、实体合并、本体发布等写入仍须经审核队列与决策审计。',
   studioOpenReview: '打开审核队列',
   studioCopyLink: '复制对比链接',
+  studioOpenExport: '导出包（设置）',
+  studioOpenImport: '暂存导入（图谱）',
+  stagingStepsTitle: '发布检查清单（只读）',
+  stagingStepsBody:
+    '1）在此对比时间范围 · 2）在图谱页暂存 RDF/JSON 导入 · 3）在审核队列批准 · 4）发布前在设置中导出审计包。',
+  previewOnGraph: '在图谱画布上预览',
 } as const;

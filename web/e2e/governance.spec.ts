@@ -42,16 +42,6 @@ test('review queue surfaces link to ontology versions tab', async ({ page }) => 
   await expect(page).toHaveURL(/tab=versions/);
 });
 
-test('sources query opens ingest connectors dialog', async ({ page }) => {
-  await registerFreshUser(page);
-  const kbId = await defaultKbId(page);
-  await page.goto(`/kbs/${kbId}/sources?connectors=1`);
-  await expect(page.locator('.kb-library-workspace')).toBeVisible({ timeout: 60_000 });
-  const dialog = page.getByRole('dialog');
-  await expect(dialog).toBeVisible({ timeout: 30_000 });
-  await expect(dialog.getByText(/Ingest sources|摄入来源/i)).toBeVisible();
-});
-
 test('review queue deep link highlights remembered fact item', async ({ page }) => {
   test.setTimeout(120_000);
 
@@ -95,8 +85,7 @@ test('sync failed alert opens sources connector focus', async ({ page }) => {
 
   await page.goto(`/kbs/${kbId}/alerts`);
   await page.getByRole('link', { name: /Open sources|打开资料/i }).click();
-  await expect(page).toHaveURL(new RegExp(`ingestSource=${encodeURIComponent(sourceId)}`));
-  await expect(page.getByRole('dialog')).toBeVisible({ timeout: 30_000 });
+  await expect(page).toHaveURL(new RegExp(`/kbs/${kbId}/sources$`));
 });
 
 test('processing failed alert links to processing job', async ({ page }) => {

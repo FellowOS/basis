@@ -34,6 +34,7 @@ import { formatUserFacingApiError } from '@/lib/api-error-message.js';
 import { kbOpenApiGET } from '@/lib/openapi-client.js';
 import { kbGraphPath } from '@/lib/graphUrlState.js';
 import { useKbNodeLabels } from '@/lib/kb-node-labels.js';
+import { kbGraphDiffPreviewPath, kbGraphImportDialogPath } from '@/lib/graphUrlState.js';
 import { kbGraphDiffPath, kbPath } from '@/lib/nav-config.js';
 import { toast } from 'sonner';
 import { kbSearchPath } from '@/lib/searchUrlState.js';
@@ -226,7 +227,7 @@ export function KbGraphDiffWorkspace({
       await navigator.clipboard.writeText(href);
       toast.success(t.common.copySuccess);
     } catch {
-      toast.error(t.kbIngestSources.copyFailed);
+      toast.error(t.common.copyFailed);
     }
   }
   const nodeGraphHref = (nodeId: string) =>
@@ -396,6 +397,14 @@ export function KbGraphDiffWorkspace({
           </div>
 
           {changeTotal > 0 ? (
+            <Alert data-testid="graph-diff-staging-steps">
+              <PublicIcon name="check-square-contained" size={16} />
+              <AlertTitle>{g.stagingStepsTitle}</AlertTitle>
+              <AlertDescription className="text-muted-foreground">{g.stagingStepsBody}</AlertDescription>
+            </Alert>
+          ) : null}
+
+          {changeTotal > 0 ? (
             <Alert data-testid="graph-diff-merge-studio">
               <PublicIcon name="shield-01" size={16} />
               <AlertTitle>{g.studioTitle}</AlertTitle>
@@ -404,8 +413,29 @@ export function KbGraphDiffWorkspace({
                 <Button type="button" variant="outline" size="sm" asChild>
                   <Link to={kbPath(kbId, 'review')}>{g.studioOpenReview}</Link>
                 </Button>
+                <Button type="button" variant="outline" size="sm" asChild>
+                  <Link to={kbGraphImportDialogPath(kbId)} data-testid="graph-diff-open-import">
+                    {g.studioOpenImport}
+                  </Link>
+                </Button>
+                <Button type="button" variant="outline" size="sm" asChild>
+                  <Link
+                    to={`${kbPath(kbId, 'settings')}?tab=graph`}
+                    data-testid="graph-diff-open-export"
+                  >
+                    {g.studioOpenExport}
+                  </Link>
+                </Button>
                 <Button type="button" variant="outline" size="sm" onClick={() => void copyComparisonLink()}>
                   {g.studioCopyLink}
+                </Button>
+                <Button type="button" variant="outline" size="sm" asChild>
+                  <Link
+                    to={kbGraphDiffPreviewPath(kbId, diff.from_time, diff.to_time)}
+                    data-testid="graph-diff-preview-on-graph"
+                  >
+                    {g.previewOnGraph}
+                  </Link>
                 </Button>
               </div>
             </Alert>

@@ -46,4 +46,6 @@ export const kbReview = {
   decisionNarrativeTitle: '决策追溯',
   decisionNarrativeOpenFull: '完整因果链',
   decisionNarrativeTruncated: '更多步骤见「决策记录」工作区。',
+  governanceGateAlertsHint: '可能触发了治理门控，详见活动告警。',
+  viewGovernanceAlerts: '查看告警',
 } as const;

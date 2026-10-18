@@ -112,12 +112,34 @@ export function KbProcessingWorkspace({
     });
   }, [caps, locale, p.limitsHint]);
 
+  const queuedJobCount = useMemo(
+    () => jobs.filter((job) => job.status === 'queued').length,
+    [jobs],
+  );
+  const inflightJobCount = useMemo(
+    () => jobs.filter((job) => jobIsActive(job.status) && job.status !== 'queued').length,
+    [jobs],
+  );
+
+  const opsQueueHint = useMemo(() => {
+    const inflightMax = caps?.ingest_max_inflight;
+    const pendingMax = caps?.ingest_max_pending;
+    if (inflightMax == null && pendingMax == null) return null;
+    return fmt(p.opsQueueHint, {
+      inflight: formatLocaleNumber(locale as Locale, inflightJobCount),
+      inflightMax: formatLocaleNumber(locale as Locale, inflightMax ?? 0),
+      queued: formatLocaleNumber(locale as Locale, queuedJobCount),
+      pendingMax: formatLocaleNumber(locale as Locale, pendingMax ?? 0),
+    });
+  }, [caps?.ingest_max_inflight, caps?.ingest_max_pending, inflightJobCount, locale, p.opsQueueHint, queuedJobCount]);
+
   const refresh = useCallback(
     async (silent = false) => {
       if (!silent) setRefreshing(true);
       try {
         const taskData = await client.processing.list();
         setJobs(taskData.jobs as ProcessingJob[]);
+        window.dispatchEvent(new CustomEvent('kb-processing-changed'));
       } catch (err) {
         toast.error(apiErrorMessage(err));
       } finally {
@@ -213,6 +235,11 @@ export function KbProcessingWorkspace({
                 {limitsHint}
               </p>
             ) : null}
+            {opsQueueHint ? (
+              <p className="text-xs text-muted-foreground" data-testid="processing-queue-hint">
+                {opsQueueHint}
+              </p>
+            ) : null}
           </div>
         }
         className="gap-6 [&>:last-child]:min-h-0 [&>:last-child]:flex-none"
@@ -275,6 +302,21 @@ export function KbProcessingWorkspace({
                 ) : null}
                 <Button type="button" variant="outline" size="sm" asChild>
                   <Link to={kbPath(kbId, 'sources')}>{t.menu.kb.sources}</Link>
+                </Button>
+                {failedJobCount > 0 ? (
+                  <Button type="button" variant="outline" size="sm" asChild>
+                    <Link to={kbPath(kbId, 'alerts')} data-testid="processing-view-alerts">
+                      {p.viewAlerts}
+                    </Link>
+                  </Button>
+                ) : null}
+                <Button type="button" variant="outline" size="sm" asChild>
+                  <Link
+                    to={`${kbPath(kbId, 'integration')}?tab=openapi`}
+                    data-testid="processing-jobs-openapi-link"
+                  >
+                    {p.jobsApiLink}
+                  </Link>
                 </Button>
               </div>
             }

@@ -2,7 +2,6 @@ import type { KbAlertStreamItem } from '@/lib/kb-alerts-stream.js';
 import { kbOntologyProposalPath, kbPath } from '@/lib/nav-config.js';
 import { decisionIdFromDetail, kbReviewDecisionPath, kbReviewItemPath } from '@/lib/reviewUrlState.js';
 import { kbProcessingJobPath } from '@/lib/processingUrlState.js';
-import { kbIngestSourcePath } from '@/lib/sourcesUrlState.js';
 
 export type KbAlertActionLabelKey =
   | 'viewProposal'
@@ -66,10 +65,6 @@ export function kbAlertAction(kbId: string, alert: KbAlertStreamItem): KbAlertAc
   }
 
   if (alert.kind === 'sync_failed') {
-    const sourceId = detail.source_id;
-    if (typeof sourceId === 'string' && sourceId.length > 0) {
-      return { href: kbIngestSourcePath(kbId, sourceId), labelKey: 'viewSources' };
-    }
     return { href: kbPath(kbId, 'sources'), labelKey: 'viewSources' };
   }
 

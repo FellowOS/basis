@@ -47,4 +47,6 @@ export const kbReview = {
   decisionNarrativeTitle: 'Decision trace',
   decisionNarrativeOpenFull: 'Full chain',
   decisionNarrativeTruncated: 'More steps in Decisions workspace.',
+  governanceGateAlertsHint: 'A governance gate may have tripped—check active alerts for details.',
+  viewGovernanceAlerts: 'View alerts',
 } as const;

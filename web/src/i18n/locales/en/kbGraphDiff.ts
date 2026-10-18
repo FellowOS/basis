@@ -55,4 +55,10 @@ export const kbGraphDiff = {
     'This comparison is read-only. Applying graph imports, entity merges, or ontology publishes still goes through the review queue and decisions audit trail.',
   studioOpenReview: 'Open review queue',
   studioCopyLink: 'Copy comparison link',
+  studioOpenExport: 'Export pack (settings)',
+  studioOpenImport: 'Stage import (graph)',
+  stagingStepsTitle: 'Release checklist (read-only)',
+  stagingStepsBody:
+    '1) Compare ranges here · 2) Stage RDF/JSON import on the graph page · 3) Approve in review · 4) Export an audit pack from settings when publishing.',
+  previewOnGraph: 'Preview on graph canvas',
 } as const;

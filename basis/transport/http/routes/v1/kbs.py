@@ -98,7 +98,8 @@ class AppendTextVersionRequest(BaseModel):
 
 class IngestTextRequest(BaseModel):
     doc_id: str = Field(min_length=1)
-    text: str
+    text: str | None = None
+    url: str | None = None
     # Deprecated compatibility fields. New clients create a processing job explicitly.
     wait: bool | None = None
     chunk: bool | None = None
@@ -762,7 +763,18 @@ Ingest Document. Requires KB membership (session) or KB API token with read/writ
     doc_id = body.doc_id.strip()
     filename = f"{doc_id}.txt"
     knowledge = get_knowledge_store(request)
-    text_bytes = body.text.encode("utf-8")
+    if body.url is not None and body.url.strip():
+        url = body.url.strip()
+        if not url.startswith(("http://", "https://")):
+            raise AdminError(422, "bad_url", "需要有效的 http(s) URL")
+        from basis.domain.kb.ingest_source_service import fetch_http_poll_text
+
+        raw_text = await asyncio.to_thread(fetch_http_poll_text, url)
+    elif body.text is not None:
+        raw_text = body.text
+    else:
+        raise AdminError(422, "empty_body", "需要提供文本或 URL")
+    text_bytes = raw_text.encode("utf-8")
     ensure_payload_bytes(len(text_bytes), limits.upload_max_bytes, label="文本上传")
     outcome = knowledge.store_document_bytes(
         kb_id,

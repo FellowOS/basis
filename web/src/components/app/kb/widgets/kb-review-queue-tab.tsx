@@ -11,7 +11,11 @@ import type { LocaleMessages } from '@/i18n/locales/en/index.js';
 import type { Locale } from '@/i18n/locale.js';
 import { useKbCapabilities } from '@/lib/kb-capabilities.js';
 import { throwIfApiNotOk } from '@/lib/api-error.js';
-import { formatUserFacingApiError } from '@/lib/api-error-message.js';
+import {
+  formatUserFacingApiError,
+  isGovernanceGateErrorCode,
+  readApiErrorCode,
+} from '@/lib/api-error-message.js';
 import {
   formatGraphAuditAction,
   proposalIdFromGraphAuditDetail,
@@ -248,6 +252,7 @@ export function KbReviewQueueTab({
   const [merges, setMerges] = useState<EntityMergeRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [gateErrorCode, setGateErrorCode] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [busyMergeId, setBusyMergeId] = useState<string | null>(null);
   const [labels, setLabels] = useState<Record<string, string | null>>({});
@@ -397,6 +402,7 @@ export function KbReviewQueueTab({
   async function resolve(itemId: string, action: 'approve' | 'reject') {
     setBusyId(itemId);
     setError(null);
+    setGateErrorCode(null);
     try {
       const res = await explorerFetch(
         buildExplorerKbApiPath(`review/items/${encodeURIComponent(itemId)}/${action}`, kbId),
@@ -416,6 +422,7 @@ export function KbReviewQueueTab({
       }
       void load();
     } catch (err) {
+      setGateErrorCode(readApiErrorCode(err) ?? null);
       setError(apiError(err));
     } finally {
       setBusyId(null);
@@ -528,7 +535,21 @@ export function KbReviewQueueTab({
               {t.common.loading}
             </div>
           ) : error ? (
-            <p className="px-4 py-3 text-sm text-destructive">{error}</p>
+            <div className="space-y-2 px-4 py-3">
+              <p className="text-sm text-destructive">{error}</p>
+              {gateErrorCode && isGovernanceGateErrorCode(gateErrorCode) ? (
+                <p className="text-xs text-muted-foreground">
+                  {r.governanceGateAlertsHint}{' '}
+                  <Link
+                    to={kbPath(kbId, 'alerts')}
+                    className="font-medium text-primary hover:underline"
+                    data-testid="review-governance-alerts-link"
+                  >
+                    {r.viewGovernanceAlerts}
+                  </Link>
+                </p>
+              ) : null}
+            </div>
           ) : items.length === 0 ? (
             <div className="flex h-full min-h-32 flex-col items-center justify-center px-6 text-center">
               <PublicIcon name="check-square-contained" size={18} className="mb-2 text-muted-foreground" />

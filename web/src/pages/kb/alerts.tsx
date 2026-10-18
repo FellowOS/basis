@@ -16,6 +16,7 @@ import { formatLocaleDateTime } from '@/i18n/format.js';
 import type { Locale } from '@/i18n/locale.js';
 import { kbAlertKindLabel, kbAlertSeverityLabel } from '@/lib/kb-alert-labels.js';
 import { kbAlertAction } from '@/lib/kb-alert-actions.js';
+import { groupAlertsByKind, kbAlertDetailLines } from '@/lib/kb-alert-detail.js';
 import { consumeKbAlertsStream, type KbAlertStreamItem } from '@/lib/kb-alerts-stream.js';
 import { useKbCatalog } from '@/lib/kb-context.js';
 import { kbPath } from '@/lib/nav-config.js';
@@ -154,6 +155,7 @@ export function KbAlertsPage() {
 
   if (!id) return null;
   const kbName = getKb(id)?.name ?? id;
+  const alertGroups = groupAlertsByKind(alerts);
 
   return (
     <ConsolePageLayout
@@ -201,11 +203,20 @@ export function KbAlertsPage() {
       <DataPanel>
         <DataPanelToolbar
           search={
-            <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+            <div className="flex flex-wrap items-center gap-2 text-sm font-medium text-foreground">
               <span>{t.pages.alerts.alertsTitle}</span>
               {alerts.length > 0 ? (
                 <Badge variant="secondary" className="tabular-nums">
                   {alerts.length}
+                </Badge>
+              ) : null}
+              {streamReady && !loading ? (
+                <Badge
+                  variant="outline"
+                  className="border-ok/40 bg-ok-soft text-ok"
+                  data-testid="alerts-stream-live"
+                >
+                  {t.pages.alerts.streamLive}
                 </Badge>
               ) : null}
             </div>
@@ -223,56 +234,74 @@ export function KbAlertsPage() {
               description={t.pages.kbSubtitles.alerts}
             />
           ) : (
-            <ul className="divide-y divide-border">
-              {alerts.map((alert) => {
-                const action = kbAlertAction(id, alert);
-                return (
-                  <li
-                    key={alert.id}
-                    className={`flex items-start justify-between gap-4 px-4 py-3.5 transition-colors hover:bg-muted/30 ${alert.read_at ? 'opacity-80' : ''}`}
-                  >
-                    <div className="min-w-0 flex-1 space-y-1.5">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <Badge {...severityBadgeProps(alert.severity)}>
-                          {kbAlertSeverityLabel(t.pages.alerts, alert.severity)}
-                        </Badge>
-                        <span className="text-xs text-muted-foreground">
-                          {kbAlertKindLabel(t.pages.alerts, alert.kind)}
-                        </span>
-                        <span className="text-xs text-muted-foreground">·</span>
-                        <time className="text-xs text-muted-foreground tabular-nums">
-                          {formatLocaleDateTime(locale as Locale, alert.created_at)}
-                        </time>
-                      </div>
-                      <p className="text-sm font-medium leading-snug text-foreground">
-                        {alert.message}
-                      </p>
-                      {action ? (
-                        <div>
-                          <Link
-                            to={action.href}
-                            className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+            <div className="divide-y divide-border" aria-label={t.pages.alerts.episodeGroupAria}>
+              {alertGroups.map((group) => (
+                <section key={group.kind}>
+                  <div className="flex items-center gap-2 border-b border-border/60 bg-muted/20 px-4 py-2">
+                    <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      {kbAlertKindLabel(t.pages.alerts, group.kind)}
+                    </span>
+                    <Badge variant="outline" className="h-5 tabular-nums text-[10px]">
+                      {group.alerts.length}
+                    </Badge>
+                  </div>
+                  <ul className="divide-y divide-border">
+                    {group.alerts.map((alert) => {
+                      const action = kbAlertAction(id, alert);
+                      const detailLines = kbAlertDetailLines(t.pages.alerts, alert);
+                      return (
+                        <li
+                          key={alert.id}
+                          className={`flex items-start justify-between gap-4 px-4 py-3.5 transition-colors hover:bg-muted/30 ${alert.read_at ? 'opacity-80' : ''}`}
+                        >
+                          <div className="min-w-0 flex-1 space-y-1.5">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <Badge {...severityBadgeProps(alert.severity)}>
+                                {kbAlertSeverityLabel(t.pages.alerts, alert.severity)}
+                              </Badge>
+                              <time className="text-xs text-muted-foreground tabular-nums">
+                                {formatLocaleDateTime(locale as Locale, alert.created_at)}
+                              </time>
+                            </div>
+                            <p className="text-sm font-medium leading-snug text-foreground">
+                              {alert.message}
+                            </p>
+                            {detailLines.length > 0 ? (
+                              <ul className="space-y-0.5 text-xs text-muted-foreground">
+                                {detailLines.map((line) => (
+                                  <li key={line}>{line}</li>
+                                ))}
+                              </ul>
+                            ) : null}
+                            {action ? (
+                              <div>
+                                <Link
+                                  to={action.href}
+                                  className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+                                >
+                                  {t.pages.alerts[action.labelKey]}
+                                  <PublicIcon name="link-external" className="size-3" />
+                                </Link>
+                              </div>
+                            ) : null}
+                          </div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="size-7 shrink-0 text-muted-foreground hover:text-foreground"
+                            aria-label={t.pages.alerts.dismissAria}
+                            onClick={() => void dismiss(alert.id)}
                           >
-                            {t.pages.alerts[action.labelKey]}
-                            <PublicIcon name='link-external' className="size-3" />
-                          </Link>
-                        </div>
-                      ) : null}
-                    </div>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="size-7 shrink-0 text-muted-foreground hover:text-foreground"
-                      aria-label={t.pages.alerts.dismissAria}
-                      onClick={() => void dismiss(alert.id)}
-                    >
-                      <PublicIcon name='x-02' className="size-4" />
-                    </Button>
-                  </li>
-                );
-              })}
-            </ul>
+                            <PublicIcon name="x-02" className="size-4" />
+                          </Button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </section>
+              ))}
+            </div>
           )}
         </DataPanelBody>
       </DataPanel>

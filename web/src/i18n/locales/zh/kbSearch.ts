@@ -15,6 +15,7 @@ export const kbSearch = {
     '在文档中找证据、在图谱投影中找节点，或在账本中找实体。先选择搜索范围，再输入关键词。',
   openInGraph: '在图谱中打开',
   openGraphLink: '打开图谱',
+  openGraphTimelineLink: '打开时间轴回放',
   searchSettingsLink: '搜索设置',
   evidence: '查看证据',
   resultCount: '共 {count} 条结果',
@@ -26,4 +27,5 @@ export const kbSearch = {
   temporalHint:
     '文档：按摄入时间过滤片段。图谱：当前投影；at 用于时点深链，回放请在图谱页底部时间轴操作。',
   clearTemporal: '清除时间过滤',
+  openGraphDiffLink: '对比图谱变化',
 } as const;

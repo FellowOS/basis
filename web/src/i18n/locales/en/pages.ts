@@ -26,6 +26,16 @@ export const pages = {
     viewSettings: 'Open KB settings',
     viewProcessingJob: 'Open processing job',
     apiDocsLink: 'Alerts API (OpenAPI)',
+    streamLive: 'Live',
+    episodeGroupAria: 'Alerts by kind',
+    governanceTrippedCode: 'Gate code: {code}',
+    governanceTrippedDecision: 'Decision {id}',
+    governanceTrippedReviewItem: 'Review item {id}',
+    governanceTrippedProposal: 'Proposal {id}',
+    governanceTrippedShacl: '{count} SHACL violations',
+    processingFailedJob: 'Job {id}',
+    processingFailedCode: 'Error {code}',
+    syncFailedSource: 'Source {id}',
   },
   basisKbs: {
     colName: 'Name',
@@ -107,7 +117,7 @@ export const pages = {
     entities:
       'Search ledger entities and open a row for statements and derived facts. The rail lists what reasoning wrote back.',
     sources:
-      'Document upload, ingest connectors (webhook, HTTP poll, GitHub raw), and source versions.',
+      'Document upload, text paste, URL fetch, and source versions.',
     processing:
       'Extract, chunk, and project jobs; start from source versions and retry failures.',
     graphDiff:

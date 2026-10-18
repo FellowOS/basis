@@ -40,6 +40,24 @@ export function messageForApiErrorCode(
   return fmt(messagesForLocale(locale).common.apiErrorCode, { code: code.trim() });
 }
 
+export function readApiErrorCode(err: unknown): string | undefined {
+  if (!(err instanceof Error)) return undefined;
+  const code = (err as Error & ApiErrorLike).code;
+  return code?.trim() || undefined;
+}
+
+/** True when a failed mutation likely emitted or relates to `governance.tripped` (F-GOV-05). */
+export function isGovernanceGateErrorCode(code: string | undefined): boolean {
+  if (!code) return false;
+  const normalized = code.toLowerCase();
+  return (
+    normalized.includes('governance') ||
+    normalized.includes('impact') ||
+    normalized.includes('tripped') ||
+    normalized.includes('shacl')
+  );
+}
+
 export function formatUserFacingApiError(
   err: unknown,
   locale: Locale,

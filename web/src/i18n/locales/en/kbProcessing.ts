@@ -16,6 +16,9 @@ export const kbProcessing = {
   viewAlerts: 'View alerts',
   limitsHint:
     'Server limits: upload ≤ {upload}; up to {inflight} jobs at once, {pending} queued; timeout {timeoutMin} min.',
+  opsQueueHint:
+    'Queue now: {inflight} running (max {inflightMax}), {queued} waiting (max {pendingMax}).',
+  jobsApiLink: 'Ingest jobs API (OpenAPI)',
   retryAllFailed: 'Retry all failed',
   retryAllQueued: 'Retry queued for all failed jobs',
 } as const;

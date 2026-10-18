@@ -265,5 +265,6 @@ copying Utopia's implementation, thresholds, or every connector.
 ## Follow-up documents
 
 - [explorer.md](explorer.md)
-- [docs/architecture/data-model.md](architecture/data-model.md) (SQLite migrations)
+- [data-model.md](data-model.md) (SQLite migrations)
+- [0003-lakehouse-datasets.md](0003-lakehouse-datasets.md) (structured sources & bidirectional entity sync on the unified ledger)
 - Future: dedicated state-machines doc (review/governance transitions); not yet written

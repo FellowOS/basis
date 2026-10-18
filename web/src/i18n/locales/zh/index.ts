@@ -12,7 +12,6 @@ import { kbMappings } from './kbMappings.js';
 import { kbSearch } from './kbSearch.js';
 import { kbSources } from './kbSources.js';
 import { kbLedger } from './kbLedger.js';
-import { kbIngestSources } from './kbIngestSources.js';
 import { kbGraphDiff } from './kbGraphDiff.js';
 import { kbVocabulary } from './kbVocabulary.js';
 import { kbReasoning } from './kbReasoning.js';
@@ -53,7 +52,6 @@ export const zh = {
   kbSearch,
   kbSources,
   kbLedger,
-  kbIngestSources,
   kbGraphDiff,
   kbVocabulary,
   kbReasoning,

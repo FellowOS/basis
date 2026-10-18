@@ -349,15 +349,17 @@ Basis **不在 API 层提供** Utopia 式「服务端 Chat 会话 + SSE LLM」�
 
 ---
 
-### 5.16 数据湖与动作（可选）`F-LAKE`
+### 5.16 结构化数据源与双向同步（可选）`F-LAKE` / `F-OPS`
+
+与文档数据源共享**同一套菜单、同一套证据账本（`entities` + `statements`）与同一套图谱/MCP**（见 [ADR 0003](architecture/0003-lakehouse-datasets.md)），不建立平行的 Parquet 数仓或第二套导航：
 
 | ID | 能力 |
 | --- | --- |
-| F-LAKE-01 | 挂载表/Parquet（含 Semantica `ingest-parquet`、`db-*` extras 能力） |
-| F-LAKE-02 | 语义层 / Ontology2SQL（类与列/表映射、受控查询） |
-| F-LAKE-03 | Declared actions（与 **F-OPS-01** 同一产品面：声明式写回/副作用） |
+| F-LAKE-01 | 结构化数据源接入（PostgreSQL/MySQL 表、CSV/Parquet，含 Semantica `db-*` / `ingest-parquet` 能力） |
+| F-LAKE-02 | 表列 → 本体类/属性/外键映射（`source_table_mappings`），直接入账本生成实体与陈述，统一由现有图/SPARQL/MCP 检索 |
+| F-LAKE-03 | 实体与业务数据库双向同步 / Declared actions（与 **F-OPS-01** 同一产品面：经审核或受控策略写回外部库/Webhook） |
 
-**纳入策略**：企业扩展包，**不阻塞**核心 KB 闭环；与 Utopia lakehouse 域对齐时才启用对应 `semantica` db extras。运营语义层（Actions、对象—数据集绑定）的完整契约见 **§5.18**。
+**纳入策略**：企业扩展能力，**不阻塞**核心文档 KB 闭环；持久化契约见 [ADR 0003](architecture/0003-lakehouse-datasets.md)、[data-model.md §18](architecture/data-model.md)。详细规则见 **§5.18**。
 
 ---
 
@@ -367,42 +369,38 @@ Explorer Memory Workspace：长期 Agent 记忆图。**纳入策略**：当 F-CH
 
 ---
 
-### 5.18 运营语义层扩展（Palantir Foundry Ontology 对标）`F-OPS`
+### 5.18 运营语义与实体双向同步（Palantir / Foundry 对标，统一账本架构）`F-OPS`
 
-在 [ADR 0001](architecture/0001-canonical-knowledge-model.md) 的 **证据 KB** 之上，可选的第二轨道：**运营本体**（对象类型、受控写回、与数仓/湖对齐）。对标 Palantir Foundry Ontology 的「可执行语义层」，**不**替代默认的文库 → 抽取 → 陈述 → 审核 → 图投影闭环。
+在 [ADR 0001](architecture/0001-canonical-knowledge-model.md) 与 [ADR 0003](architecture/0003-lakehouse-datasets.md) 下，文档与业务系统数据库在**中间层（本体、实体、账本、图谱、审核、菜单、MCP）100% 统一**，仅在**入向（数据源同步）**与**出向（写回业务库）**扩展：
 
-**双轨（产品叙事）**
-
-| 轨道 | 主存与体验 | 典型用户问题 |
+| 环节 | 文档证据路径 | 业务数据库同步路径（`F-LAKE` + `F-OPS`） |
 | --- | --- | --- |
-| **A — 证据 KB**（默认） | 证据账本 + 投影图/向量/RDF | 这份材料说了什么？谁审过？冲突怎么决？ |
-| **B — 运营语义层**（企业可选） | `F-LAKE` 挂载 + `F-OPS` 对象/动作 | 业务对象状态是什么？谁能改？如何写回外部系统？ |
+| **入向（Sources）** | 文档分块 + NER/LLM 抽取 → 开放陈述 → 映射 | 数据库表主键/列映射 → 直接生成/更新实体与陈述（`entity_external_refs`） |
+| **中间核心（统一）** | **同一套菜单 · 同一套账本 · 同一张图谱 · 同一个 Review 队列 · 同一套 MCP** | 同左（同一实体节点可同时汇聚文档风险与 ERP 订单属性） |
+| **出向（Write-back）** | 仅更新 KB 内部账本与图投影 | 修改绑定属性或触发 Action → 经 Review/审计写回业务数据库（`entity_sync_outbox`） |
 
-轨道 B 依赖 Semantica SDK 的 lakehouse extras（`ingest-parquet`、`db-*` 等），由 Basis API 统一鉴权、审计与 KB 边界；**不**以独立 semantica HTTP 服务为产品入口。
+**与 Palantir / Foundry 概念对照（统一账本落点）**
 
-**与 Palantir 概念对照（差距 → 规划落点）**
-
-| Palantir / Foundry | Basis 现状（2026-10） | 规划 `F-*` |
+| Palantir / Foundry | Basis 统一架构落点 | 规划 `F-*` |
 | --- | --- | --- |
-| **Object types** + 属性 | 图节点/实体 + OWL 类 + ledger 陈述 | 继续 **F-ONT** / **F-LDG**；运营对象绑定见 **F-OPS-04** |
-| **Actions**（参数、校验、执行） | 写路径以审核队列 + ledger 为主；无声明式 action 类型 | **F-OPS-01**、**F-LAKE-03** |
-| **Functions**（派生属性、批算） | **F-RUL** 为规则/推理与证明链，非业务函数沙箱 | **F-OPS-03**（与 F-RUL 分工：RUL=逻辑推导，OPS=可调用函数运行时） |
-| **Object ↔ dataset** 物化 | 无表/Parquet 挂载；图为投影 | **F-LAKE-01**、**F-OPS-04**、**F-OPS-05** |
-| **Interfaces** / 共享属性 | OWL/SKOS 已有；无「接口类型」一等公民 | **F-ONT** 深化 + **F-OPS-04** 映射层 |
-| **细粒度本体 ACL** | KB 级 `owner/admin/editor/viewer` | **F-OPS-02** |
-| **Workshop** / **OSDK** | Basis Web + MCP 工具子集 | **F-OPS-06**（集成 SDK / OpenAPI）；**F-OPS-07**（低代码壳，按需） |
+| **Object types** + 属性 | 复用图节点/实体 + OWL 类 + ledger 陈述 | **F-ONT** / **F-LDG** + **F-OPS-04** |
+| **Actions / 写回业务库** | 实体变更或动作进 `entity_sync_outbox` → 经 Review 批准后参数化 `UPDATE` 外部库或调 Webhook | **F-OPS-01**、**F-LAKE-03** |
+| **Functions**（派生属性） | **F-RUL** 逻辑推理 + 轻量派生计算 | **F-OPS-03** |
+| **Object ↔ 表双向同步** | `source_table_mappings` + `entity_external_refs`（`row_hash` 防回环与冲突检测） | **F-LAKE-01/02**、**F-OPS-04/05** |
+| **细粒度 ACL** | 在 KB 角色之上控制可写回的字段/动作 | **F-OPS-02** |
+| **OSDK / 集成** | 复用现有 KB OpenAPI + MCP | **F-OPS-06** |
 
 | ID | 能力 |
 | --- | --- |
-| F-OPS-01 | **Declared Actions**：action 类型、参数 schema、服务端校验、经 ledger/审计执行（可与外部 webhook/DB 写回组合） |
-| F-OPS-02 | **Action / 对象类型级权限**（超越 KB member role；与平台审计对齐） |
-| F-OPS-03 | **Ontology Functions**：派生属性、批处理求值运行时（语言/沙箱 TBD；非 SPARQL/Reasoner 替代品） |
-| F-OPS-04 | **对象类型 ↔ 数据集绑定**（表/Parquet/语义层列；依赖 **F-LAKE-01**） |
-| F-OPS-05 | **物化与同步作业**：从绑定源刷新运营侧投影或缓存（作业状态、告警与 **F-ALT** 深链） |
-| F-OPS-06 | **集成 SDK（OSDK-lite）**：由 ontology + actions 暴露稳定 OpenAPI 或 codegen 客户端 |
-| F-OPS-07 | **Workshop-lite**（可选）：可配置对象/动作面板，非 Phase 5 阻塞项 |
+| F-OPS-01 | **双向写回与 Declared Actions**：修改绑定属性或触发动作 → `entity_sync_outbox` → 经审核/审计写回外部 DB 或 Webhook |
+| F-OPS-02 | **字段 / 动作级写回权限**（控制谁能触发外部库写回，与平台审计对齐） |
+| F-OPS-03 | **派生属性计算**（与 F-RUL 配合） |
+| F-OPS-04 | **表列 ↔ 本体实体绑定**（`source_table_mappings` + `entity_external_refs`；同一实体可融合文档与业务表数据） |
+| F-OPS-05 | **增量拉取与冲突治理作业**：基于 `row_hash` 拉取外部表变更，双端修改冲突自动进 `statement_conflict` 审核 |
+| F-OPS-06 | **集成契约复用**：在现有 OpenAPI / MCP 上暴露绑定状态与受控写回 |
+| F-OPS-07 | **Workshop-lite**（可选，按需） |
 
-**纳入策略**：与 **F-LAKE-*** 同属 **Phase 5+ 企业扩展**；实现顺序建议 **F-LAKE-01 → F-OPS-04/05 → F-OPS-01/02 → F-OPS-03/06**；**F-OPS-07** 仅在有明确应用构建需求时立项。核心 KB 的 P1 仍优先 **F-GOV**、**F-ONT**、**F-RUL**、**F-TIM**（见 [progress.md](progress.md)）。
+**纳入策略**：实现顺序建议 **F-LAKE-01/02 + F-OPS-04（入向表同步进账本）→ F-OPS-05 + F-OPS-01（双向写回与冲突审核）→ F-OPS-02/03**。架构细节见 [architecture/0003-lakehouse-datasets.md](architecture/0003-lakehouse-datasets.md) 与 [architecture/helix-foundry-adoption.md](architecture/helix-foundry-adoption.md)。
 
 ---
 

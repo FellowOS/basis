@@ -1,7 +1,11 @@
 import { useCallback } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { KbGraphWorkspace } from '@/components/app/kb/workspaces/kb-graph-workspace.js';
-import { kbGraphPath, mergeKbGraphAtParam } from '@/lib/graphUrlState.js';
+import {
+  kbGraphPath,
+  mergeKbGraphAtParam,
+  parseKbGraphDiffPreviewParams,
+} from '@/lib/graphUrlState.js';
 
 export function KbGraphPage() {
   const { id } = useParams();
@@ -9,6 +13,10 @@ export function KbGraphPage() {
   const focus = searchParams.get('focus');
   const at = searchParams.get('at');
   const openTimeline = searchParams.get('timeline') === '1';
+  const openImportDialog = searchParams.get('import') === '1';
+  const openExportDialog = searchParams.get('export') === '1';
+  const diffPreview = parseKbGraphDiffPreviewParams(searchParams.toString());
+  const focusAtInstant = at ?? diffPreview?.diffTo;
 
   const onScrubberAtChange = useCallback(
     (atIso: string) => {
@@ -34,9 +42,12 @@ export function KbGraphPage() {
       <KbGraphWorkspace
         kbId={id}
         focusNodeId={focus}
-        focusAtInstant={at}
+        focusAtInstant={focusAtInstant}
+        diffPreview={diffPreview ?? undefined}
         openTimelinePanel={openTimeline}
         timelineEntryHref={timelineEntryHref}
+        openImportDialog={openImportDialog}
+        openExportDialog={openExportDialog}
         onScrubberAtChange={onScrubberAtChange}
       />
     </div>

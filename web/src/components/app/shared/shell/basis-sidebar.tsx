@@ -27,6 +27,8 @@ import {
 import { resolveSidebarKbId } from '@/lib/kb-active-id.js';
 import { useKbCatalog } from '@/lib/kb-context.js';
 import { kbNavSegmentEnabled, useKbCapabilities } from '@/lib/kb-capabilities.js';
+import { useKbFailedProcessingCount } from '@/lib/use-kb-failed-processing-count.js';
+import { Badge } from '@/components/ui/badge.js';
 
 export function BasisSidebar({ onLogout }: { onLogout: () => void }) {
   const { t } = useI18n();
@@ -34,6 +36,7 @@ export function BasisSidebar({ onLogout }: { onLogout: () => void }) {
   const { isMobile, setOpenMobile } = useSidebar();
   const { kbs } = useKbCatalog();
   const { caps } = useKbCapabilities();
+  const failedProcessingCount = useKbFailedProcessingCount();
   const navKbId = resolveSidebarKbId(location.pathname, kbs);
 
   function closeMobile() {
@@ -62,6 +65,15 @@ export function BasisSidebar({ onLogout }: { onLogout: () => void }) {
               <span className="min-w-0 flex-1 truncate group-data-[collapsible=icon]:hidden">
                 {label}
               </span>
+              {item.segment === 'processing' && failedProcessingCount > 0 ? (
+                <Badge
+                  variant="destructive"
+                  className="ml-auto h-5 min-w-5 shrink-0 justify-center px-1.5 text-[10px] tabular-nums group-data-[collapsible=icon]:hidden"
+                  data-testid="sidebar-processing-failed-badge"
+                >
+                  {failedProcessingCount > 99 ? '99+' : failedProcessingCount}
+                </Badge>
+              ) : null}
             </Link>
           </SidebarMenuButton>
         ) : (

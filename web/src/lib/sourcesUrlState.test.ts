@@ -1,24 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import {
-  kbIngestSourcePath,
   kbSourcesDocumentPath,
   kbSourcesProcessPath,
   parseSourcesUrlState,
 } from '@/lib/sourcesUrlState.js';
 
 describe('sourcesUrlState', () => {
-  it('parses connector deep link', () => {
-    const state = parseSourcesUrlState('?connectors=1&ingestSource=src-9');
-    expect(state.openConnectors).toBe(true);
-    expect(state.ingestSourceId).toBe('src-9');
-  });
-
-  it('builds ingest source path', () => {
-    expect(kbIngestSourcePath('kb-1', 'src-9')).toBe(
-      '/kbs/kb-1/sources?connectors=1&ingestSource=src-9',
-    );
-  });
-
   it('parses document focus and process dialog flags', () => {
     expect(parseSourcesUrlState('?doc=paper-1').docId).toBe('paper-1');
     expect(parseSourcesUrlState('?version=v-1').openProcessDialog).toBe(false);
