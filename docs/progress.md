@@ -126,7 +126,7 @@
 | F-* | Capability | Status | Priority | Notes |
 | --- | --- | --- | --- | --- |
 | F-GOV-04 | Agent governor（batch clustering, gates） | `not` | P2 | Scale governance automation |
-| F-GOV-05 | Impact gates + `governance.tripped` alerts | `partial` | P1 | review 批准 **仅 gate 码** emit（`should_emit_governance_tripped_on_review_approve`）；本体 publish + SHACL；merge/import `invoke_explorer`；告警深链；E2E `governance.spec.ts` |
+| F-GOV-05 | Impact gates + `governance.tripped` alerts | `partial` | P1 | review 批准 + 本体 **approve/publish**（`maybe_emit_governance_tripped_for_admin_error`）+ SHACL 结果；merge/import `invoke_explorer`；E2E `governance.spec.ts` |
 | F-SRC-05 | Extract pattern / ml / llm 作业选项与可观测 | `partial` | P1 | spaCy + Models Chat for `llm` NER |
 | F-RUL-04 | Contradiction → governance queue | `partial` | P2 | `statement_conflict` queue + scan API |
 | F-TIM-01–03 | valid_from/to, doc events, ingest vs graph 时态一致 | `partial` | P1 | 检索 **as_of vs at** 说明（`kbSearch.temporalHint`）；chunk vs graph snapshot API 仍 partial |

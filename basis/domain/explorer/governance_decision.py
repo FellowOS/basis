@@ -8,6 +8,7 @@ from typing import Any
 
 from fastapi import Request
 
+from basis.platform.admin.errors import AdminError
 from basis.transport.http.deps import get_explorer_registry, save_graph
 from basis.domain.explorer.session_guard import require_explorer_graph_session
 from basis.domain.kb.kb_alerts_emit import emit_governance_tripped_alert
@@ -34,6 +35,29 @@ def should_emit_governance_tripped_on_review_approve(code: str) -> bool:
     if code in _SKIP_GOVERNANCE_ALERT_ON_REVIEW_APPROVE:
         return False
     return admin_error_triggers_governance_alert(code)
+
+
+def maybe_emit_governance_tripped_for_admin_error(
+    request: Request,
+    kb_id: str,
+    knowledge: KnowledgeStore,
+    exc: AdminError,
+    *,
+    detail: dict[str, Any] | None = None,
+    actor_id: str | None = None,
+) -> None:
+    """Emit `governance.tripped` when an AdminError reflects a governance gate (F-GOV-05)."""
+    if not admin_error_triggers_governance_alert(exc.code):
+        return
+    payload = {"code": exc.code, **(detail or {})}
+    emit_governance_tripped_for_kb(
+        request,
+        kb_id,
+        knowledge,
+        message=exc.message,
+        detail=payload,
+        actor_id=actor_id,
+    )
 
 
 def _try_record_governance_decision(

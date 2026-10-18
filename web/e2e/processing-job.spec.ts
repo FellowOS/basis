@@ -26,3 +26,15 @@ test('sources job query opens processing history for job', async ({ page }) => {
   });
   await expect(page.getByTestId(`processing-job-copy-link-${jobId}`)).toBeVisible();
 });
+
+test('processing filter query selects failed tab', async ({ page }) => {
+  await registerFreshUser(page);
+  const kbId = await defaultKbId(page);
+  await page.goto(`/kbs/${kbId}/processing?filter=failed`);
+  await expect(page.locator('.kb-processing-workspace')).toBeVisible({ timeout: 60_000 });
+  await expect(page).toHaveURL(/filter=failed/);
+  await expect(page.getByRole('tab', { name: /Failed|失败/i })).toHaveAttribute(
+    'data-state',
+    'active',
+  );
+});

@@ -23,8 +23,8 @@ from basis.domain.explorer.session_guard import require_explorer_graph_session
 from basis.platform.admin.errors import AdminError
 from basis.domain.kb.graph_audit import audit_kb_graph
 from basis.domain.explorer.governance_decision import (
-    admin_error_triggers_governance_alert,
     emit_governance_tripped_for_kb,
+    maybe_emit_governance_tripped_for_admin_error,
 )
 from basis.domain.kb.kb_alerts_emit import emit_governance_proposal_proposed_alert
 from basis.domain.kb.store import KnowledgeStore
@@ -549,11 +549,23 @@ Kb Ont 23 Approve Proposal. Ontology workspace (SKOS, alignments) via Explorer. 
         """
         get_kb_for_role(request, user, kb_id, store, _min_role("POST"))
         _session(request, kb_id)
+        knowledge = get_knowledge_store(request)
         with KbOntologyState(request, kb_id):
-            result = await invoke_explorer(
-                ont.approve_proposal(proposal_id=proposal_id, request=request),
-                context="ontology",
-            )
+            try:
+                result = await invoke_explorer(
+                    ont.approve_proposal(proposal_id=proposal_id, request=request),
+                    context="ontology",
+                )
+            except AdminError as exc:
+                maybe_emit_governance_tripped_for_admin_error(
+                    request,
+                    kb_id,
+                    knowledge,
+                    exc,
+                    detail={"proposal_id": proposal_id, "source": "ontology_approve"},
+                    actor_id=user.id,
+                )
+                raise
             save_graph(request, kb_id)
             return result
 
@@ -601,15 +613,14 @@ Kb Ont 25 Publish Proposal. Ontology workspace (SKOS, alignments) via Explorer. 
                     context="ontology",
                 )
             except AdminError as exc:
-                if admin_error_triggers_governance_alert(exc.code):
-                    emit_governance_tripped_for_kb(
-                        request,
-                        kb_id,
-                        knowledge,
-                        message=exc.message,
-                        detail={"code": exc.code, "proposal_id": proposal_id},
-                        actor_id=user.id,
-                    )
+                maybe_emit_governance_tripped_for_admin_error(
+                    request,
+                    kb_id,
+                    knowledge,
+                    exc,
+                    detail={"proposal_id": proposal_id, "source": "ontology_publish"},
+                    actor_id=user.id,
+                )
                 raise
             save_graph(request, kb_id)
             _governance_alert_from_proposal_result(
