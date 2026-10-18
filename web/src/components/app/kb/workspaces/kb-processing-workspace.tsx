@@ -18,7 +18,8 @@ import {
   type ProcessingJobFilter,
 } from '@/components/app/kb/widgets/kb-processing-jobs-list.js';
 import { useI18n } from '@/i18n/context.js';
-import { formatLocaleNumber } from '@/i18n/format.js';
+import { fmt, formatLocaleNumber } from '@/i18n/format.js';
+import { formatByteSize } from '@/lib/format-byte-size.js';
 import type { Locale } from '@/i18n/locale.js';
 import { formatUserFacingApiError } from '@/lib/api-error-message.js';
 import { useExplorerClient } from '@/lib/explorer-context.js';
@@ -71,6 +72,18 @@ export function KbProcessingWorkspace({
     () => jobs.filter((job) => job.status === 'failed').length,
     [jobs],
   );
+
+  const limitsHint = useMemo(() => {
+    const upload = caps?.upload_max_bytes;
+    if (!upload) return null;
+    const timeoutSec = caps.processing_job_timeout_seconds ?? 600;
+    return fmt(p.limitsHint, {
+      upload: formatByteSize(upload),
+      inflight: formatLocaleNumber(locale as Locale, caps.ingest_max_inflight ?? 0),
+      pending: formatLocaleNumber(locale as Locale, caps.ingest_max_pending ?? 0),
+      timeoutMin: formatLocaleNumber(locale as Locale, Math.max(1, Math.round(timeoutSec / 60))),
+    });
+  }, [caps, locale, p.limitsHint]);
 
   const refresh = useCallback(
     async (silent = false) => {
@@ -150,7 +163,16 @@ export function KbProcessingWorkspace({
           { label: kbName, to: kbPath(kbId, 'graph') },
           { label: t.menu.kb.processing },
         ]}
-        subtitle={t.pages.kbSubtitles.processing}
+        subtitle={
+          <div className="space-y-1">
+            <p>{t.pages.kbSubtitles.processing}</p>
+            {limitsHint ? (
+              <p className="text-xs text-muted-foreground" data-testid="processing-limits-hint">
+                {limitsHint}
+              </p>
+            ) : null}
+          </div>
+        }
         className="gap-6 [&>:last-child]:min-h-0 [&>:last-child]:flex-none"
       >
         <DataPanel>

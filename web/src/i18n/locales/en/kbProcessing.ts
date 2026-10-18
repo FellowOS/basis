@@ -14,4 +14,6 @@ export const kbProcessing = {
   noMatches: 'No jobs match your filters.',
   openInSources: 'Open in sources',
   viewAlerts: 'View alerts',
+  limitsHint:
+    'Server limits: upload ≤ {upload}; up to {inflight} jobs at once, {pending} queued; timeout {timeoutMin} min.',
 } as const;

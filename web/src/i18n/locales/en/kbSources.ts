@@ -45,6 +45,7 @@ export const kbSources = {
   tabPaste: 'Paste text',
   docIdOptional: 'doc_id (optional)',
   labelFile: 'File',
+  uploadLimitsHint: 'Max upload {upload}; extracted text capped at {extract} characters.',
   uploading: 'Uploading…',
   upload: 'Upload',
   labelText: 'Text',

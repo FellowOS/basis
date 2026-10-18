@@ -14,4 +14,6 @@ export const kbProcessing = {
   noMatches: '没有符合筛选条件的任务。',
   openInSources: '在资料源中打开',
   viewAlerts: '查看告警',
+  limitsHint:
+    '服务端限制：上传 ≤ {upload}；并发 {inflight} 个任务、排队 {pending} 个；单任务超时 {timeoutMin} 分钟。',
 } as const;

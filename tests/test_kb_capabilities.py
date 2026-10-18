@@ -35,3 +35,6 @@ def test_kb_capabilities_http(tmp_path) -> None:
     assert body["graph_write"] is True
     assert body["explorer_runtime"] == explorer_available()
     assert "sparql" in body and "decisions" in body
+    assert body["upload_max_bytes"] > 0
+    assert body["ingest_max_inflight"] >= 1
+    assert body["processing_job_timeout_seconds"] >= 60

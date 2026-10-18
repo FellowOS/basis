@@ -36,6 +36,12 @@ export type KbCapabilities = {
   diagnostic: string | null;
   graph_page_max_nodes?: number;
   graph_page_max_edges?: number;
+  upload_max_bytes?: number;
+  import_max_bytes?: number;
+  ingest_max_inflight?: number;
+  ingest_max_pending?: number;
+  processing_job_timeout_seconds?: number;
+  ingest_max_extract_chars?: number;
 };
 
 type KbCapabilitiesContextValue = {

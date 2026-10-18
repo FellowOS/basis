@@ -68,6 +68,7 @@ import { kbPath } from '@/lib/nav-config.js';
 import { kbProcessingJobPath, parseProcessingUrlState } from '@/lib/processingUrlState.js';
 import { type ProcessingJob, jobIsActive, statusIsProcessing } from '@/lib/kb-processing-job.js';
 import { parseSourcesUrlState } from '@/lib/sourcesUrlState.js';
+import { formatByteSize } from '@/lib/format-byte-size.js';
 import { formatUserFacingApiError } from '@/lib/api-error-message.js';
 import { processingStartIdempotencyKey } from '@/lib/processing-idempotency.js';
 
@@ -254,6 +255,15 @@ export function KnowledgePage() {
   }, [sourcesUrl.ingestSourceId, sourcesUrl.openConnectors]);
 
   const k = t.kbSources;
+  const uploadLimitsHint = useMemo(() => {
+    const upload = caps?.upload_max_bytes;
+    const extract = caps?.ingest_max_extract_chars;
+    if (!upload || !extract) return null;
+    return fmt(k.uploadLimitsHint, {
+      upload: formatByteSize(upload),
+      extract: formatLocaleNumber(locale as Locale, extract),
+    });
+  }, [caps?.ingest_max_extract_chars, caps?.upload_max_bytes, k.uploadLimitsHint, locale]);
   const apiErrorMessage = useCallback(
     (err: unknown) => formatUserFacingApiError(err, locale as Locale),
     [locale],
@@ -942,6 +952,11 @@ export function KnowledgePage() {
                     accept=".txt,.md,.pdf,.docx,.html,.json,.csv"
                     required
                   />
+                  {uploadLimitsHint ? (
+                    <p className="text-xs text-muted-foreground" data-testid="sources-upload-limits-hint">
+                      {uploadLimitsHint}
+                    </p>
+                  ) : null}
                 </div>
                 <DialogFooter className="px-0">
                   <Button type="submit" disabled={uploading}>

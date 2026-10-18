@@ -44,6 +44,7 @@ export const kbSources = {
   tabPaste: '粘贴文本',
   docIdOptional: 'doc_id（可选）',
   labelFile: '文件',
+  uploadLimitsHint: '单文件上传上限 {upload}；提取文本上限 {extract} 字符。',
   uploading: '上传中…',
   upload: '上传',
   labelText: '文本',

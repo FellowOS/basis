@@ -200,6 +200,12 @@ Feature flags for Explorer, ingest, mappings, and diagnostics for this KB and ro
         **kb_capabilities(role),
         "graph_page_max_nodes": limits.graph_page_max_nodes,
         "graph_page_max_edges": limits.graph_page_max_edges,
+        "upload_max_bytes": limits.upload_max_bytes,
+        "import_max_bytes": limits.import_max_bytes,
+        "ingest_max_inflight": limits.ingest_max_inflight,
+        "ingest_max_pending": limits.ingest_max_pending,
+        "processing_job_timeout_seconds": limits.processing_job_timeout_seconds,
+        "ingest_max_extract_chars": limits.ingest_max_extract_chars,
         "mcp_tools": list(TOOL_NAMES),
     }
 
