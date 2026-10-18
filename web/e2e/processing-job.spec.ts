@@ -27,6 +27,25 @@ test('sources job query opens processing history for job', async ({ page }) => {
   await expect(page.getByTestId(`processing-job-copy-link-${jobId}`)).toBeVisible();
 });
 
+test('processing open in sources focuses document without process dialog', async ({ page }) => {
+  test.setTimeout(120_000);
+
+  await registerFreshUser(page);
+  const kbId = await defaultKbId(page);
+  await ingestDocumentViaApi(page, kbId, 'Processing sources deep link smoke.');
+  const jobId = await fetchLatestIngestJobId(page, kbId);
+
+  await page.goto(`/kbs/${kbId}/processing?job=${encodeURIComponent(jobId)}`);
+  await expect(page.getByTestId(`processing-job-detail-${jobId}`)).toBeVisible({
+    timeout: 60_000,
+  });
+
+  await page.getByTestId(`processing-job-open-sources-${jobId}`).click();
+  await expect(page).toHaveURL(/\/sources\?doc=/, { timeout: 30_000 });
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(page.locator('[id^="sources-doc-row-"]').first()).toHaveClass(/ring-primary/);
+});
+
 test('processing filter query selects failed tab', async ({ page }) => {
   await registerFreshUser(page);
   const kbId = await defaultKbId(page);

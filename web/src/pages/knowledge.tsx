@@ -243,7 +243,7 @@ export function KnowledgePage() {
   const [uploading, setUploading] = useState(false);
   const [processImmediately, setProcessImmediately] = useState(false);
   const [busyVersionId, setBusyVersionId] = useState<string | null>(null);
-  const [configVersionId, setConfigVersionId] = useState(searchParams.get('version') ?? '');
+  const [configVersionId, setConfigVersionId] = useState('');
   const [chunk, setChunk] = useState(true);
   const [chunkMethod, setChunkMethod] = useState<ProductChunkMethod>(DEFAULT_CHUNK_METHOD);
   const [chunkSize, setChunkSize] = useState(1800);
@@ -373,9 +373,31 @@ export function KnowledgePage() {
   }, [graphFocusPath, graphEnabled, id, jobs, navigate, k]);
 
   useEffect(() => {
-    const version = searchParams.get('version');
-    if (version) setConfigVersionId(version);
-  }, [searchParams]);
+    if (sourcesUrl.openProcessDialog && sourcesUrl.versionId) {
+      setConfigVersionId(sourcesUrl.versionId);
+    }
+  }, [sourcesUrl.openProcessDialog, sourcesUrl.versionId]);
+
+  const focusDocId = sourcesUrl.docId;
+
+  useEffect(() => {
+    if (!focusDocId || filteredDocuments.length === 0) return;
+    const index = filteredDocuments.findIndex((doc) => doc.doc_id === focusDocId);
+    if (index < 0) return;
+    const targetPage = Math.floor(index / PAGE_SIZE) + 1;
+    setPage((prev) => (prev === targetPage ? prev : targetPage));
+  }, [filteredDocuments, focusDocId]);
+
+  useEffect(() => {
+    if (!focusDocId) return;
+    const frame = window.requestAnimationFrame(() => {
+      document.getElementById(`sources-doc-row-${focusDocId}`)?.scrollIntoView({
+        block: 'nearest',
+        behavior: 'smooth',
+      });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [focusDocId, page, pageDocuments]);
 
   function resetAddForm() {
     setDocId('');
@@ -576,6 +598,7 @@ export function KnowledgePage() {
     setConfigVersionId(versionId);
     const next = new URLSearchParams(searchParams);
     next.set('version', versionId);
+    next.set('process', '1');
     setSearchParams(next, { replace: true });
   }
 
@@ -583,6 +606,7 @@ export function KnowledgePage() {
     setConfigVersionId('');
     const next = new URLSearchParams(searchParams);
     next.delete('version');
+    next.delete('process');
     setSearchParams(next, { replace: true });
   }
 
@@ -938,6 +962,12 @@ export function KnowledgePage() {
                 columns={columns}
                 data={pageDocuments}
                 rowKey={(doc) => doc.document_id ?? doc.doc_id}
+                rowDomId={(doc) => `sources-doc-row-${doc.doc_id}`}
+                rowClassName={(doc) =>
+                  focusDocId && doc.doc_id === focusDocId
+                    ? 'bg-muted/40 ring-2 ring-primary ring-inset'
+                    : undefined
+                }
                 className="border-0"
               />
               <DataPanelTableFooter

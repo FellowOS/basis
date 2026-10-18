@@ -15,6 +15,7 @@ import {
   statusIsProcessing,
 } from '@/lib/kb-processing-job.js';
 import { kbPath } from '@/lib/nav-config.js';
+import { kbSourcesDocumentPath } from '@/lib/sourcesUrlState.js';
 import { cn } from '@/lib/utils.js';
 
 export type ProcessingJobFilter = 'all' | 'active' | 'failed' | 'succeeded';
@@ -97,11 +98,6 @@ export function KbProcessingJobsList({
 
   const graphFocusPath = (docId: string) =>
     `${kbPath(kbId, 'graph')}?focus=${encodeURIComponent(docId)}`;
-
-  const sourcesVersionPath = (versionId: string) => {
-    const params = new URLSearchParams({ version: versionId });
-    return `${kbPath(kbId, 'sources')}?${params.toString()}`;
-  };
 
   const columns = useMemo<DataTableColumn<ProcessingJob>[]>(
     () => [
@@ -230,7 +226,12 @@ export function KbProcessingJobsList({
             </div>
             <div className="flex flex-wrap gap-2">
               <Button type="button" variant="outline" size="sm" asChild>
-                <Link to={sourcesVersionPath(expandedJob.version_id)}>{p.openInSources}</Link>
+                <Link
+                  to={kbSourcesDocumentPath(kbId, expandedJob.doc_id)}
+                  data-testid={`processing-job-open-sources-${expandedJob.id}`}
+                >
+                  {p.openInSources}
+                </Link>
               </Button>
               {graphEnabled && expandedJob.status === 'succeeded' && expandedJob.doc_id ? (
                 <Button type="button" variant="outline" size="sm" asChild>

@@ -31,6 +31,7 @@ import {
   sortProcessingJobs,
 } from '@/lib/kb-processing-job.js';
 import { kbPath } from '@/lib/nav-config.js';
+import { kbProcessingPath } from '@/lib/processingUrlState.js';
 
 export function KbProcessingWorkspace({
   kbId,
@@ -239,12 +240,13 @@ export function KbProcessingWorkspace({
                     {formatLocaleNumber(locale as Locale, activeJobCount)}
                   </span>
                 ) : failedJobCount > 0 ? (
-                  <span
-                    className="inline-flex min-w-[1.25rem] items-center justify-center rounded-md bg-destructive/15 px-2 py-1 text-xs font-medium tabular-nums text-destructive"
+                  <Link
+                    to={kbProcessingPath(kbId, { filter: 'failed' })}
+                    className="inline-flex min-w-[1.25rem] items-center justify-center rounded-md bg-destructive/15 px-2 py-1 text-xs font-medium tabular-nums text-destructive underline-offset-2 hover:underline"
                     data-testid="processing-failed-jobs-badge"
                   >
                     {formatLocaleNumber(locale as Locale, failedJobCount)}
-                  </span>
+                  </Link>
                 ) : null}
                 <Button
                   type="button"
