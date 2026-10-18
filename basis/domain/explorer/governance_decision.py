@@ -24,6 +24,18 @@ def admin_error_triggers_governance_alert(code: str) -> bool:
     return any(token in normalized for token in _GOVERNANCE_ALERT_CODE_TOKENS)
 
 
+_SKIP_GOVERNANCE_ALERT_ON_REVIEW_APPROVE = frozenset(
+    {"review_closed", "not_found", "forbidden", "unsupported_review_kind"},
+)
+
+
+def should_emit_governance_tripped_on_review_approve(code: str) -> bool:
+    """Emit only when approve failed due to governance/impact/SHACL gates (F-GOV-05)."""
+    if code in _SKIP_GOVERNANCE_ALERT_ON_REVIEW_APPROVE:
+        return False
+    return admin_error_triggers_governance_alert(code)
+
+
 def _try_record_governance_decision(
     request: Request,
     kb_id: str,

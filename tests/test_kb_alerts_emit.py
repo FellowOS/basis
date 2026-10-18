@@ -4,7 +4,10 @@ from fastapi.testclient import TestClient
 
 from basis.transport.http.app import create_app
 from basis.infra.config import Settings
-from basis.domain.explorer.governance_decision import admin_error_triggers_governance_alert
+from basis.domain.explorer.governance_decision import (
+    admin_error_triggers_governance_alert,
+    should_emit_governance_tripped_on_review_approve,
+)
 from basis.domain.kb.kb_alerts_emit import (
     emit_governance_proposal_proposed_alert,
     emit_governance_tripped_alert,
@@ -15,6 +18,12 @@ def test_admin_error_triggers_governance_alert() -> None:
     assert admin_error_triggers_governance_alert("shacl_validation_failed")
     assert admin_error_triggers_governance_alert("IMPACT_GATE_TRIPPED")
     assert not admin_error_triggers_governance_alert("not_found")
+
+
+def test_should_emit_governance_tripped_on_review_approve() -> None:
+    assert should_emit_governance_tripped_on_review_approve("impact_gate_blocked")
+    assert not should_emit_governance_tripped_on_review_approve("review_closed")
+    assert not should_emit_governance_tripped_on_review_approve("explorer_graph_error")
 
 
 def test_emit_governance_tripped(tmp_path) -> None:

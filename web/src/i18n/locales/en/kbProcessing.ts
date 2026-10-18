@@ -13,4 +13,5 @@ export const kbProcessing = {
   optionsSnapshot: 'Option snapshot',
   noMatches: 'No jobs match your filters.',
   openInSources: 'Open in sources',
+  viewAlerts: 'View alerts',
 } as const;

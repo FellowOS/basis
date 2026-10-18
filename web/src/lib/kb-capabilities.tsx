@@ -128,6 +128,7 @@ export function kbNavSegmentEnabled(segment: string, caps: KbCapabilities | null
       return true;
     case 'vocabulary':
       return caps.vocabulary;
+    case 'alerts':
     case 'mappings':
     case 'integration':
     case 'settings':

@@ -52,7 +52,7 @@ export function platformAdminEntryPath(isAdmin: boolean, canSettings: boolean): 
  * 2. knowledge (sources, entities, entity resolution, decisions, review queue)
  * 3. schema (ontology hub tabs, query/reasoning hub, vocabulary, mappings)
  * 4. audit (provenance & temporal diff: Lineage, Graph Diff)
- * 5. system (integration & settings; alerts live in the account menu)
+ * 5. system (alerts, integration, settings)
  */
 export type KbWorkspaceZone =
   | 'explore'
@@ -100,6 +100,7 @@ export const KB_NAV_BY_ZONE = {
     { segment: 'graph-diff', labelKey: 'graphDiff', icon: 'git-diff' },
   ],
   system: [
+    { segment: 'alerts', labelKey: 'alerts', icon: 'bell-01' },
     { segment: 'integration', labelKey: 'integration', icon: 'plug-01' },
     { segment: 'settings', labelKey: 'settings', icon: 'settings' },
   ],
@@ -125,14 +126,10 @@ export type KbNavKey = KbSidebarMenuKey | KbHubCapabilityNavKey | 'processing';
 
 export type KbSidebarNavItem = KbNavItem & { labelKey: KbSidebarMenuKey };
 
-/** KB alerts page (account menu entry; not in the sidebar). */
-export const KB_ALERTS_NAV_ITEM: KbSidebarNavItem = {
-  segment: 'alerts',
-  labelKey: 'alerts',
-  icon: 'bell-01',
-};
+/** KB alerts page (sidebar system zone + account menu). */
+export const KB_ALERTS_NAV_ITEM: KbSidebarNavItem = KB_NAV_BY_ZONE.system[0];
 
-export const KB_SETTINGS_NAV_ITEM: KbSidebarNavItem = KB_NAV_BY_ZONE.system[1];
+export const KB_SETTINGS_NAV_ITEM: KbSidebarNavItem = KB_NAV_BY_ZONE.system[2];
 
 /** Former sidebar routes kept for deep links and redirects. */
 export const KB_HUB_LEGACY_SEGMENTS = [

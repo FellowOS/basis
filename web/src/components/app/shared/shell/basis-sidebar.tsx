@@ -24,18 +24,26 @@ import {
   type KbSidebarNavItem,
   kbPath,
 } from '@/lib/nav-config.js';
+import { formatBadgeCount } from '@/i18n/format.js';
+import type { Locale } from '@/i18n/locale.js';
 import { resolveSidebarKbId } from '@/lib/kb-active-id.js';
 import { useKbCatalog } from '@/lib/kb-context.js';
 import { kbNavSegmentEnabled, useKbCapabilities } from '@/lib/kb-capabilities.js';
+import { useKbUnreadAlerts } from '@/lib/use-kb-unread-alerts.js';
 
 export function BasisSidebar({ onLogout }: { onLogout: () => void }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const location = useLocation();
   const { isMobile, setOpenMobile } = useSidebar();
   const { kbs } = useKbCatalog();
   const { caps } = useKbCapabilities();
+  const unreadAlertsCount = useKbUnreadAlerts();
 
   const navKbId = resolveSidebarKbId(location.pathname, kbs);
+  const alertsBadgeLabel =
+    unreadAlertsCount > 0
+      ? formatBadgeCount(locale as Locale, unreadAlertsCount, 99)
+      : null;
 
   function closeMobile() {
     if (isMobile) setOpenMobile(false);
@@ -63,6 +71,11 @@ export function BasisSidebar({ onLogout }: { onLogout: () => void }) {
               <span className="min-w-0 flex-1 truncate group-data-[collapsible=icon]:hidden">
                 {label}
               </span>
+              {item.segment === 'alerts' && alertsBadgeLabel ? (
+                <span className="ml-auto rounded-md bg-destructive/15 px-1.5 text-xs font-medium tabular-nums text-destructive group-data-[collapsible=icon]:hidden">
+                  {alertsBadgeLabel}
+                </span>
+              ) : null}
             </Link>
           </SidebarMenuButton>
         ) : (

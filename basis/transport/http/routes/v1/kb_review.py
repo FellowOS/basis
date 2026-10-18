@@ -26,6 +26,7 @@ from basis.transport.http.explorer_route_errors import admin_error_from_explorer
 from basis.domain.explorer.governance_decision import (
     emit_governance_tripped_for_kb,
     record_governance_decision_for_kb,
+    should_emit_governance_tripped_on_review_approve,
 )
 from basis.infra.limits import RuntimeLimits
 from basis.domain.explorer.session_guard import require_explorer_graph_session
@@ -231,9 +232,6 @@ Approve Review Item. Human review queue for merges, imports, and conflicts. Requ
     mapping_result: dict[str, Any] | None = None
     decision_id: str | None = None
     approve_action = "kb.graph.merge_approved"
-    _skip_governance_alert = frozenset(
-        {"review_closed", "not_found", "forbidden", "unsupported_review_kind"},
-    )
 
     try:
         if item["kind"] == MAPPING_REVIEW_KIND:
@@ -435,7 +433,7 @@ Approve Review Item. Human review queue for merges, imports, and conflicts. Requ
         }
     except HTTPException as exc:
         mapped = admin_error_from_explorer_http(exc, context="enrich")
-        if mapped.code not in _skip_governance_alert:
+        if should_emit_governance_tripped_on_review_approve(mapped.code):
             emit_governance_tripped_for_kb(
                 request,
                 kb_id,
@@ -451,7 +449,7 @@ Approve Review Item. Human review queue for merges, imports, and conflicts. Requ
             )
         raise mapped
     except AdminError as exc:
-        if exc.code not in _skip_governance_alert:
+        if should_emit_governance_tripped_on_review_approve(exc.code):
             emit_governance_tripped_for_kb(
                 request,
                 kb_id,

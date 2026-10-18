@@ -8,6 +8,14 @@ import {
   seedStatementConflictViaApi,
 } from './helpers';
 
+test('kb sidebar alerts nav opens alerts page', async ({ page }) => {
+  await registerFreshUser(page);
+  const kbId = await defaultKbId(page);
+  await page.goto(`/kbs/${kbId}/sources`);
+  await page.getByRole('link', { name: /^(Alerts|告警)$/ }).click();
+  await expect(page).toHaveURL(new RegExp(`/kbs/${kbId}/alerts`), { timeout: 30_000 });
+});
+
 test('review queue surfaces link to ontology versions tab', async ({ page }) => {
   test.setTimeout(120_000);
 

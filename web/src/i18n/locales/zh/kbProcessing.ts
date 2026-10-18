@@ -13,4 +13,5 @@ export const kbProcessing = {
   optionsSnapshot: '选项快照',
   noMatches: '没有符合筛选条件的任务。',
   openInSources: '在资料源中打开',
+  viewAlerts: '查看告警',
 } as const;

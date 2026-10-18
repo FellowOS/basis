@@ -246,6 +246,16 @@ export function KbProcessingJobsList({
               >
                 {k.copyJobLink}
               </Button>
+              {expandedJob.status === 'failed' ? (
+                <Button type="button" variant="outline" size="sm" asChild>
+                  <Link
+                    to={kbPath(kbId, 'alerts')}
+                    data-testid={`processing-job-view-alerts-${expandedJob.id}`}
+                  >
+                    {p.viewAlerts}
+                  </Link>
+                </Button>
+              ) : null}
               {canEdit && expandedJob.status === 'failed' ? (
                 <Button
                   type="button"
