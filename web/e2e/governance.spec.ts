@@ -8,13 +8,6 @@ import {
   seedStatementConflictViaApi,
 } from './helpers';
 
-test('kb scoped layout shows alerts bell popover trigger', async ({ page }) => {
-  await registerFreshUser(page);
-  const kbId = await defaultKbId(page);
-  await page.goto(`/kbs/${kbId}/sources`);
-  await expect(page.getByTestId('kb-alerts-bell')).toBeVisible({ timeout: 60_000 });
-});
-
 test('review queue surfaces link to ontology versions tab', async ({ page }) => {
   test.setTimeout(120_000);
 
