@@ -23,11 +23,17 @@ type ChainResponse = {
 type KbReviewDecisionNarrativeProps = {
   kbId: string;
   decisionId: string;
+  /** Sidebar block vs compact block inside a review item / banner. */
+  variant?: 'sidebar' | 'embedded';
 };
 
 const MAX_STEPS = 4;
 
-export function KbReviewDecisionNarrative({ kbId, decisionId }: KbReviewDecisionNarrativeProps) {
+export function KbReviewDecisionNarrative({
+  kbId,
+  decisionId,
+  variant = 'sidebar',
+}: KbReviewDecisionNarrativeProps) {
   const { t } = useI18n();
   const r = t.kbReview;
   const dec = t.kbDecisions;
@@ -56,10 +62,16 @@ export function KbReviewDecisionNarrative({ kbId, decisionId }: KbReviewDecision
   const visible = chain.slice(0, MAX_STEPS);
   const truncated = chain.length > MAX_STEPS;
 
+  const embedded = variant === 'embedded';
+
   return (
     <section
-      className="shrink-0 border-b border-border px-4 py-3"
-      data-testid="review-decision-narrative"
+      className={
+        embedded
+          ? 'mt-3 rounded-md border border-border bg-muted/20 px-3 py-2.5'
+          : 'shrink-0 border-b border-border px-4 py-3'
+      }
+      data-testid={embedded ? 'review-item-decision-narrative' : 'review-decision-narrative'}
     >
       <div className="flex items-start justify-between gap-2">
         <h3 className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">

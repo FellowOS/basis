@@ -483,15 +483,22 @@ export function KbReviewQueueTab({
         </div>
         <div className="min-h-0 flex-1 overflow-auto">
           {approvedDecisionId ? (
-            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 border-b border-border px-4 py-2 text-[11px] text-foreground">
-              <span>{r.approveDecisionRecorded}</span>
-              <Link
-                to={kbReviewDecisionPath(kbId, approvedDecisionId)}
-                className="font-medium underline-offset-2 hover:underline"
-                data-testid="review-approve-decision-link"
-              >
-                {r.openDecision}
-              </Link>
+            <div className="border-b border-border px-4 py-3">
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-foreground">
+                <span>{r.approveDecisionRecorded}</span>
+                <Link
+                  to={kbReviewDecisionPath(kbId, approvedDecisionId)}
+                  className="font-medium underline-offset-2 hover:underline"
+                  data-testid="review-approve-decision-link"
+                >
+                  {r.openDecision}
+                </Link>
+              </div>
+              <KbReviewDecisionNarrative
+                kbId={kbId}
+                decisionId={approvedDecisionId}
+                variant="embedded"
+              />
             </div>
           ) : null}
           {focusedResolvedItem ? (
@@ -506,6 +513,13 @@ export function KbReviewQueueTab({
                 decisionIdsForReviewItem(events, focusedResolvedItem.id),
                 'review-resolved-decision',
               )}
+              {narrativeDecisionId ? (
+                <KbReviewDecisionNarrative
+                  kbId={kbId}
+                  decisionId={narrativeDecisionId}
+                  variant="embedded"
+                />
+              ) : null}
             </div>
           ) : null}
           {loading ? (
@@ -675,6 +689,14 @@ export function KbReviewQueueTab({
                       </Link>
                     </p>
                     {renderDecisionLinks(itemDecisionIds, 'review-item-decision')}
+                    {(focusItemId === item.id || highlightItemId === item.id) &&
+                    itemDecisionIds.length > 0 ? (
+                      <KbReviewDecisionNarrative
+                        kbId={kbId}
+                        decisionId={itemDecisionIds.at(-1)!}
+                        variant="embedded"
+                      />
+                    ) : null}
                     <div className="mt-3 flex flex-wrap gap-2">
                       <Button
                         type="button"

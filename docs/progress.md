@@ -36,7 +36,7 @@
 | **检索与图读** | 混合 chunk 搜索、graph search/neighbors/paths、Explorer 图页 + WS `projection_updated`、投影 rebuild |
 | **账本与审核** | 开放陈述、review 队列（合并/导入/映射/remember/冲突）、ledger 读 API |
 | **本体与推理** | Ontology Hub、SPARQL、映射；**rules REST CRUD**、`POST /api/v1/kbs/{id}/reasoning/run`；derived facts 投影 |
-| **治理读 API** | Decisions list + chain（**F-GOV-07** API）；Review Decisions 页（UX 仍 §3.1） |
+| **治理读 API** | Decisions list + chain（**F-GOV-07**）；Review 内嵌 + Decisions 页深链 |
 | **Diff / 时态 / 任务** | `GET .../graph/diff` + 对比页（**F-DIFF-01** 读路径）；search/graph 时间 query（**F-SRCH-03**）；`GET .../ingest/jobs`（**F-SRC-08**） |
 | **Agent 面** | MCP 13 工具 + JSON-RPC（`test_mcp_basic_graph_closed_loop`）、**remember 闭环**（propose + review approve） |
 | **连接器** | Sources CRUD + sync（**F-SRC-06–07**，冻结 kind：webhook / http_poll / GitHub raw） |
@@ -111,7 +111,7 @@
 
 | F-* | 仍缺 | Status | Priority | Notes |
 | --- | --- | --- | --- | --- |
-| F-GOV-07 | 审核项详情内嵌决策叙事 | `partial` | P1 | **已有：** 侧栏 `review-decision-narrative`（chain 摘要）、卡片/决策深链、批准后横幅、已关闭项 banner；E2E `governance.spec.ts` approve→narrative→decision |
+| F-GOV-07 | 审核项详情内嵌决策叙事 | `done` | P1 | 主栏 **embedded** `review-item-decision-narrative`（批准横幅、已关闭深链、聚焦项）+ 侧栏 chain；E2E `governance.spec.ts` |
 | F-DIFF-01 | 全图画布合并工作室（publish/staging） | `partial` | P1 | diff 读 + 对比页；图谱↔diff 工具栏 + **结束时刻→timeline** 深链；E2E `graph-diff-cross-link.spec.ts`；工作室 **not** |
 | F-ONT-05 | 本体提案评审全流程 UI | `partial` | P1 | `VersionsTab` 审批/发布 + `?ontologyProposal=` 高亮/弹窗 + **复制评审链接**；E2E `ontology-proposal-url.spec.ts` + `_e2e/ontology-proposal` |
 | F-GOV-06 | Registry 可读产品面（非 Explorer 专页） | `partial` | P1 | Review 侧栏 timeline + KB 设置 **Recent graph audit** 深链；E2E `settings-graph-audit.spec.ts`；平台 audit 摘要含 `decision_id` |
@@ -148,7 +148,7 @@
 | Phase | Focus | Checklist rows |
 | --- | --- | --- |
 | **Now** | Operational KB loop | §3.2 F-TIM（F-SRCH-03 done）；§3.1 治理/本体（F-ONT-05、F-GOV-07） |
-| **Next** | Multi-editor governance | §3.1 F-ONT-05, F-RUL-03, F-GOV-06；F-GOV-07 审核↔决策叙事 |
+| **Next** | Multi-editor governance | §3.1 F-ONT-05, F-RUL-03, F-GOV-06 |
 | **Then** | Time + ops visibility | §3.2 F-TIM-01–04, F-ALT-01–02 |
 | **On demand** | Release engineering | §3.1 F-DIFF-01 工作室；§3.2 distance-matrix |
 | **Enterprise option** | Data platform + operational ontology | F-LAKE-01–03 → F-OPS-* |
@@ -172,4 +172,4 @@
 
 ---
 
-_Last updated: 2026-10-18 — F-GOV-07 Review 侧栏 decision chain；F-SRC-08 Job history 重试/复制深链。_
+_Last updated: 2026-10-18 — F-GOV-07 审核项内嵌 decision chain；F-SRC-08 Job history 重试/复制深链。_
