@@ -142,7 +142,7 @@ export const docs = {
         {
           heading: '配置概要',
           paragraphs: [
-            '在侧栏「系统 → 集成」的 MCP 标签页创建访问令牌并记录 MCP URL；在 Agent 主机中以 Bearer 配置令牌。',
+            '在侧栏「系统 → 集成」的「访问令牌」标签页创建令牌，在 MCP 标签页复制端点 URL；在 Agent 主机中以 Bearer 配置令牌。',
           ],
         },
       ],

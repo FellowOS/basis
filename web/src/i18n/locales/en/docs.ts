@@ -157,7 +157,7 @@ export const docs = {
         {
           heading: 'Setup outline',
           paragraphs: [
-            'Open Integration under System in the KB sidebar (MCP tab), create an access token, and note the MCP URL. Configure your agent host with the token as Bearer credentials.',
+            'Open Integration under System in the KB sidebar: create an access token on the Access tokens tab and copy the MCP URL on the MCP tab. Configure your agent host with the token as Bearer credentials.',
           ],
         },
       ],
