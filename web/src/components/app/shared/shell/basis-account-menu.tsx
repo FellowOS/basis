@@ -152,7 +152,7 @@ export function BasisAccountMenu({ onLogout }: { onLogout: () => void }) {
             <DropdownMenuItem asChild data-active={alertsActive ? true : undefined}>
               <Link to={kbPath(alertsKbId, 'alerts')}>
                 <MenuIcon name="bell-01" />
-                {t.pages.alerts.viewAllAlerts}
+                {t.menu.kb.alerts}
                 {showAlertsBadge ? (
                   <span
                     className="ml-auto rounded-md bg-destructive/15 px-1.5 text-xs font-medium tabular-nums text-destructive"
