@@ -2,6 +2,7 @@ export const pages = {
   alerts: {
     alertsTitle: '活跃告警',
     alertsEmpty: '当前没有告警',
+    viewAllAlerts: '查看全部告警',
     dismissAll: '全部忽略',
     refresh: '刷新',
     dismissAria: '忽略',
@@ -64,6 +65,7 @@ export const pages = {
     detailKb: 'KB {kbId}',
     detailRev: '修订 {revision}',
     detailReview: '审核 {reviewId}',
+    detailDecision: '决策 {decisionId}',
     detailEmail: '{email}',
     detailKbName: '{name}',
     detailUser: '用户 {userId}',
@@ -93,6 +95,7 @@ export const pages = {
     create: '创建',
   },
   kbSubtitles: {
+    review: '合并、导入、映射、remember 与冲突等治理审核队列。',
     search:
       '文档片段按入库时间过滤；图谱时点请用图谱工作区时间轴（temporal/snapshot）。',
     entityResolution: '扫描重复实体候选，合并或提交到审核队列。',

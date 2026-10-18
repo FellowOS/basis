@@ -210,13 +210,14 @@ export function ModelEndpointForm({ kind, onCreated, onCancel }: Props) {
     setSaving(true);
     setLoadError(null);
     try {
+      const apiKey = values.apiKey.trim();
       await openApiPOST('/api/v1/models', {
         body: {
           kind,
           provider: values.providerId,
           api_base: base,
           model: resolved,
-          api_key: values.apiKey.trim(),
+          api_key: apiKey,
         },
       });
       toast.success(m.addedToast);

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Regenerate web OpenAPI TypeScript types from basis-v1 YAML.
+ * Regenerate web OpenAPI TypeScript types from openapi/basis-v1.json.
  *
  * Usage: node scripts/gen-client-types.mjs
  */

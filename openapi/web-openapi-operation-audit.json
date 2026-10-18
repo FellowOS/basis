@@ -1,0 +1,2032 @@
+{
+  "entries": [
+    {
+      "file": "web/src/components/admin/models/model-catalog-tab.tsx",
+      "kind": "literal",
+      "path": "/api/v1/models",
+      "operationId": "list_models_api_v1_models_get"
+    },
+    {
+      "file": "web/src/components/admin/models/model-catalog-tab.tsx",
+      "kind": "literal",
+      "path": "/api/v1/models/{model_id}",
+      "operationId": "patch_model_api_v1_models__model_id__patch"
+    },
+    {
+      "file": "web/src/components/admin/models/model-catalog-tab.tsx",
+      "kind": "literal",
+      "path": "/api/v1/models/{model_id}",
+      "operationId": "patch_model_api_v1_models__model_id__patch"
+    },
+    {
+      "file": "web/src/components/admin/models/model-endpoint-form.tsx",
+      "kind": "literal",
+      "path": "/api/v1/model-providers",
+      "operationId": "list_model_providers_api_v1_model_providers_get"
+    },
+    {
+      "file": "web/src/components/admin/models/model-endpoint-form.tsx",
+      "kind": "literal",
+      "path": "/api/v1/model-providers/probe",
+      "operationId": "probe_remote_models_api_v1_model_providers_probe_post"
+    },
+    {
+      "file": "web/src/components/admin/models/model-endpoint-form.tsx",
+      "kind": "literal",
+      "path": "/api/v1/models",
+      "operationId": "list_models_api_v1_models_get"
+    },
+    {
+      "file": "web/src/components/admin/platform-access-settings.tsx",
+      "kind": "literal",
+      "path": "/api/v1/settings/access",
+      "operationId": "get_access_api_v1_settings_access_get"
+    },
+    {
+      "file": "web/src/components/admin/platform-access-settings.tsx",
+      "kind": "literal",
+      "path": "/api/v1/settings/access",
+      "operationId": "get_access_api_v1_settings_access_get"
+    },
+    {
+      "file": "web/src/components/admin/platform-org-sso-section.tsx",
+      "kind": "literal",
+      "path": "/api/v1/orgs",
+      "operationId": "list_orgs_api_v1_orgs_get"
+    },
+    {
+      "file": "web/src/components/app/kb/explorer-shell/kb-create-dialog.tsx",
+      "kind": "literal",
+      "path": "/api/v1/kbs",
+      "operationId": "list_kbs_api_v1_kbs_get"
+    },
+    {
+      "file": "web/src/components/app/kb/widgets/kb-org-sso-panel.tsx",
+      "kind": "literal",
+      "path": "/api/v1/orgs/{org_id}/oidc",
+      "operationId": "get_org_oidc_api_v1_orgs__org_id__oidc_get"
+    },
+    {
+      "file": "web/src/components/app/kb/widgets/kb-org-sso-panel.tsx",
+      "kind": "literal",
+      "path": "/api/v1/orgs/{org_id}/oidc",
+      "operationId": "get_org_oidc_api_v1_orgs__org_id__oidc_get"
+    },
+    {
+      "file": "web/src/components/app/marketing/auth-form-card.tsx",
+      "kind": "literal",
+      "path": "/api/v1/auth/providers",
+      "operationId": "auth_providers_api_v1_auth_providers_get"
+    },
+    {
+      "file": "web/src/components/app/marketing/auth-form-card.tsx",
+      "kind": "literal",
+      "path": "/api/v1/auth/magic-link/request",
+      "operationId": "magic_link_request_api_v1_auth_magic_link_request_post"
+    },
+    {
+      "file": "web/src/components/app/marketing/auth-form-card.tsx",
+      "kind": "helper",
+      "path": "/api/v1/auth/oauth/github/start",
+      "operationId": "github_start_api_v1_auth_oauth_github_start_get"
+    },
+    {
+      "file": "web/src/components/app/marketing/auth-form-card.tsx",
+      "kind": "helper",
+      "path": "/api/v1/auth/oauth/google/start",
+      "operationId": "google_start_api_v1_auth_oauth_google_start_get"
+    },
+    {
+      "file": "web/src/explorer/host/explorerHttp.tsx",
+      "kind": "helper",
+      "path": "/api/v1/kbs/{kb_id}",
+      "operationId": "get_kb_api_v1_kbs__kb_id__get"
+    },
+    {
+      "file": "web/src/i18n/locales/en/docs.ts",
+      "kind": "literal",
+      "path": "/api/v1/*",
+      "operationId": null
+    },
+    {
+      "file": "web/src/i18n/locales/en/docs.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/*",
+      "operationId": null
+    },
+    {
+      "file": "web/src/i18n/locales/en/docs.ts",
+      "kind": "literal",
+      "path": "/api/v1/auth/*",
+      "operationId": null
+    },
+    {
+      "file": "web/src/i18n/locales/zh/docs.ts",
+      "kind": "literal",
+      "path": "/api/v1/*",
+      "operationId": null
+    },
+    {
+      "file": "web/src/i18n/locales/zh/docs.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/*",
+      "operationId": null
+    },
+    {
+      "file": "web/src/i18n/locales/zh/docs.ts",
+      "kind": "literal",
+      "path": "/api/v1/auth/*",
+      "operationId": null
+    },
+    {
+      "file": "web/src/lib/api.ts",
+      "kind": "literal",
+      "path": "/api/v1/auth/me",
+      "operationId": "me_api_v1_auth_me_get"
+    },
+    {
+      "file": "web/src/lib/api.ts",
+      "kind": "literal",
+      "path": "/api/v1/auth/login",
+      "operationId": "login_api_v1_auth_login_post"
+    },
+    {
+      "file": "web/src/lib/api.ts",
+      "kind": "literal",
+      "path": "/api/v1/auth/register",
+      "operationId": "register_api_v1_auth_register_post"
+    },
+    {
+      "file": "web/src/lib/api.ts",
+      "kind": "literal",
+      "path": "/api/v1/auth/logout",
+      "operationId": "logout_api_v1_auth_logout_post"
+    },
+    {
+      "file": "web/src/lib/auth-site-url.ts",
+      "kind": "helper",
+      "path": "/api/v1/auth/oauth/github/callback",
+      "operationId": "github_callback_api_v1_auth_oauth_github_callback_get"
+    },
+    {
+      "file": "web/src/lib/auth-site-url.ts",
+      "kind": "helper",
+      "path": "/api/v1/auth/oauth/google/callback",
+      "operationId": "google_callback_api_v1_auth_oauth_google_callback_get"
+    },
+    {
+      "file": "web/src/lib/auth-site-url.ts",
+      "kind": "helper",
+      "path": "/api/v1/auth/oidc/callback",
+      "operationId": "org_oidc_callback_api_v1_auth_oidc_callback_get"
+    },
+    {
+      "file": "web/src/lib/auth-site-url.ts",
+      "kind": "helper",
+      "path": "/api/v1/auth/oidc/callback",
+      "operationId": "org_oidc_callback_api_v1_auth_oidc_callback_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/auth/login",
+      "operationId": "login_api_v1_auth_login_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/auth/logout",
+      "operationId": "logout_api_v1_auth_logout_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/auth/magic-link/request",
+      "operationId": "magic_link_request_api_v1_auth_magic_link_request_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/auth/magic-link/verify",
+      "operationId": "magic_link_verify_api_v1_auth_magic_link_verify_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/auth/me",
+      "operationId": "me_api_v1_auth_me_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/auth/oauth/github/callback",
+      "operationId": "github_callback_api_v1_auth_oauth_github_callback_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/auth/oauth/github/start",
+      "operationId": "github_start_api_v1_auth_oauth_github_start_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/auth/oauth/google/callback",
+      "operationId": "google_callback_api_v1_auth_oauth_google_callback_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/auth/oauth/google/start",
+      "operationId": "google_start_api_v1_auth_oauth_google_start_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/auth/oidc/callback",
+      "operationId": "org_oidc_callback_api_v1_auth_oidc_callback_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/auth/oidc/{org_slug}/start",
+      "operationId": "org_oidc_start_api_v1_auth_oidc__org_slug__start_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/auth/providers",
+      "operationId": "auth_providers_api_v1_auth_providers_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/auth/register",
+      "operationId": "register_api_v1_auth_register_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/health",
+      "operationId": "health_health_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}",
+      "operationId": "get_kb_api_v1_kbs__kb_id__get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/alerts",
+      "operationId": "list_kb_alerts_api_v1_kbs__kb_id__alerts_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/alerts/stream",
+      "operationId": "stream_kb_alerts_api_v1_kbs__kb_id__alerts_stream_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/alerts/{alert_id}/dismiss",
+      "operationId": "dismiss_kb_alert_api_v1_kbs__kb_id__alerts__alert_id__dismiss_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/audit/graph-mutations",
+      "operationId": "list_kb_graph_audit_api_v1_kbs__kb_id__audit_graph_mutations_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/capabilities",
+      "operationId": "get_kb_capabilities_api_v1_kbs__kb_id__capabilities_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/decisions",
+      "operationId": "kb_list_decisions_api_v1_kbs__kb_id__decisions_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/decisions/{decision_id}/chain",
+      "operationId": "kb_decision_chain_api_v1_kbs__kb_id__decisions__decision_id__chain_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/documents",
+      "operationId": "ingest_document_api_v1_kbs__kb_id__documents_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/documents/upload",
+      "operationId": "upload_document_api_v1_kbs__kb_id__documents_upload_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/documents/{document_id}",
+      "operationId": "delete_kb_document_api_v1_kbs__kb_id__documents__document_id__delete"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/documents/{document_id}/versions",
+      "operationId": "append_document_version_text_api_v1_kbs__kb_id__documents__document_id__versions_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/documents/{document_id}/versions/upload",
+      "operationId": "append_document_version_upload_api_v1_kbs__kb_id__documents__document_id__versions_upload_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/enrich/dedup",
+      "operationId": "kb_enrich_dedup_api_v1_kbs__kb_id__enrich_dedup_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/enrich/links",
+      "operationId": "kb_enrich_links_api_v1_kbs__kb_id__enrich_links_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/enrich/merge",
+      "operationId": "kb_enrich_merge_api_v1_kbs__kb_id__enrich_merge_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/entities/find",
+      "operationId": "find_entities_route_api_v1_kbs__kb_id__entities_find_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/export",
+      "operationId": "kb_export_graph_api_v1_kbs__kb_id__export_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/graph/diff",
+      "operationId": "kb_graph_diff_api_v1_kbs__kb_id__graph_diff_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/graph/distance-matrix",
+      "operationId": "kb_graph_distance_matrix_api_v1_kbs__kb_id__graph_distance_matrix_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/graph/edges",
+      "operationId": "graph_edges_route_api_v1_kbs__kb_id__graph_edges_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/graph/nodes",
+      "operationId": "graph_nodes_route_api_v1_kbs__kb_id__graph_nodes_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/graph/nodes/{node_id}",
+      "operationId": "graph_node_route_api_v1_kbs__kb_id__graph_nodes__node_id__get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/graph/nodes/{node_id}/neighbors",
+      "operationId": "graph_neighbors_route_api_v1_kbs__kb_id__graph_nodes__node_id__neighbors_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/graph/path",
+      "operationId": "graph_path_route_api_v1_kbs__kb_id__graph_path_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/graph/projection",
+      "operationId": "graph_projection_status_api_v1_kbs__kb_id__graph_projection_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/graph/rebuild",
+      "operationId": "rebuild_graph_api_v1_kbs__kb_id__graph_rebuild_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/graph/resolve-labels",
+      "operationId": "resolve_graph_node_labels_api_v1_kbs__kb_id__graph_resolve_labels_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/graph/search",
+      "operationId": "graph_search_route_api_v1_kbs__kb_id__graph_search_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/graph/semantic-neighborhood",
+      "operationId": "kb_graph_semantic_neighborhood_api_v1_kbs__kb_id__graph_semantic_neighborhood_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/graph/snapshot",
+      "operationId": "graph_snapshot_route_api_v1_kbs__kb_id__graph_snapshot_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/graph/stats",
+      "operationId": "graph_stats_api_v1_kbs__kb_id__graph_stats_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/import",
+      "operationId": "kb_import_graph_api_v1_kbs__kb_id__import_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/ingest/jobs",
+      "operationId": "list_ingest_jobs_api_v1_kbs__kb_id__ingest_jobs_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/ingest/jobs/{job_id}",
+      "operationId": "get_ingest_job_api_v1_kbs__kb_id__ingest_jobs__job_id__get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/ledger/chunks/{chunk_id}",
+      "operationId": "get_ledger_chunk_route_api_v1_kbs__kb_id__ledger_chunks__chunk_id__get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/ledger/derived-facts",
+      "operationId": "list_derived_facts_route_api_v1_kbs__kb_id__ledger_derived_facts_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/ledger/documents/{doc_ref}",
+      "operationId": "get_ledger_document_route_api_v1_kbs__kb_id__ledger_documents__doc_ref__get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/ledger/documents/{doc_ref}/chunks",
+      "operationId": "list_document_chunks_route_api_v1_kbs__kb_id__ledger_documents__doc_ref__chunks_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/ledger/entities",
+      "operationId": "search_ledger_entities_api_v1_kbs__kb_id__ledger_entities_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/ledger/entities/{entity_id}",
+      "operationId": "delete_ledger_entity_api_v1_kbs__kb_id__ledger_entities__entity_id__delete"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/ledger/entities/{entity_id}/delete-preview",
+      "operationId": "preview_delete_ledger_entity_api_v1_kbs__kb_id__ledger_entities__entity_id__delete_preview_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/ledger/entities/{entity_id}/facts",
+      "operationId": "list_entity_facts_route_api_v1_kbs__kb_id__ledger_entities__entity_id__facts_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/ledger/entity-merges",
+      "operationId": "list_entity_merges_route_api_v1_kbs__kb_id__ledger_entity_merges_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/ledger/entity-merges/{merge_id}/revert",
+      "operationId": "revert_entity_merge_route_api_v1_kbs__kb_id__ledger_entity_merges__merge_id__revert_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/ledger/surface-phrases",
+      "operationId": "list_surface_phrases_api_v1_kbs__kb_id__ledger_surface_phrases_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/ledger/typed-facts",
+      "operationId": "list_typed_facts_route_api_v1_kbs__kb_id__ledger_typed_facts_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/mappings",
+      "operationId": "list_kb_mappings_api_v1_kbs__kb_id__mappings_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/mappings/{mapping_id}/status",
+      "operationId": "update_kb_mapping_status_api_v1_kbs__kb_id__mappings__mapping_id__status_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/mcp",
+      "operationId": "mcp_integration_info_api_v1_kbs__kb_id__mcp_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/ontology",
+      "operationId": "create_ontology_api_v1_kbs__kb_id__ontology_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/ontology/alignments",
+      "operationId": "kb_list_alignments_api_v1_kbs__kb_id__ontology_alignments_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/ontology/create",
+      "operationId": "_kb_ont_3_create_ontology_api_v1_kbs__kb_id__ontology_create_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/ontology/draft",
+      "operationId": "_kb_ont_17_save_draft_api_v1_kbs__kb_id__ontology_draft_patch"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/ontology/draft/{draft_id}",
+      "operationId": "_kb_ont_19_get_draft_api_v1_kbs__kb_id__ontology_draft__draft_id__get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/ontology/drafts/{ontology_uri}",
+      "operationId": "_kb_ont_18_list_drafts_api_v1_kbs__kb_id__ontology_drafts__ontology_uri__get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/ontology/entity/{entity_uri}",
+      "operationId": "_kb_ont_6_get_entity_detail_api_v1_kbs__kb_id__ontology_entity__entity_uri__get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/ontology/graph",
+      "operationId": "_kb_ont_5_get_ontology_graph_api_v1_kbs__kb_id__ontology_graph_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/ontology/health",
+      "operationId": "_kb_ont_10_ontology_health_api_v1_kbs__kb_id__ontology_health_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/ontology/load",
+      "operationId": "_kb_ont_2_load_ontology_api_v1_kbs__kb_id__ontology_load_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/ontology/preview",
+      "operationId": "_kb_ont_1_preview_ontology_api_v1_kbs__kb_id__ontology_preview_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/ontology/proposals",
+      "operationId": "_kb_ont_21_list_proposals_api_v1_kbs__kb_id__ontology_proposals_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/ontology/proposals/{proposal_id}",
+      "operationId": "_kb_ont_22_get_proposal_api_v1_kbs__kb_id__ontology_proposals__proposal_id__get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/ontology/proposals/{proposal_id}/approve",
+      "operationId": "_kb_ont_23_approve_proposal_api_v1_kbs__kb_id__ontology_proposals__proposal_id__approve_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/ontology/proposals/{proposal_id}/comment",
+      "operationId": "_kb_ont_26_add_comment_api_v1_kbs__kb_id__ontology_proposals__proposal_id__comment_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/ontology/proposals/{proposal_id}/publish",
+      "operationId": "_kb_ont_25_publish_proposal_api_v1_kbs__kb_id__ontology_proposals__proposal_id__publish_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/ontology/proposals/{proposal_id}/reject",
+      "operationId": "_kb_ont_24_reject_proposal_api_v1_kbs__kb_id__ontology_proposals__proposal_id__reject_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/ontology/propose",
+      "operationId": "_kb_ont_20_submit_proposal_api_v1_kbs__kb_id__ontology_propose_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/ontology/registry",
+      "operationId": "kb_ontology_registry_api_v1_kbs__kb_id__ontology_registry_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/ontology/search",
+      "operationId": "_kb_ont_4_search_entities_api_v1_kbs__kb_id__ontology_search_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/ontology/shacl/generate",
+      "operationId": "_kb_ont_11_generate_shacl_api_v1_kbs__kb_id__ontology_shacl_generate_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/ontology/shacl/shapes",
+      "operationId": "_kb_ont_12_list_shacl_shapes_api_v1_kbs__kb_id__ontology_shacl_shapes_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/ontology/shacl/validate",
+      "operationId": "_kb_ont_13_validate_shacl_api_v1_kbs__kb_id__ontology_shacl_validate_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/ontology/skos/concept/{concept_uri}",
+      "operationId": "_kb_ont_9_get_skos_concept_api_v1_kbs__kb_id__ontology_skos_concept__concept_uri__get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/ontology/skos/schemes",
+      "operationId": "_kb_ont_7_list_skos_schemes_api_v1_kbs__kb_id__ontology_skos_schemes_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/ontology/skos/search",
+      "operationId": "_kb_ont_8_search_skos_concepts_api_v1_kbs__kb_id__ontology_skos_search_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/ontology/suggest-alignments",
+      "operationId": "kb_suggest_alignments_api_v1_kbs__kb_id__ontology_suggest_alignments_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/ontology/versions/{ontology_uri}",
+      "operationId": "_kb_ont_27_list_versions_api_v1_kbs__kb_id__ontology_versions__ontology_uri__get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/ontology/versions/{ontology_uri}/compare",
+      "operationId": "_kb_ont_28_compare_versions_api_v1_kbs__kb_id__ontology_versions__ontology_uri__compare_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/ontology/{ontology_uri}",
+      "operationId": "_kb_ont_14_remove_ontology_api_v1_kbs__kb_id__ontology__ontology_uri__delete"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/ontology/{ontology_uri}/refresh",
+      "operationId": "_kb_ont_16_refresh_ontology_api_v1_kbs__kb_id__ontology__ontology_uri__refresh_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/ontology/{ontology_uri}/toggle",
+      "operationId": "_kb_ont_15_toggle_ontology_api_v1_kbs__kb_id__ontology__ontology_uri__toggle_patch"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/processing/jobs",
+      "operationId": "list_processing_jobs_api_v1_kbs__kb_id__processing_jobs_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/processing/jobs/{job_id}",
+      "operationId": "get_processing_job_api_v1_kbs__kb_id__processing_jobs__job_id__get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/processing/jobs/{job_id}/retry",
+      "operationId": "retry_processing_job_api_v1_kbs__kb_id__processing_jobs__job_id__retry_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/provenance",
+      "operationId": "kb_provenance_lineage_api_v1_kbs__kb_id__provenance_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/provenance/report",
+      "operationId": "kb_provenance_report_api_v1_kbs__kb_id__provenance_report_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/realtime-ticket",
+      "operationId": "create_realtime_ticket_api_v1_kbs__kb_id__realtime_ticket_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/reasoning/run",
+      "operationId": "kb_reasoning_run_api_v1_kbs__kb_id__reasoning_run_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/remember/proposals",
+      "operationId": "create_remember_proposal_api_v1_kbs__kb_id__remember_proposals_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/review/items",
+      "operationId": "list_review_items_api_v1_kbs__kb_id__review_items_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/review/items/entity-merge",
+      "operationId": "propose_entity_merge_api_v1_kbs__kb_id__review_items_entity_merge_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/review/items/graph-import",
+      "operationId": "propose_graph_import_api_v1_kbs__kb_id__review_items_graph_import_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/review/items/{item_id}",
+      "operationId": "get_review_item_route_api_v1_kbs__kb_id__review_items__item_id__get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/review/items/{item_id}/approve",
+      "operationId": "approve_review_item_api_v1_kbs__kb_id__review_items__item_id__approve_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/review/items/{item_id}/reject",
+      "operationId": "reject_review_item_api_v1_kbs__kb_id__review_items__item_id__reject_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/review/scan-statement-conflicts",
+      "operationId": "scan_statement_conflicts_route_api_v1_kbs__kb_id__review_scan_statement_conflicts_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/rules",
+      "operationId": "list_kb_reasoning_rules_api_v1_kbs__kb_id__rules_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/rules/{rule_id}",
+      "operationId": "update_kb_reasoning_rule_api_v1_kbs__kb_id__rules__rule_id__patch"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/search",
+      "operationId": "chunk_search_route_api_v1_kbs__kb_id__search_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/search/config",
+      "operationId": "get_chunk_search_config_route_api_v1_kbs__kb_id__search_config_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/search/reindex",
+      "operationId": "chunk_search_reindex_route_api_v1_kbs__kb_id__search_reindex_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/sources",
+      "operationId": "list_ingest_sources_api_v1_kbs__kb_id__sources_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/sources/{source_id}",
+      "operationId": "get_ingest_source_api_v1_kbs__kb_id__sources__source_id__get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/sources/{source_id}/rotate-token",
+      "operationId": "rotate_ingest_source_token_api_v1_kbs__kb_id__sources__source_id__rotate_token_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/sources/{source_id}/sync",
+      "operationId": "sync_ingest_source_api_v1_kbs__kb_id__sources__source_id__sync_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/sources/{source_id}/sync-history",
+      "operationId": "list_ingest_source_sync_history_api_v1_kbs__kb_id__sources__source_id__sync_history_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/sources/{source_id}/webhook",
+      "operationId": "ingest_via_webhook_api_v1_kbs__kb_id__sources__source_id__webhook_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/sparql",
+      "operationId": "kb_sparql_execute_api_v1_kbs__kb_id__sparql_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/temporal/bounds",
+      "operationId": "kb_temporal_bounds_api_v1_kbs__kb_id__temporal_bounds_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/temporal/diff",
+      "operationId": "kb_temporal_diff_api_v1_kbs__kb_id__temporal_diff_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/temporal/snapshot",
+      "operationId": "kb_temporal_snapshot_api_v1_kbs__kb_id__temporal_snapshot_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/vocabulary/concepts",
+      "operationId": "kb_vocabulary_concepts_api_v1_kbs__kb_id__vocabulary_concepts_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/vocabulary/hierarchy",
+      "operationId": "kb_vocabulary_hierarchy_api_v1_kbs__kb_id__vocabulary_hierarchy_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/vocabulary/import",
+      "operationId": "kb_vocabulary_import_api_v1_kbs__kb_id__vocabulary_import_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/vocabulary/schemes",
+      "operationId": "kb_vocabulary_schemes_api_v1_kbs__kb_id__vocabulary_schemes_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/admin/users",
+      "operationId": "list_users_api_v1_admin_users_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/admin/users/{user_id}/deactivate",
+      "operationId": "deactivate_user_api_v1_admin_users__user_id__deactivate_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/admin/users/{user_id}/reactivate",
+      "operationId": "reactivate_user_api_v1_admin_users__user_id__reactivate_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/audit",
+      "operationId": "list_audit_api_v1_audit_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/auth/login",
+      "operationId": "login_api_v1_auth_login_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/auth/logout",
+      "operationId": "logout_api_v1_auth_logout_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/auth/magic-link/request",
+      "operationId": "magic_link_request_api_v1_auth_magic_link_request_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/auth/magic-link/verify",
+      "operationId": "magic_link_verify_api_v1_auth_magic_link_verify_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/auth/me",
+      "operationId": "me_api_v1_auth_me_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/auth/oauth/github/callback",
+      "operationId": "github_callback_api_v1_auth_oauth_github_callback_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/auth/oauth/github/start",
+      "operationId": "github_start_api_v1_auth_oauth_github_start_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/auth/oauth/google/callback",
+      "operationId": "google_callback_api_v1_auth_oauth_google_callback_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/auth/oauth/google/start",
+      "operationId": "google_start_api_v1_auth_oauth_google_start_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/auth/oidc/callback",
+      "operationId": "org_oidc_callback_api_v1_auth_oidc_callback_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/auth/oidc/{org_slug}/start",
+      "operationId": "org_oidc_start_api_v1_auth_oidc__org_slug__start_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/auth/providers",
+      "operationId": "auth_providers_api_v1_auth_providers_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/auth/register",
+      "operationId": "register_api_v1_auth_register_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/health",
+      "operationId": "health_health_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs",
+      "operationId": "list_kbs_api_v1_kbs_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}",
+      "operationId": "get_kb_api_v1_kbs__kb_id__get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/alerts",
+      "operationId": "list_kb_alerts_api_v1_kbs__kb_id__alerts_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/alerts/stream",
+      "operationId": "stream_kb_alerts_api_v1_kbs__kb_id__alerts_stream_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/alerts/{alert_id}/dismiss",
+      "operationId": "dismiss_kb_alert_api_v1_kbs__kb_id__alerts__alert_id__dismiss_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/audit/graph-mutations",
+      "operationId": "list_kb_graph_audit_api_v1_kbs__kb_id__audit_graph_mutations_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/capabilities",
+      "operationId": "get_kb_capabilities_api_v1_kbs__kb_id__capabilities_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/decisions",
+      "operationId": "kb_list_decisions_api_v1_kbs__kb_id__decisions_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/decisions/{decision_id}/chain",
+      "operationId": "kb_decision_chain_api_v1_kbs__kb_id__decisions__decision_id__chain_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/documents",
+      "operationId": "ingest_document_api_v1_kbs__kb_id__documents_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/documents/upload",
+      "operationId": "upload_document_api_v1_kbs__kb_id__documents_upload_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/documents/{document_id}",
+      "operationId": "delete_kb_document_api_v1_kbs__kb_id__documents__document_id__delete"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/documents/{document_id}/versions",
+      "operationId": "append_document_version_text_api_v1_kbs__kb_id__documents__document_id__versions_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/documents/{document_id}/versions/upload",
+      "operationId": "append_document_version_upload_api_v1_kbs__kb_id__documents__document_id__versions_upload_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/enrich/dedup",
+      "operationId": "kb_enrich_dedup_api_v1_kbs__kb_id__enrich_dedup_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/enrich/links",
+      "operationId": "kb_enrich_links_api_v1_kbs__kb_id__enrich_links_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/enrich/merge",
+      "operationId": "kb_enrich_merge_api_v1_kbs__kb_id__enrich_merge_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/entities/find",
+      "operationId": "find_entities_route_api_v1_kbs__kb_id__entities_find_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/export",
+      "operationId": "kb_export_graph_api_v1_kbs__kb_id__export_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/graph/diff",
+      "operationId": "kb_graph_diff_api_v1_kbs__kb_id__graph_diff_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/graph/distance-matrix",
+      "operationId": "kb_graph_distance_matrix_api_v1_kbs__kb_id__graph_distance_matrix_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/graph/edges",
+      "operationId": "graph_edges_route_api_v1_kbs__kb_id__graph_edges_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/graph/nodes",
+      "operationId": "graph_nodes_route_api_v1_kbs__kb_id__graph_nodes_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/graph/nodes/{node_id}",
+      "operationId": "graph_node_route_api_v1_kbs__kb_id__graph_nodes__node_id__get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/graph/nodes/{node_id}/neighbors",
+      "operationId": "graph_neighbors_route_api_v1_kbs__kb_id__graph_nodes__node_id__neighbors_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/graph/path",
+      "operationId": "graph_path_route_api_v1_kbs__kb_id__graph_path_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/graph/projection",
+      "operationId": "graph_projection_status_api_v1_kbs__kb_id__graph_projection_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/graph/rebuild",
+      "operationId": "rebuild_graph_api_v1_kbs__kb_id__graph_rebuild_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/graph/resolve-labels",
+      "operationId": "resolve_graph_node_labels_api_v1_kbs__kb_id__graph_resolve_labels_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/graph/search",
+      "operationId": "graph_search_route_api_v1_kbs__kb_id__graph_search_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/graph/semantic-neighborhood",
+      "operationId": "kb_graph_semantic_neighborhood_api_v1_kbs__kb_id__graph_semantic_neighborhood_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/graph/snapshot",
+      "operationId": "graph_snapshot_route_api_v1_kbs__kb_id__graph_snapshot_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/graph/stats",
+      "operationId": "graph_stats_api_v1_kbs__kb_id__graph_stats_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/import",
+      "operationId": "kb_import_graph_api_v1_kbs__kb_id__import_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/ingest/jobs",
+      "operationId": "list_ingest_jobs_api_v1_kbs__kb_id__ingest_jobs_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/ingest/jobs/{job_id}",
+      "operationId": "get_ingest_job_api_v1_kbs__kb_id__ingest_jobs__job_id__get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/ledger/chunks/{chunk_id}",
+      "operationId": "get_ledger_chunk_route_api_v1_kbs__kb_id__ledger_chunks__chunk_id__get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/ledger/derived-facts",
+      "operationId": "list_derived_facts_route_api_v1_kbs__kb_id__ledger_derived_facts_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/ledger/documents/{doc_ref}",
+      "operationId": "get_ledger_document_route_api_v1_kbs__kb_id__ledger_documents__doc_ref__get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/ledger/documents/{doc_ref}/chunks",
+      "operationId": "list_document_chunks_route_api_v1_kbs__kb_id__ledger_documents__doc_ref__chunks_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/ledger/entities",
+      "operationId": "search_ledger_entities_api_v1_kbs__kb_id__ledger_entities_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/ledger/entities/{entity_id}",
+      "operationId": "delete_ledger_entity_api_v1_kbs__kb_id__ledger_entities__entity_id__delete"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/ledger/entities/{entity_id}/delete-preview",
+      "operationId": "preview_delete_ledger_entity_api_v1_kbs__kb_id__ledger_entities__entity_id__delete_preview_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/ledger/entities/{entity_id}/facts",
+      "operationId": "list_entity_facts_route_api_v1_kbs__kb_id__ledger_entities__entity_id__facts_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/ledger/entity-merges",
+      "operationId": "list_entity_merges_route_api_v1_kbs__kb_id__ledger_entity_merges_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/ledger/entity-merges/{merge_id}/revert",
+      "operationId": "revert_entity_merge_route_api_v1_kbs__kb_id__ledger_entity_merges__merge_id__revert_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/ledger/surface-phrases",
+      "operationId": "list_surface_phrases_api_v1_kbs__kb_id__ledger_surface_phrases_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/ledger/typed-facts",
+      "operationId": "list_typed_facts_route_api_v1_kbs__kb_id__ledger_typed_facts_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/mappings",
+      "operationId": "list_kb_mappings_api_v1_kbs__kb_id__mappings_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/mappings/{mapping_id}/status",
+      "operationId": "update_kb_mapping_status_api_v1_kbs__kb_id__mappings__mapping_id__status_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/mcp",
+      "operationId": "mcp_integration_info_api_v1_kbs__kb_id__mcp_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/members",
+      "operationId": "list_members_api_v1_kbs__kb_id__members_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/members/{user_id}",
+      "operationId": "set_member_role_api_v1_kbs__kb_id__members__user_id__put"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/ontology",
+      "operationId": "create_ontology_api_v1_kbs__kb_id__ontology_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/ontology/alignments",
+      "operationId": "kb_list_alignments_api_v1_kbs__kb_id__ontology_alignments_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/ontology/create",
+      "operationId": "_kb_ont_3_create_ontology_api_v1_kbs__kb_id__ontology_create_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/ontology/draft",
+      "operationId": "_kb_ont_17_save_draft_api_v1_kbs__kb_id__ontology_draft_patch"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/ontology/draft/{draft_id}",
+      "operationId": "_kb_ont_19_get_draft_api_v1_kbs__kb_id__ontology_draft__draft_id__get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/ontology/drafts/{ontology_uri}",
+      "operationId": "_kb_ont_18_list_drafts_api_v1_kbs__kb_id__ontology_drafts__ontology_uri__get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/ontology/entity/{entity_uri}",
+      "operationId": "_kb_ont_6_get_entity_detail_api_v1_kbs__kb_id__ontology_entity__entity_uri__get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/ontology/graph",
+      "operationId": "_kb_ont_5_get_ontology_graph_api_v1_kbs__kb_id__ontology_graph_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/ontology/health",
+      "operationId": "_kb_ont_10_ontology_health_api_v1_kbs__kb_id__ontology_health_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/ontology/load",
+      "operationId": "_kb_ont_2_load_ontology_api_v1_kbs__kb_id__ontology_load_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/ontology/preview",
+      "operationId": "_kb_ont_1_preview_ontology_api_v1_kbs__kb_id__ontology_preview_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/ontology/proposals",
+      "operationId": "_kb_ont_21_list_proposals_api_v1_kbs__kb_id__ontology_proposals_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/ontology/proposals/{proposal_id}",
+      "operationId": "_kb_ont_22_get_proposal_api_v1_kbs__kb_id__ontology_proposals__proposal_id__get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/ontology/proposals/{proposal_id}/approve",
+      "operationId": "_kb_ont_23_approve_proposal_api_v1_kbs__kb_id__ontology_proposals__proposal_id__approve_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/ontology/proposals/{proposal_id}/comment",
+      "operationId": "_kb_ont_26_add_comment_api_v1_kbs__kb_id__ontology_proposals__proposal_id__comment_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/ontology/proposals/{proposal_id}/publish",
+      "operationId": "_kb_ont_25_publish_proposal_api_v1_kbs__kb_id__ontology_proposals__proposal_id__publish_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/ontology/proposals/{proposal_id}/reject",
+      "operationId": "_kb_ont_24_reject_proposal_api_v1_kbs__kb_id__ontology_proposals__proposal_id__reject_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/ontology/propose",
+      "operationId": "_kb_ont_20_submit_proposal_api_v1_kbs__kb_id__ontology_propose_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/ontology/registry",
+      "operationId": "kb_ontology_registry_api_v1_kbs__kb_id__ontology_registry_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/ontology/search",
+      "operationId": "_kb_ont_4_search_entities_api_v1_kbs__kb_id__ontology_search_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/ontology/shacl/generate",
+      "operationId": "_kb_ont_11_generate_shacl_api_v1_kbs__kb_id__ontology_shacl_generate_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/ontology/shacl/shapes",
+      "operationId": "_kb_ont_12_list_shacl_shapes_api_v1_kbs__kb_id__ontology_shacl_shapes_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/ontology/shacl/validate",
+      "operationId": "_kb_ont_13_validate_shacl_api_v1_kbs__kb_id__ontology_shacl_validate_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/ontology/skos/concept/{concept_uri}",
+      "operationId": "_kb_ont_9_get_skos_concept_api_v1_kbs__kb_id__ontology_skos_concept__concept_uri__get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/ontology/skos/schemes",
+      "operationId": "_kb_ont_7_list_skos_schemes_api_v1_kbs__kb_id__ontology_skos_schemes_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/ontology/skos/search",
+      "operationId": "_kb_ont_8_search_skos_concepts_api_v1_kbs__kb_id__ontology_skos_search_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/ontology/suggest-alignments",
+      "operationId": "kb_suggest_alignments_api_v1_kbs__kb_id__ontology_suggest_alignments_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/ontology/versions/{ontology_uri}",
+      "operationId": "_kb_ont_27_list_versions_api_v1_kbs__kb_id__ontology_versions__ontology_uri__get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/ontology/versions/{ontology_uri}/compare",
+      "operationId": "_kb_ont_28_compare_versions_api_v1_kbs__kb_id__ontology_versions__ontology_uri__compare_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/ontology/{ontology_uri}",
+      "operationId": "_kb_ont_14_remove_ontology_api_v1_kbs__kb_id__ontology__ontology_uri__delete"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/ontology/{ontology_uri}/refresh",
+      "operationId": "_kb_ont_16_refresh_ontology_api_v1_kbs__kb_id__ontology__ontology_uri__refresh_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/ontology/{ontology_uri}/toggle",
+      "operationId": "_kb_ont_15_toggle_ontology_api_v1_kbs__kb_id__ontology__ontology_uri__toggle_patch"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/processing/jobs",
+      "operationId": "list_processing_jobs_api_v1_kbs__kb_id__processing_jobs_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/processing/jobs/{job_id}",
+      "operationId": "get_processing_job_api_v1_kbs__kb_id__processing_jobs__job_id__get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/processing/jobs/{job_id}/retry",
+      "operationId": "retry_processing_job_api_v1_kbs__kb_id__processing_jobs__job_id__retry_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/provenance",
+      "operationId": "kb_provenance_lineage_api_v1_kbs__kb_id__provenance_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/provenance/report",
+      "operationId": "kb_provenance_report_api_v1_kbs__kb_id__provenance_report_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/realtime-ticket",
+      "operationId": "create_realtime_ticket_api_v1_kbs__kb_id__realtime_ticket_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/reasoning/run",
+      "operationId": "kb_reasoning_run_api_v1_kbs__kb_id__reasoning_run_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/remember/proposals",
+      "operationId": "create_remember_proposal_api_v1_kbs__kb_id__remember_proposals_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/review/items",
+      "operationId": "list_review_items_api_v1_kbs__kb_id__review_items_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/review/items/entity-merge",
+      "operationId": "propose_entity_merge_api_v1_kbs__kb_id__review_items_entity_merge_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/review/items/graph-import",
+      "operationId": "propose_graph_import_api_v1_kbs__kb_id__review_items_graph_import_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/review/items/{item_id}",
+      "operationId": "get_review_item_route_api_v1_kbs__kb_id__review_items__item_id__get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/review/items/{item_id}/approve",
+      "operationId": "approve_review_item_api_v1_kbs__kb_id__review_items__item_id__approve_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/review/items/{item_id}/reject",
+      "operationId": "reject_review_item_api_v1_kbs__kb_id__review_items__item_id__reject_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/review/scan-statement-conflicts",
+      "operationId": "scan_statement_conflicts_route_api_v1_kbs__kb_id__review_scan_statement_conflicts_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/rules",
+      "operationId": "list_kb_reasoning_rules_api_v1_kbs__kb_id__rules_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/rules/{rule_id}",
+      "operationId": "update_kb_reasoning_rule_api_v1_kbs__kb_id__rules__rule_id__patch"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/search",
+      "operationId": "chunk_search_route_api_v1_kbs__kb_id__search_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/search/config",
+      "operationId": "get_chunk_search_config_route_api_v1_kbs__kb_id__search_config_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/search/reindex",
+      "operationId": "chunk_search_reindex_route_api_v1_kbs__kb_id__search_reindex_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/sources",
+      "operationId": "list_ingest_sources_api_v1_kbs__kb_id__sources_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/sources/{source_id}",
+      "operationId": "get_ingest_source_api_v1_kbs__kb_id__sources__source_id__get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/sources/{source_id}/rotate-token",
+      "operationId": "rotate_ingest_source_token_api_v1_kbs__kb_id__sources__source_id__rotate_token_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/sources/{source_id}/sync",
+      "operationId": "sync_ingest_source_api_v1_kbs__kb_id__sources__source_id__sync_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/sources/{source_id}/sync-history",
+      "operationId": "list_ingest_source_sync_history_api_v1_kbs__kb_id__sources__source_id__sync_history_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/sources/{source_id}/webhook",
+      "operationId": "ingest_via_webhook_api_v1_kbs__kb_id__sources__source_id__webhook_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/sparql",
+      "operationId": "kb_sparql_execute_api_v1_kbs__kb_id__sparql_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/temporal/bounds",
+      "operationId": "kb_temporal_bounds_api_v1_kbs__kb_id__temporal_bounds_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/temporal/diff",
+      "operationId": "kb_temporal_diff_api_v1_kbs__kb_id__temporal_diff_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/temporal/snapshot",
+      "operationId": "kb_temporal_snapshot_api_v1_kbs__kb_id__temporal_snapshot_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/tokens",
+      "operationId": "list_kb_tokens_api_v1_kbs__kb_id__tokens_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/tokens/{token_id}",
+      "operationId": "delete_kb_token_api_v1_kbs__kb_id__tokens__token_id__delete"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/vocabulary/concepts",
+      "operationId": "kb_vocabulary_concepts_api_v1_kbs__kb_id__vocabulary_concepts_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/vocabulary/hierarchy",
+      "operationId": "kb_vocabulary_hierarchy_api_v1_kbs__kb_id__vocabulary_hierarchy_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/vocabulary/import",
+      "operationId": "kb_vocabulary_import_api_v1_kbs__kb_id__vocabulary_import_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/vocabulary/schemes",
+      "operationId": "kb_vocabulary_schemes_api_v1_kbs__kb_id__vocabulary_schemes_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/model-providers",
+      "operationId": "list_model_providers_api_v1_model_providers_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/model-providers/probe",
+      "operationId": "probe_remote_models_api_v1_model_providers_probe_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/model-providers/resolve",
+      "operationId": "resolve_provider_from_settings_api_v1_model_providers_resolve_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/models",
+      "operationId": "list_models_api_v1_models_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/models/{model_id}",
+      "operationId": "patch_model_api_v1_models__model_id__patch"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/orgs",
+      "operationId": "list_orgs_api_v1_orgs_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/orgs/mine",
+      "operationId": "list_my_orgs_api_v1_orgs_mine_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/orgs/{org_id}",
+      "operationId": "get_org_api_v1_orgs__org_id__get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/orgs/{org_id}/oidc",
+      "operationId": "get_org_oidc_api_v1_orgs__org_id__oidc_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/platform",
+      "operationId": "platform_info_api_v1_platform_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/reason",
+      "operationId": "reason_api_v1_reason_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/settings",
+      "operationId": "get_settings_api_v1_settings_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/settings/access",
+      "operationId": "get_access_api_v1_settings_access_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/users",
+      "operationId": "list_active_users_api_v1_users_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/transport.ts",
+      "kind": "literal",
+      "path": "/api/v1/auth/{param}",
+      "operationId": null
+    },
+    {
+      "file": "web/src/lib/basis-openapi/transport.ts",
+      "kind": "literal",
+      "path": "/api/v1/{param}",
+      "operationId": null
+    },
+    {
+      "file": "web/src/lib/basis-openapi/transport.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{param}",
+      "operationId": "get_kb_api_v1_kbs__kb_id__get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/transport.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{param}",
+      "operationId": "get_kb_api_v1_kbs__kb_id__get"
+    },
+    {
+      "file": "web/src/lib/basis-session.tsx",
+      "kind": "literal",
+      "path": "/api/v1/auth/magic-link/verify",
+      "operationId": "magic_link_verify_api_v1_auth_magic_link_verify_get"
+    },
+    {
+      "file": "web/src/lib/explorer-client.ts",
+      "kind": "helper",
+      "path": "/api/v1/kbs/{kb_id}",
+      "operationId": "get_kb_api_v1_kbs__kb_id__get"
+    },
+    {
+      "file": "web/src/lib/kb-alerts-stream.ts",
+      "kind": "helper",
+      "path": "/api/v1/kbs/{kb_id}/alerts/stream",
+      "operationId": "stream_kb_alerts_api_v1_kbs__kb_id__alerts_stream_get"
+    },
+    {
+      "file": "web/src/lib/kb-api-path.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs",
+      "operationId": "list_kbs_api_v1_kbs_get"
+    },
+    {
+      "file": "web/src/lib/kb-api-path.ts",
+      "kind": "helper",
+      "path": "/api/v1/kbs/{kb_id}",
+      "operationId": "get_kb_api_v1_kbs__kb_id__get"
+    },
+    {
+      "file": "web/src/lib/kb-api-path.ts",
+      "kind": "helper",
+      "path": "/api/v1/kbs/{kb_id}",
+      "operationId": "get_kb_api_v1_kbs__kb_id__get"
+    },
+    {
+      "file": "web/src/lib/kb-api-path.ts",
+      "kind": "helper",
+      "path": "/api/v1/kbs/{kb_id}",
+      "operationId": "get_kb_api_v1_kbs__kb_id__get"
+    },
+    {
+      "file": "web/src/lib/kb-api-path.ts",
+      "kind": "helper",
+      "path": "/api/v1/kbs",
+      "operationId": "list_kbs_api_v1_kbs_get"
+    },
+    {
+      "file": "web/src/lib/kb-chat-playground/mcp-kb.ts",
+      "kind": "helper",
+      "path": "/api/v1/kbs/{kb_id}/mcp",
+      "operationId": "mcp_integration_info_api_v1_kbs__kb_id__mcp_get"
+    },
+    {
+      "file": "web/src/lib/kb-context.tsx",
+      "kind": "literal",
+      "path": "/api/v1/kbs",
+      "operationId": "list_kbs_api_v1_kbs_get"
+    },
+    {
+      "file": "web/src/lib/kb-explorer-host.ts",
+      "kind": "helper",
+      "path": "/api/v1/kbs/{kb_id}",
+      "operationId": "get_kb_api_v1_kbs__kb_id__get"
+    },
+    {
+      "file": "web/src/lib/kb-explorer-host.ts",
+      "kind": "helper",
+      "path": "/api/v1/kbs/{kb_id}",
+      "operationId": "get_kb_api_v1_kbs__kb_id__get"
+    },
+    {
+      "file": "web/src/lib/openapi-client.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/{param}",
+      "operationId": null
+    },
+    {
+      "file": "web/src/lib/openapi-client.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}",
+      "operationId": "get_kb_api_v1_kbs__kb_id__get"
+    },
+    {
+      "file": "web/src/lib/use-settings-access.ts",
+      "kind": "literal",
+      "path": "/api/v1/orgs",
+      "operationId": "list_orgs_api_v1_orgs_get"
+    },
+    {
+      "file": "web/src/pages/audit.tsx",
+      "kind": "literal",
+      "path": "/api/v1/audit",
+      "operationId": "list_audit_api_v1_audit_get"
+    },
+    {
+      "file": "web/src/pages/kb/detail.tsx",
+      "kind": "literal",
+      "path": "/api/v1/users",
+      "operationId": "list_active_users_api_v1_users_get"
+    },
+    {
+      "file": "web/src/pages/kb/settings.tsx",
+      "kind": "literal",
+      "path": "/api/v1/users",
+      "operationId": "list_active_users_api_v1_users_get"
+    },
+    {
+      "file": "web/src/pages/users.tsx",
+      "kind": "literal",
+      "path": "/api/v1/admin/users",
+      "operationId": "list_users_api_v1_admin_users_get"
+    },
+    {
+      "file": "web/src/pages/users.tsx",
+      "kind": "literal",
+      "path": "/api/v1/admin/users",
+      "operationId": "list_users_api_v1_admin_users_get"
+    }
+  ]
+}

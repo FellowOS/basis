@@ -234,6 +234,8 @@ export const kbOntology = {
     state: '状态',
     proposalId: '提案 ID',
     idCopied: '已复制提案 ID。',
+    copyProposalLink: '复制评审链接',
+    copyProposalLinkDone: '链接已复制',
     shaclPublishBlocked: '{summary} — 解决前可能无法发布。',
     impactAnalysis: '影响分析',
     shaclValidation: 'SHACL 校验',

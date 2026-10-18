@@ -2,8 +2,8 @@
 
 from fastapi.testclient import TestClient
 
-from basis.api.app import create_app
-from basis.config import Settings
+from basis.transport.http.app import create_app
+from basis.infra.config import Settings
 
 
 def _client(tmp_path) -> TestClient:
@@ -50,7 +50,7 @@ def test_m6_kb_alerts_rules_sources_smoke(tmp_path) -> None:
     assert webhook.json().get("ingest_token")
 
     remembered = client.post(
-        f"/api/v1/kbs/{kb_id}/chat/remember",
+        f"/api/v1/kbs/{kb_id}/remember/proposals",
         headers=headers,
         json={"content": "M6 smoke remembered fact."},
     )
@@ -58,6 +58,18 @@ def test_m6_kb_alerts_rules_sources_smoke(tmp_path) -> None:
     review_id = remembered.json()["review_item_id"]
     items = client.get(f"/api/v1/kbs/{kb_id}/review/items", headers=headers).json()["items"]
     assert any(i["id"] == review_id and i["kind"] == "statement_remember" for i in items)
+
+    one = client.get(f"/api/v1/kbs/{kb_id}/review/items/{review_id}", headers=headers)
+    assert one.status_code == 200
+    assert one.json()["item"]["status"] == "open"
+
+    approved = client.post(
+        f"/api/v1/kbs/{kb_id}/review/items/{review_id}/approve",
+        headers=headers,
+        json={"rationale": "m6 smoke"},
+    )
+    assert approved.status_code == 200
+    assert approved.json()["item"]["status"] == "approved"
 
     derived = client.get(f"/api/v1/kbs/{kb_id}/ledger/derived-facts", headers=headers)
     assert derived.status_code == 200

@@ -6,8 +6,114 @@ from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 
-from basis.api.app import create_app
-from basis.config import Settings
+from basis.transport.http.app import create_app
+from basis.infra.config import Settings
+
+_LOOP_MARKER = "MCP_GRAPH_LOOP_UNIQUE_2010"
+
+
+def _mcp_tool_json(
+    client: TestClient,
+    kb_id: str,
+    headers: dict[str, str],
+    name: str,
+    arguments: dict,
+    *,
+    rpc_id: int,
+) -> dict:
+    resp = client.post(
+        f"/api/v1/kbs/{kb_id}/mcp",
+        headers=headers,
+        json={
+            "jsonrpc": "2.0",
+            "id": rpc_id,
+            "method": "tools/call",
+            "params": {"name": name, "arguments": arguments},
+        },
+    )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["result"]["isError"] is False, body["result"].get("content")
+    return json.loads(body["result"]["content"][0]["text"])
+
+
+def test_mcp_basic_graph_closed_loop(tmp_path) -> None:
+    """Read corpus → propose fact → review → approve → read back via ledger facts."""
+    client = TestClient(create_app(Settings(data_dir=tmp_path)))
+    admin = client.post(
+        "/api/v1/auth/register",
+        json={"email": "loop@example.com", "password": "password1", "display_name": "Loop"},
+    ).json()
+    headers = {"Authorization": f"Bearer {admin['token']}"}
+    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+    client.post(
+        f"/api/v1/kbs/{kb_id}/documents",
+        headers=headers,
+        json={
+            "doc_id": "loop-doc",
+            "text": "The capital of France is Paris.",
+            "wait": True,
+            "extract": False,
+            "chunk": True,
+        },
+    )
+
+    search = _mcp_tool_json(
+        client, kb_id, headers, "search_chunks", {"query": "Paris"}, rpc_id=1
+    )
+    assert any("Paris" in (c.get("text") or "") for c in search.get("chunks", []))
+
+    proposed = _mcp_tool_json(
+        client,
+        kb_id,
+        headers,
+        "propose_remember",
+        {"content": f"Acme Corp {_LOOP_MARKER}."},
+        rpc_id=2,
+    )
+    review_item_id = proposed["review_item_id"]
+
+    item = _mcp_tool_json(
+        client,
+        kb_id,
+        headers,
+        "get_review_item",
+        {"item_id": review_item_id},
+        rpc_id=3,
+    )
+    assert item["item"]["status"] == "open"
+
+    approved = _mcp_tool_json(
+        client,
+        kb_id,
+        headers,
+        "approve_statement_remember_review",
+        {"item_id": review_item_id},
+        rpc_id=4,
+    )
+    assert approved["item"]["status"] == "approved"
+
+    entities = _mcp_tool_json(
+        client,
+        kb_id,
+        headers,
+        "find_entities",
+        {"query": "Agent memory"},
+        rpc_id=5,
+    )
+    ledger = entities.get("ledger_entities") or []
+    assert ledger, "remember anchor entity should exist"
+    entity_id = ledger[0]["id"]
+
+    facts = _mcp_tool_json(
+        client,
+        kb_id,
+        headers,
+        "entity_facts",
+        {"entity_id": entity_id},
+        rpc_id=6,
+    )
+    assert any(_LOOP_MARKER in str(f.get("object_value") or "") for f in facts.get("facts", []))
 
 
 def test_mcp_tools_with_api_token(tmp_path) -> None:
@@ -61,6 +167,10 @@ def test_mcp_tools_with_api_token(tmp_path) -> None:
     names = {t["name"] for t in tools["result"]["tools"]}
     assert "search_chunks" in names
     assert "propose_remember" in names
+    assert "graph_search" in names
+    assert "list_review_items" in names
+    assert "approve_statement_remember_review" in names
+    assert "list_processing_jobs" not in names
 
     search = client.post(
         f"/api/v1/kbs/{kb_id}/mcp",
@@ -97,7 +207,42 @@ def test_mcp_tools_with_api_token(tmp_path) -> None:
     )
     assert remember.status_code == 200
     remember_payload = json.loads(remember.json()["result"]["content"][0]["text"])
-    assert remember_payload.get("review_item_id")
+    review_item_id = remember_payload.get("review_item_id")
+    assert review_item_id
+
+    listed = client.post(
+        f"/api/v1/kbs/{kb_id}/mcp",
+        headers=session_headers,
+        json={
+            "jsonrpc": "2.0",
+            "id": 6,
+            "method": "tools/call",
+            "params": {
+                "name": "list_review_items",
+                "arguments": {"kind": "statement_remember", "status": "open"},
+            },
+        },
+    ).json()
+    list_payload = json.loads(listed["result"]["content"][0]["text"])
+    assert any(i["id"] == review_item_id for i in list_payload["items"])
+
+    approved = client.post(
+        f"/api/v1/kbs/{kb_id}/mcp",
+        headers=session_headers,
+        json={
+            "jsonrpc": "2.0",
+            "id": 7,
+            "method": "tools/call",
+            "params": {
+                "name": "approve_statement_remember_review",
+                "arguments": {"item_id": review_item_id, "rationale": "looks good"},
+            },
+        },
+    ).json()
+    assert approved["result"]["isError"] is False
+    approve_payload = json.loads(approved["result"]["content"][0]["text"])
+    assert approve_payload["item"]["status"] == "approved"
+    assert approve_payload.get("decision_id")
 
 
 def test_mcp_busy_when_semaphore_saturated(tmp_path) -> None:
@@ -131,7 +276,7 @@ def test_mcp_timeout(tmp_path) -> None:
         time.sleep(2)
         return {"jsonrpc": "2.0", "id": 1, "result": {}}
 
-    with patch("basis.api.routes.v1.mcp.handle_batch", side_effect=slow_batch):
+    with patch("basis.transport.http.routes.v1.mcp.handle_batch", side_effect=slow_batch):
         resp = client.post(
             f"/api/v1/kbs/{kb_id}/mcp",
             headers=headers,

@@ -6,13 +6,13 @@ from __future__ import annotations
 import sys
 from datetime import datetime, timezone
 
-from basis.api.app import create_app
-from basis.config import Settings
-from basis.graph.persistence import GraphPersistence
-from basis.graph.projector import apply_rebuild_to_session
-from basis.graph.session import GraphSession
-from basis.pipeline.document import TextIngestOptions
-from basis.pipeline.version_ingest import run_version_ingest
+from basis.transport.http.app import create_app
+from basis.infra.config import Settings
+from basis.domain.graph.persistence import GraphPersistence
+from basis.domain.graph.projector import apply_rebuild_to_session
+from basis.domain.graph.session import GraphSession
+from basis.domain.ingest.document import TextIngestOptions
+from basis.domain.ingest.version_ingest import run_version_ingest
 
 KB_ID = "108dd8a0-297b-4c37-862f-f47da99ae4f3"
 

@@ -1,0 +1,32 @@
+import { describe, expect, it } from 'vitest';
+
+import { hrefForDerivedFactPremise } from '@/lib/derived-fact-premise-link.js';
+
+describe('hrefForDerivedFactPremise', () => {
+  const entityId = '54d4f41b-3deb-4637-99ee-5d2bb081a4f5';
+  const statementId = 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee';
+
+  it('links entity uuid premises to graph focus', () => {
+    expect(
+      hrefForDerivedFactPremise('kb-1', { premise_kind: 'ground_fact', premise_id: entityId }),
+    ).toBe(`/kbs/kb-1/graph?focus=${encodeURIComponent(entityId)}`);
+  });
+
+  it('links statement uuid premises to entity search', () => {
+    expect(
+      hrefForDerivedFactPremise('kb-1', { premise_kind: 'statement', premise_id: statementId }),
+    ).toContain('/search?');
+    expect(
+      hrefForDerivedFactPremise('kb-1', { premise_kind: 'statement', premise_id: statementId }),
+    ).toContain(encodeURIComponent(statementId));
+  });
+
+  it('returns null for free-text premises', () => {
+    expect(
+      hrefForDerivedFactPremise('kb-1', {
+        premise_kind: 'ground_fact',
+        premise_id: 'parent(Alice, Bob)',
+      }),
+    ).toBeNull();
+  });
+});

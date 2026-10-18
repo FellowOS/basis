@@ -4,8 +4,8 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
-from basis.api.app import create_app
-from basis.config import Settings
+from basis.transport.http.app import create_app
+from basis.infra.config import Settings
 
 
 def test_fail_job_emits_processing_failed_alert(tmp_path: Path) -> None:

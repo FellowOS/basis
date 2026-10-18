@@ -93,12 +93,15 @@ export function KbSearchGraphList({
   labels,
   copy,
   locale,
+  graphAt,
 }: {
   kbId: string;
   hits: GraphSearchHit[];
   labels: Record<string, string | null>;
   copy: KbSearchCopy;
   locale: Locale;
+  /** Pass search page `at` into graph deep links (F-SRCH-03). */
+  graphAt?: string;
 }) {
   if (hits.length === 0) {
     return <EmptyState title={copy.noResults} />;
@@ -109,7 +112,10 @@ export function KbSearchGraphList({
         const { title, subtitle } = formatNodeRefDetail(hit.node.id, labels);
         const typeLabel = graphNodeTypeLabel(locale, hit.node.type);
         const scoreLabel = formatLocaleFixedDecimals(locale, hit.score, 3);
-        const graphHref = kbGraphPath(kbId, { focus: hit.node.id });
+        const graphHref = kbGraphPath(kbId, {
+          focus: hit.node.id,
+          ...(graphAt?.trim() ? { at: graphAt.trim() } : {}),
+        });
         const showContent =
           hit.node.content && hit.node.content !== labels[hit.node.id];
         return (

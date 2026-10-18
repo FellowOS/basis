@@ -1,30 +1,36 @@
-"""OpenAPI v1 served from committed YAML and /api/v1 route aliases."""
-
-import json
+"""OpenAPI v1 served from live app export and /api/v1 route aliases."""
 
 from fastapi.testclient import TestClient
 
-from basis.api.app import create_app
-from basis.api.openapi_spec import openapi_v1_full, openapi_v1_json
-from basis.config import Settings
+from basis.transport.http.app import create_app
+from basis.transport.http.openapi_v1_export import (
+    export_openapi_v1_document,
+    export_openapi_v1_kb,
+    export_openapi_v1_platform,
+)
+from basis.infra.config import Settings
 
 
-def test_openapi_v1_json_endpoint_matches_repo_yaml(tmp_path) -> None:
-    client = TestClient(create_app(Settings(data_dir=tmp_path)))
+def test_openapi_v1_json_endpoint_matches_app_export(tmp_path) -> None:
+    app = create_app(Settings(data_dir=tmp_path))
+    client = TestClient(app)
     response = client.get("/openapi/v1.json")
     assert response.status_code == 200
     served = response.json()
     assert served["openapi"] == "3.1.0"
     assert "/api/v1/kbs/{kb_id}/mcp" in served["paths"]
-    expected = json.loads(openapi_v1_json("basis-v1.yaml"))
+    expected = export_openapi_v1_document(app)
     assert served == expected
 
 
 def test_openapi_kb_and_platform_slices(tmp_path) -> None:
-    client = TestClient(create_app(Settings(data_dir=tmp_path)))
+    app = create_app(Settings(data_dir=tmp_path))
+    client = TestClient(app)
     kb = client.get("/openapi/v1/kb.json").json()
     platform = client.get("/openapi/v1/platform.json").json()
-    full = openapi_v1_full()
+    full = export_openapi_v1_document(app)
+    assert kb == export_openapi_v1_kb(app)
+    assert platform == export_openapi_v1_platform(app)
     assert len(kb["paths"]) < len(full["paths"])
     assert "/api/v1/kbs/{kb_id}/mcp" in kb["paths"]
     assert "/api/v1/kbs" in platform["paths"]

@@ -2,8 +2,8 @@ import os
 
 import pytest
 
-from basis.database import reset_sqlite_database_pool
-from basis.test_support.postgres import create_postgres_database, drop_postgres_database
+from basis.infra.database import reset_sqlite_database_pool
+from basis.ops.test_support.postgres import create_postgres_database, drop_postgres_database
 
 
 @pytest.fixture(autouse=True)

@@ -16,7 +16,9 @@ def _load_gen():
 
 
 def test_openapi_kb_slice_has_many_paths(tmp_path) -> None:
+    from basis.transport.http.openapi_v1_export import filter_openapi_paths
+
     gen = _load_gen()
     full = gen.build_openapi_v1(data_dir=tmp_path)
-    kb = gen._filter_paths(full["paths"], {"public", "knowledge-base"})
+    kb = filter_openapi_paths(full["paths"], {"public", "knowledge-base"})
     assert len(kb) >= 100

@@ -142,7 +142,10 @@ export function kbPath(kbId: string, segment: string): string {
 
 /** Deep-link to OWL versions workspace + proposal review modal (F-ONT-05). */
 export function kbOntologyProposalPath(kbId: string, proposalId: string): string {
-  const params = new URLSearchParams({ ontologyProposal: proposalId });
+  const params = new URLSearchParams({
+    ontologyTab: 'versions',
+    ontologyProposal: proposalId,
+  });
   return `${kbPath(kbId, 'ontology-versions')}?${params.toString()}`;
 }
 

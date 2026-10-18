@@ -1,9 +1,9 @@
 from pathlib import Path
 
-from basis.admin.store import AdminStore
-from basis.graph.projector import graph_projection_signature, rebuild_graph_from_ledger
-from basis.knowledge.blob_store import BlobStore
-from basis.knowledge.store import KnowledgeStore
+from basis.platform.admin.store import AdminStore
+from basis.domain.graph.projector import graph_projection_signature, rebuild_graph_from_ledger
+from basis.domain.kb.blob_store import BlobStore
+from basis.domain.kb.store import KnowledgeStore
 
 
 def _fixture_kb(store: KnowledgeStore, kb_id: str, actor_id: str) -> tuple[str, str]:

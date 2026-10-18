@@ -3,9 +3,9 @@ from pathlib import Path
 
 import pytest
 
-from basis.admin.errors import AdminError
-from basis.admin.migrations import MigrationError, load_migrations, run_migrations
-from basis.admin.store import AdminStore
+from basis.platform.admin.errors import AdminError
+from basis.platform.admin.migrations import MigrationError, load_migrations, run_migrations
+from basis.platform.admin.store import AdminStore
 
 
 def _legacy_baseline_only(db_path: Path) -> None:
@@ -54,7 +54,7 @@ def test_fresh_database_applies_all_migrations(tmp_path: Path) -> None:
         for row in store._conn.execute("SELECT version FROM schema_migrations ORDER BY version")
     }
     store.close()
-    assert versions == {1, 2, 3, 4, 5, 6, 7, 8, 9}
+    assert versions == {1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 
     conn = sqlite3.connect(db_path)
     tables = {
@@ -77,7 +77,7 @@ def test_migrations_are_idempotent(tmp_path: Path) -> None:
     first = run_migrations(conn)
     second = run_migrations(conn)
     conn.close()
-    assert first == [1, 2, 3, 4, 5, 6, 7, 8, 9]
+    assert first == [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     assert second == []
 
 
@@ -95,7 +95,7 @@ def test_legacy_database_upgrades_without_data_loss(tmp_path: Path) -> None:
         row[0]
         for row in store._conn.execute("SELECT version FROM schema_migrations ORDER BY version")
     ]
-    assert versions == [1, 2, 3, 4, 5, 6, 7, 8, 9]
+    assert versions == [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     store.close()
 
 
@@ -119,5 +119,5 @@ def test_checksum_mismatch_fails(tmp_path: Path) -> None:
 
 def test_load_migrations_sorted() -> None:
     migrations = load_migrations()
-    assert [m.version for m in migrations] == [1, 2, 3, 4, 5, 6, 7, 8, 9]
+    assert [m.version for m in migrations] == [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     assert migrations[0].checksum != migrations[1].checksum

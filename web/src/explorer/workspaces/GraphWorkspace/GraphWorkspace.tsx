@@ -985,6 +985,10 @@ interface GraphWorkspaceProps {
   externalFocusToken?: number;
   /** ISO instant — sets temporal scrubber when graph loads (Basis search → graph deep link). */
   externalTemporalAt?: string;
+  /** Open temporal panel on load (`?timeline=1`, F-TIM-04). */
+  externalOpenTemporalPanel?: boolean;
+  /** Fired when the temporal scrubber moves (Basis syncs `?at=` on graph route). */
+  onScrubberAtChange?: (atIso: string) => void;
   /** Increment to trigger a full graph reload (e.g. after ledger rebuild). */
   externalReloadToken?: number;
   onDirtyChange?: (dirty: boolean) => void;
@@ -1002,6 +1006,8 @@ export function GraphWorkspace({
   externalFocusNodeId,
   externalFocusToken,
   externalTemporalAt,
+  externalOpenTemporalPanel,
+  onScrubberAtChange,
   externalReloadToken,
   onDirtyChange,
   graphDataActions,
@@ -1055,14 +1061,18 @@ export function GraphWorkspace({
   // concurrent-mode re-renders with a new Date object for the same timestamp
   // do not churn temporalState and retrigger the diagnostics effect (issue #830).
   const lastScrubberMsRef = useRef<number | null>(null);
-  const onTimeChange = useCallback((time: Date) => {
-    const ms = time.getTime();
-    if (ms === lastScrubberMsRef.current) {
-      return;
-    }
-    lastScrubberMsRef.current = ms;
-    setScrubberTime(time);
-  }, []);
+  const onTimeChange = useCallback(
+    (time: Date) => {
+      const ms = time.getTime();
+      if (ms === lastScrubberMsRef.current) {
+        return;
+      }
+      lastScrubberMsRef.current = ms;
+      setScrubberTime(time);
+      onScrubberAtChange?.(time.toISOString());
+    },
+    [onScrubberAtChange],
+  );
   const [loadingProgress, setLoadingProgress] = useState<GraphLoadProgress | null>(null);
   const [pluginPanelState, setPluginPanelState] = useState<Record<string, boolean>>({
     "effects-panel": false,
@@ -1408,6 +1418,13 @@ export function GraphWorkspace({
     );
     onTimeChange(parsed);
   }, [externalTemporalAt, onTimeChange]);
+
+  useEffect(() => {
+    if (!externalOpenTemporalPanel) return;
+    setPluginPanelState((prev) =>
+      prev["temporal-panel"] ? prev : { ...prev, "temporal-panel": true },
+    );
+  }, [externalOpenTemporalPanel]);
 
   // Guards the snapshot lifecycle: at most one in-flight request per scrubber
   // position (identical-`at` polls are deduplicated, breaking the idle/play

@@ -8,13 +8,13 @@ pytest.importorskip("semantica")
 
 from fastapi.testclient import TestClient
 
-from basis.api.app import create_app
-from basis.capabilities import explorer_available
-from basis.admin.store import AdminStore
-from basis.config import Settings
-from basis.knowledge.blob_store import BlobStore
-from basis.knowledge.derived_facts_service import persist_reasoning_derived
-from basis.knowledge.store import KnowledgeStore
+from basis.transport.http.app import create_app
+from basis.infra.capabilities import explorer_available
+from basis.platform.admin.store import AdminStore
+from basis.infra.config import Settings
+from basis.domain.kb.blob_store import BlobStore
+from basis.domain.kb.derived_facts_service import persist_reasoning_derived
+from basis.domain.kb.store import KnowledgeStore
 
 
 def _kb_id(tmp_path: Path) -> str:

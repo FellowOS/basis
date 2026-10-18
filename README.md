@@ -4,7 +4,7 @@
 
 Basis is an open-source knowledge platform built on the [Semantica](https://github.com/semantica-agi/semantica) Python SDK: a **FastAPI API** (`basis`) plus a **React console** (`@basis/web`). Ingest documents, explore graphs, search with hybrid retrieval, govern changes, and expose knowledge to agents via HTTP and MCP—**without** running Semantica’s standalone `semantica server` as a separate product entrypoint.
 
-[简体中文](./README.zh-CN.md) · [Design docs](./docs/design/README.md) · [API docs](http://127.0.0.1:8090/docs) (when the API is running)
+[简体中文](./README.zh-CN.md) · [Documentation](./docs/README.md) · [API reference](http://127.0.0.1:5173/swagger) (web dev: `/swagger`; spec at `/openapi/v1.json`)
 
 [![CI](https://github.com/fellowos/basis/actions/workflows/ci.yml/badge.svg)](https://github.com/fellowos/basis/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
@@ -38,9 +38,9 @@ The first registered user becomes the platform administrator.
 | Operations | Many services | **Two processes** (API + Web), SQLite by default |
 | Integrations | Custom glue | **REST**, per-KB **API tokens**, **MCP** |
 
-Design rationale: [ADR 0001 — Evidence ledger is canonical](docs/decisions/0001-canonical-knowledge-model.md).
+Design rationale: [ADR 0001 — Evidence ledger is canonical](docs/architecture/0001-canonical-knowledge-model.md).
 
-Full capability map: [product-and-roadmap.md](docs/design/product-and-roadmap.md).
+Documentation: [features](docs/features.md) · [progress](docs/progress.md) · [architecture](docs/architecture/package-layout.md).
 
 ---
 
@@ -58,6 +58,26 @@ Full capability map: [product-and-roadmap.md](docs/design/product-and-roadmap.md
 
 PostgreSQL: `docker compose -f compose.postgres.yml up -d`, then set `BASIS_DATABASE_URL=postgresql://basis:basis@127.0.0.1:5432/basis`.
 
+Migrate SQLite → Postgres: `uv run basis migrate-postgres --database-url postgresql://…`
+
+---
+
+## Operations
+
+**Backup (SQLite dev):** `./scripts/backup_basis_data.sh` → `backups/basis-data-*.tar.gz` (`basis.db`, `blobs/`, `graphs/`). Restore: stop API, extract into `BASIS_DATA_DIR`, restart; run `POST /api/v1/kbs/{kb_id}/graph/rebuild` per KB if graphs were omitted.
+
+**Backup (PostgreSQL):** `./scripts/backup_basis_postgres.sh` (needs `pg_dump` + `BASIS_DATABASE_URL`).
+
+**Ingest / API limits** (see `.env.example`): `BASIS_UPLOAD_MAX_BYTES`, `BASIS_INGEST_MAX_INFLIGHT` / `BASIS_INGEST_MAX_PENDING`, `BASIS_INGEST_EXTRACT_TIMEOUT_SECONDS`, `BASIS_CHUNK_SEARCH_MAX_LIMIT`, `BASIS_MCP_MAX_INFLIGHT`, `BASIS_MCP_TIMEOUT_SECONDS`, `BASIS_REST_V1_MAX_INFLIGHT`. Set `BASIS_LOG_JSON=1` for JSON logs; responses include `X-Request-ID`.
+
+**Connectors (frozen set):** webhook, HTTP poll, GitHub raw — configure in KB **Sources**; no git clone / SaaS OAuth yet.
+
+**Realtime:** KB WebSocket `projection_updated` on graph save / rebuild / ingest (single API worker; no Redis pub/sub).
+
+**Smoke checks:** `uv run pytest tests/test_release_gate.py tests/test_m6_smoke.py -q`; manual UI path in CI-equivalent flows (register → upload → process → graph).
+
+**Renamed from Sema:** env `SEMA_*` → `BASIS_*`; DB file `basis.db`; web token key `basis_token`; users re-login after deploy.
+
 ---
 
 ## Development
@@ -67,7 +87,7 @@ uv run pytest -q
 cd web && npm test
 ```
 
-See [CONTRIBUTING.md](CONTRIBUTING.md), [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md), [SECURITY.md](SECURITY.md). Upgrading from the pre-release **Sema** name: [docs/ops/migrating-from-sema.md](docs/ops/migrating-from-sema.md).
+See [CONTRIBUTING.md](CONTRIBUTING.md), [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md), [SECURITY.md](SECURITY.md).
 
 ---
 

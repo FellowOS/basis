@@ -1,7 +1,7 @@
 """MCP tool inputSchema is derived from OpenAPI (R3)."""
 
-from basis.core.mcp_openapi import MCP_TOOL_OPERATIONS, input_schema_for_tool
-from basis.core.registry import TOOL_DEFINITIONS
+from basis.integration.mcp_openapi import MCP_TOOL_OPERATIONS, input_schema_for_tool
+from basis.integration.registry import TOOL_DEFINITIONS
 
 
 def test_mcp_tools_have_openapi_backed_schemas() -> None:
@@ -11,6 +11,13 @@ def test_mcp_tools_have_openapi_backed_schemas() -> None:
         assert schema.get("type") == "object"
 
 
+def test_describe_kb_schema_from_get_kb_route() -> None:
+    schema = input_schema_for_tool("describe_kb")
+    assert schema is not None
+    assert schema.get("type") == "object"
+    assert not (schema.get("properties") or {})
+
+
 def test_search_chunks_schema_uses_query_alias() -> None:
     schema = input_schema_for_tool("search_chunks")
     assert schema is not None
@@ -18,6 +25,39 @@ def test_search_chunks_schema_uses_query_alias() -> None:
     assert "query" in props
     assert "q" not in props
     assert "query" in (schema.get("required") or [])
+
+
+def test_approve_remember_review_schema_merges_path_and_body() -> None:
+    schema = input_schema_for_tool("approve_statement_remember_review")
+    assert schema is not None
+    props = schema.get("properties") or {}
+    assert "item_id" in props
+    assert "rationale" in props
+    assert "item_id" in (schema.get("required") or [])
+
+
+def test_reject_remember_review_schema_merges_path_and_body() -> None:
+    schema = input_schema_for_tool("reject_statement_remember_review")
+    assert schema is not None
+    props = schema.get("properties") or {}
+    assert "item_id" in props
+    assert "item_id" in (schema.get("required") or [])
+
+
+def test_approve_review_openapi_response_includes_decision_id() -> None:
+    from basis.transport.http.openapi_spec import _spec_app
+    from basis.transport.http.openapi_v1_export import export_openapi_v1_kb
+
+    spec = export_openapi_v1_kb(_spec_app())
+    op = spec["paths"]["/api/v1/kbs/{kb_id}/review/items/{item_id}/approve"]["post"]
+    schema = op["responses"]["200"]["content"]["application/json"]["schema"]
+    components = spec.get("components") or {}
+    if "$ref" in schema:
+        name = schema["$ref"].split("/")[-1]
+        schema = components["schemas"][name]
+    props = schema.get("properties") or {}
+    assert "item" in props
+    assert "decision_id" in props
 
 
 def test_tool_definitions_match_registry() -> None:

@@ -2,7 +2,7 @@
 
 from datetime import datetime, timezone
 
-from basis.knowledge.ingest_source_service import is_http_poll_due
+from basis.domain.kb.ingest_source_service import is_http_poll_due
 
 
 def test_http_poll_due_without_interval() -> None:

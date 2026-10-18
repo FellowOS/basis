@@ -2,9 +2,10 @@
 
 from fastapi.testclient import TestClient
 
-from basis.api.app import create_app
-from basis.api.openapi_spec import openapi_v1_full
-from basis.config import Settings
+from basis.integration.registry import TOOL_NAMES
+from basis.transport.http.app import create_app
+from basis.transport.http.openapi_spec import openapi_v1_full
+from basis.infra.config import Settings
 
 _INTEGRATION_PATHS = (
     "/api/v1/kbs/{kb_id}/search",
@@ -20,7 +21,7 @@ _INTEGRATION_PATHS = (
 def test_openapi_yaml_lists_integration_paths() -> None:
     paths = openapi_v1_full()["paths"]
     for template in _INTEGRATION_PATHS:
-        assert template in paths, f"missing path in basis-v1.yaml: {template}"
+        assert template in paths, f"missing path in OpenAPI export: {template}"
 
 
 def test_v1_integration_endpoints_respond(tmp_path) -> None:
@@ -72,5 +73,6 @@ def test_v1_integration_endpoints_respond(tmp_path) -> None:
     mcp = client.get(f"/api/v1/kbs/{kb_id}/mcp", headers=headers)
     assert mcp.status_code == 200
     tools = mcp.json().get("tools") or []
-    assert "graph_search" not in tools
+    assert tools == list(TOOL_NAMES)
+    assert "graph_search" in tools
     assert "search_chunks" in tools

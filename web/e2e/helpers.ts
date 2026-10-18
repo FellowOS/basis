@@ -1,4 +1,4 @@
-import { expect, type Page } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 
 import { E2E_KBS_COLLECTION, e2eKbPath } from './api-v1-path.js';
 
@@ -15,18 +15,35 @@ export async function registerFreshUser(page: Page): Promise<{ email: string; pa
   const email = `e2e-${stamp}@example.com`;
   const password = 'password1xy';
 
-  await page.goto('/login?mode=register');
-  await page.locator('#display_name').fill('E2E User');
-  await page.locator('#email').fill(email);
-  await page.locator('#password').fill(password);
-  await page.getByRole('button', { name: /创建账号|Create account/i }).click();
-  await expect(page).toHaveURL(/\/kbs/);
+  await page.goto('/?mode=register');
+  const dialog = page.getByRole('dialog');
+  await expect(dialog).toBeVisible({ timeout: 60_000 });
+  await dialog.getByLabel(/Display name|显示名/i).fill('E2E User');
+  await dialog.getByLabel(/^Email$|^邮箱$|^电子邮件$/i).fill(email);
+  await dialog.getByLabel(/^Password$|^密码$/i).fill(password);
+  await dialog.getByRole('button', { name: /创建账号|Create account/i }).click();
+  await expect(page).toHaveURL(/\/kbs/, { timeout: 60_000 });
+  await expect
+    .poll(async () => page.evaluate(() => localStorage.getItem('basis_token')), { timeout: 30_000 })
+    .toBeTruthy();
 
   return { email, password };
 }
 
 function isEditableRole(role: string | undefined): boolean {
   return role === 'admin' || role === 'owner' || role === 'editor';
+}
+
+export async function skipUnlessKbGraphWrite(page: Page, kbId: string): Promise<void> {
+  const token = await bearerToken(page);
+  const response = await page.request.get(e2eKbPath(kbId, 'capabilities'), {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  expect(response.ok()).toBeTruthy();
+  const body = (await response.json()) as { graph_write?: boolean };
+  if (!body.graph_write) {
+    test.skip(true, 'requires explorer_runtime (graph_write)');
+  }
 }
 
 export async function defaultKbId(page: Page): Promise<string> {
@@ -244,13 +261,35 @@ export async function seedStatementConflictViaApi(
   };
 }
 
+export async function seedOntologyProposalViaApi(
+  page: Page,
+  kbId: string,
+): Promise<{ proposalId: string; summary: string }> {
+  const token = await bearerToken(page);
+  const response = await page.request.post(e2eKbPath(kbId, '_e2e/ontology-proposal'), {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (response.status() === 404) {
+    throw new Error('e2e_ontology_proposal_unavailable');
+  }
+  expect(response.ok()).toBeTruthy();
+  const body = (await response.json()) as { proposal_id?: string; summary?: string };
+  if (!body.proposal_id) {
+    throw new Error('e2e ontology-proposal did not return proposal_id');
+  }
+  return {
+    proposalId: body.proposal_id,
+    summary: body.summary ?? '',
+  };
+}
+
 export async function proposeRememberViaApi(
   page: Page,
   kbId: string,
   content: string,
 ): Promise<{ reviewItemId: string }> {
   const token = await bearerToken(page);
-  const response = await page.request.post(e2eKbPath(kbId, 'chat/remember'), {
+  const response = await page.request.post(e2eKbPath(kbId, 'remember/proposals'), {
     headers: {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
@@ -260,7 +299,7 @@ export async function proposeRememberViaApi(
   expect(response.ok()).toBeTruthy();
   const body = (await response.json()) as { review_item_id?: string };
   if (!body.review_item_id) {
-    throw new Error('POST /chat/remember did not return review_item_id');
+    throw new Error('POST /remember/proposals did not return review_item_id');
   }
   return { reviewItemId: body.review_item_id };
 }

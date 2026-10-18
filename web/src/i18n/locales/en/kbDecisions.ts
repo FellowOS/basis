@@ -40,6 +40,7 @@ export const kbDecisions = {
   chainEmptyBody: 'No causal chain steps were found for this decision.',
   recordEyebrow: 'Decision record',
   copyDeepLink: 'Copy deep link',
+  copyDeepLinkDone: 'Link copied',
   causalChain: 'Causal chain',
   chainStepCount: '{count} steps',
   chainStepCountOne: '1 step',

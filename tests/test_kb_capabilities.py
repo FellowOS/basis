@@ -2,9 +2,9 @@
 
 from fastapi.testclient import TestClient
 
-from basis.api.app import create_app
-from basis.capabilities import explorer_available, kb_capabilities
-from basis.config import Settings
+from basis.transport.http.app import create_app
+from basis.infra.capabilities import explorer_available, kb_capabilities
+from basis.infra.config import Settings
 
 
 def test_kb_capabilities_unit_viewer_vs_editor() -> None:

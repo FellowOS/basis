@@ -94,7 +94,7 @@ export const docs = {
         {
           heading: 'Base URL and versioning',
           paragraphs: [
-            'All normative routes live under `/api/v1`. Unversioned `/api/*` is legacy and gated off by default (HTTP 410).',
+            'All normative routes live under `/api/v1`. Legacy unversioned routes are gated off by default (HTTP 410).',
           ],
         },
         {

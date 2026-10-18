@@ -1,0 +1,21 @@
+import { describe, expect, it } from 'vitest';
+import {
+  proposalIdFromGraphAuditDetail,
+  reviewItemIdFromGraphAuditDetail,
+} from '@/lib/kb-graph-audit.js';
+
+describe('graph audit detail ids', () => {
+  it('extracts review item ids', () => {
+    expect(reviewItemIdFromGraphAuditDetail({ review_item_id: 'ri-1' })).toBe('ri-1');
+    expect(reviewItemIdFromGraphAuditDetail({ item_id: 'ri-2' })).toBe('ri-2');
+    expect(
+      reviewItemIdFromGraphAuditDetail({ payload: { review_item_id: 'ri-3' } }),
+    ).toBe('ri-3');
+  });
+
+  it('extracts proposal ids', () => {
+    expect(proposalIdFromGraphAuditDetail({ proposal_id: 'p-1' })).toBe('p-1');
+    expect(proposalIdFromGraphAuditDetail({ extra: { proposal_id: 'p-2' } })).toBe('p-2');
+    expect(proposalIdFromGraphAuditDetail({ payload: { proposal_id: 'p-3' } })).toBe('p-3');
+  });
+});

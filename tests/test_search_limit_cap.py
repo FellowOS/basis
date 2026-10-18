@@ -4,11 +4,11 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
-from basis.api.app import create_app
-from basis.config import Settings
-from basis.knowledge.blob_store import BlobStore
-from basis.knowledge.store import KnowledgeStore
-from basis.limits import CHUNK_SEARCH_MAX_LIMIT
+from basis.transport.http.app import create_app
+from basis.infra.config import Settings
+from basis.domain.kb.blob_store import BlobStore
+from basis.domain.kb.store import KnowledgeStore
+from basis.infra.limits import CHUNK_SEARCH_MAX_LIMIT
 
 
 def test_chunk_search_route_caps_limit(tmp_path: Path) -> None:

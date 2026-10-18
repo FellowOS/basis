@@ -4,7 +4,7 @@
 
 Basis 是基于 [Semantica](https://github.com/semantica-agi/semantica) Python SDK 的开源知识平台：**FastAPI 后端**（`basis`）+ **React 控制台**（`@basis/web`）。在同一套部署中完成文档摄入、图谱探索、混合检索、治理审核，并通过 HTTP / MCP 向业务系统与智能体开放知识——**无需**再单独运行 semantica 官方的 `semantica server` 作为产品入口。
 
-[English](./README.md) · [设计文档](./docs/design/README.md) · [接口文档](http://127.0.0.1:8090/docs)（需先启动 API）
+[English](./README.md) · [文档索引](./docs/README.md) · [接口参考](http://127.0.0.1:5173/swagger)（web dev：`/swagger`；规范 `/openapi/v1.json`）
 
 [![CI](https://github.com/fellowos/basis/actions/workflows/ci.yml/badge.svg)](https://github.com/fellowos/basis/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
@@ -20,7 +20,7 @@ Basis 是基于 [Semantica](https://github.com/semantica-agi/semantica) Python S
 | 运维 | 多服务拼装 | 默认 **两个进程**：Basis API + Basis Web（SQLite 零配置） |
 | 集成 | 自建胶水层 | **REST**、知识库 **API 令牌**、**MCP** 工具 |
 
-架构决策：[ADR 0001 — 证据账本为主存](docs/decisions/0001-canonical-knowledge-model.md)。
+架构决策：[ADR 0001 — 证据账本为主存](docs/architecture/0001-canonical-knowledge-model.md)。
 
 ---
 
@@ -43,7 +43,7 @@ Basis 是基于 [Semantica](https://github.com/semantica-agi/semantica) Python S
 - **账本** — 开放层 / 类型化层、推理派生事实与证据链
 - **告警** — 同步失败、治理熔断、`governance.tripped` 等深链至审核/决策
 
-完整能力编号与分期见 [product-and-roadmap.md](docs/design/product-and-roadmap.md)。项目仍在积极迭代。
+文档：[功能清单](docs/features.md) · [开发进展](docs/progress.md) · [架构](docs/architecture/package-layout.md)。项目仍在积极迭代。
 
 ---
 
@@ -85,7 +85,7 @@ uv sync --extra dev
 uv run basis
 ```
 
-默认 `http://127.0.0.1:8090`，`/docs` 为 OpenAPI。
+默认 API `http://127.0.0.1:8090`；交互式 OpenAPI 见 web `http://127.0.0.1:5173/swagger`（规范 `/openapi/v1.json`）。
 
 ### 3. 启动 Web
 
@@ -108,7 +108,7 @@ npm run dev
 | `BASIS_DATABASE_URL` | 空则 SQLite | 生产建议 PostgreSQL |
 | `BASIS_API_URL` | `http://127.0.0.1:8090` | Web 代理目标（`web/.env`） |
 
-详见 [.env.example](.env.example)；限流与背压：[docs/ops/runtime-limits.md](docs/ops/runtime-limits.md)。
+详见 [.env.example](.env.example)。
 
 ### PostgreSQL 部署
 
@@ -118,13 +118,25 @@ export BASIS_DATABASE_URL=postgresql://basis:basis@127.0.0.1:5432/basis
 uv run basis
 ```
 
-从 SQLite 迁移账本：
+从 SQLite 迁移账本：`uv run basis migrate-postgres --database-url postgresql://…`
 
-```bash
-uv run basis migrate-postgres --database-url postgresql://basis:basis@127.0.0.1:5432/basis
-```
+---
 
-备份恢复：[docs/ops/backup-and-restore.md](docs/ops/backup-and-restore.md)。
+## 运维
+
+**备份（SQLite 开发）：** `./scripts/backup_basis_data.sh` → `backups/basis-data-*.tar.gz`。恢复：停 API → 解压到 `BASIS_DATA_DIR` → 启动；若未含 `graphs/` 需对每个 KB 执行 `POST .../graph/rebuild`。
+
+**备份（PostgreSQL）：** `./scripts/backup_basis_postgres.sh`（需 `pg_dump` 与 `BASIS_DATABASE_URL`）。
+
+**限流与背压：** `BASIS_UPLOAD_MAX_BYTES`、`BASIS_INGEST_MAX_INFLIGHT` / `BASIS_INGEST_MAX_PENDING`、`BASIS_INGEST_EXTRACT_TIMEOUT_SECONDS`、`BASIS_CHUNK_SEARCH_MAX_LIMIT`、`BASIS_MCP_*`、`BASIS_REST_V1_MAX_INFLIGHT`；`BASIS_LOG_JSON=1` 输出 JSON 日志。
+
+**连接器（当前固定种类）：** webhook、HTTP 轮询、GitHub raw — 在 KB **Sources** 配置。
+
+**实时：** 图投影变更 WebSocket `projection_updated`（单 API 进程，无 Redis 多实例）。
+
+**冒烟：** `uv run pytest tests/test_release_gate.py tests/test_m6_smoke.py -q`。
+
+**自 Sema 更名：** 环境变量 `SEMA_*` → `BASIS_*`；库文件 `basis.db`；前端 token 键 `basis_token`；部署后需重新登录。
 
 ---
 
@@ -148,7 +160,7 @@ cd web && npm run build
 cd web && npm test
 ```
 
-E2E 与手测清单：[docs/ops/smoke-test.md](docs/ops/smoke-test.md)。CI 见 [`.github/workflows/ci.yml`](.github/workflows/ci.yml)。
+CI 见 [`.github/workflows/ci.yml`](.github/workflows/ci.yml)。
 
 ---
 
@@ -179,21 +191,11 @@ uv run python -m spacy download zh_core_web_sm
 
 ---
 
-## 文档索引
-
-| 主题 | 链接 |
-| --- | --- |
-| 功能设计与分期 | [docs/design/product-and-roadmap.md](docs/design/product-and-roadmap.md) |
-| 数据模型 | [docs/design/data-model.md](docs/design/data-model.md) |
-| Explorer 集成 | [docs/design/explorer-integration.md](docs/design/explorer-integration.md) |
-| 连接器 | [docs/ops/ingest-connectors.zh.md](docs/ops/ingest-connectors.zh.md) |
-| 从 Sema 迁移 | [docs/ops/migrating-from-sema.md](docs/ops/migrating-from-sema.md) |
-
 ---
 
 ## 参与贡献
 
-详见 [CONTRIBUTING.md](CONTRIBUTING.md)、[行为准则](CODE_OF_CONDUCT.md)、[安全报告](SECURITY.md)。曾用 **Sema** 命名的部署请参阅 [迁移说明](docs/ops/migrating-from-sema.md)。
+详见 [CONTRIBUTING.md](CONTRIBUTING.md)、[行为准则](CODE_OF_CONDUCT.md)、[安全报告](SECURITY.md)。
 
 ---
 

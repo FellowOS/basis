@@ -10,6 +10,8 @@ import { useI18n } from '@/i18n/context.js';
 import { fmt, formatLocaleDateTime, formatLocaleNumber, pickCountForm } from '@/i18n/format.js';
 import type { Locale } from '@/i18n/locale.js';
 import { useKbNodeLabels } from '@/lib/kb-node-labels.js';
+import { hrefForDerivedFactPremise } from '@/lib/derived-fact-premise-link.js';
+import { kbGraphPath } from '@/lib/graphUrlState.js';
 import { kbPath } from '@/lib/nav-config.js';
 import { kbOpenApiGET } from '@/lib/openapi-client.js';
 
@@ -35,9 +37,11 @@ export function predicateShortLabel(uri: string): string {
 }
 
 export function DerivedFactCard({
+  kbId,
   fact,
   labels,
 }: {
+  kbId: string;
   fact: DerivedFactView;
   labels: Record<string, string | null | undefined>;
 }) {
@@ -65,22 +69,58 @@ export function DerivedFactCard({
         ) : null}
       </div>
       <div className="mt-2 flex items-start gap-1.5 text-xs">
-        <EntityRefLine id={fact.subject_id} labels={labels} className="min-w-0 flex-1" />
+        <Link
+          to={kbGraphPath(kbId, { focus: fact.subject_id })}
+          className="min-w-0 flex-1 rounded-sm underline-offset-2 hover:underline"
+        >
+          <EntityRefLine id={fact.subject_id} labels={labels} />
+        </Link>
         <PublicIcon name="arrow-right" size={14} className="mt-0.5 shrink-0 text-muted-foreground" />
         <div className="min-w-0 flex-1">
           {fact.object_entity_id ? (
-            <EntityRefLine id={fact.object_entity_id} labels={labels} />
+            <Link
+              to={kbGraphPath(kbId, { focus: fact.object_entity_id })}
+              className="block rounded-sm underline-offset-2 hover:underline"
+            >
+              <EntityRefLine id={fact.object_entity_id} labels={labels} />
+            </Link>
           ) : (
             <span className="text-sm text-foreground">{fact.object_value || emptyCell}</span>
           )}
         </div>
       </div>
       {premiseCount > 0 ? (
-        <p className="mt-2 text-[11px] text-muted-foreground">
-          {fmt(pickCountForm(locale, premiseCount, l.premiseCountOne, l.premiseCount), {
-            count: formatLocaleNumber(locale as Locale, premiseCount),
-          })}
-        </p>
+        <div className="mt-2 border-t border-border/60 pt-2">
+          <p className="text-[10px] font-medium text-muted-foreground">{l.premisesLabel}</p>
+          <ul className="mt-1 space-y-1" data-testid="derived-fact-premises">
+            {fact.derivations.map((premise, index) => {
+              const href = hrefForDerivedFactPremise(kbId, premise);
+              const label = premise.premise_id ?? emptyCell;
+              return (
+                <li
+                  key={`${premise.premise_id ?? index}-${index}`}
+                  className="break-all font-mono text-[10px] text-muted-foreground"
+                  data-testid="derived-fact-premise-row"
+                >
+                  {premise.premise_kind ? (
+                    <span className="text-foreground/80">{premise.premise_kind}: </span>
+                  ) : null}
+                  {href ? (
+                    <Link
+                      to={href}
+                      className="text-foreground underline-offset-2 hover:underline"
+                      data-testid="derived-fact-premise-link"
+                    >
+                      {label}
+                    </Link>
+                  ) : (
+                    label
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </div>
       ) : null}
     </li>
   );
@@ -157,7 +197,7 @@ export function KbDerivedFactsPanel({ kbId }: { kbId: string }) {
           ) : (
             <ul className="space-y-2">
               {facts.map((fact) => (
-                <DerivedFactCard key={fact.id} fact={fact} labels={labels} />
+                <DerivedFactCard key={fact.id} kbId={kbId} fact={fact} labels={labels} />
               ))}
             </ul>
           )}

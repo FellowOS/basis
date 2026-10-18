@@ -42,10 +42,10 @@ export function BasisLayout({ onLogout }: { onLogout: () => void }) {
                 : 'relative flex min-h-0 flex-1 flex-col overflow-y-auto'
             }
           >
-            <div className="pointer-events-none absolute inset-x-0 top-0 z-50 flex items-center justify-between gap-2 p-3 md:hidden">
+            <div className="pointer-events-none absolute inset-x-0 top-0 z-50 flex items-center justify-between gap-2 p-3">
               <SidebarTrigger
                 aria-label={t.sidebar.openSidebar}
-                className="pointer-events-auto size-auto h-auto w-auto rounded-md border border-border bg-background/90 p-1.5 text-muted-foreground shadow-sm backdrop-blur hover:bg-accent hover:opacity-100 [&_svg]:size-[18px]"
+                className="pointer-events-auto size-auto h-auto w-auto rounded-md border border-border bg-background/90 p-1.5 text-muted-foreground shadow-sm backdrop-blur hover:bg-accent hover:opacity-100 md:hidden [&_svg]:size-[18px]"
               />
             </div>
             <div

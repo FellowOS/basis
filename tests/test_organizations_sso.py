@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from basis.admin.store import AdminStore
+from basis.platform.admin.store import AdminStore
 def _store(tmp_path: Path) -> AdminStore:
     return AdminStore(tmp_path / "basis.db")
 

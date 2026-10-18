@@ -1,11 +1,20 @@
 import { useCallback, useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
   formatGraphAuditAction,
   formatGraphAuditDetail,
+  proposalIdFromGraphAuditDetail,
+  reviewItemIdFromGraphAuditDetail,
   type KbGraphAuditEvent,
 } from '@/lib/kb-graph-audit.js';
 import { formatUserFacingApiError } from '@/lib/api-error-message.js';
 import { kbOpenApiGET } from '@/lib/openapi-client.js';
+import { kbOntologyProposalPath, kbPath } from '@/lib/nav-config.js';
+import {
+  decisionIdFromDetail,
+  kbReviewDecisionPath,
+  kbReviewItemPath,
+} from '@/lib/reviewUrlState.js';
 import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
 import { formatLocaleDateTime } from '@/i18n/format.js';
@@ -25,6 +34,8 @@ export function KbGraphAuditRecent({
 }) {
   const { t, locale } = useI18n();
   const w = t.kbGraphWorkspace.widgets;
+  const linkClass =
+    'inline-block text-[11px] text-foreground underline-offset-2 hover:underline';
   const [events, setEvents] = useState<KbGraphAuditEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -67,23 +78,70 @@ export function KbGraphAuditRecent({
       ) : events.length === 0 ? (
         <p className="text-sm text-muted-foreground">{w.auditEmpty}</p>
       ) : (
-        <ul className="divide-y divide-border rounded-md border border-border text-sm">
-          {events.map((event) => (
-            <li key={event.id} className="flex flex-col gap-0.5 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <div className="font-medium">
-                  {formatGraphAuditAction(event.action, locale)}
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  {formatGraphAuditDetail(event, locale)}
-                </div>
-              </div>
-              <time className="shrink-0 text-xs text-muted-foreground">
-                {formatLocaleDateTime(locale as Locale, event.created_at)}
-              </time>
-            </li>
-          ))}
-        </ul>
+        <>
+          <ul className="divide-y divide-border rounded-md border border-border text-sm">
+            {events.map((event) => {
+              const detail = event.detail;
+              const reviewItemId = reviewItemIdFromGraphAuditDetail(detail);
+              const decisionId = decisionIdFromDetail(detail);
+              const proposalId = proposalIdFromGraphAuditDetail(detail);
+              return (
+                <li
+                  key={event.id}
+                  className="flex flex-col gap-1 px-3 py-2.5 sm:flex-row sm:items-start sm:justify-between"
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="font-medium">
+                      {formatGraphAuditAction(event.action, locale)}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {formatGraphAuditDetail(event, locale)}
+                    </div>
+                    <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5">
+                      {reviewItemId ? (
+                        <Link
+                          to={kbReviewItemPath(kbId, reviewItemId)}
+                          className={linkClass}
+                          data-testid={`graph-audit-review-${reviewItemId}`}
+                        >
+                          {t.chat.openReviewItem}
+                        </Link>
+                      ) : null}
+                      {decisionId ? (
+                        <Link
+                          to={kbReviewDecisionPath(kbId, decisionId)}
+                          className={linkClass}
+                          data-testid={`graph-audit-decision-${decisionId}`}
+                        >
+                          {t.kbReview.openDecision}
+                        </Link>
+                      ) : null}
+                      {proposalId ? (
+                        <Link
+                          to={kbOntologyProposalPath(kbId, proposalId)}
+                          className={linkClass}
+                          data-testid={`graph-audit-proposal-${proposalId}`}
+                        >
+                          {t.kbReview.openOntologyProposal}
+                        </Link>
+                      ) : null}
+                    </div>
+                  </div>
+                  <time className="shrink-0 text-xs text-muted-foreground">
+                    {formatLocaleDateTime(locale as Locale, event.created_at)}
+                  </time>
+                </li>
+              );
+            })}
+          </ul>
+          <Link
+            to={kbPath(kbId, 'review')}
+            className="inline-block text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+            data-testid="graph-audit-open-review"
+          >
+            {t.kbImportExport.openReviewQueue}
+          </Link>
+        </>
       )}
     </div>
   );

@@ -5,10 +5,10 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
-from basis.api.app import create_app
-from basis.config import Settings
-from basis.knowledge.blob_store import BlobStore
-from basis.knowledge.store import KnowledgeStore
+from basis.transport.http.app import create_app
+from basis.infra.config import Settings
+from basis.domain.kb.blob_store import BlobStore
+from basis.domain.kb.store import KnowledgeStore
 
 
 def test_settings_override_graph_snapshot_cap(tmp_path: Path) -> None:
@@ -130,7 +130,7 @@ def test_processing_fails_when_extracted_text_exceeds_cap(tmp_path: Path) -> Non
 
 
 def test_processing_fails_when_chunk_count_exceeds_cap(tmp_path: Path, monkeypatch) -> None:
-    from basis.pipeline import version_ingest as vi
+    from basis.domain.ingest import version_ingest as vi
 
     def _many_chunks(full_text: str, options) -> list[str]:
         return [f"part-{i}" for i in range(5)]
@@ -174,8 +174,8 @@ def test_processing_fails_when_chunk_count_exceeds_cap(tmp_path: Path, monkeypat
 
 
 def test_processing_fails_when_extraction_times_out(tmp_path: Path, monkeypatch) -> None:
-    from basis.pipeline import document
-    from basis.pipeline.extract_timeout import ExtractionTimeoutError
+    from basis.domain.ingest import document
+    from basis.domain.ingest.extract_timeout import ExtractionTimeoutError
 
     def _always_timeout(_fn, timeout_seconds: float):
         raise ExtractionTimeoutError(timeout_seconds)
@@ -219,7 +219,7 @@ def test_processing_fails_when_extraction_times_out(tmp_path: Path, monkeypatch)
 def test_async_ingest_fails_with_ingest_overloaded_when_pending_full(
     tmp_path: Path, monkeypatch
 ) -> None:
-    from basis.pipeline import version_ingest as vi
+    from basis.domain.ingest import version_ingest as vi
 
     original = vi.run_version_ingest
 
@@ -278,7 +278,7 @@ def test_async_ingest_fails_with_ingest_overloaded_when_pending_full(
 def test_run_sync_with_timeout_returns_without_waiting_on_worker() -> None:
     import pytest
 
-    from basis.pipeline.extract_timeout import ExtractionTimeoutError, run_sync_with_timeout
+    from basis.domain.ingest.extract_timeout import ExtractionTimeoutError, run_sync_with_timeout
 
     start = time.monotonic()
     with pytest.raises(ExtractionTimeoutError):

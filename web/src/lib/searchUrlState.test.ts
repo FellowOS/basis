@@ -17,6 +17,18 @@ describe('searchUrlState', () => {
     expect(href).toBe('/kbs/kb-1/search?scope=graph&q=node');
   });
 
+  it('round-trips temporal query params', () => {
+    const href = kbSearchPath('kb-1', {
+      scope: 'chunks',
+      q: 'x',
+      asOf: '2030-01-01T00:00:00Z',
+      at: '2030-06-01T00:00:00Z',
+    });
+    const parsed = parseKbSearchUrlState(href.split('?')[1] ?? '');
+    expect(parsed.asOf).toBe('2030-01-01T00:00:00Z');
+    expect(parsed.at).toBe('2030-06-01T00:00:00Z');
+  });
+
   it('maps legacy tab param when building paths', () => {
     const href = kbSearchPath('kb-1', { tab: 'chunks', q: 'x' });
     expect(href).toContain('scope=chunks');

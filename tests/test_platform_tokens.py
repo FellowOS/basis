@@ -6,8 +6,8 @@ pytest.importorskip("semantica")
 
 from fastapi.testclient import TestClient
 
-from basis.api.app import create_app
-from basis.config import Settings
+from basis.transport.http.app import create_app
+from basis.infra.config import Settings
 
 
 def test_kb_api_token_reads_scoped_kb_graph(tmp_path) -> None:

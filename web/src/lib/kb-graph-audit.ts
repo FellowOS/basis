@@ -62,8 +62,44 @@ export function formatGraphAuditDetail(event: KbGraphAuditEvent, locale: Locale)
       .filter(Boolean)
       .join(' · ');
   }
-  if (typeof d.review_item_id === 'string') {
-    return d.review_item_id;
+  const reviewItemId = reviewItemIdFromGraphAuditDetail(d);
+  if (reviewItemId) {
+    return reviewItemId;
   }
   return emptyCell;
+}
+
+export function proposalIdFromGraphAuditDetail(
+  detail: Record<string, unknown> | undefined,
+): string | null {
+  if (!detail) return null;
+  const direct = detail.proposal_id;
+  if (typeof direct === 'string' && direct.trim()) return direct.trim();
+  const extra = detail.extra;
+  if (extra && typeof extra === 'object' && !Array.isArray(extra)) {
+    const nested = (extra as Record<string, unknown>).proposal_id;
+    if (typeof nested === 'string' && nested.trim()) return nested.trim();
+  }
+  const payload = detail.payload;
+  if (payload && typeof payload === 'object' && !Array.isArray(payload)) {
+    const nested = (payload as Record<string, unknown>).proposal_id;
+    if (typeof nested === 'string' && nested.trim()) return nested.trim();
+  }
+  return null;
+}
+
+export function reviewItemIdFromGraphAuditDetail(
+  detail: Record<string, unknown> | undefined,
+): string | null {
+  if (!detail) return null;
+  for (const key of ['review_item_id', 'item_id'] as const) {
+    const v = detail[key];
+    if (typeof v === 'string' && v.trim()) return v.trim();
+  }
+  const payload = detail.payload;
+  if (payload && typeof payload === 'object' && !Array.isArray(payload)) {
+    const nested = (payload as Record<string, unknown>).review_item_id;
+    if (typeof nested === 'string' && nested.trim()) return nested.trim();
+  }
+  return null;
 }

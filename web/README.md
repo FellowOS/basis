@@ -10,6 +10,7 @@ Vite + React front end for the Basis platform and per–knowledge-base Explorer 
 | `src/components/` | React UI — three roots: **`ui`**, **`admin`**, **`app`** (see below). |
 | `src/explorer/` | **Explorer implementation** (vendored from semantica); see `src/explorer/README.md`. |
 | `src/lib/` | `basis-openapi/` (generated types + `transport.ts`), `openapi-client.ts` (app helpers), session fetch, `kb-api-path.ts`. JSON: `openApi*` / `kbOpenApi*`. Regen types: `npm run gen:openapi-types`. |
+| `server/` | **Hono web layer** — production static + `/api` reverse proxy (`server/prod.ts`); dev entry `server/dev.ts` (Hono + Vite middleware). Playground LLM config is browser-local. |
 | `src/styles/explorer/` | Explorer-specific CSS loaded from `styles.css`. |
 | `e2e/` | Playwright specs. |
 
@@ -64,8 +65,13 @@ Platform-only pages (e.g. `pages/kbs.tsx`, `pages/settings.tsx`) skip layer 2–
 
 ## Scripts
 
-- `npm run dev` — Vite dev server (port 5173).
+- `npm run dev` — Hono + Vite (port 5173): Hono proxies `/api`, `/openapi`, …; Vite handles SPA/HMR. `npm run dev:vite` — Vite only (no Hono; API calls need `VITE_BASIS_API_URL` or fail).
 - `npm run build` — `tsc` + production bundle to `../dist/web`.
+- `npm run start` — production Hono server (after `build`; serves `dist/web` + BFF).
 - `npm test` / `npm run test:e2e` — Vitest and Playwright.
 
 Run these from the `web/` directory (`cd web` after cloning the repo).
+
+### E2E (Playwright)
+
+`playwright.config.ts` starts **Basis API** with `BASIS_DATA_DIR=data-e2e` (enables `/_e2e/*` helpers) and the **Hono dev server**. Use `CI=1 npm run test:e2e` for a clean run with fixed ports. Specs live under `web/e2e/` (governance, chat playground, search temporal URL, ontology proposal, graph diff cross-links, processing jobs, …).

@@ -8,13 +8,11 @@ import re
 import sys
 from pathlib import Path
 
-import yaml
-
 REPO = Path(__file__).resolve().parents[1]
 WEB_SRC = REPO / "web" / "src"
-OPENAPI = REPO / "openapi" / "basis-v1.yaml"
-OUT_JSON = REPO / "docs" / "design" / "web-openapi-operation-audit.json"
-OUT_MD = REPO / "docs" / "design" / "web-openapi-operation-audit.md"
+OPENAPI = REPO / "openapi" / "basis-v1.json"
+OUT_JSON = REPO / "openapi" / "web-openapi-operation-audit.json"
+OUT_MD = REPO / "openapi" / "web-openapi-operation-audit.md"
 
 # Helpers → OpenAPI path templates (from web path utilities)
 HELPER_PATTERNS: list[tuple[str, str]] = [
@@ -47,7 +45,7 @@ def classify_hit(hit: dict[str, str]) -> dict[str, str]:
 
 
 def load_operations() -> dict[str, dict[str, str]]:
-    spec = yaml.safe_load(OPENAPI.read_text(encoding="utf-8"))
+    spec = json.loads(OPENAPI.read_text(encoding="utf-8"))
     by_path: dict[str, dict[str, str]] = {}
     for path, item in (spec.get("paths") or {}).items():
         if not isinstance(item, dict):

@@ -11,10 +11,16 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Users */
+        /**
+         * List Users
+         * @description List Users. Requires session JWT (`sessionAuth`).
+         */
         get: operations["list_users_api_v1_admin_users_get"];
         put?: never;
-        /** Create User */
+        /**
+         * Create User
+         * @description Create User. Requires session JWT (`sessionAuth`).
+         */
         post: operations["create_user_api_v1_admin_users_post"];
         delete?: never;
         options?: never;
@@ -31,7 +37,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Deactivate User */
+        /**
+         * Deactivate User
+         * @description Deactivate User. Requires session JWT (`sessionAuth`).
+         */
         post: operations["deactivate_user_api_v1_admin_users__user_id__deactivate_post"];
         delete?: never;
         options?: never;
@@ -48,7 +57,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Reactivate User */
+        /**
+         * Reactivate User
+         * @description Reactivate User. Requires session JWT (`sessionAuth`).
+         */
         post: operations["reactivate_user_api_v1_admin_users__user_id__reactivate_post"];
         delete?: never;
         options?: never;
@@ -63,7 +75,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Audit */
+        /**
+         * List Audit
+         * @description List Audit. Platform audit log (admin). Requires session JWT (`sessionAuth`).
+         */
         get: operations["list_audit_api_v1_audit_get"];
         put?: never;
         post?: never;
@@ -82,7 +97,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Login */
+        /**
+         * Login
+         * @description Authenticate with email and password. Returns a session Bearer token for platform and KB routes.
+         */
         post: operations["login_api_v1_auth_login_post"];
         delete?: never;
         options?: never;
@@ -99,7 +117,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Logout */
+        /**
+         * Logout
+         * @description Logout. Authentication and session bootstrap. Public bootstrap; optional session for personalized responses.
+         */
         post: operations["logout_api_v1_auth_logout_post"];
         delete?: never;
         options?: never;
@@ -116,7 +137,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Magic Link Request */
+        /**
+         * Magic Link Request
+         * @description Magic Link Request. Authentication and session bootstrap. Public bootstrap; optional session for personalized responses.
+         */
         post: operations["magic_link_request_api_v1_auth_magic_link_request_post"];
         delete?: never;
         options?: never;
@@ -131,7 +155,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Magic Link Verify */
+        /**
+         * Magic Link Verify
+         * @description Magic Link Verify. Authentication and session bootstrap. Public bootstrap; optional session for personalized responses.
+         */
         get: operations["magic_link_verify_api_v1_auth_magic_link_verify_get"];
         put?: never;
         post?: never;
@@ -148,7 +175,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Me */
+        /**
+         * Me
+         * @description Return the current session user profile (requires session token).
+         */
         get: operations["me_api_v1_auth_me_get"];
         put?: never;
         post?: never;
@@ -165,7 +195,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Github Callback */
+        /**
+         * Github Callback
+         * @description Github Callback. Authentication and session bootstrap. Public bootstrap; optional session for personalized responses.
+         */
         get: operations["github_callback_api_v1_auth_oauth_github_callback_get"];
         put?: never;
         post?: never;
@@ -182,7 +215,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Github Start */
+        /**
+         * Github Start
+         * @description Github Start. Authentication and session bootstrap. Public bootstrap; optional session for personalized responses.
+         */
         get: operations["github_start_api_v1_auth_oauth_github_start_get"];
         put?: never;
         post?: never;
@@ -199,7 +235,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Google Callback */
+        /**
+         * Google Callback
+         * @description Google Callback. Authentication and session bootstrap. Public bootstrap; optional session for personalized responses.
+         */
         get: operations["google_callback_api_v1_auth_oauth_google_callback_get"];
         put?: never;
         post?: never;
@@ -216,7 +255,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Google Start */
+        /**
+         * Google Start
+         * @description Google Start. Authentication and session bootstrap. Public bootstrap; optional session for personalized responses.
+         */
         get: operations["google_start_api_v1_auth_oauth_google_start_get"];
         put?: never;
         post?: never;
@@ -233,7 +275,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Org Oidc Callback */
+        /**
+         * Org Oidc Callback
+         * @description Org Oidc Callback. Authentication and session bootstrap. Public bootstrap; optional session for personalized responses.
+         */
         get: operations["org_oidc_callback_api_v1_auth_oidc_callback_get"];
         put?: never;
         post?: never;
@@ -250,7 +295,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Org Oidc Start */
+        /**
+         * Org Oidc Start
+         * @description Org Oidc Start. Authentication and session bootstrap. Public bootstrap; optional session for personalized responses.
+         */
         get: operations["org_oidc_start_api_v1_auth_oidc__org_slug__start_get"];
         put?: never;
         post?: never;
@@ -267,7 +315,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Auth Providers */
+        /**
+         * Auth Providers
+         * @description Auth Providers. Authentication and session bootstrap. Public bootstrap; optional session for personalized responses.
+         */
         get: operations["auth_providers_api_v1_auth_providers_get"];
         put?: never;
         post?: never;
@@ -286,7 +337,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Register */
+        /**
+         * Register
+         * @description Create a local account when password registration is enabled in platform settings.
+         */
         post: operations["register_api_v1_auth_register_post"];
         delete?: never;
         options?: never;
@@ -301,7 +355,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Health */
+        /**
+         * Health
+         * @description Liveness probe; verifies database connectivity and returns build version.
+         */
         get: operations["health_health_get"];
         put?: never;
         post?: never;
@@ -318,10 +375,16 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Kbs */
+        /**
+         * List Kbs
+         * @description List knowledge bases visible to the current user with role hints.
+         */
         get: operations["list_kbs_api_v1_kbs_get"];
         put?: never;
-        /** Create Kb */
+        /**
+         * Create Kb
+         * @description Create a knowledge base owned by the current user.
+         */
         post: operations["create_kb_api_v1_kbs_post"];
         delete?: never;
         options?: never;
@@ -336,15 +399,24 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Kb */
+        /**
+         * Get Kb
+         * @description Fetch KB metadata, membership role, and high-level ledger counts.
+         */
         get: operations["get_kb_api_v1_kbs__kb_id__get"];
         put?: never;
         post?: never;
-        /** Delete Kb */
+        /**
+         * Delete Kb
+         * @description Delete Kb. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         delete: operations["delete_kb_api_v1_kbs__kb_id__delete"];
         options?: never;
         head?: never;
-        /** Update Kb */
+        /**
+         * Update Kb
+         * @description Update Kb. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         patch: operations["update_kb_api_v1_kbs__kb_id__patch"];
         trace?: never;
     };
@@ -355,7 +427,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Kb Alerts */
+        /**
+         * List Kb Alerts
+         * @description List KB alert episodes with unread count (viewer+).
+         */
         get: operations["list_kb_alerts_api_v1_kbs__kb_id__alerts_get"];
         put?: never;
         post?: never;
@@ -372,7 +447,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Stream Kb Alerts */
+        /**
+         * Stream Kb Alerts
+         * @description Stream new alert episodes via SSE (viewer+).
+         */
         get: operations["stream_kb_alerts_api_v1_kbs__kb_id__alerts_stream_get"];
         put?: never;
         post?: never;
@@ -391,7 +469,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Dismiss Kb Alert */
+        /**
+         * Dismiss Kb Alert
+         * @description Dismiss a single alert episode (editor+).
+         */
         post: operations["dismiss_kb_alert_api_v1_kbs__kb_id__alerts__alert_id__dismiss_post"];
         delete?: never;
         options?: never;
@@ -406,7 +487,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Kb Graph Audit */
+        /**
+         * List Kb Graph Audit
+         * @description List Kb Graph Audit. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         get: operations["list_kb_graph_audit_api_v1_kbs__kb_id__audit_graph_mutations_get"];
         put?: never;
         post?: never;
@@ -423,61 +507,13 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Kb Capabilities */
+        /**
+         * Get Kb Capabilities
+         * @description Feature flags for Explorer, ingest, mappings, and diagnostics for this KB and role.
+         */
         get: operations["get_kb_capabilities_api_v1_kbs__kb_id__capabilities_get"];
         put?: never;
         post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/kbs/{kb_id}/chat/playground": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Kb Chat Playground */
-        post: operations["kb_chat_playground_api_v1_kbs__kb_id__chat_playground_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/kbs/{kb_id}/chat/playground/stream": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Kb Chat Playground Stream */
-        post: operations["kb_chat_playground_stream_api_v1_kbs__kb_id__chat_playground_stream_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/kbs/{kb_id}/chat/remember": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Kb Chat Remember */
-        post: operations["kb_chat_remember_api_v1_kbs__kb_id__chat_remember_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -491,7 +527,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Kb List Decisions */
+        /**
+         * Kb List Decisions
+         * @description Kb List Decisions. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         get: operations["kb_list_decisions_api_v1_kbs__kb_id__decisions_get"];
         put?: never;
         post?: never;
@@ -508,7 +547,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Kb Decision Chain */
+        /**
+         * Kb Decision Chain
+         * @description Kb Decision Chain. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         get: operations["kb_decision_chain_api_v1_kbs__kb_id__decisions__decision_id__chain_get"];
         put?: never;
         post?: never;
@@ -525,10 +567,16 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Kb Documents */
+        /**
+         * List Kb Documents
+         * @description List Kb Documents. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         get: operations["list_kb_documents_api_v1_kbs__kb_id__documents_get"];
         put?: never;
-        /** Ingest Document */
+        /**
+         * Ingest Document
+         * @description Ingest Document. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         post: operations["ingest_document_api_v1_kbs__kb_id__documents_post"];
         delete?: never;
         options?: never;
@@ -545,7 +593,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Upload Document */
+        /**
+         * Upload Document
+         * @description Upload Document. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         post: operations["upload_document_api_v1_kbs__kb_id__documents_upload_post"];
         delete?: never;
         options?: never;
@@ -563,7 +614,10 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** Delete Kb Document */
+        /**
+         * Delete Kb Document
+         * @description Delete Kb Document. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         delete: operations["delete_kb_document_api_v1_kbs__kb_id__documents__document_id__delete"];
         options?: never;
         head?: never;
@@ -579,7 +633,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Append Document Version Text */
+        /**
+         * Append Document Version Text
+         * @description Append Document Version Text. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         post: operations["append_document_version_text_api_v1_kbs__kb_id__documents__document_id__versions_post"];
         delete?: never;
         options?: never;
@@ -596,7 +653,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Append Document Version Upload */
+        /**
+         * Append Document Version Upload
+         * @description Append Document Version Upload. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         post: operations["append_document_version_upload_api_v1_kbs__kb_id__documents__document_id__versions_upload_post"];
         delete?: never;
         options?: never;
@@ -613,7 +673,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Kb Enrich Dedup */
+        /**
+         * Kb Enrich Dedup
+         * @description Kb Enrich Dedup. Graph enrichment and governance proposals. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         post: operations["kb_enrich_dedup_api_v1_kbs__kb_id__enrich_dedup_post"];
         delete?: never;
         options?: never;
@@ -630,7 +693,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Kb Enrich Links */
+        /**
+         * Kb Enrich Links
+         * @description Kb Enrich Links. Graph enrichment and governance proposals. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         post: operations["kb_enrich_links_api_v1_kbs__kb_id__enrich_links_post"];
         delete?: never;
         options?: never;
@@ -665,7 +731,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Find Entities Route */
+        /**
+         * Find Entities Route
+         * @description Find Entities Route. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         get: operations["find_entities_route_api_v1_kbs__kb_id__entities_find_get"];
         put?: never;
         post?: never;
@@ -684,7 +753,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Kb Export Graph */
+        /**
+         * Kb Export Graph
+         * @description Kb Export Graph. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         post: operations["kb_export_graph_api_v1_kbs__kb_id__export_post"];
         delete?: never;
         options?: never;
@@ -721,7 +793,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Kb Graph Distance Matrix */
+        /**
+         * Kb Graph Distance Matrix
+         * @description Kb Graph Distance Matrix. Projected graph read API (Explorer runtime). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         post: operations["kb_graph_distance_matrix_api_v1_kbs__kb_id__graph_distance_matrix_post"];
         delete?: never;
         options?: never;
@@ -736,7 +811,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Graph Edges Route */
+        /**
+         * Graph Edges Route
+         * @description Graph Edges Route. Projected graph read API (Explorer runtime). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         get: operations["graph_edges_route_api_v1_kbs__kb_id__graph_edges_get"];
         put?: never;
         post?: never;
@@ -753,7 +831,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Graph Nodes Route */
+        /**
+         * Graph Nodes Route
+         * @description Graph Nodes Route. Projected graph read API (Explorer runtime). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         get: operations["graph_nodes_route_api_v1_kbs__kb_id__graph_nodes_get"];
         put?: never;
         post?: never;
@@ -770,7 +851,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Graph Node Route */
+        /**
+         * Graph Node Route
+         * @description Graph Node Route. Projected graph read API (Explorer runtime). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         get: operations["graph_node_route_api_v1_kbs__kb_id__graph_nodes__node_id__get"];
         put?: never;
         post?: never;
@@ -787,7 +871,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Graph Neighbors Route */
+        /**
+         * Graph Neighbors Route
+         * @description Graph Neighbors Route. Projected graph read API (Explorer runtime). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         get: operations["graph_neighbors_route_api_v1_kbs__kb_id__graph_nodes__node_id__neighbors_get"];
         put?: never;
         post?: never;
@@ -804,7 +891,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Graph Path Route */
+        /**
+         * Graph Path Route
+         * @description Graph Path Route. Projected graph read API (Explorer runtime). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         get: operations["graph_path_route_api_v1_kbs__kb_id__graph_path_get"];
         put?: never;
         post?: never;
@@ -821,7 +911,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Graph Projection Status */
+        /**
+         * Graph Projection Status
+         * @description Graph Projection Status. Projected graph read API (Explorer runtime). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         get: operations["graph_projection_status_api_v1_kbs__kb_id__graph_projection_get"];
         put?: never;
         post?: never;
@@ -840,7 +933,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Rebuild Graph */
+        /**
+         * Rebuild Graph
+         * @description Rebuild Graph. Projected graph read API (Explorer runtime). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         post: operations["rebuild_graph_api_v1_kbs__kb_id__graph_rebuild_post"];
         delete?: never;
         options?: never;
@@ -857,7 +953,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Resolve Graph Node Labels */
+        /**
+         * Resolve Graph Node Labels
+         * @description Resolve Graph Node Labels. Projected graph read API (Explorer runtime). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         post: operations["resolve_graph_node_labels_api_v1_kbs__kb_id__graph_resolve_labels_post"];
         delete?: never;
         options?: never;
@@ -874,7 +973,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Graph Search Route */
+        /**
+         * Graph Search Route
+         * @description Graph Search Route. Projected graph read API (Explorer runtime). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         post: operations["graph_search_route_api_v1_kbs__kb_id__graph_search_post"];
         delete?: never;
         options?: never;
@@ -889,7 +991,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Kb Graph Semantic Neighborhood */
+        /**
+         * Kb Graph Semantic Neighborhood
+         * @description Kb Graph Semantic Neighborhood. Projected graph read API (Explorer runtime). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         get: operations["kb_graph_semantic_neighborhood_api_v1_kbs__kb_id__graph_semantic_neighborhood_get"];
         put?: never;
         post?: never;
@@ -906,7 +1011,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Graph Snapshot Route */
+        /**
+         * Graph Snapshot Route
+         * @description Graph Snapshot Route. Projected graph read API (Explorer runtime). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         get: operations["graph_snapshot_route_api_v1_kbs__kb_id__graph_snapshot_get"];
         put?: never;
         post?: never;
@@ -923,7 +1031,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Graph Stats */
+        /**
+         * Graph Stats
+         * @description Graph Stats. Projected graph read API (Explorer runtime). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         get: operations["graph_stats_api_v1_kbs__kb_id__graph_stats_get"];
         put?: never;
         post?: never;
@@ -942,7 +1053,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Kb Import Graph */
+        /**
+         * Kb Import Graph
+         * @description Kb Import Graph. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         post: operations["kb_import_graph_api_v1_kbs__kb_id__import_post"];
         delete?: never;
         options?: never;
@@ -977,7 +1091,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Ingest Job */
+        /**
+         * Get Ingest Job
+         * @description Get Ingest Job. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         get: operations["get_ingest_job_api_v1_kbs__kb_id__ingest_jobs__job_id__get"];
         put?: never;
         post?: never;
@@ -994,7 +1111,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Ledger Chunk Route */
+        /**
+         * Get Ledger Chunk Route
+         * @description Get Ledger Chunk Route. Evidence ledger: documents, chunks, statements, entities. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         get: operations["get_ledger_chunk_route_api_v1_kbs__kb_id__ledger_chunks__chunk_id__get"];
         put?: never;
         post?: never;
@@ -1011,7 +1131,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Derived Facts Route */
+        /**
+         * List Derived Facts Route
+         * @description List Derived Facts Route. Evidence ledger: documents, chunks, statements, entities. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         get: operations["list_derived_facts_route_api_v1_kbs__kb_id__ledger_derived_facts_get"];
         put?: never;
         post?: never;
@@ -1028,7 +1151,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Ledger Document Route */
+        /**
+         * Get Ledger Document Route
+         * @description Get Ledger Document Route. Evidence ledger: documents, chunks, statements, entities. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         get: operations["get_ledger_document_route_api_v1_kbs__kb_id__ledger_documents__doc_ref__get"];
         put?: never;
         post?: never;
@@ -1045,7 +1171,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Document Chunks Route */
+        /**
+         * List Document Chunks Route
+         * @description List Document Chunks Route. Evidence ledger: documents, chunks, statements, entities. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         get: operations["list_document_chunks_route_api_v1_kbs__kb_id__ledger_documents__doc_ref__chunks_get"];
         put?: never;
         post?: never;
@@ -1062,7 +1191,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Search Ledger Entities */
+        /**
+         * Search Ledger Entities
+         * @description Search Ledger Entities. Evidence ledger: documents, chunks, statements, entities. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         get: operations["search_ledger_entities_api_v1_kbs__kb_id__ledger_entities_get"];
         put?: never;
         post?: never;
@@ -1082,7 +1214,10 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** Delete Ledger Entity */
+        /**
+         * Delete Ledger Entity
+         * @description Delete Ledger Entity. Evidence ledger: documents, chunks, statements, entities. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         delete: operations["delete_ledger_entity_api_v1_kbs__kb_id__ledger_entities__entity_id__delete"];
         options?: never;
         head?: never;
@@ -1096,7 +1231,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Preview Delete Ledger Entity */
+        /**
+         * Preview Delete Ledger Entity
+         * @description Preview Delete Ledger Entity. Evidence ledger: documents, chunks, statements, entities. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         get: operations["preview_delete_ledger_entity_api_v1_kbs__kb_id__ledger_entities__entity_id__delete_preview_get"];
         put?: never;
         post?: never;
@@ -1113,7 +1251,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Entity Facts Route */
+        /**
+         * List Entity Facts Route
+         * @description List Entity Facts Route. Evidence ledger: documents, chunks, statements, entities. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         get: operations["list_entity_facts_route_api_v1_kbs__kb_id__ledger_entities__entity_id__facts_get"];
         put?: never;
         post?: never;
@@ -1130,7 +1271,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Entity Merges Route */
+        /**
+         * List Entity Merges Route
+         * @description List Entity Merges Route. Evidence ledger: documents, chunks, statements, entities. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         get: operations["list_entity_merges_route_api_v1_kbs__kb_id__ledger_entity_merges_get"];
         put?: never;
         post?: never;
@@ -1149,7 +1293,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Revert Entity Merge Route */
+        /**
+         * Revert Entity Merge Route
+         * @description Revert Entity Merge Route. Evidence ledger: documents, chunks, statements, entities. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         post: operations["revert_entity_merge_route_api_v1_kbs__kb_id__ledger_entity_merges__merge_id__revert_post"];
         delete?: never;
         options?: never;
@@ -1164,7 +1311,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Surface Phrases */
+        /**
+         * List Surface Phrases
+         * @description List Surface Phrases. Evidence ledger: documents, chunks, statements, entities. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         get: operations["list_surface_phrases_api_v1_kbs__kb_id__ledger_surface_phrases_get"];
         put?: never;
         post?: never;
@@ -1181,7 +1331,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Typed Facts Route */
+        /**
+         * List Typed Facts Route
+         * @description List Typed Facts Route. Evidence ledger: documents, chunks, statements, entities. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         get: operations["list_typed_facts_route_api_v1_kbs__kb_id__ledger_typed_facts_get"];
         put?: never;
         post?: never;
@@ -1198,10 +1351,16 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Kb Mappings */
+        /**
+         * List Kb Mappings
+         * @description List Kb Mappings. Statement-to-entity mapping proposals and status. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         get: operations["list_kb_mappings_api_v1_kbs__kb_id__mappings_get"];
         put?: never;
-        /** Create Kb Mapping */
+        /**
+         * Create Kb Mapping
+         * @description Create Kb Mapping. Statement-to-entity mapping proposals and status. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         post: operations["create_kb_mapping_api_v1_kbs__kb_id__mappings_post"];
         delete?: never;
         options?: never;
@@ -1218,7 +1377,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Update Kb Mapping Status */
+        /**
+         * Update Kb Mapping Status
+         * @description Update Kb Mapping Status. Statement-to-entity mapping proposals and status. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         post: operations["update_kb_mapping_status_api_v1_kbs__kb_id__mappings__mapping_id__status_post"];
         delete?: never;
         options?: never;
@@ -1233,10 +1395,16 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Mcp Integration Info */
+        /**
+         * Mcp Integration Info
+         * @description Mcp Integration Info. MCP JSON-RPC transport for agent integrations. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         get: operations["mcp_integration_info_api_v1_kbs__kb_id__mcp_get"];
         put?: never;
-        /** Mcp Jsonrpc */
+        /**
+         * Mcp Jsonrpc
+         * @description MCP JSON-RPC over HTTP; tools match integration core operations (search, graph read, remember).
+         */
         post: operations["mcp_jsonrpc_api_v1_kbs__kb_id__mcp_post"];
         delete?: never;
         options?: never;
@@ -1251,7 +1419,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Members */
+        /**
+         * List Members
+         * @description List Members. KB membership and roles (session only). Requires session JWT (`sessionAuth`).
+         */
         get: operations["list_members_api_v1_kbs__kb_id__members_get"];
         put?: never;
         post?: never;
@@ -1269,10 +1440,16 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        /** Set Member Role */
+        /**
+         * Set Member Role
+         * @description Set Member Role. KB membership and roles (session only). Requires session JWT (`sessionAuth`).
+         */
         put: operations["set_member_role_api_v1_kbs__kb_id__members__user_id__put"];
         post?: never;
-        /** Remove Member */
+        /**
+         * Remove Member
+         * @description Remove Member. KB membership and roles (session only). Requires session JWT (`sessionAuth`).
+         */
         delete: operations["remove_member_api_v1_kbs__kb_id__members__user_id__delete"];
         options?: never;
         head?: never;
@@ -1288,7 +1465,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Create Ontology */
+        /**
+         * Create Ontology
+         * @description Create Ontology. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         post: operations["create_ontology_api_v1_kbs__kb_id__ontology_post"];
         delete?: never;
         options?: never;
@@ -1303,12 +1483,21 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Kb List Alignments */
+        /**
+         * Kb List Alignments
+         * @description Kb List Alignments. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         get: operations["kb_list_alignments_api_v1_kbs__kb_id__ontology_alignments_get"];
         put?: never;
-        /** Kb Upsert Alignment */
+        /**
+         * Kb Upsert Alignment
+         * @description Kb Upsert Alignment. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         post: operations["kb_upsert_alignment_api_v1_kbs__kb_id__ontology_alignments_post"];
-        /** Kb Delete Alignment */
+        /**
+         * Kb Delete Alignment
+         * @description Kb Delete Alignment. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         delete: operations["kb_delete_alignment_api_v1_kbs__kb_id__ontology_alignments_delete"];
         options?: never;
         head?: never;
@@ -1324,7 +1513,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Kb Ont 3 Create Ontology */
+        /**
+         * Kb Ont 3 Create Ontology
+         * @description Kb Ont 3 Create Ontology. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         post: operations["_kb_ont_3_create_ontology_api_v1_kbs__kb_id__ontology_create_post"];
         delete?: never;
         options?: never;
@@ -1345,7 +1537,10 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /** Kb Ont 17 Save Draft */
+        /**
+         * Kb Ont 17 Save Draft
+         * @description Kb Ont 17 Save Draft. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         patch: operations["_kb_ont_17_save_draft_api_v1_kbs__kb_id__ontology_draft_patch"];
         trace?: never;
     };
@@ -1356,7 +1551,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Kb Ont 19 Get Draft */
+        /**
+         * Kb Ont 19 Get Draft
+         * @description Kb Ont 19 Get Draft. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         get: operations["_kb_ont_19_get_draft_api_v1_kbs__kb_id__ontology_draft__draft_id__get"];
         put?: never;
         post?: never;
@@ -1373,7 +1571,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Kb Ont 18 List Drafts */
+        /**
+         * Kb Ont 18 List Drafts
+         * @description Kb Ont 18 List Drafts. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         get: operations["_kb_ont_18_list_drafts_api_v1_kbs__kb_id__ontology_drafts__ontology_uri__get"];
         put?: never;
         post?: never;
@@ -1390,7 +1591,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Kb Ont 6 Get Entity Detail */
+        /**
+         * Kb Ont 6 Get Entity Detail
+         * @description Kb Ont 6 Get Entity Detail. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         get: operations["_kb_ont_6_get_entity_detail_api_v1_kbs__kb_id__ontology_entity__entity_uri__get"];
         put?: never;
         post?: never;
@@ -1407,7 +1611,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Kb Ont 5 Get Ontology Graph */
+        /**
+         * Kb Ont 5 Get Ontology Graph
+         * @description Kb Ont 5 Get Ontology Graph. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         get: operations["_kb_ont_5_get_ontology_graph_api_v1_kbs__kb_id__ontology_graph_get"];
         put?: never;
         post?: never;
@@ -1424,7 +1631,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Kb Ont 10 Ontology Health */
+        /**
+         * Kb Ont 10 Ontology Health
+         * @description Kb Ont 10 Ontology Health. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         get: operations["_kb_ont_10_ontology_health_api_v1_kbs__kb_id__ontology_health_get"];
         put?: never;
         post?: never;
@@ -1443,7 +1653,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Kb Ont 2 Load Ontology */
+        /**
+         * Kb Ont 2 Load Ontology
+         * @description Kb Ont 2 Load Ontology. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         post: operations["_kb_ont_2_load_ontology_api_v1_kbs__kb_id__ontology_load_post"];
         delete?: never;
         options?: never;
@@ -1460,7 +1673,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Kb Ont 1 Preview Ontology */
+        /**
+         * Kb Ont 1 Preview Ontology
+         * @description Kb Ont 1 Preview Ontology. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         post: operations["_kb_ont_1_preview_ontology_api_v1_kbs__kb_id__ontology_preview_post"];
         delete?: never;
         options?: never;
@@ -1475,7 +1691,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Kb Ont 21 List Proposals */
+        /**
+         * Kb Ont 21 List Proposals
+         * @description Kb Ont 21 List Proposals. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         get: operations["_kb_ont_21_list_proposals_api_v1_kbs__kb_id__ontology_proposals_get"];
         put?: never;
         post?: never;
@@ -1492,7 +1711,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Kb Ont 22 Get Proposal */
+        /**
+         * Kb Ont 22 Get Proposal
+         * @description Kb Ont 22 Get Proposal. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         get: operations["_kb_ont_22_get_proposal_api_v1_kbs__kb_id__ontology_proposals__proposal_id__get"];
         put?: never;
         post?: never;
@@ -1511,7 +1733,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Kb Ont 23 Approve Proposal */
+        /**
+         * Kb Ont 23 Approve Proposal
+         * @description Kb Ont 23 Approve Proposal. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         post: operations["_kb_ont_23_approve_proposal_api_v1_kbs__kb_id__ontology_proposals__proposal_id__approve_post"];
         delete?: never;
         options?: never;
@@ -1528,7 +1753,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Kb Ont 26 Add Comment */
+        /**
+         * Kb Ont 26 Add Comment
+         * @description Kb Ont 26 Add Comment. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         post: operations["_kb_ont_26_add_comment_api_v1_kbs__kb_id__ontology_proposals__proposal_id__comment_post"];
         delete?: never;
         options?: never;
@@ -1545,7 +1773,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Kb Ont 25 Publish Proposal */
+        /**
+         * Kb Ont 25 Publish Proposal
+         * @description Kb Ont 25 Publish Proposal. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         post: operations["_kb_ont_25_publish_proposal_api_v1_kbs__kb_id__ontology_proposals__proposal_id__publish_post"];
         delete?: never;
         options?: never;
@@ -1562,7 +1793,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Kb Ont 24 Reject Proposal */
+        /**
+         * Kb Ont 24 Reject Proposal
+         * @description Kb Ont 24 Reject Proposal. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         post: operations["_kb_ont_24_reject_proposal_api_v1_kbs__kb_id__ontology_proposals__proposal_id__reject_post"];
         delete?: never;
         options?: never;
@@ -1579,7 +1813,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Kb Ont 20 Submit Proposal */
+        /**
+         * Kb Ont 20 Submit Proposal
+         * @description Kb Ont 20 Submit Proposal. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         post: operations["_kb_ont_20_submit_proposal_api_v1_kbs__kb_id__ontology_propose_post"];
         delete?: never;
         options?: never;
@@ -1594,7 +1831,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Kb Ontology Registry */
+        /**
+         * Kb Ontology Registry
+         * @description Kb Ontology Registry. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         get: operations["kb_ontology_registry_api_v1_kbs__kb_id__ontology_registry_get"];
         put?: never;
         post?: never;
@@ -1611,7 +1851,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Kb Ont 4 Search Entities */
+        /**
+         * Kb Ont 4 Search Entities
+         * @description Kb Ont 4 Search Entities. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         get: operations["_kb_ont_4_search_entities_api_v1_kbs__kb_id__ontology_search_get"];
         put?: never;
         post?: never;
@@ -1630,7 +1873,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Kb Ont 11 Generate Shacl */
+        /**
+         * Kb Ont 11 Generate Shacl
+         * @description Kb Ont 11 Generate Shacl. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         post: operations["_kb_ont_11_generate_shacl_api_v1_kbs__kb_id__ontology_shacl_generate_post"];
         delete?: never;
         options?: never;
@@ -1645,7 +1891,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Kb Ont 12 List Shacl Shapes */
+        /**
+         * Kb Ont 12 List Shacl Shapes
+         * @description Kb Ont 12 List Shacl Shapes. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         get: operations["_kb_ont_12_list_shacl_shapes_api_v1_kbs__kb_id__ontology_shacl_shapes_get"];
         put?: never;
         post?: never;
@@ -1664,7 +1913,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Kb Ont 13 Validate Shacl */
+        /**
+         * Kb Ont 13 Validate Shacl
+         * @description Kb Ont 13 Validate Shacl. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         post: operations["_kb_ont_13_validate_shacl_api_v1_kbs__kb_id__ontology_shacl_validate_post"];
         delete?: never;
         options?: never;
@@ -1679,7 +1931,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Kb Ont 9 Get Skos Concept */
+        /**
+         * Kb Ont 9 Get Skos Concept
+         * @description Kb Ont 9 Get Skos Concept. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         get: operations["_kb_ont_9_get_skos_concept_api_v1_kbs__kb_id__ontology_skos_concept__concept_uri__get"];
         put?: never;
         post?: never;
@@ -1696,7 +1951,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Kb Ont 7 List Skos Schemes */
+        /**
+         * Kb Ont 7 List Skos Schemes
+         * @description Kb Ont 7 List Skos Schemes. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         get: operations["_kb_ont_7_list_skos_schemes_api_v1_kbs__kb_id__ontology_skos_schemes_get"];
         put?: never;
         post?: never;
@@ -1715,7 +1973,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Kb Ont 8 Search Skos Concepts */
+        /**
+         * Kb Ont 8 Search Skos Concepts
+         * @description Kb Ont 8 Search Skos Concepts. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         post: operations["_kb_ont_8_search_skos_concepts_api_v1_kbs__kb_id__ontology_skos_search_post"];
         delete?: never;
         options?: never;
@@ -1732,7 +1993,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Kb Suggest Alignments */
+        /**
+         * Kb Suggest Alignments
+         * @description Kb Suggest Alignments. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         post: operations["kb_suggest_alignments_api_v1_kbs__kb_id__ontology_suggest_alignments_post"];
         delete?: never;
         options?: never;
@@ -1747,7 +2011,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Kb Ont 27 List Versions */
+        /**
+         * Kb Ont 27 List Versions
+         * @description Kb Ont 27 List Versions. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         get: operations["_kb_ont_27_list_versions_api_v1_kbs__kb_id__ontology_versions__ontology_uri__get"];
         put?: never;
         post?: never;
@@ -1766,7 +2033,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Kb Ont 28 Compare Versions */
+        /**
+         * Kb Ont 28 Compare Versions
+         * @description Kb Ont 28 Compare Versions. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         post: operations["_kb_ont_28_compare_versions_api_v1_kbs__kb_id__ontology_versions__ontology_uri__compare_post"];
         delete?: never;
         options?: never;
@@ -1784,7 +2054,10 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** Kb Ont 14 Remove Ontology */
+        /**
+         * Kb Ont 14 Remove Ontology
+         * @description Kb Ont 14 Remove Ontology. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         delete: operations["_kb_ont_14_remove_ontology_api_v1_kbs__kb_id__ontology__ontology_uri__delete"];
         options?: never;
         head?: never;
@@ -1800,7 +2073,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Kb Ont 16 Refresh Ontology */
+        /**
+         * Kb Ont 16 Refresh Ontology
+         * @description Kb Ont 16 Refresh Ontology. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         post: operations["_kb_ont_16_refresh_ontology_api_v1_kbs__kb_id__ontology__ontology_uri__refresh_post"];
         delete?: never;
         options?: never;
@@ -1821,7 +2097,10 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /** Kb Ont 15 Toggle Ontology */
+        /**
+         * Kb Ont 15 Toggle Ontology
+         * @description Kb Ont 15 Toggle Ontology. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         patch: operations["_kb_ont_15_toggle_ontology_api_v1_kbs__kb_id__ontology__ontology_uri__toggle_patch"];
         trace?: never;
     };
@@ -1832,10 +2111,16 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Processing Jobs */
+        /**
+         * List Processing Jobs
+         * @description List Processing Jobs. Document processing jobs (extract, chunk, project). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         get: operations["list_processing_jobs_api_v1_kbs__kb_id__processing_jobs_get"];
         put?: never;
-        /** Start Processing Job */
+        /**
+         * Start Processing Job
+         * @description Start Processing Job. Document processing jobs (extract, chunk, project). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         post: operations["start_processing_job_api_v1_kbs__kb_id__processing_jobs_post"];
         delete?: never;
         options?: never;
@@ -1850,7 +2135,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Processing Job */
+        /**
+         * Get Processing Job
+         * @description Get Processing Job. Document processing jobs (extract, chunk, project). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         get: operations["get_processing_job_api_v1_kbs__kb_id__processing_jobs__job_id__get"];
         put?: never;
         post?: never;
@@ -1869,7 +2157,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Retry Processing Job */
+        /**
+         * Retry Processing Job
+         * @description Retry Processing Job. Document processing jobs (extract, chunk, project). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         post: operations["retry_processing_job_api_v1_kbs__kb_id__processing_jobs__job_id__retry_post"];
         delete?: never;
         options?: never;
@@ -1884,7 +2175,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Kb Provenance Lineage */
+        /**
+         * Kb Provenance Lineage
+         * @description Kb Provenance Lineage. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         get: operations["kb_provenance_lineage_api_v1_kbs__kb_id__provenance_get"];
         put?: never;
         post?: never;
@@ -1901,7 +2195,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Kb Provenance Report */
+        /**
+         * Kb Provenance Report
+         * @description Kb Provenance Report. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         get: operations["kb_provenance_report_api_v1_kbs__kb_id__provenance_report_get"];
         put?: never;
         post?: never;
@@ -1920,7 +2217,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Create Realtime Ticket */
+        /**
+         * Create Realtime Ticket
+         * @description Create Realtime Ticket. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         post: operations["create_realtime_ticket_api_v1_kbs__kb_id__realtime_ticket_post"];
         delete?: never;
         options?: never;
@@ -1937,8 +2237,31 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Kb Reasoning Run */
+        /**
+         * Kb Reasoning Run
+         * @description Kb Reasoning Run. KB-local reasoning rules and runs. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         post: operations["kb_reasoning_run_api_v1_kbs__kb_id__reasoning_run_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/kbs/{kb_id}/remember/proposals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create Remember Proposal
+         * @description Propose a canonical fact for human review (integration core `propose_remember`).
+         */
+        post: operations["create_remember_proposal_api_v1_kbs__kb_id__remember_proposals_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1952,7 +2275,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Review Items */
+        /**
+         * List Review Items
+         * @description List Review Items. Human review queue for merges, imports, and conflicts. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         get: operations["list_review_items_api_v1_kbs__kb_id__review_items_get"];
         put?: never;
         post?: never;
@@ -1971,7 +2297,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Propose Entity Merge */
+        /**
+         * Propose Entity Merge
+         * @description Propose Entity Merge. Human review queue for merges, imports, and conflicts. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         post: operations["propose_entity_merge_api_v1_kbs__kb_id__review_items_entity_merge_post"];
         delete?: never;
         options?: never;
@@ -1988,8 +2317,31 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Propose Graph Import */
+        /**
+         * Propose Graph Import
+         * @description Propose Graph Import. Human review queue for merges, imports, and conflicts. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         post: operations["propose_graph_import_api_v1_kbs__kb_id__review_items_graph_import_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/kbs/{kb_id}/review/items/{item_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Review Item Route
+         * @description Get Review Item. Human review queue for merges, imports, and conflicts. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
+        get: operations["get_review_item_route_api_v1_kbs__kb_id__review_items__item_id__get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -2005,7 +2357,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Approve Review Item */
+        /**
+         * Approve Review Item
+         * @description Approve Review Item. Human review queue for merges, imports, and conflicts. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         post: operations["approve_review_item_api_v1_kbs__kb_id__review_items__item_id__approve_post"];
         delete?: never;
         options?: never;
@@ -2022,7 +2377,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Reject Review Item */
+        /**
+         * Reject Review Item
+         * @description Reject Review Item. Human review queue for merges, imports, and conflicts. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         post: operations["reject_review_item_api_v1_kbs__kb_id__review_items__item_id__reject_post"];
         delete?: never;
         options?: never;
@@ -2057,10 +2415,16 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Kb Reasoning Rules */
+        /**
+         * List Kb Reasoning Rules
+         * @description List Kb Reasoning Rules. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         get: operations["list_kb_reasoning_rules_api_v1_kbs__kb_id__rules_get"];
         put?: never;
-        /** Create Kb Reasoning Rule */
+        /**
+         * Create Kb Reasoning Rule
+         * @description Create Kb Reasoning Rule. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         post: operations["create_kb_reasoning_rule_api_v1_kbs__kb_id__rules_post"];
         delete?: never;
         options?: never;
@@ -2078,11 +2442,17 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** Delete Kb Reasoning Rule */
+        /**
+         * Delete Kb Reasoning Rule
+         * @description Delete Kb Reasoning Rule. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         delete: operations["delete_kb_reasoning_rule_api_v1_kbs__kb_id__rules__rule_id__delete"];
         options?: never;
         head?: never;
-        /** Update Kb Reasoning Rule */
+        /**
+         * Update Kb Reasoning Rule
+         * @description Update Kb Reasoning Rule. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         patch: operations["update_kb_reasoning_rule_api_v1_kbs__kb_id__rules__rule_id__patch"];
         trace?: never;
     };
@@ -2093,7 +2463,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Chunk Search Route */
+        /**
+         * Chunk Search Route
+         * @description Chunk Search Route. Chunk retrieval (keyword, semantic, or hybrid per KB config). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         get: operations["chunk_search_route_api_v1_kbs__kb_id__search_get"];
         put?: never;
         post?: never;
@@ -2110,9 +2483,15 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Chunk Search Config Route */
+        /**
+         * Get Chunk Search Config Route
+         * @description Get Chunk Search Config Route. Chunk retrieval (keyword, semantic, or hybrid per KB config). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         get: operations["get_chunk_search_config_route_api_v1_kbs__kb_id__search_config_get"];
-        /** Update Chunk Search Config Route */
+        /**
+         * Update Chunk Search Config Route
+         * @description Update Chunk Search Config Route. Chunk retrieval (keyword, semantic, or hybrid per KB config). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         put: operations["update_chunk_search_config_route_api_v1_kbs__kb_id__search_config_put"];
         post?: never;
         delete?: never;
@@ -2130,7 +2509,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Chunk Search Reindex Route */
+        /**
+         * Chunk Search Reindex Route
+         * @description Chunk Search Reindex Route. Chunk retrieval (keyword, semantic, or hybrid per KB config). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         post: operations["chunk_search_reindex_route_api_v1_kbs__kb_id__search_reindex_post"];
         delete?: never;
         options?: never;
@@ -2145,10 +2527,16 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Ingest Sources */
+        /**
+         * List Ingest Sources
+         * @description List Ingest Sources. Ingest sources (HTTP poll, webhook, manual sync). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         get: operations["list_ingest_sources_api_v1_kbs__kb_id__sources_get"];
         put?: never;
-        /** Create Ingest Source */
+        /**
+         * Create Ingest Source
+         * @description Create Ingest Source. Ingest sources (HTTP poll, webhook, manual sync). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         post: operations["create_ingest_source_api_v1_kbs__kb_id__sources_post"];
         delete?: never;
         options?: never;
@@ -2163,15 +2551,24 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Ingest Source */
+        /**
+         * Get Ingest Source
+         * @description Get Ingest Source. Ingest sources (HTTP poll, webhook, manual sync). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         get: operations["get_ingest_source_api_v1_kbs__kb_id__sources__source_id__get"];
         put?: never;
         post?: never;
-        /** Delete Ingest Source */
+        /**
+         * Delete Ingest Source
+         * @description Delete Ingest Source. Ingest sources (HTTP poll, webhook, manual sync). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         delete: operations["delete_ingest_source_api_v1_kbs__kb_id__sources__source_id__delete"];
         options?: never;
         head?: never;
-        /** Update Ingest Source */
+        /**
+         * Update Ingest Source
+         * @description Update Ingest Source. Ingest sources (HTTP poll, webhook, manual sync). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         patch: operations["update_ingest_source_api_v1_kbs__kb_id__sources__source_id__patch"];
         trace?: never;
     };
@@ -2184,7 +2581,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Rotate Ingest Source Token */
+        /**
+         * Rotate Ingest Source Token
+         * @description Rotate Ingest Source Token. Ingest sources (HTTP poll, webhook, manual sync). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         post: operations["rotate_ingest_source_token_api_v1_kbs__kb_id__sources__source_id__rotate_token_post"];
         delete?: never;
         options?: never;
@@ -2201,7 +2601,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Sync Ingest Source */
+        /**
+         * Sync Ingest Source
+         * @description Sync Ingest Source. Ingest sources (HTTP poll, webhook, manual sync). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         post: operations["sync_ingest_source_api_v1_kbs__kb_id__sources__source_id__sync_post"];
         delete?: never;
         options?: never;
@@ -2238,7 +2641,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Ingest Via Webhook */
+        /**
+         * Ingest Via Webhook
+         * @description Ingest Via Webhook. Ingest sources (HTTP poll, webhook, manual sync). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         post: operations["ingest_via_webhook_api_v1_kbs__kb_id__sources__source_id__webhook_post"];
         delete?: never;
         options?: never;
@@ -2255,7 +2661,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Kb Sparql Execute */
+        /**
+         * Kb Sparql Execute
+         * @description Kb Sparql Execute. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         post: operations["kb_sparql_execute_api_v1_kbs__kb_id__sparql_post"];
         delete?: never;
         options?: never;
@@ -2270,7 +2679,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Kb Temporal Bounds */
+        /**
+         * Kb Temporal Bounds
+         * @description Kb Temporal Bounds. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         get: operations["kb_temporal_bounds_api_v1_kbs__kb_id__temporal_bounds_get"];
         put?: never;
         post?: never;
@@ -2287,7 +2699,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Kb Temporal Diff */
+        /**
+         * Kb Temporal Diff
+         * @description Kb Temporal Diff. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         get: operations["kb_temporal_diff_api_v1_kbs__kb_id__temporal_diff_get"];
         put?: never;
         post?: never;
@@ -2304,7 +2719,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Kb Temporal Snapshot */
+        /**
+         * Kb Temporal Snapshot
+         * @description Kb Temporal Snapshot. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         get: operations["kb_temporal_snapshot_api_v1_kbs__kb_id__temporal_snapshot_get"];
         put?: never;
         post?: never;
@@ -2321,10 +2739,16 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Kb Tokens */
+        /**
+         * List Kb Tokens
+         * @description List Kb Tokens. Manage KB API tokens (session + KB admin only). Requires session JWT (`sessionAuth`).
+         */
         get: operations["list_kb_tokens_api_v1_kbs__kb_id__tokens_get"];
         put?: never;
-        /** Create Kb Token */
+        /**
+         * Create Kb Token
+         * @description Create Kb Token. Manage KB API tokens (session + KB admin only). Requires session JWT (`sessionAuth`).
+         */
         post: operations["create_kb_token_api_v1_kbs__kb_id__tokens_post"];
         delete?: never;
         options?: never;
@@ -2342,7 +2766,10 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** Delete Kb Token */
+        /**
+         * Delete Kb Token
+         * @description Delete Kb Token. Manage KB API tokens (session + KB admin only). Requires session JWT (`sessionAuth`).
+         */
         delete: operations["delete_kb_token_api_v1_kbs__kb_id__tokens__token_id__delete"];
         options?: never;
         head?: never;
@@ -2356,7 +2783,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Kb Vocabulary Concepts */
+        /**
+         * Kb Vocabulary Concepts
+         * @description Kb Vocabulary Concepts. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         get: operations["kb_vocabulary_concepts_api_v1_kbs__kb_id__vocabulary_concepts_get"];
         put?: never;
         post?: never;
@@ -2373,7 +2803,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Kb Vocabulary Hierarchy */
+        /**
+         * Kb Vocabulary Hierarchy
+         * @description Kb Vocabulary Hierarchy. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         get: operations["kb_vocabulary_hierarchy_api_v1_kbs__kb_id__vocabulary_hierarchy_get"];
         put?: never;
         post?: never;
@@ -2392,7 +2825,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Kb Vocabulary Import */
+        /**
+         * Kb Vocabulary Import
+         * @description Kb Vocabulary Import. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         post: operations["kb_vocabulary_import_api_v1_kbs__kb_id__vocabulary_import_post"];
         delete?: never;
         options?: never;
@@ -2407,7 +2843,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Kb Vocabulary Schemes */
+        /**
+         * Kb Vocabulary Schemes
+         * @description Kb Vocabulary Schemes. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         */
         get: operations["kb_vocabulary_schemes_api_v1_kbs__kb_id__vocabulary_schemes_get"];
         put?: never;
         post?: never;
@@ -2424,7 +2863,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Model Providers */
+        /**
+         * List Model Providers
+         * @description List Model Providers. Requires session JWT (`sessionAuth`).
+         */
         get: operations["list_model_providers_api_v1_model_providers_get"];
         put?: never;
         post?: never;
@@ -2443,7 +2885,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Probe Remote Models */
+        /**
+         * Probe Remote Models
+         * @description Probe Remote Models. Requires session JWT (`sessionAuth`).
+         */
         post: operations["probe_remote_models_api_v1_model_providers_probe_post"];
         delete?: never;
         options?: never;
@@ -2458,7 +2903,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Resolve Provider From Settings */
+        /**
+         * Resolve Provider From Settings
+         * @description Resolve Provider From Settings. Requires session JWT (`sessionAuth`).
+         */
         get: operations["resolve_provider_from_settings_api_v1_model_providers_resolve_get"];
         put?: never;
         post?: never;
@@ -2475,10 +2923,16 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Models */
+        /**
+         * List Models
+         * @description List Models. LLM model catalog configuration. Requires session JWT (`sessionAuth`).
+         */
         get: operations["list_models_api_v1_models_get"];
         put?: never;
-        /** Create Model */
+        /**
+         * Create Model
+         * @description Create Model. LLM model catalog configuration. Requires session JWT (`sessionAuth`).
+         */
         post: operations["create_model_api_v1_models_post"];
         delete?: never;
         options?: never;
@@ -2496,11 +2950,17 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** Delete Model */
+        /**
+         * Delete Model
+         * @description Delete Model. LLM model catalog configuration. Requires session JWT (`sessionAuth`).
+         */
         delete: operations["delete_model_api_v1_models__model_id__delete"];
         options?: never;
         head?: never;
-        /** Patch Model */
+        /**
+         * Patch Model
+         * @description Patch Model. LLM model catalog configuration. Requires session JWT (`sessionAuth`).
+         */
         patch: operations["patch_model_api_v1_models__model_id__patch"];
         trace?: never;
     };
@@ -2511,7 +2971,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Orgs */
+        /**
+         * List Orgs
+         * @description List Orgs. Requires session JWT (`sessionAuth`).
+         */
         get: operations["list_orgs_api_v1_orgs_get"];
         put?: never;
         post?: never;
@@ -2528,7 +2991,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List My Orgs */
+        /**
+         * List My Orgs
+         * @description List My Orgs. Organizations and OIDC SSO. Requires session JWT (`sessionAuth`).
+         */
         get: operations["list_my_orgs_api_v1_orgs_mine_get"];
         put?: never;
         post?: never;
@@ -2545,7 +3011,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Org */
+        /**
+         * Get Org
+         * @description Get Org. Organizations and OIDC SSO. Requires session JWT (`sessionAuth`).
+         */
         get: operations["get_org_api_v1_orgs__org_id__get"];
         put?: never;
         post?: never;
@@ -2562,9 +3031,15 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Org Oidc */
+        /**
+         * Get Org Oidc
+         * @description Get Org Oidc. Organizations and OIDC SSO. Requires session JWT (`sessionAuth`).
+         */
         get: operations["get_org_oidc_api_v1_orgs__org_id__oidc_get"];
-        /** Put Org Oidc */
+        /**
+         * Put Org Oidc
+         * @description Put Org Oidc. Organizations and OIDC SSO. Requires session JWT (`sessionAuth`).
+         */
         put: operations["put_org_oidc_api_v1_orgs__org_id__oidc_put"];
         post?: never;
         delete?: never;
@@ -2580,7 +3055,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Platform Info */
+        /**
+         * Platform Info
+         * @description Platform Info. Requires session JWT (`sessionAuth`).
+         */
         get: operations["platform_info_api_v1_platform_get"];
         put?: never;
         post?: never;
@@ -2599,7 +3077,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Reason */
+        /**
+         * Reason
+         * @description Reason. Requires session JWT (`sessionAuth`).
+         */
         post: operations["reason_api_v1_reason_post"];
         delete?: never;
         options?: never;
@@ -2614,9 +3095,15 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Settings */
+        /**
+         * Get Settings
+         * @description Get Settings. Requires session JWT (`sessionAuth`).
+         */
         get: operations["get_settings_api_v1_settings_get"];
-        /** Put Settings */
+        /**
+         * Put Settings
+         * @description Put Settings. Requires session JWT (`sessionAuth`).
+         */
         put: operations["put_settings_api_v1_settings_put"];
         post?: never;
         delete?: never;
@@ -2632,9 +3119,15 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Access */
+        /**
+         * Get Access
+         * @description Get Access. Platform system settings (admin). Requires session JWT (`sessionAuth`).
+         */
         get: operations["get_access_api_v1_settings_access_get"];
-        /** Put Access */
+        /**
+         * Put Access
+         * @description Put Access. Platform system settings (admin). Requires session JWT (`sessionAuth`).
+         */
         put: operations["put_access_api_v1_settings_access_put"];
         post?: never;
         delete?: never;
@@ -2650,7 +3143,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Active Users */
+        /**
+         * List Active Users
+         * @description List Active Users. Requires session JWT (`sessionAuth`).
+         */
         get: operations["list_active_users_api_v1_users_get"];
         put?: never;
         post?: never;
@@ -2667,7 +3163,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Openapi V1 Full */
+        /**
+         * Get Openapi V1 Full
+         * @description Return the live Basis OpenAPI v1 document exported from this app.
+         */
         get: operations["get_openapi_v1_full_openapi_v1_json_get"];
         put?: never;
         post?: never;
@@ -2684,7 +3183,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Openapi V1 Kb */
+        /**
+         * Get Openapi V1 Kb
+         * @description Return the live KB integration OpenAPI slice exported from this app.
+         */
         get: operations["get_openapi_v1_kb_openapi_v1_kb_json_get"];
         put?: never;
         post?: never;
@@ -2701,7 +3203,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Openapi V1 Platform */
+        /**
+         * Get Openapi V1 Platform
+         * @description Return the live platform/admin OpenAPI slice exported from this app.
+         */
         get: operations["get_openapi_v1_platform_openapi_v1_platform_json_get"];
         put?: never;
         post?: never;
@@ -2741,6 +3246,20 @@ export interface components {
         AppendTextVersionRequest: {
             /** Text */
             text: string;
+        };
+        /**
+         * ApproveReviewItemResponse
+         * @description Approve review item (merge, import, remember, …) including optional governance decision id.
+         */
+        ApproveReviewItemResponse: {
+            /** Item */
+            item: {
+                [key: string]: unknown;
+            };
+            /** Decision Id */
+            decision_id?: string | null;
+        } & {
+            [key: string]: unknown;
         };
         /** Body_append_document_version_upload_api_v1_kbs__kb_id__documents__document_id__versions_upload_post */
         Body_append_document_version_upload_api_v1_kbs__kb_id__documents__document_id__versions_upload_post: {
@@ -3120,21 +3639,6 @@ export interface components {
             /** Api Key */
             api_key?: string | null;
         };
-        /** PlaygroundMessage */
-        PlaygroundMessage: {
-            /**
-             * Role
-             * @enum {string}
-             */
-            role: "user" | "assistant" | "system";
-            /** Content */
-            content: string;
-        };
-        /** PlaygroundRequest */
-        PlaygroundRequest: {
-            /** Messages */
-            messages: components["schemas"]["PlaygroundMessage"][];
-        };
         /** PreviewOntologyRequest */
         PreviewOntologyRequest: {
             /** Url */
@@ -3195,8 +3699,8 @@ export interface components {
             /** Display Name */
             display_name: string;
         };
-        /** RememberRequest */
-        RememberRequest: {
+        /** RememberProposalRequest */
+        RememberProposalRequest: {
             /** Content */
             content: string;
         };
@@ -3442,7 +3946,7 @@ export interface components {
             auto_process: boolean;
         };
         /** CreateOntologyRequest */
-        basis__api__routes__v1__kbs__CreateOntologyRequest: {
+        basis__transport__http__routes__v1__kbs__CreateOntologyRequest: {
             /** Namespace */
             namespace: string;
             /** Name */
@@ -4414,121 +4918,6 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    kb_chat_playground_api_v1_kbs__kb_id__chat_playground_post: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string | null;
-            };
-            path: {
-                kb_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["PlaygroundRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    kb_chat_playground_stream_api_v1_kbs__kb_id__chat_playground_stream_post: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string | null;
-            };
-            path: {
-                kb_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["PlaygroundRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    kb_chat_remember_api_v1_kbs__kb_id__chat_remember_post: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string | null;
-            };
-            path: {
-                kb_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["RememberRequest"];
-            };
-        };
         responses: {
             /** @description Successful Response */
             200: {
@@ -6395,7 +6784,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["basis__api__routes__v1__kbs__CreateOntologyRequest"];
+                "application/json": components["schemas"]["basis__transport__http__routes__v1__kbs__CreateOntologyRequest"];
             };
         };
         responses: {
@@ -7873,6 +8262,45 @@ export interface operations {
             };
         };
     };
+    create_remember_proposal_api_v1_kbs__kb_id__remember_proposals_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                kb_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RememberProposalRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_review_items_api_v1_kbs__kb_id__review_items_get: {
         parameters: {
             query?: {
@@ -7990,6 +8418,42 @@ export interface operations {
             };
         };
     };
+    get_review_item_route_api_v1_kbs__kb_id__review_items__item_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                kb_id: string;
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     approve_review_item_api_v1_kbs__kb_id__review_items__item_id__approve_post: {
         parameters: {
             query?: never;
@@ -8014,9 +8478,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["ApproveReviewItemResponse"];
                 };
             };
             /** @description Validation Error */

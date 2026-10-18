@@ -188,10 +188,12 @@ export function DecisionWorkspace({
   kbId,
   initialFilter = "",
   selectDecisionId,
+  onSelectedDecisionChange,
 }: {
   kbId: string;
   initialFilter?: string;
   selectDecisionId?: string;
+  onSelectedDecisionChange?: (decisionId: string) => void;
 }) {
   const { t, locale } = useI18n();
   const dec = t.kbDecisions;
@@ -203,6 +205,7 @@ export function DecisionWorkspace({
   const [listLoading, setListLoading] = useState(true);
   const [filter, setFilter] = useState(initialFilter);
   const [error, setError] = useState("");
+  const [linkCopied, setLinkCopied] = useState(false);
 
   const chainCtrlRef = useRef<AbortController | null>(null);
 
@@ -349,8 +352,12 @@ export function DecisionWorkspace({
                     key={row.decision_id}
                     type="button"
                     variant="ghost"
+                    data-testid={`decision-list-item-${row.decision_id}`}
                     className={cn("ws-list-item h-auto justify-start font-normal", active && "ws-list-item--active")}
-                    onClick={() => void loadChain(row)}
+                    onClick={() => {
+                      onSelectedDecisionChange?.(row.decision_id);
+                      void loadChain(row);
+                    }}
                   >
                     <div className={exWsListItemTitle}>{row.decision_id}</div>
                     <div className={exWsListItemMeta}>
@@ -397,13 +404,17 @@ export function DecisionWorkspace({
                     type="button"
                     size="sm"
                     variant="outline"
+                    data-testid="decision-copy-deep-link"
                     onClick={() => {
                       const path = kbReviewDecisionPath(kbId, selected.decision_id);
                       const url = `${window.location.origin}${path}`;
-                      void navigator.clipboard.writeText(url);
+                      void navigator.clipboard.writeText(url).then(() => {
+                        setLinkCopied(true);
+                        window.setTimeout(() => setLinkCopied(false), 2000);
+                      });
                     }}
                   >
-                    {dec.copyDeepLink}
+                    {linkCopied ? dec.copyDeepLinkDone : dec.copyDeepLink}
                   </Button>
                 </div>
               </div>

@@ -29,6 +29,7 @@ export const kbGraphDiff = {
   removedEdgesTitle: 'Removed edges',
   none: 'None',
   graphLink: 'Graph',
+  graphAtEndTimelineLink: 'Open graph timeline at range end',
   searchLink: 'Search',
   emptyTitle: 'No comparison yet',
   emptyDescription: 'Set the from and to instants, then run Compare.',

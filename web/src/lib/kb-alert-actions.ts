@@ -1,6 +1,6 @@
 import type { KbAlertStreamItem } from '@/lib/kb-alerts-stream.js';
 import { kbOntologyProposalPath, kbPath } from '@/lib/nav-config.js';
-import { kbReviewDecisionPath, kbReviewItemPath } from '@/lib/reviewUrlState.js';
+import { decisionIdFromDetail, kbReviewDecisionPath, kbReviewItemPath } from '@/lib/reviewUrlState.js';
 import { kbProcessingJobPath } from '@/lib/processingUrlState.js';
 import { kbIngestSourcePath } from '@/lib/sourcesUrlState.js';
 
@@ -32,16 +32,19 @@ export function kbAlertAction(kbId: string, alert: KbAlertStreamItem): KbAlertAc
   }
 
   if (alert.kind === 'governance.statement_conflict') {
-    const itemId = detail.item_id;
-    if (typeof itemId === 'string' && itemId.length > 0) {
+    const itemId =
+      (typeof detail.item_id === 'string' && detail.item_id) ||
+      (typeof detail.review_item_id === 'string' && detail.review_item_id) ||
+      '';
+    if (itemId.length > 0) {
       return { href: kbReviewItemPath(kbId, itemId), labelKey: 'viewReview' };
     }
     return { href: kbPath(kbId, 'review'), labelKey: 'viewReview' };
   }
 
   if (alert.kind === 'governance.tripped') {
-    const decisionId = detail.decision_id;
-    if (typeof decisionId === 'string' && decisionId.length > 0) {
+    const decisionId = decisionIdFromDetail(detail);
+    if (decisionId) {
       return { href: kbReviewDecisionPath(kbId, decisionId), labelKey: 'viewDecisions' };
     }
     if (proposalId) {

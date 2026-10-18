@@ -56,7 +56,7 @@ jobs:
       - name: Sync Python dependencies
         run: uv sync --extra dev
 
-      - name: Regenerate OpenAPI v1 YAML
+      - name: Regenerate OpenAPI v1 JSON
         run: uv run python scripts/generate-openapi-v1.py --data-dir /tmp/basis-openapi-gen
 
       - name: Fail on OpenAPI drift
@@ -69,7 +69,7 @@ jobs:
       - name: Spectral lint OpenAPI v1
         run: >-
           npx --yes @stoplight/spectral-cli@6.15.0 lint
-          openapi/basis-v1.yaml openapi/basis-v1-kb.yaml openapi/basis-v1-platform.yaml
+          openapi/basis-v1.json openapi/basis-v1-kb.json openapi/basis-v1-platform.json
 
       - name: Web ↔ OpenAPI path audit (S0)
         run: node scripts/audit-web-openapi-paths.mjs

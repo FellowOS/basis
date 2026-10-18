@@ -7,13 +7,13 @@ import sys
 
 import uvicorn
 
-from basis.config import Settings
-from basis.observability.logging_setup import uvicorn_log_config
+from basis.infra.config import Settings
+from basis.infra.observability.logging_setup import uvicorn_log_config
 
 
 def _cmd_serve(settings: Settings) -> None:
     uvicorn.run(
-        "basis.api.app:create_app",
+        "basis.transport.http.app:create_app",
         host=settings.host,
         port=settings.port,
         factory=True,
@@ -22,11 +22,11 @@ def _cmd_serve(settings: Settings) -> None:
 
 
 def _cmd_migrate_legacy_graphs(settings: Settings, args: argparse.Namespace) -> None:
-    from basis.admin.store import AdminStore
-    from basis.graph.persistence import GraphPersistence
-    from basis.knowledge.blob_store import BlobStore
-    from basis.knowledge.store import KnowledgeStore
-    from basis.migration.legacy_graph import migrate_all_legacy_graphs, print_reports
+    from basis.platform.admin.store import AdminStore
+    from basis.domain.graph.persistence import GraphPersistence
+    from basis.domain.kb.blob_store import BlobStore
+    from basis.domain.kb.store import KnowledgeStore
+    from basis.ops.migration.legacy_graph import migrate_all_legacy_graphs, print_reports
 
     admin = AdminStore(settings.db_path)
     try:
@@ -53,7 +53,7 @@ def _cmd_migrate_legacy_graphs(settings: Settings, args: argparse.Namespace) -> 
 
 
 def _cmd_migrate_postgres(settings: Settings, args: argparse.Namespace) -> None:
-    from basis.migration.sqlite_to_postgres import migrate_sqlite_to_postgres
+    from basis.ops.migration.sqlite_to_postgres import migrate_sqlite_to_postgres
 
     report = migrate_sqlite_to_postgres(
         settings.db_path,

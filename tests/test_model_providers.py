@@ -1,8 +1,8 @@
 from fastapi.testclient import TestClient
 
-from basis.api.app import create_app
-from basis.config import Settings
-from basis.models.setup_providers import infer_provider_id, providers_for_kind
+from basis.transport.http.app import create_app
+from basis.infra.config import Settings
+from basis.platform.models.setup_providers import infer_provider_id, providers_for_kind
 
 
 def _client(tmp_path) -> TestClient:

@@ -41,7 +41,11 @@ test('search open in graph focuses node', async ({ page }) => {
   const kbId = await defaultKbId(page);
   await ingestDocumentViaApi(page, kbId, 'Search to graph link smoke node.');
 
-  await page.goto(`/kbs/${kbId}/search?tab=graph&q=smoke`);
+  const bounds = await fetchTemporalBounds(page, kbId);
+  const at = bounds.max ?? bounds.min ?? '2030-01-01T00:00:00Z';
+  await page.goto(
+    `/kbs/${kbId}/search?tab=graph&q=smoke&at=${encodeURIComponent(at)}`,
+  );
 
   const unavailable = page.getByRole('heading', {
     name: /工作区不可用|Workspace unavailable/i,
@@ -55,4 +59,5 @@ test('search open in graph focuses node', async ({ page }) => {
   await expect(page.locator('[data-testid="kb-graph-workspace"]')).toBeVisible({
     timeout: 60_000,
   });
+  await expect(page).toHaveURL(new RegExp(`at=${encodeURIComponent(at).replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')}`));
 });

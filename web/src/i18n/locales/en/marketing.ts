@@ -1,6 +1,5 @@
 export const marketing = {
   brand: 'Basis',
-  heroEyebrow: 'Unified business semantics',
   heroHeadline: 'One semantic layer',
   heroHeadlineRest: 'for knowledge and decisions',
   heroSubhead:
@@ -36,7 +35,7 @@ export const marketing = {
   ctaGetStarted: 'Get started',
   ctaRegister: 'Create account',
   footerCopyright: '© {year} Basis',
-  footerTagline: 'FellowOS · Unified semantics · Agent-first · Self-hosted',
+  footerTagline: 'Unified semantics · Agent-first · Self-hosted',
   a11yThemeLight: 'Light mode',
   a11yThemeDark: 'Dark mode',
 } as const;

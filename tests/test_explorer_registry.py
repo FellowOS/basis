@@ -2,13 +2,13 @@
 
 import time
 
-from basis.explorer.registry import ExplorerSessionRegistry, KbExplorerRuntime
-from basis.graph.session import GraphSession
+from basis.domain.explorer.registry import ExplorerSessionRegistry, KbExplorerRuntime
+from basis.domain.graph.session import GraphSession
 
 
 def test_rebuild_explorer_wrapper_tracks_basis_graph_swap() -> None:
-    from basis.capabilities import explorer_available
-    from basis.explorer.registry import _explorer_wrapped_graph, _rebuild_explorer_wrapper
+    from basis.infra.capabilities import explorer_available
+    from basis.domain.explorer.registry import _explorer_wrapped_graph, _rebuild_explorer_wrapper
 
     session = GraphSession()
     session.add_node("a", "entity", content="A")

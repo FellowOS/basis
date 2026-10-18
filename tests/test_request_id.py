@@ -2,8 +2,8 @@
 
 from fastapi.testclient import TestClient
 
-from basis.api.app import create_app
-from basis.config import Settings
+from basis.transport.http.app import create_app
+from basis.infra.config import Settings
 
 
 def test_health_returns_request_id_header(tmp_path) -> None:

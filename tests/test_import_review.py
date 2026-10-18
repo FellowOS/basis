@@ -8,9 +8,9 @@ pytest.importorskip("semantica")
 
 from fastapi.testclient import TestClient
 
-from basis.api.app import create_app
-from basis.capabilities import explorer_available
-from basis.config import Settings
+from basis.transport.http.app import create_app
+from basis.infra.capabilities import explorer_available
+from basis.infra.config import Settings
 
 
 def test_reject_graph_import_deletes_staged_blob(tmp_path) -> None:
@@ -43,7 +43,7 @@ def test_reject_graph_import_deletes_staged_blob(tmp_path) -> None:
     )
     assert rejected.status_code == 200
 
-    from basis.knowledge.blob_store import BlobStore
+    from basis.domain.kb.blob_store import BlobStore
 
     blobs = BlobStore(tmp_path)
     try:
@@ -83,7 +83,7 @@ def test_approve_graph_import_deletes_staged_blob(tmp_path) -> None:
     )
     assert approved.status_code == 200
 
-    from basis.knowledge.blob_store import BlobStore
+    from basis.domain.kb.blob_store import BlobStore
 
     blobs = BlobStore(tmp_path)
     try:

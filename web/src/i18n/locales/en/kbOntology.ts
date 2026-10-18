@@ -236,6 +236,8 @@ export const kbOntology = {
     state: 'State',
     proposalId: 'Proposal ID',
     idCopied: 'Proposal ID copied.',
+    copyProposalLink: 'Copy review link',
+    copyProposalLinkDone: 'Link copied',
     shaclPublishBlocked: '{summary} — publish may be blocked until resolved.',
     impactAnalysis: 'Impact analysis',
     shaclValidation: 'SHACL validation',

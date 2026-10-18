@@ -29,6 +29,7 @@ export const kbGraphDiff = {
   removedEdgesTitle: '移除边',
   none: '无',
   graphLink: '图谱',
+  graphAtEndTimelineLink: '在范围结束时刻打开图谱时间轴',
   searchLink: '搜索',
   emptyTitle: '尚未对比',
   emptyDescription: '设置起始与结束时刻后，点击「对比」。',

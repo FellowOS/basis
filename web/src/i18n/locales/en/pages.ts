@@ -2,6 +2,7 @@ export const pages = {
   alerts: {
     alertsTitle: 'Active alerts',
     alertsEmpty: 'No active alerts',
+    viewAllAlerts: 'View all alerts',
     dismissAll: 'Dismiss all',
     refresh: 'Refresh',
     dismissAria: 'Dismiss',
@@ -64,6 +65,7 @@ export const pages = {
     detailKb: 'KB {kbId}',
     detailRev: 'rev {revision}',
     detailReview: 'review {reviewId}',
+    detailDecision: 'decision {decisionId}',
     detailEmail: '{email}',
     detailKbName: '{name}',
     detailUser: 'user {userId}',
@@ -93,6 +95,8 @@ export const pages = {
     create: 'Create',
   },
   kbSubtitles: {
+    review:
+      'Governance queue for merges, imports, mappings, remember proposals, and conflicts.',
     search:
       'Chunk filters use document ingest time. For point-in-time graph views, use the graph timeline (temporal/snapshot).',
     entityResolution: 'Scan duplicate entity candidates; merge locally or enqueue for review.',

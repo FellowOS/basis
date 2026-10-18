@@ -32,6 +32,13 @@ describe('formatUserFacingApiError', () => {
     expect(messageForApiErrorCode('ingest_overloaded', 'zh')).toContain('队列');
   });
 
+  it('maps chat playground inflight code', () => {
+    expect(messageForApiErrorCode('chat_in_flight', 'en')).toContain('already running');
+    const err = new Error('');
+    (err as Error & { code?: string }).code = 'chat_in_flight';
+    expect(formatUserFacingApiError(err, 'zh')).toContain('对话');
+  });
+
   it('maps auth codes without surfacing raw server text', () => {
     const err = new Error('');
     (err as Error & { code?: string }).code = 'invalid_credentials';

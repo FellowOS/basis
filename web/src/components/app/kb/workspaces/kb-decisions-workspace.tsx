@@ -1,5 +1,6 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { mergeKbDecisionParam } from '@/lib/reviewUrlState.js';
 import { KbGovernanceExplorerShell } from '@/components/app/kb/explorer-shell/kb-governance-explorer-shell.js';
 import { KbExplorerUnavailable } from '@/components/app/kb/explorer-shell/kb-explorer-unavailable.js';
 import { Spinner } from '@/components/ui/spinner.js';
@@ -20,10 +21,18 @@ export function KbDecisionsWorkspace({
   className?: string;
 }) {
   const { t } = useI18n();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { caps, loading: capsLoading } = useKbCapabilities();
   const decisionsQuery = searchParams.get('q') ?? '';
   const decisionsFocusId = searchParams.get('decision') ?? '';
+
+  const onSelectedDecisionChange = useCallback(
+    (decisionId: string) => {
+      const next = mergeKbDecisionParam(searchParams.toString(), decisionId);
+      setSearchParams(next, { replace: true });
+    },
+    [searchParams, setSearchParams],
+  );
 
   if (!capsLoading && caps && !caps.decisions) {
     return <KbExplorerUnavailable kbId={kbId} feature="review" />;
@@ -45,6 +54,7 @@ export function KbDecisionsWorkspace({
           kbId={kbId}
           initialFilter={decisionsQuery}
           selectDecisionId={decisionsFocusId || undefined}
+          onSelectedDecisionChange={onSelectedDecisionChange}
         />
       </Suspense>
     </KbGovernanceExplorerShell>

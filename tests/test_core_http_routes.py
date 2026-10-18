@@ -1,9 +1,9 @@
-"""HTTP routes delegate MCP-aligned operations to basis.core.run."""
+"""HTTP routes delegate MCP-aligned operations to basis.integration.run."""
 
 from fastapi.testclient import TestClient
 
-from basis.api.app import create_app
-from basis.config import Settings
+from basis.transport.http.app import create_app
+from basis.infra.config import Settings
 
 
 def _session_client(tmp_path) -> tuple[TestClient, str, dict[str, str]]:
@@ -86,7 +86,7 @@ def test_graph_search_via_core(tmp_path) -> None:
 def test_remember_via_core(tmp_path) -> None:
     client, kb_id, headers = _session_client(tmp_path)
     resp = client.post(
-        f"/api/v1/kbs/{kb_id}/chat/remember",
+        f"/api/v1/kbs/{kb_id}/remember/proposals",
         headers=headers,
         json={"content": "Austria uses euros."},
     )

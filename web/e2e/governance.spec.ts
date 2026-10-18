@@ -126,6 +126,61 @@ test('governance tripped alert links to decisions tab', async ({ page }) => {
   await expect(page).toHaveURL(new RegExp(`decision=${encodeURIComponent(decisionId!)}`));
 });
 
+test('approve remember records governance decision deep link', async ({ page }) => {
+  test.setTimeout(120_000);
+
+  await registerFreshUser(page);
+  const kbId = await defaultKbId(page);
+  const fact = `E2E approve decision ${Date.now()}`;
+  const { reviewItemId } = await proposeRememberViaApi(page, kbId, fact);
+
+  await page.goto(`/kbs/${kbId}/review?reviewItem=${encodeURIComponent(reviewItemId)}`);
+
+  const unavailable = page.getByRole('heading', {
+    name: /工作区不可用|Workspace unavailable/i,
+  });
+  if ((await unavailable.count()) > 0) {
+    test.skip(true, 'review workspace requires explorer_runtime');
+  }
+
+  const card = page.locator(`#review-item-${reviewItemId}`);
+  await expect(card).toBeVisible({ timeout: 60_000 });
+  await card.getByRole('button', { name: /Approve fact|批准记入/i }).click();
+
+  const decisionLink = page.getByTestId('review-approve-decision-link');
+  await expect(decisionLink).toBeVisible({ timeout: 30_000 });
+  await decisionLink.click();
+  await expect(page).toHaveURL(/\/decisions/);
+  await expect(page).toHaveURL(/decision=/);
+});
+
+test('resolved review deep link shows banner and decision links', async ({ page }) => {
+  test.setTimeout(120_000);
+
+  await registerFreshUser(page);
+  const kbId = await defaultKbId(page);
+  const fact = `E2E resolved deep link ${Date.now()}`;
+  const { reviewItemId } = await proposeRememberViaApi(page, kbId, fact);
+
+  await page.goto(`/kbs/${kbId}/review?reviewItem=${encodeURIComponent(reviewItemId)}`);
+
+  const unavailable = page.getByRole('heading', {
+    name: /工作区不可用|Workspace unavailable/i,
+  });
+  if ((await unavailable.count()) > 0) {
+    test.skip(true, 'review workspace requires explorer_runtime');
+  }
+
+  const card = page.locator(`#review-item-${reviewItemId}`);
+  await expect(card).toBeVisible({ timeout: 60_000 });
+  await card.getByRole('button', { name: /Approve fact|批准记入/i }).click();
+  await expect(page.getByTestId('review-approve-decision-link')).toBeVisible({ timeout: 30_000 });
+
+  await page.reload();
+  await expect(page.getByTestId('review-resolved-item-banner')).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByTestId(/^review-resolved-decision-/).first()).toBeVisible();
+});
+
 test('search graph tab shows temporal hint and link to graph workspace', async ({ page }) => {
   await registerFreshUser(page);
   const kbId = await defaultKbId(page);

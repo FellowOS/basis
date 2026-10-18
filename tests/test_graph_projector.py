@@ -1,13 +1,13 @@
 from pathlib import Path
 
-from basis.admin.store import AdminStore
-from basis.explorer.graph_diff import diff_graph_states
-from basis.graph.projector import graph_projection_signature, rebuild_graph_from_ledger
-from basis.graph.session import GraphSession
-from basis.knowledge.blob_store import BlobStore
-from basis.knowledge.store import KnowledgeStore
-from basis.pipeline.ledger_extract import apply_kg_to_ledger
-from basis.knowledge.derived_facts_service import persist_reasoning_derived
+from basis.platform.admin.store import AdminStore
+from basis.domain.explorer.graph_diff import diff_graph_states
+from basis.domain.graph.projector import graph_projection_signature, rebuild_graph_from_ledger
+from basis.domain.graph.session import GraphSession
+from basis.domain.kb.blob_store import BlobStore
+from basis.domain.kb.store import KnowledgeStore
+from basis.domain.ingest.ledger_extract import apply_kg_to_ledger
+from basis.domain.kb.derived_facts_service import persist_reasoning_derived
 
 
 def _kb_store(tmp_path: Path) -> tuple[str, KnowledgeStore]:

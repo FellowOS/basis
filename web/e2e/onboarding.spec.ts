@@ -11,7 +11,7 @@ test('register, open sources, paste text, pattern ingest', async ({ page }) => {
   test.setTimeout(180_000);
 
   await registerFreshUser(page);
-  await expect(page.locator('#kb-name')).toBeVisible();
+  await expect(page).toHaveURL(/\/kbs/);
   const kbId = await defaultKbId(page);
   const body = 'Alice knows Bob.';
   await ingestPasteText(page, kbId, body);

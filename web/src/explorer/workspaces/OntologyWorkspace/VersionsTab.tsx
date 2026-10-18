@@ -9,7 +9,9 @@ import {
 } from "../../lib/explorer-api-error";
 import { explorerFetch } from "../../host/explorerHttp";
 import { ontologyPath, useOntologyKbId } from "./ontologyKb";
+import { kbOntologyProposalPath } from "@/lib/nav-config.js";
 import { readOntologyUrlState, writeProposalSelection } from "./ontologyUrlState";
+import { cn } from "@/lib/utils.js";
 import { Button } from "@/components/ui/button.js";
 import {
   Dialog,
@@ -115,6 +117,8 @@ export function VersionsTab() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [modalNotice, setModalNotice] = useState("");
+  const [proposalLinkCopied, setProposalLinkCopied] = useState(false);
+  const urlProposalId = readOntologyUrlState().proposalId;
   const [uriDialogOpen, setUriDialogOpen] = useState(false);
   const [uriDraft, setUriDraft] = useState("");
   const openedProposalFromUrl = useRef<string | null>(null);
@@ -411,7 +415,12 @@ export function VersionsTab() {
             proposals.map((proposal) => (
               <div
                 key={proposal.proposal_id}
-                className="flex flex-wrap items-center gap-3 rounded-lg border border-border bg-card px-4 py-3 transition-colors"
+                data-testid={`ontology-proposal-list-item-${proposal.proposal_id}`}
+                className={cn(
+                  "flex flex-wrap items-center gap-3 rounded-lg border border-border bg-card px-4 py-3 transition-colors",
+                  urlProposalId === proposal.proposal_id &&
+                    "ring-2 ring-primary ring-offset-2 ring-offset-background",
+                )}
               >
                 {getStateIcon(proposal.state)}
                 <div className="min-w-0 flex-1">
@@ -494,6 +503,24 @@ export function VersionsTab() {
                 >
                   {t.common.copy}
                 </Button>
+                {kbId ? (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    data-testid="ontology-proposal-copy-link"
+                    onClick={() => {
+                      const path = kbOntologyProposalPath(kbId, selectedProposal.proposal_id);
+                      const href = `${window.location.origin}${path}`;
+                      void navigator.clipboard.writeText(href).then(() => {
+                        setProposalLinkCopied(true);
+                        window.setTimeout(() => setProposalLinkCopied(false), 2000);
+                      });
+                    }}
+                  >
+                    {proposalLinkCopied ? v.copyProposalLinkDone : v.copyProposalLink}
+                  </Button>
+                ) : null}
               </div>
             </div>
             {selectedProposal.shacl_validation?.conforms === false ? (

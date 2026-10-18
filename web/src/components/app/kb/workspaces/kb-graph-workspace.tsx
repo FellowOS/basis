@@ -1,4 +1,5 @@
 import { lazy, Suspense, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ExplorerHostProvider } from '@/explorer/host/explorerHttp.js';
 import { buildKbExplorerHttpConfig } from '@/lib/kb-explorer-host.js';
@@ -12,6 +13,8 @@ import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
 import type { Locale } from '@/i18n/locale.js';
 import { GraphExplorerThemeSync } from '@/lib/graph/explorer-theme-sync.js';
+import { kbGraphDiffPath } from '@/lib/nav-config.js';
+import { kbSearchPath } from '@/lib/searchUrlState.js';
 const GraphWorkspace = lazy(() =>
   import('@/explorer/workspaces/GraphWorkspace/GraphWorkspace.js').then((module) => ({
     default: module.GraphWorkspace,
@@ -31,10 +34,14 @@ export function KbGraphWorkspace({
   kbId,
   focusNodeId,
   focusAtInstant,
+  openTimelinePanel,
+  onScrubberAtChange,
 }: {
   kbId: string;
   focusNodeId?: string | null;
   focusAtInstant?: string | null;
+  openTimelinePanel?: boolean;
+  onScrubberAtChange?: (atIso: string) => void;
 }) {
   const { t, locale } = useI18n();
   const g = t.kbGraphPage;
@@ -66,9 +73,41 @@ export function KbGraphWorkspace({
   const canImportExport = !capsLoading && caps?.import_export;
   const canRebuild = !capsLoading && caps?.graph_write;
 
-  const graphDataActions =
-    canRebuild || canImportExport
-      ? (
+  const graphAt = focusAtInstant?.trim() || undefined;
+  const graphSearchHref = kbSearchPath(kbId, { scope: 'graph', ...(graphAt ? { at: graphAt } : {}) });
+
+  const graphDataActions = (
+    <>
+      <Button
+        type="button"
+        variant="outline"
+        size="icon-sm"
+        className={SIDEBAR_ICON_BUTTON_CLASS}
+        aria-label={g.searchGraph}
+        title={g.searchGraph}
+        asChild
+      >
+        <Link to={graphSearchHref} data-testid="kb-graph-open-search">
+          <SidebarIcon name="search-01" />
+        </Link>
+      </Button>
+      <Button
+        type="button"
+        variant="outline"
+        size="icon-sm"
+        className={SIDEBAR_ICON_BUTTON_CLASS}
+        aria-label={g.graphDiff}
+        title={g.graphDiff}
+        asChild
+      >
+        <Link
+          to={kbGraphDiffPath(kbId, graphAt, graphAt)}
+          data-testid="kb-graph-open-diff"
+        >
+          <SidebarIcon name="git-diff" />
+        </Link>
+      </Button>
+      {canRebuild || canImportExport ? (
           <>
             {canRebuild ? (
               <KbGraphRebuildButton
@@ -104,8 +143,9 @@ export function KbGraphWorkspace({
               </>
             ) : null}
           </>
-        )
-      : undefined;
+        ) : null}
+    </>
+  );
 
   return (
     <div
@@ -138,6 +178,8 @@ export function KbGraphWorkspace({
                 externalFocusNodeId={focusNodeId ?? undefined}
                 externalFocusToken={focusToken}
                 externalTemporalAt={focusAtInstant ?? undefined}
+                externalOpenTemporalPanel={openTimelinePanel}
+                onScrubberAtChange={onScrubberAtChange}
                 graphDataActions={graphDataActions}
                 graphWriteEnabled={!capsLoading && (caps?.graph_write ?? false)}
                 decisionsEnabled={!capsLoading && (caps?.decisions ?? false)}

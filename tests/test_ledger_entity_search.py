@@ -4,10 +4,10 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
-from basis.api.app import create_app
-from basis.config import Settings
-from basis.knowledge.blob_store import BlobStore
-from basis.knowledge.store import KnowledgeStore
+from basis.transport.http.app import create_app
+from basis.infra.config import Settings
+from basis.domain.kb.blob_store import BlobStore
+from basis.domain.kb.store import KnowledgeStore
 
 
 def test_find_entities_and_facts(tmp_path: Path) -> None:

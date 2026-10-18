@@ -88,7 +88,7 @@ export const docs = {
       sections: [
         {
           heading: '基址与版本',
-          paragraphs: ['规范路由均在 `/api/v1` 下。未版本化的 `/api/*` 为遗留路径，默认关闭（HTTP 410）。'],
+          paragraphs: ['规范路由均在 `/api/v1` 下。未带 v1 的遗留路由默认关闭（HTTP 410）。'],
         },
         {
           heading: 'OpenAPI 文档',

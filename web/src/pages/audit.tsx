@@ -34,6 +34,7 @@ import {
   formatGraphAuditDetail,
   type KbGraphAuditEvent,
 } from '@/lib/kb-graph-audit.js';
+import { decisionIdFromDetail } from '@/lib/reviewUrlState.js';
 
 type AuditDetail = Record<string, unknown>;
 
@@ -85,6 +86,10 @@ function formatDetailSummary(
   }
   if (typeof detail.review_item_id === 'string') {
     parts.push(fmt(p.detailReview, { reviewId: detail.review_item_id }));
+  }
+  const decisionId = decisionIdFromDetail(detail);
+  if (decisionId) {
+    parts.push(fmt(p.detailDecision, { decisionId }));
   }
   if (typeof detail.email === 'string') {
     parts.push(fmt(p.detailEmail, { email: detail.email }));

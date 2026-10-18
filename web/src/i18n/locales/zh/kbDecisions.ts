@@ -40,6 +40,7 @@ export const kbDecisions = {
   chainEmptyBody: '该决策未找到因果链步骤。',
   recordEyebrow: '决策记录',
   copyDeepLink: '复制深链',
+  copyDeepLinkDone: '已复制链接',
   causalChain: '因果链',
   chainStepCount: '{count} 步',
   chainStepCountOne: '1 步',

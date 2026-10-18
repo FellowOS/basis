@@ -9,10 +9,10 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-from basis.config import Settings
-from basis.database import get_database
-from basis.knowledge.blob_store import BlobStore
-from basis.knowledge.store import KnowledgeStore
+from basis.infra.config import Settings
+from basis.infra.database import get_database
+from basis.domain.kb.blob_store import BlobStore
+from basis.domain.kb.store import KnowledgeStore
 
 
 def main() -> None:

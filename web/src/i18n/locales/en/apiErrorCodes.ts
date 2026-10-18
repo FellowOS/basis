@@ -36,6 +36,8 @@ export const apiErrorCodes = {
   import_requires_review: "Graph import must go through the review queue before it is applied.",
   mcp_busy: "Too many MCP requests. Try again in a moment.",
   api_busy: "Too many API requests. Try again in a moment.",
+  chat_in_flight:
+    "A chat request is already running for this knowledge base. Wait or stop generation before sending again.",
   legacy_api_removed: "This API path is retired. Use /api/v1 instead.",
   mcp_timeout: "MCP tool execution timed out.",
   no_current_version: "This document has no current version.",

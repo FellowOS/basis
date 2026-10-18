@@ -36,6 +36,7 @@ export const kbLedger = {
   noDerivedFactsHint: '在推理工作台运行并写回后，结果会出现在这里。',
   premiseCount: '{count} 条前提',
   premiseCountOne: '1 条前提',
+  premisesLabel: '证明前提',
   entityCount: '第 {start}–{end} 条，共 {total} 个实体',
   entityCountEmpty: '共 0 个实体',
   statementStatusLabels: {

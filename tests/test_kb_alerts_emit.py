@@ -2,9 +2,9 @@
 
 from fastapi.testclient import TestClient
 
-from basis.api.app import create_app
-from basis.config import Settings
-from basis.knowledge.kb_alerts_emit import (
+from basis.transport.http.app import create_app
+from basis.infra.config import Settings
+from basis.domain.kb.kb_alerts_emit import (
     emit_governance_proposal_proposed_alert,
     emit_governance_tripped_alert,
     emit_llm_playground_alert,

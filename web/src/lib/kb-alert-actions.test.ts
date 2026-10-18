@@ -53,6 +53,14 @@ describe('kbAlertAction', () => {
     expect(action?.labelKey).toBe('viewReview');
   });
 
+  it('links statement conflict via review_item_id detail', () => {
+    const action = kbAlertAction(
+      'kb-1',
+      alert({ kind: 'governance.statement_conflict', detail: { review_item_id: 'conf-2' } }),
+    );
+    expect(action?.href).toBe('/kbs/kb-1/review?reviewItem=conf-2');
+  });
+
   it('links governance tripped with review item to queue deep link', () => {
     const action = kbAlertAction(
       'kb-1',

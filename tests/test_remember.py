@@ -2,8 +2,8 @@
 
 from fastapi.testclient import TestClient
 
-from basis.api.app import create_app
-from basis.config import Settings
+from basis.transport.http.app import create_app
+from basis.infra.config import Settings
 
 
 def test_chat_remember_creates_pending_review(tmp_path) -> None:
@@ -20,7 +20,7 @@ def test_chat_remember_creates_pending_review(tmp_path) -> None:
     ).json()["id"]
 
     proposed = client.post(
-        f"/api/v1/kbs/{kb_id}/chat/remember",
+        f"/api/v1/kbs/{kb_id}/remember/proposals",
         headers=headers,
         json={"content": "Acme Corp was founded in 2010."},
     )
@@ -30,11 +30,20 @@ def test_chat_remember_creates_pending_review(tmp_path) -> None:
     items = client.get(f"/api/v1/kbs/{kb_id}/review/items", headers=headers).json()["items"]
     assert any(i["id"] == review_id and i["kind"] == "statement_remember" for i in items)
 
+    fetched = client.get(
+        f"/api/v1/kbs/{kb_id}/review/items/{review_id}",
+        headers=headers,
+    )
+    assert fetched.status_code == 200
+    assert fetched.json()["item"]["id"] == review_id
+    assert fetched.json()["item"]["status"] == "open"
+
     approved = client.post(
         f"/api/v1/kbs/{kb_id}/review/items/{review_id}/approve",
         headers=headers,
         json={"rationale": "looks good"},
     )
     assert approved.status_code == 200
+    assert "decision_id" in approved.json()
     statement_id = proposed.json()["statement_id"]
     assert approved.json()["merge"]["statement_id"] == statement_id

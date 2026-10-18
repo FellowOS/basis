@@ -1,4 +1,4 @@
-import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { type FormEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import {
   DataPanel,
@@ -16,6 +16,7 @@ import {
   type GraphSearchHit,
 } from '@/components/app/kb/search/kb-search-results.js';
 import { Button } from '@/components/ui/button.js';
+import { Input } from '@/components/ui/input.js';
 import { Label } from '@/components/ui/label.js';
 import {
   Select,
@@ -34,6 +35,7 @@ import { useKbCatalog } from '@/lib/kb-context.js';
 import { useKbCapabilities } from '@/lib/kb-capabilities.js';
 import type { LedgerEntityHit } from '@/components/app/kb/ledger/ledger-entity-browser.js';
 import { useKbNodeLabels } from '@/lib/kb-node-labels.js';
+import { kbGraphPath } from '@/lib/graphUrlState.js';
 import { kbPath } from '@/lib/nav-config.js';
 import {
   kbSearchPath,
@@ -55,15 +57,12 @@ export function KbSearchPage() {
   const { caps, loading: capsLoading } = useKbCapabilities();
   const kb = id ? getKb(id) : undefined;
 
-  const urlState = useMemo(
-    () => parseKbSearchUrlState(searchParams.toString()),
-    [searchParams],
-  );
-
   const [scope, setScope] = useState<KbSearchScope>(() =>
     resolveKbSearchScope(searchParams.get('scope'), searchParams.get('tab')),
   );
   const [query, setQuery] = useState(() => searchParams.get('q') ?? '');
+  const [asOf, setAsOf] = useState(() => searchParams.get('as_of') ?? '');
+  const [at, setAt] = useState(() => searchParams.get('at') ?? '');
 
   const [graphResults, setGraphResults] = useState<GraphSearchHit[]>([]);
   const [chunkResults, setChunkResults] = useState<ChunkHit[]>([]);
@@ -81,9 +80,19 @@ export function KbSearchPage() {
   const graphLabels = useKbNodeLabels(id, graphLabelIds);
 
   const syncSearchUrl = useCallback(
-    (opts: { q: string; scope: KbSearchScope }) => {
+    (opts: {
+      q: string;
+      scope: KbSearchScope;
+      asOf?: string;
+      at?: string;
+    }) => {
       if (!id) return;
-      const href = kbSearchPath(id, { scope: opts.scope, q: opts.q });
+      const href = kbSearchPath(id, {
+        scope: opts.scope,
+        q: opts.q,
+        asOf: opts.asOf?.trim() || undefined,
+        at: opts.at?.trim() || undefined,
+      });
       const next = href.split('?')[1] ?? '';
       setSearchParams(new URLSearchParams(next), { replace: true });
     },
@@ -91,18 +100,26 @@ export function KbSearchPage() {
   );
 
   const fetchChunks = useCallback(
-    async (q: string, limit: number) => {
+    async (q: string, limit: number, asOfIso: string) => {
       if (!id) return [] as ChunkHit[];
-      const data = await kbApiClient(id).searchChunks(q, limit);
+      const trimmed = asOfIso.trim();
+      const data = await kbApiClient(id).searchChunks(q, limit, {
+        ...(trimmed ? { as_of: trimmed } : {}),
+      });
       return (data.chunks ?? []) as ChunkHit[];
     },
     [id],
   );
 
   const fetchGraph = useCallback(
-    async (q: string, limit: number) => {
+    async (q: string, limit: number, atIso: string) => {
       if (!id) return [] as GraphSearchHit[];
-      const data = await kbApiClient(id).searchGraph(q, limit);
+      const trimmed = atIso.trim();
+      const data = await kbApiClient(id).searchGraph(
+        q,
+        limit,
+        trimmed || undefined,
+      );
       return data.results as GraphSearchHit[];
     },
     [id],
@@ -123,7 +140,11 @@ export function KbSearchPage() {
   );
 
   const runSearch = useCallback(
-    async (activeScope: KbSearchScope, q: string) => {
+    async (
+      activeScope: KbSearchScope,
+      q: string,
+      temporal: { asOf: string; at: string },
+    ) => {
       if (!id) return;
       const trimmed = q.trim();
       const needsQuery = activeScope !== 'entities';
@@ -137,7 +158,7 @@ export function KbSearchPage() {
 
       try {
         if (activeScope === 'chunks') {
-          const chunks = await fetchChunks(trimmed, limit);
+          const chunks = await fetchChunks(trimmed, limit, temporal.asOf);
           setChunkResults(chunks);
           setGraphResults([]);
           setEntityResults([]);
@@ -148,7 +169,7 @@ export function KbSearchPage() {
             setEntityResults([]);
             return;
           }
-          const graph = await fetchGraph(trimmed, limit);
+          const graph = await fetchGraph(trimmed, limit, temporal.at);
           setGraphResults(graph);
           setChunkResults([]);
           setEntityResults([]);
@@ -175,23 +196,29 @@ export function KbSearchPage() {
     setScope(parsed.scope);
     const q = searchParams.get('q');
     if (q != null) setQuery(q);
+    setAsOf(parsed.asOf ?? '');
+    setAt(parsed.at ?? '');
   }, [searchParams]);
 
   useEffect(() => {
     const q = searchParams.get('q')?.trim();
     if (!q || !id) return;
-    const key = [urlState.scope, q].join('|');
+    const parsed = parseKbSearchUrlState(searchParams.toString());
+    const key = [parsed.scope, q, parsed.asOf ?? '', parsed.at ?? ''].join('|');
     if (ranUrlQueryKey.current === key) return;
-    if (urlState.scope === 'graph' && capsLoading) return;
-    if (urlState.scope === 'graph' && caps && !caps.graph) {
+    if (parsed.scope === 'graph' && capsLoading) return;
+    if (parsed.scope === 'graph' && caps && !caps.graph) {
       ranUrlQueryKey.current = key;
       return;
     }
     ranUrlQueryKey.current = key;
     setQuery(q);
-    setScope(urlState.scope);
-    void runSearch(urlState.scope, q);
-  }, [id, searchParams, urlState.scope, capsLoading, caps, runSearch]);
+    setScope(parsed.scope);
+    void runSearch(parsed.scope, q, {
+      asOf: parsed.asOf ?? '',
+      at: parsed.at ?? '',
+    });
+  }, [id, searchParams, capsLoading, caps, runSearch]);
 
   useEffect(() => {
     if (scope !== 'entities' || !id || hasSearched) return;
@@ -219,16 +246,16 @@ export function KbSearchPage() {
     const q = query.trim();
     if (!id) return;
     if (scope !== 'entities' && !q) return;
-    syncSearchUrl({ q, scope });
-    void runSearch(scope, q);
+    syncSearchUrl({ q, scope, asOf, at });
+    void runSearch(scope, q, { asOf, at });
   }
 
   function changeScope(next: KbSearchScope) {
     setScope(next);
-    syncSearchUrl({ q: query.trim(), scope: next });
+    syncSearchUrl({ q: query.trim(), scope: next, asOf, at });
     const q = query.trim();
     if (q || next === 'entities') {
-      void runSearch(next, q);
+      void runSearch(next, q, { asOf, at });
     } else {
       setChunkResults([]);
       setGraphResults([]);
@@ -317,6 +344,78 @@ export function KbSearchPage() {
               </Button>
             }
           />
+          {scope === 'chunks' || scope === 'graph' ? (
+            <div className="mt-3 flex flex-col gap-2 border-t border-border/60 px-1 pt-3 sm:flex-row sm:items-end">
+              <div className="min-w-0 flex-1 space-y-1.5">
+                <Label htmlFor={scope === 'chunks' ? 'kb-search-as-of' : 'kb-search-at'}>
+                  {scope === 'chunks' ? s.temporalAsOfLabel : s.temporalAtLabel}
+                </Label>
+                <Input
+                  id={scope === 'chunks' ? 'kb-search-as-of' : 'kb-search-at'}
+                  data-testid={scope === 'chunks' ? 'kb-search-as-of' : 'kb-search-at'}
+                  value={scope === 'chunks' ? asOf : at}
+                  onChange={(e) =>
+                    scope === 'chunks' ? setAsOf(e.target.value) : setAt(e.target.value)
+                  }
+                  placeholder="2030-01-01T00:00:00Z"
+                  className="font-mono text-xs"
+                  autoComplete="off"
+                />
+                <p className="text-[11px] text-muted-foreground">{s.temporalHint}</p>
+              </div>
+              <div className="flex shrink-0 flex-wrap gap-2">
+                {scope === 'graph' && graphEnabled && id ? (
+                  <Button type="button" variant="outline" size="sm" asChild>
+                    <Link
+                      to={kbGraphPath(id, { at: at.trim() || undefined })}
+                      data-testid="kb-search-open-graph"
+                    >
+                      {s.openGraphLink}
+                    </Link>
+                  </Button>
+                ) : null}
+                {scope === 'chunks' && graphEnabled && id && asOf.trim() ? (
+                  <Button type="button" variant="outline" size="sm" asChild>
+                    <Link
+                      to={kbGraphPath(id, { at: asOf.trim() })}
+                      data-testid="kb-search-open-graph-timeline"
+                    >
+                      {s.openGraphAtTime}
+                    </Link>
+                  </Button>
+                ) : null}
+                {graphEnabled && id ? (
+                  <Button type="button" variant="outline" size="sm" asChild>
+                    <Link
+                      to={kbGraphPath(id, { timeline: true })}
+                      data-testid="kb-search-open-graph-timeline-entry"
+                    >
+                      {s.openGraphTimeline}
+                    </Link>
+                  </Button>
+                ) : null}
+                {(scope === 'chunks' ? asOf : at).trim() ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      if (scope === 'chunks') setAsOf('');
+                      else setAt('');
+                      syncSearchUrl({
+                        q: query.trim(),
+                        scope,
+                        asOf: scope === 'chunks' ? '' : asOf,
+                        at: scope === 'graph' ? '' : at,
+                      });
+                    }}
+                  >
+                    {s.clearTemporal}
+                  </Button>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
         </form>
 
         {error ? (
@@ -342,6 +441,7 @@ export function KbSearchPage() {
               labels={graphLabels}
               copy={s}
               locale={locale as Locale}
+              graphAt={at}
             />
           ) : (
             <KbSearchEntityList kbId={id} hits={entityResults} copy={s} />

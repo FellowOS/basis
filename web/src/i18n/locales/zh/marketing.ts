@@ -1,6 +1,5 @@
 export const marketing = {
   brand: 'Basis',
-  heroEyebrow: '统一业务语义层',
   heroHeadline: '同一套语义',
   heroHeadlineRest: '贯穿知识与决策',
   heroSubhead: '用本体对齐概念、关系与规则，把文档和数据沉淀为可追溯的知识库。',
@@ -31,7 +30,7 @@ export const marketing = {
   ctaGetStarted: '开始使用',
   ctaRegister: '注册账号',
   footerCopyright: '© {year} Basis',
-  footerTagline: 'FellowOS · 统一业务语义层 · 智能体优先 · 可私有化部署',
+  footerTagline: '统一业务语义层 · 智能体优先 · 可私有化部署',
   a11yThemeLight: '浅色模式',
   a11yThemeDark: '深色模式',
 } as const;

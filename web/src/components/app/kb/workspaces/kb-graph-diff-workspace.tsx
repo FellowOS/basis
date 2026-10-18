@@ -280,11 +280,21 @@ export function KbGraphDiffWorkspace({
               <Link to={kbPath(kbId, 'graph')}>{g.graphLink}</Link>
             </Button>
             {toTimeTrimmed ? (
-              <Button type="button" size="sm" variant="ghost" asChild>
-                <Link to={kbSearchPath(kbId, { scope: 'graph' })}>
-                  {g.searchLink}
-                </Link>
-              </Button>
+              <>
+                <Button type="button" size="sm" variant="ghost" asChild>
+                  <Link
+                    to={kbGraphPath(kbId, { at: graphAtForDiff, timeline: true })}
+                    data-testid="graph-diff-open-graph-at-end"
+                  >
+                    {g.graphAtEndTimelineLink}
+                  </Link>
+                </Button>
+                <Button type="button" size="sm" variant="ghost" asChild>
+                  <Link to={kbSearchPath(kbId, { scope: 'graph', at: graphAtForDiff })}>
+                    {g.searchLink}
+                  </Link>
+                </Button>
+              </>
             ) : null}
           </CardFooter>
         </form>

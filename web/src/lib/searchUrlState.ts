@@ -31,7 +31,18 @@ export type KbSearchUrlParams = {
   tab?: KbSearchTab;
   scope?: KbSearchScope;
   q?: string;
+  /** Chunk search point-in-time (ISO). */
+  asOf?: string;
+  createdAfter?: string;
+  createdBefore?: string;
+  /** Graph search temporal instant (ISO). */
+  at?: string;
 };
+
+function setOptionalIso(sp: URLSearchParams, key: string, value: string | undefined) {
+  const trimmed = value?.trim();
+  if (trimmed) sp.set(key, trimmed);
+}
 
 /** Build `/kbs/:id/search` with shareable query params (F-SRCH-03). */
 export function kbSearchPath(kbId: string, params: KbSearchUrlParams): string {
@@ -40,6 +51,10 @@ export function kbSearchPath(kbId: string, params: KbSearchUrlParams): string {
   if (scope) sp.set(SCOPE_PARAM, scope);
   const q = params.q?.trim();
   if (q) sp.set('q', q);
+  setOptionalIso(sp, 'as_of', params.asOf);
+  setOptionalIso(sp, 'created_after', params.createdAfter);
+  setOptionalIso(sp, 'created_before', params.createdBefore);
+  setOptionalIso(sp, 'at', params.at);
   const qs = sp.toString();
   return qs ? `${kbPath(kbId, 'search')}?${qs}` : kbPath(kbId, 'search');
 }
@@ -54,5 +69,9 @@ export function parseKbSearchUrlState(search: string): KbSearchUrlParams & {
     tab,
     scope,
     q: params.get('q') ?? undefined,
+    asOf: params.get('as_of') ?? undefined,
+    createdAfter: params.get('created_after') ?? undefined,
+    createdBefore: params.get('created_before') ?? undefined,
+    at: params.get('at') ?? undefined,
   };
 }

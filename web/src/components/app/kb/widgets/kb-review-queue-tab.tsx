@@ -11,10 +11,21 @@ import type { Locale } from '@/i18n/locale.js';
 import { useKbCapabilities } from '@/lib/kb-capabilities.js';
 import { throwIfApiNotOk } from '@/lib/api-error.js';
 import { formatUserFacingApiError } from '@/lib/api-error-message.js';
-import { formatGraphAuditAction } from '@/lib/kb-graph-audit.js';
+import {
+  formatGraphAuditAction,
+  proposalIdFromGraphAuditDetail,
+  reviewItemIdFromGraphAuditDetail,
+} from '@/lib/kb-graph-audit.js';
 import { formatNodeRef, formatNodeRefDetail } from '@/lib/format-node-ref.js';
 import { fetchKbNodeLabels } from '@/lib/kb-node-labels.js';
 import { kbOntologyProposalPath, kbOntologyVersionsPath, kbPath } from '@/lib/nav-config.js';
+import {
+  auditEventMatchesReviewItem,
+  decisionIdFromApproveResponse,
+  decisionIdFromDetail,
+  kbReviewDecisionPath,
+  kbReviewItemPath,
+} from '@/lib/reviewUrlState.js';
 import { Button } from '@/components/ui/button.js';
 import { cn } from '@/lib/utils.js';
 
@@ -58,6 +69,7 @@ type EntityMergeRow = {
   why: string | null;
   created_at: string;
   reverted_at: string | null;
+  decision_id?: string | null;
 };
 
 type TimelineEntry =
@@ -148,21 +160,6 @@ function auditDetailLine(
   return null;
 }
 
-function auditProposalId(event: AuditEvent): string | null {
-  const d = event.detail ?? {};
-  const direct = d.proposal_id;
-  if (typeof direct === 'string' && direct.trim()) return direct.trim();
-  const extra = d.extra as { proposal_id?: string } | undefined;
-  if (typeof extra?.proposal_id === 'string' && extra.proposal_id.trim()) {
-    return extra.proposal_id.trim();
-  }
-  const payload = d.payload as { proposal_id?: string } | undefined;
-  if (typeof payload?.proposal_id === 'string' && payload.proposal_id.trim()) {
-    return payload.proposal_id.trim();
-  }
-  return null;
-}
-
 function collectAuditLabelIds(events: AuditEvent[]): string[] {
   const ids: string[] = [];
   for (const event of events) {
@@ -208,6 +205,26 @@ function mergeTimeline(
   return rows.sort((a, b) => (a.at < b.at ? 1 : a.at > b.at ? -1 : 0));
 }
 
+function decisionIdsForReviewItem(events: AuditEvent[], itemId: string): string[] {
+  const seen = new Set<string>();
+  const ids: string[] = [];
+  for (const event of events) {
+    if (!auditEventMatchesReviewItem(event.detail, itemId)) continue;
+    const decisionId = decisionIdFromDetail(event.detail);
+    if (!decisionId || seen.has(decisionId)) continue;
+    seen.add(decisionId);
+    ids.push(decisionId);
+  }
+  return ids;
+}
+
+function filterTimelineForReviewItem(entries: TimelineEntry[], itemId: string): TimelineEntry[] {
+  return entries.filter((entry) => {
+    if (entry.kind !== 'audit') return false;
+    return auditEventMatchesReviewItem(entry.event.detail, itemId);
+  });
+}
+
 export function KbReviewQueueTab({
   kbId,
   focusItemId,
@@ -235,6 +252,8 @@ export function KbReviewQueueTab({
   const [labels, setLabels] = useState<Record<string, string | null>>({});
   const [diffExpandedId, setDiffExpandedId] = useState<string | null>(null);
   const [highlightItemId, setHighlightItemId] = useState<string | null>(null);
+  const [approvedDecisionId, setApprovedDecisionId] = useState<string | null>(null);
+  const [focusedResolvedItem, setFocusedResolvedItem] = useState<ReviewItem | null>(null);
   const canRevertMerge = Boolean(caps?.graph_write);
 
   const load = useCallback(async () => {
@@ -299,6 +318,39 @@ export function KbReviewQueueTab({
   }, [load]);
 
   useEffect(() => {
+    if (!focusItemId || loading) {
+      setFocusedResolvedItem(null);
+      return;
+    }
+    if (items.some((row) => row.id === focusItemId)) {
+      setFocusedResolvedItem(null);
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      try {
+        const res = await explorerFetch(
+          buildExplorerKbApiPath(`review/items/${encodeURIComponent(focusItemId)}`, kbId),
+        );
+        if (!res.ok) {
+          if (!cancelled) setFocusedResolvedItem(null);
+          return;
+        }
+        const data = (await res.json()) as { item?: ReviewItem };
+        const item = data.item;
+        if (!cancelled && item?.id) {
+          setFocusedResolvedItem(item);
+        }
+      } catch {
+        if (!cancelled) setFocusedResolvedItem(null);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [focusItemId, items, kbId, loading]);
+
+  useEffect(() => {
     if (!focusItemId || loading) return;
     const item = items.find((row) => row.id === focusItemId);
     if (!item) return;
@@ -312,11 +364,14 @@ export function KbReviewQueueTab({
         behavior: 'smooth',
       });
     }, 0);
-    const clearHighlight = window.setTimeout(() => setHighlightItemId(null), 4000);
-    return () => {
-      window.clearTimeout(timer);
-      window.clearTimeout(clearHighlight);
-    };
+    if (!focusItemId) {
+      const clearHighlight = window.setTimeout(() => setHighlightItemId(null), 4000);
+      return () => {
+        window.clearTimeout(timer);
+        window.clearTimeout(clearHighlight);
+      };
+    }
+    return () => window.clearTimeout(timer);
   }, [focusItemId, items, loading]);
 
   async function revertLedgerMerge(mergeId: string) {
@@ -351,8 +406,11 @@ export function KbReviewQueueTab({
         },
       );
       await throwIfApiNotOk(res);
+      const body = (await res.json()) as unknown;
       setItems((prev) => prev.filter((row) => row.id !== itemId));
       if (action === 'approve') {
+        const decisionId = decisionIdFromApproveResponse(body);
+        setApprovedDecisionId(decisionId);
         void queryClient.invalidateQueries({ queryKey: ['graph', 'full-load', kbId] });
       }
       void load();
@@ -364,6 +422,29 @@ export function KbReviewQueueTab({
   }
 
   const timeline = mergeTimeline(events, merges);
+  const scopedTimeline = focusItemId
+    ? filterTimelineForReviewItem(timeline, focusItemId)
+    : timeline;
+  function renderDecisionLinks(decisionIds: string[], testIdPrefix: string) {
+    if (decisionIds.length === 0) return null;
+    return (
+      <div className="mt-2 flex flex-col gap-1">
+        <span className="text-[10px] text-muted-foreground">{r.relatedDecisions}</span>
+        <div className="flex flex-wrap gap-x-2 gap-y-0.5">
+          {decisionIds.map((decisionId) => (
+            <Link
+              key={decisionId}
+              to={kbReviewDecisionPath(kbId, decisionId)}
+              className="text-[11px] text-foreground underline-offset-2 hover:underline"
+              data-testid={`${testIdPrefix}-${decisionId}`}
+            >
+              {r.openDecision}
+            </Link>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   function renderNodeRef(id: string) {
     const { title, subtitle } = formatNodeRefDetail(id, labels);
@@ -397,6 +478,32 @@ export function KbReviewQueueTab({
           ) : null}
         </div>
         <div className="min-h-0 flex-1 overflow-auto">
+          {approvedDecisionId ? (
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 border-b border-border px-4 py-2 text-[11px] text-foreground">
+              <span>{r.approveDecisionRecorded}</span>
+              <Link
+                to={kbReviewDecisionPath(kbId, approvedDecisionId)}
+                className="font-medium underline-offset-2 hover:underline"
+                data-testid="review-approve-decision-link"
+              >
+                {r.openDecision}
+              </Link>
+            </div>
+          ) : null}
+          {focusedResolvedItem ? (
+            <div
+              className="border-b border-border px-4 py-3 text-sm"
+              data-testid="review-resolved-item-banner"
+            >
+              <p className="text-[11px] text-muted-foreground">
+                {fmt(r.resolvedReviewItemHint, { status: focusedResolvedItem.status })}
+              </p>
+              {renderDecisionLinks(
+                decisionIdsForReviewItem(events, focusedResolvedItem.id),
+                'review-resolved-decision',
+              )}
+            </div>
+          ) : null}
           {loading ? (
             <div className="flex items-center gap-2 px-4 py-3 text-sm text-muted-foreground">
               <PublicIcon name="loader-01" size={16} className="animate-spin" />
@@ -437,13 +544,15 @@ export function KbReviewQueueTab({
                       : isConflict
                         ? r.acknowledge
                         : r.approveMerge;
+                const itemDecisionIds = decisionIdsForReviewItem(events, item.id);
                 return (
                   <li
                     key={item.id}
                     id={`review-item-${item.id}`}
                     className={cn(
                       'border-b border-border px-4 py-2.5 text-sm',
-                      highlightItemId === item.id && 'bg-muted',
+                      (focusItemId === item.id || highlightItemId === item.id) &&
+                        'bg-muted ring-2 ring-primary ring-offset-2 ring-offset-background',
                     )}
                   >
                     <div className="text-[11px] text-muted-foreground">{kindLabel(item.kind)}</div>
@@ -552,6 +661,16 @@ export function KbReviewQueueTab({
                         </Link>
                       </div>
                     ) : null}
+                    <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">
+                      {r.governanceApproveHint}{' '}
+                      <Link
+                        to={kbPath(kbId, 'decisions')}
+                        className="text-foreground underline-offset-2 hover:underline"
+                      >
+                        {r.openDecisionsWorkspace}
+                      </Link>
+                    </p>
+                    {renderDecisionLinks(itemDecisionIds, 'review-item-decision')}
                     <div className="mt-3 flex flex-wrap gap-2">
                       <Button
                         type="button"
@@ -587,23 +706,32 @@ export function KbReviewQueueTab({
         </div>
       </div>
 
-      <aside className="flex w-[min(360px,34vw)] min-w-[260px] shrink-0 flex-col overflow-hidden max-[900px]:max-h-[min(40vh,360px)] max-[900px]:w-full max-[900px]:min-w-0">
+      <aside
+        className="flex w-[min(360px,34vw)] min-w-[260px] shrink-0 flex-col overflow-hidden max-[900px]:max-h-[min(40vh,360px)] max-[900px]:w-full max-[900px]:min-w-0"
+        data-testid={focusItemId ? 'review-item-timeline' : undefined}
+      >
         <div className="flex h-12 shrink-0 items-center gap-2 border-b border-border px-4">
           <PublicIcon name="clock-01" size={13} className="shrink-0 text-muted-foreground" />
-          <span className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">{r.timelineTitle}</span>
+          <span className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
+            {focusItemId ? r.itemTimelineTitle : r.timelineTitle}
+          </span>
           {!loading ? (
-            <span className="font-mono text-[11px] tabular-nums text-muted-foreground">{timeline.length}</span>
+            <span className="font-mono text-[11px] tabular-nums text-muted-foreground">
+              {scopedTimeline.length}
+            </span>
           ) : null}
         </div>
         <div className="min-h-0 flex-1 overflow-auto px-4 py-3">
-          {!loading && timeline.length === 0 ? (
+          {!loading && scopedTimeline.length === 0 ? (
             <div className="flex h-full min-h-32 flex-col items-center justify-center px-4 text-center">
               <PublicIcon name="clock-01" size={18} className="mb-2 text-muted-foreground" />
-              <p className="text-sm font-medium text-foreground">{r.emptyLog}</p>
+              <p className="text-sm font-medium text-foreground">
+                {focusItemId ? r.itemTimelineEmpty : r.emptyLog}
+              </p>
             </div>
           ) : (
             <ol className="relative border-l border-border pl-4">
-              {timeline.map((entry) => {
+              {scopedTimeline.map((entry) => {
                 if (entry.kind === 'ledger_merge') {
                   const row = entry.merge;
                   return (
@@ -622,6 +750,14 @@ export function KbReviewQueueTab({
                       </div>
                       {row.why ? (
                         <div className="mt-0.5 text-[10px] text-muted-foreground">{row.why}</div>
+                      ) : null}
+                      {row.decision_id ? (
+                        <Link
+                          to={kbReviewDecisionPath(kbId, row.decision_id)}
+                          className="mt-1 inline-block text-[11px] text-foreground underline-offset-2 hover:underline"
+                        >
+                          {r.openDecision}
+                        </Link>
                       ) : null}
                       {canRevertMerge && !row.reverted_at ? (
                         <Button
@@ -646,7 +782,9 @@ export function KbReviewQueueTab({
                 }
                 const event = entry.event;
                 const detail = auditDetailLine(locale, event, r, auditMessages, labels);
-                const proposalId = auditProposalId(event);
+                const proposalId = proposalIdFromGraphAuditDetail(event.detail);
+                const decisionId = decisionIdFromDetail(event.detail);
+                const linkedReviewItemId = reviewItemIdFromGraphAuditDetail(event.detail);
                 return (
                   <li key={entry.id} className="mb-4 last:mb-0">
                     <span
@@ -659,12 +797,30 @@ export function KbReviewQueueTab({
                     {detail ? (
                       <div className="mt-0.5 text-[10px] text-muted-foreground">{detail}</div>
                     ) : null}
+                    {linkedReviewItemId ? (
+                      <Link
+                        to={kbReviewItemPath(kbId, linkedReviewItemId)}
+                        className="mt-1 inline-block text-[11px] text-foreground underline-offset-2 hover:underline"
+                        data-testid={`review-timeline-review-${linkedReviewItemId}`}
+                      >
+                        {t.chat.openReviewItem}
+                      </Link>
+                    ) : null}
                     {proposalId ? (
                       <Link
                         to={kbOntologyProposalPath(kbId, proposalId)}
                         className="mt-1 inline-block text-[11px] text-foreground underline-offset-2 hover:underline"
                       >
                         {r.openOntologyProposal}
+                      </Link>
+                    ) : null}
+                    {decisionId ? (
+                      <Link
+                        to={kbReviewDecisionPath(kbId, decisionId)}
+                        className="mt-1 inline-block text-[11px] text-foreground underline-offset-2 hover:underline"
+                        data-testid={`review-timeline-decision-${decisionId}`}
+                      >
+                        {r.openDecision}
                       </Link>
                     ) : null}
                     <time className="mt-1 block text-[10px] text-muted-foreground">

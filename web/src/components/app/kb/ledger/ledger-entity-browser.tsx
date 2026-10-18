@@ -233,7 +233,7 @@ function EntityFactsPanel({
           </div>
           <ul className="space-y-2">
             {entityDerivedFacts.map((df) => (
-              <DerivedFactCard key={df.id} fact={df} labels={factLabels} />
+              <DerivedFactCard key={df.id} kbId={kbId} fact={df} labels={factLabels} />
             ))}
           </ul>
         </section>

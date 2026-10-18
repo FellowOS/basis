@@ -46,11 +46,13 @@ export default defineConfig({
           timeout: 120_000,
         },
         {
-          command: `npx vite --host 127.0.0.1 --port ${webPort} --strictPort`,
+          command: 'node --experimental-strip-types server/dev.ts',
           cwd: packageRoot,
           env: {
             ...process.env,
             BASIS_API_URL: `http://127.0.0.1:${apiPort}`,
+            WEB_PORT: String(webPort),
+            WEB_HOST: '127.0.0.1',
           },
           url: baseURL,
           reuseExistingServer: !process.env.CI,

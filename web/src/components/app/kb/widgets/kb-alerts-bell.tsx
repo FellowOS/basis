@@ -14,6 +14,7 @@ import { formatBadgeCount, formatLocaleDateTime } from '@/i18n/format.js';
 import { kbAlertKindLabel, kbAlertSeverityLabel } from '@/lib/kb-alert-labels.js';
 import type { Locale } from '@/i18n/locale.js';
 import { kbAlertAction } from '@/lib/kb-alert-actions.js';
+import { kbPath } from '@/lib/nav-config.js';
 
 type KbAlert = KbAlertStreamItem;
 
@@ -117,6 +118,13 @@ export function KbAlertsBell() {
     void refresh();
   }, [kbId, open, refresh]);
 
+  useEffect(() => {
+    if (!kbId) return;
+    const onChanged = () => void refresh();
+    window.addEventListener('kb-alerts-changed', onChanged);
+    return () => window.removeEventListener('kb-alerts-changed', onChanged);
+  }, [kbId, refresh]);
+
   const dismiss = async (alertId: string) => {
     if (!kbId) return;
     try {
@@ -178,6 +186,7 @@ export function KbAlertsBell() {
                       <Link
                         to={action.href}
                         className="text-xs text-primary hover:underline"
+                        data-testid="kb-alert-action-link"
                         onClick={() => setOpen(false)}
                       >
                         {t.pages.alerts[action.labelKey]}
@@ -202,6 +211,15 @@ export function KbAlertsBell() {
               })}
             </ul>
           )}
+        </div>
+        <div className="border-t px-3 py-2">
+          <Link
+            to={kbPath(kbId, 'alerts')}
+            className="text-xs font-medium text-foreground underline-offset-2 hover:underline"
+            onClick={() => setOpen(false)}
+          >
+            {t.pages.alerts.viewAllAlerts}
+          </Link>
         </div>
       </PopoverContent>
     </Popover>

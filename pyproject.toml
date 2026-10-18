@@ -48,7 +48,7 @@ basis = "basis.cli:main"
 include = ["basis*"]
 
 [tool.setuptools.package-data]
-basis = ["admin/migrations/*.sql"]
+basis = ["platform/admin/migrations/*.sql"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

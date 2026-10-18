@@ -37,6 +37,7 @@ export const kbLedger = {
   noDerivedFactsHint: 'Run reasoning and write results back to see them here.',
   premiseCount: '{count} premises',
   premiseCountOne: '1 premise',
+  premisesLabel: 'Proof premises',
   entityCount: '{start}–{end} of {total} entities',
   entityCountEmpty: '0 entities',
   statementStatusLabels: {

@@ -147,7 +147,7 @@ export type McpIntegrationInfoResponse = {
   [key: string]: unknown;
 };
 
-/** Typed client for every path in `openapi/basis-v1.yaml`. */
+/** Typed client for every path in the Basis OpenAPI v1 export. */
 export function createBasisOpenApiClient(options: BasisClientOptions): BasisOpenApiClient {
   const base = options.baseUrl.replace(/\/$/, "");
   return createOpenApiClient<paths>({
@@ -198,8 +198,23 @@ export function createBasisClient(options: BasisClientOptions) {
       const prefix = `/api/v1/kbs/${encodeURIComponent(kbId)}`;
       return {
         mcpInfo: () => request<McpIntegrationInfoResponse>(`${prefix}/mcp`),
-        searchChunks: (query: string, limit = 10) => {
+        searchChunks: (
+          query: string,
+          limit = 10,
+          filters?: {
+            as_of?: string;
+            created_after?: string;
+            created_before?: string;
+          },
+        ) => {
           const params = new URLSearchParams({ q: query, limit: String(limit) });
+          if (filters?.as_of?.trim()) params.set('as_of', filters.as_of.trim());
+          if (filters?.created_after?.trim()) {
+            params.set('created_after', filters.created_after.trim());
+          }
+          if (filters?.created_before?.trim()) {
+            params.set('created_before', filters.created_before.trim());
+          }
           return request<ChunkSearchResponse>(`${prefix}/search?${params}`);
         },
         findEntities: (query: string, limit = 20) => {

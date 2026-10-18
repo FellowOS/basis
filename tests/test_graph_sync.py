@@ -4,12 +4,12 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
-from basis.api.app import create_app
-from basis.config import Settings
-from basis.graph.projector import apply_rebuild_to_session
-from basis.graph.session import GraphSession
-from basis.knowledge.graph_sync import sync_graph_to_ledger
-from basis.knowledge.store import KnowledgeStore
+from basis.transport.http.app import create_app
+from basis.infra.config import Settings
+from basis.domain.graph.projector import apply_rebuild_to_session
+from basis.domain.graph.session import GraphSession
+from basis.domain.kb.graph_sync import sync_graph_to_ledger
+from basis.domain.kb.store import KnowledgeStore
 
 
 def test_sync_graph_to_ledger_keeps_imported_edge_across_rebuild(tmp_path: Path) -> None:

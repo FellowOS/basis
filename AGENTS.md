@@ -4,11 +4,11 @@ Instructions for AI coding agents working in this repository. Humans can skim th
 
 ## What this repo is
 
-**Basis** — self-hosted knowledge platform: FastAPI backend (`basis` Python package) + React console (`web/`). Evidence ledger is canonical; graph and search are projections. See [README.md](./README.md) and [docs/design/README.md](./docs/design/README.md).
+**Basis** — self-hosted knowledge platform: FastAPI backend (`basis` Python package) + React console (`web/`). Evidence ledger is canonical; graph and search are projections. See [README.md](./README.md) and [docs/README.md](./docs/README.md).
 
 | Area | Path | Stack |
 |------|------|--------|
-| API | repo root (`basis/`, `admin/`) | Python 3.10+, FastAPI, Semantica SDK |
+| API | `basis/` Python package (layered; see [package-layout.md](./docs/architecture/package-layout.md)) | Python 3.10+, FastAPI, Semantica SDK |
 | Web | `web/` | Vite, React, React Router, Tailwind v4, shadcn |
 | Explorer UI | `web/src/explorer/` | Vendored workspace UI (graph, ontology, …) |
 
@@ -117,8 +117,11 @@ Run relevant checks after substantive edits; say if something was not run.
 
 ## Python / API
 
-- Package layout and CLI entry: `pyproject.toml` (`basis` console script).
-- Migrations: `admin/migrations/`.
+- Package layout: [docs/architecture/package-layout.md](./docs/architecture/package-layout.md) — `transport/`, `integration/`, `domain/`, `platform/`, `infra/`, `ops/`.
+- CLI entry: `pyproject.toml` (`basis` → `basis.cli:main`); app factory `basis.transport.http.app:create_app`.
+- Migrations: `basis/platform/admin/migrations/`.
+- Integration core (MCP + OpenAPI ops): `basis/integration/` (`KbCoreContext`, `run`). **Minimal agent graph loop** (13 MCP tools): [openapi-v1.md §6.1](./docs/architecture/openapi-v1.md).
+- OpenAPI: served live from `app.openapi()` via `basis.transport.http.openapi_v1_export` (`/openapi/v1.json`); handler docstrings → `description`. Optional JSON snapshots in `openapi/*.json`: `scripts/generate-openapi-v1.py` (CI drift + `web` typegen; fails if any operation lacks a docstring).
 - Prefer existing patterns in route handlers and services; follow pytest style in `tests/`.
 
 ## Docs for specific tasks
@@ -127,14 +130,14 @@ Run relevant checks after substantive edits; say if something was not run.
 |------|------|
 | Web structure / KB folders | [web/README.md](./web/README.md) |
 | Explorer vendoring | [web/src/explorer/README.md](./web/src/explorer/README.md) |
-| Product / architecture | [docs/design/README.md](./docs/design/README.md) |
-| OpenAPI v1 (platform + KB surfaces) | [docs/design/openapi-v1-spec.md](./docs/design/openapi-v1-spec.md), [openapi/basis-v1-platform.yaml](./openapi/basis-v1-platform.yaml), [openapi/basis-v1-kb.yaml](./openapi/basis-v1-kb.yaml) |
-| Core / MCP / client SDK refactor | [docs/design/core-rest-sdk-refactor.md](./docs/design/core-rest-sdk-refactor.md) |
+| Docs (features / progress / architecture) | [docs/README.md](./docs/README.md) |
+| OpenAPI v1 (platform + KB surfaces) | [docs/architecture/openapi-v1.md](./docs/architecture/openapi-v1.md), live `/openapi/v1.json`; snapshots `openapi/basis-v1*.json` |
+| Feature list / progress | [docs/features.md](./docs/features.md) (F-* spec), [docs/progress.md](./docs/progress.md) (status: §0.1 done, §0.2 API baseline, §3.1 UX / §3.2 e2e gaps) |
 | Web OpenAPI transport | `web/src/lib/basis-openapi/` (`transport.ts` + generated `schema.d.ts`); app helpers in `web/src/lib/openapi-client.ts` |
-| Web ↔ operationId audit | [docs/design/web-openapi-operation-audit.md](./docs/design/web-openapi-operation-audit.md) — `scripts/audit-web-operation-ids.py` |
+| Web ↔ operationId audit | [openapi/web-openapi-operation-audit.md](./openapi/web-openapi-operation-audit.md) — `scripts/audit-web-operation-ids.py` |
 | HTTP in web | Typed: `openapi-client.ts` (`openApi*` / `kbOpenApi*` / `publicOpenApi*`); stream/multipart: `basis-session-fetch.ts`; paths: `kb-api-path.ts`, `api-v1-path.ts`; E2E `e2e/api-v1-path.ts` |
 
-**Naming:** Normative HTTP = **`openapi/basis-v1.yaml`**. `basis/core/` = server operations (OpenAPI + MCP call this). **semantica** = in-process runtime. **Application HTTP client** = web `basis-openapi/` transport (OpenAPI-generated types; not a published SDK). Server exposes **only OpenAPI + MCP** to clients.
+**Naming:** Normative HTTP = **live export** at `/openapi/v1.json` (same as `app.openapi()` + Basis annotations); committed snapshots in **`openapi/basis-v1.json`**. `basis/integration/` = server operations (OpenAPI + MCP call this). **semantica** = in-process runtime. **Application HTTP client** = web `basis-openapi/` transport (OpenAPI-generated types; not a published SDK). Server exposes **only OpenAPI + MCP** to clients.
 
 ## Out of scope unless asked
 
