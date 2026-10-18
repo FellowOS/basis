@@ -3611,6 +3611,22 @@ class KnowledgeStore:
             self._conn.commit()
         return self.get_kb_alert(kb_id, alert_id)
 
+    def dismiss_all_kb_alerts(self, kb_id: str) -> int:
+        """Dismiss every active alert episode for a KB. Returns rows updated."""
+        now = _now()
+        with self._lock:
+            self._assert_kb_exists(kb_id)
+            cur = self._conn.execute(
+                """
+                UPDATE kb_alerts
+                SET dismissed_at = ?, read_at = COALESCE(read_at, ?)
+                WHERE kb_id = ? AND dismissed_at IS NULL
+                """,
+                (now, now, kb_id),
+            )
+            self._conn.commit()
+            return int(cur.rowcount)
+
     def _validate_quote_in_chunk(
         self, chunk_id: str, quote: str, quote_start: int, quote_end: int
     ) -> None:

@@ -61,6 +61,32 @@ def test_sync_failure_emits_alert(tmp_path) -> None:
     assert after_body["unread_count"] == 0
 
 
+def test_dismiss_all_kb_alerts(tmp_path) -> None:
+    client = TestClient(create_app(_test_settings(tmp_path)))
+    admin = client.post(
+        "/api/v1/auth/register",
+        json={"email": "dall@example.com", "password": "password1", "display_name": "Dall"},
+    ).json()
+    headers = {"Authorization": f"Bearer {admin['token']}"}
+    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+    knowledge = client.app.state.knowledge_store
+    knowledge.create_kb_alert(kb_id, kind="sync_failed", message="One")
+    knowledge.create_kb_alert(kb_id, kind="sync_failed", message="Two")
+
+    listed = client.get(f"/api/v1/kbs/{kb_id}/alerts", headers=headers).json()
+    assert listed["unread_count"] == 2
+
+    bulk = client.post(f"/api/v1/kbs/{kb_id}/alerts/dismiss-all", headers=headers)
+    assert bulk.status_code == 200
+    body = bulk.json()
+    assert body["dismissed_count"] == 2
+    assert body["unread_count"] == 0
+
+    after = client.get(f"/api/v1/kbs/{kb_id}/alerts", headers=headers).json()
+    assert after["alerts"] == []
+    assert after["unread_count"] == 0
+
+
 def test_alerts_kb_isolation(tmp_path) -> None:
     client = TestClient(create_app(_test_settings(tmp_path)))
     a = client.post(

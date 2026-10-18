@@ -332,6 +332,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/kbs/{kb_id}/alerts/dismiss-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Dismiss All Kb Alerts
+         * @description Dismiss all active alert episodes for this KB (editor+).
+         */
+        post: operations["dismiss_all_kb_alerts_api_v1_kbs__kb_id__alerts_dismiss_all_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/kbs/{kb_id}/alerts/stream": {
         parameters: {
             query?: never;
@@ -3979,6 +3999,41 @@ export interface operations {
             query?: {
                 limit?: number;
             };
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                kb_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    dismiss_all_kb_alerts_api_v1_kbs__kb_id__alerts_dismiss_all_post: {
+        parameters: {
+            query?: never;
             header?: {
                 authorization?: string | null;
             };

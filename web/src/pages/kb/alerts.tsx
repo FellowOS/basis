@@ -134,12 +134,16 @@ export function KbAlertsPage() {
 
   const dismissAll = async () => {
     if (!id || alerts.length === 0) return;
-    const current = [...alerts];
-    await Promise.allSettled(
-      current.map((a) => kbOpenApiPOST(id, `alerts/${a.id}/dismiss`)),
-    );
-    setAlerts([]);
-    notifyBadgeSync();
+    try {
+      await kbOpenApiPOST<{ dismissed_count: number; unread_count: number }>(
+        id,
+        'alerts/dismiss-all',
+      );
+      setAlerts([]);
+      notifyBadgeSync();
+    } catch {
+      /* ignore */
+    }
   };
 
   if (!id) return null;
@@ -156,7 +160,13 @@ export function KbAlertsPage() {
       actions={
         <div className="flex items-center gap-2">
           {alerts.length > 0 ? (
-            <Button type="button" variant="outline" size="sm" onClick={() => void dismissAll()}>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              data-testid="alerts-dismiss-all"
+              onClick={() => void dismissAll()}
+            >
               <PublicIcon name='checks' className="mr-1.5 size-3.5" />
               {t.pages.alerts.dismissAll}
             </Button>

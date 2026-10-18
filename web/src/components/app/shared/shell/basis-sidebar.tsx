@@ -72,7 +72,10 @@ export function BasisSidebar({ onLogout }: { onLogout: () => void }) {
                 {label}
               </span>
               {item.segment === 'alerts' && alertsBadgeLabel ? (
-                <span className="ml-auto rounded-md bg-destructive/15 px-1.5 text-xs font-medium tabular-nums text-destructive group-data-[collapsible=icon]:hidden">
+                <span
+                  className="ml-auto rounded-md bg-destructive/15 px-1.5 text-xs font-medium tabular-nums text-destructive group-data-[collapsible=icon]:hidden"
+                  data-testid="kb-sidebar-alerts-badge"
+                >
                   {alertsBadgeLabel}
                 </span>
               ) : null}

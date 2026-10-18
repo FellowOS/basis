@@ -864,6 +864,69 @@
         "x-basis-auth": "session-or-kb-api-token"
       }
     },
+    "/api/v1/kbs/{kb_id}/alerts/dismiss-all": {
+      "post": {
+        "tags": [
+          "knowledge-bases"
+        ],
+        "summary": "Dismiss All Kb Alerts",
+        "description": "Dismiss all active alert episodes for this KB (editor+).",
+        "operationId": "dismiss_all_kb_alerts_api_v1_kbs__kb_id__alerts_dismiss_all_post",
+        "parameters": [
+          {
+            "name": "kb_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Kb Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Dismiss All Kb Alerts Api V1 Kbs  Kb Id  Alerts Dismiss All Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-basis-surface": "knowledge-base",
+        "x-basis-auth": "session-or-kb-api-token"
+      }
+    },
     "/api/v1/kbs/{kb_id}/alerts/stream": {
       "get": {
         "tags": [

@@ -32,6 +32,21 @@ async def list_kb_alerts(
     return {"alerts": alerts, "unread_count": unread}
 
 
+@router.post("/{kb_id}/alerts/dismiss-all")
+async def dismiss_all_kb_alerts(
+    kb_id: str,
+    request: Request,
+    user: User = Depends(get_current_user),
+    store: AdminStore = Depends(get_store),
+    knowledge: KnowledgeStore = Depends(get_knowledge_store),
+) -> dict[str, Any]:
+    """Dismiss all active alert episodes for this KB (editor+)."""
+    get_kb_for_editor(request, user, kb_id, store)
+    dismissed_count = knowledge.dismiss_all_kb_alerts(kb_id)
+    unread_count = knowledge.count_kb_alerts(kb_id, include_dismissed=False)
+    return {"dismissed_count": dismissed_count, "unread_count": unread_count}
+
+
 @router.post("/{kb_id}/alerts/{alert_id}/dismiss")
 async def dismiss_kb_alert(
     kb_id: str,

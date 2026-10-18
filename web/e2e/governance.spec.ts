@@ -110,6 +110,34 @@ test('statement conflict alert links to review queue item', async ({ page }) => 
   await expect(card.getByText(surfacePhrase)).toBeVisible();
 });
 
+test('dismiss all clears alerts and sidebar badge', async ({ page }) => {
+  test.setTimeout(120_000);
+
+  await registerFreshUser(page);
+  const kbId = await defaultKbId(page);
+
+  try {
+    await seedGovernanceTrippedViaApi(page, kbId);
+  } catch (err) {
+    if (String(err).includes('e2e_governance_trip_unavailable')) {
+      test.skip(true, 'governance e2e helper only on data-e2e API');
+    }
+    throw err;
+  }
+
+  await page.goto(`/kbs/${kbId}/sources`);
+  await expect(page.getByTestId('kb-sidebar-alerts-badge')).toBeVisible({ timeout: 30_000 });
+
+  await page.goto(`/kbs/${kbId}/alerts`);
+  await page.getByTestId('alerts-dismiss-all').click();
+  await expect(page.getByText(/No active alerts|当前没有告警/i)).toBeVisible({
+    timeout: 30_000,
+  });
+
+  await page.goto(`/kbs/${kbId}/sources`);
+  await expect(page.getByTestId('kb-sidebar-alerts-badge')).toHaveCount(0);
+});
+
 test('governance tripped alert links to decisions tab', async ({ page }) => {
   test.setTimeout(120_000);
 
