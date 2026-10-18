@@ -130,7 +130,7 @@
 | F-SRC-05 | Extract pattern / ml / llm 作业选项与可观测 | `partial` | P1 | spaCy + Models Chat for `llm` NER |
 | F-RUL-04 | Contradiction → governance queue | `partial` | P2 | `statement_conflict` queue + scan API |
 | F-TIM-01–03 | valid_from/to, doc events, ingest vs graph 时态一致 | `partial` | P1 | Chunk filters vs graph `temporal/snapshot` |
-| F-TIM-04 | Timeline playback（产品导航） | `partial` | P1 | Graph scrubber↔URL；Search **Open graph timeline** / **as_of 时刻** → `?at=` + **`timeline=1`**；graph-diff 结束时刻深链 |
+| F-TIM-04 | Timeline playback（产品导航） | `partial` | P1 | Scrubber→URL 写入 **`at` + `timeline=1`**；Search/结果深链带 timeline；图谱 dock **打开时间轴**；diff 链 SPA；E2E `graph-at.spec.ts`、`search-temporal-url.spec.ts` |
 | — | `POST .../graph/distance-matrix` | `partial` | P2 | Server hop matrix when graph &gt; 2500 nodes |
 | F-CHAT-01–03 | Web KB Playground | `replaced` | — | 控制台问答已移除；智能体用 MCP（§0.1 **F-CHAT-04–05**） |
 | F-CHAT-06 | Playground 客户端控制 | `replaced` | — | 随 Playground 移除 |

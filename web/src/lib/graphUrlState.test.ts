@@ -21,5 +21,6 @@ describe('graphUrlState', () => {
     const next = mergeKbGraphAtParam('focus=node-1', '2030-06-01T00:00:00Z');
     expect(next.get('focus')).toBe('node-1');
     expect(next.get('at')).toBe('2030-06-01T00:00:00Z');
+    expect(next.get('timeline')).toBe('1');
   });
 });

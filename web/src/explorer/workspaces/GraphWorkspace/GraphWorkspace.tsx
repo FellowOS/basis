@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 
 import type Graph from "graphology";
@@ -3401,8 +3402,8 @@ export function GraphWorkspace({
                     />
                   </Suspense>
                   {kbId ? (
-                    <a
-                      href={kbGraphDiffPath(
+                    <Link
+                      to={kbGraphDiffPath(
                         kbId,
                         temporalBounds.min,
                         (scrubberTime ?? (temporalBounds.max ? new Date(temporalBounds.max) : null) ?? new Date(temporalBounds.min)).toISOString(),
@@ -3410,7 +3411,7 @@ export function GraphWorkspace({
                       className="mt-1 block text-center text-[11px] text-primary underline-offset-2 hover:underline"
                     >
                       {graphCopy(copyLocale, "timelineDiffLink")}
-                    </a>
+                    </Link>
                   ) : null}
                 </div>
               ) : null}

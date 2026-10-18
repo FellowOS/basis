@@ -114,7 +114,9 @@ export function KbSearchGraphList({
         const scoreLabel = formatLocaleFixedDecimals(locale, hit.score, 3);
         const graphHref = kbGraphPath(kbId, {
           focus: hit.node.id,
-          ...(graphAt?.trim() ? { at: graphAt.trim() } : {}),
+          ...(graphAt?.trim()
+            ? { at: graphAt.trim(), timeline: true }
+            : {}),
         });
         const showContent =
           hit.node.content && hit.node.content !== labels[hit.node.id];

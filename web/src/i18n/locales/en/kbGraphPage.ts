@@ -3,5 +3,6 @@ export const kbGraphPage = {
   export: 'Export',
   lineage: 'Lineage',
   searchGraph: 'Search graph (keeps ?at= when set)',
+  openTimeline: 'Open graph timeline playback',
   graphDiff: 'Graph diff',
 } as const;

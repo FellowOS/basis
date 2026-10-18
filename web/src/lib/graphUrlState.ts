@@ -37,7 +37,11 @@ export function mergeKbGraphAtParam(
 ): URLSearchParams {
   const params = new URLSearchParams(search);
   const trimmed = atIso?.trim();
-  if (trimmed) params.set('at', trimmed);
-  else params.delete('at');
+  if (trimmed) {
+    params.set('at', trimmed);
+    params.set('timeline', '1');
+  } else {
+    params.delete('at');
+  }
   return params;
 }

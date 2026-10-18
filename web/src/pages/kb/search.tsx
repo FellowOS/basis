@@ -367,7 +367,10 @@ export function KbSearchPage() {
                 {scope === 'graph' && graphEnabled && id ? (
                   <Button type="button" variant="outline" size="sm" asChild>
                     <Link
-                      to={kbGraphPath(id, { at: at.trim() || undefined })}
+                      to={kbGraphPath(id, {
+                        at: at.trim() || undefined,
+                        ...(at.trim() ? { timeline: true } : {}),
+                      })}
                       data-testid="kb-search-open-graph"
                     >
                       {s.openGraphLink}

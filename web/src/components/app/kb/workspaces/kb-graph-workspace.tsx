@@ -35,12 +35,15 @@ export function KbGraphWorkspace({
   focusNodeId,
   focusAtInstant,
   openTimelinePanel,
+  timelineEntryHref,
   onScrubberAtChange,
 }: {
   kbId: string;
   focusNodeId?: string | null;
   focusAtInstant?: string | null;
   openTimelinePanel?: boolean;
+  /** Deep link to open temporal playback (`?timeline=1`, F-TIM-04). */
+  timelineEntryHref?: string;
   onScrubberAtChange?: (atIso: string) => void;
 }) {
   const { t, locale } = useI18n();
@@ -78,6 +81,21 @@ export function KbGraphWorkspace({
 
   const graphDataActions = (
     <>
+      {timelineEntryHref ? (
+        <Button
+          type="button"
+          variant="outline"
+          size="icon-sm"
+          className={SIDEBAR_ICON_BUTTON_CLASS}
+          aria-label={g.openTimeline}
+          title={g.openTimeline}
+          asChild
+        >
+          <Link to={timelineEntryHref} data-testid="kb-graph-open-timeline">
+            <SidebarIcon name="clock-backward" />
+          </Link>
+        </Button>
+      ) : null}
       <Button
         type="button"
         variant="outline"
