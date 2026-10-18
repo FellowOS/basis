@@ -28,7 +28,7 @@ async def list_kb_alerts(
     """List KB alert episodes with unread count (viewer+)."""
     get_kb_for_viewer(request, user, kb_id, store)
     alerts = knowledge.list_kb_alerts(kb_id, limit=limit)
-    unread = sum(1 for a in alerts if not a.get("read_at"))
+    unread = knowledge.count_kb_alerts(kb_id, include_dismissed=False)
     return {"alerts": alerts, "unread_count": unread}
 
 

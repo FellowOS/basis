@@ -3544,6 +3544,19 @@ class KnowledgeStore:
             ).fetchall()
         return [self._alert_row_to_dict(row) for row in rows]
 
+    def count_kb_alerts(self, kb_id: str, *, include_dismissed: bool = False) -> int:
+        clauses = ["kb_id = ?"]
+        params: list[Any] = [kb_id]
+        if not include_dismissed:
+            clauses.append("dismissed_at IS NULL")
+        with self._lock:
+            self._assert_kb_exists(kb_id)
+            row = self._conn.execute(
+                f"SELECT COUNT(*) AS n FROM kb_alerts WHERE {' AND '.join(clauses)}",
+                params,
+            ).fetchone()
+        return int(row["n"])
+
     def list_kb_alerts_since(
         self,
         kb_id: str,

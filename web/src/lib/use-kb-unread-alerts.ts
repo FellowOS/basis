@@ -24,7 +24,6 @@ export function useKbUnreadAlerts(): number {
   const [unreadCount, setUnreadCount] = useState(0);
   const [streamReady, setStreamReady] = useState(false);
   const streamSinceRef = useRef<string | undefined>(undefined);
-  const seenAlertIdsRef = useRef<Set<string>>(new Set());
 
   const refresh = useCallback(async () => {
     if (!alertsKbId || isSetupKbId(alertsKbId)) {
@@ -35,10 +34,11 @@ export function useKbUnreadAlerts(): number {
       const data = await kbOpenApiGET<{ alerts: KbAlertStreamItem[]; unread_count: number }>(
         alertsKbId,
         'alerts',
-        { params: { query: { limit: 50 } } },
+        { params: { query: { limit: 1 } } },
       );
-      seenAlertIdsRef.current = new Set(data.alerts.map((a) => a.id));
-      setUnreadCount(data.unread_count ?? data.alerts.length);
+      const count =
+        typeof data.unread_count === 'number' ? data.unread_count : data.alerts.length;
+      setUnreadCount(count);
       streamSinceRef.current = data.alerts[0]?.created_at ?? new Date().toISOString();
       setStreamReady(true);
     } catch {
@@ -74,10 +74,7 @@ export function useKbUnreadAlerts(): number {
             locale,
             onAlert: (alert) => {
               streamSinceRef.current = alert.created_at;
-              if (!seenAlertIdsRef.current.has(alert.id)) {
-                seenAlertIdsRef.current.add(alert.id);
-                setUnreadCount((prev) => prev + 1);
-              }
+              window.dispatchEvent(new CustomEvent('kb-alerts-changed'));
             },
           });
           backoff = 2000;

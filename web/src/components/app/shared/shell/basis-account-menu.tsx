@@ -27,10 +27,17 @@ import {
 } from '@/lib/nav-config.js';
 import { useKbAlertsNavKbId, useKbUnreadAlerts } from '@/lib/use-kb-unread-alerts.js';
 import { useTheme } from '@/lib/theme.js';
+import { cn } from '@/lib/utils.js';
 import { useSettingsAccess } from '@/lib/use-settings-access.js';
 
 function MenuIcon({ name, className }: { name: string; className?: string }) {
   return <PublicIcon name={name} size={16} className={className} />;
+}
+
+function AlertsUnreadDot({ className }: { className?: string }) {
+  return (
+    <span className={cn('size-2 shrink-0 rounded-full bg-destructive', className)} aria-hidden />
+  );
 }
 
 export function BasisAccountMenu({ onLogout }: { onLogout: () => void }) {
@@ -73,22 +80,19 @@ export function BasisAccountMenu({ onLogout }: { onLogout: () => void }) {
             <Avatar className="relative size-8 shrink-0">
               <AvatarFallback className="text-xs font-semibold">{initials}</AvatarFallback>
               {showAlertsBadge ? (
-                <span
-                  className="absolute -right-0.5 -top-0.5 hidden size-2 rounded-full bg-destructive group-data-[collapsible=icon]:block"
-                  aria-hidden
-                />
+                <AlertsUnreadDot className="absolute -right-0.5 -top-0.5 hidden group-data-[collapsible=icon]:block" />
               ) : null}
             </Avatar>
-          <div className="min-w-0 flex-1 text-left group-data-[collapsible=icon]:hidden">
-            <div className="text-sidebar-foreground truncate text-xs leading-4">{accountTitle}</div>
-            <div className="text-muted-foreground truncate text-[11px] leading-4">{accountRole}</div>
-          </div>
-          <PublicIcon
-            name="sort-vertical-01"
-            size={16}
-            className="text-muted-foreground group-data-[collapsible=icon]:hidden"
-          />
-        </SidebarMenuButton>
+            <div className="min-w-0 flex-1 text-left group-data-[collapsible=icon]:hidden">
+              <div className="text-sidebar-foreground truncate text-xs leading-4">{accountTitle}</div>
+              <div className="text-muted-foreground truncate text-[11px] leading-4">{accountRole}</div>
+            </div>
+            <PublicIcon
+              name="sort-vertical-01"
+              size={16}
+              className="text-muted-foreground group-data-[collapsible=icon]:hidden"
+            />
+          </SidebarMenuButton>
       </DropdownMenuTrigger>
       <DropdownMenuContent
         className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
@@ -149,9 +153,9 @@ export function BasisAccountMenu({ onLogout }: { onLogout: () => void }) {
               <Link to={kbPath(alertsKbId, 'alerts')}>
                 <MenuIcon name="bell-01" />
                 {t.menu.kb.alerts}
-                {unreadAlertsCount > 0 ? (
+                {showAlertsBadge ? (
                   <span className="ml-auto rounded-md bg-destructive/15 px-1.5 text-xs font-medium tabular-nums text-destructive">
-                    {formatBadgeCount(locale as Locale, unreadAlertsCount, 99)}
+                    {alertsBadgeLabel}
                   </span>
                 ) : null}
               </Link>
@@ -181,8 +185,8 @@ export function BasisAccountMenu({ onLogout }: { onLogout: () => void }) {
       </DropdownMenuContent>
       </DropdownMenu>
       {showAlertsBadge ? (
-        <SidebarMenuBadge className="bg-destructive/15 text-destructive">
-          {alertsBadgeLabel}
+        <SidebarMenuBadge className="min-w-0 bg-transparent p-0">
+          <AlertsUnreadDot />
         </SidebarMenuBadge>
       ) : null}
     </>

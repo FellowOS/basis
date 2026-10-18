@@ -42,7 +42,7 @@
 | **连接器** | Sources CRUD + sync（**F-SRC-06–07**，冻结 kind：webhook / http_poll / GitHub raw） |
 | **其它** | Lineage、告警 SSE、图 import 经审核、KB 页副标题（**F-IF-03**） |
 
-**§0.1 基线 `done`（F-ID）** — 不在 §3 重复：`F-RUL-01`–`02`、`F-SRC-06`–`07`、`F-CHAT-04`（MCP/HTTP remember）、`F-CHAT-05`、`F-IF-03`、`F-SRCH-03`（Search↔Graph 时态 URL/深链）。**F-CHAT-01–03 / F-CHAT-06**（Web Playground）已 **`replaced`** — 见 **§6**。
+**§0.1 基线 `done`（F-ID）** — 不在 §3 重复：`F-RUL-01`–`02`、`F-SRC-06`–`07`、`F-CHAT-04`（MCP/HTTP remember）、`F-CHAT-05`、`F-GOV-07`（Review 决策叙事）、`F-IF-03`、`F-SRCH-03`（Search↔Graph 时态 URL/深链）。**F-CHAT-01–03 / F-CHAT-06**（Web Playground）已 **`replaced`** — 见 **§6**。
 
 **§0.2 API 基线（F-* 仍可能有 §3.1 产品化 gap）**
 

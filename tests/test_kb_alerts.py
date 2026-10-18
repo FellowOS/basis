@@ -56,7 +56,9 @@ def test_sync_failure_emits_alert(tmp_path) -> None:
     assert dismissed.json()["alert"]["dismissed_at"]
 
     after = client.get(f"/api/v1/kbs/{kb_id}/alerts", headers=headers)
-    assert all(a["id"] != alert_id for a in after.json()["alerts"])
+    after_body = after.json()
+    assert all(a["id"] != alert_id for a in after_body["alerts"])
+    assert after_body["unread_count"] == 0
 
 
 def test_alerts_kb_isolation(tmp_path) -> None:
