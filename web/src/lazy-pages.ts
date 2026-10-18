@@ -49,6 +49,9 @@ export const KbDecisionsPage = lazy(() =>
 export const KbOntologyPage = lazy(() =>
   import('@/pages/kb/ontology').then((m) => ({ default: m.KbOntologyPage })),
 );
+export const KbAnalyzePage = lazy(() =>
+  import('@/pages/kb/analyze').then((m) => ({ default: m.KbAnalyzePage })),
+);
 export const KbOntologyVersionsPage = lazy(() =>
   import('@/pages/kb/ontology-versions').then((m) => ({ default: m.KbOntologyVersionsPage })),
 );

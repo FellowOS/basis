@@ -101,6 +101,9 @@ export function kbNavSegmentEnabled(segment: string, caps: KbCapabilities | null
   if (segment === 'graph-diff') return caps.graph;
   if (segment === 'entity-resolution') return caps.enrichment;
   if (segment === 'decisions') return caps.decisions;
+  if (segment === 'analyze') {
+    return caps.sparql || caps.reasoning;
+  }
   if (segment === 'ontology-versions' || segment === 'alignments' || segment === 'shacl') {
     return caps.explorer_runtime && caps.graph;
   }

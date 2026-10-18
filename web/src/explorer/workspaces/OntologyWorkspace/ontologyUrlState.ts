@@ -15,8 +15,10 @@ export interface OntologyUrlState {
 /** `undefined` means the parameter is absent; an empty string means it is present but blank. */
 export function parseOntologyUrlState(search: string): OntologyUrlState {
   const params = new URLSearchParams(search);
+  const legacyTab = params.get(TAB_PARAM);
+  const hubTab = params.get("tab");
   return {
-    tab: params.get(TAB_PARAM) ?? undefined,
+    tab: legacyTab ?? hubTab ?? undefined,
     entityUri: params.get(ENTITY_PARAM) ?? undefined,
     proposalId: params.get(PROPOSAL_PARAM) ?? undefined,
   };
@@ -66,7 +68,8 @@ export function readOntologyUrlState(search?: string): OntologyUrlState {
 /** True when the URL addresses the Ontology Hub at all, even with blank parameter values. */
 export function applyProposalSelection(search: string, proposalId: string): string {
   const params = new URLSearchParams(search);
-  params.set(TAB_PARAM, "versions");
+  params.set("tab", "versions");
+  params.delete(TAB_PARAM);
   params.set(PROPOSAL_PARAM, proposalId);
   return `?${params.toString()}`;
 }

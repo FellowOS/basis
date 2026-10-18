@@ -7,6 +7,7 @@ import {
   KbEntitiesPage,
   KbSearchPage,
   KbOntologyPage,
+  KbAnalyzePage,
   KbOntologyVersionsPage,
   KbShaclPage,
   KbAlignmentsPage,
@@ -304,6 +305,16 @@ function AuthedApp() {
             <KbExplorerShell>
               <Suspense fallback={null}>
                 <KbOntologyPage />
+              </Suspense>
+            </KbExplorerShell>
+          }
+        />
+        <Route
+          path="/kbs/:id/analyze"
+          element={
+            <KbExplorerShell>
+              <Suspense fallback={null}>
+                <KbAnalyzePage />
               </Suspense>
             </KbExplorerShell>
           }

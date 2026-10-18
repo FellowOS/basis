@@ -103,6 +103,7 @@ export const pages = {
     decisions: '治理决策与因果链记录；从告警可深链到具体决策。',
     ontology: '本体注册表、可视化编辑与健康检查（Registry / Editor / Health）。',
     ontologyVersions: 'OWL 草案与发布版本；本体变更提案在此审批（与账本审核队列分离）。',
+    analyze: '在本库上执行 SPARQL 查询与规则推理试跑。',
     entities: '搜索账本实体，点开一行查看陈述与派生事实。右侧是推理最近写回的结果。',
     sources: '文档上传、处理任务与摄入连接器（Webhook、HTTP 轮询、GitHub raw）。',
     graphDiff: '对比两个时点的图投影（节点、边与属性变更），类似 DiffMerge 发布前审阅。',

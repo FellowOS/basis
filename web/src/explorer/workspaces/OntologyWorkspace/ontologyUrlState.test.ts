@@ -10,4 +10,10 @@ describe('parseOntologyUrlState', () => {
     expect(state.proposalId).toBe('prop-abc');
     expect(state.entityUri).toBe('http://ex');
   });
+
+  it('reads hub tab=versions for proposal links', () => {
+    const state = parseOntologyUrlState('?tab=versions&ontologyProposal=prop-hub');
+    expect(state.tab).toBe('versions');
+    expect(state.proposalId).toBe('prop-hub');
+  });
 });

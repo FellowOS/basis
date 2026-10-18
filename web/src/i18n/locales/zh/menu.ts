@@ -16,6 +16,7 @@ export const menu = {
     entityResolution: '实体解析',
     decisions: '决策记录',
     ontology: '本体模型',
+    analyze: '查询与推理',
     ontologyVersions: '本体版本',
     shacl: 'SHACL 校验',
     alignments: '本体对齐',

@@ -21,7 +21,7 @@ test('ontology versions deep link highlights proposal from URL', async ({ page }
   }
 
   await page.goto(
-    `/kbs/${kbId}/ontology-versions?ontologyTab=versions&ontologyProposal=${encodeURIComponent(proposalId)}`,
+    `/kbs/${kbId}/ontology?tab=versions&ontologyProposal=${encodeURIComponent(proposalId)}`,
   );
 
   const unavailable = page.getByRole('heading', {

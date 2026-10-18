@@ -22,7 +22,7 @@ describe('kbAlertAction', () => {
         detail: { proposal_id: 'prop-9' },
       }),
     );
-    expect(action?.href).toContain('/kbs/kb-1/ontology-versions');
+    expect(action?.href).toContain('/kbs/kb-1/ontology?tab=versions');
     expect(action?.href).toContain('ontologyProposal=prop-9');
     expect(action?.labelKey).toBe('viewProposal');
   });

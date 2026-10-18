@@ -27,7 +27,8 @@ test('review queue surfaces link to ontology versions tab', async ({ page }) => 
   });
   await expect(ontologyLink.first()).toBeVisible({ timeout: 60_000 });
   await ontologyLink.first().click();
-  await expect(page).toHaveURL(/ontology-versions/);
+  await expect(page).toHaveURL(/\/ontology/);
+  await expect(page).toHaveURL(/tab=versions/);
 });
 
 test('sources query opens ingest connectors dialog', async ({ page }) => {

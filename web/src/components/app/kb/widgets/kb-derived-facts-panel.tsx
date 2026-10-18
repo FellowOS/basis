@@ -12,7 +12,7 @@ import type { Locale } from '@/i18n/locale.js';
 import { useKbNodeLabels } from '@/lib/kb-node-labels.js';
 import { hrefForDerivedFactPremise } from '@/lib/derived-fact-premise-link.js';
 import { kbGraphPath } from '@/lib/graphUrlState.js';
-import { kbPath } from '@/lib/nav-config.js';
+import { kbAnalyzeHubPath } from '@/lib/kb-hub-route.js';
 import { kbOpenApiGET } from '@/lib/openapi-client.js';
 
 export type DerivedFactView = {
@@ -204,7 +204,7 @@ export function KbDerivedFactsPanel({ kbId }: { kbId: string }) {
         </div>
         <div className="shrink-0 border-t border-border p-2">
           <Button variant="ghost" size="sm" className="w-full justify-between" asChild>
-            <Link to={kbPath(kbId, 'reasoning')}>
+            <Link to={kbAnalyzeHubPath(kbId, 'reasoning')}>
               {l.openReasoning}
               <PublicIcon name="arrow-right" size={14} />
             </Link>

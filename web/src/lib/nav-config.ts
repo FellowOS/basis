@@ -50,7 +50,7 @@ export function platformAdminEntryPath(isAdmin: boolean, canSettings: boolean): 
  * KB navigation zones ordered by user mental model & task frequency:
  * 1. explore (high-frequency consumption: Graph, Search)
  * 2. knowledge (sources, entities, entity resolution, decisions, review queue)
- * 3. schema (ontology hub, OWL versions, SHACL, SPARQL, reasoning, vocabulary, alignments, mappings)
+ * 3. schema (ontology hub tabs, query/reasoning hub, vocabulary, mappings)
  * 4. audit (provenance & temporal diff: Lineage, Graph Diff)
  * 5. system (integration & settings; alerts live in the account menu)
  */
@@ -79,6 +79,7 @@ export type KbNavKey =
   | 'entityResolution'
   | 'decisions'
   | 'ontology'
+  | 'analyze'
   | 'ontologyVersions'
   | 'shacl'
   | 'sparql'
@@ -113,12 +114,8 @@ export const KB_NAV_BY_ZONE: Record<KbWorkspaceZone, KbNavItem[]> = {
   ],
   schema: [
     { segment: 'ontology', labelKey: 'ontology', icon: 'shapes-01' },
-    { segment: 'ontology-versions', labelKey: 'ontologyVersions', icon: 'file-01' },
-    { segment: 'shacl', labelKey: 'shacl', icon: 'shield-01' },
-    { segment: 'sparql', labelKey: 'sparql', icon: 'code-01' },
-    { segment: 'reasoning', labelKey: 'reasoning', icon: 'git-branch-01' },
+    { segment: 'analyze', labelKey: 'analyze', icon: 'code-01' },
     { segment: 'vocabulary', labelKey: 'vocabulary', icon: 'tag' },
-    { segment: 'alignments', labelKey: 'alignments', icon: 'globe-02' },
     { segment: 'mappings', labelKey: 'mappings', icon: 'arrows-left-right' },
   ],
   audit: [
@@ -140,6 +137,15 @@ export const KB_ALERTS_NAV_ITEM: KbNavItem = {
 
 export const KB_SETTINGS_NAV_ITEM: KbNavItem = KB_NAV_BY_ZONE.system[1];
 
+/** Former sidebar routes kept for deep links and redirects. */
+export const KB_HUB_LEGACY_SEGMENTS = [
+  'ontology-versions',
+  'shacl',
+  'alignments',
+  'sparql',
+  'reasoning',
+] as const;
+
 export const KB_NAV: KbNavItem[] = [
   ...KB_WORKSPACE_ZONES.flatMap((zone) => KB_NAV_BY_ZONE[zone]),
   KB_ALERTS_NAV_ITEM,
@@ -152,15 +158,15 @@ export function kbPath(kbId: string, segment: string): string {
 /** Deep-link to OWL versions workspace + proposal review modal (F-ONT-05). */
 export function kbOntologyProposalPath(kbId: string, proposalId: string): string {
   const params = new URLSearchParams({
-    ontologyTab: 'versions',
+    tab: 'versions',
     ontologyProposal: proposalId,
   });
-  return `${kbPath(kbId, 'ontology-versions')}?${params.toString()}`;
+  return `${kbPath(kbId, 'ontology')}?${params.toString()}`;
 }
 
 /** OWL ontology versions & proposals (separate from ledger review queue). */
 export function kbOntologyVersionsPath(kbId: string): string {
-  return kbPath(kbId, 'ontology-versions');
+  return `${kbPath(kbId, 'ontology')}?tab=versions`;
 }
 
 /** Graph projection diff between two ISO instants (F-DIFF-01). */
@@ -186,6 +192,12 @@ export function parseKbIdFromPath(pathname: string): string | null {
 export function menuIconForPath(pathname: string): string | undefined {
   const segment = /^\/kbs\/[^/]+\/([^/]+)/.exec(pathname)?.[1];
   if (segment) {
+    if (segment === 'ontology-versions' || segment === 'shacl' || segment === 'alignments') {
+      return KB_NAV_BY_ZONE.schema.find((item) => item.segment === 'ontology')?.icon;
+    }
+    if (segment === 'sparql' || segment === 'reasoning') {
+      return KB_NAV_BY_ZONE.schema.find((item) => item.segment === 'analyze')?.icon;
+    }
     return KB_NAV.find((item) => item.segment === segment)?.icon;
   }
   return PLATFORM_NAV.find((item) =>
@@ -199,5 +211,8 @@ export function isKbScopedPath(pathname: string): boolean {
   const rest = pathname.slice(`/kbs/${id}`.length);
   if (!rest || rest === '/') return false;
   const segment = rest.replace(/^\//, '').split('/')[0];
-  return KB_NAV.some((item) => item.segment === segment);
+  if (KB_NAV.some((item) => item.segment === segment)) {
+    return true;
+  }
+  return (KB_HUB_LEGACY_SEGMENTS as readonly string[]).includes(segment);
 }

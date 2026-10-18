@@ -106,6 +106,7 @@ export const pages = {
       'Ontology registry, visual editor, and health diagnostics (Registry / Editor / Health).',
     ontologyVersions:
       'OWL drafts and published versions; ontology change proposals are reviewed here (separate from the ledger queue).',
+    analyze: 'SPARQL queries and rule reasoning against this knowledge base.',
     entities:
       'Search ledger entities and open a row for statements and derived facts. The rail lists what reasoning wrote back.',
     sources:

@@ -16,6 +16,7 @@ export const menu = {
     entityResolution: 'Entity resolution',
     decisions: 'Decisions',
     ontology: 'Ontology',
+    analyze: 'Query & reasoning',
     ontologyVersions: 'OWL versions',
     shacl: 'SHACL',
     alignments: 'Alignments',

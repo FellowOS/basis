@@ -116,7 +116,7 @@
 | F-ONT-05 | 本体提案评审全流程 UI | `done` | P1 | `VersionsTab` 审批/发布 + `?ontologyProposal=` 高亮/弹窗 + 复制评审链接；E2E `ontology-proposal-url.spec.ts` |
 | F-GOV-06 | Registry 可读产品面（非 Explorer 专页） | `done` | P1 | Review timeline + 设置 **Recent graph audit** 深链；**平台 `/admin/audit` Links 列**；管理员 → 平台审计（本库）；E2E `settings-graph-audit.spec.ts` |
 | F-RUL-03 | Entities / 证明链 UI | `done` | P1 | Entities + derived 侧栏；前提/主客体深链（statement→entities、实体→graph）；E2E/单测 `derived-fact-premise-link` |
-| — | Reasoning workspace UX | `partial` | P1 | Rules/run → §0.1；Explorer WS 启停与试跑（**F-ONT-09**） |
+| — | Reasoning workspace UX | `partial` | P1 | **Query & reasoning** hub（`/analyze`）；本体 **Ontology** hub（`/ontology?tab=`）；legacy 路由重定向；**F-ONT-09** 试跑 UX 仍缺 |
 | F-SRC-08 | 超大文件 / 队列运维 UX | `partial` | P1 | Job history + **`?job=`** 深链、Retry、复制链接；工具栏 **进行中/失败** 角标 + 2s 轮询；E2E `processing-job.spec.ts` |
 | F-CHAT-05 | 集成控制台（OpenAPI + MCP） | `done` | P1 | `/kbs/:id/integration` 三 tab：**MCP** / **OpenAPI** / **访问令牌**；legacy `/mcp`、`chat?tab=connect` 重定向；E2E `mcp-integration.spec.ts` |
 | F-KB-06 | 导出 pack 控制台入口与文档 | `partial` | P2 | KB 设置 → Graph **导出图谱**（`ImportExportWorkspace`）；`POST .../export` API → §0.2 |
