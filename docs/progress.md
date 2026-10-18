@@ -112,7 +112,7 @@
 | F-* | 仍缺 | Status | Priority | Notes |
 | --- | --- | --- | --- | --- |
 | F-GOV-07 | 审核项详情内嵌决策叙事 | `done` | P1 | 主栏 **embedded** `review-item-decision-narrative`（批准横幅、已关闭深链、聚焦项）+ 侧栏 chain；E2E `governance.spec.ts` |
-| F-DIFF-01 | 全图画布合并工作室（publish/staging） | `partial` | P1 | diff 读 + 对比页；图谱↔diff 工具栏 + **结束时刻→timeline** 深链；E2E `graph-diff-cross-link.spec.ts`；工作室 **not** |
+| F-DIFF-01 | 全图画布合并工作室（publish/staging） | `partial` | P1 | diff 读 + 对比页 + **治理路径** callout（`graph-diff-merge-studio`）+ 复制对比链接；全画布 staging 合并 **not**；E2E `graph-diff-cross-link.spec.ts` |
 | F-ONT-05 | 本体提案评审全流程 UI | `done` | P1 | `VersionsTab` 审批/发布 + `?ontologyProposal=` 高亮/弹窗 + 复制评审链接；E2E `ontology-proposal-url.spec.ts` |
 | F-GOV-06 | Registry 可读产品面（非 Explorer 专页） | `done` | P1 | Review timeline + 设置 **Recent graph audit** 深链；**平台 `/admin/audit` Links 列**；管理员 → 平台审计（本库）；E2E `settings-graph-audit.spec.ts` |
 | F-RUL-03 | Entities / 证明链 UI | `done` | P1 | Entities + derived 侧栏；前提/主客体深链（statement→entities、实体→graph）；E2E/单测 `derived-fact-premise-link` |

@@ -48,4 +48,9 @@ export const kbGraphDiff = {
   scrubberUnavailable: 'Temporal bounds are not loaded yet; use the ISO fields below.',
   exactInstantsTitle: 'Exact instants',
   editIsoToggle: 'Edit ISO instants',
+  studioTitle: 'Governance path (DiffMerge preview)',
+  studioDescription:
+    'This comparison is read-only. Applying graph imports, entity merges, or ontology publishes still goes through the review queue and decisions audit trail.',
+  studioOpenReview: 'Open review queue',
+  studioCopyLink: 'Copy comparison link',
 } as const;

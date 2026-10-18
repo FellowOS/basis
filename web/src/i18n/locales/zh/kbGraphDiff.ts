@@ -47,4 +47,9 @@ export const kbGraphDiff = {
   scrubberUnavailable: '尚未加载账本时间范围，请先在下方填写 ISO 时刻。',
   exactInstantsTitle: '精确时刻',
   editIsoToggle: '编辑 ISO 时刻',
+  studioTitle: '治理路径（DiffMerge 预览）',
+  studioDescription:
+    '此处对比为只读。图导入、实体合并、本体发布等写入仍须经审核队列与决策审计。',
+  studioOpenReview: '打开审核队列',
+  studioCopyLink: '复制对比链接',
 } as const;

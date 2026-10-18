@@ -34,7 +34,8 @@ import { formatUserFacingApiError } from '@/lib/api-error-message.js';
 import { kbOpenApiGET } from '@/lib/openapi-client.js';
 import { kbGraphPath } from '@/lib/graphUrlState.js';
 import { useKbNodeLabels } from '@/lib/kb-node-labels.js';
-import { kbPath } from '@/lib/nav-config.js';
+import { kbGraphDiffPath, kbPath } from '@/lib/nav-config.js';
+import { toast } from 'sonner';
 import { kbSearchPath } from '@/lib/searchUrlState.js';
 import { endOfLocalDayIso, startOfLocalDayIso } from '@/lib/temporal/day-range.js';
 import { resolveScrubberBounds } from '@/lib/temporal/scrubber-bounds.js';
@@ -217,6 +218,17 @@ export function KbGraphDiffWorkspace({
   const nodeLabels = useKbNodeLabels(kbId, labelIds);
 
   const graphAtForDiff = diff ? diff.to_time?.trim() || toTime.trim() : toTime.trim();
+
+  async function copyComparisonLink() {
+    if (!diff) return;
+    const href = `${window.location.origin}${kbGraphDiffPath(kbId, diff.from_time, diff.to_time)}`;
+    try {
+      await navigator.clipboard.writeText(href);
+      toast.success(t.common.copySuccess);
+    } catch {
+      toast.error(t.kbIngestSources.copyFailed);
+    }
+  }
   const nodeGraphHref = (nodeId: string) =>
     kbGraphPath(kbId, { focus: nodeId, at: graphAtForDiff || undefined });
 
@@ -377,6 +389,22 @@ export function KbGraphDiffWorkspace({
               label={g.statEdgesRemoved}
             />
           </div>
+
+          {changeTotal > 0 ? (
+            <Alert data-testid="graph-diff-merge-studio">
+              <PublicIcon name="shield-01" size={16} />
+              <AlertTitle>{g.studioTitle}</AlertTitle>
+              <AlertDescription className="text-muted-foreground">{g.studioDescription}</AlertDescription>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Button type="button" variant="outline" size="sm" asChild>
+                  <Link to={kbPath(kbId, 'review')}>{g.studioOpenReview}</Link>
+                </Button>
+                <Button type="button" variant="outline" size="sm" onClick={() => void copyComparisonLink()}>
+                  {g.studioCopyLink}
+                </Button>
+              </div>
+            </Alert>
+          ) : null}
 
           {changeTotal === 0 ? (
             <Empty className="border border-dashed border-border bg-muted/20 py-10">
