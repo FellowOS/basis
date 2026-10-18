@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useBasisSession } from '@/lib/basis-session.js';
+import { KbImportExportDialog } from '@/components/app/kb/dialogs/kb-import-export-dialog.js';
 import { KbGraphAuditRecent } from '@/components/app/kb/widgets/kb-graph-audit-recent.js';
 import { KbGraphRebuildButton } from '@/components/app/kb/widgets/kb-graph-rebuild-button.js';
 import { Button } from '@/components/ui/button.js';
@@ -43,6 +44,7 @@ export function KbGraphProjectionPanel({
   const [status, setStatus] = useState<GraphProjectionStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [auditRefreshKey, setAuditRefreshKey] = useState(0);
+  const [exportOpen, setExportOpen] = useState(false);
 
   const refresh = useCallback(async () => {
     if (!graphEnabled) {
@@ -85,9 +87,20 @@ export function KbGraphProjectionPanel({
           <CardTitle className="text-base">{p.title}</CardTitle>
           <CardDescription>{p.description}</CardDescription>
         </div>
-        <Button type="button" variant="outline" size="sm" asChild>
-          <Link to={kbPath(kbId, 'graph')}>{p.openGraph}</Link>
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button type="button" variant="outline" size="sm" asChild>
+            <Link to={kbPath(kbId, 'graph')}>{p.openGraph}</Link>
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            data-testid="kb-settings-export-graph"
+            onClick={() => setExportOpen(true)}
+          >
+            {p.exportGraph}
+          </Button>
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         {loading ? (
@@ -169,6 +182,12 @@ export function KbGraphProjectionPanel({
 
         <KbGraphAuditRecent kbId={kbId} refreshKey={auditRefreshKey} />
       </CardContent>
+      <KbImportExportDialog
+        kbId={kbId}
+        open={exportOpen}
+        onOpenChange={setExportOpen}
+        focus="export"
+      />
     </Card>
   );
 }

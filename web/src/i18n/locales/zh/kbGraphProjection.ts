@@ -3,6 +3,7 @@ export const kbGraphProjection = {
   unavailableDesc: '当前环境未启用 Explorer 运行时。',
   description: '画布数据来自账本投影。重建会用账本覆盖当前 Explorer 会话并写入审计。',
   openGraph: '打开图谱',
+  exportGraph: '导出图谱（RDF / JSON）',
   ledgerRevision: '账本修订',
   projectionStatus: '投影状态',
   nodesEdges: '节点 / 边',

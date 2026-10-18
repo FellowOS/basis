@@ -4,6 +4,7 @@ export const kbGraphProjection = {
   description:
     'The canvas reads from the ledger-backed projection. Rebuild replaces the Explorer session from ledger and is audited.',
   openGraph: 'Open graph',
+  exportGraph: 'Export graph (RDF / JSON)',
   ledgerRevision: 'Ledger revision',
   projectionStatus: 'Projection status',
   nodesEdges: 'Nodes / edges',
