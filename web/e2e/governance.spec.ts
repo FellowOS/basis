@@ -149,6 +149,7 @@ test('approve remember records governance decision deep link', async ({ page }) 
 
   const decisionLink = page.getByTestId('review-approve-decision-link');
   await expect(decisionLink).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByTestId('review-decision-narrative')).toBeVisible({ timeout: 30_000 });
   await decisionLink.click();
   await expect(page).toHaveURL(/\/decisions/);
   await expect(page).toHaveURL(/decision=/);

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { PublicIcon } from '@/components/app/shared/primitives/public-icon.js';
 import { KbEntityMergePropertyDiff } from '@/components/app/kb/widgets/kb-entity-merge-property-diff.js';
+import { KbReviewDecisionNarrative } from '@/components/app/kb/widgets/kb-review-decision-narrative.js';
 import { buildExplorerKbApiPath, explorerFetch } from '@/explorer/host/explorerHttp.js';
 import { useI18n } from '@/i18n/context.js';
 import { fmt, formatLocaleDateTime, formatLocaleNumber } from '@/i18n/format.js';
@@ -425,6 +426,9 @@ export function KbReviewQueueTab({
   const scopedTimeline = focusItemId
     ? filterTimelineForReviewItem(timeline, focusItemId)
     : timeline;
+  const narrativeDecisionId =
+    approvedDecisionId ??
+    (focusItemId ? decisionIdsForReviewItem(events, focusItemId).at(-1) : undefined);
   function renderDecisionLinks(decisionIds: string[], testIdPrefix: string) {
     if (decisionIds.length === 0) return null;
     return (
@@ -721,6 +725,9 @@ export function KbReviewQueueTab({
             </span>
           ) : null}
         </div>
+        {narrativeDecisionId ? (
+          <KbReviewDecisionNarrative kbId={kbId} decisionId={narrativeDecisionId} />
+        ) : null}
         <div className="min-h-0 flex-1 overflow-auto px-4 py-3">
           {!loading && scopedTimeline.length === 0 ? (
             <div className="flex h-full min-h-32 flex-col items-center justify-center px-4 text-center">

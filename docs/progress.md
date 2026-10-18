@@ -111,7 +111,7 @@
 
 | F-* | 仍缺 | Status | Priority | Notes |
 | --- | --- | --- | --- | --- |
-| F-GOV-07 | 审核项详情内嵌决策叙事 | `partial` | P1 | **已有：** 卡片/侧栏决策深链、批准后横幅、已关闭项 `review-resolved-item-banner`；E2E `governance.spec.ts` approve→decision |
+| F-GOV-07 | 审核项详情内嵌决策叙事 | `partial` | P1 | **已有：** 侧栏 `review-decision-narrative`（chain 摘要）、卡片/决策深链、批准后横幅、已关闭项 banner；E2E `governance.spec.ts` approve→narrative→decision |
 | F-DIFF-01 | 全图画布合并工作室（publish/staging） | `partial` | P1 | diff 读 + 对比页；图谱↔diff 工具栏 + **结束时刻→timeline** 深链；E2E `graph-diff-cross-link.spec.ts`；工作室 **not** |
 | F-ONT-05 | 本体提案评审全流程 UI | `partial` | P1 | `VersionsTab` 审批/发布 + `?ontologyProposal=` 高亮/弹窗 + **复制评审链接**；E2E `ontology-proposal-url.spec.ts` + `_e2e/ontology-proposal` |
 | F-GOV-06 | Registry 可读产品面（非 Explorer 专页） | `partial` | P1 | Review 侧栏 timeline + KB 设置 **Recent graph audit** 深链；E2E `settings-graph-audit.spec.ts`；平台 audit 摘要含 `decision_id` |

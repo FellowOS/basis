@@ -44,4 +44,7 @@ export const kbReview = {
   importByteSize: '{size} B',
   mappingKindUnknown: '?',
   openReviewItem: 'Open in review queue',
+  decisionNarrativeTitle: 'Decision trace',
+  decisionNarrativeOpenFull: 'Full chain',
+  decisionNarrativeTruncated: 'More steps in Decisions workspace.',
 } as const;
