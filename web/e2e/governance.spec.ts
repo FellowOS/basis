@@ -5,6 +5,7 @@ import {
   proposeRememberViaApi,
   registerFreshUser,
   seedGovernanceTrippedViaApi,
+  seedProcessingFailedViaApi,
   seedStatementConflictViaApi,
 } from './helpers';
 
@@ -72,6 +73,30 @@ test('review queue deep link highlights remembered fact item', async ({ page }) 
   await expect(card).toBeVisible({ timeout: 60_000 });
   await expect(card).toHaveClass(/ring-primary/);
   await expect(card.getByText(fact)).toBeVisible();
+});
+
+test('processing failed alert links to processing job', async ({ page }) => {
+  test.setTimeout(120_000);
+
+  await registerFreshUser(page);
+  const kbId = await defaultKbId(page);
+
+  let jobId: string;
+  try {
+    ({ jobId } = await seedProcessingFailedViaApi(page, kbId));
+  } catch (err) {
+    if (String(err).includes('e2e_processing_failed_unavailable')) {
+      test.skip(true, 'processing-failed e2e helper only on data-e2e API');
+    }
+    throw err;
+  }
+
+  await page.goto(`/kbs/${kbId}/alerts`);
+  await page.getByRole('link', { name: /Open processing job|打开处理任务/i }).click();
+  await expect(page).toHaveURL(new RegExp(`/kbs/${kbId}/processing\\?job=${encodeURIComponent(jobId)}`));
+  await expect(page.getByTestId(`processing-job-detail-${jobId}`)).toBeVisible({
+    timeout: 60_000,
+  });
 });
 
 test('statement conflict alert links to review queue item', async ({ page }) => {

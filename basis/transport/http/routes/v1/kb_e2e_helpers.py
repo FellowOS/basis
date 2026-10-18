@@ -203,3 +203,39 @@ async def e2e_ontology_proposal(
         "ontology_uri": ontology_uri,
         "summary": summary,
     }
+
+
+@router.post("/{kb_id}/_e2e/processing-failed")
+async def e2e_processing_failed(
+    kb_id: str,
+    request: Request,
+    user: User = Depends(get_current_user),
+    store: AdminStore = Depends(get_store),
+    knowledge: KnowledgeStore = Depends(get_knowledge_store),
+) -> dict[str, str]:
+    """Fail a synthetic processing job and emit processing.failed alert (Playwright / data-e2e only)."""
+    if not _e2e_helpers_enabled(request):
+        raise AdminError(404, "not_found", "资源不存在")
+    get_kb_for_editor(request, user, kb_id, store)
+
+    doc_id = f"e2e-fail-{uuid4().hex[:10]}"
+    outcome = knowledge.store_document_bytes(
+        kb_id,
+        title=f"{doc_id}.txt",
+        mime_type="text/plain",
+        data=b"e2e processing fail seed",
+        created_by=user.id,
+        external_key=doc_id,
+    )
+    job, _ = knowledge.create_processing_job(
+        kb_id,
+        version_id=outcome.version_id,
+        options={"chunk": False, "extract": False},
+    )
+    knowledge.fail_job(kb_id, job["id"], "parse_failed", "E2E simulated processing failure")
+    return {
+        "job_id": job["id"],
+        "doc_id": doc_id,
+        "version_id": outcome.version_id,
+        "document_id": outcome.document_id,
+    }

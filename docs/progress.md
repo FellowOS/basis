@@ -134,7 +134,7 @@
 | — | `POST .../graph/distance-matrix` | `partial` | P2 | Server hop matrix when graph &gt; 2500 nodes |
 | F-CHAT-01–03 | Web KB Playground | `replaced` | — | 控制台问答已移除；智能体用 MCP（§0.1 **F-CHAT-04–05**） |
 | F-CHAT-06 | Playground 客户端控制 | `replaced` | — | 随 Playground 移除 |
-| F-ALT-01–02 | Alert episodes + SSE refetch | `partial` | P1 | unread + mark-all-read + dismiss-all；侧栏/**账户菜单**角标（`viewAllAlerts`）；E2E `governance.spec.ts` |
+| F-ALT-01–02 | Alert episodes + SSE refetch | `partial` | P1 | unread + mark-all-read + dismiss-all；**processing.failed**→`/processing?job=`；E2E `governance.spec.ts` |
 | F-ACC-07 | Enterprise SSO / org | `partial` | P1 | Orgs + magic link/OAuth；full OIDC SSO TBD |
 | F-IO-01 | Graph import/export | `partial` | — | Import via review；export 面不全 |
 | — | Markdown node resources persistence | `open` | P2 | Policy TBD |
@@ -172,4 +172,4 @@
 
 ---
 
-_Last updated: 2026-10-18 — 资料 upload-only 上限提示；账户菜单告警入口。_
+_Last updated: 2026-10-18 — processing.failed 告警 E2E 深链。_

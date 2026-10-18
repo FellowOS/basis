@@ -235,6 +235,26 @@ export async function seedGovernanceTrippedViaApi(
   return { decisionId: body.decision_id ?? null };
 }
 
+/** Seed processing.failed alert with job_id (Playwright data-e2e API only). */
+export async function seedProcessingFailedViaApi(
+  page: Page,
+  kbId: string,
+): Promise<{ jobId: string; docId: string }> {
+  const token = await bearerToken(page);
+  const response = await page.request.post(e2eKbPath(kbId, '_e2e/processing-failed'), {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (response.status() === 404) {
+    throw new Error('e2e_processing_failed_unavailable');
+  }
+  expect(response.ok()).toBeTruthy();
+  const body = (await response.json()) as { job_id?: string; doc_id?: string };
+  if (!body.job_id || !body.doc_id) {
+    throw new Error('e2e processing-failed did not return job_id/doc_id');
+  }
+  return { jobId: body.job_id, docId: body.doc_id };
+}
+
 /** Seed statement_conflict review item + alert (Playwright data-e2e API only). */
 export async function seedStatementConflictViaApi(
   page: Page,
