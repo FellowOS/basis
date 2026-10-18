@@ -76,6 +76,10 @@ export const menu = {
     tabs: {
       openapi: 'OpenAPI',
       mcp: 'MCP',
+      tokens: '访问令牌',
+    },
+    tokens: {
+      hint: 'MCP 与 OpenAPI 共用 — 在集成请求中使用 Authorization: Bearer <令牌>。',
     },
     openapi: {
       hint: '本知识库的 REST 集成 — 与 MCP 工具对应同一套操作。',
@@ -86,10 +90,10 @@ export const menu = {
     },
   },
   kbMcp: {
-    title: 'MCP 与访问令牌',
+    title: 'MCP',
     connectionTitle: '连接智能体',
     hint: '通过 HTTP MCP 让 Cursor 等客户端访问本知识库。',
-    stepCreateToken: '在右侧创建访问令牌',
+    stepCreateToken: '在「访问令牌」标签页创建访问令牌',
     stepCopyUrl: '复制 MCP URL，在客户端填入服务地址',
     stepPasteConfig: '将下方配置粘贴到 mcp.json，并把 Bearer 换成你的令牌',
     url: 'MCP 端点 URL',

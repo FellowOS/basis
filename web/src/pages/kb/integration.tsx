@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
+import { KbApiTokensPanel } from '@/components/app/kb/widgets/kb-api-tokens-panel.js';
 import { KbMcpIntegrationPanel } from '@/components/app/kb/widgets/kb-mcp-integration-panel.js';
 import { KbOpenApiIntegrationPanel } from '@/components/app/kb/widgets/kb-openapi-integration-panel.js';
 import { ConsolePageLayout } from '@/components/app/shared/console/index.js';
@@ -11,11 +12,11 @@ import { kbOpenApiGET } from '@/lib/openapi-client.js';
 
 type KbRow = { my_role: string };
 
-type IntegrationTab = 'openapi' | 'mcp';
+type IntegrationTab = 'mcp' | 'openapi' | 'tokens';
 
 function parseIntegrationTab(raw: string | null): IntegrationTab {
-  if (raw === 'mcp' || raw === 'openapi') return raw;
-  return 'openapi';
+  if (raw === 'mcp' || raw === 'openapi' || raw === 'tokens') return raw;
+  return 'mcp';
 }
 
 export function KbIntegrationPage() {
@@ -31,7 +32,7 @@ export function KbIntegrationPage() {
   const name = catalogKb?.name ?? id ?? t.common.ellipsis;
   const canManageTokens = ['owner', 'admin'].includes(myRole ?? catalogKb?.my_role ?? '');
 
-  const mcp = useKbMcpIntegration(id, canManageTokens);
+  const integration = useKbMcpIntegration(id, canManageTokens);
 
   useEffect(() => {
     if (!id) return;
@@ -57,27 +58,31 @@ export function KbIntegrationPage() {
         className="flex min-h-0 flex-1 flex-col"
       >
         <TabsList>
-          <TabsTrigger value="openapi">{t.menu.kbIntegration.tabs.openapi}</TabsTrigger>
           <TabsTrigger value="mcp">{t.menu.kbIntegration.tabs.mcp}</TabsTrigger>
+          <TabsTrigger value="openapi">{t.menu.kbIntegration.tabs.openapi}</TabsTrigger>
+          <TabsTrigger value="tokens">{t.menu.kbIntegration.tabs.tokens}</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="mcp" className="mt-4 flex min-h-0 flex-1 flex-col data-[state=inactive]:hidden">
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-border">
+            <KbMcpIntegrationPanel mcpInfo={integration.mcpInfo} onCopy={integration.copyToClipboard} />
+          </div>
+        </TabsContent>
 
         <TabsContent value="openapi" className="mt-4 flex min-h-0 flex-1 flex-col data-[state=inactive]:hidden">
           <KbOpenApiIntegrationPanel kbId={id} />
         </TabsContent>
 
-        <TabsContent value="mcp" className="mt-4 flex min-h-0 flex-1 flex-col data-[state=inactive]:hidden">
-          <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-border">
-            <KbMcpIntegrationPanel
-              mcpInfo={mcp.mcpInfo}
-              apiTokens={mcp.apiTokens}
-              canManageTokens={canManageTokens}
-              onCreateToken={mcp.createApiToken}
-              createdSecret={mcp.createdSecret}
-              onDismissCreatedSecret={mcp.clearCreatedSecret}
-              onCopy={mcp.copyToClipboard}
-              onDeleteToken={mcp.deleteApiToken}
-            />
-          </div>
+        <TabsContent value="tokens" className="mt-4 flex min-h-0 flex-1 flex-col data-[state=inactive]:hidden">
+          <KbApiTokensPanel
+            apiTokens={integration.apiTokens}
+            canManageTokens={canManageTokens}
+            onCreateToken={integration.createApiToken}
+            createdSecret={integration.createdSecret}
+            onDismissCreatedSecret={integration.clearCreatedSecret}
+            onCopy={integration.copyToClipboard}
+            onDeleteToken={integration.deleteApiToken}
+          />
         </TabsContent>
       </Tabs>
     </ConsolePageLayout>

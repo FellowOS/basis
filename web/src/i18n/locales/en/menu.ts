@@ -76,6 +76,10 @@ export const menu = {
     tabs: {
       openapi: 'OpenAPI',
       mcp: 'MCP',
+      tokens: 'Access tokens',
+    },
+    tokens: {
+      hint: 'Shared by MCP and OpenAPI — use Authorization: Bearer <token> on integration requests.',
     },
     openapi: {
       hint: 'REST integration for this knowledge base — same operations as MCP tools.',
@@ -86,10 +90,10 @@ export const menu = {
     },
   },
   kbMcp: {
-    title: 'MCP & access tokens',
+    title: 'MCP',
     connectionTitle: 'Connect an agent',
     hint: 'Expose this knowledge base over HTTP MCP to clients such as Cursor.',
-    stepCreateToken: 'Create an access token on the right',
+    stepCreateToken: 'Create an access token in the Access tokens tab',
     stepCopyUrl: 'Copy the MCP URL into your client',
     stepPasteConfig: 'Paste the JSON below into mcp.json and set Bearer to your token',
     url: 'MCP endpoint URL',

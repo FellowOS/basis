@@ -118,7 +118,7 @@
 | F-RUL-03 | Entities / 证明链 UI | `partial` | P1 | Entities 侧栏 derived + statement **`/entities?statement=`** 高亮；主客体→图谱深链可继续 polish |
 | — | Reasoning workspace UX | `partial` | P1 | Rules/run → §0.1；Explorer WS 启停与试跑（**F-ONT-09**） |
 | F-SRC-08 | 超大文件 / 队列运维 UX | `partial` | P1 | Sources **Job history**：`?job=` 深链、失败 **Retry**、**复制任务链接**；E2E `processing-job.spec.ts`；ingest/jobs API → §0.2 |
-| F-CHAT-05 | 集成控制台（OpenAPI + MCP） | `done` | P1 | `/kbs/:id/integration`（系统 → 集成）；`/mcp` 重定向；`chat?tab=connect` → `?tab=mcp`；E2E `mcp-integration.spec.ts` |
+| F-CHAT-05 | 集成控制台（OpenAPI + MCP） | `done` | P1 | `/kbs/:id/integration` 三 tab：**MCP** / **OpenAPI** / **访问令牌**；legacy `/mcp`、`chat?tab=connect` 重定向；E2E `mcp-integration.spec.ts` |
 | F-KB-06 | 导出 pack 控制台入口与文档 | `partial` | P2 | 部分 export API 已有 |
 
 ### 3.2 端到端缺口（pipeline / 能力仍 partial 或 not）
@@ -172,4 +172,4 @@
 
 ---
 
-_Last updated: 2026-10-18 — F-GOV-07 审核项内嵌 decision chain；F-SRC-08 Job history 重试/复制深链。_
+_Last updated: 2026-10-18 — 集成页 Access tokens 独立 tab；F-GOV-06 平台 audit 深链。_

@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { useI18n } from '@/i18n/context.js';
-import type { ApiTokenRow, McpIntegrationInfo } from '@/components/app/kb/widgets/kb-mcp-integration-panel.js';
+import type { ApiTokenRow } from '@/components/app/kb/widgets/kb-api-tokens-panel.js';
+import type { McpIntegrationInfo } from '@/components/app/kb/widgets/kb-mcp-integration-panel.js';
 import { kbApiClient } from '@/lib/kb-api-client.js';
 import { kbOpenApiDELETE, kbOpenApiGET, kbOpenApiPOST } from '@/lib/openapi-client.js';
 import { useApiErrorMessage } from '@/lib/use-api-error-message.js';
