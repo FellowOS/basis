@@ -256,7 +256,12 @@ export function KbGraphDiffWorkspace({
       <Card className="gap-0 py-0">
         <CardHeader className="border-b px-4 py-4 sm:px-6">
           <CardTitle className="text-base">{g.timeRange}</CardTitle>
-          <CardDescription>{g.compareHint}</CardDescription>
+          <CardDescription className="space-y-1">
+            <span>{g.compareHint}</span>
+            <span className="block text-[11px] text-muted-foreground" data-testid="graph-diff-temporal-hint">
+              {g.temporalCompareHint}
+            </span>
+          </CardDescription>
         </CardHeader>
         <form onSubmit={(e) => void onSubmit(e)}>
           <CardContent className="px-4 py-4 sm:px-6">

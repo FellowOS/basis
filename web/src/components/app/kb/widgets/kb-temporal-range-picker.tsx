@@ -144,16 +144,23 @@ export function KbTemporalRangePicker({
         </CollapsibleTrigger>
         <CollapsibleContent className="space-y-4 pt-3">
           {showTimeline ? (
-            <TemporalRangeTimeline
-              ledgerMin={ledgerMin ?? fromTime}
-              ledgerMax={ledgerMax ?? toTime}
-              fromIso={fromTime}
-              toIso={toTime}
-              onFromIsoChange={onFromChange}
-              onToIsoChange={onToChange}
-              disabled={disabled}
-            />
-          ) : null}
+            <>
+              <TemporalRangeTimeline
+                ledgerMin={ledgerMin ?? fromTime}
+                ledgerMax={ledgerMax ?? toTime}
+                fromIso={fromTime}
+                toIso={toTime}
+                onFromIsoChange={onFromChange}
+                onToIsoChange={onToChange}
+                disabled={disabled}
+              />
+              <p className="text-[11px] text-muted-foreground" data-testid="graph-diff-scrubber-hint">
+                {copy.scrubberHint}
+              </p>
+            </>
+          ) : boundsLoading ? null : (
+            <p className="text-[11px] text-muted-foreground">{copy.scrubberUnavailable}</p>
+          )}
           <Field>
             <FieldDescription>{copy.rangeDialogDesc}</FieldDescription>
             <div className="mt-2 grid gap-4 md:grid-cols-2">

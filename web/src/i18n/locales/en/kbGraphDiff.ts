@@ -3,6 +3,8 @@ export const kbGraphDiff = {
   timeRange: 'Time range',
   compare: 'Compare',
   compareHint: 'Compare the graph between two calendar days (local midnight to end of day).',
+  temporalCompareHint:
+    'Uses graph projection instants (like graph ?at=). Document chunk time filters live on Search with as_of—not the same clock.',
   dayRangeHint: 'Pick a start and end date. We send day boundaries to the API as ISO instants.',
   fromDateLabel: 'Start date',
   toDateLabel: 'End date',

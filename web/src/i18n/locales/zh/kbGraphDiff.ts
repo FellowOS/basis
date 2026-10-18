@@ -3,6 +3,8 @@ export const kbGraphDiff = {
   timeRange: '时间范围',
   compare: '对比',
   compareHint: '按日历日对比图投影（本地时区：当日 0 点～当日结束）。',
+  temporalCompareHint:
+    '对比的是图谱投影时点（与图谱 ?at= 同类）。文库分块时间请在检索页用 as_of，二者不可直接等同。',
   dayRangeHint: '选择起始与结束日期；提交时会换算为 ISO 时刻传给 API。',
   fromDateLabel: '起始日期',
   toDateLabel: '结束日期',

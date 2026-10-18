@@ -112,7 +112,7 @@
 | F-* | 仍缺 | Status | Priority | Notes |
 | --- | --- | --- | --- | --- |
 | F-GOV-07 | 审核项详情内嵌决策叙事 | `done` | P1 | 主栏 **embedded** `review-item-decision-narrative`（批准横幅、已关闭深链、聚焦项）+ 侧栏 chain；E2E `governance.spec.ts` |
-| F-DIFF-01 | 全图画布合并工作室（publish/staging） | `partial` | P1 | diff 读 + 对比页 + **治理路径** callout（`graph-diff-merge-studio`）+ 复制对比链接；全画布 staging 合并 **not**；E2E `graph-diff-cross-link.spec.ts` |
+| F-DIFF-01 | 全图画布合并工作室（publish/staging） | `partial` | P1 | diff 读 + 对比页 **as_of/at 说明** + 治理 callout + 复制链接；全画布 staging **not**；E2E `graph-diff-cross-link.spec.ts` |
 | F-ONT-05 | 本体提案评审全流程 UI | `done` | P1 | `VersionsTab` 审批/发布 + `?ontologyProposal=` 高亮/弹窗 + 复制评审链接；E2E `ontology-proposal-url.spec.ts` |
 | F-GOV-06 | Registry 可读产品面（非 Explorer 专页） | `done` | P1 | Review timeline + 设置 **Recent graph audit** 深链；**平台 `/admin/audit` Links 列**；管理员 → 平台审计（本库）；E2E `settings-graph-audit.spec.ts` |
 | F-RUL-03 | Entities / 证明链 UI | `done` | P1 | Entities + derived 侧栏；前提/主客体深链（statement→entities、实体→graph）；E2E/单测 `derived-fact-premise-link` |
@@ -129,7 +129,7 @@
 | F-GOV-05 | Impact gates + `governance.tripped` alerts | `partial` | P1 | review（`maybe_emit_governance_tripped_on_review_approve`）+ 本体 approve/publish（AdminError + **SHACL 结果**）；merge/import `invoke_explorer`；E2E `governance.spec.ts` |
 | F-SRC-05 | Extract pattern / ml / llm 作业选项与可观测 | `partial` | P1 | spaCy + Models Chat for `llm` NER |
 | F-RUL-04 | Contradiction → governance queue | `partial` | P2 | `statement_conflict` queue + scan API |
-| F-TIM-01–03 | valid_from/to, doc events, ingest vs graph 时态一致 | `partial` | P1 | 检索 **as_of vs at**（`kbSearch.temporalHint`）+ 图谱 scrubber **`temporalPlaybackHint`**；chunk vs graph snapshot API 仍 partial |
+| F-TIM-01–03 | valid_from/to, doc events, ingest vs graph 时态一致 | `partial` | P1 | 检索 + 图谱 scrubber + **graph-diff `temporalCompareHint`**；引擎/API 仍 partial |
 | F-TIM-04 | Timeline playback（产品导航） | `partial` | P1 | 底部 scrubber↔URL **`at`** + 回放说明；检索无「打开时间轴」；dock `timeline=1`；E2E `graph-at.spec.ts` |
 | — | `POST .../graph/distance-matrix` | `partial` | P2 | Server hop matrix when graph &gt; 2500 nodes |
 | F-CHAT-01–03 | Web KB Playground | `replaced` | — | 控制台问答已移除；智能体用 MCP（§0.1 **F-CHAT-04–05**） |
@@ -172,4 +172,4 @@
 
 ---
 
-_Last updated: 2026-10-18 — F-KB-06 导出 UI 与 OpenAPI 互链。_
+_Last updated: 2026-10-18 — 图对比页时态说明（F-TIM / F-DIFF）。_
