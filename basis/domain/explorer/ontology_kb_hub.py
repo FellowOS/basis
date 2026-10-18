@@ -567,6 +567,14 @@ Kb Ont 23 Approve Proposal. Ontology workspace (SKOS, alignments) via Explorer. 
                 )
                 raise
             save_graph(request, kb_id)
+            _governance_alert_from_proposal_result(
+                request,
+                kb_id,
+                knowledge,
+                proposal_id,
+                result,
+                actor_id=user.id,
+            )
             return result
 
     router.add_api_route("/{kb_id}/ontology/proposals/{proposal_id}/approve", _kb_ont_23_approve_proposal, methods=["POST"], name="_kb_ont_23_approve_proposal")

@@ -60,6 +60,30 @@ def maybe_emit_governance_tripped_for_admin_error(
     )
 
 
+def maybe_emit_governance_tripped_on_review_approve(
+    request: Request,
+    kb_id: str,
+    knowledge: KnowledgeStore,
+    *,
+    code: str,
+    message: str,
+    detail: dict[str, Any] | None = None,
+    actor_id: str | None = None,
+) -> None:
+    """Review approve failure: emit only for governance/impact/SHACL gates (F-GOV-05)."""
+    if not should_emit_governance_tripped_on_review_approve(code):
+        return
+    payload = {"code": code, **(detail or {})}
+    emit_governance_tripped_for_kb(
+        request,
+        kb_id,
+        knowledge,
+        message=message,
+        detail=payload,
+        actor_id=actor_id,
+    )
+
+
 def _try_record_governance_decision(
     request: Request,
     kb_id: str,

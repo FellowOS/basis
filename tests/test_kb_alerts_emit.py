@@ -4,8 +4,13 @@ from fastapi.testclient import TestClient
 
 from basis.transport.http.app import create_app
 from basis.infra.config import Settings
+from unittest.mock import MagicMock, patch
+
+from basis.platform.admin.errors import AdminError
 from basis.domain.explorer.governance_decision import (
     admin_error_triggers_governance_alert,
+    maybe_emit_governance_tripped_for_admin_error,
+    maybe_emit_governance_tripped_on_review_approve,
     should_emit_governance_tripped_on_review_approve,
 )
 from basis.domain.kb.kb_alerts_emit import (
@@ -24,6 +29,33 @@ def test_should_emit_governance_tripped_on_review_approve() -> None:
     assert should_emit_governance_tripped_on_review_approve("impact_gate_blocked")
     assert not should_emit_governance_tripped_on_review_approve("review_closed")
     assert not should_emit_governance_tripped_on_review_approve("explorer_graph_error")
+
+
+def test_maybe_emit_governance_tripped_for_admin_error_skips_non_gate() -> None:
+    request = MagicMock()
+    knowledge = MagicMock()
+    with patch("basis.domain.explorer.governance_decision.emit_governance_tripped_for_kb") as emit:
+        maybe_emit_governance_tripped_for_admin_error(
+            request,
+            "kb-1",
+            knowledge,
+            AdminError(404, "not_found", "missing"),
+        )
+        emit.assert_not_called()
+
+
+def test_maybe_emit_governance_tripped_on_review_approve_skips_review_closed() -> None:
+    request = MagicMock()
+    knowledge = MagicMock()
+    with patch("basis.domain.explorer.governance_decision.emit_governance_tripped_for_kb") as emit:
+        maybe_emit_governance_tripped_on_review_approve(
+            request,
+            "kb-1",
+            knowledge,
+            code="review_closed",
+            message="closed",
+        )
+        emit.assert_not_called()
 
 
 def test_emit_governance_tripped(tmp_path) -> None:

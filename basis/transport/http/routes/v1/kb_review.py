@@ -24,9 +24,8 @@ from basis.transport.http.deps import (
 )
 from basis.transport.http.explorer_route_errors import admin_error_from_explorer_http, invoke_explorer
 from basis.domain.explorer.governance_decision import (
-    emit_governance_tripped_for_kb,
+    maybe_emit_governance_tripped_on_review_approve,
     record_governance_decision_for_kb,
-    should_emit_governance_tripped_on_review_approve,
 )
 from basis.infra.limits import RuntimeLimits
 from basis.domain.explorer.session_guard import require_explorer_graph_session
@@ -433,36 +432,34 @@ Approve Review Item. Human review queue for merges, imports, and conflicts. Requ
         }
     except HTTPException as exc:
         mapped = admin_error_from_explorer_http(exc, context="enrich")
-        if should_emit_governance_tripped_on_review_approve(mapped.code):
-            emit_governance_tripped_for_kb(
-                request,
-                kb_id,
-                knowledge,
-                message=mapped.message,
-                detail={
-                    "code": mapped.code,
-                    "item_id": item_id,
-                    "kind": item.get("kind"),
-                    "source": "review_approve",
-                },
-                actor_id=user.id,
-            )
+        maybe_emit_governance_tripped_on_review_approve(
+            request,
+            kb_id,
+            knowledge,
+            code=mapped.code,
+            message=mapped.message,
+            detail={
+                "item_id": item_id,
+                "kind": item.get("kind"),
+                "source": "review_approve",
+            },
+            actor_id=user.id,
+        )
         raise mapped
     except AdminError as exc:
-        if should_emit_governance_tripped_on_review_approve(exc.code):
-            emit_governance_tripped_for_kb(
-                request,
-                kb_id,
-                knowledge,
-                message=exc.message,
-                detail={
-                    "code": exc.code,
-                    "item_id": item_id,
-                    "kind": item.get("kind"),
-                    "source": "review_approve",
-                },
-                actor_id=user.id,
-            )
+        maybe_emit_governance_tripped_on_review_approve(
+            request,
+            kb_id,
+            knowledge,
+            code=exc.code,
+            message=exc.message,
+            detail={
+                "item_id": item_id,
+                "kind": item.get("kind"),
+                "source": "review_approve",
+            },
+            actor_id=user.id,
+        )
         raise
 
 

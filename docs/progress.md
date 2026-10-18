@@ -126,7 +126,7 @@
 | F-* | Capability | Status | Priority | Notes |
 | --- | --- | --- | --- | --- |
 | F-GOV-04 | Agent governor（batch clustering, gates） | `not` | P2 | Scale governance automation |
-| F-GOV-05 | Impact gates + `governance.tripped` alerts | `partial` | P1 | review 批准 + 本体 **approve/publish**（`maybe_emit_governance_tripped_for_admin_error`）+ SHACL 结果；merge/import `invoke_explorer`；E2E `governance.spec.ts` |
+| F-GOV-05 | Impact gates + `governance.tripped` alerts | `partial` | P1 | review（`maybe_emit_governance_tripped_on_review_approve`）+ 本体 approve/publish（AdminError + **SHACL 结果**）；merge/import `invoke_explorer`；E2E `governance.spec.ts` |
 | F-SRC-05 | Extract pattern / ml / llm 作业选项与可观测 | `partial` | P1 | spaCy + Models Chat for `llm` NER |
 | F-RUL-04 | Contradiction → governance queue | `partial` | P2 | `statement_conflict` queue + scan API |
 | F-TIM-01–03 | valid_from/to, doc events, ingest vs graph 时态一致 | `partial` | P1 | 检索 **as_of vs at** 说明（`kbSearch.temporalHint`）；chunk vs graph snapshot API 仍 partial |
@@ -172,4 +172,4 @@
 
 ---
 
-_Last updated: 2026-10-18 — 图谱时间轴 UX（不弹面板、检索去 timeline 入口）；侧栏 Alerts；中文菜单「资料」。_
+_Last updated: 2026-10-18 — F-GOV-05 review/本体告警 emit 统一；processing filter E2E。_
