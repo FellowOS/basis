@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { exWsPageRow } from '@/lib/explorer-ws-classes.js';
+import { exWsPageRow } from '@/lib/ui-classes/explorer-ws.js';
 import { Sidebar } from './Sidebar';
 import { PropertyPanel } from './PropertyPanel';
 import type { ConceptNode } from './types';

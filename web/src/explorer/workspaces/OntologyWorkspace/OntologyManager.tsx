@@ -46,7 +46,7 @@ import {
   ontManagerToolbar,
   ontStatLabel,
   ontStatValue,
-} from "./ontologyUiClasses";
+} from "@/lib/ui-classes/ontology-ui.js";
 
 interface OntologyEntry {
   uri: string;

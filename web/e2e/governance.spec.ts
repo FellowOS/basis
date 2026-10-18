@@ -10,11 +10,12 @@ import {
   seedSyncFailedViaApi,
 } from './helpers';
 
-test('kb sidebar alerts nav opens alerts page', async ({ page }) => {
+test('kb account menu alerts opens alerts page', async ({ page }) => {
   await registerFreshUser(page);
   const kbId = await defaultKbId(page);
   await page.goto(`/kbs/${kbId}/sources`);
-  await page.getByRole('link', { name: /^(Alerts|告警)$/ }).click();
+  await page.getByTestId('basis-account-menu-trigger').click();
+  await page.getByRole('menuitem', { name: /^(Alerts|消息提醒)$/ }).click();
   await expect(page).toHaveURL(new RegExp(`/kbs/${kbId}/alerts`), { timeout: 30_000 });
 });
 
@@ -174,13 +175,15 @@ test('viewing alerts clears unread badge but keeps episodes', async ({ page }) =
   }
 
   await page.goto(`/kbs/${kbId}/sources`);
-  await expect(page.getByTestId('kb-sidebar-alerts-badge')).toBeVisible({ timeout: 30_000 });
+  await page.getByTestId('basis-account-menu-trigger').click();
+  await expect(page.getByTestId('kb-account-alerts-badge')).toBeVisible({ timeout: 30_000 });
 
   await page.goto(`/kbs/${kbId}/alerts`);
   await expect(page.locator('ul li').first()).toBeVisible({ timeout: 30_000 });
 
   await page.goto(`/kbs/${kbId}/sources`);
-  await expect(page.getByTestId('kb-sidebar-alerts-badge')).toHaveCount(0);
+  await page.getByTestId('basis-account-menu-trigger').click();
+  await expect(page.getByTestId('kb-account-alerts-badge')).toHaveCount(0);
 });
 
 test('dismiss all clears alerts list', async ({ page }) => {

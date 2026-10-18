@@ -72,7 +72,7 @@ import {
   graphFitViewBtn,
   graphPluginOverlayLayer,
   graphPluginOverlaySlot,
-} from "@/lib/graph/graph-ui-classes.js";
+} from "@/lib/ui-classes/graph-ui.js";
 import { Button } from "@/components/ui/button.js";
 import { cn } from "@/lib/utils.js";
 import {

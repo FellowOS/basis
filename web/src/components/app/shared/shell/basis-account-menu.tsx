@@ -75,6 +75,7 @@ export function BasisAccountMenu({ onLogout }: { onLogout: () => void }) {
         <DropdownMenuTrigger asChild>
           <SidebarMenuButton
             size="lg"
+            data-testid="basis-account-menu-trigger"
             className="min-w-0 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground group-data-[collapsible=icon]:justify-center"
           >
             <Avatar className="relative size-8 shrink-0">

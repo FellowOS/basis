@@ -13,6 +13,26 @@ import {
 import ReactMarkdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { cn } from "@/lib/utils.js";
+import {
+  graphMdBlockCode,
+  graphMdExtIcon,
+  graphMdImageBadge,
+  graphMdInlineCode,
+  graphMdTableWrap,
+  graphMdUnsafeLink,
+  graphMarkdownPreview,
+  graphMarkdownViewer,
+  graphMarkdownViewerBody,
+  graphMarkdownViewerEditor,
+  graphMarkdownViewerEmpty,
+  graphMarkdownViewerError,
+  graphMarkdownViewerErrorAction,
+  graphMarkdownViewerHeader,
+  graphMarkdownViewerSave,
+  graphMarkdownViewerSource,
+  graphMarkdownViewerTab,
+  graphMarkdownViewerToolBtn,
+} from "@/lib/ui-classes/graph-inspector-ui.js";
 import type { MarkdownApplyResult } from "./markdownResourceClient";
 import type { MarkdownResourceRef } from "./markdownEditorState";
 import { isSafeUrl } from "./markdownUrlSafety";
@@ -233,7 +253,7 @@ export function MarkdownContentViewer({
     (): Components => ({
       ...MARKDOWN_COMPONENTS,
       img: ({ src, alt }) => (
-        <span className="graph-md-image-badge" title={src || md.image}>
+        <span className={graphMdImageBadge} title={src || md.image}>
           <PublicIcon name="image" size={12} />
           <span>{fmt(md.imageLabel, { label: alt || src || md.imageUnlabeled })}</span>
         </span>
@@ -284,8 +304,8 @@ export function MarkdownContentViewer({
   };
 
   return (
-    <div className={cn("graph-markdown-viewer", className)}>
-      <div className="graph-markdown-viewer__header">
+    <div className={cn(graphMarkdownViewer, className)}>
+      <div className={graphMarkdownViewerHeader}>
         <div className="flex gap-1" role="tablist" aria-label={md.viewModeAria}>
           <Button
             type="button"
@@ -298,7 +318,10 @@ export function MarkdownContentViewer({
             tabIndex={activeMode === "preview" ? 0 : -1}
             onClick={() => selectMode("preview")}
             onKeyDown={handleTabKeyDown}
-            className="graph-markdown-viewer__tab h-auto gap-1.5 px-2 py-1 font-normal shadow-none focus-visible:ring-0"
+            className={cn(
+              graphMarkdownViewerTab,
+              "h-auto gap-1.5 px-2 py-1 font-normal shadow-none focus-visible:ring-0",
+            )}
           >
             <PublicIcon name="eye-open" size={12} />
             {md.preview}
@@ -314,7 +337,10 @@ export function MarkdownContentViewer({
             tabIndex={activeMode === "source" ? 0 : -1}
             onClick={() => selectMode("source")}
             onKeyDown={handleTabKeyDown}
-            className="graph-markdown-viewer__tab h-auto gap-1.5 px-2 py-1 font-normal shadow-none focus-visible:ring-0"
+            className={cn(
+              graphMarkdownViewerTab,
+              "h-auto gap-1.5 px-2 py-1 font-normal shadow-none focus-visible:ring-0",
+            )}
           >
             <PublicIcon name="code-01" size={12} />
             {md.source}
@@ -328,7 +354,7 @@ export function MarkdownContentViewer({
               variant="ghost"
               size="sm"
               onClick={() => void handleCopy()}
-              className="graph-markdown-viewer__toolbtn h-auto px-2 py-1 font-normal"
+              className={cn(graphMarkdownViewerToolBtn, "h-auto px-2 py-1 font-normal")}
               title={md.copyRawTitle}
             >
               {copied ? (
@@ -350,7 +376,7 @@ export function MarkdownContentViewer({
               variant="ghost"
               size="sm"
               onClick={() => void handleEdit()}
-              className="graph-markdown-viewer__toolbtn h-auto px-2 py-1 font-normal"
+              className={cn(graphMarkdownViewerToolBtn, "h-auto px-2 py-1 font-normal")}
             >
               <PublicIcon name="edit-01" size={12} />
               {md.edit}
@@ -362,7 +388,7 @@ export function MarkdownContentViewer({
               variant="ghost"
               size="sm"
               disabled
-              className="graph-markdown-viewer__toolbtn h-auto px-2 py-1 font-normal"
+              className={cn(graphMarkdownViewerToolBtn, "h-auto px-2 py-1 font-normal")}
             >
               <PublicIcon name="loader-01" size={12} className="animate-spin" />
               {t.common.loading}
@@ -376,7 +402,7 @@ export function MarkdownContentViewer({
                 size="sm"
                 onClick={handleCancel}
                 disabled={saving}
-                className="graph-markdown-viewer__toolbtn h-auto px-2 py-1 font-normal"
+                className={cn(graphMarkdownViewerToolBtn, "h-auto px-2 py-1 font-normal")}
               >
                 <PublicIcon name="x-02" size={12} />
                 {t.common.cancel}
@@ -387,7 +413,7 @@ export function MarkdownContentViewer({
                 onClick={() => void handleApply()}
                 disabled={saving || !dirty}
                 title={!dirty ? md.applyNeedChange : undefined}
-                className="graph-markdown-viewer__save h-auto font-normal"
+                className={cn(graphMarkdownViewerSave, "h-auto font-normal")}
               >
                 {saving ? (
                   <PublicIcon name="loader-01" size={12} className="animate-spin" />
@@ -402,7 +428,7 @@ export function MarkdownContentViewer({
       </div>
 
       {error ? (
-        <div id="markdown-editor-error" role="alert" className="graph-markdown-viewer__error">
+        <div id="markdown-editor-error" role="alert" className={graphMarkdownViewerError}>
           <span>{markdownErrorText(error, apiError)}</span>
           {error.kind === "conflict" ? (
             <Button
@@ -410,7 +436,11 @@ export function MarkdownContentViewer({
               variant="ghost"
               size="sm"
               onClick={() => void editor.reloadLatest()}
-              className="graph-markdown-viewer__toolbtn graph-markdown-viewer__error-action h-auto px-2 py-1 font-normal"
+              className={cn(
+                graphMarkdownViewerToolBtn,
+                graphMarkdownViewerErrorAction,
+                "h-auto px-2 py-1 font-normal",
+              )}
             >
               <PublicIcon name="arrow-refresh-01" size={12} />
               {md.reloadLatest}
@@ -433,7 +463,7 @@ export function MarkdownContentViewer({
         aria-labelledby={activeMode === "preview" ? previewTabId : sourceTabId}
         aria-busy={saving || loading}
         tabIndex={0}
-        className="graph-markdown-viewer__body"
+        className={graphMarkdownViewerBody}
       >
         {activeMode === "source" && editing ? (
           <Textarea
@@ -444,16 +474,19 @@ export function MarkdownContentViewer({
             onChange={(event) => editor.changeDraft(event.target.value)}
             disabled={saving}
             spellCheck={false}
-            className="graph-markdown-viewer__editor min-h-0 resize-none rounded-none border-0 shadow-none focus-visible:ring-0"
+            className={cn(
+              graphMarkdownViewerEditor,
+              "min-h-0 resize-none rounded-none border-0 shadow-none focus-visible:ring-0",
+            )}
           />
         ) : !hasContent ? (
-          <div className="graph-markdown-viewer__empty">{md.empty}</div>
+          <div className={graphMarkdownViewerEmpty}>{md.empty}</div>
         ) : activeMode === "source" ? (
-          <pre className="graph-markdown-viewer__source">
+          <pre className={graphMarkdownViewerSource}>
             <code>{rawContent}</code>
           </pre>
         ) : (
-          <div className="graph-markdown-preview">{renderedMarkdown}</div>
+          <div className={graphMarkdownPreview}>{renderedMarkdown}</div>
         )}
       </div>
     </div>
@@ -489,7 +522,7 @@ const MARKDOWN_COMPONENTS: Components = {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   a: ({ href, children, title, node: _node, ...rest }) => {
     if (!isSafeUrl(href)) {
-      return <span className="graph-md-unsafe-link">{children}</span>;
+      return <span className={graphMdUnsafeLink}>{children}</span>;
     }
     // isSafeUrl returning true guarantees href is a non-empty string.
     const safeHref = href ?? "";
@@ -507,7 +540,7 @@ const MARKDOWN_COMPONENTS: Components = {
     return (
       <a href={safeHref} title={title} target="_blank" rel="noopener noreferrer" {...rest}>
         {children}
-        <PublicIcon name="link-external" size={10} className="graph-md-ext-icon" />
+        <PublicIcon name="link-external" size={10} className={graphMdExtIcon} />
       </a>
     );
   },
@@ -522,7 +555,7 @@ const MARKDOWN_COMPONENTS: Components = {
   blockquote: ({ children }) => <blockquote>{children}</blockquote>,
   hr: () => <hr />,
   table: ({ children }) => (
-    <div className="graph-md-table-wrap">
+    <div className={graphMdTableWrap}>
       <table>{children}</table>
     </div>
   ),
@@ -537,7 +570,7 @@ const MARKDOWN_COMPONENTS: Components = {
   code: ({ className: codeClass, children }) => {
     const isInline = !codeClass && typeof children === "string" && !children.includes("\n");
     return (
-      <code className={isInline ? "graph-md-inline-code" : "graph-md-block-code"}>
+      <code className={isInline ? graphMdInlineCode : graphMdBlockCode}>
         {children}
       </code>
     );

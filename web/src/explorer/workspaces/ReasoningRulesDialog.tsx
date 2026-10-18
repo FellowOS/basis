@@ -26,7 +26,8 @@ import { Textarea } from "@/components/ui/textarea.js";
 import { useI18n } from "@/i18n/context.js";
 import { useApiErrorMessage } from "@/lib/use-api-error-message.js";
 import { cn } from "@/lib/utils.js";
-import { exWsHint, exWsMonoMuted, exWsRuleRow } from "@/lib/explorer-ws-classes.js";
+import { exWsHint, exWsMonoMuted, exWsRuleRow } from "@/lib/ui-classes/explorer-ws.js";
+import { wsEmpty, wsEmptyBody, wsEmptyTitle, wsTextarea } from "@/lib/ui-classes/console-ws.js";
 import {
   kbOpenApiDELETE,
   kbOpenApiPATCH,
@@ -183,7 +184,7 @@ export function ReasoningRulesDialog({
                   <Label htmlFor="kb-rule-body">{rd.body}</Label>
                   <Textarea
                     id="kb-rule-body"
-                    className="ws-textarea min-h-[120px] w-full font-mono text-xs"
+                    className={cn(wsTextarea, "min-h-[120px] w-full text-xs")}
                     value={body}
                     onChange={(e) => setBody(e.target.value)}
                     spellCheck={false}
@@ -228,9 +229,9 @@ export function ReasoningRulesDialog({
             )}
 
             {rules.length === 0 && !editing ? (
-              <div className="ws-empty py-8">
-                <div className="ws-empty-title">{rd.noRulesTitle}</div>
-                <div className="ws-empty-body">
+              <div className={cn(wsEmpty, "py-8")}>
+                <div className={wsEmptyTitle}>{rd.noRulesTitle}</div>
+                <div className={wsEmptyBody}>
                   {canWrite ? rd.noRulesCanWrite : rd.noRulesReadOnly}
                 </div>
               </div>

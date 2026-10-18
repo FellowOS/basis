@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/combobox.js";
 import type { KbReasoningRule } from "./ReasoningRulesDialog.js";
 import { cn } from "@/lib/utils.js";
-import { exWsHint } from "@/lib/explorer-ws-classes.js";
+import { exWsHint } from "@/lib/ui-classes/explorer-ws.js";
 
 export type ReasoningRuleOption = Pick<KbReasoningRule, "id" | "name" | "body">;
 

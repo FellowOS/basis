@@ -7,6 +7,7 @@ import { KbExplorerUnavailable } from '@/components/app/kb/explorer-shell/kb-exp
 import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
 import { cn } from '@/lib/utils.js';
+import { govEmbeddedWorkspaceShell } from '@/lib/ui-classes/governance-ui.js';
 import { OntologyKbProvider } from '@/explorer/workspaces/OntologyWorkspace/ontologyKb.js';
 
 const VocabularyWorkspace = lazy(() =>
@@ -39,7 +40,8 @@ export function KbVocabularyHubWorkspace({
   return (
     <div
       className={cn(
-        'kb-explorer-console kb-vocabulary-hub relative flex min-h-0 w-full flex-1 flex-col overflow-hidden bg-background text-foreground',
+        'kb-explorer-console kb-vocabulary-hub relative flex w-full flex-col overflow-hidden bg-background text-foreground',
+        govEmbeddedWorkspaceShell,
         className,
       )}
       data-kb-id={kbId}

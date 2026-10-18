@@ -1,14 +1,50 @@
 /**
- * Tailwind class bundles for Explorer workspaces (Ontology, SPARQL, Reasoning, etc.).
- *
- * Convention: put shared Explorer chrome here — not inline `style=`. Workspace-local
- * bundles may live next to the workspace (e.g. `ontologyUiClasses.ts`). Graph canvas/HUD
- * chrome belongs in `lib/graph/graph-ui-classes.ts`.
+ * Explorer workspace Tailwind bundles (`exWs*`).
+ * Composes `console-ws.ts` / `governance-ui.ts`. Button variant chrome: `styles.css` (`[data-basis-app]`).
  */
 
-export const exWsPage = "ws-page min-h-0";
+import {
+  wsAnimateIn,
+  wsCard,
+  wsEmpty,
+  wsEyebrow,
+  wsPage,
+  wsPageRow,
+  wsPadded,
+  wsScroll,
+  wsScrollPadded,
+  wsSkeleton,
+  wsSplitSidebar,
+} from "./console-ws.js";
+import { govVocabTreeRow } from "./governance-ui.js";
 
-export const exWsPageRow = "ws-page ws-page--row flex min-h-0 flex-row";
+/** Overrides shadcn ghost accent hover — use on icon/text controls. */
+export const exWsGhostHoverMuted =
+  "shadow-none hover:!bg-muted/40 hover:text-foreground dark:hover:!bg-muted/25";
+
+/** Segment pills / filter chips: flat hover on inactive items. */
+export const exWsGhostHoverTransparent =
+  "shadow-none hover:!bg-transparent hover:text-foreground dark:hover:!bg-transparent";
+
+export const exWsGhostIconBtn =
+  `grid size-8 shrink-0 place-items-center rounded-md border-0 bg-transparent ${exWsGhostHoverMuted}`;
+
+export const exWsGhostIconBtnSm =
+  `grid size-8 shrink-0 place-items-center rounded-md border-0 bg-transparent p-0.5 ${exWsGhostHoverMuted}`;
+
+export const exWsGhostTextBtn =
+  `h-auto border-0 bg-transparent font-normal ${exWsGhostHoverMuted}`;
+
+/** List rows / menu items (primary tint, not solid `bg-muted`). */
+export const exWsListRowHoverPrimary =
+  "transition-colors hover:bg-[color-mix(in_oklch,var(--primary)_7%,var(--card))]";
+
+export const exWsListRowSelectedPrimary =
+  "bg-primary/10 hover:bg-[color-mix(in_oklch,var(--primary)_12%,var(--card))]";
+
+export const exWsPage = wsPage;
+
+export const exWsPageRow = `${wsPageRow} min-h-0`;
 
 export const exWsSideHeader = "shrink-0 border-b border-border px-5 py-4";
 
@@ -19,14 +55,14 @@ export const exWsHeroIcon =
 
 export const exWsHeroTitle = "text-[15px] font-bold leading-tight text-foreground";
 
-export const exWsEyebrowMb = "ws-eyebrow mb-2";
+export const exWsEyebrowMb = `${wsEyebrow} mb-2`;
 
 export const exWsRuleRow =
-  "flex items-center gap-2 rounded-[var(--ws-radius-sm)] border border-border bg-card px-2 py-1.5";
+  "flex items-center gap-2 rounded-[var(--radius-sm)] border border-border bg-card px-2 py-1.5";
 
 export const exWsHint = "text-[11px] leading-snug text-muted-foreground";
 
-export const exWsPaddedCol = "ws-scroll ws-padded flex flex-col gap-4";
+export const exWsPaddedCol = `${wsScrollPadded} flex flex-col gap-4`;
 
 export const exWsResultsHeader =
   "flex shrink-0 items-center gap-2.5 border-b border-border px-6 py-4";
@@ -36,15 +72,15 @@ export const exWsResultsHeading = "text-[15px] font-bold text-foreground";
 export const exWsResultsMeta = "ml-auto flex flex-wrap gap-1.5";
 
 export const exWsRunRulesCard =
-  "mb-3.5 rounded-[var(--ws-radius-sm)] border border-border bg-muted/40 p-3.5";
+  "mb-3.5 rounded-[var(--radius-sm)] border border-border bg-muted/40 p-3.5";
 
 export const exWsProofCard =
-  "rounded-[var(--ws-radius-sm)] border border-border bg-card p-3.5";
+  "rounded-[var(--radius-sm)] border border-border bg-card p-3.5";
 
 export const exWsProofConclusion = "mb-2 block break-all font-mono text-xs text-ok";
 
 export const exWsFactRow =
-  "flex items-start gap-2.5 rounded-[var(--ws-radius-sm)] border border-border bg-card p-3.5";
+  "flex items-start gap-2.5 rounded-[var(--radius-sm)] border border-border bg-card p-3.5";
 
 export const exWsFactIcon =
   "mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-md border border-ok/30 bg-ok/10 text-ok";
@@ -54,19 +90,19 @@ export const exWsMonoCode = "break-all font-mono text-xs leading-relaxed text-fo
 export const exWsMonoMuted = "break-all font-mono text-[11px] leading-normal text-muted-foreground";
 
 export const exWsApplyLabel =
-  "flex cursor-pointer items-center gap-2.5 rounded-[var(--ws-radius-sm)] border border-border p-2.5 has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-65";
+  "flex cursor-pointer items-center gap-2.5 rounded-[var(--radius-sm)] border border-border p-2.5 has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-65";
 
 export const exWsApplyLabelOn = "bg-ok/10";
 
 export const exWsApplyLabelOff = "bg-card";
 
-export const exWsSkeletonTall = "ws-skeleton h-[52px]";
+export const exWsSkeletonTall = `${wsSkeleton} h-[52px]`;
 
-export const exWsImportPage = "ws-padded mx-auto flex w-full max-w-[980px] flex-col gap-6";
+export const exWsImportPage = `${wsPadded} mx-auto flex w-full max-w-[980px] flex-col gap-6`;
 
 export const exWsImportGrid = "grid grid-cols-1 gap-[18px] md:grid-cols-2";
 
-export const exWsImportCard = "ws-card flex flex-col gap-[18px] p-6";
+export const exWsImportCard = `${wsCard} flex flex-col gap-[18px] p-6`;
 
 export const exWsCardTitleRow = "flex items-center gap-2 text-sm font-bold text-foreground";
 
@@ -76,13 +112,13 @@ export const exWsPageHeroIcon =
   "grid h-[42px] w-[42px] shrink-0 place-items-center rounded-[13px] border border-border bg-primary/10 text-primary";
 
 export const exWsDropzone =
-  "flex cursor-pointer flex-col items-center gap-2.5 rounded-[var(--ws-radius)] border-2 border-dashed border-border bg-muted/40 p-8 text-center transition-all duration-200";
+  "flex cursor-pointer flex-col items-center gap-2.5 rounded-[var(--radius)] border-2 border-dashed border-border bg-muted/40 p-8 text-center transition-all duration-200";
 
 export const exWsDropzoneActive = "border-primary bg-primary/10";
 
 /** Compact vocabulary import dropzone (sidebar) */
 export const exWsVocabImportDropzone =
-  "flex cursor-pointer flex-col items-center rounded-[var(--ws-radius)] border-2 border-dashed border-border bg-background px-3 py-4 text-center transition-all duration-200";
+  "flex cursor-pointer flex-col items-center rounded-[var(--radius)] border-2 border-dashed border-border bg-background px-3 py-4 text-center transition-all duration-200";
 
 export const exWsVocabImportDropzoneActive = "border-primary bg-primary/10";
 
@@ -97,8 +133,7 @@ export const exWsVocabImportError =
 
 export const exWsVocabTreeShell = "h-full w-full overflow-hidden bg-transparent";
 
-export const exWsVocabTreeRow =
-  "vocab-tree-row flex cursor-pointer select-none items-center px-2";
+export const exWsVocabTreeRow = govVocabTreeRow;
 
 export const exWsVocabTreeChevron = "flex w-5 shrink-0 justify-center";
 
@@ -110,7 +145,7 @@ export const exWsVocabTreeLabel =
 export const exWsToastStack = "fixed bottom-7 right-7 z-[1000] flex flex-col gap-2.5";
 
 export const exWsToast =
-  "ws-animate-in flex items-center gap-2.5 rounded-[var(--ws-radius-sm)] border px-4 py-3 text-sm font-medium text-foreground shadow-lg backdrop-blur-md";
+  `${wsAnimateIn} flex items-center gap-2.5 rounded-[var(--radius)] border px-4 py-3 text-sm font-medium text-foreground shadow-lg backdrop-blur-md`;
 
 export const exWsToastSuccess = "border-ok/40 bg-ok/15";
 
@@ -130,7 +165,7 @@ export const exWsSubToolbar =
 
 export const exWsPanelMuted = "flex min-h-0 flex-1 flex-col overflow-hidden bg-muted/20";
 
-export const exWsScrollFill = "ws-scroll min-h-0 flex-1";
+export const exWsScrollFill = `${wsScroll} min-h-0 flex-1`;
 
 export const exWsEditorPane =
   "relative min-h-40 shrink basis-[42%] border-b border-border";
@@ -139,13 +174,13 @@ export const exWsEditorBadge =
   "absolute right-3 top-2 z-10 flex items-center gap-1.5";
 
 export const exWsErrorBanner =
-  "ws-animate-in m-4 flex gap-2.5 rounded-[var(--ws-radius-sm)] border border-destructive/30 bg-destructive/10 px-3.5 py-3 text-sm text-destructive";
+  `${wsAnimateIn} m-4 flex gap-2.5 rounded-[var(--radius)] border border-destructive/30 bg-destructive/10 px-3.5 py-3 text-sm text-destructive`;
 
 export const exWsSkeletonStack = "flex flex-col gap-2 p-6";
 
-export const exWsSkeletonRow = "ws-skeleton h-9";
+export const exWsSkeletonRow = `${wsSkeleton} h-9`;
 
-export const exWsTableWrap = "ws-animate-in overflow-x-auto";
+export const exWsTableWrap = `${wsAnimateIn} overflow-x-auto`;
 
 export const exWsDataTable = "w-full border-collapse text-xs text-foreground";
 
@@ -167,14 +202,24 @@ export const exWsNullCell = "italic text-muted-foreground";
 export const exWsResultsTitle =
   "flex items-center gap-1.5 text-sm font-bold text-muted-foreground";
 
-export const exWsSplitSidebar =
-  "ws-split-sidebar flex w-[min(480px,42vw)] min-w-[280px] max-w-[520px] shrink-0 flex-col overflow-hidden border-r border-border";
+export const exWsSplitSidebar = wsSplitSidebar;
 
 export const exWsSplitMain = "flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden";
 
-export const exWsPaddedStack = "ws-scroll ws-padded flex flex-col gap-4";
+export const exWsPaddedStack = `${wsScrollPadded} flex flex-col gap-4`;
 
-export const exWsCardInset = "rounded-[var(--ws-radius-sm)] border border-border bg-muted/30 p-3.5";
+export const exWsCardInset = "rounded-[var(--radius-sm)] border border-border bg-muted/30 p-3.5";
+
+/** Template / mode segmented control (SPARQL, Reasoning, ontology filters, …). */
+export const exWsTemplateSegmentGroup =
+  "ex-ws-segment-group flex rounded-md border border-border bg-muted/25 p-0.5 dark:bg-muted/15";
+
+/** Pair with `variant="ghost"` inside `exWsTemplateSegmentGroup`. */
+export const exWsTemplateSegmentBtn =
+  `h-auto gap-1 rounded-[5px] px-2 py-1 text-[11px] font-normal text-muted-foreground ${exWsGhostHoverTransparent}`;
+
+export const exWsTemplateSegmentBtnActive =
+  "ex-ws-segment-active bg-card text-foreground shadow-xs hover:!bg-card hover:text-foreground dark:bg-card dark:hover:!bg-card";
 
 export const exWsIconMuted = "shrink-0 text-muted-foreground";
 
@@ -193,11 +238,11 @@ export const exWsListCol = "flex flex-col gap-1";
 
 export const exWsListSkeletonStack = "flex flex-col gap-1.5";
 
-export const exWsListSkeletonRow = "ws-skeleton h-[58px]";
+export const exWsListSkeletonRow = `${wsSkeleton} h-[58px]`;
 
-export const exWsChainSkeletonRow = "ws-skeleton h-[68px]";
+export const exWsChainSkeletonRow = `${wsSkeleton} h-[68px]`;
 
-export const exWsEmptyInset = "ws-empty px-3 py-7";
+export const exWsEmptyInset = `${wsEmpty} px-3 py-7`;
 
 export const exWsListItemTitle = "mb-1.5 text-xs font-bold";
 
@@ -215,7 +260,7 @@ export const exWsDetailHeaderRow =
 
 export const exWsDetailActions = "flex items-center gap-2";
 
-export const exWsChainCard = "ws-card p-5.5";
+export const exWsChainCard = `${wsCard} p-5.5`;
 
 export const exWsChainCardHeader = "mb-5 flex items-center gap-2";
 
@@ -225,7 +270,7 @@ export const exWsChainSectionDot =
 export const exWsChainSectionTitle = "text-sm font-bold text-foreground";
 
 export const exWsChainNode =
-  "relative rounded-[var(--ws-radius)] border border-l-[3px] bg-card p-3.5";
+  "relative rounded-[var(--radius)] border border-l-[3px] bg-card p-3.5";
 
 export const exWsChainNodeTitle = "text-[13px] font-semibold text-foreground";
 
@@ -248,7 +293,7 @@ export const exWsScrollLayer = "relative z-[1]";
 
 /** Entity resolution (dedup pairs + merge history) */
 export const exWsErPairCard =
-  "rounded-[var(--ws-radius-sm)] border border-border bg-card px-3.5 py-3";
+  "rounded-[var(--radius-sm)] border border-border bg-card px-3.5 py-3";
 
 export const exWsErEntityChip =
   "inline-block rounded-lg border border-border bg-muted px-2.5 py-1 text-xs font-semibold text-foreground";
@@ -257,10 +302,10 @@ export const exWsErExpandBtn =
   "flex cursor-pointer items-center rounded-md border-0 bg-transparent p-1 text-muted-foreground";
 
 export const exWsErPairsCol =
-  "ws-scroll flex flex-1 flex-col gap-2.5 overflow-y-auto p-4";
+  `${wsScroll} flex flex-1 flex-col gap-2.5 overflow-y-auto p-4`;
 
 export const exWsErHistoryPanel =
-  "ws-scroll w-60 shrink-0 overflow-y-auto border-l border-border p-4";
+  `${wsScroll} w-60 shrink-0 overflow-y-auto border-l border-border p-4`;
 
 export const exWsErHistoryRow =
   "flex items-start gap-1.5 border-b border-border py-2";

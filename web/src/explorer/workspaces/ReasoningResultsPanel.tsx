@@ -12,7 +12,7 @@ import {
   exWsSkeletonRow,
   exWsSkeletonStack,
   exWsSplitMain,
-} from "@/lib/explorer-ws-classes.js";
+} from "@/lib/ui-classes/explorer-ws.js";
 import { fmt, formatLocaleNumber } from "@/i18n/format.js";
 import type { LocaleMessages } from "@/i18n/locales/en/index.js";
 import type { Locale } from "@/i18n/locale.js";

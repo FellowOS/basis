@@ -11,7 +11,7 @@ Vite + React front end for the Basis platform and per–knowledge-base Explorer 
 | `src/explorer/` | **Explorer implementation** (vendored from semantica); see `src/explorer/README.md`. |
 | `src/lib/` | `basis-openapi/` (generated types + `transport.ts`), `openapi-client.ts` (app helpers), session fetch, `kb-api-path.ts`. JSON: `openApi*` / `kbOpenApi*`. Regen types: `npm run gen:openapi-types`. |
 | `server/` | **Hono web layer** — production static + `/api` reverse proxy (`server/prod.ts`); dev entry `server/dev.ts` (Hono + Vite middleware). Playground LLM config is browser-local. |
-| `src/styles/explorer/` | Explorer-specific CSS loaded from `styles.css`. |
+| `src/styles/` | Vendor overrides (e.g. Swagger UI); global chrome in root [`src/styles.css`](src/styles.css). |
 | `e2e/` | Playwright specs. |
 
 ## `src/components/` — three roots
@@ -36,7 +36,7 @@ Vite + React front end for the Basis platform and per–knowledge-base Explorer 
 | `app/kb/` | KB-only product UI — see [KB grouping](#appkb-grouping). |
 | `app/marketing/` | Login and landing; `marketing/blocks/`. |
 
-Style helpers without React components: `@/lib/ui/*` (e.g. `card-surface`).
+Tailwind class bundles: [`src/lib/ui-classes/`](src/lib/ui-classes/README.md).
 
 ## Three-layer flow (KB Explorer features)
 
@@ -57,11 +57,10 @@ Platform-only pages (e.g. `pages/kbs.tsx`, `pages/settings.tsx`) skip layer 2–
 
 ## Styling conventions
 
-- **Basis + Tailwind** — prefer tokens (`border-border`, `text-muted-foreground`) over Explorer navy hex.
-- **`lib/explorer-ws-classes.ts`** — shared Tailwind strings for Ontology, SPARQL, Reasoning, Import/Export, etc.
-- **`lib/graph/graph-ui-classes.ts`** — graph toolbar, legend, loading overlay, inspector metrics; dynamic swatch/width helpers.
-- **Workspace-local** — e.g. `ontologyUiClasses.ts` when only one hub needs the bundle.
-- **CSS** — `styles/explorer/sem-components.css` for complex markdown/inspector rules that are awkward in JSX.
+Product styling: **TS class bundles** in [`src/lib/ui-classes/`](src/lib/ui-classes/README.md); global control chrome (Button under `[data-basis-app]`, fields, badges) in [`src/styles.css`](src/styles.css).
+
+- Prefer design tokens (`border-border`, `text-muted-foreground`) over one-off hex.
+- Do not hand-edit `components/ui/*` for Basis; extend `styles.css` or `exWsGhost*` from `@/lib/ui-classes/explorer-ws.js`.
 
 ## Scripts
 

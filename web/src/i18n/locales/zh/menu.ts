@@ -6,7 +6,7 @@ export const menu = {
     audit: '审计',
     system: '系统',
   },
-  /** KB sidebar + account menu labels (keys match `nav-config` `labelKey` + alerts). */
+  /** KB sidebar + account menu labels (keys match `nav-config` `labelKey`; alerts = account menu only). */
   kb: {
     graph: '图谱',
     search: '检索',

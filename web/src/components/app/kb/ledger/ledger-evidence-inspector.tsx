@@ -244,7 +244,7 @@ export function LedgerEvidenceInspector({ kbId }: { kbId: string }) {
                   <Button
                     type="button"
                     variant="ghost"
-                    className="h-auto w-full flex-col items-start rounded-md border border-border px-3 py-2 text-left font-normal hover:bg-muted"
+                    className="h-auto w-full flex-col items-start rounded-md border border-border px-3 py-2 text-left font-normal hover:bg-[color-mix(in_oklch,var(--primary)_7%,var(--card))]"
                     onClick={() => openChunk(row.id)}
                   >
                     <span className="font-mono text-[11px] text-muted-foreground">

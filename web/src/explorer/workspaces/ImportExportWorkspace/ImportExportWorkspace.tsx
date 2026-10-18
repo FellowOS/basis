@@ -24,7 +24,15 @@ import {
   exWsToastError,
   exWsToastStack,
   exWsToastSuccess,
-} from "@/lib/explorer-ws-classes.js";
+} from "@/lib/ui-classes/explorer-ws.js";
+import {
+  wsBody,
+  wsLabel,
+  wsPage,
+  wsPillMono,
+  wsScroll,
+  wsTitle,
+} from "@/lib/ui-classes/console-ws.js";
 
 interface Toast {
   id: number;
@@ -143,15 +151,15 @@ export function ImportExportWorkspace({
   }
 
   return (
-    <div className="ws-page ws-scroll">
+    <div className={cn(wsPage, wsScroll)}>
       <div className={exWsImportPage}>
         <div className={exWsPageHero}>
           <div className={exWsPageHeroIcon}>
             <PublicIcon name="upload-01" size={20} />
           </div>
           <div>
-            <h2 className="ws-title text-lg">{ie.pageTitle}</h2>
-            <div className="ws-body mt-0.5">{ie.pageSubtitle}</div>
+            <h2 className={cn(wsTitle, "text-lg")}>{ie.pageTitle}</h2>
+            <div className={cn(wsBody, "mt-0.5")}>{ie.pageSubtitle}</div>
           </div>
         </div>
 
@@ -176,7 +184,7 @@ export function ImportExportWorkspace({
                 <>
                   <PublicIcon name="file-01" size={40} className="text-ok" />
                   <div className="font-bold text-foreground">{file.name}</div>
-                  <div className="ws-body text-[11px]">
+                  <div className={cn(wsBody, "text-[11px]")}>
                     {fmt(ie.fileSizeReplace, {
                       size: formatLocaleFixedDecimals(locale as Locale, file.size / 1024, 1),
                     })}
@@ -186,9 +194,9 @@ export function ImportExportWorkspace({
                 <>
                   <PublicIcon name="upload-01" size={36} className="text-primary opacity-70" />
                   <div className="font-semibold text-foreground">{ie.dropBrowse}</div>
-                  <div className="ws-pill ws-pill--mono">.json</div>
+                  <div className={wsPillMono}>.json</div>
                   <span className={exWsHint}>{ie.or}</span>
-                  <div className="ws-pill ws-pill--mono">.csv</div>
+                  <div className={wsPillMono}>.csv</div>
                 </>
               )}
             </div>
@@ -220,7 +228,7 @@ export function ImportExportWorkspace({
             </div>
 
             <div>
-              <label className="ws-label">{ie.formatLabel}</label>
+              <label className={wsLabel}>{ie.formatLabel}</label>
               <div className="flex gap-2">
                 {(["json", "csv"] as const).map((format) => (
                   <Button
@@ -239,7 +247,7 @@ export function ImportExportWorkspace({
 
             <div className="flex-1 rounded-[var(--ws-radius-sm)] border border-border bg-muted/40 p-3.5 px-4">
               <div className="mb-1.5 text-xs font-bold text-muted-foreground">{ie.includedTitle}</div>
-              <div className="ws-body text-xs">
+              <div className={cn(wsBody, "text-xs")}>
                 {exportFormat === "json" ? ie.includedJson : ie.includedCsv}
               </div>
             </div>

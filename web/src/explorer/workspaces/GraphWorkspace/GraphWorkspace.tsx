@@ -69,7 +69,7 @@ import {
   graphShell,
   graphSuspenseFallback,
   graphTimelineShell,
-} from "@/lib/graph/graph-ui-classes.js";
+} from "@/lib/ui-classes/graph-ui.js";
 import { collectEdgeTypeCounts, edgeTypeOf, mergeEdgeTypeCounts } from "./graphEdgeTypes";
 import { collectNodeTypeCounts, mergeNodeTypeCounts, nodeTypeOf } from "./graphNodeTypes";
 import { focusedUnavailableReasonText, groupedViewReasonText } from "./graphViewCopy";

@@ -45,7 +45,7 @@ export function KbExplorerZoneTabs({
               'h-auto flex-none rounded-md px-3 py-1.5 text-xs font-semibold tracking-wide shadow-none after:hidden',
               'data-[state=active]:shadow-none dark:data-[state=active]:border-transparent dark:data-[state=active]:bg-transparent',
               isConsole
-                ? 'text-muted-foreground hover:bg-muted hover:text-foreground data-[state=active]:bg-primary/10 data-[state=active]:text-primary'
+                ? 'text-muted-foreground hover:bg-muted/35 hover:text-foreground data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:hover:bg-primary/10'
                 : 'text-[#8fa8c6] hover:bg-white/5 hover:text-[#ddeeff] data-[state=active]:bg-[#4aa3ff]/20 data-[state=active]:text-[#7fc6ff]',
             )}
           >

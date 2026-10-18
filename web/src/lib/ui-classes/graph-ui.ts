@@ -1,9 +1,6 @@
 /**
- * Tailwind + small style helpers for Graph workspace chrome (Basis theme).
- *
- * Static layout → export `graph*` class strings. Runtime color/width →
- * `graphSemanticSwatchStyle`, `graphProgressWidthStyle`, etc. Do not add new
- * Explorer-wide bundles here; use `lib/explorer-ws-classes.ts` instead.
+ * Graph workspace chrome (`graph*`) + small runtime style helpers.
+ * Explorer-wide bundles: `lib/ui-classes/explorer-ws.ts`.
  */
 
 import type { CSSProperties } from "react";

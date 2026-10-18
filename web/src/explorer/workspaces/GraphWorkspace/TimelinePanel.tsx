@@ -14,7 +14,7 @@ import {
   graphTimelinePlayBtnActive,
   graphTimelineShell,
   graphTimelineVisHost,
-} from "@/lib/graph/graph-ui-classes.js";
+} from "@/lib/ui-classes/graph-ui.js";
 import { useI18n } from "@/i18n/context.js";
 import { fmt, formatLocaleNumber, formatLocaleYearMonth } from "@/i18n/format.js";
 import type { Locale } from "@/i18n/locale.js";

@@ -11,7 +11,7 @@ import { useI18n } from "@/i18n/context.js";
 import { fmt, formatLocaleNumber, pickCountForm } from "@/i18n/format.js";
 import type { Locale } from "@/i18n/locale.js";
 import { useTheme } from "@/lib/theme.js";
-import { exWsHint, exWsScrollFill, exWsSplitMain, exWsSplitSidebar } from "@/lib/explorer-ws-classes.js";
+import { exWsHint, exWsScrollFill, exWsSplitMain, exWsSplitSidebar } from "@/lib/ui-classes/explorer-ws.js";
 import {
   generateShacl,
   loadOntologyRegistry,

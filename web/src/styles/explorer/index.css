@@ -1,7 +1,0 @@
-/**
- * Explorer workspaces embedded in Basis (graph, governance, vocabulary, etc.).
- * Single entry — imported from styles.css; do not import from explorer/ui.
- */
-@import './console-shell.css';
-@import './governance.css';
-@import './sem-components.css';

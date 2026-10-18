@@ -1,4 +1,16 @@
-/** Shared Tailwind classes for ontology explorer panels (Basis theme, no Explorer navy palette). */
+/**
+ * Ontology hub Tailwind bundles (`ont*`).
+ */
+
+import {
+  govOhCard,
+  govOhKicker,
+  govOhLabel,
+  govOhMuted,
+  govOhMono,
+  govOhTitle,
+} from "./governance-ui.js";
+import { wsPillMono } from "./console-ws.js";
 
 export const ontPageScroll = "flex h-full flex-col overflow-auto bg-background p-5";
 
@@ -376,28 +388,28 @@ export const ontVocabEmptyTitle = "mb-1 text-[15px] font-semibold text-foregroun
 
 export const ontVocabPropHeader = "mb-5 border-b border-border pb-4";
 
-export const ontVocabPropKicker = "oh-kicker mb-2";
+export const ontVocabPropKicker = `${govOhKicker} mb-2`;
 
-export const ontVocabPropTitle = "oh-title break-words text-xl";
+export const ontVocabPropTitle = `${govOhTitle} break-words text-xl`;
 
 export const ontVocabPropUri =
-  "oh-mono mb-5 rounded-[var(--radius)] border border-border bg-muted/30 px-3 py-2";
+  `${govOhMono} mb-5 rounded-[var(--radius)] border border-border bg-muted/30 px-3 py-2`;
 
 export const ontVocabPropSection = "mb-6";
 
 export const ontVocabPropChipRow = "flex flex-wrap gap-2";
 
-export const ontVocabPropAltChip = "ws-pill ws-pill--mono text-[13px] px-2.5 py-1";
+export const ontVocabPropAltChip = `${wsPillMono} text-[13px] px-2.5 py-1`;
 
-export const ontVocabPropBody = "oh-muted leading-relaxed";
+export const ontVocabPropBody = `${govOhMuted} leading-relaxed`;
 
-export const ontVocabPropCard = "oh-card p-3.5";
+export const ontVocabPropCard = `${govOhCard} p-3.5`;
 
-export const ontVocabPropCardLabel = "oh-label mt-0";
+export const ontVocabPropCardLabel = `${govOhLabel} mt-0`;
 
 export const ontVocabPropNarrowerList = "flex flex-col gap-1.5";
 
 export const ontVocabPropNarrowerItem =
   "rounded-md border border-border bg-background px-2.5 py-1.5 text-[13px] text-foreground";
 
-export const ontVocabPropEmptyNarrower = "oh-muted italic";
+export const ontVocabPropEmptyNarrower = `${govOhMuted} italic`;

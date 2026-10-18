@@ -36,7 +36,7 @@ import {
   ontSearchResults,
   ontSearchShell,
   ontSearchTop,
-} from "./ontologyUiClasses";
+} from "@/lib/ui-classes/ontology-ui.js";
 
 interface SearchResult {
   uri: string;

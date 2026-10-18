@@ -6,7 +6,7 @@ import {
   graphLegendPanel,
   graphTemporalChip,
   graphTemporalChipAccent,
-} from "@/lib/graph/graph-ui-classes.js";
+} from "@/lib/ui-classes/graph-ui.js";
 import { fmt } from "@/i18n/format.js";
 
 import {

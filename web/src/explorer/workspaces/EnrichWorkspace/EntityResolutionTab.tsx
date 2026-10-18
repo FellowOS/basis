@@ -49,7 +49,9 @@ import {
   exWsErScoreTone,
   exWsErScoreTrack,
   exWsRowFill,
-} from "@/lib/explorer-ws-classes.js";
+} from "@/lib/ui-classes/explorer-ws.js";
+import { wsEmpty, wsEmptyBody, wsEmptyTitle, wsPage } from "@/lib/ui-classes/console-ws.js";
+import { govOhBannerError, govOhLabel } from "@/lib/ui-classes/governance-ui.js";
 
 interface DedupPair {
   a: { id: string; label: string; type: string };
@@ -386,7 +388,7 @@ export function EntityResolutionTab({
   };
 
   return (
-    <div className="ws-page">
+    <div className={wsPage}>
       {(pageActionsHosted ? pairs.length > 0 : true) ? (
         <div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-3">
           {!pageActionsHosted ? (
@@ -411,7 +413,7 @@ export function EntityResolutionTab({
         </div>
       ) : null}
       {scanError ? (
-        <div className="oh-banner-error mx-4 mt-3">{scanError}</div>
+        <div className={cn(govOhBannerError, "mx-4 mt-3")}>{scanError}</div>
       ) : null}
 
       <Dialog open={scanOpen} onOpenChange={setScanOpen}>
@@ -466,10 +468,10 @@ export function EntityResolutionTab({
               ))}
             </>
           ) : (
-            <div className="ws-empty">
+            <div className={wsEmpty}>
               <PublicIcon name="search-01" size={36} className="text-muted-foreground opacity-30" />
-              <div className="ws-empty-title">{er.emptyTitle}</div>
-              <div className="ws-empty-body">{er.emptyBody}</div>
+              <div className={wsEmptyTitle}>{er.emptyTitle}</div>
+              <div className={wsEmptyBody}>{er.emptyBody}</div>
             </div>
           )}
         </div>
@@ -477,7 +479,7 @@ export function EntityResolutionTab({
         {/* Merge history sidebar */}
         {mergeHistory.length > 0 ? (
           <div className={exWsErHistoryPanel}>
-            <div className="oh-label mb-2.5">{er.mergeHistory}</div>
+            <div className={cn(govOhLabel, "mb-2.5")}>{er.mergeHistory}</div>
             <div className="flex flex-col gap-1.5">
               {mergeHistory.map((entry) => (
                 <div key={entry.id} className={exWsErHistoryRow}>

@@ -6,7 +6,7 @@ export const menu = {
     audit: 'Audit',
     system: 'System',
   },
-  /** KB sidebar + account menu labels (keys match `nav-config` `labelKey` + alerts). */
+  /** KB sidebar + account menu labels (keys match `nav-config` `labelKey`; alerts = account menu only). */
   kb: {
     graph: 'Graph',
     search: 'Search',

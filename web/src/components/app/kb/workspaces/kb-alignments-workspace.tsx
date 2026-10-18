@@ -3,6 +3,8 @@ import { KbExplorerConsoleShell } from '@/components/app/kb/explorer-shell/kb-ex
 import { OntologyKbProvider } from '@/explorer/workspaces/OntologyWorkspace/ontologyKb.js';
 import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
+import { cn } from '@/lib/utils.js';
+import { wsPage } from '@/lib/ui-classes/console-ws.js';
 
 const AlignmentsTab = lazy(() =>
   import('@/explorer/workspaces/OntologyWorkspace/AlignmentsTab.js').then((module) => ({
@@ -31,7 +33,7 @@ export function KbAlignmentsWorkspace({
             </div>
           }
         >
-          <div className="ws-page flex min-h-0 flex-1 flex-col overflow-hidden">
+          <div className={cn(wsPage, 'min-h-0 flex-1')}>
             <AlignmentsTab />
           </div>
         </Suspense>

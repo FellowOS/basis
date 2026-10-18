@@ -55,7 +55,21 @@ import {
   exWsScrollLayer,
   exWsSplitMain,
   exWsSplitSidebar,
-} from "@/lib/explorer-ws-classes.js";
+} from "@/lib/ui-classes/explorer-ws.js";
+import {
+  wsAnimateIn,
+  wsEmpty,
+  wsEmptyBody,
+  wsEmptyTitle,
+  wsListItem,
+  wsListItemActive,
+  wsPillAccent,
+  wsPillMono,
+  wsSidebar,
+  wsSidebarBody,
+  wsSidebarHeader,
+  wsTitle,
+} from "@/lib/ui-classes/console-ws.js";
 
 type OutcomeKind = "approved" | "rejected" | "deferred" | "pending" | string;
 
@@ -161,10 +175,10 @@ function CausalFlow({
   }
   if (!chain.length) {
     return (
-      <div className="ws-empty">
+      <div className={wsEmpty}>
         <div className="ws-empty-icon"><PublicIcon name="information-circle-contained" size={28} /></div>
-        <div className="ws-empty-title">{copy.chainEmptyTitle}</div>
-        <div className="ws-empty-body">{copy.chainEmptyBody}</div>
+        <div className={wsEmptyTitle}>{copy.chainEmptyTitle}</div>
+        <div className={wsEmptyBody}>{copy.chainEmptyBody}</div>
       </div>
     );
   }
@@ -304,8 +318,8 @@ export function DecisionWorkspace({
 
   return (
     <div className={exWsPageRow}>
-      <div className={cn(exWsSplitSidebar, "ws-sidebar")}>
-        <div className="ws-sidebar-header">
+      <div className={cn(exWsSplitSidebar, wsSidebar)}>
+        <div className={wsSidebarHeader}>
           <div className="relative">
             <PublicIcon
               name="search-01"
@@ -329,17 +343,17 @@ export function DecisionWorkspace({
           ) : null}
         </div>
 
-        <div className="ws-sidebar-body">
+        <div className={wsSidebarBody}>
           {listLoading ? (
             <div className={exWsListSkeletonStack}>
               {[1, 2, 3, 4, 5].map((i) => <div key={i} className={exWsListSkeletonRow} />)}
             </div>
           ) : filtered.length === 0 ? (
             <div className={exWsEmptyInset}>
-              <div className="ws-empty-title">
+              <div className={wsEmptyTitle}>
                 {decisions.length === 0 ? dec.noDecisions : dec.noMatches}
               </div>
-              <div className="ws-empty-body">
+              <div className={wsEmptyBody}>
                 {decisions.length === 0 ? dec.emptyList : dec.adjustFilter}
               </div>
             </div>
@@ -353,7 +367,7 @@ export function DecisionWorkspace({
                     type="button"
                     variant="ghost"
                     data-testid={`decision-list-item-${row.decision_id}`}
-                    className={cn("ws-list-item h-auto justify-start font-normal", active && "ws-list-item--active")}
+                    className={cn(wsListItem, "h-auto justify-start font-normal", active && wsListItemActive)}
                     onClick={() => {
                       onSelectedDecisionChange?.(row.decision_id);
                       void loadChain(row);
@@ -389,12 +403,12 @@ export function DecisionWorkspace({
         ) : null}
 
         {selected ? (
-          <div className={cn(exWsPaddedStack, exWsScrollLayer, "ws-animate-in")}>
+          <div className={cn(exWsPaddedStack, exWsScrollLayer, wsAnimateIn)}>
             <div className={exWsDetailSection}>
               <div className={exWsDetailHeaderRow}>
                 <div>
                   <div className={exWsEyebrowMb}>{dec.recordEyebrow}</div>
-                  <h2 className="ws-title">{selected.decision_id}</h2>
+                  <h2 className={wsTitle}>{selected.decision_id}</h2>
                 </div>
                 <div className={exWsDetailActions}>
                   {selected.outcome ? (
@@ -419,7 +433,7 @@ export function DecisionWorkspace({
                 </div>
               </div>
               {selected.category ? (
-                <span className="ws-pill ws-pill--mono">
+                <span className={wsPillMono}>
                   {decisionCategoryLabel(dec, selected.category)}
                 </span>
               ) : null}
@@ -430,7 +444,7 @@ export function DecisionWorkspace({
                 <div className={exWsChainSectionDot} />
                 <div className={exWsChainSectionTitle}>{dec.causalChain}</div>
                 {chain.length > 0 && !chainLoading ? (
-                  <span className="ws-pill ws-pill--accent ml-auto">
+                  <span className={cn(wsPillAccent, "ml-auto")}>
                     {chain.length === 1
                       ? dec.chainStepCountOne
                       : fmt(dec.chainStepCount, { count: chain.length })}
@@ -442,10 +456,10 @@ export function DecisionWorkspace({
           </div>
         ) : (
           <div className={exWsCenterEmpty}>
-            <div className="ws-empty">
+            <div className={wsEmpty}>
               <div className="ws-empty-icon"><PublicIcon name="scales" size={32} /></div>
-              <div className="ws-empty-title">{dec.noneSelectedTitle}</div>
-              <div className="ws-empty-body">{dec.noneSelectedBody}</div>
+              <div className={wsEmptyTitle}>{dec.noneSelectedTitle}</div>
+              <div className={wsEmptyBody}>{dec.noneSelectedBody}</div>
             </div>
           </div>
         )}

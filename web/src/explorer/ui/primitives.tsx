@@ -1,5 +1,12 @@
-/** Styles for `sem-*` classes: global `styles/explorer/` (Basis theme), scoped under `.kb-explorer-console` / `.kb-graph-workspace`. */
+/** Explorer surfaces — Tailwind via `@/lib/ui-classes/sem-ui.js`. */
 import type { ReactNode } from "react";
+import {
+  semInspector,
+  semSurface,
+  semSurfaceBody,
+  semSurfaceBodyTight,
+  semSurfaceSubtle,
+} from "@/lib/ui-classes/sem-ui.js";
 
 type SurfaceTone = "default" | "subtle" | "accent";
 type SurfacePadding = "default" | "tight" | "none";
@@ -20,8 +27,20 @@ export function SurfaceCard({
   className?: string;
 }) {
   return (
-    <div className={cx("sem-surface", tone !== "default" && `sem-surface--${tone}`, className)}>
-      {padding === "none" ? children : <div className={cx("sem-surface-body", padding === "tight" && "sem-surface-body--tight")}>{children}</div>}
+    <div
+      className={cx(
+        semSurface,
+        tone === "subtle" && semSurfaceSubtle,
+        className,
+      )}
+    >
+      {padding === "none" ? (
+        children
+      ) : (
+        <div className={cx(semSurfaceBody, padding === "tight" && semSurfaceBodyTight)}>
+          {children}
+        </div>
+      )}
     </div>
   );
 }
@@ -36,7 +55,7 @@ export function InspectorPanel({
   className?: string;
 }) {
   return (
-    <SurfaceCard className={cx("sem-inspector", open ? "block" : "hidden", className)} padding="none">
+    <SurfaceCard className={cx(semInspector, open ? "block" : "hidden", className)} padding="none">
       {children}
     </SurfaceCard>
   );

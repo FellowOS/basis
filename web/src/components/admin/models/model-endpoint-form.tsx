@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/form.js';
 import { Input } from '@/components/ui/input.js';
 import { Label } from '@/components/ui/label.js';
-import { resourceCardSurfaceClass } from '@/lib/ui/card-surface.js';
+import { resourceCardSurfaceClass } from '@/lib/ui-classes/card-surface.js';
 import {
   Select,
   SelectContent,

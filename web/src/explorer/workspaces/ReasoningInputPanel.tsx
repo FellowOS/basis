@@ -4,7 +4,13 @@ import { Label } from "@/components/ui/label.js";
 import { Textarea } from "@/components/ui/textarea.js";
 import { Switch } from "@/components/ui/switch.js";
 import { cn } from "@/lib/utils.js";
-import { exWsPaddedCol, exWsSplitSidebar } from "@/lib/explorer-ws-classes.js";
+import {
+  exWsPaddedCol,
+  exWsSplitSidebar,
+  exWsTemplateSegmentBtn,
+  exWsTemplateSegmentGroup,
+} from "@/lib/ui-classes/explorer-ws.js";
+import { wsTextarea } from "@/lib/ui-classes/console-ws.js";
 import { ReasoningRuleLibraryCombobox } from "./ReasoningRuleLibraryCombobox.js";
 import type { KbReasoningRule } from "./ReasoningRulesDialog.js";
 import { formatLocaleNumber } from "@/i18n/format.js";
@@ -111,14 +117,14 @@ export function ReasoningInputPanel({
           <PublicIcon name="shapes-01" size={13} />
           {copy.templatesTitle}
         </span>
-        <div className="flex rounded-md border border-border p-0.5" role="group" aria-label={copy.templatesTitle}>
+        <div className={exWsTemplateSegmentGroup} role="group" aria-label={copy.templatesTitle}>
           {templateButtons.map(({ key, label }) => (
             <Button
               key={key}
               type="button"
               variant="ghost"
               size="sm"
-              className="h-auto gap-1 rounded-[5px] px-2 py-1 text-[11px] font-normal text-muted-foreground"
+              className={exWsTemplateSegmentBtn}
               onClick={() => onLoadTemplate(key)}
             >
               <PublicIcon name={TEMPLATE_ICONS[key]} size={12} />
@@ -138,7 +144,7 @@ export function ReasoningInputPanel({
             count={factCount}
           />
           <Textarea
-            className="ws-textarea min-h-[8.5rem] font-mono text-xs leading-relaxed"
+            className={cn(wsTextarea, "min-h-[8.5rem] text-xs leading-relaxed")}
             value={facts}
             onChange={(e) => onFactsChange(e.target.value)}
             placeholder={copy.factsPlaceholder}
@@ -199,7 +205,7 @@ export function ReasoningInputPanel({
             ) : null}
           </div>
           <Textarea
-            className="ws-textarea min-h-[8.5rem] font-mono text-xs leading-relaxed"
+            className={cn(wsTextarea, "min-h-[8.5rem] text-xs leading-relaxed")}
             value={rules}
             onChange={(e) => onRulesChange(e.target.value)}
             placeholder={copy.rulesPlaceholder}

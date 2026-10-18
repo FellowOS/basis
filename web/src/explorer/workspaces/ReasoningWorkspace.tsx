@@ -33,7 +33,7 @@ import { buildExplorerKbApiPath, explorerFetch } from "../host/explorerHttp";
 import { errorFromApiResponse } from "@/lib/api-error.js";
 import { useApiErrorMessage } from "@/lib/use-api-error-message.js";
 import { useKbCapabilitiesOptional } from "@/lib/kb-capabilities.js";
-import { exWsPageRow } from "@/lib/explorer-ws-classes.js";
+import { exWsPageRow } from "@/lib/ui-classes/explorer-ws.js";
 import { kbOpenApiGET, kbOpenApiPOST } from '@/lib/openapi-client.js';
 
 type SavedRule = KbReasoningRule;

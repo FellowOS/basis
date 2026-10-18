@@ -21,7 +21,7 @@ import {
 import { useI18n } from '@/i18n/context.js';
 import { formatLocaleNumber } from '@/i18n/format.js';
 import type { Locale } from '@/i18n/locale.js';
-import { exWsSplitSidebar } from '@/lib/explorer-ws-classes.js';
+import { exWsSplitSidebar } from '@/lib/ui-classes/explorer-ws.js';
 import { useVocabularies, useConceptHierarchy } from './queries';
 import { ConceptTree } from './ConceptTree';
 import { ImportDropzone } from './ImportDropzone';

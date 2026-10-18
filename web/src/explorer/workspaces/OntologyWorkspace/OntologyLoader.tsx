@@ -46,7 +46,7 @@ import {
   ontLoaderSelect,
   ontLoaderSuccessBox,
   ontLoaderTextarea,
-} from "./ontologyUiClasses.js";
+} from "@/lib/ui-classes/ontology-ui.js";
 
 type LoaderMode = "url" | "file" | "create";
 type CreateMode = "scratch" | "data" | "text";

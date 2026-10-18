@@ -10,7 +10,7 @@ import {
   graphPanelSummary,
   graphPanelTitle,
   graphSemanticSwatchStyle,
-} from "@/lib/graph/graph-ui-classes.js";
+} from "@/lib/ui-classes/graph-ui.js";
 import { fmt, formatLocaleFixedDecimals, formatLocaleNumber, pickCountForm } from "@/i18n/format.js";
 import type { Locale } from "@/i18n/locale.js";
 

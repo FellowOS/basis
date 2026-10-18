@@ -6,7 +6,7 @@ import { ConfirmAlertDialog } from '@/components/app/shared/console/ConfirmAlert
 import { DataPanel, DataPanelBody } from '@/components/app/shared/console/DataPanel.js';
 import { Badge } from '@/components/ui/badge.js';
 import { Button } from '@/components/ui/button.js';
-import { resourceCardSurfaceClass } from '@/lib/ui/card-surface.js';
+import { resourceCardSurfaceClass } from '@/lib/ui-classes/card-surface.js';
 import {
   Dialog,
   DialogContent,

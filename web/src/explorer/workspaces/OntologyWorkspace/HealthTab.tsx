@@ -24,7 +24,7 @@ import {
   ontRowCard,
   ontSectionTitle,
   ontStrong,
-} from "./ontologyUiClasses";
+} from "@/lib/ui-classes/ontology-ui.js";
 
 interface HealthTabProps {
   onFixInEditor?: (entityUri: string) => void;

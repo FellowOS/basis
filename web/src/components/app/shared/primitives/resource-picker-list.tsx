@@ -105,7 +105,7 @@ export function ResourcePickerList({
 							<label
 								className={cn(
 									"flex w-full cursor-pointer items-start gap-3 px-3 py-2.5 text-left text-sm transition-colors",
-									"hover:bg-muted",
+									"hover:bg-[color-mix(in_oklch,var(--primary)_7%,var(--card))]",
 									disabled && "pointer-events-none opacity-60",
 								)}
 							>

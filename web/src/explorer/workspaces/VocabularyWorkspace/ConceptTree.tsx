@@ -12,7 +12,7 @@ import {
   exWsVocabTreeLabel,
   exWsVocabTreeRow,
   exWsVocabTreeShell,
-} from '@/lib/explorer-ws-classes.js';
+} from '@/lib/ui-classes/explorer-ws.js';
 
 interface ConceptTreeProps {
   data: ConceptNode[];

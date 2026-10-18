@@ -43,7 +43,7 @@ import {
   ontSkosTreeSpacer,
   ontSkosUriLink,
   ontSkosUriMono,
-} from "./ontologyUiClasses";
+} from "@/lib/ui-classes/ontology-ui.js";
 
 interface SKOSScheme {
   uri: string;

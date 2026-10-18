@@ -13,7 +13,7 @@ import {
 import { Button } from '@/components/ui/button.js';
 import { Input } from '@/components/ui/input.js';
 import { useI18n } from '@/i18n/context.js';
-import { exWsPageRow, exWsScrollFill, exWsSplitMain, exWsSplitSidebar } from '@/lib/explorer-ws-classes.js';
+import { exWsPageRow, exWsScrollFill, exWsSplitMain, exWsSplitSidebar } from '@/lib/ui-classes/explorer-ws.js';
 import { cn } from '@/lib/utils.js';
 
 const THEME_CSS = `

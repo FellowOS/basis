@@ -6,7 +6,7 @@ import {
   graphLoaderMetric,
   graphLoaderMetricAccent,
   graphProgressWidthStyle,
-} from "@/lib/graph/graph-ui-classes.js";
+} from "@/lib/ui-classes/graph-ui.js";
 import { fmt, formatLocaleNumber } from "@/i18n/format.js";
 
 import {

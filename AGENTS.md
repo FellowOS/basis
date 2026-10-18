@@ -55,7 +55,7 @@ No files at `components/` root. Full map: [web/README.md](./web/README.md).
 
 ### Card surfaces
 
-Use `resourceCardSurfaceClass` / `cardElevationClass` from `@/lib/ui/card-surface.js` — never add these exports to `ui/card.tsx`.
+Use `resourceCardSurfaceClass` / `cardElevationClass` from `@/lib/ui-classes/card-surface.js` — never add these exports to `ui/card.tsx`.
 
 ### Do not (UI)
 
@@ -76,7 +76,7 @@ After sync: `npm run typecheck` — fix **primitives**, **shell**, and imports, 
 
 - Prefer design tokens (`border-border`, `text-muted-foreground`) over one-off hex.
 - **Project-wide control chrome** (field focus without ring, status badges, console outline buttons) lives in **`web/src/styles.css`** — `data-slot`, `[data-basis-app]`, utilities like `badge-status-success`, `native-select--full`.
-- Explorer-specific CSS: `web/src/styles/explorer/`. Graph search dock shadows live in Explorer sources, not global CSS.
+- Explorer layout/chrome: `lib/ui-classes/`; graph search dock shadows live in Explorer sources, not global CSS.
 
 ### KB Explorer layering
 

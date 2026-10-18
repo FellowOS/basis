@@ -5,7 +5,7 @@ import { kbPath } from '@/lib/nav-config.js';
 import { kbOpenApiGET } from '@/lib/openapi-client.js';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card.js';
 import { Spinner } from '@/components/ui/spinner.js';
-import { graphProgressWidthStyle } from '@/lib/graph/graph-ui-classes.js';
+import { graphProgressWidthStyle } from '@/lib/ui-classes/graph-ui.js';
 import { useI18n } from '@/i18n/context.js';
 import { formatLocaleNumber } from '@/i18n/format.js';
 import type { Locale } from '@/i18n/locale.js';

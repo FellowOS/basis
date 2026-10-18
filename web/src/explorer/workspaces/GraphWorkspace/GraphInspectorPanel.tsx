@@ -30,7 +30,18 @@ import {
   metricBarToneClass,
   metricToneClass,
   pathDistanceBandBadgeClass,
-} from "@/lib/graph/graph-ui-classes.js";
+} from "@/lib/ui-classes/graph-ui.js";
+import {
+  graphInspectorKv,
+  graphInspectorKvKey,
+  graphInspectorKvValue,
+  graphInspectorMetric,
+  graphInspectorPanel,
+  graphInspectorPathChip,
+  graphNodePanelBody,
+  graphNodePanelCollapse,
+  graphNodePanelSummary,
+} from "@/lib/ui-classes/graph-inspector-ui.js";
 import { cn } from "@/lib/utils.js";
 import { graph } from "../../store/graphStore";
 import type { FocusedUnavailableReason, GraphSelectedNodeKind } from "./types";
@@ -132,7 +143,7 @@ function PathDistanceIntelPanel({
       {hasMetrics ? (
         <div className="grid grid-cols-2 gap-2">
           {result.confidence_decay != null ? (
-            <div className="graph-inspector-metric">
+            <div className={graphInspectorMetric}>
               <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                 {inspectorCopy(locale, "confidenceDecay")}
               </div>
@@ -156,7 +167,7 @@ function PathDistanceIntelPanel({
             </div>
           ) : null}
           {result.semantic_similarity != null ? (
-            <div className="graph-inspector-metric">
+            <div className={graphInspectorMetric}>
               <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                 {inspectorCopy(locale, "semanticSim")}
               </div>
@@ -172,7 +183,7 @@ function PathDistanceIntelPanel({
             </div>
           ) : null}
           {result.path_coherence_score != null ? (
-            <div className="graph-inspector-metric">
+            <div className={graphInspectorMetric}>
               <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                 {inspectorCopy(locale, "pathCoherence")}
               </div>
@@ -182,7 +193,7 @@ function PathDistanceIntelPanel({
             </div>
           ) : null}
           {result.bottleneck_node ? (
-            <div className="graph-inspector-metric">
+            <div className={graphInspectorMetric}>
               <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                 {inspectorCopy(locale, "bottleneck")}
               </div>
@@ -274,7 +285,7 @@ function PathFlowViz({
                 title={inspectorFocusTitle(locale, nodeId, nodeId === bottleneckNodeId)}
                 data-bottleneck={nodeId === bottleneckNodeId ? "true" : undefined}
                 className={cn(
-                  "graph-inspector-path-chip h-auto font-normal",
+                  cn(graphInspectorPathChip, "h-auto font-normal"),
                   onFocusNode ? "cursor-pointer" : "cursor-default",
                 )}
               >
@@ -346,7 +357,10 @@ export function GraphInspectorPanel({
 
   if (!nodeId) {
     return (
-      <div className="graph-inspector-panel flex min-h-[240px] flex-col items-center justify-center gap-3 px-6 py-10 text-center">
+      <div className={cn(
+        graphInspectorPanel,
+        "flex min-h-[240px] flex-col items-center justify-center gap-3 px-6 py-10 text-center",
+      )}>
         <div className="flex size-10 items-center justify-center rounded-full border border-border bg-muted/50">
           <div className="size-3.5 rounded-full bg-primary/30" />
         </div>
@@ -365,7 +379,7 @@ export function GraphInspectorPanel({
 
   if (!effectiveNodeId) {
     return (
-      <aside className="graph-inspector-panel flex flex-col gap-4 p-4 pb-8 md:p-5">
+      <aside className={cn(graphInspectorPanel, "flex flex-col gap-4 p-4 pb-8 md:p-5")}>
         <header className="space-y-2 border-b border-border pb-4">
           <div className="flex items-center gap-2">
             <span className="size-2 shrink-0 rounded-full bg-primary" />
@@ -435,7 +449,7 @@ export function GraphInspectorPanel({
   };
 
   return (
-    <aside className="graph-inspector-panel flex flex-col gap-4 p-4 pb-8 md:p-5">
+    <aside className={cn(graphInspectorPanel, "flex flex-col gap-4 p-4 pb-8 md:p-5")}>
       <header className="space-y-3 border-b border-border pb-4">
         <div className="flex items-center gap-2">
           <span
@@ -537,9 +551,9 @@ export function GraphInspectorPanel({
       ) : null}
 
       {/* Canonical nodes remain editable even when their current body is empty. */}
-      <details className="node-panel-collapse" open>
-        <summary className="node-panel-summary">{inspectorCopy(loc, "content")}</summary>
-        <div className="node-panel-body mt-2">
+      <details className={cn(graphNodePanelCollapse, "group/node")} open>
+        <summary className={graphNodePanelSummary}>{inspectorCopy(loc, "content")}</summary>
+        <div className={cn(graphNodePanelBody, "mt-2")}>
           <MarkdownContentViewer
             kbId={kbId}
             content={nodeContent}
@@ -618,9 +632,9 @@ export function GraphInspectorPanel({
       </section>
 
       {/* Candidate Links */}
-      <details className="node-panel-collapse" open={predictions.length > 0}>
-        <summary className="node-panel-summary">{inspectorCopy(loc, "candidateLinks")}</summary>
-        <div className="node-panel-body">
+      <details className={cn(graphNodePanelCollapse, "group/node")} open={predictions.length > 0}>
+        <summary className={graphNodePanelSummary}>{inspectorCopy(loc, "candidateLinks")}</summary>
+        <div className={graphNodePanelBody}>
           {predictions.length > 0 ? (
             <div className="flex flex-col gap-2">
               {predictions.map((prediction) => (
@@ -657,15 +671,15 @@ export function GraphInspectorPanel({
       </details>
 
       {/* Source Attribution */}
-      <details className="node-panel-collapse">
-        <summary className="node-panel-summary">{inspectorCopy(loc, "sourceAttribution")}</summary>
-        <div className="node-panel-body">
+      <details className={cn(graphNodePanelCollapse, "group/node")}>
+        <summary className={graphNodePanelSummary}>{inspectorCopy(loc, "sourceAttribution")}</summary>
+        <div className={graphNodePanelBody}>
           {attribution.length ? (
             <div className="flex flex-col gap-2">
               {attribution.map(({ key, value }) => (
-                <div key={key} className="graph-inspector-kv">
-                  <div className="graph-inspector-kv-key">{key}</div>
-                  <div className="graph-inspector-kv-value">
+                <div key={key} className={graphInspectorKv}>
+                  <div className={graphInspectorKvKey}>{key}</div>
+                  <div className={graphInspectorKvValue}>
                     {typeof value === "object" ? JSON.stringify(value) : String(value)}
                   </div>
                 </div>
@@ -678,15 +692,15 @@ export function GraphInspectorPanel({
       </details>
 
       {/* Properties */}
-      <details className="node-panel-collapse">
-        <summary className="node-panel-summary">{inspectorCopy(loc, "properties")}</summary>
-        <div className="node-panel-body">
+      <details className={cn(graphNodePanelCollapse, "group/node")}>
+        <summary className={graphNodePanelSummary}>{inspectorCopy(loc, "properties")}</summary>
+        <div className={graphNodePanelBody}>
           {propertyEntries.length ? (
             <div className="flex flex-col gap-2">
               {propertyEntries.map(([key, value]) => (
-                <div key={key} className="graph-inspector-kv">
-                  <div className="graph-inspector-kv-key">{key}</div>
-                  <div className="graph-inspector-kv-value">
+                <div key={key} className={graphInspectorKv}>
+                  <div className={graphInspectorKvKey}>{key}</div>
+                  <div className={graphInspectorKvValue}>
                     {typeof value === "object" ? JSON.stringify(value) : String(value)}
                   </div>
                 </div>

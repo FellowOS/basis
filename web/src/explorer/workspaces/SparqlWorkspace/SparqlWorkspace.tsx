@@ -39,7 +39,10 @@ import {
   exWsThIndex,
   exWsTr,
   exWsUriCell,
-} from "@/lib/explorer-ws-classes.js";
+  exWsTemplateSegmentBtn,
+  exWsTemplateSegmentBtnActive,
+  exWsTemplateSegmentGroup,
+} from "@/lib/ui-classes/explorer-ws.js";
 
 type SparqlTemplateId = keyof LocaleMessages["kbSparql"]["templateLabels"];
 
@@ -221,7 +224,7 @@ export function SparqlWorkspace({ kbId }: { kbId: string }) {
             <PublicIcon name="file-code" size={13} />
             {copy.templates}
           </span>
-          <div className="flex rounded-md border border-border p-0.5" role="group" aria-label={copy.templates}>
+          <div className={exWsTemplateSegmentGroup} role="group" aria-label={copy.templates}>
             {TEMPLATES.map((template) => {
               const active = query === template.query;
               return (
@@ -230,10 +233,7 @@ export function SparqlWorkspace({ kbId }: { kbId: string }) {
                   type="button"
                   variant="ghost"
                   size="sm"
-                  className={cn(
-                    "h-auto gap-1 rounded-[5px] px-2 py-1 text-[11px] font-normal",
-                    active ? "bg-muted text-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                  )}
+                  className={cn(exWsTemplateSegmentBtn, active && exWsTemplateSegmentBtnActive)}
                   onClick={() => requestTemplate(template.query)}
                 >
                   <PublicIcon name={template.icon} size={12} />

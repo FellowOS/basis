@@ -12,7 +12,8 @@ import {
   ontAlignRelationClass,
   ontAlignSuggestList,
   ontStrong,
-} from "./ontologyUiClasses";
+} from "@/lib/ui-classes/ontology-ui.js";
+import { govOhMuted, govOhSuggestion } from "@/lib/ui-classes/governance-ui.js";
 import { PublicIcon } from "@/components/app/shared/primitives/public-icon.js";
 import { useI18n } from "@/i18n/context.js";
 import { formatLocaleFixedDecimals } from "@/i18n/format.js";
@@ -526,7 +527,7 @@ export function AlignmentsTab() {
                 type="button"
                 key={`${item.source_uri}-${item.target_uri}-${item.relation}`}
                 variant="outline"
-                className="oh-suggestion h-auto w-full flex-wrap justify-start gap-2 py-2 text-left font-normal"
+                className={cn(govOhSuggestion, "h-auto w-full flex-wrap justify-start py-2 font-normal")}
                 onClick={() => handleAcceptSuggestion(item)}
               >
                 <span className={ontStrong}>{item.source_label}</span>
@@ -534,7 +535,7 @@ export function AlignmentsTab() {
                   {alignmentRelationLabel(copy, item.relation)}
                 </span>
                 <span className={ontStrong}>{item.target_label}</span>
-                <span className="oh-muted">{Math.round(item.score * 100)}%</span>
+                <span className={govOhMuted}>{Math.round(item.score * 100)}%</span>
               </Button>
             ))}
             {!suggestions.length ? <p className="text-[11px] text-muted-foreground">{copy.suggestEmpty}</p> : null}

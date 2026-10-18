@@ -22,7 +22,7 @@ import {
   graphLegendSwatch,
   graphLegendTitle,
   graphSemanticSwatchStyle,
-} from "@/lib/graph/graph-ui-classes.js";
+} from "@/lib/ui-classes/graph-ui.js";
 
 import { fmt, formatLocaleFixedDecimals } from "@/i18n/format.js";
 

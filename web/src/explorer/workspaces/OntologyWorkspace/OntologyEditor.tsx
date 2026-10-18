@@ -37,6 +37,7 @@ import { useI18n } from "@/i18n/context.js";
 import { fmt } from "@/i18n/format.js";
 import type { Locale } from "@/i18n/locale.js";
 import { ontologyOwlTypeLabel } from "./ontologyEditorCopy.js";
+import { exWsListRowHoverPrimary } from "@/lib/ui-classes/explorer-ws.js";
 import { cn } from "@/lib/utils.js";
 
 type OntologyNodeData = {
@@ -113,7 +114,7 @@ const canvasMessageClassName =
   "pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-lg border border-border bg-card/95 px-3.5 py-2.5 text-sm text-muted-foreground shadow-sm";
 
 const contextItemClassName =
-  "flex w-full cursor-pointer items-center gap-2.5 px-4 py-2 text-left text-sm text-foreground transition-colors hover:bg-muted";
+  `flex w-full cursor-pointer items-center gap-2.5 px-4 py-2 text-left text-sm text-foreground ${exWsListRowHoverPrimary}`;
 
 interface DraftDiff {
   added_classes: string[];

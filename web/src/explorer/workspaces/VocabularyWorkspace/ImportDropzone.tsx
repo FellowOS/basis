@@ -14,7 +14,8 @@ import {
   exWsVocabImportStateCol,
   exWsVocabImportStateIcon,
   exWsVocabImportSuccessCol,
-} from '@/lib/explorer-ws-classes.js';
+} from '@/lib/ui-classes/explorer-ws.js';
+import { govOhMuted } from '@/lib/ui-classes/governance-ui.js';
 export const ImportDropzone: React.FC = () => {
   const { t, locale } = useI18n();
   const copy = t.kbVocabulary;
@@ -65,7 +66,7 @@ export const ImportDropzone: React.FC = () => {
         <input {...getInputProps()} />
 
         {importMutation.isPending ? (
-          <div className={cn('oh-muted', exWsVocabImportStateCol)}>
+          <div className={cn(govOhMuted, exWsVocabImportStateCol)}>
             <PublicIcon name='loader-01' className={cn('animate-spin', exWsVocabImportStateIcon)} size={20} />
             <span className="text-xs">{copy.uploading} {file?.name}…</span>
           </div>
@@ -73,7 +74,7 @@ export const ImportDropzone: React.FC = () => {
           <div className={exWsVocabImportSuccessCol}>
             <PublicIcon name='check-circle' className={exWsVocabImportStateIcon} size={20} />
             <span className="text-xs font-medium">{copy.importOk}</span>
-            <span className={cn('oh-muted', 'mt-0.5 text-[11px]')}>
+            <span className={cn(govOhMuted, 'mt-0.5 text-[11px]')}>
               {fmt(copy.addedSummary, {
                 nodes: formatLocaleNumber(locale, importResult.nodes_added),
                 edges: formatLocaleNumber(locale, importResult.edges_added),
@@ -92,7 +93,7 @@ export const ImportDropzone: React.FC = () => {
             <span className="text-xs font-medium text-foreground">
               {isDragActive ? copy.dropActive : copy.drop}
             </span>
-            <span className={cn('oh-muted', 'mt-0.5 text-[11px]')}>.ttl · .rdf · .owl</span>
+            <span className={cn(govOhMuted, 'mt-0.5 text-[11px]')}>.ttl · .rdf · .owl</span>
           </div>
         )}
       </div>

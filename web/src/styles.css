@@ -1,7 +1,6 @@
 @import "tailwindcss";
 @import "shadcn/tailwind.css";
 @import "flag-icons/css/flag-icons.min.css";
-@import "./styles/explorer/index.css";
 @import "./styles/swagger-ui-basis.css";
 
 @source "./";
@@ -385,21 +384,6 @@ body {
     @apply w-full min-w-0;
   }
 
-  [data-basis-app] [data-slot='button'][data-variant='outline']:focus-visible {
-    @apply border-transparent ring-0;
-    box-shadow: 0 0 0 3px var(--focus);
-  }
-
-  [data-basis-app] [data-slot='button'][data-variant='outline'] {
-    @apply max-w-full border-0 bg-[var(--control)] text-sm leading-none shadow-none;
-    @apply hover:bg-[color-mix(in_oklch,var(--foreground)_6%,var(--control))];
-  }
-
-  [data-basis-app] [data-slot='button'][data-variant='outline'][data-size='default'],
-  [data-basis-app] [data-slot='button'][data-variant='outline']:not([data-size]) {
-    @apply h-8 px-2.5 text-[13px];
-  }
-
   [data-slot='input-group']:has([data-slot][aria-invalid='true']) {
     @apply ring-0;
   }
@@ -526,6 +510,69 @@ input[type="checkbox"] {
 
 [data-slot="button"] {
   font-family: var(--font-ui);
+}
+
+/*
+ * KB console Button chrome (shadcn `Button` under `[data-basis-app]`).
+ * TS segment helpers: `lib/ui-classes/explorer-ws.ts` (`exWsGhost*`, …).
+ */
+[data-basis-app] {
+  --basis-btn-outline-bg: color-mix(in oklch, var(--muted) 32%, var(--card));
+  --basis-btn-secondary-bg: color-mix(in oklch, var(--muted) 28%, var(--card));
+  --basis-btn-hover-bg: color-mix(in oklch, var(--primary) 7%, var(--card));
+  --basis-btn-ghost-hover-bg: color-mix(in oklch, var(--muted) 38%, transparent);
+}
+
+[data-basis-app] [data-slot='button'][data-variant='outline']:focus-visible {
+  border-color: transparent;
+  box-shadow: 0 0 0 3px var(--focus);
+  outline: none;
+}
+
+[data-basis-app] [data-slot='button'][data-variant='outline'] {
+  max-width: 100%;
+  border-width: 0;
+  font-size: 0.875rem;
+  line-height: 1;
+  box-shadow: none;
+  background-color: var(--basis-btn-outline-bg);
+}
+
+[data-basis-app] [data-slot='button'][data-variant='outline']:not(:disabled):hover {
+  background-color: var(--basis-btn-hover-bg);
+  color: var(--foreground);
+}
+
+[data-basis-app] [data-slot='button'][data-variant='ghost']:not(:disabled):hover {
+  background-color: var(--basis-btn-ghost-hover-bg);
+  color: var(--foreground);
+}
+
+[data-basis-app] .ex-ws-segment-group [data-slot='button'][data-variant='ghost']:not(:disabled):hover {
+  background-color: transparent;
+}
+
+[data-basis-app]
+  [data-slot='button'][data-variant='ghost'].ex-ws-segment-active:not(:disabled):hover {
+  background-color: var(--card);
+}
+
+[data-basis-app] [data-slot='button'][data-variant='secondary']:not(:disabled) {
+  background-color: var(--basis-btn-secondary-bg);
+  color: var(--foreground);
+}
+
+[data-basis-app] [data-slot='button'][data-variant='secondary']:not(:disabled):hover {
+  background-color: var(--basis-btn-hover-bg);
+  color: var(--foreground);
+}
+
+[data-basis-app] [data-slot='button'][data-variant='outline'][data-size='default'],
+[data-basis-app] [data-slot='button'][data-variant='outline']:not([data-size]) {
+  height: 2rem;
+  padding-left: 0.625rem;
+  padding-right: 0.625rem;
+  font-size: 13px;
 }
 
 [data-collapsible="icon"] [data-slot="sidebar-gap"],

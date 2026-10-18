@@ -5,6 +5,8 @@ import { OntologyKbProvider } from '@/explorer/workspaces/OntologyWorkspace/onto
 import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
 import { kbPath } from '@/lib/nav-config.js';
+import { cn } from '@/lib/utils.js';
+import { wsPage } from '@/lib/ui-classes/console-ws.js';
 
 const ShaclStudio = lazy(() =>
   import('@/explorer/workspaces/OntologyWorkspace/ShaclStudio.js').then((module) => ({
@@ -38,7 +40,7 @@ export function KbShaclWorkspace({
             </div>
           }
         >
-          <div className="ws-page flex min-h-0 flex-1 flex-col overflow-hidden">
+          <div className={cn(wsPage, "min-h-0 flex-1")}>
             <ShaclStudio onJumpToNode={onJumpToGraphNode} />
           </div>
         </Suspense>
