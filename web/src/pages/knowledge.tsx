@@ -73,6 +73,7 @@ import {
 import { type ProcessingJob, jobIsActive, statusIsProcessing } from '@/lib/kb-processing-job.js';
 import { parseSourcesUrlState } from '@/lib/sourcesUrlState.js';
 import { formatByteSize } from '@/lib/format-byte-size.js';
+import { uploadExceedsMaxBytes } from '@/lib/ingest-upload-limit.js';
 import { formatUserFacingApiError } from '@/lib/api-error-message.js';
 import { processingStartIdempotencyKey } from '@/lib/processing-idempotency.js';
 
@@ -435,9 +436,19 @@ export function KnowledgePage() {
     }
   }
 
+  function rejectOversizedUpload(file: File): boolean {
+    const max = caps?.upload_max_bytes;
+    if (!uploadExceedsMaxBytes(file, max)) return false;
+    toast.error(
+      fmt(k.fileTooLarge, { upload: formatByteSize(max ?? file.size) }),
+    );
+    return true;
+  }
+
   async function uploadFile(event: FormEvent) {
     event.preventDefault();
     if (!id || !fileRef.current?.files?.[0]) return;
+    if (rejectOversizedUpload(fileRef.current.files[0])) return;
     setUploading(true);
     try {
       const form = new FormData();
@@ -477,6 +488,7 @@ export function KnowledgePage() {
   async function uploadUpdateFile(event: FormEvent) {
     event.preventDefault();
     if (!updateTarget?.document_id || !updateFileRef.current?.files?.[0]) return;
+    if (rejectOversizedUpload(updateFileRef.current.files[0])) return;
     setUploading(true);
     try {
       const form = new FormData();

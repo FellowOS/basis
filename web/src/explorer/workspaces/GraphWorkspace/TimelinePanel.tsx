@@ -217,11 +217,19 @@ export function TimelinePanel({ onTimeChange, minDate, maxDate }: TimelinePanelP
         </span>
       </div>
 
-      <div className={graphTimelineLabel}>
-        {fmt(ws.timelineScrubber, {
-          minYear: formatLocaleNumber(locale as Locale, minBound.getFullYear()),
-          maxYear: formatLocaleNumber(locale as Locale, maxBound.getFullYear()),
-        })}
+      <div className={cn(graphTimelineLabel, "flex min-w-0 flex-col gap-0.5")}>
+        <span>
+          {fmt(ws.timelineScrubber, {
+            minYear: formatLocaleNumber(locale as Locale, minBound.getFullYear()),
+            maxYear: formatLocaleNumber(locale as Locale, maxBound.getFullYear()),
+          })}
+        </span>
+        <span
+          className="text-[10px] font-normal leading-snug text-muted-foreground"
+          data-testid="graph-temporal-hint"
+        >
+          {ws.temporalPlaybackHint}
+        </span>
       </div>
 
       <div className={graphTimelineVisHost}>

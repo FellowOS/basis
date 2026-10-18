@@ -45,6 +45,7 @@ export const kbSources = {
   docIdOptional: 'doc_id（可选）',
   labelFile: '文件',
   uploadLimitsHint: '单文件上传上限 {upload}；提取文本上限 {extract} 字符。',
+  fileTooLarge: '文件超过上传上限（{upload}），请选择更小的文件。',
   uploading: '上传中…',
   upload: '上传',
   labelText: '文本',

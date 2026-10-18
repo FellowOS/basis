@@ -73,6 +73,8 @@ export const kbGraphWorkspace = {
   timelinePlay: "播放演化",
   timelinePause: "暂停演化",
   timelineScrubber: "时间轴 · {minYear}–{maxYear}",
+  temporalPlaybackHint:
+    "拖动时间轴会将 ?at= 写入图谱 URL，用于投影时点回放。文库分块请用检索页的 as_of，与图谱 at 不同。",
   toolbarAnalysis: "分析",
   toolbarCamera: "视图",
   toolbarDistance: "距离",

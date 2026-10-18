@@ -73,6 +73,8 @@ export const kbGraphWorkspace = {
   timelinePlay: "Play evolution",
   timelinePause: "Pause evolution",
   timelineScrubber: "Temporal scrubber · {minYear}–{maxYear}",
+  temporalPlaybackHint:
+    "Scrubber syncs ?at= on the graph URL for point-in-time projection. Document chunks use Search with as_of—not the same as graph at.",
   toolbarAnalysis: "Analysis",
   toolbarCamera: "Camera",
   toolbarDistance: "Distance",

@@ -32,6 +32,7 @@ test('graph at query opens temporal context', async ({ page }) => {
   await expect(page.getByText('Temporal', { exact: false }).first()).toBeVisible({
     timeout: 60_000,
   });
+  await expect(page.getByTestId('graph-temporal-hint')).toBeVisible({ timeout: 60_000 });
 });
 
 test('graph timeline entry deep link opens playback footer', async ({ page }) => {

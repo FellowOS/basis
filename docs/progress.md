@@ -117,7 +117,7 @@
 | F-GOV-06 | Registry 可读产品面（非 Explorer 专页） | `done` | P1 | Review timeline + 设置 **Recent graph audit** 深链；**平台 `/admin/audit` Links 列**；管理员 → 平台审计（本库）；E2E `settings-graph-audit.spec.ts` |
 | F-RUL-03 | Entities / 证明链 UI | `done` | P1 | Entities + derived 侧栏；前提/主客体深链（statement→entities、实体→graph）；E2E/单测 `derived-fact-premise-link` |
 | F-ONT-09 | 推理工作台（规则试跑） | `done` | P1 | **Analyze** hub + legacy `/reasoning`；试跑 → 派生深链 **Entities**；Integration OpenAPI 提示；E2E `analyze-hub.spec.ts`、`reasoning-derived.spec.ts` |
-| F-SRC-08 | 超大文件 / 队列运维 UX | `partial` | P1 | **`/processing`**（`?filter=`、`?job=`、**重试全部失败**）；资料状态→任务深链；capabilities 上限提示；E2E `processing-job.spec.ts` |
+| F-SRC-08 | 超大文件 / 队列运维 UX | `partial` | P1 | **`/processing`** + 资料页 **上传前** `upload_max_bytes` 校验；capabilities 上限提示；E2E `processing-job.spec.ts` |
 | F-CHAT-05 | 集成控制台（OpenAPI + MCP） | `done` | P1 | `/kbs/:id/integration` 三 tab：**MCP** / **OpenAPI** / **访问令牌**；legacy `/mcp`、`chat?tab=connect` 重定向；E2E `mcp-integration.spec.ts` |
 | F-KB-06 | 导出 pack 控制台入口与文档 | `partial` | P2 | KB 设置 → Graph **导出图谱**（`ImportExportWorkspace`）；`POST .../export` API → §0.2 |
 
@@ -129,8 +129,8 @@
 | F-GOV-05 | Impact gates + `governance.tripped` alerts | `partial` | P1 | review（`maybe_emit_governance_tripped_on_review_approve`）+ 本体 approve/publish（AdminError + **SHACL 结果**）；merge/import `invoke_explorer`；E2E `governance.spec.ts` |
 | F-SRC-05 | Extract pattern / ml / llm 作业选项与可观测 | `partial` | P1 | spaCy + Models Chat for `llm` NER |
 | F-RUL-04 | Contradiction → governance queue | `partial` | P2 | `statement_conflict` queue + scan API |
-| F-TIM-01–03 | valid_from/to, doc events, ingest vs graph 时态一致 | `partial` | P1 | 检索 **as_of vs at** 说明（`kbSearch.temporalHint`）；chunk vs graph snapshot API 仍 partial |
-| F-TIM-04 | Timeline playback（产品导航） | `partial` | P1 | 底部 scrubber↔URL **`at`**（不自动弹时间上下文面板）；检索无「打开时间轴」；图谱 dock 可选 `timeline=1`；播放稳定（ref 回调）；E2E `graph-at.spec.ts` |
+| F-TIM-01–03 | valid_from/to, doc events, ingest vs graph 时态一致 | `partial` | P1 | 检索 **as_of vs at**（`kbSearch.temporalHint`）+ 图谱 scrubber **`temporalPlaybackHint`**；chunk vs graph snapshot API 仍 partial |
+| F-TIM-04 | Timeline playback（产品导航） | `partial` | P1 | 底部 scrubber↔URL **`at`** + 回放说明；检索无「打开时间轴」；dock `timeline=1`；E2E `graph-at.spec.ts` |
 | — | `POST .../graph/distance-matrix` | `partial` | P2 | Server hop matrix when graph &gt; 2500 nodes |
 | F-CHAT-01–03 | Web KB Playground | `replaced` | — | 控制台问答已移除；智能体用 MCP（§0.1 **F-CHAT-04–05**） |
 | F-CHAT-06 | Playground 客户端控制 | `replaced` | — | 随 Playground 移除 |
@@ -172,4 +172,4 @@
 
 ---
 
-_Last updated: 2026-10-18 — F-GOV-05 review/本体告警 emit 统一；processing filter E2E。_
+_Last updated: 2026-10-18 — 图谱时间轴 as_of/at 说明；资料上传大小客户端校验。_
