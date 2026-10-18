@@ -262,13 +262,22 @@ export function KnowledgePage() {
   const k = t.kbSources;
   const uploadLimitsHint = useMemo(() => {
     const upload = caps?.upload_max_bytes;
+    if (!upload) return null;
     const extract = caps?.ingest_max_extract_chars;
-    if (!upload || !extract) return null;
-    return fmt(k.uploadLimitsHint, {
-      upload: formatByteSize(upload),
-      extract: formatLocaleNumber(locale as Locale, extract),
-    });
-  }, [caps?.ingest_max_extract_chars, caps?.upload_max_bytes, k.uploadLimitsHint, locale]);
+    if (extract) {
+      return fmt(k.uploadLimitsHint, {
+        upload: formatByteSize(upload),
+        extract: formatLocaleNumber(locale as Locale, extract),
+      });
+    }
+    return fmt(k.uploadLimitsHintUploadOnly, { upload: formatByteSize(upload) });
+  }, [
+    caps?.ingest_max_extract_chars,
+    caps?.upload_max_bytes,
+    k.uploadLimitsHint,
+    k.uploadLimitsHintUploadOnly,
+    locale,
+  ]);
   const apiErrorMessage = useCallback(
     (err: unknown) => formatUserFacingApiError(err, locale as Locale),
     [locale],

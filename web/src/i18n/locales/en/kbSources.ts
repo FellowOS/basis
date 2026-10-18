@@ -46,6 +46,7 @@ export const kbSources = {
   docIdOptional: 'doc_id (optional)',
   labelFile: 'File',
   uploadLimitsHint: 'Max upload {upload}; extracted text capped at {extract} characters.',
+  uploadLimitsHintUploadOnly: 'Max upload size {upload}.',
   fileTooLarge: 'File exceeds the upload limit ({upload}). Choose a smaller file.',
   uploading: 'Uploading…',
   upload: 'Upload',

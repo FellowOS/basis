@@ -117,7 +117,7 @@
 | F-GOV-06 | Registry 可读产品面（非 Explorer 专页） | `done` | P1 | Review timeline + 设置 **Recent graph audit** 深链；**平台 `/admin/audit` Links 列**；管理员 → 平台审计（本库）；E2E `settings-graph-audit.spec.ts` |
 | F-RUL-03 | Entities / 证明链 UI | `done` | P1 | Entities + derived 侧栏；前提/主客体深链（statement→entities、实体→graph）；E2E/单测 `derived-fact-premise-link` |
 | F-ONT-09 | 推理工作台（规则试跑） | `done` | P1 | **Analyze** hub + legacy `/reasoning`；试跑 → 派生深链 **Entities**；Integration OpenAPI 提示；E2E `analyze-hub.spec.ts`、`reasoning-derived.spec.ts` |
-| F-SRC-08 | 超大文件 / 队列运维 UX | `partial` | P1 | processing↔资料 **`?doc=`** 高亮；**`?version=&process=1`** 才开处理弹窗；失败角标→`filter=failed`；E2E `processing-job.spec.ts` |
+| F-SRC-08 | 超大文件 / 队列运维 UX | `partial` | P1 | 上传前校验 + capabilities **upload-only** 提示；processing↔资料深链；E2E `processing-job.spec.ts` |
 | F-CHAT-05 | 集成控制台（OpenAPI + MCP） | `done` | P1 | `/kbs/:id/integration` 三 tab：**MCP** / **OpenAPI** / **访问令牌**；legacy `/mcp`、`chat?tab=connect` 重定向；E2E `mcp-integration.spec.ts` |
 | F-KB-06 | 导出 pack 控制台入口与文档 | `partial` | P2 | 设置 Graph **导出** ↔ 集成 **OpenAPI** 互链（`POST .../export`）；E2E `settings-graph-audit.spec.ts` |
 
@@ -134,7 +134,7 @@
 | — | `POST .../graph/distance-matrix` | `partial` | P2 | Server hop matrix when graph &gt; 2500 nodes |
 | F-CHAT-01–03 | Web KB Playground | `replaced` | — | 控制台问答已移除；智能体用 MCP（§0.1 **F-CHAT-04–05**） |
 | F-CHAT-06 | Playground 客户端控制 | `replaced` | — | 随 Playground 移除 |
-| F-ALT-01–02 | Alert episodes + SSE refetch | `partial` | P1 | **`unread_count`** = 未读（`read_at`）；打开告警页 **`mark-all-read`**；dismiss-all；SSE + 侧栏角标；E2E `governance.spec.ts` |
+| F-ALT-01–02 | Alert episodes + SSE refetch | `partial` | P1 | unread + mark-all-read + dismiss-all；侧栏/**账户菜单**角标（`viewAllAlerts`）；E2E `governance.spec.ts` |
 | F-ACC-07 | Enterprise SSO / org | `partial` | P1 | Orgs + magic link/OAuth；full OIDC SSO TBD |
 | F-IO-01 | Graph import/export | `partial` | — | Import via review；export 面不全 |
 | — | Markdown node resources persistence | `open` | P2 | Policy TBD |
@@ -172,4 +172,4 @@
 
 ---
 
-_Last updated: 2026-10-18 — 图对比页时态说明（F-TIM / F-DIFF）。_
+_Last updated: 2026-10-18 — 资料 upload-only 上限提示；账户菜单告警入口。_
