@@ -1196,6 +1196,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/kbs/{kb_id}/ledger/statements/{statement_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Ledger Statement Route
+         * @description Get Ledger Statement. Resolve a statement id to its subject entity for console deep links (F-RUL-03). Requires KB membership (session) or KB API token with read scope. All paths are scoped to `{kb_id}`.
+         */
+        get: operations["get_ledger_statement_route_api_v1_kbs__kb_id__ledger_statements__statement_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/kbs/{kb_id}/ledger/surface-phrases": {
         parameters: {
             query?: never;
@@ -5569,6 +5589,42 @@ export interface operations {
             path: {
                 kb_id: string;
                 merge_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_ledger_statement_route_api_v1_kbs__kb_id__ledger_statements__statement_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                kb_id: string;
+                statement_id: string;
             };
             cookie?: never;
         };

@@ -12,13 +12,10 @@ describe('hrefForDerivedFactPremise', () => {
     ).toBe(`/kbs/kb-1/graph?focus=${encodeURIComponent(entityId)}`);
   });
 
-  it('links statement uuid premises to entity search', () => {
+  it('links statement uuid premises to entities statement deep link', () => {
     expect(
       hrefForDerivedFactPremise('kb-1', { premise_kind: 'statement', premise_id: statementId }),
-    ).toContain('/search?');
-    expect(
-      hrefForDerivedFactPremise('kb-1', { premise_kind: 'statement', premise_id: statementId }),
-    ).toContain(encodeURIComponent(statementId));
+    ).toBe(`/kbs/kb-1/entities?statement=${encodeURIComponent(statementId)}`);
   });
 
   it('returns null for free-text premises', () => {

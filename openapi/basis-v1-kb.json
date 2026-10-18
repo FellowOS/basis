@@ -4260,6 +4260,78 @@
         "x-basis-auth": "session-or-kb-api-token"
       }
     },
+    "/api/v1/kbs/{kb_id}/ledger/statements/{statement_id}": {
+      "get": {
+        "tags": [
+          "knowledge-bases"
+        ],
+        "summary": "Get Ledger Statement Route",
+        "description": "Get Ledger Statement. Resolve a statement id to its subject entity for console deep links (F-RUL-03). Requires KB membership (session) or KB API token with read scope. All paths are scoped to `{kb_id}`.",
+        "operationId": "get_ledger_statement_route_api_v1_kbs__kb_id__ledger_statements__statement_id__get",
+        "parameters": [
+          {
+            "name": "kb_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Kb Id"
+            }
+          },
+          {
+            "name": "statement_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Statement Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Ledger Statement Route Api V1 Kbs  Kb Id  Ledger Statements  Statement Id  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-basis-surface": "knowledge-base",
+        "x-basis-auth": "session-or-kb-api-token"
+      }
+    },
     "/api/v1/kbs/{kb_id}/ledger/surface-phrases": {
       "get": {
         "tags": [

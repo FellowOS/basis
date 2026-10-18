@@ -33,7 +33,7 @@ def test_find_entities_and_facts(tmp_path: Path) -> None:
     store.set_version_status(kb_id, version_id, "ready")
     alice = store.create_entity(kb_id, canonical_label="Alice Search")
     bob = store.create_entity(kb_id, canonical_label="Bob")
-    store.add_open_statement(
+    statement_id = store.add_open_statement(
         kb_id,
         subject_id=alice,
         surface_phrase="knows",
@@ -67,6 +67,14 @@ def test_find_entities_and_facts(tmp_path: Path) -> None:
     assert body["facts"][0]["surface_phrase"] == "knows"
     assert body["facts"][0]["evidence_chunk_id"] == chunk_id
     assert body["facts"][0]["evidence_quote"] == "knows Bob"
+
+    stmt = client.get(
+        f"/api/v1/kbs/{kb_id}/ledger/statements/{statement_id}",
+        headers=headers,
+    )
+    assert stmt.status_code == 200
+    assert stmt.json()["statement"]["subject_id"] == alice
+    assert stmt.json()["statement"]["statement_id"] == statement_id
 
     recent = client.get(f"/api/v1/kbs/{kb_id}/ledger/entities?limit=10", headers=headers)
     assert recent.status_code == 200

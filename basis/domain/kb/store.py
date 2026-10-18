@@ -2256,6 +2256,29 @@ class KnowledgeStore:
             for row in rows
         ]
 
+    def get_statement_browse(
+        self, kb_id: str, *, statement_id: str
+    ) -> dict[str, Any] | None:
+        with self._lock:
+            row = self._conn.execute(
+                """
+                SELECT id, subject_id, surface_phrase, object_entity_id, object_value, status
+                FROM statements
+                WHERE kb_id = ? AND id = ? AND invalidated_at IS NULL
+                """,
+                (kb_id, statement_id),
+            ).fetchone()
+        if row is None:
+            return None
+        return {
+            "statement_id": row["id"],
+            "subject_id": row["subject_id"],
+            "surface_phrase": row["surface_phrase"],
+            "object_entity_id": row["object_entity_id"],
+            "object_value": row["object_value"],
+            "status": row["status"],
+        }
+
     def create_review_item(
         self,
         kb_id: str,

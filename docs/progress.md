@@ -115,7 +115,7 @@
 | F-DIFF-01 | 全图画布合并工作室（publish/staging） | `partial` | P1 | diff 读 + 对比页；图谱↔diff 工具栏 + **结束时刻→timeline** 深链；E2E `graph-diff-cross-link.spec.ts`；工作室 **not** |
 | F-ONT-05 | 本体提案评审全流程 UI | `partial` | P1 | `VersionsTab` 审批/发布 + `?ontologyProposal=` 高亮/弹窗 + **复制评审链接**；E2E `ontology-proposal-url.spec.ts` + `_e2e/ontology-proposal` |
 | F-GOV-06 | Registry 可读产品面（非 Explorer 专页） | `partial` | P1 | Review 侧栏 timeline + KB 设置 **Recent graph audit** 深链；E2E `settings-graph-audit.spec.ts`；平台 audit 摘要含 `decision_id` |
-| F-RUL-03 | Entities / 证明链 UI | `partial` | P1 | Entities 侧栏 + derived 主客体→图谱；前提 UUID/**statement** 深链 `derived-fact-premise-link` |
+| F-RUL-03 | Entities / 证明链 UI | `partial` | P1 | Entities 侧栏 + derived 主客体→图谱；statement 前提 → **`/entities?statement=`** + `GET .../ledger/statements/{id}` 高亮 |
 | — | Reasoning workspace UX | `partial` | P1 | Rules/run → §0.1；Explorer WS 启停与试跑（**F-ONT-09**） |
 | F-SRC-08 | 超大文件 / 队列运维 UX | `partial` | P1 | Sources **Job history**：`?job=` 深链、失败 **Retry**、**复制任务链接**；E2E `processing-job.spec.ts`；ingest/jobs API → §0.2 |
 | F-CHAT-05 | 集成控制台（OpenAPI + MCP） | `done` | P1 | `/kbs/:id/integration`（系统 → 集成）；`/mcp` 重定向；`chat?tab=connect` → `?tab=mcp`；E2E `mcp-integration.spec.ts` |

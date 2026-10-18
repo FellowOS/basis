@@ -109,9 +109,11 @@ export function ledgerEntityId(hit: LedgerEntityHit): string {
 function EntityFactsPanel({
   kbId,
   entityId,
+  highlightStatementId,
 }: {
   kbId: string;
   entityId: string;
+  highlightStatementId?: string;
 }) {
   const { t, locale } = useI18n();
   const l = t.kbLedger;
@@ -150,6 +152,12 @@ function EntityFactsPanel({
     };
   }, [kbId, entityId]);
 
+  useEffect(() => {
+    if (!highlightStatementId || loading) return;
+    const el = document.getElementById(`ledger-statement-${highlightStatementId}`);
+    el?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }, [highlightStatementId, loading, entityFacts]);
+
   if (loading) {
     return (
       <div className="flex justify-center py-8">
@@ -180,7 +188,14 @@ function EntityFactsPanel({
           </div>
           <ul className="space-y-2">
             {entityFacts.map((fact) => (
-              <li key={fact.statement_id} className="rounded-lg border border-border/70 bg-bg-3/50 p-3">
+              <li
+                key={fact.statement_id}
+                id={`ledger-statement-${fact.statement_id}`}
+                data-testid="ledger-statement-row"
+                className={`rounded-lg border border-border/70 bg-bg-3/50 p-3${
+                  highlightStatementId === fact.statement_id ? ' ring-2 ring-primary' : ''
+                }`}
+              >
                 <div className="flex items-start justify-between gap-2">
                   <span className="text-sm font-medium">{fact.surface_phrase}</span>
                   <Badge variant="secondary">
@@ -316,10 +331,12 @@ export function LedgerEntityList({
 export function LedgerEntityBrowser({
   kbId,
   loadRecentOnMount = true,
+  focusStatementId,
 }: {
   kbId: string;
   limit?: number;
   loadRecentOnMount?: boolean;
+  focusStatementId?: string;
 }) {
   const { t, locale } = useI18n();
   const l = t.kbLedger;
@@ -337,6 +354,7 @@ export function LedgerEntityBrowser({
   const [factsTarget, setFactsTarget] = useState<LedgerEntityHit | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<LedgerEntityHit | null>(null);
   const [deletePreview, setDeletePreview] = useState<EntityDeletePreview | null>(null);
+  const [highlightStatementId, setHighlightStatementId] = useState<string | undefined>(undefined);
   const [deletePreviewError, setDeletePreviewError] = useState<string | null>(null);
   const [deletePreviewLoading, setDeletePreviewLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -422,6 +440,39 @@ export function LedgerEntityBrowser({
       cancelled = true;
     };
   }, [apiError, deleteTarget, kbId]);
+
+  useEffect(() => {
+    if (!focusStatementId) {
+      setHighlightStatementId(undefined);
+      return;
+    }
+    let cancelled = false;
+    void kbOpenApiGET<{
+      statement: {
+        subject_id: string;
+        surface_phrase: string;
+        statement_id: string;
+      };
+    }>(kbId, `ledger/statements/${encodeURIComponent(focusStatementId)}`)
+      .then((body) => {
+        if (cancelled) return;
+        const subjectId = body.statement.subject_id;
+        setHighlightStatementId(body.statement.statement_id);
+        setFactsTarget({
+          entity_id: subjectId,
+          id: subjectId,
+          canonical_label: null,
+          description: null,
+          entity_kind: '',
+        });
+      })
+      .catch(() => {
+        if (!cancelled) setHighlightStatementId(undefined);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [focusStatementId, kbId]);
 
   async function confirmDeleteEntity() {
     if (!deleteTarget || deleting) return;
@@ -606,7 +657,11 @@ export function LedgerEntityBrowser({
             </DialogDescription>
           </DialogHeader>
           {factsTarget ? (
-            <EntityFactsPanel kbId={kbId} entityId={ledgerEntityId(factsTarget)} />
+            <EntityFactsPanel
+              kbId={kbId}
+              entityId={ledgerEntityId(factsTarget)}
+              highlightStatementId={highlightStatementId}
+            />
           ) : null}
         </DialogContent>
       </Dialog>

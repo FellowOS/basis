@@ -192,6 +192,25 @@ Get Ledger Chunk Route. Evidence ledger: documents, chunks, statements, entities
     return {"chunk": data["chunk"], "statements": statements}
 
 
+@router.get("/{kb_id}/ledger/statements/{statement_id}")
+async def get_ledger_statement_route(
+    kb_id: str,
+    request: Request,
+    statement_id: str,
+    user: User = Depends(get_current_user),
+    store: AdminStore = Depends(get_store),
+    knowledge: KnowledgeStore = Depends(get_knowledge_store),
+) -> dict[str, Any]:
+    """
+Get Ledger Statement. Resolve a statement id to its subject entity for console deep links (F-RUL-03). Requires KB membership (session) or KB API token with read scope. All paths are scoped to `{kb_id}`.
+    """
+    get_kb_for_viewer(request, user, kb_id, store)
+    summary = knowledge.get_statement_browse(kb_id, statement_id=statement_id)
+    if summary is None:
+        raise AdminError(404, "statement_not_found", "陈述不存在")
+    return {"statement": summary}
+
+
 @router.get("/{kb_id}/ledger/entities/{entity_id}/facts")
 async def list_entity_facts_route(
     kb_id: str,
