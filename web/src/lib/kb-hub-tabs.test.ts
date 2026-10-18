@@ -1,14 +1,17 @@
 import { describe, expect, it } from 'vitest';
 
-import { resolveOntologyHubTab } from '@/lib/kb-hub-tabs.js';
+import { normalizeOntologyHubTabId, resolveOntologyHubTab } from '@/lib/kb-hub-tabs.js';
 
-describe('kb-hub-tabs', () => {
-  it('opens versions when ontologyProposal is present', () => {
-    expect(
-      resolveOntologyHubTab(null, null, true, {
-        graph: true,
-        explorer_runtime: true,
-      } as never),
-    ).toBe('versions');
+describe('resolveOntologyHubTab', () => {
+  it('defaults to registry', () => {
+    expect(resolveOntologyHubTab(null, null, false, false, null)).toBe('registry');
+  });
+
+  it('opens editor when entity deep link is present', () => {
+    expect(resolveOntologyHubTab(null, null, false, true, null)).toBe('editor');
+  });
+
+  it('maps legacy model tab to registry', () => {
+    expect(normalizeOntologyHubTabId('model')).toBe('registry');
   });
 });

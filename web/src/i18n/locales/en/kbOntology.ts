@@ -1,8 +1,20 @@
 export const kbOntology = {
   hubTabs: {
-    registry: 'Registry',
-    editor: 'Editor',
+    registry: 'Catalog',
+    editor: 'Edit',
     health: 'Health',
+    versions: 'Versions',
+    shacl: 'SHACL',
+    alignments: 'Alignments',
+  },
+  hubSubtitles: {
+    registry: 'Browse, import, and manage ontologies mounted on this knowledge base.',
+    editor: 'Edit classes, properties, and individuals on the visual canvas.',
+    health: 'Review quality and completeness signals; open the editor from an issue in one click.',
+    versions:
+      'OWL drafts and published versions; ontology change proposals are reviewed here (separate from the ledger queue).',
+    shacl: 'Maintain shape graphs and run SHACL validation against graph data.',
+    alignments: 'Maintain alignments between this KB’s ontologies and external vocabularies or ontologies.',
   },
   manager: {
     searchPlaceholder: 'Search ontologies by name, URI, or namespace…',

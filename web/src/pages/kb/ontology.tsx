@@ -15,12 +15,32 @@ import { useI18n } from '@/i18n/context.js';
 import { useKbCatalog } from '@/lib/kb-context.js';
 import type { OntologyHubTab } from '@/lib/kb-hub-route.js';
 import { kbAnalyzeHubPath } from '@/lib/kb-hub-route.js';
-import { legacyOntologyTabFromParam, ontologyHubTabEnabled, resolveOntologyHubTab } from '@/lib/kb-hub-tabs.js';
+import {
+  normalizeOntologyHubTabId,
+  ontologyHubTabEnabled,
+  resolveOntologyHubTab,
+} from '@/lib/kb-hub-tabs.js';
 import { useKbCapabilities } from '@/lib/kb-capabilities.js';
 import { kbPath } from '@/lib/nav-config.js';
 
 const WORKSPACE_CLASS = 'min-h-0 flex-1 rounded-lg border border-border';
-const MODEL_WORKSPACE_CLASS = 'h-[calc(100svh-14rem)] min-h-[28rem] flex-1 rounded-lg border border-border';
+const INTERIOR_WORKSPACE_CLASS = 'h-[calc(100svh-14rem)] min-h-[28rem] flex-1 rounded-lg border border-border';
+
+function ontologyHubSearchRedirect(
+  kbId: string,
+  searchParams: URLSearchParams,
+  tab: OntologyHubTab,
+): string {
+  const params = new URLSearchParams(searchParams);
+  params.delete('ontologyTab');
+  if (tab === 'registry') {
+    params.delete('tab');
+  } else {
+    params.set('tab', tab);
+  }
+  const q = params.toString();
+  return `${kbPath(kbId, 'ontology')}${q ? `?${q}` : ''}`;
+}
 
 export function KbOntologyPage() {
   const { id } = useParams();
@@ -34,16 +54,18 @@ export function KbOntologyPage() {
   }, []);
 
   const legacyOntologyTab = searchParams.get('ontologyTab');
+  const rawTabParam = searchParams.get('tab');
 
   const tab = useMemo(
     () =>
       resolveOntologyHubTab(
-        searchParams.get('tab'),
+        rawTabParam,
         legacyOntologyTab,
         searchParams.has('ontologyProposal'),
+        searchParams.has('ontologyEntity'),
         caps,
       ),
-    [caps, legacyOntologyTab, searchParams],
+    [caps, legacyOntologyTab, rawTabParam, searchParams],
   );
 
   if (!id) {
@@ -58,35 +80,42 @@ export function KbOntologyPage() {
   }
 
   if (legacyOntologyTab) {
-    const mapped = legacyOntologyTabFromParam(legacyOntologyTab);
-    if (mapped) {
-      const params = new URLSearchParams(searchParams);
-      params.delete('ontologyTab');
-      params.set('tab', mapped);
-      return <Navigate to={`${kbPath(id, 'ontology')}?${params.toString()}`} replace />;
+    const legacyMapped = normalizeOntologyHubTabId(legacyOntologyTab);
+    if (legacyMapped) {
+      return <Navigate to={ontologyHubSearchRedirect(id, searchParams, legacyMapped)} replace />;
     }
   }
 
-  const kbName = getKb(id)?.name ?? id;
+  if (rawTabParam === 'model') {
+    return <Navigate to={ontologyHubSearchRedirect(id, searchParams, 'registry')} replace />;
+  }
 
-  const subtitleByTab: Record<OntologyHubTab, string | undefined> = {
-    model: t.pages.kbSubtitles.ontology,
-    versions: t.pages.kbSubtitles.ontologyVersions,
-    shacl: undefined,
-    alignments: undefined,
-  };
+  const kbName = getKb(id)?.name ?? id;
+  const hubTabs = t.kbOntology.hubTabs;
+  const hubSubtitles = t.kbOntology.hubSubtitles;
 
   function onTabChange(value: string) {
     const next = value as OntologyHubTab;
     const params = new URLSearchParams(searchParams);
     params.delete('ontologyTab');
-    if (next === 'model') {
+    if (next === 'registry') {
       params.delete('tab');
     } else {
       params.set('tab', next);
     }
     setSearchParams(params, { replace: true });
   }
+
+  const onFixInEditor = useCallback(
+    (entityUri: string) => {
+      const params = new URLSearchParams(searchParams);
+      params.delete('ontologyTab');
+      params.set('tab', 'editor');
+      params.set('ontologyEntity', entityUri);
+      setSearchParams(params, { replace: true });
+    },
+    [searchParams, setSearchParams],
+  );
 
   return (
     <ConsolePageLayout
@@ -95,9 +124,9 @@ export function KbOntologyPage() {
         { label: kbName, to: kbPath(id, 'graph') },
         { label: t.menu.kb.ontology },
       ]}
-      subtitle={subtitleByTab[tab]}
+      subtitle={hubSubtitles[tab]}
       actions={
-        tab === 'model' && pageActions ? (
+        tab === 'registry' && pageActions ? (
           <Button type="button" size="sm" onClick={pageActions.openLoadOntology}>
             <PublicIcon name="plus-01" size={14} />
             {t.kbExplorer.loadOntology}
@@ -107,29 +136,53 @@ export function KbOntologyPage() {
       className="min-h-0 flex-1 overflow-hidden"
     >
       <Tabs value={tab} onValueChange={onTabChange} className="flex min-h-0 flex-1 flex-col">
-        <TabsList>
-          <TabsTrigger value="model" disabled={!ontologyHubTabEnabled('model', caps)}>
-            {t.menu.kb.ontology}
+        <TabsList className="h-auto flex-wrap">
+          <TabsTrigger value="registry" disabled={!ontologyHubTabEnabled('registry', caps)}>
+            {hubTabs.registry}
+          </TabsTrigger>
+          <TabsTrigger value="editor" disabled={!ontologyHubTabEnabled('editor', caps)}>
+            {hubTabs.editor}
+          </TabsTrigger>
+          <TabsTrigger value="health" disabled={!ontologyHubTabEnabled('health', caps)}>
+            {hubTabs.health}
           </TabsTrigger>
           <TabsTrigger value="versions" disabled={!ontologyHubTabEnabled('versions', caps)}>
-            {t.menu.kb.ontologyVersions}
+            {hubTabs.versions}
           </TabsTrigger>
           <TabsTrigger value="shacl" disabled={!ontologyHubTabEnabled('shacl', caps)}>
-            {t.menu.kb.shacl}
+            {hubTabs.shacl}
           </TabsTrigger>
           <TabsTrigger value="alignments" disabled={!ontologyHubTabEnabled('alignments', caps)}>
-            {t.menu.kb.alignments}
+            {hubTabs.alignments}
           </TabsTrigger>
         </TabsList>
 
         <TabsContent
-          value="model"
+          value="registry"
           className="mt-4 flex min-h-0 flex-1 flex-col data-[state=inactive]:hidden"
         >
           <KbOntologyWorkspace
             kbId={id}
-            className={MODEL_WORKSPACE_CLASS}
+            panel="registry"
+            className={INTERIOR_WORKSPACE_CLASS}
             onPageActionsChange={onPageActionsChange}
+          />
+        </TabsContent>
+        <TabsContent
+          value="editor"
+          className="mt-4 flex min-h-0 flex-1 flex-col data-[state=inactive]:hidden"
+        >
+          <KbOntologyWorkspace kbId={id} panel="editor" className={INTERIOR_WORKSPACE_CLASS} />
+        </TabsContent>
+        <TabsContent
+          value="health"
+          className="mt-4 flex min-h-0 flex-1 flex-col data-[state=inactive]:hidden"
+        >
+          <KbOntologyWorkspace
+            kbId={id}
+            panel="health"
+            className={INTERIOR_WORKSPACE_CLASS}
+            onFixInEditor={onFixInEditor}
           />
         </TabsContent>
         <TabsContent

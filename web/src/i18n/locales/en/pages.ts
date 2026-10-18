@@ -102,10 +102,6 @@ export const pages = {
       'Chunk filters use document ingest time. For point-in-time graph views, use the graph timeline (temporal/snapshot).',
     entityResolution: 'Scan duplicate entity candidates; merge locally or enqueue for review.',
     decisions: 'Governance decisions and causal chains; alerts deep-link here.',
-    ontology:
-      'Ontology registry, visual editor, and health diagnostics (Registry / Editor / Health).',
-    ontologyVersions:
-      'OWL drafts and published versions; ontology change proposals are reviewed here (separate from the ledger queue).',
     analyze: 'SPARQL queries and rule reasoning against this knowledge base.',
     entities:
       'Search ledger entities and open a row for statements and derived facts. The rail lists what reasoning wrote back.',

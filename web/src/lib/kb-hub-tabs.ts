@@ -3,8 +3,12 @@ import { ANALYZE_HUB_TABS, ONTOLOGY_HUB_TABS } from '@/lib/kb-hub-route.js';
 import type { KbCapabilities } from '@/lib/kb-capabilities.js';
 import { kbNavSegmentEnabled } from '@/lib/kb-capabilities.js';
 
+const ONTOLOGY_INTERIOR_TABS = new Set<OntologyHubTab>(['registry', 'editor', 'health']);
+
 const ONTOLOGY_TAB_SEGMENT: Record<OntologyHubTab, string> = {
-  model: 'ontology',
+  registry: 'ontology',
+  editor: 'ontology',
+  health: 'ontology',
   versions: 'ontology-versions',
   shacl: 'shacl',
   alignments: 'alignments',
@@ -24,44 +28,47 @@ export function analyzeHubTabEnabled(tab: AnalyzeHubTab, caps: KbCapabilities | 
 }
 
 export function firstEnabledOntologyHubTab(caps: KbCapabilities | null): OntologyHubTab {
-  return ONTOLOGY_HUB_TABS.find((tab) => ontologyHubTabEnabled(tab, caps)) ?? 'model';
+  return ONTOLOGY_HUB_TABS.find((tab) => ontologyHubTabEnabled(tab, caps)) ?? 'registry';
 }
 
 export function firstEnabledAnalyzeHubTab(caps: KbCapabilities | null): AnalyzeHubTab {
   return ANALYZE_HUB_TABS.find((tab) => analyzeHubTabEnabled(tab, caps)) ?? 'sparql';
 }
 
-export function legacyOntologyTabFromParam(raw: string): OntologyHubTab | null {
-  if (raw === 'versions') return 'versions';
-  if (raw === 'shacl') return 'shacl';
-  if (raw === 'alignments') return 'alignments';
+/** Maps legacy `ontologyTab` / `tab=model` values to canonical hub tabs. */
+export function normalizeOntologyHubTabId(raw: string | null | undefined): OntologyHubTab | null {
+  if (!raw) return null;
+  if (raw === 'model') return 'registry';
+  if (ONTOLOGY_HUB_TABS.includes(raw as OntologyHubTab)) {
+    return raw as OntologyHubTab;
+  }
   return null;
 }
 
-function legacyOntologyTab(raw: string | null): OntologyHubTab | null {
-  if (!raw) return null;
-  return legacyOntologyTabFromParam(raw);
+export function isOntologyInteriorTab(tab: OntologyHubTab): boolean {
+  return ONTOLOGY_INTERIOR_TABS.has(tab);
 }
 
 export function resolveOntologyHubTab(
   tabParam: string | null,
   legacyOntologyTabParam: string | null,
   hasOntologyProposal: boolean,
+  hasOntologyEntity: boolean,
   caps: KbCapabilities | null,
 ): OntologyHubTab {
-  const fromLegacy = legacyOntologyTabParam ? legacyOntologyTab(legacyOntologyTabParam) : null;
+  const fromLegacy = normalizeOntologyHubTabId(legacyOntologyTabParam);
   if (fromLegacy && ontologyHubTabEnabled(fromLegacy, caps)) {
     return fromLegacy;
+  }
+  const fromTab = normalizeOntologyHubTabId(tabParam);
+  if (fromTab && ontologyHubTabEnabled(fromTab, caps)) {
+    return fromTab;
   }
   if (hasOntologyProposal && ontologyHubTabEnabled('versions', caps)) {
     return 'versions';
   }
-  if (
-    tabParam &&
-    ONTOLOGY_HUB_TABS.includes(tabParam as OntologyHubTab) &&
-    ontologyHubTabEnabled(tabParam as OntologyHubTab, caps)
-  ) {
-    return tabParam as OntologyHubTab;
+  if (hasOntologyEntity && ontologyHubTabEnabled('editor', caps)) {
+    return 'editor';
   }
   return firstEnabledOntologyHubTab(caps);
 }

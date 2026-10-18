@@ -1,24 +1,30 @@
 // Sole owner of the Ontology Hub deep-link query parameters: the names below must not be
 // spelled out anywhere else, so that the protocol can change in one place.
-const TAB_PARAM = "ontologyTab";
+const LEGACY_TAB_PARAM = "ontologyTab";
+const TAB_PARAM = "tab";
 const ENTITY_PARAM = "ontologyEntity";
 const PROPOSAL_PARAM = "ontologyProposal";
 const EDITOR_TAB = "editor";
 
 export interface OntologyUrlState {
-  /** Raw parameter value; the set of legal tab ids belongs to the workspace, not this module. */
+  /** Canonical hub tab (`tab` query param; legacy `ontologyTab` is read once for compat). */
   tab?: string;
   entityUri?: string;
   proposalId?: string;
 }
 
+function normalizeTabId(raw: string | null): string | undefined {
+  if (!raw) return undefined;
+  if (raw === "model") return "registry";
+  return raw;
+}
+
 /** `undefined` means the parameter is absent; an empty string means it is present but blank. */
 export function parseOntologyUrlState(search: string): OntologyUrlState {
   const params = new URLSearchParams(search);
-  const legacyTab = params.get(TAB_PARAM);
-  const hubTab = params.get("tab");
+  const rawTab = params.get(TAB_PARAM) ?? params.get(LEGACY_TAB_PARAM);
   return {
-    tab: legacyTab ?? hubTab ?? undefined,
+    tab: normalizeTabId(rawTab),
     entityUri: params.get(ENTITY_PARAM) ?? undefined,
     proposalId: params.get(PROPOSAL_PARAM) ?? undefined,
   };
@@ -26,13 +32,20 @@ export function parseOntologyUrlState(search: string): OntologyUrlState {
 
 export function applyTab(search: string, tab: string): string {
   const params = new URLSearchParams(search);
-  params.set(TAB_PARAM, tab);
+  params.delete(LEGACY_TAB_PARAM);
+  const normalized = normalizeTabId(tab) ?? tab;
+  if (normalized === "registry") {
+    params.delete(TAB_PARAM);
+  } else {
+    params.set(TAB_PARAM, normalized);
+  }
   return `?${params.toString()}`;
 }
 
 // A selected entity is only addressable from the editor, so the tab moves with it.
 export function applyEntitySelection(search: string, entityUri: string): string {
   const params = new URLSearchParams(search);
+  params.delete(LEGACY_TAB_PARAM);
   params.set(TAB_PARAM, EDITOR_TAB);
   params.set(ENTITY_PARAM, entityUri);
   return `?${params.toString()}`;
@@ -65,11 +78,10 @@ export function readOntologyUrlState(search?: string): OntologyUrlState {
   }
 }
 
-/** True when the URL addresses the Ontology Hub at all, even with blank parameter values. */
 export function applyProposalSelection(search: string, proposalId: string): string {
   const params = new URLSearchParams(search);
-  params.set("tab", "versions");
-  params.delete(TAB_PARAM);
+  params.set(TAB_PARAM, "versions");
+  params.delete(LEGACY_TAB_PARAM);
   params.set(PROPOSAL_PARAM, proposalId);
   return `?${params.toString()}`;
 }
@@ -79,9 +91,6 @@ export function hasOntologyUrlState(search?: string): boolean {
   return tab !== undefined || entityUri !== undefined || proposalId !== undefined;
 }
 
-// The transform returns a query string only, so the fragment has to be carried
-// across explicitly: replaceState with a bare "?..." drops it. This is the one
-// place that knows how the URL is written, so it is the only place that can.
 function updateSearch(transform: (search: string) => string): void {
   try {
     window.history.replaceState(

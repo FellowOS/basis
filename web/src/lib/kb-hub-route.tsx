@@ -1,10 +1,25 @@
 import { Navigate, useLocation, useParams } from 'react-router-dom';
 import { kbPath } from '@/lib/nav-config.js';
 
-export type OntologyHubTab = 'model' | 'versions' | 'shacl' | 'alignments';
+export type OntologyHubTab =
+  | 'registry'
+  | 'editor'
+  | 'health'
+  | 'versions'
+  | 'shacl'
+  | 'alignments';
+
 export type AnalyzeHubTab = 'sparql' | 'reasoning';
 
-export const ONTOLOGY_HUB_TABS: OntologyHubTab[] = ['model', 'versions', 'shacl', 'alignments'];
+export const ONTOLOGY_HUB_TABS: OntologyHubTab[] = [
+  'registry',
+  'editor',
+  'health',
+  'versions',
+  'shacl',
+  'alignments',
+];
+
 export const ANALYZE_HUB_TABS: AnalyzeHubTab[] = ['sparql', 'reasoning'];
 
 /** Legacy ontology sub-routes still used in bookmarks and alerts. */
@@ -18,11 +33,12 @@ export const KB_ANALYZE_HUB_LEGACY_SEGMENTS = ['sparql', 'reasoning'] as const;
 
 export function kbOntologyHubPath(
   kbId: string,
-  tab: OntologyHubTab = 'model',
+  tab: OntologyHubTab = 'registry',
   extra?: URLSearchParams,
 ): string {
   const params = new URLSearchParams(extra);
-  if (tab !== 'model') {
+  params.delete('ontologyTab');
+  if (tab !== 'registry') {
     params.set('tab', tab);
   } else {
     params.delete('tab');
@@ -43,8 +59,12 @@ export function KbOntologyHubTabRedirect({ tab }: { tab: OntologyHubTab }) {
   const location = useLocation();
   if (!id) return null;
   const params = new URLSearchParams(location.search);
-  params.set('tab', tab);
   params.delete('ontologyTab');
+  if (tab === 'registry') {
+    params.delete('tab');
+  } else {
+    params.set('tab', tab);
+  }
   const q = params.toString();
   return <Navigate to={`${kbPath(id, 'ontology')}${q ? `?${q}` : ''}`} replace />;
 }

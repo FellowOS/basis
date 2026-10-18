@@ -1,8 +1,19 @@
 export const kbOntology = {
   hubTabs: {
-    registry: '注册表',
-    editor: '编辑器',
-    health: '健康度',
+    registry: '本体目录',
+    editor: '编辑',
+    health: '健康',
+    versions: '版本与提案',
+    shacl: 'SHACL',
+    alignments: '对齐',
+  },
+  hubSubtitles: {
+    registry: '查看、导入与管理本库已挂载的本体。',
+    editor: '在可视化画布上编辑类、属性与个体。',
+    health: '查看质量与完整性信号，并从问题一键进入编辑。',
+    versions: 'OWL 草案与发布版本；本体变更提案在此审批（与账本审核队列分离）。',
+    shacl: '维护形状图并对图数据运行 SHACL 校验。',
+    alignments: '维护本库本体与外部词汇或本体的对齐关系。',
   },
   manager: {
     searchPlaceholder: '按名称、URI 或命名空间搜索本体…',
