@@ -24,4 +24,5 @@ test('sources job query opens processing history for job', async ({ page }) => {
   const jobRow = page.locator(`#processing-job-${jobId}`);
   await expect(jobRow).toBeVisible();
   await expect(jobRow).toHaveJSProperty('open', true);
+  await expect(page.getByTestId(`processing-job-copy-link-${jobId}`)).toBeVisible();
 });

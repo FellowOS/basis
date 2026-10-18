@@ -94,6 +94,8 @@ export const kbSources = {
     failed: 'Failed',
   },
   jobId: 'Job ID',
+  copyJobLink: 'Copy job link',
+  historyRetry: 'Retry job',
   referenceId: 'Reference ID',
   deleteTitle: 'Delete document?',
   deleteDescription:

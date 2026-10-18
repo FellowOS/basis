@@ -91,6 +91,8 @@ export const kbSources = {
     failed: '失败',
   },
   jobId: '任务 ID',
+  copyJobLink: '复制任务链接',
+  historyRetry: '重试任务',
   referenceId: '参考 ID',
   deleteTitle: '删除文档？',
   deleteDescription:

@@ -65,7 +65,7 @@ import { useKbCapabilities } from '@/lib/kb-capabilities.js';
 import { useExplorerClient } from '@/lib/explorer-context.js';
 import { KbIngestSourcesDialog } from '@/components/app/kb/dialogs/kb-ingest-sources-dialog.js';
 import { kbPath } from '@/lib/nav-config.js';
-import { parseProcessingUrlState } from '@/lib/processingUrlState.js';
+import { kbProcessingJobPath, parseProcessingUrlState } from '@/lib/processingUrlState.js';
 import { parseSourcesUrlState } from '@/lib/sourcesUrlState.js';
 import { formatUserFacingApiError } from '@/lib/api-error-message.js';
 import { processingStartIdempotencyKey } from '@/lib/processing-idempotency.js';
@@ -299,10 +299,7 @@ export function KnowledgePage() {
   useEffect(() => {
     if (!historyOpen || !jobFocusId) return;
     const el = document.getElementById(`processing-job-${jobFocusId}`);
-    if (el instanceof HTMLDetailsElement) {
-      el.open = true;
-      el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-    }
+    el?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   }, [historyOpen, jobFocusId, jobs]);
 
   const k = t.kbSources;
@@ -562,6 +559,17 @@ export function KnowledgePage() {
       toast.error(apiErrorMessage(err));
     } finally {
       setBusyVersionId(null);
+    }
+  }
+
+  async function copyJobDeepLink(jobId: string) {
+    if (!id) return;
+    const url = `${window.location.origin}${kbProcessingJobPath(id, jobId)}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success(t.common.copySuccess);
+    } catch {
+      toast.error(t.common.copy);
     }
   }
 
@@ -1243,6 +1251,7 @@ export function KnowledgePage() {
                   key={job.id}
                   id={`processing-job-${job.id}`}
                   className="rounded-md border border-border p-3 text-sm"
+                  {...(jobFocusId === job.id ? { open: true } : {})}
                 >
                   <summary className="cursor-pointer font-medium">
                     {statusIsProcessing(job.status) ? (
@@ -1272,15 +1281,38 @@ export function KnowledgePage() {
                       {k.referenceId}: {job.options.request_id}
                     </p>
                   ) : null}
-                  {graphEnabled && id && job.status === 'succeeded' && job.doc_id ? (
-                    <div className="mt-2">
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {canEdit && job.status === 'failed' ? (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={busyVersionId === job.version_id}
+                        data-testid={`processing-job-retry-${job.id}`}
+                        onClick={() => void retry(job)}
+                      >
+                        {k.historyRetry}
+                      </Button>
+                    ) : null}
+                    {id ? (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        data-testid={`processing-job-copy-link-${job.id}`}
+                        onClick={() => void copyJobDeepLink(job.id)}
+                      >
+                        {k.copyJobLink}
+                      </Button>
+                    ) : null}
+                    {graphEnabled && id && job.status === 'succeeded' && job.doc_id ? (
                       <Button type="button" variant="outline" size="sm" asChild>
                         <Link to={graphFocusPath(job.doc_id)}>
                           {k.toastViewInGraph}
                         </Link>
                       </Button>
-                    </div>
-                  ) : null}
+                    ) : null}
+                  </div>
                   <pre className="mt-2 overflow-auto rounded bg-muted p-2 text-xs">
                     {JSON.stringify(job.options, null, 2)}
                   </pre>
