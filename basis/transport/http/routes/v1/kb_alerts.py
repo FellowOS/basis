@@ -28,8 +28,23 @@ async def list_kb_alerts(
     """List KB alert episodes with unread count (viewer+)."""
     get_kb_for_viewer(request, user, kb_id, store)
     alerts = knowledge.list_kb_alerts(kb_id, limit=limit)
-    unread = knowledge.count_kb_alerts(kb_id, include_dismissed=False)
+    unread = knowledge.count_kb_unread_alerts(kb_id)
     return {"alerts": alerts, "unread_count": unread}
+
+
+@router.post("/{kb_id}/alerts/mark-all-read")
+async def mark_all_kb_alerts_read(
+    kb_id: str,
+    request: Request,
+    user: User = Depends(get_current_user),
+    store: AdminStore = Depends(get_store),
+    knowledge: KnowledgeStore = Depends(get_knowledge_store),
+) -> dict[str, Any]:
+    """Mark all active alerts as read without dismissing (viewer+)."""
+    get_kb_for_viewer(request, user, kb_id, store)
+    marked_read_count = knowledge.mark_all_kb_alerts_read(kb_id)
+    unread_count = knowledge.count_kb_unread_alerts(kb_id)
+    return {"marked_read_count": marked_read_count, "unread_count": unread_count}
 
 
 @router.post("/{kb_id}/alerts/dismiss-all")
@@ -43,7 +58,7 @@ async def dismiss_all_kb_alerts(
     """Dismiss all active alert episodes for this KB (editor+)."""
     get_kb_for_editor(request, user, kb_id, store)
     dismissed_count = knowledge.dismiss_all_kb_alerts(kb_id)
-    unread_count = knowledge.count_kb_alerts(kb_id, include_dismissed=False)
+    unread_count = knowledge.count_kb_unread_alerts(kb_id)
     return {"dismissed_count": dismissed_count, "unread_count": unread_count}
 
 

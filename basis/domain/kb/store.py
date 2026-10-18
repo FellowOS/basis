@@ -3557,6 +3557,19 @@ class KnowledgeStore:
             ).fetchone()
         return int(row["n"])
 
+    def count_kb_unread_alerts(self, kb_id: str) -> int:
+        """Active alerts not yet read (F-ALT: badge / unread_count)."""
+        with self._lock:
+            self._assert_kb_exists(kb_id)
+            row = self._conn.execute(
+                """
+                SELECT COUNT(*) AS n FROM kb_alerts
+                WHERE kb_id = ? AND dismissed_at IS NULL AND read_at IS NULL
+                """,
+                (kb_id,),
+            ).fetchone()
+        return int(row["n"])
+
     def list_kb_alerts_since(
         self,
         kb_id: str,
@@ -3623,6 +3636,22 @@ class KnowledgeStore:
                 WHERE kb_id = ? AND dismissed_at IS NULL
                 """,
                 (now, now, kb_id),
+            )
+            self._conn.commit()
+            return int(cur.rowcount)
+
+    def mark_all_kb_alerts_read(self, kb_id: str) -> int:
+        """Mark active alerts as read without dismissing (F-ALT). Returns rows updated."""
+        now = _now()
+        with self._lock:
+            self._assert_kb_exists(kb_id)
+            cur = self._conn.execute(
+                """
+                UPDATE kb_alerts
+                SET read_at = ?
+                WHERE kb_id = ? AND dismissed_at IS NULL AND read_at IS NULL
+                """,
+                (now, kb_id),
             )
             self._conn.commit()
             return int(cur.rowcount)

@@ -74,6 +74,12 @@ export function KbAlertsPage() {
       setAlerts(data.alerts);
       streamSinceRef.current = data.alerts[0]?.created_at ?? new Date().toISOString();
       setStreamReady(true);
+      if (data.unread_count > 0) {
+        await kbOpenApiPOST(id, 'alerts/mark-all-read');
+        setAlerts((prev) =>
+          prev.map((a) => (a.read_at ? a : { ...a, read_at: new Date().toISOString() })),
+        );
+      }
       notifyBadgeSync();
     } catch {
       /* non-blocking */
@@ -215,7 +221,7 @@ export function KbAlertsPage() {
                 return (
                   <li
                     key={alert.id}
-                    className="flex items-start justify-between gap-4 px-4 py-3.5 transition-colors hover:bg-muted/30"
+                    className={`flex items-start justify-between gap-4 px-4 py-3.5 transition-colors hover:bg-muted/30 ${alert.read_at ? 'opacity-80' : ''}`}
                   >
                     <div className="min-w-0 flex-1 space-y-1.5">
                       <div className="flex flex-wrap items-center gap-2">

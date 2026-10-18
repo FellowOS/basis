@@ -20,6 +20,8 @@ export type KbAlertStreamItem = {
   message: string;
   detail: Record<string, unknown>;
   created_at: string;
+  read_at?: string | null;
+  dismissed_at?: string | null;
 };
 
 type StreamEvent =
