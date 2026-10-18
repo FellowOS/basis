@@ -24,6 +24,9 @@ export interface DataTableProps<T> {
   data: T[];
   rowKey: (row: T) => string | number;
   onRowClick?: (row: T) => void;
+  /** DOM id on `<tr>` (e.g. deep-link scroll targets). */
+  rowDomId?: (row: T) => string | undefined;
+  rowClassName?: (row: T) => string | undefined;
   emptyMessage?: string;
   className?: string;
 }
@@ -45,6 +48,8 @@ export function DataTable<T>({
   data,
   rowKey,
   onRowClick,
+  rowDomId,
+  rowClassName,
   emptyMessage,
   className,
 }: DataTableProps<T>) {
@@ -82,11 +87,13 @@ export function DataTable<T>({
           {data.map((row) => (
             <TableRow
               key={rowKey(row)}
+              id={rowDomId?.(row)}
               data-clickable={onRowClick ? 'true' : undefined}
               onClick={onRowClick ? () => onRowClick(row) : undefined}
               className={cn(
                 'border-b border-border/60 last:border-0',
                 onRowClick && 'cursor-pointer',
+                rowClassName?.(row),
               )}
             >
               {columns.map((col) => (

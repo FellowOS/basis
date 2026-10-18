@@ -32,6 +32,8 @@ import { kbSettings } from './kbSettings.js';
 import { kbOrgSso } from './kbOrgSso.js';
 import { platformSettings } from './platformSettings.js';
 import { kbOntology } from './kbOntology.js';
+import { kbAnalyze } from './kbAnalyze.js';
+import { kbProcessing } from './kbProcessing.js';
 import { kbDecisions } from './kbDecisions.js';
 import { apiErrorCodes } from './apiErrorCodes.js';
 import { dev } from './dev.js';
@@ -71,6 +73,8 @@ export const zh = {
   kbOrgSso,
   platformSettings,
   kbOntology,
+  kbAnalyze,
+  kbProcessing,
   kbDecisions,
   apiErrorCodes,
   dev,

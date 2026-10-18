@@ -19,14 +19,10 @@ test('sources job query opens processing history for job', async ({ page }) => {
   await expect(page.locator('.kb-library-workspace')).toBeVisible({ timeout: 60_000 });
   await expect(page.getByTestId('sources-job-history')).toBeVisible();
 
-  await page.goto(`/kbs/${kbId}/sources?job=${encodeURIComponent(jobId)}`);
-  await expect(page.locator('.kb-library-workspace')).toBeVisible({ timeout: 60_000 });
-
-  const dialog = page.getByRole('dialog');
-  await expect(dialog).toBeVisible({ timeout: 30_000 });
-  await expect(dialog.getByText(/Processing history|处理任务历史/i)).toBeVisible();
-  const jobRow = page.locator(`#processing-job-${jobId}`);
-  await expect(jobRow).toBeVisible();
-  await expect(jobRow).toHaveJSProperty('open', true);
+  await page.goto(`/kbs/${kbId}/processing?job=${encodeURIComponent(jobId)}`);
+  await expect(page.locator('.kb-processing-workspace')).toBeVisible({ timeout: 60_000 });
+  await expect(page.getByTestId(`processing-job-detail-${jobId}`)).toBeVisible({
+    timeout: 30_000,
+  });
   await expect(page.getByTestId(`processing-job-copy-link-${jobId}`)).toBeVisible();
 });

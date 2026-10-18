@@ -1,0 +1,16 @@
+export const kbProcessing = {
+  searchPlaceholder: 'Search document or job id…',
+  filterAll: 'All',
+  filterActive: 'In progress',
+  filterFailed: 'Failed',
+  filterSucceeded: 'Succeeded',
+  colDocument: 'Document',
+  colStatus: 'Status',
+  colAttempt: 'Attempt',
+  colCreated: 'Created',
+  colActions: 'Actions',
+  refresh: 'Refresh',
+  optionsSnapshot: 'Option snapshot',
+  noMatches: 'No jobs match your filters.',
+  openInSources: 'Open in sources',
+} as const;

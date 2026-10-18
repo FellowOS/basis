@@ -30,6 +30,7 @@ export function KbAnalyzePage() {
   }
 
   const kbName = getKb(id)?.name ?? id;
+  const hubTabs = t.kbAnalyze.hubTabs;
 
   function onTabChange(value: string) {
     const next = value as AnalyzeHubTab;
@@ -55,10 +56,10 @@ export function KbAnalyzePage() {
       <Tabs value={tab} onValueChange={onTabChange} className="flex min-h-0 flex-1 flex-col">
         <TabsList>
           <TabsTrigger value="sparql" disabled={!analyzeHubTabEnabled('sparql', caps)}>
-            {t.menu.kb.sparql}
+            {hubTabs.sparql}
           </TabsTrigger>
           <TabsTrigger value="reasoning" disabled={!analyzeHubTabEnabled('reasoning', caps)}>
-            {t.menu.kb.reasoning}
+            {hubTabs.reasoning}
           </TabsTrigger>
         </TabsList>
 

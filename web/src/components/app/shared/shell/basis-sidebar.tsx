@@ -21,7 +21,7 @@ import { useI18n } from '@/i18n/context.js';
 import {
   KB_NAV_BY_ZONE,
   KB_WORKSPACE_ZONES,
-  type KbNavItem,
+  type KbSidebarNavItem,
   kbPath,
 } from '@/lib/nav-config.js';
 import { resolveSidebarKbId } from '@/lib/kb-active-id.js';
@@ -46,7 +46,7 @@ export function BasisSidebar({ onLogout }: { onLogout: () => void }) {
     return location.pathname === prefix || location.pathname.startsWith(`${prefix}/`);
   }
 
-  function renderKbNavItem(currentKbId: string, item: KbNavItem) {
+  function renderKbNavItem(currentKbId: string, item: KbSidebarNavItem) {
     const active = isKbActive(item.segment);
     const label = t.menu.kb[item.labelKey];
     const enabled = kbNavSegmentEnabled(item.segment, caps);

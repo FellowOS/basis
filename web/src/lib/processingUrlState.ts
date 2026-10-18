@@ -7,8 +7,8 @@ export function parseProcessingUrlState(search: string): { jobId?: string } {
   return { jobId: jobId || undefined };
 }
 
-/** Deep-link to Sources job history with a specific processing job expanded (F-SRC-08). */
+/** Deep-link to processing jobs with a specific job expanded (F-SRC-08). */
 export function kbProcessingJobPath(kbId: string, jobId: string): string {
   const params = new URLSearchParams({ [JOB_PARAM]: jobId });
-  return `${kbPath(kbId, 'sources')}?${params.toString()}`;
+  return `${kbPath(kbId, 'processing')}?${params.toString()}`;
 }

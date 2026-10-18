@@ -1,9 +1,9 @@
 /**
- * Sources library UI (upload, processing, document table).
+ * Sources library UI (upload, document table). Processing jobs live at `/kbs/:id/processing`.
  * Routed at `/kbs/:id/sources` via `kb-library-workspace`; legacy `/kbs/:id/knowledge` redirects here.
  */
 import { type FormEvent, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import {
   DataPanel,
@@ -66,6 +66,7 @@ import { useExplorerClient } from '@/lib/explorer-context.js';
 import { KbIngestSourcesDialog } from '@/components/app/kb/dialogs/kb-ingest-sources-dialog.js';
 import { kbPath } from '@/lib/nav-config.js';
 import { kbProcessingJobPath, parseProcessingUrlState } from '@/lib/processingUrlState.js';
+import { type ProcessingJob, jobIsActive, statusIsProcessing } from '@/lib/kb-processing-job.js';
 import { parseSourcesUrlState } from '@/lib/sourcesUrlState.js';
 import { formatUserFacingApiError } from '@/lib/api-error-message.js';
 import { processingStartIdempotencyKey } from '@/lib/processing-idempotency.js';
@@ -85,20 +86,6 @@ type DocRow = {
   updated_at?: string | null;
 };
 
-type ProcessingJob = {
-  id: string;
-  version_id: string;
-  doc_id: string;
-  document_title: string;
-  status: string;
-  version_status: string;
-  attempt: number;
-  error_code: string | null;
-  error_detail?: { message?: string } | null;
-  options: Record<string, unknown>;
-  created_at: string;
-};
-
 function versionStatusLabel(
   status: string | null | undefined,
   labels: LocaleMessages['kbSources']['versionStatus'],
@@ -107,29 +94,6 @@ function versionStatusLabel(
   if (!status) return emptyCell;
   const key = status as keyof typeof labels;
   return key in labels ? labels[key] : status;
-}
-
-function processingJobStatusLabel(
-  status: string | null | undefined,
-  labels: LocaleMessages['kbSources']['jobStatus'],
-  emptyCell: string,
-): string {
-  if (!status) return emptyCell;
-  const key = status as keyof typeof labels;
-  return key in labels ? labels[key] : status;
-}
-
-const PROCESSING_STATUSES = new Set([
-  'queued',
-  'running',
-  'parsing',
-  'chunking',
-  'embedding',
-  'extracting',
-]);
-
-function statusIsProcessing(status: string | null | undefined): boolean {
-  return status != null && PROCESSING_STATUSES.has(status);
 }
 
 function docReadyForGraph(doc: DocRow, job?: ProcessingJob): boolean {
@@ -251,7 +215,6 @@ export function KnowledgePage() {
   const [page, setPage] = useState(1);
 
   const [addOpen, setAddOpen] = useState(false);
-  const [historyOpen, setHistoryOpen] = useState(false);
   const sourcesUrl = parseSourcesUrlState(searchParams.toString());
   const processingUrl = parseProcessingUrlState(searchParams.toString());
   const jobFocusId = processingUrl.jobId;
@@ -290,18 +253,6 @@ export function KnowledgePage() {
     }
   }, [sourcesUrl.ingestSourceId, sourcesUrl.openConnectors]);
 
-  useEffect(() => {
-    if (!jobFocusId || jobs.length === 0) return;
-    if (!jobs.some((job) => job.id === jobFocusId)) return;
-    setHistoryOpen(true);
-  }, [jobFocusId, jobs]);
-
-  useEffect(() => {
-    if (!historyOpen || !jobFocusId) return;
-    const el = document.getElementById(`processing-job-${jobFocusId}`);
-    el?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-  }, [historyOpen, jobFocusId, jobs]);
-
   const k = t.kbSources;
   const apiErrorMessage = useCallback(
     (err: unknown) => formatUserFacingApiError(err, locale as Locale),
@@ -326,7 +277,7 @@ export function KnowledgePage() {
   }, [jobs]);
 
   const activeJobCount = useMemo(
-    () => jobs.filter((job) => job.status === 'queued' || job.status === 'running').length,
+    () => jobs.filter((job) => jobIsActive(job.status)).length,
     [jobs],
   );
   const failedJobCount = useMemo(
@@ -383,7 +334,7 @@ export function KnowledgePage() {
   }, [apiErrorMessage, refresh]);
 
   useEffect(() => {
-    if (!jobs.some((job) => job.status === 'queued' || job.status === 'running')) return;
+    if (!jobs.some((job) => jobIsActive(job.status))) return;
     const timer = window.setInterval(() => void refresh(), 2000);
     return () => window.clearInterval(timer);
   }, [jobs, refresh]);
@@ -568,17 +519,6 @@ export function KnowledgePage() {
       toast.error(apiErrorMessage(err));
     } finally {
       setBusyVersionId(null);
-    }
-  }
-
-  async function copyJobDeepLink(jobId: string) {
-    if (!id) return;
-    const url = `${window.location.origin}${kbProcessingJobPath(id, jobId)}`;
-    try {
-      await navigator.clipboard.writeText(url);
-      toast.success(t.common.copySuccess);
-    } catch {
-      toast.error(t.common.copy);
     }
   }
 
@@ -863,6 +803,10 @@ export function KnowledgePage() {
     { count: formatLocaleNumber(locale, filteredDocuments.length) },
   );
 
+  if (id && jobFocusId) {
+    return <Navigate to={kbProcessingJobPath(id, jobFocusId)} replace />;
+  }
+
   return (
     <ConsolePageLayout
       crumbs={[
@@ -890,24 +834,26 @@ export function KnowledgePage() {
                 variant="outline"
                 size="sm"
                 data-testid="sources-job-history"
-                onClick={() => setHistoryOpen(true)}
+                asChild
               >
-                {k.jobHistory}
-                {activeJobCount > 0 ? (
-                  <span
-                    className="ml-1.5 inline-flex min-w-[1.25rem] items-center justify-center rounded-md bg-primary/15 px-1.5 text-xs font-medium tabular-nums text-primary"
-                    data-testid="sources-active-jobs-badge"
-                  >
-                    {formatLocaleNumber(locale as Locale, activeJobCount)}
-                  </span>
-                ) : failedJobCount > 0 ? (
-                  <span
-                    className="ml-1.5 inline-flex min-w-[1.25rem] items-center justify-center rounded-md bg-destructive/15 px-1.5 text-xs font-medium tabular-nums text-destructive"
-                    data-testid="sources-failed-jobs-badge"
-                  >
-                    {formatLocaleNumber(locale as Locale, failedJobCount)}
-                  </span>
-                ) : null}
+                <Link to={id ? kbPath(id, 'processing') : '#'}>
+                  {k.jobHistory}
+                  {activeJobCount > 0 ? (
+                    <span
+                      className="ml-1.5 inline-flex min-w-[1.25rem] items-center justify-center rounded-md bg-primary/15 px-1.5 text-xs font-medium tabular-nums text-primary"
+                      data-testid="sources-active-jobs-badge"
+                    >
+                      {formatLocaleNumber(locale as Locale, activeJobCount)}
+                    </span>
+                  ) : failedJobCount > 0 ? (
+                    <span
+                      className="ml-1.5 inline-flex min-w-[1.25rem] items-center justify-center rounded-md bg-destructive/15 px-1.5 text-xs font-medium tabular-nums text-destructive"
+                      data-testid="sources-failed-jobs-badge"
+                    >
+                      {formatLocaleNumber(locale as Locale, failedJobCount)}
+                    </span>
+                  ) : null}
+                </Link>
               </Button>
               {canEdit ? (
                 <Button type="button" variant="outline" size="sm" onClick={() => setSourcesOpen(true)}>
@@ -1259,97 +1205,6 @@ export function KnowledgePage() {
               </Button>
             </DialogFooter>
           </form>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={historyOpen} onOpenChange={setHistoryOpen}>
-        <DialogContent className="sm:max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>{k.historyDialogTitle}</DialogTitle>
-            <DialogDescription>
-              {k.historyDialogDesc}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="max-h-[min(60vh,24rem)] space-y-2 overflow-y-auto pr-1">
-            {jobs.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                {k.noJobs}
-              </p>
-            ) : (
-              jobs.map((job) => (
-                <details
-                  key={job.id}
-                  id={`processing-job-${job.id}`}
-                  className="rounded-md border border-border p-3 text-sm"
-                  {...(jobFocusId === job.id ? { open: true } : {})}
-                >
-                  <summary className="cursor-pointer font-medium">
-                    {statusIsProcessing(job.status) ? (
-                      <Spinner className="mr-1.5 inline size-3 align-[-2px]" />
-                    ) : null}
-                    {fmt(k.historyJobSummary, {
-                      title: job.document_title || job.doc_id,
-                      status: processingJobStatusLabel(job.status, k.jobStatus, emptyCell),
-                      attempt: fmt(k.historyAttempt, {
-                        attempt: formatLocaleNumber(locale as Locale, job.attempt),
-                      }),
-                    })}
-                  </summary>
-                  {id ? (
-                    <p className="mt-2 text-xs text-muted-foreground">
-                      {k.jobId}:{' '}
-                      <span className="font-mono">{job.id}</span>
-                    </p>
-                  ) : null}
-                  {job.error_code ? (
-                    <p className="mt-2 text-xs text-destructive">
-                      {messageForApiErrorCode(job.error_code, locale) ?? job.error_code}
-                    </p>
-                  ) : null}
-                  {typeof job.options?.request_id === 'string' && job.options.request_id ? (
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {k.referenceId}: {job.options.request_id}
-                    </p>
-                  ) : null}
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {canEdit && job.status === 'failed' ? (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        disabled={busyVersionId === job.version_id}
-                        data-testid={`processing-job-retry-${job.id}`}
-                        onClick={() => void retry(job)}
-                      >
-                        {k.historyRetry}
-                      </Button>
-                    ) : null}
-                    {id ? (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        data-testid={`processing-job-copy-link-${job.id}`}
-                        onClick={() => void copyJobDeepLink(job.id)}
-                      >
-                        {k.copyJobLink}
-                      </Button>
-                    ) : null}
-                    {graphEnabled && id && job.status === 'succeeded' && job.doc_id ? (
-                      <Button type="button" variant="outline" size="sm" asChild>
-                        <Link to={graphFocusPath(job.doc_id)}>
-                          {k.toastViewInGraph}
-                        </Link>
-                      </Button>
-                    ) : null}
-                  </div>
-                  <pre className="mt-2 overflow-auto rounded bg-muted p-2 text-xs">
-                    {JSON.stringify(job.options, null, 2)}
-                  </pre>
-                </details>
-              ))
-            )}
-          </div>
         </DialogContent>
       </Dialog>
 

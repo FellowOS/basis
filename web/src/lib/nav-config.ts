@@ -69,47 +69,24 @@ export const KB_WORKSPACE_ZONES: KbWorkspaceZone[] = [
   'system',
 ];
 
-export type KbNavKey =
-  | 'graph'
-  | 'search'
-  | 'sources'
-  | 'processing'
-  | 'entities'
-  | 'review'
-  | 'entityResolution'
-  | 'decisions'
-  | 'ontology'
-  | 'analyze'
-  | 'ontologyVersions'
-  | 'shacl'
-  | 'sparql'
-  | 'reasoning'
-  | 'alignments'
-  | 'mappings'
-  | 'vocabulary'
-  | 'lineage'
-  | 'graphDiff'
-  | 'alerts'
-  | 'integration'
-  | 'settings';
-
 export type KbNavItem = {
   segment: string;
-  labelKey: KbNavKey;
+  labelKey: string;
   icon: string;
 };
 
 /** KB primary navigation grouped by mental model, with unique icons per item. */
-export const KB_NAV_BY_ZONE: Record<KbWorkspaceZone, KbNavItem[]> = {
+export const KB_NAV_BY_ZONE = {
   explore: [
     { segment: 'graph', labelKey: 'graph', icon: 'graph' },
     { segment: 'search', labelKey: 'search', icon: 'search-01' },
   ],
   knowledge: [
     { segment: 'sources', labelKey: 'sources', icon: 'book-01' },
+    { segment: 'processing', labelKey: 'processing', icon: 'sync' },
     { segment: 'entities', labelKey: 'entities', icon: 'atom' },
-    { segment: 'entity-resolution', labelKey: 'entityResolution', icon: 'search-01' },
-    { segment: 'decisions', labelKey: 'decisions', icon: 'path' },
+    { segment: 'entity-resolution', labelKey: 'entityResolution', icon: 'git-merge' },
+    { segment: 'decisions', labelKey: 'decisions', icon: 'scales' },
     { segment: 'review', labelKey: 'review', icon: 'check-square-contained' },
   ],
   schema: [
@@ -126,16 +103,36 @@ export const KB_NAV_BY_ZONE: Record<KbWorkspaceZone, KbNavItem[]> = {
     { segment: 'integration', labelKey: 'integration', icon: 'plug-01' },
     { segment: 'settings', labelKey: 'settings', icon: 'settings' },
   ],
-};
+} as const satisfies Record<KbWorkspaceZone, readonly KbNavItem[]>;
+
+/** Sidebar `labelKey` values — single source with `menu.kb` i18n keys. */
+export type KbSidebarNavKey = {
+  [Z in KbWorkspaceZone]: (typeof KB_NAV_BY_ZONE)[Z][number]['labelKey'];
+}[KbWorkspaceZone];
+
+export type KbSidebarMenuKey = KbSidebarNavKey | 'alerts';
+
+/** Hub tab / legacy route segments (not in `menu.kb`). */
+export type KbHubCapabilityNavKey =
+  | 'ontologyVersions'
+  | 'shacl'
+  | 'alignments'
+  | 'sparql'
+  | 'reasoning';
+
+/** Routable segments and capability switches (includes legacy `processing`). */
+export type KbNavKey = KbSidebarMenuKey | KbHubCapabilityNavKey | 'processing';
+
+export type KbSidebarNavItem = KbNavItem & { labelKey: KbSidebarMenuKey };
 
 /** KB alerts page (account menu entry; not in the sidebar). */
-export const KB_ALERTS_NAV_ITEM: KbNavItem = {
+export const KB_ALERTS_NAV_ITEM: KbSidebarNavItem = {
   segment: 'alerts',
   labelKey: 'alerts',
   icon: 'bell-01',
 };
 
-export const KB_SETTINGS_NAV_ITEM: KbNavItem = KB_NAV_BY_ZONE.system[1];
+export const KB_SETTINGS_NAV_ITEM: KbSidebarNavItem = KB_NAV_BY_ZONE.system[1];
 
 /** Former sidebar routes kept for deep links and redirects. */
 export const KB_HUB_LEGACY_SEGMENTS = [
@@ -146,10 +143,18 @@ export const KB_HUB_LEGACY_SEGMENTS = [
   'reasoning',
 ] as const;
 
-export const KB_NAV: KbNavItem[] = [
-  ...KB_WORKSPACE_ZONES.flatMap((zone) => KB_NAV_BY_ZONE[zone]),
-  KB_ALERTS_NAV_ITEM,
-];
+function buildKbNav(): KbSidebarNavItem[] {
+  const items: KbSidebarNavItem[] = [];
+  for (const zone of KB_WORKSPACE_ZONES) {
+    for (const item of KB_NAV_BY_ZONE[zone]) {
+      items.push(item as KbSidebarNavItem);
+    }
+  }
+  items.push(KB_ALERTS_NAV_ITEM);
+  return items;
+}
+
+export const KB_NAV = buildKbNav();
 
 export function kbPath(kbId: string, segment: string): string {
   return `/kbs/${kbId}/${segment}`;

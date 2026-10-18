@@ -106,7 +106,9 @@ export const pages = {
     entities:
       'Search ledger entities and open a row for statements and derived facts. The rail lists what reasoning wrote back.',
     sources:
-      'Documents, uploads, processing jobs, and ingest connectors (webhook, HTTP poll, GitHub raw).',
+      'Document upload, ingest connectors (webhook, HTTP poll, GitHub raw), and source versions.',
+    processing:
+      'Extract, chunk, and project jobs; start from source versions and retry failures.',
     graphDiff:
       'DiffMerge-style comparison of graph projection between two instants (nodes, edges, property changes).',
     alerts:

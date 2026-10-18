@@ -75,7 +75,7 @@ describe('kbAlertAction', () => {
       'kb-1',
       alert({ kind: 'processing.failed', detail: { job_id: 'job-42' } }),
     );
-    expect(action?.href).toBe('/kbs/kb-1/sources?job=job-42');
+    expect(action?.href).toBe('/kbs/kb-1/processing?job=job-42');
     expect(action?.labelKey).toBe('viewProcessingJob');
   });
 

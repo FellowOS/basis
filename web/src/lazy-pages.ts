@@ -31,6 +31,9 @@ export const KbGraphPage = lazy(() =>
 export const KbLibraryPage = lazy(() =>
   import('@/pages/kb/library').then((m) => ({ default: m.KbLibraryPage })),
 );
+export const KbProcessingPage = lazy(() =>
+  import('@/pages/kb/processing').then((m) => ({ default: m.KbProcessingPage })),
+);
 export const KbEntitiesPage = lazy(() =>
   import('@/pages/kb/entities').then((m) => ({ default: m.KbEntitiesPage })),
 );

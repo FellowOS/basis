@@ -4,6 +4,7 @@ import {
   AuditPage,
   KbGraphPage,
   KbLibraryPage,
+  KbProcessingPage,
   KbEntitiesPage,
   KbSearchPage,
   KbOntologyPage,
@@ -79,13 +80,6 @@ function KbLegacyLibraryRedirect() {
   const { id } = useParams();
   if (!id) return <Navigate to="/kbs" replace />;
   return <Navigate to={`/kbs/${id}/sources`} replace />;
-}
-
-function KbLegacyProcessingRedirect() {
-  const { id } = useParams();
-  const location = useLocation();
-  if (!id) return <Navigate to="/kbs" replace />;
-  return <Navigate to={`/kbs/${id}/sources${location.search}`} replace />;
 }
 
 /** Legacy Playground URL; F-CHAT-01–03 removed from console (see progress §6). */
@@ -258,7 +252,14 @@ function AuthedApp() {
             </Suspense>
           }
         />
-        <Route path="/kbs/:id/processing" element={<KbLegacyProcessingRedirect />} />
+        <Route
+          path="/kbs/:id/processing"
+          element={
+            <Suspense fallback={null}>
+              <KbProcessingPage />
+            </Suspense>
+          }
+        />
         <Route
           path="/kbs/:id/entities"
           element={

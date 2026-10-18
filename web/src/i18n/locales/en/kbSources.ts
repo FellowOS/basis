@@ -90,6 +90,10 @@ export const kbSources = {
   jobStatus: {
     queued: 'Queued',
     running: 'Running',
+    parsing: 'Parsing',
+    chunking: 'Chunking',
+    embedding: 'Embedding',
+    extracting: 'Extracting',
     succeeded: 'Succeeded',
     failed: 'Failed',
   },

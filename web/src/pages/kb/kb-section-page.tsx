@@ -2,9 +2,9 @@ import { useParams } from 'react-router-dom';
 import { PlaceholderPage } from '@/components/app/kb/placeholder-page.js';
 import { useI18n } from '@/i18n/context.js';
 import { useKbCatalog } from '@/lib/kb-context.js';
-import type { KbNavKey } from '@/lib/nav-config.js';
+import type { KbSidebarMenuKey } from '@/lib/nav-config.js';
 
-export function KbSectionPage({ section }: { section: KbNavKey }) {
+export function KbSectionPage({ section }: { section: KbSidebarMenuKey }) {
   const { id } = useParams();
   const { t } = useI18n();
   const { getKb } = useKbCatalog();

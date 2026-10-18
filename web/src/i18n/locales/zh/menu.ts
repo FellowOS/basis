@@ -6,6 +6,7 @@ export const menu = {
     audit: '审计',
     system: '系统',
   },
+  /** KB sidebar + account menu labels (keys match `nav-config` `labelKey` + alerts). */
   kb: {
     graph: '图谱',
     search: '检索',
@@ -15,13 +16,8 @@ export const menu = {
     review: '审核队列',
     entityResolution: '实体解析',
     decisions: '决策记录',
-    ontology: '本体模型',
-    analyze: '查询与推理',
-    ontologyVersions: '本体版本',
-    shacl: 'SHACL 校验',
-    alignments: '本体对齐',
-    sparql: 'SPARQL',
-    reasoning: '规则推理',
+    ontology: '本体',
+    analyze: '查询推理',
     mappings: '语义映射',
     vocabulary: '受控词表',
     lineage: '溯源血缘',

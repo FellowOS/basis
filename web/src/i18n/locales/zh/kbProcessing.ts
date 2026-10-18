@@ -1,0 +1,16 @@
+export const kbProcessing = {
+  searchPlaceholder: '搜索文档或任务 ID…',
+  filterAll: '全部',
+  filterActive: '进行中',
+  filterFailed: '失败',
+  filterSucceeded: '成功',
+  colDocument: '文档',
+  colStatus: '状态',
+  colAttempt: '尝试',
+  colCreated: '创建时间',
+  colActions: '操作',
+  refresh: '刷新',
+  optionsSnapshot: '选项快照',
+  noMatches: '没有符合筛选条件的任务。',
+  openInSources: '在资料源中打开',
+} as const;

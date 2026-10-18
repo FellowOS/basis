@@ -87,6 +87,10 @@ export const kbSources = {
   jobStatus: {
     queued: '排队中',
     running: '运行中',
+    parsing: '解析中',
+    chunking: '分块中',
+    embedding: '向量化中',
+    extracting: '抽取中',
     succeeded: '成功',
     failed: '失败',
   },
