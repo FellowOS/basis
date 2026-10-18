@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { ConsolePageLayout } from '@/components/app/shared/console/index.js';
 import { KbSparqlWorkspace } from '@/components/app/kb/workspaces/kb-sparql-workspace.js';
 import { KbReasoningWorkspace } from '@/components/app/kb/workspaces/kb-reasoning-workspace.js';
@@ -31,6 +31,7 @@ export function KbAnalyzePage() {
 
   const kbName = getKb(id)?.name ?? id;
   const hubTabs = t.kbAnalyze.hubTabs;
+  const integrationOpenApiPath = `${kbPath(id, 'integration')}?tab=openapi`;
 
   function onTabChange(value: string) {
     const next = value as AnalyzeHubTab;
@@ -50,7 +51,16 @@ export function KbAnalyzePage() {
         { label: kbName, to: kbPath(id, 'graph') },
         { label: t.menu.kb.analyze },
       ]}
-      subtitle={t.pages.kbSubtitles.analyze}
+      subtitle={
+        <div className="space-y-1">
+          <p>{t.pages.kbSubtitles.analyze}</p>
+          <p className="text-xs text-muted-foreground">
+            <Link to={integrationOpenApiPath} className="text-foreground underline-offset-2 hover:underline">
+              {t.kbAnalyze.integrationHint}
+            </Link>
+          </p>
+        </div>
+      }
       className="min-h-0 flex-1 overflow-hidden"
     >
       <Tabs value={tab} onValueChange={onTabChange} className="flex min-h-0 flex-1 flex-col">

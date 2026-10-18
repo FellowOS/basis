@@ -15,6 +15,14 @@ from basis.domain.kb.store import KnowledgeStore
 
 logger = logging.getLogger(__name__)
 
+_GOVERNANCE_ALERT_CODE_TOKENS = ("governance", "impact", "tripped", "shacl")
+
+
+def admin_error_triggers_governance_alert(code: str) -> bool:
+    """True when an Explorer/AdminError code should emit `governance.tripped`."""
+    normalized = code.lower()
+    return any(token in normalized for token in _GOVERNANCE_ALERT_CODE_TOKENS)
+
 
 def _try_record_governance_decision(
     request: Request,

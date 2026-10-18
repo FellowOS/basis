@@ -4,4 +4,5 @@ export const kbAnalyze = {
     sparql: 'SPARQL',
     reasoning: 'Reasoning',
   },
+  integrationHint: 'SPARQL and reasoning HTTP APIs: Integration → OpenAPI.',
 } as const;

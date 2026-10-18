@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
+import { Link } from "react-router-dom";
 import { PublicIcon } from "@/components/app/shared/primitives/public-icon.js";
+import { kbPath } from "@/lib/nav-config.js";
 import { cn } from "@/lib/utils.js";
 import {
   exWsErrorBanner,
@@ -95,9 +97,12 @@ export function ReasoningResultsPanel({
             {derived > 0 ? (
               <>
                 <span className="mx-1.5 text-border">·</span>
-                <a href={`/kbs/${kbId}/entities`} className="text-foreground underline-offset-2 hover:underline">
+                <Link
+                  to={kbPath(kbId, "entities")}
+                  className="text-foreground underline-offset-2 hover:underline"
+                >
                   {fmt(copy.derivedLink, { n: formatLocaleNumber(locale, derived) })}
-                </a>
+                </Link>
               </>
             ) : null}
           </p>

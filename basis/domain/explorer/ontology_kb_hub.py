@@ -22,7 +22,10 @@ from basis.domain.explorer.kb_scoped_ontology_state import KbOntologyState
 from basis.domain.explorer.session_guard import require_explorer_graph_session
 from basis.platform.admin.errors import AdminError
 from basis.domain.kb.graph_audit import audit_kb_graph
-from basis.domain.explorer.governance_decision import emit_governance_tripped_for_kb
+from basis.domain.explorer.governance_decision import (
+    admin_error_triggers_governance_alert,
+    emit_governance_tripped_for_kb,
+)
 from basis.domain.kb.kb_alerts_emit import emit_governance_proposal_proposed_alert
 from basis.domain.kb.store import KnowledgeStore
 
@@ -598,8 +601,7 @@ Kb Ont 25 Publish Proposal. Ontology workspace (SKOS, alignments) via Explorer. 
                     context="ontology",
                 )
             except AdminError as exc:
-                code = exc.code.lower()
-                if any(token in code for token in ("governance", "impact", "tripped", "shacl")):
+                if admin_error_triggers_governance_alert(exc.code):
                     emit_governance_tripped_for_kb(
                         request,
                         kb_id,

@@ -116,7 +116,7 @@
 | F-ONT-05 | 本体提案评审全流程 UI | `done` | P1 | `VersionsTab` 审批/发布 + `?ontologyProposal=` 高亮/弹窗 + 复制评审链接；E2E `ontology-proposal-url.spec.ts` |
 | F-GOV-06 | Registry 可读产品面（非 Explorer 专页） | `done` | P1 | Review timeline + 设置 **Recent graph audit** 深链；**平台 `/admin/audit` Links 列**；管理员 → 平台审计（本库）；E2E `settings-graph-audit.spec.ts` |
 | F-RUL-03 | Entities / 证明链 UI | `done` | P1 | Entities + derived 侧栏；前提/主客体深链（statement→entities、实体→graph）；E2E/单测 `derived-fact-premise-link` |
-| — | Reasoning workspace UX | `partial` | P1 | **Analyze** hub（`/analyze`）；**Ontology** hub 六 tab（Catalog/Edit/Health/Versions/SHACL/Alignments）；legacy 重定向；**F-ONT-09** 试跑 UX 仍缺 |
+| F-ONT-09 | 推理工作台（规则试跑） | `done` | P1 | **Analyze** hub + legacy `/reasoning`；试跑 → 派生深链 **Entities**；Integration OpenAPI 提示；E2E `analyze-hub.spec.ts`、`reasoning-derived.spec.ts` |
 | F-SRC-08 | 超大文件 / 队列运维 UX | `partial` | P1 | **`/processing`** 任务台（表格 + 详情 + Retry/复制深链）；Sources 入口；`?job=`；E2E `processing-job.spec.ts` |
 | F-CHAT-05 | 集成控制台（OpenAPI + MCP） | `done` | P1 | `/kbs/:id/integration` 三 tab：**MCP** / **OpenAPI** / **访问令牌**；legacy `/mcp`、`chat?tab=connect` 重定向；E2E `mcp-integration.spec.ts` |
 | F-KB-06 | 导出 pack 控制台入口与文档 | `partial` | P2 | KB 设置 → Graph **导出图谱**（`ImportExportWorkspace`）；`POST .../export` API → §0.2 |
@@ -126,7 +126,7 @@
 | F-* | Capability | Status | Priority | Notes |
 | --- | --- | --- | --- | --- |
 | F-GOV-04 | Agent governor（batch clustering, gates） | `not` | P2 | Scale governance automation |
-| F-GOV-05 | Impact gates + `governance.tripped` alerts | `partial` | P1 | Emit 覆盖度；bell/告警页 → decisions / review（`kb-alert-actions`）；E2E `governance.spec.ts` |
+| F-GOV-05 | Impact gates + `governance.tripped` alerts | `partial` | P1 | review 批准 / 本体 publish + SHACL；`admin_error_triggers_governance_alert`；merge/import 经 `invoke_explorer`；bell → review/decisions；E2E `governance.spec.ts` |
 | F-SRC-05 | Extract pattern / ml / llm 作业选项与可观测 | `partial` | P1 | spaCy + Models Chat for `llm` NER |
 | F-RUL-04 | Contradiction → governance queue | `partial` | P2 | `statement_conflict` queue + scan API |
 | F-TIM-01–03 | valid_from/to, doc events, ingest vs graph 时态一致 | `partial` | P1 | Chunk filters vs graph `temporal/snapshot` |

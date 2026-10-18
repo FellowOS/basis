@@ -22,7 +22,7 @@ from basis.transport.http.deps import (
     rebuild_kb_projection,
     save_graph,
 )
-from basis.transport.http.explorer_route_errors import admin_error_from_explorer_http
+from basis.transport.http.explorer_route_errors import admin_error_from_explorer_http, invoke_explorer
 from basis.domain.explorer.governance_decision import (
     emit_governance_tripped_for_kb,
     record_governance_decision_for_kb,
@@ -315,7 +315,10 @@ Approve Review Item. Human review queue for merges, imports, and conflicts. Requ
                                     decision_id=decision_id,
                                 )
                             )
-                result = await merge_nodes(merge_body, session=session)
+                result = await invoke_explorer(
+                    merge_nodes(merge_body, session=session),
+                    context="enrich",
+                )
                 save_graph(request, kb_id)
                 merge_result = result.model_dump() if hasattr(result, "model_dump") else dict(result)
                 if ledger_merges:
@@ -374,7 +377,10 @@ Approve Review Item. Human review queue for merges, imports, and conflicts. Requ
             runtime = get_explorer_registry(request).get(request, kb_id)
             session = require_explorer_graph_session(runtime)
             upload = upload_file_from_staged(get_blob_store(request), kb_id, item["payload"])
-            result = await import_file(file=upload, session=session)
+            result = await invoke_explorer(
+                import_file(file=upload, session=session),
+                context="enrich",
+            )
             save_graph(request, kb_id)
             import_result = result.model_dump() if hasattr(result, "model_dump") else dict(result)
             discard_staged_import(get_blob_store(request), kb_id, item["payload"])
