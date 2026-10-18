@@ -44,7 +44,7 @@ export function KbAlertsBell() {
       if (prev.some((a) => a.id === alert.id)) return prev;
       return [alert, ...prev].slice(0, 20);
     });
-    setBadge((n) => n + 1);
+    window.dispatchEvent(new CustomEvent('kb-alerts-changed'));
   }, []);
 
   const refresh = useCallback(async () => {
@@ -55,7 +55,7 @@ export function KbAlertsBell() {
         params: { query: { limit: 20 } },
       });
       setAlerts(data.alerts);
-      setBadge(data.unread_count || data.alerts.length);
+      setBadge(typeof data.unread_count === 'number' ? data.unread_count : data.alerts.length);
       streamSinceRef.current =
         data.alerts[0]?.created_at ?? new Date().toISOString();
       setStreamReady(true);
@@ -130,7 +130,7 @@ export function KbAlertsBell() {
     try {
       await kbOpenApiPOST(kbId, `alerts/${alertId}/dismiss`);
       setAlerts((prev) => prev.filter((a) => a.id !== alertId));
-      setBadge((n) => Math.max(0, n - 1));
+      window.dispatchEvent(new CustomEvent('kb-alerts-changed'));
     } catch {
       /* ignore */
     }
@@ -147,6 +147,7 @@ export function KbAlertsBell() {
           size="icon"
           className="relative size-9 shrink-0"
           aria-label={t.nav.kbAlerts}
+          data-testid="kb-alerts-bell"
         >
           <PublicIcon name='bell-01' className="size-[18px]" />
           {badge > 0 ? (

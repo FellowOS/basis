@@ -1,7 +1,8 @@
 import { useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { isSetupKbId, writeActiveKbId } from '@/lib/kb-active-id.js';
-import { parseKbIdFromPath } from '@/lib/nav-config.js';
+import { KbAlertsBell } from '@/components/app/kb/widgets/kb-alerts-bell.js';
+import { isKbScopedPath, parseKbIdFromPath } from '@/lib/nav-config.js';
 import { BasisSidebar } from '@/components/app/shared/shell/basis-sidebar.js';
 import { KbProvider } from '@/lib/kb-context.js';
 import { KbCapabilitiesProvider } from '@/lib/kb-capabilities.js';
@@ -19,6 +20,7 @@ export function BasisLayout({ onLogout }: { onLogout: () => void }) {
   const { t } = useI18n();
   const { pathname } = useLocation();
   const graphCanvas = isKbGraphFullBleedPath(pathname);
+  const showKbAlertsBell = isKbScopedPath(pathname);
 
   useEffect(() => {
     const kbId = parseKbIdFromPath(pathname);
@@ -47,6 +49,11 @@ export function BasisLayout({ onLogout }: { onLogout: () => void }) {
                 aria-label={t.sidebar.openSidebar}
                 className="pointer-events-auto size-auto h-auto w-auto rounded-md border border-border bg-background/90 p-1.5 text-muted-foreground shadow-sm backdrop-blur hover:bg-accent hover:opacity-100 md:hidden [&_svg]:size-[18px]"
               />
+              {showKbAlertsBell ? (
+                <div className="pointer-events-auto rounded-md border border-border bg-background/90 shadow-sm backdrop-blur">
+                  <KbAlertsBell />
+                </div>
+              ) : null}
             </div>
             <div
               className={

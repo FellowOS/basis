@@ -117,7 +117,7 @@
 | F-GOV-06 | Registry 可读产品面（非 Explorer 专页） | `done` | P1 | Review timeline + 设置 **Recent graph audit** 深链；**平台 `/admin/audit` Links 列**；管理员 → 平台审计（本库）；E2E `settings-graph-audit.spec.ts` |
 | F-RUL-03 | Entities / 证明链 UI | `done` | P1 | Entities + derived 侧栏；前提/主客体深链（statement→entities、实体→graph）；E2E/单测 `derived-fact-premise-link` |
 | — | Reasoning workspace UX | `partial` | P1 | **Analyze** hub（`/analyze`）；**Ontology** hub 六 tab（Catalog/Edit/Health/Versions/SHACL/Alignments）；legacy 重定向；**F-ONT-09** 试跑 UX 仍缺 |
-| F-SRC-08 | 超大文件 / 队列运维 UX | `partial` | P1 | Job history + **`?job=`** 深链、Retry、复制链接；工具栏 **进行中/失败** 角标 + 2s 轮询；E2E `processing-job.spec.ts` |
+| F-SRC-08 | 超大文件 / 队列运维 UX | `partial` | P1 | **`/processing`** 任务台（表格 + 详情 + Retry/复制深链）；Sources 入口；`?job=`；E2E `processing-job.spec.ts` |
 | F-CHAT-05 | 集成控制台（OpenAPI + MCP） | `done` | P1 | `/kbs/:id/integration` 三 tab：**MCP** / **OpenAPI** / **访问令牌**；legacy `/mcp`、`chat?tab=connect` 重定向；E2E `mcp-integration.spec.ts` |
 | F-KB-06 | 导出 pack 控制台入口与文档 | `partial` | P2 | KB 设置 → Graph **导出图谱**（`ImportExportWorkspace`）；`POST .../export` API → §0.2 |
 
@@ -134,7 +134,7 @@
 | — | `POST .../graph/distance-matrix` | `partial` | P2 | Server hop matrix when graph &gt; 2500 nodes |
 | F-CHAT-01–03 | Web KB Playground | `replaced` | — | 控制台问答已移除；智能体用 MCP（§0.1 **F-CHAT-04–05**） |
 | F-CHAT-06 | Playground 客户端控制 | `replaced` | — | 随 Playground 移除 |
-| F-ALT-01–02 | Alert episodes + SSE refetch | `partial` | P1 | 账户菜单 Alerts + 未读角标（`unread_count` 全库计数）；顶栏 bell popover；SSE refetch；E2E `governance.spec.ts` |
+| F-ALT-01–02 | Alert episodes + SSE refetch | `partial` | P1 | **顶栏** `kb-alerts-bell` popover + 账户菜单 Alerts；`unread_count` + SSE→`kb-alerts-changed`；E2E `governance.spec.ts` |
 | F-ACC-07 | Enterprise SSO / org | `partial` | P1 | Orgs + magic link/OAuth；full OIDC SSO TBD |
 | F-IO-01 | Graph import/export | `partial` | — | Import via review；export 面不全 |
 | — | Markdown node resources persistence | `open` | P2 | Policy TBD |
@@ -172,4 +172,4 @@
 
 ---
 
-_Last updated: 2026-10-18 — Ontology hub Catalog/Edit/Health 顶栏 tab；Sources 任务角标。_
+_Last updated: 2026-10-18 — `/processing` 任务台；顶栏 KB alerts bell。_
