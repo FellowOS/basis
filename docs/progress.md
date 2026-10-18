@@ -129,8 +129,8 @@
 | F-GOV-05 | Impact gates + `governance.tripped` alerts | `partial` | P1 | review 批准 **仅 gate 码** emit（`should_emit_governance_tripped_on_review_approve`）；本体 publish + SHACL；merge/import `invoke_explorer`；告警深链；E2E `governance.spec.ts` |
 | F-SRC-05 | Extract pattern / ml / llm 作业选项与可观测 | `partial` | P1 | spaCy + Models Chat for `llm` NER |
 | F-RUL-04 | Contradiction → governance queue | `partial` | P2 | `statement_conflict` queue + scan API |
-| F-TIM-01–03 | valid_from/to, doc events, ingest vs graph 时态一致 | `partial` | P1 | Chunk filters vs graph `temporal/snapshot` |
-| F-TIM-04 | Timeline playback（产品导航） | `partial` | P1 | Scrubber→URL 写入 **`at` + `timeline=1`**；Search/结果深链带 timeline；图谱 dock **打开时间轴**；diff 链 SPA；E2E `graph-at.spec.ts`、`search-temporal-url.spec.ts` |
+| F-TIM-01–03 | valid_from/to, doc events, ingest vs graph 时态一致 | `partial` | P1 | 检索 **as_of vs at** 说明（`kbSearch.temporalHint`）；chunk vs graph snapshot API 仍 partial |
+| F-TIM-04 | Timeline playback（产品导航） | `partial` | P1 | 底部 scrubber↔URL **`at`**（不自动弹时间上下文面板）；检索无「打开时间轴」；图谱 dock 可选 `timeline=1`；播放稳定（ref 回调）；E2E `graph-at.spec.ts` |
 | — | `POST .../graph/distance-matrix` | `partial` | P2 | Server hop matrix when graph &gt; 2500 nodes |
 | F-CHAT-01–03 | Web KB Playground | `replaced` | — | 控制台问答已移除；智能体用 MCP（§0.1 **F-CHAT-04–05**） |
 | F-CHAT-06 | Playground 客户端控制 | `replaced` | — | 随 Playground 移除 |
@@ -172,4 +172,4 @@
 
 ---
 
-_Last updated: 2026-10-18 — 侧栏 Alerts + SSE 角标；processing 失败 → 告警；review approve gate emit。_
+_Last updated: 2026-10-18 — 图谱时间轴 UX（不弹面板、检索去 timeline 入口）；侧栏 Alerts；中文菜单「资料」。_

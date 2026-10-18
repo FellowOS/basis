@@ -295,7 +295,7 @@ export function KbGraphDiffWorkspace({
               <>
                 <Button type="button" size="sm" variant="ghost" asChild>
                   <Link
-                    to={kbGraphPath(kbId, { at: graphAtForDiff, timeline: true })}
+                    to={kbGraphPath(kbId, { at: graphAtForDiff })}
                     data-testid="graph-diff-open-graph-at-end"
                   >
                     {g.graphAtEndTimelineLink}

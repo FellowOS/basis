@@ -10,7 +10,7 @@ export const menu = {
   kb: {
     graph: '图谱',
     search: '检索',
-    sources: '资料源',
+    sources: '资料',
     processing: '处理任务',
     entities: '实体账本',
     review: '审核队列',

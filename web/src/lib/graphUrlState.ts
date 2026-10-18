@@ -4,7 +4,7 @@ export type KbGraphUrlParams = {
   focus?: string;
   /** ISO instant for temporal scrubber (F-TIM / F-SRCH-03). */
   at?: string;
-  /** Open the graph temporal panel on load (F-TIM-04 product entry). */
+  /** Legacy/share flag (`?timeline=1`); scrubber is shown when temporal bounds exist. */
   timeline?: boolean;
 };
 
@@ -39,7 +39,6 @@ export function mergeKbGraphAtParam(
   const trimmed = atIso?.trim();
   if (trimmed) {
     params.set('at', trimmed);
-    params.set('timeline', '1');
   } else {
     params.delete('at');
   }

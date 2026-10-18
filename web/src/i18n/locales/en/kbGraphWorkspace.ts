@@ -69,7 +69,6 @@ export const kbGraphWorkspace = {
   semanticNodeNotFound: "Selected node was not found by the semantic distance API.",
   semanticSelectFullGraphNode: "Select a Full Graph node to load semantic distance.",
   semanticUnavailable: "Semantic similarity is unavailable for this graph.",
-  timelineDiffLink: "Compare graph changes over time →",
   timelineLoading: "Loading timeline…",
   timelinePlay: "Play evolution",
   timelinePause: "Pause evolution",

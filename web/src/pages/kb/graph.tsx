@@ -12,10 +12,9 @@ export function KbGraphPage() {
 
   const onScrubberAtChange = useCallback(
     (atIso: string) => {
-      const next = mergeKbGraphAtParam(searchParams.toString(), atIso);
-      setSearchParams(next, { replace: true });
+      setSearchParams((prev) => mergeKbGraphAtParam(prev.toString(), atIso), { replace: true });
     },
-    [searchParams, setSearchParams],
+    [setSearchParams],
   );
 
   if (!id) {

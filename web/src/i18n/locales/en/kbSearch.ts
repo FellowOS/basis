@@ -15,8 +15,6 @@ export const kbSearch = {
     'Find evidence in documents, nodes in the graph projection, or entities in the ledger. Pick what to search, then run your query.',
   openInGraph: 'Open in graph',
   openGraphLink: 'Open graph',
-  openGraphAtTime: 'Open graph at this time',
-  openGraphTimeline: 'Open graph timeline',
   searchSettingsLink: 'Search settings',
   evidence: 'View evidence',
   resultCount: '{count} results',
@@ -25,6 +23,7 @@ export const kbSearch = {
   chunkMeta: 'Chunk #{ordinal} · {chunkId}',
   temporalAsOfLabel: 'As of (ISO, documents)',
   temporalAtLabel: 'As of (ISO, graph)',
-  temporalHint: 'Optional point-in-time filter; included in the shareable URL.',
+  temporalHint:
+    'Documents: chunks ingested on or before the instant. Graph: current projection with optional at for point-in-time—use the graph page scrubber for playback.',
   clearTemporal: 'Clear time filter',
 } as const;

@@ -85,6 +85,10 @@ export function TimelinePanel({ onTimeChange, minDate, maxDate }: TimelinePanelP
   const [displayDate, setDisplayDate] = useState(() =>
     formatLocaleYearMonth(locale as Locale, DEFAULT_MIN_DATE),
   );
+  const onTimeChangeRef = useRef(onTimeChange);
+  onTimeChangeRef.current = onTimeChange;
+  const formatPlayheadRef = useRef(formatPlayhead);
+  formatPlayheadRef.current = formatPlayhead;
 
   // Captured once per mount so re-renders keep the same reference and do not
   // retrigger the timeline effect below.
@@ -135,11 +139,11 @@ export function TimelinePanel({ onTimeChange, minDate, maxDate }: TimelinePanelP
         if (props.id !== PLAYHEAD_ID) return;
         playheadRef.current = props.time;
         nextTimeline.setCustomTime(props.time, PLAYHEAD_ID);
-        onTimeChange(props.time);
-        setDisplayDate(formatPlayhead(props.time));
+        onTimeChangeRef.current(props.time);
+        setDisplayDate(formatPlayheadRef.current(props.time));
       });
-      onTimeChange(defaultTime);
-      setDisplayDate(formatPlayhead(defaultTime));
+      onTimeChangeRef.current(defaultTime);
+      setDisplayDate(formatPlayheadRef.current(defaultTime));
       return () => {
         nextTimeline.destroy();
         timelineRef.current = null;
@@ -147,11 +151,7 @@ export function TimelinePanel({ onTimeChange, minDate, maxDate }: TimelinePanelP
     }
 
     timeline.setOptions({ min: minBound, max: maxBound, start: minBound, end: maxBound });
-    playheadRef.current = defaultTime;
-    timeline.setCustomTime(defaultTime, PLAYHEAD_ID);
-    onTimeChange(defaultTime);
-    setDisplayDate(formatPlayhead(defaultTime));
-  }, [defaultTime, formatPlayhead, maxBound, minBound, onTimeChange]);
+  }, [defaultTime, maxBound, minBound]);
 
   const startPlay = useCallback(() => {
     if (playIntervalRef.current) return;
@@ -164,10 +164,10 @@ export function TimelinePanel({ onTimeChange, minDate, maxDate }: TimelinePanelP
       }
       playheadRef.current = next;
       timeline.setCustomTime(next, PLAYHEAD_ID);
-      onTimeChange(next);
-      setDisplayDate(formatPlayhead(next));
+      onTimeChangeRef.current(next);
+      setDisplayDate(formatPlayheadRef.current(next));
     }, PLAY_INTERVAL_MS);
-  }, [formatPlayhead, maxBound, minBound, onTimeChange]);
+  }, [maxBound, minBound]);
 
   const stopPlay = useCallback(() => {
     if (playIntervalRef.current) {

@@ -14,22 +14,7 @@ test('search URL keeps as_of and at for shareable links', async ({ page }) => {
 
   await page.goto(`/kbs/${kbId}/search?scope=chunks&q=smoke&as_of=${encodeURIComponent(asOf)}`);
 
-  const timelineEntry = page.getByTestId('kb-search-open-graph-timeline-entry');
-  if ((await timelineEntry.count()) > 0) {
-    await timelineEntry.click();
-    await expect(page).toHaveURL(/timeline=1/);
-    await page.goBack();
-  }
-
   await expect(page.getByTestId('kb-search-as-of')).toHaveValue(asOf, { timeout: 30_000 });
-
-  const graphTimeline = page.getByTestId('kb-search-open-graph-timeline');
-  if ((await graphTimeline.count()) > 0) {
-    await graphTimeline.click();
-    await expect(page).toHaveURL(/timeline=1/);
-    await expect(page).toHaveURL(new RegExp(`[?&]at=${encodeURIComponent(asOf).replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')}`));
-    await page.goBack();
-  }
 
   await page.getByRole('button', { name: /^Search$|^搜索$/ }).click();
   await expect(page).toHaveURL(new RegExp(`as_of=${encodeURIComponent(asOf).replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')}`));

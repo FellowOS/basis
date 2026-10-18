@@ -367,33 +367,10 @@ export function KbSearchPage() {
                 {scope === 'graph' && graphEnabled && id ? (
                   <Button type="button" variant="outline" size="sm" asChild>
                     <Link
-                      to={kbGraphPath(id, {
-                        at: at.trim() || undefined,
-                        ...(at.trim() ? { timeline: true } : {}),
-                      })}
+                      to={kbGraphPath(id, { at: at.trim() || undefined })}
                       data-testid="kb-search-open-graph"
                     >
                       {s.openGraphLink}
-                    </Link>
-                  </Button>
-                ) : null}
-                {scope === 'chunks' && graphEnabled && id && asOf.trim() ? (
-                  <Button type="button" variant="outline" size="sm" asChild>
-                    <Link
-                      to={kbGraphPath(id, { at: asOf.trim(), timeline: true })}
-                      data-testid="kb-search-open-graph-timeline"
-                    >
-                      {s.openGraphAtTime}
-                    </Link>
-                  </Button>
-                ) : null}
-                {graphEnabled && id ? (
-                  <Button type="button" variant="outline" size="sm" asChild>
-                    <Link
-                      to={kbGraphPath(id, { timeline: true })}
-                      data-testid="kb-search-open-graph-timeline-entry"
-                    >
-                      {s.openGraphTimeline}
                     </Link>
                   </Button>
                 ) : null}

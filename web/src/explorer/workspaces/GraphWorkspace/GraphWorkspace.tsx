@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 
 import type Graph from "graphology";
@@ -90,7 +89,6 @@ import {
   type GraphPluginPanelDescriptor,
   type GraphPluginToolbarItem,
 } from "./plugins/types";
-import { kbGraphDiffPath } from "@/lib/nav-config.js";
 import { explorationEffectsShouldLoad, neighborhoodPanelShouldLoad, temporalOverlayShouldLoad } from "./pluginRegistryPredicates";
 import { shouldFetchTemporalBounds, shouldFetchTemporalSnapshot } from "./temporalLifecyclePredicates";
 import { createTemporalSnapshotGuards, type TemporalSnapshotResponse } from "./temporalSnapshotGuards";
@@ -986,7 +984,7 @@ interface GraphWorkspaceProps {
   externalFocusToken?: number;
   /** ISO instant — sets temporal scrubber when graph loads (Basis search → graph deep link). */
   externalTemporalAt?: string;
-  /** Open temporal panel on load (`?timeline=1`, F-TIM-04). */
+  /** Reserved for F-TIM-04 (`?timeline=1`); bottom scrubber is shown when bounds exist. */
   externalOpenTemporalPanel?: boolean;
   /** Fired when the temporal scrubber moves (Basis syncs `?at=` on graph route). */
   onScrubberAtChange?: (atIso: string) => void;
@@ -1007,7 +1005,7 @@ export function GraphWorkspace({
   externalFocusNodeId,
   externalFocusToken,
   externalTemporalAt,
-  externalOpenTemporalPanel,
+  externalOpenTemporalPanel: _externalOpenTemporalPanel,
   onScrubberAtChange,
   externalReloadToken,
   onDirtyChange,
@@ -1062,18 +1060,17 @@ export function GraphWorkspace({
   // concurrent-mode re-renders with a new Date object for the same timestamp
   // do not churn temporalState and retrigger the diagnostics effect (issue #830).
   const lastScrubberMsRef = useRef<number | null>(null);
-  const onTimeChange = useCallback(
-    (time: Date) => {
-      const ms = time.getTime();
-      if (ms === lastScrubberMsRef.current) {
-        return;
-      }
-      lastScrubberMsRef.current = ms;
-      setScrubberTime(time);
-      onScrubberAtChange?.(time.toISOString());
-    },
-    [onScrubberAtChange],
-  );
+  const onScrubberAtChangeRef = useRef(onScrubberAtChange);
+  onScrubberAtChangeRef.current = onScrubberAtChange;
+  const onTimeChange = useCallback((time: Date) => {
+    const ms = time.getTime();
+    if (ms === lastScrubberMsRef.current) {
+      return;
+    }
+    lastScrubberMsRef.current = ms;
+    setScrubberTime(time);
+    onScrubberAtChangeRef.current?.(time.toISOString());
+  }, []);
   const [loadingProgress, setLoadingProgress] = useState<GraphLoadProgress | null>(null);
   const [pluginPanelState, setPluginPanelState] = useState<Record<string, boolean>>({
     "effects-panel": false,
@@ -1414,18 +1411,9 @@ export function GraphWorkspace({
     const parsed = new Date(raw);
     if (Number.isNaN(parsed.getTime())) return;
     appliedExternalTemporalAtRef.current = true;
-    setPluginPanelState((prev) =>
-      prev["temporal-panel"] ? prev : { ...prev, "temporal-panel": true },
-    );
+    // Deep-link `?at=` sets the scrubber only; do not auto-open the temporal dock panel.
     onTimeChange(parsed);
   }, [externalTemporalAt, onTimeChange]);
-
-  useEffect(() => {
-    if (!externalOpenTemporalPanel) return;
-    setPluginPanelState((prev) =>
-      prev["temporal-panel"] ? prev : { ...prev, "temporal-panel": true },
-    );
-  }, [externalOpenTemporalPanel]);
 
   // Guards the snapshot lifecycle: at most one in-flight request per scrubber
   // position (identical-`at` polls are deduplicated, breaking the idle/play
@@ -3401,18 +3389,6 @@ export function GraphWorkspace({
                       maxDate={temporalBounds.max ?? undefined}
                     />
                   </Suspense>
-                  {kbId ? (
-                    <Link
-                      to={kbGraphDiffPath(
-                        kbId,
-                        temporalBounds.min,
-                        (scrubberTime ?? (temporalBounds.max ? new Date(temporalBounds.max) : null) ?? new Date(temporalBounds.min)).toISOString(),
-                      )}
-                      className="mt-1 block text-center text-[11px] text-primary underline-offset-2 hover:underline"
-                    >
-                      {graphCopy(copyLocale, "timelineDiffLink")}
-                    </Link>
-                  ) : null}
                 </div>
               ) : null}
             </SurfaceCard>

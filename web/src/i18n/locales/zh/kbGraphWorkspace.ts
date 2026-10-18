@@ -69,7 +69,6 @@ export const kbGraphWorkspace = {
   semanticNodeNotFound: "语义距离接口未找到所选节点。",
   semanticSelectFullGraphNode: "请在全图模式下选中一个节点以加载语义距离。",
   semanticUnavailable: "当前图谱不支持语义相似度。",
-  timelineDiffLink: "对比时间范围内的图变更 →",
   timelineLoading: "加载时间轴…",
   timelinePlay: "播放演化",
   timelinePause: "暂停演化",
