@@ -25,6 +25,7 @@ export const pages = {
     viewDecisions: 'Open decisions',
     viewSettings: 'Open KB settings',
     viewProcessingJob: 'Open processing job',
+    apiDocsLink: 'Alerts API (OpenAPI)',
   },
   basisKbs: {
     colName: 'Name',

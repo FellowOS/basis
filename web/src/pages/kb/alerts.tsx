@@ -177,6 +177,14 @@ export function KbAlertsPage() {
               {t.pages.alerts.dismissAll}
             </Button>
           ) : null}
+          <Button type="button" variant="outline" size="sm" asChild>
+            <Link
+              to={`${kbPath(id, 'integration')}?tab=openapi`}
+              data-testid="kb-alerts-openapi-link"
+            >
+              {t.pages.alerts.apiDocsLink}
+            </Link>
+          </Button>
           <Button
             type="button"
             variant="outline"

@@ -86,6 +86,8 @@ export const menu = {
       kbIdTryItOut: 'Try it out 时将 kb_id 设为当前知识库 id；Bearer 使用控制台登录会话令牌。',
       exportUiHint: '控制台引导导出（JSON/CSV）：',
       exportUiLink: '设置 → 图谱 → 导出图谱',
+      alertsApiHint:
+        'KB 告警 REST：列表 GET /alerts、SSE /alerts/stream、全部已读与全部忽略 — 在下方规范中搜索 alerts。',
     },
   },
   kbMcp: {

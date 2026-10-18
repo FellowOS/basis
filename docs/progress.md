@@ -118,7 +118,7 @@
 | F-RUL-03 | Entities / 证明链 UI | `done` | P1 | Entities + derived 侧栏；前提/主客体深链（statement→entities、实体→graph）；E2E/单测 `derived-fact-premise-link` |
 | F-ONT-09 | 推理工作台（规则试跑） | `done` | P1 | **Analyze** hub + legacy `/reasoning`；试跑 → 派生深链 **Entities**；Integration OpenAPI 提示；E2E `analyze-hub.spec.ts`、`reasoning-derived.spec.ts` |
 | F-SRC-08 | 超大文件 / 队列运维 UX | `partial` | P1 | 上传前校验 + capabilities **upload-only** 提示；processing↔资料深链；E2E `processing-job.spec.ts` |
-| F-CHAT-05 | 集成控制台（OpenAPI + MCP） | `done` | P1 | `/kbs/:id/integration` 三 tab：**MCP** / **OpenAPI** / **访问令牌**；legacy `/mcp`、`chat?tab=connect` 重定向；E2E `mcp-integration.spec.ts` |
+| F-CHAT-05 | 集成控制台（OpenAPI + MCP） | `done` | P1 | Integration OpenAPI：**导出** + **告警 REST** 提示；告警页 → OpenAPI 互链；E2E `mcp-integration.spec.ts` |
 | F-KB-06 | 导出 pack 控制台入口与文档 | `partial` | P2 | 设置 Graph **导出** ↔ 集成 **OpenAPI** 互链（`POST .../export`）；E2E `settings-graph-audit.spec.ts` |
 
 ### 3.2 端到端缺口（pipeline / 能力仍 partial 或 not）
@@ -172,4 +172,4 @@
 
 ---
 
-_Last updated: 2026-10-18 — sync_failed E2E；LLM NER 模型配置提示。_
+_Last updated: 2026-10-18 — 告警页 ↔ Integration OpenAPI 互链。_

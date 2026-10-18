@@ -86,6 +86,8 @@ export const menu = {
       kbIdTryItOut: 'In Try it out, set kb_id to this knowledge base id. Bearer token uses your console session.',
       exportUiHint: 'Guided graph download (JSON/CSV):',
       exportUiLink: 'Settings → Graph → Export graph',
+      alertsApiHint:
+        'KB alerts REST: list (GET /alerts), SSE stream (/alerts/stream), mark-all-read and dismiss-all — search “alerts” in the spec below.',
     },
   },
   kbMcp: {

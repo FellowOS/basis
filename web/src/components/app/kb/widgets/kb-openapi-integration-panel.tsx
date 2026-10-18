@@ -62,6 +62,7 @@ export function KbOpenApiIntegrationPanel({ kbId }: KbOpenApiIntegrationPanelPro
             {copy.exportUiLink}
           </Link>
         </p>
+        <p data-testid="kb-integration-alerts-api-hint">{copy.alertsApiHint}</p>
       </div>
       <div className="basis-swagger-panel min-h-0 flex-1 overflow-auto">
         <SwaggerUI

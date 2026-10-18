@@ -25,6 +25,7 @@ export const pages = {
     viewDecisions: '打开决策记录',
     viewSettings: '打开知识库设置',
     viewProcessingJob: '打开处理任务',
+    apiDocsLink: '告警 API（OpenAPI）',
   },
   basisKbs: {
     colName: '名称',

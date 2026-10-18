@@ -22,6 +22,7 @@ test('KB integration page loads (MCP, OpenAPI, access tokens); legacy URLs redir
   await expect(page.getByTestId('kb-integration-export-ui-hint')).toBeVisible({
     timeout: 30_000,
   });
+  await expect(page.getByTestId('kb-integration-alerts-api-hint')).toBeVisible();
 
   await page.getByRole('tab', { name: /Access tokens|访问令牌/i }).click();
   await expect(page).toHaveURL(new RegExp(`/kbs/${kbId}/integration\\?tab=tokens`), {
