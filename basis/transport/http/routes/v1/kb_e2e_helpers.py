@@ -239,3 +239,34 @@ async def e2e_processing_failed(
         "version_id": outcome.version_id,
         "document_id": outcome.document_id,
     }
+
+
+@router.post("/{kb_id}/_e2e/sync-failed")
+async def e2e_sync_failed(
+    kb_id: str,
+    request: Request,
+    user: User = Depends(get_current_user),
+    store: AdminStore = Depends(get_store),
+    knowledge: KnowledgeStore = Depends(get_knowledge_store),
+) -> dict[str, str]:
+    """Emit sync_failed alert for an ingest source (Playwright / data-e2e only)."""
+    if not _e2e_helpers_enabled(request):
+        raise AdminError(404, "not_found", "资源不存在")
+    get_kb_for_editor(request, user, kb_id, store)
+
+    source, _ = knowledge.create_ingest_source(
+        kb_id,
+        user.id,
+        kind="http_poll",
+        name=f"E2E sync fail {uuid4().hex[:6]}",
+        config={"url": "https://example.com/e2e-feed.txt"},
+    )
+    source_id = source["id"]
+    knowledge.create_kb_alert(
+        kb_id,
+        kind="sync_failed",
+        message="E2E ingest sync failed",
+        severity="warning",
+        detail={"source_id": source_id},
+    )
+    return {"source_id": source_id}

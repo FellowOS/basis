@@ -49,6 +49,7 @@ import { Switch } from '@/components/ui/switch.js';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs.js';
 import { Textarea } from '@/components/ui/textarea.js';
 import { cn } from '@/lib/utils.js';
+import { useBasisSession } from '@/lib/basis-session.js';
 import { useI18n } from '@/i18n/context.js';
 import {
   compareLocaleStrings,
@@ -202,6 +203,7 @@ function ProcessSection({
 }
 
 export function KnowledgePage() {
+  const { isAdmin } = useBasisSession();
   const { id } = useParams();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -1249,6 +1251,23 @@ export function KnowledgePage() {
                   <p className="text-xs text-muted-foreground">
                     {k.nerHint}
                   </p>
+                  {nerMethod === 'llm' ? (
+                    <p
+                      className="text-xs text-muted-foreground"
+                      data-testid="sources-llm-ner-hint"
+                    >
+                      {isAdmin ? (
+                        <>
+                          {k.llmNerHintPrefix}{' '}
+                          <Link to="/admin/models" className="text-primary hover:underline">
+                            {k.llmNerModelsLink}
+                          </Link>
+                        </>
+                      ) : (
+                        k.llmNerHintNonAdmin
+                      )}
+                    </p>
+                  ) : null}
                 </div>
                 {nerMethod === 'ml' ? (
                   <div className="space-y-1.5">

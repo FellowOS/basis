@@ -79,6 +79,9 @@ export const kbSources = {
   entityRecognition: 'Entity recognition',
   nerHint:
     'For Chinese, use a spaCy model such as zh_core_web_sm, or the chat model. Rules are English-oriented.',
+  llmNerHintPrefix: 'Chat-model NER uses platform models configured in',
+  llmNerModelsLink: 'Admin → Models',
+  llmNerHintNonAdmin: 'Chat-model NER requires platform chat models (ask an admin to configure Models).',
   spacyModel: 'spaCy model',
   spacyModelPlaceholder: 'zh_core_web_sm',
   relationRecognition: 'Relation recognition',

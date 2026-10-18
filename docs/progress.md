@@ -127,14 +127,14 @@
 | --- | --- | --- | --- | --- |
 | F-GOV-04 | Agent governor（batch clustering, gates） | `not` | P2 | Scale governance automation |
 | F-GOV-05 | Impact gates + `governance.tripped` alerts | `partial` | P1 | review（`maybe_emit_governance_tripped_on_review_approve`）+ 本体 approve/publish（AdminError + **SHACL 结果**）；merge/import `invoke_explorer`；E2E `governance.spec.ts` |
-| F-SRC-05 | Extract pattern / ml / llm 作业选项与可观测 | `partial` | P1 | spaCy + Models Chat for `llm` NER |
+| F-SRC-05 | Extract pattern / ml / llm 作业选项与可观测 | `partial` | P1 | 处理对话框 **LLM NER** → 平台模型链接（`sources-llm-ner-hint`）；spaCy 字段已有 |
 | F-RUL-04 | Contradiction → governance queue | `partial` | P2 | `statement_conflict` queue + scan API |
 | F-TIM-01–03 | valid_from/to, doc events, ingest vs graph 时态一致 | `partial` | P1 | 检索 + 图谱 scrubber + **graph-diff `temporalCompareHint`**；引擎/API 仍 partial |
 | F-TIM-04 | Timeline playback（产品导航） | `partial` | P1 | 底部 scrubber↔URL **`at`** + 回放说明；检索无「打开时间轴」；dock `timeline=1`；E2E `graph-at.spec.ts` |
 | — | `POST .../graph/distance-matrix` | `partial` | P2 | Server hop matrix when graph &gt; 2500 nodes |
 | F-CHAT-01–03 | Web KB Playground | `replaced` | — | 控制台问答已移除；智能体用 MCP（§0.1 **F-CHAT-04–05**） |
 | F-CHAT-06 | Playground 客户端控制 | `replaced` | — | 随 Playground 移除 |
-| F-ALT-01–02 | Alert episodes + SSE refetch | `partial` | P1 | unread + mark-all-read + dismiss-all；**processing.failed**→`/processing?job=`；E2E `governance.spec.ts` |
+| F-ALT-01–02 | Alert episodes + SSE refetch | `partial` | P1 | unread + dismiss-all；**processing.failed** / **sync_failed** 深链；E2E `governance.spec.ts` |
 | F-ACC-07 | Enterprise SSO / org | `partial` | P1 | Orgs + magic link/OAuth；full OIDC SSO TBD |
 | F-IO-01 | Graph import/export | `partial` | — | Import via review；export 面不全 |
 | — | Markdown node resources persistence | `open` | P2 | Policy TBD |
@@ -172,4 +172,4 @@
 
 ---
 
-_Last updated: 2026-10-18 — processing.failed 告警 E2E 深链。_
+_Last updated: 2026-10-18 — sync_failed E2E；LLM NER 模型配置提示。_

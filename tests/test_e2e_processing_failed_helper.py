@@ -45,3 +45,24 @@ def test_e2e_processing_failed_helper(tmp_path: Path) -> None:
         headers={"Authorization": f"Bearer {admin2['token']}"},
     )
     assert denied.status_code == 404
+
+
+def test_e2e_sync_failed_helper(tmp_path: Path) -> None:
+    data_dir = tmp_path / "data-e2e"
+    data_dir.mkdir()
+    client = TestClient(create_app(Settings(data_dir=data_dir, ingest_inline=True)))
+    admin = client.post(
+        "/api/v1/auth/register",
+        json={"email": "esf@example.com", "password": "password1", "display_name": "ESF"},
+    ).json()
+    headers = {"Authorization": f"Bearer {admin['token']}"}
+    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+
+    seeded = client.post(f"/api/v1/kbs/{kb_id}/_e2e/sync-failed", headers=headers)
+    assert seeded.status_code == 200
+    source_id = seeded.json()["source_id"]
+
+    listed = client.get(f"/api/v1/kbs/{kb_id}/alerts", headers=headers).json()
+    match = next((a for a in listed["alerts"] if a["kind"] == "sync_failed"), None)
+    assert match is not None
+    assert match["detail"]["source_id"] == source_id

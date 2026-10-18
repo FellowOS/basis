@@ -7,6 +7,7 @@ import {
   seedGovernanceTrippedViaApi,
   seedProcessingFailedViaApi,
   seedStatementConflictViaApi,
+  seedSyncFailedViaApi,
 } from './helpers';
 
 test('kb sidebar alerts nav opens alerts page', async ({ page }) => {
@@ -73,6 +74,28 @@ test('review queue deep link highlights remembered fact item', async ({ page }) 
   await expect(card).toBeVisible({ timeout: 60_000 });
   await expect(card).toHaveClass(/ring-primary/);
   await expect(card.getByText(fact)).toBeVisible();
+});
+
+test('sync failed alert opens sources connector focus', async ({ page }) => {
+  test.setTimeout(120_000);
+
+  await registerFreshUser(page);
+  const kbId = await defaultKbId(page);
+
+  let sourceId: string;
+  try {
+    ({ sourceId } = await seedSyncFailedViaApi(page, kbId));
+  } catch (err) {
+    if (String(err).includes('e2e_sync_failed_unavailable')) {
+      test.skip(true, 'sync-failed e2e helper only on data-e2e API');
+    }
+    throw err;
+  }
+
+  await page.goto(`/kbs/${kbId}/alerts`);
+  await page.getByRole('link', { name: /Open sources|打开资料/i }).click();
+  await expect(page).toHaveURL(new RegExp(`ingestSource=${encodeURIComponent(sourceId)}`));
+  await expect(page.getByRole('dialog')).toBeVisible({ timeout: 30_000 });
 });
 
 test('processing failed alert links to processing job', async ({ page }) => {

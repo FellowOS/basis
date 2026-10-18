@@ -255,6 +255,26 @@ export async function seedProcessingFailedViaApi(
   return { jobId: body.job_id, docId: body.doc_id };
 }
 
+/** Seed sync_failed alert with source_id (Playwright data-e2e API only). */
+export async function seedSyncFailedViaApi(
+  page: Page,
+  kbId: string,
+): Promise<{ sourceId: string }> {
+  const token = await bearerToken(page);
+  const response = await page.request.post(e2eKbPath(kbId, '_e2e/sync-failed'), {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (response.status() === 404) {
+    throw new Error('e2e_sync_failed_unavailable');
+  }
+  expect(response.ok()).toBeTruthy();
+  const body = (await response.json()) as { source_id?: string };
+  if (!body.source_id) {
+    throw new Error('e2e sync-failed did not return source_id');
+  }
+  return { sourceId: body.source_id };
+}
+
 /** Seed statement_conflict review item + alert (Playwright data-e2e API only). */
 export async function seedStatementConflictViaApi(
   page: Page,
