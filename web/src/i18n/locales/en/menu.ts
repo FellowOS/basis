@@ -84,6 +84,8 @@ export const menu = {
       openSwagger: 'Open full Swagger UI',
       apiBaseLabel: 'API base path for this KB:',
       kbIdTryItOut: 'In Try it out, set kb_id to this knowledge base id. Bearer token uses your console session.',
+      exportUiHint: 'Guided graph download (JSON/CSV):',
+      exportUiLink: 'Settings → Graph → Export graph',
     },
   },
   kbMcp: {

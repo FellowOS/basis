@@ -84,6 +84,8 @@ export const menu = {
       openSwagger: '打开完整 Swagger UI',
       apiBaseLabel: '本库 API 根路径：',
       kbIdTryItOut: 'Try it out 时将 kb_id 设为当前知识库 id；Bearer 使用控制台登录会话令牌。',
+      exportUiHint: '控制台引导导出（JSON/CSV）：',
+      exportUiLink: '设置 → 图谱 → 导出图谱',
     },
   },
   kbMcp: {

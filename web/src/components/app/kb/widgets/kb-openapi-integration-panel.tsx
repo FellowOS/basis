@@ -56,6 +56,12 @@ export function KbOpenApiIntegrationPanel({ kbId }: KbOpenApiIntegrationPanelPro
           </code>
         </p>
         <p>{copy.kbIdTryItOut}</p>
+        <p data-testid="kb-integration-export-ui-hint">
+          {copy.exportUiHint}{' '}
+          <Link to={`/kbs/${kbId}/settings?tab=graph`} className="text-primary hover:underline">
+            {copy.exportUiLink}
+          </Link>
+        </p>
       </div>
       <div className="basis-swagger-panel min-h-0 flex-1 overflow-auto">
         <SwaggerUI

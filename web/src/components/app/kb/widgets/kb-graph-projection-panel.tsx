@@ -101,6 +101,16 @@ export function KbGraphProjectionPanel({
             {p.exportGraph}
           </Button>
         </div>
+        <p className="mt-2 text-xs text-muted-foreground" data-testid="kb-settings-export-api-hint">
+          {p.exportApiHint}{' '}
+          <Link
+            to={`${kbPath(kbId, 'integration')}?tab=openapi`}
+            className="text-primary hover:underline"
+          >
+            {p.exportApiLink}
+          </Link>{' '}
+          {p.exportApiSuffix}
+        </p>
       </CardHeader>
       <CardContent className="space-y-4">
         {loading ? (

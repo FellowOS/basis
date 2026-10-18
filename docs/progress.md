@@ -119,7 +119,7 @@
 | F-ONT-09 | 推理工作台（规则试跑） | `done` | P1 | **Analyze** hub + legacy `/reasoning`；试跑 → 派生深链 **Entities**；Integration OpenAPI 提示；E2E `analyze-hub.spec.ts`、`reasoning-derived.spec.ts` |
 | F-SRC-08 | 超大文件 / 队列运维 UX | `partial` | P1 | processing↔资料 **`?doc=`** 高亮；**`?version=&process=1`** 才开处理弹窗；失败角标→`filter=failed`；E2E `processing-job.spec.ts` |
 | F-CHAT-05 | 集成控制台（OpenAPI + MCP） | `done` | P1 | `/kbs/:id/integration` 三 tab：**MCP** / **OpenAPI** / **访问令牌**；legacy `/mcp`、`chat?tab=connect` 重定向；E2E `mcp-integration.spec.ts` |
-| F-KB-06 | 导出 pack 控制台入口与文档 | `partial` | P2 | KB 设置 → Graph **导出图谱**（`ImportExportWorkspace`）；`POST .../export` API → §0.2 |
+| F-KB-06 | 导出 pack 控制台入口与文档 | `partial` | P2 | 设置 Graph **导出** ↔ 集成 **OpenAPI** 互链（`POST .../export`）；E2E `settings-graph-audit.spec.ts` |
 
 ### 3.2 端到端缺口（pipeline / 能力仍 partial 或 not）
 
@@ -172,4 +172,4 @@
 
 ---
 
-_Last updated: 2026-10-18 — 资料/队列 `?doc=` 深链与处理弹窗 URL 语义。_
+_Last updated: 2026-10-18 — F-KB-06 导出 UI 与 OpenAPI 互链。_
