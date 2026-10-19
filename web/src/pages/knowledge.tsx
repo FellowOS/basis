@@ -70,6 +70,10 @@ import {
   kbProcessingPath,
   parseProcessingUrlState,
 } from '@/lib/processingUrlState.js';
+import {
+  buildIngestLimitsHint,
+  buildIngestOpsQueueHint,
+} from '@/lib/kb-ingest-ops-hints.js';
 import { type ProcessingJob, jobIsActive, statusIsProcessing } from '@/lib/kb-processing-job.js';
 import { parseSourcesUrlState } from '@/lib/sourcesUrlState.js';
 import { formatByteSize } from '@/lib/format-byte-size.js';
@@ -347,6 +351,15 @@ export function KnowledgePage() {
   const failedJobCount = useMemo(
     () => jobs.filter((job) => job.status === 'failed').length,
     [jobs],
+  );
+
+  const ingestLimitsHint = useMemo(
+    () => buildIngestLimitsHint(caps, locale as Locale, pProcessing),
+    [caps, locale, pProcessing],
+  );
+  const ingestQueueHint = useMemo(
+    () => buildIngestOpsQueueHint(caps, jobs, locale as Locale, pProcessing),
+    [caps, jobs, locale, pProcessing],
   );
 
   const filteredDocuments = useMemo(() => {
@@ -963,7 +976,21 @@ export function KnowledgePage() {
         { label: kbName ?? id ?? t.common.ellipsis, to: id ? kbPath(id, 'graph') : '/kbs' },
         { label: t.menu.kb.sources },
       ]}
-      subtitle={t.pages.kbSubtitles.sources}
+      subtitle={
+        <div className="space-y-1">
+          <p>{t.pages.kbSubtitles.sources}</p>
+          {ingestLimitsHint ? (
+            <p className="text-xs text-muted-foreground" data-testid="sources-ingest-limits-hint">
+              {ingestLimitsHint}
+            </p>
+          ) : null}
+          {ingestQueueHint ? (
+            <p className="text-xs text-muted-foreground" data-testid="sources-ingest-queue-hint">
+              {ingestQueueHint}
+            </p>
+          ) : null}
+        </div>
+      }
     >
       <DataPanel>
         <DataPanelToolbar

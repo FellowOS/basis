@@ -19,8 +19,11 @@ import {
 } from '@/components/app/kb/widgets/kb-processing-jobs-list.js';
 import { useI18n } from '@/i18n/context.js';
 import { fmt, formatLocaleNumber } from '@/i18n/format.js';
-import { formatByteSize } from '@/lib/format-byte-size.js';
 import type { Locale } from '@/i18n/locale.js';
+import {
+  buildIngestLimitsHint,
+  buildIngestOpsQueueHint,
+} from '@/lib/kb-ingest-ops-hints.js';
 import { formatUserFacingApiError } from '@/lib/api-error-message.js';
 import { useExplorerClient } from '@/lib/explorer-context.js';
 import { useKbCatalog } from '@/lib/kb-context.js';
@@ -100,38 +103,15 @@ export function KbProcessingWorkspace({
     [jobs],
   );
 
-  const limitsHint = useMemo(() => {
-    const upload = caps?.upload_max_bytes;
-    if (!upload) return null;
-    const timeoutSec = caps.processing_job_timeout_seconds ?? 600;
-    return fmt(p.limitsHint, {
-      upload: formatByteSize(upload),
-      inflight: formatLocaleNumber(locale as Locale, caps.ingest_max_inflight ?? 0),
-      pending: formatLocaleNumber(locale as Locale, caps.ingest_max_pending ?? 0),
-      timeoutMin: formatLocaleNumber(locale as Locale, Math.max(1, Math.round(timeoutSec / 60))),
-    });
-  }, [caps, locale, p.limitsHint]);
-
-  const queuedJobCount = useMemo(
-    () => jobs.filter((job) => job.status === 'queued').length,
-    [jobs],
-  );
-  const inflightJobCount = useMemo(
-    () => jobs.filter((job) => jobIsActive(job.status) && job.status !== 'queued').length,
-    [jobs],
+  const limitsHint = useMemo(
+    () => buildIngestLimitsHint(caps, locale as Locale, p),
+    [caps, locale, p],
   );
 
-  const opsQueueHint = useMemo(() => {
-    const inflightMax = caps?.ingest_max_inflight;
-    const pendingMax = caps?.ingest_max_pending;
-    if (inflightMax == null && pendingMax == null) return null;
-    return fmt(p.opsQueueHint, {
-      inflight: formatLocaleNumber(locale as Locale, inflightJobCount),
-      inflightMax: formatLocaleNumber(locale as Locale, inflightMax ?? 0),
-      queued: formatLocaleNumber(locale as Locale, queuedJobCount),
-      pendingMax: formatLocaleNumber(locale as Locale, pendingMax ?? 0),
-    });
-  }, [caps?.ingest_max_inflight, caps?.ingest_max_pending, inflightJobCount, locale, p.opsQueueHint, queuedJobCount]);
+  const opsQueueHint = useMemo(
+    () => buildIngestOpsQueueHint(caps, jobs, locale as Locale, p),
+    [caps, jobs, locale, p],
+  );
 
   const refresh = useCallback(
     async (silent = false) => {
