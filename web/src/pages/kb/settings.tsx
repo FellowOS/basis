@@ -50,6 +50,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs.j
 import { useI18n } from '@/i18n/context.js';
 import { fmt } from '@/i18n/format.js';
 import { KbGraphOverviewStats } from '@/components/app/kb/widgets/kb-graph-overview-stats.js';
+import { KbGovernanceConfigPanel } from '@/components/app/kb/widgets/kb-governance-config-panel.js';
 import { KbGraphProjectionPanel } from '@/components/app/kb/widgets/kb-graph-projection-panel.js';
 import { useKbCatalog } from '@/lib/kb-context.js';
 import { useKbCapabilities } from '@/lib/kb-capabilities.js';
@@ -295,6 +296,7 @@ export function KbSettingsPage() {
   const canManageMembers = ['owner', 'admin'].includes(kb.my_role);
   const canEditGeneral = ['owner', 'admin'].includes(kb.my_role);
   const canEditSearch = ['owner', 'admin'].includes(kb.my_role);
+  const canEditGovernance = ['owner', 'admin'].includes(kb.my_role);
   const canRebuildGraph = caps?.graph_write === true;
   const graphEnabled = caps?.graph === true;
 
@@ -360,6 +362,7 @@ export function KbSettingsPage() {
                 canRebuild={canRebuildGraph}
                 graphEnabled={graphEnabled}
               />
+              <KbGovernanceConfigPanel kbId={id} canEdit={canEditGovernance} />
             </>
           ) : null}
         </TabsContent>

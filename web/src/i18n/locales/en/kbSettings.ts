@@ -60,4 +60,22 @@ export const kbSettings = {
     stale: 'stale',
     ready: 'ready',
   },
+  governance: {
+    title: 'Agent governor',
+    description:
+      'Scheduled conflict scan and low-confidence review enqueue. Requires BASIS_GOVERNOR_TICK_SECONDS on the server.',
+    scheduledLabel: 'Scheduled passes',
+    enabledOn: 'On',
+    enabledOff: 'Off',
+    intervalLabel: 'Interval',
+    intervalMinutes: '{minutes} min',
+    confidenceLabel: 'Confidence threshold',
+    lastRunLabel: 'Last run',
+    manualHint: 'Run a pass anytime from the',
+    reviewLink: 'Review queue',
+    manualHintSuffix: '.',
+    editTitle: 'Governor settings',
+    editDesc: 'Enable background passes and set thresholds for this knowledge base.',
+    toastSaved: 'Governor settings saved.',
+  },
 } as const;

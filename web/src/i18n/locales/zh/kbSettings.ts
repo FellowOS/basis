@@ -60,4 +60,22 @@ export const kbSettings = {
     stale: '已过期',
     ready: '就绪',
   },
+  governance: {
+    title: 'Agent 治理扫描',
+    description:
+      '按计划扫描陈述冲突并将低置信陈述入审核队列。服务端需配置 BASIS_GOVERNOR_TICK_SECONDS。',
+    scheduledLabel: '定时扫描',
+    enabledOn: '已开启',
+    enabledOff: '已关闭',
+    intervalLabel: '间隔',
+    intervalMinutes: '{minutes} 分钟',
+    confidenceLabel: '置信度阈值',
+    lastRunLabel: '上次运行',
+    manualHint: '也可在',
+    reviewLink: '审核队列',
+    manualHintSuffix: '手动执行「治理扫描」。',
+    editTitle: '治理扫描设置',
+    editDesc: '为本知识库开启后台扫描并设置阈值。',
+    toastSaved: '治理设置已保存',
+  },
 } as const;
