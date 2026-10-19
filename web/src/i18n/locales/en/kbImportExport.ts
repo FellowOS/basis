@@ -4,7 +4,7 @@ export const kbImportExport = {
   importDialogDesc:
     'Upload JSON/CSV graph data to the review queue; the canvas does not change until approved.',
   exportDialogDesc:
-    'Download the current Explorer graph as JSON, CSV, RDF (TTL, N-Triples, JSON-LD, RDF/XML), or GraphML.',
+    'Download the full graph or a subgraph (by node id), including RDF and GraphML. Use the audit pack for publish evidence (graph JSON + recent graph audit events).',
   openReviewQueue: 'Open review queue',
   pageTitle: 'Import & Export',
   pageSubtitle: 'Ingest new graph datasets or extract the current knowledge base.',
@@ -17,6 +17,15 @@ export const kbImportExport = {
   uploadToGraph: 'Upload to Graph',
   exportCardTitle: 'Export Graph Snapshot',
   formatLabel: 'Format',
+  exportScopeLabel: 'Scope',
+  exportScopeFull: 'Full graph',
+  exportScopeSubgraph: 'Subgraph',
+  subgraphIdsLabel: 'Node ids',
+  subgraphIdsHint: 'One id per line or comma-separated. Only matching nodes and their connecting edges are exported.',
+  subgraphIdsRequired: 'Enter at least one node id for subgraph export.',
+  auditPackButton: 'Download audit pack',
+  auditPackSuccess: 'Audit pack downloaded — basis_graph_audit_pack.json',
+  auditPackFailed: 'Audit pack failed',
   includedTitle: "What's included",
   includedJson:
     'Full graph snapshot: all node properties, edge weights, entity metadata and semantic groups in a standardized JSON payload.',
@@ -29,7 +38,7 @@ export const kbImportExport = {
   preparing: 'Preparing…',
   exportButton: 'Export',
   importSuccess: 'Submitted {name} for review — approve in the review queue.',
-  exportSuccess: 'Export ready — semantica_export.{format}',
+  exportSuccess: 'Export ready — basis_graph_export.{format}',
   importFailed: 'Import failed',
   exportFailed: 'Export failed',
   logQueuedImport: 'Queued graph import: {name}',

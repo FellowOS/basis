@@ -61,6 +61,7 @@ export const kbGraphDiff = {
     '1）在此对比时间范围 · 2）在图谱页暂存 RDF/JSON 导入 · 3）在审核队列批准 · 4）发布前在设置中导出审计包。',
   previewOnGraph: '在图谱画布上预览',
   copyStagingManifest: '复制 staging JSON',
+  downloadAuditPack: '下载审计包',
   copyStagingSuccess: '已复制 staging 清单',
   proposeMergeTitle: '提交实体合并（审核队列）',
   proposeMergeHint: '提交 Gate D 合并提案；图谱变更前须在审核队列批准。',

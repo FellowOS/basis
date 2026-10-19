@@ -30,11 +30,13 @@ export function KbImportExportDialog({
   open,
   onOpenChange,
   focus = 'import',
+  seedNodeIds,
 }: {
   kbId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   focus?: 'import' | 'export';
+  seedNodeIds?: string[];
 }) {
   const { t, locale } = useI18n();
   const ie = t.kbImportExport;
@@ -83,6 +85,7 @@ export function KbImportExportDialog({
                 <ImportExportWorkspace
                   kbId={kbId}
                   focusSection={focus}
+                  seedNodeIds={seedNodeIds}
                   onImportQueued={goToReviewQueue}
                   importQueuedActionLabel={ie.openReviewQueue}
                 />

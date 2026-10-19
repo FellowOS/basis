@@ -313,6 +313,7 @@ export function KbGraphWorkspace({
         open={importExportOpen}
         onOpenChange={setImportExportOpen}
         focus={importExportFocus}
+        seedNodeIds={focusNodeId?.trim() ? [focusNodeId.trim()] : undefined}
       />
 
       <QueryClientProvider client={graphQueryClient}>

@@ -62,6 +62,7 @@ export const kbGraphDiff = {
     '1) Compare ranges here · 2) Stage RDF/JSON import on the graph page · 3) Approve in review · 4) Export an audit pack from settings when publishing.',
   previewOnGraph: 'Preview on graph canvas',
   copyStagingManifest: 'Copy staging JSON',
+  downloadAuditPack: 'Download audit pack',
   copyStagingSuccess: 'Staging manifest copied',
   proposeMergeTitle: 'Propose entity merge (review queue)',
   proposeMergeHint:

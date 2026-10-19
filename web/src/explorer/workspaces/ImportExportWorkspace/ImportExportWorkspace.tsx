@@ -2,6 +2,7 @@ import { PublicIcon } from "@/components/app/shared/primitives/public-icon.js";
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useDropzone } from "react-dropzone";
 import { Button } from "@/components/ui/button.js";
+import { Textarea } from "@/components/ui/textarea.js";
 import { errorFromApiResponse } from "@/lib/api-error.js";
 import { formatUserFacingApiError } from "@/lib/api-error-message.js";
 import { useI18n } from "@/i18n/context.js";
@@ -38,6 +39,14 @@ import {
   type GraphExportFormat,
   graphExportExtension,
 } from "./graphExportFormats.js";
+import {
+  formatGraphExportNodeIds,
+  parseGraphExportNodeIds,
+} from "@/lib/parse-graph-export-node-ids.js";
+import {
+  buildKbGraphAuditPack,
+  triggerJsonFileDownload,
+} from "@/lib/kb-graph-audit-pack.js";
 
 interface Toast {
   id: number;
@@ -46,14 +55,19 @@ interface Toast {
   action?: { label: string; onClick: () => void };
 }
 
+type ExportScope = "full" | "subgraph";
+
 export function ImportExportWorkspace({
   kbId,
   focusSection,
+  seedNodeIds,
   onImportQueued,
   importQueuedActionLabel,
 }: {
   kbId: string;
   focusSection?: "import" | "export";
+  /** Pre-fill subgraph export (e.g. graph `focus` node). */
+  seedNodeIds?: string[];
   onImportQueued?: () => void;
   importQueuedActionLabel?: string;
 }) {
@@ -73,7 +87,20 @@ export function ImportExportWorkspace({
   const [exportFormat, setExportFormat] = useState<GraphExportFormat>("json");
   const exportMeta =
     GRAPH_EXPORT_FORMATS.find((row) => row.format === exportFormat) ?? GRAPH_EXPORT_FORMATS[0];
+  const [exportScope, setExportScope] = useState<ExportScope>(() =>
+    seedNodeIds?.length ? "subgraph" : "full",
+  );
+  const [subgraphIdsText, setSubgraphIdsText] = useState(() =>
+    seedNodeIds?.length ? formatGraphExportNodeIds(seedNodeIds) : "",
+  );
   const [isExporting, setIsExporting] = useState(false);
+  const [isAuditPackBusy, setIsAuditPackBusy] = useState(false);
+
+  useEffect(() => {
+    if (!seedNodeIds?.length) return;
+    setExportScope("subgraph");
+    setSubgraphIdsText(formatGraphExportNodeIds(seedNodeIds));
+  }, [seedNodeIds]);
   const [toasts, setToasts] = useState<Toast[]>([]);
 
   function showToast(
@@ -124,14 +151,32 @@ export function ImportExportWorkspace({
     } finally { setIsUploading(false); }
   }
 
+  function resolvedExportNodeIds(): string[] | undefined | null {
+    if (exportScope !== "subgraph") return undefined;
+    const ids = parseGraphExportNodeIds(subgraphIdsText);
+    if (ids.length === 0) {
+      showToast("error", ie.subgraphIdsRequired);
+      return null;
+    }
+    return ids;
+  }
+
+  function buildExportPayload(format: GraphExportFormat, nodeIds?: string[]) {
+    const body: { format: GraphExportFormat; node_ids?: string[] } = { format };
+    if (nodeIds?.length) body.node_ids = nodeIds;
+    return body;
+  }
+
   async function handleExport() {
+    const nodeIds = resolvedExportNodeIds();
+    if (nodeIds === null) return;
     setIsExporting(true);
     try {
       const exportPath = buildExplorerKbApiPath("export", kbId);
       const res = await explorerFetch(exportPath, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ format: exportFormat }),
+        body: JSON.stringify(buildExportPayload(exportFormat, nodeIds)),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
@@ -158,6 +203,45 @@ export function ImportExportWorkspace({
     } catch (e: unknown) {
       showToast("error", formatUserFacingApiError(e, locale as Locale));
     } finally { setIsExporting(false); }
+  }
+
+  async function handleAuditPack() {
+    const nodeIds = resolvedExportNodeIds();
+    if (nodeIds === null) return;
+    setIsAuditPackBusy(true);
+    try {
+      const pack = await buildKbGraphAuditPack({
+        kbId,
+        nodeIds,
+        postExport: (body) =>
+          explorerFetch(buildExplorerKbApiPath("export", kbId), {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+          }),
+        getAudit: async () => {
+          const auditPath = `${buildExplorerKbApiPath("audit/graph-mutations", kbId)}?limit=100&action_prefix=${encodeURIComponent("kb.graph.")}`;
+          const res = await explorerFetch(auditPath);
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) {
+            throw errorFromApiResponse(res.status, data, ie.auditPackFailed);
+          }
+          return data as { events: unknown[] };
+        },
+        getProjection: async () => {
+          const res = await explorerFetch(buildExplorerKbApiPath("graph/projection", kbId));
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) return undefined;
+          return data;
+        },
+      });
+      triggerJsonFileDownload("basis_graph_audit_pack.json", pack);
+      showToast("success", ie.auditPackSuccess);
+    } catch (e: unknown) {
+      showToast("error", formatUserFacingApiError(e, locale as Locale));
+    } finally {
+      setIsAuditPackBusy(false);
+    }
   }
 
   return (
@@ -238,6 +322,40 @@ export function ImportExportWorkspace({
             </div>
 
             <div>
+              <label className={wsLabel}>{ie.exportScopeLabel}</label>
+              <div className="mb-3 flex flex-wrap gap-2">
+                {(
+                  [
+                    ["full", ie.exportScopeFull],
+                    ["subgraph", ie.exportScopeSubgraph],
+                  ] as const
+                ).map(([scope, label]) => (
+                  <Button
+                    key={scope}
+                    type="button"
+                    variant={exportScope === scope ? "default" : "outline"}
+                    className="flex-1 text-xs"
+                    onClick={() => setExportScope(scope)}
+                  >
+                    {label}
+                  </Button>
+                ))}
+              </div>
+              {exportScope === "subgraph" ? (
+                <div className="mb-3 space-y-1.5">
+                  <label className={wsLabel} htmlFor="graph-export-node-ids">
+                    {ie.subgraphIdsLabel}
+                  </label>
+                  <Textarea
+                    id="graph-export-node-ids"
+                    className="min-h-[5.5rem] font-mono text-xs"
+                    value={subgraphIdsText}
+                    onChange={(event) => setSubgraphIdsText(event.target.value)}
+                    data-testid="graph-export-node-ids"
+                  />
+                  <p className={cn(wsBody, "text-[11px] text-muted-foreground")}>{ie.subgraphIdsHint}</p>
+                </div>
+              ) : null}
               <label className={wsLabel}>{ie.formatLabel}</label>
               <div className="flex flex-wrap gap-2">
                 {GRAPH_EXPORT_FORMATS.map((row) => (
@@ -262,10 +380,31 @@ export function ImportExportWorkspace({
 
             <Button
               type="button"
+              variant="outline"
+              className="w-full"
+              data-testid="graph-export-audit-pack"
+              onClick={() => void handleAuditPack()}
+              disabled={isAuditPackBusy || isExporting}
+            >
+              {isAuditPackBusy ? (
+                <>
+                  <PublicIcon name="loader-01" size={15} className="animate-spin" />
+                  {ie.preparing}
+                </>
+              ) : (
+                <>
+                  <PublicIcon name="file-01" size={15} />
+                  {ie.auditPackButton}
+                </>
+              )}
+            </Button>
+
+            <Button
+              type="button"
               variant="secondary"
               className="w-full"
               onClick={handleExport}
-              disabled={isExporting}
+              disabled={isExporting || isAuditPackBusy}
             >
               {isExporting ? (
                 <>

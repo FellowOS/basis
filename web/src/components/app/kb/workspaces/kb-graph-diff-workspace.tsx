@@ -49,6 +49,9 @@ import {
   readGraphStagingDraft,
   writeGraphStagingDraft,
 } from '@/lib/graph-staging-draft.js';
+import { basisSessionFetch } from '@/lib/basis-session-fetch.js';
+import { kbApiPath } from '@/lib/kb-api-path.js';
+import { buildKbGraphAuditPack, triggerJsonFileDownload } from '@/lib/kb-graph-audit-pack.js';
 
 type GraphDiffResponse = {
   from_time: string;
@@ -198,6 +201,7 @@ export function KbGraphDiffWorkspace({
   const [mergePrimaryId, setMergePrimaryId] = useState('');
   const [mergeDuplicateId, setMergeDuplicateId] = useState('');
   const [mergeBusy, setMergeBusy] = useState(false);
+  const [auditPackBusy, setAuditPackBusy] = useState(false);
   const autoCompareRef = useRef(false);
   const stagingDraftRestoredRef = useRef(false);
   const { caps } = useKbCapabilities();
@@ -327,6 +331,39 @@ export function KbGraphDiffWorkspace({
       toast.success(g.copyStagingSuccess);
     } catch {
       toast.error(t.common.copyFailed);
+    }
+  }
+
+  async function downloadAuditPack() {
+    if (!stagingManifest || !diff) return;
+    const rawFocus = stagingManifest.focus_node_ids;
+    const focusNodeIds = Array.isArray(rawFocus)
+      ? rawFocus.filter((id): id is string => typeof id === 'string' && id.trim().length > 0)
+      : undefined;
+    setAuditPackBusy(true);
+    try {
+      const pack = await buildKbGraphAuditPack({
+        kbId,
+        nodeIds: focusNodeIds,
+        staging: { manifest: stagingManifest, diff },
+        postExport: (body) =>
+          basisSessionFetch(kbApiPath(kbId, 'export'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+          }),
+        getAudit: () =>
+          kbOpenApiGET<{ events: unknown[] }>(kbId, 'audit/graph-mutations', {
+            params: { query: { limit: 100, action_prefix: 'kb.graph.' } },
+          }),
+        getProjection: () => kbOpenApiGET(kbId, 'graph/projection'),
+      });
+      triggerJsonFileDownload('basis_graph_audit_pack.json', pack);
+      toast.success(t.kbImportExport.auditPackSuccess);
+    } catch (err) {
+      toast.error(formatUserFacingApiError(err, loc));
+    } finally {
+      setAuditPackBusy(false);
     }
   }
 
@@ -570,6 +607,16 @@ export function KbGraphDiffWorkspace({
                   onClick={() => void copyStagingManifest()}
                 >
                   {g.copyStagingManifest}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  data-testid="graph-diff-download-audit-pack"
+                  disabled={auditPackBusy}
+                  onClick={() => void downloadAuditPack()}
+                >
+                  {auditPackBusy ? t.kbImportExport.preparing : g.downloadAuditPack}
                 </Button>
                 <Button type="button" variant="outline" size="sm" asChild>
                   <Link

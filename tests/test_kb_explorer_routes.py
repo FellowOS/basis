@@ -396,6 +396,14 @@ def test_graph_import_export_roundtrip(tmp_path) -> None:
     assert exported.status_code == 200
     assert exported.headers.get("content-type", "").startswith("application/json")
 
+    subgraph = client.post(
+        f"/api/v1/kbs/{kb_id}/export",
+        headers=headers,
+        json={"format": "json", "node_ids": ["import-node-1", "does-not-exist"]},
+    )
+    assert subgraph.status_code == 200
+    assert subgraph.headers.get("content-type", "").startswith("application/json")
+
     ttl = client.post(
         f"/api/v1/kbs/{kb_id}/export",
         headers=headers,

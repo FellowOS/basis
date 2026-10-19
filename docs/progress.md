@@ -137,7 +137,7 @@
 | F-CHAT-06 | Playground 客户端控制 | `replaced` | — | 随 Playground 移除 |
 | F-ALT-01–02 | Alert episodes + SSE refetch | `done` | P1 | SSE + episode 分组 + **`?episode=` 高亮**；Processing/Review → 告警 episode 互链 + 告警页 **复制 episode 链接**；E2E `governance.spec.ts` / `processing-job.spec.ts` |
 | F-ACC-07 | Enterprise SSO / org | `partial` | P1 | OIDC + **OrgSsoPanel**（`auth_policy`）；登录 **`org-sso-options`** / **`org-sso-hint`** + 强制 SSO；E2E `org-sso-login.spec.ts`（mock IdP）；**本地 Logto 签收暂缓**（`docker/logto/` 保留待用）；剩余：**SAML**、生产 IdP 签收 |
-| F-IO-01 | Graph import/export | `partial` | — | Import JSON/CSV → review；Export UI：**JSON / CSV / RDF（TTL·NT·JSON-LD·RDF/XML）/ GraphML**（`ImportExportWorkspace`）；审计包 / 子图 `node_ids` 等待做 |
+| F-IO-01 | Graph import/export | `done` | — | Import JSON/CSV → review；Export：**全图/子图 `node_ids`** + RDF/GraphML；**审计包**（图 JSON + 图审计 + projection；graph-diff 含 staging）；`tests/test_kb_explorer_routes.py` |
 | — | Markdown node resources persistence | `open` | P2 | Policy TBD |
 | — | Desktop profile（ADR 0004） | `deferred` | P2 | `main` 上 Phase A 可忽略（不设 `BASIS_DEPLOYMENT_PROFILE=desktop`）；Electron / Phase B+ 暂缓，优先 Server 能力 |
 | M5-02 | semantica package entry for Graph workspace | `not` | P2 | Still vendored `web/src/explorer` |
@@ -164,7 +164,7 @@
 | Phase | Focus | Checklist rows |
 | --- | --- | --- |
 | **Now** | Operational KB loop | §3.2 F-TIM（F-SRCH-03 done）；§3.1 治理/本体（F-ONT-05、F-GOV-07） |
-| **Next** | Ops + scale | §3.2 **F-IO-01**（图导出面）；§3.1 F-ACC-07（SAML / 生产 IdP）；F-GOV-04 图语义 dedup 增强 |
+| **Next** | Ops + scale | §3.1 **F-ACC-07**（SAML / 生产 IdP）；F-GOV-04 图语义 dedup 增强 |
 | **Deferred** | Desktop | ADR 0004 Phase B+（Electron）；不设 desktop env 即可 |
 | **Then** | Graph scale + I/O | §3.2 distance-matrix、F-IO-01；M5-02 Explorer 打包 |
 | **On demand** | Release engineering | §3.1 F-DIFF-01 工作室；§3.2 distance-matrix |
