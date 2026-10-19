@@ -32,6 +32,8 @@ export interface TimelinePanelProps {
 
 const PLAYHEAD_ID = "playhead";
 const PLAY_INTERVAL_MS = 500;
+/** Match auto-play tick interval so the playhead slides between steps. */
+const PLAYHEAD_MOTION_MS = PLAY_INTERVAL_MS - 20;
 const ONE_DAY_MS = 1000 * 60 * 60 * 24;
 
 const VIS_OVERRIDE_CSS = `
@@ -57,6 +59,14 @@ const VIS_OVERRIDE_CSS = `
     cursor: ew-resize !important;
     z-index: 5 !important;
   }
+  .sem-timeline-wrap[data-timeline-playing="true"] .vis-custom-time.${PLAYHEAD_ID} {
+    transition: left ${PLAYHEAD_MOTION_MS}ms linear, transform ${PLAYHEAD_MOTION_MS}ms linear;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .sem-timeline-wrap[data-timeline-playing="true"] .vis-custom-time.${PLAYHEAD_ID} {
+      transition: none !important;
+    }
+  }
   .sem-timeline-wrap .vis-custom-time.${PLAYHEAD_ID} > .vis-custom-time-marker {
     background: ${GRAPH_THEME.ui.timeline.playhead} !important;
     color: ${GRAPH_THEME.ui.text.inverse} !important;
@@ -76,6 +86,7 @@ export function TimelinePanel({ onTimeChange, minDate, maxDate }: TimelinePanelP
   const containerRef = useRef<HTMLDivElement>(null);
   const timelineRef = useRef<Timeline | null>(null);
   const playheadRef = useRef<Date>(DEFAULT_MIN_DATE);
+  const playOriginRef = useRef<Date | null>(null);
   const playIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const formatPlayhead = useCallback(
@@ -153,21 +164,12 @@ export function TimelinePanel({ onTimeChange, minDate, maxDate }: TimelinePanelP
     timeline.setOptions({ min: minBound, max: maxBound, start: minBound, end: maxBound });
   }, [defaultTime, maxBound, minBound]);
 
-  const startPlay = useCallback(() => {
-    if (playIntervalRef.current) return;
-    playIntervalRef.current = setInterval(() => {
-      const timeline = timelineRef.current;
-      if (!timeline) return;
-      const next = new Date(playheadRef.current.getTime() + resolvePlayStepMs(minBound, maxBound));
-      if (next >= maxBound) {
-        next.setTime(minBound.getTime());
-      }
-      playheadRef.current = next;
-      timeline.setCustomTime(next, PLAYHEAD_ID);
-      onTimeChangeRef.current(next);
-      setDisplayDate(formatPlayheadRef.current(next));
-    }, PLAY_INTERVAL_MS);
-  }, [maxBound, minBound]);
+  const applyPlayhead = useCallback((time: Date) => {
+    playheadRef.current = time;
+    timelineRef.current?.setCustomTime(time, PLAYHEAD_ID);
+    onTimeChangeRef.current(time);
+    setDisplayDate(formatPlayheadRef.current(time));
+  }, []);
 
   const stopPlay = useCallback(() => {
     if (playIntervalRef.current) {
@@ -175,6 +177,32 @@ export function TimelinePanel({ onTimeChange, minDate, maxDate }: TimelinePanelP
       playIntervalRef.current = null;
     }
   }, []);
+
+  const finishPlayback = useCallback(() => {
+    stopPlay();
+    const origin = playOriginRef.current;
+    playOriginRef.current = null;
+    if (origin) {
+      applyPlayhead(origin);
+    }
+    setIsPlaying(false);
+  }, [applyPlayhead, stopPlay]);
+
+  const startPlay = useCallback(() => {
+    if (playIntervalRef.current) return;
+    playOriginRef.current = new Date(playheadRef.current.getTime());
+    playIntervalRef.current = setInterval(() => {
+      const timeline = timelineRef.current;
+      if (!timeline) return;
+      const stepMs = resolvePlayStepMs(minBound, maxBound);
+      const nextMs = playheadRef.current.getTime() + stepMs;
+      if (nextMs >= maxBound.getTime()) {
+        finishPlayback();
+        return;
+      }
+      applyPlayhead(new Date(nextMs));
+    }, PLAY_INTERVAL_MS);
+  }, [applyPlayhead, finishPlayback, maxBound, minBound]);
 
   const togglePlay = useCallback(() => {
     setIsPlaying((previous) => {
@@ -232,7 +260,10 @@ export function TimelinePanel({ onTimeChange, minDate, maxDate }: TimelinePanelP
         </span>
       </div>
 
-      <div className={graphTimelineVisHost}>
+      <div
+        className={graphTimelineVisHost}
+        data-timeline-playing={isPlaying ? "true" : undefined}
+      >
         <div ref={containerRef} className={graphTimelineCanvasHost} />
       </div>
     </div>

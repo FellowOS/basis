@@ -68,10 +68,10 @@ export const graphTimelineControls =
   "flex min-w-20 shrink-0 flex-col items-center justify-center gap-1 border-r border-border px-4";
 
 export const graphTimelinePlayBtn =
-  "flex size-[34px] cursor-pointer items-center justify-center rounded-full border-[1.5px] border-border bg-muted text-primary transition-all duration-200";
+  "flex size-[34px] cursor-pointer items-center justify-center rounded-full border-[1.5px] border-border bg-muted p-0 text-primary transition-all duration-200 [&_svg]:block";
 
 export const graphTimelinePlayBtnActive =
-  "border-ok/50 bg-ok/15 text-ok shadow-[0_0_10px_rgba(76,195,138,0.32)]";
+  "border-ok/50 bg-ok/15 text-ok";
 
 export const graphTimelineDate =
   "font-mono text-[10px] tracking-wide text-muted-foreground transition-colors duration-200";
