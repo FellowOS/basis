@@ -1,8 +1,8 @@
 # Basis
 
-**企业知识的统一语义层** — 本体驱动的知识库、证据链支撑的事实，以及可自托管的团队与 AI 工作台。
+**面向智能体的业务上下文与状态服务（The Business Context & State Service for Agents）** — 让智能体读懂企业真实上下文，并在审批边界内安全改写业务状态。
 
-Basis 是基于 [Semantica](https://github.com/semantica-agi/semantica) Python SDK 的开源知识平台：**FastAPI 后端**（`basis`）+ **React 控制台**（`@basis/web`）。在同一套部署中完成文档摄入、图谱探索、混合检索、治理审核，并通过 HTTP / MCP 向业务系统与智能体开放知识——**无需**再单独运行 semantica 官方的 `semantica server` 作为产品入口。
+Basis 是基于 [Semantica](https://github.com/semantica-agi/semantica) Python SDK 构建的智能体上下文与状态服务底座：**FastAPI 后端**（`basis`）+ **React 建模与治理工作台**（`@basis/web`）。它将企业散乱的文档、关系型数据库（`postgres`/`mysql`）与 1,000+ SaaS 系统（通过声明式 **BOCP** 引擎）统一对齐为**证据账本与业务对象**，并向智能体暴露标准的 **OpenAPI v1 与 MCP 服务接口**——实现读取可溯源、状态写回必经审批。
 
 [English](./README.md) · [文档索引](./docs/README.md) · [接口参考](http://127.0.0.1:5173/swagger)（web dev：`/swagger`；规范 `/openapi/v1.json`）
 
@@ -13,12 +13,13 @@ Basis 是基于 [Semantica](https://github.com/semantica-agi/semantica) Python S
 
 ## 产品定位
 
-| | 常见「图 + RAG」方案 | **Basis** |
+| | 常见「RAG + 裸调 API」方案 | **Basis（上下文与状态服务）** |
 | --- | --- | --- |
-| 主存 | 图库 / 向量库即真相 | **证据账本**（陈述、映射、审计）；图与向量为**可重建投影** |
-| 语义 | 临时标签 | **本体**、映射、规则、SHACL、SPARQL |
-| 运维 | 多服务拼装 | 默认 **两个进程**：Basis API + Basis Web（SQLite 零配置） |
-| 集成 | 自建胶水层 | **REST**、知识库 **API 令牌**、**MCP** 工具 |
+| **上下文读取（Context）** | 碎片向量切片 / 裸查数据库表 | **证据账本与业务对象**（陈述、映射、溯源）；图与向量为**可重建投影** |
+| **状态变更（State）** | 仅停留在聊天记录，或直接裸写生产库 | **受控状态写回**（`remember` 提案与 `entity_sync_outbox` 审批闸口） |
+| **业务语义** | 提示词临时硬编码 | **业务本体**、映射、规则推理、SHACL 校验、SPARQL |
+| **系统连接与接口** | 每个项目手写胶水代码 | **BOCP** 声明式数据库与 1,000+ SaaS 连接器，统一暴露 **OpenAPI v1** 与 **MCP** |
+| **部署运维** | 多套组件拼装 | 默认 **两个进程**：Basis API + Basis Web（SQLite 零配置，生产支持 PostgreSQL） |
 
 架构决策：[ADR 0001 — 证据账本为主存](docs/architecture/0001-canonical-knowledge-model.md)。
 
