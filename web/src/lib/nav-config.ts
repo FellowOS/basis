@@ -50,10 +50,10 @@ export function platformAdminEntryPath(isAdmin: boolean, canSettings: boolean): 
 /**
  * KB navigation zones ordered by user mental model & task frequency:
  * 1. explore (high-frequency consumption: Graph, Search)
- * 2. knowledge (sources, entities, entity resolution, decisions, review queue)
+ * 2. knowledge (sources, processing, entity ledger)
  * 3. connectors (BOCP catalog, connections, stream mappings, sync)
  * 4. schema (ontology hub tabs, query/reasoning hub, vocabulary, mappings)
- * 5. audit (provenance & temporal diff: Lineage, Graph Diff)
+ * 5. govern (review, resolution, decisions, lineage, graph diff)
  * 6. system (integration, settings); alerts via account menu only
  */
 export type KbWorkspaceZone =
@@ -61,7 +61,7 @@ export type KbWorkspaceZone =
   | 'knowledge'
   | 'connectors'
   | 'schema'
-  | 'audit'
+  | 'govern'
   | 'system';
 
 export const KB_WORKSPACE_ZONES: KbWorkspaceZone[] = [
@@ -69,7 +69,7 @@ export const KB_WORKSPACE_ZONES: KbWorkspaceZone[] = [
   'knowledge',
   'connectors',
   'schema',
-  'audit',
+  'govern',
   'system',
 ];
 
@@ -89,9 +89,6 @@ export const KB_NAV_BY_ZONE = {
     { segment: 'sources', labelKey: 'sources', icon: 'book-01' },
     { segment: 'processing', labelKey: 'processing', icon: 'sync' },
     { segment: 'entities', labelKey: 'entities', icon: 'atom' },
-    { segment: 'entity-resolution', labelKey: 'entityResolution', icon: 'git-merge' },
-    { segment: 'decisions', labelKey: 'decisions', icon: 'scales' },
-    { segment: 'review', labelKey: 'review', icon: 'check-square-contained' },
   ],
   connectors: [
     { segment: 'connectors/catalog', labelKey: 'connectorCatalog', icon: 'database' },
@@ -105,7 +102,10 @@ export const KB_NAV_BY_ZONE = {
     { segment: 'vocabulary', labelKey: 'vocabulary', icon: 'tag' },
     { segment: 'mappings', labelKey: 'mappings', icon: 'arrows-left-right' },
   ],
-  audit: [
+  govern: [
+    { segment: 'review', labelKey: 'review', icon: 'check-square-contained' },
+    { segment: 'entity-resolution', labelKey: 'entityResolution', icon: 'git-merge' },
+    { segment: 'decisions', labelKey: 'decisions', icon: 'scales' },
     { segment: 'lineage', labelKey: 'lineage', icon: 'path' },
     { segment: 'graph-diff', labelKey: 'graphDiff', icon: 'git-diff' },
   ],
