@@ -70,6 +70,7 @@ import {
   kbProcessingPath,
   parseProcessingUrlState,
 } from '@/lib/processingUrlState.js';
+import { KbProcessingOptionsSnapshot } from '@/components/app/kb/widgets/kb-processing-options-snapshot.js';
 import {
   buildIngestLimitsHint,
   buildIngestOpsQueueHint,
@@ -80,7 +81,6 @@ import { formatByteSize } from '@/lib/format-byte-size.js';
 import { KbDocumentTimelinePanel } from '@/components/app/kb/widgets/kb-document-timeline-panel.js';
 import { uploadExceedsMaxBytes } from '@/lib/ingest-upload-limit.js';
 import { formatUserFacingApiError } from '@/lib/api-error-message.js';
-import { processingOptionsSummaryLines } from '@/lib/kb-processing-options-summary.js';
 import { processingStartIdempotencyKey } from '@/lib/processing-idempotency.js';
 
 const PAGE_SIZE = 10;
@@ -297,10 +297,6 @@ export function KnowledgePage() {
     ],
   );
 
-  const processDialogOptionsSummary = useMemo(
-    () => processingOptionsSummaryLines(processDialogOptions, t.kbProcessing),
-    [processDialogOptions, t.kbProcessing],
-  );
 
   const k = t.kbSources;
   const pProcessing = t.kbProcessing;
@@ -1456,23 +1452,15 @@ export function KnowledgePage() {
                   {k.needChunkOrExtract}
                 </p>
               ) : null}
-              {processDialogOptionsSummary.length > 0 ? (
-                <div className="rounded-md border border-border/80 bg-muted/30 px-3 py-2">
-                  <p className="text-xs font-medium text-foreground">
-                    {pProcessing.processDialogOptionsPreview}
-                  </p>
-                  <ul
-                    className="mt-1 space-y-0.5 text-xs text-muted-foreground"
-                    data-testid="sources-process-options-preview"
-                  >
-                    {processDialogOptionsSummary.map((line) => (
-                      <li key={line}>{line}</li>
-                    ))}
-                  </ul>
-                  <pre className="mt-2 max-h-32 overflow-auto rounded bg-background/80 p-2 text-[10px]">
-                    {JSON.stringify(processDialogOptions, null, 2)}
-                  </pre>
-                </div>
+              {chunk || extract ? (
+                <KbProcessingOptionsSnapshot
+                  className="rounded-md border border-border/80 bg-muted/30 px-3 py-2"
+                  options={processDialogOptions}
+                  summaryTitle={pProcessing.processDialogOptionsPreview}
+                  summaryTestId="sources-process-options-preview"
+                  jsonTestId="sources-process-options-json"
+                  preClassName="mt-2 max-h-32 overflow-auto rounded bg-background/80 p-2 text-[10px]"
+                />
               ) : null}
             </div>
             <DialogFooter className="border-t border-border pt-4">

@@ -127,7 +127,7 @@
 | --- | --- | --- | --- | --- |
 | F-GOV-04 | Agent governor（batch clustering, gates） | `not` | P2 | Scale governance automation |
 | F-GOV-05 | Impact gates + `governance.tripped` alerts | `partial` | P1 | emit + detail + 告警动作深链（decisions/review）；E2E `governance.spec.ts`（tripped→decisions、review 决策叙事）✅；剩余：规模化 batch governor（**F-GOV-04**） |
-| F-SRC-05 | Extract pattern / ml / llm 作业选项与可观测 | `partial` | P1 | 处理对话框 **摘要+JSON 预览**；job 展开摘要与 raw JSON 标签对齐 |
+| F-SRC-05 | Extract pattern / ml / llm 作业选项与可观测 | `done` | P1 | 共用 **`KbProcessingOptionsSnapshot`**（Sources 处理对话框 + Processing job 展开：摘要、`optionsSnapshotRaw` 标签、JSON testid）；E2E `processing-job.spec.ts` |
 | F-RUL-04 | Contradiction → governance queue | `partial` | P2 | `statement_conflict` queue + scan API |
 | F-TIM-01–03 | valid_from/to, doc events, ingest vs graph 时态一致 | `done` | P1 | **`GET documents/{id}/timeline`** + **Sources `?doc=` 时间线面板**（F-TIM-02）；`build_temporal_graph_from_ledger` 将 `invalidated_at` 投影为节点/边 `valid_until`，驱动 `temporal/snapshot`、`temporal/diff`、`graph/diff` 与 `graph/staging` 时态区间过滤（`tests/test_graph_projector.py`） |
 | F-TIM-04 | Timeline playback（产品导航） | `done` | P1 | scrubber↔URL **`at`**；Search/graph **timeline=1**；**graph-diff 终点→timeline 回放**；`temporal/snapshot` 返回精确 `active_node_ids`/`active_node_count`；E2E `graph-at.spec.ts` / `graph-diff.spec.ts` |

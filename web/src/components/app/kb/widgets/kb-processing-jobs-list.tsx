@@ -14,7 +14,7 @@ import {
   processingJobStatusLabel,
   statusIsProcessing,
 } from '@/lib/kb-processing-job.js';
-import { processingOptionsSummaryLines } from '@/lib/kb-processing-options-summary.js';
+import { KbProcessingOptionsSnapshot } from '@/components/app/kb/widgets/kb-processing-options-snapshot.js';
 import { kbAlertsPath, processingAlertEpisodeKey } from '@/lib/kb-alerts-url.js';
 import { kbPath } from '@/lib/nav-config.js';
 import { kbSourcesDocumentPath } from '@/lib/sourcesUrlState.js';
@@ -198,14 +198,6 @@ export function KbProcessingJobsList({
   );
 
   const expandedJob = expandedId ? filtered.find((job) => job.id === expandedId) : undefined;
-  const expandedOptionsSummary = useMemo(
-    () =>
-      expandedJob
-        ? processingOptionsSummaryLines(expandedJob.options ?? {}, p)
-        : [],
-    [expandedJob, p],
-  );
-
   return (
     <div data-testid="processing-jobs-list">
       <DataTable
@@ -304,22 +296,12 @@ export function KbProcessingJobsList({
               </p>
             </div>
           ) : null}
-          {expandedOptionsSummary.length > 0 ? (
-            <ul
-              className="mt-3 space-y-0.5 text-xs text-muted-foreground"
-              data-testid={`processing-job-options-summary-${expandedJob.id}`}
-            >
-              {expandedOptionsSummary.map((line) => (
-                <li key={line}>{line}</li>
-              ))}
-            </ul>
-          ) : null}
-          <p className="mt-3 text-xs font-medium text-muted-foreground">
-            {expandedOptionsSummary.length > 0 ? p.optionsSnapshotRaw : p.optionsSnapshot}
-          </p>
-          <pre className="mt-1 max-h-48 overflow-auto rounded-md bg-muted p-3 text-xs">
-            {JSON.stringify(expandedJob.options, null, 2)}
-          </pre>
+          <KbProcessingOptionsSnapshot
+            className="mt-3"
+            options={expandedJob.options ?? {}}
+            summaryTestId={`processing-job-options-summary-${expandedJob.id}`}
+            jsonTestId={`processing-job-options-json-${expandedJob.id}`}
+          />
         </section>
       ) : null}
     </div>

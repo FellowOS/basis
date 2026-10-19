@@ -26,6 +26,7 @@ test('sources job query opens processing history for job', async ({ page }) => {
     timeout: 30_000,
   });
   await expect(page.getByTestId(`processing-job-copy-link-${jobId}`)).toBeVisible();
+  await expect(page.getByTestId(`processing-job-options-json-${jobId}`)).toBeVisible();
 });
 
 test('processing open in sources focuses document without process dialog', async ({ page }) => {
