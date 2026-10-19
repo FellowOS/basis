@@ -18,11 +18,11 @@ export function ProductSiteFooter({ className, splitLayout = true }: ProductSite
       id="self-host"
       className={cn(
         'relative z-10 shrink-0 scroll-mt-24 border-t border-border/50 px-5 py-3 text-[11px] text-muted-foreground sm:px-8 sm:text-xs',
-        splitLayout && 'sm:pr-[62%] lg:pr-[58%]',
+        splitLayout && 'pointer-events-none sm:pr-[62%] lg:pr-[58%]',
         className,
       )}
     >
-      <p>{fmt(m.footerCopyright, { year })}</p>
+      <p className={splitLayout ? 'pointer-events-auto' : undefined}>{fmt(m.footerCopyright, { year })}</p>
     </footer>
   );
 }

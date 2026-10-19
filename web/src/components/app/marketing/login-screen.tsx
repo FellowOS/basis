@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
 import { ProductSiteFooter } from '@/components/app/marketing/product-site-footer.js';
@@ -18,7 +18,7 @@ import {
   loadAuthProviders,
   type AuthProviders,
 } from './auth-form-card.js';
-import { BinaryOrbits, type BinaryOrbitsHandle } from './binary-orbits.js';
+import { AstralShell } from './astral-shell.js';
 
 export function LoginScreen() {
   const { t } = useI18n();
@@ -32,7 +32,31 @@ export function LoginScreen() {
   const isRegister = searchParams.get('mode') === 'register';
   const isDark = theme === 'dark';
   const [authProviders, setAuthProviders] = useState<AuthProviders | null>(null);
-  const orbitsRef = useRef<BinaryOrbitsHandle>(null);
+  const [astralPulse, setAstralPulse] = useState(0);
+  const canvasBg = isDark ? '#090b10' : '#ffffff';
+  const shellProps = useMemo(
+    () =>
+      isDark
+        ? {
+            colors: ['#e0a04a', '#f6ead2'] as string[],
+            radius: 0.58,
+            originX: 0.58,
+            originY: 0.42,
+            tilt: 24,
+            spin: 0.9,
+            nodes: 2000,
+          }
+        : {
+            colors: ['#152033', '#d4880a'] as string[],
+            radius: 0.6,
+            originX: 0.55,
+            originY: 0.38,
+            tilt: 30,
+            spin: 0.85,
+            nodes: 2000,
+          },
+    [isDark],
+  );
 
   useEffect(() => {
     void loadAuthProviders().then(setAuthProviders);
@@ -46,7 +70,7 @@ export function LoginScreen() {
   useEffect(() => {
     const onHash = () => {
       if (window.location.hash === '#capabilities') {
-        orbitsRef.current?.ripple();
+        setAstralPulse((n) => n + 1);
       }
     };
     onHash();
@@ -84,18 +108,16 @@ export function LoginScreen() {
         '--login-cta-shimmer': isDark ? '#e8a830' : '#d4880a',
       } as CSSProperties}
     >
-      <div className="absolute inset-y-0 right-0 z-0 w-full sm:w-[62%] lg:w-[58%]">
-        <BinaryOrbits
-          ref={orbitsRef}
-          className="pointer-events-auto h-full min-h-0"
-          colors={isDark ? ['#e0a04a', '#f6ead2'] : ['#152033', '#c9842a']}
-          backgroundColor={isDark ? '#090b10' : '#ffffff'}
-          mode="auto"
-          centerX={0.56}
-          centerY={0.5}
+      <div className="absolute inset-y-0 right-0 z-[1] w-full sm:w-[62%] lg:w-[58%]">
+        <AstralShell
+          className="pointer-events-auto h-full min-h-0 w-full"
+          backgroundColor={canvasBg}
+          {...shellProps}
           interactive
-          hoverWake
-          clickRipple
+          draggable
+          clickPulse
+          pulseSignal={astralPulse}
+          dpr={1.75}
         />
         <div
           className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[var(--login-canvas)] from-35% via-[var(--login-canvas)]/80 to-transparent sm:from-0% sm:via-[var(--login-canvas)]/40"
@@ -107,7 +129,7 @@ export function LoginScreen() {
 
       <main
         id="product"
-        className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden px-5 py-4 sm:py-5 sm:pl-8 sm:pr-[62%] lg:pr-[58%]"
+        className="pointer-events-none relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden px-5 py-4 sm:py-5 sm:pl-8 sm:pr-[62%] lg:pr-[58%]"
       >
         <div className="pointer-events-auto flex min-h-0 flex-1 flex-col justify-center">
           <p className="max-w-xl text-xs leading-relaxed text-pretty text-muted-foreground sm:text-[13px]">
