@@ -14,6 +14,8 @@ import {
   processingJobStatusLabel,
   statusIsProcessing,
 } from '@/lib/kb-processing-job.js';
+import { processingOptionsSummaryLines } from '@/lib/kb-processing-options-summary.js';
+import { kbAlertsPath, processingAlertEpisodeKey } from '@/lib/kb-alerts-url.js';
 import { kbPath } from '@/lib/nav-config.js';
 import { kbSourcesDocumentPath } from '@/lib/sourcesUrlState.js';
 import { cn } from '@/lib/utils.js';
@@ -196,6 +198,13 @@ export function KbProcessingJobsList({
   );
 
   const expandedJob = expandedId ? filtered.find((job) => job.id === expandedId) : undefined;
+  const expandedOptionsSummary = useMemo(
+    () =>
+      expandedJob
+        ? processingOptionsSummaryLines(expandedJob.options ?? {}, p)
+        : [],
+    [expandedJob, p],
+  );
 
   return (
     <div data-testid="processing-jobs-list">
@@ -250,10 +259,12 @@ export function KbProcessingJobsList({
               {expandedJob.status === 'failed' ? (
                 <Button type="button" variant="outline" size="sm" asChild>
                   <Link
-                    to={kbPath(kbId, 'alerts')}
+                    to={kbAlertsPath(kbId, {
+                      episodeKey: processingAlertEpisodeKey(expandedJob.id),
+                    })}
                     data-testid={`processing-job-view-alerts-${expandedJob.id}`}
                   >
-                    {p.viewAlerts}
+                    {p.viewRelatedAlerts}
                   </Link>
                 </Button>
               ) : null}
@@ -272,16 +283,40 @@ export function KbProcessingJobsList({
             </div>
           </div>
           {expandedJob.error_code ? (
-            <p className="mt-3 text-xs text-destructive">
-              {messageForApiErrorCode(expandedJob.error_code, locale) ?? expandedJob.error_code}
-            </p>
+            <div className="mt-3 space-y-1 text-xs text-destructive">
+              <p data-testid={`processing-job-error-code-${expandedJob.id}`}>
+                {messageForApiErrorCode(expandedJob.error_code, locale) ?? expandedJob.error_code}
+                <span className="ml-1 font-mono text-[10px] opacity-80">
+                  ({expandedJob.error_code})
+                </span>
+              </p>
+              {expandedJob.error_detail?.message ? (
+                <p className="text-muted-foreground">{expandedJob.error_detail.message}</p>
+              ) : null}
+              <p>
+                <Link
+                  to={kbSourcesDocumentPath(kbId, expandedJob.doc_id)}
+                  className="font-medium text-primary hover:underline"
+                  data-testid={`processing-job-error-doc-link-${expandedJob.id}`}
+                >
+                  {p.errorDocLink}
+                </Link>
+              </p>
+            </div>
           ) : null}
-          {typeof expandedJob.options?.request_id === 'string' && expandedJob.options.request_id ? (
-            <p className="mt-2 text-xs text-muted-foreground">
-              {k.referenceId}: {expandedJob.options.request_id}
-            </p>
+          {expandedOptionsSummary.length > 0 ? (
+            <ul
+              className="mt-3 space-y-0.5 text-xs text-muted-foreground"
+              data-testid={`processing-job-options-summary-${expandedJob.id}`}
+            >
+              {expandedOptionsSummary.map((line) => (
+                <li key={line}>{line}</li>
+              ))}
+            </ul>
           ) : null}
-          <p className="mt-3 text-xs font-medium text-muted-foreground">{p.optionsSnapshot}</p>
+          <p className="mt-3 text-xs font-medium text-muted-foreground">
+            {expandedOptionsSummary.length > 0 ? p.optionsSnapshotRaw : p.optionsSnapshot}
+          </p>
           <pre className="mt-1 max-h-48 overflow-auto rounded-md bg-muted p-3 text-xs">
             {JSON.stringify(expandedJob.options, null, 2)}
           </pre>

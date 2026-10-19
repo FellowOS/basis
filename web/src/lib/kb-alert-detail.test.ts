@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { messagesForLocale } from '@/i18n/pick-locale.js';
-import { kbAlertDetailLines, groupAlertsByKind } from '@/lib/kb-alert-detail.js';
+import {
+  alertEpisodeKey,
+  groupAlertsByEpisode,
+  kbAlertDetailLines,
+} from '@/lib/kb-alert-detail.js';
 import type { KbAlertStreamItem } from '@/lib/kb-alerts-stream.js';
 
 function alert(partial: Partial<KbAlertStreamItem> & Pick<KbAlertStreamItem, 'kind'>): KbAlertStreamItem {
@@ -31,14 +35,29 @@ describe('kbAlertDetailLines', () => {
   });
 });
 
-describe('groupAlertsByKind', () => {
-  it('preserves first-seen kind order', () => {
-    const groups = groupAlertsByKind([
-      alert({ id: '1', kind: 'processing.failed' }),
-      alert({ id: '2', kind: 'governance.tripped' }),
-      alert({ id: '3', kind: 'processing.failed' }),
+describe('groupAlertsByEpisode', () => {
+  it('groups by episode_key when present', () => {
+    const groups = groupAlertsByEpisode([
+      alert({
+        id: '1',
+        kind: 'processing.failed',
+        detail: { episode_key: 'processing:j1', job_id: 'j1' },
+      }),
+      alert({
+        id: '2',
+        kind: 'governance.tripped',
+        detail: { episode_key: 'governance:code:x' },
+      }),
+      alert({
+        id: '3',
+        kind: 'processing.failed',
+        detail: { episode_key: 'processing:j1', job_id: 'j1' },
+      }),
     ]);
-    expect(groups.map((g) => g.kind)).toEqual(['processing.failed', 'governance.tripped']);
+    expect(groups).toHaveLength(2);
     expect(groups[0]?.alerts).toHaveLength(2);
+    expect(alertEpisodeKey(alert({ id: 'x', kind: 'k', detail: { episode_key: 'e1' } }))).toBe(
+      'e1',
+    );
   });
 });

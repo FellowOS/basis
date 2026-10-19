@@ -49,4 +49,5 @@ export const kbReview = {
   decisionNarrativeTruncated: 'More steps in Decisions workspace.',
   governanceGateAlertsHint: 'A governance gate may have tripped—check active alerts for details.',
   viewGovernanceAlerts: 'View alerts',
+  viewRelatedAlerts: 'Related alerts',
 } as const;

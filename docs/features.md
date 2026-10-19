@@ -65,7 +65,7 @@
 | time | Timeline | `F-TIM` | **全量** |
 | interface | GraphWorkspace | `F-UI` | **全量** |
 | chat-and-mcp | LLM extras | `F-CHAT` | **全量** |
-| lakehouse-and-actions | db-*, ingest-parquet… | `F-LAKE` | **可选模块**（企业扩展） |
+| Basis Connector（关系库 + AnyConnect 1,390+ SaaS） | `postgres`/`mysql` + 10,000+ Actions | `F-LAKE` | **可选模块**（统一 `kind = 'connector'`，见 §5.17/§5.18） |
 | operational ontology（对标 Palantir） | —（Basis 组装） | `F-OPS` | **可选模块**（与 `F-LAKE` 同批；见 §5.18） |
 
 | Explorer Workspace | Basis 落点（UI） | 纳入 |
@@ -349,17 +349,17 @@ Basis **不在 API 层提供** Utopia 式「服务端 Chat 会话 + SSE LLM」�
 
 ---
 
-### 5.16 结构化数据源与双向同步（可选）`F-LAKE` / `F-OPS`
+### 5.16 统一声明式连接器（BOCP：数据库 + 1,000+ SaaS）与双向同步 `F-LAKE` / `F-OPS`
 
-与文档数据源共享**同一套菜单、同一套证据账本（`entities` + `statements`）与同一套图谱/MCP**（见 [ADR 0003](architecture/0003-lakehouse-datasets.md)），不建立平行的 Parquet 数仓或第二套导航：
+> **注**：保留历史编号 `F-LAKE`，但**不建平行的 Parquet 数据湖或 DuckDB SQL 沙箱，也不引入跨语言 Node.js 执行器**。关系型数据库（`postgres` / `mysql`，底层 SQLAlchemy 2.0）与 1,000+ SaaS 应用统一由 **100% 纯 Python 原生的 Basis Open Connector Protocol (BOCP)**（融合 **Nango** 的 17 种声明式认证与增量状态机 + **Airbyte** 的 `DeclarativeSource` YAML 流抽取与 `DISCOVER` 动态 Schema 发现 + **AnyConnect** 的 OAuth 方言与动作目录，`ingest_sources.kind = 'connector'`）驱动，共享同一套证据账本（`entities` + `statements` + `typed_facts`）与唯一 Python MCP 服务（见 [ADR 0003](architecture/0003-lakehouse-datasets.md) 与 [helix-foundry-adoption.md](architecture/helix-foundry-adoption.md)）：
 
 | ID | 能力 |
 | --- | --- |
-| F-LAKE-01 | 结构化数据源接入（PostgreSQL/MySQL 表、CSV/Parquet，含 Semantica `db-*` / `ingest-parquet` 能力） |
-| F-LAKE-02 | 表列 → 本体类/属性/外键映射（`source_table_mappings`），直接入账本生成实体与陈述，统一由现有图/SPARQL/MCP 检索 |
-| F-LAKE-03 | 实体与业务数据库双向同步 / Declared actions（与 **F-OPS-01** 同一产品面：经审核或受控策略写回外部库/Webhook） |
+| F-LAKE-01 | **统一声明式连接器接入（`/kbs/:id/connectors`）**：纯 Python BOCP 引擎原生支持 `oauth2`/`oauth2_cc`/`basic`（账号密码）/`two_step`/`api_key`/`database_dsn`/`custom` 连接、连通性自检（`CHECK`）、动态表与自定义列发现（`DISCOVER`）、凭据库（`kb_connections`）与调用日志（`kb_connector_runs`） |
+| F-LAKE-02 | **统一 Stream → 本体映射（`source_table_mappings`）**：执行声明式 `Stream READ`（自动翻页、增量游标 `checkpoint_json`、软删除追踪 `track_deletes`），按主键与字段映射直接生成/更新账本 `entities`、`statements` 与 `typed_facts`，统一由现有图/SPARQL/MCP 检索 |
+| F-LAKE-03 | **统一出向写回与 Declared Actions（与 `F-OPS-01` 同一套管道）**：实体修改或动作进入 `entity_sync_outbox`，经 `Review` 队列批准后调用声明式 `Stream MUTATE` 写回数据库或外部 SaaS |
 
-**纳入策略**：企业扩展能力，**不阻塞**核心文档 KB 闭环；持久化契约见 [ADR 0003](architecture/0003-lakehouse-datasets.md)、[data-model.md §18](architecture/data-model.md)。详细规则见 **§5.18**。
+**界面**：左侧栏 **数据与抽取 → 连接器 (`/kbs/:id/connectors`)**（内含「连接与服务目录」「本体映射与同步」「动作目录与策略」「运行日志」4 个 Tab，与管非结构化文档的 `资料 /kbs/:id/sources` 解耦）。持久化契约见 [ADR 0003](architecture/0003-lakehouse-datasets.md)、[data-model.md §18](architecture/data-model.md)。详细规则见 **§5.18**。
 
 ---
 
@@ -373,22 +373,22 @@ Explorer Memory Workspace：长期 Agent 记忆图。**纳入策略**：当 F-CH
 
 在 [ADR 0001](architecture/0001-canonical-knowledge-model.md) 与 [ADR 0003](architecture/0003-lakehouse-datasets.md) 下，文档与业务系统数据库在**中间层（本体、实体、账本、图谱、审核、菜单、MCP）100% 统一**，仅在**入向（数据源同步）**与**出向（写回业务库）**扩展：
 
-| 环节 | 文档证据路径 | 业务数据库同步路径（`F-LAKE` + `F-OPS`） |
+| 环节 | 文档证据路径（`资料 /kbs/:id/sources`） | 业务系统连接器路径（`连接器 /kbs/:id/connectors`，`F-LAKE` + `F-OPS`） |
 | --- | --- | --- |
-| **入向（Sources）** | 文档分块 + NER/LLM 抽取 → 开放陈述 → 映射 | 数据库表主键/列映射 → 直接生成/更新实体与陈述（`entity_external_refs`） |
-| **中间核心（统一）** | **同一套菜单 · 同一套账本 · 同一张图谱 · 同一个 Review 队列 · 同一套 MCP** | 同左（同一实体节点可同时汇聚文档风险与 ERP 订单属性） |
-| **出向（Write-back）** | 仅更新 KB 内部账本与图投影 | 修改绑定属性或触发 Action → 经 Review/审计写回业务数据库（`entity_sync_outbox`） |
+| **入向** | 文档分块 + NER/LLM 抽取 → 开放陈述 → 映射 | 统一执行 BOCP `Stream READ`（SQLAlchemy `postgres`/`mysql` 或 1,000+ SaaS 声明式流）+ `source_table_mappings` → 直接生成/更新实体与陈述（`entity_external_refs`） |
+| **中间核心（统一）** | **同一套账本 · 同一套本体 · 同一张图谱 · 同一个 Review 队列 · 唯一 Python MCP** | 同左（同一实体节点可同时汇聚 PDF 合同风险、ERP 数据库字段与 HubSpot/Jira 状态） |
+| **出向（Write-back）** | 仅更新 KB 内部账本与图投影 | 修改绑定属性或触发 Declared Action → `entity_sync_outbox` → 经 Review 批准后统一调用 BOCP `Stream MUTATE` 写回数据库或外部 SaaS |
 
 **与 Palantir / Foundry 概念对照（统一账本落点）**
 
 | Palantir / Foundry | Basis 统一架构落点 | 规划 `F-*` |
 | --- | --- | --- |
-| **Object types** + 属性 | 复用图节点/实体 + OWL 类 + ledger 陈述 | **F-ONT** / **F-LDG** + **F-OPS-04** |
-| **Actions / 写回业务库** | 实体变更或动作进 `entity_sync_outbox` → 经 Review 批准后参数化 `UPDATE` 外部库或调 Webhook | **F-OPS-01**、**F-LAKE-03** |
+| **Object types** + 属性 | 复用图节点/实体 + OWL 类 + ledger 陈述/类型化事实 | **F-ONT** / **F-LDG** + **F-OPS-04** |
+| **Actions / 写回业务系统** | 实体变更或动作进 `entity_sync_outbox` → 经 Review 批准后调用 BOCP `Stream MUTATE`（SQLAlchemy 参数化 `UPDATE` 或 Jinja2 REST 写回模板）与 `Tools` | **F-OPS-01**、**F-LAKE-03** |
 | **Functions**（派生属性） | **F-RUL** 逻辑推理 + 轻量派生计算 | **F-OPS-03** |
-| **Object ↔ 表双向同步** | `source_table_mappings` + `entity_external_refs`（`row_hash` 防回环与冲突检测） | **F-LAKE-01/02**、**F-OPS-04/05** |
-| **细粒度 ACL** | 在 KB 角色之上控制可写回的字段/动作 | **F-OPS-02** |
-| **OSDK / 集成** | 复用现有 KB OpenAPI + MCP | **F-OPS-06** |
+| **Object ↔ 外部源双向同步** | `source_table_mappings` + `entity_external_refs`（`row_hash` 防回环与冲突检测） | **F-LAKE-01/02**、**F-OPS-04/05** |
+| **细粒度 ACL** | `kb_connector_policies`（在 KB 角色之上控制允许的 Providers 与 Actions） | **F-OPS-02** |
+| **OSDK / 集成** | 复用唯一 Python KB OpenAPI + MCP（合并 AnyConnect 的 5 个固定 Action 发现/执行工具） | **F-OPS-06** |
 
 | ID | 能力 |
 | --- | --- |
@@ -400,7 +400,7 @@ Explorer Memory Workspace：长期 Agent 记忆图。**纳入策略**：当 F-CH
 | F-OPS-06 | **集成契约复用**：在现有 OpenAPI / MCP 上暴露绑定状态与受控写回 |
 | F-OPS-07 | **Workshop-lite**（可选，按需） |
 
-**纳入策略**：实现顺序建议 **F-LAKE-01/02 + F-OPS-04（入向表同步进账本）→ F-OPS-05 + F-OPS-01（双向写回与冲突审核）→ F-OPS-02/03**。架构细节见 [architecture/0003-lakehouse-datasets.md](architecture/0003-lakehouse-datasets.md) 与 [architecture/helix-foundry-adoption.md](architecture/helix-foundry-adoption.md)。
+**纳入策略**：遵循 [helix-foundry-adoption.md §6.3](architecture/helix-foundry-adoption.md) 四阶段实施计划：**Phase 1（`0011` 7 表迁移 + BOCP Manifest 契约 + Nango/Airbyte/AnyConnect 合成脚本）→ Phase 2（纯 Python 全模式认证引擎 + SQLAlchemy / Declarative REST 双内核流与动态 Schema 发现引擎）→ Phase 3（账本 `row_hash` 四路增量同步 + Outbox 审批写回与防回环）→ Phase 4（OpenAPI / 唯一 Python MCP 暴露 + 独立 `/kbs/:kbId/connectors` 工作台）**。架构细节见 [architecture/0003-lakehouse-datasets.md](architecture/0003-lakehouse-datasets.md) 与 [architecture/helix-foundry-adoption.md](architecture/helix-foundry-adoption.md)。
 
 ---
 
@@ -570,14 +570,16 @@ F-LAKE-01–03, F-OPS-01–06（建议顺序见 §5.18）, F-MEM-*, F-ACC-07, Ne
 
 - 新增能力：在 §5 增加 **F-* 行**；**状态**只改 [progress.md](progress.md)（`done` → §0/§0.1；API 基线 → §0.2；gap → §3.1 或 §3.2）。
 - 分期调整：只改 **第二篇** 各 Phase 的 ID 列表。
-- ADR：`architecture/0001`、`0002`。
+- ADR：`architecture/0001`、`0002`、`0003`。
 - 数据字段/约束： [data-model.md](architecture/data-model.md) + 迁移。
 - Explorer 契约： [explorer.md](architecture/explorer.md)。
 
 ---
 
+*修订：2026-10-19 — §5.17/§5.18 统一为 Basis Connector（`kind = 'connector'`，合入 AnyConnect 1,390+ SaaS 与独立 `/kbs/:kbId/connectors` 页面）。*
+
 *修订：2026-10-17 — §7 对齐 progress §0.1/§0.2/§3.1/§3.2；§5 API v1 路径；状态只在 progress。*
 
-*修订：2026-10-15 — §5.18 F-OPS / F-LAKE 双轨。*
+*修订：2026-10-15 — §5.18 F-OPS / F-LAKE 双向账本同步。*
 
 *修订：2026-10-13 — 完整功能设计 → 分期；ADR 0001；Explorer 多 KB 集成。*

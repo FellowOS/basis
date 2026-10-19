@@ -322,6 +322,17 @@ export interface paths {
         /**
          * List Kb Alerts
          * @description List KB alert episodes with unread count (viewer+).
+         *
+         *     Each alert includes a `detail` object (JSON). Common keys by `kind`:
+         *
+         *     - `governance.tripped`: `code`, `decision_id`, `item_id`, `proposal_id`,
+         *       `shacl_violation_count`, `episode_key`
+         *     - `processing.failed`: `job_id`, `error_code`, `message`, `episode_key`
+         *     - `sync_failed`: `source_id`, `source_name`, `mode`, `error`, `episode_key`
+         *     - `governance.statement_conflict`: `item_id`, `surface_phrase`, `statement_ids`,
+         *       `episode_key`
+         *
+         *     `episode_key` correlates multiple rows in the UI (F-ALT).
          */
         get: operations["list_kb_alerts_api_v1_kbs__kb_id__alerts_get"];
         put?: never;
@@ -556,6 +567,31 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/kbs/{kb_id}/documents/{document_id}/timeline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Kb Document Timeline
+         * @description Document-level ledger timeline (F-TIM-02).
+         *
+         *     Ordered events for one document: `version_created`, `processing_job`,
+         *     `statement_recorded`, and `time_mention` (when present). Instants use ledger
+         *     `created_at` / `recorded_at` / job `finished_at` — align with graph scrubber
+         *     via `GET .../temporal/*`, not chunk search `as_of` alone.
+         */
+        get: operations["get_kb_document_timeline_api_v1_kbs__kb_id__documents__document_id__timeline_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/kbs/{kb_id}/documents/{document_id}/versions": {
         parameters: {
             query?: never;
@@ -705,7 +741,13 @@ export interface paths {
         };
         /**
          * Kb Graph Diff
-         * @description Whole-graph diff between two instants (F-DIFF-01); nodes + edges + property changes.
+         * @description Whole-graph diff between two instants (F-DIFF-01).
+         *
+         *     Compares Explorer projection snapshots at `from` and `to` (ISO instants). Response includes
+         *     `added_nodes`, `removed_nodes`, `modified_nodes`, `added_edges`, `removed_edges`, `summary`,
+         *     and echo `from_time` / `to_time`. Node/edge membership follows ledger `recorded_at` → projected
+         *     `valid_from` (F-TIM-01). Console graph preview dims unchanged elements and highlights
+         *     added/modified nodes and added edges at the end instant.
          */
         get: operations["kb_graph_diff_api_v1_kbs__kb_id__graph_diff_get"];
         put?: never;
@@ -950,6 +992,53 @@ export interface paths {
         get: operations["graph_snapshot_route_api_v1_kbs__kb_id__graph_snapshot_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/kbs/{kb_id}/graph/staging": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Kb Graph Staging
+         * @description Diff + staging manifest for publish/review workflows (F-DIFF-01).
+         *
+         *     Returns `{manifest, diff}` where `manifest` includes `focus_node_ids`, governance relpaths
+         *     (`review`, `graph/staging/entity-merge`, graph import), and `change_total`. The nested `diff`
+         *     matches `GET .../graph/diff` for the same instants.
+         */
+        get: operations["kb_graph_staging_api_v1_kbs__kb_id__graph_staging_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/kbs/{kb_id}/graph/staging/entity-merge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Kb Graph Staging Entity Merge
+         * @description Propose entity merge from diff/staging studio (Gate D; F-DIFF-01).
+         *
+         *     JSON body: `{primary_id, duplicate_ids[]}`. Creates a review-queue item (`entity_merge`);
+         *     identical semantics to `POST .../review/items/entity-merge`.
+         */
+        post: operations["kb_graph_staging_entity_merge_api_v1_kbs__kb_id__graph_staging_entity_merge_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2589,7 +2678,10 @@ export interface paths {
         };
         /**
          * Kb Temporal Bounds
-         * @description Kb Temporal Bounds. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Temporal scrubber bounds for the KB graph (F-TIM-03 / F-TIM-04).
+         *
+         *     Returns `{min, max}` ISO instants. When the Explorer projection lacks node `valid_from`,
+         *     `min` / `max` fall back to ledger timestamps (statements, facts, current document version).
          */
         get: operations["kb_temporal_bounds_api_v1_kbs__kb_id__temporal_bounds_get"];
         put?: never;
@@ -2629,7 +2721,10 @@ export interface paths {
         };
         /**
          * Kb Temporal Snapshot
-         * @description Kb Temporal Snapshot. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Graph projection at an instant (F-TIM-03 / scrubber).
+         *
+         *     Primary path: Explorer `temporal_snapshot`. When that returns no nodes but the Basis
+         *     projector supports `state_at`, falls back to the same snapshot used by `GET .../graph/diff`.
          */
         get: operations["kb_temporal_snapshot_api_v1_kbs__kb_id__temporal_snapshot_get"];
         put?: never;
@@ -3052,7 +3147,9 @@ export interface components {
             /** Doc Id */
             doc_id: string;
             /** Text */
-            text: string;
+            text?: string | null;
+            /** Url */
+            url?: string | null;
             /** Wait */
             wait?: boolean | null;
             /** Chunk */
@@ -4482,6 +4579,44 @@ export interface operations {
             };
         };
     };
+    get_kb_document_timeline_api_v1_kbs__kb_id__documents__document_id__timeline_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                kb_id: string;
+                document_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     append_document_version_text_api_v1_kbs__kb_id__documents__document_id__versions_post: {
         parameters: {
             query?: never;
@@ -5202,6 +5337,79 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    kb_graph_staging_api_v1_kbs__kb_id__graph_staging_get: {
+        parameters: {
+            query: {
+                from: string;
+                to: string;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                kb_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    kb_graph_staging_entity_merge_api_v1_kbs__kb_id__graph_staging_entity_merge_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                kb_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateEntityMergeReviewRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */

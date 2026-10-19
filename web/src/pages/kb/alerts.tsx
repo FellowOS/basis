@@ -1,6 +1,6 @@
 import { PublicIcon } from '@/components/app/shared/primitives/public-icon.js';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import {
   ConsolePageLayout,
   DataPanel,
@@ -16,10 +16,12 @@ import { formatLocaleDateTime } from '@/i18n/format.js';
 import type { Locale } from '@/i18n/locale.js';
 import { kbAlertKindLabel, kbAlertSeverityLabel } from '@/lib/kb-alert-labels.js';
 import { kbAlertAction } from '@/lib/kb-alert-actions.js';
-import { groupAlertsByKind, kbAlertDetailLines } from '@/lib/kb-alert-detail.js';
+import { groupAlertsByEpisode, kbAlertDetailLines } from '@/lib/kb-alert-detail.js';
 import { consumeKbAlertsStream, type KbAlertStreamItem } from '@/lib/kb-alerts-stream.js';
 import { useKbCatalog } from '@/lib/kb-context.js';
+import { parseKbAlertsUrlState } from '@/lib/kb-alerts-url.js';
 import { kbPath } from '@/lib/nav-config.js';
+import { cn } from '@/lib/utils.js';
 import { kbOpenApiGET, kbOpenApiPOST } from '@/lib/openapi-client.js';
 
 type AlertsResponse = {
@@ -43,6 +45,8 @@ function severityBadgeProps(severity: string): {
 
 export function KbAlertsPage() {
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
+  const highlightEpisodeKey = parseKbAlertsUrlState(searchParams.toString()).episodeKey;
   const { t, locale } = useI18n();
   const { getKb } = useKbCatalog();
   const [alerts, setAlerts] = useState<KbAlertStreamItem[]>([]);
@@ -153,9 +157,17 @@ export function KbAlertsPage() {
     }
   };
 
+  useEffect(() => {
+    if (!id || !highlightEpisodeKey || loading) return;
+    const el = document.querySelector(
+      `[data-alert-episode="${CSS.escape(highlightEpisodeKey)}"]`,
+    );
+    el?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }, [highlightEpisodeKey, id, loading, alerts.length]);
+
   if (!id) return null;
   const kbName = getKb(id)?.name ?? id;
-  const alertGroups = groupAlertsByKind(alerts);
+  const alertGroups = groupAlertsByEpisode(alerts);
 
   return (
     <ConsolePageLayout
@@ -236,7 +248,15 @@ export function KbAlertsPage() {
           ) : (
             <div className="divide-y divide-border" aria-label={t.pages.alerts.episodeGroupAria}>
               {alertGroups.map((group) => (
-                <section key={group.kind}>
+                <section
+                  key={group.episodeKey}
+                  data-alert-episode={group.episodeKey}
+                  data-testid={`alerts-episode-${group.episodeKey}`}
+                  className={cn(
+                    highlightEpisodeKey === group.episodeKey &&
+                      'ring-2 ring-inset ring-primary/40',
+                  )}
+                >
                   <div className="flex items-center gap-2 border-b border-border/60 bg-muted/20 px-4 py-2">
                     <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                       {kbAlertKindLabel(t.pages.alerts, group.kind)}

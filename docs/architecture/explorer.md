@@ -208,12 +208,17 @@ are never interpolated into a filesystem path.
 | --- | --- |
 | `/api/kbs/{kb_id}/temporal/*` | temporal bounds, snapshot (`at`), diff (`from`/`to` query) |
 | `/api/kbs/{kb_id}/graph/diff` | whole-graph diff at two instants (nodes/edges/properties; F-DIFF-01) |
+| `/api/kbs/{kb_id}/graph/staging` | diff + staging manifest (`session_key`, governance relpaths, focus ids; F-DIFF-01) |
+| `POST /api/kbs/{kb_id}/graph/staging/entity-merge` | Gate D entity-merge proposal from staging studio |
 
 **Product mapping (F-TIM-03):**
 
-- **Graph point-in-time:** Graph workspace scrubber calls `GET .../temporal/snapshot?at=<ISO>` and overlays node/edge emphasis; bounds from `GET .../temporal/bounds`.
+- **Graph point-in-time:** Graph workspace scrubber calls `GET .../temporal/snapshot?at=<ISO>` (Basis prefers `session.graph.state_at` when it returns nodes, same engine as `GET .../graph/diff`) and overlays node/edge emphasis; bounds from `GET .../temporal/bounds` (ledger fallback for missing min/max).
 - **Chunk search point-in-time:** `GET .../search` accepts `as_of` (alias for `created_before` when omitted) plus `created_after` / `created_before` on **document ingest** timestamps — not graph `valid_from` on entities.
 - **Graph text search:** `POST .../graph/search` accepts optional `at` in the JSON body for client correlation; results still use the **current** projection (response may include `warnings: ["graph_search_uses_current_projection"]`).
+- **Consistency contract (F-TIM-01–03, partial):** Graph instants use ledger `recorded_at` → projected `valid_from` on nodes/edges (`state_at` / `GET .../graph/diff`). Chunk search instants use **document version / ingest** timestamps. Clients must not assume a single `as_of` query parameter applies the same filter to both surfaces unless documented on the specific operation. `GET .../temporal/bounds` merges graph bounds with `get_ledger_temporal_bounds` for scrubber UI.
+- **Document timeline (F-TIM-02):** `GET /api/v1/kbs/{kb_id}/documents/{document_id}/timeline` returns ledger events (`version_created`, `processing_job`, `statement_recorded`, `time_mention`) for one document; use with graph/temporal APIs, not as a substitute for chunk `as_of` search.
+- **Graph diff preview (F-DIFF-01, partial):** `GET .../graph/diff` drives the console preview bar and Explorer node emphasis (added/modified vs dimmed) at the **end** instant (`?at=` + `diff_to`). Removed nodes are listed on `/graph-diff` but absent from the end-time canvas.
 - **Ontology proposals (F-ONT-05):** Web deep link `/kbs/{kb_id}/ontology?ontologyTab=versions&ontologyProposal={id}` opens the Versions tab review modal; audit timeline links use the same query params.
 | `/api/kbs/{kb_id}/decisions/*` | decision list/detail/causal chain |
 | `/api/kbs/{kb_id}/provenance` | PROV-O lineage graph (`node_id` query) |

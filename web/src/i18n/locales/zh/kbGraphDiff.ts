@@ -60,4 +60,16 @@ export const kbGraphDiff = {
   stagingStepsBody:
     '1）在此对比时间范围 · 2）在图谱页暂存 RDF/JSON 导入 · 3）在审核队列批准 · 4）发布前在设置中导出审计包。',
   previewOnGraph: '在图谱画布上预览',
+  copyStagingManifest: '复制 staging JSON',
+  copyStagingSuccess: '已复制 staging 清单',
+  proposeMergeTitle: '提交实体合并（审核队列）',
+  proposeMergeHint: '提交 Gate D 合并提案；图谱变更前须在审核队列批准。',
+  proposeMergePrimary: '主节点 id',
+  proposeMergeDuplicate: '重复节点 id',
+  proposeMergePrimaryPlaceholder: '规范实体 id',
+  proposeMergeDuplicatePlaceholder: '合并入主节点的 id',
+  proposeMergeSubmit: '提交合并提案',
+  proposeMergeSuccess: '合并提案已进入审核队列',
+  proposeMergeUsePrimary: '主节点',
+  proposeMergeUseDuplicate: '重复',
 } as const;

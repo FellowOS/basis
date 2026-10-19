@@ -33,48 +33,53 @@ review queue, and MCP tools**—can and should be **100% unified**.
 Basis does **not** introduce a parallel Parquet warehouse or a second KB mode:
 
 - **Console UI:** adds a dedicated **Connectors (`/kbs/:kbId/connectors`)** item under the existing `Data & Extraction`
-  (`KB_NAV_BY_ZONE.knowledge`) sidebar group—separate from document `Sources` (`/kbs/:kbId/sources`)—housing AnyConnect's
-  provider catalog, OAuth connections, table/action-to-ontology mappings, action policies, and run logs in one place,
-  while sharing the existing `Ontology`, `Graph / Entities`, `Review`, and `Integration` workspaces. No separate
-  “Datasets” or “SQL Analyst” product shell is added.
-- **Canonical store:** structured records ingested from databases or tabular files are normalized directly into the
+  (`KB_NAV_BY_ZONE.knowledge`) sidebar group—separate from document `Sources` (`/kbs/:kbId/sources`)—housing the
+  declarative provider catalog, OAuth/API-key/basic/DSN connections, stream-to-ontology mappings, mutation/tool policies,
+  and run logs in one place, while sharing the existing `Ontology`, `Graph / Entities`, `Review`, and `Integration`
+  workspaces. No separate “Datasets” or “SQL Analyst” product shell is added.
+- **Canonical store:** structured records ingested from databases or SaaS streams are normalized directly into the
   existing **`entities`** and **`statements` / `facts`** ledger (`proposed_by = 'connector'`).
 - **Entity convergence:** a single entity (e.g. a `:Supplier`) can hold attributes synced from a PostgreSQL table
   alongside risk relationships extracted from a PDF contract on the exact same graph node.
 
-### 2. Inbound & Outbound: Unified Provider + Read/Write Action Contract
+### 2. Inbound & Outbound: Basis Open Connector Protocol (BOCP — Pure Python Declarative Engine)
 
-All structured sources—whether relational databases (`postgres`, `mysql`) or 1,390+ SaaS applications (`airtable`,
-`hubspot`, `jira`, `notion`)—use a single `ingest_sources.kind = 'connector'` and the exact same **`source_table_mappings`**
-and **`entity_sync_outbox`** pipeline:
+Instead of maintaining 1,390 imperative TypeScript provider executors across a second Node.js runtime or limiting
+connectors to flat stateless RPC calls, Basis adopts the **Basis Open Connector Protocol (BOCP)**—a **100% pure Python
+declarative runtime** (`basis/domain/connectors/`) that synthesizes the best primitives of **Nango** (declarative
+17-mode auth templates + stateful sync checkpoints & delete tracking), **Airbyte** (`DeclarativeSource` YAML streams,
+`DISCOVER` dynamic schema introspection, `DefaultPaginator`, `SubstreamPartitionRouter`), and **AnyConnect** (OAuth
+dialect envelopes & MCP tool annotations):
 
-- **Unified Provider & Action interface:**
-  - Built-in database providers (`postgres`, `mysql`) wrap **SQLAlchemy 2.0** (`sqlalchemy.inspect` + `Table` `select`/`update`)
-    into the exact same 4 standard actions as SaaS providers: `<provider>.list_tables`, `<provider>.get_table_schema`,
-    `<provider>.list_records` (`read_action_id`), and `<provider>.update_record` (`write_action_id`).
-  - SaaS providers come directly from the sibling project **AnyConnect (`fellowos/connectors`, built on `oomol-lab/open-connector`)**
-    with its 1,390+ provider catalog, OAuth2/credential vault, SSRF guard, and 10,000+ typed Actions.
-- **Single mapping & provenance pipeline (`source_table_mappings` + `entity_external_refs`):**
-  - Inbound sync simply invokes `read_action_id` with `action_params_json`, extracts the record list at `records_json_path`,
-    computes `row_hash`, and maps columns/fields into `entities`, `statements`, and `typed_facts` (`import_provenance_json`)
-    without fabricating document chunks.
-  - Outbound write-back (`entity_sync_outbox`) simply invokes `write_action_id` with `patch_json.action_input` once
-    approved in the `Review` queue.
+- **Four orthogonal declarative primitives per connector (`manifests/<service>.yaml`):**
+  1. **`auth` & `requester`:** declarative authentication covering `OAUTH2` (with PKCE & custom token envelopes),
+     `OAUTH2_CC`, `BASIC` (username/password), `TWO_STEP` (login-for-session-token), `API_KEY`, `DATABASE_DSN`, and
+     `CUSTOM` (`connection_config` + encrypted `credentials`), plus `check` verification endpoints and adaptive rate-limit quotas.
+  2. **`streams` & `discovery` (`DISCOVER`):** business entity streams with either static JSON Schema or dynamic runtime
+     schema discovery (`sqlalchemy.inspect(engine)` for `postgres`/`mysql`, or `DynamicSchemaLoader` metadata endpoints
+     for custom-field SaaS like Airtable, Notion, Feishu Bitable, HubSpot).
+  3. **`retriever` & `sync` (`READ`):** zero-code record extraction (`DpathExtractor`), automatic pagination (`cursor`,
+     `offset`, `page`, `link`), parent-child stream routing (`SubstreamPartitionRouter`), incremental watermarks
+     (`checkpoint_json`), and soft-delete tracking (`track_deletes`).
+  4. **`mutations` & `tools` (`WRITE` / `RPC`):** stream-bound write-back templates (`create`, `update`, `upsert`,
+     `delete` via parameterized SQLAlchemy `update()` or Jinja2 REST templates) plus standalone agent tools annotated
+     with MCP `ToolAnnotations` (`readOnlyHint`, `destructiveHint`, `idempotentHint`).
 
-### 3. Outbound: governed bidirectional sync (Basis ↔ business DB)
+### 3. Outbound: governed bidirectional sync (Basis ↔ external DB & SaaS)
 
-When an entity or attribute bound to an external business table is modified in Basis (by a user in the graph/console or
-by an agent via MCP):
+When an entity or attribute bound to an external business table or SaaS stream is modified in Basis (by a user in the
+graph/console or by an agent via MCP):
 
-- **Inbound conflict detection (DB → Basis):** on scheduled or webhook-triggered pull, if an external column changed
-  and the corresponding Basis statement was not locally overridden, Basis supersedes the old statement. If both changed,
-  Basis creates a **`statement_conflict` review item** in the existing `Review` queue.
-- **Outbound write-back (Basis → DB / Webhook):** mutations or **Declared Actions (`F-OPS-01`)** on bound attributes
-  create a write-back record (`entity_sync_outbox`):
-  - **Governed mode (default):** enters the `Review` queue; once approved (`Decision` recorded), a job executes the
-    parameterized database `UPDATE` / REST call / webhook and marks the outbox row `synced`.
+- **Inbound conflict detection (External → Basis):** on scheduled or webhook-triggered pull of a mapped `stream`, if an
+  external field changed and the corresponding Basis statement was not locally overridden, Basis supersedes the old
+  statement. If both changed, Basis creates a **`statement_conflict` review item** in the existing `Review` queue.
+- **Outbound write-back (Basis → External via Stream Mutation):** mutations or **Declared Actions (`F-OPS-01`)** on
+  bound attributes create a write-back record (`entity_sync_outbox`):
+  - **Governed mode (default):** enters the `Review` queue; once approved (`agent_decisions` row recorded), a job invokes
+    the stream's declarative `mutation` in pure Python (`sql_adapter` for `postgres`/`mysql`, `rest_declarative_adapter`
+    for SaaS providers), marks the outbox row `synced`, and recalculates `row_hash` to prevent pull-loop false conflicts.
   - **Direct mode (trusted action):** validates schema and object-level ACL (`F-OPS-02`), writes to the ledger and
-    external system, and emits an `AuditEvent` (or `F-ALT` alert on failure).
+    executes the stream mutation, and emits an `AuditEvent` (or `F-ALT` alert on failure).
 
 ### 4. Scope limits (entity tables, not raw event firehoses)
 

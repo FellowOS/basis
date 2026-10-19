@@ -795,7 +795,7 @@
           "knowledge-bases"
         ],
         "summary": "List Kb Alerts",
-        "description": "List KB alert episodes with unread count (viewer+).",
+        "description": "List KB alert episodes with unread count (viewer+).\n\nEach alert includes a `detail` object (JSON). Common keys by `kind`:\n\n- `governance.tripped`: `code`, `decision_id`, `item_id`, `proposal_id`,\n  `shacl_violation_count`, `episode_key`\n- `processing.failed`: `job_id`, `error_code`, `message`, `episode_key`\n- `sync_failed`: `source_id`, `source_name`, `mode`, `error`, `episode_key`\n- `governance.statement_conflict`: `item_id`, `surface_phrase`, `statement_ids`,\n  `episode_key`\n\n`episode_key` correlates multiple rows in the UI (F-ALT).",
         "operationId": "list_kb_alerts_api_v1_kbs__kb_id__alerts_get",
         "parameters": [
           {
@@ -1727,6 +1727,90 @@
         "x-basis-auth": "session-or-kb-api-token"
       }
     },
+    "/api/v1/kbs/{kb_id}/documents/{document_id}/timeline": {
+      "get": {
+        "tags": [
+          "knowledge-bases"
+        ],
+        "summary": "Get Kb Document Timeline",
+        "description": "Document-level ledger timeline (F-TIM-02).\n\nOrdered events for one document: `version_created`, `processing_job`,\n`statement_recorded`, and `time_mention` (when present). Instants use ledger\n`created_at` / `recorded_at` / job `finished_at` — align with graph scrubber\nvia `GET .../temporal/*`, not chunk search `as_of` alone.",
+        "operationId": "get_kb_document_timeline_api_v1_kbs__kb_id__documents__document_id__timeline_get",
+        "parameters": [
+          {
+            "name": "kb_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Kb Id"
+            }
+          },
+          {
+            "name": "document_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Document Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 500,
+              "minimum": 1,
+              "default": 200,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Kb Document Timeline Api V1 Kbs  Kb Id  Documents  Document Id  Timeline Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-basis-surface": "knowledge-base",
+        "x-basis-auth": "session-or-kb-api-token"
+      }
+    },
     "/api/v1/kbs/{kb_id}/documents/{document_id}/versions": {
       "post": {
         "tags": [
@@ -2213,7 +2297,7 @@
           "knowledge-bases"
         ],
         "summary": "Kb Graph Diff",
-        "description": "Whole-graph diff between two instants (F-DIFF-01); nodes + edges + property changes.",
+        "description": "Whole-graph diff between two instants (F-DIFF-01).\n\nCompares Explorer projection snapshots at `from` and `to` (ISO instants). Response includes\n`added_nodes`, `removed_nodes`, `modified_nodes`, `added_edges`, `removed_edges`, `summary`,\nand echo `from_time` / `to_time`. Node/edge membership follows ledger `recorded_at` → projected\n`valid_from` (F-TIM-01). Console graph preview dims unchanged elements and highlights\nadded/modified nodes and added edges at the end instant.",
         "operationId": "kb_graph_diff_api_v1_kbs__kb_id__graph_diff_get",
         "parameters": [
           {
@@ -3290,6 +3374,156 @@
                   "type": "object",
                   "additionalProperties": true,
                   "title": "Response Graph Snapshot Route Api V1 Kbs  Kb Id  Graph Snapshot Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-basis-surface": "knowledge-base",
+        "x-basis-auth": "session-or-kb-api-token"
+      }
+    },
+    "/api/v1/kbs/{kb_id}/graph/staging": {
+      "get": {
+        "tags": [
+          "knowledge-bases"
+        ],
+        "summary": "Kb Graph Staging",
+        "description": "Diff + staging manifest for publish/review workflows (F-DIFF-01).\n\nReturns `{manifest, diff}` where `manifest` includes `session_key` (stable id for the\nfrom/to range), `focus_node_ids`, governance relpaths (`review`, `graph/staging/entity-merge`,\ngraph import), and `change_total`. The nested `diff` matches `GET .../graph/diff` for the\nsame instants.",
+        "operationId": "kb_graph_staging_api_v1_kbs__kb_id__graph_staging_get",
+        "parameters": [
+          {
+            "name": "kb_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Kb Id"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "From"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "To"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Kb Graph Staging Api V1 Kbs  Kb Id  Graph Staging Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-basis-surface": "knowledge-base",
+        "x-basis-auth": "session-or-kb-api-token"
+      }
+    },
+    "/api/v1/kbs/{kb_id}/graph/staging/entity-merge": {
+      "post": {
+        "tags": [
+          "knowledge-bases"
+        ],
+        "summary": "Kb Graph Staging Entity Merge",
+        "description": "Propose entity merge from diff/staging studio (Gate D; F-DIFF-01).\n\nJSON body: `{primary_id, duplicate_ids[]}`. Creates a review-queue item (`entity_merge`);\nidentical semantics to `POST .../review/items/entity-merge`.",
+        "operationId": "kb_graph_staging_entity_merge_api_v1_kbs__kb_id__graph_staging_entity_merge_post",
+        "parameters": [
+          {
+            "name": "kb_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Kb Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateEntityMergeReviewRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Kb Graph Staging Entity Merge Api V1 Kbs  Kb Id  Graph Staging Entity Merge Post"
                 }
               }
             }
@@ -10098,7 +10332,7 @@
           "knowledge-bases"
         ],
         "summary": "Kb Temporal Bounds",
-        "description": "Kb Temporal Bounds. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.",
+        "description": "Temporal scrubber bounds for the KB graph (F-TIM-03 / F-TIM-04).\n\nReturns `{min, max}` ISO instants. When the Explorer projection lacks node `valid_from`,\n`min` / `max` fall back to ledger timestamps (statements, facts, current document version).",
         "operationId": "kb_temporal_bounds_api_v1_kbs__kb_id__temporal_bounds_get",
         "parameters": [
           {
@@ -10238,7 +10472,7 @@
           "knowledge-bases"
         ],
         "summary": "Kb Temporal Snapshot",
-        "description": "Kb Temporal Snapshot. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.",
+        "description": "Graph projection at an instant (F-TIM-03 / scrubber).\n\nPrimary path: Explorer `temporal_snapshot`. When that returns no nodes but the Basis\nprojector supports `state_at`, falls back to the same snapshot used by `GET .../graph/diff`.",
         "operationId": "kb_temporal_snapshot_api_v1_kbs__kb_id__temporal_snapshot_get",
         "parameters": [
           {
@@ -11502,8 +11736,26 @@
             "title": "Doc Id"
           },
           "text": {
-            "type": "string",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Text"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
           },
           "wait": {
             "anyOf": [
@@ -11600,8 +11852,7 @@
         },
         "type": "object",
         "required": [
-          "doc_id",
-          "text"
+          "doc_id"
         ],
         "title": "IngestTextRequest"
       },

@@ -14,6 +14,9 @@ export const kbProcessing = {
   noMatches: 'No jobs match your filters.',
   openInSources: 'Open in sources',
   viewAlerts: 'View alerts',
+  viewRelatedAlerts: 'Related alerts',
+  processDialogOptionsPreview: 'Pipeline summary',
+  optionsSnapshotRaw: 'Raw JSON (same options as summary)',
   limitsHint:
     'Server limits: upload ≤ {upload}; up to {inflight} jobs at once, {pending} queued; timeout {timeoutMin} min.',
   opsQueueHint:
@@ -21,4 +24,11 @@ export const kbProcessing = {
   jobsApiLink: 'Ingest jobs API (OpenAPI)',
   retryAllFailed: 'Retry all failed',
   retryAllQueued: 'Retry queued for all failed jobs',
+  errorDocLink: 'Open document in sources',
+  optionsUnset: '—',
+  optionsChunkLine: 'Chunk: {method}, size {size}, overlap {overlap}',
+  optionsExtractLine: 'Extract: NER {ner} ({nerModel}), LLM {llm}',
+  optionsRelationsOn: 'Relation extraction enabled',
+  optionsEmbedOn: 'Embeddings enabled',
+  optionsRequestId: 'Request id {id}',
 } as const;

@@ -103,6 +103,65 @@ def test_graph_diff_includes_edges_summary(tmp_path) -> None:
     assert "modified_nodes" in body
 
 
+def test_ingest_temporal_bounds_align_with_graph_diff(tmp_path) -> None:
+    """F-TIM-03: ledger bounds, end snapshot, and diff from min→max stay consistent after ingest."""
+    if not explorer_available():
+        pytest.skip("explorer extra not installed")
+
+    client = TestClient(create_app(Settings(data_dir=tmp_path)))
+    admin = client.post(
+        "/api/v1/auth/register",
+        json={"email": "tim@example.com", "password": "password1", "display_name": "Tim"},
+    ).json()
+    headers = {"Authorization": f"Bearer {admin['token']}"}
+
+    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+    client.post(
+        f"/api/v1/kbs/{kb_id}/documents",
+        headers=headers,
+        json={
+            "doc_id": "tim1",
+            "text": "Grace knows Henry.",
+            "wait": True,
+            "extract": True,
+        },
+    )
+
+    bounds = client.get(f"/api/v1/kbs/{kb_id}/temporal/bounds", headers=headers).json()
+    t_from = bounds.get("min") or "2020-01-01T00:00:00"
+    t_to = bounds.get("max") or "2030-01-01T00:00:00"
+
+    diff = client.get(
+        f"/api/v1/kbs/{kb_id}/graph/diff",
+        headers=headers,
+        params={"from": t_from, "to": t_to},
+    )
+    assert diff.status_code == 200
+    body = diff.json()
+    added_nodes = list(body.get("added_nodes") or [])
+    if not added_nodes:
+        pytest.skip("ingest produced no added nodes in diff range (extract noop)")
+
+    snap_at = body.get("to_time") or t_to
+    snap = client.get(
+        f"/api/v1/kbs/{kb_id}/temporal/snapshot",
+        headers=headers,
+        params={"at": snap_at},
+    )
+    assert snap.status_code == 200
+    snap_ids = {n.get("id") for n in (snap.json().get("nodes") or []) if n.get("id")}
+    for node_id in added_nodes:
+        assert node_id in snap_ids
+
+    if bounds.get("min") and bounds.get("max"):
+        ledger_diff = client.get(
+            f"/api/v1/kbs/{kb_id}/graph/diff",
+            headers=headers,
+            params={"from": bounds["min"], "to": bounds["max"]},
+        )
+        assert ledger_diff.status_code == 200
+
+
 def test_enrich_dedup_after_ingest(tmp_path) -> None:
     if not explorer_available():
         pytest.skip("explorer extra not installed")

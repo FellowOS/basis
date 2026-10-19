@@ -198,6 +198,56 @@ test('dismiss all clears alerts list', async ({ page }) => {
   });
 });
 
+test('governance tripped alert shows detail fields', async ({ page }) => {
+  test.setTimeout(120_000);
+
+  await registerFreshUser(page);
+  const kbId = await defaultKbId(page);
+
+  let decisionId: string | null;
+  try {
+    ({ decisionId } = await seedGovernanceTrippedViaApi(page, kbId));
+  } catch (err) {
+    if (String(err).includes('e2e_governance_trip_unavailable')) {
+      test.skip(true, 'governance e2e helper only on data-e2e API');
+    }
+    throw err;
+  }
+
+  await page.goto(`/kbs/${kbId}/alerts`);
+  await expect(page.locator('ul li').first()).toBeVisible({ timeout: 30_000 });
+  if (decisionId) {
+    await expect(page.getByText(new RegExp(decisionId))).toBeVisible({ timeout: 15_000 });
+  }
+});
+
+test('governance tripped alert episode navigates detail to decisions', async ({ page }) => {
+  test.setTimeout(120_000);
+
+  await registerFreshUser(page);
+  const kbId = await defaultKbId(page);
+
+  let decisionId: string | null;
+  try {
+    ({ decisionId } = await seedGovernanceTrippedViaApi(page, kbId));
+  } catch (err) {
+    if (String(err).includes('e2e_governance_trip_unavailable')) {
+      test.skip(true, 'governance e2e helper only on data-e2e API');
+    }
+    throw err;
+  }
+  if (!decisionId) {
+    test.skip(true, 'governance trip did not record explorer decision_id');
+  }
+
+  await page.goto(`/kbs/${kbId}/alerts`);
+  await expect(page.locator('ul li').first()).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByText(new RegExp(decisionId!))).toBeVisible({ timeout: 15_000 });
+  await page.getByRole('link', { name: /Open decisions|打开决策记录/i }).click();
+  await expect(page).toHaveURL(/\/decisions/);
+  await expect(page).toHaveURL(new RegExp(`decision=${encodeURIComponent(decisionId!)}`));
+});
+
 test('governance tripped alert links to decisions tab', async ({ page }) => {
   test.setTimeout(120_000);
 

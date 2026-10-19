@@ -5,6 +5,7 @@ import {
   fetchLatestIngestJobId,
   ingestDocumentViaApi,
   registerFreshUser,
+  seedProcessingFailedViaApi,
 } from './helpers';
 
 test('sources job query opens processing history for job', async ({ page }) => {
@@ -44,6 +45,59 @@ test('processing open in sources focuses document without process dialog', async
   await expect(page).toHaveURL(/\/sources\?doc=/, { timeout: 30_000 });
   await expect(page.getByRole('dialog')).toHaveCount(0);
   await expect(page.locator('[id^="sources-doc-row-"]').first()).toHaveClass(/ring-primary/);
+  await expect(page.getByTestId('kb-document-timeline-panel')).toBeVisible({ timeout: 30_000 });
+});
+
+test('sources failed jobs badge opens processing failed filter', async ({ page }) => {
+  test.setTimeout(120_000);
+
+  await registerFreshUser(page);
+  const kbId = await defaultKbId(page);
+
+  try {
+    await seedProcessingFailedViaApi(page, kbId);
+  } catch (err) {
+    if (String(err).includes('e2e_processing_failed_unavailable')) {
+      test.skip(true, 'processing-failed e2e helper only on data-e2e API');
+    }
+    throw err;
+  }
+
+  await page.goto(`/kbs/${kbId}/sources`);
+  await expect(page.locator('.kb-library-workspace')).toBeVisible({ timeout: 60_000 });
+  await page.getByTestId('sources-open-failed-jobs').click();
+  await expect(page).toHaveURL(/filter=failed/, { timeout: 30_000 });
+  await expect(page.getByRole('tab', { name: /Failed|失败/i })).toHaveAttribute(
+    'data-state',
+    'active',
+  );
+});
+
+test('processing job links related alerts episode', async ({ page }) => {
+  test.setTimeout(120_000);
+
+  await registerFreshUser(page);
+  const kbId = await defaultKbId(page);
+
+  let jobId: string;
+  try {
+    ({ jobId } = await seedProcessingFailedViaApi(page, kbId));
+  } catch (err) {
+    if (String(err).includes('e2e_processing_failed_unavailable')) {
+      test.skip(true, 'processing-failed e2e helper only on data-e2e API');
+    }
+    throw err;
+  }
+
+  await page.goto(`/kbs/${kbId}/processing?job=${encodeURIComponent(jobId)}`);
+  await expect(page.getByTestId(`processing-job-detail-${jobId}`)).toBeVisible({
+    timeout: 60_000,
+  });
+  await page.getByTestId(`processing-job-view-alerts-${jobId}`).click();
+  await expect(page).toHaveURL(new RegExp(`episode=processing%3A${encodeURIComponent(jobId)}`));
+  await expect(page.getByTestId(`alerts-episode-processing:${jobId}`)).toBeVisible({
+    timeout: 30_000,
+  });
 });
 
 test('processing filter query selects failed tab', async ({ page }) => {

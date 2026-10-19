@@ -7,6 +7,12 @@ from typing import Any
 from basis.platform.admin.errors import AdminError
 from basis.domain.kb.store import KnowledgeStore
 
+
+def _with_episode(detail: dict[str, Any], episode_key: str) -> dict[str, Any]:
+    merged = dict(detail)
+    merged["episode_key"] = episode_key
+    return merged
+
 def emit_governance_proposal_proposed_alert(
     knowledge: KnowledgeStore,
     kb_id: str,
@@ -20,7 +26,10 @@ def emit_governance_proposal_proposed_alert(
         kind="governance.proposal_proposed",
         message=message[:500] or "Ontology proposal submitted for review",
         severity="info",
-        detail={"proposal_id": proposal_id, **(detail or {})},
+        detail=_with_episode(
+            {"proposal_id": proposal_id, **(detail or {})},
+            f"ontology_proposal:{proposal_id}",
+        ),
     )
 
 
@@ -38,11 +47,14 @@ def emit_statement_conflict_alert(
         kind="governance.statement_conflict",
         message=f"Statement conflict on «{surface}» needs review",
         severity="info",
-        detail={
-            "item_id": review_item_id,
-            "surface_phrase": surface,
-            "statement_ids": statement_ids[:20],
-        },
+        detail=_with_episode(
+            {
+                "item_id": review_item_id,
+                "surface_phrase": surface,
+                "statement_ids": statement_ids[:20],
+            },
+            f"review:{review_item_id}",
+        ),
     )
 
 
@@ -67,11 +79,14 @@ def emit_processing_failed_alert(
         kind="processing.failed",
         message=f"Processing failed for «{doc_label[:120]}»: {code}",
         severity="warning",
-        detail={
-            "job_id": job_id,
-            "error_code": code,
-            "message": (message or "")[:300],
-        },
+        detail=_with_episode(
+            {
+                "job_id": job_id,
+                "error_code": code,
+                "message": (message or "")[:300],
+            },
+            f"processing:{job_id}",
+        ),
     )
 
 
@@ -87,5 +102,19 @@ def emit_governance_tripped_alert(
         kind="governance.tripped",
         message=message[:500] or "Governance gate blocked the operation",
         severity="warning",
-        detail=detail or {},
+        detail=_with_episode(
+            dict(detail or {}),
+            _governance_tripped_episode_key(detail or {}),
+        ),
     )
+
+
+def _governance_tripped_episode_key(detail: dict[str, Any]) -> str:
+    for key in ("item_id", "proposal_id", "decision_id"):
+        value = detail.get(key)
+        if isinstance(value, str) and value.strip():
+            return f"governance:{key}:{value.strip()}"
+    code = detail.get("code")
+    if isinstance(code, str) and code.strip():
+        return f"governance:code:{code.strip()}"
+    return "governance:tripped"

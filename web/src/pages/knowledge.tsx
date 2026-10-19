@@ -73,8 +73,10 @@ import {
 import { type ProcessingJob, jobIsActive, statusIsProcessing } from '@/lib/kb-processing-job.js';
 import { parseSourcesUrlState } from '@/lib/sourcesUrlState.js';
 import { formatByteSize } from '@/lib/format-byte-size.js';
+import { KbDocumentTimelinePanel } from '@/components/app/kb/widgets/kb-document-timeline-panel.js';
 import { uploadExceedsMaxBytes } from '@/lib/ingest-upload-limit.js';
 import { formatUserFacingApiError } from '@/lib/api-error-message.js';
+import { processingOptionsSummaryLines } from '@/lib/kb-processing-options-summary.js';
 import { processingStartIdempotencyKey } from '@/lib/processing-idempotency.js';
 
 const PAGE_SIZE = 10;
@@ -267,7 +269,37 @@ export function KnowledgePage() {
   const [nerModel, setNerModel] = useState('');
   const [relationMethod, setRelationMethod] = useState('pattern');
 
+  const processDialogOptions = useMemo(
+    () => ({
+      chunk,
+      chunk_method: chunkMethod,
+      chunk_size: chunkSize,
+      chunk_overlap: chunkOverlap,
+      extract,
+      ner_method: nerMethod,
+      ner_model: nerMethod === 'ml' ? nerModel.trim() || undefined : undefined,
+      relation_method: relationMethod,
+      extract_relations: true,
+    }),
+    [
+      chunk,
+      chunkMethod,
+      chunkSize,
+      chunkOverlap,
+      extract,
+      nerMethod,
+      nerModel,
+      relationMethod,
+    ],
+  );
+
+  const processDialogOptionsSummary = useMemo(
+    () => processingOptionsSummaryLines(processDialogOptions, t.kbProcessing),
+    [processDialogOptions, t.kbProcessing],
+  );
+
   const k = t.kbSources;
+  const pProcessing = t.kbProcessing;
   const uploadLimitsHint = useMemo(() => {
     const upload = caps?.upload_max_bytes;
     if (!upload) return null;
@@ -397,6 +429,10 @@ export function KnowledgePage() {
   }, [sourcesUrl.openProcessDialog, sourcesUrl.versionId]);
 
   const focusDocId = sourcesUrl.docId;
+  const focusedDocument = useMemo(
+    () => (focusDocId ? documents.find((doc) => doc.doc_id === focusDocId) : undefined),
+    [documents, focusDocId],
+  );
 
   useEffect(() => {
     if (!focusDocId || filteredDocuments.length === 0) return;
@@ -574,22 +610,11 @@ export function KnowledgePage() {
     if (chunk && !chunkOptionsValid(chunkMethod, chunkSize, chunkOverlap)) return;
     setBusyVersionId(configVersionId);
     try {
-      const processingOptions = {
-        chunk,
-        chunk_method: chunkMethod,
-        chunk_size: chunkSize,
-        chunk_overlap: chunkOverlap,
-        extract,
-        ner_method: nerMethod,
-        ner_model: nerMethod === 'ml' ? nerModel.trim() || undefined : undefined,
-        relation_method: relationMethod,
-        extract_relations: true,
-      };
       await client.processing.start({
         version_id: configVersionId,
         wait: false,
-        ...processingOptions,
-        idempotency_key: processingStartIdempotencyKey(configVersionId, processingOptions),
+        ...processDialogOptions,
+        idempotency_key: processingStartIdempotencyKey(configVersionId, processDialogOptions),
       });
       closeConfig();
       toast.success(k.toastQueuedCustom);
@@ -950,6 +975,9 @@ export function KnowledgePage() {
                         })
                       : '#'
                   }
+                  data-testid={
+                    failedJobCount > 0 ? 'sources-open-failed-jobs' : 'sources-open-job-history'
+                  }
                 >
                   {k.jobHistory}
                   {activeJobCount > 0 ? (
@@ -1015,6 +1043,13 @@ export function KnowledgePage() {
                 totalPages={totalPages}
                 onPageChange={setPage}
               />
+              {id && focusedDocument?.document_id ? (
+                <KbDocumentTimelinePanel
+                  kbId={id}
+                  documentRef={focusedDocument.document_id}
+                  docId={focusedDocument.doc_id}
+                />
+              ) : null}
             </>
           )}
         </DataPanelBody>
@@ -1059,6 +1094,13 @@ export function KnowledgePage() {
                     type="file"
                     accept=".txt,.md,.pdf,.docx,.html,.json,.csv"
                     required
+                    data-testid="sources-add-file-input"
+                    onChange={(event) => {
+                      const file = event.target.files?.[0];
+                      if (file && rejectOversizedUpload(file)) {
+                        event.target.value = '';
+                      }
+                    }}
                   />
                   {uploadLimitsHint ? (
                     <p className="text-xs text-muted-foreground" data-testid="sources-upload-limits-hint">
@@ -1161,7 +1203,18 @@ export function KnowledgePage() {
             </TabsList>
             <TabsContent value="file">
               <form className="space-y-4 pt-2" onSubmit={uploadUpdateFile}>
-                <Input ref={updateFileRef} type="file" required />
+                <Input
+                  ref={updateFileRef}
+                  type="file"
+                  required
+                  data-testid="sources-update-file-input"
+                  onChange={(event) => {
+                    const file = event.target.files?.[0];
+                    if (file && rejectOversizedUpload(file)) {
+                      event.target.value = '';
+                    }
+                  }}
+                />
                 <DialogFooter className="px-0">
                   <Button type="submit" disabled={uploading}>
                     {uploading ? k.uploading : k.uploadVersion}
@@ -1362,6 +1415,24 @@ export function KnowledgePage() {
                 <p className="text-xs text-muted-foreground">
                   {k.needChunkOrExtract}
                 </p>
+              ) : null}
+              {processDialogOptionsSummary.length > 0 ? (
+                <div className="rounded-md border border-border/80 bg-muted/30 px-3 py-2">
+                  <p className="text-xs font-medium text-foreground">
+                    {pProcessing.processDialogOptionsPreview}
+                  </p>
+                  <ul
+                    className="mt-1 space-y-0.5 text-xs text-muted-foreground"
+                    data-testid="sources-process-options-preview"
+                  >
+                    {processDialogOptionsSummary.map((line) => (
+                      <li key={line}>{line}</li>
+                    ))}
+                  </ul>
+                  <pre className="mt-2 max-h-32 overflow-auto rounded bg-background/80 p-2 text-[10px]">
+                    {JSON.stringify(processDialogOptions, null, 2)}
+                  </pre>
+                </div>
               ) : null}
             </div>
             <DialogFooter className="border-t border-border pt-4">

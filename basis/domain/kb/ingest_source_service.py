@@ -11,6 +11,7 @@ import httpx
 from fastapi import FastAPI
 
 from basis.platform.admin.errors import AdminError
+from basis.domain.kb.kb_alerts_emit import _with_episode
 from basis.domain.kb.store import KnowledgeStore
 from basis.domain.ingest.document import TextIngestOptions
 
@@ -111,12 +112,15 @@ def record_ingest_source_event(
             kind="sync_failed",
             message=f"Connector sync failed ({mode})",
             severity="warning",
-            detail={
-                "source_id": source_id,
-                "source_name": source.get("name"),
-                "mode": mode,
-                "error": err or None,
-            },
+            detail=_with_episode(
+                {
+                    "source_id": source_id,
+                    "source_name": source.get("name"),
+                    "mode": mode,
+                    "error": err or None,
+                },
+                f"sync:{source_id}",
+            ),
         )
 
 

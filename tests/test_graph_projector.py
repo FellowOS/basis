@@ -153,6 +153,43 @@ def test_projection_valid_from_enables_temporal_node_diff(tmp_path: Path) -> Non
     diff = diff_graph_states(before, after)
     assert late in diff["added_nodes"]
     assert early in diff["added_nodes"]
+    after_nodes = {n["id"]: n for n in after["nodes"]}
+    assert after_nodes[early].get("valid_from") or (
+        after_nodes[early].get("properties") or {}
+    ).get("valid_from")
+    store.close()
+
+
+def test_temporal_projection_lists_invalidated_statements(tmp_path: Path) -> None:
+    kb_id, store = _kb_store(tmp_path)
+    _, version_id, _, _ = store.store_upload_bytes(
+        kb_id,
+        title="inv.txt",
+        mime_type="text/plain",
+        data=b"x",
+        created_by=None,
+        external_key="doc-inv",
+    )
+    chunk_id = store.create_chunk(kb_id, version_id, ordinal=0, text="A knows B.")
+    store.set_version_status(kb_id, version_id, "ready")
+    subj = store.create_entity(kb_id, canonical_label="EntA")
+    obj = store.create_entity(kb_id, canonical_label="EntB")
+    sid = store.add_open_statement(
+        kb_id,
+        subject_id=subj,
+        surface_phrase="knows",
+        object_entity_id=obj,
+        object_value=None,
+        status="confirmed",
+        proposed_by="test",
+        chunk_id=chunk_id,
+        quote="knows",
+    )
+    store.invalidate_statement(kb_id, sid)
+    rows = store.list_statements_for_temporal_projection(kb_id)
+    match = next(r for r in rows if r["statement_id"] == sid)
+    assert match["status"] == "invalidated"
+    assert match.get("invalidated_at")
     store.close()
 
 

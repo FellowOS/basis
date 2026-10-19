@@ -231,12 +231,15 @@ function buildGraphHudCss(): string {
   .palantir-bg {
     background: transparent;
   }
-  .explore-scene-card.sem-surface {
+  /* SurfaceCard uses semSurface Tailwind atoms, not a sem-surface class — target the graph hook. */
+  .explore-scene-card {
     background: transparent !important;
-    border-color: transparent;
-    box-shadow: none;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
+    border-color: transparent !important;
+    border-width: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
   }
   .glass-header {
     background: ${GRAPH_THEME.ui.surface.cardSubtle};
@@ -998,6 +1001,10 @@ interface GraphWorkspaceProps {
   decisionsEnabled?: boolean;
   /** Overrides graph copy/API error locale; defaults to the app i18n locale. */
   apiErrorLocale?: "zh" | "en";
+  /** F-DIFF-01 read-only diff emphasis on the canvas (added/modified vs dimmed). */
+  externalDiffOverlay?: import("@/lib/graph-diff-overlay.js").GraphDiffOverlayState | null;
+  /** F-DIFF-01 canvas pick (e.g. entity merge staging on diff preview). */
+  onNodeSelectNotify?: (nodeId: string) => void;
 }
 
 export function GraphWorkspace({
@@ -1013,6 +1020,8 @@ export function GraphWorkspace({
   graphWriteEnabled = true,
   decisionsEnabled = false,
   apiErrorLocale,
+  externalDiffOverlay = null,
+  onNodeSelectNotify,
 }: GraphWorkspaceProps) {
   const { locale: i18nLocale } = useI18n();
   const copyLocale: GraphWorkspaceLocale = apiErrorLocale ?? i18nLocale;
@@ -1703,7 +1712,8 @@ export function GraphWorkspace({
       setFocusedNodeId(nextSelectedNodeId);
       setIsLayoutRunning(false);
     }
-  }, [confirmDiscardMarkdownDraft, selectedNodeId, viewMode]);  // Note: ego/heatmap/distanceMode effects re-run automatically when selectedNodeId changes
+    onNodeSelectNotify?.(nextSelectedNodeId);
+  }, [confirmDiscardMarkdownDraft, onNodeSelectNotify, selectedNodeId, viewMode]);  // Note: ego/heatmap/distanceMode effects re-run automatically when selectedNodeId changes
 
   useEffect(() => {
     if (!externalFocusNodeId || externalFocusToken == null) return;
@@ -3318,6 +3328,7 @@ export function GraphWorkspace({
     hiddenNodeTypes,
     hiddenEdgeTypes,
     keywordFilter,
+    diffOverlay: externalDiffOverlay,
   } as const;
   const showTimelinePanel = Boolean(temporalBounds?.min);
 

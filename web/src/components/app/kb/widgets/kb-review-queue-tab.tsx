@@ -23,6 +23,7 @@ import {
 } from '@/lib/kb-graph-audit.js';
 import { formatNodeRef, formatNodeRefDetail } from '@/lib/format-node-ref.js';
 import { fetchKbNodeLabels } from '@/lib/kb-node-labels.js';
+import { kbAlertsPath, reviewAlertEpisodeKey } from '@/lib/kb-alerts-url.js';
 import { kbOntologyProposalPath, kbOntologyVersionsPath, kbPath } from '@/lib/nav-config.js';
 import {
   auditEventMatchesReviewItem,
@@ -541,7 +542,11 @@ export function KbReviewQueueTab({
                 <p className="text-xs text-muted-foreground">
                   {r.governanceGateAlertsHint}{' '}
                   <Link
-                    to={kbPath(kbId, 'alerts')}
+                    to={kbAlertsPath(kbId, {
+                      episodeKey: focusItemId
+                        ? reviewAlertEpisodeKey(focusItemId)
+                        : undefined,
+                    })}
                     className="font-medium text-primary hover:underline"
                     data-testid="review-governance-alerts-link"
                   >
@@ -709,6 +714,19 @@ export function KbReviewQueueTab({
                         {r.openDecisionsWorkspace}
                       </Link>
                     </p>
+                    {isConflict ? (
+                      <p className="mt-2 text-[10px]">
+                        <Link
+                          to={kbAlertsPath(kbId, {
+                            episodeKey: reviewAlertEpisodeKey(item.id),
+                          })}
+                          className="font-medium text-primary hover:underline"
+                          data-testid={`review-item-alerts-${item.id}`}
+                        >
+                          {r.viewRelatedAlerts}
+                        </Link>
+                      </p>
+                    ) : null}
                     {renderDecisionLinks(itemDecisionIds, 'review-item-decision')}
                     {(focusItemId === item.id || highlightItemId === item.id) &&
                     itemDecisionIds.length > 0 ? (

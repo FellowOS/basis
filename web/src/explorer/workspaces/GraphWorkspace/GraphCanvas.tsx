@@ -102,6 +102,11 @@ import type {
   GraphTemporalState,
   GraphViewMode,
 } from "./types";
+import {
+  graphDiffEdgeKey,
+  graphDiffEdgeTouchesChange,
+  type GraphDiffOverlayState,
+} from "@/lib/graph-diff-overlay.js";
 import type { GraphSceneGraph, GraphSceneRuntime } from "./scene";
 
 export type { GraphViewMode } from "./types";
@@ -151,6 +156,8 @@ export interface GraphCanvasProps {
   hiddenEdgeTypes?: readonly string[];
   /** Non-empty value hides nodes that do not match label, content, type, or id. */
   keywordFilter?: string;
+  /** F-DIFF-01 canvas preview: emphasize added/modified nodes; dim the rest. */
+  diffOverlay?: GraphDiffOverlayState | null;
 }
 
 type EffectReasons = ReturnType<typeof graphEffectReasonsCopy>;
@@ -927,7 +934,14 @@ type ReducerSceneState = {
   hiddenNodeTypes: ReadonlySet<string>;
   hiddenEdgeTypes: ReadonlySet<string>;
   keywordFilter: string;
+  diffOverlay?: GraphDiffOverlayState | null;
 };
+
+const GRAPH_DIFF_ADDED_BORDER = "#5BC986";
+const GRAPH_DIFF_MODIFIED_BORDER = "#8FE7FF";
+const GRAPH_DIFF_DIM_ALPHA = 0.2;
+const GRAPH_DIFF_ADDED_EDGE_COLOR = "#5BC986";
+const GRAPH_DIFF_DIM_EDGE_ALPHA = 0.08;
 
 const FULL_EDGE_CLASSES: GraphFullEdgeClass[] = [
   "hidden",
@@ -1058,6 +1072,7 @@ function buildReducerSceneState(
   hiddenNodeTypes: ReadonlySet<string> = new Set(),
   hiddenEdgeTypes: ReadonlySet<string> = new Set(),
   keywordFilter: string = "",
+  diffOverlay?: GraphDiffOverlayState | null,
 ): ReducerSceneState {
   const { viewMode, zoomTier, hoveredNodeId, selectedNodeId, selectedEdgeId, activePath } = interactionState;
   const primaryNodeId = hoveredNodeId || selectedNodeId;
@@ -1090,6 +1105,49 @@ function buildReducerSceneState(
       focusIds,
       pathEdgeIds,
     ),
+    diffOverlay,
+  };
+}
+
+function applyGraphDiffOverlayStyle(
+  nodeId: string,
+  overlay: GraphDiffOverlayState,
+  resolvedStyle: ReturnType<typeof resolveNodeElementStyle>,
+  data: Record<string, unknown>,
+) {
+  if (!overlay.enabled) {
+    return null;
+  }
+  const change = overlay.added.has(nodeId)
+    ? "added"
+    : overlay.modified.has(nodeId)
+      ? "modified"
+      : null;
+  const isFocus = overlay.focusNodeId === nodeId;
+  if (!change) {
+    return {
+      ...data,
+      color: withAlpha(String(resolvedStyle.color), GRAPH_DIFF_DIM_ALPHA),
+      shellColor: withAlpha(String(resolvedStyle.shellColor ?? resolvedStyle.color), GRAPH_DIFF_DIM_ALPHA),
+      borderColor: withAlpha(String(resolvedStyle.borderColor), 0.12),
+      borderSize: Math.max(0.5, (resolvedStyle.borderSize ?? 1) * 0.6),
+      forceLabel: false,
+      label: undefined,
+      zIndex: 0,
+    };
+  }
+  const borderColor = change === "added" ? GRAPH_DIFF_ADDED_BORDER : GRAPH_DIFF_MODIFIED_BORDER;
+  return {
+    ...data,
+    color: resolvedStyle.color,
+    shellColor: resolvedStyle.shellColor,
+    borderColor,
+    borderSize: isFocus ? 3.5 : 2.5,
+    ringColor: isFocus ? borderColor : resolvedStyle.ringColor,
+    ringSize: isFocus ? 5 : resolvedStyle.ringSize,
+    zIndex: (resolvedStyle.zIndex ?? 1) + (isFocus ? 40 : 8),
+    forceLabel: isFocus ? true : resolvedStyle.forceLabel,
+    label: isFocus ? resolvedStyle.label : resolvedStyle.label,
   };
 }
 
@@ -1210,8 +1268,12 @@ function applySceneState(
     const resolvedStyle = { ...style, ...distanceStyle };
     const typeHidden = Boolean(attrs.hidden) || isNodeTypeSuppressed(attrs.nodeType, currentState.hiddenNodeTypes);
     const keywordHidden = isNodeKeywordSuppressed(attrs, String(node), currentState.keywordFilter);
+    const diffOverlay = currentState.diffOverlay;
+    const diffStyled = diffOverlay?.enabled && !typeHidden && !keywordHidden
+      ? applyGraphDiffOverlayStyle(String(node), diffOverlay, resolvedStyle, data as Record<string, unknown>)
+      : null;
 
-      return {
+      return diffStyled ?? {
         ...data,
         color: resolvedStyle.color,
         shellColor: resolvedStyle.shellColor,
@@ -1315,13 +1377,35 @@ function applySceneState(
       || (targetAttrs && isNodeKeywordSuppressed(targetAttrs, String(target), currentState.keywordFilter))
       || isEdgeTypeSuppressed(edgeTypeOf(attrs), currentState.hiddenEdgeTypes);
 
+    const diffOverlay = currentState.diffOverlay;
+    let diffEdgeColor = resolvedStyle.color;
+    let diffEdgeSize = resolvedStyle.size;
+    let diffEdgeZIndex = resolvedStyle.zIndex;
+    if (diffOverlay?.enabled && !endpointHidden && !resolvedStyle.hidden) {
+      const sourceId = String(source);
+      const targetId = String(target);
+      const edgeType = String(attrs.edgeType ?? attrs.type ?? "");
+      const edgeKey = graphDiffEdgeKey(sourceId, targetId, edgeType);
+      const isAddedEdge = diffOverlay.addedEdgeKeys.has(edgeKey);
+      const touchesChange = graphDiffEdgeTouchesChange(sourceId, targetId, diffOverlay);
+      if (isAddedEdge) {
+        diffEdgeColor = GRAPH_DIFF_ADDED_EDGE_COLOR;
+        diffEdgeSize = Math.max(resolvedStyle.size ?? 1, 2.2);
+        diffEdgeZIndex = (resolvedStyle.zIndex ?? 1) + 6;
+      } else if (!touchesChange) {
+        diffEdgeColor = withAlpha(String(resolvedStyle.color), GRAPH_DIFF_DIM_EDGE_ALPHA);
+        diffEdgeSize = Math.max(0.35, (resolvedStyle.size ?? 1) * 0.45);
+        diffEdgeZIndex = 0;
+      }
+    }
+
     return {
       ...data,
       hidden: endpointHidden || resolvedStyle.hidden,
       type: resolvedStyle.type,
-      color: resolvedStyle.color,
-      size: resolvedStyle.size,
-      zIndex: resolvedStyle.zIndex,
+      color: diffEdgeColor,
+      size: diffEdgeSize,
+      zIndex: diffEdgeZIndex,
       curvature: resolvedStyle.curvature,
       // #1009: Sigma's edge label renderer draws data.label — the graph
       // stores the relationship type in edgeType, which the renderer never
@@ -1391,6 +1475,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(
       hiddenNodeTypes = [],
       hiddenEdgeTypes = [],
       keywordFilter = "",
+      diffOverlay = null,
     },
     ref,
   ) {
@@ -1534,8 +1619,9 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(
         hiddenNodeTypeSet,
         hiddenEdgeTypeSet,
         normalizedKeywordFilter,
+        diffOverlay,
       ),
-      [analyticsSnapshot, displayGraph, displayState, distanceVisualState, hiddenEdgeTypeSet, hiddenNodeTypeSet, interactionState, normalizedKeywordFilter],
+      [analyticsSnapshot, diffOverlay, displayGraph, displayState, distanceVisualState, hiddenEdgeTypeSet, hiddenNodeTypeSet, interactionState, normalizedKeywordFilter],
     );
     const reducerSceneStateRef = useRef<ReducerSceneState>(reducerSceneState);
     reducerSceneStateRef.current = reducerSceneState;
@@ -2780,7 +2866,10 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(
     }, [fitCurrentView]);
 
     return (
-      <div className={graphCanvasRoot}>
+      <div
+        className={graphCanvasRoot}
+        data-testid={diffOverlay?.enabled ? "kb-graph-diff-overlay-active" : undefined}
+      >
         <div ref={containerRef} className={cn(graphCanvasHost, className)} />
         <canvas ref={overlayRef} className={graphCanvasOverlay} />
         {pluginOverlays.length ? (

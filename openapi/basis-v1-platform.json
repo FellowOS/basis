@@ -3606,8 +3606,26 @@
             "title": "Doc Id"
           },
           "text": {
-            "type": "string",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Text"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
           },
           "wait": {
             "anyOf": [
@@ -3704,8 +3722,7 @@
         },
         "type": "object",
         "required": [
-          "doc_id",
-          "text"
+          "doc_id"
         ],
         "title": "IngestTextRequest"
       },

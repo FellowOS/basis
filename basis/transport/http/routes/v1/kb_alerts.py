@@ -25,7 +25,19 @@ async def list_kb_alerts(
     store: AdminStore = Depends(get_store),
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> dict[str, Any]:
-    """List KB alert episodes with unread count (viewer+)."""
+    """List KB alert episodes with unread count (viewer+).
+
+    Each alert includes a `detail` object (JSON). Common keys by `kind`:
+
+    - `governance.tripped`: `code`, `decision_id`, `item_id`, `proposal_id`,
+      `shacl_violation_count`, `episode_key`
+    - `processing.failed`: `job_id`, `error_code`, `message`, `episode_key`
+    - `sync_failed`: `source_id`, `source_name`, `mode`, `error`, `episode_key`
+    - `governance.statement_conflict`: `item_id`, `surface_phrase`, `statement_ids`,
+      `episode_key`
+
+    `episode_key` correlates multiple rows in the UI (F-ALT).
+    """
     get_kb_for_viewer(request, user, kb_id, store)
     alerts = knowledge.list_kb_alerts(kb_id, limit=limit)
     unread = knowledge.count_kb_unread_alerts(kb_id)

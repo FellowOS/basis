@@ -25,6 +25,10 @@ from basis.domain.explorer.session_guard import require_explorer_graph_session
 from basis.infra.limits import RuntimeLimits
 from basis.domain.kb.graph_audit import audit_kb_graph
 from basis.domain.kb.store import KnowledgeStore
+from basis.transport.http.routes.v1.kb_review import (
+    CreateEntityMergeReviewRequest,
+    propose_entity_merge,
+)
 
 router = APIRouter(tags=["knowledge-bases"])
 
@@ -36,8 +40,10 @@ async def kb_temporal_bounds(
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> Any:
-    """
-Kb Temporal Bounds. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+    """Temporal scrubber bounds for the KB graph (F-TIM-03 / F-TIM-04).
+
+    Returns `{min, max}` ISO instants. When the Explorer projection lacks node `valid_from`,
+    `min` / `max` fall back to ledger timestamps (statements, facts, current document version).
     """
     get_kb_for_viewer(request, user, kb_id, store)
     runtime = get_explorer_registry(request).get(request, kb_id)
@@ -47,8 +53,12 @@ Kb Temporal Bounds. Requires KB membership (session) or KB API token with read/w
     payload = await invoke_explorer(temporal_bounds(session=session), context="temporal")
     if isinstance(payload, dict):
         ledger = get_knowledge_store(request).get_ledger_temporal_bounds(kb_id)
-        if not payload.get("min") and ledger.get("min"):
-            payload = {**payload, "min": ledger["min"]}
+        merged = dict(payload)
+        if not merged.get("min") and ledger.get("min"):
+            merged["min"] = ledger["min"]
+        if not merged.get("max") and ledger.get("max"):
+            merged["max"] = ledger["max"]
+        payload = merged
     return payload
 
 
@@ -60,15 +70,34 @@ async def kb_temporal_snapshot(
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> Any:
-    """
-Kb Temporal Snapshot. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+    """Graph projection at an instant (F-TIM-03 / scrubber).
+
+    Primary path: Explorer `temporal_snapshot`. When that returns no nodes but the Basis
+    projector supports `state_at`, falls back to the same snapshot used by `GET .../graph/diff`.
     """
     get_kb_for_viewer(request, user, kb_id, store)
     runtime = get_explorer_registry(request).get(request, kb_id)
     session = require_explorer_graph_session(runtime)
     from semantica.explorer.routes.temporal import temporal_snapshot
+    from basis.domain.explorer.graph_diff import parse_query_dt
 
-    return await invoke_explorer(temporal_snapshot(at=at, session=session), context="temporal")
+    payload = await invoke_explorer(temporal_snapshot(at=at, session=session), context="temporal")
+    if at:
+        try:
+            instant = parse_query_dt(at)
+            state = session.graph.state_at(instant)
+        except ValueError:
+            state = None
+        if isinstance(state, dict) and (state.get("nodes") or []):
+            base = payload if isinstance(payload, dict) else {}
+            payload = {
+                **base,
+                "nodes": state.get("nodes") or [],
+                "edges": state.get("edges") or [],
+                "at": instant.isoformat(),
+                "source": "graph_state_at",
+            }
+    return payload
 
 
 @router.get("/{kb_id}/temporal/diff")
@@ -103,13 +132,61 @@ async def kb_graph_diff(
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> Any:
-    """Whole-graph diff between two instants (F-DIFF-01); nodes + edges + property changes."""
+    """Whole-graph diff between two instants (F-DIFF-01).
+
+    Compares Explorer projection snapshots at `from` and `to` (ISO instants). Response includes
+    `added_nodes`, `removed_nodes`, `modified_nodes`, `added_edges`, `removed_edges`, `summary`,
+    and echo `from_time` / `to_time`. Node/edge membership follows ledger `recorded_at` → projected
+    `valid_from` (F-TIM-01). Console graph preview dims unchanged elements and highlights
+    added/modified nodes and added edges at the end instant.
+    """
     get_kb_for_viewer(request, user, kb_id, store)
     runtime = get_explorer_registry(request).get(request, kb_id)
     session = require_explorer_graph_session(runtime)
     from basis.domain.explorer.graph_diff import diff_session_at
 
     return diff_session_at(session, from_time, to_time)
+
+
+@router.get("/{kb_id}/graph/staging")
+async def kb_graph_staging(
+    kb_id: str,
+    request: Request,
+    from_time: str = Query(..., alias="from"),
+    to_time: str = Query(..., alias="to"),
+    user: User = Depends(get_current_user),
+    store: AdminStore = Depends(get_store),
+) -> Any:
+    """Diff + staging manifest for publish/review workflows (F-DIFF-01).
+
+    Returns `{manifest, diff}` where `manifest` includes `session_key` (stable id for the
+    from/to range), `focus_node_ids`, governance relpaths (`review`, `graph/staging/entity-merge`,
+    graph import), and `change_total`. The nested `diff` matches `GET .../graph/diff` for the
+    same instants.
+    """
+    get_kb_for_viewer(request, user, kb_id, store)
+    runtime = get_explorer_registry(request).get(request, kb_id)
+    session = require_explorer_graph_session(runtime)
+    from basis.domain.explorer.graph_staging import graph_staging_at
+
+    return graph_staging_at(session, kb_id, from_time, to_time)
+
+
+@router.post("/{kb_id}/graph/staging/entity-merge")
+async def kb_graph_staging_entity_merge(
+    kb_id: str,
+    request: Request,
+    body: CreateEntityMergeReviewRequest,
+    user: User = Depends(get_current_user),
+    store: AdminStore = Depends(get_store),
+    knowledge: KnowledgeStore = Depends(get_knowledge_store),
+) -> Any:
+    """Propose entity merge from diff/staging studio (Gate D; F-DIFF-01).
+
+    JSON body: `{primary_id, duplicate_ids[]}`. Creates a review-queue item (`entity_merge`);
+    identical semantics to `POST .../review/items/entity-merge`.
+    """
+    return await propose_entity_merge(kb_id, request, body, user, store, knowledge)
 
 
 @router.post("/{kb_id}/enrich/links")

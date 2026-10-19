@@ -74,6 +74,20 @@ export function clearKbGraphDiffPreviewParams(search: string): URLSearchParams {
   return params;
 }
 
+export function mergeKbGraphDiffFocusParam(
+  search: string,
+  nodeId: string | null | undefined,
+): URLSearchParams {
+  const params = new URLSearchParams(search);
+  const trimmed = nodeId?.trim();
+  if (trimmed) {
+    params.set('focus', trimmed);
+  } else {
+    params.delete('focus');
+  }
+  return params;
+}
+
 /** Sync graph route query while preserving other params (e.g. `focus`). */
 export function mergeKbGraphAtParam(
   search: string,

@@ -31,7 +31,10 @@ import { useI18n } from '@/i18n/context.js';
 import { formatLocaleDateTime, formatLocaleNumber } from '@/i18n/format.js';
 import type { Locale } from '@/i18n/locale.js';
 import { formatUserFacingApiError } from '@/lib/api-error-message.js';
-import { kbOpenApiGET } from '@/lib/openapi-client.js';
+import { useKbCapabilities } from '@/lib/kb-capabilities.js';
+import { kbOpenApiGET, kbOpenApiPOST } from '@/lib/openapi-client.js';
+import { Input } from '@/components/ui/input.js';
+import { Label } from '@/components/ui/label.js';
 import { kbGraphPath } from '@/lib/graphUrlState.js';
 import { useKbNodeLabels } from '@/lib/kb-node-labels.js';
 import { kbGraphDiffPreviewPath, kbGraphImportDialogPath } from '@/lib/graphUrlState.js';
@@ -41,6 +44,11 @@ import { kbSearchPath } from '@/lib/searchUrlState.js';
 import { endOfLocalDayIso, startOfLocalDayIso } from '@/lib/temporal/day-range.js';
 import { resolveScrubberBounds } from '@/lib/temporal/scrubber-bounds.js';
 import { cn } from '@/lib/utils.js';
+import {
+  clearGraphStagingDraft,
+  readGraphStagingDraft,
+  writeGraphStagingDraft,
+} from '@/lib/graph-staging-draft.js';
 
 type GraphDiffResponse = {
   from_time: string;
@@ -118,17 +126,45 @@ function NodeListItem({
   labels,
   href,
   suffix,
+  mergePickActions,
 }: {
   nodeId: string;
   labels: Record<string, string | null>;
   href: string;
   suffix?: string;
+  mergePickActions?: { onPrimary: () => void; onDuplicate: () => void; labels: { primary: string; duplicate: string } };
 }) {
   return (
     <li className="rounded-md border border-border/80 bg-muted/30 px-3 py-2 text-sm">
-      <Link to={href} className="block min-w-0 hover:underline">
-        <EntityRefLine id={nodeId} labels={labels} className="min-w-0" />
-      </Link>
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <Link to={href} className="block min-w-0 flex-1 hover:underline">
+          <EntityRefLine id={nodeId} labels={labels} className="min-w-0" />
+        </Link>
+        {mergePickActions ? (
+          <div className="flex shrink-0 flex-wrap gap-1">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-7 text-[11px]"
+              data-testid={`graph-diff-merge-primary-${nodeId}`}
+              onClick={mergePickActions.onPrimary}
+            >
+              {mergePickActions.labels.primary}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-7 text-[11px]"
+              data-testid={`graph-diff-merge-duplicate-${nodeId}`}
+              onClick={mergePickActions.onDuplicate}
+            >
+              {mergePickActions.labels.duplicate}
+            </Button>
+          </div>
+        ) : null}
+      </div>
       {suffix ? (
         <p className="mt-1 font-mono text-[11px] text-muted-foreground">{suffix}</p>
       ) : null}
@@ -158,7 +194,18 @@ export function KbGraphDiffWorkspace({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [diff, setDiff] = useState<GraphDiffResponse | null>(null);
+  const [stagingManifest, setStagingManifest] = useState<Record<string, unknown> | null>(null);
+  const [mergePrimaryId, setMergePrimaryId] = useState('');
+  const [mergeDuplicateId, setMergeDuplicateId] = useState('');
+  const [mergeBusy, setMergeBusy] = useState(false);
   const autoCompareRef = useRef(false);
+  const stagingDraftRestoredRef = useRef(false);
+  const { caps } = useKbCapabilities();
+  const canProposeMerge = Boolean(caps?.graph_write);
+  const stagingSessionKey =
+    typeof stagingManifest?.session_key === 'string'
+      ? stagingManifest.session_key.trim()
+      : '';
 
   useEffect(() => {
     let cancelled = false;
@@ -195,11 +242,17 @@ export function KbGraphDiffWorkspace({
     setLoading(true);
     setError('');
     setDiff(null);
+    setStagingManifest(null);
     try {
-      const data = await kbOpenApiGET<GraphDiffResponse>(kbId, 'graph/diff', {
-        params: { query: { from: fromTime.trim(), to: toTime.trim() } },
-      });
-      setDiff(data);
+      const data = await kbOpenApiGET<{ diff: GraphDiffResponse; manifest: Record<string, unknown> }>(
+        kbId,
+        'graph/staging',
+        {
+          params: { query: { from: fromTime.trim(), to: toTime.trim() } },
+        },
+      );
+      setDiff(data.diff);
+      setStagingManifest(data.manifest);
       setSearchParams({ from: fromTime.trim(), to: toTime.trim() }, { replace: true });
     } catch (err) {
       setError(formatUserFacingApiError(err, loc));
@@ -214,6 +267,27 @@ export function KbGraphDiffWorkspace({
     autoCompareRef.current = true;
     void runDiff();
   }, [initialFrom, initialTo, runDiff]);
+
+  useEffect(() => {
+    stagingDraftRestoredRef.current = false;
+  }, [stagingSessionKey]);
+
+  useEffect(() => {
+    if (!stagingSessionKey || stagingDraftRestoredRef.current) return;
+    const draft = readGraphStagingDraft(stagingSessionKey);
+    stagingDraftRestoredRef.current = true;
+    if (!draft) return;
+    if (draft.primary) setMergePrimaryId(draft.primary);
+    if (draft.duplicate) setMergeDuplicateId(draft.duplicate);
+  }, [stagingSessionKey]);
+
+  useEffect(() => {
+    if (!stagingSessionKey) return;
+    writeGraphStagingDraft(stagingSessionKey, {
+      primary: mergePrimaryId,
+      duplicate: mergeDuplicateId,
+    });
+  }, [mergeDuplicateId, mergePrimaryId, stagingSessionKey]);
 
   const labelIds = useMemo(() => (diff ? collectNodeIds(diff) : []), [diff]);
   const nodeLabels = useKbNodeLabels(kbId, labelIds);
@@ -230,8 +304,53 @@ export function KbGraphDiffWorkspace({
       toast.error(t.common.copyFailed);
     }
   }
+
+  async function copyStagingManifest() {
+    if (!stagingManifest || !diff) return;
+    const payload = { manifest: stagingManifest, diff };
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(payload, null, 2));
+      toast.success(g.copyStagingSuccess);
+    } catch {
+      toast.error(t.common.copyFailed);
+    }
+  }
+
+  async function proposeEntityMerge(event: FormEvent) {
+    event.preventDefault();
+    const primary = mergePrimaryId.trim();
+    const duplicate = mergeDuplicateId.trim();
+    if (!primary || !duplicate || primary === duplicate) return;
+    setMergeBusy(true);
+    try {
+      await kbOpenApiPOST(kbId, 'graph/staging/entity-merge', {
+        body: { primary_id: primary, duplicate_ids: [duplicate] },
+      });
+      toast.success(g.proposeMergeSuccess);
+      if (stagingSessionKey) clearGraphStagingDraft(stagingSessionKey);
+      setMergePrimaryId('');
+      setMergeDuplicateId('');
+    } catch (err) {
+      toast.error(formatUserFacingApiError(err, loc));
+    } finally {
+      setMergeBusy(false);
+    }
+  }
   const nodeGraphHref = (nodeId: string) =>
     kbGraphPath(kbId, { focus: nodeId, at: graphAtForDiff || undefined });
+
+  const mergePickActionLabels = {
+    primary: g.proposeMergeUsePrimary,
+    duplicate: g.proposeMergeUseDuplicate,
+  };
+  const mergePickForNode = (nodeId: string) =>
+    canProposeMerge
+      ? {
+          labels: mergePickActionLabels,
+          onPrimary: () => setMergePrimaryId(nodeId),
+          onDuplicate: () => setMergeDuplicateId(nodeId),
+        }
+      : undefined;
 
   function onSubmit(event: FormEvent) {
     event.preventDefault();
@@ -301,8 +420,8 @@ export function KbGraphDiffWorkspace({
               <>
                 <Button type="button" size="sm" variant="ghost" asChild>
                   <Link
-                    to={kbGraphPath(kbId, { at: graphAtForDiff })}
-                    data-testid="graph-diff-open-graph-at-end"
+                    to={kbGraphPath(kbId, { at: graphAtForDiff, timeline: true })}
+                    data-testid="graph-diff-open-graph-timeline-at-end"
                   >
                     {g.graphAtEndTimelineLink}
                   </Link>
@@ -429,6 +548,15 @@ export function KbGraphDiffWorkspace({
                 <Button type="button" variant="outline" size="sm" onClick={() => void copyComparisonLink()}>
                   {g.studioCopyLink}
                 </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  data-testid="graph-diff-copy-staging-manifest"
+                  onClick={() => void copyStagingManifest()}
+                >
+                  {g.copyStagingManifest}
+                </Button>
                 <Button type="button" variant="outline" size="sm" asChild>
                   <Link
                     to={kbGraphDiffPreviewPath(kbId, diff.from_time, diff.to_time)}
@@ -438,6 +566,51 @@ export function KbGraphDiffWorkspace({
                   </Link>
                 </Button>
               </div>
+              {canProposeMerge ? (
+                <form
+                  className="mt-4 space-y-2 border-t border-border/60 pt-3"
+                  data-testid="graph-diff-propose-merge-form"
+                  onSubmit={(event) => void proposeEntityMerge(event)}
+                >
+                  <p className="text-xs font-medium text-foreground">{g.proposeMergeTitle}</p>
+                  <p className="text-xs text-muted-foreground">{g.proposeMergeHint}</p>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    <div className="space-y-1">
+                      <Label htmlFor="graph-diff-merge-primary" className="text-xs">
+                        {g.proposeMergePrimary}
+                      </Label>
+                      <Input
+                        id="graph-diff-merge-primary"
+                        className="h-8 font-mono text-xs"
+                        value={mergePrimaryId}
+                        onChange={(event) => setMergePrimaryId(event.target.value)}
+                        placeholder={g.proposeMergePrimaryPlaceholder}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor="graph-diff-merge-duplicate" className="text-xs">
+                        {g.proposeMergeDuplicate}
+                      </Label>
+                      <Input
+                        id="graph-diff-merge-duplicate"
+                        className="h-8 font-mono text-xs"
+                        value={mergeDuplicateId}
+                        onChange={(event) => setMergeDuplicateId(event.target.value)}
+                        placeholder={g.proposeMergeDuplicatePlaceholder}
+                      />
+                    </div>
+                  </div>
+                  <Button
+                    type="submit"
+                    variant="outline"
+                    size="sm"
+                    disabled={mergeBusy || !mergePrimaryId.trim() || !mergeDuplicateId.trim()}
+                    data-testid="graph-diff-propose-merge-submit"
+                  >
+                    {mergeBusy ? t.common.loading : g.proposeMergeSubmit}
+                  </Button>
+                </form>
+              ) : null}
             </Alert>
           ) : null}
 
@@ -484,6 +657,7 @@ export function KbGraphDiffWorkspace({
                           nodeId={id}
                           labels={nodeLabels}
                           href={nodeGraphHref(id)}
+                          mergePickActions={mergePickForNode(id)}
                         />
                       ))}
                     </DiffSection>
@@ -515,6 +689,7 @@ export function KbGraphDiffWorkspace({
                           labels={nodeLabels}
                           href={nodeGraphHref(row.id)}
                           suffix={row.change}
+                          mergePickActions={mergePickForNode(row.id)}
                         />
                       ))}
                     </DiffSection>

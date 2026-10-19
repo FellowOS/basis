@@ -1553,6 +1553,173 @@ class KnowledgeStore:
                 )
         return items
 
+    def list_statements_for_temporal_projection(self, kb_id: str) -> list[dict[str, Any]]:
+        """Statements for graph projection including invalidated rows (F-TIM-01 valid_until)."""
+        with self._lock:
+            rows = self._conn.execute(
+                """
+                SELECT
+                    s.id AS statement_id,
+                    s.subject_id,
+                    s.surface_phrase,
+                    s.object_entity_id,
+                    s.object_value,
+                    s.confidence,
+                    s.status,
+                    s.recorded_at,
+                    s.invalidated_at,
+                    e.id AS evidence_id,
+                    e.chunk_id,
+                    d.external_key,
+                    d.id AS ledger_document_id
+                FROM statements s
+                LEFT JOIN statement_evidence e ON e.statement_id = s.id AND e.kb_id = s.kb_id
+                LEFT JOIN chunks c ON c.id = e.chunk_id
+                LEFT JOIN document_versions dv ON dv.id = c.version_id
+                LEFT JOIN documents d ON d.id = dv.document_id
+                WHERE s.kb_id = ?
+                  AND s.status IN ('pending', 'confirmed', 'invalidated', 'superseded')
+                ORDER BY s.recorded_at ASC
+                """,
+                (kb_id,),
+            ).fetchall()
+            items: list[dict[str, Any]] = []
+            for row in rows:
+                graph_doc_id = row["external_key"] or row["ledger_document_id"]
+                items.append(
+                    {
+                        "statement_id": row["statement_id"],
+                        "subject_id": row["subject_id"],
+                        "surface_phrase": row["surface_phrase"],
+                        "object_entity_id": row["object_entity_id"],
+                        "object_value": row["object_value"],
+                        "confidence": row["confidence"],
+                        "status": row["status"],
+                        "evidence_id": row["evidence_id"],
+                        "chunk_id": row["chunk_id"],
+                        "graph_doc_id": graph_doc_id,
+                        "recorded_at": row["recorded_at"],
+                        "invalidated_at": row["invalidated_at"],
+                    }
+                )
+        return items
+
+    def list_document_timeline_events(
+        self,
+        kb_id: str,
+        document_id: str,
+        *,
+        limit: int = 200,
+    ) -> list[dict[str, Any]]:
+        """Ledger-ordered events for one document (F-TIM-02)."""
+        limit = min(max(1, limit), 500)
+        events: list[dict[str, Any]] = []
+        with self._lock:
+            self._assert_kb_exists(kb_id)
+            doc = self._conn.execute(
+                """
+                SELECT id, external_key, title, created_at
+                FROM documents
+                WHERE kb_id = ? AND id = ? AND deleted_at IS NULL
+                """,
+                (kb_id, document_id),
+            ).fetchone()
+            if doc is None:
+                return []
+            version_rows = self._conn.execute(
+                """
+                SELECT id, status, created_at, byte_size
+                FROM document_versions
+                WHERE kb_id = ? AND document_id = ?
+                ORDER BY created_at ASC
+                """,
+                (kb_id, document_id),
+            ).fetchall()
+            version_ids = [row["id"] for row in version_rows]
+            for row in version_rows:
+                events.append(
+                    {
+                        "kind": "version_created",
+                        "at": row["created_at"],
+                        "version_id": row["id"],
+                        "status": row["status"],
+                        "byte_size": row["byte_size"],
+                    }
+                )
+            if version_ids:
+                placeholders = ",".join("?" for _ in version_ids)
+                job_rows = self._conn.execute(
+                    f"""
+                    SELECT id, status, created_at, finished_at, error_code
+                    FROM jobs
+                    WHERE kb_id = ? AND kind = 'ingest'
+                      AND subject_type = 'document_version'
+                      AND subject_id IN ({placeholders})
+                    ORDER BY created_at ASC
+                    """,
+                    (kb_id, *version_ids),
+                ).fetchall()
+                for row in job_rows:
+                    events.append(
+                        {
+                            "kind": "processing_job",
+                            "at": row["finished_at"] or row["created_at"],
+                            "job_id": row["id"],
+                            "status": row["status"],
+                            "error_code": row["error_code"],
+                        }
+                    )
+                stmt_rows = self._conn.execute(
+                    f"""
+                    SELECT s.id, s.surface_phrase, s.status, s.recorded_at, s.invalidated_at,
+                           c.id AS chunk_id
+                    FROM statements s
+                    INNER JOIN statement_evidence e ON e.statement_id = s.id AND e.kb_id = s.kb_id
+                    INNER JOIN chunks c ON c.id = e.chunk_id
+                    WHERE s.kb_id = ? AND c.version_id IN ({placeholders})
+                    ORDER BY s.recorded_at ASC
+                    """,
+                    (kb_id, *version_ids),
+                ).fetchall()
+                for row in stmt_rows:
+                    events.append(
+                        {
+                            "kind": "statement_recorded",
+                            "at": row["recorded_at"],
+                            "statement_id": row["id"],
+                            "surface_phrase": row["surface_phrase"],
+                            "status": row["status"],
+                            "invalidated_at": row["invalidated_at"],
+                            "chunk_id": row["chunk_id"],
+                        }
+                    )
+                mention_rows = self._conn.execute(
+                    f"""
+                    SELECT tm.id, tm.text, tm.char_start, tm.char_end, tm.chunk_id,
+                           s.recorded_at AS statement_at
+                    FROM time_mentions tm
+                    INNER JOIN chunks c ON c.id = tm.chunk_id
+                    LEFT JOIN statements s ON s.id = tm.statement_id AND s.kb_id = tm.kb_id
+                    WHERE tm.kb_id = ? AND c.version_id IN ({placeholders})
+                    ORDER BY tm.char_start ASC
+                    """,
+                    (kb_id, *version_ids),
+                ).fetchall()
+                for row in mention_rows:
+                    events.append(
+                        {
+                            "kind": "time_mention",
+                            "at": row["statement_at"],
+                            "mention_id": row["id"],
+                            "text": row["text"],
+                            "char_start": row["char_start"],
+                            "char_end": row["char_end"],
+                            "chunk_id": row["chunk_id"],
+                        }
+                    )
+        events.sort(key=lambda ev: str(ev.get("at") or ""))
+        return events[-limit:]
+
     def list_active_statements(self, kb_id: str) -> list[dict[str, Any]]:
         with self._lock:
             self._assert_kb_exists(kb_id)

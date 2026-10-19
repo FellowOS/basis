@@ -14,6 +14,9 @@ export const kbProcessing = {
   noMatches: '没有符合筛选条件的任务。',
   openInSources: '在资料源中打开',
   viewAlerts: '查看告警',
+  viewRelatedAlerts: '相关告警',
+  processDialogOptionsPreview: '流水线摘要',
+  optionsSnapshotRaw: '原始 JSON（与上方摘要一致）',
   limitsHint:
     '服务端限制：上传 ≤ {upload}；并发 {inflight} 个任务、排队 {pending} 个；单任务超时 {timeoutMin} 分钟。',
   opsQueueHint:
@@ -21,4 +24,11 @@ export const kbProcessing = {
   jobsApiLink: '摄入任务 API（OpenAPI）',
   retryAllFailed: '重试全部失败',
   retryAllQueued: '已为全部失败任务排队重试',
+  errorDocLink: '在资料源中打开文档',
+  optionsUnset: '—',
+  optionsChunkLine: '分块：{method}，大小 {size}，重叠 {overlap}',
+  optionsExtractLine: '抽取：NER {ner}（{nerModel}），LLM {llm}',
+  optionsRelationsOn: '已启用关系抽取',
+  optionsEmbedOn: '已启用嵌入',
+  optionsRequestId: '请求 ID {id}',
 } as const;

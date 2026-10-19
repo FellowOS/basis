@@ -68,6 +68,7 @@ export interface GraphSceneProps extends GraphSceneEventMap {
   hiddenNodeTypes?: readonly string[];
   hiddenEdgeTypes?: readonly string[];
   keywordFilter?: string;
+  diffOverlay?: import("@/lib/graph-diff-overlay.js").GraphDiffOverlayState | null;
 }
 
 export interface GraphSceneHandle {

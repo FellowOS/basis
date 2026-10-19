@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert.js';
 import { Button } from '@/components/ui/button.js';
@@ -7,24 +7,25 @@ import { PublicIcon } from '@/components/app/shared/primitives/public-icon.js';
 import { useI18n } from '@/i18n/context.js';
 import { fmt, formatLocaleNumber } from '@/i18n/format.js';
 import type { Locale } from '@/i18n/locale.js';
-import { formatUserFacingApiError } from '@/lib/api-error-message.js';
-import { clearKbGraphDiffPreviewParams } from '@/lib/graphUrlState.js';
+import {
+  diffFocusEntries,
+  nextDiffFocusIndex,
+} from '@/lib/graph-diff-focus.js';
+import {
+  clearKbGraphDiffPreviewParams,
+  mergeKbGraphDiffFocusParam,
+  parseKbGraphUrlState,
+} from '@/lib/graphUrlState.js';
+import type { KbGraphDiffPayload } from '@/lib/use-kb-graph-diff.js';
 import { kbGraphDiffPath } from '@/lib/nav-config.js';
-import { kbOpenApiGET } from '@/lib/openapi-client.js';
+import {
+  graphDiffMergePickReady,
+  type GraphDiffMergePick,
+  type GraphDiffMergePickSlot,
+} from '@/lib/graph-diff-merge-pick.js';
+import { cn } from '@/lib/utils.js';
 
-type GraphDiffResponse = {
-  from_time: string;
-  to_time: string;
-  summary: {
-    nodes_added: number;
-    nodes_removed: number;
-    nodes_modified: number;
-    edges_added: number;
-    edges_removed: number;
-  };
-};
-
-function changeTotal(summary: GraphDiffResponse['summary']): number {
+function changeTotal(summary: KbGraphDiffPayload['summary']): number {
   return (
     summary.nodes_added +
     summary.nodes_removed +
@@ -39,40 +40,69 @@ export function KbGraphDiffPreviewBar({
   kbId,
   diffFrom,
   diffTo,
+  diff,
+  loading,
+  error,
+  canProposeMerge = false,
+  mergePick,
+  mergePickSlot = 'primary',
+  onMergePickSlotChange,
+  onClearMergePick,
+  mergeBusy = false,
+  onSubmitMerge,
 }: {
   kbId: string;
   diffFrom: string;
   diffTo: string;
+  diff: KbGraphDiffPayload | null;
+  loading: boolean;
+  error: string | null;
+  canProposeMerge?: boolean;
+  mergePick?: GraphDiffMergePick;
+  mergePickSlot?: GraphDiffMergePickSlot;
+  onMergePickSlotChange?: (slot: GraphDiffMergePickSlot) => void;
+  onClearMergePick?: () => void;
+  mergeBusy?: boolean;
+  onSubmitMerge?: () => void;
 }) {
   const { t, locale } = useI18n();
   const g = t.kbGraphPage;
-  const [, setSearchParams] = useSearchParams();
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [diff, setDiff] = useState<GraphDiffResponse | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
-    setError(null);
-    void kbOpenApiGET<GraphDiffResponse>(kbId, 'graph/diff', {
-      params: { query: { from: diffFrom.trim(), to: diffTo.trim() } },
-    })
-      .then((data) => {
-        if (!cancelled) setDiff(data);
-      })
-      .catch((err) => {
-        if (!cancelled) setError(formatUserFacingApiError(err, locale as Locale));
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [diffFrom, diffTo, kbId, locale]);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const graphUrl = parseKbGraphUrlState(searchParams.toString());
 
   const total = useMemo(() => (diff ? changeTotal(diff.summary) : 0), [diff]);
+  const focusEntries = useMemo(
+    () => (diff ? diffFocusEntries(diff) : []),
+    [diff],
+  );
+  const focusIndex = useMemo(() => {
+    const focus = graphUrl.focus?.trim();
+    if (!focus || focusEntries.length === 0) return -1;
+    const idx = focusEntries.findIndex((e) => e.nodeId === focus);
+    return idx >= 0 ? idx : 0;
+  }, [focusEntries, graphUrl.focus]);
+  const activeFocus =
+    focusIndex >= 0 && focusEntries[focusIndex] ? focusEntries[focusIndex] : null;
+
+  useEffect(() => {
+    if (focusEntries.length === 0 || graphUrl.focus?.trim()) return;
+    const first = focusEntries[0]!.nodeId;
+    setSearchParams(
+      (prev) => mergeKbGraphDiffFocusParam(prev.toString(), first),
+      { replace: true },
+    );
+  }, [focusEntries, graphUrl.focus, setSearchParams]);
+
+  function cycleFocus(delta: number) {
+    if (focusEntries.length === 0) return;
+    const base = focusIndex >= 0 ? focusIndex : 0;
+    const nextIdx = nextDiffFocusIndex(base, delta, focusEntries.length);
+    const next = focusEntries[nextIdx]!;
+    setSearchParams(
+      (prev) => mergeKbGraphDiffFocusParam(prev.toString(), next.nodeId),
+      { replace: true },
+    );
+  }
 
   function dismiss() {
     setSearchParams((prev) => clearKbGraphDiffPreviewParams(prev.toString()), { replace: true });
@@ -102,7 +132,127 @@ export function KbGraphDiffPreviewBar({
             })}
           </span>
         ) : null}
+        {diff && !loading && !error ? (
+          <p className="flex flex-wrap items-center gap-3 text-[11px] text-foreground">
+            <span className="inline-flex items-center gap-1.5">
+              <span className="size-2 rounded-full bg-[#5BC986]" aria-hidden />
+              {g.diffPreviewLegendAdded}
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <span className="size-2 rounded-full bg-[#8FE7FF]" aria-hidden />
+              {g.diffPreviewLegendModified}
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <span className="h-0.5 w-3 rounded bg-[#5BC986]" aria-hidden />
+              {g.diffPreviewLegendAddedEdges}
+            </span>
+            <span className="text-muted-foreground">{g.diffPreviewLegendRemovedHint}</span>
+          </p>
+        ) : null}
+        {canProposeMerge && diff && !loading && !error ? (
+          <div
+            className="space-y-2 rounded-md border border-border/70 bg-background/60 p-2"
+            data-testid="kb-graph-diff-preview-merge-pick"
+          >
+            <p className="text-xs font-medium text-foreground">{g.diffPreviewMergeTitle}</p>
+            <p className="text-[11px] text-muted-foreground">{g.diffPreviewMergeHint}</p>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                variant={mergePickSlot === 'primary' ? 'default' : 'outline'}
+                size="sm"
+                className="h-7 text-xs"
+                data-testid="kb-graph-diff-merge-pick-primary"
+                onClick={() => onMergePickSlotChange?.('primary')}
+              >
+                {g.diffPreviewMergePickPrimary}
+              </Button>
+              <Button
+                type="button"
+                variant={mergePickSlot === 'duplicate' ? 'default' : 'outline'}
+                size="sm"
+                className="h-7 text-xs"
+                data-testid="kb-graph-diff-merge-pick-duplicate"
+                onClick={() => onMergePickSlotChange?.('duplicate')}
+              >
+                {g.diffPreviewMergePickDuplicate}
+              </Button>
+            </div>
+            <div className="grid gap-1 font-mono text-[11px] text-foreground sm:grid-cols-2">
+              <span>
+                {g.diffPreviewMergePrimaryLabel}:{' '}
+                <span className={cn(!mergePick?.primary && 'text-muted-foreground')}>
+                  {mergePick?.primary?.trim() || t.common.emptyCell}
+                </span>
+              </span>
+              <span>
+                {g.diffPreviewMergeDuplicateLabel}:{' '}
+                <span className={cn(!mergePick?.duplicate && 'text-muted-foreground')}>
+                  {mergePick?.duplicate?.trim() || t.common.emptyCell}
+                </span>
+              </span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-7 text-xs"
+                data-testid="kb-graph-diff-merge-clear"
+                disabled={!mergePick?.primary && !mergePick?.duplicate}
+                onClick={() => onClearMergePick?.()}
+              >
+                {g.diffPreviewMergeClear}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-7 text-xs"
+                data-testid="kb-graph-diff-merge-submit"
+                disabled={mergeBusy || !mergePick || !graphDiffMergePickReady(mergePick)}
+                onClick={() => onSubmitMerge?.()}
+              >
+                {mergeBusy ? t.common.loading : g.diffPreviewMergeSubmit}
+              </Button>
+            </div>
+          </div>
+        ) : null}
+        {activeFocus ? (
+          <p className="font-mono text-[11px] text-foreground" data-testid="kb-graph-diff-preview-focus">
+            {fmt(g.diffPreviewFocusLine, {
+              index: formatLocaleNumber(locale as Locale, focusIndex + 1),
+              total: formatLocaleNumber(locale as Locale, focusEntries.length),
+              change: g.diffPreviewChangeLabel[activeFocus.change],
+              nodeId: activeFocus.nodeId,
+            })}
+          </p>
+        ) : null}
         <div className="flex flex-wrap gap-2 pt-0.5">
+          {focusEntries.length > 0 ? (
+            <>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-7 text-xs"
+                data-testid="kb-graph-diff-preview-focus-prev"
+                onClick={() => cycleFocus(-1)}
+              >
+                {g.diffPreviewFocusPrev}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-7 text-xs"
+                data-testid="kb-graph-diff-preview-focus-next"
+                onClick={() => cycleFocus(1)}
+              >
+                {g.diffPreviewFocusNext}
+              </Button>
+            </>
+          ) : null}
           <Button type="button" variant="outline" size="sm" className="h-7 text-xs" asChild>
             <Link
               to={kbGraphDiffPath(kbId, diffFrom.trim(), diffTo.trim())}

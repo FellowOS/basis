@@ -52,6 +52,34 @@ export function kbAlertDetailLines(
   return lines;
 }
 
+export function alertEpisodeKey(alert: KbAlertStreamItem): string {
+  const d = alert.detail ?? {};
+  const episode = d.episode_key;
+  if (typeof episode === 'string' && episode.trim()) return episode.trim();
+  return `${alert.kind}:${alert.id}`;
+}
+
+/** Group alert rows by `detail.episode_key` (F-ALT), preserving first-seen order. */
+export function groupAlertsByEpisode(
+  alerts: KbAlertStreamItem[],
+): Array<{ episodeKey: string; kind: string; alerts: KbAlertStreamItem[] }> {
+  const order: string[] = [];
+  const map = new Map<string, KbAlertStreamItem[]>();
+  for (const alert of alerts) {
+    const key = alertEpisodeKey(alert);
+    if (!map.has(key)) {
+      map.set(key, []);
+      order.push(key);
+    }
+    map.get(key)!.push(alert);
+  }
+  return order.map((episodeKey) => {
+    const group = map.get(episodeKey)!;
+    return { episodeKey, kind: group[0]!.kind, alerts: group };
+  });
+}
+
+/** @deprecated Prefer `groupAlertsByEpisode`. */
 export function groupAlertsByKind(
   alerts: KbAlertStreamItem[],
 ): Array<{ kind: string; alerts: KbAlertStreamItem[] }> {

@@ -61,4 +61,17 @@ export const kbGraphDiff = {
   stagingStepsBody:
     '1) Compare ranges here · 2) Stage RDF/JSON import on the graph page · 3) Approve in review · 4) Export an audit pack from settings when publishing.',
   previewOnGraph: 'Preview on graph canvas',
+  copyStagingManifest: 'Copy staging JSON',
+  copyStagingSuccess: 'Staging manifest copied',
+  proposeMergeTitle: 'Propose entity merge (review queue)',
+  proposeMergeHint:
+    'Submit a Gate D merge proposal. Approve the item in Review before the graph changes.',
+  proposeMergePrimary: 'Primary node id',
+  proposeMergeDuplicate: 'Duplicate node id',
+  proposeMergePrimaryPlaceholder: 'Canonical entity id',
+  proposeMergeDuplicatePlaceholder: 'Id to merge into primary',
+  proposeMergeSubmit: 'Submit merge proposal',
+  proposeMergeSuccess: 'Merge proposal queued for review',
+  proposeMergeUsePrimary: 'Primary',
+  proposeMergeUseDuplicate: 'Duplicate',
 } as const;

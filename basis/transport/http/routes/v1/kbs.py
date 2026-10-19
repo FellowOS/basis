@@ -952,6 +952,36 @@ List Kb Documents. Requires KB membership (session) or KB API token with read/wr
     return {"documents": documents}
 
 
+@router.get("/{kb_id}/documents/{document_id}/timeline")
+async def get_kb_document_timeline(
+    kb_id: str,
+    document_id: str,
+    request: Request,
+    limit: int = Query(200, ge=1, le=500),
+    user: User = Depends(get_current_user),
+    store: AdminStore = Depends(get_store),
+    knowledge: KnowledgeStore = Depends(get_knowledge_store),
+) -> dict[str, Any]:
+    """Document-level ledger timeline (F-TIM-02).
+
+    Ordered events for one document: `version_created`, `processing_job`,
+    `statement_recorded`, and `time_mention` (when present). Instants use ledger
+    `created_at` / `recorded_at` / job `finished_at` — align with graph scrubber
+    via `GET .../temporal/*`, not chunk search `as_of` alone.
+    """
+    get_kb_for_viewer(request, user, kb_id, store)
+    context = knowledge.resolve_document_ref(kb_id, document_id)
+    if context is None:
+        raise AdminError(404, "not_found", "文档不存在")
+    doc_uuid = context["document_id"]
+    events = knowledge.list_document_timeline_events(kb_id, doc_uuid, limit=limit)
+    return {
+        "document_id": doc_uuid,
+        "doc_id": context.get("external_key"),
+        "events": events,
+    }
+
+
 def _document_store_payload(
     knowledge: KnowledgeStore,
     kb_id: str,
