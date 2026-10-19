@@ -4422,6 +4422,26 @@
         ],
         "title": "ExecuteConnectorToolRequest"
       },
+      "GovernorRunRequest": {
+        "properties": {
+          "confidence_min": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confidence Min",
+            "description": "Override default governor confidence threshold (0.75)."
+          }
+        },
+        "type": "object",
+        "title": "GovernorRunRequest"
+      },
       "GraphSearchRequest": {
         "properties": {
           "query": {

@@ -1,6 +1,6 @@
 # ADR 0005: Agent governor (F-GOV-04)
 
-**Status:** proposed (2026-10)  
+**Status:** accepted — Phase A shipped (2026-10)  
 **Context:** Review queue already covers conflicts (F-RUL-04), merges, mappings, remember, and connector writeback. Operators still need a **batch pass** that clusters noisy agent output and applies **confidence gates** without clicking each scanner separately. **F-GOV-05** covers synchronous tripwires and `governance.tripped` alerts; governor is **asynchronous hygiene**.
 
 ## Decision (phased)

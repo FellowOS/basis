@@ -40,6 +40,11 @@ from basis.domain.kb.conflict_review import (
     resolve_statement_conflict_group,
     scan_statement_conflicts,
 )
+from basis.domain.kb.governor import (
+    LOW_CONFIDENCE_KIND,
+    resolve_low_confidence_approve,
+    resolve_low_confidence_reject,
+)
 from basis.domain.kb.remember_service import STATEMENT_REVIEW_KIND
 from basis.domain.kb.review_resolve import (
     approve_statement_remember_review,
@@ -383,6 +388,13 @@ Approve Review Item. Human review queue for merges, imports, and conflicts. Requ
                 "mapping": None,
                 "decision_id": decision_id,
             }
+        elif item["kind"] == LOW_CONFIDENCE_KIND:
+            payload = dict(item.get("payload") or {})
+            statement_id = str(payload.get("statement_id") or item["subject_id"])
+            resolution = resolve_low_confidence_approve(knowledge, kb_id, statement_id)
+            rebuild_kb_projection(request, kb_id)
+            approve_action = "kb.statement.low_confidence_confirmed"
+            merge_result = {"status": "confirmed", "resolution": resolution, "payload": payload}
         elif item["kind"] == STATEMENT_CONFLICT_KIND:
             payload = dict(item.get("payload") or {})
             statement_ids = list(payload.get("statement_ids") or [])
@@ -599,6 +611,12 @@ Reject Review Item. Human review queue for merges, imports, and conflicts. Requi
         reject_action = "kb.statement.remember_rejected"
     elif item.get("kind") == STATEMENT_CONFLICT_KIND:
         reject_action = "kb.statement.conflict_dismissed"
+    elif item.get("kind") == LOW_CONFIDENCE_KIND:
+        payload = dict(item.get("payload") or {})
+        statement_id = str(payload.get("statement_id") or item["subject_id"])
+        resolve_low_confidence_reject(knowledge, kb_id, statement_id)
+        rebuild_kb_projection(request, kb_id)
+        reject_action = "kb.statement.low_confidence_rejected"
     else:
         reject_action = "kb.graph.merge_rejected"
     audit_kb_graph(

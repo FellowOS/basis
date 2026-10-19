@@ -53,6 +53,8 @@ type ReviewItem = {
     content?: string;
     statement_id?: string;
     surface_phrase?: string;
+    confidence?: number;
+    confidence_min?: number;
     objects?: Array<{
       statement_id?: string;
       object_entity_id?: string | null;
@@ -269,6 +271,7 @@ export function KbReviewQueueTab({
   const [approvedDecisionId, setApprovedDecisionId] = useState<string | null>(null);
   const [focusedResolvedItem, setFocusedResolvedItem] = useState<ReviewItem | null>(null);
   const [scanBusy, setScanBusy] = useState(false);
+  const [governorBusy, setGovernorBusy] = useState(false);
   const [conflictKeeper, setConflictKeeper] = useState<Record<string, string>>({});
   const canRevertMerge = Boolean(caps?.graph_write);
   const canScanConflicts = Boolean(caps?.graph_write);
@@ -423,6 +426,40 @@ export function KbReviewQueueTab({
     }
   }
 
+  async function runGovernorPass() {
+    setGovernorBusy(true);
+    setError(null);
+    try {
+      const res = await explorerFetch(
+        buildExplorerKbApiPath('governance/governor/run', kbId),
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({}),
+        },
+      );
+      await throwIfApiNotOk(res);
+      const body = (await res.json()) as {
+        conflicts?: { created?: number; skipped?: number };
+        low_confidence?: { created?: number; skipped?: number };
+      };
+      toast.success(
+        fmt(r.runGovernorSuccess, {
+          conflictsCreated: formatLocaleNumber(locale as Locale, body.conflicts?.created ?? 0),
+          conflictsSkipped: formatLocaleNumber(locale as Locale, body.conflicts?.skipped ?? 0),
+          lowCreated: formatLocaleNumber(locale as Locale, body.low_confidence?.created ?? 0),
+          lowSkipped: formatLocaleNumber(locale as Locale, body.low_confidence?.skipped ?? 0),
+        }),
+      );
+      void load();
+    } catch (err) {
+      setError(apiError(err));
+      toast.error(apiError(err));
+    } finally {
+      setGovernorBusy(false);
+    }
+  }
+
   async function scanStatementConflicts() {
     setScanBusy(true);
     setError(null);
@@ -532,6 +569,7 @@ export function KbReviewQueueTab({
     if (kind === 'ontology_mapping') return r.kindMapping;
     if (kind === 'statement_remember') return r.kindRemember;
     if (kind === 'statement_conflict') return r.kindConflict;
+    if (kind === 'low_confidence') return r.kindLowConfidence;
     if (kind === 'connector_writeback') return r.kindWriteback;
     if (kind === 'entity_merge') return r.kindMerge;
     return kind;
@@ -547,17 +585,30 @@ export function KbReviewQueueTab({
             <span className="font-mono text-[11px] tabular-nums text-muted-foreground">{items.length}</span>
           ) : null}
           {canScanConflicts ? (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="ml-auto h-7 text-[11px]"
-              disabled={scanBusy || loading}
-              data-testid="review-scan-statement-conflicts"
-              onClick={() => void scanStatementConflicts()}
-            >
-              {r.scanConflicts}
-            </Button>
+            <div className="ml-auto flex shrink-0 items-center gap-1.5">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-7 text-[11px]"
+                disabled={governorBusy || scanBusy || loading}
+                data-testid="review-run-governor"
+                onClick={() => void runGovernorPass()}
+              >
+                {r.runGovernor}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-7 text-[11px]"
+                disabled={scanBusy || governorBusy || loading}
+                data-testid="review-scan-statement-conflicts"
+                onClick={() => void scanStatementConflicts()}
+              >
+                {r.scanConflicts}
+              </Button>
+            </div>
           ) : null}
         </div>
         <div className="min-h-0 flex-1 overflow-auto">
@@ -645,6 +696,7 @@ export function KbReviewQueueTab({
                 const isMapping = item.kind === 'ontology_mapping';
                 const isRemember = item.kind === 'statement_remember';
                 const isConflict = item.kind === 'statement_conflict';
+                const isLowConfidence = item.kind === 'low_confidence';
                 const isWriteback = item.kind === 'connector_writeback';
                 const isEntityMerge = item.kind === 'entity_merge';
                 const primaryId = item.payload.primary_id ?? emptyCell;
@@ -659,9 +711,11 @@ export function KbReviewQueueTab({
                       ? r.approveFact
                       : isConflict
                         ? r.keepSelectedValue
-                        : isWriteback
-                          ? r.approveWriteback
-                          : r.approveMerge;
+                        : isLowConfidence
+                          ? r.confirmLowConfidence
+                          : isWriteback
+                            ? r.approveWriteback
+                            : r.approveMerge;
                 const itemDecisionIds = decisionIdsForReviewItem(events, item.id);
                 return (
                   <li
@@ -696,6 +750,16 @@ export function KbReviewQueueTab({
                             ? (
                               <span className="whitespace-pre-wrap">
                                 {String(item.payload.content ?? item.payload.statement_id ?? emptyCell)}
+                              </span>
+                            )
+                          : isLowConfidence
+                            ? (
+                              <span className="text-xs text-muted-foreground">
+                                {fmt(r.lowConfidenceLine, {
+                                  confidence: String(item.payload.confidence ?? emptyCell),
+                                  threshold: String(item.payload.confidence_min ?? emptyCell),
+                                  predicate: String(item.payload.surface_phrase ?? emptyCell),
+                                })}
                               </span>
                             )
                           : isConflict

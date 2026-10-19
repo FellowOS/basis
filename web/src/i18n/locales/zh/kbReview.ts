@@ -13,6 +13,7 @@ export const kbReview = {
   kindMapping: '映射',
   kindRemember: '记入',
   kindConflict: '冲突',
+  kindLowConfidence: '低置信',
   kindWriteback: '连接器写回',
   kindMerge: '合并',
   emptyQueuePrefix: '本体提案在 ',
@@ -55,4 +56,9 @@ export const kbReview = {
   viewRelatedAlerts: '相关告警',
   scanConflicts: '扫描陈述冲突',
   scanConflictsSuccess: '扫描完成：新增 {created} 项，{skipped} 项已在队列中。',
+  runGovernor: '治理扫描',
+  runGovernorSuccess:
+    '治理扫描：冲突 {conflictsCreated}、低置信 {lowCreated}（跳过 {conflictsSkipped}/{lowSkipped}）。',
+  lowConfidenceLine: '置信度 {confidence}（阈值 {threshold}）· {predicate}',
+  confirmLowConfidence: '确认陈述',
 } as const;

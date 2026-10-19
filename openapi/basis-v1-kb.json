@@ -4175,6 +4175,86 @@
         "x-basis-auth": "session-or-kb-api-token"
       }
     },
+    "/api/v1/kbs/{kb_id}/governance/governor/run": {
+      "post": {
+        "tags": [
+          "knowledge-bases"
+        ],
+        "summary": "Kb Governance Governor Run",
+        "description": "Kb Governance Governor Run. Batch conflict scan and low-confidence review enqueue (F-GOV-04). Requires KB editor+.",
+        "operationId": "kb_governance_governor_run_api_v1_kbs__kb_id__governance_governor_run_post",
+        "parameters": [
+          {
+            "name": "kb_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Kb Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/GovernorRunRequest"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Body"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Kb Governance Governor Run Api V1 Kbs  Kb Id  Governance Governor Run Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-basis-surface": "knowledge-base",
+        "x-basis-auth": "session-or-kb-api-token"
+      }
+    },
     "/api/v1/kbs/{kb_id}/graph/diff": {
       "get": {
         "tags": [
@@ -13985,6 +14065,26 @@
           "tool_id"
         ],
         "title": "ExecuteConnectorToolRequest"
+      },
+      "GovernorRunRequest": {
+        "properties": {
+          "confidence_min": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confidence Min",
+            "description": "Override default governor confidence threshold (0.75)."
+          }
+        },
+        "type": "object",
+        "title": "GovernorRunRequest"
       },
       "GraphSearchRequest": {
         "properties": {

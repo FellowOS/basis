@@ -14,6 +14,7 @@ export const kbReview = {
   kindMapping: 'Mapping',
   kindRemember: 'Remember',
   kindConflict: 'Conflict',
+  kindLowConfidence: 'Low confidence',
   kindWriteback: 'Connector writeback',
   kindMerge: 'Merge',
   emptyQueuePrefix: 'Ontology proposals live under ',
@@ -56,4 +57,9 @@ export const kbReview = {
   viewRelatedAlerts: 'Related alerts',
   scanConflicts: 'Scan for conflicts',
   scanConflictsSuccess: 'Scan complete: {created} new, {skipped} already queued.',
+  runGovernor: 'Governor pass',
+  runGovernorSuccess:
+    'Governor pass: {conflictsCreated} conflicts, {lowCreated} low-confidence ({conflictsSkipped}/{lowSkipped} skipped).',
+  lowConfidenceLine: 'Confidence {confidence} (threshold {threshold}) · {predicate}',
+  confirmLowConfidence: 'Confirm statement',
 } as const;

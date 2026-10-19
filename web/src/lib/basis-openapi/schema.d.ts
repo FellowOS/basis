@@ -1260,6 +1260,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/kbs/{kb_id}/governance/governor/run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Kb Governance Governor Run
+         * @description Kb Governance Governor Run. Batch conflict scan and low-confidence review enqueue (F-GOV-04). Requires KB editor+.
+         */
+        post: operations["kb_governance_governor_run_api_v1_kbs__kb_id__governance_governor_run_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/kbs/{kb_id}/graph/diff": {
         parameters: {
             query?: never;
@@ -4372,6 +4392,14 @@ export interface components {
                 [key: string]: unknown;
             };
         };
+        /** GovernorRunRequest */
+        GovernorRunRequest: {
+            /**
+             * Confidence Min
+             * @description Override default governor confidence threshold (0.75).
+             */
+            confidence_min?: number | null;
+        };
         /** GraphSearchRequest */
         GraphSearchRequest: {
             /** Query */
@@ -7404,6 +7432,45 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    kb_governance_governor_run_api_v1_kbs__kb_id__governance_governor_run_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                kb_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["GovernorRunRequest"] | null;
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
                 };
             };
             /** @description Validation Error */

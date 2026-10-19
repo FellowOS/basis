@@ -1815,6 +1815,27 @@ class KnowledgeStore:
             ).fetchall()
         return [dict(row) for row in rows]
 
+    def list_active_statements_below_confidence(
+        self, kb_id: str, confidence_min: float
+    ) -> list[dict[str, Any]]:
+        with self._lock:
+            self._assert_kb_exists(kb_id)
+            rows = self._conn.execute(
+                """
+                SELECT id AS statement_id, subject_id, surface_phrase,
+                       object_entity_id, object_value, status, confidence
+                FROM statements
+                WHERE kb_id = ?
+                  AND invalidated_at IS NULL
+                  AND status IN ('pending', 'confirmed')
+                  AND confidence IS NOT NULL
+                  AND confidence < ?
+                ORDER BY confidence ASC, recorded_at ASC
+                """,
+                (kb_id, confidence_min),
+            ).fetchall()
+        return [dict(row) for row in rows]
+
     def set_statement_status(self, kb_id: str, statement_id: str, status: str) -> None:
         allowed = {"pending", "confirmed", "rejected", "invalidated", "superseded"}
         if status not in allowed:
