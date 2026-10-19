@@ -17,6 +17,12 @@ from sqlalchemy.exc import IntegrityError as SQLAlchemyIntegrityError
 from basis.platform.admin.errors import AdminError
 from basis.infra.database import Database, get_sqlite_database
 from basis.domain.kb.blob_store import BlobRef, BlobStore
+from basis.domain.kb.governance_config import (
+    DEFAULT_GOVERNOR_CONFIDENCE_MIN,
+    DEFAULT_GOVERNOR_INTERVAL_MINUTES,
+    GovernanceConfig,
+    validate_governance_config,
+)
 from basis.domain.kb.search_config import SearchConfig, validate_search_config
 
 
@@ -2036,6 +2042,127 @@ class KnowledgeStore:
             )
             self._conn.commit()
         return config
+
+    def get_governance_config(self, kb_id: str) -> GovernanceConfig:
+        with self._lock:
+            self._assert_kb_exists(kb_id)
+            row = self._conn.execute(
+                "SELECT * FROM kb_governance_configs WHERE kb_id = ?", (kb_id,)
+            ).fetchone()
+            if row is None:
+                now = _now()
+                self._conn.execute(
+                    """
+                    INSERT INTO kb_governance_configs (
+                        kb_id, schema_version, governor_enabled,
+                        governor_interval_minutes, governor_confidence_min,
+                        governor_last_run_at, created_at, updated_at
+                    ) VALUES (?, 1, 0, ?, ?, NULL, ?, ?)
+                    """,
+                    (
+                        kb_id,
+                        DEFAULT_GOVERNOR_INTERVAL_MINUTES,
+                        DEFAULT_GOVERNOR_CONFIDENCE_MIN,
+                        now,
+                        now,
+                    ),
+                )
+                self._conn.commit()
+                return GovernanceConfig(kb_id=kb_id)
+        return GovernanceConfig(
+            kb_id=row["kb_id"],
+            schema_version=int(row["schema_version"]),
+            governor_enabled=bool(row["governor_enabled"]),
+            governor_interval_minutes=int(row["governor_interval_minutes"]),
+            governor_confidence_min=float(row["governor_confidence_min"]),
+            governor_last_run_at=row["governor_last_run_at"],
+        )
+
+    def update_governance_config(
+        self,
+        kb_id: str,
+        *,
+        governor_enabled: bool,
+        governor_interval_minutes: int,
+        governor_confidence_min: float,
+    ) -> GovernanceConfig:
+        config = GovernanceConfig(
+            kb_id=kb_id,
+            governor_enabled=governor_enabled,
+            governor_interval_minutes=governor_interval_minutes,
+            governor_confidence_min=governor_confidence_min,
+        )
+        validate_governance_config(config)
+        existing = self.get_governance_config(kb_id)
+        config = GovernanceConfig(
+            kb_id=kb_id,
+            schema_version=existing.schema_version,
+            governor_enabled=governor_enabled,
+            governor_interval_minutes=governor_interval_minutes,
+            governor_confidence_min=governor_confidence_min,
+            governor_last_run_at=existing.governor_last_run_at,
+        )
+        with self._lock:
+            now = _now()
+            self._conn.execute(
+                """
+                INSERT INTO kb_governance_configs (
+                    kb_id, schema_version, governor_enabled,
+                    governor_interval_minutes, governor_confidence_min,
+                    governor_last_run_at, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(kb_id) DO UPDATE SET
+                    governor_enabled = excluded.governor_enabled,
+                    governor_interval_minutes = excluded.governor_interval_minutes,
+                    governor_confidence_min = excluded.governor_confidence_min,
+                    updated_at = excluded.updated_at
+                """,
+                (
+                    kb_id,
+                    config.schema_version,
+                    int(config.governor_enabled),
+                    config.governor_interval_minutes,
+                    config.governor_confidence_min,
+                    config.governor_last_run_at,
+                    now,
+                    now,
+                ),
+            )
+            self._conn.commit()
+        return config
+
+    def touch_governor_last_run(self, kb_id: str, run_at: str) -> None:
+        _ = self.get_governance_config(kb_id)
+        with self._lock:
+            now = _now()
+            self._conn.execute(
+                """
+                UPDATE kb_governance_configs
+                SET governor_last_run_at = ?, updated_at = ?
+                WHERE kb_id = ?
+                """,
+                (run_at, now, kb_id),
+            )
+            self._conn.commit()
+
+    def list_governor_enabled_kb_ids(self) -> list[str]:
+        with self._lock:
+            try:
+                rows = self._conn.execute(
+                    """
+                    SELECT kb_id FROM kb_governance_configs
+                    WHERE governor_enabled = 1
+                    ORDER BY kb_id ASC
+                    """
+                ).fetchall()
+            except Exception as exc:
+                msg = str(exc).lower()
+                if "kb_governance_configs" in msg and (
+                    "does not exist" in msg or "no such table" in msg
+                ):
+                    return []
+                raise
+        return [str(row["kb_id"]) for row in rows]
 
     def search_chunks_keyword(
         self, kb_id: str, *, query: str, limit: int = 10

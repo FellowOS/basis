@@ -33,6 +33,7 @@ class Settings:
     legacy_api_enabled: bool = False
     ingest_inline: bool = False
     http_poll_tick_seconds: int = 0
+    governor_tick_seconds: int = 0
     log_json: bool = False
     graph_page_max_nodes: int = 200
     graph_page_max_edges: int = 400
@@ -93,6 +94,7 @@ class Settings:
             in ("1", "true", "yes"),
             ingest_inline=os.environ.get("BASIS_INGEST_INLINE", "").lower() in ("1", "true", "yes"),
             http_poll_tick_seconds=int(os.environ.get("BASIS_HTTP_POLL_TICK_SECONDS", "0")),
+            governor_tick_seconds=int(os.environ.get("BASIS_GOVERNOR_TICK_SECONDS", "0")),
             log_json=os.environ.get("BASIS_LOG_JSON", "").lower() in ("1", "true", "yes"),
             graph_page_max_nodes=_bounded_int(
                 "BASIS_GRAPH_PAGE_MAX_NODES", 200, lo=1, hi=5000

@@ -1152,6 +1152,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/kbs/{kb_id}/governance/config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Kb Governance Config
+         * @description Kb Governance Config. Per-KB governor schedule and confidence threshold (F-GOV-04). Requires KB viewer+.
+         */
+        get: operations["get_kb_governance_config_api_v1_kbs__kb_id__governance_config_get"];
+        /**
+         * Update Kb Governance Config
+         * @description Kb Governance Config Update. Enable scheduled governor passes (requires BASIS_GOVERNOR_TICK_SECONDS). Requires KB admin.
+         */
+        put: operations["update_kb_governance_config_api_v1_kbs__kb_id__governance_config_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/kbs/{kb_id}/governance/governor/run": {
         parameters: {
             query?: never;
@@ -3731,6 +3755,24 @@ export interface components {
             arguments?: {
                 [key: string]: unknown;
             };
+        };
+        /** GovernanceConfigRequest */
+        GovernanceConfigRequest: {
+            /**
+             * Governor Enabled
+             * @default false
+             */
+            governor_enabled: boolean;
+            /**
+             * Governor Interval Minutes
+             * @default 1440
+             */
+            governor_interval_minutes: number;
+            /**
+             * Governor Confidence Min
+             * @default 0.75
+             */
+            governor_confidence_min: number;
         };
         /** GovernorRunRequest */
         GovernorRunRequest: {
@@ -6523,6 +6565,80 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_kb_governance_config_api_v1_kbs__kb_id__governance_config_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                kb_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_kb_governance_config_api_v1_kbs__kb_id__governance_config_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                kb_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GovernanceConfigRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
                 };
             };
             /** @description Validation Error */

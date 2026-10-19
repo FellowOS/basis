@@ -80,6 +80,17 @@ async def _app_lifespan(app: FastAPI):
 
         tasks.append(asyncio.create_task(_poll_loop()))
 
+    governor_tick = int(getattr(app.state.settings, "governor_tick_seconds", 0) or 0)
+    if governor_tick > 0:
+        from basis.domain.kb.governor_poll_scheduler import run_due_governor_passes
+
+        async def _governor_loop() -> None:
+            while True:
+                await asyncio.sleep(max(60, governor_tick))
+                await asyncio.to_thread(run_due_governor_passes, app)
+
+        tasks.append(asyncio.create_task(_governor_loop()))
+
     try:
         yield
     finally:

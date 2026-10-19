@@ -1,0 +1,23 @@
+"""Schedule helpers for scheduled governor passes."""
+
+from __future__ import annotations
+
+from datetime import datetime, timezone
+from typing import Any
+
+from basis.domain.kb.governance_config import GovernanceConfig
+from basis.domain.kb.ingest_source_service import is_ingest_poll_due
+
+
+def is_governor_due(config: GovernanceConfig, now: datetime) -> bool:
+    if not config.governor_enabled:
+        return False
+    if config.governor_interval_minutes <= 0:
+        return False
+    pseudo_source: dict[str, Any] = {
+        "config": {
+            "poll_interval_minutes": config.governor_interval_minutes,
+            "last_sync_at": config.governor_last_run_at,
+        },
+    }
+    return is_ingest_poll_due(pseudo_source, now)

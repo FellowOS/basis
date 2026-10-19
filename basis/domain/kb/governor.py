@@ -6,11 +6,11 @@ from typing import Any
 
 from basis.platform.admin.errors import AdminError
 from basis.domain.kb.conflict_review import scan_statement_conflicts
+from basis.domain.kb.governance_config import DEFAULT_GOVERNOR_CONFIDENCE_MIN
 from basis.domain.kb.store import KnowledgeStore
 
 LOW_CONFIDENCE_KIND = "low_confidence"
 LOW_CONFIDENCE_SUBJECT_TYPE = "statement"
-DEFAULT_GOVERNOR_CONFIDENCE_MIN = 0.75
 
 
 def scan_low_confidence_statements(
@@ -58,9 +58,10 @@ def run_governor_pass(
     confidence_min: float | None = None,
 ) -> dict[str, Any]:
     """Run conflict scan + low-confidence enqueue (on-demand governor)."""
-    threshold = (
-        confidence_min if confidence_min is not None else DEFAULT_GOVERNOR_CONFIDENCE_MIN
-    )
+    if confidence_min is None:
+        threshold = knowledge.get_governance_config(kb_id).governor_confidence_min
+    else:
+        threshold = confidence_min
     conflicts = scan_statement_conflicts(knowledge, kb_id)
     low_confidence = scan_low_confidence_statements(
         knowledge,

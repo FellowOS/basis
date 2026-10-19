@@ -375,4 +375,28 @@ def run_postgres_migrations(engine: Engine) -> list[int]:
                 },
             )
             applied_now.append(13)
+
+        governance_path = _migration_root() / "0013_kb_governance_config.sql"
+        governance_source = governance_path.read_text(encoding="utf-8")
+        governance_checksum = _checksum(governance_source)
+        if 14 in applied:
+            if applied[14] != governance_checksum:
+                raise RuntimeError("PostgreSQL migration 14 checksum mismatch")
+        else:
+            for statement in _statements(_postgresize(governance_source)):
+                conn.exec_driver_sql(statement)
+            conn.execute(
+                text(
+                    """
+                    INSERT INTO schema_migrations(version, name, checksum, applied_at)
+                    VALUES (14, :name, :checksum, :applied_at)
+                    """
+                ),
+                {
+                    "name": governance_path.name,
+                    "checksum": governance_checksum,
+                    "applied_at": datetime.now(timezone.utc).isoformat(),
+                },
+            )
+            applied_now.append(14)
     return applied_now

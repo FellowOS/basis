@@ -597,6 +597,12 @@
     {
       "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
       "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/governance/config",
+      "operationId": "get_kb_governance_config_api_v1_kbs__kb_id__governance_config_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
       "path": "/api/v1/kbs/{kb_id}/governance/governor/run",
       "operationId": "kb_governance_governor_run_api_v1_kbs__kb_id__governance_governor_run_post"
     },
@@ -1571,6 +1577,12 @@
       "kind": "literal",
       "path": "/api/v1/kbs/{kb_id}/export",
       "operationId": "kb_export_graph_api_v1_kbs__kb_id__export_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/governance/config",
+      "operationId": "get_kb_governance_config_api_v1_kbs__kb_id__governance_config_get"
     },
     {
       "file": "web/src/lib/basis-openapi/schema.d.ts",

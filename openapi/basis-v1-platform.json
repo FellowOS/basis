@@ -4422,6 +4422,31 @@
         ],
         "title": "ExecuteConnectorToolRequest"
       },
+      "GovernanceConfigRequest": {
+        "properties": {
+          "governor_enabled": {
+            "type": "boolean",
+            "title": "Governor Enabled",
+            "default": false
+          },
+          "governor_interval_minutes": {
+            "type": "integer",
+            "maximum": 10080.0,
+            "minimum": 0.0,
+            "title": "Governor Interval Minutes",
+            "default": 1440
+          },
+          "governor_confidence_min": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Governor Confidence Min",
+            "default": 0.75
+          }
+        },
+        "type": "object",
+        "title": "GovernanceConfigRequest"
+      },
       "GovernorRunRequest": {
         "properties": {
           "confidence_min": {
