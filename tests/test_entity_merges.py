@@ -13,7 +13,7 @@ from basis.transport.http.app import create_app
 from basis.infra.capabilities import explorer_available
 from basis.infra.config import Settings
 from basis.domain.graph.projector import rebuild_graph_from_ledger
-from basis.domain.graph.persistence import GraphPersistence
+from basis.domain.graph.snapshot_store import GraphPersistence
 from basis.domain.kb.blob_store import BlobStore
 from basis.domain.kb.store import KnowledgeStore
 
@@ -89,7 +89,7 @@ def test_approve_entity_merge_records_ledger_rows(tmp_path: Path) -> None:
     assert rows[0]["target_entity_id"] == primary
     assert rows[0]["why"] == "confirmed duplicate"
 
-    from basis.domain.graph.persistence import GraphPersistence
+    from basis.domain.graph.snapshot_store import GraphPersistence
 
     loaded, _ = GraphPersistence(tmp_path).load_snapshot(kb_id)
     node_ids = sorted(loaded.graph.nodes.keys())

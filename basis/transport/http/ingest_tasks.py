@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 from fastapi import FastAPI
 
-from basis.domain.graph.persistence import GraphPersistence
+from basis.domain.graph.snapshot_store import GraphPersistence
 from basis.domain.kb.chunk_search import ChunkSearchService
 from basis.domain.kb.store import KnowledgeStore
 from basis.domain.ingest.document import TextIngestOptions

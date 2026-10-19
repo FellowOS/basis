@@ -6,7 +6,7 @@ from fastapi import Header, HTTPException, Request
 
 from basis.platform.admin.errors import AdminError
 from basis.platform.admin.store import AdminStore, ApiTokenRecord, User
-from basis.domain.graph.persistence import GraphPersistence
+from basis.domain.graph.snapshot_store import GraphPersistence
 from basis.domain.graph.projector import apply_rebuild_to_session
 from basis.domain.graph.session import GraphSession
 from basis.domain.kb.blob_store import BlobStore

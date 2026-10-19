@@ -6,7 +6,7 @@ from datetime import datetime
 from typing import Any
 
 from basis.domain.kb.connector_sync import SourceTableMappingRecord
-from basis.domain.kb.ingest_source_service import is_ingest_poll_due
+from basis.domain.kb.services.ingest_source_service import is_ingest_poll_due
 
 
 def poll_interval_minutes_for_mapping(mapping: SourceTableMappingRecord) -> int:

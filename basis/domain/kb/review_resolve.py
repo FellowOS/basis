@@ -8,7 +8,7 @@ from basis.platform.admin.errors import AdminError
 from basis.platform.admin.store import AdminStore, User
 from basis.domain.kb.conflict_review import scan_statement_conflicts
 from basis.domain.kb.graph_audit import audit_kb_graph
-from basis.domain.kb.remember_service import STATEMENT_REVIEW_KIND
+from basis.domain.kb.services.remember_service import STATEMENT_REVIEW_KIND
 from basis.domain.kb.store import KnowledgeStore
 
 

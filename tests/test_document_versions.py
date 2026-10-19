@@ -184,7 +184,7 @@ def test_ingest_document_from_url(tmp_path: Path) -> None:
     kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
 
     with patch(
-        "basis.domain.kb.ingest_source_service.fetch_http_poll_text",
+        "basis.domain.kb.services.ingest_source_service.fetch_http_poll_text",
         return_value="Fetched from remote URL.",
     ) as mock_fetch:
         resp = client.post(

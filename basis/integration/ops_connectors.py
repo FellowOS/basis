@@ -6,7 +6,7 @@ from datetime import date, datetime
 from typing import Any
 
 from basis.domain.connectors import get_connector_catalog
-from basis.domain.kb.connector_mapping_schedule import poll_interval_minutes_for_mapping
+from basis.domain.kb.schedulers.connector_mapping_poll_due import poll_interval_minutes_for_mapping
 from basis.domain.kb.connector_sync import ConnectorLedgerSyncService
 from fastapi import HTTPException
 

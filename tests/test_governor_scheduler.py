@@ -6,8 +6,8 @@ from unittest.mock import MagicMock
 
 from basis.domain.kb.blob_store import BlobStore
 from basis.domain.kb.governance_config import GovernanceConfig
-from basis.domain.kb.governor_poll_scheduler import run_due_governor_passes
-from basis.domain.kb.governor_schedule import is_governor_due
+from basis.domain.kb.schedulers.governor_poll_scheduler import run_due_governor_passes
+from basis.domain.kb.schedulers.governor_poll_due import is_governor_due
 from basis.domain.kb.store import KnowledgeStore
 
 

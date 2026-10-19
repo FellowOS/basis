@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from fastapi import FastAPI
 
 from basis.domain.kb.governor import run_governor_pass
-from basis.domain.kb.governor_schedule import is_governor_due
+from basis.domain.kb.schedulers.governor_poll_due import is_governor_due
 from basis.infra.observability.log_context import correlation_log_extra
 
 logger = logging.getLogger(__name__)

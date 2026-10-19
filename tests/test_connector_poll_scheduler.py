@@ -2,7 +2,7 @@
 
 from datetime import datetime, timezone
 
-from basis.domain.kb.connector_mapping_schedule import (
+from basis.domain.kb.schedulers.connector_mapping_poll_due import (
     is_connector_mapping_poll_due,
     poll_interval_minutes_for_mapping,
 )

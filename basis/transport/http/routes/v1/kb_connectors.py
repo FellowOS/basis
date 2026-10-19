@@ -11,7 +11,7 @@ from pydantic import BaseModel, Field
 
 from basis.domain.connectors import ConnectorRuntime, get_connector_catalog
 from basis.domain.connectors.allowlist import effective_allowed_providers, normalize_allowed_providers
-from basis.domain.kb.connector_mapping_schedule import poll_interval_minutes_for_mapping
+from basis.domain.kb.schedulers.connector_mapping_poll_due import poll_interval_minutes_for_mapping
 from basis.domain.kb.connector_sync import (
     ConnectorLedgerSyncService,
     SourceTableMappingRecord,

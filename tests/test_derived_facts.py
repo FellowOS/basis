@@ -13,7 +13,7 @@ from basis.infra.capabilities import explorer_available
 from basis.platform.admin.store import AdminStore
 from basis.infra.config import Settings
 from basis.domain.kb.blob_store import BlobStore
-from basis.domain.kb.derived_facts_service import persist_reasoning_derived
+from basis.domain.kb.services.derived_facts_service import persist_reasoning_derived
 from basis.domain.kb.store import KnowledgeStore
 
 

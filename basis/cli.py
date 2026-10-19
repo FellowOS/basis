@@ -24,7 +24,7 @@ def _cmd_serve(settings: Settings) -> None:
 
 def _cmd_migrate_legacy_graphs(settings: Settings, args: argparse.Namespace) -> None:
     from basis.platform.admin.store import AdminStore
-    from basis.domain.graph.persistence import GraphPersistence
+    from basis.domain.graph.snapshot_store import GraphPersistence
     from basis.domain.kb.blob_store import BlobStore
     from basis.domain.kb.store import KnowledgeStore
     from basis.ops.migration.legacy_graph import migrate_all_legacy_graphs, print_reports

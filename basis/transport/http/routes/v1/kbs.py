@@ -768,7 +768,7 @@ Ingest Document. Requires KB membership (session) or KB API token with read/writ
         url = body.url.strip()
         if not url.startswith(("http://", "https://")):
             raise AdminError(422, "bad_url", "需要有效的 http(s) URL")
-        from basis.domain.kb.ingest_source_service import fetch_http_poll_text
+        from basis.domain.kb.services.ingest_source_service import fetch_http_poll_text
 
         raw_text = await asyncio.to_thread(fetch_http_poll_text, url)
     elif body.text is not None:

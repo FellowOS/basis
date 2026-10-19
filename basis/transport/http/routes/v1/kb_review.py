@@ -31,7 +31,7 @@ from basis.infra.limits import RuntimeLimits
 from basis.domain.explorer.session_guard import require_explorer_graph_session
 from basis.domain.kb.graph_audit import audit_kb_graph
 from basis.domain.kb.import_review import discard_staged_import, stage_import_blob, upload_file_from_staged
-from basis.domain.kb.mapping_service import (
+from basis.domain.kb.services.mapping_service import (
     MAPPING_REVIEW_KIND,
     apply_mapping_status_change,
 )
@@ -46,7 +46,7 @@ from basis.domain.kb.governor import (
     resolve_low_confidence_reject,
 )
 from basis.domain.kb.governor_cluster import ENTITY_CLUSTER_KIND
-from basis.domain.kb.remember_service import STATEMENT_REVIEW_KIND
+from basis.domain.kb.services.remember_service import STATEMENT_REVIEW_KIND
 from basis.domain.kb.review_resolve import (
     approve_statement_remember_review,
     reject_statement_remember_review,

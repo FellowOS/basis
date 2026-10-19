@@ -10,7 +10,7 @@ from basis.integration.context import KbCoreContext
 from basis.integration.errors import CoreError
 from basis.domain.explorer.graph_read import find_path, list_neighbors, search_nodes
 from basis.domain.explorer.governance_decision import record_governance_decision_for_kb
-from basis.domain.kb.remember_service import propose_remember
+from basis.domain.kb.services.remember_service import propose_remember
 from basis.domain.kb.review_resolve import (
     approve_statement_remember_review,
     reject_statement_remember_review,

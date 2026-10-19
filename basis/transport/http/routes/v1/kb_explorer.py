@@ -518,7 +518,7 @@ Kb Reasoning Run. KB-local reasoning rules and runs. Requires KB membership (ses
         list(summary.get("inferred_facts") or []),
     )
     if payload.apply_to_graph and summary.get("mutated"):
-        from basis.domain.kb.derived_facts_service import persist_reasoning_derived
+        from basis.domain.kb.services.derived_facts_service import persist_reasoning_derived
 
         summary["derived_facts_persisted"] = persist_reasoning_derived(
             knowledge,

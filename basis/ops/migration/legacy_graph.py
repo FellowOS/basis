@@ -6,7 +6,7 @@ import json
 from dataclasses import dataclass, field
 from typing import Any
 
-from basis.domain.graph.persistence import GraphPersistence
+from basis.domain.graph.snapshot_store import GraphPersistence
 from basis.domain.graph.projector import apply_rebuild_to_session
 from basis.domain.graph.session import GraphSession
 from basis.domain.kb.store import KnowledgeStore

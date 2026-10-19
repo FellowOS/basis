@@ -7,7 +7,10 @@ from datetime import datetime, timezone
 
 from fastapi import FastAPI
 
-from basis.domain.kb.ingest_source_service import execute_ingest_source_sync, is_ingest_poll_due
+from basis.domain.kb.services.ingest_source_service import (
+    execute_ingest_source_sync,
+    is_ingest_poll_due,
+)
 from basis.infra.observability.log_context import correlation_log_extra
 
 logger = logging.getLogger(__name__)

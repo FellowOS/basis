@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from fastapi import FastAPI
 
 from basis.domain.graph.projector import apply_rebuild_to_session
-from basis.domain.kb.connector_mapping_schedule import is_connector_mapping_poll_due
+from basis.domain.kb.schedulers.connector_mapping_poll_due import is_connector_mapping_poll_due
 from basis.infra.observability.log_context import correlation_log_extra
 
 logger = logging.getLogger(__name__)

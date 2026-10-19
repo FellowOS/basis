@@ -28,6 +28,29 @@ KB canonical SQL lives under `basis/domain/kb/persistence/` (caller often holds 
 | `basis.domain.ontology` | `basis.ontology` |
 | `basis.domain.reasoning` | `basis.reasoning` |
 
+### `basis/domain/kb` layout
+
+| Location | Purpose |
+| --- | --- |
+| `store.py` | `KnowledgeStore` façade (lock, blob store, delegates) |
+| `persistence/` | Canonical ledger SQL (`conn` only; caller holds `_lock`) |
+| `access/` | Lock + validation + orchestration per slice |
+| `ledger_rows.py` | Row DTOs returned by store APIs |
+| `services/` | Multi-step workflows (`mapping_service`, `remember_service`, `ingest_source_service`, …) |
+| `schedulers/` | `*_poll_scheduler.py` ticks and `*_poll_due.py` schedule predicates |
+| `connector_sync.py` | Ledger-side BOCP sync (engine lives in `domain/connectors/`) |
+
+Delete shims at package root when all callers use `KnowledgeStore` methods.
+
+### Other domain packages
+
+| Package | Notes |
+| --- | --- |
+| `graph/snapshot_store.py` | On-disk ContextGraph JSON per KB — **not** SQL `persistence/` |
+| `graph/persistence.py` | Deprecated re-export of `snapshot_store` |
+| `explorer/graph_staging.py` | Staging **payload**; SQL in `kb/persistence/graph_staging.py` |
+| `connectors/` | BOCP runtime, vault crypto, adapters — no ledger SQL |
+
 ## Import rules
 
 1. **Domain** must not import `basis.transport`.

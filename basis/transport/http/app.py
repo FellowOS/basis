@@ -19,7 +19,7 @@ from basis.transport.http.routes.v1.mount import register_v1_api_routers
 from basis.infra.config import Settings
 from basis.infra.limits import RuntimeLimits
 from basis.infra.database import get_database
-from basis.domain.graph.persistence import GraphPersistence
+from basis.domain.graph.snapshot_store import GraphPersistence
 from basis.domain.kb.blob_store import BlobStore
 from basis.domain.explorer.registry import ExplorerSessionRegistry
 from basis.domain.kb.chunk_search import ChunkSearchService
@@ -68,9 +68,9 @@ async def _app_lifespan(app: FastAPI):
 
     poll_tick = int(getattr(app.state.settings, "http_poll_tick_seconds", 0) or 0)
     if poll_tick > 0:
-        from basis.domain.kb.ingest_poll_scheduler import run_due_http_polls
+        from basis.domain.kb.schedulers.ingest_poll_scheduler import run_due_http_polls
 
-        from basis.domain.kb.connector_poll_scheduler import run_due_connector_syncs
+        from basis.domain.kb.schedulers.connector_poll_scheduler import run_due_connector_syncs
 
         async def _poll_loop() -> None:
             while True:
@@ -82,7 +82,7 @@ async def _app_lifespan(app: FastAPI):
 
     governor_tick = int(getattr(app.state.settings, "governor_tick_seconds", 0) or 0)
     if governor_tick > 0:
-        from basis.domain.kb.governor_poll_scheduler import run_due_governor_passes
+        from basis.domain.kb.schedulers.governor_poll_scheduler import run_due_governor_passes
 
         async def _governor_loop() -> None:
             while True:

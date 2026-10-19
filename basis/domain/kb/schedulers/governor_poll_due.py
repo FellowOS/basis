@@ -1,12 +1,12 @@
-"""Schedule helpers for scheduled governor passes."""
+"""Whether a scheduled governor pass is due (interval from governance config)."""
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Any
 
 from basis.domain.kb.governance_config import GovernanceConfig
-from basis.domain.kb.ingest_source_service import is_ingest_poll_due
+from basis.domain.kb.services.ingest_source_service import is_ingest_poll_due
 
 
 def is_governor_due(config: GovernanceConfig, now: datetime) -> bool:

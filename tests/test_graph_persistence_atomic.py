@@ -6,7 +6,7 @@ import pytest
 
 pytest.importorskip("semantica")
 
-from basis.domain.graph.persistence import GraphPersistence
+from basis.domain.graph.snapshot_store import GraphPersistence
 from basis.domain.graph.session import GraphSession
 
 

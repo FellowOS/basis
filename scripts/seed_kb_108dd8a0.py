@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 
 from basis.transport.http.app import create_app
 from basis.infra.config import Settings
-from basis.domain.graph.persistence import GraphPersistence
+from basis.domain.graph.snapshot_store import GraphPersistence
 from basis.domain.graph.projector import apply_rebuild_to_session
 from basis.domain.graph.session import GraphSession
 from basis.domain.ingest.document import TextIngestOptions

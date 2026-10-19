@@ -14,7 +14,7 @@ from basis.platform.admin.errors import AdminError
 from basis.platform.admin.store import AdminStore, User
 from basis.transport.http.deps import get_current_user, get_knowledge_store, get_store, get_kb_for_viewer, get_kb_for_editor
 from basis.domain.kb.graph_audit import audit_kb_graph
-from basis.domain.kb.ingest_source_service import (
+from basis.domain.kb.services.ingest_source_service import (
     enqueue_text_from_source,
     execute_ingest_source_sync,
     record_ingest_source_event,

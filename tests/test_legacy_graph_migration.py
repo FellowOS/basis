@@ -5,7 +5,7 @@ import pytest
 pytest.importorskip("semantica")
 
 from basis.platform.admin.store import AdminStore
-from basis.domain.graph.persistence import GraphPersistence
+from basis.domain.graph.snapshot_store import GraphPersistence
 from basis.domain.graph.session import GraphSession
 from basis.domain.kb.blob_store import BlobStore
 from basis.domain.kb.store import KnowledgeStore

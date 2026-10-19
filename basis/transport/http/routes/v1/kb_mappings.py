@@ -10,7 +10,10 @@ from pydantic import BaseModel, Field
 from basis.platform.admin.store import AdminStore, User
 from basis.transport.http.deps import get_current_user, get_knowledge_store, get_store, get_kb_for_viewer, get_kb_for_editor
 from basis.domain.kb.graph_audit import audit_kb_graph
-from basis.domain.kb.mapping_service import apply_mapping_status_change, ensure_mapping_review_item
+from basis.domain.kb.services.mapping_service import (
+    apply_mapping_status_change,
+    ensure_mapping_review_item,
+)
 from basis.domain.kb.store import KnowledgeStore
 
 router = APIRouter(tags=["knowledge-bases"])
