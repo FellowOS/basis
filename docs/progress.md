@@ -136,7 +136,7 @@
 | F-CHAT-01–03 | Web KB Playground | `replaced` | — | 控制台问答已移除；智能体用 MCP（§0.1 **F-CHAT-04–05**） |
 | F-CHAT-06 | Playground 客户端控制 | `replaced` | — | 随 Playground 移除 |
 | F-ALT-01–02 | Alert episodes + SSE refetch | `done` | P1 | SSE + episode 分组 + **`?episode=` 高亮**；Processing/Review → 告警 episode 互链 + 告警页 **复制 episode 链接**；E2E `governance.spec.ts` / `processing-job.spec.ts` |
-| F-ACC-07 | Enterprise SSO / org | `partial` | P1 | OIDC + **OrgSsoPanel**（`auth_policy`）；登录 **`org-sso-options`** / **`org-sso-hint`** + 强制 SSO；E2E `org-sso-login.spec.ts`（mock IdP）；**本地 Logto 签收暂缓**（`docker/logto/` 保留待用）；剩余：**SAML**、生产 IdP 签收 |
+| F-ACC-07 | Enterprise SSO / org | `partial` | P1 | **OIDC** + **SAML 2.0**（`org_saml_configs`、`GET|PUT …/saml`、SP metadata/ACS/start；`uv sync --extra saml`）；**OrgSsoPanel** + **OrgSamlPanel**；登录发现含 `protocol`；[ADR 0006](architecture/0006-org-saml.md)；**Logto/生产 IdP 签收**仍 open |
 | F-IO-01 | Graph import/export | `done` | — | Import JSON/CSV → review；Export：**全图/子图 `node_ids`** + RDF/GraphML；**审计包**（图 JSON + 图审计 + projection；graph-diff 含 staging）；`tests/test_kb_explorer_routes.py` |
 | — | Markdown node resources persistence | `open` | P2 | Policy TBD |
 | — | Desktop profile（ADR 0004） | `deferred` | P2 | `main` 上 Phase A 可忽略（不设 `BASIS_DEPLOYMENT_PROFILE=desktop`）；Electron / Phase B+ 暂缓，优先 Server 能力 |
@@ -164,7 +164,7 @@
 | Phase | Focus | Checklist rows |
 | --- | --- | --- |
 | **Now** | Operational KB loop | §3.2 F-TIM（F-SRCH-03 done）；§3.1 治理/本体（F-ONT-05、F-GOV-07） |
-| **Next** | Ops + scale | §3.1 **F-ACC-07**（SAML / 生产 IdP） |
+| **Next** | Ops + scale | §3.1 **F-ACC-07**（生产 IdP 签收、SAML 加固：签名 AuthnRequest / SLO） |
 | **Deferred** | Desktop | ADR 0004 Phase B+（Electron）；不设 desktop env 即可 |
 | **Then** | Graph scale + I/O | §3.2 distance-matrix、F-IO-01；M5-02 Explorer 打包 |
 | **On demand** | Release engineering | §3.1 F-DIFF-01 工作室；§3.2 distance-matrix |

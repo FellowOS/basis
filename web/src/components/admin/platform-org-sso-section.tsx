@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { OrgSamlPanel } from '@/components/app/kb/widgets/kb-org-saml-panel.js';
 import { OrgSsoPanel } from '@/components/app/kb/widgets/kb-org-sso-panel.js';
 import { Label } from '@/components/ui/label.js';
 import {
@@ -98,6 +99,7 @@ export function PlatformOrgSsoSection({ siteBaseUrl }: { siteBaseUrl?: string })
         </p>
       ) : null}
       <OrgSsoPanel organizationId={selectedOrgId || null} siteBaseUrl={siteBaseUrl} />
+      <OrgSamlPanel organizationId={selectedOrgId || null} />
     </div>
   );
 }

@@ -5,8 +5,8 @@ from __future__ import annotations
 import urllib.parse
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
-from fastapi.responses import RedirectResponse
+from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request
+from fastapi.responses import RedirectResponse, Response
 from pydantic import BaseModel, EmailStr
 
 from basis.platform.admin.errors import AdminError
@@ -27,6 +27,13 @@ from basis.platform.auth.settings import AuthSettings, load_auth_settings_from_s
 from basis.platform.auth.org_login_policy import assert_local_login_allowed
 from basis.platform.auth.state import new_nonce, sign_oauth_state, verify_oauth_state
 from basis.platform.auth.http_paths import auth_v1_path
+from basis.platform.auth.saml_capabilities import saml_sp_available
+from basis.platform.auth.saml_client import (
+    build_saml_settings,
+    saml_login_redirect_url,
+    saml_metadata_xml,
+    saml_process_acs,
+)
 
 router = APIRouter(tags=["auth"])
 
@@ -66,19 +73,32 @@ Org Sso Options. List organizations with enabled OIDC for login-page SSO buttons
     public = settings.public_url.rstrip("/")
     options: list[dict[str, Any]] = []
     for org in store.list_enabled_org_sso_public():
-        if store.get_org_oidc_config(org.id) is None:
-            continue
-        login_path = auth_v1_path(f"oidc/{org.slug}/start")
-        options.append(
-            {
-                "organization_id": org.id,
-                "org_slug": org.slug,
-                "org_name": org.name,
-                "auth_policy": org.auth_policy,
-                "login_path": login_path,
-                "login_url": f"{public}{login_path}",
-            }
-        )
+        if store.get_org_oidc_config(org.id) is not None:
+            login_path = auth_v1_path(f"oidc/{org.slug}/start")
+            options.append(
+                {
+                    "organization_id": org.id,
+                    "org_slug": org.slug,
+                    "org_name": org.name,
+                    "auth_policy": org.auth_policy,
+                    "protocol": "oidc",
+                    "login_path": login_path,
+                    "login_url": f"{public}{login_path}",
+                }
+            )
+        if store.get_org_saml_config(org.id) is not None:
+            login_path = auth_v1_path(f"saml/{org.slug}/start")
+            options.append(
+                {
+                    "organization_id": org.id,
+                    "org_slug": org.slug,
+                    "org_name": org.name,
+                    "auth_policy": org.auth_policy,
+                    "protocol": "saml",
+                    "login_path": login_path,
+                    "login_url": f"{public}{login_path}",
+                }
+            )
     return {"options": options}
 
 
@@ -91,11 +111,12 @@ async def org_sso_hint(
     """
 Org Sso Hint. Resolve enabled org OIDC login by email domain (F-ACC-07).
     """
-    org = store.resolve_org_by_email_domain(email.strip())
-    if org is None or store.get_org_oidc_config(org.id) is None:
+    match = store.resolve_org_sso_for_email(email.strip())
+    if match is None:
         return {"available": False}
+    org, protocol = match
     settings = _auth_settings(request)
-    login_path = auth_v1_path(f"oidc/{org.slug}/start")
+    login_path = auth_v1_path(f"{protocol}/{org.slug}/start")
     public = settings.public_url.rstrip("/")
     policy = org.auth_policy
     return {
@@ -104,6 +125,7 @@ Org Sso Hint. Resolve enabled org OIDC login by email domain (F-ACC-07).
         "org_slug": org.slug,
         "org_name": org.name,
         "auth_policy": policy,
+        "protocol": protocol,
         "password_login_allowed": policy != "sso_required",
         "login_path": login_path,
         "login_url": f"{public}{login_path}",
@@ -122,6 +144,7 @@ Auth Providers. Authentication and session bootstrap. Public bootstrap; optional
         "google": settings.google_enabled,
         "magic_link": settings.magic_link_available,
         "org_oidc": True,
+        "org_saml": saml_sp_available(),
     }
 
 
@@ -327,6 +350,145 @@ Org Oidc Callback. Authentication and session bootstrap. Public bootstrap; optio
         display_name=userinfo.get("name") or userinfo.get("preferred_username"),
         organization_id=str(org_id),
         issuer=cfg["issuer"],
+    )
+    _ = user
+    return _redirect_with_token(settings, session)
+
+
+def _saml_sp_entity_id(settings: AuthSettings, org_slug: str, cfg: dict[str, Any]) -> str:
+    override = (cfg.get("sp_entity_id") or "").strip()
+    if override:
+        return override
+    return f"{settings.public_url.rstrip('/')}{auth_v1_path(f'saml/{org_slug}/metadata')}"
+
+
+def _saml_settings_for_org(
+    settings: AuthSettings,
+    org_slug: str,
+    cfg: dict[str, Any],
+) -> dict[str, Any]:
+    acs_url = settings.oauth_callback_url(auth_v1_path("saml/acs"))
+    sp_entity_id = _saml_sp_entity_id(settings, org_slug, cfg)
+    return build_saml_settings(
+        sp_entity_id=sp_entity_id,
+        acs_url=acs_url,
+        idp_entity_id=cfg["idp_entity_id"],
+        idp_sso_url=cfg["idp_sso_url"],
+        idp_x509_cert=cfg["idp_x509_cert"],
+    )
+
+
+@router.get("/saml/{org_slug}/metadata")
+async def org_saml_metadata(
+    org_slug: str,
+    request: Request,
+    store: AdminStore = Depends(get_store),
+) -> Response:
+    """
+Org Saml Metadata. SP metadata XML for IdP configuration (F-ACC-07 SAML).
+    """
+    if not saml_sp_available():
+        raise HTTPException(
+            status_code=503,
+            detail={"code": "saml_unavailable", "message": "SAML 未安装（uv sync --extra saml）"},
+        )
+    settings = _auth_settings(request)
+    org = store.get_org_by_slug(org_slug)
+    if org is None:
+        raise HTTPException(status_code=404, detail={"code": "not_found", "message": "组织不存在"})
+    cfg = store.get_org_saml_config(org.id)
+    if cfg is None:
+        raise HTTPException(status_code=404, detail={"code": "not_configured", "message": "组织 SAML 未配置"})
+    saml_settings = _saml_settings_for_org(settings, org.slug, cfg)
+    xml = saml_metadata_xml(saml_settings)
+    return Response(content=xml, media_type="application/samlmetadata+xml")
+
+
+@router.get("/saml/{org_slug}/start")
+async def org_saml_start(
+    org_slug: str,
+    request: Request,
+    store: AdminStore = Depends(get_store),
+) -> RedirectResponse:
+    """
+Org Saml Start. SP-initiated SAML login (F-ACC-07).
+    """
+    if not saml_sp_available():
+        raise HTTPException(
+            status_code=503,
+            detail={"code": "saml_unavailable", "message": "SAML 未安装（uv sync --extra saml）"},
+        )
+    settings = _auth_settings(request)
+    org = store.get_org_by_slug(org_slug)
+    if org is None:
+        raise HTTPException(status_code=404, detail={"code": "not_found", "message": "组织不存在"})
+    cfg = store.get_org_saml_config(org.id)
+    if cfg is None:
+        raise HTTPException(status_code=404, detail={"code": "not_configured", "message": "组织 SAML 未配置"})
+    relay_state = sign_oauth_state(
+        settings.state_secret,
+        {"provider": "saml", "org_id": org.id, "nonce": new_nonce()},
+    )
+    saml_settings = _saml_settings_for_org(settings, org.slug, cfg)
+    try:
+        redirect_url = saml_login_redirect_url(request, saml_settings, relay_state=relay_state)
+    except RuntimeError as exc:
+        raise HTTPException(
+            status_code=503,
+            detail={"code": "saml_unavailable", "message": str(exc)},
+        ) from exc
+    return RedirectResponse(redirect_url)
+
+
+@router.post("/saml/acs")
+async def org_saml_acs(
+    request: Request,
+    SAMLResponse: str = Form(...),  # noqa: N803
+    RelayState: str = Form(""),  # noqa: N803
+    store: AdminStore = Depends(get_store),
+) -> RedirectResponse:
+    """
+Org Saml Acs. SAML assertion consumer (POST binding, F-ACC-07).
+    """
+    if not saml_sp_available():
+        raise HTTPException(
+            status_code=503,
+            detail={"code": "saml_unavailable", "message": "SAML 未安装（uv sync --extra saml）"},
+        )
+    settings = _auth_settings(request)
+    try:
+        payload = verify_oauth_state(settings.state_secret, RelayState)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail={"code": "bad_state", "message": "无效 RelayState"}) from exc
+    org_id = payload.get("org_id")
+    if not org_id:
+        raise HTTPException(status_code=400, detail={"code": "bad_state", "message": "缺少 org_id"})
+    org = store.get_org_by_id(str(org_id))
+    if org is None:
+        raise HTTPException(status_code=404, detail={"code": "not_found", "message": "组织不存在"})
+    cfg = store.get_org_saml_config(str(org_id))
+    if cfg is None:
+        raise HTTPException(status_code=404, detail={"code": "not_configured", "message": "组织 SAML 未配置"})
+    saml_settings = _saml_settings_for_org(settings, org.slug, cfg)
+    try:
+        profile = saml_process_acs(
+            request,
+            saml_settings,
+            saml_response=SAMLResponse,
+            relay_state=RelayState,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail={"code": "saml_failed", "message": str(exc)}) from exc
+    subject = str(profile.get("subject") or "")
+    if not subject:
+        raise HTTPException(status_code=502, detail={"code": "upstream", "message": "IdP 未返回 NameID"})
+    user, session = store.login_or_register_federated(
+        provider="saml",
+        subject=subject,
+        email=profile.get("email"),
+        display_name=profile.get("display_name"),
+        organization_id=str(org_id),
+        issuer=cfg["idp_entity_id"],
     )
     _ = user
     return _redirect_with_token(settings, session)

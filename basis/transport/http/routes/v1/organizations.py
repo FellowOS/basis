@@ -164,3 +164,91 @@ Put Org Oidc. Organizations and OIDC SSO. Requires session JWT (`sessionAuth`).
     org = store.get_org_by_id(org_id)
     slug = org.slug if org else org_id
     return {"oidc": cfg, "login_path": auth_v1_path(f"oidc/{slug}/start")}
+
+
+class OrgSamlUpsert(BaseModel):
+    idp_entity_id: str
+    idp_sso_url: str
+    idp_x509_cert: str = ""
+    sp_entity_id: str = ""
+    email_domains: list[str] = Field(default_factory=list)
+    enabled: bool = True
+    auth_policy: str = "password_allowed"
+
+
+@router.get("/{org_id}/saml")
+async def get_org_saml(
+    org_id: str,
+    request: Request,
+    user: User = Depends(get_current_user),
+    store: AdminStore = Depends(get_store),
+) -> dict[str, Any]:
+    """
+Get Org Saml. Organization SAML 2.0 IdP settings (F-ACC-07). Requires session JWT (`sessionAuth`).
+    """
+    role = store.org_role(org_id, user.id)
+    if role is None and not user.is_admin:
+        raise HTTPException(status_code=403, detail={"code": "forbidden", "message": "没有权限"})
+    org = store.get_org_by_id(org_id)
+    if org is None:
+        raise HTTPException(status_code=404, detail={"code": "not_found", "message": "组织不存在"})
+    settings = _auth_settings(request)
+    slug = org.slug
+    login_path = auth_v1_path(f"saml/{slug}/start")
+    login_url = f"{settings.public_url.rstrip('/')}{login_path}"
+    acs_url = settings.oauth_callback_url(auth_v1_path("saml/acs"))
+    metadata_path = auth_v1_path(f"saml/{slug}/metadata")
+    metadata_url = f"{settings.public_url.rstrip('/')}{metadata_path}"
+    cfg = store.get_org_saml_settings(org_id)
+    can_edit = user.is_admin or (role is not None and role in ("owner", "admin"))
+    if cfg is None:
+        return {
+            "configured": False,
+            "can_edit": can_edit,
+            "organization": org.public(),
+            "login_path": login_path,
+            "login_url": login_url,
+            "acs_url": acs_url,
+            "metadata_url": metadata_url,
+        }
+    return {
+        "configured": True,
+        "can_edit": can_edit,
+        "organization": org.public(),
+        "idp_entity_id": cfg["idp_entity_id"],
+        "idp_sso_url": cfg["idp_sso_url"],
+        "sp_entity_id": cfg.get("sp_entity_id"),
+        "email_domains": cfg["email_domains"],
+        "enabled": cfg["enabled"],
+        "auth_policy": org.auth_policy,
+        "login_path": login_path,
+        "login_url": login_url,
+        "acs_url": acs_url,
+        "metadata_url": metadata_url,
+    }
+
+
+@router.put("/{org_id}/saml")
+async def put_org_saml(
+    org_id: str,
+    body: OrgSamlUpsert,
+    user: User = Depends(get_current_user),
+    store: AdminStore = Depends(get_store),
+) -> dict[str, Any]:
+    """
+Put Org Saml. Organization SAML 2.0 IdP settings (F-ACC-07). Requires session JWT (`sessionAuth`).
+    """
+    cfg = store.upsert_org_saml_config(
+        user,
+        org_id,
+        idp_entity_id=body.idp_entity_id,
+        idp_sso_url=body.idp_sso_url,
+        idp_x509_cert=body.idp_x509_cert,
+        sp_entity_id=body.sp_entity_id or None,
+        email_domains=body.email_domains,
+        enabled=body.enabled,
+        auth_policy=body.auth_policy,
+    )
+    org = store.get_org_by_id(org_id)
+    slug = org.slug if org else org_id
+    return {"saml": cfg, "login_path": auth_v1_path(f"saml/{slug}/start")}

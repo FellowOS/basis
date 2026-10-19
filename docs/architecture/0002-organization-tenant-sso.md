@@ -75,6 +75,6 @@ user_federated_identities
 
 ## Out of scope (later)
 
-- SAML（单独 ADR / `org_saml_configs`）
+- SAML — see [ADR 0006](0006-org-saml.md)（`org_saml_configs` shipped）
 - 一组织多套 OIDC（`org_oidc_configs.id` 多行 + 登录页选择 IdP）
 - 与 Fellow Gateway 账号联邦（可选同步，非本 ADR 要求）

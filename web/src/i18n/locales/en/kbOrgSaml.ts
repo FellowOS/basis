@@ -1,0 +1,27 @@
+export const kbOrgSaml = {
+  title: 'Organization SAML 2.0',
+  description:
+    'Configure a SAML identity provider for this organization. Users can sign in via SP-initiated SSO.',
+  notConfigured: 'SAML is not configured yet.',
+  configured: 'SAML IdP is configured.',
+  fields: {
+    idpEntityId: 'IdP Entity ID',
+    idpSsoUrl: 'IdP SSO URL',
+    idpCert: 'IdP x509 certificate',
+    spEntityId: 'SP Entity ID (optional)',
+    emailDomains: 'Email domains',
+    enabled: 'Enable SAML',
+    authPolicy: 'Sign-in policy',
+  },
+  idpEntityPlaceholder: 'https://idp.example.com/metadata',
+  idpSsoPlaceholder: 'https://idp.example.com/sso',
+  certPlaceholder: 'Paste PEM certificate (-----BEGIN CERTIFICATE----- …)',
+  certKeepHint: 'Leave blank to keep the existing certificate.',
+  spEntityHint: 'Defaults to SP metadata URL when empty.',
+  metadataUrlLabel: 'SP metadata URL',
+  acsUrlLabel: 'Assertion consumer URL (ACS)',
+  loginUrlLabel: 'SSO start URL',
+  save: 'Save SAML settings',
+  saving: 'Saving…',
+  saved: 'SAML settings saved',
+} as const;

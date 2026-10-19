@@ -399,4 +399,28 @@ def run_postgres_migrations(engine: Engine) -> list[int]:
                 },
             )
             applied_now.append(14)
+
+        saml_path = _migration_root() / "0014_org_saml_config.sql"
+        saml_source = saml_path.read_text(encoding="utf-8")
+        saml_checksum = _checksum(saml_source)
+        if 15 in applied:
+            if applied[15] != saml_checksum:
+                raise RuntimeError("PostgreSQL migration 15 checksum mismatch")
+        else:
+            for statement in _statements(_postgresize(saml_source)):
+                conn.exec_driver_sql(statement)
+            conn.execute(
+                text(
+                    """
+                    INSERT INTO schema_migrations(version, name, checksum, applied_at)
+                    VALUES (15, :name, :checksum, :applied_at)
+                    """
+                ),
+                {
+                    "name": saml_path.name,
+                    "checksum": saml_checksum,
+                    "applied_at": datetime.now(timezone.utc).isoformat(),
+                },
+            )
+            applied_now.append(15)
     return applied_now

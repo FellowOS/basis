@@ -29,6 +29,7 @@ import { kbSparql } from './kbSparql.js';
 import { kbLineage } from './kbLineage.js';
 import { kbSettings } from './kbSettings.js';
 import { kbOrgSso } from './kbOrgSso.js';
+import { kbOrgSaml } from './kbOrgSaml.js';
 import { platformSettings } from './platformSettings.js';
 import { kbOntology } from './kbOntology.js';
 import { kbAnalyze } from './kbAnalyze.js';
@@ -70,6 +71,7 @@ export const zh = {
   kbLineage,
   kbSettings,
   kbOrgSso,
+  kbOrgSaml,
   platformSettings,
   kbOntology,
   kbAnalyze,

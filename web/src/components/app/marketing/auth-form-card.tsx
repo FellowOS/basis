@@ -32,6 +32,7 @@ export type AuthProviders = {
   google: boolean;
   magic_link: boolean;
   org_oidc?: boolean;
+  org_saml?: boolean;
 };
 
 type OrgSsoHint = {
@@ -57,7 +58,7 @@ export async function loadAuthProviders(): Promise<AuthProviders> {
   try {
     return await publicOpenApiGET<AuthProviders>('/api/v1/auth/providers');
   } catch {
-    return { github: false, google: false, magic_link: false, org_oidc: true };
+    return { github: false, google: false, magic_link: false, org_oidc: true, org_saml: false };
   }
 }
 
@@ -98,6 +99,7 @@ export function AuthFormCard({ providers }: AuthFormCardProps) {
   const [magicNotice, setMagicNotice] = useState<string | null>(null);
   const [orgSsoHint, setOrgSsoHint] = useState<OrgSsoHint | null>(null);
   const [orgSsoOptions, setOrgSsoOptions] = useState<OrgSsoOption[]>([]);
+  const orgSsoEnabled = Boolean(providers?.org_oidc || providers?.org_saml);
   const resolver = useMemo(() => zodResolver(authSchemaForMode(mode)), [mode]);
   const isRegister = mode === 'register';
 
@@ -112,17 +114,17 @@ export function AuthFormCard({ providers }: AuthFormCardProps) {
   }, [mode]);
 
   useEffect(() => {
-    if (!providers?.org_oidc || isRegister || authPanel === 'magic') {
+    if (!orgSsoEnabled || isRegister || authPanel === 'magic') {
       setOrgSsoOptions([]);
       return;
     }
     void publicOpenApiGET<{ options?: OrgSsoOption[] }>('/api/v1/auth/org-sso-options')
       .then((body) => setOrgSsoOptions(body.options ?? []))
       .catch(() => setOrgSsoOptions([]));
-  }, [providers?.org_oidc, isRegister, authPanel]);
+  }, [orgSsoEnabled, isRegister, authPanel]);
 
   useEffect(() => {
-    if (!providers?.org_oidc || isRegister || authPanel === 'magic') {
+    if (!orgSsoEnabled || isRegister || authPanel === 'magic') {
       setOrgSsoHint(null);
       return;
     }
@@ -141,7 +143,7 @@ export function AuthFormCard({ providers }: AuthFormCardProps) {
         .catch(() => setOrgSsoHint(null));
     }, 400);
     return () => window.clearTimeout(timer);
-  }, [emailValue, providers?.org_oidc, isRegister, authPanel]);
+  }, [emailValue, orgSsoEnabled, isRegister, authPanel]);
 
   function switchMode(next: AuthMode) {
     setError(null);

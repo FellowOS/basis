@@ -330,52 +330,84 @@ class OrganizationAuthMixin:
             raise AdminError(403, "forbidden", "需要组织管理员")
         return role
 
-    def resolve_org_by_email_domain(self, email: str) -> Organization | None:
-        domain = email.split("@", 1)[-1].lower()
+    def _sso_domain_rows(self, table: str) -> list[Any]:
         with self._lock:
             try:
-                rows = self._conn.execute(
-                    """
+                return self._conn.execute(
+                    f"""
                     SELECT o.*, c.email_domains_json, c.enabled
-                    FROM org_oidc_configs c
+                    FROM {table} c
                     JOIN organizations o ON o.id = c.organization_id
                     WHERE c.enabled = 1
                     """
                 ).fetchall()
             except Exception as exc:
                 msg = str(exc).lower()
-                if "org_oidc_configs" in msg and (
-                    "does not exist" in msg or "no such table" in msg
-                ):
-                    return None
-                raise
-        for row in rows:
-            domains = parse_email_domains(row["email_domains_json"])
-            if domain in domains:
-                return _org_from_row(row)
-        return None
-
-    def list_enabled_org_sso_public(self) -> list[Organization]:
-        """Orgs with enabled OIDC (public login discovery; no secrets)."""
-        with self._lock:
-            try:
-                rows = self._conn.execute(
-                    """
-                    SELECT o.*
-                    FROM org_oidc_configs c
-                    JOIN organizations o ON o.id = c.organization_id
-                    WHERE c.enabled = 1
-                    ORDER BY o.name ASC
-                    """
-                ).fetchall()
-            except Exception as exc:
-                msg = str(exc).lower()
-                if "org_oidc_configs" in msg and (
-                    "does not exist" in msg or "no such table" in msg
-                ):
+                if table in msg and ("does not exist" in msg or "no such table" in msg):
                     return []
                 raise
-        return [_org_from_row(row) for row in rows]
+
+    def resolve_org_sso_for_email(self, email: str) -> tuple[Organization, str] | None:
+        """Return (organization, protocol) for ``oidc`` or ``saml`` domain match."""
+        domain = email.split("@", 1)[-1].lower()
+        oidc_match: Organization | None = None
+        for row in self._sso_domain_rows("org_oidc_configs"):
+            if domain in parse_email_domains(row["email_domains_json"]):
+                oidc_match = _org_from_row(row)
+                break
+        if oidc_match is not None and self.get_org_oidc_config(oidc_match.id):
+            return oidc_match, "oidc"
+        saml_match: Organization | None = None
+        for row in self._sso_domain_rows("org_saml_configs"):
+            if domain in parse_email_domains(row["email_domains_json"]):
+                saml_match = _org_from_row(row)
+                break
+        if saml_match is not None and self.get_org_saml_config(saml_match.id):
+            return saml_match, "saml"
+        if oidc_match is not None:
+            return oidc_match, "oidc"
+        return None
+
+    def resolve_org_by_email_domain(self, email: str) -> Organization | None:
+        match = self.resolve_org_sso_for_email(email)
+        return match[0] if match else None
+
+    def list_enabled_org_sso_public(self) -> list[Organization]:
+        """Orgs with enabled OIDC or SAML (public login discovery; no secrets)."""
+        seen: set[str] = set()
+        orgs: list[Organization] = []
+        with self._lock:
+            queries = (
+                """
+                SELECT o.*
+                FROM org_oidc_configs c
+                JOIN organizations o ON o.id = c.organization_id
+                WHERE c.enabled = 1
+                ORDER BY o.name ASC
+                """,
+                """
+                SELECT o.*
+                FROM org_saml_configs c
+                JOIN organizations o ON o.id = c.organization_id
+                WHERE c.enabled = 1
+                ORDER BY o.name ASC
+                """,
+            )
+            for sql in queries:
+                try:
+                    rows = self._conn.execute(sql).fetchall()
+                except Exception as exc:
+                    msg = str(exc).lower()
+                    if "no such table" in msg or "does not exist" in msg:
+                        continue
+                    raise
+                for row in rows:
+                    org = _org_from_row(row)
+                    if org.id in seen:
+                        continue
+                    seen.add(org.id)
+                    orgs.append(org)
+        return sorted(orgs, key=lambda o: o.name.lower())
 
     def _org_oidc_row_to_dict(self, row: Any) -> dict[str, Any]:
         return {
@@ -478,6 +510,119 @@ class OrganizationAuthMixin:
         cfg = self.get_org_oidc_settings(org_id)
         assert cfg is not None
         return {k: v for k, v in cfg.items() if k != "client_secret"}
+
+    def _org_saml_row_to_dict(self, row: Any) -> dict[str, Any]:
+        return {
+            "organization_id": row["organization_id"],
+            "idp_entity_id": row["idp_entity_id"],
+            "idp_sso_url": row["idp_sso_url"],
+            "idp_x509_cert": row["idp_x509_cert"],
+            "sp_entity_id": row["sp_entity_id"],
+            "email_domains": parse_email_domains(row["email_domains_json"]),
+            "enabled": bool(row["enabled"]),
+        }
+
+    def get_org_saml_settings(self, org_id: str) -> dict[str, Any] | None:
+        with self._lock:
+            try:
+                row = self._conn.execute(
+                    "SELECT * FROM org_saml_configs WHERE organization_id = ?",
+                    (org_id,),
+                ).fetchone()
+            except Exception as exc:
+                msg = str(exc).lower()
+                if "org_saml_configs" in msg and (
+                    "does not exist" in msg or "no such table" in msg
+                ):
+                    return None
+                raise
+        if row is None:
+            return None
+        return self._org_saml_row_to_dict(row)
+
+    def get_org_saml_config(self, org_id: str) -> dict[str, Any] | None:
+        cfg = self.get_org_saml_settings(org_id)
+        if cfg is None or not cfg["enabled"]:
+            return None
+        return cfg
+
+    def upsert_org_saml_config(
+        self,
+        actor: "User",
+        org_id: str,
+        *,
+        idp_entity_id: str,
+        idp_sso_url: str,
+        idp_x509_cert: str,
+        sp_entity_id: str | None = None,
+        email_domains: list[str] | None = None,
+        enabled: bool = True,
+        auth_policy: str | None = None,
+    ) -> dict[str, Any]:
+        self.require_org_admin(actor, org_id)
+        if auth_policy is not None and auth_policy not in ORG_AUTH_POLICIES:
+            raise AdminError(422, "bad_auth_policy", "auth_policy 无效")
+        entity_id = idp_entity_id.strip()
+        sso_url = idp_sso_url.strip()
+        if not entity_id:
+            raise AdminError(422, "bad_idp_entity_id", "IdP Entity ID 不能为空")
+        if not sso_url.startswith("http"):
+            raise AdminError(422, "bad_idp_sso_url", "IdP SSO URL 必须是 URL")
+        cert = idp_x509_cert.strip()
+        domains = [d.strip().lower() for d in (email_domains or []) if d.strip()]
+        now = _now()
+        with self._lock:
+            if self.get_org_by_id(org_id) is None:
+                raise AdminError(404, "not_found", "组织不存在")
+            if not cert:
+                existing = self.get_org_saml_settings(org_id)
+                if existing is None:
+                    raise AdminError(422, "missing_cert", "IdP x509 证书不能为空")
+                cert = existing["idp_x509_cert"]
+            sp_override = (sp_entity_id or "").strip() or None
+            self._conn.execute(
+                """
+                INSERT INTO org_saml_configs(
+                    organization_id, idp_entity_id, idp_sso_url, idp_x509_cert,
+                    sp_entity_id, email_domains_json, enabled, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(organization_id) DO UPDATE SET
+                    idp_entity_id = excluded.idp_entity_id,
+                    idp_sso_url = excluded.idp_sso_url,
+                    idp_x509_cert = excluded.idp_x509_cert,
+                    sp_entity_id = excluded.sp_entity_id,
+                    email_domains_json = excluded.email_domains_json,
+                    enabled = excluded.enabled,
+                    updated_at = excluded.updated_at
+                """,
+                (
+                    org_id,
+                    entity_id,
+                    sso_url,
+                    cert,
+                    sp_override,
+                    json.dumps(domains, ensure_ascii=False),
+                    int(enabled),
+                    now,
+                    now,
+                ),
+            )
+            if auth_policy is not None:
+                self._conn.execute(
+                    "UPDATE organizations SET auth_policy = ? WHERE id = ?",
+                    (auth_policy, org_id),
+                )
+            self._audit(
+                actor.id,
+                "org.saml_updated",
+                "organization",
+                org_id,
+                {"idp_entity_id": entity_id, "enabled": enabled, "auth_policy": auth_policy},
+            )
+            self._conn.commit()
+        cfg = self.get_org_saml_settings(org_id)
+        assert cfg is not None
+        return cfg
 
     def login_or_register_federated(
         self,
