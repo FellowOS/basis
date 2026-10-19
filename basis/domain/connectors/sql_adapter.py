@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from datetime import date, datetime
 from typing import Any
 from urllib.parse import quote_plus
 
@@ -186,6 +187,29 @@ class SqlAlchemyStreamAdapter:
             fields=fields,
         )
 
+    @staticmethod
+    def _coerce_cursor_watermark(column: Any, value: Any) -> Any:
+        """Align checkpoint watermarks with reflected column types (e.g. PG timestamptz)."""
+        if value is None:
+            return None
+        col_type = getattr(column, "type", None)
+        if isinstance(col_type, (DateTime, Date)):
+            if isinstance(value, datetime):
+                return value
+            if isinstance(value, date) and not isinstance(value, datetime):
+                return value
+            if isinstance(value, str):
+                text_value = value.strip()
+                if text_value.endswith("Z"):
+                    text_value = f"{text_value[:-1]}+00:00"
+                parsed = datetime.fromisoformat(text_value)
+                if isinstance(col_type, DateTime):
+                    return parsed
+                if isinstance(col_type, Date):
+                    return parsed.date()
+                return parsed
+        return value
+
     def _reflect_table(self, external_table: str) -> Table:
         schema_name, table_name = split_schema_and_table(
             external_table, self._default_schema
@@ -224,7 +248,8 @@ class SqlAlchemyStreamAdapter:
                 )
             cur_col = table.c[cursor_column]
             if cursor_watermark is not None:
-                stmt = stmt.where(cur_col >= cursor_watermark)
+                bound = self._coerce_cursor_watermark(cur_col, cursor_watermark)
+                stmt = stmt.where(cur_col >= bound)
             stmt = stmt.order_by(cur_col.asc(), pk_col.asc())
         else:
             stmt = stmt.order_by(pk_col.asc())
