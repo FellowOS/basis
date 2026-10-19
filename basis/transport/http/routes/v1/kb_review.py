@@ -256,7 +256,7 @@ Approve Review Item. Human review queue for merges, imports, and conflicts. Requ
             payload = item["payload"]
             primary_id = str(payload.get("primary_id") or "")
             duplicate_ids = [str(d) for d in payload.get("duplicate_ids") or []]
-            decision_id = record_governance_decision_for_kb(
+            graph_decision_id = record_governance_decision_for_kb(
                 request,
                 kb_id,
                 message="Review approve: entity_merge",
@@ -266,6 +266,17 @@ Approve Review Item. Human review queue for merges, imports, and conflicts. Requ
                     "duplicate_ids": duplicate_ids,
                 },
                 actor_id=user.id,
+            )
+            decision_id = knowledge.record_agent_decision(
+                kb_id,
+                action="approve_entity_merge",
+                review_item_id=item_id,
+                rationale=body.rationale,
+                trace={
+                    "primary_id": primary_id,
+                    "duplicate_ids": duplicate_ids,
+                    "graph_decision_id": graph_decision_id,
+                },
             )
 
             if _ledger_entity_merge_ids(knowledge, kb_id, primary_id, duplicate_ids):

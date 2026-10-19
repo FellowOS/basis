@@ -148,6 +148,13 @@ MCP tools are a **named subset** of core operations. Each tool:
 | `get_review_item` | `GET .../review/items/{item_id}` |
 | `approve_statement_remember_review` | `POST .../review/items/{item_id}/approve` *(statement_remember only)* |
 | `reject_statement_remember_review` | `POST .../review/items/{item_id}/reject` *(statement_remember only)* |
+| `list_connector_catalog` | `GET .../connectors/catalog` |
+| `describe_connector_service` | `GET .../connectors/catalog/{service_id}` |
+| `list_connector_connections` | `GET .../connectors/connections` |
+| `list_connector_table_mappings` | `GET .../connectors/table-mappings` |
+| `sync_connector_table_mapping` | `POST .../connectors/table-mappings/{mapping_id}/sync` |
+| `execute_connector_tool` | `POST .../connectors/connections/{connection_id}/tools/{tool_name}` |
+| `propose_entity_writeback` | `POST .../connectors/writeback/proposals` |
 
 `list_processing_jobs` is **HTTP/core only** (`mcp: false`) — ingest ops, not part of the minimal graph loop.
 

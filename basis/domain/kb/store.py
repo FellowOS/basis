@@ -3048,6 +3048,45 @@ class KnowledgeStore:
             ).fetchone()
         return row is not None
 
+    def record_agent_decision(
+        self,
+        kb_id: str,
+        *,
+        action: str,
+        review_item_id: str | None = None,
+        rationale: str | None = None,
+        trace: dict[str, Any] | None = None,
+        status: str = "applied",
+        confidence: float = 1.0,
+        decision_id: str | None = None,
+    ) -> str:
+        """Insert a ledger `agent_decisions` row (FK target for merges, outbox, etc.)."""
+        resolved_id = decision_id or f"dec_{uuid.uuid4().hex[:16]}"
+        now = _now()
+        with self._lock:
+            self._conn.execute(
+                """
+                INSERT INTO agent_decisions (
+                    id, kb_id, review_item_id, action, status, confidence,
+                    rationale, trace_json, created_at, applied_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    resolved_id,
+                    kb_id,
+                    review_item_id,
+                    action,
+                    status,
+                    confidence,
+                    rationale,
+                    json.dumps(trace or {}, default=str),
+                    now,
+                    now if status == "applied" else None,
+                ),
+            )
+            self._conn.commit()
+        return resolved_id
+
     def record_entity_merge(
         self,
         kb_id: str,
