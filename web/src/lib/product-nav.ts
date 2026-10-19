@@ -1,6 +1,6 @@
 /** Public marketing site navigation (product home + docs). */
 
-export type ProductNavKey = 'product' | 'capabilities' | 'developers' | 'selfHost' | 'pricing';
+export type ProductNavKey = 'product' | 'capabilities' | 'developers' | 'selfHost';
 
 export type ProductNavItem = {
   key: ProductNavKey;
@@ -22,7 +22,6 @@ export const PRODUCT_NAV: ProductNavItem[] = [
   { key: 'product', to: '/', hash: 'product' },
   { key: 'capabilities', to: '/', hash: 'capabilities' },
   { key: 'selfHost', to: '/', hash: 'self-host' },
-  { key: 'pricing', to: '/', hash: 'pricing' },
 ];
 
 export const PRODUCT_DEVELOPER_LINKS: ProductDeveloperLink[] = [

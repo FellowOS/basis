@@ -22,9 +22,6 @@ export function ProductSiteFooter({ className, splitLayout = true }: ProductSite
         className,
       )}
     >
-      <p id="pricing" className="sr-only">
-        {m.nav.pricing}
-      </p>
       <p>{fmt(m.footerCopyright, { year })}</p>
     </footer>
   );

@@ -11,7 +11,7 @@ export const docs = {
       navTitle: 'Overview',
       title: 'Basis developer documentation',
       description:
-        'Self-hosted knowledge platform: evidence ledger, graph and search projections, OpenAPI v1 HTTP, and MCP for agents.',
+        'Ontology-driven agent context service: evidence ledger, ontologies, 1,000+ declarative connectors, OpenAPI v1, and MCP.',
       sections: [
         {
           heading: 'What you can build on',

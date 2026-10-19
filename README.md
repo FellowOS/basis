@@ -1,8 +1,8 @@
 # Basis
 
-**The Business Context & State Service for Agents** — give AI agents verifiable enterprise context and governed state mutations across documents, databases, and 1,000+ business systems.
+**Ontology-driven agent context service** — give AI agents verifiable enterprise context and governed state mutations across documents, databases, and 1,000+ business systems.
 
-Basis is an open-source **Agent Context & State Service** built on the [Semantica](https://github.com/semantica-agi/semantica) Python SDK: a **FastAPI backend** (`basis`) plus a **React studio** (`@basis/web`). It connects unstructured documents, relational databases (`postgres`/`mysql`), and 1,000+ SaaS apps (via the declarative **BOCP** engine), aligns them through business ontologies into a canonical **evidence ledger**, and exposes high-semantic read/write interfaces to agents via **OpenAPI v1** and **MCP**—with human-in-the-loop review gates for every state mutation.
+Basis is an open-source **ontology-driven agent context service** built on the [Semantica](https://github.com/semantica-agi/semantica) Python SDK: a **FastAPI backend** (`basis`) plus a **React studio** (`@basis/web`). It connects unstructured documents, relational databases (`postgres`/`mysql`), and 1,000+ SaaS apps (via the declarative **BOCP** engine), aligns them through business ontologies into a canonical **evidence ledger**, and exposes high-semantic read/write interfaces to agents via **OpenAPI v1** and **MCP**—with human-in-the-loop review gates for every state mutation.
 
 [简体中文](./README.zh-CN.md) · [Documentation](./docs/README.md) · [API reference](http://127.0.0.1:5173/swagger) (web dev: `/swagger`; spec at `/openapi/v1.json`)
 

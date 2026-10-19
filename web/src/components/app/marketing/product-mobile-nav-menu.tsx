@@ -75,12 +75,7 @@ export function ProductMobileNavMenu({ onGetStarted }: ProductMobileNavMenuProps
       {
         id: 'selfHost',
         label: m.nav.selfHost,
-        href: productNavHref(PRODUCT_NAV[2]),
-      },
-      {
-        id: 'pricing',
-        label: m.nav.pricing,
-        href: productNavHref(PRODUCT_NAV[3]),
+        href: productNavHref(PRODUCT_NAV.find((item) => item.key === 'selfHost')!),
       },
     ];
   }, [m]);

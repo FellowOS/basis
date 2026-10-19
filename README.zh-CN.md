@@ -1,8 +1,8 @@
 # Basis
 
-**面向智能体的业务上下文与状态服务（The Business Context & State Service for Agents）** — 让智能体读懂企业真实上下文，并在审批边界内安全改写业务状态。
+**本体驱动的智能体上下文服务（Ontology-driven agent context service）** — 让智能体读懂企业真实上下文，并在审批边界内安全改写业务状态。
 
-Basis 是基于 [Semantica](https://github.com/semantica-agi/semantica) Python SDK 构建的智能体上下文与状态服务底座：**FastAPI 后端**（`basis`）+ **React 建模与治理工作台**（`@basis/web`）。它将企业散乱的文档、关系型数据库（`postgres`/`mysql`）与 1,000+ SaaS 系统（通过声明式 **BOCP** 引擎）统一对齐为**证据账本与业务对象**，并向智能体暴露标准的 **OpenAPI v1 与 MCP 服务接口**——实现读取可溯源、状态写回必经审批。
+Basis 是基于 [Semantica](https://github.com/semantica-agi/semantica) Python SDK 构建的本体驱动智能体上下文服务底座：**FastAPI 后端**（`basis`）+ **React 建模与治理工作台**（`@basis/web`）。它将企业散乱的文档、关系型数据库（`postgres`/`mysql`）与 1,000+ SaaS 系统（通过声明式 **BOCP** 引擎）统一对齐为**证据账本与业务对象**，并向智能体暴露标准的 **OpenAPI v1 与 MCP 服务接口**——实现读取可溯源、状态写回必经审批。
 
 [English](./README.md) · [文档索引](./docs/README.md) · [接口参考](http://127.0.0.1:5173/swagger)（web dev：`/swagger`；规范 `/openapi/v1.json`）
 

@@ -10,7 +10,7 @@ export const docs = {
     overview: {
       navTitle: '概述',
       title: 'Basis 开发者文档',
-      description: '可私有化部署的知识平台：证据账本、图谱与检索投影、OpenAPI v1 HTTP，以及面向智能体的 MCP。',
+      description: '本体驱动的智能体上下文服务：证据账本、业务本体、1,000+ 声明式连接器，以及标准 OpenAPI v1 与 MCP 接口。',
       sections: [
         {
           heading: '可依赖的能力',
