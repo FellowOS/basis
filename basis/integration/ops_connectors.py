@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import date, datetime
 from typing import Any
 
-from basis.domain.connectors import ConnectorRuntime, get_connector_catalog
+from basis.domain.connectors import get_connector_catalog
 from basis.domain.kb.connector_mapping_schedule import poll_interval_minutes_for_mapping
 from basis.domain.kb.connector_sync import ConnectorLedgerSyncService
 from fastapi import HTTPException
@@ -32,8 +32,7 @@ def _require_kb_editor(ctx: KbCoreContext) -> None:
 
 
 def _connector_service(ctx: KbCoreContext) -> ConnectorLedgerSyncService:
-    runtime = ConnectorRuntime(ctx.knowledge._conn)
-    return ConnectorLedgerSyncService(ctx.knowledge._conn, runtime)
+    return ctx.knowledge.connector_sync_service()
 
 
 def _require_kb_viewer(ctx: KbCoreContext) -> None:
@@ -45,7 +44,7 @@ def _require_kb_viewer(ctx: KbCoreContext) -> None:
 
 
 def _filter_manifests_for_kb(ctx: KbCoreContext, manifests: list[Any]) -> list[Any]:
-    runtime = ConnectorRuntime(ctx.knowledge._conn)
+    runtime = ctx.knowledge.connector_runtime()
     effective = runtime.vault.effective_allowed_providers(ctx.kb.id)
     if effective == "*":
         return manifests
@@ -118,7 +117,7 @@ def op_describe_connector_service(ctx: KbCoreContext, args: dict[str, Any]) -> d
 def op_list_connector_connections(ctx: KbCoreContext, args: dict[str, Any]) -> dict[str, Any]:
     _require_kb_viewer(ctx)
     service = str(args.get("service") or "").strip() or None
-    runtime = ConnectorRuntime(ctx.knowledge._conn)
+    runtime = ctx.knowledge.connector_runtime()
     connections = runtime.vault.list_connections(ctx.kb.id, service=service)
     return {
         "connections": [
@@ -137,17 +136,11 @@ def op_list_connector_connections(ctx: KbCoreContext, args: dict[str, Any]) -> d
 def op_list_connector_table_mappings(ctx: KbCoreContext, args: dict[str, Any]) -> dict[str, Any]:
     _require_kb_viewer(ctx)
     svc = _connector_service(ctx)
-    rows = ctx.knowledge._conn.execute(
-        """
-        SELECT id FROM source_table_mappings
-        WHERE kb_id = ?
-        ORDER BY created_at DESC
-        LIMIT ?
-        """,
-        (ctx.kb.id, min(max(1, int(args.get("limit") or 50)), 200)),
-    ).fetchall()
+    mapping_limit = min(max(1, int(args.get("limit") or 50)), 200)
     items: list[dict[str, Any]] = []
-    for (mapping_id,) in rows:
+    for mapping_id in ctx.knowledge.list_source_table_mapping_ids(
+        ctx.kb.id, limit=mapping_limit
+    ):
         rec = svc.get_table_mapping(ctx.kb.id, mapping_id)
         if not rec:
             continue
@@ -207,7 +200,7 @@ def op_execute_connector_tool(ctx: KbCoreContext, args: dict[str, Any]) -> dict[
     if arguments is not None and not isinstance(arguments, dict):
         return {"error": "arguments must be an object"}
     _require_kb_editor(ctx)
-    runtime = ConnectorRuntime(ctx.knowledge._conn)
+    runtime = ctx.knowledge.connector_runtime()
     try:
         return runtime.execute_tool(
             ctx.kb.id,

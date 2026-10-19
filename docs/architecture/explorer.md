@@ -328,18 +328,17 @@ Workspace components obtain this client through `ExplorerProvider`. The Basis im
 All root-relative `fetch('/api/...')` and direct `new WebSocket('/ws/...')` calls in reused
 workspaces must move behind this client before consumption.
 
-### 7.2 Packaging
+### 7.2 Packaging (Basis)
 
-Preferred order:
+**Basis 产品决策**：图/本体等工作区 UI 以 **semantica Explorer 源码为基础在仓库内演进**（`web/src/explorer`，见 `web/src/explorer/README.md`），**不**发布或依赖独立的 npm Explorer 包。与上游同步以 **选择性 cherry-pick / 按提交或按文件移植** 为主，保留 Basis 补丁（`host/explorerHttp`、KB API 前缀、主题/WS）；避免整树 `rsync --delete`。
 
-1. Refactor `/Users/rog/Desktop/projects/semantica/explorer` to export workspace components and
-   `ExplorerProvider` from a reusable package entry.
-2. Consume that pinned package/source from `web`.
-3. Keep the full Explorer SPA build for semantica's own product; Basis imports only workspaces.
+仍须遵守：
 
-If upstream packaging cannot be changed immediately, Basis may port a narrowly selected workspace
-with an explicit upstream commit reference and sync notes. Do not import arbitrary files through
-Vite paths outside the package boundary in production, and do not copy the full `App.tsx`.
+- 不引入 standalone Explorer `App.tsx` 作为 Basis 入口；由 `kb-*-workspace` 懒加载工作区。
+- HTTP/WS 经 `ExplorerHostProvider` / `ExplorerClient` 注入，不写死全局 `/api/graph`。
+- 可选：semantica 上游仍可维护自己的 SPA 与包入口；Basis 不以此作为交付前提。
+
+（历史草案：将 upstream 打成 npm 包再由 `web` 消费——**对 Basis 为非目标**，progress **M5-02 `excluded`**。）
 
 ### 7.3 Shell and visual ownership
 

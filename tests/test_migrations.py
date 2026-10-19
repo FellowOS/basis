@@ -8,6 +8,10 @@ from basis.platform.admin.migrations import MigrationError, load_migrations, run
 from basis.platform.admin.store import AdminStore
 
 
+def _expected_migration_versions() -> list[int]:
+    return [m.version for m in load_migrations()]
+
+
 def _legacy_baseline_only(db_path: Path) -> None:
     """Database created before the migration runner existed."""
     conn = sqlite3.connect(db_path)
@@ -54,7 +58,7 @@ def test_fresh_database_applies_all_migrations(tmp_path: Path) -> None:
         for row in store._conn.execute("SELECT version FROM schema_migrations ORDER BY version")
     }
     store.close()
-    assert versions == {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12}
+    assert versions == set(_expected_migration_versions())
 
     conn = sqlite3.connect(db_path)
     tables = {
@@ -76,6 +80,7 @@ def test_fresh_database_applies_all_migrations(tmp_path: Path) -> None:
     assert "source_table_mappings" in tables
     assert "entity_external_refs" in tables
     assert "entity_sync_outbox" in tables
+    assert "kb_governance_configs" in tables
 
 
 def test_migrations_are_idempotent(tmp_path: Path) -> None:
@@ -84,7 +89,7 @@ def test_migrations_are_idempotent(tmp_path: Path) -> None:
     first = run_migrations(conn)
     second = run_migrations(conn)
     conn.close()
-    assert first == [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+    assert first == _expected_migration_versions()
     assert second == []
 
 
@@ -102,7 +107,7 @@ def test_legacy_database_upgrades_without_data_loss(tmp_path: Path) -> None:
         row[0]
         for row in store._conn.execute("SELECT version FROM schema_migrations ORDER BY version")
     ]
-    assert versions == [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+    assert versions == _expected_migration_versions()
     store.close()
 
 
@@ -126,5 +131,8 @@ def test_checksum_mismatch_fails(tmp_path: Path) -> None:
 
 def test_load_migrations_sorted() -> None:
     migrations = load_migrations()
-    assert [m.version for m in migrations] == [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+    versions = [m.version for m in migrations]
+    assert versions == sorted(versions)
+    assert versions and versions[0] == 1
+    assert versions == list(range(1, len(versions) + 1))
     assert migrations[0].checksum != migrations[1].checksum

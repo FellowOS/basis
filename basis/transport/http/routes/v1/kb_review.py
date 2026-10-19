@@ -446,14 +446,9 @@ Approve Review Item. Human review queue for merges, imports, and conflicts. Requ
                 approve_action = "kb.statement.conflict_acknowledged"
                 merge_result = {"status": "acknowledged", "payload": payload}
         elif item["kind"] == "connector_writeback":
-            from basis.domain.connectors import ConnectorRuntime
-            from basis.domain.kb.connector_sync import ConnectorLedgerSyncService
-
             approve_action = "kb.connector.writeback_approved"
             outbox_id = str((item.get("payload") or {}).get("outbox_id") or item["subject_id"])
-            sync_svc = ConnectorLedgerSyncService(
-                knowledge._conn, ConnectorRuntime(knowledge._conn)
-            )
+            sync_svc = knowledge.connector_sync_service()
             executed_outbox = sync_svc.approve_and_execute_outbox(
                 kb_id,
                 outbox_id,
@@ -621,11 +616,7 @@ Reject Review Item. Human review queue for merges, imports, and conflicts. Requi
         )
     elif item.get("kind") == "connector_writeback":
         outbox_id = str((item.get("payload") or {}).get("outbox_id") or item["subject_id"])
-        knowledge._conn.execute(
-            "UPDATE entity_sync_outbox SET status = 'rejected' WHERE id = ? AND kb_id = ?",
-            (outbox_id, kb_id),
-        )
-        knowledge._conn.commit()
+        knowledge.reject_entity_sync_outbox(kb_id, outbox_id)
     resolved = knowledge.resolve_review_item(
         kb_id,
         item_id,

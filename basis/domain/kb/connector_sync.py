@@ -9,12 +9,13 @@ from typing import Any, Literal
 import uuid
 
 from basis.domain.connectors.runtime import ConnectorRuntime, UnifiedReadResult
+from basis.domain.connectors.canonical_db import LockedCanonicalConn, is_knowledge_store
+from basis.domain.kb.persistence import ConnectorSyncPersistence
 from basis.domain.kb.structured_models import (
     ColumnMappingSpec,
     ConnectorSourceConfig,
     OutboxFieldChange,
     OutboxPatchSpec,
-    StructuredImportProvenance,
     compute_canonical_row_hash,
 )
 
@@ -62,9 +63,15 @@ class InboundSyncStats:
 class ConnectorLedgerSyncService:
     """Orchestrates inbound stream-to-ledger sync and outbound ledger-to-stream writeback."""
 
-    def __init__(self, conn: Any, runtime: ConnectorRuntime) -> None:
-        self._conn = conn
+    def __init__(self, knowledge_or_conn: Any, runtime: ConnectorRuntime) -> None:
+        self._store = knowledge_or_conn if is_knowledge_store(knowledge_or_conn) else None
+        locked = LockedCanonicalConn(knowledge_or_conn)
         self.runtime = runtime
+        self._persist = (
+            knowledge_or_conn.connector_sync_persistence()
+            if self._store is not None
+            else ConnectorSyncPersistence(locked)
+        )
 
     # ── Mapping CRUD ─────────────────────────────────────────────────────────
 
@@ -98,40 +105,27 @@ class ConnectorLedgerSyncService:
         if poll_interval_minutes > 0:
             checkpoint["poll_interval_minutes"] = int(poll_interval_minutes)
         checkpoint_json = json.dumps(checkpoint, ensure_ascii=False)
-        self._conn.execute(
-            """
-            INSERT INTO source_table_mappings (
-                id, kb_id, source_id, stream_name, external_table,
-                stream_params_json, primary_key_column, cursor_column,
-                label_column, target_class_uri, column_mappings_json,
-                sync_mode, track_deletes, checkpoint_json,
-                sync_direction, writeback_mode, max_rows, status,
-                created_at, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, ?)
-            """,
-            (
-                mapping_id,
-                kb_id,
-                source_id,
-                stream_name,
-                external_table,
-                json.dumps(stream_params or {}, ensure_ascii=False),
-                primary_key_column,
-                cursor_column,
-                label_column,
-                target_class_uri,
-                cols_json,
-                sync_mode,
-                1 if track_deletes else 0,
-                checkpoint_json,
-                sync_direction,
-                writeback_mode,
-                max_rows,
-                now,
-                now,
-            ),
+        self._persist.insert_table_mapping(
+            mapping_id=mapping_id,
+            kb_id=kb_id,
+            source_id=source_id,
+            stream_name=stream_name,
+            external_table=external_table,
+            stream_params_json=json.dumps(stream_params or {}, ensure_ascii=False),
+            primary_key_column=primary_key_column,
+            cursor_column=cursor_column,
+            label_column=label_column,
+            target_class_uri=target_class_uri,
+            column_mappings_json=cols_json,
+            sync_mode=sync_mode,
+            track_deletes=1 if track_deletes else 0,
+            checkpoint_json=checkpoint_json,
+            sync_direction=sync_direction,
+            writeback_mode=writeback_mode,
+            max_rows=max_rows,
+            created_at=now,
+            updated_at=now,
         )
-        self._conn.commit()
         rec = self.get_table_mapping(kb_id, mapping_id)
         assert rec is not None
         return rec
@@ -171,18 +165,11 @@ class ConnectorLedgerSyncService:
                 }
             )
             now = _now_iso()
-            self._conn.execute(
-                """
-                UPDATE ingest_sources
-                SET config_json = ?, updated_at = ?
-                WHERE kb_id = ? AND id = ? AND deleted_at IS NULL
-                """,
-                (
-                    json.dumps(merged.model_dump(mode="json", exclude_none=True)),
-                    now,
-                    kb_id,
-                    existing.source_id,
-                ),
+            self._persist.update_ingest_source_config(
+                kb_id,
+                existing.source_id,
+                json.dumps(merged.model_dump(mode="json", exclude_none=True)),
+                now,
             )
 
         now = _now_iso()
@@ -196,58 +183,31 @@ class ConnectorLedgerSyncService:
         else:
             new_checkpoint.pop("poll_interval_minutes", None)
         checkpoint_json = json.dumps(new_checkpoint, ensure_ascii=False)
-        self._conn.execute(
-            """
-            UPDATE source_table_mappings SET
-                stream_name = ?,
-                external_table = ?,
-                stream_params_json = ?,
-                primary_key_column = ?,
-                cursor_column = ?,
-                label_column = ?,
-                target_class_uri = ?,
-                column_mappings_json = ?,
-                sync_mode = ?,
-                track_deletes = ?,
-                checkpoint_json = ?,
-                sync_direction = ?,
-                writeback_mode = ?,
-                max_rows = ?,
-                updated_at = ?
-            WHERE kb_id = ? AND id = ?
-            """,
-            (
-                stream_name,
-                external_table,
-                json.dumps(stream_params or {}, ensure_ascii=False),
-                primary_key_column,
-                cursor_column,
-                label_column,
-                target_class_uri,
-                cols_json,
-                sync_mode,
-                1 if track_deletes else 0,
-                checkpoint_json,
-                sync_direction,
-                writeback_mode,
-                max_rows,
-                now,
-                kb_id,
-                mapping_id,
-            ),
+        self._persist.update_table_mapping(
+            stream_name=stream_name,
+            external_table=external_table,
+            stream_params_json=json.dumps(stream_params or {}, ensure_ascii=False),
+            primary_key_column=primary_key_column,
+            cursor_column=cursor_column,
+            label_column=label_column,
+            target_class_uri=target_class_uri,
+            column_mappings_json=cols_json,
+            sync_mode=sync_mode,
+            track_deletes=1 if track_deletes else 0,
+            checkpoint_json=checkpoint_json,
+            sync_direction=sync_direction,
+            writeback_mode=writeback_mode,
+            max_rows=max_rows,
+            updated_at=now,
+            kb_id=kb_id,
+            mapping_id=mapping_id,
         )
-        self._conn.commit()
         rec = self.get_table_mapping(kb_id, mapping_id)
         assert rec is not None
         return rec
 
     def delete_table_mapping(self, kb_id: str, mapping_id: str) -> bool:
-        cur = self._conn.execute(
-            "DELETE FROM source_table_mappings WHERE kb_id = ? AND id = ?",
-            (kb_id, mapping_id),
-        )
-        self._conn.commit()
-        return (cur.rowcount or 0) > 0
+        return self._persist.delete_table_mapping(kb_id, mapping_id) > 0
 
     def get_mapping_connection_binding(
         self, kb_id: str, source_id: str
@@ -257,19 +217,7 @@ class ConnectorLedgerSyncService:
     def get_table_mapping(
         self, kb_id: str, mapping_id: str
     ) -> SourceTableMappingRecord | None:
-        row = self._conn.execute(
-            """
-            SELECT id, kb_id, source_id, stream_name, external_table,
-                   stream_params_json, primary_key_column, cursor_column,
-                   label_column, target_class_uri, column_mappings_json,
-                   sync_mode, track_deletes, checkpoint_json,
-                   sync_direction, writeback_mode, max_rows, status,
-                   created_at, updated_at
-            FROM source_table_mappings
-            WHERE kb_id = ? AND id = ?
-            """,
-            (kb_id, mapping_id),
-        ).fetchone()
+        row = self._persist.fetch_table_mapping_row(kb_id, mapping_id)
         if not row:
             return None
         raw_cols = json.loads(row[10]) if row[10] else []
@@ -297,10 +245,7 @@ class ConnectorLedgerSyncService:
         )
 
     def _get_source_config(self, kb_id: str, source_id: str) -> ConnectorSourceConfig:
-        row = self._conn.execute(
-            "SELECT kind, config_json FROM ingest_sources WHERE kb_id = ? AND id = ? AND deleted_at IS NULL",
-            (kb_id, source_id),
-        ).fetchone()
+        row = self._persist.fetch_ingest_source_row(kb_id, source_id)
         if not row:
             raise LookupError(f"Ingest source '{source_id}' not found in KB '{kb_id}'")
         raw_cfg = json.loads(row[1]) if row[1] else {}
@@ -360,14 +305,9 @@ class ConnectorLedgerSyncService:
                 column_mappings=mapping.column_mappings,
             )
 
-            existing_ref = self._conn.execute(
-                """
-                SELECT id, entity_id, row_hash, deleted_upstream_at
-                FROM entity_external_refs
-                WHERE kb_id = ? AND source_id = ? AND external_table = ? AND external_pk = ?
-                """,
-                (kb_id, mapping.source_id, mapping.external_table, ext_pk),
-            ).fetchone()
+            existing_ref = self._persist.fetch_external_ref_by_pk(
+                kb_id, mapping.source_id, mapping.external_table, ext_pk
+            )
 
             if existing_ref is None:
                 # 1. ADDED: create entity + entity_external_ref + statements + typed_facts
@@ -375,40 +315,25 @@ class ConnectorLedgerSyncService:
                 ref_id = f"eref_{uuid.uuid4().hex[:16]}"
                 label_val = str(row.get(mapping.label_column) or ext_pk).strip() or ext_pk
 
-                self._conn.execute(
-                    """
-                    INSERT INTO entities (
-                        id, kb_id, canonical_label, description, entity_kind, created_at, invalidated_at
-                    ) VALUES (?, ?, ?, ?, 'named', ?, NULL)
-                    """,
-                    (
-                        entity_id,
-                        kb_id,
-                        label_val,
-                        f"Synced from {src_cfg.provider}:{mapping.external_table} ({ext_pk})",
-                        now,
-                    ),
+                self._persist.insert_sync_entity(
+                    entity_id,
+                    kb_id,
+                    label_val,
+                    f"Synced from {src_cfg.provider}:{mapping.external_table} ({ext_pk})",
+                    now,
                 )
-                self._conn.execute(
-                    """
-                    INSERT INTO entity_external_refs (
-                        id, kb_id, entity_id, source_id, mapping_id,
-                        external_table, external_pk, row_hash, last_synced_at, deleted_upstream_at
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)
-                    """,
-                    (
-                        ref_id,
-                        kb_id,
-                        entity_id,
-                        mapping.source_id,
-                        mapping.id,
-                        mapping.external_table,
-                        ext_pk,
-                        new_hash,
-                        now,
-                    ),
+                self._persist.insert_external_ref(
+                    ref_id=ref_id,
+                    kb_id=kb_id,
+                    entity_id=entity_id,
+                    source_id=mapping.source_id,
+                    mapping_id=mapping.id,
+                    external_table=mapping.external_table,
+                    external_pk=ext_pk,
+                    row_hash=new_hash,
+                    last_synced_at=now,
                 )
-                self._upsert_entity_column_facts(
+                self._persist.upsert_entity_column_facts(
                     kb_id=kb_id,
                     provider=src_cfg.provider,
                     mapping=mapping,
@@ -428,21 +353,15 @@ class ConnectorLedgerSyncService:
                 )
                 if old_hash == new_hash and deleted_at is None:
                     # 2. UNCHANGED: fast path O(1) skip
-                    self._conn.execute(
-                        "UPDATE entity_external_refs SET last_synced_at = ? WHERE id = ?",
-                        (now, ref_id),
-                    )
+                    self._persist.touch_external_ref(ref_id, now)
                     stats.unchanged += 1
                 else:
                     # 3. UPDATED (or restored): update canonical_label and supersede changed column facts
                     label_val = (
                         str(row.get(mapping.label_column) or ext_pk).strip() or ext_pk
                     )
-                    self._conn.execute(
-                        "UPDATE entities SET canonical_label = ?, invalidated_at = NULL WHERE id = ? AND kb_id = ?",
-                        (label_val, entity_id, kb_id),
-                    )
-                    self._upsert_entity_column_facts(
+                    self._persist.update_entity_label(label_val, entity_id, kb_id)
+                    self._persist.upsert_entity_column_facts(
                         kb_id=kb_id,
                         provider=src_cfg.provider,
                         mapping=mapping,
@@ -452,48 +371,20 @@ class ConnectorLedgerSyncService:
                         row=row,
                         now=now,
                     )
-                    self._conn.execute(
-                        """
-                        UPDATE entity_external_refs
-                        SET row_hash = ?, last_synced_at = ?, deleted_upstream_at = NULL
-                        WHERE id = ?
-                        """,
-                        (new_hash, now, ref_id),
-                    )
+                    self._persist.refresh_external_ref_hash(ref_id, new_hash, now)
                     stats.updated += 1
 
         # 4. DELETED: if track_deletes is enabled on full snapshot, mark missing rows as deleted upstream
         if mapping.track_deletes:
-            active_refs = self._conn.execute(
-                """
-                SELECT id, entity_id, external_pk
-                FROM entity_external_refs
-                WHERE kb_id = ? AND mapping_id = ? AND deleted_upstream_at IS NULL
-                """,
-                (kb_id, mapping.id),
-            ).fetchall()
+            active_refs = self._persist.list_active_external_refs_for_mapping(kb_id, mapping.id)
+            proposed_by = f"connector:{src_cfg.provider}"
             for r_id, ent_id, r_pk in active_refs:
                 if r_pk not in seen_pks:
-                    self._conn.execute(
-                        "UPDATE entity_external_refs SET deleted_upstream_at = ? WHERE id = ?",
-                        (now, r_id),
+                    self._persist.mark_external_ref_deleted_upstream(r_id, now)
+                    self._persist.invalidate_connector_subject_statements(
+                        now, kb_id, ent_id, proposed_by
                     )
-                    self._conn.execute(
-                        """
-                        UPDATE statements
-                        SET status = 'invalidated', invalidated_at = ?
-                        WHERE kb_id = ? AND subject_id = ? AND proposed_by = ? AND invalidated_at IS NULL
-                        """,
-                        (now, kb_id, ent_id, f"connector:{src_cfg.provider}"),
-                    )
-                    self._conn.execute(
-                        """
-                        UPDATE typed_facts
-                        SET invalidated_at = ?
-                        WHERE kb_id = ? AND subject_id = ? AND import_provenance_json IS NOT NULL AND invalidated_at IS NULL
-                        """,
-                        (now, kb_id, ent_id),
-                    )
+                    self._persist.invalidate_connector_subject_typed_facts(now, kb_id, ent_id)
                     stats.deleted += 1
 
         # Update mapping checkpoint_json
@@ -501,173 +392,14 @@ class ConnectorLedgerSyncService:
         if read_res.next_cursor_value is not None:
             new_checkpoint["cursor_watermark"] = str(read_res.next_cursor_value)
         new_checkpoint["last_synced_at"] = now
-        self._conn.execute(
-            """
-            UPDATE source_table_mappings
-            SET checkpoint_json = ?, updated_at = ?
-            WHERE id = ? AND kb_id = ?
-            """,
-            (json.dumps(new_checkpoint, ensure_ascii=False), now, mapping.id, kb_id),
+        self._persist.update_mapping_checkpoint(
+            json.dumps(new_checkpoint, ensure_ascii=False),
+            now,
+            mapping.id,
+            kb_id,
         )
-        self._conn.commit()
+        self._persist.commit()
         return stats
-
-    def _upsert_entity_column_facts(
-        self,
-        *,
-        kb_id: str,
-        provider: str,
-        mapping: SourceTableMappingRecord,
-        ref_id: str,
-        entity_id: str,
-        ext_pk: str,
-        row: dict[str, Any],
-        now: str,
-    ) -> None:
-        proposed_by = f"connector:{provider}"
-        for col_spec in mapping.column_mappings:
-            raw_val = row.get(col_spec.column)
-            str_val = None if raw_val is None else str(raw_val)
-            pred_uri = (
-                col_spec.predicate_uri
-                or f"urn:basis:prop:{col_spec.column}"
-            )
-
-            # Resolve FK object_entity_id if kind == 'relation'
-            obj_entity_id: str | None = None
-            obj_value: str | None = str_val
-            if col_spec.kind == "relation" and col_spec.fk_target_table and str_val:
-                fk_row = self._conn.execute(
-                    """
-                    SELECT entity_id FROM entity_external_refs
-                    WHERE kb_id = ? AND external_table = ? AND external_pk = ?
-                    LIMIT 1
-                    """,
-                    (kb_id, col_spec.fk_target_table, str_val),
-                ).fetchone()
-                if fk_row:
-                    obj_entity_id = fk_row[0]
-                    obj_value = None
-
-            # Find existing active typed_fact for this entity + column
-            existing_facts = self._conn.execute(
-                """
-                SELECT id, object_entity_id, object_value, from_statement_id, import_provenance_json
-                FROM typed_facts
-                WHERE kb_id = ? AND subject_id = ? AND predicate_uri = ? AND invalidated_at IS NULL
-                """,
-                (kb_id, entity_id, pred_uri),
-            ).fetchall()
-
-            matched_fact = None
-            for f in existing_facts:
-                if not f[4]:
-                    continue
-                try:
-                    prov_data = json.loads(f[4])
-                    if (
-                        prov_data.get("external_ref_id") == ref_id
-                        and prov_data.get("column") == col_spec.column
-                    ):
-                        matched_fact = f
-                        break
-                except Exception:
-                    continue
-
-            if obj_entity_id is None and obj_value is None:
-                # Value became NULL: invalidate old fact/statement if present
-                if matched_fact:
-                    self._conn.execute(
-                        "UPDATE typed_facts SET invalidated_at = ? WHERE id = ?",
-                        (now, matched_fact[0]),
-                    )
-                    if matched_fact[3]:
-                        self._conn.execute(
-                            "UPDATE statements SET status = 'invalidated', invalidated_at = ? WHERE id = ?",
-                            (now, matched_fact[3]),
-                        )
-                continue
-
-            if matched_fact:
-                old_fact_id, old_obj_ent, old_obj_val, old_stmt_id, _ = matched_fact
-                if old_obj_ent == obj_entity_id and old_obj_val == obj_value:
-                    # Column unchanged
-                    continue
-
-            # Create new statement + typed_fact (superseding old if present)
-            new_stmt_id = f"stmt_{uuid.uuid4().hex[:16]}"
-            new_fact_id = f"tf_{uuid.uuid4().hex[:16]}"
-
-            if matched_fact:
-                old_fact_id, _, _, old_stmt_id, _ = matched_fact
-                self._conn.execute(
-                    "UPDATE typed_facts SET invalidated_at = ? WHERE id = ?",
-                    (now, old_fact_id),
-                )
-                if old_stmt_id:
-                    self._conn.execute(
-                        "UPDATE statements SET status = 'superseded', invalidated_at = ? WHERE id = ?",
-                        (now, old_stmt_id),
-                    )
-            else:
-                old_fact_id = None
-                old_stmt_id = None
-
-            self._conn.execute(
-                """
-                INSERT INTO statements (
-                    id, kb_id, subject_id, surface_phrase, object_entity_id, object_value,
-                    object_datatype, confidence, status, proposed_by, recorded_at,
-                    invalidated_at, supersedes_id
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, 1.0, 'confirmed', ?, ?, NULL, ?)
-                """,
-                (
-                    new_stmt_id,
-                    kb_id,
-                    entity_id,
-                    col_spec.surface_phrase,
-                    obj_entity_id,
-                    obj_value,
-                    col_spec.datatype if obj_value is not None else None,
-                    proposed_by,
-                    now,
-                    old_stmt_id,
-                ),
-            )
-
-            prov = StructuredImportProvenance(
-                provider=provider,
-                stream=mapping.stream_name,
-                source_id=mapping.source_id,
-                mapping_id=mapping.id,
-                external_ref_id=ref_id,
-                external_table=mapping.external_table,
-                external_pk=ext_pk,
-                column=col_spec.column,
-            )
-            self._conn.execute(
-                """
-                INSERT INTO typed_facts (
-                    id, kb_id, subject_id, predicate_uri,
-                    object_entity_id, object_value, object_datatype,
-                    from_statement_id, import_provenance_json, confidence,
-                    recorded_at, invalidated_at, supersedes_id
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1.0, ?, NULL, ?)
-                """,
-                (
-                    new_fact_id,
-                    kb_id,
-                    entity_id,
-                    pred_uri,
-                    obj_entity_id,
-                    obj_value,
-                    col_spec.datatype if obj_value is not None else None,
-                    new_stmt_id,
-                    json.dumps(prov.model_dump(mode="json"), ensure_ascii=False),
-                    now,
-                    old_fact_id,
-                ),
-            )
 
     # ── Outbound Sync: Ledger → Outbox → Review → Stream MUTATE ──────────────
 
@@ -677,16 +409,7 @@ class ConnectorLedgerSyncService:
         entity_id: str,
     ) -> dict[str, Any] | None:
         """Return external connector provenance and writable column values for an entity, if any."""
-        ref_row = self._conn.execute(
-            """
-            SELECT id, source_id, mapping_id, external_table, external_pk, last_synced_at, deleted_upstream_at
-            FROM entity_external_refs
-            WHERE kb_id = ? AND entity_id = ?
-            ORDER BY last_synced_at DESC
-            LIMIT 1
-            """,
-            (kb_id, entity_id),
-        ).fetchone()
+        ref_row = self._persist.fetch_external_ref_context_row(kb_id, entity_id)
         if not ref_row:
             return None
         (
@@ -712,16 +435,9 @@ class ConnectorLedgerSyncService:
             if not col_spec.writable:
                 continue
             pred_uri = col_spec.predicate_uri or f"urn:basis:prop:{col_spec.column}"
-            val_row = self._conn.execute(
-                """
-                SELECT object_value
-                FROM typed_facts
-                WHERE kb_id = ? AND subject_id = ? AND predicate_uri = ? AND invalidated_at IS NULL
-                ORDER BY recorded_at DESC
-                LIMIT 1
-                """,
-                (kb_id, entity_id, pred_uri),
-            ).fetchone()
+            val_row = self._persist.fetch_typed_fact_object_value(
+                kb_id, entity_id, pred_uri
+            )
             writable_columns.append(
                 {
                     "column": col_spec.column,
@@ -755,15 +471,7 @@ class ConnectorLedgerSyncService:
         typed_fact_id: str | None = None,
     ) -> dict[str, Any]:
         """Stage an outbound mutation in `entity_sync_outbox` and open a `review_items` gate if required."""
-        ref_row = self._conn.execute(
-            """
-            SELECT id, source_id, mapping_id, external_table, external_pk, row_hash
-            FROM entity_external_refs
-            WHERE kb_id = ? AND entity_id = ? AND deleted_upstream_at IS NULL
-            LIMIT 1
-            """,
-            (kb_id, entity_id),
-        ).fetchone()
+        ref_row = self._persist.fetch_active_external_ref_for_writeback(kb_id, entity_id)
         if not ref_row:
             raise LookupError(
                 f"Entity '{entity_id}' has no active external connector reference"
@@ -791,16 +499,9 @@ class ConnectorLedgerSyncService:
                     f"Column '{col_name}' is not marked writable on mapping '{mapping.id}'"
                 )
             pred_uri = col_spec.predicate_uri or f"urn:basis:prop:{col_name}"
-            old_row = self._conn.execute(
-                """
-                SELECT object_value, from_statement_id
-                FROM typed_facts
-                WHERE kb_id = ? AND subject_id = ? AND predicate_uri = ? AND invalidated_at IS NULL
-                ORDER BY recorded_at DESC
-                LIMIT 1
-                """,
-                (kb_id, entity_id, pred_uri),
-            ).fetchone()
+            old_row = self._persist.fetch_typed_fact_writeback_baseline(
+                kb_id, entity_id, pred_uri
+            )
             old_val = old_row[0] if old_row else None
             old_stmt = old_row[1] if old_row else None
             changes[col_name] = OutboxFieldChange(
@@ -840,44 +541,28 @@ class ConnectorLedgerSyncService:
                     k: v.model_dump(mode="json") for k, v in changes.items()
                 },
             }
-            self._conn.execute(
-                """
-                INSERT INTO review_items (
-                    id, kb_id, kind, subject_type, subject_id, status,
-                    priority, payload_json, version, created_at
-                ) VALUES (?, ?, 'connector_writeback', 'entity_sync_outbox', ?, 'open', 10, ?, 1, ?)
-                """,
-                (
-                    review_item_id,
-                    kb_id,
-                    outbox_id,
-                    json.dumps(review_payload, ensure_ascii=False),
-                    now,
-                ),
+            self._persist.insert_connector_writeback_review(
+                review_item_id=review_item_id,
+                kb_id=kb_id,
+                outbox_id=outbox_id,
+                payload_json=json.dumps(review_payload, ensure_ascii=False),
+                created_at=now,
             )
 
-        self._conn.execute(
-            """
-            INSERT INTO entity_sync_outbox (
-                id, kb_id, entity_id, external_ref_id, statement_id, typed_fact_id,
-                action_kind, patch_json, status, review_item_id, created_by, created_at
-            ) VALUES (?, ?, ?, ?, ?, ?, 'update_fields', ?, ?, ?, ?, ?)
-            """,
-            (
-                outbox_id,
-                kb_id,
-                entity_id,
-                ref_id,
-                statement_id,
-                typed_fact_id,
-                json.dumps(patch.model_dump(mode="json"), ensure_ascii=False),
-                initial_status,
-                review_item_id,
-                created_by,
-                now,
-            ),
+        self._persist.insert_sync_outbox_item(
+            outbox_id=outbox_id,
+            kb_id=kb_id,
+            entity_id=entity_id,
+            external_ref_id=ref_id,
+            statement_id=statement_id,
+            typed_fact_id=typed_fact_id,
+            patch_json=json.dumps(patch.model_dump(mode="json"), ensure_ascii=False),
+            status=initial_status,
+            review_item_id=review_item_id,
+            created_by=created_by,
+            created_at=now,
         )
-        self._conn.commit()
+        self._persist.commit()
 
         if mapping.writeback_mode == "auto":
             return self.execute_outbox_item(kb_id, outbox_id)
@@ -899,55 +584,30 @@ class ConnectorLedgerSyncService:
         review_item_id = item.get("review_item_id")
 
         if review_item_id:
-            self._conn.execute(
-                """
-                UPDATE review_items
-                SET status = 'approved', resolved_at = ?, resolved_by = ?, rationale = ?
-                WHERE id = ? AND kb_id = ?
-                """,
-                (now, actor_id, rationale, review_item_id, kb_id),
+            self._persist.approve_writeback_review_item(
+                resolved_at=now,
+                resolved_by=actor_id,
+                rationale=rationale,
+                review_item_id=review_item_id,
+                kb_id=kb_id,
             )
 
-        self._conn.execute(
-            """
-            INSERT INTO agent_decisions (
-                id, kb_id, review_item_id, action, status, confidence,
-                rationale, trace_json, created_at, applied_at
-            ) VALUES (?, ?, ?, 'approve_connector_writeback', 'applied', 1.0, ?, ?, ?, ?)
-            """,
-            (
-                decision_id,
-                kb_id,
-                review_item_id,
-                rationale,
-                json.dumps({"outbox_id": outbox_id, "actor_id": actor_id}),
-                now,
-                now,
-            ),
+        self._persist.insert_writeback_agent_decision(
+            decision_id=decision_id,
+            kb_id=kb_id,
+            review_item_id=review_item_id,
+            rationale=rationale,
+            trace_json=json.dumps({"outbox_id": outbox_id, "actor_id": actor_id}),
+            created_at=now,
+            applied_at=now,
         )
-        self._conn.execute(
-            """
-            UPDATE entity_sync_outbox
-            SET status = 'queued', decision_id = ?
-            WHERE id = ? AND kb_id = ?
-            """,
-            (decision_id, outbox_id, kb_id),
-        )
-        self._conn.commit()
+        self._persist.queue_outbox_after_approval(decision_id, outbox_id, kb_id)
+        self._persist.commit()
         return self.execute_outbox_item(kb_id, outbox_id)
 
     def execute_outbox_item(self, kb_id: str, outbox_id: str) -> dict[str, Any]:
         """Execute a queued outbox item against the upstream connector and update ledger + row_hash."""
-        row = self._conn.execute(
-            """
-            SELECT o.entity_id, o.external_ref_id, o.patch_json, o.status,
-                   r.source_id, r.mapping_id, r.external_table, r.external_pk
-            FROM entity_sync_outbox o
-            JOIN entity_external_refs r ON r.id = o.external_ref_id
-            WHERE o.kb_id = ? AND o.id = ?
-            """,
-            (kb_id, outbox_id),
-        ).fetchone()
+        row = self._persist.fetch_outbox_execution_row(kb_id, outbox_id)
         if not row:
             raise LookupError(f"Outbox item '{outbox_id}' not found")
 
@@ -1003,7 +663,7 @@ class ConnectorLedgerSyncService:
                     if col_spec.column in remote_fields:
                         merged_row[col_spec.column] = remote_fields[col_spec.column]
 
-            self._upsert_entity_column_facts(
+            self._persist.upsert_entity_column_facts(
                 kb_id=kb_id,
                 provider=src_cfg.provider,
                 mapping=mapping,
@@ -1020,33 +680,14 @@ class ConnectorLedgerSyncService:
                 label_column=mapping.label_column,
                 column_mappings=mapping.column_mappings,
             )
-            self._conn.execute(
-                """
-                UPDATE entity_external_refs
-                SET row_hash = ?, last_synced_at = ?
-                WHERE id = ?
-                """,
-                (new_hash, now, ref_id),
-            )
-            self._conn.execute(
-                """
-                UPDATE entity_sync_outbox
-                SET status = 'synced', synced_at = ?, error_code = NULL, error_detail_json = NULL
-                WHERE id = ? AND kb_id = ?
-                """,
-                (now, outbox_id, kb_id),
-            )
-            self._conn.commit()
+            self._persist.update_external_ref_row_hash(ref_id, new_hash, now)
+            self._persist.mark_outbox_synced(now, outbox_id, kb_id)
+            self._persist.commit()
         except Exception as exc:
-            self._conn.execute(
-                """
-                UPDATE entity_sync_outbox
-                SET status = 'failed', error_code = 'writeback_failed', error_detail_json = ?
-                WHERE id = ? AND kb_id = ?
-                """,
-                (json.dumps({"message": str(exc)}), outbox_id, kb_id),
+            self._persist.mark_outbox_writeback_failed(
+                json.dumps({"message": str(exc)}), outbox_id, kb_id
             )
-            self._conn.commit()
+            self._persist.commit()
             raise
 
         return self.get_outbox_item(kb_id, outbox_id)
@@ -1059,39 +700,22 @@ class ConnectorLedgerSyncService:
         *,
         overrides: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
-        ent_row = self._conn.execute(
-            "SELECT canonical_label FROM entities WHERE id = ? AND kb_id = ?",
-            (entity_id, kb_id),
-        ).fetchone()
+        ent_row = self._persist.fetch_entity_canonical_label(entity_id, kb_id)
         row_dict: dict[str, Any] = {
             mapping.label_column: ent_row[0] if ent_row else ""
         }
         for col_spec in mapping.column_mappings:
             pred_uri = col_spec.predicate_uri or f"urn:basis:prop:{col_spec.column}"
-            f_row = self._conn.execute(
-                """
-                SELECT object_value FROM typed_facts
-                WHERE kb_id = ? AND subject_id = ? AND predicate_uri = ? AND invalidated_at IS NULL
-                ORDER BY recorded_at DESC LIMIT 1
-                """,
-                (kb_id, entity_id, pred_uri),
-            ).fetchone()
+            f_row = self._persist.fetch_typed_fact_object_value(
+                kb_id, entity_id, pred_uri
+            )
             row_dict[col_spec.column] = f_row[0] if f_row else None
         if overrides:
             row_dict.update(overrides)
         return row_dict
 
     def get_outbox_item(self, kb_id: str, outbox_id: str) -> dict[str, Any]:
-        row = self._conn.execute(
-            """
-            SELECT id, kb_id, entity_id, external_ref_id, statement_id, typed_fact_id,
-                   action_kind, patch_json, status, review_item_id, decision_id,
-                   job_id, error_code, error_detail_json, created_by, created_at, synced_at
-            FROM entity_sync_outbox
-            WHERE kb_id = ? AND id = ?
-            """,
-            (kb_id, outbox_id),
-        ).fetchone()
+        row = self._persist.fetch_outbox_row(kb_id, outbox_id)
         if not row:
             raise LookupError(f"Outbox item '{outbox_id}' not found")
         return {

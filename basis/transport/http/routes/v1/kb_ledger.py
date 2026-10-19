@@ -233,12 +233,7 @@ List Entity Facts Route. Evidence ledger: documents, chunks, statements, entitie
     )
     data = http_response_from_payload(payload)
     derived_facts = knowledge.list_derived_facts_for_entity(kb_id, entity_id, limit=limit)
-    from basis.domain.connectors import ConnectorRuntime
-    from basis.domain.kb.connector_sync import ConnectorLedgerSyncService
-
-    sync_svc = ConnectorLedgerSyncService(
-        knowledge._conn, ConnectorRuntime(knowledge._conn)
-    )
+    sync_svc = knowledge.connector_sync_service()
     external_sync = sync_svc.get_entity_external_sync_context(kb_id, entity_id)
     return {**data, "derived_facts": derived_facts, "external_sync": external_sync}
 

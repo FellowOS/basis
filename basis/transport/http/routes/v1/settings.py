@@ -11,10 +11,6 @@ from basis.domain.connectors.allowlist import (
     normalize_allowed_providers,
     unknown_catalog_providers,
 )
-from basis.domain.connectors.platform_policy import (
-    get_platform_allowed_providers,
-    upsert_platform_allowed_providers,
-)
 from basis.platform.admin.errors import AdminError
 from basis.platform.admin.store import AdminStore, User
 from basis.transport.http.deps import get_current_user, get_store, require_system_admin
@@ -138,7 +134,7 @@ async def get_connector_allowlist_settings(
 ) -> dict[str, Any]:
     """Get platform-wide BOCP provider allowlist (KB policies must stay within this ceiling)."""
     require_system_admin(user)
-    allowed = get_platform_allowed_providers(store._conn)
+    allowed = store.get_platform_allowed_providers()
     catalog = get_connector_catalog()
     stats = catalog.summary_stats()
     all_services = catalog.service_ids()
@@ -158,7 +154,7 @@ async def platform_connector_catalog_stats(
     """Aggregate BOCP catalog counts by category for platform administrators."""
     require_system_admin(user)
     catalog = get_connector_catalog()
-    allowed = get_platform_allowed_providers(store._conn)
+    allowed = store.get_platform_allowed_providers()
     return {
         "stats": catalog.summary_stats(),
         "enabled_provider_count": count_platform_enabled(allowed, catalog.service_ids()),
@@ -178,7 +174,7 @@ async def get_platform_connector_manifest(
     manifest = catalog.get(service)
     if not manifest:
         raise AdminError(404, "connector_not_found", f"未知的连接器服务: {service}")
-    allowed = get_platform_allowed_providers(store._conn)
+    allowed = store.get_platform_allowed_providers()
     return {
         "service": service,
         "platform_enabled": is_platform_provider_allowed(service, allowed),
@@ -200,7 +196,7 @@ async def list_platform_connector_catalog(
     """List BOCP catalog entries with platform allowlist flags for system administrators."""
     require_system_admin(user)
     catalog = get_connector_catalog()
-    allowed = get_platform_allowed_providers(store._conn)
+    allowed = store.get_platform_allowed_providers()
     manifests = catalog.list_manifests(
         category=category,
         auth_mode=auth_mode,
@@ -260,5 +256,5 @@ async def put_connector_allowlist_settings(
         assert_allowed_providers_in_catalog(allowed, catalog.service_ids())
     except ValueError as exc:
         raise AdminError(400, "connector_unknown_providers", str(exc)) from exc
-    allowed, updated_at = upsert_platform_allowed_providers(store._conn, allowed)
+    allowed, updated_at = store.upsert_platform_allowed_providers(allowed)
     return {"allowed_providers": allowed, "updated_at": updated_at}

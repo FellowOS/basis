@@ -20,6 +20,8 @@ Entry: `basis/cli.py` → Uvicorn `basis.transport.http.app:create_app`.
 | Package | Former path |
 | --- | --- |
 | `basis.domain.kb` | `basis.knowledge` |
+
+KB canonical SQL lives under `basis/domain/kb/persistence/` (caller often holds `KnowledgeStore._lock`; use raw `conn` inside an existing lock block to avoid nested lock deadlocks). `KnowledgeStore` (`store.py`) is a thin façade: DB handle, scope guards (`persistence/guards.py`), and `setattr` delegates to `basis/domain/kb/access/*` (connector, documents, processing, ingest_ledger, review, mappings, projection, facts, entity_merges, ingest_sources, reasoning_rules, kb_alerts, governance, search, ledger, …). Row DTOs: `ledger_rows.py`. Domain services (e.g. `connector_sync.py`) call persistence via the store or `LockedCanonicalConn`.
 | `basis.domain.ingest` | `basis.pipeline` |
 | `basis.domain.graph` | `basis.graph` |
 | `basis.domain.explorer` | `basis.explorer` |

@@ -29,7 +29,8 @@ from basis.integration.http import http_response_from_payload
 from basis.integration.registry import TOOL_NAMES, run
 from basis.domain.kb.chunk_search import ChunkSearchService
 from basis.infra.limits import RuntimeLimits
-from basis.domain.kb.store import KnowledgeStore, StoreDocumentOutcome
+from basis.domain.kb.ledger_rows import StoreDocumentOutcome
+from basis.domain.kb.store import KnowledgeStore
 from basis.domain.graph.documents import list_documents
 from basis.domain.explorer.graph_read import (
     get_node,

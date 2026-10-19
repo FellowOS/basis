@@ -7,10 +7,8 @@ from datetime import datetime, timezone
 
 from fastapi import FastAPI
 
-from basis.domain.connectors.runtime import ConnectorRuntime
 from basis.domain.graph.projector import apply_rebuild_to_session
 from basis.domain.kb.connector_mapping_schedule import is_connector_mapping_poll_due
-from basis.domain.kb.connector_sync import ConnectorLedgerSyncService
 from basis.infra.observability.log_context import correlation_log_extra
 
 logger = logging.getLogger(__name__)
@@ -60,8 +58,7 @@ def _rebuild_kb_projection_for_app(app: FastAPI, kb_id: str) -> dict:
 def run_due_connector_syncs(app: FastAPI) -> int:
     """Run inbound sync for all due table mappings. Returns count executed."""
     knowledge = app.state.knowledge_store
-    runtime = ConnectorRuntime(knowledge._conn)
-    svc = ConnectorLedgerSyncService(knowledge._conn, runtime)
+    svc = knowledge.connector_sync_service()
     now = datetime.now(timezone.utc)
     ran = 0
     for kb_id, mapping_id in knowledge.list_active_connector_table_mappings_global():

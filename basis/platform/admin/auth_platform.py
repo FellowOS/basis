@@ -38,13 +38,7 @@ def _serialize_providers(providers: list[str]) -> str:
 
 
 def ensure_oauth_state_secret(store: "AdminStore") -> str:
-    existing = store._setting("auth_oauth_state_secret")
-    if existing and existing.strip():
-        return existing.strip()
-    secret = new_token()
-    store._put_setting("auth_oauth_state_secret", secret)
-    store._conn.commit()
-    return secret
+    return store.ensure_oauth_state_secret()
 
 
 def build_auth_settings_raw(
@@ -54,7 +48,7 @@ def build_auth_settings_raw(
     default_web_origin: str,
 ) -> dict[str, Any]:
     providers = _parse_providers(store._setting("auth_providers_json"))
-    state_secret = ensure_oauth_state_secret(store)
+    state_secret = store.ensure_oauth_state_secret()
     magic_log = store._setting("auth_magic_link_dev_log") == "true"
     smtp_password = store._setting("auth_smtp_password")
     smtp_host = (store._setting("auth_smtp_host") or "").strip() or None
@@ -225,7 +219,7 @@ def update_access_settings(
             None,
             {"keys": sorted(k for k in body if body[k] is not None)},
         )
-        store._conn.commit()
+        store.commit_transaction()
     return get_access_settings(
         store,
         default_public_url=default_public_url,

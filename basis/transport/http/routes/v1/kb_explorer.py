@@ -201,19 +201,17 @@ async def kb_graph_staging(
     get_kb_for_viewer(request, user, kb_id, store)
     runtime = get_explorer_registry(request).get(request, kb_id)
     session = require_explorer_graph_session(runtime)
-    from basis.domain.explorer.graph_staging import graph_staging_at
     from basis.domain.graph.projector import build_temporal_graph_from_ledger
 
     knowledge = get_knowledge_store(request)
     temporal_session = build_temporal_graph_from_ledger(
         knowledge, kb_id, preserve_from=session
     )
-    return graph_staging_at(
+    return knowledge.graph_staging_at(
         temporal_session,
         kb_id,
         from_time,
         to_time,
-        conn=knowledge._conn,
         updated_by=user.id,
     )
 
@@ -237,10 +235,7 @@ async def kb_put_graph_staging_draft(
 ) -> dict[str, Any]:
     """Persist server-side staging studio merge draft for a compare session (F-DIFF-01)."""
     get_kb_for_editor(request, user, kb_id, store)
-    from basis.domain.explorer.graph_staging import upsert_persisted_staging_session
-
-    return upsert_persisted_staging_session(
-        knowledge._conn,
+    return knowledge.upsert_graph_staging_session(
         kb_id,
         session_key=session_key,
         from_time=body.from_time,

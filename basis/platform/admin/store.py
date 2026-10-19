@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any
 
 from basis.platform.admin.errors import AdminError
+from basis.platform.admin.desktop_store_mixin import DesktopStoreMixin
 from basis.platform.admin.org_store import OrganizationAuthMixin
 from basis.platform.admin.passwords import hash_password, hash_token, verify_password
 from basis.infra.database import Database, get_sqlite_database
@@ -106,7 +107,7 @@ class KnowledgeBase:
         return payload
 
 
-class AdminStore(OrganizationAuthMixin):
+class AdminStore(OrganizationAuthMixin, DesktopStoreMixin):
     def __init__(self, path: Path | Database) -> None:
         if isinstance(path, Database):
             self._db = path
@@ -857,6 +858,23 @@ class AdminStore(OrganizationAuthMixin):
             default_public_url=default_public_url or self.default_auth_public_url(),
             default_web_origin=default_web_origin or self.default_auth_web_origin(),
         )
+
+    def get_platform_allowed_providers(self) -> list[str] | str:
+        from basis.domain.connectors.platform_policy import PlatformConnectorPolicy
+
+        with self._lock:
+            return PlatformConnectorPolicy(self._conn).get_allowed_providers()
+
+    def upsert_platform_allowed_providers(
+        self,
+        allowed_providers: list[str] | str,
+    ) -> tuple[list[str] | str, str]:
+        from basis.domain.connectors.platform_policy import PlatformConnectorPolicy
+
+        with self._lock:
+            return PlatformConnectorPolicy(self._conn).upsert_allowed_providers(
+                allowed_providers
+            )
 
     def get_settings(self) -> dict[str, Any]:
         with self._lock:

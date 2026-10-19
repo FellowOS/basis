@@ -127,12 +127,11 @@ class ExecuteConnectorToolRequest(BaseModel):
 
 
 def _runtime_for(knowledge: KnowledgeStore) -> ConnectorRuntime:
-    return ConnectorRuntime(knowledge._conn)
+    return knowledge.connector_runtime()
 
 
 def _sync_service_for(knowledge: KnowledgeStore) -> ConnectorLedgerSyncService:
-    rt = _runtime_for(knowledge)
-    return ConnectorLedgerSyncService(knowledge._conn, rt)
+    return knowledge.connector_sync_service()
 
 
 def _connector_policy_response(vault: Any, kb_id: str, pol: Any) -> dict[str, Any]:
@@ -415,17 +414,9 @@ async def list_kb_table_mappings(
 ) -> dict[str, Any]:
     """List structured stream-to-ontology table mappings configured in this KB."""
     get_kb_for_viewer(request, user, kb_id, store)
-    rows = knowledge._conn.execute(
-        """
-        SELECT id FROM source_table_mappings
-        WHERE kb_id = ?
-        ORDER BY created_at DESC
-        """,
-        (kb_id,),
-    ).fetchall()
     svc = _sync_service_for(knowledge)
     mappings = []
-    for (m_id,) in rows:
+    for m_id in knowledge.list_source_table_mapping_ids(kb_id):
         rec = svc.get_table_mapping(kb_id, m_id)
         if rec:
             mappings.append(_table_mapping_api_dict(svc, kb_id, rec))
@@ -615,18 +606,9 @@ async def list_kb_sync_outbox(
 ) -> dict[str, Any]:
     """List outbound entity writeback items in `entity_sync_outbox`."""
     get_kb_for_viewer(request, user, kb_id, store)
-    if status:
-        rows = knowledge._conn.execute(
-            "SELECT id FROM entity_sync_outbox WHERE kb_id = ? AND status = ? ORDER BY created_at DESC LIMIT ?",
-            (kb_id, status, limit),
-        ).fetchall()
-    else:
-        rows = knowledge._conn.execute(
-            "SELECT id FROM entity_sync_outbox WHERE kb_id = ? ORDER BY created_at DESC LIMIT ?",
-            (kb_id, limit),
-        ).fetchall()
     svc = _sync_service_for(knowledge)
-    items = [svc.get_outbox_item(kb_id, r[0]) for r in rows]
+    outbox_ids = knowledge.list_entity_sync_outbox_ids(kb_id, status=status, limit=limit)
+    items = [svc.get_outbox_item(kb_id, outbox_id) for outbox_id in outbox_ids]
     return {"items": items}
 
 
@@ -670,42 +652,7 @@ async def list_kb_connector_runs(
 ) -> dict[str, Any]:
     """List recent BOCP connector execution audit logs (`kb_connector_runs`)."""
     get_kb_for_viewer(request, user, kb_id, store)
-    if service:
-        rows = knowledge._conn.execute(
-            """
-            SELECT id, service, operation_kind, target_id, connection_name,
-                   started_at, completed_at, ok, value_json
-            FROM kb_connector_runs
-            WHERE kb_id = ? AND service = ?
-            ORDER BY started_at DESC LIMIT ?
-            """,
-            (kb_id, service, limit),
-        ).fetchall()
-    else:
-        rows = knowledge._conn.execute(
-            """
-            SELECT id, service, operation_kind, target_id, connection_name,
-                   started_at, completed_at, ok, value_json
-            FROM kb_connector_runs
-            WHERE kb_id = ?
-            ORDER BY started_at DESC LIMIT ?
-            """,
-            (kb_id, limit),
-        ).fetchall()
-    runs = [
-        {
-            "id": r[0],
-            "service": r[1],
-            "operation_kind": r[2],
-            "target_id": r[3],
-            "connection_name": r[4],
-            "started_at": r[5],
-            "completed_at": r[6],
-            "ok": bool(r[7]),
-            "value": json.loads(r[8]) if r[8] else {},
-        }
-        for r in rows
-    ]
+    runs = knowledge.list_kb_connector_runs(kb_id, service=service, limit=limit)
     return {"runs": runs}
 
 

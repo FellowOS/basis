@@ -8,7 +8,6 @@ from datetime import datetime, timezone
 import hashlib
 import json
 import os
-import sqlite3
 from typing import Any
 from urllib.parse import urlencode
 import uuid
@@ -25,7 +24,8 @@ from basis.domain.connectors.allowlist import (
 )
 from basis.domain.connectors.catalog import get_connector_catalog
 from basis.domain.connectors.manifest_schema import AuthSpec, ConnectorManifest, ToolSpec
-from basis.domain.connectors.platform_policy import get_platform_allowed_providers
+from basis.domain.connectors.canonical_db import LockedCanonicalConn, is_knowledge_store
+from basis.domain.kb.persistence import ConnectorVaultPersistence
 
 
 def _now_iso() -> str:
@@ -191,21 +191,20 @@ class ConnectorPolicy:
 class ConnectorAuthVault:
     """SQLite/PostgreSQL persistence & authentication engine for BOCP connections."""
 
-    def __init__(self, conn: Any, *, vault_secret: str | None = None) -> None:
-        self._conn = conn
+    def __init__(self, knowledge_or_conn: Any, *, vault_secret: str | None = None) -> None:
+        self._store = knowledge_or_conn if is_knowledge_store(knowledge_or_conn) else None
+        self._db = LockedCanonicalConn(knowledge_or_conn)
         self._vault_secret = vault_secret
+        self._persist = (
+            knowledge_or_conn.connector_vault_persistence()
+            if self._store is not None
+            else ConnectorVaultPersistence(self._db)
+        )
 
     # ── Policies ─────────────────────────────────────────────────────────────
 
     def get_policy(self, kb_id: str) -> ConnectorPolicy:
-        row = self._conn.execute(
-            """
-            SELECT allowed_providers_json, action_policy_json, updated_at
-            FROM kb_connector_policies
-            WHERE kb_id = ?
-            """,
-            (kb_id,),
-        ).fetchone()
+        row = self._persist.fetch_policy_row(kb_id)
         if not row:
             return ConnectorPolicy(kb_id=kb_id, allowed_providers="*", action_policy={})
         allowed = json.loads(row[0]) if row[0] else "*"
@@ -224,7 +223,7 @@ class ConnectorAuthVault:
         allowed_providers: list[str] | str = "*",
         action_policy: dict[str, Any] | None = None,
     ) -> ConnectorPolicy:
-        platform_allowed = get_platform_allowed_providers(self._conn)
+        platform_allowed = self.get_platform_allowed_providers()
         try:
             assert_allowed_providers_in_catalog(
                 allowed_providers,
@@ -236,30 +235,21 @@ class ConnectorAuthVault:
         now = _now_iso()
         allowed_json = json.dumps(allowed_providers, ensure_ascii=False)
         action_json = json.dumps(action_policy or {}, ensure_ascii=False)
-        self._conn.execute(
-            """
-            INSERT INTO kb_connector_policies (kb_id, allowed_providers_json, action_policy_json, updated_at)
-            VALUES (?, ?, ?, ?)
-            ON CONFLICT(kb_id) DO UPDATE SET
-                allowed_providers_json = excluded.allowed_providers_json,
-                action_policy_json = excluded.action_policy_json,
-                updated_at = excluded.updated_at
-            """,
-            (kb_id, allowed_json, action_json, now),
-        )
-        self._conn.commit()
+        self._persist.upsert_policy(kb_id, allowed_json, action_json, now)
         return self.get_policy(kb_id)
 
     def get_platform_allowed_providers(self) -> list[str] | str:
-        return get_platform_allowed_providers(self._conn)
+        if self._store is not None:
+            return self._store.get_platform_allowed_providers()
+        return self._db.get_platform_allowed_providers()
 
     def effective_allowed_providers(self, kb_id: str) -> list[str] | str:
-        platform = get_platform_allowed_providers(self._conn)
+        platform = self.get_platform_allowed_providers()
         kb_policy = self.get_policy(kb_id)
         return effective_allowed_providers(platform, kb_policy.allowed_providers)
 
     def assert_service_allowed(self, kb_id: str, service: str) -> None:
-        platform = get_platform_allowed_providers(self._conn)
+        platform = self.get_platform_allowed_providers()
         kb_policy = self.get_policy(kb_id)
         layer = provider_blocked_layer(service, platform, kb_policy.allowed_providers)
         if layer == "platform":
@@ -291,24 +281,11 @@ class ConnectorAuthVault:
             **(extra or {}),
         }
         encrypted = encrypt_vault_payload(payload, secret=self._vault_secret)
-        self._conn.execute(
-            """
-            INSERT INTO kb_oauth_configs (kb_id, service, value_encrypted, updated_at)
-            VALUES (?, ?, ?, ?)
-            ON CONFLICT(kb_id, service) DO UPDATE SET
-                value_encrypted = excluded.value_encrypted,
-                updated_at = excluded.updated_at
-            """,
-            (kb_id, service, encrypted, now),
-        )
-        self._conn.commit()
+        self._persist.upsert_oauth_config(kb_id, service, encrypted, now)
         return {"kb_id": kb_id, "service": service, "client_id": client_id, "updated_at": now}
 
     def get_oauth_config(self, kb_id: str, service: str) -> dict[str, Any] | None:
-        row = self._conn.execute(
-            "SELECT value_encrypted, updated_at FROM kb_oauth_configs WHERE kb_id = ? AND service = ?",
-            (kb_id, service),
-        ).fetchone()
+        row = self._persist.fetch_oauth_config_row(kb_id, service)
         if not row:
             return None
         decrypted = decrypt_vault_payload(row[0], secret=self._vault_secret)
@@ -348,34 +325,17 @@ class ConnectorAuthVault:
         )
 
         encrypted = encrypt_vault_payload(merged_creds, secret=self._vault_secret)
-        self._conn.execute(
-            """
-            INSERT INTO kb_connections (
-                kb_id, service, connection_name, auth_type,
-                connection_config_json, value_encrypted, account_profile_json,
-                revision, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ON CONFLICT(kb_id, service, connection_name) DO UPDATE SET
-                auth_type = excluded.auth_type,
-                connection_config_json = excluded.connection_config_json,
-                value_encrypted = excluded.value_encrypted,
-                account_profile_json = excluded.account_profile_json,
-                revision = excluded.revision,
-                updated_at = excluded.updated_at
-            """,
-            (
-                kb_id,
-                service,
-                connection_name,
-                auth_type,
-                json.dumps(merged_cfg, ensure_ascii=False),
-                encrypted,
-                json.dumps(merged_profile, ensure_ascii=False),
-                rev,
-                now,
-            ),
+        self._persist.upsert_connection(
+            kb_id=kb_id,
+            service=service,
+            connection_name=connection_name,
+            auth_type=auth_type,
+            connection_config_json=json.dumps(merged_cfg, ensure_ascii=False),
+            value_encrypted=encrypted,
+            account_profile_json=json.dumps(merged_profile, ensure_ascii=False),
+            revision=rev,
+            updated_at=now,
         )
-        self._conn.commit()
         res = self.get_connection(kb_id, service, connection_name=connection_name)
         assert res is not None
         return res
@@ -383,15 +343,7 @@ class ConnectorAuthVault:
     def get_connection(
         self, kb_id: str, service: str, *, connection_name: str = "default"
     ) -> StoredConnection | None:
-        row = self._conn.execute(
-            """
-            SELECT auth_type, connection_config_json, value_encrypted,
-                   account_profile_json, revision, updated_at
-            FROM kb_connections
-            WHERE kb_id = ? AND service = ? AND connection_name = ?
-            """,
-            (kb_id, service, connection_name),
-        ).fetchone()
+        row = self._persist.fetch_connection_row(kb_id, service, connection_name)
         if not row:
             return None
         return StoredConnection(
@@ -407,28 +359,7 @@ class ConnectorAuthVault:
         )
 
     def list_connections(self, kb_id: str, *, service: str | None = None) -> list[StoredConnection]:
-        if service:
-            rows = self._conn.execute(
-                """
-                SELECT service, connection_name, auth_type, connection_config_json,
-                       value_encrypted, account_profile_json, revision, updated_at
-                FROM kb_connections
-                WHERE kb_id = ? AND service = ?
-                ORDER BY service, connection_name
-                """,
-                (kb_id, service),
-            ).fetchall()
-        else:
-            rows = self._conn.execute(
-                """
-                SELECT service, connection_name, auth_type, connection_config_json,
-                       value_encrypted, account_profile_json, revision, updated_at
-                FROM kb_connections
-                WHERE kb_id = ?
-                ORDER BY service, connection_name
-                """,
-                (kb_id,),
-            ).fetchall()
+        rows = self._persist.list_connection_rows(kb_id, service=service)
         return [
             StoredConnection(
                 kb_id=kb_id,
@@ -447,12 +378,7 @@ class ConnectorAuthVault:
     def delete_connection(
         self, kb_id: str, service: str, *, connection_name: str = "default"
     ) -> bool:
-        cur = self._conn.execute(
-            "DELETE FROM kb_connections WHERE kb_id = ? AND service = ? AND connection_name = ?",
-            (kb_id, service, connection_name),
-        )
-        self._conn.commit()
-        return (cur.rowcount or 0) > 0
+        return self._persist.delete_connection(kb_id, service, connection_name) > 0
 
     # ── Audit Runs ───────────────────────────────────────────────────────────
 
@@ -471,27 +397,18 @@ class ConnectorAuthVault:
     ) -> str:
         run_id = f"crun_{uuid.uuid4().hex[:16]}"
         done_at = completed_at or _now_iso()
-        self._conn.execute(
-            """
-            INSERT INTO kb_connector_runs (
-                id, kb_id, service, operation_kind, target_id,
-                connection_name, started_at, completed_at, ok, value_json
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """,
-            (
-                run_id,
-                kb_id,
-                service,
-                operation_kind,
-                target_id,
-                connection_name,
-                started_at,
-                done_at,
-                1 if ok else 0,
-                json.dumps(value or {}, ensure_ascii=False),
-            ),
+        self._persist.insert_connector_run(
+            run_id=run_id,
+            kb_id=kb_id,
+            service=service,
+            operation_kind=operation_kind,
+            target_id=target_id,
+            connection_name=connection_name,
+            started_at=started_at,
+            completed_at=done_at,
+            ok=1 if ok else 0,
+            value_json=json.dumps(value or {}, ensure_ascii=False),
         )
-        self._conn.commit()
         return run_id
 
     # ── Request Auth Headers / Params Builder ────────────────────────────────

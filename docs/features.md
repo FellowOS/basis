@@ -503,7 +503,7 @@ semantica SDK（parse, kg, ontology, reasoning, embeddings, …）
 4. **前端**：通过注入 `ExplorerClient` 复用 workspace 组件，集中处理 `apiBase`、JWT、
    WS ticket 与 capabilities；不直接保留 root-relative `/api/*` 调用。
 5. **禁止**：生产默认依赖独立 `semantica-explorer` 进程；Registry 不虚构为 Explorer
-   REST API；Decision 不虚构专用 WebSocket。
+   REST API；Decision 不虚构专用 WebSocket。若需「单页图变更流」或「画布合并」，见 [ADR 0007](architecture/0007-graph-activity-and-canvas-merge.md)（聚合审计/Review；合并仅 staging→Review）。
 
 ---
 

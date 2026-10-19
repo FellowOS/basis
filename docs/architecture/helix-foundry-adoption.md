@@ -100,7 +100,7 @@ flowchart LR
 1. **禁止向 `statement_evidence` 插入无文档的记录**：
    - `0002_knowledge_ledger.sql` 中 `statement_evidence.chunk_id` 是 `NOT NULL REFERENCES chunks(id)`。结构化数据库行没有文档分块（`chunk_id`），因此**绝不写入 `statement_evidence`**。
 2. **标准写入方式（`statements` + `typed_facts`）**：
-   - 每个映射列写入一条 `statements`（`proposed_by = 'connector'`，`status = 'confirmed'`，`surface_phrase = column_spec.surface_phrase`）。`store.py:list_statements_for_projection` 使用 `LEFT JOIN statement_evidence`，因此无 `statement_evidence` 仍能正常投影。
+   - 每个映射列写入一条 `statements`（`proposed_by = 'connector'`，`status = 'confirmed'`，`surface_phrase = column_spec.surface_phrase`）。`KnowledgeStore.list_statements_for_projection`（`access/projection` + `persistence/projection_reads`）使用 `LEFT JOIN statement_evidence`，因此无 `statement_evidence` 仍能正常投影。
    - 若该列配置了本体 `predicate_uri`，同时写入 `typed_facts`（`from_statement_id = statement.id`，`import_provenance_json` 记录 `{"kind": "structured_source", "source_id": ..., "mapping_id": ..., "external_ref_id": ..., "external_table": ..., "external_pk": ..., "column": ...}`）。
    - `projector.py:rebuild_graph_from_ledger` 会自动去重同一三元组的 open statement 与 typed fact，将实体属性/外键关系直接投影到 `ContextGraph`。
 3. **决策外键表名**：

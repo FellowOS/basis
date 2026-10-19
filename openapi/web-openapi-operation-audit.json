@@ -285,6 +285,12 @@
     {
       "file": "web/src/lib/auth-site-url.ts",
       "kind": "helper",
+      "path": "/api/v1/auth/saml/slo",
+      "operationId": "org_saml_slo_get_api_v1_auth_saml_slo_get"
+    },
+    {
+      "file": "web/src/lib/auth-site-url.ts",
+      "kind": "helper",
       "path": "/api/v1/auth/oidc/callback",
       "operationId": "org_oidc_callback_api_v1_auth_oidc_callback_get"
     },
@@ -389,6 +395,18 @@
       "kind": "literal",
       "path": "/api/v1/auth/saml/acs",
       "operationId": "org_saml_acs_api_v1_auth_saml_acs_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/auth/saml/slo",
+      "operationId": "org_saml_slo_get_api_v1_auth_saml_slo_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/auth/saml/{org_slug}/logout",
+      "operationId": "org_saml_logout_start_api_v1_auth_saml__org_slug__logout_get"
     },
     {
       "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
@@ -1385,6 +1403,18 @@
       "kind": "literal",
       "path": "/api/v1/auth/saml/acs",
       "operationId": "org_saml_acs_api_v1_auth_saml_acs_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/auth/saml/slo",
+      "operationId": "org_saml_slo_get_api_v1_auth_saml_slo_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/auth/saml/{org_slug}/logout",
+      "operationId": "org_saml_logout_start_api_v1_auth_saml__org_slug__logout_get"
     },
     {
       "file": "web/src/lib/basis-openapi/schema.d.ts",

@@ -24,8 +24,6 @@ from basis.domain.connectors.sql_adapter import (
     DiscoveredTableSchema,
     SqlAlchemyStreamAdapter,
 )
-
-
 def _now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
@@ -52,15 +50,14 @@ class ConnectorRuntime:
 
     def __init__(
         self,
-        conn: Any,
+        knowledge_or_conn: Any,
         *,
         catalog: ConnectorCatalog | None = None,
         vault_secret: str | None = None,
         http_client: httpx.Client | None = None,
     ) -> None:
-        self._conn = conn
         self.catalog = catalog or get_connector_catalog()
-        self.vault = ConnectorAuthVault(conn, vault_secret=vault_secret)
+        self.vault = ConnectorAuthVault(knowledge_or_conn, vault_secret=vault_secret)
         self._http_client = http_client
 
     def _require_manifest_and_connection(
