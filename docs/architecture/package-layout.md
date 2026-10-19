@@ -38,6 +38,7 @@ KB canonical SQL lives under `basis/domain/kb/persistence/` (caller often holds 
 | `ledger_rows.py` | Row DTOs returned by store APIs |
 | `services/` | Workflows, audit side-effects (`graph_audit`), KB alerts (`kb_alerts_emit`), governor/review |
 | `schedulers/` | `*_poll_scheduler.py` ticks and `*_poll_due.py` schedule predicates |
+| `search/` | Hybrid chunk search (`ChunkSearchService`), embeddings, vector indexes, `search_config` |
 | `connector_sync.py` | Ledger-side BOCP sync (engine lives in `domain/connectors/`) |
 
 Delete shims at package root when all callers use `KnowledgeStore` methods.

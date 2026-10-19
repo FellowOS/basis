@@ -12,7 +12,7 @@ from basis.platform.admin.store import AdminStore
 from basis.infra.config import Settings
 from basis.infra.database import get_database
 from basis.domain.kb.blob_store import BlobStore
-from basis.domain.kb.chunk_search import ChunkSearchService
+from basis.domain.kb.search import ChunkSearchService
 from basis.domain.kb.store import KnowledgeStore
 
 

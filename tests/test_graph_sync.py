@@ -8,7 +8,7 @@ from basis.transport.http.app import create_app
 from basis.infra.config import Settings
 from basis.domain.graph.projector import apply_rebuild_to_session
 from basis.domain.graph.session import GraphSession
-from basis.domain.kb.graph_sync import sync_graph_to_ledger
+from basis.domain.kb.services.graph_sync import sync_graph_to_ledger
 from basis.domain.kb.store import KnowledgeStore
 
 

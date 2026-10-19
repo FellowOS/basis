@@ -10,7 +10,7 @@ from basis.platform.admin.store import AdminStore, KnowledgeBase, User
 if TYPE_CHECKING:
     from starlette.requests import Request
 from basis.domain.explorer.registry import KbExplorerRuntime
-from basis.domain.kb.chunk_search import ChunkSearchService
+from basis.domain.kb.search import ChunkSearchService
 from basis.domain.kb.store import KnowledgeStore
 
 

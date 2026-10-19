@@ -22,7 +22,7 @@ from basis.infra.database import get_database
 from basis.domain.graph.snapshot_store import GraphPersistence
 from basis.domain.kb.blob_store import BlobStore
 from basis.domain.explorer.registry import ExplorerSessionRegistry
-from basis.domain.kb.chunk_search import ChunkSearchService
+from basis.domain.kb.search import ChunkSearchService
 from basis.domain.kb.store import KnowledgeStore
 from basis.platform.realtime.hub import GraphWsHub
 from basis.platform.realtime.tickets import RealtimeTicketStore

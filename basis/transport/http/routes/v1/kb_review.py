@@ -323,7 +323,7 @@ Approve Review Item. Human review queue for merges, imports, and conflicts. Requ
                 from semantica.explorer.routes.enrich import merge_nodes
                 from semantica.explorer.schemas import MergeRequest
 
-                from basis.domain.kb.graph_sync import resolve_ledger_entity_id
+                from basis.domain.kb.services.graph_sync import resolve_ledger_entity_id
 
                 merge_body = MergeRequest.model_validate(payload)
                 runtime = get_explorer_registry(request).get(request, kb_id)

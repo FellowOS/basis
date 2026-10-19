@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from basis.domain.kb.search_config import SearchConfig
+from basis.domain.kb.search.search_config import SearchConfig
 
 
 def fetch_search_config_row(conn: Any, kb_id: str) -> Any:

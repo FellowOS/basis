@@ -10,7 +10,7 @@ from basis.domain.graph.snapshot_store import GraphPersistence
 from basis.domain.graph.projector import apply_rebuild_to_session
 from basis.domain.graph.session import GraphSession
 from basis.domain.kb.blob_store import BlobStore
-from basis.domain.kb.chunk_search import ChunkSearchService
+from basis.domain.kb.search import ChunkSearchService
 from basis.domain.kb.store import KnowledgeStore
 from basis.infra.limits import RuntimeLimits
 
@@ -226,7 +226,7 @@ def rebuild_kb_projection(request: Request, kb_id: str) -> dict:
 def save_graph(request: Request, kb_id: str) -> None:
     session = graph_for(request, kb_id)
     knowledge = get_knowledge_store(request)
-    from basis.domain.kb.graph_sync import sync_graph_to_ledger
+    from basis.domain.kb.services.graph_sync import sync_graph_to_ledger
 
     synced = sync_graph_to_ledger(knowledge, kb_id, session)
     if synced["entities_created"] or synced["statements_created"]:

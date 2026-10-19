@@ -12,7 +12,7 @@ from basis.domain.kb.persistence import chunk_indexing as idx_persist
 from basis.domain.kb.persistence import chunk_keyword_search as kw_persist
 from basis.domain.kb.persistence import embedding_records as emb_persist
 from basis.domain.kb.persistence import search_config as sc_persist
-from basis.domain.kb.search_config import SearchConfig, validate_search_config
+from basis.domain.kb.search.search_config import SearchConfig, validate_search_config
 
 if TYPE_CHECKING:
     from basis.domain.kb.store import KnowledgeStore

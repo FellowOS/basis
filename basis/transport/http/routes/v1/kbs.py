@@ -27,7 +27,7 @@ from basis.transport.http.deps import (
 from basis.transport.http.kb_core_context import build_kb_core_context
 from basis.integration.http import http_response_from_payload
 from basis.integration.registry import TOOL_NAMES, run
-from basis.domain.kb.chunk_search import ChunkSearchService
+from basis.domain.kb.search import ChunkSearchService
 from basis.infra.limits import RuntimeLimits
 from basis.domain.kb.ledger_rows import StoreDocumentOutcome
 from basis.domain.kb.store import KnowledgeStore

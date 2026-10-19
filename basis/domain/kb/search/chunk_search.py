@@ -7,10 +7,10 @@ from typing import Any
 
 from basis.platform.admin.errors import AdminError
 from basis.platform.admin.store import AdminStore
-from basis.domain.kb.embeddings import content_sha256, embed_query, embed_texts
-from basis.domain.kb.search_config import SearchMode
+from basis.domain.kb.search.embeddings import content_sha256, embed_query, embed_texts
+from basis.domain.kb.search.search_config import SearchMode
+from basis.domain.kb.search.vector_index import PgVectorIndex, SQLiteVectorIndex, VectorIndexBackend
 from basis.domain.kb.store import KnowledgeStore
-from basis.domain.kb.vector_index import PgVectorIndex, SQLiteVectorIndex, VectorIndexBackend
 
 _RRF_K = 60
 

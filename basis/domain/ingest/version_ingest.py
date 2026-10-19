@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from basis.domain.graph.session import GraphSession
-from basis.domain.kb.chunk_search import ChunkSearchService
+from basis.domain.kb.search import ChunkSearchService
 from basis.domain.kb.store import KnowledgeStore
 from basis.domain.ingest.chunk_meta import prepare_chunks
 from basis.domain.ingest.document import TextIngestOptions, _normalize_text, build_kg_from_text
