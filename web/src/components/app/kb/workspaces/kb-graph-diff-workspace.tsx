@@ -32,7 +32,7 @@ import { formatLocaleDateTime, formatLocaleNumber } from '@/i18n/format.js';
 import type { Locale } from '@/i18n/locale.js';
 import { formatUserFacingApiError } from '@/lib/api-error-message.js';
 import { useKbCapabilities } from '@/lib/kb-capabilities.js';
-import { kbOpenApiGET, kbOpenApiPOST } from '@/lib/openapi-client.js';
+import { kbOpenApiGET, kbOpenApiPOST, kbOpenApiPUT } from '@/lib/openapi-client.js';
 import { Input } from '@/components/ui/input.js';
 import { Label } from '@/components/ui/label.js';
 import { kbGraphPath } from '@/lib/graphUrlState.js';
@@ -274,12 +274,16 @@ export function KbGraphDiffWorkspace({
 
   useEffect(() => {
     if (!stagingSessionKey || stagingDraftRestoredRef.current) return;
-    const draft = readGraphStagingDraft(stagingSessionKey);
+    const localDraft = readGraphStagingDraft(stagingSessionKey);
+    const serverDraft = (stagingManifest?.draft ?? null) as
+      | { primary?: string; duplicate?: string }
+      | null;
     stagingDraftRestoredRef.current = true;
-    if (!draft) return;
-    if (draft.primary) setMergePrimaryId(draft.primary);
-    if (draft.duplicate) setMergeDuplicateId(draft.duplicate);
-  }, [stagingSessionKey]);
+    const primary = localDraft?.primary || serverDraft?.primary || '';
+    const duplicate = localDraft?.duplicate || serverDraft?.duplicate || '';
+    if (primary) setMergePrimaryId(primary);
+    if (duplicate) setMergeDuplicateId(duplicate);
+  }, [stagingManifest?.draft, stagingSessionKey]);
 
   useEffect(() => {
     if (!stagingSessionKey) return;
@@ -287,7 +291,17 @@ export function KbGraphDiffWorkspace({
       primary: mergePrimaryId,
       duplicate: mergeDuplicateId,
     });
-  }, [mergeDuplicateId, mergePrimaryId, stagingSessionKey]);
+    if (canProposeMerge) {
+      void kbOpenApiPUT(kbId, `graph/staging/${encodeURIComponent(stagingSessionKey)}/draft`, {
+        body: {
+          from_time: fromTime.trim(),
+          to_time: toTime.trim(),
+          primary: mergePrimaryId.trim(),
+          duplicate: mergeDuplicateId.trim(),
+        },
+      }).catch(() => {});
+    }
+  }, [canProposeMerge, fromTime, kbId, mergeDuplicateId, mergePrimaryId, stagingSessionKey, toTime]);
 
   const labelIds = useMemo(() => (diff ? collectNodeIds(diff) : []), [diff]);
   const nodeLabels = useKbNodeLabels(kbId, labelIds);

@@ -22,11 +22,18 @@ import {
   KB_NAV_BY_ZONE,
   KB_WORKSPACE_ZONES,
   type KbSidebarNavItem,
+  type NavItem,
+  isPlatformAdminPath,
   kbPath,
+  platformAdminEntryPath,
+  platformPathActive,
+  visiblePlatformNavItems,
 } from '@/lib/nav-config.js';
 import { resolveSidebarKbId } from '@/lib/kb-active-id.js';
+import { useBasisSession } from '@/lib/basis-session.js';
 import { useKbCatalog } from '@/lib/kb-context.js';
 import { kbNavSegmentEnabled, useKbCapabilities } from '@/lib/kb-capabilities.js';
+import { useSettingsAccess } from '@/lib/use-settings-access.js';
 import { useKbFailedProcessingCount } from '@/lib/use-kb-failed-processing-count.js';
 import { Badge } from '@/components/ui/badge.js';
 
@@ -34,10 +41,20 @@ export function BasisSidebar({ onLogout }: { onLogout: () => void }) {
   const { t } = useI18n();
   const location = useLocation();
   const { isMobile, setOpenMobile } = useSidebar();
+  const { isAdmin } = useBasisSession();
+  const canSettings = useSettingsAccess();
+  const platformNavReady = isAdmin || canSettings !== null;
+  const platformItems = platformNavReady
+    ? visiblePlatformNavItems(isAdmin, canSettings === true)
+    : [];
+  const isPlatformAdmin = isPlatformAdminPath(location.pathname);
   const { kbs } = useKbCatalog();
   const { caps } = useKbCapabilities();
   const failedProcessingCount = useKbFailedProcessingCount();
   const navKbId = resolveSidebarKbId(location.pathname, kbs);
+  const adminHome =
+    platformNavReady ? platformAdminEntryPath(isAdmin, canSettings === true) : '/admin/kbs';
+  const consoleGraphHref = kbPath(navKbId, 'graph');
 
   function closeMobile() {
     if (isMobile) setOpenMobile(false);
@@ -92,11 +109,28 @@ export function BasisSidebar({ onLogout }: { onLogout: () => void }) {
     );
   }
 
+  function renderPlatformNavItem(item: NavItem) {
+    const active = platformPathActive(location.pathname, item.to, item.exact);
+    const label = t.menu.platform[item.labelKey];
+    return (
+      <SidebarMenuItem key={item.to}>
+        <SidebarMenuButton asChild isActive={active} tooltip={label}>
+          <Link to={item.to} onClick={closeMobile}>
+            <SidebarIcon name={item.icon} />
+            <span className="min-w-0 flex-1 truncate group-data-[collapsible=icon]:hidden">
+              {label}
+            </span>
+          </Link>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+    );
+  }
+
   return (
     <Sidebar collapsible="icon" className="p-0">
       <SidebarHeader className="flex-row items-center gap-1 group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-0">
         <Link
-          to="/kbs"
+          to={isPlatformAdmin ? adminHome : '/kbs'}
           onClick={closeMobile}
           className="flex h-8 min-w-0 flex-1 items-center gap-2 overflow-hidden px-2 group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:flex-none group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0"
         >
@@ -114,30 +148,61 @@ export function BasisSidebar({ onLogout }: { onLogout: () => void }) {
         <ScrollShadow hideScrollBar className="min-h-0 flex-1" fadeColor="var(--sidebar)">
           <SidebarGroup className="group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:items-center">
             <SidebarGroupContent>
-              <div className="mb-3 px-0.5 group-data-[collapsible=icon]:mb-1 group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
-                <KbSwitcher />
-              </div>
-              <div className="flex flex-col gap-3.5 group-data-[collapsible=icon]:gap-2">
-                {KB_WORKSPACE_ZONES.map((zone, zoneIndex) => {
-                  const zoneLabel = t.menu.kbZones[zone];
-                  const items = KB_NAV_BY_ZONE[zone];
-                  return (
-                    <div key={zone} className="flex flex-col gap-0.5">
-                      {zoneIndex > 0 ? (
-                        <div className="mx-2 my-1 hidden h-px bg-sidebar-border group-data-[collapsible=icon]:block" />
-                      ) : null}
-                      <div
-                        className="px-2 pb-0.5 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/50 group-data-[collapsible=icon]:hidden"
-                      >
-                        {zoneLabel}
-                      </div>
-                      <SidebarMenu>
-                        {items.map((item) => renderKbNavItem(navKbId, item))}
-                      </SidebarMenu>
+              {isPlatformAdmin ? (
+                <div className="flex flex-col gap-3.5 group-data-[collapsible=icon]:gap-2">
+                  <div className="mb-1 px-0.5 group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
+                    <SidebarMenu>
+                      <SidebarMenuItem>
+                        <SidebarMenuButton asChild tooltip={t.sidebar.backToKnowledgeConsole}>
+                          <Link to={consoleGraphHref} onClick={closeMobile}>
+                            <SidebarIcon name="arrow-left" />
+                            <span className="min-w-0 flex-1 truncate group-data-[collapsible=icon]:hidden">
+                              {t.sidebar.backToKnowledgeConsole}
+                            </span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    </SidebarMenu>
+                  </div>
+                  <div className="flex flex-col gap-0.5">
+                    <div
+                      className="px-2 pb-0.5 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/50 group-data-[collapsible=icon]:hidden"
+                    >
+                      {t.sidebar.management}
                     </div>
-                  );
-                })}
-              </div>
+                    <SidebarMenu>
+                      {platformItems.map((item) => renderPlatformNavItem(item))}
+                    </SidebarMenu>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="mb-3 px-0.5 group-data-[collapsible=icon]:mb-1 group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
+                    <KbSwitcher />
+                  </div>
+                  <div className="flex flex-col gap-3.5 group-data-[collapsible=icon]:gap-2">
+                    {KB_WORKSPACE_ZONES.map((zone, zoneIndex) => {
+                      const zoneLabel = t.menu.kbZones[zone];
+                      const items = KB_NAV_BY_ZONE[zone];
+                      return (
+                        <div key={zone} className="flex flex-col gap-0.5">
+                          {zoneIndex > 0 ? (
+                            <div className="mx-2 my-1 hidden h-px bg-sidebar-border group-data-[collapsible=icon]:block" />
+                          ) : null}
+                          <div
+                            className="px-2 pb-0.5 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/50 group-data-[collapsible=icon]:hidden"
+                          >
+                            {zoneLabel}
+                          </div>
+                          <SidebarMenu>
+                            {items.map((item) => renderKbNavItem(navKbId, item))}
+                          </SidebarMenu>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
             </SidebarGroupContent>
           </SidebarGroup>
         </ScrollShadow>

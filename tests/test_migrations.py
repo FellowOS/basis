@@ -54,7 +54,7 @@ def test_fresh_database_applies_all_migrations(tmp_path: Path) -> None:
         for row in store._conn.execute("SELECT version FROM schema_migrations ORDER BY version")
     }
     store.close()
-    assert versions == {1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+    assert versions == {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12}
 
     conn = sqlite3.connect(db_path)
     tables = {
@@ -69,6 +69,13 @@ def test_fresh_database_applies_all_migrations(tmp_path: Path) -> None:
     assert "projection_state" in tables
     assert "kb_search_configs" in tables
     assert "chunks_fts" in tables
+    assert "kb_connector_policies" in tables
+    assert "kb_connections" in tables
+    assert "kb_oauth_configs" in tables
+    assert "kb_connector_runs" in tables
+    assert "source_table_mappings" in tables
+    assert "entity_external_refs" in tables
+    assert "entity_sync_outbox" in tables
 
 
 def test_migrations_are_idempotent(tmp_path: Path) -> None:
@@ -77,7 +84,7 @@ def test_migrations_are_idempotent(tmp_path: Path) -> None:
     first = run_migrations(conn)
     second = run_migrations(conn)
     conn.close()
-    assert first == [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    assert first == [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
     assert second == []
 
 
@@ -95,7 +102,7 @@ def test_legacy_database_upgrades_without_data_loss(tmp_path: Path) -> None:
         row[0]
         for row in store._conn.execute("SELECT version FROM schema_migrations ORDER BY version")
     ]
-    assert versions == [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    assert versions == [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
     store.close()
 
 
@@ -119,5 +126,5 @@ def test_checksum_mismatch_fails(tmp_path: Path) -> None:
 
 def test_load_migrations_sorted() -> None:
     migrations = load_migrations()
-    assert [m.version for m in migrations] == [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    assert [m.version for m in migrations] == [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
     assert migrations[0].checksum != migrations[1].checksum

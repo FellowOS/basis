@@ -1,4 +1,4 @@
-export type PlatformNavKey = 'kbs' | 'users' | 'models' | 'audit' | 'system';
+export type PlatformNavKey = 'kbs' | 'users' | 'models' | 'connectors' | 'audit' | 'system';
 
 export type NavItem = {
   to: string;
@@ -15,6 +15,7 @@ export const PLATFORM_NAV: NavItem[] = [
   { to: '/admin/kbs', labelKey: 'kbs', icon: 'folder-down-01', exact: true },
   { to: '/admin/users', labelKey: 'users', icon: 'users-profiles-01', adminOnly: true },
   { to: '/admin/models', labelKey: 'models', icon: 'atom', adminOnly: true },
+  { to: '/admin/connectors', labelKey: 'connectors', icon: 'plug-01', adminOnly: true },
   { to: '/admin/audit', labelKey: 'audit', icon: 'list-dashes-01', adminOnly: true },
   { to: '/admin/settings', labelKey: 'system', icon: 'settings' },
 ];
@@ -50,13 +51,15 @@ export function platformAdminEntryPath(isAdmin: boolean, canSettings: boolean): 
  * KB navigation zones ordered by user mental model & task frequency:
  * 1. explore (high-frequency consumption: Graph, Search)
  * 2. knowledge (sources, entities, entity resolution, decisions, review queue)
- * 3. schema (ontology hub tabs, query/reasoning hub, vocabulary, mappings)
- * 4. audit (provenance & temporal diff: Lineage, Graph Diff)
- * 5. system (integration, settings); alerts via account menu only
+ * 3. connectors (BOCP catalog, connections, stream mappings, sync)
+ * 4. schema (ontology hub tabs, query/reasoning hub, vocabulary, mappings)
+ * 5. audit (provenance & temporal diff: Lineage, Graph Diff)
+ * 6. system (integration, settings); alerts via account menu only
  */
 export type KbWorkspaceZone =
   | 'explore'
   | 'knowledge'
+  | 'connectors'
   | 'schema'
   | 'audit'
   | 'system';
@@ -64,6 +67,7 @@ export type KbWorkspaceZone =
 export const KB_WORKSPACE_ZONES: KbWorkspaceZone[] = [
   'explore',
   'knowledge',
+  'connectors',
   'schema',
   'audit',
   'system',
@@ -88,6 +92,12 @@ export const KB_NAV_BY_ZONE = {
     { segment: 'entity-resolution', labelKey: 'entityResolution', icon: 'git-merge' },
     { segment: 'decisions', labelKey: 'decisions', icon: 'scales' },
     { segment: 'review', labelKey: 'review', icon: 'check-square-contained' },
+  ],
+  connectors: [
+    { segment: 'connectors/catalog', labelKey: 'connectorCatalog', icon: 'database' },
+    { segment: 'connectors/mappings', labelKey: 'connectorStreamMappings', icon: 'arrows-left-right' },
+    { segment: 'connectors/policy', labelKey: 'connectorActionPolicy', icon: 'scales' },
+    { segment: 'connectors/runs', labelKey: 'connectorRunLogs', icon: 'list-dashes-01' },
   ],
   schema: [
     { segment: 'ontology', labelKey: 'ontology', icon: 'shapes-01' },
@@ -160,6 +170,13 @@ export function kbPath(kbId: string, segment: string): string {
   return `/kbs/${kbId}/${segment}`;
 }
 
+/** BOCP workspace panels (sidebar routes under `/connectors/…`). */
+export type ConnectorPanel = 'catalog' | 'mappings' | 'policy' | 'runs';
+
+export function kbConnectorPanelPath(kbId: string, panel: ConnectorPanel): string {
+  return kbPath(kbId, `connectors/${panel}`);
+}
+
 /** Deep-link to OWL versions workspace + proposal review modal (F-ONT-05). */
 export function kbOntologyProposalPath(kbId: string, proposalId: string): string {
   const params = new URLSearchParams({
@@ -203,6 +220,14 @@ export function menuIconForPath(pathname: string): string | undefined {
     if (segment === 'sparql' || segment === 'reasoning') {
       return KB_NAV_BY_ZONE.schema.find((item) => item.segment === 'analyze')?.icon;
     }
+    if (segment === 'connectors') {
+      const panel = /^\/kbs\/[^/]+\/connectors\/([^/]+)/.exec(pathname)?.[1];
+      const navSegment =
+        panel === 'mappings' || panel === 'policy' || panel === 'runs'
+          ? `connectors/${panel}`
+          : 'connectors/catalog';
+      return KB_NAV.find((item) => item.segment === navSegment)?.icon;
+    }
     return KB_NAV.find((item) => item.segment === segment)?.icon;
   }
   return PLATFORM_NAV.find((item) =>
@@ -216,6 +241,9 @@ export function isKbScopedPath(pathname: string): boolean {
   const rest = pathname.slice(`/kbs/${id}`.length);
   if (!rest || rest === '/') return false;
   const segment = rest.replace(/^\//, '').split('/')[0];
+  if (segment === 'connectors') {
+    return true;
+  }
   if (KB_NAV.some((item) => item.segment === segment)) {
     return true;
   }

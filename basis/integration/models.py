@@ -85,6 +85,11 @@ class ResolveStatementRememberReviewInput(_ExtraAllowed):
     rationale: str | None = None
 
 
+class ProposeEntityWritebackInput(_ExtraAllowed):
+    entity_id: str = Field(min_length=1)
+    field_updates: dict[str, Any] = Field(min_length=1)
+
+
 class DescribeKbResponse(_ExtraAllowed):
     kb_id: str
     name: str
@@ -158,6 +163,7 @@ OPERATION_INPUT_MODELS: dict[str, type[BaseModel]] = {
     "list_processing_jobs": ListProcessingJobsInput,
     "approve_statement_remember_review": ResolveStatementRememberReviewInput,
     "reject_statement_remember_review": ResolveStatementRememberReviewInput,
+    "propose_entity_writeback": ProposeEntityWritebackInput,
 }
 
 

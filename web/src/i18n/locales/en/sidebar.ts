@@ -15,4 +15,5 @@ export const sidebar = {
   logout: 'Log out',
   platformAdmin: 'Platform',
   management: 'Administration',
+  backToKnowledgeConsole: 'Knowledge console',
 } as const;

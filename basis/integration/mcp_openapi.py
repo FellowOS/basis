@@ -31,6 +31,22 @@ MCP_TOOL_OPERATIONS: dict[str, tuple[str, str]] = {
         "post",
         "/api/v1/kbs/{kb_id}/review/items/{item_id}/reject",
     ),
+    "list_connector_catalog": ("get", "/api/v1/kbs/{kb_id}/connectors/catalog"),
+    "describe_connector_service": (
+        "get",
+        "/api/v1/kbs/{kb_id}/connectors/catalog/{service}",
+    ),
+    "list_connector_connections": ("get", "/api/v1/kbs/{kb_id}/connectors/connections"),
+    "list_connector_table_mappings": (
+        "get",
+        "/api/v1/kbs/{kb_id}/connectors/table-mappings",
+    ),
+    "sync_connector_table_mapping": (
+        "post",
+        "/api/v1/kbs/{kb_id}/connectors/table-mappings/{mapping_id}/sync",
+    ),
+    "propose_entity_writeback": ("post", "/api/v1/kbs/{kb_id}/connectors/outbox/propose"),
+    "execute_connector_tool": ("post", "/api/v1/kbs/{kb_id}/connectors/tools/execute"),
 }
 
 # Back-compat alias for tests/docs

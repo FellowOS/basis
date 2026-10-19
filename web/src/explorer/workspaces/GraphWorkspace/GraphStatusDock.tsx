@@ -45,14 +45,14 @@ export function GraphStatusDock({
   showLoadingStatus: boolean;
   loadingPhase?: GraphLoadPhase;
   summary: GraphStatusSummary | null | undefined;
-  activeNodeCount: number | null;
+  activeNodeCount: number | null | undefined;
   focusedSummary: string | null;
   readOnly?: boolean;
   trailing?: ReactNode;
 }) {
   const hasLoading = showLoadingStatus && loadingPhase;
   const hasSummary = Boolean(summary);
-  const hasActive = activeNodeCount !== null;
+  const hasActive = typeof activeNodeCount === "number" && Number.isFinite(activeNodeCount);
   const hasFocused = Boolean(focusedSummary);
 
   if (!hasLoading && !hasSummary && !hasActive && !hasFocused && !readOnly && !trailing) {

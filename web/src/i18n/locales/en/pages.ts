@@ -118,6 +118,8 @@ export const pages = {
       'Search ledger entities and open a row for statements and derived facts. The rail lists what reasoning wrote back.',
     sources:
       'Document upload, text paste, URL fetch, and source versions.',
+    connectors:
+      'Basis Open Connector Protocol (BOCP): connect relational databases and 1,000+ SaaS APIs with bidirectional ontology ledger sync.',
     processing:
       'Extract, chunk, and project jobs; start from source versions and retry failures.',
     graphDiff:

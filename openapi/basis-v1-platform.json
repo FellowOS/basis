@@ -2580,6 +2580,438 @@
         "x-basis-auth": "session"
       }
     },
+    "/api/v1/settings/connectors": {
+      "get": {
+        "tags": [
+          "settings"
+        ],
+        "summary": "Get Connector Allowlist Settings",
+        "description": "Get platform-wide BOCP provider allowlist (KB policies must stay within this ceiling).",
+        "operationId": "get_connector_allowlist_settings_api_v1_settings_connectors_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Connector Allowlist Settings Api V1 Settings Connectors Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-basis-surface": "platform",
+        "x-basis-auth": "session"
+      },
+      "put": {
+        "tags": [
+          "settings"
+        ],
+        "summary": "Put Connector Allowlist Settings",
+        "description": "Update platform-wide BOCP provider allowlist.",
+        "operationId": "put_connector_allowlist_settings_api_v1_settings_connectors_put",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConnectorAllowlistSettingsRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Put Connector Allowlist Settings Api V1 Settings Connectors Put"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-basis-surface": "platform",
+        "x-basis-auth": "session"
+      }
+    },
+    "/api/v1/settings/connectors/catalog": {
+      "get": {
+        "tags": [
+          "settings"
+        ],
+        "summary": "List Platform Connector Catalog",
+        "description": "List BOCP catalog entries with platform allowlist flags for system administrators.",
+        "operationId": "list_platform_connector_catalog_api_v1_settings_connectors_catalog_get",
+        "parameters": [
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Category"
+            }
+          },
+          {
+            "name": "auth_mode",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Auth Mode"
+            }
+          },
+          {
+            "name": "has_streams_only",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Has Streams Only"
+            }
+          },
+          {
+            "name": "query",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Query"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1500,
+              "minimum": 1,
+              "default": 200,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response List Platform Connector Catalog Api V1 Settings Connectors Catalog Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-basis-surface": "platform",
+        "x-basis-auth": "session"
+      }
+    },
+    "/api/v1/settings/connectors/catalog/stats": {
+      "get": {
+        "tags": [
+          "settings"
+        ],
+        "summary": "Platform Connector Catalog Stats",
+        "description": "Aggregate BOCP catalog counts by category for platform administrators.",
+        "operationId": "platform_connector_catalog_stats_api_v1_settings_connectors_catalog_stats_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Platform Connector Catalog Stats Api V1 Settings Connectors Catalog Stats Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-basis-surface": "platform",
+        "x-basis-auth": "session"
+      }
+    },
+    "/api/v1/settings/connectors/catalog/{service}": {
+      "get": {
+        "tags": [
+          "settings"
+        ],
+        "summary": "Get Platform Connector Manifest",
+        "description": "Return full BOCP manifest JSON for one catalog service (system administrators).",
+        "operationId": "get_platform_connector_manifest_api_v1_settings_connectors_catalog__service__get",
+        "parameters": [
+          {
+            "name": "service",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Service"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Platform Connector Manifest Api V1 Settings Connectors Catalog  Service  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-basis-surface": "platform",
+        "x-basis-auth": "session"
+      }
+    },
+    "/api/v1/settings/connectors/validate": {
+      "post": {
+        "tags": [
+          "settings"
+        ],
+        "summary": "Validate Connector Allowlist Settings",
+        "description": "Validate a platform allowlist against the shipped BOCP catalog.",
+        "operationId": "validate_connector_allowlist_settings_api_v1_settings_connectors_validate_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConnectorAllowlistSettingsRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Validate Connector Allowlist Settings Api V1 Settings Connectors Validate Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-basis-surface": "platform",
+        "x-basis-auth": "session"
+      }
+    },
     "/api/v1/users": {
       "get": {
         "tags": [
@@ -3017,6 +3449,113 @@
         ],
         "title": "Body_upload_document_api_v1_kbs__kb_id__documents_upload_post"
       },
+      "BuildOAuthAuthorizeUrlRequest": {
+        "properties": {
+          "state": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "State"
+          },
+          "redirect_uri": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Redirect Uri"
+          },
+          "connection_config": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Connection Config"
+          },
+          "code_challenge": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Code Challenge"
+          }
+        },
+        "type": "object",
+        "title": "BuildOAuthAuthorizeUrlRequest"
+      },
+      "ColumnMappingSpec": {
+        "properties": {
+          "column": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Column"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "literal",
+              "relation"
+            ],
+            "title": "Kind",
+            "default": "literal"
+          },
+          "surface_phrase": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Surface Phrase"
+          },
+          "predicate_uri": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Predicate Uri"
+          },
+          "datatype": {
+            "type": "string",
+            "title": "Datatype",
+            "default": "xsd:string"
+          },
+          "fk_target_table": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fk Target Table"
+          },
+          "writable": {
+            "type": "boolean",
+            "title": "Writable",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "column",
+          "surface_phrase"
+        ],
+        "title": "ColumnMappingSpec",
+        "description": "Single element of source_table_mappings.column_mappings_json."
+      },
       "CommentRequest": {
         "properties": {
           "element_uri": {
@@ -3039,6 +3578,27 @@
           "author"
         ],
         "title": "CommentRequest"
+      },
+      "ConnectorAllowlistSettingsRequest": {
+        "properties": {
+          "allowed_providers": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Allowed Providers",
+            "default": "*"
+          }
+        },
+        "type": "object",
+        "title": "ConnectorAllowlistSettingsRequest"
       },
       "CreateEntityMergeReviewRequest": {
         "properties": {
@@ -3306,6 +3866,130 @@
         ],
         "title": "CreateReasoningRuleRequest"
       },
+      "CreateTableMappingRequest": {
+        "properties": {
+          "source_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Id"
+          },
+          "provider": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Provider"
+          },
+          "connection_name": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Connection Name",
+            "default": "default"
+          },
+          "stream_name": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Stream Name"
+          },
+          "external_table": {
+            "type": "string",
+            "minLength": 1,
+            "title": "External Table"
+          },
+          "stream_params": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Stream Params"
+          },
+          "primary_key_column": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Primary Key Column"
+          },
+          "cursor_column": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cursor Column"
+          },
+          "label_column": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Label Column"
+          },
+          "target_class_uri": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Target Class Uri"
+          },
+          "column_mappings": {
+            "items": {
+              "$ref": "#/components/schemas/ColumnMappingSpec"
+            },
+            "type": "array",
+            "title": "Column Mappings"
+          },
+          "sync_mode": {
+            "type": "string",
+            "enum": [
+              "full_refresh",
+              "incremental"
+            ],
+            "title": "Sync Mode",
+            "default": "incremental"
+          },
+          "track_deletes": {
+            "type": "boolean",
+            "title": "Track Deletes",
+            "default": false
+          },
+          "sync_direction": {
+            "type": "string",
+            "enum": [
+              "inbound",
+              "bidirectional"
+            ],
+            "title": "Sync Direction",
+            "default": "inbound"
+          },
+          "writeback_mode": {
+            "type": "string",
+            "enum": [
+              "disabled",
+              "review",
+              "auto"
+            ],
+            "title": "Writeback Mode",
+            "default": "review"
+          },
+          "max_rows": {
+            "type": "integer",
+            "maximum": 100000.0,
+            "minimum": 1.0,
+            "title": "Max Rows",
+            "default": 10000
+          }
+        },
+        "type": "object",
+        "required": [
+          "provider",
+          "stream_name",
+          "external_table",
+          "primary_key_column",
+          "label_column",
+          "target_class_uri"
+        ],
+        "title": "CreateTableMappingRequest"
+      },
       "CreateUserRequest": {
         "properties": {
           "email": {
@@ -3551,6 +4235,84 @@
         },
         "type": "object",
         "title": "EmailCreds"
+      },
+      "ExchangeOAuthCodeRequest": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Code"
+          },
+          "redirect_uri": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Redirect Uri"
+          },
+          "code_verifier": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Code Verifier"
+          },
+          "connection_name": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Connection Name",
+            "default": "default"
+          },
+          "connection_config": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Connection Config"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code"
+        ],
+        "title": "ExchangeOAuthCodeRequest"
+      },
+      "ExecuteConnectorToolRequest": {
+        "properties": {
+          "service": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Service"
+          },
+          "tool_id": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Tool Id"
+          },
+          "connection_name": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Connection Name",
+            "default": "default"
+          },
+          "arguments": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Arguments"
+          }
+        },
+        "type": "object",
+        "required": [
+          "service",
+          "tool_id"
+        ],
+        "title": "ExecuteConnectorToolRequest"
       },
       "GraphSearchRequest": {
         "properties": {
@@ -4037,6 +4799,53 @@
           "summary"
         ],
         "title": "ProposalRequest"
+      },
+      "ProposeEntityWritebackRequest": {
+        "properties": {
+          "entity_id": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Entity Id"
+          },
+          "field_updates": {
+            "additionalProperties": true,
+            "type": "object",
+            "minProperties": 1,
+            "title": "Field Updates"
+          }
+        },
+        "type": "object",
+        "required": [
+          "entity_id",
+          "field_updates"
+        ],
+        "title": "ProposeEntityWritebackRequest"
+      },
+      "PutGraphStagingDraftRequest": {
+        "properties": {
+          "from_time": {
+            "type": "string",
+            "title": "From Time",
+            "default": ""
+          },
+          "to_time": {
+            "type": "string",
+            "title": "To Time",
+            "default": ""
+          },
+          "primary": {
+            "type": "string",
+            "title": "Primary",
+            "default": ""
+          },
+          "duplicate": {
+            "type": "string",
+            "title": "Duplicate",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "PutGraphStagingDraftRequest"
       },
       "ReasonRequest": {
         "properties": {
@@ -4668,6 +5477,215 @@
         },
         "type": "object",
         "title": "UpdateReasoningRuleRequest"
+      },
+      "UpdateTableMappingRequest": {
+        "properties": {
+          "provider": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provider"
+          },
+          "connection_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Connection Name"
+          },
+          "stream_name": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Stream Name"
+          },
+          "external_table": {
+            "type": "string",
+            "minLength": 1,
+            "title": "External Table"
+          },
+          "stream_params": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Stream Params"
+          },
+          "primary_key_column": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Primary Key Column"
+          },
+          "cursor_column": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cursor Column"
+          },
+          "label_column": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Label Column"
+          },
+          "target_class_uri": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Target Class Uri"
+          },
+          "column_mappings": {
+            "items": {
+              "$ref": "#/components/schemas/ColumnMappingSpec"
+            },
+            "type": "array",
+            "title": "Column Mappings"
+          },
+          "sync_mode": {
+            "type": "string",
+            "enum": [
+              "full_refresh",
+              "incremental"
+            ],
+            "title": "Sync Mode",
+            "default": "incremental"
+          },
+          "track_deletes": {
+            "type": "boolean",
+            "title": "Track Deletes",
+            "default": false
+          },
+          "sync_direction": {
+            "type": "string",
+            "enum": [
+              "inbound",
+              "bidirectional"
+            ],
+            "title": "Sync Direction",
+            "default": "inbound"
+          },
+          "writeback_mode": {
+            "type": "string",
+            "enum": [
+              "disabled",
+              "review",
+              "auto"
+            ],
+            "title": "Writeback Mode",
+            "default": "review"
+          },
+          "max_rows": {
+            "type": "integer",
+            "maximum": 100000.0,
+            "minimum": 1.0,
+            "title": "Max Rows",
+            "default": 10000
+          }
+        },
+        "type": "object",
+        "required": [
+          "stream_name",
+          "external_table",
+          "primary_key_column",
+          "label_column",
+          "target_class_uri"
+        ],
+        "title": "UpdateTableMappingRequest"
+      },
+      "UpsertConnectorConnectionRequest": {
+        "properties": {
+          "auth_type": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Auth Type"
+          },
+          "connection_config": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Connection Config"
+          },
+          "credentials": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Credentials"
+          }
+        },
+        "type": "object",
+        "required": [
+          "auth_type"
+        ],
+        "title": "UpsertConnectorConnectionRequest"
+      },
+      "UpsertConnectorPolicyRequest": {
+        "properties": {
+          "allowed_providers": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Allowed Providers",
+            "default": "*"
+          },
+          "action_policy": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Action Policy"
+          }
+        },
+        "type": "object",
+        "title": "UpsertConnectorPolicyRequest"
+      },
+      "UpsertOAuthConfigRequest": {
+        "properties": {
+          "client_id": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Client Id"
+          },
+          "client_secret": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Client Secret"
+          },
+          "redirect_uri": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Redirect Uri"
+          },
+          "extra": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Extra"
+          }
+        },
+        "type": "object",
+        "required": [
+          "client_id",
+          "client_secret"
+        ],
+        "title": "UpsertOAuthConfigRequest"
       },
       "ValidationError": {
         "properties": {

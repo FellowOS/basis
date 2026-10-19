@@ -6,6 +6,7 @@ from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import Response
+from pydantic import BaseModel, Field
 
 from basis.platform.admin.errors import AdminError
 from basis.platform.admin.store import AdminStore, User
@@ -51,9 +52,14 @@ async def kb_temporal_bounds(
     from semantica.explorer.routes.temporal import temporal_bounds
 
     payload = await invoke_explorer(temporal_bounds(session=session), context="temporal")
-    if isinstance(payload, dict):
+    base_bounds = (
+        payload.model_dump()
+        if hasattr(payload, "model_dump")
+        else (dict(payload) if isinstance(payload, dict) else None)
+    )
+    if isinstance(base_bounds, dict):
         ledger = get_knowledge_store(request).get_ledger_temporal_bounds(kb_id)
-        merged = dict(payload)
+        merged = dict(base_bounds)
         if not merged.get("min") and ledger.get("min"):
             merged["min"] = ledger["min"]
         if not merged.get("max") and ledger.get("max"):
@@ -80,19 +86,36 @@ async def kb_temporal_snapshot(
     session = require_explorer_graph_session(runtime)
     from semantica.explorer.routes.temporal import temporal_snapshot
     from basis.domain.explorer.graph_diff import parse_query_dt
+    from basis.domain.graph.projector import build_temporal_graph_from_ledger
 
     payload = await invoke_explorer(temporal_snapshot(at=at, session=session), context="temporal")
     if at:
         try:
             instant = parse_query_dt(at)
-            state = session.graph.state_at(instant)
+            temporal_session = build_temporal_graph_from_ledger(
+                get_knowledge_store(request), kb_id, preserve_from=session
+            )
+            state = temporal_session.graph.state_at(instant)
         except ValueError:
             state = None
-        if isinstance(state, dict) and (state.get("nodes") or []):
-            base = payload if isinstance(payload, dict) else {}
+        if isinstance(state, dict) and (state.get("nodes") is not None):
+            base = (
+                payload.model_dump()
+                if hasattr(payload, "model_dump")
+                else (dict(payload) if isinstance(payload, dict) else {})
+            )
+            state_nodes = state.get("nodes") or []
+            state_node_ids = [
+                str(n.get("id"))
+                for n in state_nodes
+                if isinstance(n, dict) and n.get("id")
+            ]
+            active_ids = state_node_ids if state_nodes or not base.get("active_node_ids") else base.get("active_node_ids")
             payload = {
                 **base,
-                "nodes": state.get("nodes") or [],
+                "active_node_ids": active_ids,
+                "active_node_count": len(active_ids),
+                "nodes": state_nodes,
                 "edges": state.get("edges") or [],
                 "at": instant.isoformat(),
                 "source": "graph_state_at",
@@ -115,12 +138,19 @@ Kb Temporal Diff. Requires KB membership (session) or KB API token with read/wri
     get_kb_for_viewer(request, user, kb_id, store)
     runtime = get_explorer_registry(request).get(request, kb_id)
     session = require_explorer_graph_session(runtime)
-    from semantica.explorer.routes.temporal import temporal_diff
+    from basis.domain.explorer.graph_diff import diff_session_at
+    from basis.domain.graph.projector import build_temporal_graph_from_ledger
 
-    return await invoke_explorer(
-        temporal_diff(from_time=from_time, to_time=to_time, session=session),
-        context="temporal",
+    temporal_session = build_temporal_graph_from_ledger(
+        get_knowledge_store(request), kb_id, preserve_from=session
     )
+    diff = diff_session_at(temporal_session, from_time, to_time)
+    return {
+        "from_time": diff["from_time"],
+        "to_time": diff["to_time"],
+        "added_nodes": diff["added_nodes"],
+        "removed_nodes": diff["removed_nodes"],
+    }
 
 
 @router.get("/{kb_id}/graph/diff")
@@ -137,15 +167,19 @@ async def kb_graph_diff(
     Compares Explorer projection snapshots at `from` and `to` (ISO instants). Response includes
     `added_nodes`, `removed_nodes`, `modified_nodes`, `added_edges`, `removed_edges`, `summary`,
     and echo `from_time` / `to_time`. Node/edge membership follows ledger `recorded_at` → projected
-    `valid_from` (F-TIM-01). Console graph preview dims unchanged elements and highlights
+    `valid_from` and `invalidated_at` → projected `valid_until` (F-TIM-01). Console graph preview dims unchanged elements and highlights
     added/modified nodes and added edges at the end instant.
     """
     get_kb_for_viewer(request, user, kb_id, store)
     runtime = get_explorer_registry(request).get(request, kb_id)
     session = require_explorer_graph_session(runtime)
     from basis.domain.explorer.graph_diff import diff_session_at
+    from basis.domain.graph.projector import build_temporal_graph_from_ledger
 
-    return diff_session_at(session, from_time, to_time)
+    temporal_session = build_temporal_graph_from_ledger(
+        get_knowledge_store(request), kb_id, preserve_from=session
+    )
+    return diff_session_at(temporal_session, from_time, to_time)
 
 
 @router.get("/{kb_id}/graph/staging")
@@ -168,8 +202,52 @@ async def kb_graph_staging(
     runtime = get_explorer_registry(request).get(request, kb_id)
     session = require_explorer_graph_session(runtime)
     from basis.domain.explorer.graph_staging import graph_staging_at
+    from basis.domain.graph.projector import build_temporal_graph_from_ledger
 
-    return graph_staging_at(session, kb_id, from_time, to_time)
+    knowledge = get_knowledge_store(request)
+    temporal_session = build_temporal_graph_from_ledger(
+        knowledge, kb_id, preserve_from=session
+    )
+    return graph_staging_at(
+        temporal_session,
+        kb_id,
+        from_time,
+        to_time,
+        conn=knowledge._conn,
+        updated_by=user.id,
+    )
+
+
+class PutGraphStagingDraftRequest(BaseModel):
+    from_time: str = Field(default="")
+    to_time: str = Field(default="")
+    primary: str = Field(default="")
+    duplicate: str = Field(default="")
+
+
+@router.put("/{kb_id}/graph/staging/{session_key}/draft")
+async def kb_put_graph_staging_draft(
+    kb_id: str,
+    session_key: str,
+    body: PutGraphStagingDraftRequest,
+    request: Request,
+    user: User = Depends(get_current_user),
+    store: AdminStore = Depends(get_store),
+    knowledge: KnowledgeStore = Depends(get_knowledge_store),
+) -> dict[str, Any]:
+    """Persist server-side staging studio merge draft for a compare session (F-DIFF-01)."""
+    get_kb_for_editor(request, user, kb_id, store)
+    from basis.domain.explorer.graph_staging import upsert_persisted_staging_session
+
+    return upsert_persisted_staging_session(
+        knowledge._conn,
+        kb_id,
+        session_key=session_key,
+        from_time=body.from_time,
+        to_time=body.to_time,
+        draft={"primary": body.primary, "duplicate": body.duplicate},
+        updated_by=user.id,
+    )
 
 
 @router.post("/{kb_id}/graph/staging/entity-merge")

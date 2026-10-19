@@ -56,10 +56,13 @@ async def _app_lifespan(app: FastAPI):
     if poll_tick > 0:
         from basis.domain.kb.ingest_poll_scheduler import run_due_http_polls
 
+        from basis.domain.kb.connector_poll_scheduler import run_due_connector_syncs
+
         async def _poll_loop() -> None:
             while True:
                 await asyncio.sleep(max(15, poll_tick))
                 await asyncio.to_thread(run_due_http_polls, app)
+                await asyncio.to_thread(run_due_connector_syncs, app)
 
         tasks.append(asyncio.create_task(_poll_loop()))
 

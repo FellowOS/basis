@@ -2,7 +2,11 @@ from pathlib import Path
 
 from basis.platform.admin.store import AdminStore
 from basis.domain.explorer.graph_diff import diff_graph_states
-from basis.domain.graph.projector import graph_projection_signature, rebuild_graph_from_ledger
+from basis.domain.graph.projector import (
+    build_temporal_graph_from_ledger,
+    graph_projection_signature,
+    rebuild_graph_from_ledger,
+)
 from basis.domain.graph.session import GraphSession
 from basis.domain.kb.blob_store import BlobStore
 from basis.domain.kb.store import KnowledgeStore
@@ -205,3 +209,67 @@ def test_ontology_node_preserved_on_rebuild(tmp_path: Path) -> None:
     rebuilt = rebuild_graph_from_ledger(store, kb_id, preserve_from=existing)
     assert "http://example.org/onto#ontology" in rebuilt.graph.nodes
     store.close()
+
+
+def test_temporal_graph_projection_valid_until_filters_invalidated_edges_and_nodes(
+    tmp_path: Path,
+) -> None:
+    kb_id, store = _kb_store(tmp_path)
+    _, version_id, _, _ = store.store_upload_bytes(
+        kb_id,
+        title="valid_until.txt",
+        mime_type="text/plain",
+        data=b"x",
+        created_by=None,
+        external_key="doc-valid-until",
+    )
+    chunk_id = store.create_chunk(kb_id, version_id, ordinal=0, text="Alpha partners Beta.")
+    store.set_version_status(kb_id, version_id, "ready")
+    alpha = store.create_entity(kb_id, canonical_label="Alpha")
+    beta = store.create_entity(kb_id, canonical_label="Beta")
+    sid = store.add_open_statement(
+        kb_id,
+        subject_id=alpha,
+        surface_phrase="partners",
+        object_entity_id=beta,
+        object_value=None,
+        status="confirmed",
+        proposed_by="test",
+        chunk_id=chunk_id,
+        quote="partners",
+    )
+    with store._lock:
+        store._conn.execute(
+            "UPDATE statements SET recorded_at = ?, invalidated_at = ?, status = 'invalidated' WHERE id = ?",
+            ("2022-01-01T00:00:00", "2023-01-01T00:00:00", sid),
+        )
+        store._conn.execute(
+            "UPDATE entities SET created_at = ?, invalidated_at = ? WHERE id = ?",
+            ("2022-01-01T00:00:00", "2023-06-01T00:00:00", beta),
+        )
+        store._conn.commit()
+
+    temporal = build_temporal_graph_from_ledger(store, kb_id)
+
+    # At 2022-06-01: statement and Beta are both active
+    state_mid = temporal.graph.state_at("2022-06-01T00:00:00")
+    mid_node_ids = {n["id"] for n in state_mid["nodes"]}
+    assert alpha in mid_node_ids
+    assert beta in mid_node_ids
+    assert any(e.get("edge_type") == "partners" or e.get("type") == "partners" for e in state_mid["edges"])
+
+    # At 2023-03-01: statement invalidated (valid_until=2023-01-01), Beta still active
+    state_after_stmt = temporal.graph.state_at("2023-03-01T00:00:00")
+    assert not any(
+        e.get("edge_type") == "partners" or e.get("type") == "partners"
+        for e in state_after_stmt["edges"]
+    )
+    diff_stmt = diff_graph_states(state_mid, state_after_stmt)
+    assert len(diff_stmt["removed_edges"]) == 1
+
+    # At 2024-01-01: Beta entity also invalidated (valid_until=2023-06-01)
+    state_after_entity = temporal.graph.state_at("2024-01-01T00:00:00")
+    diff_ent = diff_graph_states(state_after_stmt, state_after_entity)
+    assert beta in diff_ent["removed_nodes"]
+    store.close()
+

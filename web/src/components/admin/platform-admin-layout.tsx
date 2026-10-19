@@ -1,5 +1,4 @@
 import { Navigate, Outlet } from 'react-router-dom';
-import { PlatformSectionNav } from '@/components/admin/platform-section-nav.js';
 import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
 import { useBasisSession } from '@/lib/basis-session.js';
@@ -28,10 +27,7 @@ export function PlatformAdminLayout() {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <PlatformSectionNav items={items} />
-      <div className="flex min-h-0 flex-1 flex-col">
-        <Outlet />
-      </div>
+      <Outlet />
     </div>
   );
 }

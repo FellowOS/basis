@@ -571,6 +571,366 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/kbs/{kb_id}/connectors/catalog": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Connector Catalog
+         * @description List BOCP connector manifests available in the platform catalog.
+         */
+        get: operations["list_connector_catalog_api_v1_kbs__kb_id__connectors_catalog_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/kbs/{kb_id}/connectors/catalog/{service}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Connector Manifest Route
+         * @description Fetch one BOCP connector manifest by service key.
+         */
+        get: operations["get_connector_manifest_route_api_v1_kbs__kb_id__connectors_catalog__service__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/kbs/{kb_id}/connectors/connections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Kb Connector Connections
+         * @description List configured BOCP connections for this KB (credentials redacted).
+         */
+        get: operations["list_kb_connector_connections_api_v1_kbs__kb_id__connectors_connections_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/kbs/{kb_id}/connectors/connections/{service}/{connection_name}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Upsert Kb Connector Connection
+         * @description Create or update an encrypted BOCP connection for this KB.
+         */
+        put: operations["upsert_kb_connector_connection_api_v1_kbs__kb_id__connectors_connections__service___connection_name__put"];
+        post?: never;
+        /**
+         * Delete Kb Connector Connection
+         * @description Delete a configured BOCP connection from this KB.
+         */
+        delete: operations["delete_kb_connector_connection_api_v1_kbs__kb_id__connectors_connections__service___connection_name__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/kbs/{kb_id}/connectors/connections/{service}/{connection_name}/check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Check Kb Connector Connection
+         * @description Run the BOCP `CHECK` health check against an upstream connection.
+         */
+        post: operations["check_kb_connector_connection_api_v1_kbs__kb_id__connectors_connections__service___connection_name__check_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/kbs/{kb_id}/connectors/connections/{service}/{connection_name}/discover": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Discover Kb Connector Schema
+         * @description Run the BOCP `DISCOVER` schema introspection for a SQL table or REST stream.
+         */
+        get: operations["discover_kb_connector_schema_api_v1_kbs__kb_id__connectors_connections__service___connection_name__discover_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/kbs/{kb_id}/connectors/oauth-configs/{service}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Upsert Kb Connector Oauth Config
+         * @description Store encrypted OAuth2 client credentials (`client_id`, `client_secret`) for a connector service.
+         */
+        put: operations["upsert_kb_connector_oauth_config_api_v1_kbs__kb_id__connectors_oauth_configs__service__put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/kbs/{kb_id}/connectors/oauth/{service}/authorize-url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Build Kb Connector Oauth Authorize Url
+         * @description Build an OAuth2 authorization URL (with optional PKCE S256) for a connector service.
+         */
+        post: operations["build_kb_connector_oauth_authorize_url_api_v1_kbs__kb_id__connectors_oauth__service__authorize_url_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/kbs/{kb_id}/connectors/oauth/{service}/exchange": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Exchange Kb Connector Oauth Code
+         * @description Exchange an OAuth2 authorization code for tokens and save the encrypted BOCP connection.
+         */
+        post: operations["exchange_kb_connector_oauth_code_api_v1_kbs__kb_id__connectors_oauth__service__exchange_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/kbs/{kb_id}/connectors/outbox": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Kb Sync Outbox
+         * @description List outbound entity writeback items in `entity_sync_outbox`.
+         */
+        get: operations["list_kb_sync_outbox_api_v1_kbs__kb_id__connectors_outbox_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/kbs/{kb_id}/connectors/outbox/propose": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Propose Kb Entity Writeback
+         * @description Propose an outbound writeback of ledger entity attributes to its external connector stream.
+         */
+        post: operations["propose_kb_entity_writeback_api_v1_kbs__kb_id__connectors_outbox_propose_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/kbs/{kb_id}/connectors/policy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Kb Connector Policy
+         * @description Get KB-scoped connector allowlist and action governance policy.
+         */
+        get: operations["get_kb_connector_policy_api_v1_kbs__kb_id__connectors_policy_get"];
+        /**
+         * Put Kb Connector Policy
+         * @description Update KB-scoped connector allowlist and action governance policy.
+         */
+        put: operations["put_kb_connector_policy_api_v1_kbs__kb_id__connectors_policy_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/kbs/{kb_id}/connectors/runs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Kb Connector Runs
+         * @description List recent BOCP connector execution audit logs (`kb_connector_runs`).
+         */
+        get: operations["list_kb_connector_runs_api_v1_kbs__kb_id__connectors_runs_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/kbs/{kb_id}/connectors/table-mappings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Kb Table Mappings
+         * @description List structured stream-to-ontology table mappings configured in this KB.
+         */
+        get: operations["list_kb_table_mappings_api_v1_kbs__kb_id__connectors_table_mappings_get"];
+        put?: never;
+        /**
+         * Create Kb Table Mapping
+         * @description Create a stream-to-ontology table mapping (auto-creating a `connector` ingest_source if omitted).
+         */
+        post: operations["create_kb_table_mapping_api_v1_kbs__kb_id__connectors_table_mappings_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/kbs/{kb_id}/connectors/table-mappings/{mapping_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Kb Table Mapping
+         * @description Fetch one stream-to-ontology table mapping with connector connection binding.
+         */
+        get: operations["get_kb_table_mapping_api_v1_kbs__kb_id__connectors_table_mappings__mapping_id__get"];
+        /**
+         * Update Kb Table Mapping
+         * @description Update a stream-to-ontology table mapping and optional connector connection binding.
+         */
+        put: operations["update_kb_table_mapping_api_v1_kbs__kb_id__connectors_table_mappings__mapping_id__put"];
+        post?: never;
+        /**
+         * Delete Kb Table Mapping
+         * @description Delete a stream-to-ontology table mapping (cascades `entity_external_refs`).
+         */
+        delete: operations["delete_kb_table_mapping_api_v1_kbs__kb_id__connectors_table_mappings__mapping_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/kbs/{kb_id}/connectors/table-mappings/{mapping_id}/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Sync Kb Table Mapping
+         * @description Execute inbound 4-way sync from the BOCP stream into the Evidence Ledger.
+         */
+        post: operations["sync_kb_table_mapping_api_v1_kbs__kb_id__connectors_table_mappings__mapping_id__sync_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/kbs/{kb_id}/connectors/tools/execute": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Execute Kb Connector Tool
+         * @description Execute a standalone BOCP connector tool (`ToolSpec`) with KB policy enforcement.
+         */
+        post: operations["execute_kb_connector_tool_api_v1_kbs__kb_id__connectors_tools_execute_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/kbs/{kb_id}/decisions": {
         parameters: {
             query?: never;
@@ -854,7 +1214,7 @@ export interface paths {
          *     Compares Explorer projection snapshots at `from` and `to` (ISO instants). Response includes
          *     `added_nodes`, `removed_nodes`, `modified_nodes`, `added_edges`, `removed_edges`, `summary`,
          *     and echo `from_time` / `to_time`. Node/edge membership follows ledger `recorded_at` → projected
-         *     `valid_from` (F-TIM-01). Console graph preview dims unchanged elements and highlights
+         *     `valid_from` and `invalidated_at` → projected `valid_until` (F-TIM-01). Console graph preview dims unchanged elements and highlights
          *     added/modified nodes and added edges at the end instant.
          */
         get: operations["kb_graph_diff_api_v1_kbs__kb_id__graph_diff_get"];
@@ -1117,9 +1477,10 @@ export interface paths {
          * Kb Graph Staging
          * @description Diff + staging manifest for publish/review workflows (F-DIFF-01).
          *
-         *     Returns `{manifest, diff}` where `manifest` includes `focus_node_ids`, governance relpaths
-         *     (`review`, `graph/staging/entity-merge`, graph import), and `change_total`. The nested `diff`
-         *     matches `GET .../graph/diff` for the same instants.
+         *     Returns `{manifest, diff}` where `manifest` includes `session_key` (stable id for the
+         *     from/to range), `focus_node_ids`, governance relpaths (`review`, `graph/staging/entity-merge`,
+         *     graph import), and `change_total`. The nested `diff` matches `GET .../graph/diff` for the
+         *     same instants.
          */
         get: operations["kb_graph_staging_api_v1_kbs__kb_id__graph_staging_get"];
         put?: never;
@@ -1147,6 +1508,26 @@ export interface paths {
          *     identical semantics to `POST .../review/items/entity-merge`.
          */
         post: operations["kb_graph_staging_entity_merge_api_v1_kbs__kb_id__graph_staging_entity_merge_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/kbs/{kb_id}/graph/staging/{session_key}/draft": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Kb Put Graph Staging Draft
+         * @description Persist server-side staging studio merge draft for a compare session (F-DIFF-01).
+         */
+        put: operations["kb_put_graph_staging_draft_api_v1_kbs__kb_id__graph_staging__session_key__draft_put"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -3291,6 +3672,110 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/settings/connectors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Connector Allowlist Settings
+         * @description Get platform-wide BOCP provider allowlist (KB policies must stay within this ceiling).
+         */
+        get: operations["get_connector_allowlist_settings_api_v1_settings_connectors_get"];
+        /**
+         * Put Connector Allowlist Settings
+         * @description Update platform-wide BOCP provider allowlist.
+         */
+        put: operations["put_connector_allowlist_settings_api_v1_settings_connectors_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/settings/connectors/catalog": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Platform Connector Catalog
+         * @description List BOCP catalog entries with platform allowlist flags for system administrators.
+         */
+        get: operations["list_platform_connector_catalog_api_v1_settings_connectors_catalog_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/settings/connectors/catalog/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Platform Connector Catalog Stats
+         * @description Aggregate BOCP catalog counts by category for platform administrators.
+         */
+        get: operations["platform_connector_catalog_stats_api_v1_settings_connectors_catalog_stats_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/settings/connectors/catalog/{service}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Platform Connector Manifest
+         * @description Return full BOCP manifest JSON for one catalog service (system administrators).
+         */
+        get: operations["get_platform_connector_manifest_api_v1_settings_connectors_catalog__service__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/settings/connectors/validate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Validate Connector Allowlist Settings
+         * @description Validate a platform allowlist against the shipped BOCP catalog.
+         */
+        post: operations["validate_connector_allowlist_settings_api_v1_settings_connectors_validate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/users": {
         parameters: {
             query?: never;
@@ -3456,6 +3941,49 @@ export interface components {
             /** Relation Method */
             relation_method?: string | null;
         };
+        /** BuildOAuthAuthorizeUrlRequest */
+        BuildOAuthAuthorizeUrlRequest: {
+            /** State */
+            state?: string | null;
+            /** Redirect Uri */
+            redirect_uri?: string | null;
+            /** Connection Config */
+            connection_config?: {
+                [key: string]: unknown;
+            };
+            /** Code Challenge */
+            code_challenge?: string | null;
+        };
+        /**
+         * ColumnMappingSpec
+         * @description Single element of source_table_mappings.column_mappings_json.
+         */
+        ColumnMappingSpec: {
+            /** Column */
+            column: string;
+            /**
+             * Kind
+             * @default literal
+             * @enum {string}
+             */
+            kind: "literal" | "relation";
+            /** Surface Phrase */
+            surface_phrase: string;
+            /** Predicate Uri */
+            predicate_uri?: string | null;
+            /**
+             * Datatype
+             * @default xsd:string
+             */
+            datatype: string;
+            /** Fk Target Table */
+            fk_target_table?: string | null;
+            /**
+             * Writable
+             * @default false
+             */
+            writable: boolean;
+        };
         /** CommentRequest */
         CommentRequest: {
             /** Element Uri */
@@ -3464,6 +3992,14 @@ export interface components {
             text: string;
             /** Author */
             author: string;
+        };
+        /** ConnectorAllowlistSettingsRequest */
+        ConnectorAllowlistSettingsRequest: {
+            /**
+             * Allowed Providers
+             * @default *
+             */
+            allowed_providers: string[] | string;
         };
         /** CreateEntityMergeReviewRequest */
         CreateEntityMergeReviewRequest: {
@@ -3590,6 +4126,64 @@ export interface components {
              */
             enabled: boolean;
         };
+        /** CreateTableMappingRequest */
+        CreateTableMappingRequest: {
+            /** Source Id */
+            source_id?: string | null;
+            /** Provider */
+            provider: string;
+            /**
+             * Connection Name
+             * @default default
+             */
+            connection_name: string;
+            /** Stream Name */
+            stream_name: string;
+            /** External Table */
+            external_table: string;
+            /** Stream Params */
+            stream_params?: {
+                [key: string]: unknown;
+            };
+            /** Primary Key Column */
+            primary_key_column: string;
+            /** Cursor Column */
+            cursor_column?: string | null;
+            /** Label Column */
+            label_column: string;
+            /** Target Class Uri */
+            target_class_uri: string;
+            /** Column Mappings */
+            column_mappings?: components["schemas"]["ColumnMappingSpec"][];
+            /**
+             * Sync Mode
+             * @default incremental
+             * @enum {string}
+             */
+            sync_mode: "full_refresh" | "incremental";
+            /**
+             * Track Deletes
+             * @default false
+             */
+            track_deletes: boolean;
+            /**
+             * Sync Direction
+             * @default inbound
+             * @enum {string}
+             */
+            sync_direction: "inbound" | "bidirectional";
+            /**
+             * Writeback Mode
+             * @default review
+             * @enum {string}
+             */
+            writeback_mode: "disabled" | "review" | "auto";
+            /**
+             * Max Rows
+             * @default 10000
+             */
+            max_rows: number;
+        };
         /** CreateUserRequest */
         CreateUserRequest: {
             /** Email */
@@ -3677,6 +4271,40 @@ export interface components {
             username?: string | null;
             /** Password */
             password?: string | null;
+        };
+        /** ExchangeOAuthCodeRequest */
+        ExchangeOAuthCodeRequest: {
+            /** Code */
+            code: string;
+            /** Redirect Uri */
+            redirect_uri?: string | null;
+            /** Code Verifier */
+            code_verifier?: string | null;
+            /**
+             * Connection Name
+             * @default default
+             */
+            connection_name: string;
+            /** Connection Config */
+            connection_config?: {
+                [key: string]: unknown;
+            };
+        };
+        /** ExecuteConnectorToolRequest */
+        ExecuteConnectorToolRequest: {
+            /** Service */
+            service: string;
+            /** Tool Id */
+            tool_id: string;
+            /**
+             * Connection Name
+             * @default default
+             */
+            connection_name: string;
+            /** Arguments */
+            arguments?: {
+                [key: string]: unknown;
+            };
         };
         /** GraphSearchRequest */
         GraphSearchRequest: {
@@ -3839,6 +4467,38 @@ export interface components {
             summary: string;
             /** Reviewer */
             reviewer?: string | null;
+        };
+        /** ProposeEntityWritebackRequest */
+        ProposeEntityWritebackRequest: {
+            /** Entity Id */
+            entity_id: string;
+            /** Field Updates */
+            field_updates: {
+                [key: string]: unknown;
+            };
+        };
+        /** PutGraphStagingDraftRequest */
+        PutGraphStagingDraftRequest: {
+            /**
+             * From Time
+             * @default
+             */
+            from_time: string;
+            /**
+             * To Time
+             * @default
+             */
+            to_time: string;
+            /**
+             * Primary
+             * @default
+             */
+            primary: string;
+            /**
+             * Duplicate
+             * @default
+             */
+            duplicate: string;
         };
         /** ReasonRequest */
         ReasonRequest: {
@@ -4067,6 +4727,97 @@ export interface components {
             body?: string | null;
             /** Enabled */
             enabled?: boolean | null;
+        };
+        /** UpdateTableMappingRequest */
+        UpdateTableMappingRequest: {
+            /** Provider */
+            provider?: string | null;
+            /** Connection Name */
+            connection_name?: string | null;
+            /** Stream Name */
+            stream_name: string;
+            /** External Table */
+            external_table: string;
+            /** Stream Params */
+            stream_params?: {
+                [key: string]: unknown;
+            };
+            /** Primary Key Column */
+            primary_key_column: string;
+            /** Cursor Column */
+            cursor_column?: string | null;
+            /** Label Column */
+            label_column: string;
+            /** Target Class Uri */
+            target_class_uri: string;
+            /** Column Mappings */
+            column_mappings?: components["schemas"]["ColumnMappingSpec"][];
+            /**
+             * Sync Mode
+             * @default incremental
+             * @enum {string}
+             */
+            sync_mode: "full_refresh" | "incremental";
+            /**
+             * Track Deletes
+             * @default false
+             */
+            track_deletes: boolean;
+            /**
+             * Sync Direction
+             * @default inbound
+             * @enum {string}
+             */
+            sync_direction: "inbound" | "bidirectional";
+            /**
+             * Writeback Mode
+             * @default review
+             * @enum {string}
+             */
+            writeback_mode: "disabled" | "review" | "auto";
+            /**
+             * Max Rows
+             * @default 10000
+             */
+            max_rows: number;
+        };
+        /** UpsertConnectorConnectionRequest */
+        UpsertConnectorConnectionRequest: {
+            /** Auth Type */
+            auth_type: string;
+            /** Connection Config */
+            connection_config?: {
+                [key: string]: unknown;
+            };
+            /** Credentials */
+            credentials?: {
+                [key: string]: unknown;
+            };
+        };
+        /** UpsertConnectorPolicyRequest */
+        UpsertConnectorPolicyRequest: {
+            /**
+             * Allowed Providers
+             * @default *
+             */
+            allowed_providers: string[] | string;
+            /** Action Policy */
+            action_policy?: {
+                [key: string]: unknown;
+            };
+        };
+        /** UpsertOAuthConfigRequest */
+        UpsertOAuthConfigRequest: {
+            /** Client Id */
+            client_id: string;
+            /** Client Secret */
+            client_secret: string;
+            /** Redirect Uri */
+            redirect_uri?: string | null;
+            /** Extra */
+            extra?: {
+                [key: string]: unknown;
+            };
         };
         /** ValidationError */
         ValidationError: {
@@ -5168,6 +5919,845 @@ export interface operations {
             };
         };
     };
+    list_connector_catalog_api_v1_kbs__kb_id__connectors_catalog_get: {
+        parameters: {
+            query?: {
+                category?: string | null;
+                auth_mode?: string | null;
+                has_streams_only?: boolean;
+                query?: string | null;
+                limit?: number;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                kb_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_connector_manifest_route_api_v1_kbs__kb_id__connectors_catalog__service__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                kb_id: string;
+                service: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_kb_connector_connections_api_v1_kbs__kb_id__connectors_connections_get: {
+        parameters: {
+            query?: {
+                service?: string | null;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                kb_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    upsert_kb_connector_connection_api_v1_kbs__kb_id__connectors_connections__service___connection_name__put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                kb_id: string;
+                service: string;
+                connection_name: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpsertConnectorConnectionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_kb_connector_connection_api_v1_kbs__kb_id__connectors_connections__service___connection_name__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                kb_id: string;
+                service: string;
+                connection_name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    check_kb_connector_connection_api_v1_kbs__kb_id__connectors_connections__service___connection_name__check_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                kb_id: string;
+                service: string;
+                connection_name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    discover_kb_connector_schema_api_v1_kbs__kb_id__connectors_connections__service___connection_name__discover_get: {
+        parameters: {
+            query?: {
+                stream_name?: string | null;
+                external_table?: string | null;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                kb_id: string;
+                service: string;
+                connection_name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    upsert_kb_connector_oauth_config_api_v1_kbs__kb_id__connectors_oauth_configs__service__put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                kb_id: string;
+                service: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpsertOAuthConfigRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    build_kb_connector_oauth_authorize_url_api_v1_kbs__kb_id__connectors_oauth__service__authorize_url_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                kb_id: string;
+                service: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BuildOAuthAuthorizeUrlRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    exchange_kb_connector_oauth_code_api_v1_kbs__kb_id__connectors_oauth__service__exchange_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                kb_id: string;
+                service: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExchangeOAuthCodeRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_kb_sync_outbox_api_v1_kbs__kb_id__connectors_outbox_get: {
+        parameters: {
+            query?: {
+                status?: string | null;
+                limit?: number;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                kb_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    propose_kb_entity_writeback_api_v1_kbs__kb_id__connectors_outbox_propose_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                kb_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProposeEntityWritebackRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_kb_connector_policy_api_v1_kbs__kb_id__connectors_policy_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                kb_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    put_kb_connector_policy_api_v1_kbs__kb_id__connectors_policy_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                kb_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpsertConnectorPolicyRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_kb_connector_runs_api_v1_kbs__kb_id__connectors_runs_get: {
+        parameters: {
+            query?: {
+                service?: string | null;
+                limit?: number;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                kb_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_kb_table_mappings_api_v1_kbs__kb_id__connectors_table_mappings_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                kb_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_kb_table_mapping_api_v1_kbs__kb_id__connectors_table_mappings_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                kb_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateTableMappingRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_kb_table_mapping_api_v1_kbs__kb_id__connectors_table_mappings__mapping_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                kb_id: string;
+                mapping_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_kb_table_mapping_api_v1_kbs__kb_id__connectors_table_mappings__mapping_id__put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                kb_id: string;
+                mapping_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateTableMappingRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_kb_table_mapping_api_v1_kbs__kb_id__connectors_table_mappings__mapping_id__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                kb_id: string;
+                mapping_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    sync_kb_table_mapping_api_v1_kbs__kb_id__connectors_table_mappings__mapping_id__sync_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                kb_id: string;
+                mapping_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    execute_kb_connector_tool_api_v1_kbs__kb_id__connectors_tools_execute_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                kb_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExecuteConnectorToolRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     kb_list_decisions_api_v1_kbs__kb_id__decisions_get: {
         parameters: {
             query?: {
@@ -6215,6 +7805,46 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    kb_put_graph_staging_draft_api_v1_kbs__kb_id__graph_staging__session_key__draft_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                kb_id: string;
+                session_key: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PutGraphStagingDraftRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
                 };
             };
             /** @description Validation Error */
@@ -10581,6 +12211,221 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["AccessSettingsRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_connector_allowlist_settings_api_v1_settings_connectors_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    put_connector_allowlist_settings_api_v1_settings_connectors_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConnectorAllowlistSettingsRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_platform_connector_catalog_api_v1_settings_connectors_catalog_get: {
+        parameters: {
+            query?: {
+                category?: string | null;
+                auth_mode?: string | null;
+                has_streams_only?: boolean;
+                query?: string | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    platform_connector_catalog_stats_api_v1_settings_connectors_catalog_stats_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_platform_connector_manifest_api_v1_settings_connectors_catalog__service__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                service: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    validate_connector_allowlist_settings_api_v1_settings_connectors_validate_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConnectorAllowlistSettingsRequest"];
             };
         };
         responses: {

@@ -81,3 +81,29 @@ def test_graph_staging_route_after_ingest(tmp_path: Path) -> None:
     assert body["manifest"]["governance"]["entity_merge_proposal_relpath"] == (
         "graph/staging/entity-merge"
     )
+    skey = body["manifest"]["session_key"]
+
+    put_draft = client.put(
+        f"/api/v1/kbs/{kb_id}/graph/staging/{skey}/draft",
+        headers=headers,
+        json={
+            "from_time": "2020-01-01T00:00:00",
+            "to_time": "2030-01-01T00:00:00",
+            "primary": "ent_primary",
+            "duplicate": "ent_dup",
+        },
+    )
+    assert put_draft.status_code == 200
+    assert put_draft.json()["draft"] == {"primary": "ent_primary", "duplicate": "ent_dup"}
+
+    staging_again = client.get(
+        f"/api/v1/kbs/{kb_id}/graph/staging",
+        headers=headers,
+        params={"from": "2020-01-01T00:00:00", "to": "2030-01-01T00:00:00"},
+    )
+    assert staging_again.status_code == 200
+    assert staging_again.json()["manifest"]["draft"] == {
+        "primary": "ent_primary",
+        "duplicate": "ent_dup",
+    }
+

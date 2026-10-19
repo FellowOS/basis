@@ -8,6 +8,7 @@ from basis.transport.http.routes.v1 import (
     audit,
     auth,
     kb_alerts,
+    kb_connectors,
     kb_e2e_helpers,
     kb_explorer,
     kb_ledger,
@@ -42,6 +43,7 @@ _KB_ROUTERS = (
     kb_reasoning_rules.router,
     kb_alerts.router,
     kb_sources.router,
+    kb_connectors.router,
     realtime.router,
 )
 

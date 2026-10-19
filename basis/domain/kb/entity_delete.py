@@ -235,6 +235,30 @@ def execute_delete_entity(store: KnowledgeStore, kb_id: str, entity_id: str) -> 
             "DELETE FROM statement_qualifiers WHERE kb_id = ? AND entity_id = ?",
             (kb_id, entity_id),
         )
+        outbox_ids = [
+            row["id"]
+            for row in conn.execute(
+                "SELECT id FROM entity_sync_outbox WHERE kb_id = ? AND entity_id = ?",
+                (kb_id, entity_id),
+            ).fetchall()
+        ]
+        if outbox_ids:
+            conn.execute(
+                f"""
+                DELETE FROM review_items
+                WHERE kb_id = ? AND subject_type = 'entity_sync_outbox'
+                  AND subject_id IN ({_in_clause(outbox_ids)})
+                """,
+                (kb_id, *outbox_ids),
+            )
+        conn.execute(
+            "DELETE FROM entity_sync_outbox WHERE kb_id = ? AND entity_id = ?",
+            (kb_id, entity_id),
+        )
+        conn.execute(
+            "DELETE FROM entity_external_refs WHERE kb_id = ? AND entity_id = ?",
+            (kb_id, entity_id),
+        )
         conn.execute(
             "DELETE FROM entity_names WHERE kb_id = ? AND entity_id = ?",
             (kb_id, entity_id),

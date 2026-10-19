@@ -91,4 +91,9 @@ export const apiErrorCodes = {
   bad_statement: "A statement must have an object entity or object value.",
   bad_kind: "Unsupported kind.",
   bad_doc_id: "Invalid document ID.",
+  connector_policy_blocked: "This connector action is blocked by policy.",
+  connector_allowlist_exceeds_platform:
+    "Knowledge base allowlist includes providers not enabled at platform level.",
+  connector_unknown_providers: "One or more connector service keys are not in the catalog.",
+  connector_not_found: "Connector service was not found in the catalog.",
 } as const;

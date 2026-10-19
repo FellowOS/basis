@@ -34,6 +34,7 @@ import { kbOntology } from './kbOntology.js';
 import { kbAnalyze } from './kbAnalyze.js';
 import { kbProcessing } from './kbProcessing.js';
 import { kbDecisions } from './kbDecisions.js';
+import { kbConnectors } from './kbConnectors.js';
 import { apiErrorCodes } from './apiErrorCodes.js';
 import { dev } from './dev.js';
 
@@ -74,6 +75,7 @@ export const zh = {
   kbAnalyze,
   kbProcessing,
   kbDecisions,
+  kbConnectors,
   apiErrorCodes,
   dev,
 } as const;

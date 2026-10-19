@@ -15,6 +15,7 @@ import { fmt, formatLocaleNumber, pickCountForm } from '@/i18n/format.js';
 import { writeActiveKbId } from '@/lib/kb-active-id.js';
 import { useKbCatalog } from '@/lib/kb-context.js';
 import { kbPath } from '@/lib/nav-config.js';
+import { usePlatformAdminCrumbs } from '@/lib/use-platform-admin-crumbs.js';
 import { kbMemberRoleLabel, kbVisibilityLabel } from '@/lib/kb-settings-labels.js';
 import { useApiErrorMessage } from '@/lib/use-api-error-message.js';
 
@@ -79,10 +80,11 @@ export function KbsPage() {
     pickCountForm(locale, kbs.length, p.countOne, p.count),
     { count: formatLocaleNumber(locale, kbs.length) },
   );
+  const crumbs = usePlatformAdminCrumbs(t.menu.platform.kbs);
 
   return (
     <ConsolePageLayout
-      crumbs={[{ label: t.menu.platform.kbs }]}
+      crumbs={crumbs}
       actions={
         <Button type="button" size="sm" onClick={() => setCreateOpen(true)}>
           {p.createKb}

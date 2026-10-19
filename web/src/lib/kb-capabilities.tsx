@@ -104,6 +104,7 @@ export function useKbCapabilities(): KbCapabilitiesContextValue {
 /** Whether a KB sidebar segment should be navigable for the current capability set. */
 export function kbNavSegmentEnabled(segment: string, caps: KbCapabilities | null): boolean {
   if (!caps) return true;
+  if (segment.startsWith('connectors/')) return true;
   if (segment === 'graph-diff') return caps.graph;
   if (segment === 'entity-resolution') return caps.enrichment;
   if (segment === 'decisions') return caps.decisions;

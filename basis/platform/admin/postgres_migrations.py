@@ -326,4 +326,53 @@ def run_postgres_migrations(engine: Engine) -> list[int]:
             from basis.platform.admin.org_backfill import ensure_organization_backfill_postgres
 
             ensure_organization_backfill_postgres(conn)
+
+        # SQLite file 0011; PG version 12 is BOCP & bidirectional entity sync.
+        sync_path = _migration_root() / "0011_entity_external_sync.sql"
+        sync_source = sync_path.read_text(encoding="utf-8")
+        sync_checksum = _checksum(sync_source)
+        if 12 in applied:
+            if applied[12] != sync_checksum:
+                raise RuntimeError("PostgreSQL migration 12 checksum mismatch")
+        else:
+            for statement in _statements(_postgresize(sync_source)):
+                conn.exec_driver_sql(statement)
+            conn.execute(
+                text(
+                    """
+                    INSERT INTO schema_migrations(version, name, checksum, applied_at)
+                    VALUES (12, :name, :checksum, :applied_at)
+                    """
+                ),
+                {
+                    "name": sync_path.name,
+                    "checksum": sync_checksum,
+                    "applied_at": datetime.now(timezone.utc).isoformat(),
+                },
+            )
+            applied_now.append(12)
+
+        allowlist_path = _migration_root() / "0012_platform_connector_allowlist.sql"
+        allowlist_source = allowlist_path.read_text(encoding="utf-8")
+        allowlist_checksum = _checksum(allowlist_source)
+        if 13 in applied:
+            if applied[13] != allowlist_checksum:
+                raise RuntimeError("PostgreSQL migration 13 checksum mismatch")
+        else:
+            for statement in _statements(_postgresize(allowlist_source)):
+                conn.exec_driver_sql(statement)
+            conn.execute(
+                text(
+                    """
+                    INSERT INTO schema_migrations(version, name, checksum, applied_at)
+                    VALUES (13, :name, :checksum, :applied_at)
+                    """
+                ),
+                {
+                    "name": allowlist_path.name,
+                    "checksum": allowlist_checksum,
+                    "applied_at": datetime.now(timezone.utc).isoformat(),
+                },
+            )
+            applied_now.append(13)
     return applied_now

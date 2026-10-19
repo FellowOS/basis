@@ -34,6 +34,7 @@ import { useI18n } from '@/i18n/context.js';
 import { fmt, formatLocaleNumber, pickCountForm } from '@/i18n/format.js';
 import { openApiGET, openApiPOST } from '@/lib/openapi-client.js';
 import { useApiErrorMessage } from '@/lib/use-api-error-message.js';
+import { usePlatformAdminCrumbs } from '@/lib/use-platform-admin-crumbs.js';
 
 type UserRow = {
   id: string;
@@ -117,10 +118,11 @@ export function UsersPage() {
     pickCountForm(locale, users.length, p.countOne, p.count),
     { count: formatLocaleNumber(locale, users.length) },
   );
+  const crumbs = usePlatformAdminCrumbs(t.menu.platform.users);
 
   return (
     <ConsolePageLayout
-      crumbs={[{ label: t.menu.platform.users }]}
+      crumbs={crumbs}
       actions={
         <Button type="button" size="sm" onClick={() => setCreateOpen(true)}>
           {p.createUser}

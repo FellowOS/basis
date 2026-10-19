@@ -149,7 +149,10 @@ def test_ingest_temporal_bounds_align_with_graph_diff(tmp_path) -> None:
         params={"at": snap_at},
     )
     assert snap.status_code == 200
-    snap_ids = {n.get("id") for n in (snap.json().get("nodes") or []) if n.get("id")}
+    snap_body = snap.json()
+    assert isinstance(snap_body.get("active_node_ids"), list)
+    assert isinstance(snap_body.get("active_node_count"), int)
+    snap_ids = {n.get("id") for n in (snap_body.get("nodes") or []) if n.get("id")}
     for node_id in added_nodes:
         assert node_id in snap_ids
 

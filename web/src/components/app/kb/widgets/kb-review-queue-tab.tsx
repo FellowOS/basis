@@ -57,6 +57,12 @@ type ReviewItem = {
       object_entity_id?: string | null;
       object_value?: string | null;
     }>;
+    outbox_id?: string;
+    entity_id?: string;
+    provider?: string;
+    external_table?: string;
+    external_pk?: string;
+    changes?: Record<string, { old?: unknown; new?: unknown }>;
   };
   created_at: string;
 };
@@ -475,6 +481,7 @@ export function KbReviewQueueTab({
     if (kind === 'ontology_mapping') return r.kindMapping;
     if (kind === 'statement_remember') return r.kindRemember;
     if (kind === 'statement_conflict') return r.kindConflict;
+    if (kind === 'connector_writeback') return r.kindWriteback;
     if (kind === 'entity_merge') return r.kindMerge;
     return kind;
   }
@@ -574,6 +581,7 @@ export function KbReviewQueueTab({
                 const isMapping = item.kind === 'ontology_mapping';
                 const isRemember = item.kind === 'statement_remember';
                 const isConflict = item.kind === 'statement_conflict';
+                const isWriteback = item.kind === 'connector_writeback';
                 const isEntityMerge = item.kind === 'entity_merge';
                 const primaryId = item.payload.primary_id ?? emptyCell;
                 const duplicateIds = item.payload.duplicate_ids ?? [];
@@ -587,7 +595,9 @@ export function KbReviewQueueTab({
                       ? r.approveFact
                       : isConflict
                         ? r.acknowledge
-                        : r.approveMerge;
+                        : isWriteback
+                          ? r.approveWriteback
+                          : r.approveMerge;
                 const itemDecisionIds = decisionIdsForReviewItem(events, item.id);
                 return (
                   <li
@@ -644,6 +654,31 @@ export function KbReviewQueueTab({
                                 </ul>
                               </span>
                             )
+                          : isWriteback
+                            ? (
+                              <span className="flex flex-col gap-1.5" data-testid={`review-writeback-diff-${item.id}`}>
+                                <span className="font-mono text-xs text-muted-foreground">
+                                  {item.payload.provider ?? emptyCell} · {item.payload.external_table ?? emptyCell} (
+                                  {item.payload.external_pk ?? emptyCell})
+                                </span>
+                                {item.payload.changes ? (
+                                  <span className="flex flex-col gap-1 rounded-md border border-border bg-muted/40 p-2 font-mono text-xs">
+                                    {Object.entries(item.payload.changes).map(([col, chg]) => (
+                                      <span key={col} className="flex flex-wrap items-center gap-1.5">
+                                        <span className="font-semibold text-foreground">{col}:</span>
+                                        <span className="line-through text-muted-foreground">
+                                          {String(chg?.old ?? emptyCell)}
+                                        </span>
+                                        <span className="text-muted-foreground">→</span>
+                                        <span className="font-medium text-primary">
+                                          {String(chg?.new ?? emptyCell)}
+                                        </span>
+                                      </span>
+                                    ))}
+                                  </span>
+                                ) : null}
+                              </span>
+                            )
                           : (
                           <span className="flex flex-col gap-1">
                             <span className="text-muted-foreground text-xs font-normal">
@@ -665,7 +700,7 @@ export function KbReviewQueueTab({
                           </span>
                         )}
                     </div>
-                    {!isImport && !isMapping && !isRemember && !isConflict ? (
+                    {!isImport && !isMapping && !isRemember && !isConflict && !isWriteback ? (
                       <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">{r.graphOnlyMergeHint}</p>
                     ) : null}
                     {isEntityMerge && primaryId !== emptyCell && firstDuplicate ? (

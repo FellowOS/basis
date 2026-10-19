@@ -2,8 +2,14 @@ import { Suspense, type ReactNode } from 'react';
 import { Navigate, Route, Routes, useLocation, useParams } from 'react-router-dom';
 import {
   AuditPage,
+  AdminConnectorsPage,
   KbGraphPage,
   KbLibraryPage,
+  KbConnectorsPage,
+  KbConnectorsRedirect,
+  KbConnectorMappingNewPage,
+  KbConnectorMappingEditPage,
+  KbConnectorOAuthCallbackPage,
   KbProcessingPage,
   KbEntitiesPage,
   KbSearchPage,
@@ -195,6 +201,16 @@ function AuthedApp() {
             }
           />
           <Route
+            path="/admin/connectors"
+            element={
+              <AdminOnly>
+                <Suspense fallback={null}>
+                  <AdminConnectorsPage />
+                </Suspense>
+              </AdminOnly>
+            }
+          />
+          <Route
             path="/admin/settings"
             element={
               <SettingsAccess>
@@ -249,6 +265,46 @@ function AuthedApp() {
           element={
             <Suspense fallback={null}>
               <KbLibraryPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/kbs/:id/connectors/mappings/new"
+          element={
+            <Suspense fallback={null}>
+              <KbConnectorMappingNewPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/kbs/:id/connectors/mappings/:mappingId/edit"
+          element={
+            <Suspense fallback={null}>
+              <KbConnectorMappingEditPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/kbs/:id/connectors/oauth/callback"
+          element={
+            <Suspense fallback={null}>
+              <KbConnectorOAuthCallbackPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/kbs/:id/connectors/:panel"
+          element={
+            <Suspense fallback={null}>
+              <KbConnectorsPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/kbs/:id/connectors"
+          element={
+            <Suspense fallback={null}>
+              <KbConnectorsRedirect />
             </Suspense>
           }
         />

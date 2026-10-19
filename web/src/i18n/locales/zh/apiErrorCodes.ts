@@ -91,4 +91,8 @@ export const apiErrorCodes = {
   bad_statement: "陈述须指定对象实体或对象值之一。",
   bad_kind: "不支持的类型。",
   bad_doc_id: "文档 ID 无效。",
+  connector_policy_blocked: "连接器操作被策略禁止。",
+  connector_allowlist_exceeds_platform: "知识库白名单包含平台未启用的 provider。",
+  connector_unknown_providers: "存在不在目录中的 connector service 键。",
+  connector_not_found: "未找到该连接器服务。",
 } as const;

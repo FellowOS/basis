@@ -17,6 +17,7 @@ from basis.integration.models import (
     validation_error_payload,
 )
 from . import operations as ops
+from . import ops_connectors as conn_ops
 
 OperationHandler = ops.OperationHandler
 
@@ -207,6 +208,105 @@ OPERATIONS: dict[str, _OperationSpec] = {
             "required": ["item_id"],
         },
         "handler": ops.op_reject_statement_remember_review,
+    },
+    "list_connector_catalog": {
+        "description": "List BOCP connector services allowed for this KB (catalog summary).",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "query": {"type": "string", "description": "Filter by service key or display name"},
+                "limit": {"type": "integer", "description": "Max rows (default 25, max 100)"},
+                "has_streams_only": {
+                    "type": "boolean",
+                    "description": "Only providers with structured inbound streams",
+                },
+            },
+        },
+        "handler": conn_ops.op_list_connector_catalog,
+    },
+    "describe_connector_service": {
+        "description": "Describe one BOCP connector manifest (streams and tools summary).",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "service": {"type": "string", "description": "Connector service key (e.g. postgres, github)"},
+            },
+            "required": ["service"],
+        },
+        "handler": conn_ops.op_describe_connector_service,
+    },
+    "list_connector_connections": {
+        "description": "List saved BOCP connections for this KB (no credential secrets).",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "service": {"type": "string", "description": "Optional filter by connector service key"},
+            },
+        },
+        "handler": conn_ops.op_list_connector_connections,
+    },
+    "list_connector_table_mappings": {
+        "description": "List stream-to-ontology table mappings configured for connector sync.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "limit": {"type": "integer", "description": "Max mappings (default 50, max 200)"},
+            },
+        },
+        "handler": conn_ops.op_list_connector_table_mappings,
+    },
+    "sync_connector_table_mapping": {
+        "description": (
+            "Run inbound BOCP sync for one table mapping (pull external rows into the Evidence Ledger)."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "mapping_id": {"type": "string", "description": "source_table_mappings id"},
+            },
+            "required": ["mapping_id"],
+        },
+        "handler": conn_ops.op_sync_connector_table_mapping,
+    },
+    "execute_connector_tool": {
+        "description": (
+            "Execute a standalone BOCP ToolSpec RPC for an allowed provider (subject to KB action_policy_json)."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "service": {"type": "string", "description": "Connector service key"},
+                "tool_id": {"type": "string", "description": "Tool id from manifest tools[]"},
+                "connection_name": {
+                    "type": "string",
+                    "description": "Saved connection name (default: default)",
+                },
+                "arguments": {
+                    "type": "object",
+                    "description": "Tool input payload per manifest input_schema",
+                },
+            },
+            "required": ["service", "tool_id"],
+        },
+        "handler": conn_ops.op_execute_connector_tool,
+    },
+    "propose_entity_writeback": {
+        "description": (
+            "Propose an outbound writeback of ledger entity attributes to its external BOCP connector stream "
+            "(creates an entity_sync_outbox record and a human review gate when writeback_mode is 'review')."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "entity_id": {"type": "string", "description": "Ledger entity id linked to an external connector row"},
+                "field_updates": {
+                    "type": "object",
+                    "description": "Map of writable external column names to new values",
+                },
+            },
+            "required": ["entity_id", "field_updates"],
+        },
+        "handler": conn_ops.op_propose_entity_writeback,
     },
 }
 

@@ -1,5 +1,6 @@
 import { type FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { toast } from 'sonner';
 import {
   DataPanel,
   DataPanelBody,
@@ -13,6 +14,7 @@ import { EntityRefLine } from '@/components/app/kb/ledger/entity-ref-line.js';
 import { DerivedFactCard } from '@/components/app/kb/widgets/kb-derived-facts-panel.js';
 import { Badge } from '@/components/ui/badge.js';
 import { Button } from '@/components/ui/button.js';
+import { Input } from '@/components/ui/input.js';
 import {
   Dialog,
   DialogContent,
@@ -37,7 +39,7 @@ import { ledgerStatementStatusLabel } from '@/lib/kb-ledger-labels.js';
 import { useKbNodeLabels } from '@/lib/kb-node-labels.js';
 import { kbPath } from '@/lib/nav-config.js';
 import { useKbCapabilities } from '@/lib/kb-capabilities.js';
-import { kbOpenApiDELETE, kbOpenApiGET } from '@/lib/openapi-client.js';
+import { kbOpenApiDELETE, kbOpenApiGET, kbOpenApiPOST } from '@/lib/openapi-client.js';
 import { useApiErrorMessage } from '@/lib/use-api-error-message.js';
 
 const ENTITY_PAGE_SIZE = 10;
@@ -102,6 +104,23 @@ type DerivedFactHit = {
   derivations: Array<{ premise_kind: string; premise_id: string }>;
 };
 
+type EntityExternalSyncDto = {
+  ref_id: string;
+  mapping_id: string;
+  provider: string;
+  stream_name: string;
+  external_table: string;
+  external_pk: string;
+  sync_direction: string;
+  writeback_mode: string;
+  writable_columns: Array<{
+    column: string;
+    surface_phrase: string;
+    predicate_uri: string;
+    current_value: string | null;
+  }>;
+};
+
 export function ledgerEntityId(hit: LedgerEntityHit): string {
   return hit.id ?? hit.entity_id;
 }
@@ -117,8 +136,13 @@ function EntityFactsPanel({
 }) {
   const { t, locale } = useI18n();
   const l = t.kbLedger;
+  const apiError = useApiErrorMessage();
   const [entityFacts, setEntityFacts] = useState<EntityFactHit[]>([]);
   const [entityDerivedFacts, setEntityDerivedFacts] = useState<DerivedFactHit[]>([]);
+  const [externalSync, setExternalSync] = useState<EntityExternalSyncDto | null>(null);
+  const [writebackValues, setWritebackValues] = useState<Record<string, string>>({});
+  const [proposingWriteback, setProposingWriteback] = useState(false);
+  const [queuedReviewItemId, setQueuedReviewItemId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const factLabelIds = entityFacts.flatMap((fact) =>
@@ -126,31 +150,65 @@ function EntityFactsPanel({
   );
   const factLabels = useKbNodeLabels(kbId, [entityId, ...factLabelIds]);
 
-  useEffect(() => {
-    let cancelled = false;
+  const loadEntityFacts = useCallback(async () => {
     setLoading(true);
-    void (async () => {
-      try {
-        const data = await kbOpenApiGET<{
-          facts: EntityFactHit[];
-          derived_facts?: DerivedFactHit[];
-        }>(kbId, `ledger/entities/${encodeURIComponent(entityId)}/facts`);
-        if (cancelled) return;
-        setEntityFacts(data.facts ?? []);
-        setEntityDerivedFacts(data.derived_facts ?? []);
-      } catch {
-        if (!cancelled) {
-          setEntityFacts([]);
-          setEntityDerivedFacts([]);
+    try {
+      const data = await kbOpenApiGET<{
+        facts: EntityFactHit[];
+        derived_facts?: DerivedFactHit[];
+        external_sync?: EntityExternalSyncDto | null;
+      }>(kbId, `ledger/entities/${encodeURIComponent(entityId)}/facts`);
+      setEntityFacts(data.facts ?? []);
+      setEntityDerivedFacts(data.derived_facts ?? []);
+      const ext = data.external_sync ?? null;
+      setExternalSync(ext);
+      if (ext?.writable_columns) {
+        const initial: Record<string, string> = {};
+        for (const col of ext.writable_columns) {
+          initial[col.column] = col.current_value ?? '';
         }
-      } finally {
-        if (!cancelled) setLoading(false);
+        setWritebackValues(initial);
       }
-    })();
-    return () => {
-      cancelled = true;
-    };
+    } catch {
+      setEntityFacts([]);
+      setEntityDerivedFacts([]);
+      setExternalSync(null);
+    } finally {
+      setLoading(false);
+    }
   }, [kbId, entityId]);
+
+  useEffect(() => {
+    void loadEntityFacts();
+  }, [loadEntityFacts]);
+
+  async function handleProposeWriteback() {
+    if (!externalSync) return;
+    setProposingWriteback(true);
+    setQueuedReviewItemId(null);
+    try {
+      const res = await kbOpenApiPOST<{
+        outbox_id: string;
+        status: string;
+        review_item_id?: string | null;
+      }>(kbId, 'connectors/outbox/propose', {
+        body: {
+          entity_id: entityId,
+          field_updates: writebackValues,
+        },
+      });
+      if (res.review_item_id) {
+        setQueuedReviewItemId(res.review_item_id);
+      } else {
+        toast.success(l.writebackAppliedToast);
+        await loadEntityFacts();
+      }
+    } catch (err) {
+      toast.error(apiError(err));
+    } finally {
+      setProposingWriteback(false);
+    }
+  }
 
   useEffect(() => {
     if (!highlightStatementId || loading) return;
@@ -166,7 +224,7 @@ function EntityFactsPanel({
     );
   }
 
-  if (entityFacts.length === 0 && entityDerivedFacts.length === 0) {
+  if (entityFacts.length === 0 && entityDerivedFacts.length === 0 && !externalSync) {
     return (
       <p className="text-sm text-muted-foreground">
         {l.noStatementsOrDerived}
@@ -176,6 +234,71 @@ function EntityFactsPanel({
 
   return (
     <div className="max-h-[min(60vh,28rem)] space-y-5 overflow-y-auto pr-1">
+      {externalSync ? (
+        <section
+          className="rounded-lg border border-border/80 bg-muted/30 p-3"
+          data-testid="entity-external-sync-section"
+        >
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h4 className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
+              {l.externalSyncSection}
+            </h4>
+            <Badge variant="outline" className="font-mono text-[11px]">
+              {externalSync.provider} · {externalSync.external_table} ({externalSync.external_pk})
+            </Badge>
+          </div>
+          {externalSync.sync_direction === 'bidirectional' &&
+          externalSync.writeback_mode !== 'disabled' &&
+          externalSync.writable_columns.length > 0 ? (
+            <div className="mt-3 space-y-2.5">
+              {externalSync.writable_columns.map((col) => (
+                <div key={col.column} className="flex items-center gap-2 text-xs">
+                  <span className="w-28 shrink-0 font-mono font-medium text-foreground">
+                    {col.column}
+                  </span>
+                  <Input
+                    value={writebackValues[col.column] ?? ''}
+                    onChange={(e) =>
+                      setWritebackValues((prev) => ({
+                        ...prev,
+                        [col.column]: e.target.value,
+                      }))
+                    }
+                    className="h-7 font-mono text-xs"
+                    data-testid={`writeback-input-${col.column}`}
+                  />
+                </div>
+              ))}
+              <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+                {queuedReviewItemId ? (
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="text-muted-foreground">{l.writebackReviewQueued}</span>
+                    <Button variant="link" size="sm" className="h-auto p-0 text-xs" asChild>
+                      <Link
+                        to={`${kbPath(kbId, 'review')}?reviewItem=${encodeURIComponent(queuedReviewItemId)}`}
+                        data-testid="open-writeback-review-link"
+                      >
+                        {l.openReviewQueue}
+                      </Link>
+                    </Button>
+                  </div>
+                ) : (
+                  <span />
+                )}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={proposingWriteback}
+                  onClick={() => void handleProposeWriteback()}
+                  data-testid="propose-entity-writeback-btn"
+                >
+                  {proposingWriteback ? l.proposingWriteback : l.proposeWritebackButton}
+                </Button>
+              </div>
+            </div>
+          ) : null}
+        </section>
+      ) : null}
       {entityFacts.length > 0 ? (
         <section>
           <div className="mb-2 flex items-center justify-between">

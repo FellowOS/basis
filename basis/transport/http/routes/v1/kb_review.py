@@ -367,6 +367,44 @@ Approve Review Item. Human review queue for merges, imports, and conflicts. Requ
         elif item["kind"] == STATEMENT_CONFLICT_KIND:
             approve_action = "kb.statement.conflict_acknowledged"
             merge_result = {"status": "acknowledged", "payload": item.get("payload")}
+        elif item["kind"] == "connector_writeback":
+            from basis.domain.connectors import ConnectorRuntime
+            from basis.domain.kb.connector_sync import ConnectorLedgerSyncService
+
+            approve_action = "kb.connector.writeback_approved"
+            outbox_id = str((item.get("payload") or {}).get("outbox_id") or item["subject_id"])
+            sync_svc = ConnectorLedgerSyncService(
+                knowledge._conn, ConnectorRuntime(knowledge._conn)
+            )
+            executed_outbox = sync_svc.approve_and_execute_outbox(
+                kb_id,
+                outbox_id,
+                actor_id=user.id,
+                rationale=body.rationale or "Approved connector writeback",
+            )
+            rebuild_kb_projection(request, kb_id)
+            decision_id = executed_outbox.get("decision_id")
+            resolved_item = knowledge.get_review_item(kb_id, item_id)
+            audit_kb_graph(
+                store,
+                user,
+                kb_id,
+                approve_action,
+                review_item_id=item_id,
+                extra={
+                    "outbox_id": outbox_id,
+                    "decision_id": decision_id,
+                    "rationale": body.rationale,
+                },
+            )
+            return {
+                "item": resolved_item,
+                "merge": None,
+                "import": None,
+                "mapping": None,
+                "outbox": executed_outbox,
+                "decision_id": decision_id,
+            }
         elif item["kind"] == "graph_import":
             from semantica.explorer.routes.export_import import import_file
 
@@ -503,6 +541,13 @@ Reject Review Item. Human review queue for merges, imports, and conflicts. Requi
             item_id=item_id,
             rationale=body.rationale,
         )
+    elif item.get("kind") == "connector_writeback":
+        outbox_id = str((item.get("payload") or {}).get("outbox_id") or item["subject_id"])
+        knowledge._conn.execute(
+            "UPDATE entity_sync_outbox SET status = 'rejected' WHERE id = ? AND kb_id = ?",
+            (outbox_id, kb_id),
+        )
+        knowledge._conn.commit()
     resolved = knowledge.resolve_review_item(
         kb_id,
         item_id,

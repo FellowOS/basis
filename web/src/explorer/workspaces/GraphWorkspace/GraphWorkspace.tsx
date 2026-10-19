@@ -1460,7 +1460,17 @@ export function GraphWorkspace({
     let cancelled = false;
 
     const applyData = (data: TemporalSnapshotResponse) => {
-      const nextActiveIds = new Set(data.active_node_ids);
+      const fallbackNodes = Array.isArray((data as { nodes?: Array<{ id?: string }> }).nodes)
+        ? ((data as { nodes?: Array<{ id?: string }> }).nodes ?? [])
+        : [];
+      const activeIds = Array.isArray(data.active_node_ids)
+        ? data.active_node_ids
+        : fallbackNodes.map((n) => n?.id).filter((id): id is string => Boolean(id));
+      const nextActiveIds = new Set(activeIds);
+      const nextActiveCount =
+        typeof data.active_node_count === "number" && Number.isFinite(data.active_node_count)
+          ? data.active_node_count
+          : nextActiveIds.size;
       requestAnimationFrame(() => {
         if (cancelled) return;
         if (!temporalSnapshotGuards.shouldApply(atMs, seq)) {
@@ -1481,10 +1491,14 @@ export function GraphWorkspace({
           }
         });
         prevActiveIdsRef.current = nextActiveIds;
-        setActiveNodeCount(data.active_node_count);
+        setActiveNodeCount(nextActiveCount);
         setGraphVersion((current) => current + 1);
         sceneRef.current?.getRuntime()?.requestRender();
-        temporalSnapshotGuards.apply(atMs, seq, data);
+        temporalSnapshotGuards.apply(atMs, seq, {
+          ...data,
+          active_node_ids: activeIds,
+          active_node_count: nextActiveCount,
+        });
       });
     };
 

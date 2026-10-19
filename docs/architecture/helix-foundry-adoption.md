@@ -207,7 +207,8 @@ scripts/
 └── build_connector_manifests.py           # 从同级 ../nango、../airbyte、../connectors 提取合成标准 BOCP YAML 目录
 
 web/src/
-├── pages/kb/connectors.tsx                # 左侧栏「数据与抽取 → 连接器 (/kbs/:kbId/connectors)」主页面
+├── pages/kb/connectors.tsx                # 左侧栏独立「连接器」分区 (/kbs/:kbId/connectors/{catalog,mappings,policy,runs})
+├── pages/admin-connectors.tsx             # 平台管理侧栏 → /admin/connectors（Provider 双层 allowlist）
 └── components/app/kb/connectors/          # 连接配置弹窗(动态表单/OAuth)、Stream→本体映射向导、Outbox 审核对比
 ```
 
@@ -233,7 +234,7 @@ web/src/
 
 #### Phase 4：OpenAPI / MCP 暴露与前端独立「连接器 (`/kbs/:kbId/connectors`)」控制台（预计 4~5 天）
 - **REST API 与 MCP 导出 (`kb_connectors.py` + `ops_connectors.py`)**：暴露连接器目录、凭据管理、OAuth 回调、`discover`、`mappings`、`sync`、`writeback` 接口，同步生成 OpenAPI 快照与前端 TS 类型；在 `basis-kb-mcp` 注册连接器工具。
-- **前端「连接器」独立工作台 (`web/src/pages/kb/connectors.tsx`)**：在左侧栏「数据与抽取」下新增 `连接器` 菜单，提供 4 个 Tab（连接与服务目录、Stream→本体映射向导、动作与策略、运行日志），并在 `review.tsx` 渲染写回 `Before → After` 字段级 Diff 卡片；通过 `npm run audit:locale` 与 `npm run typecheck`。
+- **前端「连接器」独立工作台 (`web/src/pages/kb/connectors.tsx`)**：左侧栏 **连接器** 分区四路由（目录 / 映射 / 策略 / 运行日志）；平台 **`/admin/connectors`** 管理 Provider allowlist；映射支持 `poll_interval_minutes` 与 `BASIS_HTTP_POLL_TICK_SECONDS` 后台入向调度；`review.tsx` 写回 `Before → After` Diff；`npm run audit:locale` + `npm run typecheck`。
 
 ---
 

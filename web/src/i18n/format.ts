@@ -20,16 +20,18 @@ export function requestFailedStatusMessage(locale: Locale, status: number): stri
   return fmt(messagesForLocale(locale).common.requestFailedStatus, { status });
 }
 
-export function formatLocaleNumber(locale: Locale, value: number): string {
-  return value.toLocaleString(LOCALE_HTML_LANG[locale]);
+export function formatLocaleNumber(locale: Locale, value: number | null | undefined): string {
+  const safe = typeof value === 'number' && Number.isFinite(value) ? value : 0;
+  return safe.toLocaleString(LOCALE_HTML_LANG[locale]);
 }
 
 export function formatLocaleFixedDecimals(
   locale: Locale,
-  value: number,
+  value: number | null | undefined,
   fractionDigits: number,
 ): string {
-  return value.toLocaleString(LOCALE_HTML_LANG[locale], {
+  const safe = typeof value === 'number' && Number.isFinite(value) ? value : 0;
+  return safe.toLocaleString(LOCALE_HTML_LANG[locale], {
     minimumFractionDigits: fractionDigits,
     maximumFractionDigits: fractionDigits,
   });

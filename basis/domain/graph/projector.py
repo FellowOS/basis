@@ -97,21 +97,226 @@ def _build_entity_first_seen(
     knowledge: KnowledgeStore,
     kb_id: str,
     merge_redirect: dict[str, str],
+    *,
+    include_invalidated: bool = False,
 ) -> dict[str, str]:
     seen: dict[str, str] = {}
-    for row in knowledge.list_statements_for_projection(kb_id):
+    statements = (
+        knowledge.list_statements_for_temporal_projection(kb_id)
+        if include_invalidated
+        else knowledge.list_statements_for_projection(kb_id)
+    )
+    typed_facts = (
+        knowledge.list_typed_facts_for_temporal_projection(kb_id)
+        if include_invalidated
+        else knowledge.list_typed_facts_for_projection(kb_id)
+    )
+    derived_facts = (
+        knowledge.list_derived_facts_for_temporal_projection(kb_id)
+        if include_invalidated
+        else knowledge.list_derived_facts_for_projection(kb_id)
+    )
+    for row in statements:
         at = row.get("recorded_at")
         _note_entity_first_seen(seen, row["subject_id"], at, merge_redirect=merge_redirect)
         _note_entity_first_seen(seen, row.get("object_entity_id"), at, merge_redirect=merge_redirect)
-    for fact in knowledge.list_typed_facts_for_projection(kb_id):
+    for fact in typed_facts:
         at = fact.get("recorded_at")
         _note_entity_first_seen(seen, fact["subject_id"], at, merge_redirect=merge_redirect)
         _note_entity_first_seen(seen, fact.get("object_entity_id"), at, merge_redirect=merge_redirect)
-    for fact in knowledge.list_derived_facts_for_projection(kb_id):
+    for fact in derived_facts:
         at = fact.get("recorded_at")
         _note_entity_first_seen(seen, fact["subject_id"], at, merge_redirect=merge_redirect)
         _note_entity_first_seen(seen, fact.get("object_entity_id"), at, merge_redirect=merge_redirect)
     return seen
+
+
+def build_temporal_graph_from_ledger(
+    knowledge: KnowledgeStore,
+    kb_id: str,
+    *,
+    preserve_from: GraphSession | None = None,
+) -> GraphSession:
+    """Build a temporal ContextGraph including invalidated rows with `valid_until` (F-TIM-01–04)."""
+    merge_redirect = knowledge.entity_merge_redirect(kb_id)
+    session = GraphSession()
+    if preserve_from is not None:
+        _copy_preserved_nodes(preserve_from, session)
+
+    entity_first_seen = _build_entity_first_seen(
+        knowledge, kb_id, merge_redirect, include_invalidated=True
+    )
+
+    for doc in knowledge.list_ready_documents_for_projection(kb_id):
+        graph_doc_id = doc["graph_doc_id"]
+        text = doc["text"]
+        doc_valid_from = doc.get("version_created_at")
+        session.add_node(
+            graph_doc_id,
+            "document",
+            content=text,
+            text=text,
+            ledger_document_id=doc["document_id"],
+            ledger_version_id=doc["version_id"],
+            projection_layer="ledger",
+            projection_schema_version=PROJECTION_SCHEMA_VERSION,
+            **({"valid_from": doc_valid_from} if doc_valid_from else {}),
+        )
+
+    for entity in knowledge.list_entities_for_temporal_projection(kb_id):
+        if entity["id"] in merge_redirect:
+            continue
+        label = entity["canonical_label"] or ""
+        valid_from = _entity_valid_from(
+            entity["id"],
+            entity_first_seen=entity_first_seen,
+            entity_created_at=entity.get("created_at"),
+        )
+        valid_until = entity.get("invalidated_at")
+        session.add_node(
+            entity["id"],
+            "entity",
+            content=label,
+            name=label,
+            ledger_entity_id=entity["id"],
+            projection_layer="ledger",
+            **({"valid_from": valid_from} if valid_from else {}),
+            **({"valid_until": valid_until} if valid_until else {}),
+        )
+
+    typed_facts = knowledge.list_typed_facts_for_temporal_projection(kb_id)
+    for row in knowledge.list_statements_for_temporal_projection(kb_id):
+        surface = row["surface_phrase"]
+        statement_id = row["statement_id"]
+        evidence_id = row.get("evidence_id")
+        chunk_id = row.get("chunk_id")
+        confidence = row.get("confidence")
+        graph_doc_id = row.get("graph_doc_id")
+        subject_id = _canon_entity_id(row["subject_id"], merge_redirect)
+        recorded_at = row.get("recorded_at")
+        invalidated_at = row.get("invalidated_at")
+
+        edge_props: dict[str, Any] = {
+            "statement_id": statement_id,
+            "evidence_id": evidence_id,
+            "chunk_id": chunk_id,
+            "projection_layer": "open",
+            "statement_status": row["status"],
+        }
+        if confidence is not None:
+            edge_props["confidence"] = confidence
+        if recorded_at:
+            edge_props["valid_from"] = recorded_at
+        if invalidated_at:
+            edge_props["valid_until"] = invalidated_at
+
+        if row["object_entity_id"]:
+            target_id = _canon_entity_id(row["object_entity_id"], merge_redirect)
+        elif row["object_value"]:
+            target_id = f"literal:{statement_id}"
+            session.add_node(
+                target_id,
+                "literal",
+                content=row["object_value"],
+                projection_layer="ledger",
+                statement_id=statement_id,
+                **({"valid_from": recorded_at} if recorded_at else {}),
+                **({"valid_until": invalidated_at} if invalidated_at else {}),
+            )
+        else:
+            continue
+
+        session.add_edge(
+            subject_id,
+            target_id,
+            surface,
+            **edge_props,
+        )
+        if graph_doc_id:
+            mention_props: dict[str, Any] = {
+                "projection_layer": "ledger",
+                "chunk_id": chunk_id,
+            }
+            if recorded_at:
+                mention_props["valid_from"] = recorded_at
+            if invalidated_at:
+                mention_props["valid_until"] = invalidated_at
+            session.add_edge(
+                subject_id,
+                graph_doc_id,
+                "mentioned_in",
+                **mention_props,
+            )
+
+    for fact in typed_facts:
+        subject_id = _canon_entity_id(fact["subject_id"], merge_redirect)
+        recorded_at = fact.get("recorded_at")
+        invalidated_at = fact.get("invalidated_at")
+        if fact["object_entity_id"]:
+            target_id = _canon_entity_id(fact["object_entity_id"], merge_redirect)
+        elif fact["object_value"]:
+            target_id = f"typed:{fact['id']}"
+            session.add_node(
+                target_id,
+                "literal",
+                content=fact["object_value"],
+                projection_layer="typed",
+                typed_fact_id=fact["id"],
+                **({"valid_from": recorded_at} if recorded_at else {}),
+                **({"valid_until": invalidated_at} if invalidated_at else {}),
+            )
+        else:
+            continue
+        edge_label = _predicate_edge_label(fact["predicate_uri"])
+        edge_props: dict[str, Any] = {
+            "projection_layer": "typed",
+            "typed_fact_id": fact["id"],
+            "predicate_uri": fact["predicate_uri"],
+        }
+        if fact.get("mapping_id"):
+            edge_props["mapping_id"] = fact["mapping_id"]
+        if fact.get("confidence") is not None:
+            edge_props["confidence"] = fact["confidence"]
+        if recorded_at:
+            edge_props["valid_from"] = recorded_at
+        if invalidated_at:
+            edge_props["valid_until"] = invalidated_at
+        session.add_edge(subject_id, target_id, edge_label, **edge_props)
+
+    for fact in knowledge.list_derived_facts_for_temporal_projection(kb_id):
+        subject_id = _canon_entity_id(fact["subject_id"], merge_redirect)
+        recorded_at = fact.get("recorded_at")
+        invalidated_at = fact.get("invalidated_at")
+        if fact["object_entity_id"]:
+            target_id = _canon_entity_id(fact["object_entity_id"], merge_redirect)
+        elif fact["object_value"]:
+            target_id = f"derived:{fact['id']}"
+            session.add_node(
+                target_id,
+                "literal",
+                content=fact["object_value"],
+                projection_layer="derived",
+                derived_fact_id=fact["id"],
+                **({"valid_from": recorded_at} if recorded_at else {}),
+                **({"valid_until": invalidated_at} if invalidated_at else {}),
+            )
+        else:
+            continue
+        edge_label = _predicate_edge_label(fact["predicate_uri"])
+        edge_props: dict[str, Any] = {
+            "projection_layer": "derived",
+            "derived_fact_id": fact["id"],
+            "predicate_uri": fact["predicate_uri"],
+        }
+        if fact.get("rule_id"):
+            edge_props["rule_id"] = fact["rule_id"]
+        if recorded_at:
+            edge_props["valid_from"] = recorded_at
+        if invalidated_at:
+            edge_props["valid_until"] = invalidated_at
+        session.add_edge(subject_id, target_id, edge_label, **edge_props)
+
+    return session
 
 
 def rebuild_graph_from_ledger(

@@ -16,6 +16,9 @@ export const ModelsPage = lazy(() =>
 export const AuditPage = lazy(() =>
   import('@/pages/audit').then((m) => ({ default: m.AuditPage })),
 );
+export const AdminConnectorsPage = lazy(() =>
+  import('@/pages/admin-connectors').then((m) => ({ default: m.AdminConnectorsPage })),
+);
 export const SwaggerPage = lazy(() =>
   import('@/pages/swagger').then((m) => ({ default: m.SwaggerPage })),
 );
@@ -30,6 +33,27 @@ export const KbGraphPage = lazy(() =>
 );
 export const KbLibraryPage = lazy(() =>
   import('@/pages/kb/library').then((m) => ({ default: m.KbLibraryPage })),
+);
+export const KbConnectorsPage = lazy(() =>
+  import('@/pages/kb/connectors').then((m) => ({ default: m.KbConnectorsPage })),
+);
+export const KbConnectorOAuthCallbackPage = lazy(() =>
+  import('@/pages/kb/connector-oauth-callback').then((m) => ({
+    default: m.KbConnectorOAuthCallbackPage,
+  })),
+);
+export const KbConnectorsRedirect = lazy(() =>
+  import('@/pages/kb/connectors').then((m) => ({ default: m.KbConnectorsRedirect })),
+);
+export const KbConnectorMappingNewPage = lazy(() =>
+  import('@/pages/kb/connector-mapping-new').then((m) => ({
+    default: m.KbConnectorMappingNewPage,
+  })),
+);
+export const KbConnectorMappingEditPage = lazy(() =>
+  import('@/pages/kb/connector-mapping-edit').then((m) => ({
+    default: m.KbConnectorMappingEditPage,
+  })),
 );
 export const KbProcessingPage = lazy(() =>
   import('@/pages/kb/processing').then((m) => ({ default: m.KbProcessingPage })),

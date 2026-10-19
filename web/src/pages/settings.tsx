@@ -5,6 +5,7 @@ import { PlatformOrgSsoSection } from '@/components/admin/platform-org-sso-secti
 import { ConsolePageLayout } from '@/components/app/shared/console/index.js';
 import { useI18n } from '@/i18n/context.js';
 import { useBasisSession } from '@/lib/basis-session.js';
+import { usePlatformAdminCrumbs } from '@/lib/use-platform-admin-crumbs.js';
 
 function SettingsSection({
   title,
@@ -33,9 +34,10 @@ export function SettingsPage() {
   const ps = t.platformSettings;
   const { isAdmin } = useBasisSession();
   const [siteUrl, setSiteUrl] = useState('');
+  const crumbs = usePlatformAdminCrumbs(t.menu.system.title);
 
   return (
-    <ConsolePageLayout crumbs={[{ label: t.menu.system.title }]} subtitle={t.menu.system.hint}>
+    <ConsolePageLayout crumbs={crumbs} subtitle={t.menu.system.hint}>
       <div className="mx-auto w-full max-w-3xl space-y-12 pb-4">
         {isAdmin ? (
           <SettingsSection title={ps.tabAccess} description={ps.access.pageLead}>

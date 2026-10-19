@@ -1753,6 +1753,1790 @@
         "x-basis-auth": "session-or-kb-api-token"
       }
     },
+    "/api/v1/kbs/{kb_id}/connectors/catalog": {
+      "get": {
+        "tags": [
+          "knowledge-bases"
+        ],
+        "summary": "List Connector Catalog",
+        "description": "List BOCP connector manifests available in the platform catalog.",
+        "operationId": "list_connector_catalog_api_v1_kbs__kb_id__connectors_catalog_get",
+        "parameters": [
+          {
+            "name": "kb_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Kb Id"
+            }
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Category"
+            }
+          },
+          {
+            "name": "auth_mode",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Auth Mode"
+            }
+          },
+          {
+            "name": "has_streams_only",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Has Streams Only"
+            }
+          },
+          {
+            "name": "query",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Query"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1500,
+              "minimum": 1,
+              "default": 100,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response List Connector Catalog Api V1 Kbs  Kb Id  Connectors Catalog Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-basis-surface": "knowledge-base",
+        "x-basis-auth": "session-or-kb-api-token"
+      }
+    },
+    "/api/v1/kbs/{kb_id}/connectors/catalog/{service}": {
+      "get": {
+        "tags": [
+          "knowledge-bases"
+        ],
+        "summary": "Get Connector Manifest Route",
+        "description": "Fetch one BOCP connector manifest by service key.",
+        "operationId": "get_connector_manifest_route_api_v1_kbs__kb_id__connectors_catalog__service__get",
+        "parameters": [
+          {
+            "name": "kb_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Kb Id"
+            }
+          },
+          {
+            "name": "service",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Service"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Connector Manifest Route Api V1 Kbs  Kb Id  Connectors Catalog  Service  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-basis-surface": "knowledge-base",
+        "x-basis-auth": "session-or-kb-api-token"
+      }
+    },
+    "/api/v1/kbs/{kb_id}/connectors/connections": {
+      "get": {
+        "tags": [
+          "knowledge-bases"
+        ],
+        "summary": "List Kb Connector Connections",
+        "description": "List configured BOCP connections for this KB (credentials redacted).",
+        "operationId": "list_kb_connector_connections_api_v1_kbs__kb_id__connectors_connections_get",
+        "parameters": [
+          {
+            "name": "kb_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Kb Id"
+            }
+          },
+          {
+            "name": "service",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Service"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response List Kb Connector Connections Api V1 Kbs  Kb Id  Connectors Connections Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-basis-surface": "knowledge-base",
+        "x-basis-auth": "session-or-kb-api-token"
+      }
+    },
+    "/api/v1/kbs/{kb_id}/connectors/connections/{service}/{connection_name}": {
+      "put": {
+        "tags": [
+          "knowledge-bases"
+        ],
+        "summary": "Upsert Kb Connector Connection",
+        "description": "Create or update an encrypted BOCP connection for this KB.",
+        "operationId": "upsert_kb_connector_connection_api_v1_kbs__kb_id__connectors_connections__service___connection_name__put",
+        "parameters": [
+          {
+            "name": "kb_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Kb Id"
+            }
+          },
+          {
+            "name": "service",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Service"
+            }
+          },
+          {
+            "name": "connection_name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Connection Name"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpsertConnectorConnectionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Upsert Kb Connector Connection Api V1 Kbs  Kb Id  Connectors Connections  Service   Connection Name  Put"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-basis-surface": "knowledge-base",
+        "x-basis-auth": "session-or-kb-api-token"
+      },
+      "delete": {
+        "tags": [
+          "knowledge-bases"
+        ],
+        "summary": "Delete Kb Connector Connection",
+        "description": "Delete a configured BOCP connection from this KB.",
+        "operationId": "delete_kb_connector_connection_api_v1_kbs__kb_id__connectors_connections__service___connection_name__delete",
+        "parameters": [
+          {
+            "name": "kb_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Kb Id"
+            }
+          },
+          {
+            "name": "service",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Service"
+            }
+          },
+          {
+            "name": "connection_name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Connection Name"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Delete Kb Connector Connection Api V1 Kbs  Kb Id  Connectors Connections  Service   Connection Name  Delete"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-basis-surface": "knowledge-base",
+        "x-basis-auth": "session-or-kb-api-token"
+      }
+    },
+    "/api/v1/kbs/{kb_id}/connectors/connections/{service}/{connection_name}/check": {
+      "post": {
+        "tags": [
+          "knowledge-bases"
+        ],
+        "summary": "Check Kb Connector Connection",
+        "description": "Run the BOCP `CHECK` health check against an upstream connection.",
+        "operationId": "check_kb_connector_connection_api_v1_kbs__kb_id__connectors_connections__service___connection_name__check_post",
+        "parameters": [
+          {
+            "name": "kb_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Kb Id"
+            }
+          },
+          {
+            "name": "service",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Service"
+            }
+          },
+          {
+            "name": "connection_name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Connection Name"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Check Kb Connector Connection Api V1 Kbs  Kb Id  Connectors Connections  Service   Connection Name  Check Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-basis-surface": "knowledge-base",
+        "x-basis-auth": "session-or-kb-api-token"
+      }
+    },
+    "/api/v1/kbs/{kb_id}/connectors/connections/{service}/{connection_name}/discover": {
+      "get": {
+        "tags": [
+          "knowledge-bases"
+        ],
+        "summary": "Discover Kb Connector Schema",
+        "description": "Run the BOCP `DISCOVER` schema introspection for a SQL table or REST stream.",
+        "operationId": "discover_kb_connector_schema_api_v1_kbs__kb_id__connectors_connections__service___connection_name__discover_get",
+        "parameters": [
+          {
+            "name": "kb_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Kb Id"
+            }
+          },
+          {
+            "name": "service",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Service"
+            }
+          },
+          {
+            "name": "connection_name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Connection Name"
+            }
+          },
+          {
+            "name": "stream_name",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Stream Name"
+            }
+          },
+          {
+            "name": "external_table",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "External Table"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Discover Kb Connector Schema Api V1 Kbs  Kb Id  Connectors Connections  Service   Connection Name  Discover Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-basis-surface": "knowledge-base",
+        "x-basis-auth": "session-or-kb-api-token"
+      }
+    },
+    "/api/v1/kbs/{kb_id}/connectors/oauth-configs/{service}": {
+      "put": {
+        "tags": [
+          "knowledge-bases"
+        ],
+        "summary": "Upsert Kb Connector Oauth Config",
+        "description": "Store encrypted OAuth2 client credentials (`client_id`, `client_secret`) for a connector service.",
+        "operationId": "upsert_kb_connector_oauth_config_api_v1_kbs__kb_id__connectors_oauth_configs__service__put",
+        "parameters": [
+          {
+            "name": "kb_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Kb Id"
+            }
+          },
+          {
+            "name": "service",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Service"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpsertOAuthConfigRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Upsert Kb Connector Oauth Config Api V1 Kbs  Kb Id  Connectors Oauth Configs  Service  Put"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-basis-surface": "knowledge-base",
+        "x-basis-auth": "session-or-kb-api-token"
+      }
+    },
+    "/api/v1/kbs/{kb_id}/connectors/oauth/{service}/authorize-url": {
+      "post": {
+        "tags": [
+          "knowledge-bases"
+        ],
+        "summary": "Build Kb Connector Oauth Authorize Url",
+        "description": "Build an OAuth2 authorization URL (with optional PKCE S256) for a connector service.",
+        "operationId": "build_kb_connector_oauth_authorize_url_api_v1_kbs__kb_id__connectors_oauth__service__authorize_url_post",
+        "parameters": [
+          {
+            "name": "kb_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Kb Id"
+            }
+          },
+          {
+            "name": "service",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Service"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BuildOAuthAuthorizeUrlRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Build Kb Connector Oauth Authorize Url Api V1 Kbs  Kb Id  Connectors Oauth  Service  Authorize Url Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-basis-surface": "knowledge-base",
+        "x-basis-auth": "session-or-kb-api-token"
+      }
+    },
+    "/api/v1/kbs/{kb_id}/connectors/oauth/{service}/exchange": {
+      "post": {
+        "tags": [
+          "knowledge-bases"
+        ],
+        "summary": "Exchange Kb Connector Oauth Code",
+        "description": "Exchange an OAuth2 authorization code for tokens and save the encrypted BOCP connection.",
+        "operationId": "exchange_kb_connector_oauth_code_api_v1_kbs__kb_id__connectors_oauth__service__exchange_post",
+        "parameters": [
+          {
+            "name": "kb_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Kb Id"
+            }
+          },
+          {
+            "name": "service",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Service"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExchangeOAuthCodeRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Exchange Kb Connector Oauth Code Api V1 Kbs  Kb Id  Connectors Oauth  Service  Exchange Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-basis-surface": "knowledge-base",
+        "x-basis-auth": "session-or-kb-api-token"
+      }
+    },
+    "/api/v1/kbs/{kb_id}/connectors/outbox": {
+      "get": {
+        "tags": [
+          "knowledge-bases"
+        ],
+        "summary": "List Kb Sync Outbox",
+        "description": "List outbound entity writeback items in `entity_sync_outbox`.",
+        "operationId": "list_kb_sync_outbox_api_v1_kbs__kb_id__connectors_outbox_get",
+        "parameters": [
+          {
+            "name": "kb_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Kb Id"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response List Kb Sync Outbox Api V1 Kbs  Kb Id  Connectors Outbox Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-basis-surface": "knowledge-base",
+        "x-basis-auth": "session-or-kb-api-token"
+      }
+    },
+    "/api/v1/kbs/{kb_id}/connectors/outbox/propose": {
+      "post": {
+        "tags": [
+          "knowledge-bases"
+        ],
+        "summary": "Propose Kb Entity Writeback",
+        "description": "Propose an outbound writeback of ledger entity attributes to its external connector stream.",
+        "operationId": "propose_kb_entity_writeback_api_v1_kbs__kb_id__connectors_outbox_propose_post",
+        "parameters": [
+          {
+            "name": "kb_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Kb Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProposeEntityWritebackRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Propose Kb Entity Writeback Api V1 Kbs  Kb Id  Connectors Outbox Propose Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-basis-surface": "knowledge-base",
+        "x-basis-auth": "session-or-kb-api-token"
+      }
+    },
+    "/api/v1/kbs/{kb_id}/connectors/policy": {
+      "get": {
+        "tags": [
+          "knowledge-bases"
+        ],
+        "summary": "Get Kb Connector Policy",
+        "description": "Get KB-scoped connector allowlist and action governance policy.",
+        "operationId": "get_kb_connector_policy_api_v1_kbs__kb_id__connectors_policy_get",
+        "parameters": [
+          {
+            "name": "kb_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Kb Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Kb Connector Policy Api V1 Kbs  Kb Id  Connectors Policy Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-basis-surface": "knowledge-base",
+        "x-basis-auth": "session-or-kb-api-token"
+      },
+      "put": {
+        "tags": [
+          "knowledge-bases"
+        ],
+        "summary": "Put Kb Connector Policy",
+        "description": "Update KB-scoped connector allowlist and action governance policy.",
+        "operationId": "put_kb_connector_policy_api_v1_kbs__kb_id__connectors_policy_put",
+        "parameters": [
+          {
+            "name": "kb_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Kb Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpsertConnectorPolicyRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Put Kb Connector Policy Api V1 Kbs  Kb Id  Connectors Policy Put"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-basis-surface": "knowledge-base",
+        "x-basis-auth": "session-or-kb-api-token"
+      }
+    },
+    "/api/v1/kbs/{kb_id}/connectors/runs": {
+      "get": {
+        "tags": [
+          "knowledge-bases"
+        ],
+        "summary": "List Kb Connector Runs",
+        "description": "List recent BOCP connector execution audit logs (`kb_connector_runs`).",
+        "operationId": "list_kb_connector_runs_api_v1_kbs__kb_id__connectors_runs_get",
+        "parameters": [
+          {
+            "name": "kb_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Kb Id"
+            }
+          },
+          {
+            "name": "service",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Service"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response List Kb Connector Runs Api V1 Kbs  Kb Id  Connectors Runs Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-basis-surface": "knowledge-base",
+        "x-basis-auth": "session-or-kb-api-token"
+      }
+    },
+    "/api/v1/kbs/{kb_id}/connectors/table-mappings": {
+      "get": {
+        "tags": [
+          "knowledge-bases"
+        ],
+        "summary": "List Kb Table Mappings",
+        "description": "List structured stream-to-ontology table mappings configured in this KB.",
+        "operationId": "list_kb_table_mappings_api_v1_kbs__kb_id__connectors_table_mappings_get",
+        "parameters": [
+          {
+            "name": "kb_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Kb Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response List Kb Table Mappings Api V1 Kbs  Kb Id  Connectors Table Mappings Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-basis-surface": "knowledge-base",
+        "x-basis-auth": "session-or-kb-api-token"
+      },
+      "post": {
+        "tags": [
+          "knowledge-bases"
+        ],
+        "summary": "Create Kb Table Mapping",
+        "description": "Create a stream-to-ontology table mapping (auto-creating a `connector` ingest_source if omitted).",
+        "operationId": "create_kb_table_mapping_api_v1_kbs__kb_id__connectors_table_mappings_post",
+        "parameters": [
+          {
+            "name": "kb_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Kb Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTableMappingRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Create Kb Table Mapping Api V1 Kbs  Kb Id  Connectors Table Mappings Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-basis-surface": "knowledge-base",
+        "x-basis-auth": "session-or-kb-api-token"
+      }
+    },
+    "/api/v1/kbs/{kb_id}/connectors/table-mappings/{mapping_id}": {
+      "get": {
+        "tags": [
+          "knowledge-bases"
+        ],
+        "summary": "Get Kb Table Mapping",
+        "description": "Fetch one stream-to-ontology table mapping with connector connection binding.",
+        "operationId": "get_kb_table_mapping_api_v1_kbs__kb_id__connectors_table_mappings__mapping_id__get",
+        "parameters": [
+          {
+            "name": "kb_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Kb Id"
+            }
+          },
+          {
+            "name": "mapping_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Mapping Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Kb Table Mapping Api V1 Kbs  Kb Id  Connectors Table Mappings  Mapping Id  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-basis-surface": "knowledge-base",
+        "x-basis-auth": "session-or-kb-api-token"
+      },
+      "put": {
+        "tags": [
+          "knowledge-bases"
+        ],
+        "summary": "Update Kb Table Mapping",
+        "description": "Update a stream-to-ontology table mapping and optional connector connection binding.",
+        "operationId": "update_kb_table_mapping_api_v1_kbs__kb_id__connectors_table_mappings__mapping_id__put",
+        "parameters": [
+          {
+            "name": "kb_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Kb Id"
+            }
+          },
+          {
+            "name": "mapping_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Mapping Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTableMappingRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Update Kb Table Mapping Api V1 Kbs  Kb Id  Connectors Table Mappings  Mapping Id  Put"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-basis-surface": "knowledge-base",
+        "x-basis-auth": "session-or-kb-api-token"
+      },
+      "delete": {
+        "tags": [
+          "knowledge-bases"
+        ],
+        "summary": "Delete Kb Table Mapping",
+        "description": "Delete a stream-to-ontology table mapping (cascades `entity_external_refs`).",
+        "operationId": "delete_kb_table_mapping_api_v1_kbs__kb_id__connectors_table_mappings__mapping_id__delete",
+        "parameters": [
+          {
+            "name": "kb_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Kb Id"
+            }
+          },
+          {
+            "name": "mapping_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Mapping Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Delete Kb Table Mapping Api V1 Kbs  Kb Id  Connectors Table Mappings  Mapping Id  Delete"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-basis-surface": "knowledge-base",
+        "x-basis-auth": "session-or-kb-api-token"
+      }
+    },
+    "/api/v1/kbs/{kb_id}/connectors/table-mappings/{mapping_id}/sync": {
+      "post": {
+        "tags": [
+          "knowledge-bases"
+        ],
+        "summary": "Sync Kb Table Mapping",
+        "description": "Execute inbound 4-way sync from the BOCP stream into the Evidence Ledger.",
+        "operationId": "sync_kb_table_mapping_api_v1_kbs__kb_id__connectors_table_mappings__mapping_id__sync_post",
+        "parameters": [
+          {
+            "name": "kb_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Kb Id"
+            }
+          },
+          {
+            "name": "mapping_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Mapping Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Sync Kb Table Mapping Api V1 Kbs  Kb Id  Connectors Table Mappings  Mapping Id  Sync Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-basis-surface": "knowledge-base",
+        "x-basis-auth": "session-or-kb-api-token"
+      }
+    },
+    "/api/v1/kbs/{kb_id}/connectors/tools/execute": {
+      "post": {
+        "tags": [
+          "knowledge-bases"
+        ],
+        "summary": "Execute Kb Connector Tool",
+        "description": "Execute a standalone BOCP connector tool (`ToolSpec`) with KB policy enforcement.",
+        "operationId": "execute_kb_connector_tool_api_v1_kbs__kb_id__connectors_tools_execute_post",
+        "parameters": [
+          {
+            "name": "kb_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Kb Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExecuteConnectorToolRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Execute Kb Connector Tool Api V1 Kbs  Kb Id  Connectors Tools Execute Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-basis-surface": "knowledge-base",
+        "x-basis-auth": "session-or-kb-api-token"
+      }
+    },
     "/api/v1/kbs/{kb_id}/decisions": {
       "get": {
         "tags": [
@@ -2763,7 +4547,7 @@
           "knowledge-bases"
         ],
         "summary": "Kb Graph Diff",
-        "description": "Whole-graph diff between two instants (F-DIFF-01).\n\nCompares Explorer projection snapshots at `from` and `to` (ISO instants). Response includes\n`added_nodes`, `removed_nodes`, `modified_nodes`, `added_edges`, `removed_edges`, `summary`,\nand echo `from_time` / `to_time`. Node/edge membership follows ledger `recorded_at` → projected\n`valid_from` (F-TIM-01). Console graph preview dims unchanged elements and highlights\nadded/modified nodes and added edges at the end instant.",
+        "description": "Whole-graph diff between two instants (F-DIFF-01).\n\nCompares Explorer projection snapshots at `from` and `to` (ISO instants). Response includes\n`added_nodes`, `removed_nodes`, `modified_nodes`, `added_edges`, `removed_edges`, `summary`,\nand echo `from_time` / `to_time`. Node/edge membership follows ledger `recorded_at` → projected\n`valid_from` and `invalidated_at` → projected `valid_until` (F-TIM-01). Console graph preview dims unchanged elements and highlights\nadded/modified nodes and added edges at the end instant.",
         "operationId": "kb_graph_diff_api_v1_kbs__kb_id__graph_diff_get",
         "parameters": [
           {
@@ -3990,6 +5774,88 @@
               "application/json": {
                 "schema": {
                   "title": "Response Kb Graph Staging Entity Merge Api V1 Kbs  Kb Id  Graph Staging Entity Merge Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-basis-surface": "knowledge-base",
+        "x-basis-auth": "session-or-kb-api-token"
+      }
+    },
+    "/api/v1/kbs/{kb_id}/graph/staging/{session_key}/draft": {
+      "put": {
+        "tags": [
+          "knowledge-bases"
+        ],
+        "summary": "Kb Put Graph Staging Draft",
+        "description": "Persist server-side staging studio merge draft for a compare session (F-DIFF-01).",
+        "operationId": "kb_put_graph_staging_draft_api_v1_kbs__kb_id__graph_staging__session_key__draft_put",
+        "parameters": [
+          {
+            "name": "kb_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Kb Id"
+            }
+          },
+          {
+            "name": "session_key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Key"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PutGraphStagingDraftRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Kb Put Graph Staging Draft Api V1 Kbs  Kb Id  Graph Staging  Session Key  Draft Put"
                 }
               }
             }
@@ -12816,6 +14682,438 @@
         "x-basis-auth": "session"
       }
     },
+    "/api/v1/settings/connectors": {
+      "get": {
+        "tags": [
+          "settings"
+        ],
+        "summary": "Get Connector Allowlist Settings",
+        "description": "Get platform-wide BOCP provider allowlist (KB policies must stay within this ceiling).",
+        "operationId": "get_connector_allowlist_settings_api_v1_settings_connectors_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Connector Allowlist Settings Api V1 Settings Connectors Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-basis-surface": "platform",
+        "x-basis-auth": "session"
+      },
+      "put": {
+        "tags": [
+          "settings"
+        ],
+        "summary": "Put Connector Allowlist Settings",
+        "description": "Update platform-wide BOCP provider allowlist.",
+        "operationId": "put_connector_allowlist_settings_api_v1_settings_connectors_put",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConnectorAllowlistSettingsRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Put Connector Allowlist Settings Api V1 Settings Connectors Put"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-basis-surface": "platform",
+        "x-basis-auth": "session"
+      }
+    },
+    "/api/v1/settings/connectors/catalog": {
+      "get": {
+        "tags": [
+          "settings"
+        ],
+        "summary": "List Platform Connector Catalog",
+        "description": "List BOCP catalog entries with platform allowlist flags for system administrators.",
+        "operationId": "list_platform_connector_catalog_api_v1_settings_connectors_catalog_get",
+        "parameters": [
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Category"
+            }
+          },
+          {
+            "name": "auth_mode",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Auth Mode"
+            }
+          },
+          {
+            "name": "has_streams_only",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Has Streams Only"
+            }
+          },
+          {
+            "name": "query",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Query"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1500,
+              "minimum": 1,
+              "default": 200,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response List Platform Connector Catalog Api V1 Settings Connectors Catalog Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-basis-surface": "platform",
+        "x-basis-auth": "session"
+      }
+    },
+    "/api/v1/settings/connectors/catalog/stats": {
+      "get": {
+        "tags": [
+          "settings"
+        ],
+        "summary": "Platform Connector Catalog Stats",
+        "description": "Aggregate BOCP catalog counts by category for platform administrators.",
+        "operationId": "platform_connector_catalog_stats_api_v1_settings_connectors_catalog_stats_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Platform Connector Catalog Stats Api V1 Settings Connectors Catalog Stats Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-basis-surface": "platform",
+        "x-basis-auth": "session"
+      }
+    },
+    "/api/v1/settings/connectors/catalog/{service}": {
+      "get": {
+        "tags": [
+          "settings"
+        ],
+        "summary": "Get Platform Connector Manifest",
+        "description": "Return full BOCP manifest JSON for one catalog service (system administrators).",
+        "operationId": "get_platform_connector_manifest_api_v1_settings_connectors_catalog__service__get",
+        "parameters": [
+          {
+            "name": "service",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Service"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Platform Connector Manifest Api V1 Settings Connectors Catalog  Service  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-basis-surface": "platform",
+        "x-basis-auth": "session"
+      }
+    },
+    "/api/v1/settings/connectors/validate": {
+      "post": {
+        "tags": [
+          "settings"
+        ],
+        "summary": "Validate Connector Allowlist Settings",
+        "description": "Validate a platform allowlist against the shipped BOCP catalog.",
+        "operationId": "validate_connector_allowlist_settings_api_v1_settings_connectors_validate_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConnectorAllowlistSettingsRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Validate Connector Allowlist Settings Api V1 Settings Connectors Validate Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-basis-surface": "platform",
+        "x-basis-auth": "session"
+      }
+    },
     "/api/v1/users": {
       "get": {
         "tags": [
@@ -13253,6 +15551,113 @@
         ],
         "title": "Body_upload_document_api_v1_kbs__kb_id__documents_upload_post"
       },
+      "BuildOAuthAuthorizeUrlRequest": {
+        "properties": {
+          "state": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "State"
+          },
+          "redirect_uri": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Redirect Uri"
+          },
+          "connection_config": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Connection Config"
+          },
+          "code_challenge": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Code Challenge"
+          }
+        },
+        "type": "object",
+        "title": "BuildOAuthAuthorizeUrlRequest"
+      },
+      "ColumnMappingSpec": {
+        "properties": {
+          "column": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Column"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "literal",
+              "relation"
+            ],
+            "title": "Kind",
+            "default": "literal"
+          },
+          "surface_phrase": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Surface Phrase"
+          },
+          "predicate_uri": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Predicate Uri"
+          },
+          "datatype": {
+            "type": "string",
+            "title": "Datatype",
+            "default": "xsd:string"
+          },
+          "fk_target_table": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fk Target Table"
+          },
+          "writable": {
+            "type": "boolean",
+            "title": "Writable",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "column",
+          "surface_phrase"
+        ],
+        "title": "ColumnMappingSpec",
+        "description": "Single element of source_table_mappings.column_mappings_json."
+      },
       "CommentRequest": {
         "properties": {
           "element_uri": {
@@ -13275,6 +15680,27 @@
           "author"
         ],
         "title": "CommentRequest"
+      },
+      "ConnectorAllowlistSettingsRequest": {
+        "properties": {
+          "allowed_providers": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Allowed Providers",
+            "default": "*"
+          }
+        },
+        "type": "object",
+        "title": "ConnectorAllowlistSettingsRequest"
       },
       "CreateEntityMergeReviewRequest": {
         "properties": {
@@ -13542,6 +15968,130 @@
         ],
         "title": "CreateReasoningRuleRequest"
       },
+      "CreateTableMappingRequest": {
+        "properties": {
+          "source_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Id"
+          },
+          "provider": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Provider"
+          },
+          "connection_name": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Connection Name",
+            "default": "default"
+          },
+          "stream_name": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Stream Name"
+          },
+          "external_table": {
+            "type": "string",
+            "minLength": 1,
+            "title": "External Table"
+          },
+          "stream_params": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Stream Params"
+          },
+          "primary_key_column": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Primary Key Column"
+          },
+          "cursor_column": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cursor Column"
+          },
+          "label_column": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Label Column"
+          },
+          "target_class_uri": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Target Class Uri"
+          },
+          "column_mappings": {
+            "items": {
+              "$ref": "#/components/schemas/ColumnMappingSpec"
+            },
+            "type": "array",
+            "title": "Column Mappings"
+          },
+          "sync_mode": {
+            "type": "string",
+            "enum": [
+              "full_refresh",
+              "incremental"
+            ],
+            "title": "Sync Mode",
+            "default": "incremental"
+          },
+          "track_deletes": {
+            "type": "boolean",
+            "title": "Track Deletes",
+            "default": false
+          },
+          "sync_direction": {
+            "type": "string",
+            "enum": [
+              "inbound",
+              "bidirectional"
+            ],
+            "title": "Sync Direction",
+            "default": "inbound"
+          },
+          "writeback_mode": {
+            "type": "string",
+            "enum": [
+              "disabled",
+              "review",
+              "auto"
+            ],
+            "title": "Writeback Mode",
+            "default": "review"
+          },
+          "max_rows": {
+            "type": "integer",
+            "maximum": 100000.0,
+            "minimum": 1.0,
+            "title": "Max Rows",
+            "default": 10000
+          }
+        },
+        "type": "object",
+        "required": [
+          "provider",
+          "stream_name",
+          "external_table",
+          "primary_key_column",
+          "label_column",
+          "target_class_uri"
+        ],
+        "title": "CreateTableMappingRequest"
+      },
       "CreateUserRequest": {
         "properties": {
           "email": {
@@ -13787,6 +16337,84 @@
         },
         "type": "object",
         "title": "EmailCreds"
+      },
+      "ExchangeOAuthCodeRequest": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Code"
+          },
+          "redirect_uri": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Redirect Uri"
+          },
+          "code_verifier": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Code Verifier"
+          },
+          "connection_name": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Connection Name",
+            "default": "default"
+          },
+          "connection_config": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Connection Config"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code"
+        ],
+        "title": "ExchangeOAuthCodeRequest"
+      },
+      "ExecuteConnectorToolRequest": {
+        "properties": {
+          "service": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Service"
+          },
+          "tool_id": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Tool Id"
+          },
+          "connection_name": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Connection Name",
+            "default": "default"
+          },
+          "arguments": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Arguments"
+          }
+        },
+        "type": "object",
+        "required": [
+          "service",
+          "tool_id"
+        ],
+        "title": "ExecuteConnectorToolRequest"
       },
       "GraphSearchRequest": {
         "properties": {
@@ -14273,6 +16901,53 @@
           "summary"
         ],
         "title": "ProposalRequest"
+      },
+      "ProposeEntityWritebackRequest": {
+        "properties": {
+          "entity_id": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Entity Id"
+          },
+          "field_updates": {
+            "additionalProperties": true,
+            "type": "object",
+            "minProperties": 1,
+            "title": "Field Updates"
+          }
+        },
+        "type": "object",
+        "required": [
+          "entity_id",
+          "field_updates"
+        ],
+        "title": "ProposeEntityWritebackRequest"
+      },
+      "PutGraphStagingDraftRequest": {
+        "properties": {
+          "from_time": {
+            "type": "string",
+            "title": "From Time",
+            "default": ""
+          },
+          "to_time": {
+            "type": "string",
+            "title": "To Time",
+            "default": ""
+          },
+          "primary": {
+            "type": "string",
+            "title": "Primary",
+            "default": ""
+          },
+          "duplicate": {
+            "type": "string",
+            "title": "Duplicate",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "PutGraphStagingDraftRequest"
       },
       "ReasonRequest": {
         "properties": {
@@ -14904,6 +17579,215 @@
         },
         "type": "object",
         "title": "UpdateReasoningRuleRequest"
+      },
+      "UpdateTableMappingRequest": {
+        "properties": {
+          "provider": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provider"
+          },
+          "connection_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Connection Name"
+          },
+          "stream_name": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Stream Name"
+          },
+          "external_table": {
+            "type": "string",
+            "minLength": 1,
+            "title": "External Table"
+          },
+          "stream_params": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Stream Params"
+          },
+          "primary_key_column": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Primary Key Column"
+          },
+          "cursor_column": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cursor Column"
+          },
+          "label_column": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Label Column"
+          },
+          "target_class_uri": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Target Class Uri"
+          },
+          "column_mappings": {
+            "items": {
+              "$ref": "#/components/schemas/ColumnMappingSpec"
+            },
+            "type": "array",
+            "title": "Column Mappings"
+          },
+          "sync_mode": {
+            "type": "string",
+            "enum": [
+              "full_refresh",
+              "incremental"
+            ],
+            "title": "Sync Mode",
+            "default": "incremental"
+          },
+          "track_deletes": {
+            "type": "boolean",
+            "title": "Track Deletes",
+            "default": false
+          },
+          "sync_direction": {
+            "type": "string",
+            "enum": [
+              "inbound",
+              "bidirectional"
+            ],
+            "title": "Sync Direction",
+            "default": "inbound"
+          },
+          "writeback_mode": {
+            "type": "string",
+            "enum": [
+              "disabled",
+              "review",
+              "auto"
+            ],
+            "title": "Writeback Mode",
+            "default": "review"
+          },
+          "max_rows": {
+            "type": "integer",
+            "maximum": 100000.0,
+            "minimum": 1.0,
+            "title": "Max Rows",
+            "default": 10000
+          }
+        },
+        "type": "object",
+        "required": [
+          "stream_name",
+          "external_table",
+          "primary_key_column",
+          "label_column",
+          "target_class_uri"
+        ],
+        "title": "UpdateTableMappingRequest"
+      },
+      "UpsertConnectorConnectionRequest": {
+        "properties": {
+          "auth_type": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Auth Type"
+          },
+          "connection_config": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Connection Config"
+          },
+          "credentials": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Credentials"
+          }
+        },
+        "type": "object",
+        "required": [
+          "auth_type"
+        ],
+        "title": "UpsertConnectorConnectionRequest"
+      },
+      "UpsertConnectorPolicyRequest": {
+        "properties": {
+          "allowed_providers": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Allowed Providers",
+            "default": "*"
+          },
+          "action_policy": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Action Policy"
+          }
+        },
+        "type": "object",
+        "title": "UpsertConnectorPolicyRequest"
+      },
+      "UpsertOAuthConfigRequest": {
+        "properties": {
+          "client_id": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Client Id"
+          },
+          "client_secret": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Client Secret"
+          },
+          "redirect_uri": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Redirect Uri"
+          },
+          "extra": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Extra"
+          }
+        },
+        "type": "object",
+        "required": [
+          "client_id",
+          "client_secret"
+        ],
+        "title": "UpsertOAuthConfigRequest"
       },
       "ValidationError": {
         "properties": {

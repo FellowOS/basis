@@ -1327,21 +1327,28 @@ class KnowledgeStore:
     PROJECTION_SCHEMA_VERSION = 1
 
     def get_ledger_temporal_bounds(self, kb_id: str) -> dict[str, str | None]:
-        """Earliest/latest instants in the ledger (for UI when graph nodes lack valid_from)."""
+        """Earliest/latest instants in the ledger (including invalidated_at for valid_until bounds)."""
         with self._lock:
             self._assert_kb_exists(kb_id)
             row = self._conn.execute(
                 """
                 SELECT MIN(ts) AS min_at, MAX(ts) AS max_at
                 FROM (
-                    SELECT recorded_at AS ts FROM statements
-                    WHERE kb_id = ? AND invalidated_at IS NULL
+                    SELECT recorded_at AS ts FROM statements WHERE kb_id = ?
                     UNION ALL
-                    SELECT recorded_at FROM typed_facts
-                    WHERE kb_id = ? AND invalidated_at IS NULL
+                    SELECT invalidated_at AS ts FROM statements WHERE kb_id = ?
                     UNION ALL
-                    SELECT recorded_at FROM derived_facts
-                    WHERE kb_id = ? AND invalidated_at IS NULL
+                    SELECT recorded_at FROM typed_facts WHERE kb_id = ?
+                    UNION ALL
+                    SELECT invalidated_at FROM typed_facts WHERE kb_id = ?
+                    UNION ALL
+                    SELECT recorded_at FROM derived_facts WHERE kb_id = ?
+                    UNION ALL
+                    SELECT invalidated_at FROM derived_facts WHERE kb_id = ?
+                    UNION ALL
+                    SELECT created_at FROM entities WHERE kb_id = ?
+                    UNION ALL
+                    SELECT invalidated_at FROM entities WHERE kb_id = ?
                     UNION ALL
                     SELECT dv.created_at AS ts
                     FROM documents d
@@ -1350,7 +1357,7 @@ class KnowledgeStore:
                 )
                 WHERE ts IS NOT NULL AND TRIM(ts) != ''
                 """,
-                (kb_id, kb_id, kb_id, kb_id),
+                (kb_id, kb_id, kb_id, kb_id, kb_id, kb_id, kb_id, kb_id, kb_id),
             ).fetchone()
         if row is None or row["min_at"] is None:
             return {"min": None, "max": None}
@@ -1603,6 +1610,77 @@ class KnowledgeStore:
                     }
                 )
         return items
+
+    def list_entities_for_temporal_projection(self, kb_id: str) -> list[dict[str, Any]]:
+        """Entities for temporal graph projection including invalidated rows (F-TIM-01 valid_until)."""
+        with self._lock:
+            rows = self._conn.execute(
+                """
+                SELECT id, canonical_label, description, entity_kind, created_at, invalidated_at
+                FROM entities
+                WHERE kb_id = ?
+                ORDER BY created_at ASC
+                """,
+                (kb_id,),
+            ).fetchall()
+        return [dict(r) for r in rows]
+
+    def list_typed_facts_for_temporal_projection(self, kb_id: str) -> list[dict[str, Any]]:
+        """Typed facts for temporal graph projection including invalidated rows (F-TIM-01 valid_until)."""
+        with self._lock:
+            self._assert_kb_exists(kb_id)
+            rows = self._conn.execute(
+                """
+                SELECT id, subject_id, predicate_uri, object_entity_id, object_value,
+                       mapping_id, confidence, recorded_at, invalidated_at
+                FROM typed_facts
+                WHERE kb_id = ?
+                ORDER BY recorded_at ASC
+                """,
+                (kb_id,),
+            ).fetchall()
+        return [
+            {
+                "id": row["id"],
+                "subject_id": row["subject_id"],
+                "predicate_uri": row["predicate_uri"],
+                "object_entity_id": row["object_entity_id"],
+                "object_value": row["object_value"],
+                "mapping_id": row["mapping_id"],
+                "confidence": row["confidence"],
+                "recorded_at": row["recorded_at"],
+                "invalidated_at": row["invalidated_at"],
+            }
+            for row in rows
+        ]
+
+    def list_derived_facts_for_temporal_projection(self, kb_id: str) -> list[dict[str, Any]]:
+        """Derived facts for temporal graph projection including invalidated rows (F-TIM-01 valid_until)."""
+        with self._lock:
+            self._assert_kb_exists(kb_id)
+            rows = self._conn.execute(
+                """
+                SELECT id, subject_id, predicate_uri, object_entity_id, object_value, rule_id,
+                       recorded_at, invalidated_at
+                FROM derived_facts
+                WHERE kb_id = ?
+                ORDER BY recorded_at ASC
+                """,
+                (kb_id,),
+            ).fetchall()
+        return [
+            {
+                "id": row["id"],
+                "subject_id": row["subject_id"],
+                "predicate_uri": row["predicate_uri"],
+                "object_entity_id": row["object_entity_id"],
+                "object_value": row["object_value"],
+                "rule_id": row["rule_id"],
+                "recorded_at": row["recorded_at"],
+                "invalidated_at": row["invalidated_at"],
+            }
+            for row in rows
+        ]
 
     def list_document_timeline_events(
         self,
@@ -3128,7 +3206,7 @@ class KnowledgeStore:
         if row["kb_id"] != kb_id:
             raise AdminError(403, "forbidden", "记录不属于该知识库")
 
-    _INGEST_SOURCE_KINDS = frozenset({"webhook", "http_poll", "git"})
+    _INGEST_SOURCE_KINDS = frozenset({"webhook", "http_poll", "git", "connector"})
 
     def list_scheduled_ingest_sources_global(self) -> list[dict[str, Any]]:
         with self._lock:
@@ -3144,6 +3222,20 @@ class KnowledgeStore:
 
     def list_http_poll_sources_global(self) -> list[dict[str, Any]]:
         return [s for s in self.list_scheduled_ingest_sources_global() if s["kind"] == "http_poll"]
+
+    def list_active_connector_table_mappings_global(self) -> list[tuple[str, str]]:
+        """All active inbound/bidirectional BOCP table mappings (kb_id, mapping_id)."""
+        with self._lock:
+            rows = self._conn.execute(
+                """
+                SELECT kb_id, id
+                FROM source_table_mappings
+                WHERE status = 'active'
+                  AND sync_direction IN ('inbound', 'bidirectional')
+                ORDER BY kb_id, created_at ASC
+                """,
+            ).fetchall()
+        return [(str(row[0]), str(row[1])) for row in rows]
 
     def list_ingest_sources(self, kb_id: str) -> list[dict[str, Any]]:
         with self._lock:

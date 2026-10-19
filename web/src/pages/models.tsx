@@ -5,6 +5,7 @@ import { ModelCatalogTab } from '@/components/admin/models/model-catalog-tab.js'
 import { Button } from '@/components/ui/button.js';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs.js';
 import { useI18n } from '@/i18n/context.js';
+import { usePlatformAdminCrumbs } from '@/lib/use-platform-admin-crumbs.js';
 
 type ModelTab = 'llm' | 'embed';
 
@@ -16,10 +17,11 @@ export function ModelsPage() {
   const [addOpen, setAddOpen] = useState(false);
 
   const tabSubtitle = tab === 'embed' ? m.embedSubtitle : m.llmSubtitle;
+  const crumbs = usePlatformAdminCrumbs(t.menu.models.title);
 
   return (
     <ConsolePageLayout
-      crumbs={[{ label: t.menu.models.title }]}
+      crumbs={crumbs}
       subtitle={tabSubtitle}
       actions={
         <Button type="button" size="sm" onClick={() => setAddOpen(true)}>

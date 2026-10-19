@@ -37,6 +37,7 @@ import {
   type KbGraphAuditEvent,
 } from '@/lib/kb-graph-audit.js';
 import { decisionIdFromDetail } from '@/lib/reviewUrlState.js';
+import { usePlatformAdminCrumbs } from '@/lib/use-platform-admin-crumbs.js';
 
 type AuditDetail = Record<string, unknown>;
 
@@ -145,6 +146,7 @@ function formatAuditEventDetail(
 export function AuditPage() {
   const { locale, t } = useI18n();
   const p = t.pages.basisAudit;
+  const crumbs = usePlatformAdminCrumbs(t.menu.platform.audit);
   const emptyCell = t.common.emptyCell;
   const [searchParams, setSearchParams] = useSearchParams();
   const [events, setEvents] = useState<Event[]>([]);
@@ -246,7 +248,7 @@ export function AuditPage() {
   );
 
   return (
-    <ConsolePageLayout crumbs={[{ label: t.menu.platform.audit }]}>
+    <ConsolePageLayout crumbs={crumbs}>
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
       <DataPanel>
         <DataPanelToolbar

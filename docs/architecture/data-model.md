@@ -606,12 +606,43 @@ Current data is migrated as follows:
 
 The migration command must support dry-run, report unmappable nodes/edges, and be idempotent.
 
-Structured source binding and bidirectional entity sync ([ADR 0003](0003-lakehouse-datasets.md)) plan migration
-**`0011_entity_external_sync.sql`** (tables in §18) when implementation begins; no empty tables are applied beforehand.
+Structured source binding and bidirectional entity sync ([ADR 0003](0003-lakehouse-datasets.md)) is implemented via
+**`0011_entity_external_sync.sql`** (tables in §18) and platform allowlist **`0012_platform_connector_allowlist.sql`**.
 
-## 18. Basis Open Connector Protocol (BOCP) & bidirectional entity sync (F-LAKE / F-OPS — planned DDL)
+## 18. Basis Open Connector Protocol (BOCP) & bidirectional entity sync (F-LAKE / F-OPS)
 
-**Status:** planned schema ([ADR 0003](0003-lakehouse-datasets.md)). Ships as migration `0011_entity_external_sync.sql` when Basis Connector implementation starts.
+**Status:** implemented. KB runtime DDL ships as migration `0011_entity_external_sync.sql`; platform provider ceiling as `0012_platform_connector_allowlist.sql` ([ADR 0003](0003-lakehouse-datasets.md)).
+
+### 18.0 Platform catalog ceiling & dual allowlist
+
+The **shipped BOCP manifest bundle** (`basis/domain/connectors/manifests/catalog_bundle.json`, built by
+`scripts/build_connector_manifests.py`) is read-only at runtime. **Which provider keys are operable** is governed by
+two layers:
+
+| Layer | Storage | Scope | Value |
+|-------|---------|-------|--------|
+| **Platform** | `settings.key = 'connector_allowed_providers'` | Whole Basis instance | JSON `"*"` or `["postgres","github",…]` — must be keys present in the shipped catalog |
+| **Knowledge base** | `kb_connector_policies.allowed_providers_json` | Per `kb_id` | Same encoding; must be a **subset** of the platform list (KB `*` means “all platform-allowed”) |
+
+**Effective allowlist** for a KB = intersection(platform, kb). Catalog UI, `CHECK` / `sync` / tools, and KB policy updates
+reject unknown service keys and providers outside the effective set.
+
+Platform HTTP (system admin): `GET|PUT /api/v1/settings/connectors`, `GET /api/v1/settings/connectors/catalog`,
+`POST /api/v1/settings/connectors/validate`. KB HTTP: `GET|PUT /api/v1/kbs/{kb_id}/connectors/policy` (includes
+`platform_allowed_providers` and `effective_allowed_providers`).
+
+**Scheduler, OAuth, agents**
+
+| Surface | Behavior |
+|---------|----------|
+| **Background inbound sync** | `source_table_mappings.checkpoint_json` may include `poll_interval_minutes` (integer &gt; 0) and `last_synced_at` (ISO). When the API process sets `BASIS_HTTP_POLL_TICK_SECONDS`, `connector_poll_scheduler.run_due_connector_syncs` runs due mappings on the same tick as ingest `http_poll`. |
+| **OAuth2 connections** | Web console redirect URI: `/kbs/{kbId}/connectors/oauth/callback` (register in the OAuth app). Optional PKCE when manifest `oauth2.pkce_s256` is true. Tokens land in `kb_connections.value_encrypted`. |
+| **KB MCP** (`basis/integration/ops_connectors.py`) | `list_connector_catalog`, `describe_connector_service`, `list_connector_connections`, `list_connector_table_mappings`, `sync_connector_table_mapping`, `propose_entity_writeback`, `execute_connector_tool` — same policy gates as HTTP (`kb_connector_policies.action_policy_json`, effective allowlist). |
+
+```sql
+-- Migration 0012_platform_connector_allowlist.sql (SQLite file 0012 / PostgreSQL schema version 13)
+INSERT OR IGNORE INTO settings(key, value) VALUES ('connector_allowed_providers', '"*"');
+```
 
 Instead of a parallel Parquet warehouse or a split Node.js executor process, records from relational databases and
 1,000+ SaaS providers are driven by the **pure-Python Basis Open Connector Protocol (BOCP)** (synthesizing Nango's
@@ -685,7 +716,7 @@ CREATE TABLE IF NOT EXISTS source_table_mappings (
   source_id TEXT NOT NULL REFERENCES ingest_sources(id) ON DELETE CASCADE,
   stream_name TEXT NOT NULL,          -- declarative stream id, e.g. "table_records" or "contacts"
   external_table TEXT NOT NULL,       -- concrete table/object key, e.g. "public.suppliers" or "appXXX:tblYYY"
-  stream_params_json TEXT NOT NULL DEFAULT '{}', -- partition/container params (e.g. {"schema": "public", "table": "suppliers"} or {"base_id": "appXXX", "table_id": "tblYYY"})
+  stream_params_json TEXT NOT NULL DEFAULT '{}', -- REST path placeholders as {{config.key}} (e.g. GitHub issues: {"owner","repo"}); SQL/partition keys for DB/SaaS streams
   primary_key_column TEXT NOT NULL,   -- e.g. "supplier_id" or "id"
   cursor_column TEXT,                 -- optional incremental cursor column, e.g. "updated_at"
   label_column TEXT NOT NULL,         -- field mapped to entities.canonical_label, e.g. "company_name"
@@ -693,7 +724,7 @@ CREATE TABLE IF NOT EXISTS source_table_mappings (
   column_mappings_json TEXT NOT NULL, -- JSON array of ColumnMappingSpec (see §18.4)
   sync_mode TEXT NOT NULL DEFAULT 'incremental',  -- 'full' | 'incremental'
   track_deletes INTEGER NOT NULL DEFAULT 0 CHECK (track_deletes IN (0, 1)),
-  checkpoint_json TEXT NOT NULL DEFAULT '{}',     -- persisted incremental state/cursor (Nango/Airbyte STATE)
+  checkpoint_json TEXT NOT NULL DEFAULT '{}',     -- cursor watermarks + optional poll_interval_minutes / last_synced_at (§18.0 scheduler)
   sync_direction TEXT NOT NULL DEFAULT 'inbound', -- 'inbound' | 'bidirectional'
   writeback_mode TEXT NOT NULL DEFAULT 'review',  -- 'review' | 'direct'
   max_rows INTEGER NOT NULL DEFAULT 10000,

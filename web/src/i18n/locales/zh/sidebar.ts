@@ -15,4 +15,5 @@ export const sidebar = {
   logout: '退出',
   platformAdmin: '平台管理',
   management: '管理',
+  backToKnowledgeConsole: '返回知识库控制台',
 } as const;

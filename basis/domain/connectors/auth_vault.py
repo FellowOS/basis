@@ -1,0 +1,675 @@
+"""AES-256-GCM credential encryption & BOCP connection/OAuth/policy vault."""
+
+from __future__ import annotations
+
+import base64
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+import hashlib
+import json
+import os
+import sqlite3
+from typing import Any
+from urllib.parse import urlencode
+import uuid
+
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+import httpx
+
+from basis.domain.connectors.allowlist import (
+    assert_allowed_providers_in_catalog,
+    assert_kb_allowlist_within_platform,
+    effective_allowed_providers,
+    is_provider_allowed,
+    provider_blocked_layer,
+)
+from basis.domain.connectors.catalog import get_connector_catalog
+from basis.domain.connectors.manifest_schema import AuthSpec, ConnectorManifest, ToolSpec
+from basis.domain.connectors.platform_policy import get_platform_allowed_providers
+
+
+def _now_iso() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
+def _resolve_vault_key(explicit_secret: str | None = None) -> bytes:
+    """Derive a 32-byte AES-256 key from explicit secret, env var, or local dev fallback."""
+    raw = (
+        explicit_secret
+        or os.environ.get("BASIS_CONNECTOR_VAULT_SECRET")
+        or os.environ.get("BASIS_SECRET_KEY")
+        or "basis-dev-connector-vault-secret-do-not-use-in-prod"
+    )
+    return hashlib.sha256(raw.encode("utf-8")).digest()
+
+
+def encrypt_vault_payload(
+    payload: dict[str, Any], *, secret: str | None = None
+) -> str:
+    """Encrypt a JSON dictionary with AES-256-GCM into a versioned base64 string."""
+    key = _resolve_vault_key(secret)
+    nonce = os.urandom(12)
+    plaintext = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode(
+        "utf-8"
+    )
+    ciphertext = AESGCM(key).encrypt(nonce, plaintext, None)
+    token = base64.urlsafe_b64encode(nonce + ciphertext).decode("ascii")
+    return f"v1:{token}"
+
+
+def decrypt_vault_payload(
+    encrypted: str, *, secret: str | None = None
+) -> dict[str, Any]:
+    """Decrypt a versioned AES-256-GCM string back into a JSON dictionary."""
+    if not encrypted.startswith("v1:"):
+        raise ValueError("Unsupported vault ciphertext version")
+    raw_b64 = encrypted[3:]
+    blob = base64.urlsafe_b64decode(raw_b64.encode("ascii"))
+    if len(blob) < 13:
+        raise ValueError("Invalid vault ciphertext payload")
+    nonce, ciphertext = blob[:12], blob[12:]
+    key = _resolve_vault_key(secret)
+    plaintext = AESGCM(key).decrypt(nonce, ciphertext, None)
+    parsed = json.loads(plaintext.decode("utf-8"))
+    if not isinstance(parsed, dict):
+        raise ValueError("Vault payload must decode to a JSON object")
+    return parsed
+
+
+def interpolate_placeholders(
+    template: str,
+    *,
+    connection_config: dict[str, Any] | None = None,
+    credentials: dict[str, Any] | None = None,
+    stream_params: dict[str, Any] | None = None,
+    extra: dict[str, Any] | None = None,
+) -> str:
+    """Resolve ${connectionConfig.x}, ${credentials.y}, and {{config.z}} placeholders."""
+    if not template:
+        return ""
+    cfg = connection_config or {}
+    creds = credentials or {}
+    params = stream_params or {}
+    ext = extra or {}
+
+    result = template
+    for k, v in cfg.items():
+        result = result.replace(f"${{connectionConfig.{k}}}", str(v))
+        result = result.replace(f"{{{{config.{k}}}}}", str(v))
+    for k, v in creds.items():
+        result = result.replace(f"${{credentials.{k}}}", str(v))
+    for k, v in params.items():
+        result = result.replace(f"{{{{config.{k}}}}}", str(v))
+        result = result.replace(f"{{{{{k}}}}}", str(v))
+    for k, v in ext.items():
+        result = result.replace(f"{{{{{k}}}}}", str(v))
+    return result
+
+
+def extract_dot_path(data: Any, path: str | None) -> Any:
+    """Extract a nested value from a dict/list using dot notation (e.g. 'paging.next.after')."""
+    if not path or data is None:
+        return None
+    cur = data
+    for part in path.split("."):
+        if not part:
+            continue
+        if isinstance(cur, dict):
+            cur = cur.get(part)
+        elif isinstance(cur, list) and part.isdigit():
+            idx = int(part)
+            cur = cur[idx] if 0 <= idx < len(cur) else None
+        else:
+            return None
+    return cur
+
+
+@dataclass
+class StoredConnection:
+    kb_id: str
+    service: str
+    connection_name: str
+    auth_type: str
+    connection_config: dict[str, Any]
+    credentials: dict[str, Any]
+    account_profile: dict[str, Any] = field(default_factory=dict)
+    revision: int = 1
+    updated_at: str = ""
+
+    def to_public_dict(self) -> dict[str, Any]:
+        """Return safe connection metadata without exposing decrypted credentials."""
+        return {
+            "kb_id": self.kb_id,
+            "service": self.service,
+            "connection_name": self.connection_name,
+            "auth_type": self.auth_type,
+            "connection_config": self.connection_config,
+            "account_profile": self.account_profile,
+            "revision": self.revision,
+            "updated_at": self.updated_at,
+            "has_credentials": bool(self.credentials),
+        }
+
+
+@dataclass
+class ConnectorPolicy:
+    kb_id: str
+    allowed_providers: list[str] | str = "*"
+    action_policy: dict[str, Any] = field(default_factory=dict)
+    updated_at: str = ""
+
+    def is_provider_allowed(self, service: str) -> bool:
+        if self.allowed_providers == "*":
+            return True
+        if isinstance(self.allowed_providers, list):
+            return "*" in self.allowed_providers or service in self.allowed_providers
+        return False
+
+    def is_provider_allowed_with_platform(
+        self,
+        service: str,
+        platform_allowed: list[str] | str,
+    ) -> bool:
+        return is_provider_allowed(service, platform_allowed, self.allowed_providers)
+
+    def resolve_tool_execution_mode(
+        self, service: str, tool: ToolSpec
+    ) -> str:
+        """Resolve execution governance mode ('auto', 'review', or 'disabled') for a BOCP tool."""
+        tools_map = self.action_policy.get("tools")
+        if isinstance(tools_map, dict):
+            explicit = tools_map.get(f"{service}:{tool.id}") or tools_map.get(tool.id)
+            if explicit in ("auto", "review", "disabled"):
+                return str(explicit)
+        if tool.annotations.read_only_hint:
+            mode = self.action_policy.get("default_read_mode", "auto")
+        else:
+            mode = self.action_policy.get("default_write_mode", "auto")
+        return str(mode) if mode in ("auto", "review", "disabled") else "auto"
+
+
+class ConnectorAuthVault:
+    """SQLite/PostgreSQL persistence & authentication engine for BOCP connections."""
+
+    def __init__(self, conn: Any, *, vault_secret: str | None = None) -> None:
+        self._conn = conn
+        self._vault_secret = vault_secret
+
+    # ── Policies ─────────────────────────────────────────────────────────────
+
+    def get_policy(self, kb_id: str) -> ConnectorPolicy:
+        row = self._conn.execute(
+            """
+            SELECT allowed_providers_json, action_policy_json, updated_at
+            FROM kb_connector_policies
+            WHERE kb_id = ?
+            """,
+            (kb_id,),
+        ).fetchone()
+        if not row:
+            return ConnectorPolicy(kb_id=kb_id, allowed_providers="*", action_policy={})
+        allowed = json.loads(row[0]) if row[0] else "*"
+        action_policy = json.loads(row[1]) if row[1] else {}
+        return ConnectorPolicy(
+            kb_id=kb_id,
+            allowed_providers=allowed,
+            action_policy=action_policy,
+            updated_at=row[2] or "",
+        )
+
+    def upsert_policy(
+        self,
+        kb_id: str,
+        *,
+        allowed_providers: list[str] | str = "*",
+        action_policy: dict[str, Any] | None = None,
+    ) -> ConnectorPolicy:
+        platform_allowed = get_platform_allowed_providers(self._conn)
+        try:
+            assert_allowed_providers_in_catalog(
+                allowed_providers,
+                get_connector_catalog().service_ids(),
+            )
+            assert_kb_allowlist_within_platform(allowed_providers, platform_allowed)
+        except ValueError as exc:
+            raise PermissionError(str(exc)) from exc
+        now = _now_iso()
+        allowed_json = json.dumps(allowed_providers, ensure_ascii=False)
+        action_json = json.dumps(action_policy or {}, ensure_ascii=False)
+        self._conn.execute(
+            """
+            INSERT INTO kb_connector_policies (kb_id, allowed_providers_json, action_policy_json, updated_at)
+            VALUES (?, ?, ?, ?)
+            ON CONFLICT(kb_id) DO UPDATE SET
+                allowed_providers_json = excluded.allowed_providers_json,
+                action_policy_json = excluded.action_policy_json,
+                updated_at = excluded.updated_at
+            """,
+            (kb_id, allowed_json, action_json, now),
+        )
+        self._conn.commit()
+        return self.get_policy(kb_id)
+
+    def get_platform_allowed_providers(self) -> list[str] | str:
+        return get_platform_allowed_providers(self._conn)
+
+    def effective_allowed_providers(self, kb_id: str) -> list[str] | str:
+        platform = get_platform_allowed_providers(self._conn)
+        kb_policy = self.get_policy(kb_id)
+        return effective_allowed_providers(platform, kb_policy.allowed_providers)
+
+    def assert_service_allowed(self, kb_id: str, service: str) -> None:
+        platform = get_platform_allowed_providers(self._conn)
+        kb_policy = self.get_policy(kb_id)
+        layer = provider_blocked_layer(service, platform, kb_policy.allowed_providers)
+        if layer == "platform":
+            raise PermissionError(
+                f"Connector service '{service}' is blocked by platform connector policy"
+            )
+        if layer == "kb":
+            raise PermissionError(
+                f"Connector service '{service}' is blocked by KB connector policy"
+            )
+
+    # ── OAuth App Configs ────────────────────────────────────────────────────
+
+    def upsert_oauth_config(
+        self,
+        kb_id: str,
+        service: str,
+        *,
+        client_id: str,
+        client_secret: str,
+        redirect_uri: str | None = None,
+        extra: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        now = _now_iso()
+        payload = {
+            "client_id": client_id,
+            "client_secret": client_secret,
+            "redirect_uri": redirect_uri,
+            **(extra or {}),
+        }
+        encrypted = encrypt_vault_payload(payload, secret=self._vault_secret)
+        self._conn.execute(
+            """
+            INSERT INTO kb_oauth_configs (kb_id, service, value_encrypted, updated_at)
+            VALUES (?, ?, ?, ?)
+            ON CONFLICT(kb_id, service) DO UPDATE SET
+                value_encrypted = excluded.value_encrypted,
+                updated_at = excluded.updated_at
+            """,
+            (kb_id, service, encrypted, now),
+        )
+        self._conn.commit()
+        return {"kb_id": kb_id, "service": service, "client_id": client_id, "updated_at": now}
+
+    def get_oauth_config(self, kb_id: str, service: str) -> dict[str, Any] | None:
+        row = self._conn.execute(
+            "SELECT value_encrypted, updated_at FROM kb_oauth_configs WHERE kb_id = ? AND service = ?",
+            (kb_id, service),
+        ).fetchone()
+        if not row:
+            return None
+        decrypted = decrypt_vault_payload(row[0], secret=self._vault_secret)
+        decrypted["updated_at"] = row[1]
+        return decrypted
+
+    # ── Connections CRUD ─────────────────────────────────────────────────────
+
+    def upsert_connection(
+        self,
+        kb_id: str,
+        service: str,
+        *,
+        connection_name: str = "default",
+        auth_type: str,
+        connection_config: dict[str, Any] | None = None,
+        credentials: dict[str, Any] | None = None,
+        account_profile: dict[str, Any] | None = None,
+    ) -> StoredConnection:
+        now = _now_iso()
+        existing = self.get_connection(kb_id, service, connection_name=connection_name)
+        rev = (existing.revision + 1) if existing else 1
+        merged_cfg = (
+            dict(existing.connection_config, **(connection_config or {}))
+            if existing and connection_config is not None
+            else (connection_config or (existing.connection_config if existing else {}))
+        )
+        merged_creds = (
+            dict(existing.credentials, **(credentials or {}))
+            if existing and credentials is not None
+            else (credentials or (existing.credentials if existing else {}))
+        )
+        merged_profile = (
+            account_profile
+            if account_profile is not None
+            else (existing.account_profile if existing else {})
+        )
+
+        encrypted = encrypt_vault_payload(merged_creds, secret=self._vault_secret)
+        self._conn.execute(
+            """
+            INSERT INTO kb_connections (
+                kb_id, service, connection_name, auth_type,
+                connection_config_json, value_encrypted, account_profile_json,
+                revision, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(kb_id, service, connection_name) DO UPDATE SET
+                auth_type = excluded.auth_type,
+                connection_config_json = excluded.connection_config_json,
+                value_encrypted = excluded.value_encrypted,
+                account_profile_json = excluded.account_profile_json,
+                revision = excluded.revision,
+                updated_at = excluded.updated_at
+            """,
+            (
+                kb_id,
+                service,
+                connection_name,
+                auth_type,
+                json.dumps(merged_cfg, ensure_ascii=False),
+                encrypted,
+                json.dumps(merged_profile, ensure_ascii=False),
+                rev,
+                now,
+            ),
+        )
+        self._conn.commit()
+        res = self.get_connection(kb_id, service, connection_name=connection_name)
+        assert res is not None
+        return res
+
+    def get_connection(
+        self, kb_id: str, service: str, *, connection_name: str = "default"
+    ) -> StoredConnection | None:
+        row = self._conn.execute(
+            """
+            SELECT auth_type, connection_config_json, value_encrypted,
+                   account_profile_json, revision, updated_at
+            FROM kb_connections
+            WHERE kb_id = ? AND service = ? AND connection_name = ?
+            """,
+            (kb_id, service, connection_name),
+        ).fetchone()
+        if not row:
+            return None
+        return StoredConnection(
+            kb_id=kb_id,
+            service=service,
+            connection_name=connection_name,
+            auth_type=row[0],
+            connection_config=json.loads(row[1]) if row[1] else {},
+            credentials=decrypt_vault_payload(row[2], secret=self._vault_secret),
+            account_profile=json.loads(row[3]) if row[3] else {},
+            revision=int(row[4]),
+            updated_at=row[5] or "",
+        )
+
+    def list_connections(self, kb_id: str, *, service: str | None = None) -> list[StoredConnection]:
+        if service:
+            rows = self._conn.execute(
+                """
+                SELECT service, connection_name, auth_type, connection_config_json,
+                       value_encrypted, account_profile_json, revision, updated_at
+                FROM kb_connections
+                WHERE kb_id = ? AND service = ?
+                ORDER BY service, connection_name
+                """,
+                (kb_id, service),
+            ).fetchall()
+        else:
+            rows = self._conn.execute(
+                """
+                SELECT service, connection_name, auth_type, connection_config_json,
+                       value_encrypted, account_profile_json, revision, updated_at
+                FROM kb_connections
+                WHERE kb_id = ?
+                ORDER BY service, connection_name
+                """,
+                (kb_id,),
+            ).fetchall()
+        return [
+            StoredConnection(
+                kb_id=kb_id,
+                service=r[0],
+                connection_name=r[1],
+                auth_type=r[2],
+                connection_config=json.loads(r[3]) if r[3] else {},
+                credentials=decrypt_vault_payload(r[4], secret=self._vault_secret),
+                account_profile=json.loads(r[5]) if r[5] else {},
+                revision=int(r[6]),
+                updated_at=r[7] or "",
+            )
+            for r in rows
+        ]
+
+    def delete_connection(
+        self, kb_id: str, service: str, *, connection_name: str = "default"
+    ) -> bool:
+        cur = self._conn.execute(
+            "DELETE FROM kb_connections WHERE kb_id = ? AND service = ? AND connection_name = ?",
+            (kb_id, service, connection_name),
+        )
+        self._conn.commit()
+        return (cur.rowcount or 0) > 0
+
+    # ── Audit Runs ───────────────────────────────────────────────────────────
+
+    def record_run(
+        self,
+        kb_id: str,
+        *,
+        service: str,
+        operation_kind: str,
+        target_id: str,
+        connection_name: str = "default",
+        started_at: str,
+        completed_at: str | None = None,
+        ok: bool = True,
+        value: dict[str, Any] | None = None,
+    ) -> str:
+        run_id = f"crun_{uuid.uuid4().hex[:16]}"
+        done_at = completed_at or _now_iso()
+        self._conn.execute(
+            """
+            INSERT INTO kb_connector_runs (
+                id, kb_id, service, operation_kind, target_id,
+                connection_name, started_at, completed_at, ok, value_json
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                run_id,
+                kb_id,
+                service,
+                operation_kind,
+                target_id,
+                connection_name,
+                started_at,
+                done_at,
+                1 if ok else 0,
+                json.dumps(value or {}, ensure_ascii=False),
+            ),
+        )
+        self._conn.commit()
+        return run_id
+
+    # ── Request Auth Headers / Params Builder ────────────────────────────────
+
+    def build_request_auth(
+        self,
+        manifest: ConnectorManifest,
+        connection: StoredConnection,
+    ) -> tuple[str, dict[str, str], dict[str, str]]:
+        """Resolve base_url, HTTP headers, and query params for a StoredConnection."""
+        auth_spec = self._match_auth_spec(manifest, connection.auth_type)
+        raw_base = (auth_spec.base_url if auth_spec else None) or ""
+        base_url = interpolate_placeholders(
+            raw_base,
+            connection_config=connection.connection_config,
+            credentials=connection.credentials,
+        ).rstrip("/")
+
+        headers: dict[str, str] = {}
+        query_params: dict[str, str] = {}
+
+        if auth_spec:
+            for hk, hv in auth_spec.headers.items():
+                headers[hk] = interpolate_placeholders(
+                    hv,
+                    connection_config=connection.connection_config,
+                    credentials=connection.credentials,
+                )
+            for qk, qv in auth_spec.query_params.items():
+                query_params[qk] = interpolate_placeholders(
+                    qv,
+                    connection_config=connection.connection_config,
+                    credentials=connection.credentials,
+                )
+
+        mode = connection.auth_type
+        creds = connection.credentials
+        if mode in ("oauth2", "oauth2_cc", "two_step", "jwt"):
+            token = creds.get("access_token") or creds.get("token")
+            if token and "Authorization" not in headers:
+                headers["Authorization"] = f"Bearer {token}"
+        elif mode == "api_key":
+            if "Authorization" not in headers and not query_params:
+                key_val = (
+                    creds.get("api_key")
+                    or creds.get("personal_access_token")
+                    or creds.get("integration_token")
+                    or next(iter(creds.values()), None)
+                )
+                if key_val:
+                    headers["Authorization"] = f"Bearer {key_val}"
+        elif mode == "basic":
+            username = str(creds.get("username") or "")
+            password = str(creds.get("password") or "")
+            b64 = base64.b64encode(f"{username}:{password}".encode("utf-8")).decode(
+                "ascii"
+            )
+            headers["Authorization"] = f"Basic {b64}"
+
+        return base_url, headers, query_params
+
+    def build_oauth2_authorize_url(
+        self,
+        kb_id: str,
+        service: str,
+        *,
+        state: str,
+        redirect_uri: str | None = None,
+        connection_config: dict[str, Any] | None = None,
+        code_challenge: str | None = None,
+    ) -> str:
+        manifest = get_connector_catalog().get(service)
+        if not manifest:
+            raise ValueError(f"Unknown connector service: {service}")
+        auth_spec = self._match_auth_spec(manifest, "oauth2")
+        if not auth_spec or not auth_spec.oauth2 or not auth_spec.oauth2.authorization_url:
+            raise ValueError(f"Service {service} does not support OAuth2 authorization URL")
+        oauth_cfg = self.get_oauth_config(kb_id, service)
+        if not oauth_cfg:
+            raise ValueError(f"OAuth2 client config not configured for {service}")
+
+        oauth2 = auth_spec.oauth2
+        auth_url = interpolate_placeholders(
+            oauth2.authorization_url,
+            connection_config=connection_config,
+        )
+        params: dict[str, str] = {
+            "response_type": "code",
+            "client_id": str(oauth_cfg["client_id"]),
+            "state": state,
+            **oauth2.authorization_params,
+        }
+        final_redirect = redirect_uri or oauth_cfg.get("redirect_uri")
+        if final_redirect:
+            params["redirect_uri"] = str(final_redirect)
+        if oauth2.scopes:
+            params["scope"] = oauth2.scope_separator.join(oauth2.scopes)
+        if oauth2.pkce_s256 and code_challenge:
+            params["code_challenge"] = code_challenge
+            params["code_challenge_method"] = "S256"
+
+        sep = "&" if "?" in auth_url else "?"
+        return f"{auth_url}{sep}{urlencode(params)}"
+
+    def exchange_oauth2_code(
+        self,
+        kb_id: str,
+        service: str,
+        *,
+        code: str,
+        redirect_uri: str | None = None,
+        code_verifier: str | None = None,
+        connection_name: str = "default",
+        connection_config: dict[str, Any] | None = None,
+        http_client: httpx.Client | None = None,
+    ) -> StoredConnection:
+        """Exchange an OAuth2 authorization code for tokens and persist the encrypted connection."""
+        manifest = get_connector_catalog().get(service)
+        if not manifest:
+            raise ValueError(f"Unknown connector service: {service}")
+        auth_spec = self._match_auth_spec(manifest, "oauth2")
+        if not auth_spec or not auth_spec.oauth2 or not auth_spec.oauth2.token_url:
+            raise ValueError(f"Service {service} does not support OAuth2 token exchange")
+        oauth_cfg = self.get_oauth_config(kb_id, service)
+        if not oauth_cfg:
+            raise ValueError(f"OAuth2 client config not configured for {service}")
+
+        oauth2 = auth_spec.oauth2
+        token_url = interpolate_placeholders(
+            oauth2.token_url,
+            connection_config=connection_config,
+        )
+        form_data: dict[str, str] = {
+            "grant_type": "authorization_code",
+            "code": code,
+            "client_id": str(oauth_cfg["client_id"]),
+            "client_secret": str(oauth_cfg["client_secret"]),
+            **oauth2.token_params,
+        }
+        final_redirect = redirect_uri or oauth_cfg.get("redirect_uri")
+        if final_redirect:
+            form_data["redirect_uri"] = str(final_redirect)
+        if code_verifier:
+            form_data["code_verifier"] = code_verifier
+
+        client = http_client or httpx.Client(timeout=30.0)
+        owns_client = http_client is None
+        try:
+            resp = client.post(
+                token_url,
+                data=form_data,
+                headers={"Accept": "application/json"},
+            )
+            resp.raise_for_status()
+            token_payload = resp.json() if resp.content else {}
+        finally:
+            if owns_client:
+                client.close()
+
+        if not isinstance(token_payload, dict) or not (
+            token_payload.get("access_token") or token_payload.get("token")
+        ):
+            raise ValueError("OAuth2 token endpoint did not return an access_token")
+
+        return self.upsert_connection(
+            kb_id,
+            service,
+            connection_name=connection_name,
+            auth_type="oauth2",
+            connection_config=connection_config or {},
+            credentials=token_payload,
+        )
+
+    @staticmethod
+    def _match_auth_spec(
+        manifest: ConnectorManifest, auth_type: str
+    ) -> AuthSpec | None:
+        for spec in manifest.auth:
+            if spec.auth_mode == auth_type:
+                return spec
+        return manifest.auth[0] if manifest.auth else None

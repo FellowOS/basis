@@ -39,10 +39,10 @@
 | **治理读 API** | Decisions list + chain（**F-GOV-07**）；Review 内嵌 + Decisions 页深链 |
 | **Diff / 时态 / 任务** | `GET .../graph/diff` + 对比页（**F-DIFF-01** 读路径）；search/graph 时间 query（**F-SRCH-03**）；`GET .../ingest/jobs`（**F-SRC-08**） |
 | **Agent 面** | MCP 13 工具 + JSON-RPC（`test_mcp_basic_graph_closed_loop`）、**remember 闭环**（propose + review approve） |
-| **连接器** | Sources CRUD + sync（**F-SRC-06–07**，冻结 kind：webhook / http_poll / GitHub raw） |
+| **连接器** | Sources CRUD + sync（**F-SRC-06–07**）；**BOCP 1,060+ 声明式连接器 + 账本双向同步**（**F-LAKE-01–03** / **F-OPS-01–07**，`/kbs/:id/connectors`） |
 | **其它** | Lineage、告警 SSE、图 import 经审核、KB 页副标题（**F-IF-03**） |
 
-**§0.1 基线 `done`（F-ID）** — 不在 §3 重复：`F-RUL-01`–`03`、`F-SRC-06`–`07`、`F-CHAT-04`（MCP/HTTP remember）、`F-CHAT-05`、`F-GOV-06`（Registry 读面）、`F-GOV-07`（Review 决策叙事）、`F-ONT-05`（本体提案评审 UI）、`F-IF-03`、`F-SRCH-03`（Search↔Graph 时态 URL/深链）。**F-CHAT-01–03 / F-CHAT-06**（Web Playground）已 **`replaced`** — 见 **§6**。
+**§0.1 基线 `done`（F-ID）** — 不在 §3 重复：`F-RUL-01`–`03`、`F-SRC-06`–`07`、`F-LAKE-01`–`03`、`F-OPS-01`–`07`、`F-CHAT-04`（MCP/HTTP remember）、`F-CHAT-05`、`F-GOV-06`（Registry 读面）、`F-GOV-07`（Review 决策叙事）、`F-ONT-05`（本体提案评审 UI）、`F-IF-03`、`F-SRCH-03`（Search↔Graph 时态 URL/深链）。**F-CHAT-01–03 / F-CHAT-06**（Web Playground）已 **`replaced`** — 见 **§6**。
 
 **§0.2 API 基线（F-* 仍可能有 §3.1 产品化 gap）**
 
@@ -93,8 +93,8 @@
 
 | F-* | Capability | Status | Priority | Value (when it matters) |
 | --- | --- | --- | --- | --- |
-| F-LAKE-01–03 (`F-CONN`) | Basis Connector (DB + AnyConnect 1,390+ SaaS) & table/action-to-entity mapping | `not` | P1 | Unified ledger ([ADR 0003](architecture/0003-lakehouse-datasets.md)); no separate Parquet/SQL warehouse |
-| F-OPS-01–07 | Bidirectional entity sync (write-back) & AnyConnect 10,000+ declared actions | `not` | P1 | Dedicated `/kbs/:id/connectors` menu + unified ledger; see [features.md §5.16–5.18](features.md) + [adoption doc](architecture/helix-foundry-adoption.md) |
+| F-LAKE-01–03 (`F-CONN`) | Basis Open Connector Protocol (DB + 1,060+ SaaS) & stream-to-entity mapping | `done` | P1 | Unified ledger ([ADR 0003](architecture/0003-lakehouse-datasets.md)); see §3.3 |
+| F-OPS-01–07 | Bidirectional entity sync (write-back) & Outbox review governance | `done` | P1 | Dedicated `/kbs/:id/connectors` workspace + Review write-back diff; see §3.3 |
 | F-MEM-* | Agent Memory browser + `/api/memories` | `excluded` | P2 | Long-lived agent notes separate from canonical KB |
 | — | Direct graph merge/import (Explorer-style) | `excluded` | — | `409` → review queue by design |
 | — | SPARQL UPDATE | `excluded` | — | Disabled by design |
@@ -112,7 +112,7 @@
 | F-* | 仍缺 | Status | Priority | Notes |
 | --- | --- | --- | --- | --- |
 | F-GOV-07 | 审核项详情内嵌决策叙事 | `done` | P1 | 主栏 **embedded** `review-item-decision-narrative`（批准横幅、已关闭深链、聚焦项）+ 侧栏 chain；E2E `governance.spec.ts` |
-| F-DIFF-01 | 全图画布合并工作室（publish/staging） | `partial` | P1 | **`GET graph/staging`**（`manifest.session_key`）+ 浏览器 **merge 草稿**（对比页/画布预览共享）+ 点选/列表填表 → `POST graph/staging/entity-merge`；服务端 staging 仓仍 partial；E2E `graph-diff.spec.ts` |
+| F-DIFF-01 | 全图画布合并工作室（publish/staging） | `done` | P1 | **`GET graph/staging`**（`manifest.session_key` + `manifest.draft`）+ 服务端 `kb_graph_staging_sessions` 持久化（`PUT .../graph/staging/{session_key}/draft`）与浏览器草稿双写同步 + 点选/列表填表 → `POST graph/staging/entity-merge`；单测 `tests/test_graph_staging.py`、E2E `graph-diff.spec.ts` |
 | F-ONT-05 | 本体提案评审全流程 UI | `done` | P1 | `VersionsTab` 审批/发布 + `?ontologyProposal=` 高亮/弹窗 + 复制评审链接；E2E `ontology-proposal-url.spec.ts` |
 | F-GOV-06 | Registry 可读产品面（非 Explorer 专页） | `done` | P1 | Review timeline + 设置 **Recent graph audit** 深链；**平台 `/admin/audit` Links 列**；管理员 → 平台审计（本库）；E2E `settings-graph-audit.spec.ts` |
 | F-RUL-03 | Entities / 证明链 UI | `done` | P1 | Entities + derived 侧栏；前提/主客体深链（statement→entities、实体→graph）；E2E/单测 `derived-fact-premise-link` |
@@ -129,8 +129,8 @@
 | F-GOV-05 | Impact gates + `governance.tripped` alerts | `partial` | P1 | emit + detail；**`?episode=` 告警深链**（processing/review）；E2E tripped→decisions；Review 相关告警 |
 | F-SRC-05 | Extract pattern / ml / llm 作业选项与可观测 | `partial` | P1 | 处理对话框 **摘要+JSON 预览**；job 展开摘要与 raw JSON 标签对齐 |
 | F-RUL-04 | Contradiction → governance queue | `partial` | P2 | `statement_conflict` queue + scan API |
-| F-TIM-01–03 | valid_from/to, doc events, ingest vs graph 时态一致 | `partial` | P1 | **`GET documents/{id}/timeline`** + **Sources `?doc=` 时间线面板**（F-TIM-02）；snapshot↔diff 对齐；`valid_until` 投影仍 partial |
-| F-TIM-04 | Timeline playback（产品导航） | `partial` | P1 | scrubber↔URL **`at`**；Search/graph **timeline=1**；**graph-diff 终点→timeline 回放**；E2E `graph-at.spec.ts` / `graph-diff.spec.ts` |
+| F-TIM-01–03 | valid_from/to, doc events, ingest vs graph 时态一致 | `done` | P1 | **`GET documents/{id}/timeline`** + **Sources `?doc=` 时间线面板**（F-TIM-02）；`build_temporal_graph_from_ledger` 将 `invalidated_at` 投影为节点/边 `valid_until`，驱动 `temporal/snapshot`、`temporal/diff`、`graph/diff` 与 `graph/staging` 时态区间过滤（`tests/test_graph_projector.py`） |
+| F-TIM-04 | Timeline playback（产品导航） | `done` | P1 | scrubber↔URL **`at`**；Search/graph **timeline=1**；**graph-diff 终点→timeline 回放**；`temporal/snapshot` 返回精确 `active_node_ids`/`active_node_count`；E2E `graph-at.spec.ts` / `graph-diff.spec.ts` |
 | — | `POST .../graph/distance-matrix` | `partial` | P2 | Server hop matrix when graph &gt; 2500 nodes |
 | F-CHAT-01–03 | Web KB Playground | `replaced` | — | 控制台问答已移除；智能体用 MCP（§0.1 **F-CHAT-04–05**） |
 | F-CHAT-06 | Playground 客户端控制 | `replaced` | — | 随 Playground 移除 |
@@ -141,17 +141,18 @@
 | M5-02 | semantica package entry for Graph workspace | `not` | P2 | Still vendored `web/src/explorer` |
 | M4-04 | Cross-instance WS (Redis pub/sub) | `deferred` | P1 | Single worker or sticky sessions |
 
-### 3.3 Basis Open Connector Protocol (BOCP) ↔ 本体账本双向同步跟踪（`F-LAKE` / `F-OPS`，未编码）
+### 3.3 Basis Open Connector Protocol (BOCP) ↔ 本体账本双向同步跟踪（`F-LAKE` / `F-OPS`）
 
-> **注**：原 `F-LAKE`（独立 Parquet 数据湖 / DuckDB 沙箱）及跨进程调用 Node.js TS 代码方案均已否定并废止；现统一为 **100% 纯 Python 原生的 Basis Open Connector Protocol (BOCP)**（融合 **Nango** 的 17 种声明式认证/增量状态机与 **Airbyte** 的 `DeclarativeSource` YAML 流抽取/`DISCOVER` 动态 Schema 发现 + **SQLAlchemy 2.0** 关系库适配器）↔ **证据账本（`entities` + `statements` + `typed_facts`）双向同步**，并在左侧栏「数据与抽取」下新增独立的 **「连接器 (`/kbs/:kbId/connectors`)」** 菜单。详见 [ADR 0003](architecture/0003-lakehouse-datasets.md)、[data-model §18](architecture/data-model.md)、[helix-foundry-adoption.md](architecture/helix-foundry-adoption.md)。
+> **注**：原 `F-LAKE`（独立 Parquet 数据湖 / DuckDB 沙箱）及跨进程调用 Node.js TS 代码方案均已否定并废止；现统一为 **100% 纯 Python 原生的 Basis Open Connector Protocol (BOCP)**（融合 **Nango** 的 17 种声明式认证/增量状态机与 **Airbyte** 的 `DeclarativeSource` YAML 流抽取/`DISCOVER` 动态 Schema 发现 + **SQLAlchemy 2.0** 关系库适配器）↔ **证据账本（`entities` + `statements` + `typed_facts`）双向同步**；KB 侧栏 **连接器** 独立分区（`/kbs/:kbId/connectors/{catalog,mappings,policy,runs}`），平台 **系统管理 → 连接器**（`/admin/connectors`）配置实例级 Provider 上限。详见 [ADR 0003](architecture/0003-lakehouse-datasets.md)、[data-model §18](architecture/data-model.md)、[helix-foundry-adoption.md](architecture/helix-foundry-adoption.md)。
 
 | 项 | Status | Notes |
 | --- | --- | --- |
 | 统一声明式连接器（BOCP）与账本双向同步架构（[ADR 0003](architecture/0003-lakehouse-datasets.md)） | `done` | 四大声明式原语（`Auth` / `Stream & Discover` / `Retriever & Sync` / `Mutation & Tool`）；入向 `Stream READ` 进账本，出向经 `Review` 调 `Stream MUTATE` 写回 |
-| **Phase 1**：数据库迁移 `0011_entity_external_sync.sql`（**7 张表**）+ BOCP Manifest 契约与跨仓合成脚本 | `open` | [data-model §18](architecture/data-model.md) Planned DDL（4 张连接/OAuth/策略/日志表 + 3 张映射/外部键/Outbox 表）；`scripts/build_connector_manifests.py` 合成 Nango + Airbyte + AnyConnect 目录 |
-| **Phase 2**：纯 Python 全模式认证引擎 + 双内核声明式流执行器（`sql_adapter` + `rest_declarative_adapter`） | `open` | 支持 `oauth2`/`oauth2_cc`/`basic`/`two_step`/`api_key`/`database_dsn`/`custom` + `CHECK` 自检；支持 SQLAlchemy `inspect` 与 Airbyte 风格 `DynamicSchemaLoader`、4 种自动分页器与父子流路由 |
-| **Phase 3**：证据账本双向同步引擎（`connector_sync.py` + `entity_sync_outbox`） | `open` | 入向 `row_hash` 四路分流（`UNCHANGED` / `ADDED` / `UPDATED` / `DELETED`）与 `checkpoint_json` 水位线；出向经 `Review` 审批后执行写回并重算 `row_hash` 防回环 |
-| **Phase 4**：OpenAPI / 唯一 Python MCP 暴露 + 独立「连接器 (`/kbs/:kbId/connectors`)」前端工作台 | `open` | 左侧栏「数据与抽取」新增「连接器」菜单（含连接目录、本体映射向导、动作策略、运行日志 4 个 Tab），`review.tsx` 展示 `Before → After` 字段级 Diff |
+| **Phase 1**：数据库迁移 `0011_entity_external_sync.sql`（**7 张表**）+ BOCP Manifest 契约与跨仓合成脚本 | `done` | 迁移 `0011` + PG `version 12`、实体删除级联清理、`basis/domain/connectors/manifest_schema.py` & `catalog.py`、`basis/domain/kb/structured_models.py`、`scripts/build_connector_manifests.py`（合成 1,060 个 Provider Manifest）；单测 `tests/test_bocp_phase1.py` |
+| **Phase 2**：纯 Python 全模式认证引擎 + 双内核声明式流执行器（`sql_adapter` + `rest_declarative_adapter`） | `done` | `auth_vault.py`（AES-256-GCM 凭据加密、OAuth2 PKCE URL 生成、策略门禁）、`sql_adapter.py`（SQLAlchemy 2.0 反射 + 参数化读写）、`rest_declarative_adapter.py`（`DynamicSchemaLoader`、自动分页与字段展开）、`runtime.py`；单测 `tests/test_bocp_phase2.py` |
+| **Phase 3**：证据账本双向同步引擎（`connector_sync.py` + `entity_sync_outbox`） | `done` | `basis/domain/kb/connector_sync.py`（入向 `row_hash` 四路分流 `ADDED`/`UNCHANGED`/`UPDATED`/`DELETED`、外键关系解析、出向 `propose_entity_writeback` → `review_items` 门禁 → `approve_and_execute_outbox` 写回与防回环 `row_hash` 重算）；单测 `tests/test_bocp_phase3.py` |
+| **Phase 4**：OpenAPI / 唯一 Python MCP 暴露 + 独立「连接器 (`/kbs/:kbId/connectors`)」前端工作台 | `done` | `basis/transport/http/routes/v1/kb_connectors.py`（12 个 OpenAPI v1 端点）、`basis/integration/ops_connectors.py`（MCP：`list_connector_catalog`、`describe_connector_service`、`list_connector_connections`、`list_connector_table_mappings`、`sync_connector_table_mapping`、`propose_entity_writeback`、`execute_connector_tool`）、`kb_review.py` 写回审批闭环；前端连接器工作台 + Review Diff；单测 `tests/test_bocp_phase4_api.py`、`tests/test_ops_connectors.py` |
+| **Phase 4+**：平台双层 Provider 治理 + 管理台 | `done` | 迁移 `0012_platform_connector_allowlist.sql`（PG v13）+ `settings.connector_allowed_providers`；`GET|PUT /api/v1/settings/connectors`、`GET …/catalog`、`GET …/catalog/stats`、`GET …/catalog/{service}`、`POST …/validate`；KB `connectors/policy` 返回 `platform_allowed_providers` / `effective_allowed_providers`；控制台 `/admin/connectors`（侧栏 **管理** 导航 + 面包屑、目录浏览、分类统计、JSON/CSV 导入导出、Manifest 详情）；KB 侧栏独立 **连接器** 分区四路由（`catalog` / `mappings` / `policy` / `runs`）；映射 `poll_interval_minutes` + 与 `BASIS_HTTP_POLL_TICK_SECONDS` 共用的后台入向同步调度（`connector_poll_scheduler.py`）；单测 `tests/test_connector_allowlist.py`、`tests/test_connector_poll_scheduler.py`、`web/e2e/connectors.spec.ts` |
 
 ---
 
