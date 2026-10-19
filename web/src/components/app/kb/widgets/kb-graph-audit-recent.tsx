@@ -24,7 +24,6 @@ export function KbGraphAuditRecent({
   kbId: string;
   limit?: number;
   actionPrefix?: string;
-  /** Bump after rebuild to refetch. */
   refreshKey?: number;
 }) {
   const { t, locale } = useI18n();
@@ -62,9 +61,7 @@ export function KbGraphAuditRecent({
 
   return (
     <div className="space-y-3 border-t border-border pt-4">
-      <h3 className="text-sm font-medium">
-        {w.auditTitle}
-      </h3>
+      <h3 className="text-sm font-medium">{w.auditTitle}</h3>
       <p className="text-xs text-muted-foreground">{w.auditDescription}</p>
       {loading ? (
         <div className="flex items-center gap-2 text-sm text-muted-foreground">

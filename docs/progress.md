@@ -85,9 +85,9 @@
 | KG overview (Manage tab) | `replaced` | Partial | KB settings → Graph tab stats |
 | Entity merge property diff | `done` | Partial | Review + entity resolution UI |
 | Memory Workspace | `excluded` | Was in shell | No UI/API; `agent_memory: false` |
-| Registry **dedicated page** | `replaced` | Was in shell | Audit/ledger + review timeline; `registryStore` = session-only；可选增强 [ADR 0007](architecture/0007-graph-activity-and-canvas-merge.md) Part A（图活动流） |
+| Registry **dedicated page** | `replaced` | Was in shell | Audit/ledger + Review；设置 **Recent graph audit**；`registryStore` = session-only |
 | Full-screen `ProposalReview` | `replaced` | Was in shell | `VersionsTab` inline approve/reject/publish only |
-| Full-page **DiffMerge** studio | `not` | Was in shell | 不做 1:1 专页；可选 [ADR 0007](architecture/0007-graph-activity-and-canvas-merge.md) Part B（画布合并，仅 staging/Review） |
+| Full-page **DiffMerge** studio | `not` | Was in shell | 不做 1:1 专页；[ADR 0007](architecture/0007-graph-activity-and-canvas-merge.md) Part B 画布合并 **`deferred`** |
 | X-API-Key / anonymous Explorer auth | `excluded` | N/A | JWT + KB roles |
 
 ---
@@ -117,7 +117,7 @@
 | F-GOV-07 | 审核项详情内嵌决策叙事 | `done` | P1 | 主栏 **embedded** `review-item-decision-narrative`（批准横幅、已关闭深链、聚焦项）+ 侧栏 chain；E2E `governance.spec.ts` |
 | F-DIFF-01 | 全图画布合并工作室（publish/staging） | `done` | P1 | **`GET graph/staging`**（`manifest.session_key` + `manifest.draft`）+ 服务端 `kb_graph_staging_sessions` 持久化（`PUT .../graph/staging/{session_key}/draft`）与浏览器草稿双写同步 + 点选/列表填表 → `POST graph/staging/entity-merge`；单测 `tests/test_graph_staging.py`、E2E `graph-diff.spec.ts` |
 | F-ONT-05 | 本体提案评审全流程 UI | `done` | P1 | `VersionsTab` 审批/发布 + `?ontologyProposal=` 高亮/弹窗 + 复制评审链接；E2E `ontology-proposal-url.spec.ts` |
-| F-GOV-06 | Registry 可读产品面（非 Explorer 专页） | `done` | P1 | Review timeline + 设置 **Recent graph audit** 深链；**平台 `/admin/audit` Links 列**；管理员 → 平台审计（本库）；E2E `settings-graph-audit.spec.ts` |
+| F-GOV-06 | Registry 可读产品面（非 Explorer 专页） | `done` | P1 | Review + 设置 **Recent graph audit**（`audit/graph-mutations`）；无 Govern 侧栏图活动流（[ADR 0007](architecture/0007-graph-activity-and-canvas-merge.md)）；E2E `settings-graph-audit.spec.ts` |
 | F-RUL-03 | Entities / 证明链 UI | `done` | P1 | Entities + derived 侧栏；前提/主客体深链（statement→entities、实体→graph）；E2E/单测 `derived-fact-premise-link` |
 | F-ONT-09 | 推理工作台（规则试跑） | `done` | P1 | **Analyze** hub + legacy `/reasoning`；试跑 → 派生深链 **Entities**；Integration OpenAPI 提示；E2E `analyze-hub.spec.ts`、`reasoning-derived.spec.ts` |
 | F-SRC-08 | 超大文件 / 队列运维 UX | `done` | P1 | **Sources/Processing 共用** `kb-ingest-ops-hints` + E2E 文案一致（`processing-job.spec.ts`）；上传超限客户端校验 + extract 上限提示；**Sources→failed filter**、job **episode 告警深链**；行内 job 错误一致；`scripts/bocp_pg_smoke.py` |
@@ -136,9 +136,10 @@
 | F-CHAT-01–03 | Web KB Playground | `replaced` | — | 控制台问答已移除；智能体用 MCP（§0.1 **F-CHAT-04–05**） |
 | F-CHAT-06 | Playground 客户端控制 | `replaced` | — | 随 Playground 移除 |
 | F-ALT-01–02 | Alert episodes + SSE refetch | `done` | P1 | SSE + episode 分组 + **`?episode=` 高亮**；Processing/Review → 告警 episode 互链 + 告警页 **复制 episode 链接**；E2E `governance.spec.ts` / `processing-job.spec.ts` |
-| F-ACC-07 | Enterprise SSO / org | `partial` | P1 | **OIDC** + **SAML 2.0**（签名 AuthnRequest、**SP SLO**、登出 `saml_logout_url`）；[enterprise-sso.md](operations/enterprise-sso.md)、[signoff-record](operations/enterprise-sso-signoff-record.md)、[logto-oidc-dev.md](operations/logto-oidc-dev.md)；**客户环境 IdP 签收**仍 open |
+| F-ACC-07 | Enterprise SSO / org | `partial` | P1 | **OIDC** + **SAML 2.0** 已交付；[enterprise-sso.md](operations/enterprise-sso.md)、[signoff-record](operations/enterprise-sso-signoff-record.md)；**生产 IdP 签收**暂缓至有客户现场 |
 | F-IO-01 | Graph import/export | `done` | — | Import JSON/CSV → review；Export：**全图/子图 `node_ids`** + RDF/GraphML；**审计包**（图 JSON + 图审计 + projection；graph-diff 含 staging）；`tests/test_kb_explorer_routes.py` |
-| — | Markdown node resources persistence | `open` | P2 | Policy TBD |
+| — | ADR 0007 Part B（画布合并 B1–B3） | `deferred` | P2 | 产品暂缓；沿用 graph-diff + `graph/staging` 表单 + Review |
+| — | Markdown node resources persistence | `deferred` | P2 | Policy TBD；与画布合并一并暂缓 |
 | — | Desktop profile（ADR 0004） | `deferred` | P2 | `main` 上 Phase A 可忽略（不设 `BASIS_DEPLOYMENT_PROFILE=desktop`）；Electron / Phase B+ 暂缓，优先 Server 能力 |
 | M5-02 | semantica npm package entry for Graph workspace | `excluded` | — | **非目标**：`web/src/explorer` in-tree fork；上游更新用 **cherry-pick**（见 `web/src/explorer/README.md`），不抽 npm 包 |
 | M4-04 | Cross-instance WS (Redis pub/sub) | `deferred` | P1 | Single worker or sticky sessions |
@@ -165,13 +166,11 @@
 
 | Phase | Focus | Checklist rows |
 | --- | --- | --- |
-| **Now** | Operational KB loop | §3.2 F-TIM（F-SRCH-03 done）；§3.1 治理/本体（F-ONT-05、F-GOV-07） |
-| **Next** | Ops + scale | §3.1 **F-ACC-07**（客户环境生产 IdP 签收） |
-| **Deferred** | Desktop | ADR 0004 Phase B+（Electron）；不设 desktop env 即可 |
-| **Then** | Graph scale + I/O | §3.2 distance-matrix、F-IO-01（Explorer UI 保持 vendored，见 M5-02 `excluded`） |
-| **On demand** | Release engineering | §3.1 F-DIFF-01 工作室；§3.2 distance-matrix |
-| **Enterprise option** | Basis Connector (BOCP) + operational ontology | §3.3 Phase 1–4（`F-LAKE-01–03` / `F-OPS-*`）；见 [adoption §6–§7](architecture/helix-foundry-adoption.md) |
-| **If agents are first-class** | Memory separate from KB | F-MEM-* |
+| **Now** | 维护基线 | §0 / §0.1 已交付能力；缺陷与小改进按需；图活动流回滚与文档对齐 |
+| **Deferred** | 暂缓（2026-10 产品决定） | **ADR 0007 Part B** 画布合并；**F-ACC-07** 生产 IdP 签收（有客户再做）；Markdown 节点持久化 |
+| **Deferred** | Desktop / scale | ADR 0004 Phase B+（Electron）；**M4-04** Redis WS（单 worker / sticky 即可） |
+| **Enterprise option** | BOCP 现场运维 | §3.3 已 `done`；新需求走 issue，不主动扩 Phase |
+| **Excluded** | Memory / Explorer shell | F-MEM-*；M5-02 npm Explorer |
 
 ---
 
@@ -191,4 +190,4 @@
 
 ---
 
-_Last updated: 2026-10-19 — §3.3 Basis Connector（数据库 + AnyConnect 融合）↔ 本体账本双向同步路线图；[helix-foundry-adoption.md](architecture/helix-foundry-adoption.md) 补全。_
+_Last updated: 2026-10-19 — 图活动流仅设置 Recent + Review；ADR 0007 Part B / F-ACC-07 签收 / Markdown 节点等暂缓（§4）。_

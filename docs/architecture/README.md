@@ -8,7 +8,7 @@
 | [0004-desktop-deployment.md](0004-desktop-deployment.md) | ADR：Desktop 部署 profile（Phase A；Phase B+ deferred） |
 | [0005-agent-governor.md](0005-agent-governor.md) | ADR：F-GOV-04 Agent governor（分阶段批量扫描 / 置信门控） |
 | [0006-org-saml.md](0006-org-saml.md) | ADR：组织 SAML 2.0（F-ACC-07） |
-| [0007-graph-activity-and-canvas-merge.md](0007-graph-activity-and-canvas-merge.md) | ADR：图活动流（聚合审计/Review）与画布合并工作室（仅 staging/Review 写路径） |
+| [0007-graph-activity-and-canvas-merge.md](0007-graph-activity-and-canvas-merge.md) | ADR：图审计读面（设置 Recent + Review）与画布合并工作室（仅 staging/Review 写路径） |
 | [data-model.md](data-model.md) | 持久化：账本、blob、审核、迁移、Basis Connector 与实体双向同步（§18） |
 | [package-layout.md](package-layout.md) | `basis/` 分层与 `integration/` |
 | [search-and-vectors.md](search-and-vectors.md) | 分块、向量、检索策略 |

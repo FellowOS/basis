@@ -1,7 +1,7 @@
-# ADR 0007: KB graph activity feed & canvas merge studio (F-GOV-06 / F-DIFF-01)
+# ADR 0007: KB graph audit surfaces & canvas merge studio (F-GOV-06 / F-DIFF-01)
 
-**Status:** accepted (2026-10) — **decision + phased delivery**; not all phases implemented yet  
-**Context:** [ADR 0001](0001-canonical-knowledge-model.md) requires graph writes to flow through the evidence ledger and Review where governance applies. [explorer.md](explorer.md) documents KB-scoped Explorer workspaces. Progress §1 marks standalone Explorer **Registry** as `replaced` and **full-page DiffMerge** as `not`, while **F-GOV-06** and **F-DIFF-01** are **`done`** via audit, Review, `graph/diff`, and `graph/staging`. Operators still ask for (a) one KB screen for “what changed on the graph?” and (b) spatial merge UI when diff is large. Vendored `registryStore` is **session-only** and must not become a second source of truth.
+**Status:** accepted (2026-10) — Part A **shipped**（设置 Recent graph audit + Review，无侧栏活动流）；**Part B（画布合并）`deferred`** — 产品暂缓，无排期；现有 graph-diff + staging + Review 为闭环  
+**Context:** [ADR 0001](0001-canonical-knowledge-model.md) requires graph writes to flow through the evidence ledger and Review where governance applies. [explorer.md](explorer.md) documents KB-scoped Explorer workspaces. Progress §1 marks standalone Explorer **Registry** as `replaced` and **full-page DiffMerge** as `not`, while **F-GOV-06** and **F-DIFF-01** are **`done`** via audit, Review, `graph/diff`, and `graph/staging`. Operators still ask for (a) “what changed on the graph?” and (b) spatial merge UI when diff is large. Vendored `registryStore` is **session-only** and must not become a second source of truth.
 
 ## Problem
 
@@ -10,14 +10,14 @@
 | **Single-page graph operation stream** | Duplicates platform `/audit` and Review; diverges from `audit_kb_graph`; revives ephemeral `registryStore` as authority |
 | **Canvas merge of two versions** | Bypasses Review; direct projection write; parallel merge state vs `kb_graph_staging_sessions` |
 
-This ADR defines **read aggregation** and **proposal-only canvas writes** so new UI **extends** existing pipes, not replaces them.
+This ADR defines **read surfaces** and **proposal-only canvas writes** so new UI **extends** existing pipes, not replaces them.
 
 ## Decision (summary)
 
-1. **Graph Activity Feed** — one **read-only** KB console route backed by a **server-composed timeline** (audit + review/decision pointers). No new mutation log store in v1.
-2. **Canvas Merge Studio** — optional **editor** UX on top of `GET graph/diff` + `graph/staging`; all commits are **`staging` draft updates** and **Review items** (same semantics as today). **No** API that writes canonical graph or ledger without approve.
+1. **Graph change visibility (F-GOV-06)** — **no** dedicated KB sidebar “activity” route. Operators use **Settings → Recent graph audit** (`GET .../audit/graph-mutations`) and **Review** (timeline + queue). Platform audit remains the cross-KB compliance view.
+2. **Canvas Merge Studio (Part B)** — **deferred**; when resumed: optional **editor** UX on top of `GET graph/diff` + `graph/staging`; all commits remain **`staging` draft updates** and **Review items**. **No** direct canonical write without approve.
 
-## Part A — Graph Activity Feed (F-GOV-06+)
+## Part A — Graph audit read surfaces (F-GOV-06)
 
 ### Rationale
 
@@ -29,26 +29,28 @@ This ADR defines **read aggregation** and **proposal-only canvas writes** so new
 | `GET .../decisions` | Post-approve narrative and chain |
 | `registryStore` (browser) | Debug/session UX only; **not** persisted |
 
-The feed **normalizes** the first three (plus optional decision links on approve) into one sorted list for `/kbs/:id/graph/activity` (name TBD). Settings **Recent graph audit** should **reuse** the same component or API slice to avoid two “recent changes” UIs.
+**Product (2026-10):** Do **not** add `/kbs/:id/graph-activity` or a Govern sidebar item. Avoid a second “timeline” that merges audit + review in one feed unless a future ADR reopens the question.
 
-### API (phased)
+### API
 
-| Phase | Deliverable |
+| Deliverable | Status |
 | --- | --- |
-| **A1** | Extend or alias existing `audit/graph-mutations`: stable `event_kind`, `occurred_at`, `actor`, `summary`, `review_item_id?`, `decision_id?`, deep-link targets. Cursor/`before` pagination. |
-| **A2** | `GET /api/v1/kbs/{kb_id}/graph/activity` merges graph audit events with **recent** review items whose kinds are graph-related (`entity_merge`, import, mapping, `connector_writeback`, …) without duplicating rows (link audit row → review when `review_item_id` present). |
-| **A3** | Optional SSE or poll hint `revision` / `projection_updated` **only as “refresh feed”**, not as authoritative events. |
+| `GET .../audit/graph-mutations` with stable fields, pagination, links to Review / decisions | **Shipped** |
+| Dedicated `GET .../graph/activity` merge endpoint | **Rejected** — use audit list + Review APIs separately |
 
 **Auth:** same as graph read — `get_kb_for_viewer` + KB token read scope.
 
 ### UI
 
-- Route: `/kbs/:id/graph/activity` (sidebar under Graph or Governance).
-- Rows: icon by kind, time, actor, one-line summary, actions **Open in Review** / **Open in audit** / **Open decision**.
-- **Do not** show raw `registryStore` entries as rows unless clearly labeled “this session only (not persisted)” in a dev collapsible — default off in production builds.
+- **Settings → Graph** tab: **Recent graph audit** widget (`kb-graph-audit-recent.tsx`) — last N `kb.graph.*` events, links to Review and platform audit.
+- **Review** workspace: primary workflow for pending graph governance items and timeline.
+- **Do not** show raw `registryStore` entries as product rows unless clearly labeled “this session only (not persisted)” in a dev collapsible — default off in production builds.
+
+**Part B (canvas merge)** does **not** add a sidebar item; entry stays **Graph** / **Graph diff** only (see below).
 
 ### Non-goals (Part A)
 
+- KB sidebar “graph activity” or unified audit+review feed page.
 - Replacing platform audit for compliance export.
 - Logging every Explorer canvas click or WS frame.
 - Real-time OTEL-style tracing of graph layout edits that never hit the API.
@@ -86,14 +88,14 @@ The feed **normalizes** the first three (plus optional decision links on approve
 
 | Pitfall | Rule |
 | --- | --- |
-| Two truths for “what happened” | Feed rows **must** be reconstructible from `audit_events` + `review_items` (+ decisions), not client-only logs |
+| Two truths for “what happened” | Product rows **must** be reconstructible from `audit_events` + `review_items` (+ decisions), not client-only logs |
 | Two merge states | Canvas **must** read/write `session_key` draft on server; conflict → 409 with `current_revision` pattern if extended |
 | Bypass Review | Any canvas “save” creates or updates **review queue** items; approve path unchanged |
-| Duplicate nav | Retire or fold **Recent graph audit** widget into Activity when Activity ships |
+| Duplicate nav | **No** second Govern feed; Settings recent audit + Review only |
 
 ## Relationship to Explorer / semantica
 
-- **Registry workspace:** not revived; Activity feed is the Basis-native equivalent **with persistence**.
+- **Registry workspace:** not revived; Basis-native visibility is **audit API + Review**.
 - **DiffMerge workspace:** not ported 1:1; Canvas studio is a **view** on F-DIFF-01 staging.
 - Upstream cherry-picks from semantica Explorer **must not** reintroduce standalone Registry routes or direct-merge handlers without this ADR.
 
@@ -106,17 +108,15 @@ The feed **normalizes** the first three (plus optional decision links on approve
 | Diff / staging | `kb_explorer.py` · `knowledge.graph_staging_at` · `kb_graph_staging_sessions` |
 | Entity merge propose | `POST .../graph/staging/entity-merge` · `propose_entity_merge` |
 | Web diff / staging | `kb-graph-diff-workspace.tsx` · `kb-graph-diff-preview-bar.tsx` · `graph-staging-draft.ts` |
-| Settings audit strip | `settings-graph-audit` · E2E `settings-graph-audit.spec.ts` |
+| Settings audit strip | `kb-graph-audit-recent.tsx` · E2E `settings-graph-audit.spec.ts` |
 | Ephemeral client log | `web/src/explorer/store/registryStore.ts` — do not promote to product API |
 
 ## Progress / features
 
-- **F-GOV-06** remains `done` for audit + Review surfaces; Activity is an **optional Phase A** productization layer (track in [progress.md](../progress.md) when A1 ships).
-- **F-DIFF-01** remains `done` for diff + list staging; Canvas studio is **optional Phase B** (track when B1 ships).
+- **F-GOV-06** `done`: Settings **Recent graph audit** + Review; no KB activity sidebar.
+- **F-DIFF-01** `done` for diff + staging + list/form merge → Review; **Part B canvas studio deferred** (see [progress.md](../progress.md) §3.2).
 - Progress §1 rows **Registry dedicated page** / **Full-page DiffMerge** stay `replaced` / `not`; this ADR is the **approved** way to address underlying user needs without reversing those rows.
 
 ## Open questions (defer to implementation PRs)
 
-- Exact review kinds included in Activity feed pagination join.
-- Whether Activity needs KB **editor** vs **viewer** row redaction (payload snippets).
 - Canvas B3 property/edge merge: new review kinds vs generalizing `entity_merge`.

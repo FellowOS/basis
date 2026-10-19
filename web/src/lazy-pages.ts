@@ -112,6 +112,7 @@ export const KbLineagePage = lazy(() =>
 export const KbGraphDiffPage = lazy(() =>
   import('@/pages/kb/graph-diff').then((m) => ({ default: m.KbGraphDiffPage })),
 );
+
 export const KbAlertsPage = lazy(() =>
   import('@/pages/kb/alerts').then((m) => ({ default: m.KbAlertsPage })),
 );

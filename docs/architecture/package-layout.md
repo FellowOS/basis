@@ -60,7 +60,7 @@ Server-side adapters for vendored `web/src/explorer` — **not** a second ledger
 | `forward_reasoning.py` | Explorer-triggered reasoning helpers |
 | `governance_decision.py` | Governance trip / proposal side effects (alerts, review hooks) |
 
-See [explorer.md](explorer.md), [ADR 0007](0007-graph-activity-and-canvas-merge.md) for activity feed / canvas merge (phased).
+See [explorer.md](explorer.md), [ADR 0007](0007-graph-activity-and-canvas-merge.md) for graph audit surfaces / canvas merge (phased).
 
 ### Other domain packages
 
