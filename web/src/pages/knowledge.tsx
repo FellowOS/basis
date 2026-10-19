@@ -735,13 +735,31 @@ export function KnowledgePage() {
                 const rowJob = latestJobByVersion[doc.version_id];
                 if (!rowJob) return null;
                 return (
-                  <span>
-                    {fmt(k.historyAttempt, {
-                      attempt: formatLocaleNumber(locale as Locale, rowJob.attempt),
-                    })}
-                    {rowJob.error_code
-                      ? ` · ${messageForApiErrorCode(rowJob.error_code, locale) ?? rowJob.error_code}`
-                      : ''}
+                  <span className="block max-w-md space-y-0.5">
+                    <span>
+                      {fmt(k.historyAttempt, {
+                        attempt: formatLocaleNumber(locale as Locale, rowJob.attempt),
+                      })}
+                    </span>
+                    {rowJob.error_code ? (
+                      <span
+                        className="block text-destructive"
+                        data-testid={`sources-job-error-${rowJob.id}`}
+                      >
+                        <span>
+                          {messageForApiErrorCode(rowJob.error_code, locale) ??
+                            rowJob.error_code}
+                          <span className="ml-1 font-mono text-[10px] opacity-80">
+                            ({rowJob.error_code})
+                          </span>
+                        </span>
+                        {rowJob.error_detail?.message ? (
+                          <span className="block text-muted-foreground">
+                            {rowJob.error_detail.message}
+                          </span>
+                        ) : null}
+                      </span>
+                    ) : null}
                   </span>
                 );
               })() : null}
