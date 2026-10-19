@@ -43,6 +43,7 @@ See [ADR 0006](../architecture/0006-org-saml.md).
    Also listed under **Settings → Access → OAuth callbacks** as **Organization SAML ACS**.
 4. Map IdP attribute / NameID to email (Basis uses NameID or `email` / `mail` attributes for account linking).
 5. Smoke test: `GET /api/v1/auth/saml/{org_slug}/start` → redirect to IdP; complete login → redirect to web with `basis_token`.
+6. **Signed AuthnRequest** (Azure AD and others): enable **Sign AuthnRequest** in the SAML panel; paste SP cert + private key (upload cert to IdP); SP metadata reflects signing when `uv sync --extra saml` is active.
 
 ### Common IdP field names
 

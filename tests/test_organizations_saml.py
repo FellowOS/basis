@@ -68,6 +68,29 @@ def test_org_sso_options_includes_saml(tmp_path: Path) -> None:
     assert "/api/v1/auth/saml/" in saml_opts[0]["login_path"]
 
 
+def test_org_saml_signing_requires_key_material(tmp_path: Path) -> None:
+    admin = _store(tmp_path)
+    user, _ = admin.register("sign@example.com", "password1", "Sign")
+    kb = admin.create_kb(user, "Sign Co", None, "restricted")
+    org_id = kb.organization_id
+    assert org_id
+    from basis.platform.admin.errors import AdminError
+
+    try:
+        admin.upsert_org_saml_config(
+            user,
+            org_id,
+            idp_entity_id="https://idp.example.com/metadata",
+            idp_sso_url="https://idp.example.com/sso",
+            idp_x509_cert=_SAMPLE_CERT,
+            authn_requests_signed=True,
+        )
+        assert False, "expected AdminError"
+    except AdminError as exc:
+        assert exc.code == "missing_sp_signing_material"
+    admin.close()
+
+
 def test_org_saml_start_when_library_missing(tmp_path: Path) -> None:
     admin = _store(tmp_path)
     user, _ = admin.register("start@example.com", "password1", "Start")

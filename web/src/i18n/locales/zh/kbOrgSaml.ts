@@ -17,6 +17,14 @@ export const kbOrgSaml = {
   certPlaceholder: '粘贴 PEM 证书（-----BEGIN CERTIFICATE----- …）',
   certKeepHint: '留空则保留现有证书。',
   spEntityHint: '留空则使用 SP metadata URL。',
+  fieldsSign: {
+    authnRequestsSigned: '签名 AuthnRequest',
+    spCert: 'SP 签名证书',
+    spPrivateKey: 'SP 私钥',
+  },
+  authnRequestsSignedHint:
+    '部分 IdP（如 Azure AD）要求签名请求。将 SP 证书上传到 IdP 后，在此填写匹配的证书与私钥。',
+  spPrivateKeyKeepHint: '留空则保留现有私钥。',
   metadataUrlLabel: 'SP metadata URL',
   acsUrlLabel: '断言消费 URL（ACS）',
   loginUrlLabel: 'SSO 起始 URL',

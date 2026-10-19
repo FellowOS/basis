@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
@@ -38,6 +38,8 @@ type OrgSamlResponse = {
   email_domains?: string[];
   enabled?: boolean;
   auth_policy?: string;
+  authn_requests_signed?: boolean;
+  sp_signing_configured?: boolean;
 };
 
 const samlFormSchema = z.object({
@@ -48,14 +50,27 @@ const samlFormSchema = z.object({
   emailDomains: z.string(),
   enabled: z.boolean(),
   authPolicy: z.enum(['password_allowed', 'sso_preferred', 'sso_required']),
+  authnRequestsSigned: z.boolean(),
+  spCert: z.string(),
+  spPrivateKey: z.string(),
 });
 
 type SamlFormValues = z.infer<typeof samlFormSchema>;
 
-function samlSchema(configured: boolean) {
+function samlSchema(configured: boolean, signingConfigured: boolean) {
   return samlFormSchema.superRefine((data, ctx) => {
     if (!configured && !data.idpCert.trim()) {
       ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['idpCert'], message: 'Required' });
+    }
+    if (data.authnRequestsSigned) {
+      const hasCert = Boolean(data.spCert.trim() || (configured && signingConfigured));
+      const hasKey = Boolean(data.spPrivateKey.trim() || (configured && signingConfigured));
+      if (!hasCert) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['spCert'], message: 'Required' });
+      }
+      if (!hasKey) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['spPrivateKey'], message: 'Required' });
+      }
     }
   });
 }
@@ -68,6 +83,9 @@ const emptyValues: SamlFormValues = {
   emailDomains: '',
   enabled: true,
   authPolicy: 'password_allowed',
+  authnRequestsSigned: false,
+  spCert: '',
+  spPrivateKey: '',
 };
 
 export function OrgSamlPanel({ organizationId }: { organizationId: string | null | undefined }) {
@@ -79,8 +97,13 @@ export function OrgSamlPanel({ organizationId }: { organizationId: string | null
   const [data, setData] = useState<OrgSamlResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const configured = data?.configured === true;
+  const signingConfigured = data?.sp_signing_configured === true;
+  const resolver = useMemo(
+    () => zodResolver(samlSchema(configured, signingConfigured)),
+    [configured, signingConfigured],
+  );
   const form = useForm<SamlFormValues>({
-    resolver: zodResolver(samlSchema(configured)),
+    resolver,
     defaultValues: emptyValues,
   });
 
@@ -107,6 +130,9 @@ export function OrgSamlPanel({ organizationId }: { organizationId: string | null
           enabled: body.enabled ?? true,
           authPolicy:
             (body.auth_policy as SamlFormValues['authPolicy']) ?? 'password_allowed',
+          authnRequestsSigned: body.authn_requests_signed ?? false,
+          spCert: '',
+          spPrivateKey: '',
         });
       } else {
         form.reset(emptyValues);
@@ -142,6 +168,9 @@ export function OrgSamlPanel({ organizationId }: { organizationId: string | null
           email_domains: domains,
           enabled: values.enabled,
           auth_policy: values.authPolicy,
+          authn_requests_signed: values.authnRequestsSigned,
+          sp_x509_cert: values.spCert,
+          sp_private_key: values.spPrivateKey,
         },
       });
       toast.success(copy.saved);
@@ -328,6 +357,56 @@ export function OrgSamlPanel({ organizationId }: { organizationId: string | null
                       <Switch checked={field.value} onCheckedChange={field.onChange} />
                     </FormControl>
                     <FormLabel className="font-normal">{copy.fields.enabled}</FormLabel>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="authnRequestsSigned"
+                render={({ field }) => (
+                  <FormItem className="flex items-center gap-3 space-y-0">
+                    <FormControl>
+                      <Switch checked={field.value} onCheckedChange={field.onChange} />
+                    </FormControl>
+                    <FormLabel className="font-normal">{copy.fieldsSign.authnRequestsSigned}</FormLabel>
+                  </FormItem>
+                )}
+              />
+              <p className="text-xs text-muted-foreground">{copy.authnRequestsSignedHint}</p>
+              <FormField
+                control={form.control}
+                name="spCert"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{copy.fieldsSign.spCert}</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        className="min-h-[5rem] font-mono text-xs"
+                        placeholder={copy.certPlaceholder}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="spPrivateKey"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{copy.fieldsSign.spPrivateKey}</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        className="min-h-[5rem] font-mono text-xs"
+                        autoComplete="off"
+                        {...field}
+                      />
+                    </FormControl>
+                    {data.configured && signingConfigured ? (
+                      <FormDescription>{copy.spPrivateKeyKeepHint}</FormDescription>
+                    ) : null}
+                    <FormMessage />
                   </FormItem>
                 )}
               />

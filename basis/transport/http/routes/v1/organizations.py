@@ -174,6 +174,9 @@ class OrgSamlUpsert(BaseModel):
     email_domains: list[str] = Field(default_factory=list)
     enabled: bool = True
     auth_policy: str = "password_allowed"
+    authn_requests_signed: bool = False
+    sp_x509_cert: str = ""
+    sp_private_key: str = ""
 
 
 @router.get("/{org_id}/saml")
@@ -220,6 +223,8 @@ Get Org Saml. Organization SAML 2.0 IdP settings (F-ACC-07). Requires session JW
         "sp_entity_id": cfg.get("sp_entity_id"),
         "email_domains": cfg["email_domains"],
         "enabled": cfg["enabled"],
+        "authn_requests_signed": cfg.get("authn_requests_signed", False),
+        "sp_signing_configured": cfg.get("sp_signing_configured", False),
         "auth_policy": org.auth_policy,
         "login_path": login_path,
         "login_url": login_url,
@@ -248,6 +253,9 @@ Put Org Saml. Organization SAML 2.0 IdP settings (F-ACC-07). Requires session JW
         email_domains=body.email_domains,
         enabled=body.enabled,
         auth_policy=body.auth_policy,
+        authn_requests_signed=body.authn_requests_signed,
+        sp_x509_cert=body.sp_x509_cert,
+        sp_private_key=body.sp_private_key,
     )
     org = store.get_org_by_id(org_id)
     slug = org.slug if org else org_id

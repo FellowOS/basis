@@ -375,6 +375,9 @@ def _saml_settings_for_org(
         idp_entity_id=cfg["idp_entity_id"],
         idp_sso_url=cfg["idp_sso_url"],
         idp_x509_cert=cfg["idp_x509_cert"],
+        authn_requests_signed=bool(cfg.get("authn_requests_signed")),
+        sp_x509_cert=cfg.get("sp_x509_cert"),
+        sp_private_key=cfg.get("sp_private_key"),
     )
 
 

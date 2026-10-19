@@ -4001,6 +4001,21 @@ export interface components {
              * @default password_allowed
              */
             auth_policy: string;
+            /**
+             * Authn Requests Signed
+             * @default false
+             */
+            authn_requests_signed: boolean;
+            /**
+             * Sp X509 Cert
+             * @default
+             */
+            sp_x509_cert: string;
+            /**
+             * Sp Private Key
+             * @default
+             */
+            sp_private_key: string;
         };
         /** PatchModelRequest */
         PatchModelRequest: {

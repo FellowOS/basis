@@ -511,8 +511,9 @@ class OrganizationAuthMixin:
         assert cfg is not None
         return {k: v for k, v in cfg.items() if k != "client_secret"}
 
-    def _org_saml_row_to_dict(self, row: Any) -> dict[str, Any]:
-        return {
+    def _org_saml_row_to_dict(self, row: Any, *, include_secrets: bool = False) -> dict[str, Any]:
+        keys = set(row.keys()) if hasattr(row, "keys") else set()
+        payload: dict[str, Any] = {
             "organization_id": row["organization_id"],
             "idp_entity_id": row["idp_entity_id"],
             "idp_sso_url": row["idp_sso_url"],
@@ -520,7 +521,16 @@ class OrganizationAuthMixin:
             "sp_entity_id": row["sp_entity_id"],
             "email_domains": parse_email_domains(row["email_domains_json"]),
             "enabled": bool(row["enabled"]),
+            "authn_requests_signed": bool(row["authn_requests_signed"]) if "authn_requests_signed" in keys else False,
         }
+        sp_cert = row["sp_x509_cert"] if "sp_x509_cert" in keys else None
+        sp_key = row["sp_private_key"] if "sp_private_key" in keys else None
+        if include_secrets:
+            payload["sp_x509_cert"] = sp_cert
+            payload["sp_private_key"] = sp_key
+        else:
+            payload["sp_signing_configured"] = bool(sp_cert and sp_key)
+        return payload
 
     def get_org_saml_settings(self, org_id: str) -> dict[str, Any] | None:
         with self._lock:
@@ -540,10 +550,27 @@ class OrganizationAuthMixin:
             return None
         return self._org_saml_row_to_dict(row)
 
-    def get_org_saml_config(self, org_id: str) -> dict[str, Any] | None:
-        cfg = self.get_org_saml_settings(org_id)
-        if cfg is None or not cfg["enabled"]:
+    def get_org_saml_runtime_config(self, org_id: str) -> dict[str, Any] | None:
+        """Enabled SAML config including SP private key for AuthnRequest signing."""
+        with self._lock:
+            try:
+                row = self._conn.execute(
+                    "SELECT * FROM org_saml_configs WHERE organization_id = ?",
+                    (org_id,),
+                ).fetchone()
+            except Exception as exc:
+                msg = str(exc).lower()
+                if "org_saml_configs" in msg and (
+                    "does not exist" in msg or "no such table" in msg
+                ):
+                    return None
+                raise
+        if row is None or not row["enabled"]:
             return None
+        return self._org_saml_row_to_dict(row, include_secrets=True)
+
+    def get_org_saml_config(self, org_id: str) -> dict[str, Any] | None:
+        cfg = self.get_org_saml_runtime_config(org_id)
         return cfg
 
     def upsert_org_saml_config(
@@ -558,6 +585,9 @@ class OrganizationAuthMixin:
         email_domains: list[str] | None = None,
         enabled: bool = True,
         auth_policy: str | None = None,
+        authn_requests_signed: bool = False,
+        sp_x509_cert: str = "",
+        sp_private_key: str = "",
     ) -> dict[str, Any]:
         self.require_org_admin(actor, org_id)
         if auth_policy is not None and auth_policy not in ORG_AUTH_POLICIES:
@@ -574,18 +604,35 @@ class OrganizationAuthMixin:
         with self._lock:
             if self.get_org_by_id(org_id) is None:
                 raise AdminError(404, "not_found", "组织不存在")
+            existing_raw = self._conn.execute(
+                "SELECT * FROM org_saml_configs WHERE organization_id = ?",
+                (org_id,),
+            ).fetchone()
             if not cert:
-                existing = self.get_org_saml_settings(org_id)
-                if existing is None:
+                if existing_raw is None:
                     raise AdminError(422, "missing_cert", "IdP x509 证书不能为空")
-                cert = existing["idp_x509_cert"]
+                cert = existing_raw["idp_x509_cert"]
             sp_override = (sp_entity_id or "").strip() or None
+            sp_cert = sp_x509_cert.strip()
+            sp_key = sp_private_key.strip()
+            if not sp_cert and existing_raw is not None:
+                sp_cert = (existing_raw["sp_x509_cert"] or "").strip()
+            if not sp_key and existing_raw is not None:
+                sp_key = (existing_raw["sp_private_key"] or "").strip()
+            if authn_requests_signed and (not sp_cert or not sp_key):
+                raise AdminError(
+                    422,
+                    "missing_sp_signing_material",
+                    "启用签名 AuthnRequest 需配置 SP 证书与私钥",
+                )
             self._conn.execute(
                 """
                 INSERT INTO org_saml_configs(
                     organization_id, idp_entity_id, idp_sso_url, idp_x509_cert,
-                    sp_entity_id, email_domains_json, enabled, created_at, updated_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    sp_entity_id, email_domains_json, enabled,
+                    authn_requests_signed, sp_x509_cert, sp_private_key,
+                    created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(organization_id) DO UPDATE SET
                     idp_entity_id = excluded.idp_entity_id,
                     idp_sso_url = excluded.idp_sso_url,
@@ -593,6 +640,9 @@ class OrganizationAuthMixin:
                     sp_entity_id = excluded.sp_entity_id,
                     email_domains_json = excluded.email_domains_json,
                     enabled = excluded.enabled,
+                    authn_requests_signed = excluded.authn_requests_signed,
+                    sp_x509_cert = excluded.sp_x509_cert,
+                    sp_private_key = excluded.sp_private_key,
                     updated_at = excluded.updated_at
                 """,
                 (
@@ -603,6 +653,9 @@ class OrganizationAuthMixin:
                     sp_override,
                     json.dumps(domains, ensure_ascii=False),
                     int(enabled),
+                    int(authn_requests_signed),
+                    sp_cert or None,
+                    sp_key or None,
                     now,
                     now,
                 ),
@@ -622,7 +675,7 @@ class OrganizationAuthMixin:
             self._conn.commit()
         cfg = self.get_org_saml_settings(org_id)
         assert cfg is not None
-        return cfg
+        return {k: v for k, v in cfg.items() if k not in ("sp_private_key",)}
 
     def login_or_register_federated(
         self,

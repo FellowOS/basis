@@ -22,6 +22,11 @@ def _normalize_idp_cert(pem: str) -> str:
     return body.replace("\n", "").replace("\r", "")
 
 
+def _normalize_sp_pem(pem: str) -> str:
+    """OneLogin accepts PEM with headers for SP cert/key."""
+    return pem.strip()
+
+
 def build_saml_settings(
     *,
     sp_entity_id: str,
@@ -29,18 +34,35 @@ def build_saml_settings(
     idp_entity_id: str,
     idp_sso_url: str,
     idp_x509_cert: str,
+    authn_requests_signed: bool = False,
+    sp_x509_cert: str | None = None,
+    sp_private_key: str | None = None,
 ) -> dict[str, Any]:
+    sp_block: dict[str, Any] = {
+        "entityId": sp_entity_id,
+        "assertionConsumerService": {
+            "url": acs_url,
+            "binding": "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST",
+        },
+        "NameIDFormat": "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress",
+    }
+    security: dict[str, Any] = {
+        "wantAssertionsSigned": True,
+        "wantMessagesSigned": False,
+        "authnRequestsSigned": False,
+    }
+    sp_cert = (sp_x509_cert or "").strip()
+    sp_key = (sp_private_key or "").strip()
+    if authn_requests_signed:
+        if not sp_cert or not sp_key:
+            raise ValueError("authn_requests_signed requires SP certificate and private key")
+        sp_block["x509cert"] = _normalize_sp_pem(sp_cert)
+        sp_block["privateKey"] = _normalize_sp_pem(sp_key)
+        security["authnRequestsSigned"] = True
     return {
         "strict": True,
         "debug": False,
-        "sp": {
-            "entityId": sp_entity_id,
-            "assertionConsumerService": {
-                "url": acs_url,
-                "binding": "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST",
-            },
-            "NameIDFormat": "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress",
-        },
+        "sp": sp_block,
         "idp": {
             "entityId": idp_entity_id,
             "singleSignOnService": {
@@ -49,10 +71,7 @@ def build_saml_settings(
             },
             "x509cert": _normalize_idp_cert(idp_x509_cert),
         },
-        "security": {
-            "wantAssertionsSigned": True,
-            "wantMessagesSigned": False,
-        },
+        "security": security,
     }
 
 

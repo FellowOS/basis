@@ -5157,6 +5157,21 @@
             "type": "string",
             "title": "Auth Policy",
             "default": "password_allowed"
+          },
+          "authn_requests_signed": {
+            "type": "boolean",
+            "title": "Authn Requests Signed",
+            "default": false
+          },
+          "sp_x509_cert": {
+            "type": "string",
+            "title": "Sp X509 Cert",
+            "default": ""
+          },
+          "sp_private_key": {
+            "type": "string",
+            "title": "Sp Private Key",
+            "default": ""
           }
         },
         "type": "object",

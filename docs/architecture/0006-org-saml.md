@@ -15,9 +15,15 @@
 - **Runtime:** optional Python extra `uv sync --extra saml` (`python3-saml`). Without it, SAML routes return `503 saml_unavailable`; OIDC unchanged.
 - **Login discovery:** `org-sso-options` / `org-sso-hint` include SAML with `protocol: "saml"`; domain match prefers OIDC when both exist.
 
-## Out of scope (v1)
+## AuthnRequest signing (Phase B)
 
-- IdP-initiated SSO, SLO, signed AuthnRequest, multiple SAML IdPs per org, automatic metadata fetch from IdP URL.
+- Columns `authn_requests_signed`, `sp_x509_cert`, `sp_private_key` on `org_saml_configs`.
+- When enabled, python3-saml sets `security.authnRequestsSigned` and embeds SP cert/key in metadata/login.
+- Private key is stored server-side (same trust model as OIDC `client_secret`); never returned on `GET`.
+
+## Out of scope (still)
+
+- IdP-initiated SSO, SLO, multiple SAML IdPs per org, automatic metadata fetch from IdP URL.
 
 ## Operations
 

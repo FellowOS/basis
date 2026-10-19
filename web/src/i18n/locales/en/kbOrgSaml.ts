@@ -18,6 +18,14 @@ export const kbOrgSaml = {
   certPlaceholder: 'Paste PEM certificate (-----BEGIN CERTIFICATE----- …)',
   certKeepHint: 'Leave blank to keep the existing certificate.',
   spEntityHint: 'Defaults to SP metadata URL when empty.',
+  fieldsSign: {
+    authnRequestsSigned: 'Sign AuthnRequest',
+    spCert: 'SP signing certificate',
+    spPrivateKey: 'SP private key',
+  },
+  authnRequestsSignedHint:
+    'Required by some IdPs (e.g. Azure AD). Upload the SP cert to the IdP and paste matching cert + private key here.',
+  spPrivateKeyKeepHint: 'Leave blank to keep the existing private key.',
   metadataUrlLabel: 'SP metadata URL',
   acsUrlLabel: 'Assertion consumer URL (ACS)',
   loginUrlLabel: 'SSO start URL',
