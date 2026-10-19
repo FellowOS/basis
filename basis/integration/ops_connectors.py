@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import date, datetime
 from typing import Any
 
 from basis.domain.connectors import ConnectorRuntime, get_connector_catalog
@@ -11,6 +12,12 @@ from fastapi import HTTPException
 
 from basis.integration.context import KbCoreContext
 from basis.integration.errors import CoreError
+
+
+def _json_safe_cursor_watermark(value: Any) -> Any:
+    if isinstance(value, (datetime, date)):
+        return value.isoformat()
+    return value
 
 
 def _require_kb_editor(ctx: KbCoreContext) -> None:
@@ -186,7 +193,7 @@ def op_sync_connector_table_mapping(ctx: KbCoreContext, args: dict[str, Any]) ->
         "updated": stats.updated,
         "unchanged": stats.unchanged,
         "deleted": stats.deleted,
-        "new_cursor_watermark": stats.new_cursor_watermark,
+        "new_cursor_watermark": _json_safe_cursor_watermark(stats.new_cursor_watermark),
     }
 
 

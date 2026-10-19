@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 
-import { E2E_KBS_COLLECTION, e2eKbPath } from './api-v1-path.js';
+import { E2E_KBS_COLLECTION, e2eApiBaseUrl, e2eKbPath } from './api-v1-path.js';
 
 export async function bearerToken(page: Page): Promise<string> {
   const token = await page.evaluate(() => localStorage.getItem('basis_token'));
@@ -15,13 +15,20 @@ export async function registerFreshUser(page: Page): Promise<{ email: string; pa
   const email = `e2e-${stamp}@example.com`;
   const password = 'password1xy';
 
-  await page.goto('/?mode=register');
-  const dialog = page.getByRole('dialog');
-  await expect(dialog).toBeVisible({ timeout: 60_000 });
-  await dialog.getByLabel(/Display name|显示名/i).fill('E2E User');
-  await dialog.getByLabel(/^Email$|^邮箱$|^电子邮件$/i).fill(email);
-  await dialog.getByLabel(/^Password$|^密码$/i).fill(password);
-  await dialog.getByRole('button', { name: /创建账号|Create account/i }).click();
+  await page.goto('/');
+  await page.evaluate(() => localStorage.clear());
+
+  const reg = await page.request.post(`${e2eApiBaseUrl()}/api/v1/auth/register`, {
+    data: {
+      email,
+      password,
+      display_name: 'E2E User',
+    },
+  });
+  expect(reg.ok(), `register failed: ${reg.status()} ${await reg.text()}`).toBeTruthy();
+  const body = (await reg.json()) as { token: string };
+  await page.evaluate((token) => localStorage.setItem('basis_token', token), body.token);
+  await page.goto('/kbs');
   await expect(page).toHaveURL(/\/kbs/, { timeout: 60_000 });
   await expect
     .poll(async () => page.evaluate(() => localStorage.getItem('basis_token')), { timeout: 30_000 })
@@ -48,7 +55,7 @@ export async function skipUnlessKbGraphWrite(page: Page, kbId: string): Promise<
 
 export async function defaultKbId(page: Page): Promise<string> {
   const token = await bearerToken(page);
-  const response = await page.request.get(E2E_KBS_COLLECTION, {
+  const response = await page.request.get(`${e2eApiBaseUrl()}${E2E_KBS_COLLECTION}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   expect(response.ok()).toBeTruthy();
@@ -62,7 +69,7 @@ export async function defaultKbId(page: Page): Promise<string> {
   }
 
   const stamp = Date.now();
-  const created = await page.request.post(E2E_KBS_COLLECTION, {
+  const created = await page.request.post(`${e2eApiBaseUrl()}${E2E_KBS_COLLECTION}`, {
     headers: {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',

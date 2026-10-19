@@ -42,7 +42,8 @@ export default defineConfig({
           cwd: repoRoot,
           env: e2eApiEnv(),
           url: `http://127.0.0.1:${apiPort}/health`,
-          reuseExistingServer: !process.env.CI,
+          // Always start a fresh API so it matches `data-e2e` after globalSetup.
+          reuseExistingServer: false,
           timeout: 120_000,
         },
         {
@@ -55,7 +56,7 @@ export default defineConfig({
             WEB_HOST: '127.0.0.1',
           },
           url: baseURL,
-          reuseExistingServer: !process.env.CI,
+          reuseExistingServer: process.env.BASIS_E2E_REUSE_SERVERS === '1',
           timeout: 120_000,
         },
       ],
