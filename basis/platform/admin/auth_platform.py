@@ -114,10 +114,12 @@ def get_access_settings(
     providers = _parse_providers(store._setting("auth_providers_json"))
     signup = (store._setting("auth_signup_policy") or "open").strip().lower()
     public = raw["public_url"]
+    from basis.platform.auth.http_paths import auth_v1_path
+
     callbacks = {
-        "github": f"{public}/api/auth/oauth/github/callback",
-        "google": f"{public}/api/auth/oauth/google/callback",
-        "org_oidc": f"{public}/api/auth/oidc/callback",
+        "github": f"{public.rstrip('/')}{auth_v1_path('oauth/github/callback')}",
+        "google": f"{public.rstrip('/')}{auth_v1_path('oauth/google/callback')}",
+        "org_oidc": f"{public.rstrip('/')}{auth_v1_path('oidc/callback')}",
     }
     mail_transport = (store._setting("auth_mail_transport") or "").strip() or (
         "smtp" if raw["smtp_host"] else "resend"

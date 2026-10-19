@@ -61,8 +61,8 @@ test('org SSO hint and login UI follow auth_policy', async ({ page }) => {
 
   await page.evaluate(() => localStorage.removeItem('basis_token'));
   await page.goto('/?mode=login');
-  await page.getByLabel(/Email|邮箱/i).fill(email);
   await expect(page.getByTestId('login-org-sso')).toBeVisible({ timeout: 30_000 });
+  await page.getByLabel(/Email|邮箱/i).fill(email);
   await expect(page.locator('form button[type="submit"]')).toBeVisible();
 
   await upsertOidc('sso_required');
@@ -74,8 +74,8 @@ test('org SSO hint and login UI follow auth_policy', async ({ page }) => {
   expect(requiredBody.password_login_allowed).toBe(false);
 
   await page.goto('/?mode=login');
-  await page.getByLabel(/Email|邮箱/i).fill(email);
   await expect(page.getByTestId('login-org-sso')).toBeVisible({ timeout: 30_000 });
+  await page.getByLabel(/Email|邮箱/i).fill(email);
   await expect
     .poll(async () => page.locator('form button[type="submit"]').count(), { timeout: 15_000 })
     .toBe(0);

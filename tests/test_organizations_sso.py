@@ -45,6 +45,32 @@ def test_org_oidc_upsert_and_slug_login_path(tmp_path: Path) -> None:
     admin.close()
 
 
+def test_org_sso_options_lists_enabled_orgs(tmp_path: Path) -> None:
+    admin = _store(tmp_path)
+    user, _ = admin.register("opts@example.com", "password1", "Opts")
+    kb = admin.create_kb(user, "Opts Co", None, "restricted")
+    org_id = kb.organization_id
+    assert org_id
+    admin.upsert_org_oidc_config(
+        user,
+        org_id,
+        issuer="https://idp.example.com/",
+        client_id="cid",
+        client_secret="secret",
+        email_domains=["optsco.com"],
+        enabled=True,
+    )
+    admin.close()
+
+    client = TestClient(create_app(Settings(data_dir=tmp_path)))
+    res = client.get("/api/v1/auth/org-sso-options")
+    assert res.status_code == 200
+    body = res.json()
+    assert len(body["options"]) == 1
+    assert body["options"][0]["org_slug"]
+    assert "/api/v1/auth/oidc/" in body["options"][0]["login_path"]
+
+
 def test_org_sso_hint_by_email_domain(tmp_path: Path) -> None:
     admin = _store(tmp_path)
     user, _ = admin.register("hint@example.com", "password1", "Hint")
@@ -71,7 +97,7 @@ def test_org_sso_hint_by_email_domain(tmp_path: Path) -> None:
     body = hit.json()
     assert body["available"] is True
     assert body["org_slug"]
-    assert "/api/auth/oidc/" in body["login_path"]
+    assert "/api/v1/auth/oidc/" in body["login_path"]
 
 
 def test_sso_required_blocks_password_login(tmp_path: Path) -> None:

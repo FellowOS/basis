@@ -355,6 +355,28 @@ class OrganizationAuthMixin:
                 return _org_from_row(row)
         return None
 
+    def list_enabled_org_sso_public(self) -> list[Organization]:
+        """Orgs with enabled OIDC (public login discovery; no secrets)."""
+        with self._lock:
+            try:
+                rows = self._conn.execute(
+                    """
+                    SELECT o.*
+                    FROM org_oidc_configs c
+                    JOIN organizations o ON o.id = c.organization_id
+                    WHERE c.enabled = 1
+                    ORDER BY o.name ASC
+                    """
+                ).fetchall()
+            except Exception as exc:
+                msg = str(exc).lower()
+                if "org_oidc_configs" in msg and (
+                    "does not exist" in msg or "no such table" in msg
+                ):
+                    return []
+                raise
+        return [_org_from_row(row) for row in rows]
+
     def _org_oidc_row_to_dict(self, row: Any) -> dict[str, Any]:
         return {
             "organization_id": row["organization_id"],
@@ -486,7 +508,7 @@ class OrganizationAuthMixin:
                     SELECT user_id FROM user_federated_identities
                     WHERE organization_id = ?
                       AND provider = ?
-                      AND issuer IS ?
+                      AND issuer = ?
                       AND subject = ?
                     """,
                     (organization_id, provider, issuer, subject),

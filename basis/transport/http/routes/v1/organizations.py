@@ -10,6 +10,7 @@ from pydantic import BaseModel, Field
 from basis.platform.admin.org_store import Organization
 from basis.platform.admin.store import AdminStore, User
 from basis.transport.http.deps import get_current_user, get_store
+from basis.platform.auth.http_paths import auth_v1_path
 from basis.platform.auth.settings import load_auth_settings_from_store
 
 router = APIRouter(tags=["organizations"])
@@ -109,9 +110,9 @@ Get Org Oidc. Organizations and OIDC SSO. Requires session JWT (`sessionAuth`).
         raise HTTPException(status_code=404, detail={"code": "not_found", "message": "组织不存在"})
     settings = _auth_settings(request)
     slug = org.slug
-    login_path = f"/api/auth/oidc/{slug}/start"
-    login_url = f"{settings.public_url}{login_path}"
-    callback_url = settings.oauth_callback_url("/api/auth/oidc/callback")
+    login_path = auth_v1_path(f"oidc/{slug}/start")
+    login_url = f"{settings.public_url.rstrip('/')}{login_path}"
+    callback_url = settings.oauth_callback_url(auth_v1_path("oidc/callback"))
     cfg = store.get_org_oidc_settings(org_id)
     can_edit = user.is_admin or (role is not None and role in ("owner", "admin"))
     if cfg is None:
@@ -162,4 +163,4 @@ Put Org Oidc. Organizations and OIDC SSO. Requires session JWT (`sessionAuth`).
     )
     org = store.get_org_by_id(org_id)
     slug = org.slug if org else org_id
-    return {"oidc": cfg, "login_path": f"/api/auth/oidc/{slug}/start"}
+    return {"oidc": cfg, "login_path": auth_v1_path(f"oidc/{slug}/start")}

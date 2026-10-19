@@ -44,11 +44,20 @@ type OrgSsoHint = {
   password_login_allowed?: boolean;
 };
 
+type OrgSsoOption = {
+  organization_id: string;
+  org_slug: string;
+  org_name: string;
+  login_url: string;
+  login_path: string;
+  auth_policy?: string;
+};
+
 export async function loadAuthProviders(): Promise<AuthProviders> {
   try {
     return await publicOpenApiGET<AuthProviders>('/api/v1/auth/providers');
   } catch {
-    return { github: false, google: false, magic_link: false };
+    return { github: false, google: false, magic_link: false, org_oidc: true };
   }
 }
 
@@ -88,6 +97,7 @@ export function AuthFormCard({ providers }: AuthFormCardProps) {
   const [magicBusy, setMagicBusy] = useState(false);
   const [magicNotice, setMagicNotice] = useState<string | null>(null);
   const [orgSsoHint, setOrgSsoHint] = useState<OrgSsoHint | null>(null);
+  const [orgSsoOptions, setOrgSsoOptions] = useState<OrgSsoOption[]>([]);
   const resolver = useMemo(() => zodResolver(authSchemaForMode(mode)), [mode]);
   const isRegister = mode === 'register';
 
@@ -100,6 +110,16 @@ export function AuthFormCard({ providers }: AuthFormCardProps) {
   useEffect(() => {
     setAuthPanel('password');
   }, [mode]);
+
+  useEffect(() => {
+    if (!providers?.org_oidc || isRegister || authPanel === 'magic') {
+      setOrgSsoOptions([]);
+      return;
+    }
+    void publicOpenApiGET<{ options?: OrgSsoOption[] }>('/api/v1/auth/org-sso-options')
+      .then((body) => setOrgSsoOptions(body.options ?? []))
+      .catch(() => setOrgSsoOptions([]));
+  }, [providers?.org_oidc, isRegister, authPanel]);
 
   useEffect(() => {
     if (!providers?.org_oidc || isRegister || authPanel === 'magic') {
@@ -174,14 +194,12 @@ export function AuthFormCard({ providers }: AuthFormCardProps) {
   const showMagicLink = !isRegister && !isMagicPanel && providers?.magic_link === true;
   const showGithub = !isRegister && providers?.github === true;
   const showGoogle = !isRegister && providers?.google === true;
-  const orgSsoHref =
-    orgSsoHint?.login_url ||
-    (orgSsoHint?.org_slug ? authV1Path(`oidc/${orgSsoHint.org_slug}/start`) : null);
   const ssoRequired =
     !isRegister &&
     orgSsoHint?.available === true &&
     orgSsoHint.password_login_allowed === false;
-  const showOrgSso = !isMagicPanel && !isRegister && Boolean(orgSsoHref);
+  const showOrgSso =
+    !isMagicPanel && !isRegister && (orgSsoOptions.length > 0 || orgSsoHint?.available === true);
   const showOAuth = !isMagicPanel && (showGithub || showGoogle || showOrgSso);
   const showPasswordLogin = !isMagicPanel && !ssoRequired;
   const showMagicEntry = showMagicLink && !ssoRequired;
@@ -393,21 +411,37 @@ export function AuthFormCard({ providers }: AuthFormCardProps) {
           <div className="mx-6 mt-1 space-y-2 pb-2">
           <p className="text-center text-xs text-muted-foreground">{t.login.orContinueWith}</p>
           <div className="grid grid-cols-1 gap-2">
-            {showOrgSso && orgSsoHref ? (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                asChild
-                data-testid="login-org-sso"
-              >
-                <a href={orgSsoHref}>
-                  {fmt(t.login.continueOrgSso, {
-                    org: orgSsoHint?.org_name || orgSsoHint?.org_slug || 'Organization',
-                  })}
-                </a>
-              </Button>
-            ) : null}
+            {showOrgSso
+              ? (orgSsoOptions.length > 0
+                  ? orgSsoOptions
+                  : orgSsoHint?.available
+                    ? [
+                        {
+                          org_slug: orgSsoHint.org_slug ?? '',
+                          org_name: orgSsoHint.org_name ?? orgSsoHint.org_slug ?? 'Organization',
+                          login_url:
+                            orgSsoHint.login_url ??
+                            authV1Path(`oidc/${orgSsoHint.org_slug ?? ''}/start`),
+                        },
+                      ]
+                    : []
+                ).map((opt) => (
+                  <Button
+                    key={opt.org_slug}
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    asChild
+                    data-testid="login-org-sso"
+                  >
+                    <a href={opt.login_url}>
+                      {fmt(t.login.continueOrgSso, {
+                        org: opt.org_name || opt.org_slug || 'Organization',
+                      })}
+                    </a>
+                  </Button>
+                ))
+              : null}
             <div
               className={
                 showGithub && showGoogle ? 'grid grid-cols-2 gap-2' : 'grid grid-cols-1 gap-2'

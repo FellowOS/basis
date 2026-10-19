@@ -13,6 +13,12 @@ Optional:
   --list-review      print open review queue counts by kind
   --writeback ENTITY --set tier=gold   propose connector writeback (review queue)
   --approve-writeback   approve first open connector_writeback review item
+
+Live writeback loop (Postgres `public.customers`, writable column `tier` only):
+
+  uv run python scripts/bocp_pg_smoke.py --kb-id … --mapping-id … --skip-sync \\
+    --writeback ent_… --set tier=platinum --approve-writeback
+  uv run python scripts/bocp_pg_smoke.py --kb-id … --mapping-id …   # re-sync → unchanged
 """
 
 from __future__ import annotations

@@ -135,10 +135,10 @@
 | F-CHAT-01–03 | Web KB Playground | `replaced` | — | 控制台问答已移除；智能体用 MCP（§0.1 **F-CHAT-04–05**） |
 | F-CHAT-06 | Playground 客户端控制 | `replaced` | — | 随 Playground 移除 |
 | F-ALT-01–02 | Alert episodes + SSE refetch | `done` | P1 | SSE + episode 分组 + **`?episode=` 高亮**；Processing/Review → 告警 episode 互链 + 告警页 **复制 episode 链接**；E2E `governance.spec.ts` / `processing-job.spec.ts` |
-| F-ACC-07 | Enterprise SSO / org | `partial` | P1 | OIDC + **OrgSsoPanel**（`auth_policy`）；登录 **`org-sso-hint`** + 强制 SSO；E2E `org-sso-login.spec.ts`；剩余：SAML、真实 IdP 联调 |
+| F-ACC-07 | Enterprise SSO / org | `partial` | P1 | OIDC + **OrgSsoPanel**（`auth_policy`）；登录 **`org-sso-options`** / **`org-sso-hint`** + 强制 SSO；E2E `org-sso-login.spec.ts`；本地 IdP：[Logto](../docker/logto/README.md)；剩余：**SAML**、生产 IdP 签收 |
 | F-IO-01 | Graph import/export | `partial` | — | Import via review；export 面不全 |
 | — | Markdown node resources persistence | `open` | P2 | Policy TBD |
-| — | Desktop profile（ADR 0004） | `partial` | P2 | Phase A：`BASIS_DEPLOYMENT_PROFILE=desktop` + `resolve_actor` + `desktop-session` + `web` `dev:desktop`；`tests/test_desktop_profile.py`；剩余：UI 裁剪、Electron |
+| — | Desktop profile（ADR 0004） | `deferred` | P2 | `main` 上 Phase A 可忽略（不设 `BASIS_DEPLOYMENT_PROFILE=desktop`）；Electron / Phase B+ 暂缓，优先 Server 能力 |
 | M5-02 | semantica package entry for Graph workspace | `not` | P2 | Still vendored `web/src/explorer` |
 | M4-04 | Cross-instance WS (Redis pub/sub) | `deferred` | P1 | Single worker or sticky sessions |
 
@@ -154,6 +154,7 @@
 | **Phase 3**：证据账本双向同步引擎（`connector_sync.py` + `entity_sync_outbox`） | `done` | `basis/domain/kb/connector_sync.py`（入向 `row_hash` 四路分流 `ADDED`/`UNCHANGED`/`UPDATED`/`DELETED`、外键关系解析、出向 `propose_entity_writeback` → `review_items` 门禁 → `approve_and_execute_outbox` 写回与防回环 `row_hash` 重算）；单测 `tests/test_bocp_phase3.py` |
 | **Phase 4**：OpenAPI / 唯一 Python MCP 暴露 + 独立「连接器 (`/kbs/:kbId/connectors`)」前端工作台 | `done` | `basis/transport/http/routes/v1/kb_connectors.py`（12 个 OpenAPI v1 端点）、`basis/integration/ops_connectors.py`（MCP：`list_connector_catalog`、`describe_connector_service`、`list_connector_connections`、`list_connector_table_mappings`、`sync_connector_table_mapping`、`propose_entity_writeback`、`execute_connector_tool`）、`kb_review.py` 写回审批闭环；前端连接器工作台 + Review Diff；单测 `tests/test_bocp_phase4_api.py`、`tests/test_ops_connectors.py` |
 | **Phase 4+**：平台双层 Provider 治理 + 管理台 | `done` | 迁移 `0012_platform_connector_allowlist.sql`（PG v13）+ `settings.connector_allowed_providers`；`GET|PUT /api/v1/settings/connectors`、`GET …/catalog`、`GET …/catalog/stats`、`GET …/catalog/{service}`、`POST …/validate`；KB `connectors/policy` 返回 `platform_allowed_providers` / `effective_allowed_providers`；控制台 `/admin/connectors`（侧栏 **管理** 导航 + 面包屑、目录浏览、分类统计、JSON/CSV 导入导出、Manifest 详情）；KB 侧栏独立 **连接器** 分区四路由（`catalog` / `mappings` / `policy` / `runs`）；映射 `poll_interval_minutes` + 与 `BASIS_HTTP_POLL_TICK_SECONDS` 共用的后台入向同步调度（`connector_poll_scheduler.py`）；单测 `tests/test_connector_allowlist.py`、`tests/test_connector_poll_scheduler.py`、`web/e2e/connectors.spec.ts` |
+| **Live PG 验收** | `done` | `scripts/bocp_pg_smoke.py`：`public.customers` 入向 sync + `tier` 写回（`propose` → `connector_writeback` approve → outbox `synced` → 再 sync `unchanged`）；实体 `ent_7639…` / `ent_ee36…` |
 
 ---
 
@@ -162,7 +163,8 @@
 | Phase | Focus | Checklist rows |
 | --- | --- | --- |
 | **Now** | Operational KB loop | §3.2 F-TIM（F-SRCH-03 done）；§3.1 治理/本体（F-ONT-05、F-GOV-07） |
-| **Next** | Ops + scale | §3.2 F-GOV-04、distance-matrix；§3.1 F-ACC-07 SSO |
+| **Next** | Ops + scale | §3.1 **F-ACC-07**（Logto OIDC 签收）；§3.2 F-GOV-04、distance-matrix |
+| **Deferred** | Desktop | ADR 0004 Phase B+（Electron）；不设 desktop env 即可 |
 | **Then** | Graph scale + I/O | §3.2 distance-matrix、F-IO-01；M5-02 Explorer 打包 |
 | **On demand** | Release engineering | §3.1 F-DIFF-01 工作室；§3.2 distance-matrix |
 | **Enterprise option** | Basis Connector (BOCP) + operational ontology | §3.3 Phase 1–4（`F-LAKE-01–03` / `F-OPS-*`）；见 [adoption §6–§7](architecture/helix-foundry-adoption.md) |

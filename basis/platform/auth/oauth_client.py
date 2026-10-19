@@ -3,11 +3,10 @@
 from __future__ import annotations
 
 from typing import Any
-from urllib.parse import urljoin
+from urllib.parse import urlencode, urljoin
 
 import httpx
 from authlib.integrations.httpx_client import AsyncOAuth2Client
-from authlib.oauth2.client import OAuth2Client
 
 
 async def fetch_oidc_metadata(issuer: str) -> dict[str, Any]:
@@ -69,13 +68,18 @@ def build_oidc_authorize_url(
     scope: str,
     state: str,
 ) -> str:
-    client = OAuth2Client(client_id=client_id, scope=scope)
-    uri, _ = client.create_authorization_url(
-        metadata["authorization_endpoint"],
-        redirect_uri=redirect_uri,
-        state=state,
+    endpoint = metadata["authorization_endpoint"]
+    query = urlencode(
+        {
+            "client_id": client_id,
+            "redirect_uri": redirect_uri,
+            "response_type": "code",
+            "scope": scope,
+            "state": state,
+        }
     )
-    return uri
+    separator = "&" if "?" in endpoint else "?"
+    return f"{endpoint}{separator}{query}"
 
 
 async def fetch_github_user(access_token: str) -> dict[str, Any]:

@@ -1,0 +1,28 @@
+# Logto OSS for local Basis org OIDC (F-ACC-07). Demo compose upstream:
+# https://github.com/logto-io/logto/blob/master/docker-compose.yml
+services:
+  app:
+    depends_on:
+      postgres:
+        condition: service_healthy
+    image: svhd/logto:${TAG-latest}
+    entrypoint: ["sh", "-c", "npm run cli db seed -- --swe && npm start"]
+    ports:
+      - ${LOGTO_PORT_API:-3001}:3001
+      - ${LOGTO_PORT_ADMIN:-3002}:3002
+    environment:
+      - TRUST_PROXY_HEADER=1
+      - DB_URL=postgres://postgres:${LOGTO_PG_PASSWORD:-p0stgr3s}@postgres:5432/logto
+      - ENDPOINT=${LOGTO_ENDPOINT:-http://localhost:3001}
+      - ADMIN_ENDPOINT=${LOGTO_ADMIN_ENDPOINT:-http://localhost:3002}
+  postgres:
+    image: postgres:17-alpine
+    user: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${LOGTO_PG_PASSWORD:-p0stgr3s}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 5s
+      timeout: 5s
+      retries: 5

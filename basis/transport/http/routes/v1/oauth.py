@@ -26,6 +26,7 @@ from basis.platform.auth.oauth_client import (
 from basis.platform.auth.settings import AuthSettings, load_auth_settings_from_store
 from basis.platform.auth.org_login_policy import assert_local_login_allowed
 from basis.platform.auth.state import new_nonce, sign_oauth_state, verify_oauth_state
+from basis.platform.auth.http_paths import auth_v1_path
 
 router = APIRouter(tags=["auth"])
 
@@ -53,6 +54,34 @@ def _redirect_with_token(settings: AuthSettings, token: str) -> RedirectResponse
     return RedirectResponse(url=f"{settings.web_origin}/?{query}", status_code=302)
 
 
+@router.get("/org-sso-options")
+async def org_sso_options(
+    request: Request,
+    store: AdminStore = Depends(get_store),
+) -> dict[str, Any]:
+    """
+Org Sso Options. List organizations with enabled OIDC for login-page SSO buttons (no email required).
+    """
+    settings = _auth_settings(request)
+    public = settings.public_url.rstrip("/")
+    options: list[dict[str, Any]] = []
+    for org in store.list_enabled_org_sso_public():
+        if store.get_org_oidc_config(org.id) is None:
+            continue
+        login_path = auth_v1_path(f"oidc/{org.slug}/start")
+        options.append(
+            {
+                "organization_id": org.id,
+                "org_slug": org.slug,
+                "org_name": org.name,
+                "auth_policy": org.auth_policy,
+                "login_path": login_path,
+                "login_url": f"{public}{login_path}",
+            }
+        )
+    return {"options": options}
+
+
 @router.get("/org-sso-hint")
 async def org_sso_hint(
     request: Request,
@@ -66,7 +95,7 @@ Org Sso Hint. Resolve enabled org OIDC login by email domain (F-ACC-07).
     if org is None or store.get_org_oidc_config(org.id) is None:
         return {"available": False}
     settings = _auth_settings(request)
-    login_path = f"/api/auth/oidc/{org.slug}/start"
+    login_path = auth_v1_path(f"oidc/{org.slug}/start")
     public = settings.public_url.rstrip("/")
     policy = org.auth_policy
     return {
@@ -111,7 +140,7 @@ Github Start. Authentication and session bootstrap. Public bootstrap; optional s
     params = urllib.parse.urlencode(
         {
             "client_id": settings.github_client_id,
-            "redirect_uri": settings.oauth_callback_url("/api/auth/oauth/github/callback"),
+            "redirect_uri": settings.oauth_callback_url(auth_v1_path("oauth/github/callback")),
             "scope": "read:user user:email",
             "state": state,
         }
@@ -136,7 +165,7 @@ Github Callback. Authentication and session bootstrap. Public bootstrap; optiona
         verify_oauth_state(settings.state_secret, state)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail={"code": "bad_state", "message": "无效 state"}) from exc
-    redirect_uri = settings.oauth_callback_url("/api/auth/oauth/github/callback")
+    redirect_uri = settings.oauth_callback_url(auth_v1_path("oauth/github/callback"))
     token_data = await exchange_github_code(
         client_id=settings.github_client_id or "",
         client_secret=settings.github_client_secret or "",
@@ -174,7 +203,7 @@ Google Start. Authentication and session bootstrap. Public bootstrap; optional s
     params = urllib.parse.urlencode(
         {
             "client_id": settings.google_client_id,
-            "redirect_uri": settings.oauth_callback_url("/api/auth/oauth/google/callback"),
+            "redirect_uri": settings.oauth_callback_url(auth_v1_path("oauth/google/callback")),
             "response_type": "code",
             "scope": "openid email profile",
             "state": state,
@@ -202,7 +231,7 @@ Google Callback. Authentication and session bootstrap. Public bootstrap; optiona
         verify_oauth_state(settings.state_secret, state)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail={"code": "bad_state", "message": "无效 state"}) from exc
-    redirect_uri = settings.oauth_callback_url("/api/auth/oauth/google/callback")
+    redirect_uri = settings.oauth_callback_url(auth_v1_path("oauth/google/callback"))
     token_data = await exchange_google_code(
         client_id=settings.google_client_id or "",
         client_secret=settings.google_client_secret or "",
@@ -246,7 +275,7 @@ Org Oidc Start. Authentication and session bootstrap. Public bootstrap; optional
         settings.state_secret,
         {"provider": "oidc", "org_id": org.id, "nonce": new_nonce()},
     )
-    redirect_uri = settings.oauth_callback_url("/api/auth/oidc/callback")
+    redirect_uri = settings.oauth_callback_url(auth_v1_path("oidc/callback"))
     url = build_oidc_authorize_url(
         metadata,
         client_id=cfg["client_id"],
@@ -279,7 +308,7 @@ Org Oidc Callback. Authentication and session bootstrap. Public bootstrap; optio
     if cfg is None:
         raise HTTPException(status_code=404, detail={"code": "not_configured", "message": "组织 SSO 未配置"})
     metadata = await fetch_oidc_metadata(cfg["issuer"])
-    redirect_uri = settings.oauth_callback_url("/api/auth/oidc/callback")
+    redirect_uri = settings.oauth_callback_url(auth_v1_path("oidc/callback"))
     token_data = await exchange_oidc_code(
         metadata,
         client_id=cfg["client_id"],
@@ -332,7 +361,7 @@ Magic Link Request. Authentication and session bootstrap. Public bootstrap; opti
     org_id = org.id if org else None
     token = store.create_magic_link(body.email, organization_id=org_id)
     q = urllib.parse.urlencode({"token": token})
-    link = f"{settings.public_url}/api/auth/magic-link/verify?{q}"
+    link = f"{settings.oauth_callback_url(auth_v1_path('magic-link/verify'))}?{q}"
     deliver_magic_link(settings, email=body.email, link=link)
     return {"ok": True}
 

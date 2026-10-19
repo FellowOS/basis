@@ -53,4 +53,4 @@ docker compose -f compose.yml up -d --build
 | API | :8090 直连 | 仅内网 `api:8090` |
 | 浏览器同源 | 5173 + Hono `/api` 反代 | 8080 + Hono `/api` 反代 |
 
-Authentik 等 IdP 本地栈见 [../authentik/README.md](../authentik/README.md)。
+本地 OIDC IdP（Logto）见 [../logto/README.md](../logto/README.md)。
