@@ -1,8 +1,10 @@
 from pathlib import Path
+from unittest.mock import AsyncMock, patch
 
 from fastapi.testclient import TestClient
 
 from basis.infra.config import Settings
+from basis.platform.auth.oauth_client import build_oidc_authorize_url
 from basis.platform.admin.store import AdminStore
 from basis.transport.http.app import create_app
 def _store(tmp_path: Path) -> AdminStore:
@@ -69,6 +71,59 @@ def test_org_sso_options_lists_enabled_orgs(tmp_path: Path) -> None:
     assert len(body["options"]) == 1
     assert body["options"][0]["org_slug"]
     assert "/api/v1/auth/oidc/" in body["options"][0]["login_path"]
+
+
+def test_build_oidc_authorize_url_encodes_query() -> None:
+    url = build_oidc_authorize_url(
+        {"authorization_endpoint": "https://idp.example.com/authorize"},
+        client_id="cid",
+        redirect_uri="http://127.0.0.1:8090/api/v1/auth/oidc/callback",
+        scope="openid email profile",
+        state="signed-state",
+    )
+    assert url.startswith("https://idp.example.com/authorize?")
+    assert "client_id=cid" in url
+    assert "response_type=code" in url
+    assert "state=signed-state" in url
+
+
+def test_org_oidc_start_redirects_to_idp(tmp_path: Path) -> None:
+    admin = _store(tmp_path)
+    user, _ = admin.register("start@example.com", "password1", "Start")
+    kb = admin.create_kb(user, "Start Co", None, "restricted")
+    org_id = kb.organization_id
+    assert org_id
+    admin.upsert_org_oidc_config(
+        user,
+        org_id,
+        issuer="https://idp.example.com/",
+        client_id="cid",
+        client_secret="secret",
+        email_domains=["startco.com"],
+        enabled=True,
+    )
+    org = admin.get_org_by_id(org_id)
+    assert org is not None
+    slug = org.slug
+    admin.close()
+
+    client = TestClient(create_app(Settings(data_dir=tmp_path)))
+    metadata = {
+        "authorization_endpoint": "https://idp.example.com/authorize",
+        "token_endpoint": "https://idp.example.com/token",
+    }
+    with patch(
+        "basis.transport.http.routes.v1.oauth.fetch_oidc_metadata",
+        new_callable=AsyncMock,
+        return_value=metadata,
+    ):
+        res = client.get(f"/api/v1/auth/oidc/{slug}/start", follow_redirects=False)
+    assert res.status_code in (302, 307)
+    location = res.headers["location"]
+    assert location.startswith("https://idp.example.com/authorize")
+    assert "client_id=cid" in location
+    assert "redirect_uri=" in location
+    assert "state=" in location
 
 
 def test_org_sso_hint_by_email_domain(tmp_path: Path) -> None:

@@ -62,6 +62,12 @@ test('org SSO hint and login UI follow auth_policy', async ({ page }) => {
   await page.evaluate(() => localStorage.removeItem('basis_token'));
   await page.goto('/?mode=login');
   await expect(page.getByTestId('login-org-sso')).toBeVisible({ timeout: 30_000 });
+
+  const options = await page.request.get(`${api}/api/v1/auth/org-sso-options`);
+  expect(options.ok()).toBeTruthy();
+  const optionsBody = (await options.json()) as { options?: Array<{ org_slug: string }> };
+  expect(optionsBody.options?.length).toBeGreaterThan(0);
+
   await page.getByLabel(/Email|邮箱/i).fill(email);
   await expect(page.locator('form button[type="submit"]')).toBeVisible();
 
