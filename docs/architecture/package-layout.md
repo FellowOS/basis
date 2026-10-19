@@ -35,6 +35,10 @@ KB canonical SQL lives under `basis/domain/kb/persistence/` (caller often holds 
 3. **Transport** may import all lower layers.
 4. Prefer injecting callables into domain over importing HTTP `deps` (legacy cleanup in progress).
 
+## Platform admin store
+
+Canonical admin SQL lives under `basis/platform/admin/persistence/` (caller holds `AdminStore._lock`; persistence functions take raw `conn` only). `AdminStore` (`store.py`) is a thin façade: DB handle, internal helpers (`_setting`, `_put_setting`, `_audit`, `_insert_kb`, …), and `setattr` delegates to `basis/platform/admin/access/*` (auth, users, api_tokens, knowledge_bases, models, settings, audit, organizations, desktop). Row DTOs and mappers: `admin_types.py`.
+
 ## Tooling
 
 - SQL migrations ship with `basis.platform.admin` (`pyproject.toml` `package-data`).
