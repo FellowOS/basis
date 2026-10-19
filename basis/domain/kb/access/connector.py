@@ -30,7 +30,7 @@ class ConnectorKbAccess:
         return ConnectorRuntime(self._store)
 
     def connector_sync_service(self):
-        from basis.domain.kb.connector_sync import ConnectorLedgerSyncService
+        from basis.domain.kb.services.connector_sync import ConnectorLedgerSyncService
 
         return ConnectorLedgerSyncService(self._store, self.connector_runtime())
 

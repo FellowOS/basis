@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any
 
-from basis.domain.kb.connector_sync import SourceTableMappingRecord
+from basis.domain.kb.services.connector_sync import SourceTableMappingRecord
 from basis.domain.kb.services.ingest_source_service import is_ingest_poll_due
 
 

@@ -39,9 +39,28 @@ KB canonical SQL lives under `basis/domain/kb/persistence/` (caller often holds 
 | `services/` | Workflows, audit side-effects (`graph_audit`), KB alerts (`kb_alerts_emit`), governor/review |
 | `schedulers/` | `*_poll_scheduler.py` ticks and `*_poll_due.py` schedule predicates |
 | `search/` | Hybrid chunk search (`ChunkSearchService`), embeddings, vector indexes, `search_config` |
-| `connector_sync.py` | Ledger-side BOCP sync (engine lives in `domain/connectors/`) |
+| `services/connector_sync.py` | Ledger-side BOCP sync orchestration (`ConnectorLedgerSyncService`) |
+| `connector_sync.py` | Re-export of `services.connector_sync` (stable import path) |
+| `structured_models.py` | BOCP mapping / outbox DTOs shared with connector services |
+| `governance_config.py` | KB governor config types + validation (SQL in `persistence/governance_config`) |
 
-Delete shims at package root when all callers use `KnowledgeStore` methods.
+### `basis/domain/explorer` layout
+
+Server-side adapters for vendored `web/src/explorer` — **not** a second ledger. Graph writes still go through Review / ledger APIs.
+
+| Module | Role |
+| --- | --- |
+| `registry.py` | Per-KB Explorer session registry (`ExplorerSessionRegistry`, `KbExplorerRuntime`) |
+| `session_guard.py` | AuthZ helpers for Explorer HTTP/WS |
+| `graph_read.py` | Read paths over projected graph + ledger pointers |
+| `graph_diff.py` | Diff payloads for `GET graph/diff` |
+| `graph_staging.py` | **Stateless** staging payload builders (persist via `KnowledgeStore` + `kb/persistence/graph_staging`) |
+| `ontology_kb_hub.py` | Ontology workspace ↔ KB hub orchestration |
+| `kb_scoped_ontology_state.py` | KB-scoped ontology editor state |
+| `forward_reasoning.py` | Explorer-triggered reasoning helpers |
+| `governance_decision.py` | Governance trip / proposal side effects (alerts, review hooks) |
+
+See [explorer.md](explorer.md), [ADR 0007](0007-graph-activity-and-canvas-merge.md) for activity feed / canvas merge (phased).
 
 ### Other domain packages
 
@@ -57,7 +76,7 @@ Delete shims at package root when all callers use `KnowledgeStore` methods.
 | Layer | Path | Responsibility |
 | --- | --- | --- |
 | **Engine** | `domain/connectors/` | Manifest schema, `ConnectorRuntime`, SQL/REST adapters, vault crypto (`auth_vault`), platform allowlist policy reads |
-| **Ledger** | `domain/kb/connector_sync.py` + `kb/persistence/connector_*.py` | Map streams ↔ `entities` / `statements` / outbox; row-hash sync; writeback via review; SQL on canonical DB |
+| **Ledger** | `domain/kb/services/connector_sync.py` + `kb/persistence/connector_*.py` | Map streams ↔ `entities` / `statements` / outbox; row-hash sync; writeback via review; SQL on canonical DB |
 | **Bridge** | `domain/connectors/canonical_db.py` | `LockedCanonicalConn` — run ledger SQL under an existing `KnowledgeStore` lock |
 
 HTTP/MCP entry: routes and `integration/ops_connectors.py` compose engine + `KnowledgeStore` connector access. Do not add canonical connector table SQL under `domain/connectors/`.

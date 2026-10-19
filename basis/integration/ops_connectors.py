@@ -7,7 +7,7 @@ from typing import Any
 
 from basis.domain.connectors import get_connector_catalog
 from basis.domain.kb.schedulers.connector_mapping_poll_due import poll_interval_minutes_for_mapping
-from basis.domain.kb.connector_sync import ConnectorLedgerSyncService
+from basis.domain.kb.services.connector_sync import ConnectorLedgerSyncService
 from fastapi import HTTPException
 
 from basis.integration.context import KbCoreContext

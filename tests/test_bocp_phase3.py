@@ -9,7 +9,7 @@ import pytest
 from sqlalchemy import create_engine, text
 
 from basis.domain.connectors import ConnectorRuntime
-from basis.domain.kb.connector_sync import ConnectorLedgerSyncService
+from basis.domain.kb.services.connector_sync import ConnectorLedgerSyncService
 from basis.domain.kb.structured_models import ColumnMappingSpec
 from basis.platform.admin.migrations import run_migrations
 
