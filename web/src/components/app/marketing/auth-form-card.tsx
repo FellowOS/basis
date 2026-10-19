@@ -16,6 +16,7 @@ import { Input } from '@/components/ui/input.js';
 import { PublicIcon } from '@/components/app/shared/primitives/public-icon.js';
 import { useI18n } from '@/i18n/context.js';
 import type { Locale } from '@/i18n/locale.js';
+import { fmt } from '@/i18n/format.js';
 import { formatUserFacingApiError } from '@/lib/api-error-message.js';
 import { authV1Path } from '@/lib/api-v1-path.js';
 import { useBasisSession } from '@/lib/basis-session.js';
@@ -30,6 +31,15 @@ export type AuthProviders = {
   github: boolean;
   google: boolean;
   magic_link: boolean;
+  org_oidc?: boolean;
+};
+
+type OrgSsoHint = {
+  available: boolean;
+  org_slug?: string;
+  org_name?: string;
+  login_url?: string;
+  login_path?: string;
 };
 
 export async function loadAuthProviders(): Promise<AuthProviders> {
@@ -75,16 +85,41 @@ export function AuthFormCard({ providers }: AuthFormCardProps) {
   const [authPanel, setAuthPanel] = useState<AuthPanel>('password');
   const [magicBusy, setMagicBusy] = useState(false);
   const [magicNotice, setMagicNotice] = useState<string | null>(null);
+  const [orgSsoHint, setOrgSsoHint] = useState<OrgSsoHint | null>(null);
   const resolver = useMemo(() => zodResolver(authSchemaForMode(mode)), [mode]);
+  const isRegister = mode === 'register';
 
   const form = useForm<AuthFormValues>({
     resolver,
     defaultValues: { email: '', password: '', displayName: '' },
   });
+  const emailValue = form.watch('email');
 
   useEffect(() => {
     setAuthPanel('password');
   }, [mode]);
+
+  useEffect(() => {
+    if (!providers?.org_oidc || isRegister || authPanel === 'magic') {
+      setOrgSsoHint(null);
+      return;
+    }
+    const trimmed = emailValue.trim();
+    if (!trimmed.includes('@')) {
+      setOrgSsoHint(null);
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      void publicOpenApiGET<OrgSsoHint>(
+        `/api/v1/auth/org-sso-hint?email=${encodeURIComponent(trimmed)}`,
+      )
+        .then((hint) => {
+          setOrgSsoHint(hint.available ? hint : null);
+        })
+        .catch(() => setOrgSsoHint(null));
+    }, 400);
+    return () => window.clearTimeout(timer);
+  }, [emailValue, providers?.org_oidc, isRegister, authPanel]);
 
   function switchMode(next: AuthMode) {
     setError(null);
@@ -133,12 +168,15 @@ export function AuthFormCard({ providers }: AuthFormCardProps) {
     }
   }
 
-  const isRegister = mode === 'register';
   const isMagicPanel = authPanel === 'magic' && !isRegister;
   const showMagicLink = !isRegister && !isMagicPanel && providers?.magic_link === true;
   const showGithub = !isRegister && providers?.github === true;
   const showGoogle = !isRegister && providers?.google === true;
-  const showOAuth = !isMagicPanel && (showGithub || showGoogle);
+  const orgSsoHref =
+    orgSsoHint?.login_url ||
+    (orgSsoHint?.org_slug ? authV1Path(`oidc/${orgSsoHint.org_slug}/start`) : null);
+  const showOrgSso = !isMagicPanel && !isRegister && Boolean(orgSsoHref);
+  const showOAuth = !isMagicPanel && (showGithub || showGoogle || showOrgSso);
 
   function openMagicPanel() {
     setError(null);
@@ -341,21 +379,38 @@ export function AuthFormCard({ providers }: AuthFormCardProps) {
         <div className="min-h-0 overflow-hidden">
           <div className="mx-6 mt-1 space-y-2 pb-2">
           <p className="text-center text-xs text-muted-foreground">{t.login.orContinueWith}</p>
-          <div
-            className={
-              showGithub && showGoogle ? 'grid grid-cols-2 gap-2' : 'grid grid-cols-1 gap-2'
-            }
-          >
-            {showGithub ? (
-              <Button type="button" variant="outline" size="sm" asChild>
-                <a href={authV1Path('oauth/github/start')}>{t.login.continueGithub}</a>
+          <div className="grid grid-cols-1 gap-2">
+            {showOrgSso && orgSsoHref ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                asChild
+                data-testid="login-org-sso"
+              >
+                <a href={orgSsoHref}>
+                  {fmt(t.login.continueOrgSso, {
+                    org: orgSsoHint?.org_name || orgSsoHint?.org_slug || 'Organization',
+                  })}
+                </a>
               </Button>
             ) : null}
-            {showGoogle ? (
-              <Button type="button" variant="outline" size="sm" asChild>
-                <a href={authV1Path('oauth/google/start')}>{t.login.continueGoogle}</a>
-              </Button>
-            ) : null}
+            <div
+              className={
+                showGithub && showGoogle ? 'grid grid-cols-2 gap-2' : 'grid grid-cols-1 gap-2'
+              }
+            >
+              {showGithub ? (
+                <Button type="button" variant="outline" size="sm" asChild>
+                  <a href={authV1Path('oauth/github/start')}>{t.login.continueGithub}</a>
+                </Button>
+              ) : null}
+              {showGoogle ? (
+                <Button type="button" variant="outline" size="sm" asChild>
+                  <a href={authV1Path('oauth/google/start')}>{t.login.continueGoogle}</a>
+                </Button>
+              ) : null}
+            </div>
           </div>
           </div>
         </div>

@@ -22,6 +22,7 @@ export const login = {
   orContinueWith: 'Or continue with',
   continueGithub: 'GitHub',
   continueGoogle: 'Google',
+  continueOrgSso: 'Sign in with {org} SSO',
   or: 'or',
   magicLinkTitle: 'Sign in with email',
   magicLinkSubtitle: 'We will email you a one-time sign-in link.',

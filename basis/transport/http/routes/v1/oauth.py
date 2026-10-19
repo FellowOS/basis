@@ -51,6 +51,31 @@ def _redirect_with_token(settings: AuthSettings, token: str) -> RedirectResponse
     return RedirectResponse(url=f"{settings.web_origin}/?{query}", status_code=302)
 
 
+@router.get("/org-sso-hint")
+async def org_sso_hint(
+    request: Request,
+    email: str = Query(..., min_length=3),
+    store: AdminStore = Depends(get_store),
+) -> dict[str, Any]:
+    """
+Org Sso Hint. Resolve enabled org OIDC login by email domain (F-ACC-07).
+    """
+    org = store.resolve_org_by_email_domain(email.strip())
+    if org is None or store.get_org_oidc_config(org.id) is None:
+        return {"available": False}
+    settings = _auth_settings(request)
+    login_path = f"/api/auth/oidc/{org.slug}/start"
+    public = settings.public_url.rstrip("/")
+    return {
+        "available": True,
+        "organization_id": org.id,
+        "org_slug": org.slug,
+        "org_name": org.name,
+        "login_path": login_path,
+        "login_url": f"{public}{login_path}",
+    }
+
+
 @router.get("/providers")
 async def auth_providers(request: Request) -> dict[str, Any]:
     """

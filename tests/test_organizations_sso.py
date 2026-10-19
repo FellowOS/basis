@@ -1,6 +1,10 @@
 from pathlib import Path
 
+from fastapi.testclient import TestClient
+
+from basis.infra.config import Settings
 from basis.platform.admin.store import AdminStore
+from basis.transport.http.app import create_app
 def _store(tmp_path: Path) -> AdminStore:
     return AdminStore(tmp_path / "basis.db")
 
@@ -39,6 +43,35 @@ def test_org_oidc_upsert_and_slug_login_path(tmp_path: Path) -> None:
     assert resolved is not None
     assert resolved.id == org_id
     admin.close()
+
+
+def test_org_sso_hint_by_email_domain(tmp_path: Path) -> None:
+    admin = _store(tmp_path)
+    user, _ = admin.register("hint@example.com", "password1", "Hint")
+    kb = admin.create_kb(user, "Hint Co", None, "restricted")
+    org_id = kb.organization_id
+    assert org_id
+    admin.upsert_org_oidc_config(
+        user,
+        org_id,
+        issuer="https://idp.example.com/",
+        client_id="cid",
+        client_secret="secret",
+        email_domains=["hintco.com"],
+    )
+    admin.close()
+
+    client = TestClient(create_app(Settings(data_dir=tmp_path)))
+    miss = client.get("/api/v1/auth/org-sso-hint", params={"email": "x@other.com"})
+    assert miss.status_code == 200
+    assert miss.json()["available"] is False
+
+    hit = client.get("/api/v1/auth/org-sso-hint", params={"email": "user@hintco.com"})
+    assert hit.status_code == 200
+    body = hit.json()
+    assert body["available"] is True
+    assert body["org_slug"]
+    assert "/api/auth/oidc/" in body["login_path"]
 
 
 def test_magic_link_login(tmp_path: Path) -> None:
