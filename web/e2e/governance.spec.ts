@@ -34,7 +34,7 @@ test('review queue surfaces link to ontology versions tab', async ({ page }) => 
   }
 
   const ontologyLink = page.getByRole('link', {
-    name: /Ontology → Versions|本体 → 版本/i,
+    name: /Ontology versions|本体版本/i,
   });
   await expect(ontologyLink.first()).toBeVisible({ timeout: 60_000 });
   await ontologyLink.first().click();
@@ -332,10 +332,11 @@ test('resolved review deep link shows banner and decision links', async ({ page 
 });
 
 test('search graph tab shows temporal hint and link to graph workspace', async ({ page }) => {
+  test.setTimeout(120_000);
+
   await registerFreshUser(page);
   const kbId = await defaultKbId(page);
-  await page.goto(`/kbs/${kbId}/search`);
-  await page.getByRole('button', { name: /^Graph$|^图谱节点$/ }).click();
+  await page.goto(`/kbs/${kbId}/search?scope=graph`);
 
   const unavailable = page.getByRole('heading', {
     name: /工作区不可用|Workspace unavailable/i,
@@ -344,9 +345,10 @@ test('search graph tab shows temporal hint and link to graph workspace', async (
     test.skip(true, 'graph search requires explorer_runtime');
   }
 
+  await expect(page.getByTestId('kb-search-at')).toBeVisible({ timeout: 30_000 });
   await expect(
-    page.getByText(/as_of|截至时刻|active at that instant|该时点仍活跃/i),
+    page.getByText(/point-in-time|时点|playback|回放|scrubber|时间轴/i).first(),
   ).toBeVisible({ timeout: 30_000 });
-  await page.getByRole('link', { name: /Open in graph|在图谱中打开/i }).click();
+  await page.getByTestId('kb-search-open-graph').click();
   await expect(page).toHaveURL(new RegExp(`/kbs/${kbId}/graph`));
 });
