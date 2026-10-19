@@ -21,9 +21,16 @@
 - When enabled, python3-saml sets `security.authnRequestsSigned` and embeds SP cert/key in metadata/login.
 - Private key is stored server-side (same trust model as OIDC `client_secret`); never returned on `GET`.
 
+## Single logout (Phase C)
+
+- Columns `idp_slo_url`, `slo_enabled` on `org_saml_configs`.
+- **SP SLO URL** (shared): `GET|POST /api/v1/auth/saml/slo` (Redirect/POST bindings).
+- **SP-initiated logout:** `GET /api/v1/auth/saml/{org_slug}/logout?name_id=…&session_index=…` → IdP → return to `/saml/slo` with signed `RelayState` (`org_id`).
+- SP metadata includes `singleLogoutService` when SLO is enabled and IdP SLO URL is set.
+
 ## Out of scope (still)
 
-- IdP-initiated SSO, SLO, multiple SAML IdPs per org, automatic metadata fetch from IdP URL.
+- IdP-initiated SSO/login, IdP-initiated SLO without RelayState, multiple SAML IdPs per org, automatic metadata fetch from IdP URL.
 
 ## Operations
 

@@ -13,6 +13,7 @@ export function platformAuthCallbacks(publicBase: string): Record<string, string
     google: `${base}${authV1Path('oauth/google/callback')}`,
     org_oidc: `${base}${authV1Path('oidc/callback')}`,
     org_saml_acs: `${base}${authV1Path('saml/acs')}`,
+    org_saml_slo: `${base}${authV1Path('saml/slo')}`,
   };
 }
 

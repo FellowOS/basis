@@ -428,6 +428,50 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/auth/saml/slo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Org Saml Slo Get
+         * @description Org Saml Slo. SAML single logout response (HTTP-Redirect, F-ACC-07).
+         */
+        get: operations["org_saml_slo_get_api_v1_auth_saml_slo_get"];
+        put?: never;
+        /**
+         * Org Saml Slo Post
+         * @description Org Saml Slo. SAML single logout response (HTTP-POST, F-ACC-07).
+         */
+        post: operations["org_saml_slo_post_api_v1_auth_saml_slo_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/saml/{org_slug}/logout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Org Saml Logout Start
+         * @description Org Saml Logout Start. SP-initiated SAML single logout (F-ACC-07).
+         */
+        get: operations["org_saml_logout_start_api_v1_auth_saml__org_slug__logout_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/saml/{org_slug}/metadata": {
         parameters: {
             query?: never;
@@ -4113,6 +4157,24 @@ export interface components {
              */
             RelayState: string;
         };
+        /** Body_org_saml_slo_post_api_v1_auth_saml_slo_post */
+        Body_org_saml_slo_post_api_v1_auth_saml_slo_post: {
+            /**
+             * Relaystate
+             * @default
+             */
+            RelayState: string;
+            /**
+             * Samlresponse
+             * @default
+             */
+            SAMLResponse: string;
+            /**
+             * Samlrequest
+             * @default
+             */
+            SAMLRequest: string;
+        };
         /** Body_propose_graph_import_api_v1_kbs__kb_id__review_items_graph_import_post */
         Body_propose_graph_import_api_v1_kbs__kb_id__review_items_graph_import_post: {
             /** File */
@@ -4700,6 +4762,16 @@ export interface components {
              * @default
              */
             sp_private_key: string;
+            /**
+             * Idp Slo Url
+             * @default
+             */
+            idp_slo_url: string;
+            /**
+             * Slo Enabled
+             * @default false
+             */
+            slo_enabled: boolean;
         };
         /** PatchModelRequest */
         PatchModelRequest: {
@@ -5855,6 +5927,104 @@ export interface operations {
                 "application/x-www-form-urlencoded": components["schemas"]["Body_org_saml_acs_api_v1_auth_saml_acs_post"];
             };
         };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    org_saml_slo_get_api_v1_auth_saml_slo_get: {
+        parameters: {
+            query?: {
+                RelayState?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    org_saml_slo_post_api_v1_auth_saml_slo_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/x-www-form-urlencoded": components["schemas"]["Body_org_saml_slo_post_api_v1_auth_saml_slo_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    org_saml_logout_start_api_v1_auth_saml__org_slug__logout_get: {
+        parameters: {
+            query: {
+                name_id: string;
+                session_index?: string;
+            };
+            header?: never;
+            path: {
+                org_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
         responses: {
             /** @description Successful Response */
             200: {

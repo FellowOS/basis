@@ -177,6 +177,8 @@ class OrgSamlUpsert(BaseModel):
     authn_requests_signed: bool = False
     sp_x509_cert: str = ""
     sp_private_key: str = ""
+    idp_slo_url: str = ""
+    slo_enabled: bool = False
 
 
 @router.get("/{org_id}/saml")
@@ -200,8 +202,13 @@ Get Org Saml. Organization SAML 2.0 IdP settings (F-ACC-07). Requires session JW
     login_path = auth_v1_path(f"saml/{slug}/start")
     login_url = f"{settings.public_url.rstrip('/')}{login_path}"
     acs_url = settings.oauth_callback_url(auth_v1_path("saml/acs"))
+    slo_url = settings.oauth_callback_url(auth_v1_path("saml/slo"))
     metadata_path = auth_v1_path(f"saml/{slug}/metadata")
     metadata_url = f"{settings.public_url.rstrip('/')}{metadata_path}"
+    logout_path = auth_v1_path(f"saml/{slug}/logout")
+    logout_url_template = (
+        f"{settings.public_url.rstrip('/')}{logout_path}?name_id={{name_id}}&session_index={{session_index}}"
+    )
     cfg = store.get_org_saml_settings(org_id)
     can_edit = user.is_admin or (role is not None and role in ("owner", "admin"))
     if cfg is None:
@@ -212,7 +219,9 @@ Get Org Saml. Organization SAML 2.0 IdP settings (F-ACC-07). Requires session JW
             "login_path": login_path,
             "login_url": login_url,
             "acs_url": acs_url,
+            "slo_url": slo_url,
             "metadata_url": metadata_url,
+            "logout_url_template": logout_url_template,
         }
     return {
         "configured": True,
@@ -220,6 +229,8 @@ Get Org Saml. Organization SAML 2.0 IdP settings (F-ACC-07). Requires session JW
         "organization": org.public(),
         "idp_entity_id": cfg["idp_entity_id"],
         "idp_sso_url": cfg["idp_sso_url"],
+        "idp_slo_url": cfg.get("idp_slo_url"),
+        "slo_enabled": cfg.get("slo_enabled", False),
         "sp_entity_id": cfg.get("sp_entity_id"),
         "email_domains": cfg["email_domains"],
         "enabled": cfg["enabled"],
@@ -229,7 +240,9 @@ Get Org Saml. Organization SAML 2.0 IdP settings (F-ACC-07). Requires session JW
         "login_path": login_path,
         "login_url": login_url,
         "acs_url": acs_url,
+        "slo_url": slo_url,
         "metadata_url": metadata_url,
+        "logout_url_template": logout_url_template,
     }
 
 
@@ -256,6 +269,8 @@ Put Org Saml. Organization SAML 2.0 IdP settings (F-ACC-07). Requires session JW
         authn_requests_signed=body.authn_requests_signed,
         sp_x509_cert=body.sp_x509_cert,
         sp_private_key=body.sp_private_key,
+        idp_slo_url=body.idp_slo_url or None,
+        slo_enabled=body.slo_enabled,
     )
     org = store.get_org_by_id(org_id)
     slug = org.slug if org else org_id

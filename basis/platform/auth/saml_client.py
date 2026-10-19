@@ -37,6 +37,9 @@ def build_saml_settings(
     authn_requests_signed: bool = False,
     sp_x509_cert: str | None = None,
     sp_private_key: str | None = None,
+    slo_enabled: bool = False,
+    idp_slo_url: str | None = None,
+    sp_slo_url: str | None = None,
 ) -> dict[str, Any]:
     sp_block: dict[str, Any] = {
         "entityId": sp_entity_id,
@@ -59,18 +62,30 @@ def build_saml_settings(
         sp_block["x509cert"] = _normalize_sp_pem(sp_cert)
         sp_block["privateKey"] = _normalize_sp_pem(sp_key)
         security["authnRequestsSigned"] = True
+    idp_block: dict[str, Any] = {
+        "entityId": idp_entity_id,
+        "singleSignOnService": {
+            "url": idp_sso_url,
+            "binding": "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect",
+        },
+        "x509cert": _normalize_idp_cert(idp_x509_cert),
+    }
+    slo_url = (idp_slo_url or "").strip()
+    sp_logout = (sp_slo_url or "").strip()
+    if slo_enabled and slo_url and sp_logout:
+        idp_block["singleLogoutService"] = {
+            "url": slo_url,
+            "binding": "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect",
+        }
+        sp_block["singleLogoutService"] = {
+            "url": sp_logout,
+            "binding": "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect",
+        }
     return {
         "strict": True,
         "debug": False,
         "sp": sp_block,
-        "idp": {
-            "entityId": idp_entity_id,
-            "singleSignOnService": {
-                "url": idp_sso_url,
-                "binding": "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect",
-            },
-            "x509cert": _normalize_idp_cert(idp_x509_cert),
-        },
+        "idp": idp_block,
         "security": security,
     }
 
@@ -137,6 +152,46 @@ def saml_process_acs(
         "display_name": display_name,
         "issuer": settings["idp"]["entityId"],
     }
+
+
+def saml_logout_redirect_url(
+    request: Request,
+    settings: dict[str, Any],
+    *,
+    name_id: str,
+    session_index: str | None = None,
+    relay_state: str | None = None,
+) -> str | None:
+    _require_saml()
+    from onelogin.saml2.auth import OneLogin_Saml2_Auth
+
+    req = fastapi_request_to_saml(request)
+    auth = OneLogin_Saml2_Auth(req, settings)
+    return auth.logout(
+        name_id=name_id,
+        session_index=session_index or "",
+        return_to=relay_state,
+    )
+
+
+def saml_process_slo(
+    request: Request,
+    settings: dict[str, Any],
+    *,
+    post_data: dict[str, str] | None = None,
+) -> str | None:
+    """Process IdP logout response; returns redirect URL if any."""
+    _require_saml()
+    from onelogin.saml2.auth import OneLogin_Saml2_Auth
+
+    req = fastapi_request_to_saml(request, post_data=post_data)
+    auth = OneLogin_Saml2_Auth(req, settings)
+    redirect = auth.process_slo(delete_session_cb=lambda: None)
+    errors = auth.get_errors()
+    if errors:
+        reason = auth.get_last_error_reason()
+        raise ValueError(f"SAML SLO failed: {errors} ({reason})")
+    return redirect
 
 
 def saml_metadata_xml(settings: dict[str, Any]) -> str:

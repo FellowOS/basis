@@ -447,4 +447,28 @@ def run_postgres_migrations(engine: Engine) -> list[int]:
                 },
             )
             applied_now.append(16)
+
+        saml_slo_path = _migration_root() / "0016_org_saml_slo.sql"
+        saml_slo_source = saml_slo_path.read_text(encoding="utf-8")
+        saml_slo_checksum = _checksum(saml_slo_source)
+        if 17 in applied:
+            if applied[17] != saml_slo_checksum:
+                raise RuntimeError("PostgreSQL migration 17 checksum mismatch")
+        else:
+            for statement in _statements(_postgresize(saml_slo_source)):
+                conn.exec_driver_sql(statement)
+            conn.execute(
+                text(
+                    """
+                    INSERT INTO schema_migrations(version, name, checksum, applied_at)
+                    VALUES (17, :name, :checksum, :applied_at)
+                    """
+                ),
+                {
+                    "name": saml_slo_path.name,
+                    "checksum": saml_slo_checksum,
+                    "applied_at": datetime.now(timezone.utc).isoformat(),
+                },
+            )
+            applied_now.append(17)
     return applied_now

@@ -522,6 +522,8 @@ class OrganizationAuthMixin:
             "email_domains": parse_email_domains(row["email_domains_json"]),
             "enabled": bool(row["enabled"]),
             "authn_requests_signed": bool(row["authn_requests_signed"]) if "authn_requests_signed" in keys else False,
+            "idp_slo_url": row["idp_slo_url"] if "idp_slo_url" in keys else None,
+            "slo_enabled": bool(row["slo_enabled"]) if "slo_enabled" in keys else False,
         }
         sp_cert = row["sp_x509_cert"] if "sp_x509_cert" in keys else None
         sp_key = row["sp_private_key"] if "sp_private_key" in keys else None
@@ -588,6 +590,8 @@ class OrganizationAuthMixin:
         authn_requests_signed: bool = False,
         sp_x509_cert: str = "",
         sp_private_key: str = "",
+        idp_slo_url: str | None = None,
+        slo_enabled: bool = False,
     ) -> dict[str, Any]:
         self.require_org_admin(actor, org_id)
         if auth_policy is not None and auth_policy not in ORG_AUTH_POLICIES:
@@ -625,14 +629,20 @@ class OrganizationAuthMixin:
                     "missing_sp_signing_material",
                     "启用签名 AuthnRequest 需配置 SP 证书与私钥",
                 )
+            slo_url = (idp_slo_url or "").strip()
+            if existing_raw is not None and not slo_url and "idp_slo_url" in existing_raw.keys():
+                slo_url = (existing_raw["idp_slo_url"] or "").strip()
+            if slo_enabled and not slo_url.startswith("http"):
+                raise AdminError(422, "bad_idp_slo_url", "启用 SLO 需配置有效的 IdP SLO URL")
             self._conn.execute(
                 """
                 INSERT INTO org_saml_configs(
                     organization_id, idp_entity_id, idp_sso_url, idp_x509_cert,
                     sp_entity_id, email_domains_json, enabled,
                     authn_requests_signed, sp_x509_cert, sp_private_key,
+                    idp_slo_url, slo_enabled,
                     created_at, updated_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(organization_id) DO UPDATE SET
                     idp_entity_id = excluded.idp_entity_id,
                     idp_sso_url = excluded.idp_sso_url,
@@ -643,6 +653,8 @@ class OrganizationAuthMixin:
                     authn_requests_signed = excluded.authn_requests_signed,
                     sp_x509_cert = excluded.sp_x509_cert,
                     sp_private_key = excluded.sp_private_key,
+                    idp_slo_url = excluded.idp_slo_url,
+                    slo_enabled = excluded.slo_enabled,
                     updated_at = excluded.updated_at
                 """,
                 (
@@ -656,6 +668,8 @@ class OrganizationAuthMixin:
                     int(authn_requests_signed),
                     sp_cert or None,
                     sp_key or None,
+                    slo_url or None,
+                    int(slo_enabled),
                     now,
                     now,
                 ),

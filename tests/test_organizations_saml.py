@@ -68,6 +68,29 @@ def test_org_sso_options_includes_saml(tmp_path: Path) -> None:
     assert "/api/v1/auth/saml/" in saml_opts[0]["login_path"]
 
 
+def test_org_saml_slo_requires_idp_url(tmp_path: Path) -> None:
+    admin = _store(tmp_path)
+    user, _ = admin.register("slo@example.com", "password1", "Slo")
+    kb = admin.create_kb(user, "Slo Co", None, "restricted")
+    org_id = kb.organization_id
+    assert org_id
+    from basis.platform.admin.errors import AdminError
+
+    try:
+        admin.upsert_org_saml_config(
+            user,
+            org_id,
+            idp_entity_id="https://idp.example.com/metadata",
+            idp_sso_url="https://idp.example.com/sso",
+            idp_x509_cert=_SAMPLE_CERT,
+            slo_enabled=True,
+        )
+        assert False, "expected AdminError"
+    except AdminError as exc:
+        assert exc.code == "bad_idp_slo_url"
+    admin.close()
+
+
 def test_org_saml_signing_requires_key_material(tmp_path: Path) -> None:
     admin = _store(tmp_path)
     user, _ = admin.register("sign@example.com", "password1", "Sign")
@@ -89,6 +112,67 @@ def test_org_saml_signing_requires_key_material(tmp_path: Path) -> None:
     except AdminError as exc:
         assert exc.code == "missing_sp_signing_material"
     admin.close()
+
+
+def test_org_saml_api_get_includes_slo_urls(tmp_path: Path) -> None:
+    admin = _store(tmp_path)
+    user, token = admin.register("api@example.com", "password1", "Api")
+    kb = admin.create_kb(user, "Api SAML", None, "restricted")
+    org_id = kb.organization_id
+    assert org_id
+    admin.upsert_org_saml_config(
+        user,
+        org_id,
+        idp_entity_id="https://idp.example.com/metadata",
+        idp_sso_url="https://idp.example.com/sso",
+        idp_x509_cert=_SAMPLE_CERT,
+        idp_slo_url="https://idp.example.com/slo",
+        slo_enabled=True,
+    )
+    admin.close()
+
+    client = TestClient(create_app(Settings(data_dir=tmp_path)))
+    res = client.get(
+        f"/api/v1/orgs/{org_id}/saml",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert res.status_code == 200
+    body = res.json()
+    assert body["configured"] is True
+    assert body["slo_enabled"] is True
+    assert body["idp_slo_url"] == "https://idp.example.com/slo"
+    assert "/api/v1/auth/saml/slo" in body["slo_url"]
+    assert "logout" in body["logout_url_template"]
+
+
+def test_org_saml_logout_requires_slo_enabled(tmp_path: Path) -> None:
+    admin = _store(tmp_path)
+    user, _ = admin.register("logout@example.com", "password1", "Logout")
+    kb = admin.create_kb(user, "Logout SAML", None, "restricted")
+    org_id = kb.organization_id
+    assert org_id
+    org = admin.get_org_by_id(org_id)
+    admin.upsert_org_saml_config(
+        user,
+        org_id,
+        idp_entity_id="https://idp.example.com/metadata",
+        idp_sso_url="https://idp.example.com/sso",
+        idp_x509_cert=_SAMPLE_CERT,
+        slo_enabled=False,
+    )
+    admin.close()
+
+    client = TestClient(create_app(Settings(data_dir=tmp_path)))
+    res = client.get(
+        f"/api/v1/auth/saml/{org.slug}/logout",
+        params={"name_id": "user@example.com"},
+        follow_redirects=False,
+    )
+    if not saml_sp_available():
+        assert res.status_code == 503
+    else:
+        assert res.status_code == 400
+        assert res.json()["detail"]["code"] == "slo_disabled"
 
 
 def test_org_saml_start_when_library_missing(tmp_path: Path) -> None:

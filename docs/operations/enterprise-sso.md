@@ -44,6 +44,7 @@ See [ADR 0006](../architecture/0006-org-saml.md).
 4. Map IdP attribute / NameID to email (Basis uses NameID or `email` / `mail` attributes for account linking).
 5. Smoke test: `GET /api/v1/auth/saml/{org_slug}/start` → redirect to IdP; complete login → redirect to web with `basis_token`.
 6. **Signed AuthnRequest** (Azure AD and others): enable **Sign AuthnRequest** in the SAML panel; paste SP cert + private key (upload cert to IdP); SP metadata reflects signing when `uv sync --extra saml` is active.
+7. **Single logout (SLO)** (optional): enable **Enable single logout** and set **IdP SLO URL**; register **SP SLO URL** from the org SAML panel in the IdP. Start logout with `GET /api/v1/auth/saml/{org_slug}/logout?name_id={NameID}&session_index={SessionIndex}` (template shown in the panel). SP-initiated only; IdP-initiated SLO without RelayState is not supported.
 
 ### Common IdP field names
 
@@ -62,8 +63,11 @@ See [ADR 0006](../architecture/0006-org-saml.md).
 - [ ] Audit: platform **Audit** shows `auth.login` with `provider` `oidc` or `saml`.
 - [ ] Rollback: disable org SSO (`enabled: false`) or revert `auth_policy` without DB migration.
 
+## Local OIDC with Logto
+
+See [logto-oidc-dev.md](logto-oidc-dev.md) for `docker/logto/` and wiring **Organization SSO → OIDC** against a local issuer.
+
 ## Out of scope (track in progress.md)
 
-- Local Logto compose sign-off (`docker/logto/`) — deferred.
-- SAML signed AuthnRequest, SLO, IdP-initiated SSO.
-- Multiple IdPs per organization.
+- Production sign-off on customer IdPs (manual QA per environment).
+- IdP-initiated SAML login/SLO, multiple IdPs per organization.

@@ -119,6 +119,7 @@ export const platformSettings = {
     callbackGoogle: 'Google OAuth callback',
     callbackOrgOidc: 'Organization OIDC callback',
     callbackOrgSamlAcs: 'Organization SAML ACS (POST)',
+    callbackOrgSamlSlo: 'Organization SAML SLO (GET/POST)',
     emailTitle: 'Email / magic link',
     emailDesc: 'Resend SMTP or custom SMTP. Leave secrets blank to keep existing values.',
     magicLinkDevLog: 'Log magic links to server console (development)',

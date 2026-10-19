@@ -45,12 +45,22 @@ test('settings shows SAML panel after API configure', async ({ page }) => {
       idp_entity_id: 'https://idp.example.com/metadata',
       idp_sso_url: 'https://idp.example.com/sso',
       idp_x509_cert: SAMPLE_CERT,
+      idp_slo_url: 'https://idp.example.com/slo',
+      slo_enabled: true,
       email_domains: [domain],
       enabled: true,
       auth_policy: 'password_allowed',
     },
   });
   expect(put.ok(), `saml upsert failed: ${put.status()} ${await put.text()}`).toBeTruthy();
+
+  const getSaml = await page.request.get(`${api}/api/v1/orgs/${orgId}/saml`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  expect(getSaml.ok()).toBeTruthy();
+  const samlBody = (await getSaml.json()) as { slo_url?: string; slo_enabled?: boolean };
+  expect(samlBody.slo_enabled).toBe(true);
+  expect(samlBody.slo_url).toContain('/api/v1/auth/saml/slo');
 
   const options = await page.request.get(`${api}/api/v1/auth/org-sso-options`);
   expect(options.ok()).toBeTruthy();
@@ -63,4 +73,5 @@ test('settings shows SAML panel after API configure', async ({ page }) => {
   await expect(page.getByTestId('org-oidc-panel')).toBeVisible({ timeout: 60_000 });
   await expect(page.getByTestId('org-saml-panel')).toBeVisible();
   await expect(page.getByTestId('org-saml-panel')).toContainText(/SAML|saml/i);
+  await expect(page.getByTestId('org-saml-panel')).toContainText(/saml\/slo/i);
 });

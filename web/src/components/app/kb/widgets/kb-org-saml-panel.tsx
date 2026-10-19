@@ -31,7 +31,11 @@ type OrgSamlResponse = {
   organization: OrgPublic;
   login_url: string;
   acs_url: string;
+  slo_url?: string;
+  logout_url_template?: string;
   metadata_url: string;
+  idp_slo_url?: string | null;
+  slo_enabled?: boolean;
   idp_entity_id?: string;
   idp_sso_url?: string;
   sp_entity_id?: string | null;
@@ -53,6 +57,8 @@ const samlFormSchema = z.object({
   authnRequestsSigned: z.boolean(),
   spCert: z.string(),
   spPrivateKey: z.string(),
+  idpSloUrl: z.string(),
+  sloEnabled: z.boolean(),
 });
 
 type SamlFormValues = z.infer<typeof samlFormSchema>;
@@ -72,6 +78,9 @@ function samlSchema(configured: boolean, signingConfigured: boolean) {
         ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['spPrivateKey'], message: 'Required' });
       }
     }
+    if (data.sloEnabled && !data.idpSloUrl.trim()) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['idpSloUrl'], message: 'Required' });
+    }
   });
 }
 
@@ -86,6 +95,8 @@ const emptyValues: SamlFormValues = {
   authnRequestsSigned: false,
   spCert: '',
   spPrivateKey: '',
+  idpSloUrl: '',
+  sloEnabled: false,
 };
 
 export function OrgSamlPanel({ organizationId }: { organizationId: string | null | undefined }) {
@@ -133,6 +144,8 @@ export function OrgSamlPanel({ organizationId }: { organizationId: string | null
           authnRequestsSigned: body.authn_requests_signed ?? false,
           spCert: '',
           spPrivateKey: '',
+          idpSloUrl: body.idp_slo_url ?? '',
+          sloEnabled: body.slo_enabled ?? false,
         });
       } else {
         form.reset(emptyValues);
@@ -171,6 +184,8 @@ export function OrgSamlPanel({ organizationId }: { organizationId: string | null
           authn_requests_signed: values.authnRequestsSigned,
           sp_x509_cert: values.spCert,
           sp_private_key: values.spPrivateKey,
+          idp_slo_url: values.idpSloUrl,
+          slo_enabled: values.sloEnabled,
         },
       });
       toast.success(copy.saved);
@@ -215,7 +230,7 @@ export function OrgSamlPanel({ organizationId }: { organizationId: string | null
   const canEdit = data.can_edit === true;
 
   return (
-    <Card>
+    <Card data-testid="org-saml-panel">
       <CardHeader>
         <CardTitle className="text-base">{copy.title}</CardTitle>
         <CardDescription>{copy.description}</CardDescription>
@@ -244,6 +259,33 @@ export function OrgSamlPanel({ organizationId }: { organizationId: string | null
               {t.common.copy}
             </Button>
           </dd>
+          {data.slo_url ? (
+            <>
+              <dt className="text-muted-foreground">{copy.sloUrlLabel}</dt>
+              <dd className="flex flex-wrap items-center gap-2">
+                <code className="break-all text-xs">{data.slo_url}</code>
+                <Button type="button" size="sm" variant="outline" onClick={() => copyText(data.slo_url!)}>
+                  {t.common.copy}
+                </Button>
+              </dd>
+            </>
+          ) : null}
+          {data.logout_url_template ? (
+            <>
+              <dt className="text-muted-foreground">{copy.logoutUrlTemplateLabel}</dt>
+              <dd className="flex flex-wrap items-center gap-2">
+                <code className="break-all text-xs">{data.logout_url_template}</code>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => copyText(data.logout_url_template!)}
+                >
+                  {t.common.copy}
+                </Button>
+              </dd>
+            </>
+          ) : null}
         </dl>
         <p className="text-sm text-muted-foreground">
           {data.configured ? copy.configured : copy.notConfigured}
@@ -357,6 +399,32 @@ export function OrgSamlPanel({ organizationId }: { organizationId: string | null
                       <Switch checked={field.value} onCheckedChange={field.onChange} />
                     </FormControl>
                     <FormLabel className="font-normal">{copy.fields.enabled}</FormLabel>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="sloEnabled"
+                render={({ field }) => (
+                  <FormItem className="flex items-center gap-3 space-y-0">
+                    <FormControl>
+                      <Switch checked={field.value} onCheckedChange={field.onChange} />
+                    </FormControl>
+                    <FormLabel className="font-normal">{copy.fields.sloEnabled}</FormLabel>
+                  </FormItem>
+                )}
+              />
+              <p className="text-xs text-muted-foreground">{copy.sloEnabledHint}</p>
+              <FormField
+                control={form.control}
+                name="idpSloUrl"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{copy.fields.idpSloUrl}</FormLabel>
+                    <FormControl>
+                      <Input placeholder={copy.idpSloPlaceholder} {...field} />
+                    </FormControl>
+                    <FormMessage />
                   </FormItem>
                 )}
               />

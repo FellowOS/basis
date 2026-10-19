@@ -133,7 +133,7 @@ uv run basis
 
 **Agent 治理扫描（F-GOV-04）：** 服务端 `BASIS_GOVERNOR_TICK_SECONDS`（>0 启用定时 tick）；KB **设置 → Explorer 图 → Agent 治理扫描** 开启 `governor_enabled`；Review 队列可手动 **治理扫描**（冲突 / 低置信 / 同标签实体聚类）。
 
-**组织 SAML（F-ACC-07）：** API 主机需 `uv sync --extra saml`（`python3-saml`）；平台 **设置 → 组织 SSO** 配置 SAML IdP，将 SP metadata / ACS URL 填入 IdP。OIDC 无需该 extra。
+**组织 SAML（F-ACC-07）：** API 主机需 `uv sync --extra saml`（`python3-saml`）；平台 **设置 → 组织 SSO** 配置 SAML IdP，将 SP metadata / ACS（及可选 SLO）URL 填入 IdP。运维签收见 [docs/operations/enterprise-sso.md](docs/operations/enterprise-sso.md)；本地 OIDC（Logto）见 [docs/operations/logto-oidc-dev.md](docs/operations/logto-oidc-dev.md)。OIDC 无需 `saml` extra。
 
 **连接器（当前固定种类）：** webhook、HTTP 轮询、GitHub raw — 在 KB **Sources** 配置。
 

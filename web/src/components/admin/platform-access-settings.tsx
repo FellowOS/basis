@@ -459,6 +459,9 @@ export function PlatformAccessSettings({
                 {callbacks.org_saml_acs ? (
                   <CopyableUrl label={copy.callbackOrgSamlAcs} url={callbacks.org_saml_acs} />
                 ) : null}
+                {callbacks.org_saml_slo ? (
+                  <CopyableUrl label={copy.callbackOrgSamlSlo} url={callbacks.org_saml_slo} />
+                ) : null}
               </div>
             </div>
           ) : null}

@@ -1058,6 +1058,152 @@
         "x-basis-auth": "public-or-session"
       }
     },
+    "/api/v1/auth/saml/slo": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Org Saml Slo Get",
+        "description": "Org Saml Slo. SAML single logout response (HTTP-Redirect, F-ACC-07).",
+        "operationId": "org_saml_slo_get_api_v1_auth_saml_slo_get",
+        "parameters": [
+          {
+            "name": "RelayState",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "Relaystate"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-basis-surface": "public",
+        "x-basis-auth": "public-or-session"
+      },
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Org Saml Slo Post",
+        "description": "Org Saml Slo. SAML single logout response (HTTP-POST, F-ACC-07).",
+        "operationId": "org_saml_slo_post_api_v1_auth_saml_slo_post",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_org_saml_slo_post_api_v1_auth_saml_slo_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-basis-surface": "public",
+        "x-basis-auth": "public-or-session"
+      }
+    },
+    "/api/v1/auth/saml/{org_slug}/logout": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Org Saml Logout Start",
+        "description": "Org Saml Logout Start. SP-initiated SAML single logout (F-ACC-07).",
+        "operationId": "org_saml_logout_start_api_v1_auth_saml__org_slug__logout_get",
+        "parameters": [
+          {
+            "name": "org_slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Org Slug"
+            }
+          },
+          {
+            "name": "name_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "title": "Name Id"
+            }
+          },
+          {
+            "name": "session_index",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "Session Index"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-basis-surface": "public",
+        "x-basis-auth": "public-or-session"
+      }
+    },
     "/api/v1/auth/saml/{org_slug}/metadata": {
       "get": {
         "tags": [
@@ -16029,6 +16175,27 @@
         ],
         "title": "Body_org_saml_acs_api_v1_auth_saml_acs_post"
       },
+      "Body_org_saml_slo_post_api_v1_auth_saml_slo_post": {
+        "properties": {
+          "RelayState": {
+            "type": "string",
+            "title": "Relaystate",
+            "default": ""
+          },
+          "SAMLResponse": {
+            "type": "string",
+            "title": "Samlresponse",
+            "default": ""
+          },
+          "SAMLRequest": {
+            "type": "string",
+            "title": "Samlrequest",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "Body_org_saml_slo_post_api_v1_auth_saml_slo_post"
+      },
       "Body_propose_graph_import_api_v1_kbs__kb_id__review_items_graph_import_post": {
         "properties": {
           "file": {
@@ -17488,6 +17655,16 @@
             "type": "string",
             "title": "Sp Private Key",
             "default": ""
+          },
+          "idp_slo_url": {
+            "type": "string",
+            "title": "Idp Slo Url",
+            "default": ""
+          },
+          "slo_enabled": {
+            "type": "boolean",
+            "title": "Slo Enabled",
+            "default": false
           }
         },
         "type": "object",
