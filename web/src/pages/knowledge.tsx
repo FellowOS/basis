@@ -960,13 +960,7 @@ export function KnowledgePage() {
           }
           actions={
             <>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                data-testid="sources-job-history"
-                asChild
-              >
+              <Button type="button" variant="outline" size="sm" asChild>
                 <Link
                   to={
                     id
@@ -975,8 +969,9 @@ export function KnowledgePage() {
                         })
                       : '#'
                   }
-                  data-testid={
-                    failedJobCount > 0 ? 'sources-open-failed-jobs' : 'sources-open-job-history'
+                  data-testid="sources-job-history"
+                  data-sources-job-nav={
+                    failedJobCount > 0 ? 'failed' : 'history'
                   }
                 >
                   {k.jobHistory}

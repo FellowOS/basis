@@ -214,6 +214,7 @@ export function KbProcessingWorkspace({
   }
 
   const showEmpty = !loading && jobs.length === 0;
+  const showFilterTabs = !loading && (jobs.length > 0 || filter !== 'all');
 
   return (
     <div
@@ -322,7 +323,7 @@ export function KbProcessingWorkspace({
             }
           />
           <DataPanelBody padded={false} className="mt-2">
-            {!showEmpty ? (
+            {showFilterTabs ? (
               <div className="border-b border-border px-3 py-2 sm:px-4">
                 <Tabs
                   value={filter}
@@ -359,7 +360,7 @@ export function KbProcessingWorkspace({
               <div className="flex justify-center py-16">
                 <Spinner className="size-6" />
               </div>
-            ) : showEmpty ? (
+            ) : showEmpty && filter === 'all' ? (
               <div className="p-4">
                 <EmptyState
                   title={k.noJobs}

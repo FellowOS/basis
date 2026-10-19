@@ -65,7 +65,7 @@ test('sources failed jobs badge opens processing failed filter', async ({ page }
 
   await page.goto(`/kbs/${kbId}/sources`);
   await expect(page.locator('.kb-library-workspace')).toBeVisible({ timeout: 60_000 });
-  await page.getByTestId('sources-open-failed-jobs').click();
+  await page.getByTestId('sources-job-history').click();
   await expect(page).toHaveURL(/filter=failed/, { timeout: 30_000 });
   await expect(page.getByRole('tab', { name: /Failed|失败/i })).toHaveAttribute(
     'data-state',
