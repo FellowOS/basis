@@ -141,6 +141,18 @@
     {
       "file": "web/src/components/app/marketing/auth-form-card.tsx",
       "kind": "literal",
+      "path": "/api/v1/auth/org-sso-options",
+      "operationId": "org_sso_options_api_v1_auth_org_sso_options_get"
+    },
+    {
+      "file": "web/src/components/app/marketing/auth-form-card.tsx",
+      "kind": "literal",
+      "path": "/api/v1/auth/org-sso-hint",
+      "operationId": "org_sso_hint_api_v1_auth_org_sso_hint_get"
+    },
+    {
+      "file": "web/src/components/app/marketing/auth-form-card.tsx",
+      "kind": "literal",
       "path": "/api/v1/auth/magic-link/request",
       "operationId": "magic_link_request_api_v1_auth_magic_link_request_post"
     },
@@ -201,6 +213,12 @@
     {
       "file": "web/src/lib/api.ts",
       "kind": "literal",
+      "path": "/api/v1/auth/desktop-session",
+      "operationId": "desktop_session_api_v1_auth_desktop_session_post"
+    },
+    {
+      "file": "web/src/lib/api.ts",
+      "kind": "literal",
       "path": "/api/v1/auth/me",
       "operationId": "me_api_v1_auth_me_get"
     },
@@ -245,6 +263,12 @@
       "kind": "helper",
       "path": "/api/v1/auth/oidc/callback",
       "operationId": "org_oidc_callback_api_v1_auth_oidc_callback_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/auth/desktop-session",
+      "operationId": "desktop_session_api_v1_auth_desktop_session_post"
     },
     {
       "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
@@ -311,6 +335,18 @@
       "kind": "literal",
       "path": "/api/v1/auth/oidc/{org_slug}/start",
       "operationId": "org_oidc_start_api_v1_auth_oidc__org_slug__start_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/auth/org-sso-hint",
+      "operationId": "org_sso_hint_api_v1_auth_org_sso_hint_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/auth/org-sso-options",
+      "operationId": "org_sso_options_api_v1_auth_org_sso_options_get"
     },
     {
       "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
@@ -1197,6 +1233,12 @@
     {
       "file": "web/src/lib/basis-openapi/schema.d.ts",
       "kind": "literal",
+      "path": "/api/v1/auth/desktop-session",
+      "operationId": "desktop_session_api_v1_auth_desktop_session_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
       "path": "/api/v1/auth/login",
       "operationId": "login_api_v1_auth_login_post"
     },
@@ -1259,6 +1301,18 @@
       "kind": "literal",
       "path": "/api/v1/auth/oidc/{org_slug}/start",
       "operationId": "org_oidc_start_api_v1_auth_oidc__org_slug__start_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/auth/org-sso-hint",
+      "operationId": "org_sso_hint_api_v1_auth_org_sso_hint_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/auth/org-sso-options",
+      "operationId": "org_sso_options_api_v1_auth_org_sso_options_get"
     },
     {
       "file": "web/src/lib/basis-openapi/schema.d.ts",
