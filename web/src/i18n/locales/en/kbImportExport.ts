@@ -3,7 +3,8 @@ export const kbImportExport = {
   exportDialogTitle: 'Export graph snapshot',
   importDialogDesc:
     'Upload JSON/CSV graph data to the review queue; the canvas does not change until approved.',
-  exportDialogDesc: 'Download a JSON or CSV snapshot of the current Explorer graph.',
+  exportDialogDesc:
+    'Download the current Explorer graph as JSON, CSV, RDF (TTL, N-Triples, JSON-LD, RDF/XML), or GraphML.',
   openReviewQueue: 'Open review queue',
   pageTitle: 'Import & Export',
   pageSubtitle: 'Ingest new graph datasets or extract the current knowledge base.',
@@ -21,6 +22,10 @@ export const kbImportExport = {
     'Full graph snapshot: all node properties, edge weights, entity metadata and semantic groups in a standardized JSON payload.',
   includedCsv:
     'Flattened CSV: nodes and edges as rows. Complex nested properties are stringified. Best for spreadsheet analysis.',
+  includedRdf:
+    'RDF serialization of the graph snapshot (entities and relationships) for ontology tools and triple stores.',
+  includedGraphml:
+    'GraphML XML for tools that consume standard graph interchange (nodes, edges, and attributes).',
   preparing: 'Preparing…',
   exportButton: 'Export',
   importSuccess: 'Submitted {name} for review — approve in the review queue.',

@@ -137,7 +137,7 @@
 | F-CHAT-06 | Playground 客户端控制 | `replaced` | — | 随 Playground 移除 |
 | F-ALT-01–02 | Alert episodes + SSE refetch | `done` | P1 | SSE + episode 分组 + **`?episode=` 高亮**；Processing/Review → 告警 episode 互链 + 告警页 **复制 episode 链接**；E2E `governance.spec.ts` / `processing-job.spec.ts` |
 | F-ACC-07 | Enterprise SSO / org | `partial` | P1 | OIDC + **OrgSsoPanel**（`auth_policy`）；登录 **`org-sso-options`** / **`org-sso-hint`** + 强制 SSO；E2E `org-sso-login.spec.ts`（mock IdP）；**本地 Logto 签收暂缓**（`docker/logto/` 保留待用）；剩余：**SAML**、生产 IdP 签收 |
-| F-IO-01 | Graph import/export | `partial` | — | Import via review；export 面不全 |
+| F-IO-01 | Graph import/export | `partial` | — | Import JSON/CSV → review；Export UI：**JSON / CSV / RDF（TTL·NT·JSON-LD·RDF/XML）/ GraphML**（`ImportExportWorkspace`）；审计包 / 子图 `node_ids` 等待做 |
 | — | Markdown node resources persistence | `open` | P2 | Policy TBD |
 | — | Desktop profile（ADR 0004） | `deferred` | P2 | `main` 上 Phase A 可忽略（不设 `BASIS_DEPLOYMENT_PROFILE=desktop`）；Electron / Phase B+ 暂缓，优先 Server 能力 |
 | M5-02 | semantica package entry for Graph workspace | `not` | P2 | Still vendored `web/src/explorer` |

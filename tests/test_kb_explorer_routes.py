@@ -396,6 +396,17 @@ def test_graph_import_export_roundtrip(tmp_path) -> None:
     assert exported.status_code == 200
     assert exported.headers.get("content-type", "").startswith("application/json")
 
+    ttl = client.post(
+        f"/api/v1/kbs/{kb_id}/export",
+        headers=headers,
+        json={"format": "ttl"},
+    )
+    if ttl.status_code == 503:
+        pytest.skip("RDF export dependencies unavailable")
+    assert ttl.status_code == 200
+    ctype = (ttl.headers.get("content-type") or "").lower()
+    assert "turtle" in ctype or ttl.content[:1]
+
     audit = client.get(f"/api/v1/kbs/{kb_id}/audit/graph-mutations", headers=headers)
     assert audit.status_code == 200
     actions = [e["action"] for e in audit.json()["events"]]

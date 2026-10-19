@@ -33,6 +33,11 @@ import {
   wsScroll,
   wsTitle,
 } from "@/lib/ui-classes/console-ws.js";
+import {
+  GRAPH_EXPORT_FORMATS,
+  type GraphExportFormat,
+  graphExportExtension,
+} from "./graphExportFormats.js";
 
 interface Toast {
   id: number;
@@ -65,7 +70,9 @@ export function ImportExportWorkspace({
   }, [focusSection]);
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [exportFormat, setExportFormat] = useState<"json" | "csv">("json");
+  const [exportFormat, setExportFormat] = useState<GraphExportFormat>("json");
+  const exportMeta =
+    GRAPH_EXPORT_FORMATS.find((row) => row.format === exportFormat) ?? GRAPH_EXPORT_FORMATS[0];
   const [isExporting, setIsExporting] = useState(false);
   const [toasts, setToasts] = useState<Toast[]>([]);
 
@@ -134,12 +141,15 @@ export function ImportExportWorkspace({
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `semantica_export.${exportFormat}`;
+      a.download = `basis_graph_export.${graphExportExtension(exportFormat)}`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      showToast("success", fmt(ie.exportSuccess, { format: exportFormat }));
+      showToast(
+        "success",
+        fmt(ie.exportSuccess, { format: graphExportExtension(exportFormat) }),
+      );
       logEvent(
         "export",
         fmt(ie.logExported, { format: exportFormat.toUpperCase() }),
@@ -229,17 +239,17 @@ export function ImportExportWorkspace({
 
             <div>
               <label className={wsLabel}>{ie.formatLabel}</label>
-              <div className="flex gap-2">
-                {(["json", "csv"] as const).map((format) => (
+              <div className="flex flex-wrap gap-2">
+                {GRAPH_EXPORT_FORMATS.map((row) => (
                   <Button
-                    key={format}
+                    key={row.format}
                     type="button"
-                    variant={exportFormat === format ? "default" : "outline"}
-                    className="flex-1 uppercase text-xs"
-                    onClick={() => setExportFormat(format)}
+                    variant={exportFormat === row.format ? "default" : "outline"}
+                    className="min-w-[4.5rem] flex-1 uppercase text-xs"
+                    onClick={() => setExportFormat(row.format)}
                   >
                     <PublicIcon name="file-01" size={14} />
-                    {format}
+                    {row.format}
                   </Button>
                 ))}
               </div>
@@ -247,9 +257,7 @@ export function ImportExportWorkspace({
 
             <div className="flex-1 rounded-[var(--ws-radius-sm)] border border-border bg-muted/40 p-3.5 px-4">
               <div className="mb-1.5 text-xs font-bold text-muted-foreground">{ie.includedTitle}</div>
-              <div className={cn(wsBody, "text-xs")}>
-                {exportFormat === "json" ? ie.includedJson : ie.includedCsv}
-              </div>
+              <div className={cn(wsBody, "text-xs")}>{ie[exportMeta.includedKey]}</div>
             </div>
 
             <Button

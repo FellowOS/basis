@@ -2,7 +2,8 @@ export const kbImportExport = {
   importDialogTitle: '提交图导入（审核）',
   exportDialogTitle: '导出图快照',
   importDialogDesc: '上传 JSON/CSV 图数据后进入审核队列，批准前不会更新当前画布。',
-  exportDialogDesc: '下载当前知识库 Explorer 图的 JSON 或 CSV 快照。',
+  exportDialogDesc:
+    '下载当前 Explorer 图快照，支持 JSON、CSV、RDF（TTL、N-Triples、JSON-LD、RDF/XML）与 GraphML。',
   openReviewQueue: '前往审核队列',
   pageTitle: '导入与导出',
   pageSubtitle: '导入新图数据，或导出当前知识库图谱。',
@@ -18,6 +19,8 @@ export const kbImportExport = {
   includedTitle: '包含内容',
   includedJson: '完整图快照：节点属性、边权重、实体元数据与语义分组，标准 JSON。',
   includedCsv: '扁平 CSV：节点与边按行导出，嵌套属性会序列化为字符串，便于表格分析。',
+  includedRdf: '图快照的 RDF 序列化，便于本体工具与三元组存储使用。',
+  includedGraphml: 'GraphML XML，适用于支持标准图交换格式的工具。',
   preparing: '准备中…',
   exportButton: '导出',
   importSuccess: '已提交 {name} 待审核 — 请在审核队列中批准。',
