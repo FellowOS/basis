@@ -9,16 +9,23 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel, Field
 
+from basis.platform.admin.errors import AdminError
 from basis.platform.admin.store import AdminStore, User
+from basis.domain.explorer.session_guard import require_explorer_graph_session
+from basis.domain.kb.governor import run_governor_pass
+from basis.domain.kb.governor_graph_dedup import (
+    DEFAULT_GOVERNOR_DEDUP_THRESHOLD,
+    scan_graph_semantic_dedup_clusters,
+)
+from basis.domain.kb.store import KnowledgeStore
 from basis.transport.http.deps import (
     get_current_user,
+    get_explorer_registry,
     get_kb_for_editor,
     get_kb_for_viewer,
     get_knowledge_store,
     get_store,
 )
-from basis.domain.kb.governor import run_governor_pass
-from basis.domain.kb.store import KnowledgeStore
 
 router = APIRouter(tags=["knowledge-bases"])
 
@@ -36,6 +43,12 @@ class GovernorRunRequest(BaseModel):
         le=1.0,
         description="Override default governor confidence threshold (0.75).",
     )
+    dedup_threshold: float | None = Field(
+        default=None,
+        ge=0.0,
+        le=1.0,
+        description="Graph semantic dedup similarity threshold (default 0.8).",
+    )
 
 
 @router.post("/{kb_id}/governance/governor/run")
@@ -52,7 +65,26 @@ Kb Governance Governor Run. Batch conflict scan and low-confidence review enqueu
     """
     get_kb_for_editor(request, user, kb_id, store)
     confidence_min = body.confidence_min if body else None
+    dedup_threshold = (
+        body.dedup_threshold if body and body.dedup_threshold is not None else DEFAULT_GOVERNOR_DEDUP_THRESHOLD
+    )
     result = run_governor_pass(knowledge, kb_id, confidence_min=confidence_min)
+    graph_dedup: dict[str, Any] = {"created": 0, "skipped": 0}
+    try:
+        runtime = get_explorer_registry(request).get(request, kb_id)
+        session = require_explorer_graph_session(runtime)
+        graph_dedup = await scan_graph_semantic_dedup_clusters(
+            knowledge,
+            kb_id,
+            session,
+            threshold=dedup_threshold,
+        )
+    except AdminError as exc:
+        if exc.code == "explorer_unavailable":
+            graph_dedup = {**graph_dedup, "unavailable": True}
+        else:
+            raise
+    result = {**result, "graph_dedup_clusters": graph_dedup, "dedup_threshold": dedup_threshold}
     knowledge.touch_governor_last_run(kb_id, datetime.now(timezone.utc).isoformat())
     return result
 

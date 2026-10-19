@@ -59,9 +59,10 @@ export const kbReview = {
   scanConflictsSuccess: '扫描完成：新增 {created} 项，{skipped} 项已在队列中。',
   runGovernor: '治理扫描',
   runGovernorSuccess:
-    '治理扫描：冲突 {conflictsCreated}、低置信 {lowCreated}、重复标签 {clusterCreated}（跳过 {conflictsSkipped}/{lowSkipped}/{clusterSkipped}）。',
+    '治理扫描：冲突 {conflictsCreated}、低置信 {lowCreated}、标签聚类 {clusterCreated}、图语义去重 {graphDedupCreated}（跳过 {conflictsSkipped}/{lowSkipped}/{clusterSkipped}/{graphDedupSkipped}）。',
   promoteEntityCluster: '加入实体合并审核',
   entityClusterLine: '标签「{label}」· {count} 个实体',
+  entityClusterSemanticLine: '图语义去重 · 相似度 {similarity} · {count} 个节点',
   entityClusterPickHint: '选择保留的主实体，其余将进入实体合并审核。',
   lowConfidenceLine: '置信度 {confidence}（阈值 {threshold}）· {predicate}',
   confirmLowConfidence: '确认陈述',

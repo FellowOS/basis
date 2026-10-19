@@ -458,6 +458,7 @@ export function KbReviewQueueTab({
         conflicts?: { created?: number; skipped?: number };
         low_confidence?: { created?: number; skipped?: number };
         entity_clusters?: { created?: number; skipped?: number };
+        graph_dedup_clusters?: { created?: number; skipped?: number };
       };
       toast.success(
         fmt(r.runGovernorSuccess, {
@@ -467,6 +468,14 @@ export function KbReviewQueueTab({
           lowSkipped: formatLocaleNumber(locale as Locale, body.low_confidence?.skipped ?? 0),
           clusterCreated: formatLocaleNumber(locale as Locale, body.entity_clusters?.created ?? 0),
           clusterSkipped: formatLocaleNumber(locale as Locale, body.entity_clusters?.skipped ?? 0),
+          graphDedupCreated: formatLocaleNumber(
+            locale as Locale,
+            body.graph_dedup_clusters?.created ?? 0,
+          ),
+          graphDedupSkipped: formatLocaleNumber(
+            locale as Locale,
+            body.graph_dedup_clusters?.skipped ?? 0,
+          ),
         }),
       );
       void load();
@@ -795,13 +804,26 @@ export function KbReviewQueueTab({
                             ? (
                               <span className="flex flex-col gap-1">
                                 <span className="font-mono text-xs text-muted-foreground">
-                                  {fmt(r.entityClusterLine, {
-                                    label: String(item.payload.canonical_label ?? emptyCell),
-                                    count: formatLocaleNumber(
-                                      locale as Locale,
-                                      item.payload.entity_ids?.length ?? 0,
-                                    ),
-                                  })}
+                                  {String(
+                                    (item.payload as Record<string, unknown>).source ?? '',
+                                  ) === 'graph_semantic_dedup'
+                                    ? fmt(r.entityClusterSemanticLine, {
+                                        similarity: String(
+                                          (item.payload as Record<string, unknown>).similarity ??
+                                            emptyCell,
+                                        ),
+                                        count: formatLocaleNumber(
+                                          locale as Locale,
+                                          item.payload.entity_ids?.length ?? 0,
+                                        ),
+                                      })
+                                    : fmt(r.entityClusterLine, {
+                                        label: String(item.payload.canonical_label ?? emptyCell),
+                                        count: formatLocaleNumber(
+                                          locale as Locale,
+                                          item.payload.entity_ids?.length ?? 0,
+                                        ),
+                                      })}
                                 </span>
                                 <p className="text-[10px] text-muted-foreground">{r.entityClusterPickHint}</p>
                                 <ul

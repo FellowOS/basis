@@ -60,9 +60,10 @@ export const kbReview = {
   scanConflictsSuccess: 'Scan complete: {created} new, {skipped} already queued.',
   runGovernor: 'Governor pass',
   runGovernorSuccess:
-    'Governor pass: {conflictsCreated} conflicts, {lowCreated} low-confidence, {clusterCreated} duplicate labels ({conflictsSkipped}/{lowSkipped}/{clusterSkipped} skipped).',
+    'Governor pass: {conflictsCreated} conflicts, {lowCreated} low-confidence, {clusterCreated} label clusters, {graphDedupCreated} graph dedup ({conflictsSkipped}/{lowSkipped}/{clusterSkipped}/{graphDedupSkipped} skipped).',
   promoteEntityCluster: 'Queue entity merge',
   entityClusterLine: 'Label «{label}» · {count} entities',
+  entityClusterSemanticLine: 'Graph semantic dedup · similarity {similarity} · {count} nodes',
   entityClusterPickHint: 'Choose the primary entity; duplicates will be proposed for merge review.',
   lowConfidenceLine: 'Confidence {confidence} (threshold {threshold}) · {predicate}',
   confirmLowConfidence: 'Confirm statement',
