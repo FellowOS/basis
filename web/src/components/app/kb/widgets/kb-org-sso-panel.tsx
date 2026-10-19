@@ -221,7 +221,7 @@ export function OrgSsoPanel({
   const readOnly = !canEdit;
 
   return (
-    <Card>
+    <Card data-testid="org-oidc-panel">
       <CardHeader>
         <CardTitle className="text-base">{copy.title}</CardTitle>
         <CardDescription>{copy.description}</CardDescription>

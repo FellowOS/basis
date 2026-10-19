@@ -121,6 +121,18 @@
       "operationId": "get_kb_api_v1_kbs__kb_id__get"
     },
     {
+      "file": "web/src/components/app/kb/widgets/kb-org-saml-panel.tsx",
+      "kind": "literal",
+      "path": "/api/v1/orgs/{org_id}/saml",
+      "operationId": "get_org_saml_api_v1_orgs__org_id__saml_get"
+    },
+    {
+      "file": "web/src/components/app/kb/widgets/kb-org-saml-panel.tsx",
+      "kind": "literal",
+      "path": "/api/v1/orgs/{org_id}/saml",
+      "operationId": "get_org_saml_api_v1_orgs__org_id__saml_get"
+    },
+    {
       "file": "web/src/components/app/kb/widgets/kb-org-sso-panel.tsx",
       "kind": "literal",
       "path": "/api/v1/orgs/{org_id}/oidc",
@@ -131,6 +143,12 @@
       "kind": "literal",
       "path": "/api/v1/orgs/{org_id}/oidc",
       "operationId": "get_org_oidc_api_v1_orgs__org_id__oidc_get"
+    },
+    {
+      "file": "web/src/components/app/kb/workspaces/kb-graph-diff-workspace.tsx",
+      "kind": "helper",
+      "path": "/api/v1/kbs/{kb_id}/export",
+      "operationId": "kb_export_graph_api_v1_kbs__kb_id__export_post"
     },
     {
       "file": "web/src/components/app/marketing/auth-form-card.tsx",
@@ -261,6 +279,12 @@
     {
       "file": "web/src/lib/auth-site-url.ts",
       "kind": "helper",
+      "path": "/api/v1/auth/saml/acs",
+      "operationId": "org_saml_acs_api_v1_auth_saml_acs_post"
+    },
+    {
+      "file": "web/src/lib/auth-site-url.ts",
+      "kind": "helper",
       "path": "/api/v1/auth/oidc/callback",
       "operationId": "org_oidc_callback_api_v1_auth_oidc_callback_get"
     },
@@ -359,6 +383,24 @@
       "kind": "literal",
       "path": "/api/v1/auth/register",
       "operationId": "register_api_v1_auth_register_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/auth/saml/acs",
+      "operationId": "org_saml_acs_api_v1_auth_saml_acs_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/auth/saml/{org_slug}/metadata",
+      "operationId": "org_saml_metadata_api_v1_auth_saml__org_slug__metadata_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/auth/saml/{org_slug}/start",
+      "operationId": "org_saml_start_api_v1_auth_saml__org_slug__start_get"
     },
     {
       "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
@@ -1341,6 +1383,24 @@
     {
       "file": "web/src/lib/basis-openapi/schema.d.ts",
       "kind": "literal",
+      "path": "/api/v1/auth/saml/acs",
+      "operationId": "org_saml_acs_api_v1_auth_saml_acs_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/auth/saml/{org_slug}/metadata",
+      "operationId": "org_saml_metadata_api_v1_auth_saml__org_slug__metadata_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/auth/saml/{org_slug}/start",
+      "operationId": "org_saml_start_api_v1_auth_saml__org_slug__start_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
       "path": "/api/v1/health",
       "operationId": "health_health_get"
     },
@@ -2279,6 +2339,12 @@
       "kind": "literal",
       "path": "/api/v1/orgs/{org_id}/oidc",
       "operationId": "get_org_oidc_api_v1_orgs__org_id__oidc_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/orgs/{org_id}/saml",
+      "operationId": "get_org_saml_api_v1_orgs__org_id__saml_get"
     },
     {
       "file": "web/src/lib/basis-openapi/schema.d.ts",

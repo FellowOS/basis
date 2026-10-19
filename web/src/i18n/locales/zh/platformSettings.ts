@@ -107,6 +107,7 @@ export const platformSettings = {
     callbackGithub: 'GitHub OAuth 回调',
     callbackGoogle: 'Google OAuth 回调',
     callbackOrgOidc: '组织 OIDC 回调',
+    callbackOrgSamlAcs: '组织 SAML ACS（POST）',
     emailTitle: '邮箱 / Magic Link',
     emailDesc: 'Resend SMTP 或自定义 SMTP。密钥留空表示保留原值。',
     magicLinkDevLog: '将 Magic Link 输出到服务端日志（开发）',

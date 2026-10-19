@@ -456,6 +456,9 @@ export function PlatformAccessSettings({
                 <CopyableUrl label={copy.callbackGithub} url={callbacks.github} />
                 <CopyableUrl label={copy.callbackGoogle} url={callbacks.google} />
                 <CopyableUrl label={copy.callbackOrgOidc} url={callbacks.org_oidc} />
+                {callbacks.org_saml_acs ? (
+                  <CopyableUrl label={copy.callbackOrgSamlAcs} url={callbacks.org_saml_acs} />
+                ) : null}
               </div>
             </div>
           ) : null}

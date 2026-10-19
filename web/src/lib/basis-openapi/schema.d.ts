@@ -408,6 +408,66 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/auth/saml/acs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Org Saml Acs
+         * @description Org Saml Acs. SAML assertion consumer (POST binding, F-ACC-07).
+         */
+        post: operations["org_saml_acs_api_v1_auth_saml_acs_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/saml/{org_slug}/metadata": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Org Saml Metadata
+         * @description Org Saml Metadata. SP metadata XML for IdP configuration (F-ACC-07 SAML).
+         */
+        get: operations["org_saml_metadata_api_v1_auth_saml__org_slug__metadata_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/saml/{org_slug}/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Org Saml Start
+         * @description Org Saml Start. SP-initiated SAML login (F-ACC-07).
+         */
+        get: operations["org_saml_start_api_v1_auth_saml__org_slug__start_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/health": {
         parameters: {
             query?: never;
@@ -3688,6 +3748,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/orgs/{org_id}/saml": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Org Saml
+         * @description Get Org Saml. Organization SAML 2.0 IdP settings (F-ACC-07). Requires session JWT (`sessionAuth`).
+         */
+        get: operations["get_org_saml_api_v1_orgs__org_id__saml_get"];
+        /**
+         * Put Org Saml
+         * @description Put Org Saml. Organization SAML 2.0 IdP settings (F-ACC-07). Requires session JWT (`sessionAuth`).
+         */
+        put: operations["put_org_saml_api_v1_orgs__org_id__saml_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/platform": {
         parameters: {
             query?: never;
@@ -4018,6 +4102,16 @@ export interface components {
             text?: string | null;
             /** Format */
             format?: string | null;
+        };
+        /** Body_org_saml_acs_api_v1_auth_saml_acs_post */
+        Body_org_saml_acs_api_v1_auth_saml_acs_post: {
+            /** Samlresponse */
+            SAMLResponse: string;
+            /**
+             * Relaystate
+             * @default
+             */
+            RelayState: string;
         };
         /** Body_propose_graph_import_api_v1_kbs__kb_id__review_items_graph_import_post */
         Body_propose_graph_import_api_v1_kbs__kb_id__review_items_graph_import_post: {
@@ -4441,6 +4535,11 @@ export interface components {
              * @description Override default governor confidence threshold (0.75).
              */
             confidence_min?: number | null;
+            /**
+             * Dedup Threshold
+             * @description Graph semantic dedup similarity threshold (default 0.8).
+             */
+            dedup_threshold?: number | null;
         };
         /** GraphSearchRequest */
         GraphSearchRequest: {
@@ -4545,6 +4644,35 @@ export interface components {
              * @default openid email profile
              */
             scopes: string;
+            /** Email Domains */
+            email_domains?: string[];
+            /**
+             * Enabled
+             * @default true
+             */
+            enabled: boolean;
+            /**
+             * Auth Policy
+             * @default password_allowed
+             */
+            auth_policy: string;
+        };
+        /** OrgSamlUpsert */
+        OrgSamlUpsert: {
+            /** Idp Entity Id */
+            idp_entity_id: string;
+            /** Idp Sso Url */
+            idp_sso_url: string;
+            /**
+             * Idp X509 Cert
+             * @default
+             */
+            idp_x509_cert: string;
+            /**
+             * Sp Entity Id
+             * @default
+             */
+            sp_entity_id: string;
             /** Email Domains */
             email_domains?: string[];
             /**
@@ -4676,6 +4804,11 @@ export interface components {
              * @description For `statement_conflict` approve: keep this statement and invalidate siblings (F-RUL-04).
              */
             keeper_statement_id?: string | null;
+            /**
+             * Primary Id
+             * @description For `entity_cluster` approve: ledger entity id to keep as primary (F-GOV-04).
+             */
+            primary_id?: string | null;
         };
         /** RetryProcessingRequest */
         RetryProcessingRequest: {
@@ -5682,6 +5815,101 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    org_saml_acs_api_v1_auth_saml_acs_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/x-www-form-urlencoded": components["schemas"]["Body_org_saml_acs_api_v1_auth_saml_acs_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    org_saml_metadata_api_v1_auth_saml__org_slug__metadata_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                org_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    org_saml_start_api_v1_auth_saml__org_slug__start_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                org_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */
@@ -12354,6 +12582,80 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["OrgOidcUpsert"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_org_saml_api_v1_orgs__org_id__saml_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                org_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    put_org_saml_api_v1_orgs__org_id__saml_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                org_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OrgSamlUpsert"];
             };
         };
         responses: {

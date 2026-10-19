@@ -160,7 +160,7 @@ export function OrgSamlPanel({ organizationId }: { organizationId: string | null
   if (!organizationId) return null;
   if (loading) {
     return (
-      <Card>
+      <Card data-testid="org-saml-panel">
         <CardHeader>
           <CardTitle className="text-base">{copy.title}</CardTitle>
         </CardHeader>
@@ -173,7 +173,7 @@ export function OrgSamlPanel({ organizationId }: { organizationId: string | null
   }
   if (!data) {
     return (
-      <Card>
+      <Card data-testid="org-saml-panel">
         <CardHeader>
           <CardTitle className="text-base">{copy.title}</CardTitle>
           <CardDescription>{oidcCopy.loadFailed}</CardDescription>

@@ -666,6 +666,134 @@
         "x-basis-auth": "public-or-session"
       }
     },
+    "/api/v1/auth/saml/acs": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Org Saml Acs",
+        "description": "Org Saml Acs. SAML assertion consumer (POST binding, F-ACC-07).",
+        "operationId": "org_saml_acs_api_v1_auth_saml_acs_post",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_org_saml_acs_api_v1_auth_saml_acs_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-basis-surface": "public",
+        "x-basis-auth": "public-or-session"
+      }
+    },
+    "/api/v1/auth/saml/{org_slug}/metadata": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Org Saml Metadata",
+        "description": "Org Saml Metadata. SP metadata XML for IdP configuration (F-ACC-07 SAML).",
+        "operationId": "org_saml_metadata_api_v1_auth_saml__org_slug__metadata_get",
+        "parameters": [
+          {
+            "name": "org_slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Org Slug"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-basis-surface": "public",
+        "x-basis-auth": "public-or-session"
+      }
+    },
+    "/api/v1/auth/saml/{org_slug}/start": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Org Saml Start",
+        "description": "Org Saml Start. SP-initiated SAML login (F-ACC-07).",
+        "operationId": "org_saml_start_api_v1_auth_saml__org_slug__start_get",
+        "parameters": [
+          {
+            "name": "org_slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Org Slug"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-basis-surface": "public",
+        "x-basis-auth": "public-or-session"
+      }
+    },
     "/api/v1/health": {
       "get": {
         "tags": [
@@ -13211,6 +13339,24 @@
         "type": "object",
         "title": "Body_kb_vocabulary_import_api_v1_kbs__kb_id__vocabulary_import_post"
       },
+      "Body_org_saml_acs_api_v1_auth_saml_acs_post": {
+        "properties": {
+          "SAMLResponse": {
+            "type": "string",
+            "title": "Samlresponse"
+          },
+          "RelayState": {
+            "type": "string",
+            "title": "Relaystate",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "SAMLResponse"
+        ],
+        "title": "Body_org_saml_acs_api_v1_auth_saml_acs_post"
+      },
       "Body_propose_graph_import_api_v1_kbs__kb_id__review_items_graph_import_post": {
         "properties": {
           "file": {
@@ -14240,6 +14386,20 @@
             ],
             "title": "Confidence Min",
             "description": "Override default governor confidence threshold (0.75)."
+          },
+          "dedup_threshold": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dedup Threshold",
+            "description": "Graph semantic dedup similarity threshold (default 0.8)."
           }
         },
         "type": "object",
@@ -14605,6 +14765,51 @@
         ],
         "title": "OrgOidcUpsert"
       },
+      "OrgSamlUpsert": {
+        "properties": {
+          "idp_entity_id": {
+            "type": "string",
+            "title": "Idp Entity Id"
+          },
+          "idp_sso_url": {
+            "type": "string",
+            "title": "Idp Sso Url"
+          },
+          "idp_x509_cert": {
+            "type": "string",
+            "title": "Idp X509 Cert",
+            "default": ""
+          },
+          "sp_entity_id": {
+            "type": "string",
+            "title": "Sp Entity Id",
+            "default": ""
+          },
+          "email_domains": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Email Domains"
+          },
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "default": true
+          },
+          "auth_policy": {
+            "type": "string",
+            "title": "Auth Policy",
+            "default": "password_allowed"
+          }
+        },
+        "type": "object",
+        "required": [
+          "idp_entity_id",
+          "idp_sso_url"
+        ],
+        "title": "OrgSamlUpsert"
+      },
       "PatchModelRequest": {
         "properties": {
           "enabled": {
@@ -14884,6 +15089,18 @@
             ],
             "title": "Keeper Statement Id",
             "description": "For `statement_conflict` approve: keep this statement and invalidate siblings (F-RUL-04)."
+          },
+          "primary_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Primary Id",
+            "description": "For `entity_cluster` approve: ledger entity id to keep as primary (F-GOV-04)."
           }
         },
         "type": "object",
