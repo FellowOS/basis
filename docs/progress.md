@@ -162,7 +162,7 @@
 | --- | --- | --- |
 | **Now** | Operational KB loop | §3.2 F-TIM（F-SRCH-03 done）；§3.1 治理/本体（F-ONT-05、F-GOV-07） |
 | **Next** | Ops + scale | §3.2 F-GOV-04、distance-matrix；§3.1 F-ACC-07 SSO |
-| **Then** | Time + ops visibility | §3.2 F-TIM-01–04, F-ALT-01–02 |
+| **Then** | Graph scale + I/O | §3.2 distance-matrix、F-IO-01；M5-02 Explorer 打包 |
 | **On demand** | Release engineering | §3.1 F-DIFF-01 工作室；§3.2 distance-matrix |
 | **Enterprise option** | Basis Connector (BOCP) + operational ontology | §3.3 Phase 1–4（`F-LAKE-01–03` / `F-OPS-*`）；见 [adoption §6–§7](architecture/helix-foundry-adoption.md) |
 | **If agents are first-class** | Memory separate from KB | F-MEM-* |

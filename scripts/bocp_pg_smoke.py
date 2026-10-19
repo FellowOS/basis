@@ -7,7 +7,11 @@ Usage (from repo root, API running, `.env` loaded):
     --kb-id 108dd8a0-297b-4c37-862f-f47da99ae4f3 \\
     --mapping-id stm_4f4c87edb0b941ed
 
-Optional: `--mcp` to call sync via MCP instead of HTTP.
+Optional:
+  --mcp              sync via MCP tools/call
+  --scan-conflicts   POST …/review/scan-statement-conflicts after sync
+  --list-review      print open review queue counts by kind
+  --writeback ENTITY --set tier=gold   propose connector writeback (review queue)
 """
 
 from __future__ import annotations
@@ -15,6 +19,8 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from collections import Counter
+from typing import Any
 
 import httpx
 
@@ -35,12 +41,121 @@ def _issue_owner_token(kb_id: str) -> str:
     return token
 
 
+def _sync_mapping(
+    *,
+    base: str,
+    kb_id: str,
+    mapping_id: str,
+    headers: dict[str, str],
+    use_mcp: bool,
+) -> dict[str, Any]:
+    if use_mcp:
+        payload = {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "tools/call",
+            "params": {
+                "name": "sync_connector_table_mapping",
+                "arguments": {"mapping_id": mapping_id},
+            },
+        }
+        r = httpx.post(
+            f"{base}/api/v1/kbs/{kb_id}/mcp",
+            headers=headers,
+            json=payload,
+            timeout=120,
+        )
+        r.raise_for_status()
+        body = r.json()
+        if "error" in body:
+            raise SystemExit(json.dumps(body, indent=2))
+        return json.loads(body["result"]["content"][0]["text"])
+    r = httpx.post(
+        f"{base}/api/v1/kbs/{kb_id}/connectors/table-mappings/{mapping_id}/sync",
+        headers=headers,
+        timeout=120,
+    )
+    r.raise_for_status()
+    return r.json()
+
+
+def _list_review_summary(base: str, kb_id: str, headers: dict[str, str]) -> dict[str, int]:
+    r = httpx.get(
+        f"{base}/api/v1/kbs/{kb_id}/review/items",
+        headers=headers,
+        params={"status": "open", "limit": 200},
+        timeout=60,
+    )
+    r.raise_for_status()
+    items = r.json().get("items") or []
+    counts = Counter(str(item.get("kind") or "?") for item in items)
+    return dict(counts)
+
+
+def _scan_conflicts(base: str, kb_id: str, headers: dict[str, str]) -> dict[str, Any]:
+    r = httpx.post(
+        f"{base}/api/v1/kbs/{kb_id}/review/scan-statement-conflicts",
+        headers=headers,
+        timeout=120,
+    )
+    r.raise_for_status()
+    return r.json()
+
+
+def _propose_writeback(
+    base: str,
+    kb_id: str,
+    headers: dict[str, str],
+    entity_id: str,
+    field_updates: dict[str, Any],
+) -> dict[str, Any]:
+    r = httpx.post(
+        f"{base}/api/v1/kbs/{kb_id}/connectors/outbox/propose",
+        headers=headers,
+        json={"entity_id": entity_id, "field_updates": field_updates},
+        timeout=120,
+    )
+    if r.status_code >= 400:
+        raise SystemExit(f"writeback propose failed {r.status_code}: {r.text}")
+    return r.json()
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="BOCP inbound sync smoke")
     parser.add_argument("--kb-id", required=True)
     parser.add_argument("--mapping-id", required=True)
     parser.add_argument("--mcp", action="store_true", help="Use MCP tools/call sync")
+    parser.add_argument(
+        "--scan-conflicts",
+        action="store_true",
+        help="POST review/scan-statement-conflicts after sync",
+    )
+    parser.add_argument(
+        "--list-review",
+        action="store_true",
+        help="Print open review item counts by kind (after other steps)",
+    )
+    parser.add_argument(
+        "--writeback",
+        metavar="ENTITY_ID",
+        help="Propose connector writeback for entity (enters review when writeback_mode=review)",
+    )
+    parser.add_argument(
+        "--set",
+        action="append",
+        metavar="COL=VALUE",
+        default=[],
+        help="Field update for --writeback (repeatable)",
+    )
+    parser.add_argument(
+        "--skip-sync",
+        action="store_true",
+        help="Only run --list-review / --scan-conflicts / --writeback",
+    )
     args = parser.parse_args()
+
+    if args.writeback and not args.set:
+        parser.error("--writeback requires at least one --set COL=VALUE")
 
     settings = Settings.from_env()
     base = f"http://{settings.host}:{settings.port}"
@@ -51,38 +166,34 @@ def main() -> int:
     health.raise_for_status()
     print("health:", health.json())
 
-    if args.mcp:
-        payload = {
-            "jsonrpc": "2.0",
-            "id": 1,
-            "method": "tools/call",
-            "params": {
-                "name": "sync_connector_table_mapping",
-                "arguments": {"mapping_id": args.mapping_id},
-            },
-        }
-        r = httpx.post(
-            f"{base}/api/v1/kbs/{args.kb_id}/mcp",
+    if not args.skip_sync:
+        stats = _sync_mapping(
+            base=base,
+            kb_id=args.kb_id,
+            mapping_id=args.mapping_id,
             headers=headers,
-            json=payload,
-            timeout=120,
+            use_mcp=args.mcp,
         )
-        r.raise_for_status()
-        body = r.json()
-        if "error" in body:
-            print(json.dumps(body, indent=2))
-            return 1
-        stats = json.loads(body["result"]["content"][0]["text"])
-    else:
-        r = httpx.post(
-            f"{base}/api/v1/kbs/{args.kb_id}/connectors/table-mappings/{args.mapping_id}/sync",
-            headers=headers,
-            timeout=120,
-        )
-        r.raise_for_status()
-        stats = r.json()
+        print("sync:", json.dumps(stats, indent=2, default=str))
 
-    print("sync:", json.dumps(stats, indent=2, default=str))
+    if args.scan_conflicts:
+        scan = _scan_conflicts(base, args.kb_id, headers)
+        print("scan_conflicts:", json.dumps(scan, indent=2, default=str))
+
+    if args.writeback:
+        updates: dict[str, Any] = {}
+        for pair in args.set:
+            if "=" not in pair:
+                raise SystemExit(f"bad --set value: {pair}")
+            col, val = pair.split("=", 1)
+            updates[col.strip()] = val.strip()
+        wb = _propose_writeback(base, args.kb_id, headers, args.writeback, updates)
+        print("writeback:", json.dumps(wb, indent=2, default=str))
+
+    if args.list_review or args.scan_conflicts or args.writeback:
+        summary = _list_review_summary(base, args.kb_id, headers)
+        print("open_review_by_kind:", json.dumps(summary, indent=2))
+
     return 0
 
 
