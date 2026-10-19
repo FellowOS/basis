@@ -7,12 +7,17 @@ Runtime `/openapi/v1.json` is exported directly from `app.openapi()` (see
 
 Operation `description` fields come from route handler docstrings only (FastAPI).
 See docs/architecture/openapi-v1.md §2 (two surfaces).
+
+Uses a fresh SQLite data dir by default (ignores repo `.env` Postgres). If you pass
+`--data-dir`, clear it yourself when migrations change checksums.
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import os
+import shutil
 from copy import deepcopy
 from pathlib import Path
 
@@ -52,8 +57,12 @@ def main() -> None:
         help="Directory for basis-v1*.json (default: openapi/)",
     )
     args = parser.parse_args()
+    default_data_dir = Path("/tmp/basis-openapi-gen")
+    if args.data_dir == default_data_dir and default_data_dir.exists():
+        shutil.rmtree(default_data_dir)
     args.data_dir.mkdir(parents=True, exist_ok=True)
 
+    os.environ["BASIS_DATABASE_URL"] = ""
     full = build_openapi_v1(data_dir=args.data_dir)
     out_dir = args.out_dir
 

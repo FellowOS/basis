@@ -5,6 +5,8 @@
 | [0001-canonical-knowledge-model.md](0001-canonical-knowledge-model.md) | ADR：证据账本主存，图为投影 |
 | [0002-organization-tenant-sso.md](0002-organization-tenant-sso.md) | ADR：组织租户与 SSO |
 | [0003-lakehouse-datasets.md](0003-lakehouse-datasets.md) | ADR：统一账本下的 Basis Connector（数据库 + AnyConnect SaaS）接入与实体双向同步 |
+| [0004-desktop-deployment.md](0004-desktop-deployment.md) | ADR：Desktop 部署 profile（Phase A；Phase B+ deferred） |
+| [0005-agent-governor.md](0005-agent-governor.md) | ADR：F-GOV-04 Agent governor（分阶段批量扫描 / 置信门控） |
 | [data-model.md](data-model.md) | 持久化：账本、blob、审核、迁移、Basis Connector 与实体双向同步（§18） |
 | [package-layout.md](package-layout.md) | `basis/` 分层与 `integration/` |
 | [search-and-vectors.md](search-and-vectors.md) | 分块、向量、检索策略 |
