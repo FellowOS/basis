@@ -13,7 +13,7 @@ from basis.domain.explorer.governance_decision import (
     maybe_emit_governance_tripped_on_review_approve,
     should_emit_governance_tripped_on_review_approve,
 )
-from basis.domain.kb.kb_alerts_emit import (
+from basis.domain.kb.services.kb_alerts_emit import (
     emit_governance_proposal_proposed_alert,
     emit_governance_tripped_alert,
 )

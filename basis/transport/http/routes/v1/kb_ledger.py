@@ -21,7 +21,7 @@ from basis.transport.http.deps import (
 from basis.transport.http.kb_core_context import build_kb_core_context
 from basis.integration.http import http_response_from_payload
 from basis.integration.registry import run
-from basis.domain.kb.graph_audit import audit_kb_graph
+from basis.domain.kb.services.graph_audit import audit_kb_graph
 from basis.domain.kb.store import KnowledgeStore
 
 router = APIRouter(tags=["knowledge-bases"])

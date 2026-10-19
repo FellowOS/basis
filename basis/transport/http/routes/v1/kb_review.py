@@ -29,7 +29,7 @@ from basis.domain.explorer.governance_decision import (
 )
 from basis.infra.limits import RuntimeLimits
 from basis.domain.explorer.session_guard import require_explorer_graph_session
-from basis.domain.kb.graph_audit import audit_kb_graph
+from basis.domain.kb.services.graph_audit import audit_kb_graph
 from basis.domain.kb.services.import_review import (
     discard_staged_import,
     stage_import_blob,

@@ -11,7 +11,7 @@ from fastapi import Request
 from basis.platform.admin.errors import AdminError
 from basis.transport.http.deps import get_explorer_registry, save_graph
 from basis.domain.explorer.session_guard import require_explorer_graph_session
-from basis.domain.kb.kb_alerts_emit import emit_governance_tripped_alert
+from basis.domain.kb.services.kb_alerts_emit import emit_governance_tripped_alert
 from basis.domain.kb.store import KnowledgeStore
 
 logger = logging.getLogger(__name__)

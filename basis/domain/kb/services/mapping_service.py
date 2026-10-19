@@ -9,7 +9,7 @@ from fastapi import Request
 from basis.platform.admin.errors import AdminError
 from basis.platform.admin.store import AdminStore, User
 from basis.transport.http.deps import rebuild_kb_projection
-from basis.domain.kb.graph_audit import audit_kb_graph
+from basis.domain.kb.services.graph_audit import audit_kb_graph
 from basis.domain.kb.store import KnowledgeStore
 
 MAPPING_REVIEW_KIND = "ontology_mapping"

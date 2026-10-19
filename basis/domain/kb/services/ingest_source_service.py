@@ -11,7 +11,7 @@ import httpx
 from fastapi import FastAPI
 
 from basis.platform.admin.errors import AdminError
-from basis.domain.kb.kb_alerts_emit import _with_episode
+from basis.domain.kb.services.kb_alerts_emit import _with_episode
 from basis.domain.kb.store import KnowledgeStore
 from basis.domain.ingest.document import TextIngestOptions
 

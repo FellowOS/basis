@@ -24,7 +24,7 @@ from basis.transport.http.deps import (
 from basis.transport.http.explorer_route_errors import invoke_explorer
 from basis.domain.explorer.session_guard import require_explorer_graph_session
 from basis.infra.limits import RuntimeLimits
-from basis.domain.kb.graph_audit import audit_kb_graph
+from basis.domain.kb.services.graph_audit import audit_kb_graph
 from basis.domain.kb.store import KnowledgeStore
 from basis.transport.http.routes.v1.kb_review import (
     CreateEntityMergeReviewRequest,

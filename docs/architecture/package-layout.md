@@ -36,7 +36,7 @@ KB canonical SQL lives under `basis/domain/kb/persistence/` (caller often holds 
 | `persistence/` | Canonical ledger SQL (`conn` only; caller holds `_lock`) |
 | `access/` | Lock + validation + orchestration per slice |
 | `ledger_rows.py` | Row DTOs returned by store APIs |
-| `services/` | Workflows: ingest/mapping/remember, governor passes, review/conflict/import resolve |
+| `services/` | Workflows, audit side-effects (`graph_audit`), KB alerts (`kb_alerts_emit`), governor/review |
 | `schedulers/` | `*_poll_scheduler.py` ticks and `*_poll_due.py` schedule predicates |
 | `connector_sync.py` | Ledger-side BOCP sync (engine lives in `domain/connectors/`) |
 
@@ -50,6 +50,16 @@ Delete shims at package root when all callers use `KnowledgeStore` methods.
 | `graph/persistence.py` | Deprecated re-export of `snapshot_store` |
 | `explorer/graph_staging.py` | Staging **payload**; SQL in `kb/persistence/graph_staging.py` |
 | `connectors/` | BOCP runtime, vault crypto, adapters — no ledger SQL |
+
+### BOCP: `connectors/` vs `kb/connector_sync`
+
+| Layer | Path | Responsibility |
+| --- | --- | --- |
+| **Engine** | `domain/connectors/` | Manifest schema, `ConnectorRuntime`, SQL/REST adapters, vault crypto (`auth_vault`), platform allowlist policy reads |
+| **Ledger** | `domain/kb/connector_sync.py` + `kb/persistence/connector_*.py` | Map streams ↔ `entities` / `statements` / outbox; row-hash sync; writeback via review; SQL on canonical DB |
+| **Bridge** | `domain/connectors/canonical_db.py` | `LockedCanonicalConn` — run ledger SQL under an existing `KnowledgeStore` lock |
+
+HTTP/MCP entry: routes and `integration/ops_connectors.py` compose engine + `KnowledgeStore` connector access. Do not add canonical connector table SQL under `domain/connectors/`.
 
 ## Import rules
 

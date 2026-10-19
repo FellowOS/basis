@@ -21,12 +21,12 @@ from basis.transport.http.explorer_route_errors import invoke_explorer
 from basis.domain.explorer.kb_scoped_ontology_state import KbOntologyState
 from basis.domain.explorer.session_guard import require_explorer_graph_session
 from basis.platform.admin.errors import AdminError
-from basis.domain.kb.graph_audit import audit_kb_graph
+from basis.domain.kb.services.graph_audit import audit_kb_graph
 from basis.domain.explorer.governance_decision import (
     emit_governance_tripped_for_kb,
     maybe_emit_governance_tripped_for_admin_error,
 )
-from basis.domain.kb.kb_alerts_emit import emit_governance_proposal_proposed_alert
+from basis.domain.kb.services.kb_alerts_emit import emit_governance_proposal_proposed_alert
 from basis.domain.kb.store import KnowledgeStore
 
 WRITE_METHODS = frozenset({"POST", "PUT", "PATCH", "DELETE"})

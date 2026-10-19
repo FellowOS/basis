@@ -38,7 +38,7 @@ from basis.domain.explorer.graph_read import (
 )
 from basis.domain.graph.export import graph_snapshot
 from basis.domain.graph.projector import apply_rebuild_to_session
-from basis.domain.kb.graph_audit import audit_kb_graph
+from basis.domain.kb.services.graph_audit import audit_kb_graph
 from basis.domain.ontology.service import OntologyService
 from basis.transport.http.routes.ingest_helpers import ingest_accept_payload, respond_ingest
 from basis.infra.capabilities import kb_capabilities

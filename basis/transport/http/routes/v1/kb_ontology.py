@@ -11,7 +11,7 @@ from basis.transport.http.deps import get_current_user, get_explorer_registry, g
 from basis.transport.http.explorer_route_errors import invoke_explorer
 from basis.domain.explorer.kb_scoped_ontology_state import KbOntologyState
 from basis.domain.explorer.session_guard import require_explorer_graph_session
-from basis.domain.kb.graph_audit import audit_kb_graph
+from basis.domain.kb.services.graph_audit import audit_kb_graph
 from basis.domain.explorer.ontology_kb_hub import register_kb_ontology_hub_routes
 
 router = APIRouter(tags=["knowledge-bases"])
