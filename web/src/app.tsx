@@ -53,7 +53,7 @@ import { useSettingsAccess } from '@/lib/use-settings-access.js';
 
 function AdminOnly({ children }: { children: ReactNode }) {
   const { ready, user, homePath, isAdmin } = useBasisSession();
-  if (!ready) return children;
+  if (!ready) return null;
   if (!user || !isAdmin) return <Navigate to={homePath} replace />;
   return children;
 }

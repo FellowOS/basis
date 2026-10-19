@@ -313,7 +313,7 @@ Basis **不在 API 层提供** Utopia 式「服务端 Chat 会话 + SSE LLM」�
 | --- | --- | --- |
 | F-CHAT-01 | KB 内多轮对话、流式 | `excluded`（原 Web Playground 已移除） |
 | F-CHAT-02 | RAG：检索引用 | 智能体侧 MCP `search_chunks` 等 |
-| F-CHAT-03 | 工具子集 | MCP **13 工具**（读图 + `propose_remember` + 审核读/批）；见 [openapi-v1.md §6.1](architecture/openapi-v1.md) |
+| F-CHAT-03 | 工具子集 | MCP **图闭环 13 工具**（读图 + `propose_remember` + 审核读/批）；注册表共 **20**（+ 连接器 7）；见 [openapi-v1.md §6](architecture/openapi-v1.md) |
 | F-CHAT-04 | remember → pending 审核 | **服务端：** `POST /api/v1/kbs/{id}/remember/proposals`、MCP `propose_remember`、review get/approve（`statement_remember`）。**控制台：** Review 队列 |
 | F-CHAT-05 | MCP over HTTP（JSON-RPC） | `GET/POST /api/v1/kbs/{id}/mcp` + KB API token；**无** 平台级 `/api/mcp` |
 | F-CHAT-06 | 停止生成、并发、上下文裁剪 | `excluded`（随 Playground 移除） |

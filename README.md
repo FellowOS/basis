@@ -1,8 +1,8 @@
 # Basis
 
-**One semantic layer for enterprise knowledge** — ontology-driven knowledge bases, evidence-backed facts, and a self-hosted console for teams and AI.
+**The Business Context & State Service for Agents** — give AI agents verifiable enterprise context and governed state mutations across documents, databases, and 1,000+ business systems.
 
-Basis is an open-source knowledge platform built on the [Semantica](https://github.com/semantica-agi/semantica) Python SDK: a **FastAPI API** (`basis`) plus a **React console** (`@basis/web`). Ingest documents, explore graphs, search with hybrid retrieval, govern changes, and expose knowledge to agents via HTTP and MCP—**without** running Semantica’s standalone `semantica server` as a separate product entrypoint.
+Basis is an open-source **Agent Context & State Service** built on the [Semantica](https://github.com/semantica-agi/semantica) Python SDK: a **FastAPI backend** (`basis`) plus a **React studio** (`@basis/web`). It connects unstructured documents, relational databases (`postgres`/`mysql`), and 1,000+ SaaS apps (via the declarative **BOCP** engine), aligns them through business ontologies into a canonical **evidence ledger**, and exposes high-semantic read/write interfaces to agents via **OpenAPI v1** and **MCP**—with human-in-the-loop review gates for every state mutation.
 
 [简体中文](./README.zh-CN.md) · [Documentation](./docs/README.md) · [API reference](http://127.0.0.1:5173/swagger) (web dev: `/swagger`; spec at `/openapi/v1.json`)
 
@@ -31,12 +31,13 @@ The first registered user becomes the platform administrator.
 
 ## Why Basis
 
-| | Typical “graph + RAG” stack | **Basis** |
+| | Typical “RAG + Raw Tool” stack | **Basis (Context & State Service)** |
 | --- | --- | --- |
-| Source of truth | Graph / vector store | **Evidence ledger**; graph and vectors are **rebuildable projections** |
-| Semantics | Ad-hoc labels | **Ontologies**, mappings, rules, SHACL, SPARQL |
-| Operations | Many services | **Two processes** (API + Web), SQLite by default |
-| Integrations | Custom glue | **REST**, per-KB **API tokens**, **MCP** |
+| **Agent Context (Read)** | Unverified vector chunks & raw SQL tables | **Evidence ledger** & business objects; graph and vectors are **rebuildable projections** |
+| **Agent State (Write)** | Direct, ungoverned API calls or stateless chat | **Governed state mutations** (`remember` & `entity_sync_outbox` review gates) |
+| **Semantics** | Ad-hoc prompt labels | **Ontologies**, mappings, rules, SHACL, SPARQL |
+| **Connectivity** | Custom glue code per system | **BOCP** declarative DB & 1,000+ SaaS connectors, **OpenAPI v1**, and **MCP** |
+| **Operations** | Many services | **Two processes** (API + Web), SQLite by default, PostgreSQL for production |
 
 Design rationale: [ADR 0001 — Evidence ledger is canonical](docs/architecture/0001-canonical-knowledge-model.md).
 
