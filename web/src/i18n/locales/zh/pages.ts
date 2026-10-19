@@ -28,6 +28,8 @@ export const pages = {
     apiDocsLink: '告警 API（OpenAPI）',
     streamLive: '实时',
     episodeGroupAria: '按类型分组',
+    copyEpisodeLink: '复制告警链接',
+    copyEpisodeAria: '复制可分享的告警 episode 链接',
     governanceTrippedCode: '门控代码：{code}',
     governanceTrippedDecision: '决策 {id}',
     governanceTrippedReviewItem: '审核项 {id}',

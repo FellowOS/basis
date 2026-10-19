@@ -98,6 +98,7 @@ test('processing job links related alerts episode', async ({ page }) => {
   await expect(page.getByTestId(`alerts-episode-processing:${jobId}`)).toBeVisible({
     timeout: 30_000,
   });
+  await expect(page.getByTestId(`alerts-copy-episode-link-processing:${jobId}`)).toBeVisible();
 });
 
 test('processing filter query selects failed tab', async ({ page }) => {

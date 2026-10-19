@@ -28,6 +28,8 @@ export const pages = {
     apiDocsLink: 'Alerts API (OpenAPI)',
     streamLive: 'Live',
     episodeGroupAria: 'Alerts by kind',
+    copyEpisodeLink: 'Copy alert link',
+    copyEpisodeAria: 'Copy shareable link to this alert episode',
     governanceTrippedCode: 'Gate code: {code}',
     governanceTrippedDecision: 'Decision {id}',
     governanceTrippedReviewItem: 'Review item {id}',

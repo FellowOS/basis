@@ -1,6 +1,7 @@
 import { PublicIcon } from '@/components/app/shared/primitives/public-icon.js';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { toast } from 'sonner';
 import {
   ConsolePageLayout,
   DataPanel,
@@ -19,7 +20,7 @@ import { kbAlertAction } from '@/lib/kb-alert-actions.js';
 import { groupAlertsByEpisode, kbAlertDetailLines } from '@/lib/kb-alert-detail.js';
 import { consumeKbAlertsStream, type KbAlertStreamItem } from '@/lib/kb-alerts-stream.js';
 import { useKbCatalog } from '@/lib/kb-context.js';
-import { parseKbAlertsUrlState } from '@/lib/kb-alerts-url.js';
+import { kbAlertsPath, parseKbAlertsUrlState } from '@/lib/kb-alerts-url.js';
 import { kbPath } from '@/lib/nav-config.js';
 import { cn } from '@/lib/utils.js';
 import { kbOpenApiGET, kbOpenApiPOST } from '@/lib/openapi-client.js';
@@ -157,6 +158,17 @@ export function KbAlertsPage() {
     }
   };
 
+  const copyEpisodeLink = async (episodeKey: string) => {
+    if (!id) return;
+    const url = `${window.location.origin}${kbAlertsPath(id, { episodeKey })}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success(t.common.copySuccess);
+    } catch {
+      toast.error(t.common.copy);
+    }
+  };
+
   useEffect(() => {
     if (!id || !highlightEpisodeKey || loading) return;
     const el = document.querySelector(
@@ -264,6 +276,17 @@ export function KbAlertsPage() {
                     <Badge variant="outline" className="h-5 tabular-nums text-[10px]">
                       {group.alerts.length}
                     </Badge>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="ml-auto h-7 px-2 text-xs"
+                      aria-label={t.pages.alerts.copyEpisodeAria}
+                      data-testid={`alerts-copy-episode-link-${group.episodeKey}`}
+                      onClick={() => void copyEpisodeLink(group.episodeKey)}
+                    >
+                      {t.pages.alerts.copyEpisodeLink}
+                    </Button>
                   </div>
                   <ul className="divide-y divide-border">
                     {group.alerts.map((alert) => {

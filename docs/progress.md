@@ -126,7 +126,7 @@
 | F-* | Capability | Status | Priority | Notes |
 | --- | --- | --- | --- | --- |
 | F-GOV-04 | Agent governor（batch clustering, gates） | `not` | P2 | Scale governance automation |
-| F-GOV-05 | Impact gates + `governance.tripped` alerts | `partial` | P1 | emit + detail；**`?episode=` 告警深链**（processing/review）；E2E tripped→decisions；Review 相关告警 |
+| F-GOV-05 | Impact gates + `governance.tripped` alerts | `partial` | P1 | emit + detail + 告警动作深链（decisions/review）；E2E `governance.spec.ts`（tripped→decisions、review 决策叙事）✅；剩余：规模化 batch governor（**F-GOV-04**） |
 | F-SRC-05 | Extract pattern / ml / llm 作业选项与可观测 | `partial` | P1 | 处理对话框 **摘要+JSON 预览**；job 展开摘要与 raw JSON 标签对齐 |
 | F-RUL-04 | Contradiction → governance queue | `partial` | P2 | `statement_conflict` queue + scan API |
 | F-TIM-01–03 | valid_from/to, doc events, ingest vs graph 时态一致 | `done` | P1 | **`GET documents/{id}/timeline`** + **Sources `?doc=` 时间线面板**（F-TIM-02）；`build_temporal_graph_from_ledger` 将 `invalidated_at` 投影为节点/边 `valid_until`，驱动 `temporal/snapshot`、`temporal/diff`、`graph/diff` 与 `graph/staging` 时态区间过滤（`tests/test_graph_projector.py`） |
@@ -134,7 +134,7 @@
 | — | `POST .../graph/distance-matrix` | `partial` | P2 | Server hop matrix when graph &gt; 2500 nodes |
 | F-CHAT-01–03 | Web KB Playground | `replaced` | — | 控制台问答已移除；智能体用 MCP（§0.1 **F-CHAT-04–05**） |
 | F-CHAT-06 | Playground 客户端控制 | `replaced` | — | 随 Playground 移除 |
-| F-ALT-01–02 | Alert episodes + SSE refetch | `partial` | P1 | SSE + episode 分组 + **`?episode=` 高亮/深链**（processing/review）；E2E `governance.spec.ts` / `processing-job.spec.ts` |
+| F-ALT-01–02 | Alert episodes + SSE refetch | `done` | P1 | SSE + episode 分组 + **`?episode=` 高亮**；Processing/Review → 告警 episode 互链 + 告警页 **复制 episode 链接**；E2E `governance.spec.ts` / `processing-job.spec.ts` |
 | F-ACC-07 | Enterprise SSO / org | `partial` | P1 | Orgs + magic link/OAuth；full OIDC SSO TBD |
 | F-IO-01 | Graph import/export | `partial` | — | Import via review；export 面不全 |
 | — | Markdown node resources persistence | `open` | P2 | Policy TBD |
