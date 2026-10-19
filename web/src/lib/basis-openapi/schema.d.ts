@@ -4530,6 +4530,8 @@ export interface components {
         ResolveReviewRequest: {
             /** Rationale */
             rationale?: string | null;
+            /** Keeper Statement Id */
+            keeper_statement_id?: string | null;
         };
         /** RetryProcessingRequest */
         RetryProcessingRequest: {

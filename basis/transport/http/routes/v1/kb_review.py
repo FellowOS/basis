@@ -35,7 +35,11 @@ from basis.domain.kb.mapping_service import (
     MAPPING_REVIEW_KIND,
     apply_mapping_status_change,
 )
-from basis.domain.kb.conflict_review import STATEMENT_CONFLICT_KIND, scan_statement_conflicts
+from basis.domain.kb.conflict_review import (
+    STATEMENT_CONFLICT_KIND,
+    resolve_statement_conflict_group,
+    scan_statement_conflicts,
+)
 from basis.domain.kb.remember_service import STATEMENT_REVIEW_KIND
 from basis.domain.kb.review_resolve import (
     approve_statement_remember_review,
@@ -56,6 +60,10 @@ class CreateEntityMergeReviewRequest(BaseModel):
 
 class ResolveReviewRequest(BaseModel):
     rationale: str | None = None
+    keeper_statement_id: str | None = Field(
+        default=None,
+        description="For `statement_conflict` approve: keep this statement and invalidate siblings (F-RUL-04).",
+    )
 
 
 class ApproveReviewItemResponse(BaseModel):
@@ -376,8 +384,25 @@ Approve Review Item. Human review queue for merges, imports, and conflicts. Requ
                 "decision_id": decision_id,
             }
         elif item["kind"] == STATEMENT_CONFLICT_KIND:
-            approve_action = "kb.statement.conflict_acknowledged"
-            merge_result = {"status": "acknowledged", "payload": item.get("payload")}
+            payload = dict(item.get("payload") or {})
+            statement_ids = list(payload.get("statement_ids") or [])
+            if body.keeper_statement_id:
+                resolution = resolve_statement_conflict_group(
+                    knowledge,
+                    kb_id,
+                    statement_ids,
+                    body.keeper_statement_id,
+                )
+                rebuild_kb_projection(request, kb_id)
+                approve_action = "kb.statement.conflict_resolved"
+                merge_result = {
+                    "status": "resolved",
+                    "resolution": resolution,
+                    "payload": payload,
+                }
+            else:
+                approve_action = "kb.statement.conflict_acknowledged"
+                merge_result = {"status": "acknowledged", "payload": payload}
         elif item["kind"] == "connector_writeback":
             from basis.domain.connectors import ConnectorRuntime
             from basis.domain.kb.connector_sync import ConnectorLedgerSyncService

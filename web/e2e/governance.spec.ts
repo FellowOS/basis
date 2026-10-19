@@ -19,6 +19,26 @@ test('kb account menu alerts opens alerts page', async ({ page }) => {
   await expect(page).toHaveURL(new RegExp(`/kbs/${kbId}/alerts`), { timeout: 30_000 });
 });
 
+test('review queue scan statement conflicts button', async ({ page }) => {
+  test.setTimeout(120_000);
+
+  await registerFreshUser(page);
+  const kbId = await defaultKbId(page);
+  await page.goto(`/kbs/${kbId}/review`);
+
+  const unavailable = page.getByRole('heading', {
+    name: /工作区不可用|Workspace unavailable/i,
+  });
+  if ((await unavailable.count()) > 0) {
+    test.skip(true, 'review workspace requires explorer_runtime');
+  }
+
+  const scanBtn = page.getByTestId('review-scan-statement-conflicts');
+  await expect(scanBtn).toBeVisible({ timeout: 60_000 });
+  await scanBtn.click();
+  await expect(scanBtn).toBeEnabled({ timeout: 30_000 });
+});
+
 test('review queue surfaces link to ontology versions tab', async ({ page }) => {
   test.setTimeout(120_000);
 

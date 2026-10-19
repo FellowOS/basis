@@ -23,6 +23,8 @@ export const kbReview = {
   approveFact: '批准记入',
   approveWriteback: '批准并写回外部库',
   acknowledge: '已知晓',
+  keepSelectedValue: '保留所选值',
+  conflictPickHint: '选择要保留的陈述，其余将被作废。',
   conflictPredicate: '谓语冲突：',
   primary: '主节点',
   duplicates: '合并入',
@@ -51,4 +53,6 @@ export const kbReview = {
   governanceGateAlertsHint: '可能触发了治理门控，详见活动告警。',
   viewGovernanceAlerts: '查看告警',
   viewRelatedAlerts: '相关告警',
+  scanConflicts: '扫描陈述冲突',
+  scanConflictsSuccess: '扫描完成：新增 {created} 项，{skipped} 项已在队列中。',
 } as const;

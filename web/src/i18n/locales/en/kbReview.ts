@@ -24,6 +24,8 @@ export const kbReview = {
   approveFact: 'Approve fact',
   approveWriteback: 'Approve & write back',
   acknowledge: 'Acknowledge',
+  keepSelectedValue: 'Keep selected value',
+  conflictPickHint: 'Choose which value to keep; other statements will be invalidated.',
   conflictPredicate: 'Conflicting objects for predicate ',
   primary: 'Primary',
   duplicates: 'Duplicates',
@@ -52,4 +54,6 @@ export const kbReview = {
   governanceGateAlertsHint: 'A governance gate may have tripped—check active alerts for details.',
   viewGovernanceAlerts: 'View alerts',
   viewRelatedAlerts: 'Related alerts',
+  scanConflicts: 'Scan for conflicts',
+  scanConflictsSuccess: 'Scan complete: {created} new, {skipped} already queued.',
 } as const;

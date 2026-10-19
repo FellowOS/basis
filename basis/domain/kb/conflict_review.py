@@ -88,3 +88,26 @@ def scan_statement_conflicts(knowledge: KnowledgeStore, kb_id: str) -> dict[str,
                 continue
             raise
     return {"created": len(created), "skipped": skipped, "item_ids": created}
+
+
+def resolve_statement_conflict_group(
+    knowledge: KnowledgeStore,
+    kb_id: str,
+    statement_ids: list[str],
+    keeper_statement_id: str,
+) -> dict[str, Any]:
+    """Keep one open statement and invalidate the rest in a conflict group."""
+    if not statement_ids:
+        raise AdminError(422, "bad_conflict_group", "冲突组缺少陈述 id")
+    if keeper_statement_id not in statement_ids:
+        raise AdminError(422, "bad_keeper", "keeper_statement_id 不在冲突组内")
+    invalidated: list[str] = []
+    for statement_id in statement_ids:
+        if statement_id == keeper_statement_id:
+            continue
+        knowledge.invalidate_statement(kb_id, statement_id)
+        invalidated.append(statement_id)
+    return {
+        "keeper_statement_id": keeper_statement_id,
+        "invalidated_statement_ids": invalidated,
+    }

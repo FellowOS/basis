@@ -17038,6 +17038,18 @@
               }
             ],
             "title": "Rationale"
+          },
+          "keeper_statement_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Keeper Statement Id",
+            "description": "For `statement_conflict` approve: keep this statement and invalidate siblings (F-RUL-04)."
           }
         },
         "type": "object",

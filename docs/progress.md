@@ -42,7 +42,7 @@
 | **连接器** | Sources CRUD + sync（**F-SRC-06–07**）；**BOCP 1,060+ 声明式连接器 + 账本双向同步**（**F-LAKE-01–03** / **F-OPS-01–07**，`/kbs/:id/connectors`） |
 | **其它** | Lineage、告警 SSE、图 import 经审核、KB 页副标题（**F-IF-03**） |
 
-**§0.1 基线 `done`（F-ID）** — 不在 §3 重复：`F-RUL-01`–`03`、`F-SRC-06`–`07`、`F-LAKE-01`–`03`、`F-OPS-01`–`07`、`F-CHAT-04`（MCP/HTTP remember）、`F-CHAT-05`、`F-GOV-06`（Registry 读面）、`F-GOV-07`（Review 决策叙事）、`F-ONT-05`（本体提案评审 UI）、`F-IF-03`、`F-SRCH-03`（Search↔Graph 时态 URL/深链）。**F-CHAT-01–03 / F-CHAT-06**（Web Playground）已 **`replaced`** — 见 **§6**。
+**§0.1 基线 `done`（F-ID）** — 不在 §3 重复：`F-RUL-01`–`04`、`F-SRC-06`–`07`、`F-LAKE-01`–`03`、`F-OPS-01`–`07`、`F-CHAT-04`（MCP/HTTP remember）、`F-CHAT-05`、`F-GOV-05`（影响门控 + `governance.tripped` 告警）、`F-GOV-06`（Registry 读面）、`F-GOV-07`（Review 决策叙事）、`F-ONT-05`（本体提案评审 UI）、`F-IF-03`、`F-SRCH-03`（Search↔Graph 时态 URL/深链）。**F-CHAT-01–03 / F-CHAT-06**（Web Playground）已 **`replaced`** — 见 **§6**。
 
 **§0.2 API 基线（F-* 仍可能有 §3.1 产品化 gap）**
 
@@ -65,6 +65,8 @@
 | F-CHAT-04 | MCP `approve_statement_remember_review` → `decision_id` | `tests/test_mcp.py` · `test_mcp_basic_graph_closed_loop` |
 | F-ONT-05 | OWL 提案深链 | `kbOntologyProposalPath` · `web/src/lib/nav-config.test.ts`；Explorer `VersionsTab` |
 | F-GOV-07 | Decisions `?decision=` 双向 + 复制深链 | `web/e2e/decisions-deep-link.spec.ts`（§3.1 UX） |
+| F-GOV-05 | `GET .../alerts`（`governance.tripped` detail）；Review approve 门控 | `tests/test_kb_alerts_emit.py`、`tests/test_kb_review.py`；`web/e2e/governance.spec.ts` |
+| F-RUL-04 | `POST …/review/scan-statement-conflicts`；approve `keeper_statement_id` | `tests/test_conflict_review.py`；`web/e2e/governance.spec.ts` |
 | F-RUL-03 | `GET .../ledger/derived-facts`、实体 facts 含 derived | `tests/test_derived_facts.py`；投影 `tests/test_graph_projector.py` |
 
 §3：**§3.1** = 产品化（§0/§0.2 已有后端）；**§3.2** = 端到端仍缺 pipeline/API/体验。**完全 `done`** 只改 §0 / §0.1（及必要时 §0.2）。
@@ -125,10 +127,8 @@
 
 | F-* | Capability | Status | Priority | Notes |
 | --- | --- | --- | --- | --- |
-| F-GOV-04 | Agent governor（batch clustering, gates） | `not` | P2 | Scale governance automation |
-| F-GOV-05 | Impact gates + `governance.tripped` alerts | `partial` | P1 | emit + detail + 告警动作深链（decisions/review）；E2E `governance.spec.ts`（tripped→decisions、review 决策叙事）✅；剩余：规模化 batch governor（**F-GOV-04**） |
+| F-GOV-04 | Agent governor（batch clustering, gates） | `not` | P2 | 后台 job：批量聚类 + 置信门控（与 **F-GOV-05** 告警面分离） |
 | F-SRC-05 | Extract pattern / ml / llm 作业选项与可观测 | `done` | P1 | 共用 **`KbProcessingOptionsSnapshot`**（Sources 处理对话框 + Processing job 展开：摘要、`optionsSnapshotRaw` 标签、JSON testid）；E2E `processing-job.spec.ts` |
-| F-RUL-04 | Contradiction → governance queue | `partial` | P2 | `statement_conflict` queue + scan API |
 | F-TIM-01–03 | valid_from/to, doc events, ingest vs graph 时态一致 | `done` | P1 | **`GET documents/{id}/timeline`** + **Sources `?doc=` 时间线面板**（F-TIM-02）；`build_temporal_graph_from_ledger` 将 `invalidated_at` 投影为节点/边 `valid_until`，驱动 `temporal/snapshot`、`temporal/diff`、`graph/diff` 与 `graph/staging` 时态区间过滤（`tests/test_graph_projector.py`） |
 | F-TIM-04 | Timeline playback（产品导航） | `done` | P1 | scrubber↔URL **`at`**；Search/graph **timeline=1**；**graph-diff 终点→timeline 回放**；`temporal/snapshot` 返回精确 `active_node_ids`/`active_node_count`；E2E `graph-at.spec.ts` / `graph-diff.spec.ts` |
 | — | `POST .../graph/distance-matrix` | `partial` | P2 | Server hop matrix when graph &gt; 2500 nodes |
@@ -161,7 +161,7 @@
 | Phase | Focus | Checklist rows |
 | --- | --- | --- |
 | **Now** | Operational KB loop | §3.2 F-TIM（F-SRCH-03 done）；§3.1 治理/本体（F-ONT-05、F-GOV-07） |
-| **Next** | Time + ops | §3.2 F-GOV-05、F-TIM；§3.1 F-DIFF-01 工作室 |
+| **Next** | Ops + scale | §3.2 F-GOV-04、distance-matrix；§3.1 F-ACC-07 SSO |
 | **Then** | Time + ops visibility | §3.2 F-TIM-01–04, F-ALT-01–02 |
 | **On demand** | Release engineering | §3.1 F-DIFF-01 工作室；§3.2 distance-matrix |
 | **Enterprise option** | Basis Connector (BOCP) + operational ontology | §3.3 Phase 1–4（`F-LAKE-01–03` / `F-OPS-*`）；见 [adoption §6–§7](architecture/helix-foundry-adoption.md) |

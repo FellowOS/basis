@@ -34,6 +34,7 @@ import {
 } from '@/lib/reviewUrlState.js';
 import { Button } from '@/components/ui/button.js';
 import { cn } from '@/lib/utils.js';
+import { toast } from 'sonner';
 
 type ReviewItem = {
   id: string;
@@ -267,7 +268,23 @@ export function KbReviewQueueTab({
   const [highlightItemId, setHighlightItemId] = useState<string | null>(null);
   const [approvedDecisionId, setApprovedDecisionId] = useState<string | null>(null);
   const [focusedResolvedItem, setFocusedResolvedItem] = useState<ReviewItem | null>(null);
+  const [scanBusy, setScanBusy] = useState(false);
+  const [conflictKeeper, setConflictKeeper] = useState<Record<string, string>>({});
   const canRevertMerge = Boolean(caps?.graph_write);
+  const canScanConflicts = Boolean(caps?.graph_write);
+
+  useEffect(() => {
+    setConflictKeeper((prev) => {
+      const next = { ...prev };
+      for (const item of items) {
+        if (item.kind !== 'statement_conflict') continue;
+        if (next[item.id]) continue;
+        const firstId = item.payload.objects?.[0]?.statement_id;
+        if (firstId) next[item.id] = firstId;
+      }
+      return next;
+    });
+  }, [items]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -406,17 +423,51 @@ export function KbReviewQueueTab({
     }
   }
 
+  async function scanStatementConflicts() {
+    setScanBusy(true);
+    setError(null);
+    try {
+      const res = await explorerFetch(
+        buildExplorerKbApiPath('review/scan-statement-conflicts', kbId),
+        { method: 'POST' },
+      );
+      await throwIfApiNotOk(res);
+      const body = (await res.json()) as { created?: number; skipped?: number };
+      toast.success(
+        fmt(r.scanConflictsSuccess, {
+          created: formatLocaleNumber(locale as Locale, body.created ?? 0),
+          skipped: formatLocaleNumber(locale as Locale, body.skipped ?? 0),
+        }),
+      );
+      void load();
+    } catch (err) {
+      setError(apiError(err));
+      toast.error(apiError(err));
+    } finally {
+      setScanBusy(false);
+    }
+  }
+
   async function resolve(itemId: string, action: 'approve' | 'reject') {
     setBusyId(itemId);
     setError(null);
     setGateErrorCode(null);
+    const item = items.find((row) => row.id === itemId);
+    const payload: { rationale?: string; keeper_statement_id?: string } = {};
+    if (
+      action === 'approve' &&
+      item?.kind === 'statement_conflict' &&
+      conflictKeeper[itemId]
+    ) {
+      payload.keeper_statement_id = conflictKeeper[itemId];
+    }
     try {
       const res = await explorerFetch(
         buildExplorerKbApiPath(`review/items/${encodeURIComponent(itemId)}/${action}`, kbId),
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({}),
+          body: JSON.stringify(payload),
         },
       );
       await throwIfApiNotOk(res);
@@ -494,6 +545,19 @@ export function KbReviewQueueTab({
           <span className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">{r.queueTitle}</span>
           {!loading ? (
             <span className="font-mono text-[11px] tabular-nums text-muted-foreground">{items.length}</span>
+          ) : null}
+          {canScanConflicts ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="ml-auto h-7 text-[11px]"
+              disabled={scanBusy || loading}
+              data-testid="review-scan-statement-conflicts"
+              onClick={() => void scanStatementConflicts()}
+            >
+              {r.scanConflicts}
+            </Button>
           ) : null}
         </div>
         <div className="min-h-0 flex-1 overflow-auto">
@@ -594,7 +658,7 @@ export function KbReviewQueueTab({
                     : isRemember
                       ? r.approveFact
                       : isConflict
-                        ? r.acknowledge
+                        ? r.keepSelectedValue
                         : isWriteback
                           ? r.approveWriteback
                           : r.approveMerge;
@@ -643,14 +707,39 @@ export function KbReviewQueueTab({
                                     {String(item.payload.surface_phrase ?? emptyCell)}
                                   </span>
                                 </span>
-                                <ul className="mt-1 list-disc pl-4 text-xs text-muted-foreground">
-                                  {item.payload.objects?.map((obj) => (
-                                    <li key={obj.statement_id}>
-                                      {obj.object_entity_id
-                                        ? renderNodeRef(obj.object_entity_id)
-                                        : String(obj.object_value ?? emptyCell)}
-                                    </li>
-                                  ))}
+                                <p className="text-[10px] text-muted-foreground">{r.conflictPickHint}</p>
+                                <ul
+                                  className="mt-1 flex flex-col gap-1.5 text-xs text-muted-foreground"
+                                  data-testid={`review-conflict-pick-${item.id}`}
+                                >
+                                  {item.payload.objects?.map((obj) => {
+                                    const sid = obj.statement_id ?? '';
+                                    const inputId = `conflict-keeper-${item.id}-${sid}`;
+                                    return (
+                                      <li key={sid}>
+                                        <label
+                                          htmlFor={inputId}
+                                          className="flex cursor-pointer items-start gap-2 rounded-md border border-border px-2 py-1.5 has-[:checked]:border-primary has-[:checked]:bg-muted/50"
+                                        >
+                                          <input
+                                            id={inputId}
+                                            type="radio"
+                                            name={`conflict-keeper-${item.id}`}
+                                            className="mt-0.5"
+                                            checked={conflictKeeper[item.id] === sid}
+                                            onChange={() =>
+                                              setConflictKeeper((prev) => ({ ...prev, [item.id]: sid }))
+                                            }
+                                          />
+                                          <span>
+                                            {obj.object_entity_id
+                                              ? renderNodeRef(obj.object_entity_id)
+                                              : String(obj.object_value ?? emptyCell)}
+                                          </span>
+                                        </label>
+                                      </li>
+                                    );
+                                  })}
                                 </ul>
                               </span>
                             )

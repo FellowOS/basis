@@ -10,6 +10,7 @@ from basis.domain.kb.blob_store import BlobStore
 from basis.domain.kb.conflict_review import (
     STATEMENT_CONFLICT_KIND,
     find_statement_conflict_groups,
+    resolve_statement_conflict_group,
     scan_statement_conflicts,
 )
 from basis.domain.kb.store import KnowledgeStore
@@ -188,3 +189,90 @@ def test_acknowledge_conflict_review_item(tmp_path: Path) -> None:
     )
     assert approved.status_code == 200
     assert approved.json()["item"]["status"] == "approved"
+
+
+def test_resolve_conflict_keeps_one_statement(tmp_path: Path) -> None:
+    kb_id, store = _kb(tmp_path)
+    chunk_id = _chunk(store, kb_id)
+    alice = store.create_entity(kb_id, canonical_label="Alice")
+    bob = store.create_entity(kb_id, canonical_label="Bob")
+    carol = store.create_entity(kb_id, canonical_label="Carol")
+    s_bob = store.add_open_statement(
+        kb_id,
+        subject_id=alice,
+        surface_phrase="likes",
+        object_entity_id=bob,
+        object_value=None,
+        status="confirmed",
+        proposed_by="test",
+        chunk_id=chunk_id,
+        quote="likes",
+    )
+    s_carol = store.add_open_statement(
+        kb_id,
+        subject_id=alice,
+        surface_phrase="likes",
+        object_entity_id=carol,
+        object_value=None,
+        status="confirmed",
+        proposed_by="test",
+        chunk_id=chunk_id,
+        quote="likes",
+    )
+    scan_statement_conflicts(store, kb_id)
+    resolve_statement_conflict_group(store, kb_id, [s_bob, s_carol], s_bob)
+    active = store.list_active_statements(kb_id)
+    open_likes = [r for r in active if r["surface_phrase"] == "likes"]
+    assert len(open_likes) == 1
+    assert open_likes[0]["statement_id"] == s_bob
+
+
+def test_approve_conflict_with_keeper_via_api(tmp_path: Path) -> None:
+    client = TestClient(create_app(Settings(data_dir=tmp_path)))
+    admin = client.post(
+        "/api/v1/auth/register",
+        json={"email": "keep@example.com", "password": "password1", "display_name": "Keep"},
+    ).json()
+    headers = {"Authorization": f"Bearer {admin['token']}"}
+    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+    store = KnowledgeStore(tmp_path / "basis.db", BlobStore(tmp_path))
+    chunk_id = _chunk(store, kb_id)
+    alice = store.create_entity(kb_id, canonical_label="Alice")
+    bob = store.create_entity(kb_id, canonical_label="Bob")
+    carol = store.create_entity(kb_id, canonical_label="Carol")
+    s_bob = store.add_open_statement(
+        kb_id,
+        subject_id=alice,
+        surface_phrase="likes",
+        object_entity_id=bob,
+        object_value=None,
+        status="confirmed",
+        proposed_by="test",
+        chunk_id=chunk_id,
+        quote="likes",
+    )
+    store.add_open_statement(
+        kb_id,
+        subject_id=alice,
+        surface_phrase="likes",
+        object_entity_id=carol,
+        object_value=None,
+        status="confirmed",
+        proposed_by="test",
+        chunk_id=chunk_id,
+        quote="likes",
+    )
+    scan_statement_conflicts(store, kb_id)
+    item_id = store.list_review_items(kb_id, kind=STATEMENT_CONFLICT_KIND)[0]["id"]
+
+    approved = client.post(
+        f"/api/v1/kbs/{kb_id}/review/items/{item_id}/approve",
+        headers=headers,
+        json={"keeper_statement_id": s_bob},
+    )
+    assert approved.status_code == 200
+    body = approved.json()
+    assert body["merge"]["status"] == "resolved"
+    active = store.list_active_statements(kb_id)
+    assert len([r for r in active if r["surface_phrase"] == "likes"]) == 1
+    assert active[0]["statement_id"] == s_bob
