@@ -72,12 +72,19 @@ export async function register(input: {
   return body;
 }
 
-export async function logout(): Promise<void> {
+export type LogoutResult = { ok?: boolean; saml_logout_url?: string };
+
+export async function logout(): Promise<LogoutResult> {
   try {
     if (getToken()) {
-      unwrapOpenApi(await basisSessionClient().openapi().POST('/api/v1/auth/logout'));
+      const body = unwrapOpenApi(
+        await basisSessionClient().openapi().POST('/api/v1/auth/logout'),
+      ) as LogoutResult;
+      setToken(null);
+      return body;
     }
   } finally {
     setToken(null);
   }
+  return {};
 }

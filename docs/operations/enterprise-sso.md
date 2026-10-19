@@ -56,12 +56,21 @@ See [ADR 0006](../architecture/0006-org-saml.md).
 
 ## Sign-off criteria (production)
 
+Use the copyable worksheet [enterprise-sso-signoff-record.md](enterprise-sso-signoff-record.md) per customer environment.
+
 - [ ] `BASIS_PUBLIC_URL` matches browser and IdP redirect configuration.
 - [ ] Email domain on org SSO config matches corporate mailbox domain used in QA.
 - [ ] Forced SSO (`sso_required`) tested: password and magic link blocked for that domain (`assert_local_login_allowed`).
 - [ ] Federated user can open KB after login; org member / KB member roles verified.
 - [ ] Audit: platform **Audit** shows `auth.login` with `provider` `oidc` or `saml`.
 - [ ] Rollback: disable org SSO (`enabled: false`) or revert `auth_policy` without DB migration.
+- [ ] **SAML SLO** (when enabled): console **Log out** calls `POST /api/v1/auth/logout` and follows `saml_logout_url` to the IdP.
+
+### Smoke script (no secrets)
+
+```bash
+BASIS_PUBLIC_URL=https://api.example.com uv run python scripts/enterprise_sso_smoke.py
+```
 
 ## Local OIDC with Logto
 

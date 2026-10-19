@@ -774,6 +774,33 @@ class OrganizationAuthMixin:
             self._conn.commit()
         return user, token
 
+    def saml_logout_hint_for_user(self, user_id: str) -> dict[str, str] | None:
+        """Return org slug + SAML NameID when the user may use SP-initiated SLO."""
+        with self._lock:
+            rows = self._conn.execute(
+                """
+                SELECT f.organization_id, f.subject, o.slug AS org_slug
+                FROM user_federated_identities f
+                JOIN organizations o ON o.id = f.organization_id
+                WHERE f.user_id = ?
+                  AND f.provider = 'saml'
+                  AND f.organization_id IS NOT NULL
+                ORDER BY f.created_at DESC
+                """,
+                (user_id,),
+            ).fetchall()
+        for row in rows:
+            org_id = row["organization_id"]
+            cfg = self.get_org_saml_runtime_config(org_id)
+            if cfg is None or not cfg.get("slo_enabled"):
+                continue
+            slug = (row["org_slug"] or "").strip()
+            subject = (row["subject"] or "").strip()
+            if not slug or not subject:
+                continue
+            return {"org_slug": slug, "name_id": subject, "session_index": ""}
+        return None
+
     def create_magic_link(self, email: str, *, organization_id: str | None = None) -> str:
         email = field_validators.clean_email(email)
         token = new_token()

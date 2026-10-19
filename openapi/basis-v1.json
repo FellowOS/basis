@@ -434,7 +434,7 @@
           "auth"
         ],
         "summary": "Logout",
-        "description": "Logout. Authentication and session bootstrap. Public bootstrap; optional session for personalized responses.",
+        "description": "Logout. Revokes the session token. When the user signed in via SAML with SLO enabled, returns `saml_logout_url` to start IdP logout.",
         "operationId": "logout_api_v1_auth_logout_post",
         "parameters": [
           {

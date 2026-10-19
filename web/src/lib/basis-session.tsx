@@ -88,8 +88,12 @@ export function BasisSessionProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const logout = useCallback(async () => {
-    await logoutRequest();
+    const result = await logoutRequest();
     setUser(null);
+    const sloUrl = result.saml_logout_url?.trim();
+    if (sloUrl) {
+      window.location.assign(sloUrl);
+    }
   }, []);
 
   const value = useMemo(

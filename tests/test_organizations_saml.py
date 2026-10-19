@@ -145,6 +145,49 @@ def test_org_saml_api_get_includes_slo_urls(tmp_path: Path) -> None:
     assert "logout" in body["logout_url_template"]
 
 
+def test_logout_returns_saml_logout_url_for_federated_user(tmp_path: Path) -> None:
+    admin = _store(tmp_path)
+    user, token = admin.register("fed@example.com", "password1", "Fed")
+    kb = admin.create_kb(user, "Fed SAML", None, "restricted")
+    org_id = kb.organization_id
+    assert org_id
+    admin.upsert_org_saml_config(
+        user,
+        org_id,
+        idp_entity_id="https://idp.example.com/metadata",
+        idp_sso_url="https://idp.example.com/sso",
+        idp_x509_cert=_SAMPLE_CERT,
+        idp_slo_url="https://idp.example.com/slo",
+        slo_enabled=True,
+    )
+    subject = "fed-user@example.com"
+    fed_user, fed_token = admin.login_or_register_federated(
+        provider="saml",
+        subject=subject,
+        email="fed-user@example.com",
+        display_name="Fed User",
+        organization_id=org_id,
+        issuer="https://idp.example.com/metadata",
+    )
+    _ = fed_user
+    admin.close()
+
+    client = TestClient(create_app(Settings(data_dir=tmp_path)))
+    res = client.post(
+        "/api/v1/auth/logout",
+        headers={"Authorization": f"Bearer {fed_token}"},
+    )
+    assert res.status_code == 200
+    body = res.json()
+    assert body["ok"] is True
+    assert "saml_logout_url" in body
+    assert "name_id=" in body["saml_logout_url"]
+    assert "/logout" in body["saml_logout_url"]
+
+    me = client.get("/api/v1/auth/me", headers={"Authorization": f"Bearer {fed_token}"})
+    assert me.status_code == 401
+
+
 def test_org_saml_logout_requires_slo_enabled(tmp_path: Path) -> None:
     admin = _store(tmp_path)
     user, _ = admin.register("logout@example.com", "password1", "Logout")

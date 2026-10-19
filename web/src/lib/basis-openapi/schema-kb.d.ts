@@ -55,7 +55,7 @@ export interface paths {
         put?: never;
         /**
          * Logout
-         * @description Logout. Authentication and session bootstrap. Public bootstrap; optional session for personalized responses.
+         * @description Logout. Revokes the session token. When the user signed in via SAML with SLO enabled, returns `saml_logout_url` to start IdP logout.
          */
         post: operations["logout_api_v1_auth_logout_post"];
         delete?: never;

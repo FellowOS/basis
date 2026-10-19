@@ -1,9 +1,12 @@
+import urllib.parse
+
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 
 from basis.platform.admin.errors import AdminError
 from basis.platform.admin.store import AdminStore, User
 from basis.transport.http.deps import get_current_user, get_store
+from basis.platform.auth.http_paths import auth_v1_path
 from basis.platform.auth.desktop_principal import issue_desktop_session_token
 from basis.platform.auth.org_login_policy import assert_local_login_allowed
 from basis.platform.auth.settings import load_auth_settings_from_store
@@ -88,10 +91,22 @@ async def logout(
     store: AdminStore = Depends(get_store),
 ) -> dict:
     """
-Logout. Authentication and session bootstrap. Public bootstrap; optional session for personalized responses.
+Logout. Revokes the session token. When the user signed in via SAML with SLO enabled, returns `saml_logout_url` to start IdP logout.
     """
+    hint = store.saml_logout_hint_for_user(user.id)
     store.logout(request.state.token, user.id)
-    return {"ok": True}
+    payload: dict = {"ok": True}
+    if hint is not None:
+        auth = _auth_settings(request)
+        query = urllib.parse.urlencode(
+            {
+                "name_id": hint["name_id"],
+                "session_index": hint.get("session_index") or "",
+            }
+        )
+        path = auth_v1_path(f"saml/{hint['org_slug']}/logout")
+        payload["saml_logout_url"] = f"{auth.public_url.rstrip('/')}{path}?{query}"
+    return payload
 
 
 @router.get("/me")
