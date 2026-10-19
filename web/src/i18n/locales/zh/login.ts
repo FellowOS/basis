@@ -23,6 +23,7 @@ export const login = {
   continueGithub: 'GitHub 登录',
   continueGoogle: 'Google 登录',
   continueOrgSso: '使用 {org} 企业 SSO 登录',
+  ssoRequiredHint: '该组织已强制企业 SSO，请使用下方按钮登录。',
   or: '或',
   magicLinkTitle: '邮箱登录',
   magicLinkSubtitle: '我们会向你的邮箱发送一次性登录链接。',

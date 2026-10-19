@@ -4,6 +4,7 @@ from pydantic import BaseModel, Field
 from basis.platform.admin.errors import AdminError
 from basis.platform.admin.store import AdminStore, User
 from basis.transport.http.deps import get_current_user, get_store
+from basis.platform.auth.org_login_policy import assert_local_login_allowed
 from basis.platform.auth.settings import load_auth_settings_from_store
 
 router = APIRouter(tags=["auth"])
@@ -42,6 +43,7 @@ Create a local account when password registration is enabled in platform setting
     if not auth.password_login_enabled:
         raise HTTPException(status_code=403, detail={"code": "forbidden", "message": "密码注册未启用"})
     try:
+        assert_local_login_allowed(store, body.email)
         user, token = store.register(body.email, body.password, body.display_name)
     except AdminError as exc:
         raise HTTPException(status_code=exc.status, detail={"code": exc.code, "message": exc.message}) from exc
@@ -61,6 +63,7 @@ Authenticate with email and password. Returns a session Bearer token for platfor
     if not auth.password_login_enabled:
         raise HTTPException(status_code=403, detail={"code": "forbidden", "message": "密码登录未启用"})
     try:
+        assert_local_login_allowed(store, body.email)
         user, token = store.login(body.email, body.password)
     except AdminError as exc:
         raise HTTPException(status_code=exc.status, detail={"code": exc.code, "message": exc.message}) from exc

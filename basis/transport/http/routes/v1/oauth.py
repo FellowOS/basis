@@ -9,6 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel, EmailStr
 
+from basis.platform.admin.errors import AdminError
 from basis.platform.admin.store import AdminStore
 from basis.transport.http.deps import get_store
 from basis.platform.auth.magic_link import deliver_magic_link
@@ -23,6 +24,7 @@ from basis.platform.auth.oauth_client import (
     fetch_oidc_userinfo,
 )
 from basis.platform.auth.settings import AuthSettings, load_auth_settings_from_store
+from basis.platform.auth.org_login_policy import assert_local_login_allowed
 from basis.platform.auth.state import new_nonce, sign_oauth_state, verify_oauth_state
 
 router = APIRouter(tags=["auth"])
@@ -66,11 +68,14 @@ Org Sso Hint. Resolve enabled org OIDC login by email domain (F-ACC-07).
     settings = _auth_settings(request)
     login_path = f"/api/auth/oidc/{org.slug}/start"
     public = settings.public_url.rstrip("/")
+    policy = org.auth_policy
     return {
         "available": True,
         "organization_id": org.id,
         "org_slug": org.slug,
         "org_name": org.name,
+        "auth_policy": policy,
+        "password_login_allowed": policy != "sso_required",
         "login_path": login_path,
         "login_url": f"{public}{login_path}",
     }
@@ -316,6 +321,13 @@ Magic Link Request. Authentication and session bootstrap. Public bootstrap; opti
         raise HTTPException(status_code=404, detail={"code": "not_configured", "message": "邮箱登录未启用"})
     if not settings.magic_link_available:
         raise HTTPException(status_code=503, detail={"code": "not_configured", "message": "Magic Link 邮件未配置"})
+    try:
+        assert_local_login_allowed(store, body.email)
+    except AdminError as exc:
+        raise HTTPException(
+            status_code=exc.status,
+            detail={"code": exc.code, "message": exc.message},
+        ) from exc
     org = store.resolve_org_by_email_domain(body.email)
     org_id = org.id if org else None
     token = store.create_magic_link(body.email, organization_id=org_id)

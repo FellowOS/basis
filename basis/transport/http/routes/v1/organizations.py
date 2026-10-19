@@ -22,6 +22,7 @@ class OrgOidcUpsert(BaseModel):
     scopes: str = "openid email profile"
     email_domains: list[str] = Field(default_factory=list)
     enabled: bool = True
+    auth_policy: str = "password_allowed"
 
 
 def _auth_settings(request: Request):
@@ -130,6 +131,7 @@ Get Org Oidc. Organizations and OIDC SSO. Requires session JWT (`sessionAuth`).
         "scopes": cfg["scopes"],
         "email_domains": cfg["email_domains"],
         "enabled": cfg["enabled"],
+        "auth_policy": org.auth_policy,
         "login_path": login_path,
         "login_url": login_url,
         "callback_url": callback_url,
@@ -155,6 +157,7 @@ Put Org Oidc. Organizations and OIDC SSO. Requires session JWT (`sessionAuth`).
         scopes=body.scopes,
         email_domains=body.email_domains,
         enabled=body.enabled,
+        auth_policy=body.auth_policy,
     )
     org = store.get_org_by_id(org_id)
     slug = org.slug if org else org_id

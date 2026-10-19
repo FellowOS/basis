@@ -95,4 +95,6 @@ export const apiErrorCodes = {
   connector_allowlist_exceeds_platform: "知识库白名单包含平台未启用的 provider。",
   connector_unknown_providers: "存在不在目录中的 connector service 键。",
   connector_not_found: "未找到该连接器服务。",
+  sso_required: "该邮箱域名须使用企业 SSO 登录。",
+  bad_auth_policy: "组织登录策略无效。",
 } as const;

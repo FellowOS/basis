@@ -23,6 +23,7 @@ export const login = {
   continueGithub: 'GitHub',
   continueGoogle: 'Google',
   continueOrgSso: 'Sign in with {org} SSO',
+  ssoRequiredHint: 'This organization requires SSO. Use the button below.',
   or: 'or',
   magicLinkTitle: 'Sign in with email',
   magicLinkSubtitle: 'We will email you a one-time sign-in link.',

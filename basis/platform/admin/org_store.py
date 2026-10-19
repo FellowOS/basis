@@ -9,6 +9,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from basis.platform.admin.errors import AdminError
+from basis.platform.auth.org_login_policy import ORG_AUTH_POLICIES
 from basis.platform.admin.org_backfill import _slug_for_kb, parse_email_domains
 from basis.platform.admin.passwords import hash_password, hash_token, new_token
 from basis.platform.admin import validators as field_validators
@@ -393,8 +394,11 @@ class OrganizationAuthMixin:
         scopes: str = "openid email profile",
         email_domains: list[str] | None = None,
         enabled: bool = True,
+        auth_policy: str | None = None,
     ) -> dict[str, Any]:
         self.require_org_admin(actor, org_id)
+        if auth_policy is not None and auth_policy not in ORG_AUTH_POLICIES:
+            raise AdminError(422, "bad_auth_policy", "auth_policy 无效")
         issuer = issuer.strip().rstrip("/")
         if not issuer.startswith("http"):
             raise AdminError(422, "bad_issuer", "Issuer 必须是 URL")
@@ -436,12 +440,17 @@ class OrganizationAuthMixin:
                     now,
                 ),
             )
+            if auth_policy is not None:
+                self._conn.execute(
+                    "UPDATE organizations SET auth_policy = ? WHERE id = ?",
+                    (auth_policy, org_id),
+                )
             self._audit(
                 actor.id,
                 "org.oidc_updated",
                 "organization",
                 org_id,
-                {"issuer": issuer, "enabled": enabled},
+                {"issuer": issuer, "enabled": enabled, "auth_policy": auth_policy},
             )
             self._conn.commit()
         cfg = self.get_org_oidc_settings(org_id)

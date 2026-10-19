@@ -40,6 +40,8 @@ type OrgSsoHint = {
   org_name?: string;
   login_url?: string;
   login_path?: string;
+  auth_policy?: string;
+  password_login_allowed?: boolean;
 };
 
 export async function loadAuthProviders(): Promise<AuthProviders> {
@@ -175,8 +177,14 @@ export function AuthFormCard({ providers }: AuthFormCardProps) {
   const orgSsoHref =
     orgSsoHint?.login_url ||
     (orgSsoHint?.org_slug ? authV1Path(`oidc/${orgSsoHint.org_slug}/start`) : null);
+  const ssoRequired =
+    !isRegister &&
+    orgSsoHint?.available === true &&
+    orgSsoHint.password_login_allowed === false;
   const showOrgSso = !isMagicPanel && !isRegister && Boolean(orgSsoHref);
   const showOAuth = !isMagicPanel && (showGithub || showGoogle || showOrgSso);
+  const showPasswordLogin = !isMagicPanel && !ssoRequired;
+  const showMagicEntry = showMagicLink && !ssoRequired;
 
   function openMagicPanel() {
     setError(null);
@@ -274,10 +282,15 @@ export function AuthFormCard({ providers }: AuthFormCardProps) {
                 </FormItem>
               )}
             />
+            {ssoRequired ? (
+              <p className="rounded-md bg-muted px-3 py-2 text-sm text-muted-foreground">
+                {t.login.ssoRequiredHint}
+              </p>
+            ) : null}
             <div
               className={cn(
                 'grid transition-[grid-template-rows] duration-200 ease-out',
-                isMagicPanel ? 'grid-rows-[0fr]' : 'grid-rows-[1fr]',
+                isMagicPanel || !showPasswordLogin ? 'grid-rows-[0fr]' : 'grid-rows-[1fr]',
               )}
             >
               <div className="min-h-0 overflow-hidden">
@@ -334,7 +347,7 @@ export function AuthFormCard({ providers }: AuthFormCardProps) {
               >
                 {magicBusy ? t.login.submitting : t.login.magicLinkSend}
               </Button>
-            ) : (
+            ) : showPasswordLogin ? (
               <Button
                 type="submit"
                 size="lg"
@@ -343,11 +356,11 @@ export function AuthFormCard({ providers }: AuthFormCardProps) {
               >
                 {busy ? t.login.submitting : isRegister ? t.login.registerSubmit : t.login.submit}
               </Button>
-            )}
+            ) : null}
             <div
               className={cn(
                 'grid transition-[grid-template-rows] duration-200 ease-out',
-                showMagicLink ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]',
+                showMagicEntry ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]',
               )}
             >
               <div className="min-h-0 space-y-2 overflow-hidden">

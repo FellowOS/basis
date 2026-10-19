@@ -36,6 +36,7 @@ type OrgOidcResponse = {
   scopes?: string;
   email_domains?: string[];
   enabled?: boolean;
+  auth_policy?: string;
 };
 
 const orgSsoFormSchema = z.object({
@@ -45,6 +46,7 @@ const orgSsoFormSchema = z.object({
   scopes: z.string(),
   emailDomains: z.string(),
   enabled: z.boolean(),
+  authPolicy: z.enum(['password_allowed', 'sso_preferred', 'sso_required']),
 });
 
 type OrgSsoFormValues = z.infer<typeof orgSsoFormSchema>;
@@ -68,6 +70,7 @@ const emptyOrgSsoValues: OrgSsoFormValues = {
   scopes: 'openid email profile',
   emailDomains: '',
   enabled: true,
+  authPolicy: 'password_allowed',
 };
 
 export function OrgSsoPanel({
@@ -113,6 +116,8 @@ export function OrgSsoPanel({
           scopes: body.scopes ?? 'openid email profile',
           emailDomains: (body.email_domains ?? []).join(', '),
           enabled: body.enabled ?? true,
+          authPolicy:
+            (body.auth_policy as OrgSsoFormValues['authPolicy']) ?? 'password_allowed',
         });
       } else {
         form.reset({ ...emptyOrgSsoValues, clientSecret: '' });
@@ -147,6 +152,7 @@ export function OrgSsoPanel({
           scopes: values.scopes,
           email_domains: domains,
           enabled: values.enabled,
+          auth_policy: values.authPolicy,
         },
       });
       toast.success(copy.saved);
@@ -302,6 +308,27 @@ export function OrgSsoPanel({
                     <FormLabel>{copy.fields.scopes}</FormLabel>
                     <FormControl>
                       <Input placeholder={copy.scopesPlaceholder} {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="authPolicy"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{copy.fields.authPolicy}</FormLabel>
+                    <FormControl>
+                      <select
+                        className="native-select native-select--full"
+                        value={field.value}
+                        onChange={field.onChange}
+                      >
+                        <option value="password_allowed">{copy.authPolicyPasswordAllowed}</option>
+                        <option value="sso_preferred">{copy.authPolicySsoPreferred}</option>
+                        <option value="sso_required">{copy.authPolicySsoRequired}</option>
+                      </select>
                     </FormControl>
                     <FormMessage />
                   </FormItem>

@@ -74,6 +74,40 @@ def test_org_sso_hint_by_email_domain(tmp_path: Path) -> None:
     assert "/api/auth/oidc/" in body["login_path"]
 
 
+def test_sso_required_blocks_password_login(tmp_path: Path) -> None:
+    admin = _store(tmp_path)
+    user, _ = admin.register("owner@example.com", "password1", "Owner")
+    kb = admin.create_kb(user, "Strict Co", None, "restricted")
+    org_id = kb.organization_id
+    assert org_id
+    admin.upsert_org_oidc_config(
+        user,
+        org_id,
+        issuer="https://idp.example.com/",
+        client_id="cid",
+        client_secret="secret",
+        email_domains=["strictco.com"],
+        auth_policy="sso_required",
+    )
+    admin.close()
+
+    client = TestClient(create_app(Settings(data_dir=tmp_path)))
+    res = client.post(
+        "/api/v1/auth/login",
+        json={"email": "emp@strictco.com", "password": "password1"},
+    )
+    assert res.status_code == 403
+    assert res.json()["detail"]["code"] == "sso_required"
+
+    magic = client.post(
+        "/api/v1/auth/magic-link/request",
+        json={"email": "emp@strictco.com"},
+    )
+    assert magic.status_code in (403, 404, 503)
+    if magic.status_code == 403:
+        assert magic.json()["detail"]["code"] == "sso_required"
+
+
 def test_magic_link_login(tmp_path: Path) -> None:
     admin = _store(tmp_path)
     token = admin.create_magic_link("magic@example.com")
