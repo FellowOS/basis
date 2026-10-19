@@ -68,6 +68,7 @@
 | F-GOV-05 | `GET .../alerts`（`governance.tripped` detail）；Review approve 门控 | `tests/test_kb_alerts_emit.py`、`tests/test_kb_review.py`；`web/e2e/governance.spec.ts` |
 | F-RUL-04 | `POST …/review/scan-statement-conflicts`；approve `keeper_statement_id` | `tests/test_conflict_review.py`；`web/e2e/governance.spec.ts` |
 | F-RUL-03 | `GET .../ledger/derived-facts`、实体 facts 含 derived | `tests/test_derived_facts.py`；投影 `tests/test_graph_projector.py` |
+| F-ACC-07 | `GET .../auth/org-sso-options`、`org-sso-hint`；`GET .../auth/oidc/{slug}/start` | `tests/test_organizations_sso.py`；`web/e2e/org-sso-login.spec.ts` |
 
 §3：**§3.1** = 产品化（§0/§0.2 已有后端）；**§3.2** = 端到端仍缺 pipeline/API/体验。**完全 `done`** 只改 §0 / §0.1（及必要时 §0.2）。
 
@@ -131,11 +132,11 @@
 | F-SRC-05 | Extract pattern / ml / llm 作业选项与可观测 | `done` | P1 | 共用 **`KbProcessingOptionsSnapshot`**（Sources 处理对话框 + Processing job 展开：摘要、`optionsSnapshotRaw` 标签、JSON testid）；E2E `processing-job.spec.ts` |
 | F-TIM-01–03 | valid_from/to, doc events, ingest vs graph 时态一致 | `done` | P1 | **`GET documents/{id}/timeline`** + **Sources `?doc=` 时间线面板**（F-TIM-02）；`build_temporal_graph_from_ledger` 将 `invalidated_at` 投影为节点/边 `valid_until`，驱动 `temporal/snapshot`、`temporal/diff`、`graph/diff` 与 `graph/staging` 时态区间过滤（`tests/test_graph_projector.py`） |
 | F-TIM-04 | Timeline playback（产品导航） | `done` | P1 | scrubber↔URL **`at`**；Search/graph **timeline=1**；**graph-diff 终点→timeline 回放**；`temporal/snapshot` 返回精确 `active_node_ids`/`active_node_count`；E2E `graph-at.spec.ts` / `graph-diff.spec.ts` |
-| — | `POST .../graph/distance-matrix` | `partial` | P2 | Server hop matrix when graph &gt; 2500 nodes |
+| — | `POST .../graph/distance-matrix` | `done` | P2 | Graph &gt; **2500** 节点时 ego/heatmap 走服务端 hop 矩阵（`graphDistanceMatrix.ts` + `GraphWorkspace`）；单测 `graphDistanceMatrix.test.ts`、`tests/test_kb_explorer_routes.py` |
 | F-CHAT-01–03 | Web KB Playground | `replaced` | — | 控制台问答已移除；智能体用 MCP（§0.1 **F-CHAT-04–05**） |
 | F-CHAT-06 | Playground 客户端控制 | `replaced` | — | 随 Playground 移除 |
 | F-ALT-01–02 | Alert episodes + SSE refetch | `done` | P1 | SSE + episode 分组 + **`?episode=` 高亮**；Processing/Review → 告警 episode 互链 + 告警页 **复制 episode 链接**；E2E `governance.spec.ts` / `processing-job.spec.ts` |
-| F-ACC-07 | Enterprise SSO / org | `partial` | P1 | OIDC + **OrgSsoPanel**（`auth_policy`）；登录 **`org-sso-options`** / **`org-sso-hint`** + 强制 SSO；E2E `org-sso-login.spec.ts`；本地 IdP：[Logto](../docker/logto/README.md)；剩余：**SAML**、生产 IdP 签收 |
+| F-ACC-07 | Enterprise SSO / org | `partial` | P1 | OIDC + **OrgSsoPanel**（`auth_policy`）；登录 **`org-sso-options`** / **`org-sso-hint`** + 强制 SSO；E2E `org-sso-login.spec.ts`（mock IdP）；**本地 Logto 签收暂缓**（`docker/logto/` 保留待用）；剩余：**SAML**、生产 IdP 签收 |
 | F-IO-01 | Graph import/export | `partial` | — | Import via review；export 面不全 |
 | — | Markdown node resources persistence | `open` | P2 | Policy TBD |
 | — | Desktop profile（ADR 0004） | `deferred` | P2 | `main` 上 Phase A 可忽略（不设 `BASIS_DEPLOYMENT_PROFILE=desktop`）；Electron / Phase B+ 暂缓，优先 Server 能力 |
@@ -163,7 +164,7 @@
 | Phase | Focus | Checklist rows |
 | --- | --- | --- |
 | **Now** | Operational KB loop | §3.2 F-TIM（F-SRCH-03 done）；§3.1 治理/本体（F-ONT-05、F-GOV-07） |
-| **Next** | Ops + scale | §3.1 **F-ACC-07**（Logto OIDC 签收）；§3.2 F-GOV-04、distance-matrix |
+| **Next** | Ops + scale | §3.2 **F-GOV-04**；§3.1 F-ACC-07（SAML / 生产 IdP，**不含**本地 Logto） |
 | **Deferred** | Desktop | ADR 0004 Phase B+（Electron）；不设 desktop env 即可 |
 | **Then** | Graph scale + I/O | §3.2 distance-matrix、F-IO-01；M5-02 Explorer 打包 |
 | **On demand** | Release engineering | §3.1 F-DIFF-01 工作室；§3.2 distance-matrix |

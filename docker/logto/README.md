@@ -1,6 +1,8 @@
 # Logto (local OIDC IdP for Basis dev)
 
-[Logto](https://github.com/logto-io/logto) is the recommended **organization OIDC** IdP for local Basis dev (same `org_oidc_configs` + `/api/v1/auth/oidc/*` flow).
+> **Status:** optional local stack; **not required** for day-to-day dev (use E2E mock IdP or any OIDC provider when you need manual SSO). Team may defer Logto sign-off until production IdP work.
+
+[Logto](https://github.com/logto-io/logto) is an **organization OIDC** IdP option for local Basis dev (same `org_oidc_configs` + `/api/v1/auth/oidc/*` flow).
 
 ## Start Logto
 

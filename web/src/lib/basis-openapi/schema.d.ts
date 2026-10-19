@@ -88,6 +88,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/auth/desktop-session": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Desktop Session
+         * @description Desktop Session. Issue a long-lived Bearer token for the local principal (desktop profile only).
+         */
+        post: operations["desktop_session_api_v1_auth_desktop_session_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/login": {
         parameters: {
             query?: never;
@@ -300,6 +320,46 @@ export interface paths {
          * @description Org Oidc Start. Authentication and session bootstrap. Public bootstrap; optional session for personalized responses.
          */
         get: operations["org_oidc_start_api_v1_auth_oidc__org_slug__start_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/org-sso-hint": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Org Sso Hint
+         * @description Org Sso Hint. Resolve enabled org OIDC login by email domain (F-ACC-07).
+         */
+        get: operations["org_sso_hint_api_v1_auth_org_sso_hint_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/org-sso-options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Org Sso Options
+         * @description Org Sso Options. List organizations with enabled OIDC for login-page SSO buttons (no email required).
+         */
+        get: operations["org_sso_options_api_v1_auth_org_sso_options_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -4183,6 +4243,12 @@ export interface components {
              * @default 10000
              */
             max_rows: number;
+            /**
+             * Poll Interval Minutes
+             * @description Background inbound sync interval in minutes; 0 = manual only.
+             * @default 0
+             */
+            poll_interval_minutes: number;
         };
         /** CreateUserRequest */
         CreateUserRequest: {
@@ -4416,6 +4482,11 @@ export interface components {
              * @default true
              */
             enabled: boolean;
+            /**
+             * Auth Policy
+             * @default password_allowed
+             */
+            auth_policy: string;
         };
         /** PatchModelRequest */
         PatchModelRequest: {
@@ -4530,7 +4601,10 @@ export interface components {
         ResolveReviewRequest: {
             /** Rationale */
             rationale?: string | null;
-            /** Keeper Statement Id */
+            /**
+             * Keeper Statement Id
+             * @description For `statement_conflict` approve: keep this statement and invalidate siblings (F-RUL-04).
+             */
             keeper_statement_id?: string | null;
         };
         /** RetryProcessingRequest */
@@ -4782,6 +4856,12 @@ export interface components {
              * @default 10000
              */
             max_rows: number;
+            /**
+             * Poll Interval Minutes
+             * @description Background inbound sync interval in minutes; 0 = manual only.
+             * @default 0
+             */
+            poll_interval_minutes: number;
         };
         /** UpsertConnectorConnectionRequest */
         UpsertConnectorConnectionRequest: {
@@ -5073,6 +5153,28 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    desktop_session_api_v1_auth_desktop_session_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
                 };
             };
         };
@@ -5407,6 +5509,61 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    org_sso_hint_api_v1_auth_org_sso_hint_get: {
+        parameters: {
+            query: {
+                email: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    org_sso_options_api_v1_auth_org_sso_options_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
                 };
             };
         };

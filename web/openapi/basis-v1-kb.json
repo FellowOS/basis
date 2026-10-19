@@ -6,6 +6,32 @@
     "description": "Normative HTTP contract for Basis. Paths use /api/v1 prefix.\n\n**Two surfaces** (see x-basis-surface on each operation):\n- `platform` — console & system/org admin; **session JWT** (`sessionAuth`).\n- `knowledge-base` — KB data & integration (MCP parity); **session or KB API token** (`kbApiTokenAuth`).\n\nSplit specs: `/openapi/v1/platform.json`, `/openapi/v1/kb.json` (KB **integration** contract). Console-only routes may appear here but are omitted from the KB integration slice (see x-basis-audience: console). MCP: POST /api/v1/kbs/{kb_id}/mcp. Docs: docs/architecture/openapi-v1.md."
   },
   "paths": {
+    "/api/v1/auth/desktop-session": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Desktop Session",
+        "description": "Desktop Session. Issue a long-lived Bearer token for the local principal (desktop profile only).",
+        "operationId": "desktop_session_api_v1_auth_desktop_session_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Desktop Session Api V1 Auth Desktop Session Post"
+                }
+              }
+            }
+          }
+        },
+        "x-basis-surface": "public",
+        "x-basis-auth": "public-or-session"
+      }
+    },
     "/api/v1/auth/login": {
       "post": {
         "tags": [
@@ -485,6 +511,80 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-basis-surface": "public",
+        "x-basis-auth": "public-or-session"
+      }
+    },
+    "/api/v1/auth/org-sso-hint": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Org Sso Hint",
+        "description": "Org Sso Hint. Resolve enabled org OIDC login by email domain (F-ACC-07).",
+        "operationId": "org_sso_hint_api_v1_auth_org_sso_hint_get",
+        "parameters": [
+          {
+            "name": "email",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 3,
+              "title": "Email"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Org Sso Hint Api V1 Auth Org Sso Hint Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-basis-surface": "public",
+        "x-basis-auth": "public-or-session"
+      }
+    },
+    "/api/v1/auth/org-sso-options": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Org Sso Options",
+        "description": "Org Sso Options. List organizations with enabled OIDC for login-page SSO buttons (no email required).",
+        "operationId": "org_sso_options_api_v1_auth_org_sso_options_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Org Sso Options Api V1 Auth Org Sso Options Get"
                 }
               }
             }
@@ -13541,6 +13641,14 @@
             "minimum": 1.0,
             "title": "Max Rows",
             "default": 10000
+          },
+          "poll_interval_minutes": {
+            "type": "integer",
+            "maximum": 10080.0,
+            "minimum": 0.0,
+            "title": "Poll Interval Minutes",
+            "description": "Background inbound sync interval in minutes; 0 = manual only.",
+            "default": 0
           }
         },
         "type": "object",
@@ -14224,6 +14332,11 @@
             "type": "boolean",
             "title": "Enabled",
             "default": true
+          },
+          "auth_policy": {
+            "type": "string",
+            "title": "Auth Policy",
+            "default": "password_allowed"
           }
         },
         "type": "object",
@@ -15165,6 +15278,14 @@
             "minimum": 1.0,
             "title": "Max Rows",
             "default": 10000
+          },
+          "poll_interval_minutes": {
+            "type": "integer",
+            "maximum": 10080.0,
+            "minimum": 0.0,
+            "title": "Poll Interval Minutes",
+            "description": "Background inbound sync interval in minutes; 0 = manual only.",
+            "default": 0
           }
         },
         "type": "object",
