@@ -12,8 +12,8 @@ from pydantic import BaseModel, Field
 from basis.platform.admin.errors import AdminError
 from basis.platform.admin.store import AdminStore, User
 from basis.domain.explorer.session_guard import require_explorer_graph_session
-from basis.domain.kb.governor import run_governor_pass
-from basis.domain.kb.governor_graph_dedup import (
+from basis.domain.kb.services.governor import run_governor_pass
+from basis.domain.kb.services.governor_graph_dedup import (
     DEFAULT_GOVERNOR_DEDUP_THRESHOLD,
     scan_graph_semantic_dedup_clusters,
 )

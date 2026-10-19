@@ -5,9 +5,9 @@ from __future__ import annotations
 from typing import Any
 
 from basis.platform.admin.errors import AdminError
-from basis.domain.kb.conflict_review import scan_statement_conflicts
+from basis.domain.kb.services.conflict_review import scan_statement_conflicts
 from basis.domain.kb.governance_config import DEFAULT_GOVERNOR_CONFIDENCE_MIN
-from basis.domain.kb.governor_cluster import scan_entity_label_clusters
+from basis.domain.kb.services.governor_cluster import scan_entity_label_clusters
 from basis.domain.kb.store import KnowledgeStore
 
 LOW_CONFIDENCE_KIND = "low_confidence"

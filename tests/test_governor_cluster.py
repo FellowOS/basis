@@ -3,7 +3,7 @@
 from pathlib import Path
 
 from basis.domain.kb.blob_store import BlobStore
-from basis.domain.kb.governor_cluster import (
+from basis.domain.kb.services.governor_cluster import (
     ENTITY_CLUSTER_KIND,
     find_entity_label_clusters,
     scan_entity_label_clusters,

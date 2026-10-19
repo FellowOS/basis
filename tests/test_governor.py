@@ -5,7 +5,7 @@ from pathlib import Path
 from fastapi.testclient import TestClient
 
 from basis.domain.kb.blob_store import BlobStore
-from basis.domain.kb.governor import (
+from basis.domain.kb.services.governor import (
     LOW_CONFIDENCE_KIND,
     run_governor_pass,
     scan_low_confidence_statements,

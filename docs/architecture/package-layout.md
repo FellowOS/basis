@@ -36,7 +36,7 @@ KB canonical SQL lives under `basis/domain/kb/persistence/` (caller often holds 
 | `persistence/` | Canonical ledger SQL (`conn` only; caller holds `_lock`) |
 | `access/` | Lock + validation + orchestration per slice |
 | `ledger_rows.py` | Row DTOs returned by store APIs |
-| `services/` | Multi-step workflows (`mapping_service`, `remember_service`, `ingest_source_service`, …) |
+| `services/` | Workflows: ingest/mapping/remember, governor passes, review/conflict/import resolve |
 | `schedulers/` | `*_poll_scheduler.py` ticks and `*_poll_due.py` schedule predicates |
 | `connector_sync.py` | Ledger-side BOCP sync (engine lives in `domain/connectors/`) |
 

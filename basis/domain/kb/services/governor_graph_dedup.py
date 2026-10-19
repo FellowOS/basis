@@ -7,7 +7,7 @@ import hashlib
 from typing import Any
 
 from basis.platform.admin.errors import AdminError
-from basis.domain.kb.governor_cluster import ENTITY_CLUSTER_KIND, ENTITY_CLUSTER_SUBJECT_TYPE
+from basis.domain.kb.services.governor_cluster import ENTITY_CLUSTER_KIND, ENTITY_CLUSTER_SUBJECT_TYPE
 from basis.domain.kb.store import KnowledgeStore
 
 DEFAULT_GOVERNOR_DEDUP_THRESHOLD = 0.8

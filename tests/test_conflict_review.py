@@ -7,7 +7,7 @@ from fastapi.testclient import TestClient
 from basis.transport.http.app import create_app
 from basis.infra.config import Settings
 from basis.domain.kb.blob_store import BlobStore
-from basis.domain.kb.conflict_review import (
+from basis.domain.kb.services.conflict_review import (
     STATEMENT_CONFLICT_KIND,
     find_statement_conflict_groups,
     resolve_statement_conflict_group,

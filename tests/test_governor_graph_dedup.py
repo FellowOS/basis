@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
-from basis.domain.kb.governor_cluster import ENTITY_CLUSTER_KIND
+from basis.domain.kb.services.governor_cluster import ENTITY_CLUSTER_KIND
 from basis.infra.capabilities import explorer_available
 from basis.infra.config import Settings
 from basis.transport.http.app import create_app

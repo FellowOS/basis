@@ -144,7 +144,7 @@ def run_version_ingest(
 
         conflict_scan: dict[str, Any] | None = None
         if ledger_stats["ledger_statements_written"] > 0:
-            from basis.domain.kb.conflict_review import scan_statement_conflicts
+            from basis.domain.kb.services.conflict_review import scan_statement_conflicts
 
             conflict_scan = scan_statement_conflicts(knowledge, kb_id)
 

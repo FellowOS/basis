@@ -13,7 +13,7 @@ from basis.infra.config import Settings
 from basis.domain.explorer.governance_decision import emit_governance_tripped_for_kb
 from basis.domain.explorer.kb_scoped_ontology_state import KbOntologyState
 from basis.domain.explorer.session_guard import require_explorer_graph_session
-from basis.domain.kb.conflict_review import scan_statement_conflicts
+from basis.domain.kb.services.conflict_review import scan_statement_conflicts
 from basis.domain.kb.store import KnowledgeStore
 from basis.transport.http.deps import get_explorer_registry, save_graph
 from basis.transport.http.explorer_route_errors import invoke_explorer
