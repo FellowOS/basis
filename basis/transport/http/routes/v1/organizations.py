@@ -68,6 +68,7 @@ async def list_my_orgs(
     """
 List My Orgs. Organizations and OIDC SSO. Requires session JWT (`sessionAuth`).
     """
+    store.prepare_organization_sso_directory(actor=user)
     orgs = store.list_orgs_for_user(user.id)
     return {"organizations": [_org_with_role(store, user, o) for o in orgs]}
 

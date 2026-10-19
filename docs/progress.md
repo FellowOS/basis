@@ -135,7 +135,7 @@
 | F-CHAT-01–03 | Web KB Playground | `replaced` | — | 控制台问答已移除；智能体用 MCP（§0.1 **F-CHAT-04–05**） |
 | F-CHAT-06 | Playground 客户端控制 | `replaced` | — | 随 Playground 移除 |
 | F-ALT-01–02 | Alert episodes + SSE refetch | `done` | P1 | SSE + episode 分组 + **`?episode=` 高亮**；Processing/Review → 告警 episode 互链 + 告警页 **复制 episode 链接**；E2E `governance.spec.ts` / `processing-job.spec.ts` |
-| F-ACC-07 | Enterprise SSO / org | `partial` | P1 | OIDC + **OrgSsoPanel**（`auth_policy`：password / SSO 优先 / **强制 SSO**）；登录 **`org-sso-hint`** + 强制时隐藏密码/magic；API 拦截 `sso_required`；剩余：SAML、E2E |
+| F-ACC-07 | Enterprise SSO / org | `partial` | P1 | OIDC + **OrgSsoPanel**（`auth_policy`）；登录 **`org-sso-hint`** + 强制 SSO；E2E `org-sso-login.spec.ts`；剩余：SAML、真实 IdP 联调 |
 | F-IO-01 | Graph import/export | `partial` | — | Import via review；export 面不全 |
 | — | Markdown node resources persistence | `open` | P2 | Policy TBD |
 | M5-02 | semantica package entry for Graph workspace | `not` | P2 | Still vendored `web/src/explorer` |

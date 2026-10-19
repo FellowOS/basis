@@ -12,6 +12,7 @@ Optional:
   --scan-conflicts   POST …/review/scan-statement-conflicts after sync
   --list-review      print open review queue counts by kind
   --writeback ENTITY --set tier=gold   propose connector writeback (review queue)
+  --approve-writeback   approve first open connector_writeback review item
 """
 
 from __future__ import annotations
@@ -79,17 +80,52 @@ def _sync_mapping(
     return r.json()
 
 
-def _list_review_summary(base: str, kb_id: str, headers: dict[str, str]) -> dict[str, int]:
+def _list_review_items(
+    base: str,
+    kb_id: str,
+    headers: dict[str, str],
+    *,
+    kind: str | None = None,
+) -> list[dict[str, Any]]:
+    params: dict[str, Any] = {"status": "open", "limit": 200}
+    if kind:
+        params["kind"] = kind
     r = httpx.get(
         f"{base}/api/v1/kbs/{kb_id}/review/items",
         headers=headers,
-        params={"status": "open", "limit": 200},
+        params=params,
         timeout=60,
     )
     r.raise_for_status()
-    items = r.json().get("items") or []
+    return list(r.json().get("items") or [])
+
+
+def _list_review_summary(base: str, kb_id: str, headers: dict[str, str]) -> dict[str, int]:
+    items = _list_review_items(base, kb_id, headers)
     counts = Counter(str(item.get("kind") or "?") for item in items)
     return dict(counts)
+
+
+def _approve_review_item(
+    base: str,
+    kb_id: str,
+    headers: dict[str, str],
+    item_id: str,
+    *,
+    keeper_statement_id: str | None = None,
+) -> dict[str, Any]:
+    body: dict[str, Any] = {}
+    if keeper_statement_id:
+        body["keeper_statement_id"] = keeper_statement_id
+    r = httpx.post(
+        f"{base}/api/v1/kbs/{kb_id}/review/items/{item_id}/approve",
+        headers=headers,
+        json=body,
+        timeout=120,
+    )
+    if r.status_code >= 400:
+        raise SystemExit(f"review approve failed {r.status_code}: {r.text}")
+    return r.json()
 
 
 def _scan_conflicts(base: str, kb_id: str, headers: dict[str, str]) -> dict[str, Any]:
@@ -152,6 +188,11 @@ def main() -> int:
         action="store_true",
         help="Only run --list-review / --scan-conflicts / --writeback",
     )
+    parser.add_argument(
+        "--approve-writeback",
+        action="store_true",
+        help="Approve the first open connector_writeback review item",
+    )
     args = parser.parse_args()
 
     if args.writeback and not args.set:
@@ -190,7 +231,17 @@ def main() -> int:
         wb = _propose_writeback(base, args.kb_id, headers, args.writeback, updates)
         print("writeback:", json.dumps(wb, indent=2, default=str))
 
-    if args.list_review or args.scan_conflicts or args.writeback:
+    if args.approve_writeback:
+        writebacks = _list_review_items(
+            base, args.kb_id, headers, kind="connector_writeback"
+        )
+        if not writebacks:
+            raise SystemExit("no open connector_writeback review items")
+        item_id = str(writebacks[0]["id"])
+        approved = _approve_review_item(base, args.kb_id, headers, item_id)
+        print("approve_writeback:", json.dumps(approved, indent=2, default=str))
+
+    if args.list_review or args.scan_conflicts or args.writeback or args.approve_writeback:
         summary = _list_review_summary(base, args.kb_id, headers)
         print("open_review_by_kind:", json.dumps(summary, indent=2))
 
