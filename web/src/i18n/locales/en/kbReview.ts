@@ -15,6 +15,7 @@ export const kbReview = {
   kindRemember: 'Remember',
   kindConflict: 'Conflict',
   kindLowConfidence: 'Low confidence',
+  kindEntityCluster: 'Duplicate label',
   kindWriteback: 'Connector writeback',
   kindMerge: 'Merge',
   emptyQueuePrefix: 'Ontology proposals live under ',
@@ -59,7 +60,9 @@ export const kbReview = {
   scanConflictsSuccess: 'Scan complete: {created} new, {skipped} already queued.',
   runGovernor: 'Governor pass',
   runGovernorSuccess:
-    'Governor pass: {conflictsCreated} conflicts, {lowCreated} low-confidence ({conflictsSkipped}/{lowSkipped} skipped).',
+    'Governor pass: {conflictsCreated} conflicts, {lowCreated} low-confidence, {clusterCreated} duplicate labels ({conflictsSkipped}/{lowSkipped}/{clusterSkipped} skipped).',
+  promoteEntityCluster: 'Queue entity merge',
+  entityClusterLine: 'Label «{label}» · {count} entities',
   lowConfidenceLine: 'Confidence {confidence} (threshold {threshold}) · {predicate}',
   confirmLowConfidence: 'Confirm statement',
 } as const;

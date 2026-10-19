@@ -7,6 +7,7 @@ from typing import Any
 from basis.platform.admin.errors import AdminError
 from basis.domain.kb.conflict_review import scan_statement_conflicts
 from basis.domain.kb.governance_config import DEFAULT_GOVERNOR_CONFIDENCE_MIN
+from basis.domain.kb.governor_cluster import scan_entity_label_clusters
 from basis.domain.kb.store import KnowledgeStore
 
 LOW_CONFIDENCE_KIND = "low_confidence"
@@ -68,6 +69,7 @@ def run_governor_pass(
         kb_id,
         confidence_min=threshold,
     )
+    entity_clusters = scan_entity_label_clusters(knowledge, kb_id)
     return {
         "confidence_min": threshold,
         "conflicts": {
@@ -77,6 +79,10 @@ def run_governor_pass(
         "low_confidence": {
             "created": low_confidence.get("created", 0),
             "skipped": low_confidence.get("skipped", 0),
+        },
+        "entity_clusters": {
+            "created": entity_clusters.get("created", 0),
+            "skipped": entity_clusters.get("skipped", 0),
         },
     }
 

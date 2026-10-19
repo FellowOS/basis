@@ -1821,6 +1821,22 @@ class KnowledgeStore:
             ).fetchall()
         return [dict(row) for row in rows]
 
+    def list_active_entity_id_labels(self, kb_id: str) -> list[dict[str, str]]:
+        with self._lock:
+            self._assert_kb_exists(kb_id)
+            rows = self._conn.execute(
+                """
+                SELECT id AS entity_id, canonical_label
+                FROM entities
+                WHERE kb_id = ? AND invalidated_at IS NULL
+                """,
+                (kb_id,),
+            ).fetchall()
+        return [
+            {"entity_id": str(row["entity_id"]), "canonical_label": row["canonical_label"] or ""}
+            for row in rows
+        ]
+
     def list_active_statements_below_confidence(
         self, kb_id: str, confidence_min: float
     ) -> list[dict[str, Any]]:

@@ -62,6 +62,9 @@ type ReviewItem = {
     }>;
     outbox_id?: string;
     entity_id?: string;
+    entity_ids?: string[];
+    suggested_primary_id?: string;
+    canonical_label?: string;
     provider?: string;
     external_table?: string;
     external_pk?: string;
@@ -442,6 +445,7 @@ export function KbReviewQueueTab({
       const body = (await res.json()) as {
         conflicts?: { created?: number; skipped?: number };
         low_confidence?: { created?: number; skipped?: number };
+        entity_clusters?: { created?: number; skipped?: number };
       };
       toast.success(
         fmt(r.runGovernorSuccess, {
@@ -449,6 +453,8 @@ export function KbReviewQueueTab({
           conflictsSkipped: formatLocaleNumber(locale as Locale, body.conflicts?.skipped ?? 0),
           lowCreated: formatLocaleNumber(locale as Locale, body.low_confidence?.created ?? 0),
           lowSkipped: formatLocaleNumber(locale as Locale, body.low_confidence?.skipped ?? 0),
+          clusterCreated: formatLocaleNumber(locale as Locale, body.entity_clusters?.created ?? 0),
+          clusterSkipped: formatLocaleNumber(locale as Locale, body.entity_clusters?.skipped ?? 0),
         }),
       );
       void load();
@@ -570,6 +576,7 @@ export function KbReviewQueueTab({
     if (kind === 'statement_remember') return r.kindRemember;
     if (kind === 'statement_conflict') return r.kindConflict;
     if (kind === 'low_confidence') return r.kindLowConfidence;
+    if (kind === 'entity_cluster') return r.kindEntityCluster;
     if (kind === 'connector_writeback') return r.kindWriteback;
     if (kind === 'entity_merge') return r.kindMerge;
     return kind;
@@ -697,6 +704,7 @@ export function KbReviewQueueTab({
                 const isRemember = item.kind === 'statement_remember';
                 const isConflict = item.kind === 'statement_conflict';
                 const isLowConfidence = item.kind === 'low_confidence';
+                const isEntityCluster = item.kind === 'entity_cluster';
                 const isWriteback = item.kind === 'connector_writeback';
                 const isEntityMerge = item.kind === 'entity_merge';
                 const primaryId = item.payload.primary_id ?? emptyCell;
@@ -713,7 +721,9 @@ export function KbReviewQueueTab({
                         ? r.keepSelectedValue
                         : isLowConfidence
                           ? r.confirmLowConfidence
-                          : isWriteback
+                          : isEntityCluster
+                            ? r.promoteEntityCluster
+                            : isWriteback
                             ? r.approveWriteback
                             : r.approveMerge;
                 const itemDecisionIds = decisionIdsForReviewItem(events, item.id);
@@ -759,6 +769,18 @@ export function KbReviewQueueTab({
                                   confidence: String(item.payload.confidence ?? emptyCell),
                                   threshold: String(item.payload.confidence_min ?? emptyCell),
                                   predicate: String(item.payload.surface_phrase ?? emptyCell),
+                                })}
+                              </span>
+                            )
+                          : isEntityCluster
+                            ? (
+                              <span className="font-mono text-xs text-muted-foreground">
+                                {fmt(r.entityClusterLine, {
+                                  label: String(item.payload.canonical_label ?? emptyCell),
+                                  count: formatLocaleNumber(
+                                    locale as Locale,
+                                    item.payload.entity_ids?.length ?? 0,
+                                  ),
                                 })}
                               </span>
                             )

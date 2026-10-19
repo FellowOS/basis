@@ -45,6 +45,7 @@ from basis.domain.kb.governor import (
     resolve_low_confidence_approve,
     resolve_low_confidence_reject,
 )
+from basis.domain.kb.governor_cluster import ENTITY_CLUSTER_KIND
 from basis.domain.kb.remember_service import STATEMENT_REVIEW_KIND
 from basis.domain.kb.review_resolve import (
     approve_statement_remember_review,
@@ -68,6 +69,10 @@ class ResolveReviewRequest(BaseModel):
     keeper_statement_id: str | None = Field(
         default=None,
         description="For `statement_conflict` approve: keep this statement and invalidate siblings (F-RUL-04).",
+    )
+    primary_id: str | None = Field(
+        default=None,
+        description="For `entity_cluster` approve: ledger entity id to keep as primary (F-GOV-04).",
     )
 
 
@@ -388,6 +393,31 @@ Approve Review Item. Human review queue for merges, imports, and conflicts. Requ
                 "mapping": None,
                 "decision_id": decision_id,
             }
+        elif item["kind"] == ENTITY_CLUSTER_KIND:
+            payload = dict(item.get("payload") or {})
+            entity_ids = list(payload.get("entity_ids") or [])
+            primary_id = str(
+                body.primary_id
+                or payload.get("suggested_primary_id")
+                or (entity_ids[0] if entity_ids else "")
+            )
+            duplicate_ids = [eid for eid in entity_ids if eid != primary_id]
+            if not primary_id or not duplicate_ids:
+                raise AdminError(422, "bad_cluster", "实体聚类无效")
+            subject_id = KnowledgeStore.merge_review_subject_key(primary_id, duplicate_ids)
+            merge_item = knowledge.create_review_item(
+                kb_id,
+                kind="entity_merge",
+                subject_type="graph_nodes",
+                subject_id=subject_id,
+                payload={"primary_id": primary_id, "duplicate_ids": duplicate_ids},
+            )
+            approve_action = "kb.entity.cluster_promoted"
+            merge_result = {
+                "status": "promoted",
+                "entity_merge_item_id": merge_item["id"],
+                "payload": payload,
+            }
         elif item["kind"] == LOW_CONFIDENCE_KIND:
             payload = dict(item.get("payload") or {})
             statement_id = str(payload.get("statement_id") or item["subject_id"])
@@ -611,6 +641,8 @@ Reject Review Item. Human review queue for merges, imports, and conflicts. Requi
         reject_action = "kb.statement.remember_rejected"
     elif item.get("kind") == STATEMENT_CONFLICT_KIND:
         reject_action = "kb.statement.conflict_dismissed"
+    elif item.get("kind") == ENTITY_CLUSTER_KIND:
+        reject_action = "kb.entity.cluster_dismissed"
     elif item.get("kind") == LOW_CONFIDENCE_KIND:
         payload = dict(item.get("payload") or {})
         statement_id = str(payload.get("statement_id") or item["subject_id"])

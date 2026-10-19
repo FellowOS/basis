@@ -9,7 +9,7 @@
 | --- | --- | --- |
 | **A** | `POST /api/v1/kbs/{kb_id}/governance/governor/run` | Single operator trigger; returns counts `{ conflicts_created, low_confidence_created, … }`. Composes existing `scan_statement_conflicts` plus a new low-confidence enqueue pass. KB setting: `governance.governor_confidence_min` (default `0.75`). |
 | **B** | Background tick (`governor_poll_scheduler` + `BASIS_GOVERNOR_TICK_SECONDS`) | `GET|PUT …/governance/config` (`kb_governance_configs` migration 0013); KB settings UI still optional. |
-| **C** | Batch clustering | Candidate duplicate entities / statement groups beyond pairwise conflict buckets; may reuse graph neighborhood + embedding later. |
+| **C** | Batch clustering (MVP shipped) | Ledger **canonical_label** duplicate groups → `entity_cluster` review; approve enqueues `entity_merge`. Graph/embedding dedup still future. |
 
 **Out of scope (v1):** auto-approve; replacing human review; SAML/SSO.
 
