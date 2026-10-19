@@ -191,12 +191,20 @@ export function TimelinePanel({ onTimeChange, minDate, maxDate }: TimelinePanelP
   const startPlay = useCallback(() => {
     if (playIntervalRef.current) return;
     playOriginRef.current = new Date(playheadRef.current.getTime());
+    const stepMs = resolvePlayStepMs(minBound, maxBound);
+    const maxMs = maxBound.getTime();
+    // Default scrubber sits on max (often "now"); one step would end immediately without moving.
+    if (playheadRef.current.getTime() + stepMs >= maxMs) {
+      applyPlayhead(new Date(minBound.getTime()));
+    }
     playIntervalRef.current = setInterval(() => {
       const timeline = timelineRef.current;
       if (!timeline) return;
-      const stepMs = resolvePlayStepMs(minBound, maxBound);
       const nextMs = playheadRef.current.getTime() + stepMs;
-      if (nextMs >= maxBound.getTime()) {
+      if (nextMs >= maxMs) {
+        if (playheadRef.current.getTime() < maxMs) {
+          applyPlayhead(new Date(maxMs));
+        }
         finishPlayback();
         return;
       }

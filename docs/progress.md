@@ -164,7 +164,7 @@
 | Phase | Focus | Checklist rows |
 | --- | --- | --- |
 | **Now** | Operational KB loop | §3.2 F-TIM（F-SRCH-03 done）；§3.1 治理/本体（F-ONT-05、F-GOV-07） |
-| **Next** | Ops + scale | §3.2 **F-GOV-04**；§3.1 F-ACC-07（SAML / 生产 IdP，**不含**本地 Logto） |
+| **Next** | Ops + scale | §3.2 **F-IO-01**（图导出面）；§3.1 F-ACC-07（SAML / 生产 IdP）；F-GOV-04 图语义 dedup 增强 |
 | **Deferred** | Desktop | ADR 0004 Phase B+（Electron）；不设 desktop env 即可 |
 | **Then** | Graph scale + I/O | §3.2 distance-matrix、F-IO-01；M5-02 Explorer 打包 |
 | **On demand** | Release engineering | §3.1 F-DIFF-01 工作室；§3.2 distance-matrix |
