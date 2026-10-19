@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "node --experimental-strip-types server/dev.ts",
     "dev:vite": "vite --host 127.0.0.1 --port 5173 --strictPort",
+    "dev:desktop": "vite --mode desktop --host 127.0.0.1 --port 5173 --strictPort",
     "build": "tsc --noEmit && tsc --noEmit -p tsconfig.server.json && vite build",
     "start": "node --experimental-strip-types server/prod.ts",
     "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.server.json",

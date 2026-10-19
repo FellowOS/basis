@@ -56,8 +56,27 @@ def get_current_user(
     request: Request,
     authorization: str | None = Header(default=None),
 ) -> User:
-    user, _kind = resolve_bearer(request, authorization)
+    user, _kind = resolve_actor(request, authorization)
     return user
+
+
+def resolve_actor(
+    request: Request,
+    authorization: str | None,
+) -> tuple[User, str]:
+    settings = request.app.state.settings
+    if settings.is_desktop and (not authorization or not authorization.strip()):
+        user = getattr(request.app.state, "desktop_user", None)
+        if user is None:
+            raise HTTPException(
+                status_code=500,
+                detail={"code": "desktop_uninitialized", "message": "Desktop principal 未初始化"},
+            )
+        request.state.auth_kind = "desktop"
+        request.state.token = None
+        request.state.api_token = None
+        return user, "desktop"
+    return resolve_bearer(request, authorization)
 
 
 def resolve_bearer(

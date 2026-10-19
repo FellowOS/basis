@@ -4,10 +4,19 @@ from pydantic import BaseModel, Field
 from basis.platform.admin.errors import AdminError
 from basis.platform.admin.store import AdminStore, User
 from basis.transport.http.deps import get_current_user, get_store
+from basis.platform.auth.desktop_principal import issue_desktop_session_token
 from basis.platform.auth.org_login_policy import assert_local_login_allowed
 from basis.platform.auth.settings import load_auth_settings_from_store
 
 router = APIRouter(tags=["auth"])
+
+
+def _reject_if_desktop(request: Request) -> None:
+    if request.app.state.settings.is_desktop:
+        raise HTTPException(
+            status_code=403,
+            detail={"code": "forbidden", "message": "Desktop 模式不支持该认证方式"},
+        )
 
 
 class RegisterRequest(BaseModel):
@@ -39,6 +48,7 @@ async def register(
     """
 Create a local account when password registration is enabled in platform settings.
     """
+    _reject_if_desktop(request)
     auth = _auth_settings(request)
     if not auth.password_login_enabled:
         raise HTTPException(status_code=403, detail={"code": "forbidden", "message": "密码注册未启用"})
@@ -59,6 +69,7 @@ async def login(
     """
 Authenticate with email and password. Returns a session Bearer token for platform and KB routes.
     """
+    _reject_if_desktop(request)
     auth = _auth_settings(request)
     if not auth.password_login_enabled:
         raise HTTPException(status_code=403, detail={"code": "forbidden", "message": "密码登录未启用"})
@@ -87,3 +98,20 @@ Logout. Authentication and session bootstrap. Public bootstrap; optional session
 async def me(user: User = Depends(get_current_user)) -> dict:
     """Return the current session user profile (requires session token)."""
     return {"user": user.public()}
+
+
+@router.post("/desktop-session")
+async def desktop_session(
+    request: Request,
+    store: AdminStore = Depends(get_store),
+) -> dict:
+    """
+Desktop Session. Issue a long-lived Bearer token for the local principal (desktop profile only).
+    """
+    if not request.app.state.settings.is_desktop:
+        raise HTTPException(status_code=404, detail={"code": "not_found", "message": "仅 Desktop 模式可用"})
+    user = getattr(request.app.state, "desktop_user", None)
+    if user is None:
+        raise HTTPException(status_code=500, detail={"code": "desktop_uninitialized", "message": "Desktop principal 未初始化"})
+    token = issue_desktop_session_token(store, user)
+    return {"user": user.public(), "token": token}

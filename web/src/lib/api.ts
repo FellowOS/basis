@@ -1,4 +1,5 @@
 import { type ApiErrorWithMeta } from '@/lib/api-error.js';
+import { basisAuthRequired } from '@/lib/basis-runtime.js';
 import { getToken, setToken } from '@/lib/auth-token.js';
 import { basisSessionClient } from '@/lib/basis-session-client.js';
 import { publicOpenApiPOST } from '@/lib/openapi-client.js';
@@ -13,7 +14,25 @@ export type BasisUser = {
   is_admin: boolean;
 };
 
+export async function bootstrapDesktopSession(): Promise<BasisUser | null> {
+  try {
+    const body = (await publicOpenApiPOST('/api/v1/auth/desktop-session', {
+      body: {},
+    })) as { user: BasisUser; token: string };
+    setToken(body.token);
+    return body.user;
+  } catch {
+    return null;
+  }
+}
+
 export async function fetchSession(): Promise<BasisUser | null> {
+  if (!basisAuthRequired()) {
+    const token = getToken();
+    if (!token) {
+      return await bootstrapDesktopSession();
+    }
+  }
   const token = getToken();
   if (!token) return null;
   try {

@@ -12,6 +12,7 @@ from basis.infra.observability.logging_setup import uvicorn_log_config
 
 
 def _cmd_serve(settings: Settings) -> None:
+    settings.validate_for_startup()
     uvicorn.run(
         "basis.transport.http.app:create_app",
         host=settings.host,

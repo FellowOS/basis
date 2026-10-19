@@ -49,6 +49,7 @@ import { isSetupKbId, KB_SETUP_ID } from '@/lib/kb-active-id.js';
 import { kbPath } from '@/lib/nav-config.js';
 import { KbExplorerShell } from '@/lib/explorer-context.js';
 import { BasisSessionProvider, useBasisSession } from '@/lib/basis-session.js';
+import { basisAuthRequired } from '@/lib/basis-runtime.js';
 import { useSettingsAccess } from '@/lib/use-settings-access.js';
 
 function AdminOnly({ children }: { children: ReactNode }) {
@@ -108,12 +109,21 @@ function KbLegacyMcpRedirect() {
 
 function AuthedApp() {
   const { ready, user, homePath, logout } = useBasisSession();
+  const authRequired = basisAuthRequired();
 
   return (
     <Routes>
       <Route
         path="/"
-        element={ready && user ? <Navigate to={homePath} replace /> : <HomePage />}
+        element={
+          authRequired
+            ? ready && user
+              ? <Navigate to={homePath} replace />
+              : <HomePage />
+            : ready
+              ? <Navigate to={homePath} replace />
+              : null
+        }
       />
       <Route
         path="/login"
@@ -147,9 +157,9 @@ function AuthedApp() {
       />
       <Route
         element={
-          ready && !user ? (
+          authRequired && ready && !user ? (
             <Navigate to="/" replace />
-          ) : (
+          ) : !authRequired && !ready ? null : (
             <Suspense fallback={null}>
               <BasisLayout onLogout={() => void logout()} />
             </Suspense>

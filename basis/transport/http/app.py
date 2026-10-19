@@ -40,6 +40,20 @@ from basis.infra.observability.logging_setup import configure_basis_logging
 
 @asynccontextmanager
 async def _app_lifespan(app: FastAPI):
+    import json
+    import logging
+
+    settings = app.state.settings
+    logging.getLogger("basis").info(
+        json.dumps(
+            {
+                "event": "basis.ready",
+                "host": settings.host,
+                "port": settings.port,
+                "profile": settings.deployment_profile,
+            }
+        )
+    )
     tasks: list[asyncio.Task[None]] = []
     if explorer_available():
         interval = max(30, app.state.settings.explorer_evict_interval_seconds)
@@ -84,6 +98,7 @@ async def _app_lifespan(app: FastAPI):
 
 def create_app(app_settings: Settings | None = None) -> FastAPI:
     app_settings = app_settings or Settings.from_env()
+    app_settings.validate_for_startup()
     configure_basis_logging(app_settings)
     app = FastAPI(
         title="Basis API",
@@ -111,6 +126,10 @@ def create_app(app_settings: Settings | None = None) -> FastAPI:
     # Compatibility alias for integrations that still inspect app.state.
     app.state.sqlite_db = app.state.database
     app.state.store = AdminStore(app.state.database)
+    if app_settings.is_desktop:
+        from basis.platform.auth.desktop_principal import ensure_desktop_principal
+
+        app.state.desktop_user = ensure_desktop_principal(app.state.store)
     app.state.graph_persistence = GraphPersistence(app_settings.data_dir)
     app.state.blob_store = BlobStore(app_settings.data_dir)
     app.state.knowledge_store = KnowledgeStore(app.state.database, app.state.blob_store)

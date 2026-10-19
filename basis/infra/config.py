@@ -47,6 +47,16 @@ class Settings:
     ingest_max_extract_chars: int = 2_000_000
     ingest_max_chunks: int = 2_000
     ingest_extract_timeout_seconds: int = 300
+    deployment_profile: str = "server"
+
+    @property
+    def is_desktop(self) -> bool:
+        return self.deployment_profile == "desktop"
+
+    @property
+    def auth_enabled(self) -> bool:
+        return not self.is_desktop
+
     @property
     def db_path(self) -> Path:
         return self.data_dir / "basis.db"
@@ -132,4 +142,17 @@ class Settings:
                 lo=0,
                 hi=7200,
             ),
+            deployment_profile=os.environ.get("BASIS_DEPLOYMENT_PROFILE", "server").strip().lower()
+            or "server",
         )
+
+    def validate_for_startup(self) -> None:
+        if not self.is_desktop:
+            return
+        if self.deployment_profile != "desktop":
+            raise SystemExit(f"Unsupported BASIS_DEPLOYMENT_PROFILE: {self.deployment_profile}")
+        loopback_hosts = {"127.0.0.1", "localhost", "::1"}
+        if self.host.strip() not in loopback_hosts:
+            raise SystemExit("desktop profile requires loopback BASIS_HOST (127.0.0.1)")
+        if self.database_backend == "postgres":
+            raise SystemExit("desktop profile requires SQLite (unset BASIS_DATABASE_URL)")
