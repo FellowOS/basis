@@ -131,6 +131,8 @@ uv run basis
 
 **限流与背压：** `BASIS_UPLOAD_MAX_BYTES`、`BASIS_INGEST_MAX_INFLIGHT` / `BASIS_INGEST_MAX_PENDING`、`BASIS_INGEST_EXTRACT_TIMEOUT_SECONDS`、`BASIS_CHUNK_SEARCH_MAX_LIMIT`、`BASIS_MCP_*`、`BASIS_REST_V1_MAX_INFLIGHT`；`BASIS_LOG_JSON=1` 输出 JSON 日志。
 
+**Agent 治理扫描（F-GOV-04）：** 服务端 `BASIS_GOVERNOR_TICK_SECONDS`（>0 启用定时 tick）；KB **设置 → Explorer 图 → Agent 治理扫描** 开启 `governor_enabled`；Review 队列可手动 **治理扫描**（冲突 / 低置信 / 同标签实体聚类）。
+
 **连接器（当前固定种类）：** webhook、HTTP 轮询、GitHub raw — 在 KB **Sources** 配置。
 
 **实时：** 图投影变更 WebSocket `projection_updated`（单 API 进程，无 Redis 多实例）。
