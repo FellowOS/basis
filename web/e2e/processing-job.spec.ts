@@ -112,3 +112,24 @@ test('processing filter query selects failed tab', async ({ page }) => {
     'active',
   );
 });
+
+test('sources and processing share ingest limits and queue hints', async ({ page }) => {
+  await registerFreshUser(page);
+  const kbId = await defaultKbId(page);
+
+  await page.goto(`/kbs/${kbId}/sources`);
+  await expect(page.locator('.kb-library-workspace')).toBeVisible({ timeout: 60_000 });
+  const sourcesLimits = page.getByTestId('sources-ingest-limits-hint');
+  await expect(sourcesLimits).toBeVisible({ timeout: 30_000 });
+  const limitsText = await sourcesLimits.textContent();
+  expect(limitsText?.length).toBeGreaterThan(10);
+
+  const sourcesQueue = page.getByTestId('sources-ingest-queue-hint');
+  await expect(sourcesQueue).toBeVisible({ timeout: 30_000 });
+  const queueText = await sourcesQueue.textContent();
+
+  await page.goto(`/kbs/${kbId}/processing`);
+  await expect(page.locator('.kb-processing-workspace')).toBeVisible({ timeout: 60_000 });
+  await expect(page.getByTestId('processing-limits-hint')).toHaveText(limitsText ?? '');
+  await expect(page.getByTestId('processing-queue-hint')).toHaveText(queueText ?? '');
+});

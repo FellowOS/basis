@@ -117,7 +117,7 @@
 | F-GOV-06 | Registry 可读产品面（非 Explorer 专页） | `done` | P1 | Review timeline + 设置 **Recent graph audit** 深链；**平台 `/admin/audit` Links 列**；管理员 → 平台审计（本库）；E2E `settings-graph-audit.spec.ts` |
 | F-RUL-03 | Entities / 证明链 UI | `done` | P1 | Entities + derived 侧栏；前提/主客体深链（statement→entities、实体→graph）；E2E/单测 `derived-fact-premise-link` |
 | F-ONT-09 | 推理工作台（规则试跑） | `done` | P1 | **Analyze** hub + legacy `/reasoning`；试跑 → 派生深链 **Entities**；Integration OpenAPI 提示；E2E `analyze-hub.spec.ts`、`reasoning-derived.spec.ts` |
-| F-SRC-08 | 超大文件 / 队列运维 UX | `partial` | P1 | **Sources/Processing 共用** `kb-ingest-ops-hints`（limits + live queue testid）；上传对话框 extract 上限；**Sources→failed filter**、job **episode 告警深链**（E2E ✅）；行内 job 错误一致；`scripts/bocp_pg_smoke.py` |
+| F-SRC-08 | 超大文件 / 队列运维 UX | `done` | P1 | **Sources/Processing 共用** `kb-ingest-ops-hints` + E2E 文案一致（`processing-job.spec.ts`）；上传超限客户端校验 + extract 上限提示；**Sources→failed filter**、job **episode 告警深链**；行内 job 错误一致；`scripts/bocp_pg_smoke.py` |
 | F-CHAT-05 | 集成控制台（OpenAPI + MCP） | `done` | P1 | Integration OpenAPI：**导出** + **告警 REST** 提示；告警页 → OpenAPI 互链；E2E `mcp-integration.spec.ts` |
 | F-KB-06 | 导出 pack 控制台入口与文档 | `done` | P2 | 设置 Graph **导出** ↔ 集成 **OpenAPI**；graph-diff **导出包**深链；E2E `settings-graph-audit.spec.ts` |
 
@@ -161,7 +161,7 @@
 | Phase | Focus | Checklist rows |
 | --- | --- | --- |
 | **Now** | Operational KB loop | §3.2 F-TIM（F-SRCH-03 done）；§3.1 治理/本体（F-ONT-05、F-GOV-07） |
-| **Next** | Time + ops | §3.2 F-GOV-05、F-TIM；§3.1 F-DIFF-01 工作室、F-SRC-08 ingest UX |
+| **Next** | Time + ops | §3.2 F-GOV-05、F-TIM；§3.1 F-DIFF-01 工作室 |
 | **Then** | Time + ops visibility | §3.2 F-TIM-01–04, F-ALT-01–02 |
 | **On demand** | Release engineering | §3.1 F-DIFF-01 工作室；§3.2 distance-matrix |
 | **Enterprise option** | Basis Connector (BOCP) + operational ontology | §3.3 Phase 1–4（`F-LAKE-01–03` / `F-OPS-*`）；见 [adoption §6–§7](architecture/helix-foundry-adoption.md) |
