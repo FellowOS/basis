@@ -62,6 +62,7 @@ export const kbReview = {
     '治理扫描：冲突 {conflictsCreated}、低置信 {lowCreated}、重复标签 {clusterCreated}（跳过 {conflictsSkipped}/{lowSkipped}/{clusterSkipped}）。',
   promoteEntityCluster: '加入实体合并审核',
   entityClusterLine: '标签「{label}」· {count} 个实体',
+  entityClusterPickHint: '选择保留的主实体，其余将进入实体合并审核。',
   lowConfidenceLine: '置信度 {confidence}（阈值 {threshold}）· {predicate}',
   confirmLowConfidence: '确认陈述',
 } as const;

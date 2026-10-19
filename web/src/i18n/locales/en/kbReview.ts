@@ -63,6 +63,7 @@ export const kbReview = {
     'Governor pass: {conflictsCreated} conflicts, {lowCreated} low-confidence, {clusterCreated} duplicate labels ({conflictsSkipped}/{lowSkipped}/{clusterSkipped} skipped).',
   promoteEntityCluster: 'Queue entity merge',
   entityClusterLine: 'Label «{label}» · {count} entities',
+  entityClusterPickHint: 'Choose the primary entity; duplicates will be proposed for merge review.',
   lowConfidenceLine: 'Confidence {confidence} (threshold {threshold}) · {predicate}',
   confirmLowConfidence: 'Confirm statement',
 } as const;

@@ -40,3 +40,48 @@ def test_scan_enqueues_cluster_review(tmp_path: Path) -> None:
     assert result["created"] == 1
     items = store.list_review_items(kb_id, kind=ENTITY_CLUSTER_KIND)
     assert len(items) == 1
+
+
+def test_cluster_approve_promotes_entity_merge(tmp_path: Path) -> None:
+    from fastapi.testclient import TestClient
+
+    from basis.infra.config import Settings
+    from basis.transport.http.app import create_app
+
+    client = TestClient(create_app(Settings(data_dir=tmp_path)))
+    admin = client.post(
+        "/api/v1/auth/register",
+        json={"email": "ap@example.com", "password": "password1", "display_name": "Ap"},
+    ).json()
+    headers = {"Authorization": f"Bearer {admin['token']}"}
+    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+
+    store = KnowledgeStore(tmp_path / "basis.db", BlobStore(tmp_path))
+    primary = store.create_entity(kb_id, canonical_label="Same")
+    dup = store.create_entity(kb_id, canonical_label="same")
+    store.close()
+
+    scan_entity_label_clusters(
+        KnowledgeStore(tmp_path / "basis.db", BlobStore(tmp_path)), kb_id
+    )
+    items = client.get(
+        f"/api/v1/kbs/{kb_id}/review/items",
+        headers=headers,
+        params={"kind": ENTITY_CLUSTER_KIND},
+    ).json()["items"]
+    cluster_id = items[0]["id"]
+
+    approve = client.post(
+        f"/api/v1/kbs/{kb_id}/review/items/{cluster_id}/approve",
+        headers=headers,
+        json={"primary_id": dup},
+    )
+    assert approve.status_code == 200
+    merge_items = client.get(
+        f"/api/v1/kbs/{kb_id}/review/items",
+        headers=headers,
+        params={"kind": "entity_merge"},
+    ).json()["items"]
+    assert len(merge_items) == 1
+    assert merge_items[0]["payload"]["primary_id"] == dup
+    assert primary in merge_items[0]["payload"]["duplicate_ids"]

@@ -276,6 +276,7 @@ export function KbReviewQueueTab({
   const [scanBusy, setScanBusy] = useState(false);
   const [governorBusy, setGovernorBusy] = useState(false);
   const [conflictKeeper, setConflictKeeper] = useState<Record<string, string>>({});
+  const [clusterPrimary, setClusterPrimary] = useState<Record<string, string>>({});
   const canRevertMerge = Boolean(caps?.graph_write);
   const canScanConflicts = Boolean(caps?.graph_write);
 
@@ -287,6 +288,17 @@ export function KbReviewQueueTab({
         if (next[item.id]) continue;
         const firstId = item.payload.objects?.[0]?.statement_id;
         if (firstId) next[item.id] = firstId;
+      }
+      return next;
+    });
+    setClusterPrimary((prev) => {
+      const next = { ...prev };
+      for (const item of items) {
+        if (item.kind !== 'entity_cluster') continue;
+        if (next[item.id]) continue;
+        const suggested =
+          item.payload.suggested_primary_id ?? item.payload.entity_ids?.[0];
+        if (suggested) next[item.id] = suggested;
       }
       return next;
     });
@@ -496,13 +508,20 @@ export function KbReviewQueueTab({
     setError(null);
     setGateErrorCode(null);
     const item = items.find((row) => row.id === itemId);
-    const payload: { rationale?: string; keeper_statement_id?: string } = {};
+    const payload: { rationale?: string; keeper_statement_id?: string; primary_id?: string } = {};
     if (
       action === 'approve' &&
       item?.kind === 'statement_conflict' &&
       conflictKeeper[itemId]
     ) {
       payload.keeper_statement_id = conflictKeeper[itemId];
+    }
+    if (
+      action === 'approve' &&
+      item?.kind === 'entity_cluster' &&
+      clusterPrimary[itemId]
+    ) {
+      payload.primary_id = clusterPrimary[itemId];
     }
     try {
       const res = await explorerFetch(
@@ -774,14 +793,48 @@ export function KbReviewQueueTab({
                             )
                           : isEntityCluster
                             ? (
-                              <span className="font-mono text-xs text-muted-foreground">
-                                {fmt(r.entityClusterLine, {
-                                  label: String(item.payload.canonical_label ?? emptyCell),
-                                  count: formatLocaleNumber(
-                                    locale as Locale,
-                                    item.payload.entity_ids?.length ?? 0,
-                                  ),
-                                })}
+                              <span className="flex flex-col gap-1">
+                                <span className="font-mono text-xs text-muted-foreground">
+                                  {fmt(r.entityClusterLine, {
+                                    label: String(item.payload.canonical_label ?? emptyCell),
+                                    count: formatLocaleNumber(
+                                      locale as Locale,
+                                      item.payload.entity_ids?.length ?? 0,
+                                    ),
+                                  })}
+                                </span>
+                                <p className="text-[10px] text-muted-foreground">{r.entityClusterPickHint}</p>
+                                <ul
+                                  className="mt-1 flex flex-col gap-1.5 text-xs text-muted-foreground"
+                                  data-testid={`review-cluster-pick-${item.id}`}
+                                >
+                                  {(item.payload.entity_ids ?? []).map((entityId) => {
+                                    const inputId = `cluster-primary-${item.id}-${entityId}`;
+                                    return (
+                                      <li key={entityId}>
+                                        <label
+                                          htmlFor={inputId}
+                                          className="flex cursor-pointer items-start gap-2 rounded-md border border-border px-2 py-1.5 has-[:checked]:border-primary has-[:checked]:bg-muted/50"
+                                        >
+                                          <input
+                                            id={inputId}
+                                            type="radio"
+                                            name={`cluster-primary-${item.id}`}
+                                            className="mt-0.5"
+                                            checked={clusterPrimary[item.id] === entityId}
+                                            onChange={() =>
+                                              setClusterPrimary((prev) => ({
+                                                ...prev,
+                                                [item.id]: entityId,
+                                              }))
+                                            }
+                                          />
+                                          <span>{renderNodeRef(entityId)}</span>
+                                        </label>
+                                      </li>
+                                    );
+                                  })}
+                                </ul>
                               </span>
                             )
                           : isConflict
