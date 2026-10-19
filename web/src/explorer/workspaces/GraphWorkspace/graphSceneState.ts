@@ -1195,9 +1195,7 @@ function resolveEdgeColor(
     case "path":
       return theme.palette.accent.path;
     case "backbone":
-      return zoomTier === "overview"
-        ? theme.palette.overview.edgeBackbone
-        : theme.palette.muted.edgeFocus;
+      return theme.palette.overview.edgeBackbone;
     case "focus":
       return theme.palette.muted.edgeFocus;
     case "overview":
@@ -1877,7 +1875,12 @@ export function resolveEdgeElementStyle(
   const baseColor = resolveEdgeColor(theme, zoomTier, state, attrs, attrs.color, fullEdgeClass);
   const resolvedLodAlpha = resolveEdgeLodAlpha(theme, viewMode, zoomTier, state, attrs, isCommunityBundle, fullEdgeClass);
   const lodAlpha = isSmallGraphEdge
-    ? Math.max(resolvedLodAlpha ?? 1, isContextEdge ? 0.62 : 0.46)
+    ? Math.max(
+      resolvedLodAlpha ?? 0,
+      isContextEdge
+        ? theme.interaction.smallGraphContextEdgeAlpha
+        : theme.interaction.smallGraphDefaultEdgeAlpha,
+    )
     : resolvedLodAlpha;
   const color = lodAlpha === null ? baseColor : withAlpha(baseColor, lodAlpha);
   const rawSize = Math.max(

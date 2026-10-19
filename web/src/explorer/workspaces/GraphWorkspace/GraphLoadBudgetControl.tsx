@@ -6,10 +6,8 @@ import { messagesForLocale } from "@/i18n/pick-locale.js";
 
 import type { GraphWorkspaceLocale } from "./graphWorkspaceCopy";
 import {
-  GRAPH_LOAD_BUDGET_EDGE_STEP,
   GRAPH_LOAD_BUDGET_MIN_EDGES,
   GRAPH_LOAD_BUDGET_MIN_NODES,
-  GRAPH_LOAD_BUDGET_NODE_STEP,
   catalogEdgeCeiling,
   catalogNodeCeiling,
   loadBudgetSliderBounds,
@@ -46,8 +44,8 @@ export function GraphLoadBudgetControl({
 
   const nodeMax = catalogNodeCeiling(catalogTotals);
   const edgeMax = catalogEdgeCeiling(catalogTotals);
-  const nodeBounds = loadBudgetSliderBounds(nodeMax, GRAPH_LOAD_BUDGET_MIN_NODES, GRAPH_LOAD_BUDGET_NODE_STEP);
-  const edgeBounds = loadBudgetSliderBounds(edgeMax, GRAPH_LOAD_BUDGET_MIN_EDGES, GRAPH_LOAD_BUDGET_EDGE_STEP);
+  const nodeBounds = loadBudgetSliderBounds(nodeMax, GRAPH_LOAD_BUDGET_MIN_NODES);
+  const edgeBounds = loadBudgetSliderBounds(edgeMax, GRAPH_LOAD_BUDGET_MIN_EDGES);
   const nodeValue = snapLoadBudgetValue(draftNodes, nodeBounds);
   const edgeValue = snapLoadBudgetValue(draftEdges, edgeBounds);
 

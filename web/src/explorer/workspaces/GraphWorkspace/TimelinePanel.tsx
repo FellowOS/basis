@@ -18,6 +18,7 @@ import {
 import { useI18n } from "@/i18n/context.js";
 import { fmt, formatLocaleNumber, formatLocaleYearMonth } from "@/i18n/format.js";
 import type { Locale } from "@/i18n/locale.js";
+import { Pause, Play } from "lucide-react";
 import { cn } from "@/lib/utils.js";
 import { GRAPH_THEME } from "./graphTheme";
 import { DEFAULT_MIN_DATE, resolvePlayStepMs, resolveScrubberBounds } from "./temporalScrubberBounds";
@@ -51,7 +52,7 @@ const VIS_OVERRIDE_CSS = `
   .sem-timeline-wrap .vis-time-axis .vis-grid.vis-minor { border-color: ${GRAPH_THEME.ui.timeline.gridMinor} !important; }
   .sem-timeline-wrap .vis-time-axis .vis-grid.vis-major { border-color: ${GRAPH_THEME.ui.timeline.gridMajor} !important; }
   .sem-timeline-wrap .vis-custom-time.${PLAYHEAD_ID} {
-    background: ${GRAPH_THEME.ui.timeline.playheadSoft} !important;
+    background: ${GRAPH_THEME.ui.timeline.playhead} !important;
     width: 2px !important;
     cursor: ew-resize !important;
     z-index: 5 !important;
@@ -64,7 +65,6 @@ const VIS_OVERRIDE_CSS = `
     border-radius: 3px !important;
     padding: 1px 5px !important;
     white-space: nowrap !important;
-    box-shadow: 0 0 8px rgba(98, 226, 205, 0.45) !important;
   }
   .sem-timeline-wrap .vis-current-time { display: none !important; }
   .sem-timeline-wrap .vis-panel.vis-left { display: none !important; }
@@ -207,9 +207,9 @@ export function TimelinePanel({ onTimeChange, minDate, maxDate }: TimelinePanelP
           className={cn(graphTimelinePlayBtn, isPlaying && graphTimelinePlayBtnActive)}
         >
           {isPlaying ? (
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" /><rect x="14" y="4" width="4" height="16" /></svg>
+            <Pause className="size-3.5" aria-hidden />
           ) : (
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21" /></svg>
+            <Play className="size-3.5 translate-x-px" aria-hidden />
           )}
         </Button>
         <span className={cn(graphTimelineDate, isPlaying && graphTimelineDateActive)}>

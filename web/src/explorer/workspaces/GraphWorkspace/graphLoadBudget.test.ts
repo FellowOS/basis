@@ -55,22 +55,16 @@ describe("clampLoadBudget", () => {
   it("does not enforce a 20-node minimum", () => {
     const budget = clampLoadBudget({ maxNodes: 8, maxEdges: 12 }, { nodeTotal: 8, edgeTotal: 12 });
     expect(budget).toEqual({ maxNodes: 8, maxEdges: 12 });
-    expect(loadBudgetSliderBounds(8, 1, 10)).toEqual({
+    expect(loadBudgetSliderBounds(8, 1)).toEqual({
       min: 1,
       max: 8,
       step: 1,
       disabled: false,
     });
-    expect(loadBudgetSliderBounds(25, 1, 10)).toEqual({
-      min: 1,
-      max: 25,
-      step: 1,
-      disabled: false,
-    });
-    expect(loadBudgetSliderBounds(60, 1, 10)).toEqual({
+    expect(loadBudgetSliderBounds(60, 1)).toEqual({
       min: 1,
       max: 60,
-      step: 10,
+      step: 1,
       disabled: false,
     });
   });

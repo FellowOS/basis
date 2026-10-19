@@ -12,10 +12,6 @@ const STORAGE_PREFIX = "sema.graphLoadBudget.v2:";
 
 export const GRAPH_LOAD_BUDGET_MIN_NODES = 1;
 export const GRAPH_LOAD_BUDGET_MIN_EDGES = 1;
-export const GRAPH_LOAD_BUDGET_NODE_STEP = 10;
-export const GRAPH_LOAD_BUDGET_EDGE_STEP = 20;
-/** When catalog ceiling is below this, sliders use step 1 instead of the default step. */
-export const GRAPH_LOAD_BUDGET_FINE_STEP_CEILING = 50;
 
 const DEFAULT_BUDGET_NODES = 200;
 const DEFAULT_BUDGET_EDGES = 400;
@@ -63,17 +59,16 @@ export function catalogEdgeCeiling(totals: GraphCatalogTotals): number {
   return DEFAULT_BUDGET_EDGES;
 }
 
-export function loadBudgetSliderBounds(ceiling: number, minFloor: number, step: number) {
+export function loadBudgetSliderBounds(ceiling: number, minFloor: number) {
   if (ceiling <= 0) {
     return { min: 0, max: 0, step: 1, disabled: true };
   }
   const min = Math.min(minFloor, ceiling);
   const range = ceiling - min;
-  const baseStep = ceiling < GRAPH_LOAD_BUDGET_FINE_STEP_CEILING ? 1 : step;
   return {
     min,
     max: ceiling,
-    step: range > 0 && range < baseStep ? 1 : baseStep,
+    step: 1,
     disabled: range <= 0,
   };
 }

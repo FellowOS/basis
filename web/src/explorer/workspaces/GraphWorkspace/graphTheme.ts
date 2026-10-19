@@ -280,6 +280,9 @@ export interface GraphTheme {
     selectedEdgeMaxSize: number;
     pathEdgeMaxSize: number;
     pathOverlayAlpha: number;
+    /** Floor for LOD alpha on sparse graphs (see `isSmallGraph` on edges). */
+    smallGraphDefaultEdgeAlpha: number;
+    smallGraphContextEdgeAlpha: number;
   };
   overlays: {
     hoverGlowAlpha: number;
@@ -490,7 +493,7 @@ export const GRAPH_THEME: GraphTheme = {
       text: "#7A92AE",
       textStrong: "#A5B7CD",
       playhead: "#8FE7FF",
-      playheadSoft: "rgba(143, 231, 255, 0.12)",
+      playheadSoft: "rgba(143, 231, 255, 0.35)",
     },
   },
   zoomTiers: {
@@ -859,6 +862,8 @@ export const GRAPH_THEME: GraphTheme = {
     selectedEdgeMaxSize: 1.0,
     pathEdgeMaxSize: 1.4,
     pathOverlayAlpha: 0.16,
+    smallGraphDefaultEdgeAlpha: 0.46,
+    smallGraphContextEdgeAlpha: 0.62,
   },
   overlays: {
     hoverGlowAlpha: 0.18,

@@ -98,26 +98,29 @@ function applyCanvasEdgeVisibility(isDark: boolean): void {
     GRAPH_THEME.interaction.selectedEdgeAlpha = 0.6;
     GRAPH_THEME.interaction.localContextMaxSize = 0.6;
     GRAPH_THEME.interaction.selectedEdgeMaxSize = 1;
+    GRAPH_THEME.interaction.smallGraphDefaultEdgeAlpha = 0.1;
+    GRAPH_THEME.interaction.smallGraphContextEdgeAlpha = 0.22;
 
-    full.overview.defaultAlpha = 0.014;
     full.overview.backgroundSampleRate = 0.035;
     full.overview.defaultPriorityThreshold = 0.96;
     full.overview.hideMuted = true;
-    full.overview.inactiveAlpha = 0.006;
-    full.structure.defaultAlpha = 0.022;
+    full.overview.inactiveAlpha = 0.005;
     full.structure.backgroundSampleRate = 0.16;
     full.structure.defaultPriorityThreshold = 0.82;
     full.structure.hideMuted = true;
-    full.inspection.defaultAlpha = 0.03;
     full.inspection.backgroundSampleRate = 0.28;
     full.inspection.defaultPriorityThreshold = 0.72;
     full.inspection.hideMuted = true;
 
-    structure.structureEdgeAlpha = 0.072;
-    structure.inspectionEdgeAlpha = 0.062;
-    structure.backboneAlpha = 0.048;
-    structure.ambientBackboneAlpha = 0.072;
-    structure.bridgeAlpha = 0.08;
+    structure.structureEdgeAlpha = 0.042;
+    structure.inspectionEdgeAlpha = 0.036;
+    structure.backboneAlpha = 0.032;
+    structure.ambientBackboneAlpha = 0.042;
+    structure.bridgeAlpha = 0.048;
+
+    full.overview.defaultAlpha = 0.008;
+    full.structure.defaultAlpha = 0.013;
+    full.inspection.defaultAlpha = 0.018;
     return;
   }
 
@@ -132,6 +135,8 @@ function applyCanvasEdgeVisibility(isDark: boolean): void {
   GRAPH_THEME.interaction.selectedEdgeAlpha = 0.68;
   GRAPH_THEME.interaction.localContextMaxSize = 0.85;
   GRAPH_THEME.interaction.selectedEdgeMaxSize = 1.1;
+  GRAPH_THEME.interaction.smallGraphDefaultEdgeAlpha = 0.46;
+  GRAPH_THEME.interaction.smallGraphContextEdgeAlpha = 0.62;
 
   full.overview.defaultAlpha = 0.11;
   full.overview.backgroundSampleRate = 0.035;
@@ -232,13 +237,13 @@ export function syncBasisGraphTheme(mode: Theme): void {
   GRAPH_THEME.ui.control.disabledText = rgbaFromRgb(mutedForeground, 0.42);
 
   GRAPH_THEME.ui.timeline.background = card;
-  GRAPH_THEME.ui.timeline.border = rgbaFromRgb(border, 0.45);
-  GRAPH_THEME.ui.timeline.gridMinor = rgbaFromRgb(border, 0.15);
-  GRAPH_THEME.ui.timeline.gridMajor = rgbaFromRgb(border, 0.28);
+  GRAPH_THEME.ui.timeline.border = rgbaFromRgb(border, isDark ? 0.14 : 0.2);
+  GRAPH_THEME.ui.timeline.gridMinor = rgbaFromRgb(border, isDark ? 0.05 : 0.07);
+  GRAPH_THEME.ui.timeline.gridMajor = rgbaFromRgb(border, isDark ? 0.1 : 0.14);
   GRAPH_THEME.ui.timeline.text = mutedForeground;
   GRAPH_THEME.ui.timeline.textStrong = foreground;
   GRAPH_THEME.ui.timeline.playhead = accent;
-  GRAPH_THEME.ui.timeline.playheadSoft = rgbaFromRgb(accent, 0.14);
+  GRAPH_THEME.ui.timeline.playheadSoft = rgbaFromRgb(accent, isDark ? 0.38 : 0.32);
 
   GRAPH_THEME.palette.background.canvas = background;
   GRAPH_THEME.palette.background.shell = rgbaFromRgb(card, 0.92);
@@ -250,6 +255,9 @@ export function syncBasisGraphTheme(mode: Theme): void {
   GRAPH_THEME.palette.muted.fallback = rgbaFromRgb(mutedForeground, isDark ? 0.18 : 0.22);
 
   const lightEdgeInk = mixRgbCss(foreground, mutedForeground, 0.65);
+  /** Dark canvas: Basis `--muted-foreground` is ~70% L — pull ink toward `--background` so edges stay ambient. */
+  const darkCanvasEdgeInk = mixRgbCss(rgbCss(mutedForeground), rgbCss(background), 0.08);
+  const darkCanvasEdgeEmphasis = mixRgbCss(rgbCss(mutedForeground), rgbCss(background), 0.14);
 
   GRAPH_THEME.palette.accent.selected = rgbCss(accent);
   GRAPH_THEME.palette.accent.hovered = rgbCss(primary);
@@ -262,8 +270,8 @@ export function syncBasisGraphTheme(mode: Theme): void {
   GRAPH_THEME.palette.overview.nodeCore = mutedForeground;
   GRAPH_THEME.palette.overview.nodeMuted = isDark ? background : muted;
   GRAPH_THEME.palette.overview.nodeBorder = rgbaFromRgb(border, 0.7);
-  const edgeStroke = isDark ? rgbCss(mutedForeground) : lightEdgeInk;
-  const edgeEmphasis = isDark ? rgbCss(foreground) : rgbCss(foreground);
+  const edgeStroke = isDark ? darkCanvasEdgeInk : lightEdgeInk;
+  const edgeEmphasis = isDark ? darkCanvasEdgeEmphasis : rgbCss(foreground);
   GRAPH_THEME.palette.overview.edgeStructure = edgeStroke;
   GRAPH_THEME.palette.overview.edgeBackbone = edgeEmphasis;
   GRAPH_THEME.palette.overview.edgeInspection = edgeStroke;
