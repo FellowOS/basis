@@ -15,7 +15,7 @@ export function CapabilitiesSection() {
         <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
           {m.capabilitiesEyebrow}
         </p>
-        <h2 className="mt-4 max-w-2xl font-display text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+        <h2 className="mt-4 font-display text-3xl font-semibold tracking-tight text-foreground whitespace-nowrap sm:text-4xl">
           {m.capabilitiesTitle}
         </h2>
         <p className="mt-4 max-w-2xl text-base leading-relaxed text-muted-foreground">

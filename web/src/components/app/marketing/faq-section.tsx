@@ -20,7 +20,7 @@ export function FaqSection() {
           <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
             {f.eyebrow}
           </p>
-          <h2 className="mt-4 max-w-md font-display text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+          <h2 className="mt-4 font-display text-3xl font-semibold tracking-tight text-foreground whitespace-nowrap sm:text-4xl">
             {f.title}
           </h2>
         </div>
