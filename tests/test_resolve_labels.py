@@ -4,12 +4,12 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
-from basis.platform.admin.store import AdminStore
-from basis.transport.http.app import create_app
-from basis.infra.config import Settings
-from basis.domain.graph.projector import rebuild_graph_from_ledger
-from basis.domain.kb.blob_store import BlobStore
-from basis.domain.kb.store import KnowledgeStore
+from basis.control.admin.store import AdminStore
+from basis.api.http.app import create_app
+from basis.runtime.config import Settings
+from basis.core.projection.projector import rebuild_graph_from_ledger
+from basis.core.ledger.blob_store import BlobStore
+from basis.core.ledger.store import KnowledgeStore
 
 
 def test_resolve_labels_ledger_and_graph(tmp_path: Path) -> None:

@@ -11,47 +11,61 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from basis.domain.connectors.manifest_schema import ConnectorManifest
-from basis.domain.connectors.provider_bundle import write_provider_bundle
-from basis.domain.connectors.synthesis.batches import load_batch, list_batch_files
-from basis.domain.connectors.synthesis.generators import all_generator_services
-from basis.domain.connectors.synthesis.merge import merge_service
+from basis.core.connectors.manifest_schema import ConnectorManifest
+from basis.core.connectors.provider_bundle import write_provider_bundle
+from basis.core.connectors.synthesis.batches import load_batch, list_batch_files
+from basis.core.connectors.synthesis.generators import all_generator_services
+from basis.core.connectors.synthesis.merge import merge_service
 
 PROVIDERS_OUT_DIR = REPO_ROOT / "basis" / "domain" / "connectors" / "providers"
 
 
-def _services_from_args(args: argparse.Namespace) -> list[tuple[str, str | None]]:
-    """Return (service, ship_tier) pairs."""
+def _services_from_args(
+    args: argparse.Namespace,
+) -> tuple[list[tuple[str, str | None]], frozenset[str]]:
+    """Return (service, ship_tier) pairs and catalog-only procedure services."""
     if args.batch is not None:
         batch = load_batch(args.batch)
         tier = batch.ship_tier_default
-        return [(s, tier) for s in batch.services]
+        return [(s, tier) for s in batch.services], batch.catalog_procedures_only
     if args.services:
         tier = args.tier
-        return [(s.strip().lower(), tier) for s in args.services.split(",") if s.strip()]
+        pairs = [
+            (s.strip().lower(), tier) for s in args.services.split(",") if s.strip()
+        ]
+        return pairs, frozenset()
     if args.all_batches:
         pairs: list[tuple[str, str | None]] = []
+        catalog_only: set[str] = set()
         for path in list_batch_files():
             batch_id = int(path.stem.split("_", 1)[1])
             batch = load_batch(batch_id)
             pairs.extend((s, batch.ship_tier_default) for s in batch.services)
-        return pairs
+            catalog_only |= set(batch.catalog_procedures_only)
+        return pairs, frozenset(catalog_only)
     # Default: legacy generators only (batch 0 services).
     batch = load_batch(0)
-    return [(s, batch.ship_tier_default) for s in batch.services]
+    return [(s, batch.ship_tier_default) for s in batch.services], batch.catalog_procedures_only
 
 
 def build_manifests(
     service_tiers: list[tuple[str, str | None]],
     *,
     synthesize: bool,
+    catalog_procedures_only: frozenset[str] = frozenset(),
 ) -> list[ConnectorManifest]:
     manifests: list[ConnectorManifest] = []
     for service, tier in service_tiers:
         if synthesize:
-            manifests.append(merge_service(service, ship_tier=tier))
+            manifests.append(
+                merge_service(
+                    service,
+                    ship_tier=tier,
+                    catalog_procedures_only=service in catalog_procedures_only,
+                )
+            )
         else:
-            from basis.domain.connectors.synthesis.generators import manifest_from_generator
+            from basis.core.connectors.synthesis.generators import manifest_from_generator
 
             m = manifest_from_generator(service)
             if m is None:
@@ -108,8 +122,12 @@ def main() -> None:
             print(name)
         return
 
-    service_tiers = _services_from_args(args)
-    manifests = build_manifests(service_tiers, synthesize=args.synthesize)
+    service_tiers, catalog_only = _services_from_args(args)
+    manifests = build_manifests(
+        service_tiers,
+        synthesize=args.synthesize,
+        catalog_procedures_only=catalog_only,
+    )
     PROVIDERS_OUT_DIR.mkdir(parents=True, exist_ok=True)
     for manifest in manifests:
         write_provider_bundle(PROVIDERS_OUT_DIR, manifest)

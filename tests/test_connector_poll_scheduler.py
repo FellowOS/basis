@@ -2,11 +2,11 @@
 
 from datetime import datetime, timezone
 
-from basis.domain.kb.schedulers.connector_mapping_poll_due import (
+from basis.core.ledger.schedulers.connector_mapping_poll_due import (
     is_connector_mapping_poll_due,
     poll_interval_minutes_for_mapping,
 )
-from basis.domain.kb.services.connector_sync import SourceTableMappingRecord
+from basis.core.ledger.services.connector_sync import SourceTableMappingRecord
 
 
 def _mapping(**overrides: object) -> SourceTableMappingRecord:

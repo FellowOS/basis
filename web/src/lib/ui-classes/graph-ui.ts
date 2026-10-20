@@ -62,7 +62,7 @@ export const graphLoaderMetricAccent =
   "inline-flex items-center gap-1.5 rounded-full border border-primary/25 bg-primary/10 px-2.5 py-1.5 text-[11px] font-semibold text-foreground";
 
 export const graphTimelineShell =
-  "relative flex h-[90px] w-full shrink-0 items-stretch border-t border-border bg-card/85 backdrop-blur-md";
+  "relative flex h-[90px] w-full shrink-0 items-stretch bg-card/85 backdrop-blur-md";
 
 export const graphTimelineControls =
   "flex min-w-20 shrink-0 flex-col items-center justify-center gap-1 border-r border-border px-4";

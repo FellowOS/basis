@@ -164,10 +164,13 @@
 
 | 项 | Status | Priority | Notes |
 | --- | --- | --- | --- |
-| 线 1：减少 `semantica.explorer` 依赖，域逻辑以 `context` / `ingest` / `ontology` 等核心包为准 | `partial` | P1 | [semantica-base-sdk-plan.md](architecture/semantica-base-sdk-plan.md) · [explorer-session-registry.md](architecture/explorer-session-registry.md) |
-| Phase 0：explorer routes allowlist + CI + AGENTS 护栏 | `done` | P1 | `scripts/audit-semantica-explorer-imports.py` |
-| Phase 1：图/时态读迁出 `explorer.routes` | `partial` | P1 | HTTP/域层已迁；Hub 经 `ontology_route_bridge`（allowlist **1 文件**） |
-| Phase 2–4：本体域、SPARQL/enrich、可选 extra | `not` | P1–P2 | 见计划 §4 |
+| 线 1：Semantica 核心 SDK + Basis Explorer 域层 | `done` | P1 | `BasisKbGraphSession` + `basis/domain/explorer/*`；见 [semantica-base-sdk-plan.md](architecture/semantica-base-sdk-plan.md) |
+| Phase 0：explorer routes allowlist + CI + AGENTS 护栏 | `done` | P1 | `scripts/audit-semantica-explorer-imports.py`（空 allowlist） |
+| Phase 1：图/时态读迁出 `explorer.routes` | `done` | P1 | `kb_explorer` → `*_read.py` / `graph_read`；[explorer-session-registry.md](architecture/explorer-session-registry.md) |
+| Phase 2：本体 registry / hub 状态持久化 | `done` | P1 | `ontology_rdf_io` + graph scope + SHACL + sidecar；ADR [ontology-hub-registry-persistence.md](architecture/ontology-hub-registry-persistence.md) |
+| Phase 3：SPARQL / enrich / provenance / temporal（HTTP） | `done` | P2 | 域层已实现；`tests/test_kb_explorer_routes.py` |
+| Phase 4：Basis 图会话 + import 护栏 | `done` | P2 | `BasisKbGraphSession`、`io/rdf_parse`、CI 四道 Semantica 审计 + `audit-explorer-shim-imports` |
+| 线 1+：Explorer 子包 + 分层 import | `done` | P1 | `explorer/{session,graph,ontology,...}`；删顶层 shim；`importlinter`（domain↛transport/integration/platform）；OpenAPI 在 `integration/`；SQL 在 `ops/db`；KB `ports`；HTTP 拆分（见 [package-layout.md](architecture/package-layout.md) 聚合器表）；`audit-kb-http-aggregators`；`registry_catalog`；删 platform/transport compat shim |
 
 ---
 
@@ -175,8 +178,8 @@
 
 | Phase | Focus | Checklist rows |
 | --- | --- | --- |
-| **Now** | 维护基线 | §0 / §0.1 已交付能力；缺陷与小改进按需；图活动流回滚与文档对齐 |
-| **Planned** | Semantica 线 1 | [semantica-base-sdk-plan.md](architecture/semantica-base-sdk-plan.md) Phase 0→1 |
+| **Now** | 维护基线 | §0 / §0.1 已交付能力；缺陷与小改进按需；图活动流回滚与文档对齐；线 1 CI 护栏见 [semantica-base-sdk-plan §3](architecture/semantica-base-sdk-plan.md) |
+| **Planned** | — | （线 1 包布局与 HTTP 拆分已收口；新能力走 feature / ADR） |
 | **Deferred** | 暂缓（2026-10 产品决定） | **ADR 0007 Part B** 画布合并；**F-ACC-07** 生产 IdP 签收（有客户再做）；Markdown 节点持久化 |
 | **Optional** | Desktop 本机 | ADR 0004 Phase A–C（见 `desktop/README.md`）；**Phase D** 安装包 deferred |
 | **Deferred** | Scale | **M4-04** Redis WS（单 worker / sticky 即可） |
@@ -201,4 +204,4 @@
 
 ---
 
-_Last updated: 2026-10-20 — §3.4 Semantica 线 1 only（无独立 RDF 导入齐全性规划）。_
+_Last updated: 2026-10-20 — §3.4 线 1：review 域服务 + MCP `approve_review_item` / `reject_review_item`（23 静态工具）；`tests/test_mcp.py::test_mcp_reject_review_item_entity_merge`。_

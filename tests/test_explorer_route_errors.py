@@ -2,7 +2,7 @@
 
 from fastapi import HTTPException
 
-from basis.transport.http.explorer_route_errors import admin_error_from_explorer_http
+from basis.api.http.explorer_route_errors import admin_error_from_explorer_http
 
 
 def test_semantic_neighborhood_404_maps_to_code() -> None:

@@ -6,8 +6,8 @@ from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 
-from basis.transport.http.app import create_app
-from basis.infra.config import Settings
+from basis.api.http.app import create_app
+from basis.runtime.config import Settings
 
 
 def _auth(token: str) -> dict[str, str]:
@@ -184,7 +184,7 @@ def test_ingest_document_from_url(tmp_path: Path) -> None:
     kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
 
     with patch(
-        "basis.domain.kb.services.ingest_source_service.fetch_http_poll_text",
+        "basis.core.ledger.services.ingest_source_service.fetch_http_poll_text",
         return_value="Fetched from remote URL.",
     ) as mock_fetch:
         resp = client.post(

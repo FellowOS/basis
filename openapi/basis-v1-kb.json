@@ -1516,6 +1516,7 @@
     "/api/v1/kbs/{kb_id}/audit/graph-mutations": {
       "get": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "List Kb Graph Audit",
@@ -1664,6 +1665,7 @@
     "/api/v1/kbs/{kb_id}/connectors/catalog": {
       "get": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "List Connector Catalog",
@@ -1797,6 +1799,7 @@
     "/api/v1/kbs/{kb_id}/connectors/catalog/{service}": {
       "get": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Get Connector Manifest Route",
@@ -1869,6 +1872,7 @@
     "/api/v1/kbs/{kb_id}/connectors/connections": {
       "get": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "List Kb Connector Connections",
@@ -1948,6 +1952,7 @@
     "/api/v1/kbs/{kb_id}/connectors/connections/{service}/{connection_name}": {
       "put": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Upsert Kb Connector Connection",
@@ -2037,6 +2042,7 @@
       },
       "delete": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Delete Kb Connector Connection",
@@ -2118,6 +2124,7 @@
     "/api/v1/kbs/{kb_id}/connectors/connections/{service}/{connection_name}/check": {
       "post": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Check Kb Connector Connection",
@@ -2199,6 +2206,7 @@
     "/api/v1/kbs/{kb_id}/connectors/connections/{service}/{connection_name}/discover": {
       "get": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Discover Kb Connector Schema",
@@ -2312,6 +2320,7 @@
     "/api/v1/kbs/{kb_id}/connectors/connections/{service}/{connection_name}/invoke-primitive": {
       "post": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Invoke Kb Connector Primitive",
@@ -2403,6 +2412,7 @@
     "/api/v1/kbs/{kb_id}/connectors/oauth-configs/{service}": {
       "put": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Upsert Kb Connector Oauth Config",
@@ -2485,6 +2495,7 @@
     "/api/v1/kbs/{kb_id}/connectors/oauth/{service}/authorize-url": {
       "post": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Build Kb Connector Oauth Authorize Url",
@@ -2567,6 +2578,7 @@
     "/api/v1/kbs/{kb_id}/connectors/oauth/{service}/exchange": {
       "post": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Exchange Kb Connector Oauth Code",
@@ -2649,6 +2661,7 @@
     "/api/v1/kbs/{kb_id}/connectors/outbox": {
       "get": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "List Kb Sync Outbox",
@@ -2740,6 +2753,7 @@
     "/api/v1/kbs/{kb_id}/connectors/outbox/propose": {
       "post": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Propose Kb Entity Writeback",
@@ -2813,6 +2827,7 @@
     "/api/v1/kbs/{kb_id}/connectors/policy": {
       "get": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Get Kb Connector Policy",
@@ -2874,6 +2889,7 @@
       },
       "put": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Put Kb Connector Policy",
@@ -2947,6 +2963,7 @@
     "/api/v1/kbs/{kb_id}/connectors/runs": {
       "get": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "List Kb Connector Runs",
@@ -3038,6 +3055,7 @@
     "/api/v1/kbs/{kb_id}/connectors/table-mappings": {
       "get": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "List Kb Table Mappings",
@@ -3099,6 +3117,7 @@
       },
       "post": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Create Kb Table Mapping",
@@ -3172,6 +3191,7 @@
     "/api/v1/kbs/{kb_id}/connectors/table-mappings/{mapping_id}": {
       "get": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Get Kb Table Mapping",
@@ -3242,6 +3262,7 @@
       },
       "put": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Update Kb Table Mapping",
@@ -3322,6 +3343,7 @@
       },
       "delete": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Delete Kb Table Mapping",
@@ -3394,6 +3416,7 @@
     "/api/v1/kbs/{kb_id}/connectors/table-mappings/{mapping_id}/sync": {
       "post": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Sync Kb Table Mapping",
@@ -3466,6 +3489,7 @@
     "/api/v1/kbs/{kb_id}/connectors/tools/execute": {
       "post": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Execute Kb Connector Tool",
@@ -3539,6 +3563,7 @@
     "/api/v1/kbs/{kb_id}/decisions": {
       "get": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Kb List Decisions",
@@ -3638,6 +3663,7 @@
     "/api/v1/kbs/{kb_id}/decisions/{decision_id}/chain": {
       "get": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Kb Decision Chain",
@@ -3708,6 +3734,7 @@
     "/api/v1/kbs/{kb_id}/documents": {
       "post": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Ingest Document",
@@ -3775,6 +3802,7 @@
       },
       "get": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "List Kb Documents",
@@ -3838,6 +3866,7 @@
     "/api/v1/kbs/{kb_id}/documents/upload": {
       "post": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Upload Document",
@@ -3907,6 +3936,7 @@
     "/api/v1/kbs/{kb_id}/documents/{document_id}": {
       "delete": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Delete Kb Document",
@@ -3979,6 +4009,7 @@
     "/api/v1/kbs/{kb_id}/documents/{document_id}/timeline": {
       "get": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Get Kb Document Timeline",
@@ -4063,6 +4094,7 @@
     "/api/v1/kbs/{kb_id}/documents/{document_id}/versions": {
       "post": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Append Document Version Text",
@@ -4141,6 +4173,7 @@
     "/api/v1/kbs/{kb_id}/documents/{document_id}/versions/upload": {
       "post": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Append Document Version Upload",
@@ -4402,6 +4435,7 @@
     "/api/v1/kbs/{kb_id}/entities/find": {
       "get": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Find Entities Route",
@@ -4484,6 +4518,7 @@
     "/api/v1/kbs/{kb_id}/export": {
       "post": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Kb Export Graph",
@@ -4836,6 +4871,7 @@
     "/api/v1/kbs/{kb_id}/graph/distance-matrix": {
       "post": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Kb Graph Distance Matrix",
@@ -4897,6 +4933,7 @@
     "/api/v1/kbs/{kb_id}/graph/edges": {
       "get": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Graph Edges Route",
@@ -5034,6 +5071,7 @@
     "/api/v1/kbs/{kb_id}/graph/nodes": {
       "get": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Graph Nodes Route",
@@ -5155,6 +5193,7 @@
     "/api/v1/kbs/{kb_id}/graph/nodes/{node_id}": {
       "get": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Graph Node Route",
@@ -5227,6 +5266,7 @@
     "/api/v1/kbs/{kb_id}/graph/nodes/{node_id}/neighbors": {
       "get": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Graph Neighbors Route",
@@ -5309,6 +5349,7 @@
     "/api/v1/kbs/{kb_id}/graph/path": {
       "get": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Graph Path Route",
@@ -5410,6 +5451,7 @@
     "/api/v1/kbs/{kb_id}/graph/projection": {
       "get": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Graph Projection Status",
@@ -5473,6 +5515,7 @@
     "/api/v1/kbs/{kb_id}/graph/rebuild": {
       "post": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Rebuild Graph",
@@ -5536,6 +5579,7 @@
     "/api/v1/kbs/{kb_id}/graph/resolve-labels": {
       "post": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Resolve Graph Node Labels",
@@ -5609,6 +5653,7 @@
     "/api/v1/kbs/{kb_id}/graph/search": {
       "post": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Graph Search Route",
@@ -5682,6 +5727,7 @@
     "/api/v1/kbs/{kb_id}/graph/semantic-neighborhood": {
       "get": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Kb Graph Semantic Neighborhood",
@@ -5776,6 +5822,7 @@
     "/api/v1/kbs/{kb_id}/graph/snapshot": {
       "get": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Graph Snapshot Route",
@@ -6091,6 +6138,7 @@
     "/api/v1/kbs/{kb_id}/graph/stats": {
       "get": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Graph Stats",
@@ -6156,6 +6204,7 @@
     "/api/v1/kbs/{kb_id}/import": {
       "post": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Kb Import Graph",
@@ -6217,6 +6266,7 @@
     "/api/v1/kbs/{kb_id}/ingest/jobs": {
       "get": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "List Ingest Jobs",
@@ -6306,6 +6356,7 @@
     "/api/v1/kbs/{kb_id}/ingest/jobs/{job_id}": {
       "get": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Get Ingest Job",
@@ -6378,6 +6429,7 @@
     "/api/v1/kbs/{kb_id}/ledger/chunks/{chunk_id}": {
       "get": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Get Ledger Chunk Route",
@@ -6450,6 +6502,7 @@
     "/api/v1/kbs/{kb_id}/ledger/derived-facts": {
       "get": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "List Derived Facts Route",
@@ -6542,6 +6595,7 @@
     "/api/v1/kbs/{kb_id}/ledger/documents/{doc_ref}": {
       "get": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Get Ledger Document Route",
@@ -6614,6 +6668,7 @@
     "/api/v1/kbs/{kb_id}/ledger/documents/{doc_ref}/chunks": {
       "get": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "List Document Chunks Route",
@@ -6686,6 +6741,7 @@
     "/api/v1/kbs/{kb_id}/ledger/entities": {
       "get": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Search Ledger Entities",
@@ -6783,6 +6839,7 @@
     "/api/v1/kbs/{kb_id}/ledger/entities/{entity_id}": {
       "delete": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Delete Ledger Entity",
@@ -6855,6 +6912,7 @@
     "/api/v1/kbs/{kb_id}/ledger/entities/{entity_id}/delete-preview": {
       "get": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Preview Delete Ledger Entity",
@@ -6927,6 +6985,7 @@
     "/api/v1/kbs/{kb_id}/ledger/entities/{entity_id}/facts": {
       "get": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "List Entity Facts Route",
@@ -7011,6 +7070,7 @@
     "/api/v1/kbs/{kb_id}/ledger/entity-merges": {
       "get": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "List Entity Merges Route",
@@ -7096,6 +7156,7 @@
     "/api/v1/kbs/{kb_id}/ledger/entity-merges/{merge_id}/revert": {
       "post": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Revert Entity Merge Route",
@@ -7168,6 +7229,7 @@
     "/api/v1/kbs/{kb_id}/ledger/statements/{statement_id}": {
       "get": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Get Ledger Statement Route",
@@ -7240,6 +7302,7 @@
     "/api/v1/kbs/{kb_id}/ledger/surface-phrases": {
       "get": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "List Surface Phrases",
@@ -7315,6 +7378,7 @@
     "/api/v1/kbs/{kb_id}/ledger/typed-facts": {
       "get": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "List Typed Facts Route",
@@ -7756,6 +7820,7 @@
     "/api/v1/kbs/{kb_id}/ontology": {
       "post": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Create Ontology",
@@ -7793,7 +7858,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/basis__transport__http__routes__v1__kbs__CreateOntologyRequest"
+                "$ref": "#/components/schemas/basis__transport__http__routes__v1__kb_documents_models__CreateOntologyRequest"
               }
             }
           }
@@ -7829,6 +7894,7 @@
     "/api/v1/kbs/{kb_id}/ontology/alignments": {
       "get": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Kb List Alignments",
@@ -7904,6 +7970,7 @@
       },
       "post": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Kb Upsert Alignment",
@@ -7963,6 +8030,7 @@
       },
       "delete": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Kb Delete Alignment",
@@ -8070,7 +8138,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/semantica__explorer__routes__ontology__CreateOntologyRequest"
+                "$ref": "#/components/schemas/basis__domain__explorer__ontology__hub_models__CreateOntologyRequest"
               }
             }
           }
@@ -9191,6 +9259,7 @@
     "/api/v1/kbs/{kb_id}/ontology/registry": {
       "get": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Kb Ontology Registry",
@@ -9810,6 +9879,7 @@
     "/api/v1/kbs/{kb_id}/ontology/suggest-alignments": {
       "post": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Kb Suggest Alignments",
@@ -10231,6 +10301,7 @@
     "/api/v1/kbs/{kb_id}/processing/jobs": {
       "get": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "List Processing Jobs",
@@ -10318,6 +10389,7 @@
       },
       "post": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Start Processing Job",
@@ -10387,6 +10459,7 @@
     "/api/v1/kbs/{kb_id}/processing/jobs/{job_id}": {
       "get": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Get Processing Job",
@@ -10459,6 +10532,7 @@
     "/api/v1/kbs/{kb_id}/processing/jobs/{job_id}/retry": {
       "post": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Retry Processing Job",
@@ -10755,6 +10829,7 @@
     "/api/v1/kbs/{kb_id}/reasoning/run": {
       "post": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Kb Reasoning Run",
@@ -10816,6 +10891,7 @@
     "/api/v1/kbs/{kb_id}/remember/proposals": {
       "post": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Create Remember Proposal",
@@ -10889,6 +10965,7 @@
     "/api/v1/kbs/{kb_id}/review/items": {
       "get": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "List Review Items",
@@ -10997,6 +11074,7 @@
     "/api/v1/kbs/{kb_id}/review/items/entity-merge": {
       "post": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Propose Entity Merge",
@@ -11070,6 +11148,7 @@
     "/api/v1/kbs/{kb_id}/review/items/graph-import": {
       "post": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Propose Graph Import",
@@ -11143,6 +11222,7 @@
     "/api/v1/kbs/{kb_id}/review/items/{item_id}": {
       "get": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Get Review Item Route",
@@ -11215,6 +11295,8 @@
     "/api/v1/kbs/{kb_id}/review/items/{item_id}/approve": {
       "post": {
         "tags": [
+          "knowledge-bases",
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Approve Review Item",
@@ -11295,6 +11377,8 @@
     "/api/v1/kbs/{kb_id}/review/items/{item_id}/reject": {
       "post": {
         "tags": [
+          "knowledge-bases",
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Reject Review Item",
@@ -11377,6 +11461,7 @@
     "/api/v1/kbs/{kb_id}/review/scan-statement-conflicts": {
       "post": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Scan Statement Conflicts Route",
@@ -11738,6 +11823,7 @@
     "/api/v1/kbs/{kb_id}/search": {
       "get": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Chunk Search Route",
@@ -11923,6 +12009,7 @@
     "/api/v1/kbs/{kb_id}/search/config": {
       "get": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Get Chunk Search Config Route",
@@ -11984,6 +12071,7 @@
       },
       "put": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Update Chunk Search Config Route",
@@ -12057,6 +12145,7 @@
     "/api/v1/kbs/{kb_id}/search/reindex": {
       "post": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Chunk Search Reindex Route",
@@ -12137,6 +12226,7 @@
     "/api/v1/kbs/{kb_id}/sources": {
       "get": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "List Ingest Sources",
@@ -12198,6 +12288,7 @@
       },
       "post": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Create Ingest Source",
@@ -12271,6 +12362,7 @@
     "/api/v1/kbs/{kb_id}/sources/{source_id}": {
       "get": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Get Ingest Source",
@@ -12341,6 +12433,7 @@
       },
       "patch": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Update Ingest Source",
@@ -12421,6 +12514,7 @@
       },
       "delete": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Delete Ingest Source",
@@ -12493,6 +12587,7 @@
     "/api/v1/kbs/{kb_id}/sources/{source_id}/rotate-token": {
       "post": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Rotate Ingest Source Token",
@@ -12565,6 +12660,7 @@
     "/api/v1/kbs/{kb_id}/sources/{source_id}/sync": {
       "post": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Sync Ingest Source",
@@ -12647,6 +12743,7 @@
     "/api/v1/kbs/{kb_id}/sources/{source_id}/sync-history": {
       "get": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "List Ingest Source Sync History",
@@ -12731,6 +12828,7 @@
     "/api/v1/kbs/{kb_id}/sources/{source_id}/webhook": {
       "post": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Ingest Via Webhook",
@@ -12813,6 +12911,7 @@
     "/api/v1/kbs/{kb_id}/sparql": {
       "post": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Kb Sparql Execute",
@@ -13091,6 +13190,7 @@
     "/api/v1/kbs/{kb_id}/vocabulary/concepts": {
       "get": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Kb Vocabulary Concepts",
@@ -13177,6 +13277,7 @@
     "/api/v1/kbs/{kb_id}/vocabulary/hierarchy": {
       "get": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Kb Vocabulary Hierarchy",
@@ -13247,6 +13348,7 @@
     "/api/v1/kbs/{kb_id}/vocabulary/import": {
       "post": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Kb Vocabulary Import",
@@ -13317,6 +13419,7 @@
     "/api/v1/kbs/{kb_id}/vocabulary/schemes": {
       "get": {
         "tags": [
+          "knowledge-bases",
           "knowledge-bases"
         ],
         "summary": "Kb Vocabulary Schemes",
@@ -16354,38 +16457,7 @@
         ],
         "title": "WebhookIngestRequest"
       },
-      "basis__transport__http__routes__v1__kbs__CreateOntologyRequest": {
-        "properties": {
-          "namespace": {
-            "type": "string",
-            "minLength": 1,
-            "title": "Namespace"
-          },
-          "name": {
-            "type": "string",
-            "minLength": 1,
-            "title": "Name"
-          },
-          "description": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Description"
-          }
-        },
-        "type": "object",
-        "required": [
-          "namespace",
-          "name"
-        ],
-        "title": "CreateOntologyRequest"
-      },
-      "semantica__explorer__routes__ontology__CreateOntologyRequest": {
+      "basis__domain__explorer__ontology__hub_models__CreateOntologyRequest": {
         "properties": {
           "mode": {
             "type": "string",
@@ -16466,6 +16538,37 @@
               }
             ],
             "title": "Model"
+          }
+        },
+        "type": "object",
+        "required": [
+          "namespace",
+          "name"
+        ],
+        "title": "CreateOntologyRequest"
+      },
+      "basis__transport__http__routes__v1__kb_documents_models__CreateOntologyRequest": {
+        "properties": {
+          "namespace": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Namespace"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
           }
         },
         "type": "object",

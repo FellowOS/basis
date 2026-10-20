@@ -1,0 +1,101 @@
+"""KB review approve route."""
+
+from __future__ import annotations
+
+from fastapi import APIRouter, Depends, HTTPException, Request
+
+from basis.core.errors import AdminError
+from basis.control.admin.store import AdminStore, User
+from basis.api.http.deps import (
+    explorer_runtime_for,
+    get_blob_store,
+    get_current_user,
+    graph_projection_bindings,
+    get_kb_for_editor,
+    get_knowledge_store,
+    get_store,
+    rebuild_kb_projection,
+    save_graph,
+)
+from basis.api.http.explorer_route_errors import admin_error_from_explorer_http
+from basis.core.explorer.governance.decision import maybe_emit_governance_tripped_on_review_approve
+from basis.core.ledger.store import KnowledgeStore
+from basis.core.ledger.services.review_resolve_approve import (
+    ReviewApproveDeps,
+    approve_review_item as approve_review_item_domain,
+)
+from basis.api.http.routes.v1.kb.review.models import (
+    ApproveReviewItemResponse,
+    ResolveReviewRequest,
+)
+
+router = APIRouter(tags=["knowledge-bases"])
+
+
+@router.post("/{kb_id}/review/items/{item_id}/approve")
+async def approve_review_item(
+    kb_id: str,
+    item_id: str,
+    request: Request,
+    body: ResolveReviewRequest,
+    user: User = Depends(get_current_user),
+    store: AdminStore = Depends(get_store),
+    knowledge: KnowledgeStore = Depends(get_knowledge_store),
+) -> ApproveReviewItemResponse:
+    """
+Approve Review Item. Human review queue for merges, imports, and conflicts. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+    """
+    get_kb_for_editor(request, user, kb_id, store)
+    review_kind = knowledge.get_review_item(kb_id, item_id).get("kind")
+    deps = ReviewApproveDeps(
+        projection_bindings=graph_projection_bindings(request),
+        blob_store=get_blob_store(request),
+        runtime_loader=lambda: explorer_runtime_for(request, kb_id),
+        persist_graph=lambda kid: save_graph(request, kid),
+        rebuild_projection=lambda: rebuild_kb_projection(request, kb_id),
+    )
+    try:
+        return await approve_review_item_domain(
+            knowledge=knowledge,
+            store=store,
+            user=user,
+            kb_id=kb_id,
+            item_id=item_id,
+            rationale=body.rationale,
+            keeper_statement_id=body.keeper_statement_id,
+            primary_id_override=body.primary_id,
+            deps=deps,
+        )
+    except HTTPException as exc:
+        mapped = admin_error_from_explorer_http(exc, context="enrich")
+        maybe_emit_governance_tripped_on_review_approve(
+            kb_id,
+            knowledge,
+            code=mapped.code,
+            message=mapped.message,
+            detail={
+                "item_id": item_id,
+                "kind": review_kind,
+                "source": "review_approve",
+            },
+            actor_id=user.id,
+            runtime_loader=lambda: explorer_runtime_for(request, kb_id),
+            persist_graph=lambda kid: save_graph(request, kid),
+        )
+        raise mapped
+    except AdminError as exc:
+        maybe_emit_governance_tripped_on_review_approve(
+            kb_id,
+            knowledge,
+            code=exc.code,
+            message=exc.message,
+            detail={
+                "item_id": item_id,
+                "kind": review_kind,
+                "source": "review_approve",
+            },
+            actor_id=user.id,
+            runtime_loader=lambda: explorer_runtime_for(request, kb_id),
+            persist_graph=lambda kid: save_graph(request, kid),
+        )
+        raise

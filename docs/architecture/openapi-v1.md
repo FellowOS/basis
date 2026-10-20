@@ -33,7 +33,7 @@ Implementation today leads the contract (`FastAPI` routes → auto `/openapi.jso
 
 **Current order (implemented):**
 
-1. **Normative export** — live `GET /openapi/v1.json` from `app.openapi()` + handler docstrings; snapshots [`openapi/basis-v1*.json`](../../openapi/basis-v1.json) for CI and web typegen.
+1. **Normative export** — live `GET /openapi/v1.json` from `app.openapi()` + handler docstrings (`basis/integration/openapi_v1_export.py`); snapshots [`openapi/basis-v1*.json`](../../openapi/basis-v1.json) for CI and web typegen.
 2. **`basis/integration/`** — operations shared by HTTP and MCP (`KbCoreContext`, registry).
 3. **HTTP handlers** — thin wrappers calling integration; new public ops need docstrings + OpenAPI export update.
 4. **`web/`** — `web/src/lib/basis-openapi/` types from JSON snapshots.
@@ -109,7 +109,7 @@ Map every **current** router module to OpenAPI **tags** and paths. Check off whe
 | `Organizations` | `organizations.py` | 5 | ☐ | SSO / org admin |
 | `Platform` | `platform.py`, `settings.py` | 5 | ☐ | |
 | `Models` | `models.py`, `model_providers.py` | 7 | ☐ | |
-| `KnowledgeBases` | `kbs.py` | 37 | ☐ | CRUD, search, graph search, capabilities, … |
+| `KnowledgeBases` | `kbs.py`, `kb_graph.py`, `kb_documents.py` | 37 | ☐ | CRUD (`kbs`); graph/search (`kb_graph`); documents/jobs (`kb_documents`) |
 | `Sources` | `kb_sources.py` | 9 | ☐ | Ingest, documents, jobs |
 | `Ledger` | `kb_ledger.py` | 12 | ☐ | Entities, statements |
 | `Explorer` | `kb_explorer.py` | 17 | ☐ | Graph session, diff, import/export, … |
@@ -146,8 +146,10 @@ MCP tools are a **named subset** of core operations. Each tool:
 | `graph_search` | `POST .../graph/search` |
 | `list_review_items` | `GET .../review/items` |
 | `get_review_item` | `GET .../review/items/{item_id}` |
-| `approve_statement_remember_review` | `POST .../review/items/{item_id}/approve` *(statement_remember only)* |
-| `reject_statement_remember_review` | `POST .../review/items/{item_id}/reject` *(statement_remember only)* |
+| `approve_statement_remember_review` | `POST .../review/items/{item_id}/approve` *(statement_remember only; legacy tool name)* |
+| `reject_statement_remember_review` | `POST .../review/items/{item_id}/reject` *(statement_remember only; legacy tool name)* |
+| `approve_review_item` | `POST .../review/items/{item_id}/approve` *(all review kinds; same HTTP handler)* |
+| `reject_review_item` | `POST .../review/items/{item_id}/reject` *(all review kinds)* |
 | `list_connector_catalog` | `GET .../connectors/catalog` |
 | `describe_connector_service` | `GET .../connectors/catalog/{service_id}` |
 | `list_connector_connections` | `GET .../connectors/connections` |
@@ -168,7 +170,7 @@ Agent/automation **baseline** — no entity-merge, import, or mapping tools:
 
 Ingest and processing jobs stay on OpenAPI (`POST .../documents`, `GET .../processing/jobs`); not exposed as MCP tools until needed.
 
-**Parity principle:** console-capable KB read/write flows that agents need should land in core + MCP; complex Explorer-only review kinds (merge, import, mapping) stay HTTP/console until extracted into core.
+**Parity principle:** console-capable KB read/write flows that agents need should land in core + MCP. Full review approve/reject (`approve_review_item` / `reject_review_item`) call the same domain services as HTTP; statement-only tool names remain for backward compatibility.
 
 Paths above match the KB OpenAPI slice (`openapi/basis-v1-kb.json` export). Implementation map: `MCP_TOOL_OPERATIONS` in `basis/integration/mcp_openapi.py` (method + path per tool).
 

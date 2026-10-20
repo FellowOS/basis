@@ -1,6 +1,12 @@
 /** Public marketing site navigation (product home + docs). */
 
-export type ProductNavKey = 'product' | 'capabilities' | 'developers' | 'selfHost';
+export type ProductNavKey =
+  | 'product'
+  | 'howItWorks'
+  | 'capabilities'
+  | 'docs'
+  | 'developers'
+  | 'selfHost';
 
 export type ProductNavItem = {
   key: ProductNavKey;
@@ -9,7 +15,7 @@ export type ProductNavItem = {
   hash?: string;
 };
 
-export type ProductDeveloperLinkKey = 'docsHub' | 'apiDocs' | 'openApiSpec';
+export type ProductDeveloperLinkKey = 'apiDocs' | 'openApiSpec' | 'github';
 
 export type ProductDeveloperLink = {
   key: ProductDeveloperLinkKey;
@@ -20,14 +26,16 @@ export type ProductDeveloperLink = {
 /** Primary nav — left-to-right on desktop. */
 export const PRODUCT_NAV: ProductNavItem[] = [
   { key: 'product', to: '/', hash: 'product' },
+  { key: 'howItWorks', to: '/', hash: 'how-it-works' },
   { key: 'capabilities', to: '/', hash: 'capabilities' },
   { key: 'selfHost', to: '/', hash: 'self-host' },
+  { key: 'docs', to: '/docs' },
 ];
 
 export const PRODUCT_DEVELOPER_LINKS: ProductDeveloperLink[] = [
-  { key: 'docsHub', to: '/docs' },
   { key: 'apiDocs', to: '/swagger' },
   { key: 'openApiSpec', to: '/openapi/v1.json', external: true },
+  { key: 'github', to: 'https://github.com/fellowos/basis', external: true },
 ];
 
 export function productNavHref(item: ProductNavItem): string {
@@ -41,8 +49,11 @@ export function isProductNavActive(
   activeKey?: ProductNavKey,
 ): boolean {
   if (activeKey) return item.key === activeKey;
+  if (item.key === 'docs') {
+    return pathname === '/docs' || pathname.startsWith('/docs/');
+  }
   if (item.key === 'developers') {
-    return pathname === '/docs' || pathname.startsWith('/docs/') || pathname === '/swagger';
+    return pathname === '/swagger' || pathname.startsWith('/swagger/');
   }
   if (item.hash) {
     return pathname === '/' && hash === `#${item.hash}`;
@@ -52,10 +63,5 @@ export function isProductNavActive(
 
 export function isDevelopersNavActive(pathname: string, activeKey?: ProductNavKey): boolean {
   if (activeKey === 'developers') return true;
-  return (
-    pathname === '/docs' ||
-    pathname.startsWith('/docs/') ||
-    pathname === '/swagger' ||
-    pathname.startsWith('/swagger/')
-  );
+  return pathname === '/swagger' || pathname.startsWith('/swagger/');
 }

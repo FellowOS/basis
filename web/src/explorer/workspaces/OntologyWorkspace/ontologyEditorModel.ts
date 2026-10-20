@@ -24,7 +24,7 @@ export const ONTOLOGY_MINIMAP_THEME = {
 // Last-resort guess, reached only when the backend gave no verdict: it has no
 // notion of nested vocabularies, so it can name a parent that does not contain
 // the entity. Authority is owning_ontology from KB ontology entity API.
-// (_resolve_owning_ontology in semantica/explorer/routes/ontology.py).
+// Aligns with server resolve_owning_ontology (basis/domain/explorer/ontology_graph_scope.py).
 function ownsByNamespace(entityUri: string, ontologyUri: string): boolean {
   const stem = ontologyUri.replace(/[/#]+$/, "");
   return entityUri === ontologyUri

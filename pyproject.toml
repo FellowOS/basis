@@ -25,6 +25,7 @@ dependencies = [
   "authlib>=1.3.2",
   "httpx>=0.27",
   "email-validator>=2.0",
+  "defusedxml>=0.7.1",
 ]
 
 [project.optional-dependencies]
@@ -34,11 +35,13 @@ dev = [
   "PyYAML>=6",
   "schemathesis>=3.38",
   "pymysql>=1.1",
+  "import-linter>=2.1",
 ]
 # 扫描件 PDF、更多向量后端、多 LLM 网关（体积大，按需装）
 heavy = [
   "semantica[parse-docling,vectorstore-pgvector,llm-litellm,graph-neo4j]",
 ]
+# Optional: upstream ``semantica-explorer`` CLI only (not required for ``uv run basis``).
 explorer = [
   "semantica[explorer]",
 ]
@@ -53,7 +56,9 @@ basis = "basis.cli:main"
 include = ["basis*"]
 
 [tool.setuptools.package-data]
-basis = ["platform/admin/migrations/*.sql"]
+"basis.tooling.db" = ["migrations/*.sql"]
+"basis.core.connectors" = ["providers/*.yaml", "providers/*.yml"]
+"basis.core.connectors.synthesis" = ["batches/*.yaml", "executors-index.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

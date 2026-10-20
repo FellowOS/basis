@@ -38,8 +38,8 @@ basis/domain/connectors/providers/{service}.yaml
 
 | 指标 | 现状 |
 |------|------|
-| 已发布 `providers/*.yaml` | **3**：`postgres`、`mysql`、`github`（手写生成器 + `scripts/build_connector_manifests.py`） |
-| 合成脚本实际输出 | 仅 SQL + `shipped_rest_provider_manifests()`，**未**读取 Nango / Airbyte / AnyConnect 树 |
+| 已发布 `providers/*.yaml` | **8**：`postgres`、`mysql`、`github`、`slack`、`notion`、`gitlab`、`jira`、`hubspot`（`build_connector_manifests.py --all-batches`） |
+| 合成脚本 | `merge_service()` + Nango auth + AnyConnect procedures；**Slack 可无 `slack.py` 生成器**（`catalog_procedures_only`） |
 | AnyConnect 目录（参考） | `fellowos/connectors/catalog/apps/*.json` ≈ **1,381** app；actions 元数据丰富，**无** REST path（逻辑在 `executors.ts`） |
 | Nango | `packages/providers/providers.yaml` ≈ **1,058** 条，偏 **auth/proxy** |
 | Airbyte 声明式源 | `manifest.yaml` ≈ **539**，偏 **entity `list`** 与分页 |
@@ -125,6 +125,16 @@ basis/domain/connectors/providers/
 
 **不要**恢复 `providers/{service}/connector.yaml` 深层目录（已统一到 flat `*.yaml`）。
 
+### 3.1 不必每个 provider 一个 Python 文件
+
+| 阶段 | 做法 |
+|------|------|
+| **常态** | `merge_service(service)` 写出 `providers/{service}.yaml`；运行时只读 YAML |
+| **手写 `.py`** | 仅旗舰/回归样本（如 `github`）、SQL 共用模块、或合成器尚未覆盖时的临时兜底 |
+| **Slack 示范** | `batch_1.yaml` 的 `catalog_procedures_only: [slack]` → 23 条 procedure 来自 AnyConnect JSON + `slack_invoke_map` / `executors-index.json`，auth 来自 Nango |
+
+环境变量见 [`.env.synthesis.example`](../../.env.synthesis.example)；覆盖率：`uv run python scripts/synthesis_catalog_report.py`。
+
 ---
 
 ## 4. 分批原则
@@ -192,9 +202,9 @@ basis/domain/connectors/providers/
 
 | 顺序 | service | 场景 | 备注 |
 |------|---------|------|------|
-| 2.1 | `gitlab` | 代码仓、issues MR | 与 GitHub 对称；entity list |
+| 2.1 | `gitlab` | 代码仓、issues MR | **进行中**：`projects` + `project_issues` entity + 15 catalog procedure |
 | 2.2 | `bitbucket` | 同上 | 企业用户 |
-| 2.3 | `jira` | 工单 entity + 状态 mutate | Airbyte + 手写 mutate 补全 |
+| 2.3 | `jira` | 工单 entity + 状态 mutate | **进行中**：`issues` entity（OAuth `cloudId` + `projectKey`）+ 7 procedure |
 | 2.4 | `linear` | 现代 issue 跟踪 | procedure 多 |
 | 2.5 | `asana` | 任务 | entity list |
 | 2.6 | `monday` | 看板 | 动态字段 |
@@ -367,7 +377,7 @@ basis/domain/connectors/providers/
 | Batch | 状态 | Shipped services | 备注 |
 |-------|------|------------------|------|
 | 0 | done | postgres, mysql, github | 手写生成器 + `merge_service` |
-| 1 | in progress | slack (beta) | P0 管线、`executors-index.json` 样本 |
+| 1 | in progress | slack, notion (beta) | form invoke、database_pages entity、P2 airbyte 占位 |
 | 2–7 | planned | — | |
 
 ---

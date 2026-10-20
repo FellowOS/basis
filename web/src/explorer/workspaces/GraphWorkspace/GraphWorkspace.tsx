@@ -448,7 +448,7 @@ function buildGraphHudCss(): string {
     right: 0;
     bottom: 0;
     z-index: 8;
-    border-top: 1px solid ${GRAPH_THEME.ui.timeline.border};
+    border-top: 1px solid var(--border);
     background: ${GRAPH_THEME.ui.timeline.background};
     pointer-events: auto;
   }

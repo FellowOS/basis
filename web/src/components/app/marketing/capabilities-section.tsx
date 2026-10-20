@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom';
+
 import { useI18n } from '@/i18n/context.js';
 
 export function CapabilitiesSection() {
@@ -42,6 +44,14 @@ export function CapabilitiesSection() {
               <code className="mt-2 block overflow-x-auto rounded-md bg-muted/60 px-3 py-2 font-mono text-[11px] leading-relaxed text-foreground/80">
                 {item.code}
               </code>
+              <Link
+                to={item.href}
+                aria-label={`${item.title} — ${m.learnMore}`}
+                className="mt-auto inline-flex items-center gap-1 pt-4 text-xs font-medium text-foreground underline-offset-4 hover:underline"
+              >
+                {m.learnMore}
+                <span aria-hidden>→</span>
+              </Link>
             </article>
           ))}
         </div>

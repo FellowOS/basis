@@ -2,10 +2,10 @@
 
 from fastapi.testclient import TestClient
 
-from basis.integration.registry import TOOL_NAMES
-from basis.transport.http.app import create_app
-from basis.transport.http.openapi_spec import openapi_v1_full
-from basis.infra.config import Settings
+from basis.application.registry import TOOL_NAMES
+from basis.api.http.app import create_app
+from basis.application.openapi_spec import openapi_v1_full
+from basis.runtime.config import Settings
 
 _INTEGRATION_PATHS = (
     "/api/v1/kbs/{kb_id}/search",

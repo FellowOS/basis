@@ -1,0 +1,53 @@
+version: '2.0'
+service: notion
+display_name: Notion
+description: Notion databases, pages, and structured database entries.
+categories:
+- Productivity
+- Knowledge Management
+homepage_url: https://www.notion.so
+docs_url: https://developers.notion.com
+spec: {}
+auth:
+- auth_mode: oauth2
+  base_url: https://api.notion.com
+  oauth2:
+    authorization_url: https://api.notion.com/v1/oauth/authorize
+    token_url: https://api.notion.com/v1/oauth/token
+    pkce_s256: true
+    authorization_params:
+      response_type: code
+      owner: user
+actions:
+- kind: entity
+  id: database_pages
+  display_name: Database Pages
+  cursor_field: last_edited_time
+  rest:
+    operations:
+      list:
+        method: GET
+        path: /v1/databases/{{config.database_id}}/query
+        pagination:
+          type: cursor
+          limit_param: page_size
+          inject_into: body
+          cursor_request_param: start_cursor
+          cursor_response_path: next_cursor
+        records:
+        - results
+      update:
+        method: PATCH
+        path: /v1/pages/{{external_id}}
+        body:
+          properties: '{{patch}}'
+  x-basis-dynamic-schema-loader:
+    type: rest_metadata
+    container_stream: null
+    metadata_path: /v1/databases/{{config.database_id}}
+    fields_field_path:
+    - properties
+    field_name_key: name
+    field_type_key: type
+    types_map: {}
+x-basis-ship-tier: beta

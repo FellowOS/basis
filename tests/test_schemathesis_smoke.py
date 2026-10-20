@@ -3,9 +3,9 @@
 import schemathesis
 from fastapi.testclient import TestClient
 
-from basis.transport.http.app import create_app
-from basis.transport.http.openapi_spec import openapi_v1_full
-from basis.infra.config import Settings
+from basis.api.http.app import create_app
+from basis.application.openapi_spec import openapi_v1_full
+from basis.runtime.config import Settings
 
 
 def test_schemathesis_loads_openapi_v1() -> None:

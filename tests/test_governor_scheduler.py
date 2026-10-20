@@ -4,15 +4,15 @@ from datetime import datetime, timezone
 from pathlib import Path
 from unittest.mock import MagicMock
 
-from basis.domain.kb.blob_store import BlobStore
-from basis.domain.kb.governance_config import GovernanceConfig
-from basis.domain.kb.schedulers.governor_poll_scheduler import run_due_governor_passes
-from basis.domain.kb.schedulers.governor_poll_due import is_governor_due
-from basis.domain.kb.store import KnowledgeStore
+from basis.core.ledger.blob_store import BlobStore
+from basis.core.ledger.governance_config import GovernanceConfig
+from basis.core.ledger.schedulers.governor_poll_scheduler import run_due_governor_passes
+from basis.core.ledger.schedulers.governor_poll_due import is_governor_due
+from basis.core.ledger.store import KnowledgeStore
 
 
 def _kb(tmp_path: Path) -> tuple[str, KnowledgeStore]:
-    from basis.platform.admin.store import AdminStore
+    from basis.control.admin.store import AdminStore
 
     admin = AdminStore(tmp_path / "basis.db")
     user, _ = admin.register("sched@example.com", "password1", "Sched")

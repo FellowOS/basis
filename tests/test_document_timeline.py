@@ -8,12 +8,12 @@ pytest.importorskip("semantica")
 
 from fastapi.testclient import TestClient
 
-from basis.domain.kb.blob_store import BlobStore
-from basis.domain.kb.store import KnowledgeStore
-from basis.infra.capabilities import explorer_available
-from basis.infra.config import Settings
-from basis.platform.admin.store import AdminStore
-from basis.transport.http.app import create_app
+from basis.core.ledger.blob_store import BlobStore
+from basis.core.ledger.store import KnowledgeStore
+from basis.runtime.capabilities import explorer_available
+from basis.runtime.config import Settings
+from basis.control.admin.store import AdminStore
+from basis.api.http.app import create_app
 
 
 def test_list_document_timeline_events_unit(tmp_path: Path) -> None:

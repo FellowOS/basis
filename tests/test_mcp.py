@@ -4,10 +4,12 @@ import json
 import time
 from unittest.mock import patch
 
+import pytest
 from fastapi.testclient import TestClient
 
-from basis.transport.http.app import create_app
-from basis.infra.config import Settings
+from basis.api.http.app import create_app
+from basis.runtime.capabilities import explorer_available
+from basis.runtime.config import Settings
 
 _LOOP_MARKER = "MCP_GRAPH_LOOP_UNIQUE_2010"
 
@@ -170,6 +172,8 @@ def test_mcp_tools_with_api_token(tmp_path) -> None:
     assert "graph_search" in names
     assert "list_review_items" in names
     assert "approve_statement_remember_review" in names
+    assert "approve_review_item" in names
+    assert "reject_review_item" in names
     assert "list_processing_jobs" not in names
 
     search = client.post(
@@ -245,6 +249,38 @@ def test_mcp_tools_with_api_token(tmp_path) -> None:
     assert approve_payload.get("decision_id")
 
 
+def test_mcp_reject_review_item_entity_merge(tmp_path) -> None:
+    """MCP reject_review_item matches HTTP reject for entity_merge proposals."""
+    if not explorer_available():
+        pytest.skip("explorer extra not installed")
+
+    client = TestClient(create_app(Settings(data_dir=tmp_path)))
+    admin = client.post(
+        "/api/v1/auth/register",
+        json={"email": "mcp-rej@example.com", "password": "password1", "display_name": "McpRej"},
+    ).json()
+    headers = {"Authorization": f"Bearer {admin['token']}"}
+    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+
+    proposed = client.post(
+        f"/api/v1/kbs/{kb_id}/review/items/entity-merge",
+        headers=headers,
+        json={"primary_id": "node-a", "duplicate_ids": ["node-b"]},
+    )
+    assert proposed.status_code == 200
+    item_id = proposed.json()["item"]["id"]
+
+    rejected = _mcp_tool_json(
+        client,
+        kb_id,
+        headers,
+        "reject_review_item",
+        {"item_id": item_id, "rationale": "not duplicates"},
+        rpc_id=1,
+    )
+    assert rejected["item"]["status"] == "rejected"
+
+
 def test_mcp_busy_when_semaphore_saturated(tmp_path) -> None:
     client = TestClient(create_app(Settings(data_dir=tmp_path, mcp_max_inflight=0)))
     admin = client.post(
@@ -276,7 +312,7 @@ def test_mcp_timeout(tmp_path) -> None:
         time.sleep(2)
         return {"jsonrpc": "2.0", "id": 1, "result": {}}
 
-    with patch("basis.transport.http.routes.v1.mcp.handle_batch", side_effect=slow_batch):
+    with patch("basis.api.http.routes.v1.platform.mcp.handle_batch", side_effect=slow_batch):
         resp = client.post(
             f"/api/v1/kbs/{kb_id}/mcp",
             headers=headers,

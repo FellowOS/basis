@@ -32,13 +32,22 @@ export function SelfHostSection() {
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Button asChild>
-              <Link to="/docs/deployment">{m.selfHostDocs}</Link>
+              <Link to="/docs/deployment" data-analytics="cta_deployment">
+                {m.selfHostDocs}
+              </Link>
             </Button>
             <Button variant="outline" asChild>
-              <Link to="/docs/quickstart">{m.selfHostQuickstart}</Link>
+              <Link to="/docs/quickstart" data-analytics="cta_quickstart">
+                {m.selfHostQuickstart}
+              </Link>
             </Button>
             <Button variant="ghost" asChild>
-              <a href="https://github.com/fellowos/basis" target="_blank" rel="noreferrer">
+              <a
+                href="https://github.com/fellowos/basis"
+                target="_blank"
+                rel="noreferrer"
+                data-analytics="cta_github"
+              >
                 {m.selfHostGithub}
               </a>
             </Button>

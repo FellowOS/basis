@@ -2,8 +2,8 @@
 
 from fastapi.testclient import TestClient
 
-from basis.transport.http.app import create_app
-from basis.infra.config import Settings
+from basis.api.http.app import create_app
+from basis.runtime.config import Settings
 
 
 def test_chat_remember_creates_pending_review(tmp_path) -> None:

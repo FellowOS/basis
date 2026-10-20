@@ -1,7 +1,7 @@
 import pytest
 
-from basis.domain.explorer.ontology_catalog import delete_alignment, upsert_alignment
-from basis.platform.admin.errors import AdminError
+from basis.core.explorer.ontology.catalog import delete_alignment, upsert_alignment
+from basis.control.admin.errors import AdminError
 
 
 def test_upsert_alignment_stores_in_memory() -> None:

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""One-shot import path rewrites after basis/ package layout change."""
+"""One-shot import path rewrites (historical migrations only — prefer migrate_package_layout_v2)."""
 
 from __future__ import annotations
 
@@ -8,37 +8,33 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 
-# Longest / most specific prefixes first.
+# Longest / most specific prefixes first (pre–layout-target legacy names).
 REPLACEMENTS: tuple[tuple[str, str], ...] = (
-    ("basis.api.", "basis.transport.http."),
-    ("basis.api:", "basis.transport.http:"),
-    ("basis.knowledge.", "basis.domain.kb."),
-    ("basis.pipeline.", "basis.domain.ingest."),
-    ("basis.explorer.", "basis.domain.explorer."),
-    ("basis.ontology.", "basis.domain.ontology."),
-    ("basis.reasoning.", "basis.domain.reasoning."),
-    ("basis.graph.", "basis.domain.graph."),
-    ("basis.core.", "basis.integration."),
-    ("basis.mcp.", "basis.transport.mcp."),
-    ("basis.admin.", "basis.platform.admin."),
-    ("basis.auth.", "basis.platform.auth."),
-    ("basis.realtime.", "basis.platform.realtime."),
-    ("basis.models.", "basis.platform.models."),
-    ("basis.chat.", "basis.integration.chat."),
-    ("basis.observability.", "basis.infra.observability."),
-    ("basis.migration.", "basis.ops.migration."),
-    ("basis.test_support.", "basis.ops.test_support."),
-    ("basis.database.", "basis.infra.database."),
-    ("basis.database", "basis.infra.database"),
-    ("basis.config.", "basis.infra.config."),
-    ("basis.config", "basis.infra.config"),
-    ("basis.limits.", "basis.infra.limits."),
-    ("basis.limits", "basis.infra.limits"),
-    ("basis.capabilities.", "basis.infra.capabilities."),
-    ("basis.capabilities", "basis.infra.capabilities"),
-    ("basis.sqlite_connection.", "basis.infra.sqlite_connection."),
-    ("basis.sqlite_connection", "basis.infra.sqlite_connection"),
-    ("basis.db.", "basis.ops.db."),
+    ("basis.knowledge.", "basis.core.ledger."),
+    ("basis.pipeline.", "basis.core.pipeline."),
+    ("basis.explorer.", "basis.core.explorer."),
+    ("basis.ontology.", "basis.core.projection.legacy_ontology."),
+    ("basis.reasoning.", "basis.core.explorer.reasoning."),
+    ("basis.graph.", "basis.core.projection."),
+    ("basis.admin.", "basis.control.admin."),
+    ("basis.auth.", "basis.control.identity."),
+    ("basis.realtime.", "basis.control.realtime."),
+    ("basis.models.", "basis.control.catalog."),
+    ("basis.mcp.", "basis.api.mcp."),
+    ("basis.observability.", "basis.runtime.observability."),
+    ("basis.migration.", "basis.tooling.migration."),
+    ("basis.test_support.", "basis.tooling.test_support."),
+    ("basis.database.", "basis.runtime.database."),
+    ("basis.database", "basis.runtime.database"),
+    ("basis.config.", "basis.runtime.config."),
+    ("basis.config", "basis.runtime.config"),
+    ("basis.limits.", "basis.runtime.limits."),
+    ("basis.limits", "basis.runtime.limits"),
+    ("basis.capabilities.", "basis.runtime.capabilities."),
+    ("basis.capabilities", "basis.runtime.capabilities"),
+    ("basis.sqlite_connection.", "basis.runtime.sqlite_connection."),
+    ("basis.sqlite_connection", "basis.runtime.sqlite_connection"),
+    ("basis.db.", "basis.tooling.db."),
 )
 
 GLOBS = ("**/*.py", "**/*.md", "**/*.yml", "**/*.yaml", "**/*.toml", "**/*.mjs")
@@ -51,7 +47,10 @@ def should_skip(path: Path) -> bool:
 
 
 def rewrite_file(path: Path) -> bool:
-    text = path.read_text(encoding="utf-8")
+    try:
+        text = path.read_text(encoding="utf-8")
+    except UnicodeDecodeError:
+        return False
     original = text
     for old, new in REPLACEMENTS:
         text = text.replace(old, new)

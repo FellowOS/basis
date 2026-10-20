@@ -2,14 +2,18 @@
 
 import time
 
-from basis.domain.explorer.registry import ExplorerSessionRegistry, KbExplorerRuntime
-from basis.domain.graph.session import GraphSession
+from basis.core.explorer.session.basis_kb_graph_session import BasisKbGraphSession
+from basis.core.explorer.session.probe import build_kb_graph_adapter
+from basis.core.explorer.session.registry import (
+    ExplorerSessionRegistry,
+    KbExplorerRuntime,
+    _explorer_wrapped_graph,
+    _rebuild_explorer_wrapper,
+)
+from basis.core.projection.session import GraphSession
 
 
 def test_rebuild_explorer_wrapper_tracks_basis_graph_swap() -> None:
-    from basis.infra.capabilities import explorer_available
-    from basis.domain.explorer.registry import _explorer_wrapped_graph, _rebuild_explorer_wrapper
-
     session = GraphSession()
     session.add_node("a", "entity", content="A")
     stale = type("E", (), {"graph": session.graph})()
@@ -19,10 +23,16 @@ def test_rebuild_explorer_wrapper_tracks_basis_graph_swap() -> None:
     session.add_node("b", "entity", content="B")
     assert _explorer_wrapped_graph(stale) is not session.graph
 
-    if explorer_available():
-        fresh = _rebuild_explorer_wrapper(session)
-        assert fresh is not None
-        assert _explorer_wrapped_graph(fresh) is session.graph
+    fresh = _rebuild_explorer_wrapper(session)
+    assert fresh is not None
+    assert _explorer_wrapped_graph(fresh) is session.graph
+    assert isinstance(fresh, BasisKbGraphSession)
+
+
+def test_build_kb_graph_adapter_is_basis() -> None:
+    session = GraphSession()
+    adapter = build_kb_graph_adapter(session)
+    assert isinstance(adapter, BasisKbGraphSession)
 
 
 def test_evict_idle_drops_stale_runtimes() -> None:

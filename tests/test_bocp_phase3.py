@@ -8,10 +8,10 @@ import sqlite3
 import pytest
 from sqlalchemy import create_engine, text
 
-from basis.domain.connectors import ConnectorRuntime
-from basis.domain.kb.services.connector_sync import ConnectorLedgerSyncService
-from basis.domain.kb.structured_models import ColumnMappingSpec
-from basis.platform.admin.migrations import run_migrations
+from basis.core.connectors import ConnectorRuntime
+from basis.core.ledger.services.connector_sync import ConnectorLedgerSyncService
+from basis.core.ledger.structured_models import ColumnMappingSpec
+from basis.tooling.db.sqlite_migrations import run_migrations
 
 
 def _setup_kb_and_external_db(

@@ -1,0 +1,2580 @@
+version: '2.0'
+service: gitlab
+display_name: GitLab
+description: GitLab projects, issues, and merge requests.
+categories:
+- Developer Tools
+homepage_url: https://gitlab.com
+docs_url: https://docs.gitlab.com/ee/api/api_resources.html
+spec: {}
+auth:
+- auth_mode: oauth2
+  base_url: https://gitlab.com
+  headers:
+    Authorization: Bearer ${credentials.access_token}
+  oauth2:
+    authorization_url: https://gitlab.com/oauth/authorize
+    token_url: https://gitlab.com/oauth/token
+    pkce_s256: true
+    authorization_params:
+      response_type: code
+  check:
+    path: /api/v4/user
+    display_name_path: username
+actions:
+- kind: entity
+  id: projects
+  display_name: Projects
+  cursor_field: last_activity_at
+  default_label_field: path_with_namespace
+  fields:
+  - name: id
+    data_type: integer
+    nullable: false
+    primary_key: true
+  - name: name
+  - name: path_with_namespace
+  - name: description
+  - name: web_url
+  - name: last_activity_at
+    data_type: datetime
+  rest:
+    operations:
+      list:
+        method: GET
+        path: /api/v4/projects
+        query:
+          membership: 'true'
+        pagination:
+          type: page
+          limit_param: per_page
+          page_request_param: page
+- kind: entity
+  id: project_issues
+  display_name: Project Issues
+  cursor_field: updated_at
+  default_label_field: title
+  fields:
+  - name: id
+    data_type: integer
+    nullable: false
+    primary_key: true
+  - name: iid
+    data_type: integer
+    nullable: false
+  - name: title
+    nullable: false
+  - name: state
+  - name: description
+  - name: web_url
+  - name: updated_at
+    data_type: datetime
+  rest:
+    operations:
+      list:
+        method: GET
+        path: /api/v4/projects/{{config.projectId}}/issues
+        query:
+          state: all
+        pagination:
+          type: page
+          limit_param: per_page
+          page_request_param: page
+      update:
+        method: PUT
+        path: /api/v4/projects/{{config.projectId}}/issues/{{external_id}}
+        body:
+          patch: '{{patch}}'
+      create:
+        method: POST
+        path: /api/v4/projects/{{config.projectId}}/issues
+        body:
+          patch: '{{patch}}'
+- kind: procedure
+  id: gitlab.create_merge_request
+  name: create_merge_request
+  display_name: create_merge_request
+  description: Create a GitLab merge request from a source branch into a target branch.
+  rest:
+    operations:
+      invoke:
+        method: POST
+        path: /api/v4/projects/{{projectId}}/merge_requests
+  required_scopes:
+  - api
+  annotations:
+    read_only_hint: false
+  input_schema:
+    type: object
+    properties:
+      projectId:
+        type: string
+        minLength: 1
+        description: The GitLab project ID or URL-encoded path with namespace, such
+          as 123 or group%2Fproject.
+      sourceBranch:
+        type: string
+        minLength: 1
+        description: The source branch name.
+      targetBranch:
+        type: string
+        minLength: 1
+        description: The target branch name.
+      title:
+        type: string
+        minLength: 1
+        description: The merge request title.
+      description:
+        type: string
+        description: The merge request description.
+      targetProjectId:
+        type: integer
+        description: The target project ID for a cross-project merge request.
+      assigneeIds:
+        type: array
+        items:
+          type: integer
+          description: A GitLab user ID.
+        description: Users to assign.
+      reviewerIds:
+        type: array
+        items:
+          type: integer
+          description: A GitLab user ID.
+        description: Users to review.
+      labels:
+        type: string
+        description: Comma-separated label names.
+      removeSourceBranch:
+        type: boolean
+        description: Whether to remove the source branch after merge.
+      squash:
+        type: boolean
+        description: Whether to squash commits when merging.
+    additionalProperties: false
+    required:
+    - projectId
+    - sourceBranch
+    - targetBranch
+    - title
+    description: GitLab action input.
+  output_schema:
+    type: object
+    properties:
+      id:
+        type: integer
+        description: The global merge request ID.
+      iid:
+        type: integer
+        description: The internal merge request ID within the project.
+      project_id:
+        type: integer
+        description: The target project ID.
+      title:
+        type: string
+        description: The merge request title.
+      description:
+        anyOf:
+        - type: string
+          description: The merge request description.
+        - type: 'null'
+      state:
+        type: string
+        description: The merge request state.
+      web_url:
+        type: string
+        description: The merge request URL.
+      source_branch:
+        type: string
+        description: The source branch name.
+      target_branch:
+        type: string
+        description: The target branch name.
+      author:
+        type: object
+        properties:
+          id:
+            type: integer
+            description: The GitLab user ID.
+          username:
+            type: string
+            description: The GitLab username.
+          name:
+            type: string
+            description: The display name.
+          state:
+            type: string
+            description: The user state.
+          avatar_url:
+            anyOf:
+            - type: string
+              description: The avatar URL.
+            - type: 'null'
+          web_url:
+            type: string
+            description: The GitLab profile URL.
+          email:
+            type: string
+            description: The email address when visible.
+          public_email:
+            type: string
+            description: The public email address when visible.
+        additionalProperties: true
+        description: A GitLab user record.
+      assignees:
+        type: array
+        items:
+          type: object
+          properties:
+            id:
+              type: integer
+              description: The GitLab user ID.
+            username:
+              type: string
+              description: The GitLab username.
+            name:
+              type: string
+              description: The display name.
+            state:
+              type: string
+              description: The user state.
+            avatar_url:
+              anyOf:
+              - type: string
+                description: The avatar URL.
+              - type: 'null'
+            web_url:
+              type: string
+              description: The GitLab profile URL.
+            email:
+              type: string
+              description: The email address when visible.
+            public_email:
+              type: string
+              description: The public email address when visible.
+          additionalProperties: true
+          description: A GitLab user record.
+        description: Users assigned to the merge request.
+      reviewers:
+        type: array
+        items:
+          type: object
+          properties:
+            id:
+              type: integer
+              description: The GitLab user ID.
+            username:
+              type: string
+              description: The GitLab username.
+            name:
+              type: string
+              description: The display name.
+            state:
+              type: string
+              description: The user state.
+            avatar_url:
+              anyOf:
+              - type: string
+                description: The avatar URL.
+              - type: 'null'
+            web_url:
+              type: string
+              description: The GitLab profile URL.
+            email:
+              type: string
+              description: The email address when visible.
+            public_email:
+              type: string
+              description: The public email address when visible.
+          additionalProperties: true
+          description: A GitLab user record.
+        description: Users reviewing the merge request.
+      labels:
+        type: array
+        items:
+          type: string
+          description: A label name.
+        description: Labels attached to the merge request.
+      merged_at:
+        anyOf:
+        - type: string
+          description: The merge timestamp, when merged.
+        - type: 'null'
+      merge_status:
+        type: string
+        description: The merge readiness status.
+      detailed_merge_status:
+        type: string
+        description: The detailed merge readiness status.
+      sha:
+        type: string
+        description: The source branch commit SHA.
+    additionalProperties: true
+    description: A GitLab merge request record.
+- kind: procedure
+  id: gitlab.create_project
+  name: create_project
+  display_name: create_project
+  description: Create a new GitLab project owned by the authenticated user.
+  rest:
+    operations:
+      invoke:
+        method: POST
+        path: /api/v4/projects
+  required_scopes:
+  - api
+  annotations:
+    read_only_hint: false
+  input_schema:
+    type: object
+    properties:
+      name:
+        type: string
+        minLength: 1
+        description: The project name.
+      path:
+        type: string
+        minLength: 1
+        description: The repository path.
+      namespaceId:
+        type: integer
+        description: The namespace ID for the project.
+      description:
+        type: string
+        description: The project description.
+      visibility:
+        type: string
+        enum:
+        - private
+        - internal
+        - public
+        description: The project visibility.
+      initializeWithReadme:
+        type: boolean
+        description: Whether to initialize the repository with a README.
+      defaultBranch:
+        type: string
+        description: The initial default branch name.
+    additionalProperties: false
+    required:
+    - name
+    description: GitLab action input.
+  output_schema:
+    type: object
+    properties:
+      id:
+        type: integer
+        description: The project ID.
+      name:
+        type: string
+        description: The project name.
+      path:
+        type: string
+        description: The project path.
+      path_with_namespace:
+        type: string
+        description: The project path including namespace.
+      description:
+        anyOf:
+        - type: string
+          description: The project description.
+        - type: 'null'
+      default_branch:
+        anyOf:
+        - type: string
+          description: The default branch name.
+        - type: 'null'
+      visibility:
+        type: string
+        description: The project visibility.
+      web_url:
+        type: string
+        description: The project URL.
+      ssh_url_to_repo:
+        type: string
+        description: The SSH clone URL.
+      http_url_to_repo:
+        type: string
+        description: The HTTPS clone URL.
+      readme_url:
+        anyOf:
+        - type: string
+          description: The README URL when returned by GitLab.
+        - type: 'null'
+      created_at:
+        type: string
+        description: The project creation timestamp.
+      last_activity_at:
+        type: string
+        description: The last activity timestamp.
+      archived:
+        type: boolean
+        description: Whether the project is archived.
+      star_count:
+        type: integer
+        description: The number of stars.
+      forks_count:
+        type: integer
+        description: The number of forks.
+      open_issues_count:
+        type: integer
+        description: The number of open issues.
+      namespace:
+        type: object
+        properties:
+          id:
+            type: integer
+            description: The namespace ID.
+          name:
+            type: string
+            description: The namespace name.
+          path:
+            type: string
+            description: The namespace path.
+          kind:
+            type: string
+            description: The namespace kind.
+          full_path:
+            type: string
+            description: The full namespace path.
+        additionalProperties: true
+        description: A GitLab namespace record.
+    additionalProperties: true
+    description: A GitLab project record.
+- kind: procedure
+  id: gitlab.create_project_issue
+  name: create_project_issue
+  display_name: create_project_issue
+  description: Create a new issue in a GitLab project.
+  rest:
+    operations:
+      invoke:
+        method: POST
+        path: /api/v4/projects/{{projectId}}/issues
+  required_scopes:
+  - api
+  annotations:
+    read_only_hint: false
+  input_schema:
+    type: object
+    properties:
+      projectId:
+        type: string
+        minLength: 1
+        description: The GitLab project ID or URL-encoded path with namespace, such
+          as 123 or group%2Fproject.
+      title:
+        type: string
+        minLength: 1
+        description: The issue title.
+      description:
+        type: string
+        minLength: 1
+        description: The issue description.
+      labels:
+        type: string
+        minLength: 1
+        description: Comma-separated label names to attach to the issue.
+      assigneeIds:
+        type: array
+        items:
+          type: integer
+          description: A GitLab user ID.
+        description: User IDs to assign to the issue.
+      confidential:
+        type: boolean
+        description: Whether the issue should be confidential.
+      dueDate:
+        type: string
+        minLength: 1
+        description: The issue due date in YYYY-MM-DD format.
+    additionalProperties: false
+    required:
+    - projectId
+    - title
+    description: GitLab action input.
+  output_schema:
+    type: object
+    properties:
+      id:
+        type: integer
+        description: The issue ID.
+      iid:
+        type: integer
+        description: The internal issue ID within the project.
+      project_id:
+        type: integer
+        description: The project ID.
+      title:
+        type: string
+        description: The issue title.
+      description:
+        anyOf:
+        - type: string
+          description: The issue description.
+        - type: 'null'
+      state:
+        type: string
+        description: The issue state.
+      web_url:
+        type: string
+        description: The issue URL.
+      confidential:
+        type: boolean
+        description: Whether the issue is confidential.
+      discussion_locked:
+        anyOf:
+        - type: boolean
+          description: Whether discussions are locked.
+        - type: 'null'
+      issue_type:
+        type: string
+        description: The GitLab issue type.
+      author:
+        type: object
+        properties:
+          id:
+            type: integer
+            description: The GitLab user ID.
+          username:
+            type: string
+            description: The GitLab username.
+          name:
+            type: string
+            description: The display name.
+          state:
+            type: string
+            description: The user state.
+          avatar_url:
+            anyOf:
+            - type: string
+              description: The avatar URL.
+            - type: 'null'
+          web_url:
+            type: string
+            description: The GitLab profile URL.
+          email:
+            type: string
+            description: The email address when visible.
+          public_email:
+            type: string
+            description: The public email address when visible.
+        additionalProperties: true
+        description: A GitLab user record.
+      assignees:
+        type: array
+        items:
+          type: object
+          properties:
+            id:
+              type: integer
+              description: The GitLab user ID.
+            username:
+              type: string
+              description: The GitLab username.
+            name:
+              type: string
+              description: The display name.
+            state:
+              type: string
+              description: The user state.
+            avatar_url:
+              anyOf:
+              - type: string
+                description: The avatar URL.
+              - type: 'null'
+            web_url:
+              type: string
+              description: The GitLab profile URL.
+            email:
+              type: string
+              description: The email address when visible.
+            public_email:
+              type: string
+              description: The public email address when visible.
+          additionalProperties: true
+          description: A GitLab user record.
+        description: Users assigned to the issue.
+      labels:
+        type: array
+        items:
+          type: string
+          description: A label name.
+        description: Labels attached to the issue.
+      milestone:
+        anyOf:
+        - type: object
+          properties:
+            id:
+              type: integer
+              description: The milestone ID.
+            iid:
+              type: integer
+              description: The internal milestone ID within the project.
+            title:
+              type: string
+              description: The milestone title.
+            description:
+              anyOf:
+              - type: string
+                description: The milestone description.
+              - type: 'null'
+            state:
+              type: string
+              description: The milestone state.
+            due_date:
+              anyOf:
+              - type: string
+                description: The milestone due date.
+              - type: 'null'
+            start_date:
+              anyOf:
+              - type: string
+                description: The milestone start date.
+              - type: 'null'
+            web_url:
+              type: string
+              description: The milestone URL.
+          additionalProperties: true
+          description: A GitLab milestone record.
+        - type: 'null'
+      created_at:
+        type: string
+        description: The issue creation timestamp.
+      updated_at:
+        type: string
+        description: The issue update timestamp.
+      closed_at:
+        anyOf:
+        - type: string
+          description: The timestamp when the issue was closed.
+        - type: 'null'
+      due_date:
+        anyOf:
+        - type: string
+          description: The issue due date.
+        - type: 'null'
+      user_notes_count:
+        type: integer
+        description: The number of notes on the issue.
+    additionalProperties: true
+    description: A GitLab issue record.
+- kind: procedure
+  id: gitlab.delete_project
+  name: delete_project
+  display_name: delete_project
+  description: Mark a GitLab project for deletion.
+  rest:
+    operations:
+      invoke:
+        method: DELETE
+        path: /api/v4/projects/{{projectId}}
+  required_scopes:
+  - api
+  annotations:
+    read_only_hint: false
+  input_schema:
+    type: object
+    properties:
+      projectId:
+        type: string
+        minLength: 1
+        description: The GitLab project ID or URL-encoded path with namespace, such
+          as 123 or group%2Fproject.
+    additionalProperties: false
+    required:
+    - projectId
+    description: GitLab action input.
+  output_schema:
+    type: object
+    properties:
+      deleted:
+        type: boolean
+        description: Whether GitLab accepted the deletion request.
+    additionalProperties: false
+    required:
+    - deleted
+    description: A normalized GitLab deletion response.
+- kind: procedure
+  id: gitlab.delete_project_issue
+  name: delete_project_issue
+  display_name: delete_project_issue
+  description: Delete a GitLab project issue.
+  rest:
+    operations:
+      invoke:
+        method: DELETE
+        path: /api/v4/projects/{{projectId}}/issues/{{issueIid}}
+  required_scopes:
+  - api
+  annotations:
+    read_only_hint: false
+  input_schema:
+    type: object
+    properties:
+      projectId:
+        type: string
+        minLength: 1
+        description: The GitLab project ID or URL-encoded path with namespace, such
+          as 123 or group%2Fproject.
+      issueIid:
+        type: integer
+        minimum: 1
+        description: The internal issue ID within the project.
+    additionalProperties: false
+    required:
+    - projectId
+    - issueIid
+    description: GitLab action input.
+  output_schema:
+    type: object
+    properties:
+      deleted:
+        type: boolean
+        description: Whether GitLab accepted the deletion request.
+    additionalProperties: false
+    required:
+    - deleted
+    description: A normalized GitLab deletion response.
+- kind: procedure
+  id: gitlab.get_current_user
+  name: get_current_user
+  display_name: get_current_user
+  description: Get the current authenticated GitLab user profile.
+  rest:
+    operations:
+      invoke:
+        method: GET
+        path: /api/v4/user
+  required_scopes:
+  - read_api
+  annotations:
+    idempotent_hint: true
+  input_schema:
+    type: object
+    properties: {}
+    additionalProperties: false
+    description: GitLab action input.
+  output_schema:
+    type: object
+    properties:
+      id:
+        type: integer
+        description: The GitLab user ID.
+      username:
+        type: string
+        description: The GitLab username.
+      name:
+        type: string
+        description: The display name.
+      state:
+        type: string
+        description: The user state.
+      avatar_url:
+        anyOf:
+        - type: string
+          description: The avatar URL.
+        - type: 'null'
+      web_url:
+        type: string
+        description: The GitLab profile URL.
+      email:
+        type: string
+        description: The email address when visible.
+      public_email:
+        type: string
+        description: The public email address when visible.
+    additionalProperties: true
+    description: A GitLab user record.
+- kind: procedure
+  id: gitlab.get_project
+  name: get_project
+  display_name: get_project
+  description: Get a GitLab project by numeric ID or URL-encoded path with namespace.
+  rest:
+    operations:
+      invoke:
+        method: GET
+        path: /api/v4/projects/{{projectId}}
+  required_scopes:
+  - read_api
+  annotations:
+    idempotent_hint: true
+  input_schema:
+    type: object
+    properties:
+      projectId:
+        type: string
+        minLength: 1
+        description: The GitLab project ID or URL-encoded path with namespace, such
+          as 123 or group%2Fproject.
+    additionalProperties: false
+    required:
+    - projectId
+    description: GitLab action input.
+  output_schema:
+    type: object
+    properties:
+      id:
+        type: integer
+        description: The project ID.
+      name:
+        type: string
+        description: The project name.
+      path:
+        type: string
+        description: The project path.
+      path_with_namespace:
+        type: string
+        description: The project path including namespace.
+      description:
+        anyOf:
+        - type: string
+          description: The project description.
+        - type: 'null'
+      default_branch:
+        anyOf:
+        - type: string
+          description: The default branch name.
+        - type: 'null'
+      visibility:
+        type: string
+        description: The project visibility.
+      web_url:
+        type: string
+        description: The project URL.
+      ssh_url_to_repo:
+        type: string
+        description: The SSH clone URL.
+      http_url_to_repo:
+        type: string
+        description: The HTTPS clone URL.
+      readme_url:
+        anyOf:
+        - type: string
+          description: The README URL when returned by GitLab.
+        - type: 'null'
+      created_at:
+        type: string
+        description: The project creation timestamp.
+      last_activity_at:
+        type: string
+        description: The last activity timestamp.
+      archived:
+        type: boolean
+        description: Whether the project is archived.
+      star_count:
+        type: integer
+        description: The number of stars.
+      forks_count:
+        type: integer
+        description: The number of forks.
+      open_issues_count:
+        type: integer
+        description: The number of open issues.
+      namespace:
+        type: object
+        properties:
+          id:
+            type: integer
+            description: The namespace ID.
+          name:
+            type: string
+            description: The namespace name.
+          path:
+            type: string
+            description: The namespace path.
+          kind:
+            type: string
+            description: The namespace kind.
+          full_path:
+            type: string
+            description: The full namespace path.
+        additionalProperties: true
+        description: A GitLab namespace record.
+    additionalProperties: true
+    description: A GitLab project record.
+- kind: procedure
+  id: gitlab.get_project_issue
+  name: get_project_issue
+  display_name: get_project_issue
+  description: Get a single issue from a GitLab project by its internal issue ID.
+  rest:
+    operations:
+      invoke:
+        method: GET
+        path: /api/v4/projects/{{projectId}}/issues/{{issueIid}}
+  required_scopes:
+  - read_api
+  annotations:
+    idempotent_hint: true
+  input_schema:
+    type: object
+    properties:
+      projectId:
+        type: string
+        minLength: 1
+        description: The GitLab project ID or URL-encoded path with namespace, such
+          as 123 or group%2Fproject.
+      issueIid:
+        type: integer
+        minimum: 1
+        description: The internal issue ID within the project.
+    additionalProperties: false
+    required:
+    - projectId
+    - issueIid
+    description: GitLab action input.
+  output_schema:
+    type: object
+    properties:
+      id:
+        type: integer
+        description: The issue ID.
+      iid:
+        type: integer
+        description: The internal issue ID within the project.
+      project_id:
+        type: integer
+        description: The project ID.
+      title:
+        type: string
+        description: The issue title.
+      description:
+        anyOf:
+        - type: string
+          description: The issue description.
+        - type: 'null'
+      state:
+        type: string
+        description: The issue state.
+      web_url:
+        type: string
+        description: The issue URL.
+      confidential:
+        type: boolean
+        description: Whether the issue is confidential.
+      discussion_locked:
+        anyOf:
+        - type: boolean
+          description: Whether discussions are locked.
+        - type: 'null'
+      issue_type:
+        type: string
+        description: The GitLab issue type.
+      author:
+        type: object
+        properties:
+          id:
+            type: integer
+            description: The GitLab user ID.
+          username:
+            type: string
+            description: The GitLab username.
+          name:
+            type: string
+            description: The display name.
+          state:
+            type: string
+            description: The user state.
+          avatar_url:
+            anyOf:
+            - type: string
+              description: The avatar URL.
+            - type: 'null'
+          web_url:
+            type: string
+            description: The GitLab profile URL.
+          email:
+            type: string
+            description: The email address when visible.
+          public_email:
+            type: string
+            description: The public email address when visible.
+        additionalProperties: true
+        description: A GitLab user record.
+      assignees:
+        type: array
+        items:
+          type: object
+          properties:
+            id:
+              type: integer
+              description: The GitLab user ID.
+            username:
+              type: string
+              description: The GitLab username.
+            name:
+              type: string
+              description: The display name.
+            state:
+              type: string
+              description: The user state.
+            avatar_url:
+              anyOf:
+              - type: string
+                description: The avatar URL.
+              - type: 'null'
+            web_url:
+              type: string
+              description: The GitLab profile URL.
+            email:
+              type: string
+              description: The email address when visible.
+            public_email:
+              type: string
+              description: The public email address when visible.
+          additionalProperties: true
+          description: A GitLab user record.
+        description: Users assigned to the issue.
+      labels:
+        type: array
+        items:
+          type: string
+          description: A label name.
+        description: Labels attached to the issue.
+      milestone:
+        anyOf:
+        - type: object
+          properties:
+            id:
+              type: integer
+              description: The milestone ID.
+            iid:
+              type: integer
+              description: The internal milestone ID within the project.
+            title:
+              type: string
+              description: The milestone title.
+            description:
+              anyOf:
+              - type: string
+                description: The milestone description.
+              - type: 'null'
+            state:
+              type: string
+              description: The milestone state.
+            due_date:
+              anyOf:
+              - type: string
+                description: The milestone due date.
+              - type: 'null'
+            start_date:
+              anyOf:
+              - type: string
+                description: The milestone start date.
+              - type: 'null'
+            web_url:
+              type: string
+              description: The milestone URL.
+          additionalProperties: true
+          description: A GitLab milestone record.
+        - type: 'null'
+      created_at:
+        type: string
+        description: The issue creation timestamp.
+      updated_at:
+        type: string
+        description: The issue update timestamp.
+      closed_at:
+        anyOf:
+        - type: string
+          description: The timestamp when the issue was closed.
+        - type: 'null'
+      due_date:
+        anyOf:
+        - type: string
+          description: The issue due date.
+        - type: 'null'
+      user_notes_count:
+        type: integer
+        description: The number of notes on the issue.
+    additionalProperties: true
+    description: A GitLab issue record.
+- kind: procedure
+  id: gitlab.list_project_issues
+  name: list_project_issues
+  display_name: list_project_issues
+  description: List issues for a GitLab project with common state, label, assignee,
+    and search filters.
+  rest:
+    operations:
+      invoke:
+        method: GET
+        path: /api/v4/projects/{{projectId}}/issues
+  required_scopes:
+  - read_api
+  annotations:
+    idempotent_hint: true
+  input_schema:
+    type: object
+    properties:
+      projectId:
+        type: string
+        minLength: 1
+        description: The GitLab project ID or URL-encoded path with namespace, such
+          as 123 or group%2Fproject.
+      state:
+        type: string
+        enum:
+        - opened
+        - closed
+        - all
+        description: Issue state filter.
+      labels:
+        type: string
+        minLength: 1
+        description: Comma-separated label names to filter issues by.
+      assigneeId:
+        type: integer
+        description: Filter by assignee user ID.
+      search:
+        type: string
+        minLength: 1
+        description: Search issues by title or description.
+      orderBy:
+        type: string
+        enum:
+        - created_at
+        - updated_at
+        - priority
+        - due_date
+        - relative_position
+        - label_priority
+        - milestone_due
+        - popularity
+        - weight
+        description: Sort issues by a GitLab-supported field.
+      sort:
+        type: string
+        enum:
+        - asc
+        - desc
+        description: Sort direction.
+      page:
+        type: integer
+        minimum: 1
+        description: The page number to fetch.
+      perPage:
+        type: integer
+        minimum: 1
+        maximum: 100
+        description: The number of results per page.
+    additionalProperties: false
+    required:
+    - projectId
+    description: GitLab action input.
+  output_schema:
+    type: object
+    properties:
+      issues:
+        type: array
+        items:
+          type: object
+          properties:
+            id:
+              type: integer
+              description: The issue ID.
+            iid:
+              type: integer
+              description: The internal issue ID within the project.
+            project_id:
+              type: integer
+              description: The project ID.
+            title:
+              type: string
+              description: The issue title.
+            description:
+              anyOf:
+              - type: string
+                description: The issue description.
+              - type: 'null'
+            state:
+              type: string
+              description: The issue state.
+            web_url:
+              type: string
+              description: The issue URL.
+            confidential:
+              type: boolean
+              description: Whether the issue is confidential.
+            discussion_locked:
+              anyOf:
+              - type: boolean
+                description: Whether discussions are locked.
+              - type: 'null'
+            issue_type:
+              type: string
+              description: The GitLab issue type.
+            author:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  description: The GitLab user ID.
+                username:
+                  type: string
+                  description: The GitLab username.
+                name:
+                  type: string
+                  description: The display name.
+                state:
+                  type: string
+                  description: The user state.
+                avatar_url:
+                  anyOf:
+                  - type: string
+                    description: The avatar URL.
+                  - type: 'null'
+                web_url:
+                  type: string
+                  description: The GitLab profile URL.
+                email:
+                  type: string
+                  description: The email address when visible.
+                public_email:
+                  type: string
+                  description: The public email address when visible.
+              additionalProperties: true
+              description: A GitLab user record.
+            assignees:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    description: The GitLab user ID.
+                  username:
+                    type: string
+                    description: The GitLab username.
+                  name:
+                    type: string
+                    description: The display name.
+                  state:
+                    type: string
+                    description: The user state.
+                  avatar_url:
+                    anyOf:
+                    - type: string
+                      description: The avatar URL.
+                    - type: 'null'
+                  web_url:
+                    type: string
+                    description: The GitLab profile URL.
+                  email:
+                    type: string
+                    description: The email address when visible.
+                  public_email:
+                    type: string
+                    description: The public email address when visible.
+                additionalProperties: true
+                description: A GitLab user record.
+              description: Users assigned to the issue.
+            labels:
+              type: array
+              items:
+                type: string
+                description: A label name.
+              description: Labels attached to the issue.
+            milestone:
+              anyOf:
+              - type: object
+                properties:
+                  id:
+                    type: integer
+                    description: The milestone ID.
+                  iid:
+                    type: integer
+                    description: The internal milestone ID within the project.
+                  title:
+                    type: string
+                    description: The milestone title.
+                  description:
+                    anyOf:
+                    - type: string
+                      description: The milestone description.
+                    - type: 'null'
+                  state:
+                    type: string
+                    description: The milestone state.
+                  due_date:
+                    anyOf:
+                    - type: string
+                      description: The milestone due date.
+                    - type: 'null'
+                  start_date:
+                    anyOf:
+                    - type: string
+                      description: The milestone start date.
+                    - type: 'null'
+                  web_url:
+                    type: string
+                    description: The milestone URL.
+                additionalProperties: true
+                description: A GitLab milestone record.
+              - type: 'null'
+            created_at:
+              type: string
+              description: The issue creation timestamp.
+            updated_at:
+              type: string
+              description: The issue update timestamp.
+            closed_at:
+              anyOf:
+              - type: string
+                description: The timestamp when the issue was closed.
+              - type: 'null'
+            due_date:
+              anyOf:
+              - type: string
+                description: The issue due date.
+              - type: 'null'
+            user_notes_count:
+              type: integer
+              description: The number of notes on the issue.
+          additionalProperties: true
+          description: A GitLab issue record.
+        description: Issues returned by GitLab.
+      total:
+        anyOf:
+        - type: integer
+          description: The total number of issues when GitLab returns it.
+        - type: 'null'
+      nextPage:
+        anyOf:
+        - type: integer
+          description: The next page number when another page exists.
+        - type: 'null'
+    additionalProperties: false
+    required:
+    - issues
+    - total
+    - nextPage
+    description: A paginated GitLab issues response.
+- kind: procedure
+  id: gitlab.list_project_merge_requests
+  name: list_project_merge_requests
+  display_name: list_project_merge_requests
+  description: List merge requests for a GitLab project with state, branch, search,
+    and pagination filters.
+  rest:
+    operations:
+      invoke:
+        method: GET
+        path: /api/v4/projects/{{projectId}}/merge_requests
+  required_scopes:
+  - read_api
+  annotations:
+    idempotent_hint: true
+  input_schema:
+    type: object
+    properties:
+      projectId:
+        type: string
+        minLength: 1
+        description: The GitLab project ID or URL-encoded path with namespace, such
+          as 123 or group%2Fproject.
+      state:
+        type: string
+        enum:
+        - opened
+        - closed
+        - merged
+        - locked
+        - all
+        description: Merge request state.
+      search:
+        type: string
+        minLength: 1
+        description: Search merge requests by title or description.
+      sourceBranch:
+        type: string
+        minLength: 1
+        description: Filter by source branch.
+      targetBranch:
+        type: string
+        minLength: 1
+        description: Filter by target branch.
+      orderBy:
+        type: string
+        enum:
+        - created_at
+        - updated_at
+        - priority
+        - title
+        description: Sort field.
+      sort:
+        type: string
+        enum:
+        - asc
+        - desc
+        description: Sort direction.
+      page:
+        type: integer
+        minimum: 1
+        description: The page number to fetch.
+      perPage:
+        type: integer
+        minimum: 1
+        maximum: 100
+        description: The number of results per page.
+    additionalProperties: false
+    required:
+    - projectId
+    description: GitLab action input.
+  output_schema:
+    type: object
+    properties:
+      mergeRequests:
+        type: array
+        items:
+          type: object
+          properties:
+            id:
+              type: integer
+              description: The global merge request ID.
+            iid:
+              type: integer
+              description: The internal merge request ID within the project.
+            project_id:
+              type: integer
+              description: The target project ID.
+            title:
+              type: string
+              description: The merge request title.
+            description:
+              anyOf:
+              - type: string
+                description: The merge request description.
+              - type: 'null'
+            state:
+              type: string
+              description: The merge request state.
+            web_url:
+              type: string
+              description: The merge request URL.
+            source_branch:
+              type: string
+              description: The source branch name.
+            target_branch:
+              type: string
+              description: The target branch name.
+            author:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  description: The GitLab user ID.
+                username:
+                  type: string
+                  description: The GitLab username.
+                name:
+                  type: string
+                  description: The display name.
+                state:
+                  type: string
+                  description: The user state.
+                avatar_url:
+                  anyOf:
+                  - type: string
+                    description: The avatar URL.
+                  - type: 'null'
+                web_url:
+                  type: string
+                  description: The GitLab profile URL.
+                email:
+                  type: string
+                  description: The email address when visible.
+                public_email:
+                  type: string
+                  description: The public email address when visible.
+              additionalProperties: true
+              description: A GitLab user record.
+            assignees:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    description: The GitLab user ID.
+                  username:
+                    type: string
+                    description: The GitLab username.
+                  name:
+                    type: string
+                    description: The display name.
+                  state:
+                    type: string
+                    description: The user state.
+                  avatar_url:
+                    anyOf:
+                    - type: string
+                      description: The avatar URL.
+                    - type: 'null'
+                  web_url:
+                    type: string
+                    description: The GitLab profile URL.
+                  email:
+                    type: string
+                    description: The email address when visible.
+                  public_email:
+                    type: string
+                    description: The public email address when visible.
+                additionalProperties: true
+                description: A GitLab user record.
+              description: Users assigned to the merge request.
+            reviewers:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    description: The GitLab user ID.
+                  username:
+                    type: string
+                    description: The GitLab username.
+                  name:
+                    type: string
+                    description: The display name.
+                  state:
+                    type: string
+                    description: The user state.
+                  avatar_url:
+                    anyOf:
+                    - type: string
+                      description: The avatar URL.
+                    - type: 'null'
+                  web_url:
+                    type: string
+                    description: The GitLab profile URL.
+                  email:
+                    type: string
+                    description: The email address when visible.
+                  public_email:
+                    type: string
+                    description: The public email address when visible.
+                additionalProperties: true
+                description: A GitLab user record.
+              description: Users reviewing the merge request.
+            labels:
+              type: array
+              items:
+                type: string
+                description: A label name.
+              description: Labels attached to the merge request.
+            merged_at:
+              anyOf:
+              - type: string
+                description: The merge timestamp, when merged.
+              - type: 'null'
+            merge_status:
+              type: string
+              description: The merge readiness status.
+            detailed_merge_status:
+              type: string
+              description: The detailed merge readiness status.
+            sha:
+              type: string
+              description: The source branch commit SHA.
+          additionalProperties: true
+          description: A GitLab merge request record.
+        description: Merge requests returned by GitLab.
+      total:
+        anyOf:
+        - type: integer
+          description: The total number of merge requests when GitLab returns it.
+        - type: 'null'
+      nextPage:
+        anyOf:
+        - type: integer
+          description: The next page number when another page exists.
+        - type: 'null'
+    additionalProperties: false
+    required:
+    - mergeRequests
+    - total
+    - nextPage
+    description: A paginated GitLab merge requests response.
+- kind: procedure
+  id: gitlab.list_projects
+  name: list_projects
+  display_name: list_projects
+  description: List GitLab projects visible to the authenticated personal access token,
+    with optional search and membership filters.
+  rest:
+    operations:
+      invoke:
+        method: GET
+        path: /api/v4/projects
+  required_scopes:
+  - read_api
+  annotations:
+    idempotent_hint: true
+  input_schema:
+    type: object
+    properties:
+      search:
+        type: string
+        minLength: 1
+        description: Search projects by name or path.
+      membership:
+        type: boolean
+        description: Limit results to projects the authenticated user is a member
+          of.
+      owned:
+        type: boolean
+        description: Limit results to projects explicitly owned by the authenticated
+          user.
+      simple:
+        type: boolean
+        description: Return a simplified project representation from GitLab.
+      orderBy:
+        type: string
+        enum:
+        - id
+        - name
+        - path
+        - created_at
+        - updated_at
+        - last_activity_at
+        description: Sort projects by a GitLab-supported field.
+      sort:
+        type: string
+        enum:
+        - asc
+        - desc
+        description: Sort direction.
+      page:
+        type: integer
+        minimum: 1
+        description: The page number to fetch.
+      perPage:
+        type: integer
+        minimum: 1
+        maximum: 100
+        description: The number of results per page.
+    additionalProperties: false
+    description: GitLab action input.
+  output_schema:
+    type: object
+    properties:
+      projects:
+        type: array
+        items:
+          type: object
+          properties:
+            id:
+              type: integer
+              description: The project ID.
+            name:
+              type: string
+              description: The project name.
+            path:
+              type: string
+              description: The project path.
+            path_with_namespace:
+              type: string
+              description: The project path including namespace.
+            description:
+              anyOf:
+              - type: string
+                description: The project description.
+              - type: 'null'
+            default_branch:
+              anyOf:
+              - type: string
+                description: The default branch name.
+              - type: 'null'
+            visibility:
+              type: string
+              description: The project visibility.
+            web_url:
+              type: string
+              description: The project URL.
+            ssh_url_to_repo:
+              type: string
+              description: The SSH clone URL.
+            http_url_to_repo:
+              type: string
+              description: The HTTPS clone URL.
+            readme_url:
+              anyOf:
+              - type: string
+                description: The README URL when returned by GitLab.
+              - type: 'null'
+            created_at:
+              type: string
+              description: The project creation timestamp.
+            last_activity_at:
+              type: string
+              description: The last activity timestamp.
+            archived:
+              type: boolean
+              description: Whether the project is archived.
+            star_count:
+              type: integer
+              description: The number of stars.
+            forks_count:
+              type: integer
+              description: The number of forks.
+            open_issues_count:
+              type: integer
+              description: The number of open issues.
+            namespace:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  description: The namespace ID.
+                name:
+                  type: string
+                  description: The namespace name.
+                path:
+                  type: string
+                  description: The namespace path.
+                kind:
+                  type: string
+                  description: The namespace kind.
+                full_path:
+                  type: string
+                  description: The full namespace path.
+              additionalProperties: true
+              description: A GitLab namespace record.
+          additionalProperties: true
+          description: A GitLab project record.
+        description: Projects returned by GitLab.
+      total:
+        anyOf:
+        - type: integer
+          description: The total number of projects when GitLab returns it.
+        - type: 'null'
+      nextPage:
+        anyOf:
+        - type: integer
+          description: The next page number when another page exists.
+        - type: 'null'
+    additionalProperties: false
+    required:
+    - projects
+    - total
+    - nextPage
+    description: A paginated GitLab projects response.
+- kind: procedure
+  id: gitlab.merge_merge_request
+  name: merge_merge_request
+  display_name: merge_merge_request
+  description: Accept and merge a GitLab merge request, optionally waiting for pipelines
+    or squashing commits.
+  rest:
+    operations:
+      invoke:
+        method: PUT
+        path: /api/v4/projects/{{projectId}}/merge_requests/{{mergeRequestIid}}/merge
+  required_scopes:
+  - api
+  annotations:
+    read_only_hint: false
+  input_schema:
+    type: object
+    properties:
+      projectId:
+        type: string
+        minLength: 1
+        description: The GitLab project ID or URL-encoded path with namespace, such
+          as 123 or group%2Fproject.
+      mergeRequestIid:
+        type: integer
+        minimum: 1
+        description: The internal merge request ID within the project.
+      autoMerge:
+        type: boolean
+        description: Merge automatically when checks pass. Requires GitLab 17.11 or
+          later.
+      sha:
+        type: string
+        minLength: 1
+        description: Require this source branch commit SHA before merging.
+      shouldRemoveSourceBranch:
+        type: boolean
+        description: Remove the source branch after merging.
+      squash:
+        type: boolean
+        description: Squash commits when merging.
+      mergeCommitMessage:
+        type: string
+        description: Custom merge commit message.
+      squashCommitMessage:
+        type: string
+        description: Custom squash commit message.
+    additionalProperties: false
+    required:
+    - projectId
+    - mergeRequestIid
+    description: GitLab action input.
+  output_schema:
+    type: object
+    properties:
+      id:
+        type: integer
+        description: The global merge request ID.
+      iid:
+        type: integer
+        description: The internal merge request ID within the project.
+      project_id:
+        type: integer
+        description: The target project ID.
+      title:
+        type: string
+        description: The merge request title.
+      description:
+        anyOf:
+        - type: string
+          description: The merge request description.
+        - type: 'null'
+      state:
+        type: string
+        description: The merge request state.
+      web_url:
+        type: string
+        description: The merge request URL.
+      source_branch:
+        type: string
+        description: The source branch name.
+      target_branch:
+        type: string
+        description: The target branch name.
+      author:
+        type: object
+        properties:
+          id:
+            type: integer
+            description: The GitLab user ID.
+          username:
+            type: string
+            description: The GitLab username.
+          name:
+            type: string
+            description: The display name.
+          state:
+            type: string
+            description: The user state.
+          avatar_url:
+            anyOf:
+            - type: string
+              description: The avatar URL.
+            - type: 'null'
+          web_url:
+            type: string
+            description: The GitLab profile URL.
+          email:
+            type: string
+            description: The email address when visible.
+          public_email:
+            type: string
+            description: The public email address when visible.
+        additionalProperties: true
+        description: A GitLab user record.
+      assignees:
+        type: array
+        items:
+          type: object
+          properties:
+            id:
+              type: integer
+              description: The GitLab user ID.
+            username:
+              type: string
+              description: The GitLab username.
+            name:
+              type: string
+              description: The display name.
+            state:
+              type: string
+              description: The user state.
+            avatar_url:
+              anyOf:
+              - type: string
+                description: The avatar URL.
+              - type: 'null'
+            web_url:
+              type: string
+              description: The GitLab profile URL.
+            email:
+              type: string
+              description: The email address when visible.
+            public_email:
+              type: string
+              description: The public email address when visible.
+          additionalProperties: true
+          description: A GitLab user record.
+        description: Users assigned to the merge request.
+      reviewers:
+        type: array
+        items:
+          type: object
+          properties:
+            id:
+              type: integer
+              description: The GitLab user ID.
+            username:
+              type: string
+              description: The GitLab username.
+            name:
+              type: string
+              description: The display name.
+            state:
+              type: string
+              description: The user state.
+            avatar_url:
+              anyOf:
+              - type: string
+                description: The avatar URL.
+              - type: 'null'
+            web_url:
+              type: string
+              description: The GitLab profile URL.
+            email:
+              type: string
+              description: The email address when visible.
+            public_email:
+              type: string
+              description: The public email address when visible.
+          additionalProperties: true
+          description: A GitLab user record.
+        description: Users reviewing the merge request.
+      labels:
+        type: array
+        items:
+          type: string
+          description: A label name.
+        description: Labels attached to the merge request.
+      merged_at:
+        anyOf:
+        - type: string
+          description: The merge timestamp, when merged.
+        - type: 'null'
+      merge_status:
+        type: string
+        description: The merge readiness status.
+      detailed_merge_status:
+        type: string
+        description: The detailed merge readiness status.
+      sha:
+        type: string
+        description: The source branch commit SHA.
+    additionalProperties: true
+    description: A GitLab merge request record.
+- kind: procedure
+  id: gitlab.update_merge_request
+  name: update_merge_request
+  display_name: update_merge_request
+  description: Update a GitLab merge request's title, description, branches, reviewers,
+    labels, or state.
+  rest:
+    operations:
+      invoke:
+        method: PUT
+        path: /api/v4/projects/{{projectId}}/merge_requests/{{mergeRequestIid}}
+  required_scopes:
+  - api
+  annotations:
+    read_only_hint: false
+  input_schema:
+    type: object
+    properties:
+      projectId:
+        type: string
+        minLength: 1
+        description: The GitLab project ID or URL-encoded path with namespace, such
+          as 123 or group%2Fproject.
+      mergeRequestIid:
+        type: integer
+        minimum: 1
+        description: The internal merge request ID within the project.
+      title:
+        type: string
+        minLength: 1
+        description: The replacement title.
+      description:
+        type: string
+        description: The replacement description.
+      targetBranch:
+        type: string
+        minLength: 1
+        description: The replacement target branch.
+      stateEvent:
+        type: string
+        enum:
+        - close
+        - reopen
+        description: Close or reopen the merge request.
+      labels:
+        type: string
+        description: Comma-separated label names to set.
+      assigneeIds:
+        type: array
+        items:
+          type: integer
+          description: A GitLab user ID.
+        description: Users to assign.
+      reviewerIds:
+        type: array
+        items:
+          type: integer
+          description: A GitLab user ID.
+        description: Users to review.
+      milestoneId:
+        type: integer
+        description: The milestone ID.
+      removeSourceBranch:
+        type: boolean
+        description: Whether to remove the source branch after merge.
+      squash:
+        type: boolean
+        description: Whether to squash commits when merging.
+      allowCollaboration:
+        type: boolean
+        description: Allow commits from eligible project members.
+    additionalProperties: false
+    required:
+    - projectId
+    - mergeRequestIid
+    description: GitLab action input.
+  output_schema:
+    type: object
+    properties:
+      id:
+        type: integer
+        description: The global merge request ID.
+      iid:
+        type: integer
+        description: The internal merge request ID within the project.
+      project_id:
+        type: integer
+        description: The target project ID.
+      title:
+        type: string
+        description: The merge request title.
+      description:
+        anyOf:
+        - type: string
+          description: The merge request description.
+        - type: 'null'
+      state:
+        type: string
+        description: The merge request state.
+      web_url:
+        type: string
+        description: The merge request URL.
+      source_branch:
+        type: string
+        description: The source branch name.
+      target_branch:
+        type: string
+        description: The target branch name.
+      author:
+        type: object
+        properties:
+          id:
+            type: integer
+            description: The GitLab user ID.
+          username:
+            type: string
+            description: The GitLab username.
+          name:
+            type: string
+            description: The display name.
+          state:
+            type: string
+            description: The user state.
+          avatar_url:
+            anyOf:
+            - type: string
+              description: The avatar URL.
+            - type: 'null'
+          web_url:
+            type: string
+            description: The GitLab profile URL.
+          email:
+            type: string
+            description: The email address when visible.
+          public_email:
+            type: string
+            description: The public email address when visible.
+        additionalProperties: true
+        description: A GitLab user record.
+      assignees:
+        type: array
+        items:
+          type: object
+          properties:
+            id:
+              type: integer
+              description: The GitLab user ID.
+            username:
+              type: string
+              description: The GitLab username.
+            name:
+              type: string
+              description: The display name.
+            state:
+              type: string
+              description: The user state.
+            avatar_url:
+              anyOf:
+              - type: string
+                description: The avatar URL.
+              - type: 'null'
+            web_url:
+              type: string
+              description: The GitLab profile URL.
+            email:
+              type: string
+              description: The email address when visible.
+            public_email:
+              type: string
+              description: The public email address when visible.
+          additionalProperties: true
+          description: A GitLab user record.
+        description: Users assigned to the merge request.
+      reviewers:
+        type: array
+        items:
+          type: object
+          properties:
+            id:
+              type: integer
+              description: The GitLab user ID.
+            username:
+              type: string
+              description: The GitLab username.
+            name:
+              type: string
+              description: The display name.
+            state:
+              type: string
+              description: The user state.
+            avatar_url:
+              anyOf:
+              - type: string
+                description: The avatar URL.
+              - type: 'null'
+            web_url:
+              type: string
+              description: The GitLab profile URL.
+            email:
+              type: string
+              description: The email address when visible.
+            public_email:
+              type: string
+              description: The public email address when visible.
+          additionalProperties: true
+          description: A GitLab user record.
+        description: Users reviewing the merge request.
+      labels:
+        type: array
+        items:
+          type: string
+          description: A label name.
+        description: Labels attached to the merge request.
+      merged_at:
+        anyOf:
+        - type: string
+          description: The merge timestamp, when merged.
+        - type: 'null'
+      merge_status:
+        type: string
+        description: The merge readiness status.
+      detailed_merge_status:
+        type: string
+        description: The detailed merge readiness status.
+      sha:
+        type: string
+        description: The source branch commit SHA.
+    additionalProperties: true
+    description: A GitLab merge request record.
+- kind: procedure
+  id: gitlab.update_project
+  name: update_project
+  display_name: update_project
+  description: Update basic settings for an existing GitLab project.
+  rest:
+    operations:
+      invoke:
+        method: PUT
+        path: /api/v4/projects/{{projectId}}
+  required_scopes:
+  - api
+  annotations:
+    read_only_hint: false
+  input_schema:
+    type: object
+    properties:
+      projectId:
+        type: string
+        minLength: 1
+        description: The GitLab project ID or URL-encoded path with namespace, such
+          as 123 or group%2Fproject.
+      name:
+        type: string
+        minLength: 1
+        description: The replacement project name.
+      path:
+        type: string
+        minLength: 1
+        description: The replacement repository path.
+      description:
+        type: string
+        description: The replacement project description.
+      visibility:
+        type: string
+        enum:
+        - private
+        - internal
+        - public
+        description: The project visibility.
+      defaultBranch:
+        type: string
+        description: The default branch name.
+      archived:
+        type: boolean
+        description: Whether the project is archived.
+      issuesAccessLevel:
+        type: string
+        enum:
+        - disabled
+        - private
+        - enabled
+        description: Issue visibility.
+      mergeRequestsAccessLevel:
+        type: string
+        enum:
+        - disabled
+        - private
+        - enabled
+        description: Merge request visibility.
+    additionalProperties: false
+    required:
+    - projectId
+    description: GitLab action input.
+  output_schema:
+    type: object
+    properties:
+      id:
+        type: integer
+        description: The project ID.
+      name:
+        type: string
+        description: The project name.
+      path:
+        type: string
+        description: The project path.
+      path_with_namespace:
+        type: string
+        description: The project path including namespace.
+      description:
+        anyOf:
+        - type: string
+          description: The project description.
+        - type: 'null'
+      default_branch:
+        anyOf:
+        - type: string
+          description: The default branch name.
+        - type: 'null'
+      visibility:
+        type: string
+        description: The project visibility.
+      web_url:
+        type: string
+        description: The project URL.
+      ssh_url_to_repo:
+        type: string
+        description: The SSH clone URL.
+      http_url_to_repo:
+        type: string
+        description: The HTTPS clone URL.
+      readme_url:
+        anyOf:
+        - type: string
+          description: The README URL when returned by GitLab.
+        - type: 'null'
+      created_at:
+        type: string
+        description: The project creation timestamp.
+      last_activity_at:
+        type: string
+        description: The last activity timestamp.
+      archived:
+        type: boolean
+        description: Whether the project is archived.
+      star_count:
+        type: integer
+        description: The number of stars.
+      forks_count:
+        type: integer
+        description: The number of forks.
+      open_issues_count:
+        type: integer
+        description: The number of open issues.
+      namespace:
+        type: object
+        properties:
+          id:
+            type: integer
+            description: The namespace ID.
+          name:
+            type: string
+            description: The namespace name.
+          path:
+            type: string
+            description: The namespace path.
+          kind:
+            type: string
+            description: The namespace kind.
+          full_path:
+            type: string
+            description: The full namespace path.
+        additionalProperties: true
+        description: A GitLab namespace record.
+    additionalProperties: true
+    description: A GitLab project record.
+- kind: procedure
+  id: gitlab.update_project_issue
+  name: update_project_issue
+  display_name: update_project_issue
+  description: Update a GitLab project issue, including its title, labels, assignees,
+    or open/closed state.
+  rest:
+    operations:
+      invoke:
+        method: PUT
+        path: /api/v4/projects/{{projectId}}/issues/{{issueIid}}
+  required_scopes:
+  - api
+  annotations:
+    read_only_hint: false
+  input_schema:
+    type: object
+    properties:
+      projectId:
+        type: string
+        minLength: 1
+        description: The GitLab project ID or URL-encoded path with namespace, such
+          as 123 or group%2Fproject.
+      issueIid:
+        type: integer
+        minimum: 1
+        description: The internal issue ID within the project.
+      title:
+        type: string
+        minLength: 1
+        description: The replacement issue title.
+      description:
+        type: string
+        description: The replacement issue description.
+      labels:
+        type: string
+        description: Comma-separated label names to set.
+      addLabels:
+        type: string
+        description: Comma-separated label names to add.
+      removeLabels:
+        type: string
+        description: Comma-separated label names to remove.
+      assigneeIds:
+        type: array
+        items:
+          type: integer
+          description: A GitLab user ID.
+        description: Users to assign.
+      confidential:
+        type: boolean
+        description: Whether the issue is confidential.
+      discussionLocked:
+        type: boolean
+        description: Whether issue discussions are locked.
+      dueDate:
+        type: string
+        description: The due date in YYYY-MM-DD format.
+      stateEvent:
+        type: string
+        enum:
+        - close
+        - reopen
+        description: Close or reopen the issue.
+    additionalProperties: false
+    required:
+    - projectId
+    - issueIid
+    description: GitLab action input.
+  output_schema:
+    type: object
+    properties:
+      id:
+        type: integer
+        description: The issue ID.
+      iid:
+        type: integer
+        description: The internal issue ID within the project.
+      project_id:
+        type: integer
+        description: The project ID.
+      title:
+        type: string
+        description: The issue title.
+      description:
+        anyOf:
+        - type: string
+          description: The issue description.
+        - type: 'null'
+      state:
+        type: string
+        description: The issue state.
+      web_url:
+        type: string
+        description: The issue URL.
+      confidential:
+        type: boolean
+        description: Whether the issue is confidential.
+      discussion_locked:
+        anyOf:
+        - type: boolean
+          description: Whether discussions are locked.
+        - type: 'null'
+      issue_type:
+        type: string
+        description: The GitLab issue type.
+      author:
+        type: object
+        properties:
+          id:
+            type: integer
+            description: The GitLab user ID.
+          username:
+            type: string
+            description: The GitLab username.
+          name:
+            type: string
+            description: The display name.
+          state:
+            type: string
+            description: The user state.
+          avatar_url:
+            anyOf:
+            - type: string
+              description: The avatar URL.
+            - type: 'null'
+          web_url:
+            type: string
+            description: The GitLab profile URL.
+          email:
+            type: string
+            description: The email address when visible.
+          public_email:
+            type: string
+            description: The public email address when visible.
+        additionalProperties: true
+        description: A GitLab user record.
+      assignees:
+        type: array
+        items:
+          type: object
+          properties:
+            id:
+              type: integer
+              description: The GitLab user ID.
+            username:
+              type: string
+              description: The GitLab username.
+            name:
+              type: string
+              description: The display name.
+            state:
+              type: string
+              description: The user state.
+            avatar_url:
+              anyOf:
+              - type: string
+                description: The avatar URL.
+              - type: 'null'
+            web_url:
+              type: string
+              description: The GitLab profile URL.
+            email:
+              type: string
+              description: The email address when visible.
+            public_email:
+              type: string
+              description: The public email address when visible.
+          additionalProperties: true
+          description: A GitLab user record.
+        description: Users assigned to the issue.
+      labels:
+        type: array
+        items:
+          type: string
+          description: A label name.
+        description: Labels attached to the issue.
+      milestone:
+        anyOf:
+        - type: object
+          properties:
+            id:
+              type: integer
+              description: The milestone ID.
+            iid:
+              type: integer
+              description: The internal milestone ID within the project.
+            title:
+              type: string
+              description: The milestone title.
+            description:
+              anyOf:
+              - type: string
+                description: The milestone description.
+              - type: 'null'
+            state:
+              type: string
+              description: The milestone state.
+            due_date:
+              anyOf:
+              - type: string
+                description: The milestone due date.
+              - type: 'null'
+            start_date:
+              anyOf:
+              - type: string
+                description: The milestone start date.
+              - type: 'null'
+            web_url:
+              type: string
+              description: The milestone URL.
+          additionalProperties: true
+          description: A GitLab milestone record.
+        - type: 'null'
+      created_at:
+        type: string
+        description: The issue creation timestamp.
+      updated_at:
+        type: string
+        description: The issue update timestamp.
+      closed_at:
+        anyOf:
+        - type: string
+          description: The timestamp when the issue was closed.
+        - type: 'null'
+      due_date:
+        anyOf:
+        - type: string
+          description: The issue due date.
+        - type: 'null'
+      user_notes_count:
+        type: integer
+        description: The number of notes on the issue.
+    additionalProperties: true
+    description: A GitLab issue record.
+x-basis-ship-tier: beta

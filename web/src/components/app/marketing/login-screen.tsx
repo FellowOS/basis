@@ -1,10 +1,14 @@
-import { useEffect, useMemo, useState, type CSSProperties } from 'react';
-import { useLocation, useSearchParams } from 'react-router-dom';
+import { BotAvatar } from 'bot-avatars';
+import { lazy, Suspense, useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { Link, useLocation, useSearchParams } from 'react-router-dom';
 
 import { CapabilitiesSection } from '@/components/app/marketing/capabilities-section.js';
+import { FaqSection } from '@/components/app/marketing/faq-section.js';
+import { HowItWorksSection } from '@/components/app/marketing/how-it-works-section.js';
 import { ProductSiteFooter } from '@/components/app/marketing/product-site-footer.js';
 import { ProductSiteHeader } from '@/components/app/marketing/product-site-header.js';
 import { SelfHostSection } from '@/components/app/marketing/self-host-section.js';
+import { UseCasesSection } from '@/components/app/marketing/use-cases-section.js';
 import { Button } from '@/components/ui/button.js';
 import {
   Dialog,
@@ -14,16 +18,20 @@ import {
 } from '@/components/ui/dialog.js';
 import { useI18n } from '@/i18n/context.js';
 import { useTheme } from '@/lib/theme.js';
+import { cn } from '@/lib/utils.js';
 
 import {
   AuthFormCard,
   loadAuthProviders,
   type AuthProviders,
 } from './auth-form-card.js';
-import { AstralShell } from './astral-shell.js';
+
+const AstralShell = lazy(() =>
+  import('./astral-shell.js').then((mod) => ({ default: mod.AstralShell })),
+);
 
 export function LoginScreen() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const { theme } = useTheme();
   const m = t.marketing;
   const location = useLocation();
@@ -78,6 +86,14 @@ export function LoginScreen() {
     if (mode === 'register' || mode === 'login') setOpen(true);
   }, [searchParams]);
 
+  useEffect(() => {
+    const previous = document.title;
+    document.title = `${m.brand} — ${m.heroHeadline} ${m.heroHeadlineRest}`;
+    return () => {
+      document.title = previous;
+    };
+  }, [m.brand, m.heroHeadline, m.heroHeadlineRest]);
+
   // React Router updates the hash without scrolling; keep nav anchors usable.
   useEffect(() => {
     if (!location.hash) return;
@@ -89,6 +105,11 @@ export function LoginScreen() {
     });
     return () => cancelAnimationFrame(frame);
   }, [location.hash]);
+
+  const heroTitleSize =
+    locale === 'zh'
+      ? 'text-[2.5rem] sm:text-[2.75rem] lg:text-[3.4rem]'
+      : 'text-[1.65rem] sm:text-4xl lg:text-[2.65rem]';
 
   function openAuth(mode: 'login' | 'register') {
     setSearchParams({ mode }, { replace: true });
@@ -120,77 +141,143 @@ export function LoginScreen() {
         '--login-cta-shimmer': isDark ? '#e8a830' : '#d4880a',
       } as CSSProperties}
     >
-      <ProductSiteHeader onGetStarted={() => openAuth('login')} />
+      <a
+        href="#product"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-background focus:px-4 focus:py-2 focus:text-sm focus:text-foreground focus:shadow-lg"
+      >
+        {m.skipToContent}
+      </a>
 
-      <main className="relative flex flex-1 flex-col">
+      <ProductSiteHeader onGetStarted={() => openAuth('register')} />
+
+      <main className="relative flex flex-1 flex-col sm:-mt-16">
         <section
           id="product"
-          className="relative flex min-h-[calc(100dvh-3.5rem)] flex-col overflow-hidden sm:min-h-[calc(100dvh-4rem)]"
+          className="relative flex min-h-[calc(100dvh-3.5rem)] flex-col overflow-x-clip sm:min-h-dvh"
         >
-          <div className="absolute inset-y-0 right-0 z-[1] w-full sm:w-[62%] lg:w-[58%]">
-            <AstralShell
-              className="pointer-events-auto h-full min-h-0 w-full"
-              backgroundColor={canvasBg}
-              {...shellProps}
-              interactive
-              draggable
-              clickPulse
-              dpr={1.75}
-            />
+          <div className="absolute inset-y-0 right-0 z-[1] w-full sm:w-[54%] lg:w-[50%]" aria-hidden>
+            <Suspense
+              fallback={
+                <div className="h-full w-full bg-[radial-gradient(circle_at_60%_40%,var(--login-canvas),transparent_70%)]" />
+              }
+            >
+              <AstralShell
+                className="pointer-events-auto h-full min-h-0 w-full"
+                backgroundColor={canvasBg}
+                {...shellProps}
+                interactive
+                draggable
+                clickPulse
+                dpr={1.75}
+              />
+            </Suspense>
             <div
               className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[var(--login-canvas)] from-35% via-[var(--login-canvas)]/80 to-transparent sm:from-0% sm:via-[var(--login-canvas)]/40"
               aria-hidden
             />
+            <div
+              className="pointer-events-none absolute inset-x-0 top-0 z-[2] hidden h-24 bg-gradient-to-b from-[var(--login-canvas)] via-[var(--login-canvas)]/45 to-transparent sm:block"
+              aria-hidden
+            />
           </div>
 
-          <div className="pointer-events-none relative z-10 flex flex-1 flex-col overflow-hidden px-5 py-4 sm:py-5 sm:pl-8 sm:pr-[62%] lg:pr-[58%]">
-            <div className="pointer-events-auto flex min-h-0 flex-1 flex-col justify-center">
-              <p className="max-w-xl text-xs leading-relaxed text-pretty text-muted-foreground sm:text-[13px]">
-                {m.heroEyebrow}
-              </p>
-              <h1
-                className="mt-3 text-[1.65rem] font-semibold leading-[1.1] tracking-[-0.035em] sm:mt-3.5 sm:text-4xl lg:text-[2.65rem]"
+          <BotAvatar
+            type="droid"
+            state="default"
+            size={56}
+            color={isDark ? '#d4f0c8' : '#5fbf8a'}
+            ink="#111111"
+            shading="fabric"
+            theme={isDark ? 'dark' : 'light'}
+            className="pointer-events-auto absolute right-5 bottom-5 z-20 sm:right-8 sm:bottom-8"
+          />
+
+          <div className="pointer-events-none relative z-10 flex min-w-0 flex-1 flex-col overflow-visible px-5 py-4 sm:py-5 sm:pl-8 sm:pr-[54%] lg:pr-[50%]">
+            <div className="pointer-events-auto flex min-h-0 min-w-0 flex-1 flex-col justify-center">
+              <div className="min-w-0 w-full max-w-2xl">
+                <p className="max-w-xl text-xs leading-relaxed text-pretty text-muted-foreground sm:text-[13px]">
+                  {m.heroEyebrow}
+                </p>
+                <h1
+                className={cn(
+                  'mt-5 min-w-0 font-semibold leading-[1.1] tracking-[-0.035em] sm:mt-5',
+                  heroTitleSize,
+                )}
                 aria-label={`${m.heroHeadline} ${m.heroHeadlineRest}`}
               >
                 <span className="block">{m.heroHeadline}</span>
-                <span className="mt-0.5 block text-[var(--login-gold)] sm:mt-1">
+                <span className="mt-1 block text-[var(--login-gold)] sm:mt-2">
                   {m.heroHeadlineRest}
                 </span>
               </h1>
-              <p className="mt-2 line-clamp-3 text-[13px] leading-relaxed text-pretty text-muted-foreground sm:mt-3 sm:line-clamp-2 sm:text-sm">
+              <p className="mt-5 max-w-xl text-[13px] leading-relaxed text-pretty text-muted-foreground sm:mt-6 sm:text-sm">
                 {m.heroSubhead}
               </p>
-              <div className="mt-4 flex flex-wrap items-center gap-2.5 sm:mt-5 sm:gap-3">
+              <div className="mt-5 flex flex-wrap items-center gap-2.5 sm:mt-6 sm:gap-3">
                 <Button
                   type="button"
                   size="default"
                   className="bg-[var(--login-cta-bg)] px-6 text-[var(--login-cta-fg)] hover:bg-[var(--login-cta-bg)] hover:brightness-110 sm:px-7"
-                  onClick={() => openAuth('login')}
+                  onClick={() => openAuth('register')}
                 >
-                  {m.ctaLogin}
+                  {m.ctaRegister}
                 </Button>
                 <Button
                   type="button"
                   size="default"
                   variant="ghost"
                   className="border border-foreground/15 bg-transparent px-6 text-foreground hover:bg-foreground/6 sm:px-7"
-                  onClick={() => openAuth('register')}
+                  asChild
                 >
-                  {m.ctaRegister}
+                  <Link to="/docs/quickstart" data-analytics="cta_read_docs">
+                    {m.ctaDocs}
+                  </Link>
                 </Button>
+                <button
+                  type="button"
+                  className="text-sm font-medium text-foreground underline-offset-4 hover:underline"
+                  onClick={() => openAuth('login')}
+                  data-analytics="cta_sign_in"
+                >
+                  {m.ctaLogin}
+                </button>
               </div>
-              <p className="mt-5 max-w-xl border-t border-border/60 pt-4 text-[11px] leading-relaxed text-pretty text-muted-foreground sm:mt-6 sm:pt-5 sm:text-xs">
-                {m.heroPillars}
-              </p>
+              <ul className="mt-6 flex flex-wrap gap-x-4 gap-y-2 border-t border-border/60 pt-4 text-[11px] leading-relaxed text-muted-foreground sm:mt-7 sm:pt-5 sm:text-xs">
+                {m.trust.map((item) => (
+                  <li key={item.label}>
+                    {'external' in item && item.external ? (
+                      <a
+                        href={item.to}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="underline-offset-4 hover:text-foreground hover:underline"
+                      >
+                        {item.label}
+                      </a>
+                    ) : (
+                      <Link
+                        to={item.to}
+                        className="underline-offset-4 hover:text-foreground hover:underline"
+                      >
+                        {item.label}
+                      </Link>
+                    )}
+                  </li>
+                ))}
+              </ul>
+              </div>
             </div>
           </div>
         </section>
 
+        <HowItWorksSection />
         <CapabilitiesSection />
+        <UseCasesSection />
         <SelfHostSection />
+        <FaqSection />
       </main>
 
-      <ProductSiteFooter splitLayout={false} />
+      <ProductSiteFooter />
 
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="flex max-h-[calc(100%-1rem)] flex-col gap-0 overflow-hidden border-black/10 bg-white p-0 shadow-[0_24px_64px_-20px_rgb(0_0_0_/_0.45)] sm:max-w-[24.5rem] data-[state=closed]:[--tw-exit-scale:1] data-[state=open]:[--tw-enter-scale:1] dark:border-white/10 dark:bg-[#141a22] [&_[data-slot=dialog-close]]:top-3.5 [&_[data-slot=dialog-close]]:right-3.5">

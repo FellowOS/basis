@@ -4,8 +4,8 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
-from basis.infra.config import Settings
-from basis.transport.http.app import create_app
+from basis.runtime.config import Settings
+from basis.api.http.app import create_app
 
 
 def test_desktop_allows_kbs_without_bearer(tmp_path: Path) -> None:

@@ -133,7 +133,7 @@ flowchart LR
 
 ## 5. REST API 与 MCP 接口契约（开发规范）
 
-所有新增 HTTP 接口挂在现有 `/api/v1/kbs/{kb_id}/...` 路由下，遵循 `openapi_v1_export` 规范（每个 handler 必须包含 docstring，同步运行 `scripts/generate-openapi-v1.py` 更新 `openapi/basis-v1.json` 与前端 `schema.d.ts`）。
+所有新增 HTTP 接口挂在现有 `/api/v1/kbs/{kb_id}/...` 路由下，遵循 `basis/integration/openapi_v1_export.py` 规范（每个 handler 必须包含 docstring，同步运行 `scripts/generate-openapi-v1.py` 更新 `openapi/basis-v1.json` 与前端 `schema.d.ts`）。
 
 ### 5.1 数据源、连接与流映射接口（`kb_connectors.py` / `kb_sources.py`）
 
@@ -184,8 +184,8 @@ flowchart LR
 
 ```text
 basis/
-├── platform/admin/migrations/
-│   └── 0011_entity_external_sync.sql      # 7 张核心表（连接/OAuth/策略/运行日志 + 映射/外部主键/写回Outbox）
+├── ops/db/migrations/
+│   └── 0011_entity_external_sync.sql      # 7 张核心表（连接/OAuth/策略/运行日志 + 映射/外部主键/写回Outbox）等有序 SQL
 ├── domain/
 │   ├── connectors/                        # 【新增】纯 Python 声明式连接器运行时 (BOCP Engine)
 │   │   ├── manifest_schema.py             # Pydantic v2 定义 BOCP Manifest 四大原语契约 (Auth/Stream/Sync/Mutation)

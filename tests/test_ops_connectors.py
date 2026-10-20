@@ -6,8 +6,8 @@ from pathlib import Path
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, text
 
-from basis.infra.config import Settings
-from basis.transport.http.app import create_app
+from basis.runtime.config import Settings
+from basis.api.http.app import create_app
 
 
 def _mcp_call(

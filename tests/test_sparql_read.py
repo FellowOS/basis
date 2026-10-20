@@ -1,4 +1,4 @@
-from basis.domain.explorer.sparql_read import sparql_query_preflight
+from basis.core.explorer.sparql.read import sparql_query_preflight
 
 
 def test_sparql_rejects_update_keyword() -> None:

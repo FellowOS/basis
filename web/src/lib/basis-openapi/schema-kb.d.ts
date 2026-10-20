@@ -4604,16 +4604,7 @@ export interface components {
             auto_process: boolean;
         };
         /** CreateOntologyRequest */
-        basis__transport__http__routes__v1__kbs__CreateOntologyRequest: {
-            /** Namespace */
-            namespace: string;
-            /** Name */
-            name: string;
-            /** Description */
-            description?: string | null;
-        };
-        /** CreateOntologyRequest */
-        semantica__explorer__routes__ontology__CreateOntologyRequest: {
+        basis__domain__explorer__ontology__hub_models__CreateOntologyRequest: {
             /**
              * Mode
              * @default scratch
@@ -4636,6 +4627,15 @@ export interface components {
             provider?: string | null;
             /** Model */
             model?: string | null;
+        };
+        /** CreateOntologyRequest */
+        basis__transport__http__routes__v1__kb_documents_models__CreateOntologyRequest: {
+            /** Namespace */
+            namespace: string;
+            /** Name */
+            name: string;
+            /** Description */
+            description?: string | null;
         };
     };
     responses: never;
@@ -8602,7 +8602,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["basis__transport__http__routes__v1__kbs__CreateOntologyRequest"];
+                "application/json": components["schemas"]["basis__transport__http__routes__v1__kb_documents_models__CreateOntologyRequest"];
             };
         };
         responses: {
@@ -8744,7 +8744,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["semantica__explorer__routes__ontology__CreateOntologyRequest"];
+                "application/json": components["schemas"]["basis__domain__explorer__ontology__hub_models__CreateOntologyRequest"];
             };
         };
         responses: {

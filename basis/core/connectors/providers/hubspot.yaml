@@ -1,0 +1,156 @@
+version: '2.0'
+service: hubspot
+display_name: HubSpot CRM
+description: HubSpot CRM companies, contacts, and deals with incremental sync and
+  property write-back.
+categories:
+- CRM
+- Sales
+- Marketing
+homepage_url: https://www.hubspot.com
+docs_url: https://developers.hubspot.com/docs/api/overview
+spec: {}
+auth:
+- auth_mode: oauth2
+  base_url: https://api.hubapi.com
+  oauth2:
+    authorization_url: https://app.hubspot.com/oauth/authorize
+    token_url: https://api.hubapi.com/oauth/2026-09/token
+    pkce_s256: true
+  check:
+    path: /account-info/v3/details
+    account_id_path: portalId
+    display_name_path: uiDomain
+actions:
+- kind: entity
+  id: companies
+  display_name: Companies
+  cursor_field: updatedAt
+  default_label_field: properties.name
+  fields:
+  - name: id
+    nullable: false
+    primary_key: true
+  - name: properties.name
+  - name: properties.domain
+  - name: properties.industry
+  - name: properties.annualrevenue
+    data_type: number
+  - name: updatedAt
+    data_type: datetime
+  rest:
+    operations:
+      list:
+        method: GET
+        path: /crm/v3/objects/companies
+        pagination:
+          type: cursor
+          limit_param: limit
+          cursor_request_param: after
+          cursor_response_path: paging.next.after
+        records:
+        - results
+      update:
+        method: PATCH
+        path: /crm/v3/objects/companies/{{external_id}}
+        body:
+          properties: '{{patch}}'
+      create:
+        method: POST
+        path: /crm/v3/objects/companies
+        body:
+          properties: '{{patch}}'
+  x-basis-dynamic-schema-loader:
+    type: rest_metadata
+    container_stream: null
+    metadata_path: /crm/v3/properties/companies
+    fields_field_path:
+    - results
+    field_name_key: name
+    field_type_key: type
+    types_map: {}
+- kind: entity
+  id: contacts
+  display_name: Contacts
+  cursor_field: updatedAt
+  default_label_field: properties.email
+  fields:
+  - name: id
+    nullable: false
+    primary_key: true
+  - name: properties.email
+  - name: properties.firstname
+  - name: properties.lastname
+  - name: properties.company
+  - name: updatedAt
+    data_type: datetime
+  rest:
+    operations:
+      list:
+        method: GET
+        path: /crm/v3/objects/contacts
+        pagination:
+          type: cursor
+          limit_param: limit
+          cursor_request_param: after
+          cursor_response_path: paging.next.after
+        records:
+        - results
+      update:
+        method: PATCH
+        path: /crm/v3/objects/contacts/{{external_id}}
+        body:
+          properties: '{{patch}}'
+      create:
+        method: POST
+        path: /crm/v3/objects/contacts
+        body:
+          properties: '{{patch}}'
+- kind: entity
+  id: deals
+  display_name: Deals
+  cursor_field: updatedAt
+  default_label_field: properties.dealname
+  fields:
+  - name: id
+    nullable: false
+    primary_key: true
+  - name: properties.dealname
+  - name: properties.amount
+    data_type: number
+  - name: properties.dealstage
+  - name: properties.pipeline
+  - name: updatedAt
+    data_type: datetime
+  rest:
+    operations:
+      list:
+        method: GET
+        path: /crm/v3/objects/deals
+        pagination:
+          type: cursor
+          limit_param: limit
+          cursor_request_param: after
+          cursor_response_path: paging.next.after
+        records:
+        - results
+      update:
+        method: PATCH
+        path: /crm/v3/objects/deals/{{external_id}}
+        body:
+          properties: '{{patch}}'
+      create:
+        method: POST
+        path: /crm/v3/objects/deals
+        body:
+          properties: '{{patch}}'
+  x-basis-dynamic-schema-loader:
+    type: rest_metadata
+    container_stream: null
+    metadata_path: /crm/v3/properties/deals
+    fields_field_path:
+    - results
+    field_name_key: name
+    field_type_key: type
+    types_map: {}
+x-basis-ship-tier: beta

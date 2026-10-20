@@ -5,10 +5,10 @@ import pytest
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import make_url
 
-from basis.infra.database import reset_sqlite_database_pool
-from basis.ops.test_support.integration_env import load_integration_test_env
-from basis.ops.test_support.mysql import create_mysql_database, drop_mysql_database
-from basis.ops.test_support.postgres import (
+from basis.runtime.database import reset_sqlite_database_pool
+from basis.tooling.test_support.integration_env import load_integration_test_env
+from basis.tooling.test_support.mysql import create_mysql_database, drop_mysql_database
+from basis.tooling.test_support.postgres import (
     create_postgres_database,
     drop_postgres_database,
     try_create_postgres_database,
@@ -17,6 +17,10 @@ from basis.ops.test_support.postgres import (
 
 def pytest_configure() -> None:
     load_integration_test_env()
+    from basis.application.mcp_openapi import bind_openapi_app
+    from basis.application.openapi_spec import _spec_app
+
+    bind_openapi_app(_spec_app())
 
 
 @pytest.fixture(autouse=True)

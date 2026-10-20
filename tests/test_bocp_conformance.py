@@ -9,21 +9,21 @@ from typing import Any
 import pytest
 from pydantic import ValidationError
 
-from basis.domain.connectors.auth_vault import (
+from basis.core.connectors.auth_vault import (
     ConnectorAuthVault,
     StoredConnection,
     interpolate_placeholders,
 )
-from basis.domain.connectors.manifest_executor import (
+from basis.core.connectors.manifest_executor import (
     rest_operation_to_mutation,
     rest_operation_to_retriever,
 )
-from basis.domain.connectors.manifest_schema import (
+from basis.core.connectors.manifest_schema import (
     ConnectorManifest,
     RestIncrementalSpec,
     RestOperationSpec,
 )
-from basis.domain.connectors.provider_bundle import (
+from basis.core.connectors.provider_bundle import (
     load_provider_bundle,
     write_provider_bundle,
 )

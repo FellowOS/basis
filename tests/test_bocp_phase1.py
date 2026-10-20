@@ -9,10 +9,10 @@ import sqlite3
 
 import yaml
 
-from basis.domain.connectors import get_connector_catalog
-from basis.domain.connectors.catalog import ConnectorCatalog
-from basis.domain.connectors.manifest_actions import entity_action_from_stream
-from basis.domain.connectors.manifest_schema import (
+from basis.core.connectors import get_connector_catalog
+from basis.core.connectors.catalog import ConnectorCatalog
+from basis.core.connectors.manifest_actions import entity_action_from_stream
+from basis.core.connectors.manifest_schema import (
     AuthSpec,
     ConfigFieldSpec,
     ConnectorManifest,
@@ -20,15 +20,15 @@ from basis.domain.connectors.manifest_schema import (
     RetrieverSpec,
     StreamSpec,
 )
-from basis.domain.connectors.catalog import default_providers_dir
-from basis.domain.connectors.provider_bundle import (
+from basis.core.connectors.catalog import default_providers_dir
+from basis.core.connectors.provider_bundle import (
     load_connector_manifest,
     load_provider_bundle,
     manifest_wire_payload,
     provider_manifest_path,
     write_provider_bundle,
 )
-from basis.domain.kb.structured_models import (
+from basis.core.ledger.structured_models import (
     ColumnMappingSpec,
     ConnectorSourceConfig,
     OutboxFieldChange,
@@ -36,7 +36,7 @@ from basis.domain.kb.structured_models import (
     StructuredImportProvenance,
     compute_canonical_row_hash,
 )
-from basis.platform.admin.migrations import run_migrations
+from basis.tooling.db.sqlite_migrations import run_migrations
 
 
 def test_provider_sql_bundle_without_openapi(tmp_path: Path) -> None:
@@ -105,8 +105,8 @@ def test_provider_rest_bundle_requires_openapi(tmp_path: Path) -> None:
 def test_connector_catalog_loads_shipped_providers_from_disk() -> None:
     catalog = get_connector_catalog()
     stats = catalog.summary_stats()
-    assert stats["providers"] == 4
-    assert stats["providers_with_streams"] == 3
+    assert stats["providers"] == 8
+    assert stats["providers_with_streams"] == 7
 
     pg = catalog.get("postgres")
     assert pg is not None
@@ -144,7 +144,7 @@ def test_connector_catalog_loads_shipped_providers_from_disk() -> None:
 
 def test_shipped_connector_yaml_matches_manifest_wire_payload() -> None:
     """On-disk ``connector.yaml`` for shipped providers follows ``manifest_wire_payload`` layout."""
-    for name in ("github", "postgres", "mysql", "slack"):
+    for name in ("github", "postgres", "mysql", "slack", "notion"):
         providers_root = default_providers_dir()
         manifest_path = provider_manifest_path(providers_root, name)
         loaded = load_provider_bundle(manifest_path)
@@ -161,8 +161,11 @@ def test_shipped_connector_yaml_matches_manifest_wire_payload() -> None:
             assert len(loaded.manifest.entity_actions()) == 2
             assert len(loaded.manifest.procedure_actions()) == 1
         elif name == "slack":
-            assert len(loaded.manifest.procedure_actions()) == 3
+            assert len(loaded.manifest.procedure_actions()) >= 20
             assert not loaded.manifest.entity_actions()
+        elif name == "notion":
+            assert len(loaded.manifest.entity_actions()) == 1
+            assert loaded.manifest.entity_actions()[0].id == "database_pages"
         else:
             assert all(a.kind == "entity" for a in loaded.manifest.actions)
 

@@ -46,6 +46,7 @@ export function ProductSiteHeader({ activeKey, onGetStarted }: ProductSiteHeader
         size="sm"
         className="rounded-full bg-[var(--login-cta-bg,#152033)] px-4 text-[var(--login-cta-fg,#f6f4ef)] hover:brightness-110"
         onClick={onGetStarted}
+        data-analytics="cta_get_started"
       >
         {m.ctaGetStarted}
       </Button>
@@ -56,7 +57,9 @@ export function ProductSiteHeader({ activeKey, onGetStarted }: ProductSiteHeader
         className="rounded-full bg-[var(--login-cta-bg,#152033)] px-4 text-[var(--login-cta-fg,#f6f4ef)] hover:brightness-110"
         asChild
       >
-        <Link to="/?mode=login">{m.ctaGetStarted}</Link>
+        <Link to="/?mode=register" data-analytics="cta_get_started">
+          {m.ctaGetStarted}
+        </Link>
       </Button>
     );
 
@@ -64,7 +67,7 @@ export function ProductSiteHeader({ activeKey, onGetStarted }: ProductSiteHeader
     <header
       className={cn(
         'sticky top-0 z-30 w-full transition-[border-color,background-color,backdrop-filter] duration-200',
-        scrolled && 'border-b border-border/60 bg-background',
+        scrolled && 'border-b border-border/60 bg-background/40 backdrop-blur-lg',
       )}
     >
       <div className="flex h-14 w-full items-center gap-3 px-5 sm:h-16 sm:px-8">

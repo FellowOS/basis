@@ -1,10 +1,10 @@
 """Core operation dispatch (R1)."""
 
-from basis.integration.registry import TOOL_NAMES, execute
+from basis.application.registry import TOOL_NAMES, execute
 
 
 def test_tool_names_match_registry() -> None:
-    assert len(TOOL_NAMES) == 21
+    assert len(TOOL_NAMES) == 23
     assert "search_chunks" in TOOL_NAMES
     assert "list_connector_catalog" in TOOL_NAMES
 

@@ -26,7 +26,7 @@ Server profile 行为不变：Bearer / API Token、组织 SSO、多用户管理�
 | 认证 | `auth.enabled: false`，`DEFAULT_USER_ID` | `get_current_user` → 无 token 即 401 |
 | 前端 | `VITE_AUTH_REQUIRED=false`，`getAppRuntime().authRequired` | `AuthedApp` 无 user 则回首页 / 登录 |
 
-后端硬门槛在 `basis.transport.http.deps`：`resolve_bearer` 要求 `Authorization: Bearer`。
+后端硬门槛在 `basis.api.http.deps`：`resolve_bearer` 要求 `Authorization: Bearer`。
 
 ## 目标架构
 
@@ -60,7 +60,7 @@ Basis 使用仓库内 **`profiles/profile.desktop.yaml`**（字段与 Fellow `ga
 
 ### 1.1 配置
 
-在 `basis.infra.config.Settings`（或同级模块）增加：
+在 `basis.runtime.config.Settings`（或同级模块）增加：
 
 | 变量 | 默认 | Desktop 建议 |
 | --- | --- | --- |

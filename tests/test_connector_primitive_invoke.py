@@ -10,11 +10,11 @@ import httpx
 import pytest
 from fastapi.testclient import TestClient
 
-from basis.domain.connectors import ConnectorAuthVault, ConnectorRuntime
-from basis.domain.connectors.primitive_invoke import execute_connector_primitive
-from basis.infra.config import Settings
-from basis.transport.http.app import create_app
-from basis.ops.test_support.connector_integration import (
+from basis.core.connectors import ConnectorAuthVault, ConnectorRuntime
+from basis.core.connectors.primitive_invoke import execute_connector_primitive
+from basis.runtime.config import Settings
+from basis.api.http.app import create_app
+from basis.tooling.test_support.connector_integration import (
     drop_postgres_table,
     postgres_connection_payload,
     seed_postgres_items_table,

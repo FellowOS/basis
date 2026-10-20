@@ -1,7 +1,7 @@
 """MCP tool inputSchema is derived from OpenAPI (R3)."""
 
-from basis.integration.mcp_openapi import MCP_TOOL_OPERATIONS, input_schema_for_tool
-from basis.integration.registry import TOOL_DEFINITIONS
+from basis.application.mcp_openapi import MCP_TOOL_OPERATIONS, input_schema_for_tool
+from basis.application.registry import TOOL_DEFINITIONS
 
 
 def test_mcp_tools_have_openapi_backed_schemas() -> None:
@@ -45,8 +45,8 @@ def test_reject_remember_review_schema_merges_path_and_body() -> None:
 
 
 def test_approve_review_openapi_response_includes_decision_id() -> None:
-    from basis.transport.http.openapi_spec import _spec_app
-    from basis.transport.http.openapi_v1_export import export_openapi_v1_kb
+    from basis.application.openapi_spec import _spec_app
+    from basis.application.openapi_v1_export import export_openapi_v1_kb
 
     spec = export_openapi_v1_kb(_spec_app())
     op = spec["paths"]["/api/v1/kbs/{kb_id}/review/items/{item_id}/approve"]["post"]

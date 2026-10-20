@@ -2,8 +2,8 @@ from pathlib import Path
 
 import pytest
 
-from basis.platform.admin.errors import AdminError
-from basis.domain.kb.blob_store import BlobStore
+from basis.control.admin.errors import AdminError
+from basis.core.ledger.blob_store import BlobStore
 
 
 def test_put_is_content_addressed_and_atomic(tmp_path: Path) -> None:

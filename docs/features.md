@@ -21,7 +21,7 @@
 | --- | --- | --- |
 | 产品形态 | 多 KB 企业知识台：文库 → 图 → 搜/问 → 审 → 本体/映射 | semantica 官方通用 HTTP 服务；Utopia Rust 代码复刻 |
 | 客户端 | Basis Web + 经 Token/MCP 的集成方 | Explorer 独立站点作为默认入口 |
-| 引擎 | `semantica.*` SDK +（可选）`semantica.explorer` 路由 | 在 Basis 外再暴露一套 semantica API |
+| 引擎 | `semantica.*` 核心 SDK + Basis `domain/explorer` 适配层 | 在 Basis 外再暴露一套独立 Semantica HTTP 产品 |
 
 **北极星体验（Utopia）**：KB 内 **图谱 · 搜索 · 对话 · 文库 · 审核 · 本体 · 映射 · 设置**；平台级 **库 · 令牌 · 用户 · 模型 · 审计 · 系统设置**。
 
@@ -413,10 +413,10 @@ Basis Web
         ▼ Bearer + KB role
 Basis API
   ├─ AdminStore（SQLite）
-  ├─ Per-KB GraphSession（semantica.explorer.session + ContextGraph）
-  ├─ Per-KB VectorIndex / SearchIndex
-  ├─ Per-KB ReviewStore / ledger（SQLite 表）
-  └─ Mounted explorer routers: graph, sparql, ontology, decisions, registry, …
+  ├─ Per-KB ContextGraph + BasisKbGraphSession（basis/domain/explorer）
+  ├─ Per-KB VectorIndex / chunk search
+  ├─ Per-KB ReviewStore / ledger
+  └─ Basis routes: graph, sparql, ontology hub, decisions, vocabulary, …
         ▼
 semantica SDK（parse, kg, ontology, reasoning, embeddings, …）
 ```
@@ -463,7 +463,7 @@ semantica SDK（parse, kg, ontology, reasoning, embeddings, …）
 | `/api/v1/kbs/{id}/export`, graph import（经 review） | F-IO |
 | WS `/api/v1/kbs/{id}/graph-updates`, SSE alerts | F-GRAPH, F-ALT |
 
-（Explorer 子路径与 `semantica/explorer/routes` 对齐，统一 KB 前缀与鉴权；见 [explorer.md](architecture/explorer.md)。）
+（Explorer 工作区 HTTP 形状与 vendored UI 契约对齐，统一 `/api/v1/kbs/{id}/…` 与鉴权；见 [explorer.md](architecture/explorer.md)。）
 
 ---
 
@@ -493,9 +493,8 @@ semantica SDK（parse, kg, ontology, reasoning, embeddings, …）
 
 完整实施契约见 [explorer.md](architecture/explorer.md)。关键约束：
 
-1. **后端**：计划依赖 `semantica[explorer]`；Basis 为每 KB 管理独立
-   `semantica.explorer.session.GraphSession`；不直接挂载 Explorer 的单 session routers，而是
-   以 Basis adapter routes 复用 schemas/session/service 逻辑。
+1. **后端**：每 KB 使用 `BasisKbGraphSession` + `basis/domain/explorer/*`（见
+   [semantica-base-sdk-plan.md](architecture/semantica-base-sdk-plan.md)）。
 2. **路径与鉴权**：公共 URL 为 **`/api/v1/kbs/{kb_id}/...`**；HTTP 使用 Basis JWT + KB
    role；WebSocket 使用短时、一次性 realtime ticket，不使用 Explorer API Key。
 3. **写路径**：写入先经过 Basis 证据账本和领域服务，再更新/重建图投影；Explorer
@@ -562,7 +561,7 @@ F-LAKE-01–03, F-OPS-01–06（建议顺序见 §5.18）, F-MEM-*, F-ACC-07, Ne
 
 | 项 | 说明 |
 | --- | --- |
-| Python / extras | 见 README；Explorer 集成时增加 `semantica[explorer]`；初版 SPARQL 使用 RDFLib，Oxigraph 仅作可选后端 |
+| Python / extras | 见 README；`basis[explorer]` / `semantica[explorer]` 仅用于上游 Explorer CLI，非 Basis API 运行时依赖；SPARQL 使用 RDFLib |
 | 图 JSON 规模 | F-GRAPH-02 分页与索引优先 |
 | 许可证 | Explorer 与 semantica 同源 |
 

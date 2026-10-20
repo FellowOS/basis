@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import SwaggerUI from 'swagger-ui-react';
 import 'swagger-ui-react/swagger-ui.css';
@@ -22,6 +22,14 @@ export function SwaggerPage() {
   const p = t.pages.swagger;
   const [variant, setVariant] = useState<OpenApiSpecVariant>('full');
   const specUrl = useMemo(() => openapiSpecUrl(variant), [variant]);
+
+  useEffect(() => {
+    const previous = document.title;
+    document.title = `${apiReferenceTitle} — Basis`;
+    return () => {
+      document.title = previous;
+    };
+  }, [apiReferenceTitle]);
 
   const requestInterceptor = useMemo(
     () => (req: { headers?: Record<string, string> }) => {

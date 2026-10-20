@@ -6,15 +6,15 @@ pytest.importorskip("semantica")
 
 from fastapi.testclient import TestClient
 
-from basis.platform.admin.store import AdminStore
-from basis.transport.http.app import create_app
-from basis.infra.config import Settings
-from basis.domain.kb.blob_store import BlobStore
-from basis.domain.kb.search import ChunkSearchService
-from basis.domain.kb.store import KnowledgeStore
-from basis.domain.ingest.document import TextIngestOptions
-from basis.domain.ingest.version_ingest import run_version_ingest
-from basis.domain.graph.session import GraphSession
+from basis.control.admin.store import AdminStore
+from basis.api.http.app import create_app
+from basis.runtime.config import Settings
+from basis.core.ledger.blob_store import BlobStore
+from basis.core.ledger.search import ChunkSearchService
+from basis.core.ledger.store import KnowledgeStore
+from basis.core.pipeline.document import TextIngestOptions
+from basis.core.pipeline.version_ingest import run_version_ingest
+from basis.core.projection.session import GraphSession
 
 
 def _setup_kb(tmp_path: Path) -> tuple[str, KnowledgeStore, ChunkSearchService, AdminStore]:

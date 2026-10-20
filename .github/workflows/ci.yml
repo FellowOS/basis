@@ -110,8 +110,26 @@ jobs:
       - name: Sync Python dependencies
         run: uv sync --extra dev
 
-      - name: Audit semantica.explorer.routes imports (line 1 Phase 0)
-        run: uv run python scripts/audit-semantica-explorer-imports.py
+      - name: Layer import contracts (import-linter)
+        run: uv run lint-imports --config importlinter.ini
+
+      - name: Line 1 import guards (explorer legacy)
+        run: |
+          uv run python scripts/audit-semantica-explorer-imports.py
+          uv run python scripts/audit-semantica-explorer-session-imports.py
+          uv run python scripts/audit-semantica-explorer-package-imports.py
+          uv run python scripts/audit-explorer-shim-imports.py
+          uv run python scripts/audit-compat-shim-imports.py
+          uv run python scripts/audit-legacy-package-imports.py
+          uv run python scripts/audit-kb-http-aggregators.py
+
+      - name: Explorer compat session (default BasisKbGraphSession)
+        run: >-
+          uv run pytest -q
+          tests/test_basis_kb_graph_session.py
+          tests/test_explorer_registry.py
+          tests/test_kb_ontology.py
+          tests/test_kb_explorer_routes.py
 
       - name: Run tests
         run: uv run pytest -q

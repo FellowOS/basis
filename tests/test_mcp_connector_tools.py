@@ -8,15 +8,15 @@ from pathlib import Path
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, text
 
-from basis.domain.connectors.auth_vault import ConnectorPolicy
-from basis.domain.connectors import get_connector_catalog
-from basis.infra.config import Settings
-from basis.integration.mcp_connector_tools import (
+from basis.core.connectors.auth_vault import ConnectorPolicy
+from basis.core.connectors import get_connector_catalog
+from basis.runtime.config import Settings
+from basis.application.mcp_connector_tools import (
     connector_mcp_tool_name,
     connector_tool_definitions_for_manifest,
     parse_connector_mcp_tool_name,
 )
-from basis.transport.http.app import create_app
+from basis.api.http.app import create_app
 
 
 def test_connector_mcp_tool_name_roundtrip() -> None:
@@ -42,6 +42,23 @@ def test_shipped_github_manifest_expands_entity_tools() -> None:
     assert "connector_github__issues__mutate_create" in names
     assert "connector_github__issues__mutate_update" in names
     assert "connector_github__get_authenticated_user__invoke" in names
+
+
+def test_shipped_notion_manifest_expands_entity_tools() -> None:
+    manifest = get_connector_catalog().get("notion")
+    assert manifest is not None
+    policy = ConnectorPolicy(kb_id="kb1", allowed_providers="*")
+    names = {t["name"] for t in connector_tool_definitions_for_manifest(manifest, policy)}
+    assert "connector_notion__database_pages__list" in names
+    assert "connector_notion__database_pages__mutate_update" in names
+
+
+def test_shipped_slack_manifest_expands_invoke_tools() -> None:
+    manifest = get_connector_catalog().get("slack")
+    assert manifest is not None
+    policy = ConnectorPolicy(kb_id="kb1", allowed_providers="*")
+    names = {t["name"] for t in connector_tool_definitions_for_manifest(manifest, policy)}
+    assert "connector_slack__slack_post_message__invoke" in names
 
 
 def test_manifest_tools_omit_disabled_entity_primitives() -> None:

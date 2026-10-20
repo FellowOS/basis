@@ -1,9 +1,9 @@
-"""HTTP routes delegate MCP-aligned operations to basis.integration.run."""
+"""HTTP routes delegate MCP-aligned operations to basis.application.run."""
 
 from fastapi.testclient import TestClient
 
-from basis.transport.http.app import create_app
-from basis.infra.config import Settings
+from basis.api.http.app import create_app
+from basis.runtime.config import Settings
 
 
 def _session_client(tmp_path) -> tuple[TestClient, str, dict[str, str]]:

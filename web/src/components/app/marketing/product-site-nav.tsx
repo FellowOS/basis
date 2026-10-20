@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
 import {
@@ -45,6 +45,32 @@ export function ProductSiteNav({
   const { pathname, hash } = useLocation();
   const developersActive = isDevelopersNavActive(pathname, activeKey);
   const isVertical = layout === 'vertical';
+  const [activeSection, setActiveSection] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (pathname !== '/') {
+      setActiveSection(null);
+      return;
+    }
+    const ids = ['product', 'how-it-works', 'capabilities', 'self-host'];
+    const update = () => {
+      let current = 'product';
+      for (const id of ids) {
+        const el = document.getElementById(id);
+        if (el && el.getBoundingClientRect().top <= 96) current = id;
+      }
+      setActiveSection(current);
+    };
+    update();
+    window.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    return () => {
+      window.removeEventListener('scroll', update);
+      window.removeEventListener('resize', update);
+    };
+  }, [pathname]);
+
+  const effectiveHash = pathname === '/' && activeSection ? `#${activeSection}` : hash;
 
   const linkClass = (active: boolean) =>
     cn(
@@ -78,13 +104,14 @@ export function ProductSiteNav({
       )}
     >
       {PRODUCT_NAV.map((item) => {
-        const active = isProductNavActive(item, pathname, hash, activeKey);
+        const active = isProductNavActive(item, pathname, effectiveHash, activeKey);
         const label = navLabel(nav, item.key);
         return itemWrap(
           <Link
             key={item.key}
             to={productNavHref(item)}
             className={linkClass(active)}
+            aria-current={active ? 'page' : undefined}
             onClick={onNavigate}
           >
             {label}
@@ -96,6 +123,7 @@ export function ProductSiteNav({
       {itemWrap(
         <DropdownMenu>
           <DropdownMenuTrigger
+            aria-current={developersActive ? 'page' : undefined}
             className={cn(
               linkClass(developersActive),
               !isVertical && 'inline-flex items-center gap-0.5 outline-none',

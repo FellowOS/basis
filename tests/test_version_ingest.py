@@ -9,17 +9,17 @@ pytest.importorskip("semantica")
 
 from fastapi.testclient import TestClient
 
-from basis.transport.http.app import create_app
-from basis.infra.config import Settings
-from basis.domain.graph.session import GraphSession
-from basis.domain.kb.blob_store import BlobStore
-from basis.domain.kb.store import KnowledgeStore
-from basis.domain.ingest.document import TextIngestOptions
-from basis.domain.ingest.version_ingest import run_version_ingest
+from basis.api.http.app import create_app
+from basis.runtime.config import Settings
+from basis.core.projection.session import GraphSession
+from basis.core.ledger.blob_store import BlobStore
+from basis.core.ledger.store import KnowledgeStore
+from basis.core.pipeline.document import TextIngestOptions
+from basis.core.pipeline.version_ingest import run_version_ingest
 
 
 def _kb_id(tmp_path: Path) -> str:
-    from basis.platform.admin.store import AdminStore
+    from basis.control.admin.store import AdminStore
 
     admin = AdminStore(tmp_path / "basis.db")
     user, _ = admin.register("ingest@example.com", "password1", "U")
@@ -76,7 +76,7 @@ def test_ingest_failure_before_rebuild_marks_projection_dirty(tmp_path: Path) ->
     knowledge.set_projection_status(kb_id, "clean")
 
     with patch(
-        "basis.domain.ingest.version_ingest.apply_rebuild_to_session",
+        "basis.core.pipeline.version_ingest.apply_rebuild_to_session",
         side_effect=RuntimeError("rebuild unavailable"),
     ):
         with pytest.raises(RuntimeError, match="rebuild unavailable"):

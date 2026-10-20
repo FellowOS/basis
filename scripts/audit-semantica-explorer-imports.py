@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""List semantica.explorer.routes imports under basis/ and tests/ (line 1 Phase 0)."""
+"""Line 1: block legacy Explorer routes imports under basis/ and tests/."""
 
 from __future__ import annotations
 
@@ -41,7 +41,7 @@ def main() -> int:
     extra = sorted(set(found) - allow)
     missing = sorted(allow - set(found))
     if extra:
-        print("Unexpected semantica.explorer.routes imports (not in allowlist):", file=sys.stderr)
+        print("Unexpected legacy Explorer routes imports (not in allowlist):", file=sys.stderr)
         for path in extra:
             print(f"  {path}", file=sys.stderr)
     if missing:

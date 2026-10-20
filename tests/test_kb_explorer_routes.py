@@ -8,9 +8,9 @@ pytest.importorskip("semantica")
 
 from fastapi.testclient import TestClient
 
-from basis.transport.http.app import create_app
-from basis.infra.capabilities import explorer_available
-from basis.infra.config import Settings
+from basis.api.http.app import create_app
+from basis.runtime.capabilities import explorer_available
+from basis.runtime.config import Settings
 
 
 def test_temporal_bounds_after_ingest(tmp_path) -> None:

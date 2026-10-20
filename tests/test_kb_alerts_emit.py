@@ -2,18 +2,18 @@
 
 from fastapi.testclient import TestClient
 
-from basis.transport.http.app import create_app
-from basis.infra.config import Settings
+from basis.api.http.app import create_app
+from basis.runtime.config import Settings
 from unittest.mock import MagicMock, patch
 
-from basis.platform.admin.errors import AdminError
-from basis.domain.explorer.governance_decision import (
+from basis.control.admin.errors import AdminError
+from basis.core.explorer.governance.decision import (
     admin_error_triggers_governance_alert,
     maybe_emit_governance_tripped_for_admin_error,
     maybe_emit_governance_tripped_on_review_approve,
     should_emit_governance_tripped_on_review_approve,
 )
-from basis.domain.kb.services.kb_alerts_emit import (
+from basis.core.ledger.services.kb_alerts_emit import (
     emit_governance_proposal_proposed_alert,
     emit_governance_tripped_alert,
 )
@@ -34,9 +34,8 @@ def test_should_emit_governance_tripped_on_review_approve() -> None:
 def test_maybe_emit_governance_tripped_for_admin_error_skips_non_gate() -> None:
     request = MagicMock()
     knowledge = MagicMock()
-    with patch("basis.domain.explorer.governance_decision.emit_governance_tripped_for_kb") as emit:
+    with patch("basis.core.explorer.governance.decision.emit_governance_tripped_for_kb") as emit:
         maybe_emit_governance_tripped_for_admin_error(
-            request,
             "kb-1",
             knowledge,
             AdminError(404, "not_found", "missing"),
@@ -47,9 +46,8 @@ def test_maybe_emit_governance_tripped_for_admin_error_skips_non_gate() -> None:
 def test_maybe_emit_governance_tripped_on_review_approve_skips_review_closed() -> None:
     request = MagicMock()
     knowledge = MagicMock()
-    with patch("basis.domain.explorer.governance_decision.emit_governance_tripped_for_kb") as emit:
+    with patch("basis.core.explorer.governance.decision.emit_governance_tripped_for_kb") as emit:
         maybe_emit_governance_tripped_on_review_approve(
-            request,
             "kb-1",
             knowledge,
             code="review_closed",

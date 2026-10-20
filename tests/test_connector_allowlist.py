@@ -8,10 +8,10 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
-from basis.infra.config import Settings
-from basis.transport.http.app import create_app
+from basis.runtime.config import Settings
+from basis.api.http.app import create_app
 
-from basis.domain.connectors.allowlist import (
+from basis.core.connectors.allowlist import (
     PLATFORM_CONNECTOR_ALLOWLIST_KEY,
     assert_allowed_providers_in_catalog,
     assert_kb_allowlist_within_platform,
@@ -21,14 +21,14 @@ from basis.domain.connectors.allowlist import (
     provider_blocked_layer,
     unknown_catalog_providers,
 )
-from basis.domain.connectors import get_connector_catalog
-from basis.domain.connectors.auth_vault import ConnectorAuthVault
-from basis.domain.connectors.platform_policy import (
+from basis.core.connectors import get_connector_catalog
+from basis.core.connectors.auth_vault import ConnectorAuthVault
+from basis.core.connectors.platform_policy import (
     get_platform_allowed_providers,
     upsert_platform_allowed_providers,
 )
-from basis.domain.connectors.runtime import ConnectorRuntime
-from basis.platform.admin.migrations import run_migrations
+from basis.core.connectors.runtime import ConnectorRuntime
+from basis.tooling.db.sqlite_migrations import run_migrations
 
 
 def _fresh_db(tmp_path: Path):
@@ -88,7 +88,7 @@ def test_category_breakdown_counts(tmp_path: Path) -> None:
     conn = _fresh_db(tmp_path)
     try:
         catalog = __import__(
-            "basis.domain.connectors.catalog",
+            "basis.core.connectors.catalog",
             fromlist=["get_connector_catalog"],
         ).get_connector_catalog()
         rows = catalog.category_breakdown(platform_allowed=["postgres"])

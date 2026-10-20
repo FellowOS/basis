@@ -56,12 +56,12 @@ export function ProductMobileNavMenu({ onGetStarted }: ProductMobileNavMenuProps
       {
         id: 'product',
         label: m.nav.product,
-        children: PRODUCT_NAV.filter((item) => item.key === 'product' || item.key === 'capabilities').map(
-          (item) => ({
-            label: m.nav[item.key],
-            href: productNavHref(item),
-          }),
-        ),
+        children: PRODUCT_NAV.filter((item) =>
+          ['product', 'howItWorks', 'capabilities'].includes(item.key),
+        ).map((item) => ({
+          label: m.nav[item.key],
+          href: productNavHref(item),
+        })),
       },
       {
         id: 'developers',
@@ -76,6 +76,11 @@ export function ProductMobileNavMenu({ onGetStarted }: ProductMobileNavMenuProps
         id: 'selfHost',
         label: m.nav.selfHost,
         href: productNavHref(PRODUCT_NAV.find((item) => item.key === 'selfHost')!),
+      },
+      {
+        id: 'docs',
+        label: m.nav.docs,
+        href: '/docs',
       },
     ];
   }, [m]);
@@ -308,7 +313,7 @@ export function ProductMobileNavMenu({ onGetStarted }: ProductMobileNavMenuProps
                     className="w-full rounded-full bg-[var(--login-cta-bg,#152033)] text-[var(--login-cta-fg,#f6f4ef)]"
                     asChild
                   >
-                    <Link to="/?mode=login" onClick={close}>
+                    <Link to="/?mode=register" onClick={close}>
                       {m.ctaGetStarted}
                     </Link>
                   </Button>

@@ -2,13 +2,13 @@
 
 from fastapi.testclient import TestClient
 
-from basis.transport.http.app import create_app
-from basis.transport.http.openapi_v1_export import (
+from basis.api.http.app import create_app
+from basis.application.openapi_v1_export import (
     export_openapi_v1_document,
     export_openapi_v1_kb,
     export_openapi_v1_platform,
 )
-from basis.infra.config import Settings
+from basis.runtime.config import Settings
 
 
 def test_openapi_v1_json_endpoint_matches_app_export(tmp_path) -> None:

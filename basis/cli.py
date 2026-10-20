@@ -10,8 +10,8 @@ from dataclasses import replace
 
 import uvicorn
 
-from basis.infra.config import Settings
-from basis.infra.observability.logging_setup import uvicorn_log_config
+from basis.runtime.config import Settings
+from basis.runtime.observability.logging_setup import uvicorn_log_config
 
 
 def _allocate_listen_port(host: str, port: int) -> int:
@@ -30,7 +30,7 @@ def _cmd_serve(settings: Settings) -> None:
     os.environ["BASIS_LISTEN_PORT_RESOLVED"] = "1"
     os.environ["BASIS_PORT"] = str(listen_port)
     uvicorn.run(
-        "basis.transport.http.app:create_app",
+        "basis.api.http.app:create_app",
         host=settings.host,
         port=listen_port,
         factory=True,
@@ -39,11 +39,11 @@ def _cmd_serve(settings: Settings) -> None:
 
 
 def _cmd_migrate_legacy_graphs(settings: Settings, args: argparse.Namespace) -> None:
-    from basis.platform.admin.store import AdminStore
-    from basis.domain.graph.snapshot_store import GraphPersistence
-    from basis.domain.kb.blob_store import BlobStore
-    from basis.domain.kb.store import KnowledgeStore
-    from basis.ops.migration.legacy_graph import migrate_all_legacy_graphs, print_reports
+    from basis.control.admin.store import AdminStore
+    from basis.core.projection.snapshot_store import GraphPersistence
+    from basis.core.ledger.blob_store import BlobStore
+    from basis.core.ledger.store import KnowledgeStore
+    from basis.tooling.migration.legacy_graph import migrate_all_legacy_graphs, print_reports
 
     admin = AdminStore(settings.db_path)
     try:
@@ -70,7 +70,7 @@ def _cmd_migrate_legacy_graphs(settings: Settings, args: argparse.Namespace) -> 
 
 
 def _cmd_migrate_postgres(settings: Settings, args: argparse.Namespace) -> None:
-    from basis.ops.migration.sqlite_to_postgres import migrate_sqlite_to_postgres
+    from basis.tooling.migration.sqlite_to_postgres import migrate_sqlite_to_postgres
 
     report = migrate_sqlite_to_postgres(
         settings.db_path,

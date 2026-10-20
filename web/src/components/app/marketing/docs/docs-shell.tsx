@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { ProductSiteHeader } from '@/components/app/marketing/product-site-header.js';
@@ -25,9 +25,17 @@ export function DocsShell({ activeSlug, children }: DocsShellProps) {
   const { t } = useI18n();
   const flatPages = useProductDocsFlatPages();
 
+  useEffect(() => {
+    const previous = document.title;
+    document.title = `${t.docs.sidebarAria} — Basis`;
+    return () => {
+      document.title = previous;
+    };
+  }, [t.docs.sidebarAria]);
+
   return (
     <div className="flex h-dvh max-h-dvh flex-col overflow-hidden bg-background text-foreground">
-      <ProductSiteHeader activeKey="developers" />
+      <ProductSiteHeader />
       <div className="flex min-h-0 flex-1 border-t border-border">
         <aside className="hidden w-60 shrink-0 border-r border-border lg:block">
           <ScrollShadow

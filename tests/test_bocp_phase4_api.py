@@ -7,8 +7,8 @@ from pathlib import Path
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, text
 
-from basis.infra.config import Settings
-from basis.transport.http.app import create_app
+from basis.runtime.config import Settings
+from basis.api.http.app import create_app
 
 
 def test_connectors_http_endpoints_and_review_writeback_flow(tmp_path: Path) -> None:
@@ -60,9 +60,17 @@ def test_connectors_http_endpoints_and_review_writeback_flow(tmp_path: Path) -> 
     )
     assert cat_resp.status_code == 200
     cat_data = cat_resp.json()
-    assert cat_data["stats"]["providers"] == 4
+    assert cat_data["stats"]["providers"] == 8
     services = {c["service"] for c in cat_data["connectors"]}
-    assert services == {"github", "mysql", "postgres"}
+    assert services == {
+        "github",
+        "gitlab",
+        "hubspot",
+        "jira",
+        "mysql",
+        "notion",
+        "postgres",
+    }
 
     # 4. Create Connection & Run CHECK + DISCOVER
     put_conn = client.put(

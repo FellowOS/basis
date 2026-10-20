@@ -10,10 +10,10 @@ Related decision: [0001 — Evidence ledger is canonical](0001-canonical-knowled
 
 Basis reuses Explorer at two levels:
 
-1. **Python logic and schemas**: `semantica.explorer.session.GraphSession`, search/analytics helpers,
-   and selected route implementation logic.
-2. **React workspace components**: Graph, Ontology, SPARQL, Decision, Timeline, Entity Resolution,
-   KG Overview, Vocabulary, and Lineage after they accept an injected API client and capability set.
+1. **Python (Basis-owned)**: `basis.core.explorer.*` and `BasisKbGraphSession` over
+   `semantica.context.ContextGraph` (see [explorer-session-registry.md](explorer-session-registry.md)).
+2. **React workspace components**: vendored `web/src/explorer/*` (Graph, Ontology, SPARQL, …) with
+   injected KB API client and capabilities.
 
 Basis does **not**:
 
@@ -46,9 +46,9 @@ Basis endpoint
   → JWT/session authentication
   → KB role authorization
   → Basis domain service / ledger transaction
-  → ExplorerAdapter(kb_id)
-      ├─ Explorer GraphSession (read/index/analytics)
-      ├─ ContextGraph projection
+  → ExplorerSessionRegistry(kb_id)
+      ├─ BasisKbGraphSession (read/search/temporal/ontology mutations)
+      ├─ basis.core.projection.GraphSession / ContextGraph projection
       ├─ per-KB WebSocket hub
       └─ projection persistence/rebuild
 ```
@@ -66,15 +66,13 @@ class ExplorerSessionRegistry:
 
 `KbExplorerRuntime` contains:
 
-- `semantica.explorer.session.GraphSession`;
+- `basis` — canonical `basis.core.projection.GraphSession`;
+- `explorer` — `BasisKbGraphSession` adapter (same `ContextGraph` as `basis`);
 - the current projection revision;
-- a per-KB async mutation lock;
-- a per-KB `ConnectionManager`;
-- optional provenance and markdown-resource services;
 - last-access time for cache eviction.
 
-The registry loads the active graph projection for the KB and calls
-`GraphSession.rebuild_search_index()`. It must never return one KB's runtime for another KB.
+The registry loads the active graph projection via `graph_for` and builds the adapter with
+`explorer_session_probe.build_kb_graph_adapter`. It must never return one KB's runtime for another KB.
 
 ### 3.2 Canonical writes
 

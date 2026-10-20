@@ -2,8 +2,8 @@
 
 from fastapi.testclient import TestClient
 
-from basis.transport.http.app import create_app
-from basis.infra.config import Settings
+from basis.api.http.app import create_app
+from basis.runtime.config import Settings
 
 
 def test_legacy_api_blocked_when_disabled(tmp_path) -> None:

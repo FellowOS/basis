@@ -11,15 +11,15 @@ import httpx
 import pytest
 from sqlalchemy import create_engine, text
 
-from basis.domain.connectors import (
+from basis.core.connectors import (
     ConnectorAuthVault,
     ConnectorRuntime,
     decrypt_vault_payload,
     encrypt_vault_payload,
 )
-from basis.domain.connectors.catalog import ConnectorCatalog, get_connector_catalog
-from basis.domain.connectors.adapters.rest.curated_dev import curated_rest_manifests
-from basis.platform.admin.migrations import run_migrations
+from basis.core.connectors.catalog import ConnectorCatalog, get_connector_catalog
+from basis.core.connectors.adapters.rest.curated_dev import curated_rest_manifests
+from basis.tooling.db.sqlite_migrations import run_migrations
 
 
 @pytest.fixture(autouse=True)
@@ -35,15 +35,15 @@ def _phase2_catalog_includes_rest_dev_fixtures(monkeypatch: pytest.MonkeyPatch) 
         return catalog
 
     monkeypatch.setattr(
-        "basis.domain.connectors.catalog.get_connector_catalog",
+        "basis.core.connectors.catalog.get_connector_catalog",
         _catalog,
     )
     monkeypatch.setattr(
-        "basis.domain.connectors.auth_vault.get_connector_catalog",
+        "basis.core.connectors.auth_vault.get_connector_catalog",
         _catalog,
     )
     monkeypatch.setattr(
-        "basis.domain.connectors.runtime.get_connector_catalog",
+        "basis.core.connectors.runtime.get_connector_catalog",
         _catalog,
     )
 

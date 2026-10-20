@@ -2,9 +2,9 @@
 
 from pathlib import Path
 
-from basis.domain.kb.blob_store import BlobStore
-from basis.domain.kb.store import KnowledgeStore
-from basis.platform.admin.store import AdminStore
+from basis.core.ledger.blob_store import BlobStore
+from basis.core.ledger.store import KnowledgeStore
+from basis.control.admin.store import AdminStore
 
 
 def test_delete_kb_after_entities_exist(tmp_path: Path) -> None:

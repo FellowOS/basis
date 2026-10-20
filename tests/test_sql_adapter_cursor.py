@@ -6,7 +6,7 @@ from datetime import date, datetime, timezone
 
 from sqlalchemy import Column, Date, DateTime, MetaData, Table
 
-from basis.domain.connectors.adapters.sql import SqlAlchemyStreamAdapter
+from basis.core.connectors.adapters.sql import SqlAlchemyStreamAdapter
 
 
 def test_coerce_cursor_watermark_parses_iso_for_datetime_column() -> None:

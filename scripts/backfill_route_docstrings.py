@@ -15,9 +15,13 @@ import json
 
 _REPO = Path(__file__).resolve().parents[1]
 _ROUTES_ROOT = _REPO / "basis" / "transport" / "http" / "routes"
-_ONTOLOGY_HUB = _REPO / "basis" / "domain" / "explorer" / "ontology_kb_hub.py"
+_HTTP = _REPO / "basis" / "transport" / "http"
+_ONTOLOGY_HUB_FILES = (
+    _HTTP / "kb_ontology_hub_catalog.py",
+    _HTTP / "kb_ontology_hub_governance.py",
+)
 _OPENAPI = _REPO / "openapi" / "basis-v1.json"
-_BACKFILL_PATHS: tuple[Path, ...] = (_ROUTES_ROOT, _ONTOLOGY_HUB)
+_BACKFILL_PATHS: tuple[Path, ...] = (_ROUTES_ROOT, *_ONTOLOGY_HUB_FILES)
 
 
 def _load_descriptions_by_function() -> dict[str, str]:
