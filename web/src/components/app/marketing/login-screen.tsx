@@ -181,17 +181,6 @@ export function LoginScreen() {
             />
           </div>
 
-          <BotAvatar
-            type="droid"
-            state="default"
-            size={56}
-            color={isDark ? '#d4f0c8' : '#5fbf8a'}
-            ink="#111111"
-            shading="fabric"
-            theme={isDark ? 'dark' : 'light'}
-            className="pointer-events-auto absolute right-5 bottom-5 z-20 sm:right-8 sm:bottom-8"
-          />
-
           <div className="pointer-events-none relative z-10 flex min-w-0 flex-1 flex-col overflow-visible px-5 py-4 sm:py-5 sm:pl-8 sm:pr-[54%] lg:pr-[50%]">
             <div className="pointer-events-auto flex min-h-0 min-w-0 flex-1 flex-col justify-center">
               <div className="min-w-0 w-full max-w-2xl">
@@ -199,17 +188,29 @@ export function LoginScreen() {
                   {m.heroEyebrow}
                 </p>
                 <h1
-                className={cn(
-                  'mt-5 min-w-0 font-semibold leading-[1.1] tracking-[-0.035em] sm:mt-5',
-                  heroTitleSize,
-                )}
-                aria-label={`${m.heroHeadline} ${m.heroHeadlineRest}`}
-              >
-                <span className="block">{m.heroHeadline}</span>
-                <span className="mt-1 block text-[var(--login-gold)] sm:mt-2">
-                  {m.heroHeadlineRest}
-                </span>
-              </h1>
+                  className={cn(
+                    'mt-5 min-w-0 max-w-full font-semibold leading-[1.1] tracking-[-0.035em] sm:mt-5',
+                    heroTitleSize,
+                  )}
+                  aria-label={`${m.heroHeadline} ${m.heroHeadlineRest}`}
+                >
+                  <span className="relative block w-fit max-w-full">
+                    {m.heroHeadline}
+                    <BotAvatar
+                      type="drop"
+                      state="default"
+                      size={64}
+                      color={isDark ? '#d4f0c8' : '#5fbf8a'}
+                      ink="#111111"
+                      shading="fabric"
+                      theme={isDark ? 'dark' : 'light'}
+                      className="pointer-events-auto absolute -right-3 bottom-full z-20 sm:-right-4"
+                    />
+                  </span>
+                  <span className="mt-1 block text-[var(--login-gold)] sm:mt-2">
+                    {m.heroHeadlineRest}
+                  </span>
+                </h1>
               <p className="mt-5 max-w-xl text-[13px] leading-relaxed text-pretty text-muted-foreground sm:mt-6 sm:text-sm">
                 {m.heroSubhead}
               </p>
