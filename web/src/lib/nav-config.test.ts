@@ -1,6 +1,25 @@
 import { describe, expect, it } from 'vitest';
 
-import { kbOntologyProposalPath } from '@/lib/nav-config.js';
+import {
+  kbOntologyProposalPath,
+  platformAdminEntryPath,
+  visiblePlatformNavItems,
+} from '@/lib/nav-config.js';
+
+describe('visiblePlatformNavItems', () => {
+  it('hides cloud-only platform nav in desktop product mode', () => {
+    const keys = visiblePlatformNavItems(true, true, true).map((i) => i.labelKey);
+    expect(keys).not.toContain('users');
+    expect(keys).not.toContain('audit');
+    expect(keys).not.toContain('system');
+    expect(keys).toContain('models');
+    expect(keys).toContain('connectors');
+  });
+
+  it('desktop admin entry skips hidden system settings', () => {
+    expect(platformAdminEntryPath(true, true, true)).toBe('/admin/kbs');
+  });
+});
 
 describe('kbOntologyProposalPath', () => {
   it('opens ontology versions tab with proposal query', () => {

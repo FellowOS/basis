@@ -11,11 +11,14 @@ import {
   SelectValue,
 } from '@/components/ui/select.js';
 import { useI18n } from '@/i18n/context.js';
+import { productDocsPageMeta } from '@/lib/product-docs-page-meta.js';
 import { getToken } from '@/lib/auth-token.js';
 import { openapiSpecUrl, type OpenApiSpecVariant } from '@/lib/openapi-spec-url.js';
 
 export function SwaggerPage() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
+  const apiReferenceTitle =
+    productDocsPageMeta(locale, 'api-reference')?.title ?? 'API reference';
   const p = t.pages.swagger;
   const [variant, setVariant] = useState<OpenApiSpecVariant>('full');
   const specUrl = useMemo(() => openapiSpecUrl(variant), [variant]);
@@ -39,7 +42,7 @@ export function SwaggerPage() {
           <p className="text-sm text-muted-foreground">
             {p.subtitle}{' '}
             <Link to="/docs/api-reference" className="text-foreground underline-offset-4 hover:underline">
-              {t.docs.pages['api-reference'].navTitle}
+              {apiReferenceTitle}
             </Link>
           </p>
           <Select value={variant} onValueChange={(v) => setVariant(v as OpenApiSpecVariant)}>

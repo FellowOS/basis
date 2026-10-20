@@ -95,10 +95,12 @@ def test_review_approve_failure_emits_governance_alert(tmp_path) -> None:
         json={"primary_id": "node-a", "duplicate_ids": ["node-b"]},
     ).json()["item"]
 
-    async def fail_merge(*_args, **_kwargs):
-        raise HTTPException(status_code=422, detail={"code": "impact_gate", "message": "blocked"})
+    def fail_merge(*_args, **_kwargs):
+        from basis.platform.admin.errors import AdminError
 
-    with patch("semantica.explorer.routes.enrich.merge_nodes", side_effect=fail_merge):
+        raise AdminError(422, "impact_gate", "blocked")
+
+    with patch("basis.domain.explorer.enrich_write.merge_nodes", side_effect=fail_merge):
         failed = client.post(
             f"/api/v1/kbs/{kb_id}/review/items/{proposed['id']}/approve",
             headers=headers,

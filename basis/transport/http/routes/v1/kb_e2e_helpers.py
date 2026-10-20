@@ -16,7 +16,7 @@ from basis.domain.explorer.session_guard import require_explorer_graph_session
 from basis.domain.kb.services.conflict_review import scan_statement_conflicts
 from basis.domain.kb.store import KnowledgeStore
 from basis.transport.http.deps import get_explorer_registry, save_graph
-from basis.transport.http.explorer_route_errors import invoke_explorer
+from basis.domain.explorer.ontology_route_bridge import invoke_ontology, ontology_module
 
 router = APIRouter(tags=["knowledge-bases"])
 
@@ -139,12 +139,10 @@ async def e2e_ontology_proposal(
     get_kb_for_editor(request, user, kb_id, store)
 
     try:
-        import semantica.explorer.routes.ontology as ont
-        from semantica.explorer.routes.ontology import (
-            CreateOntologyRequest,
-            DraftRequest,
-            ProposalRequest,
-        )
+        ont = ontology_module()
+        CreateOntologyRequest = ont.CreateOntologyRequest
+        DraftRequest = ont.DraftRequest
+        ProposalRequest = ont.ProposalRequest
     except ImportError as exc:
         raise AdminError(503, "explorer_unavailable", "Explorer runtime 不可用") from exc
 
@@ -156,15 +154,14 @@ async def e2e_ontology_proposal(
     summary = f"E2E ontology proposal {uuid4().hex[:8]}"
 
     with KbOntologyState(request, kb_id):
-        await invoke_explorer(
+        await invoke_ontology(
             ont.create_ontology(
                 request=request,
                 session=session,
                 body=CreateOntologyRequest(name="E2E Ontology", namespace=namespace),
             ),
-            context="ontology",
         )
-        draft = await invoke_explorer(
+        draft = await invoke_ontology(
             ont.save_draft(
                 request=request,
                 body=DraftRequest(
@@ -174,13 +171,12 @@ async def e2e_ontology_proposal(
                     summary="E2E draft",
                 ),
             ),
-            context="ontology",
         )
         draft_id = _ontology_payload_id(draft, "draft_id")
         if not draft_id:
             raise AdminError(500, "e2e_seed_failed", "未能创建 ontology draft")
 
-        proposed = await invoke_explorer(
+        proposed = await invoke_ontology(
             ont.submit_proposal(
                 request=request,
                 session=session,
@@ -190,7 +186,6 @@ async def e2e_ontology_proposal(
                     summary=summary,
                 ),
             ),
-            context="ontology",
         )
         save_graph(request, kb_id)
 

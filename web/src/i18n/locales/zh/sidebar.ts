@@ -1,4 +1,5 @@
 export const sidebar = {
+  brand: 'Basis',
   collapseSidebar: '折叠侧栏',
   openSidebar: '打开侧栏',
   mobileTitle: '侧栏',

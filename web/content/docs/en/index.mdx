@@ -1,0 +1,24 @@
+---
+title: "Basis developer documentation"
+sidebarTitle: "Overview"
+description: "Ontology-driven agent context service: evidence ledger, ontologies, 1,000+ declarative connectors, OpenAPI v1, and MCP."
+---
+
+## What you can build on
+
+Basis exposes versioned REST under `/api/v1/*`, per–knowledge-base routes under `/api/v1/kbs/{kb_id}/*`, and OpenAPI documents at `/openapi/v1.json`. Agents can use HTTP MCP on each knowledge base.
+
+- Platform API — users, knowledge bases, models, audit, settings
+- Knowledge base API — ingest, ledger, search, graph, ontology, MCP
+- MCP — tool surface aligned with the same operations as OpenAPI
+
+## Recommended path
+
+Start locally, then read concepts before calling production APIs.
+
+- [Quickstart](/docs/quickstart) — run API + web console
+- [Concepts](/docs/concepts) — ledger vs projections
+- [REST API](/docs/rest-api) — paths, auth, and surfaces
+- [BOCP](/docs/bocp) — connector manifest protocol (external systems)
+- [Connectors (Basis)](/docs/connectors-basis) — how Basis hosts BOCP
+- [API reference](/docs/api-reference) — interactive OpenAPI explorer

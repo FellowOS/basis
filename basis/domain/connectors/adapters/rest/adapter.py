@@ -27,6 +27,7 @@ class RestBatchResult:
     records: list[dict[str, Any]]
     next_cursor_value: Any | None = None
     pages_fetched: int = 0
+    has_more: bool = False
 
 
 def _extract_records_by_path(
@@ -98,6 +99,8 @@ def _render_body_template(
     patch: dict[str, Any],
     external_id: str | None = None,
     stream_params: dict[str, Any] | None = None,
+    connection_config: dict[str, Any] | None = None,
+    credentials: dict[str, Any] | None = None,
 ) -> Any:
     if isinstance(template, str):
         if template == "{{patch}}":
@@ -106,6 +109,8 @@ def _render_body_template(
             return external_id
         return interpolate_placeholders(
             template,
+            connection_config=connection_config,
+            credentials=credentials,
             stream_params=stream_params,
             extra={"external_id": external_id or ""},
         )
@@ -115,14 +120,24 @@ def _render_body_template(
             return dict(patch)
         return {
             k: _render_body_template(
-                v, patch=patch, external_id=external_id, stream_params=stream_params
+                v,
+                patch=patch,
+                external_id=external_id,
+                stream_params=stream_params,
+                connection_config=connection_config,
+                credentials=credentials,
             )
             for k, v in template.items()
         }
     if isinstance(template, list):
         return [
             _render_body_template(
-                v, patch=patch, external_id=external_id, stream_params=stream_params
+                v,
+                patch=patch,
+                external_id=external_id,
+                stream_params=stream_params,
+                connection_config=connection_config,
+                credentials=credentials,
             )
             for v in template
         ]
@@ -157,8 +172,19 @@ class RestDeclarativeStreamAdapter:
         base_url, headers, query_params = self._vault.build_request_auth(
             manifest, connection
         )
-        headers.update(auth_spec.check.headers)
-        url = f"{base_url}/{auth_spec.check.path.lstrip('/')}"
+        for key, value in auth_spec.check.headers.items():
+            headers[key] = interpolate_placeholders(
+                value,
+                connection_config=connection.connection_config,
+                credentials=connection.credentials,
+            )
+        check_path = interpolate_placeholders(
+            auth_spec.check.path,
+            connection_config=connection.connection_config,
+            credentials=connection.credentials,
+            url_encode_values=True,
+        )
+        url = f"{base_url}/{check_path.lstrip('/')}"
         resp = self._client.request(
             auth_spec.check.method,
             url,
@@ -197,6 +223,7 @@ class RestDeclarativeStreamAdapter:
             connection_config=connection.connection_config,
             credentials=connection.credentials,
             stream_params=stream_params,
+            url_encode_values=True,
         )
         url = f"{base_url}/{rel_path.lstrip('/')}"
         resp = self._client.get(url, headers=headers, params=query_params)
@@ -269,12 +296,20 @@ class RestDeclarativeStreamAdapter:
             manifest, connection
         )
 
-        headers = {**base_headers, **retriever.request_headers}
+        headers = dict(base_headers)
+        for key, value in retriever.request_headers.items():
+            headers[key] = interpolate_placeholders(
+                value,
+                connection_config=connection.connection_config,
+                credentials=connection.credentials,
+                stream_params=stream_params,
+            )
         rel_path = interpolate_placeholders(
             retriever.path,
             connection_config=connection.connection_config,
             credentials=connection.credentials,
             stream_params=stream_params,
+            url_encode_values=True,
         )
         next_url: str | None = f"{base_url}/{rel_path.lstrip('/')}"
 
@@ -287,10 +322,15 @@ class RestDeclarativeStreamAdapter:
                 stream_params=stream_params,
             )
 
-        if cursor_watermark is not None and retriever.incremental_cursor_param:
-            query_params[retriever.incremental_cursor_param] = str(cursor_watermark)
-
         body_json: dict[str, Any] = dict(retriever.request_body_json or {})
+        if cursor_watermark is not None and retriever.incremental_cursor_param:
+            cursor_value = str(cursor_watermark)
+            if retriever.incremental_cursor_inject == "body":
+                body_json[retriever.incremental_cursor_param] = cursor_value
+            elif retriever.incremental_cursor_inject == "header":
+                headers[retriever.incremental_cursor_param] = cursor_value
+            else:
+                query_params[retriever.incremental_cursor_param] = cursor_value
         if paginator.limit_param and paginator.page_size:
             if paginator.inject_into == "body":
                 body_json[paginator.limit_param] = paginator.page_size
@@ -299,6 +339,7 @@ class RestDeclarativeStreamAdapter:
 
         all_records: list[dict[str, Any]] = []
         pages_fetched = 0
+        has_more = False
         current_offset = 0
         current_page = 1
         current_cursor: Any | None = None
@@ -339,6 +380,7 @@ class RestDeclarativeStreamAdapter:
 
             all_records.extend(batch)
             if len(all_records) >= max_records:
+                has_more = len(all_records) > max_records or bool(batch)
                 all_records = all_records[:max_records]
                 break
 
@@ -372,6 +414,9 @@ class RestDeclarativeStreamAdapter:
                 next_url = str(link_next)
                 query_params = {}  # Link URLs already include query string
 
+        if next_url and pages_fetched >= max_pages:
+            has_more = True
+
         next_watermark = cursor_watermark
         if all_records and stream.cursor_field:
             for rec in all_records:
@@ -387,6 +432,7 @@ class RestDeclarativeStreamAdapter:
             records=all_records,
             next_cursor_value=next_watermark,
             pages_fetched=pages_fetched,
+            has_more=has_more,
         )
 
     def mutate_stream_record(
@@ -410,12 +456,27 @@ class RestDeclarativeStreamAdapter:
         base_url, headers, query_params = self._vault.build_request_auth(
             manifest, connection
         )
+        for key, value in mutation.request_headers.items():
+            headers[key] = interpolate_placeholders(
+                value,
+                connection_config=connection.connection_config,
+                credentials=connection.credentials,
+                stream_params=stream_params,
+            )
+        for key, value in mutation.request_params.items():
+            query_params[key] = interpolate_placeholders(
+                value,
+                connection_config=connection.connection_config,
+                credentials=connection.credentials,
+                stream_params=stream_params,
+            )
         rel_path = interpolate_placeholders(
             mutation.path_template,
             connection_config=connection.connection_config,
             credentials=connection.credentials,
             stream_params=stream_params,
             extra={"external_id": external_id or ""},
+            url_encode_values=True,
         )
         url = f"{base_url}/{rel_path.lstrip('/')}"
         body = _render_body_template(
@@ -423,6 +484,8 @@ class RestDeclarativeStreamAdapter:
             patch=patch,
             external_id=external_id,
             stream_params=stream_params,
+            connection_config=connection.connection_config,
+            credentials=connection.credentials,
         )
 
         resp = self._client.request(
@@ -457,6 +520,7 @@ class RestDeclarativeStreamAdapter:
             connection_config=connection.connection_config,
             credentials=connection.credentials,
             extra=args,
+            url_encode_values=True,
         )
         url = f"{base_url}/{rel_path.lstrip('/')}"
 

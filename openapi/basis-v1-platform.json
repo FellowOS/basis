@@ -5102,6 +5102,116 @@
         ],
         "title": "IngestTextRequest"
       },
+      "InvokeConnectorPrimitiveRequest": {
+        "properties": {
+          "action_id": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Action Id"
+          },
+          "primitive": {
+            "type": "string",
+            "enum": [
+              "discover",
+              "list",
+              "mutate",
+              "invoke"
+            ],
+            "title": "Primitive"
+          },
+          "operation": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "create",
+                  "update",
+                  "upsert",
+                  "delete"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operation"
+          },
+          "external_table": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Table"
+          },
+          "external_id": {
+            "anyOf": [
+              {},
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Id"
+          },
+          "changes": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Changes"
+          },
+          "action_params": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Action Params"
+          },
+          "arguments": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Arguments"
+          },
+          "limit": {
+            "type": "integer",
+            "maximum": 5000.0,
+            "minimum": 1.0,
+            "title": "Limit",
+            "default": 500
+          },
+          "cursor_watermark": {
+            "anyOf": [
+              {},
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cursor Watermark"
+          },
+          "primary_key_column": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Primary Key Column",
+            "default": "id"
+          },
+          "cursor_column": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cursor Column"
+          }
+        },
+        "type": "object",
+        "required": [
+          "action_id",
+          "primitive"
+        ],
+        "title": "InvokeConnectorPrimitiveRequest"
+      },
       "LoadOntologyRequest": {
         "properties": {
           "url": {

@@ -1,0 +1,17 @@
+---
+title: "Authentication & access"
+sidebarTitle: "Authentication"
+description: "Users, sessions, API tokens, and KB-scoped credentials."
+---
+
+## Console users
+
+Register and sign in via `/api/v1/auth/*`. Sessions use cookies; the SPA stores a Bearer token for API calls when needed.
+
+## Access tokens
+
+Create tokens in the console for scripts and agents. Knowledge-base tokens scope MCP and KB OpenAPI paths to a single KB.
+
+## Roles
+
+Platform admins manage users and settings. KB members have roles (viewer, editor, …) enforced on each KB route.

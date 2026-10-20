@@ -73,8 +73,11 @@ class Settings:
         return "postgres" if self.effective_database_url.startswith("postgres") else "sqlite"
 
     @classmethod
-    def from_env(cls) -> "Settings":
+    def from_env(cls, *, profile_spec: str | None = None) -> "Settings":
         load_dotenv()
+        from basis.infra.deployment_profile import bootstrap_profile_from_env
+
+        bootstrap_profile_from_env(profile_spec)
         return cls(
             host=os.environ.get("BASIS_HOST", "127.0.0.1"),
             port=int(os.environ.get("BASIS_PORT", "8090")),

@@ -225,7 +225,7 @@ OPERATIONS: dict[str, _OperationSpec] = {
         "handler": conn_ops.op_list_connector_catalog,
     },
     "describe_connector_service": {
-        "description": "Describe one BOCP connector manifest (streams and tools summary).",
+        "description": "Describe one BOCP connector manifest (entities and procedures summary).",
         "input_schema": {
             "type": "object",
             "properties": {
@@ -267,6 +267,59 @@ OPERATIONS: dict[str, _OperationSpec] = {
             "required": ["mapping_id"],
         },
         "handler": conn_ops.op_sync_connector_table_mapping,
+    },
+    "invoke_connector_primitive": {
+        "description": (
+            "Invoke a BOCP Section 10 primitive for an entity or procedure action "
+            "(discover, list, mutate, invoke) using manifest operations — no table mapping required."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "service": {"type": "string", "description": "Connector service key (e.g. github, postgres)"},
+                "action_id": {
+                    "type": "string",
+                    "description": "Entity or procedure action id from manifest actions[]",
+                },
+                "primitive": {
+                    "type": "string",
+                    "enum": ["discover", "list", "mutate", "invoke"],
+                },
+                "connection_name": {
+                    "type": "string",
+                    "description": "Saved connection name (default: default)",
+                },
+                "operation": {
+                    "type": "string",
+                    "description": "For mutate: create, update, upsert, or delete",
+                },
+                "external_table": {
+                    "type": "string",
+                    "description": "SQL table name when required by the action",
+                },
+                "external_id": {
+                    "description": "External primary key for mutate (omit for create)",
+                },
+                "changes": {
+                    "type": "object",
+                    "description": "Field patch for mutate, or procedure payload when primitive is invoke",
+                },
+                "action_params": {
+                    "type": "object",
+                    "description": "Scope params (e.g. owner, repo) merged into {{config.*}} templates",
+                },
+                "arguments": {
+                    "type": "object",
+                    "description": "Alias for procedure invoke payload",
+                },
+                "limit": {"type": "integer", "description": "Max records for list (default 500, max 5000)"},
+                "cursor_watermark": {"description": "Incremental cursor for list"},
+                "primary_key_column": {"type": "string"},
+                "cursor_column": {"type": "string"},
+            },
+            "required": ["service", "action_id", "primitive"],
+        },
+        "handler": conn_ops.op_invoke_connector_primitive,
     },
     "execute_connector_tool": {
         "description": (
@@ -325,7 +378,7 @@ def _mcp_input_schema(name: str, fallback: dict[str, Any]) -> dict[str, Any]:
 
 
 @lru_cache(maxsize=1)
-def get_tool_definitions() -> list[dict[str, Any]]:
+def get_static_tool_definitions() -> list[dict[str, Any]]:
     return [
         {
             "name": name,
@@ -335,6 +388,16 @@ def get_tool_definitions() -> list[dict[str, Any]]:
         for name, spec in OPERATIONS.items()
         if _mcp_exposed(name)
     ]
+
+
+def get_tool_definitions(ctx: KbCoreContext | None = None) -> list[dict[str, Any]]:
+    """MCP tools/list payload; includes manifest-derived connector tools when ``ctx`` is set."""
+    tools = list(get_static_tool_definitions())
+    if ctx is not None:
+        from basis.integration.mcp_connector_tools import connector_tool_definitions_for_kb
+
+        tools.extend(connector_tool_definitions_for_kb(ctx))
+    return tools
 
 
 def __getattr__(name: str) -> Any:
@@ -350,15 +413,36 @@ _HANDLERS: dict[str, OperationHandler] = {
 }
 
 
+def _resolve_mcp_tool_handler(name: str) -> OperationHandler | None:
+    if name in _HANDLERS:
+        return _HANDLERS[name]
+    from basis.integration.mcp_connector_tools import parse_connector_mcp_tool_name
+
+    if parse_connector_mcp_tool_name(name) is not None:
+        return conn_ops.op_invoke_connector_primitive
+    return None
+
+
+def _is_known_mcp_tool(name: str) -> bool:
+    return _resolve_mcp_tool_handler(name) is not None
+
+
 def run(ctx: KbCoreContext, name: str, arguments: dict[str, Any] | None) -> dict[str, Any]:
     """Run a registered operation; returns a plain JSON-serializable dict."""
-    handler = _HANDLERS.get(name)
+    handler = _resolve_mcp_tool_handler(name)
     if handler is None:
         return {"error": f"unknown tool: {name}"}
+    binding: dict[str, Any] | None = None
+    if name not in _HANDLERS:
+        from basis.integration.mcp_connector_tools import parse_connector_mcp_tool_name
+
+        binding = parse_connector_mcp_tool_name(name)
     try:
         args = coerce_operation_args(name, arguments)
     except ValidationError as exc:
         return validation_error_payload(exc)
+    if binding:
+        args = {**binding, **args}
     result = handler(ctx, args)
     if isinstance(result, dict) and "error" not in result:
         return validate_operation_response(name, result)
@@ -367,7 +451,7 @@ def run(ctx: KbCoreContext, name: str, arguments: dict[str, Any] | None) -> dict
 
 def execute(ctx: KbCoreContext, name: str, arguments: dict[str, Any] | None) -> dict[str, Any]:
     """MCP tools/call envelope."""
-    if name not in _MCP_TOOL_NAMES:
+    if not _is_known_mcp_tool(name):
         return mcp_text_result({"error": f"unknown tool: {name}"}, is_error=True)
     try:
         payload = run(ctx, name, arguments)

@@ -41,7 +41,9 @@ jobs:
       - name: PostgreSQL integration and backup restore
         run: >-
           uv run pytest tests/test_postgres_integration.py
-          tests/test_postgres_backup_restore.py -q
+          tests/test_postgres_backup_restore.py
+          tests/test_sql_connector_integration.py::test_sql_connector_postgres_check_discover_read_mutate
+          -q
 
   openapi:
     runs-on: ubuntu-latest
@@ -108,6 +110,9 @@ jobs:
       - name: Sync Python dependencies
         run: uv sync --extra dev
 
+      - name: Audit semantica.explorer.routes imports (line 1 Phase 0)
+        run: uv run python scripts/audit-semantica-explorer-imports.py
+
       - name: Run tests
         run: uv run pytest -q
 
@@ -130,6 +135,29 @@ jobs:
 
       - name: Typecheck and build
         run: npm run build
+
+      - name: Desktop web build
+        run: npm run build:desktop
+
+      - name: Unit tests
+        run: npm run test
+
+  desktop:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: desktop
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: desktop/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
 
       - name: Unit tests
         run: npm run test
@@ -167,3 +195,37 @@ jobs:
         env:
           BASIS_E2E_API_PORT: 8091
           BASIS_E2E_WEB_PORT: 5174
+
+  e2e-desktop:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Sync Python dependencies
+        run: uv sync --extra dev
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install chromium --with-deps
+
+      - name: Desktop product Playwright
+        run: CI=1 BASIS_E2E_DESKTOP=1 npx playwright test e2e/desktop-product.spec.ts
+        env:
+          BASIS_E2E_API_PORT: 8092
+          BASIS_E2E_WEB_PORT: 5175

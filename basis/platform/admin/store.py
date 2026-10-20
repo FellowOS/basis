@@ -65,6 +65,9 @@ class AdminStore:
         self._audit_access = AuditAccess(self)
         self._organizations = OrganizationsAccess(self)
         self._desktop = DesktopAccess(self)
+        if getattr(self._db, "backend", "") == "postgres":
+            self._organizations.ensure_knowledge_bases_organization_column()
+            self._organizations.ensure_kb_organization_links()
 
     def close(self) -> None:
         if self._owns_db_ref:

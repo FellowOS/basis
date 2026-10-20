@@ -47,7 +47,7 @@ export const marketing = {
     selfHost: 'Self-Host',
     developersMenu: {
       docsHub: 'Documentation',
-      docsHubDesc: 'Quickstart, core concepts, REST, MCP, and ops',
+      docsHubDesc: 'Quickstart, OpenAPI v1, BOCP connectors, MCP, and ops',
       apiDocs: 'API Reference',
       apiDocsDesc: 'Interactive OpenAPI v1 explorer',
       openApiSpec: 'OpenAPI JSON',
@@ -62,6 +62,17 @@ export const marketing = {
   heroEyebrow: 'Agent-first · Ontology-driven',
   heroPillars:
     'Business Ontology · Evidence Ledger · 1,000+ Connectors · Governed Write-Back · OpenAPI & MCP',
+  capabilitiesEyebrow: 'Capabilities',
+  capabilitiesTitle: 'Context, connectivity, and governed writes in one service',
+  capabilitiesSubhead:
+    'Reads come from an evidence ledger with source lineage; writes go through review gates. Graph and search stay rebuildable projections.',
+  selfHostEyebrow: 'Self-host',
+  selfHostTitle: 'Run Basis on your own infrastructure',
+  selfHostBody:
+    'Two processes, SQLite by default, PostgreSQL for production. Bring your own SSO, or run the desktop profile for local use.',
+  selfHostDocs: 'Deployment guide',
+  selfHostQuickstart: 'Quickstart',
+  selfHostGithub: 'GitHub',
   footerTagline: 'Agent-first · Ontology-driven',
   a11yThemeLight: 'Light mode',
   a11yThemeDark: 'Dark mode',

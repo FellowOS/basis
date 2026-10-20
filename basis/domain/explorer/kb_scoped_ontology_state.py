@@ -1,9 +1,11 @@
-"""Per-KB in-memory ontology registry / alignment stores for semantica route reuse."""
+"""Per-KB in-memory ontology registry / alignment stores for Explorer ontology hub."""
 
 from __future__ import annotations
 
 import contextvars
 from typing import Any
+
+from basis.domain.explorer.ontology_route_bridge import ontology_module
 
 _kb_alignment_store: contextvars.ContextVar[dict[str, Any] | None] = contextvars.ContextVar(
     "kb_alignment_store",
@@ -21,8 +23,7 @@ def ensure_semantica_ontology_patches() -> None:
     global _patched
     if _patched:
         return
-    from semantica.explorer.routes import ontology as ont_mod
-
+    ont_mod = ontology_module()
     orig_align = ont_mod._get_alignment_store
     orig_reg = ont_mod._get_registry
 

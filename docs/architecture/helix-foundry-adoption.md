@@ -221,7 +221,7 @@ web/src/
 - **DoD**：`uv run pytest` 通过迁移测试；Pydantic 100% 加载并校验合成后的连接器 Manifest 目录。
 
 #### Phase 2：纯 Python 连接与认证引擎 + 声明式流读取/动态发现引擎（预计 4~5 天）
-- **统一认证与连接管理 (`auth_engine.py` & `guarded_http.py`)**：实现 `AES-256-GCM` 凭据加解密；基于 `authlib` 支持 `OAUTH2`、`OAUTH2_CC`；基于 `httpx` 支持 `BASIC`（账号密码）、`TWO_STEP`（两步登录换 Token）、`API_KEY`、`CUSTOM`（含动态域名模板 `${connectionConfig.domain}`）与 `CHECK` 连通性自检（自动提取外部 `account_id` / `display_name`）。
+- **统一认证与连接管理 (`auth_engine.py` & `guarded_http.py`)**：实现 `AES-256-GCM` 凭据加解密；基于 `authlib` 支持 `OAUTH2`、`OAUTH2_CC`；基于 `httpx` 支持 `BASIC`（账号密码）、`TWO_STEP`（两步登录换 Token）、`API_KEY`、`CUSTOM`（含动态域名模板 `{{config.domain}}`）与 `CHECK` 连通性自检（自动提取外部 `account_id` / `display_name`）。
 - **双内核声明式流执行器 (`sql_adapter.py` + `rest_declarative_adapter.py`)**：
   - 关系库内核（SQLAlchemy 2.0）：实现 `DISCOVER`（`inspect(engine)` 探表、列、主外键）、`READ`（按主键/游标分批读取）、`MUTATE`（参数化 `update()`）。
   - REST 声明式内核：实现 `DynamicSchemaLoader`（动态探测 Airtable/Notion/飞书自定义列）、4 种自动分页器（`cursor` / `offset` / `page` / `link`）、`SubstreamPartitionRouter`、`DpathExtractor` 与 Jinja2 写回请求渲染。
@@ -294,7 +294,7 @@ flowchart TB
 
 | 方法与路径 | `operationId` 建议 | 说明 |
 | --- | --- | --- |
-| `GET /api/v1/kbs/{kb_id}/connectors/providers` | `kbConnectorsProvidersList` | 列出当前 KB 可用的连接器目录（含认证方式 `auth`、连接参数 `connection_config`、可读 `streams`、可写 `mutations` 与 `tools`） |
+| `GET /api/v1/kbs/{kb_id}/connectors/providers` | `kbConnectorsProvidersList` | 列出当前 KB 可用的连接器目录（含认证方式 `auth`、连接参数 `connection_config`、可读 entities、可写 mutations 与 procedures） |
 | `GET /api/v1/kbs/{kb_id}/connectors/connections` | `kbConnectorsConnectionsList` | 列出当前 KB 下已配置的数据库与 SaaS 连接状态（脱敏，含 `account_profile_json`） |
 | `PUT /api/v1/kbs/{kb_id}/connectors/connections/{service}` | `kbConnectorsConnectionUpsert` | 保存并执行 `CHECK` 验证当前 KB 的数据库连接（DSN）或 SaaS 凭据（API Key / 账号密码 / Custom，支持 `?connection_name=default`） |
 | `DELETE /api/v1/kbs/{kb_id}/connectors/connections/{service}` | `kbConnectorsConnectionDelete` | 删除指定连接凭据 |

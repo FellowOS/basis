@@ -5,6 +5,7 @@ import { PlatformOrgSsoSection } from '@/components/admin/platform-org-sso-secti
 import { ConsolePageLayout } from '@/components/app/shared/console/index.js';
 import { useI18n } from '@/i18n/context.js';
 import { useBasisSession } from '@/lib/basis-session.js';
+import { basisIsDesktopProduct } from '@/lib/basis-runtime.js';
 import { usePlatformAdminCrumbs } from '@/lib/use-platform-admin-crumbs.js';
 
 function SettingsSection({
@@ -33,21 +34,27 @@ export function SettingsPage() {
   const { t } = useI18n();
   const ps = t.platformSettings;
   const { isAdmin } = useBasisSession();
+  const desktopProduct = basisIsDesktopProduct();
   const [siteUrl, setSiteUrl] = useState('');
   const crumbs = usePlatformAdminCrumbs(t.menu.system.title);
 
   return (
     <ConsolePageLayout crumbs={crumbs} subtitle={t.menu.system.hint}>
       <div className="mx-auto w-full max-w-3xl space-y-12 pb-4">
-        {isAdmin ? (
+        {desktopProduct ? (
+          <p className="text-sm leading-relaxed text-muted-foreground">{ps.desktopSettingsLead}</p>
+        ) : null}
+        {!desktopProduct && isAdmin ? (
           <SettingsSection title={ps.tabAccess} description={ps.access.pageLead}>
             <PlatformAccessSettings onSiteUrlChange={setSiteUrl} />
           </SettingsSection>
         ) : null}
 
-        <SettingsSection title={ps.tabOrgSso} description={ps.orgSsoSectionLead}>
-          <PlatformOrgSsoSection siteBaseUrl={siteUrl} />
-        </SettingsSection>
+        {!desktopProduct ? (
+          <SettingsSection title={ps.tabOrgSso} description={ps.orgSsoSectionLead}>
+            <PlatformOrgSsoSection siteBaseUrl={siteUrl} />
+          </SettingsSection>
+        ) : null}
       </div>
     </ConsolePageLayout>
   );

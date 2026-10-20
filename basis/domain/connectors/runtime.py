@@ -16,11 +16,11 @@ from basis.domain.connectors.manifest_schema import (
     StreamSpec,
     ToolSpec,
 )
-from basis.domain.connectors.rest_declarative_adapter import (
+from basis.domain.connectors.adapters.rest import (
     RestBatchResult,
     RestDeclarativeStreamAdapter,
 )
-from basis.domain.connectors.sql_adapter import (
+from basis.domain.connectors.adapters.sql import (
     DiscoveredTableSchema,
     SqlAlchemyStreamAdapter,
 )
@@ -248,7 +248,7 @@ class ConnectorRuntime:
                     res = UnifiedReadResult(
                         records=rest_res.records,
                         next_cursor_value=rest_res.next_cursor_value,
-                        has_more=False,
+                        has_more=rest_res.has_more,
                     )
                 finally:
                     rest_adapter.close()

@@ -16,6 +16,7 @@ dependencies = [
   "uvicorn[standard]>=0.32",
   "pydantic>=2",
   "python-dotenv>=1.0",
+  "PyYAML>=6",
   "python-multipart>=0.0.9",
   "sqlalchemy>=2.0",
   "alembic>=1.14",
@@ -32,6 +33,7 @@ dev = [
   "httpx>=0.27",
   "PyYAML>=6",
   "schemathesis>=3.38",
+  "pymysql>=1.1",
 ]
 # 扫描件 PDF、更多向量后端、多 LLM 网关（体积大，按需装）
 heavy = [
@@ -55,6 +57,9 @@ basis = ["platform/admin/migrations/*.sql"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+markers = [
+  "integration: real database or external service (optional env)",
+]
 
 [tool.uv.sources]
 semantica = { path = "../../semantica", editable = true }

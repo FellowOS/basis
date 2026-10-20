@@ -47,7 +47,7 @@ export const marketing = {
     selfHost: '私有化部署',
     developersMenu: {
       docsHub: '文档',
-      docsHubDesc: '快速开始、核心概念、REST、MCP 与运维',
+      docsHubDesc: '快速开始、OpenAPI v1、BOCP 连接器、MCP 与运维',
       apiDocs: 'API 交互参考',
       apiDocsDesc: 'OpenAPI v1 在线调试',
       openApiSpec: 'OpenAPI 规范',
@@ -62,6 +62,17 @@ export const marketing = {
   heroEyebrow: '智能体优先 · 本体驱动',
   heroPillars:
     '业务本体 · 证据账本 · 1,000+ 声明式连接器 · 受控写回 · OpenAPI & MCP',
+  capabilitiesEyebrow: '核心能力',
+  capabilitiesTitle: '上下文、连接与受控写入，一个服务全部覆盖',
+  capabilitiesSubhead:
+    '读取来自带原文溯源的证据账本，写入必须经过审核闸口；图谱与检索始终是可重建的投影。',
+  selfHostEyebrow: '私有化部署',
+  selfHostTitle: '在你自己的基础设施上运行 Basis',
+  selfHostBody:
+    '两个进程，默认 SQLite，生产使用 PostgreSQL。可接入企业 SSO，也可用桌面模式在本机运行。',
+  selfHostDocs: '部署指南',
+  selfHostQuickstart: '快速开始',
+  selfHostGithub: 'GitHub',
   footerTagline: '智能体优先 · 本体驱动',
   a11yThemeLight: '浅色模式',
   a11yThemeDark: '深色模式',

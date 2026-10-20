@@ -1,0 +1,19 @@
+{
+  "title": "Docs",
+  "pages": [
+    "---Get started---",
+    "index",
+    "quickstart",
+    "concepts",
+    "---Integrate---",
+    "rest-api",
+    "bocp",
+    "connectors-basis",
+    "auth",
+    "mcp",
+    "---Reference---",
+    "api-reference",
+    "---Operations---",
+    "deployment"
+  ]
+}

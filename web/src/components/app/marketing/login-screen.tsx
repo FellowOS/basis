@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useLocation, useSearchParams } from 'react-router-dom';
 
+import { CapabilitiesSection } from '@/components/app/marketing/capabilities-section.js';
 import { ProductSiteFooter } from '@/components/app/marketing/product-site-footer.js';
 import { ProductSiteHeader } from '@/components/app/marketing/product-site-header.js';
+import { SelfHostSection } from '@/components/app/marketing/self-host-section.js';
 import { Button } from '@/components/ui/button.js';
 import {
   Dialog,
@@ -24,6 +26,7 @@ export function LoginScreen() {
   const { t } = useI18n();
   const { theme } = useTheme();
   const m = t.marketing;
+  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const [open, setOpen] = useState(() => {
     const mode = searchParams.get('mode');
@@ -32,7 +35,6 @@ export function LoginScreen() {
   const isRegister = searchParams.get('mode') === 'register';
   const isDark = theme === 'dark';
   const [authProviders, setAuthProviders] = useState<AuthProviders | null>(null);
-  const [astralPulse, setAstralPulse] = useState(0);
   const canvasBg = isDark ? '#090b10' : '#ffffff';
   const shellProps = useMemo(
     () =>
@@ -62,21 +64,31 @@ export function LoginScreen() {
     void loadAuthProviders().then(setAuthProviders);
   }, []);
 
+  // The console is viewport-locked; the landing needs document scroll for its sections.
+  useEffect(() => {
+    const root = document.documentElement;
+    root.dataset.marketing = 'true';
+    return () => {
+      delete root.dataset.marketing;
+    };
+  }, []);
+
   useEffect(() => {
     const mode = searchParams.get('mode');
     if (mode === 'register' || mode === 'login') setOpen(true);
   }, [searchParams]);
 
+  // React Router updates the hash without scrolling; keep nav anchors usable.
   useEffect(() => {
-    const onHash = () => {
-      if (window.location.hash === '#capabilities') {
-        setAstralPulse((n) => n + 1);
-      }
-    };
-    onHash();
-    window.addEventListener('hashchange', onHash);
-    return () => window.removeEventListener('hashchange', onHash);
-  }, []);
+    if (!location.hash) return;
+    const id = decodeURIComponent(location.hash.slice(1));
+    const target = document.getElementById(id);
+    if (!target) return;
+    const frame = requestAnimationFrame(() => {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [location.hash]);
 
   function openAuth(mode: 'login' | 'register') {
     setSearchParams({ mode }, { replace: true });
@@ -93,7 +105,7 @@ export function LoginScreen() {
 
   return (
     <div
-      className="relative flex h-dvh max-h-dvh flex-col overflow-hidden overscroll-none text-foreground"
+      className="relative flex min-h-dvh flex-col bg-background text-foreground"
       style={{
         background: isDark ? '#090b10' : '#ffffff',
         '--login-canvas': isDark ? '#090b10' : '#ffffff',
@@ -108,72 +120,77 @@ export function LoginScreen() {
         '--login-cta-shimmer': isDark ? '#e8a830' : '#d4880a',
       } as CSSProperties}
     >
-      <div className="absolute inset-y-0 right-0 z-[1] w-full sm:w-[62%] lg:w-[58%]">
-        <AstralShell
-          className="pointer-events-auto h-full min-h-0 w-full"
-          backgroundColor={canvasBg}
-          {...shellProps}
-          interactive
-          draggable
-          clickPulse
-          pulseSignal={astralPulse}
-          dpr={1.75}
-        />
-        <div
-          className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[var(--login-canvas)] from-35% via-[var(--login-canvas)]/80 to-transparent sm:from-0% sm:via-[var(--login-canvas)]/40"
-          aria-hidden
-        />
-      </div>
+      <ProductSiteHeader onGetStarted={() => openAuth('login')} />
 
-      <ProductSiteHeader activeKey="product" onGetStarted={() => openAuth('login')} />
-
-      <main
-        id="product"
-        className="pointer-events-none relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden px-5 py-4 sm:py-5 sm:pl-8 sm:pr-[62%] lg:pr-[58%]"
-      >
-        <div className="pointer-events-auto flex min-h-0 flex-1 flex-col justify-center">
-          <p className="max-w-xl text-xs leading-relaxed text-pretty text-muted-foreground sm:text-[13px]">
-            {m.heroEyebrow}
-          </p>
-          <h1
-            className="mt-3 text-[1.65rem] font-semibold leading-[1.1] tracking-[-0.035em] sm:mt-3.5 sm:text-4xl lg:text-[2.65rem]"
-            aria-label={`${m.heroHeadline} ${m.heroHeadlineRest}`}
-          >
-            <span className="block">{m.heroHeadline}</span>
-            <span className="mt-0.5 block text-[var(--login-gold)] sm:mt-1">{m.heroHeadlineRest}</span>
-          </h1>
-          <p className="mt-2 line-clamp-3 text-[13px] leading-relaxed text-pretty text-muted-foreground sm:mt-3 sm:line-clamp-2 sm:text-sm">
-            {m.heroSubhead}
-          </p>
-          <div className="mt-4 flex flex-wrap items-center gap-2.5 sm:mt-5 sm:gap-3">
-            <Button
-              type="button"
-              size="default"
-              className="bg-[var(--login-cta-bg)] px-6 text-[var(--login-cta-fg)] hover:bg-[var(--login-cta-bg)] hover:brightness-110 sm:px-7"
-              onClick={() => openAuth('login')}
-            >
-              {m.ctaLogin}
-            </Button>
-            <Button
-              type="button"
-              size="default"
-              variant="ghost"
-              className="border border-foreground/15 bg-transparent px-6 text-foreground hover:bg-foreground/6 sm:px-7"
-              onClick={() => openAuth('register')}
-            >
-              {m.ctaRegister}
-            </Button>
+      <main className="relative flex flex-1 flex-col">
+        <section
+          id="product"
+          className="relative flex min-h-[calc(100dvh-3.5rem)] flex-col overflow-hidden sm:min-h-[calc(100dvh-4rem)]"
+        >
+          <div className="absolute inset-y-0 right-0 z-[1] w-full sm:w-[62%] lg:w-[58%]">
+            <AstralShell
+              className="pointer-events-auto h-full min-h-0 w-full"
+              backgroundColor={canvasBg}
+              {...shellProps}
+              interactive
+              draggable
+              clickPulse
+              dpr={1.75}
+            />
+            <div
+              className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[var(--login-canvas)] from-35% via-[var(--login-canvas)]/80 to-transparent sm:from-0% sm:via-[var(--login-canvas)]/40"
+              aria-hidden
+            />
           </div>
-          <p
-            id="capabilities"
-            className="mt-5 max-w-xl border-t border-border/60 pt-4 text-[11px] leading-relaxed text-pretty text-muted-foreground scroll-mt-24 sm:mt-6 sm:pt-5 sm:text-xs"
-          >
-            {m.heroPillars}
-          </p>
-        </div>
+
+          <div className="pointer-events-none relative z-10 flex flex-1 flex-col overflow-hidden px-5 py-4 sm:py-5 sm:pl-8 sm:pr-[62%] lg:pr-[58%]">
+            <div className="pointer-events-auto flex min-h-0 flex-1 flex-col justify-center">
+              <p className="max-w-xl text-xs leading-relaxed text-pretty text-muted-foreground sm:text-[13px]">
+                {m.heroEyebrow}
+              </p>
+              <h1
+                className="mt-3 text-[1.65rem] font-semibold leading-[1.1] tracking-[-0.035em] sm:mt-3.5 sm:text-4xl lg:text-[2.65rem]"
+                aria-label={`${m.heroHeadline} ${m.heroHeadlineRest}`}
+              >
+                <span className="block">{m.heroHeadline}</span>
+                <span className="mt-0.5 block text-[var(--login-gold)] sm:mt-1">
+                  {m.heroHeadlineRest}
+                </span>
+              </h1>
+              <p className="mt-2 line-clamp-3 text-[13px] leading-relaxed text-pretty text-muted-foreground sm:mt-3 sm:line-clamp-2 sm:text-sm">
+                {m.heroSubhead}
+              </p>
+              <div className="mt-4 flex flex-wrap items-center gap-2.5 sm:mt-5 sm:gap-3">
+                <Button
+                  type="button"
+                  size="default"
+                  className="bg-[var(--login-cta-bg)] px-6 text-[var(--login-cta-fg)] hover:bg-[var(--login-cta-bg)] hover:brightness-110 sm:px-7"
+                  onClick={() => openAuth('login')}
+                >
+                  {m.ctaLogin}
+                </Button>
+                <Button
+                  type="button"
+                  size="default"
+                  variant="ghost"
+                  className="border border-foreground/15 bg-transparent px-6 text-foreground hover:bg-foreground/6 sm:px-7"
+                  onClick={() => openAuth('register')}
+                >
+                  {m.ctaRegister}
+                </Button>
+              </div>
+              <p className="mt-5 max-w-xl border-t border-border/60 pt-4 text-[11px] leading-relaxed text-pretty text-muted-foreground sm:mt-6 sm:pt-5 sm:text-xs">
+                {m.heroPillars}
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <CapabilitiesSection />
+        <SelfHostSection />
       </main>
 
-      <ProductSiteFooter />
+      <ProductSiteFooter splitLayout={false} />
 
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="flex max-h-[calc(100%-1rem)] flex-col gap-0 overflow-hidden border-black/10 bg-white p-0 shadow-[0_24px_64px_-20px_rgb(0_0_0_/_0.45)] sm:max-w-[24.5rem] data-[state=closed]:[--tw-exit-scale:1] data-[state=open]:[--tw-enter-scale:1] dark:border-white/10 dark:bg-[#141a22] [&_[data-slot=dialog-close]]:top-3.5 [&_[data-slot=dialog-close]]:right-3.5">

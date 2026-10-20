@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
+import asyncio
 from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, File, Form, Query, Request, UploadFile
 
+from basis.platform.admin.errors import AdminError
 from basis.platform.admin.store import AdminStore, User
 from basis.transport.http.deps import get_current_user, get_explorer_registry, get_store, save_graph, get_kb_for_viewer, get_kb_for_editor
-from basis.transport.http.explorer_route_errors import invoke_explorer
 from basis.domain.explorer.kb_scoped_ontology_state import KbOntologyState
 from basis.domain.explorer.session_guard import require_explorer_graph_session
 from basis.domain.kb.services.graph_audit import audit_kb_graph
@@ -33,10 +34,10 @@ async def kb_vocabulary_schemes(
 Kb Vocabulary Schemes. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
     """
     get_kb_for_viewer(request, user, kb_id, store)
-    from semantica.explorer.routes.vocabulary import list_schemes
+    from basis.domain.explorer.vocabulary_read import list_schemes
 
     session = _session(request, kb_id)
-    return await invoke_explorer(list_schemes(session=session), context="vocabulary")
+    return await asyncio.to_thread(list_schemes, session)
 
 
 @router.get("/{kb_id}/vocabulary/concepts")
@@ -52,13 +53,10 @@ async def kb_vocabulary_concepts(
 Kb Vocabulary Concepts. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
     """
     get_kb_for_viewer(request, user, kb_id, store)
-    from semantica.explorer.routes.vocabulary import list_concepts
+    from basis.domain.explorer.vocabulary_read import list_concepts
 
     session = _session(request, kb_id)
-    return await invoke_explorer(
-        list_concepts(scheme=scheme, search=search, session=session),
-        context="vocabulary",
-    )
+    return await asyncio.to_thread(list_concepts, session, scheme=scheme, search=search)
 
 
 @router.get("/{kb_id}/vocabulary/hierarchy")
@@ -73,10 +71,10 @@ async def kb_vocabulary_hierarchy(
 Kb Vocabulary Hierarchy. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
     """
     get_kb_for_viewer(request, user, kb_id, store)
-    from semantica.explorer.routes.vocabulary import get_hierarchy
+    from basis.domain.explorer.vocabulary_read import get_hierarchy
 
     session = _session(request, kb_id)
-    return await invoke_explorer(get_hierarchy(scheme=scheme, session=session), context="vocabulary")
+    return await asyncio.to_thread(get_hierarchy, session, scheme=scheme)
 
 
 @router.post("/{kb_id}/vocabulary/import")
@@ -93,16 +91,27 @@ async def kb_vocabulary_import(
 Kb Vocabulary Import. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
     """
     get_kb_for_editor(request, user, kb_id, store)
-    from semantica.explorer.routes.vocabulary import import_vocabulary
+    from basis.domain.explorer.vocabulary_write import import_vocabulary
 
     session = _session(request, kb_id)
-    result = await invoke_explorer(
-        import_vocabulary(file=file, text=text, format=format, session=session),
-        context="vocabulary",
-    )
-    save_graph(request, kb_id)
-    summary = result.model_dump() if hasattr(result, "model_dump") else dict(result)
-    audit_kb_graph(store, user, kb_id, "kb.graph.vocabulary_import", extra=summary)
+    if file is not None:
+        content = await file.read()
+        result = await asyncio.to_thread(
+            import_vocabulary,
+            session,
+            content=content,
+            filename=file.filename,
+            format=format,
+        )
+    else:
+        result = await asyncio.to_thread(
+            import_vocabulary,
+            session,
+            text=text,
+            format=format,
+        )
+    save_graph(request, kb_id, sync_ledger=False)
+    audit_kb_graph(store, user, kb_id, "kb.graph.vocabulary_import", extra=result)
     return result
 
 
@@ -120,13 +129,18 @@ async def kb_ontology_registry(
 Kb Ontology Registry. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
     """
     get_kb_for_viewer(request, user, kb_id, store)
-    from semantica.explorer.routes.ontology import list_registry
+    from basis.domain.explorer.ontology_catalog import list_registry
 
     session = _session(request, kb_id)
     with KbOntologyState(request, kb_id):
-        return await invoke_explorer(
-            list_registry(request, q=q, status=status, format=format, session=session),
-            context="ontology",
+        registry = request.app.state.kb_ontology_registries[kb_id]
+        return await asyncio.to_thread(
+            list_registry,
+            registry,
+            session,
+            q=q,
+            status=status,
+            format=format,
         )
 
 
@@ -150,11 +164,16 @@ Kb List Alignments. Ontology workspace (SKOS, alignments) via Explorer. Requires
             alignments = [
                 item
                 for item in alignments
-                if item.source_uri.startswith(uri) or item.target_uri.startswith(uri)
+                if str(item.get("source_uri", "")).startswith(uri)
+                or str(item.get("target_uri", "")).startswith(uri)
             ]
         return sorted(
             alignments,
-            key=lambda item: (item.source_label, item.target_label, item.relation),
+            key=lambda item: (
+                item.get("source_label", ""),
+                item.get("target_label", ""),
+                item.get("relation", ""),
+            ),
         )
 
 
@@ -169,16 +188,27 @@ async def kb_upsert_alignment(
 Kb Upsert Alignment. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
     """
     get_kb_for_editor(request, user, kb_id, store)
-    from semantica.explorer.routes.ontology import upsert_alignment
-    from semantica.explorer.routes.ontology import OntologyAlignmentRequest
+    from basis.domain.explorer.ontology_catalog import upsert_alignment
 
     raw = await request.json()
-    body = OntologyAlignmentRequest.model_validate(raw)
+    if not isinstance(raw, dict):
+        raise AdminError(422, "validation_error", "请求体须为 JSON 对象")
     session = _session(request, kb_id)
     with KbOntologyState(request, kb_id):
-        return await invoke_explorer(
-            upsert_alignment(request, body=body, session=session),
-            context="ontology",
+        align_store = request.app.state.kb_ontology_alignments[kb_id]
+        return await asyncio.to_thread(
+            upsert_alignment,
+            align_store,
+            session,
+            source_uri=str(raw.get("source_uri", "")),
+            target_uri=str(raw.get("target_uri", "")),
+            relation=str(raw.get("relation", "")),
+            source_label=raw.get("source_label"),
+            target_label=raw.get("target_label"),
+            confidence=float(raw.get("confidence", 1.0)),
+            provenance=raw.get("provenance"),
+            source=raw.get("source"),
+            reviewer=raw.get("reviewer"),
         )
 
 
@@ -194,10 +224,11 @@ async def kb_delete_alignment(
 Kb Delete Alignment. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
     """
     get_kb_for_editor(request, user, kb_id, store)
-    from semantica.explorer.routes.ontology import delete_alignment
+    from basis.domain.explorer.ontology_catalog import delete_alignment
 
     with KbOntologyState(request, kb_id):
-        return await invoke_explorer(delete_alignment(request, id=id), context="ontology")
+        align_store = request.app.state.kb_ontology_alignments[kb_id]
+        return await asyncio.to_thread(delete_alignment, align_store, id)
 
 
 @router.post("/{kb_id}/ontology/suggest-alignments")
@@ -211,13 +242,20 @@ async def kb_suggest_alignments(
 Kb Suggest Alignments. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
     """
     get_kb_for_viewer(request, user, kb_id, store)
-    from semantica.explorer.routes.ontology import suggest_alignments
-    from semantica.explorer.routes.ontology import AlignmentSuggestionRequest
+    from basis.domain.explorer.ontology_catalog import suggest_alignments
 
     raw = await request.json()
-    body = AlignmentSuggestionRequest.model_validate(raw)
+    if not isinstance(raw, dict):
+        raise AdminError(422, "validation_error", "请求体须为 JSON 对象")
     session = _session(request, kb_id)
-    return await invoke_explorer(suggest_alignments(body=body, session=session), context="ontology")
+    return await asyncio.to_thread(
+        suggest_alignments,
+        session,
+        source_ontology_uri=raw.get("source_ontology_uri"),
+        target_ontology_uri=raw.get("target_ontology_uri"),
+        threshold=float(raw.get("threshold", 0.65)),
+        limit=int(raw.get("limit", 25)),
+    )
 
 
 register_kb_ontology_hub_routes(router)

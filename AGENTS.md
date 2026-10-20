@@ -118,9 +118,10 @@ Run relevant checks after substantive edits; say if something was not run.
 ## Python / API
 
 - Package layout: [docs/architecture/package-layout.md](./docs/architecture/package-layout.md) — `transport/`, `integration/`, `domain/`, `platform/`, `infra/`, `ops/`.
+- **Semantica 线 1：** 新后端逻辑放在 `basis/domain/*`；**不要**新增对 `semantica.explorer.routes` 的 import（CI allowlist：`scripts/audit-semantica-explorer-imports.py`）。图/时态读优先 `basis/domain/explorer/graph_read.py`、`temporal_read.py` 等。
 - CLI entry: `pyproject.toml` (`basis` → `basis.cli:main`); app factory `basis.transport.http.app:create_app`.
 - Migrations: `basis/platform/admin/migrations/`.
-- Integration core (MCP + OpenAPI ops): `basis/integration/` (`KbCoreContext`, `run`). **MCP tools** (20 today; minimal graph loop in [openapi-v1.md §6.1](./docs/architecture/openapi-v1.md)): graph/review + connector ops in `registry.py` / `mcp_openapi.py`.
+- Integration core (MCP + OpenAPI ops): `basis/integration/` (`KbCoreContext`, `run`). **MCP tools** (21 today; minimal graph loop in [openapi-v1.md §6.1](./docs/architecture/openapi-v1.md)): graph/review + connector ops in `registry.py` / `mcp_openapi.py`.
 - OpenAPI: served live from `app.openapi()` via `basis.transport.http.openapi_v1_export` (`/openapi/v1.json`); handler docstrings → `description`. Optional JSON snapshots in `openapi/*.json`: `scripts/generate-openapi-v1.py` (CI drift + `web` typegen; fails if any operation lacks a docstring).
 - Prefer existing patterns in route handlers and services; follow pytest style in `tests/`.
 

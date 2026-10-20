@@ -28,6 +28,7 @@ import {
 import { useKbAlertsNavKbId, useKbUnreadAlerts } from '@/lib/use-kb-unread-alerts.js';
 import { useTheme } from '@/lib/theme.js';
 import { cn } from '@/lib/utils.js';
+import { basisIsDesktopProduct } from '@/lib/basis-runtime.js';
 import { useSettingsAccess } from '@/lib/use-settings-access.js';
 
 function MenuIcon({ name, className }: { name: string; className?: string }) {
@@ -58,13 +59,14 @@ export function BasisAccountMenu({ onLogout }: { onLogout: () => void }) {
   const accountRole = isAdmin ? t.sidebar.roleBasisAdmin : t.sidebar.roleBasisUser;
   const initials = (accountTitle[0] ?? 'S').toUpperCase();
 
+  const desktopProduct = basisIsDesktopProduct();
   const settingsReady = isAdmin || canSettings !== null;
   const platformItems = settingsReady
-    ? visiblePlatformNavItems(isAdmin, canSettings === true)
+    ? visiblePlatformNavItems(isAdmin, canSettings === true, desktopProduct)
     : [];
   const showManagement = platformItems.length > 0;
   const managementHref = showManagement
-    ? platformAdminEntryPath(isAdmin, canSettings === true)
+    ? platformAdminEntryPath(isAdmin, canSettings === true, desktopProduct)
     : null;
   const showAlertsBadge = showAlertsLink && unreadAlertsCount > 0;
   const alertsBadgeLabel = formatBadgeCount(locale as Locale, unreadAlertsCount, 99);
@@ -177,15 +179,19 @@ export function BasisAccountMenu({ onLogout }: { onLogout: () => void }) {
             </DropdownMenuItem>
           </>
         ) : null}
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
-          onClick={() => {
-            onLogout();
-          }}
-        >
-          <MenuIcon name="logout-01" />
-          {t.sidebar.logout}
-        </DropdownMenuItem>
+        {!desktopProduct ? (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={() => {
+                onLogout();
+              }}
+            >
+              <MenuIcon name="logout-01" />
+              {t.sidebar.logout}
+            </DropdownMenuItem>
+          </>
+        ) : null}
       </DropdownMenuContent>
       </DropdownMenu>
       {showAlertsBadge ? (

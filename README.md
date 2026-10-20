@@ -27,6 +27,8 @@ cd web && npm install && npm run dev  # Web  :5173
 
 The first registered user becomes the platform administrator.
 
+**Desktop (local, no login):** [ADR 0004](docs/architecture/0004-desktop-deployment.md) — `BASIS_DEPLOYMENT_PROFILE=desktop` + `web` `npm run dev:desktop`, or `cd desktop && npm run dev` for Electron. Data defaults to `~/.basis`.
+
 ---
 
 ## Why Basis
@@ -57,7 +59,11 @@ Documentation: [features](docs/features.md) · [progress](docs/progress.md) · [
 | `BASIS_LEGACY_API_ENABLED` | `0` | Set `1` to allow unversioned `/api/*` (deprecated) |
 | `BASIS_REST_V1_MAX_INFLIGHT` | `64` | Concurrent `/api/v1/*` requests (503 `api_busy`) |
 
-PostgreSQL: `docker compose -f compose.postgres.yml up -d`, then set `BASIS_DATABASE_URL=postgresql://basis:basis@127.0.0.1:5432/basis`.
+PostgreSQL: `docker compose -f compose.postgres.yml up -d`, then set `BASIS_DATABASE_URL=postgresql://basis:basis@127.0.0.1:5433/basis` (host port **5433** avoids clashing with a local Postgres on 5432).
+
+**Connector integration tests (real Postgres + GitHub):** `cp .env.test.example .env.test`, fill `BASIS_TEST_POSTGRES_URL` and GitHub vars, then `uv run pytest tests/test_sql_connector_integration.py tests/test_connector_primitive_invoke.py -q -m integration`. Postgres compose: `docker compose -f compose.postgres.yml up -d` (host port **5433**). Optional MySQL: `compose.mysql.yml` + `BASIS_TEST_MYSQL_URL` in `.env.test`.
+
+**Provider bundles (BOCP synthesis):** `uv run python scripts/build_connector_manifests.py --all-batches` writes `basis/domain/connectors/providers/*.yaml` (batch 0: postgres/mysql/github; batch 1: slack). Optional upstream paths: `BASIS_SYNTHESIS_NANGO_PROVIDERS`, `BASIS_SYNTHESIS_ANYCONNECT_CATALOG`, `BASIS_SYNTHESIS_AIRBYTE_ROOT`. See [provider-migration-plan.zh.md](docs/architecture/provider-migration-plan.zh.md).
 
 Migrate SQLite → Postgres: `uv run basis migrate-postgres --database-url postgresql://…`
 

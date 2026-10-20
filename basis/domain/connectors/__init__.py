@@ -30,7 +30,7 @@ from basis.domain.connectors.manifest_schema import (
     ToolSpec,
     TwoStepAuthSpec,
 )
-from basis.domain.connectors.rest_declarative_adapter import (
+from basis.domain.connectors.adapters.rest import (
     RestBatchResult,
     RestDeclarativeStreamAdapter,
 )
@@ -39,7 +39,7 @@ from basis.domain.connectors.runtime import (
     DiscoveredStreamInfo,
     UnifiedReadResult,
 )
-from basis.domain.connectors.sql_adapter import (
+from basis.domain.connectors.adapters.sql import (
     DiscoveredTableSchema,
     SqlAlchemyStreamAdapter,
     SqlBatchResult,

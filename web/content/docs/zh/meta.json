@@ -1,0 +1,19 @@
+{
+  "title": "文档",
+  "pages": [
+    "---开始使用---",
+    "index",
+    "quickstart",
+    "concepts",
+    "---接入---",
+    "rest-api",
+    "bocp",
+    "connectors-basis",
+    "auth",
+    "mcp",
+    "---参考---",
+    "api-reference",
+    "---运维---",
+    "deployment"
+  ]
+}

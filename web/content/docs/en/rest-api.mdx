@@ -1,0 +1,21 @@
+---
+title: "REST API (OpenAPI v1)"
+sidebarTitle: "REST API"
+description: "Versioned HTTP entrypoints and how to choose platform vs knowledge-base calls."
+---
+
+## Base URL and versioning
+
+All normative routes live under `/api/v1`. Legacy unversioned routes are gated off by default (HTTP 410).
+
+## OpenAPI documents
+
+Three published specs share one implementation (see also the [interactive reference](/swagger)):
+
+- [`/openapi/v1.json`](/openapi/v1.json) — full surface
+- [`/openapi/v1/platform.json`](/openapi/v1/platform.json) — platform administration
+- [`/openapi/v1/kb.json`](/openapi/v1/kb.json) — per–knowledge-base operations
+
+## Session vs token
+
+Browser console uses session cookies and Bearer tokens after login. Automation uses platform or per-KB access tokens — see Authentication.

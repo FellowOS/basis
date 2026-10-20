@@ -102,6 +102,18 @@ body,
   overflow: hidden;
 }
 
+/*
+ * Marketing landing (`/`) is the one document-scrolling surface; the console and
+ * docs own the viewport. LoginScreen toggles `data-marketing` on <html>.
+ */
+html[data-marketing='true'],
+html[data-marketing='true'] body,
+html[data-marketing='true'] #root {
+  height: auto;
+  min-height: 100dvh;
+  overflow: visible;
+}
+
 body {
   margin: 0;
 }
@@ -512,6 +524,14 @@ input[type="checkbox"] {
   font-family: var(--font-ui);
 }
 
+/* Electron desktop: fixed sidebar sits below custom titlebar (Windows/Linux). */
+[data-basis-desktop-shell] [data-slot='sidebar-container'] {
+  top: var(--basis-titlebar-height, 0px);
+  height: auto;
+  bottom: 0;
+  border-right-width: 0;
+}
+
 /*
  * KB console Button chrome (shadcn `Button` under `[data-basis-app]`).
  * TS segment helpers: `lib/ui-classes/explorer-ws.ts` (`exWsGhost*`, …).
@@ -651,6 +671,33 @@ input[type="checkbox"] {
   --sidebar-accent-foreground: hsl(240 5.9% 10%);
   --sidebar-border: hsl(220 13% 91%);
   --sidebar-ring: hsl(217.2 91.2% 59.8%);
+}
+
+/* Marketing docs — Fumadocs MDX Shiki (dual github-light / github-dark) */
+[data-doc-article] pre.shiki {
+  margin: 0;
+  tab-size: 2;
+  background-color: var(--shiki-light-bg) !important;
+}
+
+.dark [data-doc-article] pre.shiki {
+  background-color: var(--shiki-dark-bg) !important;
+}
+
+[data-doc-article] pre.shiki code {
+  display: grid;
+  min-width: 100%;
+  background: transparent !important;
+}
+
+[data-doc-article] :is(.shiki, .shiki span) {
+  color: var(--shiki-light);
+  background-color: var(--shiki-light-bg);
+}
+
+.dark [data-doc-article] :is(.shiki, .shiki span) {
+  color: var(--shiki-dark) !important;
+  background-color: var(--shiki-dark-bg) !important;
 }
 
 .dark {

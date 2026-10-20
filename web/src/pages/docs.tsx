@@ -1,8 +1,8 @@
-import { Navigate, useParams } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 
-import { DocsArticle } from '@/components/app/marketing/docs/docs-article.js';
+import { DocsFumadocsPage } from '@/components/app/marketing/docs/docs-fumadocs-page.js';
+import { DocsNotFound } from '@/components/app/marketing/docs/docs-not-found.js';
 import { DocsShell } from '@/components/app/marketing/docs/docs-shell.js';
-import { useI18n } from '@/i18n/context.js';
 import { DOC_SLUGS, docSlugFromParam, type DocSlug } from '@/lib/product-docs-nav.js';
 
 function isDocSlug(value: string): value is DocSlug {
@@ -10,24 +10,22 @@ function isDocSlug(value: string): value is DocSlug {
 }
 
 export function DocsPage() {
-  const { slug: slugParam } = useParams();
-  const { t } = useI18n();
+  const { pathname } = useLocation();
+  const slugParam = pathname.replace(/^\/docs\/?/, '').split('/')[0];
 
   if (slugParam && !isDocSlug(slugParam)) {
-    return <Navigate to="/docs" replace />;
+    return (
+      <DocsShell>
+        <DocsNotFound path={pathname} />
+      </DocsShell>
+    );
   }
 
-  const slug = docSlugFromParam(slugParam);
-  const page = t.docs.pages[slug];
+  const slug = docSlugFromParam(slugParam || undefined);
 
   return (
     <DocsShell activeSlug={slug}>
-      <DocsArticle
-        title={page.title}
-        description={page.description}
-        sections={page.sections}
-        links={'links' in page && page.links ? page.links : undefined}
-      />
+      <DocsFumadocsPage slug={slug} />
     </DocsShell>
   );
 }

@@ -7,17 +7,40 @@ const repoRoot = path.resolve(packageRoot, '..');
 const webPort = Number(process.env.BASIS_E2E_WEB_PORT ?? '5174');
 const apiPort = Number(process.env.BASIS_E2E_API_PORT ?? '8091');
 const baseURL = `http://127.0.0.1:${webPort}`;
+const desktopE2e = process.env.BASIS_E2E_DESKTOP === '1';
 
 function e2eApiEnv(): Record<string, string> {
   const env = { ...process.env } as Record<string, string>;
   // Empty string prevents repo `.env` Postgres URL from being applied after load_dotenv().
   env.BASIS_DATABASE_URL = '';
-  env.BASIS_DATA_DIR = 'data-e2e';
+  env.BASIS_DATA_DIR = desktopE2e ? 'data-e2e-desktop' : 'data-e2e';
   env.BASIS_HOST = '127.0.0.1';
   env.BASIS_PORT = String(apiPort);
   env.BASIS_INGEST_INLINE = '1';
+  if (desktopE2e) {
+    env.BASIS_DEPLOYMENT_PROFILE = 'desktop';
+    env.BASIS_PROFILE = 'desktop';
+  }
   return env;
 }
+
+const apiServerCommand = desktopE2e ? 'uv run basis serve --profile desktop' : 'uv run basis';
+
+const webServerCommand = desktopE2e
+  ? `npx vite --mode desktop --host 127.0.0.1 --port ${webPort} --strictPort`
+  : 'node --experimental-strip-types server/dev.ts';
+
+const webServerEnv: Record<string, string> = desktopE2e
+  ? {
+      ...process.env,
+      VITE_BASIS_API_URL: `http://127.0.0.1:${apiPort}`,
+    }
+  : {
+      ...process.env,
+      BASIS_API_URL: `http://127.0.0.1:${apiPort}`,
+      WEB_PORT: String(webPort),
+      WEB_HOST: '127.0.0.1',
+    };
 
 export default defineConfig({
   globalSetup: './e2e/global-setup.ts',
@@ -38,7 +61,7 @@ export default defineConfig({
     ? undefined
     : [
         {
-          command: 'uv run basis',
+          command: apiServerCommand,
           cwd: repoRoot,
           env: e2eApiEnv(),
           url: `http://127.0.0.1:${apiPort}/health`,
@@ -47,14 +70,9 @@ export default defineConfig({
           timeout: 120_000,
         },
         {
-          command: 'node --experimental-strip-types server/dev.ts',
+          command: webServerCommand,
           cwd: packageRoot,
-          env: {
-            ...process.env,
-            BASIS_API_URL: `http://127.0.0.1:${apiPort}`,
-            WEB_PORT: String(webPort),
-            WEB_HOST: '127.0.0.1',
-          },
+          env: webServerEnv,
           url: baseURL,
           reuseExistingServer: process.env.BASIS_E2E_REUSE_SERVERS === '1',
           timeout: 120_000,

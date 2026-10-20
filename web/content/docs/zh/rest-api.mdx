@@ -1,0 +1,21 @@
+---
+title: "REST API（OpenAPI v1）"
+sidebarTitle: "REST API"
+description: "版本化 HTTP 入口，以及如何选择平台面与知识库面。"
+---
+
+## 基址与版本
+
+规范路由均在 `/api/v1` 下。未带 v1 的遗留路由默认关闭（HTTP 410）。
+
+## OpenAPI 文档
+
+三份 spec 对应同一实现（亦可使用 [交互式参考](/swagger)）：
+
+- [`/openapi/v1.json`](/openapi/v1.json) — 完整面
+- [`/openapi/v1/platform.json`](/openapi/v1/platform.json) — 平台管理
+- [`/openapi/v1/kb.json`](/openapi/v1/kb.json) — 单库操作
+
+## 会话与令牌
+
+浏览器控制台使用登录会话；自动化使用平台或单库访问令牌 — 见「鉴权与访问」。

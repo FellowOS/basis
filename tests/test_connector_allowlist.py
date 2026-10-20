@@ -137,10 +137,10 @@ def test_platform_settings_connectors_http(tmp_path: Path) -> None:
     ok = client.put(
         "/api/v1/settings/connectors",
         headers=headers,
-        json={"allowed_providers": ["postgres", "github"]},
+        json={"allowed_providers": ["postgres", "mysql"]},
     )
     assert ok.status_code == 200
-    assert ok.json()["allowed_providers"] == ["github", "postgres"]
+    assert ok.json()["allowed_providers"] == ["mysql", "postgres"]
 
     stats = client.get("/api/v1/settings/connectors/catalog/stats", headers=headers)
     assert stats.status_code == 200
@@ -160,8 +160,8 @@ def test_runtime_respects_platform_ceiling(tmp_path: Path) -> None:
         vault.upsert_policy("kb1", allowed_providers="*")
         runtime = ConnectorRuntime(conn, vault_secret="secret")
         with pytest.raises(PermissionError, match="platform connector policy"):
-            runtime.vault.assert_service_allowed("kb1", "github")
+            runtime.vault.assert_service_allowed("kb1", "mysql")
         with pytest.raises(PermissionError, match="platform level"):
-            vault.upsert_policy("kb1", allowed_providers=["github"])
+            vault.upsert_policy("kb1", allowed_providers=["mysql"])
     finally:
         conn.close()

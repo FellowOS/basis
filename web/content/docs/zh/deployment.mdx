@@ -1,0 +1,18 @@
+---
+title: "私有化部署与配置"
+sidebarTitle: "私有化部署"
+description: "环境变量与生产部署要点。"
+---
+
+## 常用配置
+
+生产环境常见项：
+
+- `BASIS_HOST` / `BASIS_PORT` — API 监听
+- `BASIS_DATA_DIR` — SQLite、blob、图谱 JSON（默认）
+- `BASIS_DATABASE_URL` — 生产 PostgreSQL
+- `VITE_BASIS_API_URL` — 非同源时浏览器 API 基址
+
+## 反向代理
+
+托管 Web 静态资源，并将 `/api`、`/openapi` 与 WebSocket 转发到 API。示例见仓库 `docker/production/`。

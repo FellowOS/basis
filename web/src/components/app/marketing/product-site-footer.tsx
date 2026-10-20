@@ -15,14 +15,24 @@ export function ProductSiteFooter({ className, splitLayout = true }: ProductSite
 
   return (
     <footer
-      id="self-host"
       className={cn(
-        'relative z-10 shrink-0 scroll-mt-24 border-t border-border/50 px-5 py-3 text-[11px] text-muted-foreground sm:px-8 sm:text-xs',
+        'relative z-10 shrink-0 border-t border-border/50 px-5 py-3 text-[11px] text-muted-foreground sm:px-8 sm:text-xs',
         splitLayout && 'pointer-events-none sm:pr-[62%] lg:pr-[58%]',
         className,
       )}
     >
-      <p className={splitLayout ? 'pointer-events-auto' : undefined}>{fmt(m.footerCopyright, { year })}</p>
+      <div
+        className={cn(
+          splitLayout
+            ? 'contents'
+            : 'flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-4',
+        )}
+      >
+        <p className={splitLayout ? 'pointer-events-auto' : undefined}>
+          {fmt(m.footerCopyright, { year })}
+        </p>
+        {splitLayout ? null : <p>{m.footerTagline}</p>}
+      </div>
     </footer>
   );
 }

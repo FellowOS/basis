@@ -2,9 +2,19 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { fetchSession, getToken, setToken } from './api.js';
 import { basisSessionClient } from './basis-session-client.js';
+import { basisAuthRequired } from './basis-runtime.js';
+import { publicOpenApiPOST } from './openapi-client.js';
 
 vi.mock('./basis-session-client.js', () => ({
   basisSessionClient: vi.fn(),
+}));
+
+vi.mock('./basis-runtime.js', () => ({
+  basisAuthRequired: vi.fn(() => true),
+}));
+
+vi.mock('./openapi-client.js', () => ({
+  publicOpenApiPOST: vi.fn(),
 }));
 
 function installLocalStorageMock() {
@@ -29,6 +39,8 @@ describe('fetchSession', () => {
   beforeEach(() => {
     installLocalStorageMock();
     getMock.mockReset();
+    vi.mocked(basisAuthRequired).mockReturnValue(true);
+    vi.mocked(publicOpenApiPOST).mockReset();
     vi.mocked(basisSessionClient).mockReturnValue({
       openapi: () => ({ GET: getMock }),
     } as ReturnType<typeof basisSessionClient>);
@@ -64,5 +76,26 @@ describe('fetchSession', () => {
     const user = await fetchSession();
     expect(user).toBeNull();
     expect(getToken()).toBe('session-token');
+  });
+
+  it('bootstraps desktop session when auth is not required and no token', async () => {
+    vi.mocked(basisAuthRequired).mockReturnValue(false);
+    setToken(null);
+    vi.mocked(publicOpenApiPOST).mockResolvedValue({
+      token: 'desktop-tok',
+      user: {
+        id: 'u1',
+        email: 'local@basis.desktop',
+        display_name: 'Local',
+        is_admin: true,
+      },
+    });
+
+    const user = await fetchSession();
+
+    expect(publicOpenApiPOST).toHaveBeenCalledWith('/api/v1/auth/desktop-session', { body: {} });
+    expect(user?.email).toBe('local@basis.desktop');
+    expect(getToken()).toBe('desktop-tok');
+    expect(getMock).not.toHaveBeenCalled();
   });
 });

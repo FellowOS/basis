@@ -1,10 +1,10 @@
-"""Pydantic v2 contracts for the Basis Open Connector Protocol (BOCP)."""
+"""Pydantic v2 contracts for BOCP — normative spec: docs/architecture/bocp-v1.md (v2.0 manifest)."""
 
 from __future__ import annotations
 
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 AuthModeLiteral = Literal[
@@ -33,10 +33,24 @@ FieldInputTypeLiteral = Literal[
 ]
 
 
-class ConfigFieldSpec(BaseModel):
-    """Declarative field definition for connection_config or credentials."""
+class BocpModel(BaseModel):
+    """Base model: declared fields are strict, custom extensions use the ``x-`` prefix."""
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="allow")
+
+    @model_validator(mode="after")
+    def _reject_unknown_fields(self) -> "BocpModel":
+        for key in self.model_extra or {}:
+            if not key.startswith("x-"):
+                raise ValueError(
+                    f"Unknown field '{key}' on {type(self).__name__}; "
+                    "custom extensions must use the 'x-' prefix"
+                )
+        return self
+
+
+class ConfigFieldSpec(BocpModel):
+    """Declarative field definition for connection_config or credentials."""
 
     key: str = Field(min_length=1)
     label: str = Field(min_length=1)
@@ -50,10 +64,8 @@ class ConfigFieldSpec(BaseModel):
     pattern: str | None = None
 
 
-class OAuthTokenResponseEnvelope(BaseModel):
+class OAuthTokenResponseEnvelope(BocpModel):
     """Non-standard OAuth token response envelope extractor (e.g. Feishu/Notion dialects)."""
-
-    model_config = ConfigDict(extra="forbid")
 
     data_field: str = Field(min_length=1)
     code_field: str | None = None
@@ -61,10 +73,8 @@ class OAuthTokenResponseEnvelope(BaseModel):
     message_field: str | None = None
 
 
-class OAuth2DialectSpec(BaseModel):
+class OAuth2DialectSpec(BocpModel):
     """Declarative OAuth2 & OAuth2 Client Credentials parameters."""
-
-    model_config = ConfigDict(extra="forbid")
 
     authorization_url: str | None = None
     token_url: str = Field(min_length=1)
@@ -81,10 +91,8 @@ class OAuth2DialectSpec(BaseModel):
     token_response_envelope: OAuthTokenResponseEnvelope | None = None
 
 
-class TwoStepAuthSpec(BaseModel):
+class TwoStepAuthSpec(BocpModel):
     """Two-step username/password or key exchange for a session token."""
-
-    model_config = ConfigDict(extra="forbid")
 
     token_url: str = Field(min_length=1)
     method: Literal["POST", "GET"] = "POST"
@@ -95,10 +103,8 @@ class TwoStepAuthSpec(BaseModel):
     token_expires_in_ms: int | None = None
 
 
-class CheckEndpointSpec(BaseModel):
+class CheckEndpointSpec(BocpModel):
     """Declarative connection health check and account profile extractor (`CHECK` primitive)."""
-
-    model_config = ConfigDict(extra="forbid")
 
     method: Literal["GET", "POST"] = "GET"
     path: str = Field(min_length=1)
@@ -108,10 +114,8 @@ class CheckEndpointSpec(BaseModel):
     scopes_path: str | None = None
 
 
-class RateLimitQuotaSpec(BaseModel):
+class RateLimitQuotaSpec(BocpModel):
     """Adaptive rate-limit header tracking (Airbyte TokenQuota style)."""
-
-    model_config = ConfigDict(extra="forbid")
 
     name: str = "default"
     remaining_header: str | None = "X-RateLimit-Remaining"
@@ -120,10 +124,8 @@ class RateLimitQuotaSpec(BaseModel):
     retry_after_header: str | None = "Retry-After"
 
 
-class AuthSpec(BaseModel):
+class AuthSpec(BocpModel):
     """Primitive 1: Authentication mode, connection config fields, and proxy headers."""
-
-    model_config = ConfigDict(extra="forbid")
 
     auth_mode: AuthModeLiteral
     base_url: str | None = None
@@ -136,11 +138,24 @@ class AuthSpec(BaseModel):
     check: CheckEndpointSpec | None = None
     quotas: list[RateLimitQuotaSpec] = Field(default_factory=list)
 
+    @model_validator(mode="after")
+    def _check_mode_requirements(self) -> AuthSpec:
+        if self.auth_mode in ("oauth2", "oauth2_cc") and self.oauth2 is None:
+            raise ValueError(
+                f"auth_mode '{self.auth_mode}' requires an 'oauth2' block"
+            )
+        if self.auth_mode == "two_step" and self.two_step is None:
+            raise ValueError("auth_mode 'two_step' requires a 'two_step' block")
+        if self.auth_mode == "api_key" and not self.headers and not self.query_params:
+            raise ValueError(
+                "auth_mode 'api_key' requires an explicit auth.headers or "
+                "auth.query_params placement"
+            )
+        return self
 
-class PaginatorSpec(BaseModel):
+
+class PaginatorSpec(BocpModel):
     """Declarative pagination strategy (synthesizing Airbyte DefaultPaginator & Nango paginate)."""
-
-    model_config = ConfigDict(extra="forbid")
 
     type: Literal["none", "cursor", "offset", "page", "link"] = "none"
     page_size: int | None = 100
@@ -158,20 +173,16 @@ class PaginatorSpec(BaseModel):
     link_response_path: str | None = None
 
 
-class SubstreamPartitionSpec(BaseModel):
+class SubstreamPartitionSpec(BocpModel):
     """Parent-child stream routing (Airbyte SubstreamPartitionRouter)."""
-
-    model_config = ConfigDict(extra="forbid")
 
     parent_stream: str = Field(min_length=1)
     parent_key: str = Field(min_length=1)
     partition_field: str = Field(min_length=1)
 
 
-class RetrieverSpec(BaseModel):
+class RetrieverSpec(BocpModel):
     """Primitive 3: Declarative record extraction, pagination, and incremental sync (`READ`)."""
-
-    model_config = ConfigDict(extra="forbid")
 
     adapter: Literal["rest_declarative", "sql_alchemy"] = "rest_declarative"
     path: str = ""
@@ -185,12 +196,11 @@ class RetrieverSpec(BaseModel):
     paginator: PaginatorSpec = Field(default_factory=PaginatorSpec)
     partition_router: SubstreamPartitionSpec | None = None
     incremental_cursor_param: str | None = None
+    incremental_cursor_inject: Literal["query", "body", "header"] = "query"
 
 
-class DynamicSchemaLoaderSpec(BaseModel):
+class DynamicSchemaLoaderSpec(BocpModel):
     """Runtime schema discovery for custom tables/objects (`DISCOVER` primitive)."""
-
-    model_config = ConfigDict(extra="forbid")
 
     type: Literal["sql_inspector", "rest_metadata"] = "rest_metadata"
     container_stream: str | None = None
@@ -201,10 +211,8 @@ class DynamicSchemaLoaderSpec(BaseModel):
     types_map: dict[str, str] = Field(default_factory=dict)
 
 
-class StreamFieldSpec(BaseModel):
+class StreamFieldSpec(BocpModel):
     """Normalized column/field descriptor returned by static or dynamic discovery."""
-
-    model_config = ConfigDict(extra="forbid")
 
     name: str = Field(min_length=1)
     data_type: Literal[
@@ -216,22 +224,20 @@ class StreamFieldSpec(BaseModel):
     description: str | None = None
 
 
-class StreamMutationSpec(BaseModel):
+class StreamMutationSpec(BocpModel):
     """Primitive 4a: Declarative write-back template bound to a stream (`MUTATE`)."""
-
-    model_config = ConfigDict(extra="forbid")
 
     operation: Literal["create", "update", "upsert", "delete"] = "update"
     adapter: Literal["rest_declarative", "sql_alchemy"] = "rest_declarative"
     http_method: Literal["POST", "PUT", "PATCH", "DELETE"] = "PATCH"
     path_template: str = ""
+    request_params: dict[str, str] = Field(default_factory=dict)
+    request_headers: dict[str, str] = Field(default_factory=dict)
     body_template: dict[str, Any] = Field(default_factory=dict)
 
 
-class StreamSpec(BaseModel):
+class StreamSpec(BocpModel):
     """Primitive 2: Business object / entity stream definition (`STREAM` & `DISCOVER`)."""
-
-    model_config = ConfigDict(extra="forbid")
 
     name: str = Field(min_length=1)
     display_name: str = Field(min_length=1)
@@ -247,20 +253,16 @@ class StreamSpec(BaseModel):
     )
 
 
-class ToolAnnotationsSpec(BaseModel):
+class ToolAnnotationsSpec(BocpModel):
     """MCP-aligned tool safety and governance annotations."""
-
-    model_config = ConfigDict(extra="forbid")
 
     read_only_hint: bool = True
     destructive_hint: bool = False
     idempotent_hint: bool = False
 
 
-class ToolSpec(BaseModel):
+class ToolSpec(BocpModel):
     """Primitive 4b: Standalone RPC tool exposed via OpenAPI & Basis Python MCP."""
-
-    model_config = ConfigDict(extra="forbid")
 
     id: str = Field(min_length=1)
     name: str = Field(min_length=1)
@@ -273,12 +275,201 @@ class ToolSpec(BaseModel):
     path_template: str | None = None
 
 
-class ConnectorManifest(BaseModel):
-    """Complete Basis Open Connector Protocol (BOCP v1) provider manifest."""
+ProviderProtocolLiteral = Literal["rest", "sql", "graphql", "grpc"]
 
-    model_config = ConfigDict(extra="forbid")
 
-    version: Literal["1.0"] = "1.0"
+class ProviderSpecReference(BocpModel):
+    """Upstream protocol attachment(s) beside ``connector.yaml`` (paths relative to provider dir)."""
+
+    protocol: ProviderProtocolLiteral = "rest"
+    openapi: str | None = None
+    graphql: str | None = None
+    grpc: str | None = None
+
+
+WriteOpLiteral = Literal["create", "update", "upsert", "delete"]
+
+ENTITY_OPERATION_NAMES = frozenset({"list", "create", "update", "upsert", "delete"})
+SQL_ENTITY_OPERATION_NAMES = ENTITY_OPERATION_NAMES | {"discover"}
+INVOKE_OPERATION_NAME = "invoke"
+
+HttpMethodLiteral = Literal["GET", "POST", "PUT", "PATCH", "DELETE"]
+
+
+class RestIncrementalSpec(BocpModel):
+    """REST LIST incremental watermark: parameter name and injection target."""
+
+    param: str = Field(min_length=1)
+    inject_into: Literal["query", "body", "header"] = "query"
+
+
+class RestOperationSpec(BocpModel):
+    """Single REST operation for the HTTP executor layer."""
+
+    method: HttpMethodLiteral
+    path: str = Field(min_length=1)
+    query: dict[str, str] = Field(default_factory=dict)
+    headers: dict[str, str] = Field(default_factory=dict)
+    body: dict[str, Any] | None = None
+    pagination: PaginatorSpec | None = None
+    incremental: RestIncrementalSpec | None = None
+    records: list[str] = Field(default_factory=list)
+
+
+class RestEntityExecutorSpec(BocpModel):
+    """REST executor configuration: all wire operations in one map."""
+
+    operations: dict[str, RestOperationSpec]
+
+
+class SqlEntityExecutorSpec(BocpModel):
+    """SQL executor configuration (ORM / reflection); operation values are profile-specific."""
+
+    operations: dict[str, Any]
+
+
+class EntityActionSpec(BocpModel):
+    """Entity action: schema metadata + protocol executor block (``rest`` or ``sql``)."""
+
+    kind: Literal["entity"] = "entity"
+    id: str = Field(min_length=1)
+    display_name: str = Field(min_length=1)
+    description: str | None = None
+    primary_key: list[str] = Field(default_factory=lambda: ["id"])
+    cursor_field: str | None = None
+    default_label_field: str | None = None
+    fields: list[StreamFieldSpec] = Field(default_factory=list)
+    rest: RestEntityExecutorSpec | None = None
+    sql: SqlEntityExecutorSpec | None = None
+
+    @model_validator(mode="after")
+    def _one_executor(self) -> EntityActionSpec:
+        if self.rest is not None and self.sql is not None:
+            raise ValueError(f"Entity '{self.id}' cannot define both rest and sql")
+        if self.rest is None and self.sql is None:
+            raise ValueError(f"Entity '{self.id}' requires rest or sql executor block")
+        if self.rest is not None:
+            unknown = {
+                key
+                for key in self.rest.operations
+                if key not in ENTITY_OPERATION_NAMES and not key.startswith("x-")
+            }
+            if unknown:
+                raise ValueError(
+                    f"Entity '{self.id}' has unsupported rest.operations keys "
+                    f"{sorted(unknown)}; allowed: {sorted(ENTITY_OPERATION_NAMES)}"
+                )
+            if "list" not in self.rest.operations:
+                raise ValueError(
+                    f"Entity '{self.id}' rest.operations must include 'list'"
+                )
+        if self.sql is not None:
+            unknown = {
+                key
+                for key in self.sql.operations
+                if key not in SQL_ENTITY_OPERATION_NAMES and not key.startswith("x-")
+            }
+            if unknown:
+                raise ValueError(
+                    f"Entity '{self.id}' has unsupported sql.operations keys "
+                    f"{sorted(unknown)}; allowed: {sorted(SQL_ENTITY_OPERATION_NAMES)}"
+                )
+            if "list" not in self.sql.operations:
+                raise ValueError(
+                    f"Entity '{self.id}' sql.operations must include 'list'"
+                )
+        return self
+
+
+class ProcedureActionSpec(BocpModel):
+    """Procedure action: INVOKE via protocol executor (typically ``rest.operations``)."""
+
+    kind: Literal["procedure"] = "procedure"
+    id: str = Field(min_length=1)
+    name: str = Field(min_length=1)
+    display_name: str = Field(min_length=1)
+    description: str = ""
+    required_scopes: list[str] = Field(default_factory=list)
+    annotations: ToolAnnotationsSpec = Field(default_factory=ToolAnnotationsSpec)
+    input_schema: dict[str, Any] = Field(default_factory=dict)
+    output_schema: dict[str, Any] = Field(default_factory=dict)
+    rest: RestEntityExecutorSpec | None = None
+
+    @model_validator(mode="after")
+    def _require_rest(self) -> ProcedureActionSpec:
+        if self.rest is None:
+            raise ValueError(f"Procedure '{self.id}' requires rest.operations")
+        operation_keys = {
+            key for key in self.rest.operations if not key.startswith("x-")
+        }
+        if operation_keys != {INVOKE_OPERATION_NAME}:
+            raise ValueError(
+                f"Procedure '{self.id}' rest.operations must contain exactly "
+                f"'{INVOKE_OPERATION_NAME}'"
+            )
+        return self
+
+
+ActionSpec = EntityActionSpec | ProcedureActionSpec
+
+
+def entity_to_stream_spec(entity: EntityActionSpec) -> StreamSpec:
+    from basis.domain.connectors.manifest_executor import (
+        entity_rest_to_stream_spec,
+        entity_sql_to_stream_spec,
+    )
+
+    if entity.rest is not None:
+        return entity_rest_to_stream_spec(entity, entity.rest)
+    if entity.sql is not None:
+        return entity_sql_to_stream_spec(entity, entity.sql)
+    raise ValueError(f"Entity '{entity.id}' has no executor block")
+
+
+def procedure_to_tool_spec(procedure: ProcedureActionSpec) -> ToolSpec:
+    from basis.domain.connectors.manifest_executor import INVOKE_OPERATION
+
+    assert procedure.rest is not None
+    ops = procedure.rest.operations
+    op = ops.get(INVOKE_OPERATION) or next(iter(ops.values()))
+    http_method = op.method
+    path_template = op.path
+    return ToolSpec(
+        id=procedure.id,
+        name=procedure.name,
+        description=procedure.description,
+        required_scopes=list(procedure.required_scopes),
+        annotations=procedure.annotations,
+        input_schema=dict(procedure.input_schema),
+        output_schema=dict(procedure.output_schema),
+        http_method=http_method,
+        path_template=path_template,
+    )
+
+
+class ConnectorManifest(BocpModel):
+    """BOCP v2 provider manifest (``actions`` only on wire)."""
+
+    @model_validator(mode="before")
+    @classmethod
+    def _inject_action_kind_on_wire(cls, data: Any) -> Any:
+        if not isinstance(data, dict):
+            return data
+        actions = data.get("actions")
+        if not isinstance(actions, list):
+            return data
+        normalized: list[Any] = []
+        for item in actions:
+            if isinstance(item, dict) and "kind" not in item:
+                if "input_schema" in item or "call" in item:
+                    normalized.append({**item, "kind": "procedure"})
+                else:
+                    normalized.append({**item, "kind": "entity"})
+            else:
+                normalized.append(item)
+        return {**data, "actions": normalized}
+
+    version: Literal["2.0"] = "2.0"
     service: str = Field(min_length=1, pattern=r"^[a-z0-9][a-z0-9_-]*$")
     display_name: str = Field(min_length=1)
     description: str | None = None
@@ -286,6 +477,44 @@ class ConnectorManifest(BaseModel):
     homepage_url: str | None = None
     docs_url: str | None = None
     icon_url: str | None = None
+    spec: ProviderSpecReference | None = None
     auth: list[AuthSpec] = Field(min_length=1)
-    streams: list[StreamSpec] = Field(default_factory=list)
-    tools: list[ToolSpec] = Field(default_factory=list)
+    actions: list[
+        Annotated[EntityActionSpec | ProcedureActionSpec, Field(discriminator="kind")]
+    ] = Field(default_factory=list)
+
+    def entity_actions(self) -> list[EntityActionSpec]:
+        return [a for a in self.actions if isinstance(a, EntityActionSpec)]
+
+    def procedure_actions(self) -> list[ProcedureActionSpec]:
+        return [a for a in self.actions if isinstance(a, ProcedureActionSpec)]
+
+    def get_entity(self, action_id: str) -> EntityActionSpec:
+        for action in self.entity_actions():
+            if action.id == action_id:
+                return action
+        raise ValueError(
+            f"Entity action '{action_id}' not found on service '{self.service}'"
+        )
+
+    def get_procedure(self, action_id: str) -> ProcedureActionSpec:
+        for action in self.procedure_actions():
+            if action.id == action_id or action.name == action_id:
+                return action
+        raise ValueError(
+            f"Procedure action '{action_id}' not found on service '{self.service}'"
+        )
+
+    def stream_spec(self, action_id: str) -> StreamSpec:
+        return entity_to_stream_spec(self.get_entity(action_id))
+
+    def tool_spec(self, action_id: str) -> ToolSpec:
+        return procedure_to_tool_spec(self.get_procedure(action_id))
+
+    @property
+    def streams(self) -> list[StreamSpec]:
+        return [entity_to_stream_spec(e) for e in self.entity_actions()]
+
+    @property
+    def tools(self) -> list[ToolSpec]:
+        return [procedure_to_tool_spec(p) for p in self.procedure_actions()]

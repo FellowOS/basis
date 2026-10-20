@@ -2775,6 +2775,97 @@
         "x-basis-auth": "session-or-kb-api-token"
       }
     },
+    "/api/v1/kbs/{kb_id}/connectors/connections/{service}/{connection_name}/invoke-primitive": {
+      "post": {
+        "tags": [
+          "knowledge-bases"
+        ],
+        "summary": "Invoke Kb Connector Primitive",
+        "description": "Run a BOCP Section 10 primitive (discover, list, mutate, invoke) without a table mapping.",
+        "operationId": "invoke_kb_connector_primitive_api_v1_kbs__kb_id__connectors_connections__service___connection_name__invoke_primitive_post",
+        "parameters": [
+          {
+            "name": "kb_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Kb Id"
+            }
+          },
+          {
+            "name": "service",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Service"
+            }
+          },
+          {
+            "name": "connection_name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Connection Name"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InvokeConnectorPrimitiveRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Invoke Kb Connector Primitive Api V1 Kbs  Kb Id  Connectors Connections  Service   Connection Name  Invoke Primitive Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-basis-surface": "knowledge-base",
+        "x-basis-auth": "session-or-kb-api-token"
+      }
+    },
     "/api/v1/kbs/{kb_id}/connectors/oauth-configs/{service}": {
       "put": {
         "tags": [
@@ -17417,6 +17508,116 @@
           "doc_id"
         ],
         "title": "IngestTextRequest"
+      },
+      "InvokeConnectorPrimitiveRequest": {
+        "properties": {
+          "action_id": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Action Id"
+          },
+          "primitive": {
+            "type": "string",
+            "enum": [
+              "discover",
+              "list",
+              "mutate",
+              "invoke"
+            ],
+            "title": "Primitive"
+          },
+          "operation": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "create",
+                  "update",
+                  "upsert",
+                  "delete"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operation"
+          },
+          "external_table": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Table"
+          },
+          "external_id": {
+            "anyOf": [
+              {},
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Id"
+          },
+          "changes": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Changes"
+          },
+          "action_params": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Action Params"
+          },
+          "arguments": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Arguments"
+          },
+          "limit": {
+            "type": "integer",
+            "maximum": 5000.0,
+            "minimum": 1.0,
+            "title": "Limit",
+            "default": 500
+          },
+          "cursor_watermark": {
+            "anyOf": [
+              {},
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cursor Watermark"
+          },
+          "primary_key_column": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Primary Key Column",
+            "default": "id"
+          },
+          "cursor_column": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cursor Column"
+          }
+        },
+        "type": "object",
+        "required": [
+          "action_id",
+          "primitive"
+        ],
+        "title": "InvokeConnectorPrimitiveRequest"
       },
       "LoadOntologyRequest": {
         "properties": {

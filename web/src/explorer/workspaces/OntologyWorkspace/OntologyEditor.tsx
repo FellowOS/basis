@@ -37,6 +37,7 @@ import { useI18n } from "@/i18n/context.js";
 import { fmt } from "@/i18n/format.js";
 import type { Locale } from "@/i18n/locale.js";
 import { ontologyOwlTypeLabel } from "./ontologyEditorCopy.js";
+import { humanizeRdfLabel } from "./rdfLabel.js";
 import { exWsListRowHoverPrimary } from "@/lib/ui-classes/explorer-ws.js";
 import { cn } from "@/lib/utils.js";
 
@@ -135,12 +136,12 @@ function requestedEntityUri(): string {
 }
 
 function nodeLabel(node: OntologyGraphNode): string {
-  const explicit = String(node.content || node.properties?.["rdfs:label"] || "").trim();
-  if (explicit && explicit !== node.id) {
-    return explicit;
-  }
-  const trimmed = node.id.replace(/[/#]+$/, "");
-  return trimmed.split("#").pop() || trimmed.split("/").pop() || node.id;
+  const raw =
+    node.content ||
+    node.properties?.["rdfs:label"] ||
+    node.properties?.["skos:prefLabel"] ||
+    "";
+  return humanizeRdfLabel(String(raw), node.id);
 }
 
 // The backend's remaining kinds (concept, scheme, individual, unknown) have no

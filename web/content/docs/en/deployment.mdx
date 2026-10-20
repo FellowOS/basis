@@ -1,0 +1,18 @@
+---
+title: "Self-host & configuration"
+sidebarTitle: "Self-host"
+description: "Environment variables and production-oriented notes."
+---
+
+## Core settings
+
+Typical production toggles:
+
+- `BASIS_HOST` / `BASIS_PORT` — API bind
+- `BASIS_DATA_DIR` — SQLite, blobs, graph JSON (default)
+- `BASIS_DATABASE_URL` — PostgreSQL for production
+- `VITE_BASIS_API_URL` — browser API base when not same-origin
+
+## Reverse proxy
+
+Serve the web bundle and proxy `/api`, `/openapi`, and WebSocket paths to the API process. Docker and nginx examples live in the repository under `docker/production/`.

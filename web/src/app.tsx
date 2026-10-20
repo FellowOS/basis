@@ -49,7 +49,7 @@ import { isSetupKbId, KB_SETUP_ID } from '@/lib/kb-active-id.js';
 import { kbPath } from '@/lib/nav-config.js';
 import { KbExplorerShell } from '@/lib/explorer-context.js';
 import { BasisSessionProvider, useBasisSession } from '@/lib/basis-session.js';
-import { basisAuthRequired } from '@/lib/basis-runtime.js';
+import { basisAuthRequired, basisIsDesktopProduct } from '@/lib/basis-runtime.js';
 import { useSettingsAccess } from '@/lib/use-settings-access.js';
 
 function AdminOnly({ children }: { children: ReactNode }) {
@@ -128,7 +128,13 @@ function AuthedApp() {
       <Route
         path="/login"
         element={
-          ready && user ? <Navigate to={homePath} replace /> : <LoginPage />
+          !basisAuthRequired() ? (
+            <Navigate to={homePath} replace />
+          ) : ready && user ? (
+            <Navigate to={homePath} replace />
+          ) : (
+            <LoginPage />
+          )
         }
       />
       <Route
@@ -148,7 +154,7 @@ function AuthedApp() {
         }
       />
       <Route
-        path="/docs/:slug"
+        path="/docs/*"
         element={
           <Suspense fallback={null}>
             <DocsPage />
@@ -183,11 +189,15 @@ function AuthedApp() {
           <Route
             path="/admin/users"
             element={
-              <AdminOnly>
-                <Suspense fallback={null}>
-                  <UsersPage />
-                </Suspense>
-              </AdminOnly>
+              basisIsDesktopProduct() ? (
+                <Navigate to={homePath} replace />
+              ) : (
+                <AdminOnly>
+                  <Suspense fallback={null}>
+                    <UsersPage />
+                  </Suspense>
+                </AdminOnly>
+              )
             }
           />
           <Route
@@ -223,11 +233,15 @@ function AuthedApp() {
           <Route
             path="/admin/settings"
             element={
-              <SettingsAccess>
-                <Suspense fallback={null}>
-                  <SettingsPage />
-                </Suspense>
-              </SettingsAccess>
+              basisIsDesktopProduct() ? (
+                <Navigate to={homePath} replace />
+              ) : (
+                <SettingsAccess>
+                  <Suspense fallback={null}>
+                    <SettingsPage />
+                  </Suspense>
+                </SettingsAccess>
+              )
             }
           />
         </Route>

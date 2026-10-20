@@ -4,6 +4,8 @@ export const platformSettings = {
   tabConnectors: '连接器',
   tabGeneral: '常规',
   tabOrgSso: '组织 SSO',
+  desktopSettingsLead:
+    '本机运行，无需登录。在「管理」→「模型」配置 LLM 与嵌入；Desktop 模式不提供组织 SSO 与用户管理。',
   connectors: {
     sectionLead:
       '治理全实例可用的 BOCP 服务商。各知识库只能在此上限内再收紧，不能超出平台允许范围。',

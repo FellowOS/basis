@@ -42,7 +42,7 @@ def handle_jsonrpc(ctx: KbToolContext, req: dict[str, Any]) -> dict[str, Any] | 
         return ok({})
 
     if method == "tools/list":
-        return ok({"tools": get_tool_definitions()})
+        return ok({"tools": get_tool_definitions(ctx)})
 
     if method == "tools/call":
         name = params.get("name", "")

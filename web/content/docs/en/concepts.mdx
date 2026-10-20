@@ -1,0 +1,17 @@
+---
+title: "Core concepts"
+sidebarTitle: "Core concepts"
+description: "How Basis models knowledge so integrations stay consistent."
+---
+
+## Evidence ledger is canonical
+
+Facts and provenance live in the ledger. Graph views, search indexes, and exports are projections that can be rebuilt from evidence.
+
+## Semantics
+
+Ontologies, SHACL, SPARQL, mappings, and rules define meaning. Operations mutate ledger state; graph and search catch up via projection jobs.
+
+## Surfaces to clients
+
+Server operations are defined once in OpenAPI v1 and MCP. The web app uses the same contract via generated types — not a separate undocumented HTTP layer.

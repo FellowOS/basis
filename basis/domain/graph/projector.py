@@ -8,7 +8,15 @@ from basis.domain.graph.session import GraphSession
 from basis.domain.kb.store import KnowledgeStore
 
 PROJECTION_SCHEMA_VERSION = 1
-_PRESERVED_NODE_TYPES = frozenset({"owl:Ontology"})
+_LEDGER_NODE_TYPES = frozenset({"document", "literal", "entity", "projection_meta"})
+
+
+def _is_schema_projection_node(node: Any) -> bool:
+    """OWL/RDF/SKOS nodes live in the graph snapshot, not the evidence ledger."""
+    node_type = str(getattr(node, "node_type", "") or "")
+    if node_type in _LEDGER_NODE_TYPES:
+        return False
+    return ":" in node_type
 
 
 def _predicate_edge_label(predicate_uri: str) -> str:
@@ -23,8 +31,9 @@ def _predicate_edge_label(predicate_uri: str) -> str:
 
 
 def _copy_preserved_nodes(source: GraphSession, target: GraphSession) -> None:
+    preserved_ids: set[str] = set()
     for node in source.graph.nodes.values():
-        if node.node_type not in _PRESERVED_NODE_TYPES:
+        if not _is_schema_projection_node(node):
             continue
         props = dict(node.properties) if isinstance(node.properties, dict) else {}
         props.pop("content", None)
@@ -34,6 +43,19 @@ def _copy_preserved_nodes(source: GraphSession, target: GraphSession) -> None:
             content=node.content,
             **props,
         )
+        preserved_ids.add(node.node_id)
+
+    edges = source.graph.edges
+    edge_values = edges.values() if isinstance(edges, dict) else edges
+    for edge in edge_values:
+        if edge.source_id not in preserved_ids or edge.target_id not in preserved_ids:
+            continue
+        props: dict[str, Any] = {}
+        for key in ("properties", "metadata"):
+            raw = getattr(edge, key, None)
+            if isinstance(raw, dict):
+                props.update(raw)
+        target.add_edge(edge.source_id, edge.target_id, edge.edge_type, **props)
 
 
 def _edge_signature(session: GraphSession) -> list[tuple[str, str, str]]:

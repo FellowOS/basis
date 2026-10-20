@@ -6,12 +6,15 @@ import { unwrapOpenApi } from '@/lib/openapi-response.js';
 import { ensureRequestIdHeader } from '@/lib/request-id.js';
 
 let _publicOpenApi: ReturnType<typeof createBasisPublicOpenApiClient> | null = null;
+let _publicOpenApiBaseUrl: string | null = null;
 
 /** Unauthenticated OpenAPI client (login providers, magic-link, …). */
 export function publicOpenApi() {
-  if (!_publicOpenApi) {
+  const baseUrl = basisApiBaseUrl();
+  if (!_publicOpenApi || _publicOpenApiBaseUrl !== baseUrl) {
+    _publicOpenApiBaseUrl = baseUrl;
     _publicOpenApi = createBasisPublicOpenApiClient({
-      baseUrl: basisApiBaseUrl(),
+      baseUrl,
       beforeRequest: ensureRequestIdHeader,
     });
   }

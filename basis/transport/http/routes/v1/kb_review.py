@@ -22,7 +22,7 @@ from basis.transport.http.deps import (
     rebuild_kb_projection,
     save_graph,
 )
-from basis.transport.http.explorer_route_errors import admin_error_from_explorer_http, invoke_explorer
+from basis.transport.http.explorer_route_errors import admin_error_from_explorer_http
 from basis.domain.explorer.governance_decision import (
     maybe_emit_governance_tripped_on_review_approve,
     record_governance_decision_for_kb,
@@ -320,12 +320,9 @@ Approve Review Item. Human review queue for merges, imports, and conflicts. Requ
                     "projection": projection,
                 }
             else:
-                from semantica.explorer.routes.enrich import merge_nodes
-                from semantica.explorer.schemas import MergeRequest
-
+                from basis.domain.explorer.enrich_write import merge_nodes
                 from basis.domain.kb.services.graph_sync import resolve_ledger_entity_id
 
-                merge_body = MergeRequest.model_validate(payload)
                 runtime = get_explorer_registry(request).get(request, kb_id)
                 session = require_explorer_graph_session(runtime)
                 primary_ledger = resolve_ledger_entity_id(
@@ -345,12 +342,13 @@ Approve Review Item. Human review queue for merges, imports, and conflicts. Requ
                                     decision_id=decision_id,
                                 )
                             )
-                result = await invoke_explorer(
-                    merge_nodes(merge_body, session=session),
-                    context="enrich",
+                merge_result = await asyncio.to_thread(
+                    merge_nodes,
+                    session,
+                    primary_id=str(payload.get("primary_id") or primary_id),
+                    duplicate_ids=[str(d) for d in duplicate_ids],
                 )
                 save_graph(request, kb_id)
-                merge_result = result.model_dump() if hasattr(result, "model_dump") else dict(result)
                 if ledger_merges:
                     merge_result = {**merge_result, "ledger_merges": ledger_merges}
                 elif duplicate_ids:
@@ -483,18 +481,20 @@ Approve Review Item. Human review queue for merges, imports, and conflicts. Requ
                 "decision_id": decision_id,
             }
         elif item["kind"] == "graph_import":
-            from semantica.explorer.routes.export_import import import_file
+            from basis.domain.explorer.graph_import_write import import_graph_file
 
             approve_action = "kb.graph.import"
             runtime = get_explorer_registry(request).get(request, kb_id)
             session = require_explorer_graph_session(runtime)
             upload = upload_file_from_staged(get_blob_store(request), kb_id, item["payload"])
-            result = await invoke_explorer(
-                import_file(file=upload, session=session),
-                context="enrich",
+            raw_bytes = await upload.read()
+            import_result = await asyncio.to_thread(
+                import_graph_file,
+                session,
+                filename=str(upload.filename or "import.json"),
+                content=raw_bytes,
             )
             save_graph(request, kb_id)
-            import_result = result.model_dump() if hasattr(result, "model_dump") else dict(result)
             discard_staged_import(get_blob_store(request), kb_id, item["payload"])
         else:
             raise AdminError(422, "unsupported_review_kind", f"不支持的审核类型: {item['kind']}")

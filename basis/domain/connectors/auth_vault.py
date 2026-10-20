@@ -8,8 +8,9 @@ from datetime import datetime, timezone
 import hashlib
 import json
 import os
+import re
 from typing import Any
-from urllib.parse import urlencode
+from urllib.parse import quote, urlencode
 import uuid
 
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
@@ -76,6 +77,9 @@ def decrypt_vault_payload(
     return parsed
 
 
+_UNRESOLVED_PLACEHOLDER = re.compile(r"\$\{[^}]+\}|\{\{[^}]+\}\}")
+
+
 def interpolate_placeholders(
     template: str,
     *,
@@ -83,26 +87,55 @@ def interpolate_placeholders(
     credentials: dict[str, Any] | None = None,
     stream_params: dict[str, Any] | None = None,
     extra: dict[str, Any] | None = None,
+    url_encode_values: bool = False,
+    strict: bool = True,
 ) -> str:
-    """Resolve ${connectionConfig.x}, ${credentials.y}, and {{config.z}} placeholders."""
+    """Resolve BOCP placeholders in a template.
+
+    Connection config wins over per-call ``action_params``/``stream_params`` for
+    ``{{config.KEY}}`` (a connection-bound scope cannot be overridden by a caller).
+    ``url_encode_values`` percent-encodes every substituted value for URL path use.
+    """
     if not template:
         return ""
+
     cfg = connection_config or {}
     creds = credentials or {}
     params = stream_params or {}
     ext = extra or {}
 
+    def render(value: Any) -> str:
+        raw = str(value)
+        if not url_encode_values:
+            return raw
+        # Percent-encoding cannot make a bare "." / ".." segment inert: URL
+        # parsers normalize it after decoding. Reject it instead.
+        if raw in (".", ".."):
+            raise ValueError(f"Unsafe URL path placeholder value: {raw!r}")
+        return quote(raw, safe="")
+
+    # Caller params may fill missing scope keys, but never override the connection.
+    merged = dict(params)
+    merged.update(cfg)
+
     result = template
-    for k, v in cfg.items():
-        result = result.replace(f"${{connectionConfig.{k}}}", str(v))
-        result = result.replace(f"{{{{config.{k}}}}}", str(v))
-    for k, v in creds.items():
-        result = result.replace(f"${{credentials.{k}}}", str(v))
-    for k, v in params.items():
-        result = result.replace(f"{{{{config.{k}}}}}", str(v))
-        result = result.replace(f"{{{{{k}}}}}", str(v))
-    for k, v in ext.items():
-        result = result.replace(f"{{{{{k}}}}}", str(v))
+    for key, value in merged.items():
+        result = result.replace(f"{{{{config.{key}}}}}", render(value))
+    for key, value in creds.items():
+        result = result.replace(f"${{credentials.{key}}}", render(value))
+    # Legacy bare aliases. Normative templates use ``{{config.KEY}}``.
+    for key, value in merged.items():
+        result = result.replace(f"{{{{{key}}}}}", render(value))
+    for key, value in ext.items():
+        result = result.replace(f"{{{{{key}}}}}", render(value))
+
+    if strict:
+        unresolved = _UNRESOLVED_PLACEHOLDER.findall(result)
+        if unresolved:
+            raise ValueError(
+                "Unresolved connector placeholder(s): "
+                + ", ".join(sorted(set(unresolved)))
+            )
     return result
 
 
@@ -185,6 +218,46 @@ class ConnectorPolicy:
             mode = self.action_policy.get("default_read_mode", "auto")
         else:
             mode = self.action_policy.get("default_write_mode", "auto")
+        return str(mode) if mode in ("auto", "review", "disabled") else "auto"
+
+    def resolve_primitive_execution_mode(
+        self,
+        service: str,
+        action_id: str,
+        primitive: str,
+        *,
+        operation: str | None = None,
+    ) -> str:
+        """Governance for entity/procedure primitives (discover, list, mutate, invoke)."""
+        entities_map = self.action_policy.get("entities")
+        if isinstance(entities_map, dict):
+            candidates = [
+                f"{service}:{action_id}.{primitive}",
+                f"{action_id}.{primitive}",
+                f"{service}:{action_id}",
+                action_id,
+            ]
+            if operation:
+                candidates[:0] = [
+                    f"{service}:{action_id}.{operation}",
+                    f"{action_id}.{operation}",
+                    f"{service}:{action_id}.mutate.{operation}",
+                    f"{action_id}.mutate.{operation}",
+                ]
+            for key in candidates:
+                explicit = entities_map.get(key)
+                if explicit in ("auto", "review", "disabled"):
+                    return str(explicit)
+        if primitive in ("discover", "list"):
+            mode = self.action_policy.get(
+                "default_entity_read_mode",
+                self.action_policy.get("default_read_mode", "auto"),
+            )
+        else:
+            mode = self.action_policy.get(
+                "default_entity_write_mode",
+                self.action_policy.get("default_write_mode", "auto"),
+            )
         return str(mode) if mode in ("auto", "review", "disabled") else "auto"
 
 
@@ -451,22 +524,21 @@ class ConnectorAuthVault:
             if token and "Authorization" not in headers:
                 headers["Authorization"] = f"Bearer {token}"
         elif mode == "api_key":
-            if "Authorization" not in headers and not query_params:
-                key_val = (
-                    creds.get("api_key")
-                    or creds.get("personal_access_token")
-                    or creds.get("integration_token")
-                    or next(iter(creds.values()), None)
+            # BOCP requires api_key placement to be declared in auth.headers or
+            # auth.query_params. Guessing a header/credential is not conformant.
+            if not headers and not query_params:
+                raise ValueError(
+                    f"api_key auth for service '{connection.service}' must declare "
+                    "an explicit auth.headers or auth.query_params entry"
                 )
-                if key_val:
-                    headers["Authorization"] = f"Bearer {key_val}"
         elif mode == "basic":
-            username = str(creds.get("username") or "")
-            password = str(creds.get("password") or "")
-            b64 = base64.b64encode(f"{username}:{password}".encode("utf-8")).decode(
-                "ascii"
-            )
-            headers["Authorization"] = f"Basic {b64}"
+            if "Authorization" not in headers:
+                username = str(creds.get("username") or "")
+                password = str(creds.get("password") or "")
+                b64 = base64.b64encode(
+                    f"{username}:{password}".encode("utf-8")
+                ).decode("ascii")
+                headers["Authorization"] = f"Basic {b64}"
 
         return base_url, headers, query_params
 

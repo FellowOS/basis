@@ -8,9 +8,10 @@
     "lib": ["ES2023", "DOM", "DOM.Iterable"],
     "noEmit": true,
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@/.source/*": [".source/*"]
     }
   },
-  "include": ["src"],
+  "include": ["src", ".source"],
   "exclude": ["src/**/*.test.ts", "src/**/*.test.tsx"]
 }

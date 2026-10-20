@@ -1,5 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { AppLogo } from '@/components/app/shared/shell/app-logo.js';
+import { BasisShellBrandMark } from '@/components/app/shared/shell/basis-shell-brand.js';
 import { KbSwitcher } from '@/components/app/kb/explorer-shell/kb-switcher.js';
 import { BasisAccountMenu } from '@/components/app/shared/shell/basis-account-menu.js';
 import { SidebarIcon } from '@/components/app/shared/shell/sidebar-icon.js';
@@ -33,6 +34,10 @@ import { resolveSidebarKbId } from '@/lib/kb-active-id.js';
 import { useBasisSession } from '@/lib/basis-session.js';
 import { useKbCatalog } from '@/lib/kb-context.js';
 import { kbNavSegmentEnabled, useKbCapabilities } from '@/lib/kb-capabilities.js';
+import { appIsDesktopProduct } from '@/lib/app-runtime.js';
+import { basisIsDesktopProduct } from '@/lib/basis-runtime.js';
+import { isMacDesktop } from '@/lib/desktop-bridge.js';
+import { cn } from '@/lib/utils.js';
 import { useSettingsAccess } from '@/lib/use-settings-access.js';
 import { useKbFailedProcessingCount } from '@/lib/use-kb-failed-processing-count.js';
 import { Badge } from '@/components/ui/badge.js';
@@ -40,12 +45,16 @@ import { Badge } from '@/components/ui/badge.js';
 export function BasisSidebar({ onLogout }: { onLogout: () => void }) {
   const { t } = useI18n();
   const location = useLocation();
-  const { isMobile, setOpenMobile } = useSidebar();
+  const { isMobile, setOpenMobile, open, toggleSidebar } = useSidebar();
   const { isAdmin } = useBasisSession();
   const canSettings = useSettingsAccess();
+  const desktopProduct = basisIsDesktopProduct();
+  const isDesktopShell = appIsDesktopProduct();
+  const isMac = isDesktopShell && isMacDesktop();
+  const desktopNoDrag = isDesktopShell ? '[-webkit-app-region:no-drag]' : '';
   const platformNavReady = isAdmin || canSettings !== null;
   const platformItems = platformNavReady
-    ? visiblePlatformNavItems(isAdmin, canSettings === true)
+    ? visiblePlatformNavItems(isAdmin, canSettings === true, desktopProduct)
     : [];
   const isPlatformAdmin = isPlatformAdminPath(location.pathname);
   const { kbs } = useKbCatalog();
@@ -53,8 +62,13 @@ export function BasisSidebar({ onLogout }: { onLogout: () => void }) {
   const failedProcessingCount = useKbFailedProcessingCount();
   const navKbId = resolveSidebarKbId(location.pathname, kbs);
   const adminHome =
-    platformNavReady ? platformAdminEntryPath(isAdmin, canSettings === true) : '/admin/kbs';
+    platformNavReady
+      ? platformAdminEntryPath(isAdmin, canSettings === true, desktopProduct)
+      : '/admin/kbs';
   const consoleGraphHref = kbPath(navKbId, 'graph');
+  const homeHref = isPlatformAdmin ? adminHome : '/kbs';
+  const macDesktopBrand = isDesktopShell && isMac;
+  const fellowStyleBrand = macDesktopBrand;
 
   function closeMobile() {
     if (isMobile) setOpenMobile(false);
@@ -127,23 +141,77 @@ export function BasisSidebar({ onLogout }: { onLogout: () => void }) {
   }
 
   return (
-    <Sidebar collapsible="icon" className="p-0">
-      <SidebarHeader className="flex-row items-center gap-1 group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-0">
-        <Link
-          to={isPlatformAdmin ? adminHome : '/kbs'}
-          onClick={closeMobile}
-          className="flex h-8 min-w-0 flex-1 items-center gap-2 overflow-hidden px-2 group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:flex-none group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0"
+    <Sidebar
+      collapsible="icon"
+      className={cn(
+        'p-0',
+        desktopNoDrag,
+        isDesktopShell && 'border-r-0',
+        isDesktopShell &&
+          !isMac &&
+          '[&_[data-slot=sidebar-inner]]:rounded-tl-xl [&_[data-slot=sidebar-inner]]:border-t',
+      )}
+    >
+      {(!isDesktopShell || isMac) && (
+        <SidebarHeader
+          className={cn(
+            'relative z-50 py-0',
+            fellowStyleBrand ? 'gap-0' : 'gap-2',
+            !fellowStyleBrand &&
+              'flex-row items-center gap-1 group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-0',
+          )}
         >
-          <AppLogo size={24} />
-          <span className="truncate font-display text-sm font-semibold leading-[1.25] tracking-tight group-data-[collapsible=icon]:hidden">
-            Basis
-          </span>
-        </Link>
-        <SidebarTrigger
-          className="size-8 shrink-0 opacity-70 hover:opacity-100"
-          aria-label={t.sidebar.collapseSidebar}
-        />
-      </SidebarHeader>
+          {fellowStyleBrand ? (
+            <div aria-hidden className="h-5 w-full shrink-0 [-webkit-app-region:drag]" />
+          ) : null}
+          {open ? (
+            <div
+              className={cn(
+                'flex w-full items-center justify-between gap-2',
+                fellowStyleBrand ? 'h-12' : isMac ? 'h-12' : 'h-16',
+              )}
+            >
+              {fellowStyleBrand ? (
+                <BasisShellBrandMark
+                  className={cn('min-w-0 flex-1 pl-2', '[-webkit-app-region:drag]')}
+                />
+              ) : (
+                <Link
+                  to={homeHref}
+                  onClick={closeMobile}
+                  className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden pl-2 group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:flex-none group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0"
+                >
+                  <BasisShellBrandMark />
+                </Link>
+              )}
+              <SidebarTrigger
+                className={cn(
+                  'relative z-50 size-8 shrink-0 opacity-70 hover:opacity-100',
+                  fellowStyleBrand && '[-webkit-app-region:no-drag]',
+                )}
+                aria-label={t.sidebar.collapseSidebar}
+              />
+            </div>
+          ) : (
+            <button
+              type="button"
+              className={cn(
+                'relative z-50 flex w-full items-center justify-center',
+                fellowStyleBrand || isMac ? 'h-12' : 'h-16',
+                fellowStyleBrand && '[-webkit-app-region:no-drag]',
+              )}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                toggleSidebar();
+              }}
+              title={t.sidebar.brand}
+            >
+              <AppLogo size={20} className="pointer-events-none" />
+            </button>
+          )}
+        </SidebarHeader>
+      )}
       <SidebarContent className="overflow-hidden group-data-[collapsible=icon]:overflow-hidden">
         <ScrollShadow hideScrollBar className="min-h-0 flex-1" fadeColor="var(--sidebar)">
           <SidebarGroup className="group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:items-center">
@@ -177,7 +245,12 @@ export function BasisSidebar({ onLogout }: { onLogout: () => void }) {
                 </div>
               ) : (
                 <>
-                  <div className="mb-3 px-0.5 group-data-[collapsible=icon]:mb-1 group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
+                  <div
+                    className={cn(
+                      'mb-3 group-data-[collapsible=icon]:mb-1 group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0',
+                      isDesktopShell ? 'px-2' : 'px-0.5',
+                    )}
+                  >
                     <KbSwitcher />
                   </div>
                   <div className="flex flex-col gap-3.5 group-data-[collapsible=icon]:gap-2">

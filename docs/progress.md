@@ -140,7 +140,7 @@
 | F-IO-01 | Graph import/export | `done` | — | Import JSON/CSV → review；Export：**全图/子图 `node_ids`** + RDF/GraphML；**审计包**（图 JSON + 图审计 + projection；graph-diff 含 staging）；`tests/test_kb_explorer_routes.py` |
 | — | ADR 0007 Part B（画布合并 B1–B3） | `deferred` | P2 | 产品暂缓；沿用 graph-diff + `graph/staging` 表单 + Review |
 | — | Markdown node resources persistence | `deferred` | P2 | Policy TBD；与画布合并一并暂缓 |
-| — | Desktop profile（ADR 0004） | `deferred` | P2 | `main` 上 Phase A 可忽略（不设 `BASIS_DEPLOYMENT_PROFILE=desktop`）；Electron / Phase B+ 暂缓，优先 Server 能力 |
+| — | Desktop profile（ADR 0004） | `partial` | P2 | **Phase A–C**：`BASIS_DEPLOYMENT_PROFILE=desktop`、`web` `dev:desktop` / `build:desktop`、`desktop/` Electron `npm run dev`；UI 裁剪（无 SSO/用户管理）；**Phase D** 安装包 deferred |
 | M5-02 | semantica npm package entry for Graph workspace | `excluded` | — | **非目标**：`web/src/explorer` in-tree fork；上游更新用 **cherry-pick**（见 `web/src/explorer/README.md`），不抽 npm 包 |
 | M4-04 | Cross-instance WS (Redis pub/sub) | `deferred` | P1 | Single worker or sticky sessions |
 
@@ -154,11 +154,20 @@
 | **Phase 1**：数据库迁移 `0011_entity_external_sync.sql`（**7 张表**）+ BOCP Manifest 契约与跨仓合成脚本 | `done` | 迁移 `0011` + PG `version 12`、实体删除级联清理、`basis/domain/connectors/manifest_schema.py` & `catalog.py`、`basis/domain/kb/structured_models.py`、`scripts/build_connector_manifests.py`（合成 1,060 个 Provider Manifest）；单测 `tests/test_bocp_phase1.py` |
 | **Phase 2**：纯 Python 全模式认证引擎 + 双内核声明式流执行器（`sql_adapter` + `rest_declarative_adapter`） | `done` | `auth_vault.py`（AES-256-GCM 凭据加密、OAuth2 PKCE URL 生成、策略门禁）、`sql_adapter.py`（SQLAlchemy 2.0 反射 + 参数化读写）、`rest_declarative_adapter.py`（`DynamicSchemaLoader`、自动分页与字段展开）、`runtime.py`；单测 `tests/test_bocp_phase2.py` |
 | **Phase 3**：证据账本双向同步引擎（`connector_sync.py` + `entity_sync_outbox`） | `done` | `basis/domain/kb/connector_sync.py`（入向 `row_hash` 四路分流 `ADDED`/`UNCHANGED`/`UPDATED`/`DELETED`、外键关系解析、出向 `propose_entity_writeback` → `review_items` 门禁 → `approve_and_execute_outbox` 写回与防回环 `row_hash` 重算）；单测 `tests/test_bocp_phase3.py` |
-| **Phase 4**：OpenAPI / 唯一 Python MCP 暴露 + 独立「连接器 (`/kbs/:kbId/connectors`)」前端工作台 | `done` | `basis/transport/http/routes/v1/kb_connectors.py`（12 个 OpenAPI v1 端点）、`basis/integration/ops_connectors.py`（MCP：`list_connector_catalog`、`describe_connector_service`、`list_connector_connections`、`list_connector_table_mappings`、`sync_connector_table_mapping`、`propose_entity_writeback`、`execute_connector_tool`）、`kb_review.py` 写回审批闭环；前端连接器工作台 + Review Diff；单测 `tests/test_bocp_phase4_api.py`、`tests/test_ops_connectors.py` |
+| **Phase 4**：OpenAPI / 唯一 Python MCP 暴露 + 独立「连接器 (`/kbs/:kbId/connectors`)」前端工作台 | `done` | `kb_connectors.py`（含 `POST …/invoke-primitive`）、MCP `invoke_connector_primitive`（§10 原语，无 mapping）、账本 sync/writeback 工具；单测 `test_connector_primitive_invoke.py`、`test_ops_connectors.py` |
 | **Phase 4+**：平台双层 Provider 治理 + 管理台 | `done` | 迁移 `0012_platform_connector_allowlist.sql`（PG v13）+ `settings.connector_allowed_providers`；`GET|PUT /api/v1/settings/connectors`、`GET …/catalog`、`GET …/catalog/stats`、`GET …/catalog/{service}`、`POST …/validate`；KB `connectors/policy` 返回 `platform_allowed_providers` / `effective_allowed_providers`；控制台 `/admin/connectors`（侧栏 **管理** 导航 + 面包屑、目录浏览、分类统计、JSON/CSV 导入导出、Manifest 详情）；KB 侧栏独立 **连接器** 分区四路由（`catalog` / `mappings` / `policy` / `runs`）；映射 `poll_interval_minutes` + 与 `BASIS_HTTP_POLL_TICK_SECONDS` 共用的后台入向同步调度（`connector_poll_scheduler.py`）；单测 `tests/test_connector_allowlist.py`、`tests/test_connector_poll_scheduler.py`、`web/e2e/connectors.spec.ts` |
 | **Live PG 验收** | `done` | `scripts/bocp_pg_smoke.py`：`public.customers` 入向 sync + `tier` 写回（`propose` → `connector_writeback` approve → outbox `synced` → 再 sync `unchanged`）；实体 `ent_7639…` / `ent_ee36…` |
 | Canonical DB SQL 经 Store / persistence（Plan C） | `done` | KB：`basis/domain/kb/persistence/` + `access/`；`KnowledgeStore` ~300 行；见 [package-layout.md](architecture/package-layout.md) |
 | AdminStore SQL 分层（Plan C） | `done` | `basis/platform/admin/persistence/` + `access/`；`AdminStore` ~280 行；DTO `admin_types.py`；`org_store` / `desktop_store_mixin` 仅 re-export |
+
+### 3.4 Semantica 基础 SDK 集成（线 1）
+
+| 项 | Status | Priority | Notes |
+| --- | --- | --- | --- |
+| 线 1：减少 `semantica.explorer` 依赖，域逻辑以 `context` / `ingest` / `ontology` 等核心包为准 | `partial` | P1 | [semantica-base-sdk-plan.md](architecture/semantica-base-sdk-plan.md) · [explorer-session-registry.md](architecture/explorer-session-registry.md) |
+| Phase 0：explorer routes allowlist + CI + AGENTS 护栏 | `done` | P1 | `scripts/audit-semantica-explorer-imports.py` |
+| Phase 1：图/时态读迁出 `explorer.routes` | `partial` | P1 | HTTP/域层已迁；Hub 经 `ontology_route_bridge`（allowlist **1 文件**） |
+| Phase 2–4：本体域、SPARQL/enrich、可选 extra | `not` | P1–P2 | 见计划 §4 |
 
 ---
 
@@ -167,8 +176,10 @@
 | Phase | Focus | Checklist rows |
 | --- | --- | --- |
 | **Now** | 维护基线 | §0 / §0.1 已交付能力；缺陷与小改进按需；图活动流回滚与文档对齐 |
+| **Planned** | Semantica 线 1 | [semantica-base-sdk-plan.md](architecture/semantica-base-sdk-plan.md) Phase 0→1 |
 | **Deferred** | 暂缓（2026-10 产品决定） | **ADR 0007 Part B** 画布合并；**F-ACC-07** 生产 IdP 签收（有客户再做）；Markdown 节点持久化 |
-| **Deferred** | Desktop / scale | ADR 0004 Phase B+（Electron）；**M4-04** Redis WS（单 worker / sticky 即可） |
+| **Optional** | Desktop 本机 | ADR 0004 Phase A–C（见 `desktop/README.md`）；**Phase D** 安装包 deferred |
+| **Deferred** | Scale | **M4-04** Redis WS（单 worker / sticky 即可） |
 | **Enterprise option** | BOCP 现场运维 | §3.3 已 `done`；新需求走 issue，不主动扩 Phase |
 | **Excluded** | Memory / Explorer shell | F-MEM-*；M5-02 npm Explorer |
 
@@ -190,4 +201,4 @@
 
 ---
 
-_Last updated: 2026-10-19 — 图活动流仅设置 Recent + Review；ADR 0007 Part B / F-ACC-07 签收 / Markdown 节点等暂缓（§4）。_
+_Last updated: 2026-10-20 — §3.4 Semantica 线 1 only（无独立 RDF 导入齐全性规划）。_

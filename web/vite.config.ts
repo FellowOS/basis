@@ -2,15 +2,35 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
+import { fumadocsMdx } from 'fumadocs-mdx/vite';
 import { defineConfig } from 'vite';
 
 const root = path.dirname(fileURLToPath(import.meta.url));
 
-export default defineConfig({
-  plugins: [react(), tailwindcss()],
+function desktopApiProxyTarget(): string {
+  return (process.env.VITE_BASIS_API_URL ?? 'http://127.0.0.1:8090').replace(/\/$/, '');
+}
+
+export default defineConfig(({ mode }) => ({
+  // Packaged desktop serves SPA over http://127.0.0.1 — use root-relative assets so
+  // deep routes (/kbs/...) still load /assets/* (relative `./` breaks after navigation).
+  base: '/',
+  server:
+    mode === 'desktop'
+      ? {
+          proxy: {
+            '/api': { target: desktopApiProxyTarget(), changeOrigin: true },
+            '/openapi': { target: desktopApiProxyTarget(), changeOrigin: true },
+          },
+        }
+      : undefined,
+  plugins: [fumadocsMdx(), react(), tailwindcss()],
   resolve: {
     dedupe: ['react', 'react-dom'],
-    alias: [{ find: /^@\//, replacement: `${path.resolve(root, 'src')}/` }],
+    alias: [
+      { find: /^@\/\.source/, replacement: `${path.resolve(root, '.source')}/` },
+      { find: /^@\//, replacement: `${path.resolve(root, 'src')}/` },
+    ],
   },
   optimizeDeps: {
     include: [
@@ -44,4 +64,4 @@ export default defineConfig({
       },
     },
   },
-});
+}));

@@ -1,0 +1,24 @@
+---
+title: "Basis 开发者文档"
+sidebarTitle: "概述"
+description: "本体驱动的智能体上下文服务：证据账本、业务本体、1,000+ 声明式连接器，以及标准 OpenAPI v1 与 MCP 接口。"
+---
+
+## 可依赖的能力
+
+Basis 提供 `/api/v1/*` 版本化 REST、按库路由 `/api/v1/kbs/{kb_id}/*`，以及在 `/openapi/v1.json` 发布的 OpenAPI。每个知识库可开启 HTTP MCP。
+
+- 平台 API — 用户、知识库、模型、审计、设置
+- 知识库 API — 摄入、账本、检索、图谱、本体、问答
+- MCP — 与 OpenAPI 对齐的工具面
+
+## 建议阅读顺序
+
+本地跑通后，先理解核心概念再对接生产环境。
+
+- [快速开始](/docs/quickstart) — 启动 API 与 Web 控制台
+- [核心概念](/docs/concepts) — 账本与投影
+- [REST API](/docs/rest-api) — 路径、鉴权与面
+- [BOCP](/docs/bocp) — 连接器 Manifest 协议（外部系统）
+- [连接器（Basis）](/docs/connectors-basis) — Basis 如何承载 BOCP
+- [API 参考](/docs/api-reference) — OpenAPI 交互文档

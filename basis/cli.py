@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 import argparse
+import os
+import socket
 import sys
+from dataclasses import replace
 
 import uvicorn
 
@@ -11,12 +14,25 @@ from basis.infra.config import Settings
 from basis.infra.observability.logging_setup import uvicorn_log_config
 
 
+def _allocate_listen_port(host: str, port: int) -> int:
+    if port != 0:
+        return port
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        sock.bind((host, 0))
+        return int(sock.getsockname()[1])
+
+
 def _cmd_serve(settings: Settings) -> None:
     settings.validate_for_startup()
+    listen_port = _allocate_listen_port(settings.host, settings.port)
+    if listen_port != settings.port:
+        settings = replace(settings, port=listen_port)
+    os.environ["BASIS_LISTEN_PORT_RESOLVED"] = "1"
+    os.environ["BASIS_PORT"] = str(listen_port)
     uvicorn.run(
         "basis.transport.http.app:create_app",
         host=settings.host,
-        port=settings.port,
+        port=listen_port,
         factory=True,
         log_config=uvicorn_log_config(settings),
     )
@@ -73,7 +89,12 @@ def main(argv: list[str] | None = None) -> None:
     sub = parser.add_subparsers(dest="command")
 
     serve = sub.add_parser("serve", help="Start the HTTP API (default)")
-    serve.set_defaults(command="serve")
+    serve.add_argument(
+        "--profile",
+        metavar="NAME|PATH",
+        help="Deployment profile (e.g. desktop) or path to profile YAML",
+    )
+    serve.set_defaults(command="serve", profile=None)
 
     migrate = sub.add_parser(
         "migrate-legacy-graphs",
@@ -121,7 +142,7 @@ def main(argv: list[str] | None = None) -> None:
         argv = ["serve", *argv]
 
     args = parser.parse_args(argv)
-    settings = Settings.from_env()
+    settings = Settings.from_env(profile_spec=getattr(args, "profile", None))
 
     if args.command == "migrate-legacy-graphs":
         _cmd_migrate_legacy_graphs(settings, args)

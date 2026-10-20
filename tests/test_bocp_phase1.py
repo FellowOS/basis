@@ -7,8 +7,26 @@ from decimal import Decimal
 from pathlib import Path
 import sqlite3
 
-from basis.domain.connectors import (
-    get_connector_catalog,
+import yaml
+
+from basis.domain.connectors import get_connector_catalog
+from basis.domain.connectors.catalog import ConnectorCatalog
+from basis.domain.connectors.manifest_actions import entity_action_from_stream
+from basis.domain.connectors.manifest_schema import (
+    AuthSpec,
+    ConfigFieldSpec,
+    ConnectorManifest,
+    ProviderSpecReference,
+    RetrieverSpec,
+    StreamSpec,
+)
+from basis.domain.connectors.catalog import default_providers_dir
+from basis.domain.connectors.provider_bundle import (
+    load_connector_manifest,
+    load_provider_bundle,
+    manifest_wire_payload,
+    provider_manifest_path,
+    write_provider_bundle,
 )
 from basis.domain.kb.structured_models import (
     ColumnMappingSpec,
@@ -21,15 +39,79 @@ from basis.domain.kb.structured_models import (
 from basis.platform.admin.migrations import run_migrations
 
 
-def test_connector_catalog_loads_builtin_and_synthesized_manifests() -> None:
+def test_provider_sql_bundle_without_openapi(tmp_path: Path) -> None:
+    manifest = ConnectorManifest(
+        service="erp-db",
+        display_name="ERP DB",
+        spec=ProviderSpecReference(protocol="sql", openapi=None),
+        auth=[
+            AuthSpec(
+                auth_mode="database_dsn",
+                connection_config=[],
+                credentials=[],
+            )
+        ],
+        actions=[
+            entity_action_from_stream(
+                StreamSpec(
+                    name="table_records",
+                    display_name="Rows",
+                    retriever=RetrieverSpec(adapter="sql_alchemy"),
+                )
+            )
+        ],
+    )
+    write_provider_bundle(tmp_path, manifest)
+    assert not (tmp_path / "erp-db.openapi.yaml").exists()
+    loaded = load_provider_bundle(provider_manifest_path(tmp_path, "erp-db"))
+    assert loaded.paths.protocol == "sql"
+    assert loaded.paths.openapi is None
+
+
+def test_provider_rest_bundle_requires_openapi(tmp_path: Path) -> None:
+    manifest = ConnectorManifest(
+        service="sample-api",
+        display_name="Sample API",
+        spec=ProviderSpecReference(protocol="rest", openapi="openapi.yaml"),
+        auth=[
+            AuthSpec(
+                auth_mode="api_key",
+                base_url="https://api.example.com",
+                headers={"Authorization": "Bearer ${credentials.api_key}"},
+                credentials=[
+                    ConfigFieldSpec(
+                        key="api_key",
+                        label="API Key",
+                        input_type="password",
+                        required=True,
+                        secret=True,
+                    )
+                ],
+            )
+        ],
+        actions=[],
+    )
+    write_provider_bundle(tmp_path, manifest)
+    manifest_path = provider_manifest_path(tmp_path, "sample-api")
+    loaded = load_connector_manifest(manifest_path)
+    assert loaded.service == "sample-api"
+    assert manifest_path.is_file()
+    assert not (tmp_path / "sample-api.openapi.yaml").exists()
+
+    mini = ConnectorCatalog.load_from_directory(tmp_path)
+    assert mini.get("sample-api") is not None
+
+
+def test_connector_catalog_loads_shipped_providers_from_disk() -> None:
     catalog = get_connector_catalog()
     stats = catalog.summary_stats()
-    # 2 built-in SQLAlchemy databases (postgres, mysql) + 1000+ synthesized SaaS providers
-    assert stats["providers"] >= 1000
-    assert stats["providers_with_streams"] >= 7
+    assert stats["providers"] == 4
+    assert stats["providers_with_streams"] == 3
 
     pg = catalog.get("postgres")
     assert pg is not None
+    assert pg.spec is not None
+    assert pg.spec.protocol == "sql"
     assert pg.auth[0].auth_mode == "database_dsn"
     assert len(pg.streams) == 1
     assert pg.streams[0].dynamic_schema_loader is not None
@@ -39,23 +121,50 @@ def test_connector_catalog_loads_builtin_and_synthesized_manifests() -> None:
 
     mysql = catalog.get("mysql")
     assert mysql is not None
+    assert mysql.spec is not None
+    assert mysql.spec.protocol == "sql"
     assert mysql.auth[0].auth_mode == "database_dsn"
 
-    airtable = catalog.get("airtable")
-    assert airtable is not None
-    stream_names = {s.name for s in airtable.streams}
-    assert {"bases", "records"} <= stream_names
-    records_stream = next(s for s in airtable.streams if s.name == "records")
-    assert records_stream.dynamic_schema_loader is not None
-    assert records_stream.dynamic_schema_loader.type == "rest_metadata"
-    assert records_stream.retriever.partition_router is not None
-    assert records_stream.retriever.partition_router.parent_stream == "bases"
-    assert "update" in records_stream.mutations
-
-    # Verify filtering
     db_connectors = catalog.list_manifests(category="Database", has_streams_only=True)
     db_services = {m.service for m in db_connectors}
-    assert {"postgres", "mysql", "airtable"} <= db_services
+    assert db_services == {"postgres", "mysql"}
+
+    gh = catalog.get("github")
+    assert gh is not None
+    assert gh.spec is not None
+    assert gh.spec.protocol == "rest"
+    assert gh.streams[0].retriever.adapter == "rest_declarative"
+    gh_paths = catalog.provider_bundle_paths("github")
+    assert gh_paths is not None
+    assert gh_paths.manifest_path.name == "github.yaml"
+    assert gh_paths.openapi is None
+    assert len(gh.procedure_actions()) == 1
+    assert gh.procedure_actions()[0].id == "get_authenticated_user"
+
+
+def test_shipped_connector_yaml_matches_manifest_wire_payload() -> None:
+    """On-disk ``connector.yaml`` for shipped providers follows ``manifest_wire_payload`` layout."""
+    for name in ("github", "postgres", "mysql", "slack"):
+        providers_root = default_providers_dir()
+        manifest_path = provider_manifest_path(providers_root, name)
+        loaded = load_provider_bundle(manifest_path)
+        expected = yaml.safe_dump(
+            manifest_wire_payload(loaded.manifest),
+            sort_keys=False,
+            allow_unicode=True,
+        )
+        on_disk = manifest_path.read_text(encoding="utf-8")
+        assert on_disk == expected
+        assert on_disk.startswith("version:")
+        assert loaded.manifest.actions
+        if name == "github":
+            assert len(loaded.manifest.entity_actions()) == 2
+            assert len(loaded.manifest.procedure_actions()) == 1
+        elif name == "slack":
+            assert len(loaded.manifest.procedure_actions()) == 3
+            assert not loaded.manifest.entity_actions()
+        else:
+            assert all(a.kind == "entity" for a in loaded.manifest.actions)
 
 
 def test_canonical_row_hash_determinism_and_normalization() -> None:

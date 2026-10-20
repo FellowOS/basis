@@ -1,4 +1,5 @@
 export const sidebar = {
+  brand: 'Basis',
   collapseSidebar: 'Collapse sidebar',
   openSidebar: 'Open sidebar',
   mobileTitle: 'Sidebar',

@@ -64,7 +64,7 @@ export function ProductSiteHeader({ activeKey, onGetStarted }: ProductSiteHeader
     <header
       className={cn(
         'sticky top-0 z-30 w-full transition-[border-color,background-color,backdrop-filter] duration-200',
-        scrolled && 'border-b border-border/60 bg-background/80 backdrop-blur-xl',
+        scrolled && 'border-b border-border/60 bg-background',
       )}
     >
       <div className="flex h-14 w-full items-center gap-3 px-5 sm:h-16 sm:px-8">

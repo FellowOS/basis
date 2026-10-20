@@ -49,6 +49,8 @@ class KnowledgeBasesAccess:
             raise AdminError(403, "forbidden", "只有系统管理员可以创建公开知识库")
         with self._store._lock:
             conn = self._store._conn
+            if getattr(self._store._db, "backend", "") == "postgres":
+                self._store._organizations.ensure_knowledge_bases_organization_column()
             org = self._store._organizations.create_organization_locked(
                 name, owner_user_id=actor.id
             )

@@ -751,6 +751,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/kbs/{kb_id}/connectors/connections/{service}/{connection_name}/invoke-primitive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Invoke Kb Connector Primitive
+         * @description Run a BOCP Section 10 primitive (discover, list, mutate, invoke) without a table mapping.
+         */
+        post: operations["invoke_kb_connector_primitive_api_v1_kbs__kb_id__connectors_connections__service___connection_name__invoke_primitive_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/kbs/{kb_id}/connectors/oauth-configs/{service}": {
         parameters: {
             query?: never;
@@ -3964,6 +3984,48 @@ export interface components {
             /** Extract Relations */
             extract_relations?: boolean | null;
         };
+        /** InvokeConnectorPrimitiveRequest */
+        InvokeConnectorPrimitiveRequest: {
+            /** Action Id */
+            action_id: string;
+            /**
+             * Primitive
+             * @enum {string}
+             */
+            primitive: "discover" | "list" | "mutate" | "invoke";
+            /** Operation */
+            operation?: ("create" | "update" | "upsert" | "delete") | null;
+            /** External Table */
+            external_table?: string | null;
+            /** External Id */
+            external_id?: unknown | null;
+            /** Changes */
+            changes?: {
+                [key: string]: unknown;
+            };
+            /** Action Params */
+            action_params?: {
+                [key: string]: unknown;
+            };
+            /** Arguments */
+            arguments?: {
+                [key: string]: unknown;
+            };
+            /**
+             * Limit
+             * @default 500
+             */
+            limit: number;
+            /** Cursor Watermark */
+            cursor_watermark?: unknown | null;
+            /**
+             * Primary Key Column
+             * @default id
+             */
+            primary_key_column: string;
+            /** Cursor Column */
+            cursor_column?: string | null;
+        };
         /** LoadOntologyRequest */
         LoadOntologyRequest: {
             /** Url */
@@ -5874,6 +5936,47 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    invoke_kb_connector_primitive_api_v1_kbs__kb_id__connectors_connections__service___connection_name__invoke_primitive_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                kb_id: string;
+                service: string;
+                connection_name: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InvokeConnectorPrimitiveRequest"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {

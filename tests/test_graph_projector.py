@@ -211,6 +211,30 @@ def test_ontology_node_preserved_on_rebuild(tmp_path: Path) -> None:
     store.close()
 
 
+def test_schema_subgraph_preserved_on_rebuild(tmp_path: Path) -> None:
+    kb_id, store = _kb_store(tmp_path)
+    existing = GraphSession()
+    existing.add_node("http://example.org/onto#A", "owl:Class", content="ClassA")
+    existing.add_node("http://example.org/onto#B", "owl:Class", content="ClassB")
+    existing.add_edge(
+        "http://example.org/onto#B",
+        "http://example.org/onto#A",
+        "rdfs:subClassOf",
+    )
+    rebuilt = rebuild_graph_from_ledger(store, kb_id, preserve_from=existing)
+    assert "http://example.org/onto#A" in rebuilt.graph.nodes
+    assert "http://example.org/onto#B" in rebuilt.graph.nodes
+    edges = rebuilt.graph.edges
+    edge_values = edges.values() if isinstance(edges, dict) else edges
+    assert any(
+        edge.source_id == "http://example.org/onto#B"
+        and edge.target_id == "http://example.org/onto#A"
+        and edge.edge_type == "rdfs:subClassOf"
+        for edge in edge_values
+    )
+    store.close()
+
+
 def test_temporal_graph_projection_valid_until_filters_invalidated_edges_and_nodes(
     tmp_path: Path,
 ) -> None:

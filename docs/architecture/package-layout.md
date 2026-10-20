@@ -53,6 +53,19 @@ Server-side adapters for vendored `web/src/explorer` — **not** a second ledger
 | `registry.py` | Per-KB Explorer session registry (`ExplorerSessionRegistry`, `KbExplorerRuntime`) |
 | `session_guard.py` | AuthZ helpers for Explorer HTTP/WS |
 | `graph_read.py` | Read paths over projected graph + ledger pointers |
+| `temporal_read.py` | Temporal bounds / snapshot (no `semantica.explorer.routes`) |
+| `decisions_read.py` | Decision list + causal chain (no `semantica.explorer.routes`) |
+| `provenance_read.py` | Provenance lineage + exportable reports |
+| `graph_semantic_read.py` | Semantic neighborhood + distance matrix |
+| `sparql_read.py` | Read-only SPARQL (rdflib projection) |
+| `graph_export_read.py` | Graph export (json/csv/rdf/graphml) |
+| `enrich_read.py` | Link prediction + dedup scan |
+| `enrich_write.py` | Approved entity merge on graph session |
+| `reasoning_run.py` | Forward reasoning + optional graph apply |
+| `graph_import_write.py` | Approved graph file import (json/csv) |
+| `vocabulary_read.py` / `vocabulary_write.py` | SKOS scheme browse + import |
+| `ontology_catalog.py` | Registry listing + alignments + suggestions |
+| `ontology_route_bridge.py` | **Only** allowlisted import of `semantica.explorer.routes.ontology` (hub + e2e) |
 | `graph_diff.py` | Diff payloads for `GET graph/diff` |
 | `graph_staging.py` | **Stateless** staging payload builders (persist via `KnowledgeStore` + `kb/persistence/graph_staging`) |
 | `ontology_kb_hub.py` | Ontology workspace ↔ KB hub orchestration |
@@ -60,7 +73,9 @@ Server-side adapters for vendored `web/src/explorer` — **not** a second ledger
 | `forward_reasoning.py` | Explorer-triggered reasoning helpers |
 | `governance_decision.py` | Governance trip / proposal side effects (alerts, review hooks) |
 
-See [explorer.md](explorer.md), [ADR 0007](0007-graph-activity-and-canvas-merge.md) for graph audit surfaces / canvas merge (phased).
+See [explorer.md](explorer.md), [explorer-session-registry.md](explorer-session-registry.md), [ADR 0007](0007-graph-activity-and-canvas-merge.md).
+
+**线 1：** 新 Python 代码勿新增 `semantica.explorer.routes` import；见 `scripts/audit-semantica-explorer-imports.py`。
 
 ### Other domain packages
 
@@ -69,13 +84,13 @@ See [explorer.md](explorer.md), [ADR 0007](0007-graph-activity-and-canvas-merge.
 | `graph/snapshot_store.py` | On-disk ContextGraph JSON per KB — **not** SQL `persistence/` |
 | `graph/persistence.py` | Deprecated re-export of `snapshot_store` |
 | `explorer/graph_staging.py` | Staging **payload**; SQL in `kb/persistence/graph_staging.py` |
-| `connectors/` | BOCP runtime, vault crypto, adapters — no ledger SQL |
+| `connectors/` | BOCP runtime, vault crypto, `adapters/{sql,rest}/` — no ledger SQL |
 
 ### BOCP: `connectors/` vs `kb/connector_sync`
 
 | Layer | Path | Responsibility |
 | --- | --- | --- |
-| **Engine** | `domain/connectors/` | Manifest schema, `ConnectorRuntime`, SQL/REST adapters, vault crypto (`auth_vault`), platform allowlist policy reads |
+| **Engine** | `domain/connectors/` | Manifest schema, `ConnectorRuntime`, `adapters/sql` + `adapters/rest`, vault crypto (`auth_vault`), shipped `providers/{service}/` bundles |
 | **Ledger** | `domain/kb/services/connector_sync.py` + `kb/persistence/connector_*.py` | Map streams ↔ `entities` / `statements` / outbox; row-hash sync; writeback via review; SQL on canonical DB |
 | **Bridge** | `domain/connectors/canonical_db.py` | `LockedCanonicalConn` — run ledger SQL under an existing `KnowledgeStore` lock |
 

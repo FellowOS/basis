@@ -223,14 +223,15 @@ def rebuild_kb_projection(request: Request, kb_id: str) -> dict:
     return meta
 
 
-def save_graph(request: Request, kb_id: str) -> None:
+def save_graph(request: Request, kb_id: str, *, sync_ledger: bool = True) -> None:
     session = graph_for(request, kb_id)
     knowledge = get_knowledge_store(request)
-    from basis.domain.kb.services.graph_sync import sync_graph_to_ledger
+    if sync_ledger:
+        from basis.domain.kb.services.graph_sync import sync_graph_to_ledger
 
-    synced = sync_graph_to_ledger(knowledge, kb_id, session)
-    if synced["entities_created"] or synced["statements_created"]:
-        apply_rebuild_to_session(knowledge, kb_id, session)
+        synced = sync_graph_to_ledger(knowledge, kb_id, session)
+        if synced["entities_created"] or synced["statements_created"]:
+            apply_rebuild_to_session(knowledge, kb_id, session)
     ledger = knowledge.get_projection_state(kb_id)
     get_graph_persistence(request).save(
         kb_id,

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import logging
 import re
 from datetime import datetime, timezone
 from pathlib import Path
@@ -98,6 +99,99 @@ def _vector_partition_bootstrap_sql() -> list[str]:
         USING hnsw ((embedding::vector(384)) vector_cosine_ops)
         """,
     ]
+
+
+def _organizations_table_exists(conn: Any) -> bool:
+    row = conn.execute(
+        text(
+            """
+            SELECT EXISTS (
+                SELECT 1 FROM information_schema.tables
+                WHERE table_schema = 'public' AND table_name = 'organizations'
+            )
+            """
+        )
+    ).scalar()
+    return bool(row)
+
+
+def _kb_table_owner(conn: Any) -> str | None:
+    row = conn.execute(
+        text(
+            """
+            SELECT tableowner FROM pg_tables
+            WHERE schemaname = 'public' AND tablename = 'knowledge_bases'
+            """
+        )
+    ).fetchone()
+    return str(row[0]) if row else None
+
+
+def _kb_organization_id_column_exists(conn: Any) -> bool:
+    row = conn.execute(
+        text(
+            """
+            SELECT EXISTS (
+                SELECT 1 FROM information_schema.columns
+                WHERE table_schema = 'public'
+                  AND table_name = 'knowledge_bases'
+                  AND column_name = 'organization_id'
+            )
+            """
+        )
+    ).scalar()
+    return bool(row)
+
+
+def ensure_kb_organization_id_column(conn: Any) -> bool:
+    """Repair PG when migration 11 was recorded but ALTER was skipped (e.g. not table owner).
+
+    Returns True when the column exists (or organizations table is absent). False when repair
+    could not add the column (caller should log; do not abort unrelated startup work).
+    """
+    if not _organizations_table_exists(conn):
+        return True
+    if _kb_organization_id_column_exists(conn):
+        return True
+    nested = getattr(conn, "begin_nested", None)
+    for statement in (
+        """
+        ALTER TABLE knowledge_bases
+        ADD COLUMN IF NOT EXISTS organization_id TEXT
+        REFERENCES organizations(id)
+        """,
+        """
+        ALTER TABLE knowledge_bases
+        ADD COLUMN IF NOT EXISTS organization_id TEXT
+        """,
+    ):
+        try:
+            if nested is not None:
+                with conn.begin_nested():
+                    conn.exec_driver_sql(statement)
+            else:
+                conn.exec_driver_sql(statement)
+        except ProgrammingError:
+            continue
+        if _kb_organization_id_column_exists(conn):
+            return True
+    return _kb_organization_id_column_exists(conn)
+
+
+def repair_kb_organization_id_column(engine: Engine) -> None:
+    """Autocommit repair after the main migration transaction commits."""
+    log = logging.getLogger(__name__)
+    with engine.connect().execution_options(isolation_level="AUTOCOMMIT") as conn:
+        if ensure_kb_organization_id_column(conn):
+            return
+        owner = _kb_table_owner(conn)
+        log.warning(
+            "PostgreSQL schema: knowledge_bases.organization_id is still missing "
+            "(table owner=%s, connected as migration user). "
+            "Run as owner or superuser: "
+            "ALTER TABLE knowledge_bases ADD COLUMN IF NOT EXISTS organization_id TEXT;",
+            owner or "unknown",
+        )
 
 
 def _exec_sql_best_effort(conn: Any, statement: str, *, skip_owner_errors: bool) -> None:
@@ -471,4 +565,6 @@ def run_postgres_migrations(engine: Engine) -> list[int]:
                 },
             )
             applied_now.append(17)
+
+    repair_kb_organization_id_column(engine)
     return applied_now

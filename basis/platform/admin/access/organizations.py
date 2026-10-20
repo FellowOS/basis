@@ -130,6 +130,31 @@ class OrganizationsAccess:
                         self._store._conn.commit()
                     except Exception:
                         pass
+                row = self._store._conn.execute(
+                    """
+                    SELECT EXISTS (
+                        SELECT 1 FROM information_schema.columns
+                        WHERE table_schema = 'public'
+                          AND table_name = 'knowledge_bases'
+                          AND column_name = 'organization_id'
+                    )
+                    """
+                ).fetchone()
+                if not row or not row[0]:
+                    owner_row = self._store._conn.execute(
+                        """
+                        SELECT tableowner FROM pg_tables
+                        WHERE schemaname = 'public' AND tablename = 'knowledge_bases'
+                        """
+                    ).fetchone()
+                    owner = owner_row[0] if owner_row else "unknown"
+                    raise AdminError(
+                        500,
+                        "schema_incomplete",
+                        f"knowledge_bases.organization_id is missing (table owner={owner}). "
+                        "Connect as that role or a superuser and run: "
+                        "ALTER TABLE knowledge_bases ADD COLUMN IF NOT EXISTS organization_id TEXT;",
+                    )
                 return
             cols = {
                 r[1]

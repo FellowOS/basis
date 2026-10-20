@@ -40,20 +40,10 @@ from basis.infra.observability.logging_setup import configure_basis_logging
 
 @asynccontextmanager
 async def _app_lifespan(app: FastAPI):
-    import json
-    import logging
+    from basis.infra.observability.process_ready import emit_process_ready
 
     settings = app.state.settings
-    logging.getLogger("basis").info(
-        json.dumps(
-            {
-                "event": "basis.ready",
-                "host": settings.host,
-                "port": settings.port,
-                "profile": settings.deployment_profile,
-            }
-        )
-    )
+    emit_process_ready(settings)
     tasks: list[asyncio.Task[None]] = []
     if explorer_available():
         interval = max(30, app.state.settings.explorer_evict_interval_seconds)
@@ -163,6 +153,8 @@ def create_app(app_settings: Settings | None = None) -> FastAPI:
         allow_origins=[
             "http://127.0.0.1:5173",
             "http://localhost:5173",
+            "http://127.0.0.1:3001",
+            "http://localhost:3001",
         ],
         allow_credentials=True,
         allow_methods=["*"],

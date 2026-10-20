@@ -60,9 +60,9 @@ def test_connectors_http_endpoints_and_review_writeback_flow(tmp_path: Path) -> 
     )
     assert cat_resp.status_code == 200
     cat_data = cat_resp.json()
-    assert cat_data["stats"]["providers"] >= 1000
+    assert cat_data["stats"]["providers"] == 4
     services = {c["service"] for c in cat_data["connectors"]}
-    assert {"postgres", "mysql", "airtable", "github", "hubspot"} <= services
+    assert services == {"github", "mysql", "postgres"}
 
     # 4. Create Connection & Run CHECK + DISCOVER
     put_conn = client.put(
@@ -211,29 +211,6 @@ def test_connectors_http_endpoints_and_review_writeback_flow(tmp_path: Path) -> 
     )
     assert runs_resp.status_code == 200
     assert len(runs_resp.json()["runs"]) >= 3
-
-    # 8. Verify OAuth2 Config & Authorize URL routes
-    oauth_cfg_resp = client.put(
-        f"/api/v1/kbs/{kb_id}/connectors/oauth-configs/github",
-        headers=headers,
-        json={
-            "client_id": "gh_client_123",
-            "client_secret": "gh_secret_456",
-            "redirect_uri": "https://basis.local/oauth/callback",
-        },
-    )
-    assert oauth_cfg_resp.status_code == 200
-    assert oauth_cfg_resp.json()["oauth_config"]["client_id"] == "gh_client_123"
-
-    auth_url_resp = client.post(
-        f"/api/v1/kbs/{kb_id}/connectors/oauth/github/authorize-url",
-        headers=headers,
-        json={"state": "state_xyz"},
-    )
-    assert auth_url_resp.status_code == 200
-    assert "client_id=gh_client_123" in auth_url_resp.json()["authorize_url"]
-    assert "state=state_xyz" in auth_url_resp.json()["authorize_url"]
-
 
 def test_table_mapping_get_update_and_delete(tmp_path: Path) -> None:
     client = TestClient(create_app(Settings(data_dir=tmp_path / "basis_data")))

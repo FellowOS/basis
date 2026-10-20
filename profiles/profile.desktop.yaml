@@ -1,0 +1,25 @@
+# Basis — Desktop deployment profile (aligned with Fellow gateway/profiles/profile.desktop.yaml)
+# Electron / `basis serve --profile desktop` load this file.
+# User overrides (models, API keys) live under ~/.basis/config.yaml (future); do not edit install copy.
+
+config_version: 1
+
+deployment:
+  profile: desktop
+
+auth:
+  enabled: false
+
+server:
+  host: 127.0.0.1
+  port: 0 # 0 = OS-assigned port; stdout prints basis.ready (Fellow: gateway.ready)
+
+database:
+  driver: sqlite
+  path: $BASIS_SQLITE_PATH # default ~/.basis/basis.db when unset
+
+storage:
+  root: $BASIS_HOME # default ~/.basis
+
+logging:
+  level: info

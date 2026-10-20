@@ -1,0 +1,5 @@
+id: 1
+name: collaboration
+ship_tier_default: beta
+services:
+  - slack

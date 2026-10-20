@@ -1,0 +1,19 @@
+---
+title: "Quickstart"
+sidebarTitle: "Quickstart"
+description: "Run the API and web console on your machine in a few commands."
+---
+
+## Prerequisites
+
+Python 3.10+ with uv, Node.js 22+ for the web app.
+
+## Run locally
+
+From the repository root: copy `.env.example`, run `uv sync --extra dev && uv run basis` (API on port 8090). In `web/`: copy `.env.example`, `npm install && npm run dev` (console on port 5173).
+
+Register the first user — they become platform administrator.
+
+## Verify
+
+Open the console, create a knowledge base, and upload a source. Use the [interactive API reference](/swagger) when you need exact request shapes.

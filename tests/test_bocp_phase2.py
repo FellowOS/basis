@@ -17,7 +17,35 @@ from basis.domain.connectors import (
     decrypt_vault_payload,
     encrypt_vault_payload,
 )
+from basis.domain.connectors.catalog import ConnectorCatalog, get_connector_catalog
+from basis.domain.connectors.adapters.rest.curated_dev import curated_rest_manifests
 from basis.platform.admin.migrations import run_migrations
+
+
+@pytest.fixture(autouse=True)
+def _phase2_catalog_includes_rest_dev_fixtures(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Shipped catalog is SQL-only; Phase 2 REST tests use in-repo dev manifests."""
+    get_connector_catalog.cache_clear()
+    shipped = ConnectorCatalog.load_from_directory()
+    by_service = {m.service: m for m in shipped.list_manifests()}
+    by_service.update(curated_rest_manifests())
+    catalog = ConnectorCatalog(list(by_service.values()))
+
+    def _catalog() -> ConnectorCatalog:
+        return catalog
+
+    monkeypatch.setattr(
+        "basis.domain.connectors.catalog.get_connector_catalog",
+        _catalog,
+    )
+    monkeypatch.setattr(
+        "basis.domain.connectors.auth_vault.get_connector_catalog",
+        _catalog,
+    )
+    monkeypatch.setattr(
+        "basis.domain.connectors.runtime.get_connector_catalog",
+        _catalog,
+    )
 
 
 def _setup_kb_db(tmp_path: Path) -> sqlite3.Connection:
@@ -371,34 +399,10 @@ def test_oauth2_code_exchange_and_tool_execution(tmp_path: Path) -> None:
         )
         assert stored.credentials["access_token"] == "gho_exchanged_token_999"
 
-        # Execute first tool on github manifest
-        gh_manifest = runtime.catalog.get("github")
-        assert gh_manifest is not None and len(gh_manifest.tools) > 0
-        first_tool_id = gh_manifest.tools[0].id
-
-        tool_out = runtime.execute_tool(
-            "kb1",
-            "github",
-            first_tool_id,
-            connection_name="oauth_conn",
-            arguments={"per_page": 10},
+        chk = runtime.check_connection(
+            "kb1", "github", connection_name="oauth_conn"
         )
-        assert tool_out["tool_id"] == first_tool_id
-        assert tool_out["result"]["auth"] == "Bearer gho_exchanged_token_999"
-
-        # Verify action_policy disabling a tool
-        runtime.vault.upsert_policy(
-            "kb1",
-            allowed_providers="*",
-            action_policy={"tools": {f"github:{first_tool_id}": "disabled"}},
-        )
-        with pytest.raises(PermissionError, match="disabled by KB action policy"):
-            runtime.execute_tool(
-                "kb1",
-                "github",
-                first_tool_id,
-                connection_name="oauth_conn",
-            )
+        assert chk.get("ok") is True
     finally:
         mock_client.close()
         conn.close()

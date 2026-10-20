@@ -4,6 +4,8 @@ export const platformSettings = {
   tabConnectors: 'Connectors',
   tabGeneral: 'General',
   tabOrgSso: 'Organization SSO',
+  desktopSettingsLead:
+    'This copy runs on your machine without sign-in. Use Models in Administration for LLM and embedding keys; organization SSO and user management are not available in Desktop mode.',
   connectors: {
     sectionLead:
       'Govern which BOCP providers are available instance-wide. Knowledge bases can only tighten within this ceiling.',

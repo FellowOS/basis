@@ -1,19 +1,16 @@
-/** Deployment/runtime flags (ADR 0004 desktop). */
+/** Deployment/runtime flags (ADR 0004 desktop; Fellow getRuntime alignment). */
 
+export type { AppRuntime, BasisEnvironment } from '@/lib/app-runtime.js';
+export { appAuthRequired, appIsDesktopProduct, getAppRuntime } from '@/lib/app-runtime.js';
+
+import { appAuthRequired, appIsDesktopProduct } from '@/lib/app-runtime.js';
+
+/** @deprecated Prefer `appAuthRequired()` / `getAppRuntime().authRequired` */
 export function basisAuthRequired(): boolean {
-  const desktop = window.__BASIS_DESKTOP__?.authRequired;
-  if (desktop === false) return false;
-  const raw = import.meta.env.VITE_BASIS_AUTH_REQUIRED;
-  if (raw === 'false' || raw === '0') return false;
-  return true;
+  return appAuthRequired();
 }
 
-declare global {
-  interface Window {
-    __BASIS_DESKTOP__?: {
-      apiBase?: string;
-      desktop?: boolean;
-      authRequired?: boolean;
-    };
-  }
+/** @deprecated Prefer `appIsDesktopProduct()` */
+export function basisIsDesktopProduct(): boolean {
+  return appIsDesktopProduct();
 }

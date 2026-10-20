@@ -33,8 +33,18 @@ export function isPlatformAdminPath(pathname: string): boolean {
 }
 
 /** Platform section tabs visible to the current user. */
-export function visiblePlatformNavItems(isAdmin: boolean, canSettings: boolean): NavItem[] {
+export function visiblePlatformNavItems(
+  isAdmin: boolean,
+  canSettings: boolean,
+  desktopProduct = false,
+): NavItem[] {
   return PLATFORM_NAV.filter((item) => {
+    if (
+      desktopProduct &&
+      (item.labelKey === 'users' || item.labelKey === 'audit' || item.labelKey === 'system')
+    ) {
+      return false;
+    }
     if (item.labelKey === 'kbs') return isAdmin;
     if (item.adminOnly) return isAdmin;
     if (item.labelKey === 'system') return canSettings;
@@ -42,8 +52,12 @@ export function visiblePlatformNavItems(isAdmin: boolean, canSettings: boolean):
   });
 }
 
-export function platformAdminEntryPath(isAdmin: boolean, canSettings: boolean): string {
-  const items = visiblePlatformNavItems(isAdmin, canSettings);
+export function platformAdminEntryPath(
+  isAdmin: boolean,
+  canSettings: boolean,
+  desktopProduct = false,
+): string {
+  const items = visiblePlatformNavItems(isAdmin, canSettings, desktopProduct);
   return items[0]?.to ?? '/kbs';
 }
 

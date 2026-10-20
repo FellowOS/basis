@@ -1,6 +1,6 @@
 # ADR 0004: Desktop 部署（本机 SQLite、免登录）
 
-**Status:** accepted (Phase A in progress)  
+**Status:** accepted — **Phase A–C** in tree (Electron dev shell); **Phase D** packaging deferred  
 **Context:** 同级产品 [Fellow Gateway](https://github.com/fellowos/gateway) 提供 Desktop 形态：Electron 壳、本地 SQLite、固定本机用户、无需注册登录。Basis 默认已是 SQLite 两进程（API + Web），但鉴权与控制台路由始终面向多用户 / SSO 部署。需要一条与 Server 同代码库的 Desktop 路径，且不把「本机信任」误用于公网多租户。
 
 **Related:** [0002-organization-tenant-sso.md](0002-organization-tenant-sso.md)（Server 租户与 SSO）、[data-model.md](data-model.md)（SQLite 主存）、根目录 [README.zh-CN.md](../../README.zh-CN.md#运维)（`BASIS_DATA_DIR` / 备份）
@@ -54,7 +54,7 @@ Fellow 参考实现（同 monorepo 外）：
 - Policy：`gateway/packages/deployment-policy`（`requireAuth()` / `resolveUser()`）。
 - 客户端：`client/packages/desktop`（`server-manager` 解析 `gateway.ready`）。
 
-Basis 不复制 Fellow 的 YAML 栈，但 **语义对齐**：profile 驱动 auth、固定本机用户、前端 `authRequired`。
+Basis 使用仓库内 **`profiles/profile.desktop.yaml`**（字段与 Fellow `gateway/profiles/profile.desktop.yaml` 对齐：`deployment` / `auth` / `server` / `database` / `storage`），经 `basis serve --profile desktop` 注入 `BASIS_*` 环境变量；**不**嵌入 Fellow gateway 二进制。前端 **`getAppRuntime()`**（`web/src/lib/app-runtime.ts`）对标 Fellow `@fellow/app-runtime`；Electron 解析 **`basis.ready`** 与 **`gateway.ready`**。
 
 ## 1. 后端
 
@@ -64,9 +64,11 @@ Basis 不复制 Fellow 的 YAML 栈，但 **语义对齐**：profile 驱动 auth
 
 | 变量 | 默认 | Desktop 建议 |
 | --- | --- | --- |
-| `BASIS_DEPLOYMENT_PROFILE` | `server` | `desktop` |
-| `BASIS_DATA_DIR` | `./data` | `~/.basis`（由壳设置） |
+| `BASIS_PROFILE` / `--profile` | — | `desktop` 或 YAML 路径 |
+| `BASIS_DEPLOYMENT_PROFILE` | `server` | `desktop`（profile 注入） |
+| `BASIS_DATA_DIR` | `./data` | `~/.basis`（`storage.root` / `BASIS_HOME`） |
 | `BASIS_HOST` | `127.0.0.1` | 必须 loopback |
+| `BASIS_PORT` | `8090` | profile 可 `0`（OS 分配端口） |
 
 派生行为（profile = `desktop`）：
 
@@ -200,9 +202,15 @@ uv run basis serve
 - [x] `/api/v1/auth/desktop-session` + OpenAPI 描述（待生成快照）
 - [x] `basis.ready` 日志行
 - [x] Web：`basisAuthRequired`、`fetchSession` desktop bootstrap、`app.tsx` 守卫（`web/.env.desktop`）
-- [ ] i18n：Desktop 专用文案（Setup、无登录提示）
-- [ ] 测试：desktop profile 下无 token 访问 `/api/v1/kbs`；server profile 仍 401
-- [ ] `docs/progress.md` / F-* 条目（若纳入产品路线图）
+- [x] i18n：Desktop 平台设置说明（`platformSettings.desktopSettingsLead`）
+- [x] 测试：`tests/test_desktop_profile.py`（无 token `/kbs`、desktop-session、server 401）
+- [x] Web UI 裁剪：隐藏用户/审计/组织 SSO；`build:desktop`；`desktop/` Electron `npm run dev`
+- [x] Phase D：`desktop/npm run dist:mac:unsigned` — `dist/web` + electron-builder（Fellow `dist:mac` 链；产出 `Basis-*-darwin-{arch}.dmg` + `.zip`）
+- [x] Phase D+（portable，Fellow 对齐）：`npm run dist:mac:unsigned` — `stage:api` → `.api-stage/sidecar` + `verify:release-resources` + `electron-builder`
+- [x] 快速本地： `dist:mac:dir` — 仅 `release/mac*/Basis.app`（无 dmg）
+- [x] Phase D++（Win 链）：`dist:win` / `dist:win:unsigned` — NSIS + portable（须在 Windows 上 `stage:api`）
+- [ ] Phase D+++：签名 / notarize、Authenticode、Linux 发布、sidecar 跨平台 CI 矩阵
+- [ ] `docs/progress.md` F-* 条目（Desktop `partial`）
 
 ## Consequences
 

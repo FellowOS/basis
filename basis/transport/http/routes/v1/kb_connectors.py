@@ -10,6 +10,7 @@ from fastapi import APIRouter, Depends, Query, Request
 from pydantic import BaseModel, Field
 
 from basis.domain.connectors import ConnectorRuntime, get_connector_catalog
+from basis.domain.connectors.primitive_invoke import execute_connector_primitive
 from basis.domain.connectors.allowlist import effective_allowed_providers, normalize_allowed_providers
 from basis.domain.kb.schedulers.connector_mapping_poll_due import poll_interval_minutes_for_mapping
 from basis.domain.kb.services.connector_sync import (
@@ -124,6 +125,21 @@ class ExecuteConnectorToolRequest(BaseModel):
     tool_id: str = Field(min_length=1)
     connection_name: str = Field(default="default", min_length=1)
     arguments: dict[str, Any] = Field(default_factory=dict)
+
+
+class InvokeConnectorPrimitiveRequest(BaseModel):
+    action_id: str = Field(min_length=1)
+    primitive: Literal["discover", "list", "mutate", "invoke"]
+    operation: Literal["create", "update", "upsert", "delete"] | None = None
+    external_table: str | None = None
+    external_id: Any | None = None
+    changes: dict[str, Any] = Field(default_factory=dict)
+    action_params: dict[str, Any] = Field(default_factory=dict)
+    arguments: dict[str, Any] = Field(default_factory=dict)
+    limit: int = Field(default=500, ge=1, le=5000)
+    cursor_watermark: Any | None = None
+    primary_key_column: str = Field(default="id", min_length=1)
+    cursor_column: str | None = None
 
 
 def _runtime_for(knowledge: KnowledgeStore) -> ConnectorRuntime:
@@ -402,6 +418,54 @@ async def discover_kb_connector_schema(
         raise AdminError(403, "connector_policy_blocked", str(exc)) from exc
     except Exception as exc:
         raise AdminError(422, "connector_discover_failed", str(exc)) from exc
+
+
+@router.post(
+    "/{kb_id}/connectors/connections/{service}/{connection_name}/invoke-primitive"
+)
+async def invoke_kb_connector_primitive(
+    kb_id: str,
+    service: str,
+    connection_name: str,
+    body: InvokeConnectorPrimitiveRequest,
+    request: Request,
+    user: User = Depends(get_current_user),
+    store: AdminStore = Depends(get_store),
+    knowledge: KnowledgeStore = Depends(get_knowledge_store),
+) -> dict[str, Any]:
+    """Run a BOCP Section 10 primitive (discover, list, mutate, invoke) without a table mapping."""
+    if body.primitive in ("discover", "list"):
+        get_kb_for_viewer(request, user, kb_id, store)
+    else:
+        get_kb_for_editor(request, user, kb_id, store)
+    rt = _runtime_for(knowledge)
+    try:
+        return execute_connector_primitive(
+            rt,
+            kb_id,
+            service,
+            action_id=body.action_id,
+            primitive=body.primitive,
+            connection_name=connection_name,
+            operation=body.operation,
+            external_table=body.external_table,
+            external_id=body.external_id,
+            changes=body.changes or None,
+            action_params=body.action_params or None,
+            limit=body.limit,
+            cursor_watermark=body.cursor_watermark,
+            arguments=body.arguments or None,
+            primary_key_column=body.primary_key_column,
+            cursor_column=body.cursor_column,
+        )
+    except LookupError as exc:
+        raise AdminError(404, "connection_not_found", str(exc)) from exc
+    except PermissionError as exc:
+        raise AdminError(403, "connector_policy_blocked", str(exc)) from exc
+    except ValueError as exc:
+        raise AdminError(422, "connector_primitive_invalid", str(exc)) from exc
+    except Exception as exc:
+        raise AdminError(422, "connector_primitive_failed", str(exc)) from exc
 
 
 @router.get("/{kb_id}/connectors/table-mappings")

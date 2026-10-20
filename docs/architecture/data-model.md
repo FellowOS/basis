@@ -615,8 +615,8 @@ Structured source binding and bidirectional entity sync ([ADR 0003](0003-lakehou
 
 ### 18.0 Platform catalog ceiling & dual allowlist
 
-The **shipped BOCP manifest bundle** (`basis/domain/connectors/manifests/catalog_bundle.json`, built by
-`scripts/build_connector_manifests.py`) is read-only at runtime. **Which provider keys are operable** is governed by
+The **shipped BOCP provider catalog** (`basis/domain/connectors/providers/{service}.yaml` +
+`openapi.yaml`, built by `scripts/build_connector_manifests.py`) is read-only at runtime. **Which provider keys are operable** is governed by
 two layers:
 
 | Layer | Storage | Scope | Value |
@@ -637,7 +637,7 @@ Platform HTTP (system admin): `GET|PUT /api/v1/settings/connectors`, `GET /api/v
 |---------|----------|
 | **Background inbound sync** | `source_table_mappings.checkpoint_json` may include `poll_interval_minutes` (integer &gt; 0) and `last_synced_at` (ISO). When the API process sets `BASIS_HTTP_POLL_TICK_SECONDS`, `connector_poll_scheduler.run_due_connector_syncs` runs due mappings on the same tick as ingest `http_poll`. |
 | **OAuth2 connections** | Web console redirect URI: `/kbs/{kbId}/connectors/oauth/callback` (register in the OAuth app). Optional PKCE when manifest `oauth2.pkce_s256` is true. Tokens land in `kb_connections.value_encrypted`. |
-| **KB MCP** (`basis/integration/ops_connectors.py`) | `list_connector_catalog`, `describe_connector_service`, `list_connector_connections`, `list_connector_table_mappings`, `sync_connector_table_mapping`, `propose_entity_writeback`, `execute_connector_tool` — same policy gates as HTTP (`kb_connector_policies.action_policy_json`, effective allowlist). |
+| **KB MCP** (`basis/integration/ops_connectors.py`) | `invoke_connector_primitive` plus manifest-expanded `connector_{service}__{action_id}__{suffix}` tools from `tools/list` (§10 discover/list/mutate/invoke); catalog/connections/mappings/sync/writeback tools, `execute_connector_tool` (procedures). HTTP twin: `POST …/connectors/connections/{service}/{connection_name}/invoke-primitive`. Policy: `action_policy_json.entities`, effective allowlist. |
 
 ```sql
 -- Migration 0012_platform_connector_allowlist.sql (SQLite file 0012 / PostgreSQL schema version 13)

@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+import asyncio
 from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, Query, Request
-from fastapi.responses import Response
+from fastapi.responses import PlainTextResponse, Response
 from pydantic import BaseModel, Field
 
 from basis.platform.admin.errors import AdminError
@@ -21,7 +22,6 @@ from basis.transport.http.deps import (
     rebuild_kb_projection,
     save_graph,
 )
-from basis.transport.http.explorer_route_errors import invoke_explorer
 from basis.domain.explorer.session_guard import require_explorer_graph_session
 from basis.infra.limits import RuntimeLimits
 from basis.domain.kb.services.graph_audit import audit_kb_graph
@@ -30,8 +30,20 @@ from basis.transport.http.routes.v1.kb_review import (
     CreateEntityMergeReviewRequest,
     propose_entity_merge,
 )
+from basis.domain.explorer.sparql_read import (
+    SPARQL_TIMEOUT_S,
+    _SPARQL_MAX_CONCURRENT,
+    build_sparql_graph,
+    run_sparql_on_graph,
+    sparql_error_response,
+    sparql_query_preflight,
+    sparql_timeout_response,
+)
 
 router = APIRouter(tags=["knowledge-bases"])
+
+_sparql_semaphore = asyncio.Semaphore(_SPARQL_MAX_CONCURRENT)
+_link_prediction_semaphore = asyncio.Semaphore(2)
 
 
 @router.get("/{kb_id}/temporal/bounds")
@@ -49,14 +61,9 @@ async def kb_temporal_bounds(
     get_kb_for_viewer(request, user, kb_id, store)
     runtime = get_explorer_registry(request).get(request, kb_id)
     session = require_explorer_graph_session(runtime)
-    from semantica.explorer.routes.temporal import temporal_bounds
+    from basis.domain.explorer.temporal_read import get_temporal_bounds
 
-    payload = await invoke_explorer(temporal_bounds(session=session), context="temporal")
-    base_bounds = (
-        payload.model_dump()
-        if hasattr(payload, "model_dump")
-        else (dict(payload) if isinstance(payload, dict) else None)
-    )
+    base_bounds = await asyncio.to_thread(get_temporal_bounds, session)
     if isinstance(base_bounds, dict):
         ledger = get_knowledge_store(request).get_ledger_temporal_bounds(kb_id)
         merged = dict(base_bounds)
@@ -84,11 +91,11 @@ async def kb_temporal_snapshot(
     get_kb_for_viewer(request, user, kb_id, store)
     runtime = get_explorer_registry(request).get(request, kb_id)
     session = require_explorer_graph_session(runtime)
-    from semantica.explorer.routes.temporal import temporal_snapshot
     from basis.domain.explorer.graph_diff import parse_query_dt
+    from basis.domain.explorer.temporal_read import get_temporal_snapshot
     from basis.domain.graph.projector import build_temporal_graph_from_ledger
 
-    payload = await invoke_explorer(temporal_snapshot(at=at, session=session), context="temporal")
+    payload = await asyncio.to_thread(get_temporal_snapshot, session, at)
     if at:
         try:
             instant = parse_query_dt(at)
@@ -99,11 +106,7 @@ async def kb_temporal_snapshot(
         except ValueError:
             state = None
         if isinstance(state, dict) and (state.get("nodes") is not None):
-            base = (
-                payload.model_dump()
-                if hasattr(payload, "model_dump")
-                else (dict(payload) if isinstance(payload, dict) else {})
-            )
+            base = dict(payload) if isinstance(payload, dict) else {}
             state_nodes = state.get("nodes") or []
             state_node_ids = [
                 str(n.get("id"))
@@ -275,12 +278,26 @@ Kb Enrich Links. Graph enrichment and governance proposals. Requires KB membersh
     get_kb_for_viewer(request, user, kb_id, store)
     runtime = get_explorer_registry(request).get(request, kb_id)
     session = require_explorer_graph_session(runtime)
-    from semantica.explorer.routes.enrich import predict_links
-    from semantica.explorer.schemas import LinkPredictionRequest
+    from basis.domain.explorer.enrich_read import predict_links
 
     raw = await request.json()
-    payload = LinkPredictionRequest.model_validate(raw)
-    return await invoke_explorer(predict_links(payload, session=session), context="enrich")
+    if not isinstance(raw, dict):
+        raise AdminError(422, "validation_error", "请求体须为 JSON 对象")
+    node_id = str(raw.get("node_id") or "")
+    if not node_id:
+        raise AdminError(422, "validation_error", "node_id 必填")
+    top_n = int(raw.get("top_n", 10))
+    min_score = float(raw.get("min_score", 0.0))
+    candidate_type = raw.get("candidate_type")
+    async with _link_prediction_semaphore:
+        return await asyncio.to_thread(
+            predict_links,
+            session,
+            node_id=node_id,
+            top_n=top_n,
+            candidate_type=str(candidate_type) if candidate_type else None,
+            min_score=min_score,
+        )
 
 
 @router.post("/{kb_id}/enrich/dedup")
@@ -296,12 +313,11 @@ Kb Enrich Dedup. Graph enrichment and governance proposals. Requires KB membersh
     get_kb_for_viewer(request, user, kb_id, store)
     runtime = get_explorer_registry(request).get(request, kb_id)
     session = require_explorer_graph_session(runtime)
-    from semantica.explorer.routes.enrich import detect_duplicates
-    from semantica.explorer.schemas import DedupRequest
+    from basis.domain.explorer.enrich_read import detect_duplicates
 
     raw = await request.json()
-    payload = DedupRequest.model_validate(raw)
-    return await invoke_explorer(detect_duplicates(payload, session=session), context="enrich")
+    threshold = float(raw.get("threshold", 0.8)) if isinstance(raw, dict) else 0.8
+    return await asyncio.to_thread(detect_duplicates, session, threshold=threshold)
 
 
 @router.post("/{kb_id}/enrich/merge")
@@ -334,12 +350,9 @@ Kb Provenance Lineage. Requires KB membership (session) or KB API token with rea
     get_kb_for_viewer(request, user, kb_id, store)
     runtime = get_explorer_registry(request).get(request, kb_id)
     session = require_explorer_graph_session(runtime)
-    from semantica.explorer.routes.provenance import get_provenance_lineage
+    from basis.domain.explorer.provenance_read import get_provenance_lineage
 
-    return await invoke_explorer(
-        get_provenance_lineage(node_id=node_id, session=session),
-        context="provenance",
-    )
+    return await asyncio.to_thread(get_provenance_lineage, session, node_id)
 
 
 @router.get("/{kb_id}/provenance/report")
@@ -357,11 +370,24 @@ Kb Provenance Report. Requires KB membership (session) or KB API token with read
     get_kb_for_viewer(request, user, kb_id, store)
     runtime = get_explorer_registry(request).get(request, kb_id)
     session = require_explorer_graph_session(runtime)
-    from semantica.explorer.routes.provenance import export_provenance_report
+    from basis.domain.explorer.provenance_read import export_provenance_report
 
-    return await invoke_explorer(
-        export_provenance_report(node_id=node_id, format=format, session=session),
-        context="provenance",
+    body, media_type, disposition = await asyncio.to_thread(
+        export_provenance_report,
+        session,
+        node_id,
+        format=format,
+    )
+    if isinstance(body, str):
+        return PlainTextResponse(
+            body,
+            media_type=media_type,
+            headers={"Content-Disposition": disposition},
+        )
+    return Response(
+        content=body,
+        media_type=media_type,
+        headers={"Content-Disposition": disposition},
     )
 
 
@@ -378,11 +404,28 @@ Kb Sparql Execute. Requires KB membership (session) or KB API token with read/wr
     get_kb_for_viewer(request, user, kb_id, store)
     runtime = get_explorer_registry(request).get(request, kb_id)
     session = require_explorer_graph_session(runtime)
-    from semantica.explorer.routes.sparql import SparqlRequest, execute_sparql
-
     raw = await request.json()
-    payload = SparqlRequest.model_validate(raw)
-    return await invoke_explorer(execute_sparql(payload, session=session), context="sparql")
+    query = raw.get("query", "") if isinstance(raw, dict) else ""
+    if not isinstance(query, str):
+        raise AdminError(422, "validation_error", "query 必填且为字符串")
+
+    preflight = sparql_query_preflight(query)
+    if preflight is not None:
+        return preflight
+
+    try:
+        graph = await asyncio.to_thread(build_sparql_graph, session)
+    except ValueError as exc:
+        return sparql_error_response(str(exc))
+
+    async with _sparql_semaphore:
+        try:
+            return await asyncio.wait_for(
+                asyncio.to_thread(run_sparql_on_graph, graph, query),
+                timeout=SPARQL_TIMEOUT_S,
+            )
+        except asyncio.TimeoutError:
+            return sparql_timeout_response()
 
 
 @router.get("/{kb_id}/graph/semantic-neighborhood")
@@ -401,16 +444,14 @@ Kb Graph Semantic Neighborhood. Projected graph read API (Explorer runtime). Req
     get_kb_for_viewer(request, user, kb_id, store)
     runtime = get_explorer_registry(request).get(request, kb_id)
     session = require_explorer_graph_session(runtime)
-    from semantica.explorer.routes.graph import semantic_neighborhood_by_query
+    from basis.domain.explorer.graph_semantic_read import semantic_neighborhood
 
-    return await invoke_explorer(
-        semantic_neighborhood_by_query(
-            node_id=node_id,
-            top_k=top_k,
-            min_similarity=min_similarity,
-            session=session,
-        ),
-        context="semantic_neighborhood",
+    return await asyncio.to_thread(
+        semantic_neighborhood,
+        session,
+        node_id,
+        top_k=top_k,
+        min_similarity=min_similarity,
     )
 
 
@@ -427,12 +468,19 @@ Kb Graph Distance Matrix. Projected graph read API (Explorer runtime). Requires 
     get_kb_for_viewer(request, user, kb_id, store)
     runtime = get_explorer_registry(request).get(request, kb_id)
     session = require_explorer_graph_session(runtime)
-    from semantica.explorer.routes.graph import distance_matrix
-    from semantica.explorer.schemas import DistanceMatrixRequest
+    from basis.domain.explorer.graph_semantic_read import distance_matrix
 
     raw = await request.json()
-    payload = DistanceMatrixRequest.model_validate(raw)
-    return await invoke_explorer(distance_matrix(payload, session=session), context="distance_matrix")
+    node_ids = raw.get("node_ids") if isinstance(raw, dict) else None
+    metric = raw.get("metric", "hops") if isinstance(raw, dict) else "hops"
+    if not isinstance(node_ids, list) or not node_ids:
+        raise AdminError(422, "validation_error", "node_ids 必填且为非空数组")
+    return await asyncio.to_thread(
+        distance_matrix,
+        session,
+        node_ids=[str(n) for n in node_ids],
+        metric=str(metric),
+    )
 
 
 @router.get("/{kb_id}/decisions")
@@ -452,17 +500,15 @@ Kb List Decisions. Requires KB membership (session) or KB API token with read/wr
     get_kb_for_viewer(request, user, kb_id, store)
     runtime = get_explorer_registry(request).get(request, kb_id)
     session = require_explorer_graph_session(runtime)
-    from semantica.explorer.routes.decisions import list_decisions
+    from basis.domain.explorer.decisions_read import list_decisions
 
     capped = min(max(1, limit), limits.explorer_decisions_max_limit)
-    return await invoke_explorer(
-        list_decisions(
-            category=category,
-            skip=skip,
-            limit=capped,
-            session=session,
-        ),
-        context="decisions",
+    return await asyncio.to_thread(
+        list_decisions,
+        session,
+        category=category,
+        skip=skip,
+        limit=capped,
     )
 
 
@@ -480,12 +526,9 @@ Kb Decision Chain. Requires KB membership (session) or KB API token with read/wr
     get_kb_for_viewer(request, user, kb_id, store)
     runtime = get_explorer_registry(request).get(request, kb_id)
     session = require_explorer_graph_session(runtime)
-    from semantica.explorer.routes.decisions import get_causal_chain
+    from basis.domain.explorer.decisions_read import get_causal_chain
 
-    return await invoke_explorer(
-        get_causal_chain(decision_id=decision_id, session=session),
-        context="decisions",
-    )
+    return await asyncio.to_thread(get_causal_chain, session, decision_id)
 
 
 @router.post("/{kb_id}/reasoning/run")
@@ -499,25 +542,36 @@ async def kb_reasoning_run(
     """
 Kb Reasoning Run. KB-local reasoning rules and runs. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
     """
-    from semantica.explorer.routes.enrich import run_reasoning
-    from semantica.explorer.schemas import ReasoningRequest
+    from basis.domain.explorer.forward_reasoning import proof_chains_for_run
+    from basis.domain.explorer.reasoning_run import run_reasoning
 
     raw = await request.json()
-    payload = ReasoningRequest.model_validate(raw)
-    role = "editor" if payload.apply_to_graph else "viewer"
+    if not isinstance(raw, dict):
+        raise AdminError(422, "validation_error", "请求体须为 JSON 对象")
+    facts = raw.get("facts")
+    rules = raw.get("rules")
+    if not isinstance(facts, list) or not isinstance(rules, list):
+        raise AdminError(422, "validation_error", "facts 与 rules 须为字符串数组")
+    apply_to_graph = bool(raw.get("apply_to_graph", False))
+    role = "editor" if apply_to_graph else "viewer"
     store.get_kb_for(user, kb_id, role)
     runtime = get_explorer_registry(request).get(request, kb_id)
     session = require_explorer_graph_session(runtime)
-    result = await invoke_explorer(run_reasoning(payload, session=session), context="reasoning")
-    summary = result.model_dump() if hasattr(result, "model_dump") else dict(result)
-    from basis.domain.explorer.forward_reasoning import proof_chains_for_run
-
+    summary = await asyncio.to_thread(
+        run_reasoning,
+        session,
+        facts=[str(f) for f in facts],
+        rules=[str(r) for r in rules],
+        mode=str(raw.get("mode", "forward")),
+        apply_to_graph=apply_to_graph,
+        inferred_edge_type=raw.get("inferred_edge_type"),
+    )
     summary["proof_chains"] = proof_chains_for_run(
-        list(payload.facts),
-        list(payload.rules),
+        [str(f) for f in facts],
+        [str(r) for r in rules],
         list(summary.get("inferred_facts") or []),
     )
-    if payload.apply_to_graph and summary.get("mutated"):
+    if apply_to_graph and summary.get("mutated"):
         from basis.domain.kb.services.derived_facts_service import persist_reasoning_derived
 
         summary["derived_facts_persisted"] = persist_reasoning_derived(
@@ -580,17 +634,28 @@ Kb Export Graph. Requires KB membership (session) or KB API token with read/writ
     get_kb_for_viewer(request, user, kb_id, store)
     runtime = get_explorer_registry(request).get(request, kb_id)
     session = require_explorer_graph_session(runtime)
-    from semantica.explorer.routes.export_import import export_graph
-    from semantica.explorer.schemas import ExportRequest
+    from basis.domain.explorer.graph_export_read import export_graph
 
     raw = await request.json()
-    payload = ExportRequest.model_validate(raw)
-    response = await invoke_explorer(export_graph(payload, session=session), context="export")
+    fmt = raw.get("format", "json") if isinstance(raw, dict) else "json"
+    node_ids = raw.get("node_ids") if isinstance(raw, dict) else None
+    if node_ids is not None and not isinstance(node_ids, list):
+        raise AdminError(422, "validation_error", "node_ids 须为字符串数组或省略")
+    content, media_type, extension = await asyncio.to_thread(
+        export_graph,
+        session,
+        format=str(fmt),
+        node_ids=[str(n) for n in node_ids] if isinstance(node_ids, list) else None,
+    )
     audit_kb_graph(
         store,
         user,
         kb_id,
         "kb.graph.export",
-        extra={"format": payload.format},
+        extra={"format": str(fmt)},
     )
-    return response
+    return Response(
+        content=content,
+        media_type=media_type,
+        headers={"Content-Disposition": f'attachment; filename="semantica_export.{extension}"'},
+    )

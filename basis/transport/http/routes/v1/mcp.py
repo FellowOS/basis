@@ -20,7 +20,7 @@ from basis.transport.http.deps import (
 )
 from basis.transport.mcp.protocol import handle_batch
 from basis.integration.context import KbCoreContext
-from basis.integration.registry import TOOL_NAMES
+from basis.integration.registry import TOOL_NAMES, get_tool_definitions
 from basis.transport.mcp.tools import PROTOCOL_VERSION
 
 router = APIRouter(tags=["mcp"])
@@ -38,6 +38,19 @@ Mcp Integration Info. MCP JSON-RPC transport for agent integrations. Requires KB
     user, _auth_kind = resolve_bearer(request, authorization)
     store = get_store(request)
     kb, _role = get_kb_for_viewer(request, user, kb_id, store)
+    knowledge = get_knowledge_store(request)
+    ctx = KbCoreContext(
+        kb=kb,
+        user=user,
+        knowledge=knowledge,
+        store=store,
+        chunk_search=get_chunk_search(request),
+        runtime_loader=lambda: get_explorer_registry(request).get(request, kb_id),
+        assert_kb_editor=lambda: get_kb_for_editor(request, user, kb_id, store),
+        rebuild_projection=lambda: rebuild_kb_projection(request, kb_id),
+        http_request=request,
+    )
+    tool_names = [t["name"] for t in get_tool_definitions(ctx)]
     base = str(request.base_url).rstrip("/")
     mcp_url = f"{base}/api/v1/kbs/{kb_id}/mcp"
     return {
@@ -47,7 +60,8 @@ Mcp Integration Info. MCP JSON-RPC transport for agent integrations. Requires KB
         "transport": "http",
         "protocol_version": PROTOCOL_VERSION,
         "auth": {"type": "bearer", "header": "Authorization", "prefix": "Bearer "},
-        "tools": list(TOOL_NAMES),
+        "tools": tool_names,
+        "static_tools": list(TOOL_NAMES),
         "cursor_example": {
             "mcpServers": {
                 "basis-kb": {

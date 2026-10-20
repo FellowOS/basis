@@ -10,6 +10,8 @@ Vite + React front end for the Basis platform and per–knowledge-base Explorer 
 | `src/components/` | React UI — three roots: **`ui`**, **`admin`**, **`app`** (see below). |
 | `src/explorer/` | **Explorer implementation** (vendored from semantica); see `src/explorer/README.md`. |
 | `src/lib/` | `basis-openapi/` (generated types + `transport.ts`), `openapi-client.ts` (app helpers), session fetch, `kb-api-path.ts`. JSON: `openApi*` / `kbOpenApi*`. Regen types: `npm run gen:openapi-types`. |
+| `content/docs/` | **Product docs** (`/docs/*`) — Fumadocs MDX (`en/`, `zh/`). IA: `{locale}/meta.json`; page chrome: frontmatter `title`, `description`, optional `sidebarTitle`; prev/next from sidebar order. Symlinked pages: `bocp.md` → `docs/architecture/bocp-v1*.md`, `connectors-basis.md` → `docs/architecture/connectors-basis*.md`. Symlinks: `npm run gen:product-docs-mdx` (the script owns the list). |
+| `source.config.ts` | Fumadocs MDX config; `postinstall` runs `fumadocs-mdx` → `.source/` (gitignored). |
 | `server/` | **Hono web layer** — production static + `/api` reverse proxy (`server/prod.ts`); dev entry `server/dev.ts` (Hono + Vite middleware). Playground LLM config is browser-local. |
 | `src/styles/` | Vendor overrides (e.g. Swagger UI); global chrome in root [`src/styles.css`](src/styles.css). |
 | `e2e/` | Playwright specs. |

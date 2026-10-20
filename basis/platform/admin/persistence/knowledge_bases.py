@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from basis.platform.admin.admin_types import utc_now_iso
+from basis.domain.kb.persistence.kb_delete import purge_kb_ledger_data
 
 
 def list_kb_ids(conn: Any) -> list[str]:
@@ -73,6 +74,7 @@ def update_kb(
 
 
 def delete_kb(conn: Any, kb_id: str) -> None:
+    purge_kb_ledger_data(conn, kb_id)
     conn.execute("DELETE FROM kb_members WHERE kb_id = ?", (kb_id,))
     conn.execute("DELETE FROM knowledge_bases WHERE id = ?", (kb_id,))
 

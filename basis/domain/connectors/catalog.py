@@ -1,179 +1,73 @@
-"""In-memory registry and loader for Basis Open Connector Protocol (BOCP) manifests."""
+"""In-memory registry and loader for Basis Open Connector Protocol (BOCP) providers."""
 
 from __future__ import annotations
 
 from functools import lru_cache
-import json
 from pathlib import Path
-from typing import Any
 
-from basis.domain.connectors.manifest_schema import (
-    AuthSpec,
-    CheckEndpointSpec,
-    ConfigFieldSpec,
-    ConnectorManifest,
-    DynamicSchemaLoaderSpec,
-    RetrieverSpec,
-    StreamMutationSpec,
-    StreamSpec,
+from basis.domain.connectors.manifest_schema import ConnectorManifest
+from basis.domain.connectors.provider_bundle import (
+    ProviderBundlePaths,
+    is_provider_manifest_file,
+    load_provider_bundle,
+    provider_manifest_path,
 )
 
 
-def _builtin_database_manifests() -> list[ConnectorManifest]:
-    """Built-in SQLAlchemy 2.0 relational database connectors (postgres & mysql)."""
-    common_dsn_fields = [
-        ConfigFieldSpec(
-            key="host",
-            label="Host",
-            input_type="text",
-            required=True,
-            placeholder="localhost",
-        ),
-        ConfigFieldSpec(
-            key="port",
-            label="Port",
-            input_type="number",
-            required=True,
-            default=5432,
-        ),
-        ConfigFieldSpec(
-            key="database",
-            label="Database",
-            input_type="text",
-            required=True,
-            placeholder="erp_prod",
-        ),
-        ConfigFieldSpec(
-            key="schema",
-            label="Default Schema",
-            input_type="text",
-            required=False,
-            default="public",
-        ),
-    ]
-    common_credentials = [
-        ConfigFieldSpec(
-            key="username",
-            label="Username",
-            input_type="text",
-            required=True,
-        ),
-        ConfigFieldSpec(
-            key="password",
-            label="Password",
-            input_type="password",
-            required=True,
-            secret=True,
-        ),
-    ]
-    sql_stream = StreamSpec(
-        name="table_records",
-        display_name="Database Table Records",
-        description="Relational table rows introspected and synced via SQLAlchemy 2.0.",
-        primary_key=["id"],
-        dynamic_schema_loader=DynamicSchemaLoaderSpec(
-            type="sql_inspector",
-        ),
-        retriever=RetrieverSpec(
-            adapter="sql_alchemy",
-        ),
-        mutations={
-            "update": StreamMutationSpec(
-                operation="update",
-                adapter="sql_alchemy",
-            ),
-            "create": StreamMutationSpec(
-                operation="create",
-                adapter="sql_alchemy",
-            ),
-        },
-    )
-
-    pg = ConnectorManifest(
-        service="postgres",
-        display_name="PostgreSQL",
-        description="PostgreSQL relational database connector backed by SQLAlchemy 2.0 reflection & parameterized queries.",
-        categories=["Database"],
-        homepage_url="https://www.postgresql.org",
-        auth=[
-            AuthSpec(
-                auth_mode="database_dsn",
-                connection_config=common_dsn_fields,
-                credentials=common_credentials,
-                check=CheckEndpointSpec(
-                    method="GET",
-                    path="SELECT current_user AS id, current_database() AS name",
-                    account_id_path="id",
-                    display_name_path="name",
-                ),
-            )
-        ],
-        streams=[sql_stream],
-    )
-
-    mysql_dsn_fields = [
-        f.model_copy(update={"default": 3306}) if f.key == "port" else f
-        for f in common_dsn_fields
-        if f.key != "schema"
-    ]
-    mysql = ConnectorManifest(
-        service="mysql",
-        display_name="MySQL",
-        description="MySQL relational database connector backed by SQLAlchemy 2.0 reflection & parameterized queries.",
-        categories=["Database"],
-        homepage_url="https://www.mysql.com",
-        auth=[
-            AuthSpec(
-                auth_mode="database_dsn",
-                connection_config=mysql_dsn_fields,
-                credentials=common_credentials,
-                check=CheckEndpointSpec(
-                    method="GET",
-                    path="SELECT CURRENT_USER() AS id, DATABASE() AS name",
-                    account_id_path="id",
-                    display_name_path="name",
-                ),
-            )
-        ],
-        streams=[sql_stream],
-    )
-    return [pg, mysql]
-
-
-def default_manifests_dir() -> Path:
-    return Path(__file__).resolve().parent / "manifests"
+def default_providers_dir() -> Path:
+    return Path(__file__).resolve().parent / "providers"
 
 
 class ConnectorCatalog:
     """Loaded registry of BOCP ConnectorManifest objects."""
 
-    def __init__(self, manifests: list[ConnectorManifest]) -> None:
+    def __init__(
+        self,
+        manifests: list[ConnectorManifest],
+        *,
+        bundle_paths: dict[str, ProviderBundlePaths] | None = None,
+    ) -> None:
         by_service: dict[str, ConnectorManifest] = {}
         for item in manifests:
             by_service[item.service] = item
         self._by_service = dict(sorted(by_service.items()))
+        self._bundle_paths = bundle_paths or {}
 
     @classmethod
     def load_from_directory(cls, directory: Path | None = None) -> ConnectorCatalog:
-        target = directory or default_manifests_dir()
-        manifests: dict[str, ConnectorManifest] = {
-            m.service: m for m in _builtin_database_manifests()
-        }
-        if target.is_dir():
-            bundle_file = target / "catalog_bundle.json"
-            if bundle_file.is_file():
-                raw_list = json.loads(bundle_file.read_text(encoding="utf-8"))
-                if isinstance(raw_list, list):
-                    for item in raw_list:
-                        manifest = ConnectorManifest.model_validate(item)
-                        manifests[manifest.service] = manifest
-            for path in sorted(target.glob("*.json")):
-                if path.name == "catalog_bundle.json":
+        providers_root = directory or default_providers_dir()
+        manifests: dict[str, ConnectorManifest] = {}
+        bundle_paths: dict[str, ProviderBundlePaths] = {}
+
+        if providers_root.is_dir():
+            for child in sorted(providers_root.iterdir()):
+                if is_provider_manifest_file(child):
+                    try:
+                        loaded = load_provider_bundle(child)
+                    except (FileNotFoundError, ValueError):
+                        continue
+                    manifests[loaded.manifest.service] = loaded.manifest
+                    bundle_paths[loaded.manifest.service] = loaded.paths
                     continue
-                raw = json.loads(path.read_text(encoding="utf-8"))
-                manifest = ConnectorManifest.model_validate(raw)
-                manifests[manifest.service] = manifest
-        return cls(list(manifests.values()))
+                if not child.is_dir():
+                    continue
+                if provider_manifest_path(providers_root, child.name).is_file():
+                    continue
+                try:
+                    loaded = load_provider_bundle(child)
+                except (FileNotFoundError, ValueError):
+                    continue
+                manifests[loaded.manifest.service] = loaded.manifest
+                bundle_paths[loaded.manifest.service] = loaded.paths
+
+        return cls(list(manifests.values()), bundle_paths=bundle_paths)
+
+    def provider_bundle_paths(self, service: str) -> ProviderBundlePaths | None:
+        return self._bundle_paths.get(service)
+
+    def openapi_path(self, service: str) -> Path | None:
+        paths = self._bundle_paths.get(service)
+        return paths.openapi if paths else None
 
     def list_manifests(
         self,

@@ -5,11 +5,14 @@ import { getToken } from '@/lib/auth-token.js';
 import { ensureRequestIdHeader } from '@/lib/request-id.js';
 
 let _client: ReturnType<typeof createBasisSessionClient> | null = null;
+let _clientBaseUrl: string | null = null;
 
 export function basisSessionClient() {
-  if (!_client) {
+  const baseUrl = basisApiBaseUrl();
+  if (!_client || _clientBaseUrl !== baseUrl) {
+    _clientBaseUrl = baseUrl;
     _client = createBasisSessionClient({
-      baseUrl: basisApiBaseUrl(),
+      baseUrl,
       getAccessToken: getToken,
       beforeRequest: ensureRequestIdHeader,
     });

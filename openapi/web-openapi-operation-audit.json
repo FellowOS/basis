@@ -193,42 +193,6 @@
       "operationId": "get_kb_api_v1_kbs__kb_id__get"
     },
     {
-      "file": "web/src/i18n/locales/en/docs.ts",
-      "kind": "literal",
-      "path": "/api/v1/*",
-      "operationId": null
-    },
-    {
-      "file": "web/src/i18n/locales/en/docs.ts",
-      "kind": "literal",
-      "path": "/api/v1/kbs/{kb_id}/*",
-      "operationId": null
-    },
-    {
-      "file": "web/src/i18n/locales/en/docs.ts",
-      "kind": "literal",
-      "path": "/api/v1/auth/*",
-      "operationId": null
-    },
-    {
-      "file": "web/src/i18n/locales/zh/docs.ts",
-      "kind": "literal",
-      "path": "/api/v1/*",
-      "operationId": null
-    },
-    {
-      "file": "web/src/i18n/locales/zh/docs.ts",
-      "kind": "literal",
-      "path": "/api/v1/kbs/{kb_id}/*",
-      "operationId": null
-    },
-    {
-      "file": "web/src/i18n/locales/zh/docs.ts",
-      "kind": "literal",
-      "path": "/api/v1/auth/*",
-      "operationId": null
-    },
-    {
       "file": "web/src/lib/api.ts",
       "kind": "literal",
       "path": "/api/v1/auth/desktop-session",
@@ -509,6 +473,12 @@
       "kind": "dynamic",
       "path": "/api/v1/kbs/{kb_id}/connectors/connections/{service}/{connection_name}/discover",
       "operationId": "discover_kb_connector_schema_api_v1_kbs__kb_id__connectors_connections__service___connection_name__discover_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/connectors/connections/{service}/{connection_name}/invoke-primitive",
+      "operationId": "invoke_kb_connector_primitive_api_v1_kbs__kb_id__connectors_connections__service___connection_name__invoke_primitive_post"
     },
     {
       "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
@@ -1523,6 +1493,12 @@
       "kind": "dynamic",
       "path": "/api/v1/kbs/{kb_id}/connectors/connections/{service}/{connection_name}/discover",
       "operationId": "discover_kb_connector_schema_api_v1_kbs__kb_id__connectors_connections__service___connection_name__discover_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/kbs/{kb_id}/connectors/connections/{service}/{connection_name}/invoke-primitive",
+      "operationId": "invoke_kb_connector_primitive_api_v1_kbs__kb_id__connectors_connections__service___connection_name__invoke_primitive_post"
     },
     {
       "file": "web/src/lib/basis-openapi/schema.d.ts",

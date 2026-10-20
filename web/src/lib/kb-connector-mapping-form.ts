@@ -30,7 +30,9 @@ export function createConnectorTableMappingFormSchema(messages: {
   writebackMode: z.enum(['disabled', 'review', 'auto']),
   syncMode: z.enum(['full_refresh', 'incremental']),
   trackDeletes: z.boolean(),
-  pollIntervalMinutes: z.coerce.number().int().min(0).max(10080),
+  // The number input already emits numbers; `z.coerce` would widen `z.input` and break
+  // the `zodResolver` ↔ `useForm` generic match.
+  pollIntervalMinutes: z.number().int().min(0).max(10080),
   })
     .superRefine((values, ctx) => {
       if (!values.streamParamsAdvanced) {
