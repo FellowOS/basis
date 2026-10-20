@@ -27,7 +27,7 @@ cd web && npm install && npm run dev  # Web  :5173
 
 The first registered user becomes the platform administrator.
 
-**Desktop (local, no login):** [ADR 0004](docs/architecture/0004-desktop-deployment.md) — `BASIS_DEPLOYMENT_PROFILE=desktop` + `web` `npm run dev:desktop`, or `cd desktop && npm run dev` for Electron. Data defaults to `~/.basis`.
+**Desktop (local, no login):** [ADR 0004](docs/architecture/adrs/0004-desktop-deployment.md) — `BASIS_DEPLOYMENT_PROFILE=desktop` + `web` `npm run dev:desktop`, or `cd desktop && npm run dev` for Electron. Data defaults to `~/.basis`.
 
 ---
 
@@ -41,7 +41,7 @@ The first registered user becomes the platform administrator.
 | **Connectivity** | Custom glue code per system | **BOCP** declarative DB & 1,000+ SaaS connectors, **OpenAPI v1**, and **MCP** |
 | **Operations** | Many services | **Two processes** (API + Web), SQLite by default, PostgreSQL for production |
 
-Design rationale: [ADR 0001 — Evidence ledger is canonical](docs/architecture/0001-canonical-knowledge-model.md).
+Design rationale: [ADR 0001 — Evidence ledger is canonical](docs/architecture/adrs/0001-canonical-knowledge-model.md).
 
 Documentation: [features](docs/features.md) · [progress](docs/progress.md) · [architecture](docs/architecture/package-layout.md).
 
@@ -63,7 +63,7 @@ PostgreSQL: `docker compose -f compose.postgres.yml up -d`, then set `BASIS_DATA
 
 **Connector integration tests (real Postgres + GitHub):** `cp .env.test.example .env.test`, fill `BASIS_TEST_POSTGRES_URL` and GitHub vars, then `uv run pytest tests/test_sql_connector_integration.py tests/test_connector_primitive_invoke.py -q -m integration`. Postgres compose: `docker compose -f compose.postgres.yml up -d` (host port **5433**). Optional MySQL: `compose.mysql.yml` + `BASIS_TEST_MYSQL_URL` in `.env.test`.
 
-**Provider bundles (BOCP synthesis):** `uv run python scripts/build_connector_manifests.py --all-batches` writes `basis/domain/connectors/providers/*.yaml` (batch 0: postgres/mysql/github; batch 1: slack). Optional upstream paths: `BASIS_SYNTHESIS_NANGO_PROVIDERS`, `BASIS_SYNTHESIS_ANYCONNECT_CATALOG`, `BASIS_SYNTHESIS_AIRBYTE_ROOT`. See [provider-migration-plan.zh.md](docs/architecture/provider-migration-plan.zh.md).
+**Provider bundles (BOCP synthesis):** `uv run python scripts/build_connector_manifests.py --all-batches` writes `basis/core/connectors/providers/*.yaml` (batch 0: postgres/mysql/github; batch 1: slack). Optional upstream paths: `BASIS_SYNTHESIS_NANGO_PROVIDERS`, `BASIS_SYNTHESIS_ANYCONNECT_CATALOG`, `BASIS_SYNTHESIS_AIRBYTE_ROOT`. See [connectors/provider-migration.zh.md](docs/architecture/connectors/provider-migration.zh.md).
 
 Migrate SQLite → Postgres: `uv run basis migrate-postgres --database-url postgresql://…`
 

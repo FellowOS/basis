@@ -11,8 +11,8 @@ description: BOCP v2.0 规范性说明 + 零基础读者指南（Manifest、原�
 | **文档** | BOCP v2.0 |
 | **状态** | Basis Standards Track（Basis 发行版规范性文档） |
 | **格式** | YAML Manifest + 本规范 |
-| **模式伴生** | `basis/domain/connectors/manifest_schema.py`（Pydantic v2） |
-| **相关** | [connectors-basis.zh.md](connectors-basis.zh.md)（Basis 宿主；非规范性） |
+| **模式伴生** | `basis/core/connectors/manifest_schema.py`（Pydantic v2） |
+| **相关** | [runtime.zh.md](runtime.zh.md)（Basis 宿主；非规范性） |
 
 ---
 
@@ -36,7 +36,7 @@ Manifest 声明 **`auth`** 与 **`actions`**。每条动作为 **entity**（DISC
 
 声称符合 BOCP v2.0 的实现 **必须** 满足第 11 节（符合性）。
 
-> 节号与英文版 [bocp-v1.md](./bocp-v1.md) 一致；YAML 字段名、枚举与代码标识保持英文。
+> 节号与英文版 bocp.md(./bocp.md) 一致；YAML 字段名、枚举与代码标识保持英文。
 
 ---
 
@@ -154,7 +154,7 @@ Manifest **不含密码**；用户在 **宿主** 里保存 **Connection**（密�
 |------|------|
 | 编写 Provider | §5–8、附录 C–D |
 | 应用侧调用 | §10、附录 D |
-| 实现宿主 | §4、§10–11、[connectors-basis.zh.md](connectors-basis.zh.md) |
+| 实现宿主 | §4、§10–11、[runtime.zh.md](runtime.zh.md) |
 
 ---
 
@@ -191,7 +191,7 @@ Manifest **不含密码**；用户在 **宿主** 里保存 **Connection**（密�
 - 任何以 `x-` 开头的对象成员都是 **扩展字段**；其他未声明成员一律非法。  
 - 实体 `rest.operations` 的键封闭为 `list`、`create`、`update`、`upsert`、`delete`；`sql.operations` 另允许 `discover`；procedure 的 `rest.operations` **必须** 且只能包含 `invoke`。以 `x-` 开头的键是忽略的扩展，不是 operation。  
 
-权威机器可读模式：`basis/domain/connectors/manifest_schema.py`。本规范与模式文件 **应当** 同步维护。
+权威机器可读模式：`basis/core/connectors/manifest_schema.py`。本规范与模式文件 **应当** 同步维护。
 
 ---
 
@@ -232,13 +232,13 @@ CHECK 针对 **连接**（认证），不针对单个 action id。
 
 ### 4.3 宿主绑定
 
-[data-model.md](data-model.md) §18 等 **禁止** 出现在 `connector.yaml` 内。
+[data-model.md](../data-model.md) §18 等 **禁止** 出现在 `connector.yaml` 内。
 
 BOCP **不** 规定 HTTP 路径名或 MCP 工具 id。宿主 **应当** 在面向智能体的面上用稳定选择器暴露 §10 原语：`service`、`action_id`、原语种类（`discover`、`list`、`mutate`、`invoke`），以及宿主提供的 `action_params` / `scope`（§10）。
 
 ### 4.3.1 双消费者（资料性）
 
-典型产品宿主（如 [connectors-basis.zh.md](connectors-basis.zh.md)）对 **同一** BOCP 运行时挂 **两条并行绑定**：
+典型产品宿主（如 [runtime.zh.md](runtime.zh.md)）对 **同一** BOCP 运行时挂 **两条并行绑定**：
 
 | 消费者 | 典型宿主绑定 | 原语用途 |
 |--------|--------------|----------|
@@ -415,7 +415,7 @@ operation 键按 entity / procedure 校验，见 §7.2–7.4。
 
 `page_size` 只是每页请求提示，不是 LIST 返回上限。宿主 **可以** 内部连续翻页，直到达到原语的 `limit` 或上游耗尽；**必须** 在 `limit` 处停止。LIST 输出契约见 §10.4。
 
-宿主将 `rest.operations` 编译为 HTTP 客户端 / REST 适配器层（[connectors-basis.zh.md](connectors-basis.zh.md)）。
+宿主将 `rest.operations` 编译为 HTTP 客户端 / REST 适配器层（[runtime.zh.md](runtime.zh.md)）。
 
 ### 7.6 SQL 执行器（`entity.sql`）
 
@@ -704,14 +704,14 @@ Bundle **符合** 当且仅当：
 
 ### 14.1 规范性
 
-- **BOCP-SCHEMA** — `basis/domain/connectors/manifest_schema.py`  
+- **BOCP-SCHEMA** — `basis/core/connectors/manifest_schema.py`  
 - **RFC2119**、**RFC8174** — BCP 14 关键词  
 
 ### 14.2 资料性
 
 - **RFC6749** — OAuth 2.0  
-- **Basis-DM** — [data-model.md](data-model.md) §18  
-- **Basis-Connectors** — [connectors-basis.zh.md](connectors-basis.zh.md)  
+- **Basis-DM** — [data-model.md](../data-model.md) §18  
+- **Basis-Connectors** — [runtime.zh.md](runtime.zh.md)  
 
 ---
 
@@ -735,7 +735,7 @@ Bundle **符合** 当且仅当：
 | `{service}.{entity.id}.{write}` | `github.issues.create` |
 | `{service}.{procedure.id}` | `acme.search_codes` |
 
-以上为资料性约定，**不是** Manifest 必填字段。Basis 参考宿主中 `action_policy.entities` 可引用类似键（见 [connectors-basis.zh.md](connectors-basis.zh.md)）。
+以上为资料性约定，**不是** Manifest 必填字段。Basis 参考宿主中 `action_policy.entities` 可引用类似键（见 [runtime.zh.md](runtime.zh.md)）。
 
 ---
 
@@ -755,7 +755,7 @@ Bundle **符合** 当且仅当：
 
 ## 附录 C. GitHub 示例
 
-权威文件：`basis/domain/connectors/providers/github.yaml`。构建：`scripts/build_connector_manifests.py`。
+权威文件：`basis/core/connectors/providers/github.yaml`。构建：`scripts/build_connector_manifests.py`。
 
 ### C.1 完整 Manifest（`connector.yaml`）
 
@@ -894,7 +894,7 @@ spec:
 
 ## 附录 D. 教程：从零到一次 LIST 调用
 
-资料性端到端教程（GitHub）。HTTP/MCP 路径名因宿主而异；Basis 参考实现见 [connectors-basis.zh.md](connectors-basis.zh.md)。
+资料性端到端教程（GitHub）。HTTP/MCP 路径名因宿主而异；Basis 参考实现见 [runtime.zh.md](runtime.zh.md)。
 
 ### D.1 角色
 

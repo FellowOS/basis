@@ -6,7 +6,7 @@ description: Basis BOCP 参考宿主的规范性期望——本体投影与 Agen
 
 # Basis 连接器运行时
 
-本文说明 **Basis** 作为 **宿主** 如何实现 [BOCP v2.0](bocp-v1.zh.md)。[双消费者](#双消费者一份-manifest) 一节为 **Basis 产品层面的要求**；其余章节除非标明均为资料性。
+本文说明 **Basis** 作为 **宿主** 如何实现 [BOCP v2.0](bocp.zh.md)。[双消费者](#双消费者一份-manifest) 一节为 **Basis 产品层面的要求**；其余章节除非标明均为资料性。
 
 其他 BOCP 运行时不必沿用这些 HTTP 路径或 MCP 工具名。
 
@@ -14,7 +14,7 @@ description: Basis BOCP 参考宿主的规范性期望——本体投影与 Agen
 
 ## 双消费者（一份 manifest）
 
-Provider bundle（`connector.yaml`）**只写一份**。BOCP 运行时把 `actions[].rest.operations` / `sql.operations` 编译为 **CHECK**、**DISCOVER**、**LIST**、**MUTATE**、**INVOKE**（见 [bocp-v1.zh.md §10](bocp-v1.zh.md#10-运行时原语)）。
+Provider bundle（`connector.yaml`）**只写一份**。BOCP 运行时把 `actions[].rest.operations` / `sql.operations` 编译为 **CHECK**、**DISCOVER**、**LIST**、**MUTATE**、**INVOKE**（见 [bocp.zh.md §10](bocp.zh.md#10-运行时原语)）。
 
 完整的 **Basis 宿主必须** 在同一运行时上提供 **两条一等公民绑定**：
 
@@ -40,7 +40,7 @@ Provider bundle（`connector.yaml`）**只写一份**。BOCP 运行时把 `actio
 
 ## 执行器（资料性）
 
-规范性 Manifest：`rest.operations` / `sql.operations`（[bocp-v1.zh.md §7](bocp-v1.zh.md#7-actions)）。Basis 编译为内部适配器：
+规范性 Manifest：`rest.operations` / `sql.operations`（[bocp.zh.md §7](bocp.zh.md#7-actions)）。Basis 编译为内部适配器：
 
 | 执行器 | Basis 适配器 | 说明 |
 |--------|--------------|------|
@@ -57,12 +57,12 @@ Basis 特有的 REST 扩展（其他 BOCP 宿主忽略）：entity action 上的
 
 | 组件 | 位置 |
 |------|------|
-| Runtime | `basis/domain/connectors/runtime.py` |
-| REST adapter | `basis/domain/connectors/adapters/rest/` |
-| SQL adapter | `basis/domain/connectors/adapters/sql/` |
-| Provider bundles | `basis/domain/connectors/providers/` |
-| Manifest 模式 | `basis/domain/connectors/manifest_schema.py` |
-| 目录 | `basis/domain/connectors/catalog.py` |
+| Runtime | `basis/core/connectors/runtime.py` |
+| REST adapter | `basis/core/connectors/adapters/rest/` |
+| SQL adapter | `basis/core/connectors/adapters/sql/` |
+| Provider bundles | `basis/core/connectors/providers/` |
+| Manifest 模式 | `basis/core/connectors/manifest_schema.py` |
+| 目录 | `basis/core/connectors/catalog.py` |
 | 构建随版 bundle | `scripts/build_connector_manifests.py` |
 
 ---
@@ -74,7 +74,7 @@ Basis 特有的 REST 扩展（其他 BOCP 宿主忽略）：entity action 上的
 | HTTP | `/api/v1/kbs/{kb_id}/connectors/*`（见 [openapi-v1.md](openapi-v1.md) 与 live `/openapi/v1.json`） |
 | MCP | `basis/integration/ops_connectors.py`（含 `invoke_connector_primitive`） |
 
-持久化与 KB 投影：[data-model.md](data-model.md) §18。
+持久化与 KB 投影：[data-model.md](../data-model.md) §18。
 
 ---
 
@@ -96,5 +96,5 @@ SQL 集成测试（可选环境）：`tests/test_sql_connector_integration.py`�
 
 ## 相关文档
 
-- [bocp-v1.md](bocp-v1.md) / [bocp-v1.zh.md](bocp-v1.zh.md) — 协议规范
-- [helix-foundry-adoption.md](helix-foundry-adoption.md) — 连接器产品架构
+- bocp.md(bocp.md) / bocp.zh.md(bocp.zh.md) — 协议规范
+- [product.md](product.md) — 连接器产品架构

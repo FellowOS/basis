@@ -1,1 +1,1 @@
-../../../../docs/architecture/connectors-basis.zh.md
+../../../../docs/architecture/connectors/runtime.zh.md

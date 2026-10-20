@@ -33,7 +33,7 @@ Operators configure **per-organization** OIDC or SAML under **System → Setting
 
 ## SAML 2.0
 
-See [ADR 0006](../architecture/0006-org-saml.md).
+See [ADR 0006](../architecture/adrs/0006-org-saml.md).
 
 1. Install `uv sync --extra saml` and restart API.
 2. **Organization SSO → SAML 2.0**: IdP Entity ID, IdP SSO URL, IdP signing certificate (PEM).

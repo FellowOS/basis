@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Write provider bundles to ``basis/domain/connectors/providers/``."""
+"""Write provider bundles to ``basis/core/connectors/providers/``."""
 
 from __future__ import annotations
 

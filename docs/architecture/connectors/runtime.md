@@ -6,7 +6,7 @@ description: Normative expectations for the Basis BOCP reference host—ledger p
 
 # Basis connector runtime
 
-This document describes how **Basis** implements [BOCP v2.0](bocp-v1.md) as a **host**. Section [Dual consumers](#dual-consumers-one-manifest) states **required** Basis product behavior; other sections are informative unless marked otherwise.
+This document describes how **Basis** implements [BOCP v2.0](bocp.md) as a **host**. Section [Dual consumers](#dual-consumers-one-manifest) states **required** Basis product behavior; other sections are informative unless marked otherwise.
 
 Non-Basis runtimes are not required to match these HTTP paths or MCP tool names.
 
@@ -14,7 +14,7 @@ Non-Basis runtimes are not required to match these HTTP paths or MCP tool names.
 
 ## Dual consumers (one manifest)
 
-A provider bundle (`connector.yaml`) is authored **once**. The BOCP runtime compiles `actions[].rest.operations` / `sql.operations` into **CHECK**, **DISCOVER**, **LIST**, **MUTATE**, and **INVOKE** (see [bocp-v1.md §10](bocp-v1.md#10-runtime-primitives)).
+A provider bundle (`connector.yaml`) is authored **once**. The BOCP runtime compiles `actions[].rest.operations` / `sql.operations` into **CHECK**, **DISCOVER**, **LIST**, **MUTATE**, and **INVOKE** (see [bocp.md §10](bocp.md#10-runtime-primitives)).
 
 A complete **Basis host MUST** expose that same runtime on **two first-class bindings**:
 
@@ -40,7 +40,7 @@ Policy: `action_policy.entities` keys (e.g. `github:issues.list`, `issues.create
 
 ## Executors (informative)
 
-Normative manifest shape: `rest.operations` / `sql.operations` ([bocp-v1.md §7](bocp-v1.md#7-actions)). Basis compiles them to internal adapters:
+Normative manifest shape: `rest.operations` / `sql.operations` ([bocp.md §7](bocp.md#7-actions)). Basis compiles them to internal adapters:
 
 | Executor | Basis adapter | Notes |
 |----------|---------------|--------|
@@ -57,12 +57,12 @@ Basis-specific REST extensions (ignored by other BOCP hosts): `x-basis-dynamic-s
 
 | Component | Location |
 |-----------|----------|
-| Runtime | `basis/domain/connectors/runtime.py` |
-| REST adapter | `basis/domain/connectors/adapters/rest/` |
-| SQL adapter | `basis/domain/connectors/adapters/sql/` |
-| Provider bundles | `basis/domain/connectors/providers/` |
-| Manifest schema | `basis/domain/connectors/manifest_schema.py` |
-| Catalog | `basis/domain/connectors/catalog.py` |
+| Runtime | `basis/core/connectors/runtime.py` |
+| REST adapter | `basis/core/connectors/adapters/rest/` |
+| SQL adapter | `basis/core/connectors/adapters/sql/` |
+| Provider bundles | `basis/core/connectors/providers/` |
+| Manifest schema | `basis/core/connectors/manifest_schema.py` |
+| Catalog | `basis/core/connectors/catalog.py` |
 | Build shipped bundles | `scripts/build_connector_manifests.py` |
 
 ---
@@ -74,7 +74,7 @@ Basis-specific REST extensions (ignored by other BOCP hosts): `x-basis-dynamic-s
 | HTTP | `/api/v1/kbs/{kb_id}/connectors/*` (see [openapi-v1.md](openapi-v1.md) and live `/openapi/v1.json`) |
 | MCP | `basis/integration/ops_connectors.py` (`invoke_connector_primitive`, sync, catalog, …) |
 
-Persistence and KB projection: [data-model.md](data-model.md) §18.
+Persistence and KB projection: [data-model.md](../data-model.md) §18.
 
 ---
 
@@ -96,5 +96,5 @@ SQL integration tests (optional env): `tests/test_sql_connector_integration.py`.
 
 ## Related
 
-- [bocp-v1.md](bocp-v1.md) / [bocp-v1.zh.md](bocp-v1.zh.md) — protocol specification
-- [helix-foundry-adoption.md](helix-foundry-adoption.md) — connector product architecture
+- bocp.md(bocp.md) / bocp.zh.md(bocp.zh.md) — protocol specification
+- [product.md](product.md) — connector product architecture

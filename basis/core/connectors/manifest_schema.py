@@ -1,4 +1,4 @@
-"""Pydantic v2 contracts for BOCP — normative spec: docs/architecture/bocp-v1.md (v2.0 manifest)."""
+"""Pydantic v2 contracts for BOCP — normative spec: docs/architecture/connectors/bocp.md (v2.0 manifest)."""
 
 from __future__ import annotations
 

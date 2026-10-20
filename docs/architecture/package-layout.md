@@ -2,7 +2,20 @@
 
 Physical layout for the `basis` installable package (repo `basis/`). Integration contract: [openapi-v1.md](openapi-v1.md).
 
-**Target tree:** [package-layout-target.md](package-layout-target.md). Deprecated import prefixes are blocked by `scripts/audit-legacy-package-imports.py`.
+Deprecated import prefixes (`basis.transport`, `basis.domain`, …) are blocked by `scripts/audit-legacy-package-imports.py`.
+
+## Package tree (quick reference)
+
+| Path | Role |
+| --- | --- |
+| `basis/api/` | HTTP + MCP adapters |
+| `basis/application/` | `KbCoreContext`, operations registry, OpenAPI export |
+| `basis/core/` | `ledger`, `pipeline`, `projection`, `explorer`, `connectors` |
+| `basis/control/` | `admin`, `identity`, `catalog`, `realtime` |
+| `basis/runtime/` | config, DB pool, observability |
+| `basis/tooling/` | SQL migrations, Alembic, test support |
+
+HTTP routes: `api/http/routes/v1/platform/*`, `api/http/routes/v1/kb/*` ([KB aggregators](#kb-http-surface) below).
 
 ## Layers
 
@@ -66,9 +79,9 @@ Server-side adapters for vendored `web/src/explorer` — **not** a second ledger
 
 **Imports:** use `basis.core.explorer.<subpackage>.<module>` only (flat `graph_read` / `registry` shims were removed). CI runs `scripts/audit-explorer-shim-imports.py` on `basis/` + `tests/` to prevent new root-level shim files.
 
-See [explorer.md](explorer.md), [explorer-session-registry.md](explorer-session-registry.md), [ADR 0007](0007-graph-activity-and-canvas-merge.md).
+See [explorer.md](explorer-integration.md), [explorer-backend.md](explorer-backend.md), [ADR 0007](adrs/0007-graph-activity-and-canvas-merge.md).
 
-**线 1：** 新后端逻辑在 `basis/core/*`；Explorer HTTP 用 `basis/core/explorer/<subpackage>/`（[README](../../basis/core/explorer/README.md)）。Import 护栏见 [semantica-base-sdk-plan.md](semantica-base-sdk-plan.md) §3。
+**线 1：** 新后端逻辑在 `basis/core/*`；Explorer HTTP 用 `basis/core/explorer/<subpackage>/`（[README](../../basis/core/explorer/README.md)）。Import 护栏见 [explorer-backend.md](explorer-backend.md#ci-护栏)。
 
 ### Other core packages
 
@@ -105,7 +118,7 @@ KB HTTP surface is split under `api/http/routes/v1/kb/` (paths/operationIds unch
 
 Other KB modules under `kb/`: `mappings.py`, `alerts.py`, `governance.py`, `e2e_helpers.py`, `reasoning_rules.py`, `tokens.py`.
 
-`basis/core/explorer/graph/` — projection adapters. `ontology/` — hub logic; HTTP in `api/http/kb_ontology_hub.py`. `session/`, `governance/`, `vocabulary/`, `temporal/`, `sparql/`, `reasoning/`, `io/` — see [explorer README](../../basis/core/explorer/README.md).
+`basis/core/explorer/graph/` — projection adapters. `ontology/` — hub logic; HTTP in `api/http/routes/v1/kb/ontology/hub/`. `session/`, `governance/`, `vocabulary/`, `temporal/`, `sparql/`, `reasoning/`, `io/` — see [explorer README](../../basis/core/explorer/README.md).
 
 KB core services that need audit or embedding settings take `basis.core.ledger.ports` protocols (`KbAuditStore`, `EmbedSettingsStore`); `api` passes `AdminStore` at the edge.
 
@@ -118,7 +131,7 @@ KB core services that need audit or embedding settings take `basis.core.ledger.p
 
 CI enforces these with [import-linter](https://import-linter.readthedocs.io/) (`importlinter.ini` at repo root): core must not import `api`, `application`, or `control`; MCP OpenAPI bridge must not import `api`.
 
-Canonical SQL migrations live under `basis/ops/db/migrations/` (`sqlite_migrations.py`, `postgres_migrations.py`).
+Canonical SQL migrations live under `basis/tooling/db/migrations/` (`sqlite_migrations.py`, `postgres_migrations.py`).
 
 Shared API/core errors: `basis.core.errors.AdminError` (control re-exports from `basis.control.admin.errors` for backward compatibility). Code under `basis/core/` should import `AdminError` from `basis.core.errors`.
 

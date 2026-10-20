@@ -1,14 +1,14 @@
 # Helix Foundry 能力借鉴与 Basis 统一架构落点
 
-**Status:** accepted reference（架构决策见 [ADR 0003](0003-lakehouse-datasets.md) 与 [data-model.md §18](data-model.md)）  
+**Status:** accepted reference（架构决策见 [ADR 0003](0003-lakehouse-datasets.md) 与 [data-model.md §18](../data-model.md)）  
 **Date:** 2026-10-18  
-**Related:** [ADR 0001 — 证据账本](0001-canonical-knowledge-model.md) · [ADR 0003 — 结构化源与实体双向同步](0003-lakehouse-datasets.md) · [data-model.md §18](data-model.md) · [features.md §5.16–5.18](../features.md)
+**Related:** [ADR 0001 — 证据账本](0001-canonical-knowledge-model.md) · [ADR 0003 — 结构化源与实体双向同步](0003-lakehouse-datasets.md) · [data-model.md §18](../data-model.md) · [features.md §5.16–5.18](../features.md)
 
 ## 1. 核心结论：中间完全统一，只扩“两头”，以纯 Python 声明式连接器协议（BOCP）统一所有外部源
 
 对比 [Helix Foundry](https://github.com/helixdb/helix-foundry)（多源连接器、跨源实体对齐、业务对象操作）、同级目录中的 **Nango (`../nango`)**、**Airbyte (`../airbyte`)**、**AnyConnect (`../fellowos/connectors`)** 与 Basis 后，Basis **不搞第二套菜单、不建独立的 Parquet 数据湖、不引入 DuckDB SQL 沙箱，也彻底摒弃跨进程调用 Node.js TS 代码的双栈妥协**。
 
-我们在 Basis 的 **Python FastAPI 单一后端**内直接建立 **`Basis Open Connector Protocol (BOCP)` 纯 Python 声明式连接器引擎（`basis/domain/connectors/`）**：
+我们在 Basis 的 **Python FastAPI 单一后端**内直接建立 **`Basis Open Connector Protocol (BOCP)` 纯 Python 声明式连接器引擎（`basis/core/connectors/`）**：
 - **认证与连接层（吸收 Nango `providers.yaml` + AnyConnect 认证方言）**：100% 声明式支持 `OAUTH2`（含 PKCE、自定义Envelope解包）、`OAUTH2_CC`（机器凭证）、`BASIC`（账号密码）、`TWO_STEP`（账密登录换 Session Token）、`API_KEY`、`DATABASE_DSN` 与 `CUSTOM`（动态实例域名 `connection_config` + AES-256-GCM 加密密钥）。
 - **流发现与同步层（吸收 Airbyte `DeclarativeSource` YAML + Nango `Sync` 状态机）**：统一关系型数据库（`postgres` / `mysql`，由 **SQLAlchemy 2.0** 驱动）与 1,000+ SaaS 应用（由声明式 `HttpRequester` + `DpathExtractor` + 4 种标准 `Paginator` + `DynamicSchemaLoader` 驱动）。
 - **受控写回与工具层（吸收 Nango `Action/Tool` + Hightouch 写回模板 + MCP `ToolAnnotations`）**：不管是数据库表还是 SaaS 对象，入向全部走 **`Stream READ` → `source_table_mappings`（含 `checkpoint_json` 水位线与 `row_hash` 去重）→ 进账本**，出向全部走 **`Review` → `entity_sync_outbox` → `Stream MUTATE` 写回**：
@@ -94,7 +94,7 @@ flowchart LR
 
 ## 4. 双向同步（实体 ↔ 业务数据库）核心机制与账本对齐
 
-> **完整 DDL 与 JSON Schema 见 [data-model.md §18](data-model.md)。** 开发实现时必须遵守以下与现有 `0002_knowledge_ledger.sql` 及 `projector.py` 对齐的硬性约束：
+> **完整 DDL 与 JSON Schema 见 [data-model.md §18](../data-model.md)。** 开发实现时必须遵守以下与现有 `0002_knowledge_ledger.sql` 及 `projector.py` 对齐的硬性约束：
 
 ### 4.1 账本表与图投影对齐（避免踩坑）
 1. **禁止向 `statement_evidence` 插入无文档的记录**：
@@ -105,7 +105,7 @@ flowchart LR
    - `projector.py:rebuild_graph_from_ledger` 会自动去重同一三元组的 open statement 与 typed fact，将实体属性/外键关系直接投影到 `ContextGraph`。
 3. **决策外键表名**：
    - `entity_sync_outbox.decision_id` 外键必须指向 **`agent_decisions(id)`**（`0002_knowledge_ledger.sql` 真实表名），而非 `decisions(id)`。
-4. **实体删除级联（`basis/domain/kb/entity_delete.py`）**：
+4. **实体删除级联（`basis/core/ledger/entity_delete.py`）**：
    - 删除实体时，必须在 `entity_delete.py` 中先清理 `entity_sync_outbox`、`entity_external_refs` 以及 `subject_type = 'entity_sync_outbox'` 的 `review_items`。
 
 ### 4.2 入向同步事务（业务库 → Basis 实体）
@@ -216,7 +216,7 @@ web/src/
 
 #### Phase 1：数据库底座与 BOCP 协议契约 + 开源资产合成脚本（预计 2~3 天）
 - **落地 `0011_entity_external_sync.sql`（7 张表）**：4 张连接器治理与凭据表（`kb_connector_policies`、`kb_connections`、`kb_oauth_configs`、`kb_connector_runs`）+ 3 张账本双向同步表（`source_table_mappings`、`entity_external_refs`、`entity_sync_outbox`）。
-- **定义 BOCP 协议 Schema (`basis/domain/connectors/manifest_schema.py`)**：用 Pydantic v2 定义 `AuthSpec`（17 种认证模式 + `check` 校验端点）、`StreamSpec`（静态 Schema 或 `DynamicSchemaLoader`）、`RetrieverSpec`（`DpathExtractor` + 4 种标准 `Paginator` + 父子流路由）、`MutationSpec` & `ToolSpec`。
+- **定义 BOCP 协议 Schema (`basis/core/connectors/manifest_schema.py`)**：用 Pydantic v2 定义 `AuthSpec`（17 种认证模式 + `check` 校验端点）、`StreamSpec`（静态 Schema 或 `DynamicSchemaLoader`）、`RetrieverSpec`（`DpathExtractor` + 4 种标准 `Paginator` + 父子流路由）、`MutationSpec` & `ToolSpec`。
 - **编写跨仓资产合成脚本 (`scripts/build_connector_manifests.py`)**：从同级目录 `../nango/packages/providers/providers.yaml`（1,000+ Provider 认证模板）、`../airbyte/airbyte-integrations/connectors/*/manifest.yaml`（516 个声明式流配置）与 `../fellowos/connectors/catalog/apps/`（图标与动作元数据）自动合成标准 BOCP YAML 目录。
 - **DoD**：`uv run pytest` 通过迁移测试；Pydantic 100% 加载并校验合成后的连接器 Manifest 目录。
 
@@ -228,7 +228,7 @@ web/src/
 - **DoD**：单测覆盖关系库与典型 REST SaaS 的 `CHECK`、动态 `DISCOVER`、多页自动翻页 `READ`、增量 `cursor` 推进与 SSRF 拦截。
 
 #### Phase 3：证据账本双向同步引擎（Inbound Sync ↔ Review ↔ Outbound Write-back）（预计 4~5 天）
-- **入向四路同步状态机 (`basis/domain/kb/connector_sync.py`)**：计算 `row_hash`（SHA-256），自动分流处理 `UNCHANGED`（跳过）、`ADDED`（建实体与 `statements` + `typed_facts`）、`UPDATED`（未覆写则 supersede，存在 `user`/`agent` 覆写则生成 `statement_conflict` 审核项）、`DELETED`（`track_deletes` 软撤销），持久化 `checkpoint_json` 并刷新图投影。
+- **入向四路同步状态机 (`basis/core/ledger/connector_sync.py`)**：计算 `row_hash`（SHA-256），自动分流处理 `UNCHANGED`（跳过）、`ADDED`（建实体与 `statements` + `typed_facts`）、`UPDATED`（未覆写则 supersede，存在 `user`/`agent` 覆写则生成 `statement_conflict` 审核项）、`DELETED`（`track_deletes` 软撤销），持久化 `checkpoint_json` 并刷新图投影。
 - **出向写回与防回环状态机 (`entity_sync_outbox` + `conflict_review.py`)**：修改绑定属性生成 `pending_review` outbox 记录与 `review_items`；审批通过后写入 `agent_decisions`，调用 `runtime.execute_mutation()` 写回外部系统，**立即重算并更新 `entity_external_refs.row_hash`**（彻底杜绝下一轮定时拉取产生假冲突回环）；在 `entity_delete.py` 补齐级联清理。
 - **DoD**：端到端测试跑通「首次拉取建图 → 二次拉取幂等跳过 → 本地修改属性产生冲突审核 → Outbox 审批写回 → 写回后更新 `row_hash` 防回环」。
 
@@ -250,14 +250,14 @@ flowchart TB
     MCP_API["Basis OpenAPI & 唯一 Python MCP\n(/api/v1/kbs/{kb_id}/connectors/*)"]
   end
 
-  subgraph BOCP["纯 Python 声明式连接器引擎 (basis/domain/connectors/)"]
+  subgraph BOCP["纯 Python 声明式连接器引擎 (basis/core/connectors/)"]
     CAT["1. Spec & Auth Engine\n(OAuth2 / OAuth2_CC / Basic / Two-Step / API Key / DSN\n+ CHECK 连通性验证 & Quota 限流)"]
     DISC["2. Streams & Discovery (DISCOVER)\n(静态 JSON Schema + DynamicSchemaLoader / SQLAlchemy inspect)"]
     RET["3. Declarative Retriever (READ)\n(DpathExtractor + Cursor/Offset/Page/Link Paginator + SubstreamRouter)"]
     MUT["4. Mutations & Tools (WRITE / RPC)\n(SQLAlchemy update / Jinja2 REST 写回模板 + MCP ToolAnnotations)"]
   end
 
-  subgraph LedgerSync["账本双向同步引擎 (basis/domain/kb/connector_sync.py)"]
+  subgraph LedgerSync["账本双向同步引擎 (basis/core/ledger/connector_sync.py)"]
     IN_SYNC["入向状态机: Stream READ → checkpoint_json 推进 → row_hash 四路分流\n(UNCHANGED / ADDED / UPDATED / DELETED) → 写 entities / statements / typed_facts"]
     OUT_SYNC["出向状态机: entity_sync_outbox 审批通过 → 调用 Stream MUTATE → 重算 row_hash 防回环"]
   end

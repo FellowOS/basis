@@ -21,7 +21,7 @@ Basis 是基于 [Semantica](https://github.com/semantica-agi/semantica) Python S
 | **系统连接与接口** | 每个项目手写胶水代码 | **BOCP** 声明式数据库与 1,000+ SaaS 连接器，统一暴露 **OpenAPI v1** 与 **MCP** |
 | **部署运维** | 多套组件拼装 | 默认 **两个进程**：Basis API + Basis Web（SQLite 零配置，生产支持 PostgreSQL） |
 
-架构决策：[ADR 0001 — 证据账本为主存](docs/architecture/0001-canonical-knowledge-model.md)。
+架构决策：[ADR 0001 — 证据账本为主存](docs/architecture/adrs/0001-canonical-knowledge-model.md)。
 
 ---
 

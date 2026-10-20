@@ -11,8 +11,8 @@ description: Normative BOCP v2.0 specification plus a reader's guide for newcome
 | **Document** | BOCP v2.0 |
 | **Status** | Basis Standards Track (normative for Basis releases) |
 | **Wire format** | YAML manifest + this specification |
-| **Schema companion** | `basis/domain/connectors/manifest_schema.py` (Pydantic v2) |
-| **Related** | [connectors-basis.md](connectors-basis.md) (Basis host; non-normative) |
+| **Schema companion** | `basis/core/connectors/manifest_schema.py` (Pydantic v2) |
+| **Related** | [runtime.md](runtime.md) (Basis host; non-normative) |
 
 ---
 
@@ -187,7 +187,7 @@ The same `connector.yaml` supports:
 1. **Knowledge / ledger hosts** — map LIST results into an internal graph (scheduled sync, writeback approval).  
 2. **Agents** — call LIST / MUTATE directly without configuring an internal “table mapping”.
 
-BOCP requires LIST to work **without** ledger configuration (Section 10.4). How the host surfaces MCP tool names is **not** in the manifest ([connectors-basis.md](connectors-basis.md) describes one reference host).
+BOCP requires LIST to work **without** ledger configuration (Section 10.4). How the host surfaces MCP tool names is **not** in the manifest ([runtime.md](runtime.md) describes one reference host).
 
 #### 1.6.8 How to read the rest of this document
 
@@ -195,7 +195,7 @@ BOCP requires LIST to work **without** ledger configuration (Section 10.4). How 
 |-----------------|------|
 | Ship a provider bundle | Sections 5–8, Appendix C–D |
 | Call a runtime from your app | Section 10, Appendix D |
-| Implement a host | Sections 4, 10–11, [connectors-basis.md](connectors-basis.md) |
+| Implement a host | Sections 4, 10–11, [runtime.md](runtime.md) |
 | Policy / telemetry ids | Appendix A |
 
 ---
@@ -274,13 +274,13 @@ The same manifest and runtime **MUST** be usable for both **knowledge projection
 
 ### 4.3 Host bindings
 
-Hosts **MAY** implement persistence and APIs described in [data-model.md](data-model.md) §18. Those artifacts **MUST NOT** appear inside `connector.yaml`.
+Hosts **MAY** implement persistence and APIs described in [data-model.md](../data-model.md) §18. Those artifacts **MUST NOT** appear inside `connector.yaml`.
 
 BOCP does **not** mandate HTTP route names or MCP tool ids. Hosts **SHOULD** expose Section 10 primitives on agent-facing surfaces using stable selectors: `service`, entity or procedure `action_id`, primitive kind (`discover`, `list`, `mutate`, `invoke`), plus host-supplied `action_params` / `scope` (Section 10).
 
 ### 4.3.1 Dual consumers (informative)
 
-Product hosts (for example [connectors-basis.md](connectors-basis.md)) typically attach **two parallel bindings** to one BOCP runtime:
+Product hosts (for example [runtime.md](runtime.md)) typically attach **two parallel bindings** to one BOCP runtime:
 
 | Consumer | Typical host binding | Primitive use |
 |----------|----------------------|---------------|
@@ -460,7 +460,7 @@ Operation keys are validated per entity/procedure; see Sections 7.2–7.4.
 
 `page_size` is a per-request hint, not the LIST result limit. A host MAY continue fetching upstream pages until it reaches the primitive’s `limit` or upstream exhaustion; it **MUST** stop at `limit`. See Section 10.4 for the LIST output contract.
 
-Hosts compile `rest.operations` into the HTTP client / REST adapter layer ([connectors-basis.md](connectors-basis.md)).
+Hosts compile `rest.operations` into the HTTP client / REST adapter layer ([runtime.md](runtime.md)).
 
 ### 7.6 SQL executor (`entity.sql`)
 
@@ -748,14 +748,14 @@ None. A future revision **MAY** register a media type. Until then, host-specific
 
 ### 14.1 Normative
 
-- **BOCP-SCHEMA** — `basis/domain/connectors/manifest_schema.py`  
+- **BOCP-SCHEMA** — `basis/core/connectors/manifest_schema.py`  
 - **RFC2119**, **RFC8174** — BCP 14 keywords  
 
 ### 14.2 Informative
 
 - **RFC6749** — OAuth 2.0  
-- **Basis-DM** — [data-model.md](data-model.md) §18  
-- **Basis-Connectors** — [connectors-basis.md](connectors-basis.md)  
+- **Basis-DM** — [data-model.md](../data-model.md) §18  
+- **Basis-Connectors** — [runtime.md](runtime.md)  
 
 ---
 
@@ -797,7 +797,7 @@ Not required manifest keys.
 
 ## Appendix C. GitHub example
 
-Informative. Canonical file: `basis/domain/connectors/providers/github.yaml`. Regenerate: `scripts/build_connector_manifests.py`.
+Informative. Canonical file: `basis/core/connectors/providers/github.yaml`. Regenerate: `scripts/build_connector_manifests.py`.
 
 ### C.1 Complete manifest
 
@@ -934,7 +934,7 @@ Static `fields` → DISCOVER without a dynamic `discover` operation. `rest.opera
 
 ## Appendix D. Tutorial: from zero to a LIST call
 
-Informative walkthrough using the GitHub provider. Exact HTTP/MCP names depend on the host; [connectors-basis.md](connectors-basis.md) documents the Basis reference host.
+Informative walkthrough using the GitHub provider. Exact HTTP/MCP names depend on the host; [runtime.md](runtime.md) documents the Basis reference host.
 
 ### D.1 Roles
 

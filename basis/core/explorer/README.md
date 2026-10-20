@@ -2,7 +2,7 @@
 
 Server-side adapters for the vendored Explorer UI (`web/src/explorer/`). Graph mutations still flow through Review / ledger APIs — this package is not a second write path.
 
-**Architecture docs:** [explorer.md](../../../docs/architecture/explorer.md), [explorer-session-registry.md](../../../docs/architecture/explorer-session-registry.md), [package-layout.md](../../../docs/architecture/package-layout.md) (import rules).
+**Architecture docs:** [explorer-integration.md](../../../docs/architecture/explorer-integration.md), [explorer-backend.md](../../../docs/architecture/explorer-backend.md), [package-layout.md](../../../docs/architecture/package-layout.md) (import rules).
 
 ## Subpackages
 

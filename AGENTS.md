@@ -117,12 +117,12 @@ Run relevant checks after substantive edits; say if something was not run.
 
 ## Python / API
 
-- Package layout: [package-layout.md](./docs/architecture/package-layout.md) + [package-layout-target.md](./docs/architecture/package-layout-target.md) — `api/`, `application/`, `core/`, `control/`, `runtime/`, `tooling/` (CI: `audit-legacy-package-imports.py`).
-- **Semantica 线 1：** 新后端逻辑放在 `basis/core/*`；KB Explorer HTTP 用 `basis/core/explorer/<subpackage>/` + `BasisKbGraphSession`（见 `basis/core/explorer/README.md`）；RDF/SKOS 用 `explorer/io/rdf_parse.py`。Import 护栏见 `semantica-base-sdk-plan.md` §3。KB HTTP 聚合器见 `package-layout.md`。
+- Package layout: [package-layout.md](./docs/architecture/package-layout.md) — `api/`, `application/`, `core/`, `control/`, `runtime/`, `tooling/` (CI: `audit-legacy-package-imports.py`).
+- **Semantica 线 1：** 新后端逻辑放在 `basis/core/*`；Explorer 见 `basis/core/explorer/README.md` 与 [explorer-backend.md](./docs/architecture/explorer-backend.md)（含 CI 护栏表）。KB HTTP 聚合器见 `package-layout.md`。
 - CLI entry: `pyproject.toml` (`basis` → `basis.cli:main`); app factory `basis.api.http.app:create_app`.
 - Schema SQL: `basis/tooling/db/migrations/`; Alembic `basis/tooling/db/alembic/`.
 - Layer imports: `uv run lint-imports --config importlinter.ini` — `core` ↛ `api`/`application`/`control`; `application.mcp_openapi` ↛ `api`.
-- Integration core (MCP + OpenAPI ops): `basis/integration/` (`KbCoreContext`, `run`). **MCP tools** (23 static core tools; minimal graph loop in [openapi-v1.md §6.1](./docs/architecture/openapi-v1.md)): graph/review + connector ops in `registry.py` / `mcp_openapi.py`.
+- Application core (MCP + OpenAPI ops): `basis/application/` (`KbCoreContext`, `run`). **MCP tools** (23 static core tools; minimal graph loop in [openapi-v1.md §6.1](./docs/architecture/openapi-v1.md)): graph/review + connector ops in `registry.py` / `mcp_openapi.py`.
 - OpenAPI: served live from `app.openapi()` via `basis.application.openapi_v1_export` (`/openapi/v1.json`); handler docstrings → `description`. Optional JSON snapshots in `openapi/*.json`: `scripts/generate-openapi-v1.py` (CI drift + `web` typegen; fails if any operation lacks a docstring).
 - Prefer existing patterns in route handlers and services; follow pytest style in `tests/`.
 
@@ -139,7 +139,7 @@ Run relevant checks after substantive edits; say if something was not run.
 | Web ↔ operationId audit | [openapi/web-openapi-operation-audit.md](./openapi/web-openapi-operation-audit.md) — `scripts/audit-web-operation-ids.py` |
 | HTTP in web | Typed: `openapi-client.ts` (`openApi*` / `kbOpenApi*` / `publicOpenApi*`); stream/multipart: `basis-session-fetch.ts`; paths: `kb-api-path.ts`, `api-v1-path.ts`; E2E `e2e/api-v1-path.ts` |
 
-**Naming:** Normative HTTP = **live export** at `/openapi/v1.json` (same as `app.openapi()` + Basis annotations); committed snapshots in **`openapi/basis-v1.json`**. `basis/integration/` = server operations (OpenAPI + MCP call this). **semantica** = in-process runtime. **Application HTTP client** = web `basis-openapi/` transport (OpenAPI-generated types; not a published SDK). Server exposes **only OpenAPI + MCP** to clients.
+**Naming:** Normative HTTP = **live export** at `/openapi/v1.json` (same as `app.openapi()` + Basis annotations); committed snapshots in **`openapi/basis-v1.json`**. `basis/application/` = server operations (OpenAPI + MCP call this). **semantica** = in-process runtime. **Application HTTP client** = web `basis-openapi/` transport (OpenAPI-generated types; not a published SDK). Server exposes **only OpenAPI + MCP** to clients.
 
 ## Out of scope unless asked
 

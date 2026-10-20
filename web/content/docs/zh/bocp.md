@@ -1,1 +1,1 @@
-../../../../docs/architecture/bocp-v1.zh.md
+../../../../docs/architecture/connectors/bocp.zh.md

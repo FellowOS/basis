@@ -62,7 +62,7 @@ Chunk search and graph exploration use **different clocks**. Do not assume one `
 | **Graph workspace** | `GET /api/kbs/{id}/temporal/bounds`, `.../temporal/snapshot?at=` | **Explorer projection** emphasis at a point in time (scrubber UI). Separate from ledger ingest timestamps on chunks. |
 | **Graph node search** | `POST /api/kbs/{id}/graph/search` | Always searches the **current** loaded projection. Optional body field `at` is accepted for forward compatibility but returns `warnings: ["graph_search_uses_current_projection"]` — use the graph timeline for point-in-time exploration. |
 
-Product copy lives in KB Search subtitles and the Search page chunk filters. See also [explorer.md](architecture/explorer.md) §5.2.
+Product copy lives in KB Search subtitles and the Search page chunk filters. See also [explorer-integration.md](explorer-integration.md) §5.2.
 
 ## Search behavior
 

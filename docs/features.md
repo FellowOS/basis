@@ -6,9 +6,9 @@
 
 已接受的基础决策：
 
-- [0001 — 证据账本为主存，ContextGraph 为投影](architecture/0001-canonical-knowledge-model.md)
+- [0001 — 证据账本为主存，ContextGraph 为投影](architecture/adrs/0001-canonical-knowledge-model.md)
 - [数据模型与迁移契约](architecture/data-model.md)
-- [Explorer 多 KB 集成设计](architecture/explorer.md)
+- [Explorer 多 KB 集成设计](architecture/explorer-integration.md)
 - 实现状态见 [progress.md](progress.md)（§0.1 `done` · §0.2 API 基线 · §3.1/§3.2 gap）
 
 ---
@@ -234,7 +234,7 @@
 **界面**：审核卡片「原句在上」；实体面板证据链。
 
 具体语义、最小 schema、状态机与迁移见
-[ADR 0001](architecture/0001-canonical-knowledge-model.md)。`F-LDG-01` 仅描述当前兼容状态；
+[ADR 0001](architecture/adrs/0001-canonical-knowledge-model.md)。`F-LDG-01` 仅描述当前兼容状态；
 迁移完成后 ContextGraph 是可重建投影，不再是事实主存。
 
 ---
@@ -351,7 +351,7 @@ Basis **不在 API 层提供** Utopia 式「服务端 Chat 会话 + SSE LLM」�
 
 ### 5.16 统一声明式连接器（BOCP：数据库 + 1,000+ SaaS）与双向同步 `F-LAKE` / `F-OPS`
 
-> **注**：保留历史编号 `F-LAKE`，但**不建平行的 Parquet 数据湖或 DuckDB SQL 沙箱，也不引入跨语言 Node.js 执行器**。关系型数据库（`postgres` / `mysql`，底层 SQLAlchemy 2.0）与 1,000+ SaaS 应用统一由 **100% 纯 Python 原生的 Basis Open Connector Protocol (BOCP)**（融合 **Nango** 的 17 种声明式认证与增量状态机 + **Airbyte** 的 `DeclarativeSource` YAML 流抽取与 `DISCOVER` 动态 Schema 发现 + **AnyConnect** 的 OAuth 方言与动作目录，`ingest_sources.kind = 'connector'`）驱动，共享同一套证据账本（`entities` + `statements` + `typed_facts`）与唯一 Python MCP 服务（见 [ADR 0003](architecture/0003-lakehouse-datasets.md) 与 [helix-foundry-adoption.md](architecture/helix-foundry-adoption.md)）：
+> **注**：保留历史编号 `F-LAKE`，但**不建平行的 Parquet 数据湖或 DuckDB SQL 沙箱，也不引入跨语言 Node.js 执行器**。关系型数据库（`postgres` / `mysql`，底层 SQLAlchemy 2.0）与 1,000+ SaaS 应用统一由 **100% 纯 Python 原生的 Basis Open Connector Protocol (BOCP)**（融合 **Nango** 的 17 种声明式认证与增量状态机 + **Airbyte** 的 `DeclarativeSource` YAML 流抽取与 `DISCOVER` 动态 Schema 发现 + **AnyConnect** 的 OAuth 方言与动作目录，`ingest_sources.kind = 'connector'`）驱动，共享同一套证据账本（`entities` + `statements` + `typed_facts`）与唯一 Python MCP 服务（见 [ADR 0003](architecture/adrs/0003-lakehouse-datasets.md) 与 [connectors/product.md](architecture/connectors/product.md)）：
 
 | ID | 能力 |
 | --- | --- |
@@ -359,7 +359,7 @@ Basis **不在 API 层提供** Utopia 式「服务端 Chat 会话 + SSE LLM」�
 | F-LAKE-02 | **统一 Stream → 本体映射（`source_table_mappings`）**：执行声明式 `Stream READ`（自动翻页、增量游标 `checkpoint_json`、软删除追踪 `track_deletes`），按主键与字段映射直接生成/更新账本 `entities`、`statements` 与 `typed_facts`，统一由现有图/SPARQL/MCP 检索 |
 | F-LAKE-03 | **统一出向写回与 Declared Actions（与 `F-OPS-01` 同一套管道）**：实体修改或动作进入 `entity_sync_outbox`，经 `Review` 队列批准后调用声明式 `Stream MUTATE` 写回数据库或外部 SaaS |
 
-**界面**：左侧栏 **数据与抽取 → 连接器 (`/kbs/:id/connectors`)**（内含「连接与服务目录」「本体映射与同步」「动作目录与策略」「运行日志」4 个 Tab，与管非结构化文档的 `资料 /kbs/:id/sources` 解耦）。持久化契约见 [ADR 0003](architecture/0003-lakehouse-datasets.md)、[data-model.md §18](architecture/data-model.md)。详细规则见 **§5.18**。
+**界面**：左侧栏 **数据与抽取 → 连接器 (`/kbs/:id/connectors`)**（内含「连接与服务目录」「本体映射与同步」「动作目录与策略」「运行日志」4 个 Tab，与管非结构化文档的 `资料 /kbs/:id/sources` 解耦）。持久化契约见 [ADR 0003](architecture/adrs/0003-lakehouse-datasets.md)、[data-model.md §18](architecture/data-model.md)。详细规则见 **§5.18**。
 
 ---
 
@@ -371,7 +371,7 @@ Explorer Memory Workspace：长期 Agent 记忆图。**纳入策略**：当 F-CH
 
 ### 5.18 运营语义与实体双向同步（Palantir / Foundry 对标，统一账本架构）`F-OPS`
 
-在 [ADR 0001](architecture/0001-canonical-knowledge-model.md) 与 [ADR 0003](architecture/0003-lakehouse-datasets.md) 下，文档与业务系统数据库在**中间层（本体、实体、账本、图谱、审核、菜单、MCP）100% 统一**，仅在**入向（数据源同步）**与**出向（写回业务库）**扩展：
+在 [ADR 0001](architecture/adrs/0001-canonical-knowledge-model.md) 与 [ADR 0003](architecture/adrs/0003-lakehouse-datasets.md) 下，文档与业务系统数据库在**中间层（本体、实体、账本、图谱、审核、菜单、MCP）100% 统一**，仅在**入向（数据源同步）**与**出向（写回业务库）**扩展：
 
 | 环节 | 文档证据路径（`资料 /kbs/:id/sources`） | 业务系统连接器路径（`连接器 /kbs/:id/connectors`，`F-LAKE` + `F-OPS`） |
 | --- | --- | --- |
@@ -400,7 +400,7 @@ Explorer Memory Workspace：长期 Agent 记忆图。**纳入策略**：当 F-CH
 | F-OPS-06 | **集成契约复用**：在现有 OpenAPI / MCP 上暴露绑定状态与受控写回 |
 | F-OPS-07 | **Workshop-lite**（可选，按需） |
 
-**纳入策略**：遵循 [helix-foundry-adoption.md §6.3](architecture/helix-foundry-adoption.md) 四阶段实施计划：**Phase 1（`0011` 7 表迁移 + BOCP Manifest 契约 + Nango/Airbyte/AnyConnect 合成脚本）→ Phase 2（纯 Python 全模式认证引擎 + SQLAlchemy / Declarative REST 双内核流与动态 Schema 发现引擎）→ Phase 3（账本 `row_hash` 四路增量同步 + Outbox 审批写回与防回环）→ Phase 4（OpenAPI / 唯一 Python MCP 暴露 + 独立 `/kbs/:kbId/connectors` 工作台）**。架构细节见 [architecture/0003-lakehouse-datasets.md](architecture/0003-lakehouse-datasets.md) 与 [architecture/helix-foundry-adoption.md](architecture/helix-foundry-adoption.md)。
+**纳入策略**：遵循 [connectors/product.md §6.3](architecture/connectors/product.md) 四阶段实施计划：**Phase 1（`0011` 7 表迁移 + BOCP Manifest 契约 + Nango/Airbyte/AnyConnect 合成脚本）→ Phase 2（纯 Python 全模式认证引擎 + SQLAlchemy / Declarative REST 双内核流与动态 Schema 发现引擎）→ Phase 3（账本 `row_hash` 四路增量同步 + Outbox 审批写回与防回环）→ Phase 4（OpenAPI / 唯一 Python MCP 暴露 + 独立 `/kbs/:kbId/connectors` 工作台）**。架构细节见 [architecture/adrs/0003-lakehouse-datasets.md](architecture/adrs/0003-lakehouse-datasets.md) 与 [architecture/connectors/product.md](architecture/connectors/product.md)。
 
 ---
 
@@ -413,7 +413,7 @@ Basis Web
         ▼ Bearer + KB role
 Basis API
   ├─ AdminStore（SQLite）
-  ├─ Per-KB ContextGraph + BasisKbGraphSession（basis/domain/explorer）
+  ├─ Per-KB ContextGraph + BasisKbGraphSession（basis/core/explorer）
   ├─ Per-KB VectorIndex / chunk search
   ├─ Per-KB ReviewStore / ledger
   └─ Basis routes: graph, sparql, ontology hub, decisions, vocabulary, …
@@ -463,7 +463,7 @@ semantica SDK（parse, kg, ontology, reasoning, embeddings, …）
 | `/api/v1/kbs/{id}/export`, graph import（经 review） | F-IO |
 | WS `/api/v1/kbs/{id}/graph-updates`, SSE alerts | F-GRAPH, F-ALT |
 
-（Explorer 工作区 HTTP 形状与 vendored UI 契约对齐，统一 `/api/v1/kbs/{id}/…` 与鉴权；见 [explorer.md](architecture/explorer.md)。）
+（Explorer 工作区 HTTP 形状与 vendored UI 契约对齐，统一 `/api/v1/kbs/{id}/…` 与鉴权；见 [explorer.md](architecture/explorer-integration.md)。）
 
 ---
 
@@ -491,10 +491,10 @@ semantica SDK（parse, kg, ontology, reasoning, embeddings, …）
 
 ## 10. Explorer 集成（实现约束）
 
-完整实施契约见 [explorer.md](architecture/explorer.md)。关键约束：
+完整实施契约见 [explorer.md](architecture/explorer-integration.md)。关键约束：
 
-1. **后端**：每 KB 使用 `BasisKbGraphSession` + `basis/domain/explorer/*`（见
-   [semantica-base-sdk-plan.md](architecture/semantica-base-sdk-plan.md)）。
+1. **后端**：每 KB 使用 `BasisKbGraphSession` + `basis/core/explorer/*`（见
+   [explorer-backend.md](architecture/explorer-backend.md)）。
 2. **路径与鉴权**：公共 URL 为 **`/api/v1/kbs/{kb_id}/...`**；HTTP 使用 Basis JWT + KB
    role；WebSocket 使用短时、一次性 realtime ticket，不使用 Explorer API Key。
 3. **写路径**：写入先经过 Basis 证据账本和领域服务，再更新/重建图投影；Explorer
@@ -502,7 +502,7 @@ semantica SDK（parse, kg, ontology, reasoning, embeddings, …）
 4. **前端**：通过注入 `ExplorerClient` 复用 workspace 组件，集中处理 `apiBase`、JWT、
    WS ticket 与 capabilities；不直接保留 root-relative `/api/*` 调用。
 5. **禁止**：生产默认依赖独立 `semantica-explorer` 进程；Registry 不虚构为 Explorer
-   REST API；Decision 不虚构专用 WebSocket。图变更可见性：设置 **Recent graph audit** + Review；[ADR 0007](architecture/0007-graph-activity-and-canvas-merge.md) Part B 画布合并 **deferred**（staging→Review 路径已可用）。
+   REST API；Decision 不虚构专用 WebSocket。图变更可见性：设置 **Recent graph audit** + Review；[ADR 0007](architecture/adrs/0007-graph-activity-and-canvas-merge.md) Part B 画布合并 **deferred**（staging→Review 路径已可用）。
 
 ---
 
@@ -569,9 +569,9 @@ F-LAKE-01–03, F-OPS-01–06（建议顺序见 §5.18）, F-MEM-*, F-ACC-07, Ne
 
 - 新增能力：在 §5 增加 **F-* 行**；**状态**只改 [progress.md](progress.md)（`done` → §0/§0.1；API 基线 → §0.2；gap → §3.1 或 §3.2）。
 - 分期调整：只改 **第二篇** 各 Phase 的 ID 列表。
-- ADR：`architecture/0001`、`0002`、`0003`。
+- ADR：`architecture/adrs/0001`、`0002`、`0003`。
 - 数据字段/约束： [data-model.md](architecture/data-model.md) + 迁移。
-- Explorer 契约： [explorer.md](architecture/explorer.md)。
+- Explorer 契约： [explorer.md](architecture/explorer-integration.md)。
 
 ---
 

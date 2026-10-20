@@ -2,7 +2,7 @@
 
 **Status:** living plan（与 [progress.md §3.3](../progress.md) 对齐，随合成管线落地更新）  
 **Date:** 2026-10-20  
-**Related:** [bocp-v1.zh.md](bocp-v1.zh.md) · [connectors-basis.zh.md](connectors-basis.zh.md) · [helix-foundry-adoption.md](helix-foundry-adoption.md) · [data-model.md §18](data-model.md)
+**Related:** [bocp.zh.md](bocp.zh.md) · [runtime.zh.md](runtime.zh.md) · [product.md](product.md) · [data-model.md §18](../data-model.md)
 
 ---
 
@@ -13,7 +13,7 @@
 将外部连接器资产 **合并为 BOCP v2 单文件 Provider bundle**：
 
 ```text
-basis/domain/connectors/providers/{service}.yaml
+basis/core/connectors/providers/{service}.yaml
 ```
 
 每个 bundle 至少包含：
@@ -106,7 +106,7 @@ flowchart LR
 
 | 里程碑 | 交付物 | 验收 |
 |--------|--------|------|
-| **P0** | `basis/domain/connectors/synthesis/`（或 `scripts/synthesis/`）`merge_service(service) -> ConnectorManifest` | 对 `github` 合成结果与现手写 manifest **语义等价**（允许字段顺序差异） |
+| **P0** | `basis/core/connectors/synthesis/`（或 `scripts/synthesis/`）`merge_service(service) -> ConnectorManifest` | 对 `github` 合成结果与现手写 manifest **语义等价**（允许字段顺序差异） |
 | **P1** | Nango → `auth[]` 导入器 | 随机抽 20 个 service 校验 OAuth 块 |
 | **P2** | Airbyte → `entity` 导入器 | 抽 10 个有 `manifest.yaml` 的源，LIST 与 Airbyte 文档 path 一致 |
 | **P3** | AnyConnect catalog → `procedure` 导入器 | 输出 schema；invoke path 覆盖率报表 |
@@ -117,7 +117,7 @@ flowchart LR
 **目录约定（保持 flat）：**
 
 ```text
-basis/domain/connectors/providers/
+basis/core/connectors/providers/
   github.yaml
   slack.yaml
   github.openapi.yaml          # 仅当需要 OpenAPI sidecar
@@ -275,7 +275,7 @@ basis/domain/connectors/providers/
 |------|------|
 | **机器批** | 剩余 AnyConnect catalog（~1000+）按 **Nango auth 命中 + Airbyte list 命中** 自动合并为 `Catalog` 级 |
 | **人工晋升** | 客户工单 / 内部用量 Top N 每月从 Catalog → Beta → GA |
-| **去重** | 同一 API 多 brand（如 `google_*`）合并 `service` 命名规则见 [bocp-v1 §7.2](bocp-v1.zh.md) |
+| **去重** | 同一 API 多 brand（如 `google_*`）合并 `service` 命名规则见 [bocp §7.2](bocp.zh.md) |
 | **下线** | `Blocked` 或 6 个月无 CHECK 成功的从目录隐藏 |
 
 ---
@@ -293,7 +293,7 @@ basis/domain/connectors/providers/
 5. **产品：**  
    - 默认 allowlist 增量（`settings.connector_allowed_providers` 文档化）  
    - KB 控制台 smoke  
-6. **文档：** 更新本计划批状态、 [connectors-basis.zh.md](connectors-basis.zh.md) 已知缺口表  
+6. **文档：** 更新本计划批状态、 [runtime.zh.md](runtime.zh.md) 已知缺口表  
 
 ---
 
@@ -366,9 +366,9 @@ basis/domain/connectors/providers/
 | 路径 | 作用 |
 |------|------|
 | `scripts/build_connector_manifests.py` | 扩展为批构建入口 |
-| `basis/domain/connectors/provider_bundle.py` | 读写 flat YAML |
-| `basis/domain/connectors/catalog.py` | 扫描 `providers/*.yaml` |
-| `basis/domain/connectors/adapters/rest/curated_dev.py` | 旗舰样本（迁移到 shipped 前的试验田） |
+| `basis/core/connectors/provider_bundle.py` | 读写 flat YAML |
+| `basis/core/connectors/catalog.py` | 扫描 `providers/*.yaml` |
+| `basis/core/connectors/adapters/rest/curated_dev.py` | 旗舰样本（迁移到 shipped 前的试验田） |
 | `basis/integration/mcp_connector_tools.py` | 动态 MCP |
 | `tests/test_connector_primitive_invoke.py` | 真实集成测模板 |
 

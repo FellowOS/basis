@@ -19,13 +19,13 @@ const contentRoot = path.join(webRoot, 'content/docs');
 const SYMLINKED_PAGES = [
   {
     slug: 'bocp',
-    en: 'docs/architecture/bocp-v1.md',
-    zh: 'docs/architecture/bocp-v1.zh.md',
+    en: 'docs/architecture/connectors/bocp.md',
+    zh: 'docs/architecture/connectors/bocp.zh.md',
   },
   {
     slug: 'connectors-basis',
-    en: 'docs/architecture/connectors-basis.md',
-    zh: 'docs/architecture/connectors-basis.zh.md',
+    en: 'docs/architecture/connectors/runtime.md',
+    zh: 'docs/architecture/connectors/runtime.zh.md',
   },
 ];
 

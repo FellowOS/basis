@@ -1,1 +1,1 @@
-../../../../docs/architecture/connectors-basis.md
+../../../../docs/architecture/connectors/runtime.md

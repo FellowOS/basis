@@ -4,7 +4,7 @@
 **Date:** 2026-10-18  
 **Deciders:** Basis maintainers  
 **Affects:** `F-SRC`, `F-LAKE`, `F-OPS`, ingest sources, ledger (`entities` / `statements`), review, jobs, OpenAPI KB slice, MCP, [data-model.md](data-model.md) §18  
-**Related:** [ADR 0001 — Evidence ledger](0001-canonical-knowledge-model.md) · [helix-foundry-adoption.md](helix-foundry-adoption.md)
+**Related:** [ADR 0001 — Evidence ledger](0001-canonical-knowledge-model.md) · [connectors/product.md](connectors/product.md)
 
 ## Context
 
@@ -46,7 +46,7 @@ Basis does **not** introduce a parallel Parquet warehouse or a second KB mode:
 
 Instead of maintaining 1,390 imperative TypeScript provider executors across a second Node.js runtime or limiting
 connectors to flat stateless RPC calls, Basis adopts the **Basis Open Connector Protocol (BOCP)**—a **100% pure Python
-declarative runtime** (`basis/domain/connectors/`) that synthesizes the best primitives of **Nango** (declarative
+declarative runtime** (`basis/core/connectors/`) that synthesizes the best primitives of **Nango** (declarative
 17-mode auth templates + stateful sync checkpoints & delete tracking), **Airbyte** (`DeclarativeSource` YAML streams,
 `DISCOVER` dynamic schema introspection, `DefaultPaginator`, `SubstreamPartitionRouter`), and **AnyConnect** (OAuth
 dialect envelopes & MCP tool annotations):

@@ -11,7 +11,7 @@ Related decision: [0001 — Evidence ledger is canonical](0001-canonical-knowled
 Basis reuses Explorer at two levels:
 
 1. **Python (Basis-owned)**: `basis.core.explorer.*` and `BasisKbGraphSession` over
-   `semantica.context.ContextGraph` (see [explorer-session-registry.md](explorer-session-registry.md)).
+   `semantica.context.ContextGraph` (see [explorer-backend.md](explorer-backend.md)).
 2. **React workspace components**: vendored `web/src/explorer/*` (Graph, Ontology, SPARQL, …) with
    injected KB API client and capabilities.
 

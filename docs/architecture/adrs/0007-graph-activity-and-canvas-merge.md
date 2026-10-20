@@ -1,7 +1,7 @@
 # ADR 0007: KB graph audit surfaces & canvas merge studio (F-GOV-06 / F-DIFF-01)
 
 **Status:** accepted (2026-10) — Part A **shipped**（设置 Recent graph audit + Review，无侧栏活动流）；**Part B（画布合并）`deferred`** — 产品暂缓，无排期；现有 graph-diff + staging + Review 为闭环  
-**Context:** [ADR 0001](0001-canonical-knowledge-model.md) requires graph writes to flow through the evidence ledger and Review where governance applies. [explorer.md](explorer.md) documents KB-scoped Explorer workspaces. Progress §1 marks standalone Explorer **Registry** as `replaced` and **full-page DiffMerge** as `not`, while **F-GOV-06** and **F-DIFF-01** are **`done`** via audit, Review, `graph/diff`, and `graph/staging`. Operators still ask for (a) “what changed on the graph?” and (b) spatial merge UI when diff is large. Vendored `registryStore` is **session-only** and must not become a second source of truth.
+**Context:** [ADR 0001](0001-canonical-knowledge-model.md) requires graph writes to flow through the evidence ledger and Review where governance applies. [explorer.md](explorer-integration.md) documents KB-scoped Explorer workspaces. Progress §1 marks standalone Explorer **Registry** as `replaced` and **full-page DiffMerge** as `not`, while **F-GOV-06** and **F-DIFF-01** are **`done`** via audit, Review, `graph/diff`, and `graph/staging`. Operators still ask for (a) “what changed on the graph?” and (b) spatial merge UI when diff is large. Vendored `registryStore` is **session-only** and must not become a second source of truth.
 
 ## Problem
 
@@ -103,7 +103,7 @@ This ADR defines **read surfaces** and **proposal-only canvas writes** so new UI
 
 | Concern | Location |
 | --- | --- |
-| Graph audit write | `basis/domain/kb/graph_audit.py` · `audit_kb_graph` |
+| Graph audit write | `basis/core/ledger/graph_audit.py` · `audit_kb_graph` |
 | Graph audit list | `GET .../audit/graph-mutations` · `kb_review.py` |
 | Diff / staging | `kb_explorer.py` · `knowledge.graph_staging_at` · `kb_graph_staging_sessions` |
 | Entity merge propose | `POST .../graph/staging/entity-merge` · `propose_entity_merge` |
