@@ -21,8 +21,8 @@ from basis.interface.http.kb_ledger import router as kb_ledger_router
 from basis.interface.http.kb_ontology import router as kb_ontology_router
 from basis.interface.http.kb_review import router as kb_review_router
 from basis.interface.http.kb_sources import router as kb_sources_router
-from basis.interface.http.kb_workspace_kbs import router as kb_kbs_router
-from basis.interface.http.kb_workspace_tokens import router as kb_tokens_router
+from basis.interface.http.kb_kbs import router as kb_kbs_router
+from basis.interface.http.kb_tokens import router as kb_tokens_router
 from basis.interface.http.platform_audit import router as audit_router
 from basis.interface.http.platform_auth import router as auth_router
 from basis.interface.http.platform_mcp import router as mcp_router
