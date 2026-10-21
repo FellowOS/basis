@@ -12,8 +12,8 @@ V1 = ROOT / "basis" / "api" / "http" / "routes" / "v1"
 
 # (filename under v1/, destination relative to v1/)
 KB_MOVES: tuple[tuple[str, str], ...] = (
-    ("kbs.py", "kb/kbs.py"),
-    ("kb_tokens.py", "kb/tokens.py"),
+    ("kbs.py", "kb/workspace/kbs.py"),
+    ("kb_tokens.py", "kb/workspace/tokens.py"),
     ("kb_mappings.py", "kb/mappings.py"),
     ("kb_alerts.py", "kb/alerts.py"),
     ("kb_governance.py", "kb/governance.py"),

@@ -106,7 +106,7 @@ KB HTTP surface is split under `api/http/routes/v1/kb/` (paths/operationIds unch
 
 | Aggregator (`kb/…`) | Sub-routers |
 |------------|-------------|
-| `kbs.py` | KB CRUD + members |
+| `workspace/` | `{kbs,tokens}` — KB CRUD, members, API tokens |
 | `graph/` | `{read,search,models}` |
 | `documents/` | `{crud,jobs,ontology,models,processing_support}` |
 | `explorer/` | `{sparql,semantic,decisions,reasoning,graph_io,temporal,staging,governance,shared}` |
@@ -116,7 +116,7 @@ KB HTTP surface is split under `api/http/routes/v1/kb/` (paths/operationIds unch
 | `ledger/` | `{read,remember,mutations,models}` |
 | `sources/` | `{crud,ingest,models,support}` |
 
-Other KB modules under `kb/`: `mappings.py`, `alerts.py`, `governance.py`, `e2e_helpers.py`, `reasoning_rules.py`, `tokens.py`.
+Other KB modules under `kb/`: `mappings.py`, `alerts.py`, `governance.py`, `e2e_helpers.py`, `reasoning_rules.py`.
 
 `basis/core/explorer/graph/` — projection adapters. `ontology/` — hub logic; HTTP in `api/http/routes/v1/kb/ontology/hub/`. `session/`, `governance/`, `vocabulary/`, `temporal/`, `sparql/`, `reasoning/`, `io/` — see [explorer README](../../basis/core/explorer/README.md).
 

@@ -11,8 +11,8 @@ from basis.api.http.routes.v1.kb import e2e_helpers as kb_e2e_helpers
 from basis.api.http.routes.v1.kb import governance as kb_governance
 from basis.api.http.routes.v1.kb import mappings as kb_mappings
 from basis.api.http.routes.v1.kb import reasoning_rules as kb_reasoning_rules
-from basis.api.http.routes.v1.kb import tokens as kb_tokens
-from basis.api.http.routes.v1.kb import kbs
+from basis.api.http.routes.v1.kb.workspace import kbs
+from basis.api.http.routes.v1.kb.workspace import tokens as kb_tokens
 from basis.api.http.routes.v1.kb import documents as kb_documents
 from basis.api.http.routes.v1.kb import explorer as kb_explorer_query
 from basis.api.http.routes.v1.kb.explorer import governance as kb_explorer_governance
