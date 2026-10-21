@@ -224,4 +224,4 @@ Canonical admin SQL: `domain/tenancy/admin/persistence/`. `AdminStore` façade: 
 | `basis.tooling` | `basis.infra.tooling` |
 | `basis.infrastructure` | `basis.infra` |
 
-Rewrite scripts: `migrate_package_layout_v3_layers.py`, `flatten_delivery_http_v3.py`, `flatten_knowledge_sql_v3.py`, `migrate_interfaces_v4.py`, `migrate_interface_singular_v5.py`, `migrate_infra_v6.py`.
+Historical rewrite scripts (do not re-run): `scripts/archive/migrations/` (v2→v3 layout, flat HTTP, SQL flatten, `interfaces`→`interface`, `infrastructure`→`infra`).

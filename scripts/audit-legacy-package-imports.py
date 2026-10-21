@@ -35,15 +35,7 @@ FORBIDDEN_PREFIXES = (
     "basis.domain.knowledge.persistence",
 )
 
-SKIP_FILES = frozenset(
-    {
-        "basis/_legacy_imports.py",
-        "scripts/migrate_package_layout_v2.py",
-        "scripts/migrate_package_layout_v3_layers.py",
-        "scripts/rewrite_basis_imports.py",
-        "scripts/reorganize_api_routes_v2.py",
-    }
-)
+SKIP_FILES = frozenset({"basis/_legacy_imports.py"})
 
 IMPORT_RE = re.compile(
     r"^\s*(?:from|import)\s+(basis\.[a-zA-Z0-9_.]+)",
