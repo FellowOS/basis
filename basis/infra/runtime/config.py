@@ -16,19 +16,6 @@ def _bounded_int(name: str, default: int, *, lo: int, hi: int) -> int:
     return max(lo, min(hi, int(raw)))
 
 
-def _env(primary: str, legacy: str, default: str) -> str:
-    return os.environ.get(primary) or os.environ.get(legacy) or default
-
-
-def _bounded_int_env(
-    primary: str, legacy: str, default: int, *, lo: int, hi: int
-) -> int:
-    raw = os.environ.get(primary) or os.environ.get(legacy)
-    if raw is None or not str(raw).strip():
-        return default
-    return max(lo, min(hi, int(raw)))
-
-
 @dataclass(frozen=True)
 class Settings:
     host: str = "127.0.0.1"
@@ -96,14 +83,10 @@ class Settings:
             port=int(os.environ.get("BASIS_PORT", "8090")),
             data_dir=Path(os.environ.get("BASIS_DATA_DIR", "data")),
             graph_workspace_idle_seconds=int(
-                _env("BASIS_GRAPH_WORKSPACE_IDLE_SECONDS", "BASIS_EXPLORER_IDLE_SECONDS", "1800")
+                os.environ.get("BASIS_GRAPH_WORKSPACE_IDLE_SECONDS", "1800")
             ),
             graph_workspace_evict_interval_seconds=int(
-                _env(
-                    "BASIS_GRAPH_WORKSPACE_EVICT_INTERVAL_SECONDS",
-                    "BASIS_EXPLORER_EVICT_INTERVAL_SECONDS",
-                    "300",
-                )
+                os.environ.get("BASIS_GRAPH_WORKSPACE_EVICT_INTERVAL_SECONDS", "300")
             ),
             database_url=os.environ.get("BASIS_DATABASE_URL") or None,
             db_pool_size=int(os.environ.get("BASIS_DB_POOL_SIZE", "10")),
@@ -127,9 +110,8 @@ class Settings:
             chunk_search_max_limit=_bounded_int(
                 "BASIS_CHUNK_SEARCH_MAX_LIMIT", 50, lo=1, hi=500
             ),
-            graph_workspace_decisions_max_limit=_bounded_int_env(
+            graph_workspace_decisions_max_limit=_bounded_int(
                 "BASIS_GRAPH_WORKSPACE_DECISIONS_MAX_LIMIT",
-                "BASIS_EXPLORER_DECISIONS_MAX_LIMIT",
                 200,
                 lo=1,
                 hi=2000,
