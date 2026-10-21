@@ -50,7 +50,7 @@ def get_explorer_registry(request: Request):
 
 
 def graph_projection_bindings(request: Request) -> GraphProjectionBindings:
-    from basis.core.explorer.ontology.hub_persistence import persist_kb_ontology_hub
+    from basis.core.explorer.ontology.hub.hub_persistence import persist_kb_ontology_hub
 
     def _broadcast(kb_id: str, revision: int) -> None:
         request.app.state.ws_hub.try_broadcast(
@@ -244,7 +244,7 @@ def drop_graph(request: Request, kb_id: str) -> None:
     request.app.state.graphs.pop(kb_id, None)
     persistence = get_graph_persistence(request)
     persistence.delete(kb_id)
-    from basis.core.explorer.ontology.hub_persistence import delete_kb_ontology_hub
+    from basis.core.explorer.ontology.hub.hub_persistence import delete_kb_ontology_hub
 
     delete_kb_ontology_hub(persistence, kb_id)
     loaded: set[str] = getattr(request.app.state, "_kb_ontology_hub_loaded", set())

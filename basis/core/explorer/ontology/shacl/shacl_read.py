@@ -5,11 +5,11 @@ from __future__ import annotations
 import asyncio
 from typing import Any
 
-from basis.core.explorer.ontology.shacl_generate import (
+from basis.core.explorer.ontology.shacl.shacl_generate import (
     generate_shacl as generate_shacl_sync,
     list_shacl_shapes as list_shacl_shapes_sync,
 )
-from basis.core.explorer.ontology.shacl_validate import validate_shacl as validate_shacl_async
+from basis.core.explorer.ontology.shacl.shacl_validate import validate_shacl as validate_shacl_async
 from basis.core.errors import AdminError
 
 

@@ -10,8 +10,8 @@ from datetime import datetime, timezone
 from tempfile import NamedTemporaryFile
 from typing import Any
 
-from basis.core.explorer.ontology.catalog import _classify_node_type
-from basis.core.explorer.ontology.preview_read import detect_format, normalize_format
+from basis.core.explorer.ontology.hub.catalog import _classify_node_type
+from basis.core.explorer.ontology.browse.preview_read import detect_format, normalize_format
 from basis.core.errors import AdminError
 
 logger = logging.getLogger(__name__)

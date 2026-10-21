@@ -1,6 +1,6 @@
 import pytest
 
-from basis.core.explorer.ontology.preview_read import detect_format, preview_ontology
+from basis.core.explorer.ontology.browse.preview_read import detect_format, preview_ontology
 from basis.control.admin.errors import AdminError
 
 

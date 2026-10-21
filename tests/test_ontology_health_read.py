@@ -4,8 +4,8 @@ import pytest
 
 pytest.importorskip("semantica")
 
-from basis.core.explorer.ontology.create_write import create_ontology
-from basis.core.explorer.ontology.health_read import ontology_health
+from basis.core.explorer.ontology.hub.create_write import create_ontology
+from basis.core.explorer.ontology.browse.health_read import ontology_health
 from basis.control.admin.errors import AdminError
 
 

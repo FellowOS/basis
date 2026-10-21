@@ -15,8 +15,8 @@ from basis.api.http.deps import (
     graph_for,
     save_graph,
 )
-from basis.core.explorer.ontology.kb_scoped_state import KbOntologyState
-from basis.core.explorer.ontology.create_write import create_ontology as create_ontology_domain
+from basis.core.explorer.ontology.hub.kb_scoped_state import KbOntologyState
+from basis.core.explorer.ontology.hub.create_write import create_ontology as create_ontology_domain
 from basis.core.explorer.session.guard import require_explorer_graph_session
 from basis.core.projection.legacy_ontology import LegacyGraphOntologyService
 from basis.runtime.capabilities import explorer_available

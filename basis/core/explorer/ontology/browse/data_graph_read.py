@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 from typing import Any
 
-from basis.core.explorer.ontology.catalog import (
+from basis.core.explorer.ontology.hub.catalog import (
     _classify_node_type,
     _node_belongs_to_ontology,
     resolve_registry_entry,

@@ -7,8 +7,8 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
-from basis.core.explorer.ontology.analysis_graph import load_ontology_analysis_graph
-from basis.core.explorer.ontology.catalog import (
+from basis.core.explorer.ontology.browse.analysis_graph import load_ontology_analysis_graph
+from basis.core.explorer.ontology.hub.catalog import (
     _MAX_ANALYSIS_NODES,
     _classify_node_type,
     _entry_field,
@@ -16,9 +16,9 @@ from basis.core.explorer.ontology.catalog import (
     _ontology_entities,
     resolve_registry_entry,
 )
-from basis.core.explorer.ontology.data_graph_read import data_graph_turtle_for_uri
-from basis.core.explorer.ontology.graph_scope import GraphTruncationError
-from basis.core.explorer.ontology.shacl_generate import generated_shacl_for_uri
+from basis.core.explorer.ontology.browse.data_graph_read import data_graph_turtle_for_uri
+from basis.core.explorer.ontology.browse.graph_scope import GraphTruncationError
+from basis.core.explorer.ontology.shacl.shacl_generate import generated_shacl_for_uri
 from basis.core.errors import AdminError
 
 logger = logging.getLogger(__name__)

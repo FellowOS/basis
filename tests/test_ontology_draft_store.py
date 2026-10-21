@@ -2,8 +2,8 @@ import pytest
 
 pytest.importorskip("semantica")
 
-from basis.core.explorer.ontology.draft_store import get_draft, list_drafts, save_draft
-from basis.core.explorer.ontology.hub_models import DraftDiff, DraftRequest
+from basis.core.explorer.ontology.hub.draft_store import get_draft, list_drafts, save_draft
+from basis.core.explorer.ontology.hub.hub_models import DraftDiff, DraftRequest
 
 
 def test_save_and_list_drafts() -> None:

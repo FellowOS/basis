@@ -10,7 +10,7 @@ Server-side adapters for the vendored Explorer UI (`web/src/explorer/`). Graph m
 | --- | --- |
 | `session/` | `ExplorerSessionRegistry`, auth guard, probe, `BasisKbGraphSession` |
 | `graph/` | Projection reads, diff, staging payloads, import/export, semantic neighborhood |
-| `ontology/` | Ontology Hub (catalog, RDF, SHACL, proposals, per-KB hub JSON) |
+| `ontology/` | Ontology Hub — `hub/`, `shacl/`, `browse/`, plus `rdf_io.py` |
 | `governance/` | Decisions, enrich, provenance, governance trip side effects |
 | `vocabulary/` | SKOS browse + import |
 | `temporal/` | Temporal bounds and snapshots |
@@ -27,7 +27,7 @@ Use **subpackage modules**, for example:
 ```python
 from basis.core.explorer.session.registry import ExplorerSessionRegistry
 from basis.core.explorer.graph.read import get_node
-from basis.core.explorer.ontology.catalog import list_ontologies
+from basis.core.explorer.ontology.hub.catalog import list_ontologies
 ```
 
 Do not reintroduce flat modules at the `explorer/` package root — CI runs `scripts/audit-explorer-shim-imports.py` to block new compatibility shims in `basis/` and `tests/`.

@@ -15,32 +15,32 @@ from basis.api.http.deps import (
     get_store,
     save_graph,
 )
-from basis.core.explorer.ontology.kb_scoped_state import KbOntologyState
-from basis.core.explorer.ontology.create_write import create_ontology as create_ontology_write
-from basis.core.explorer.ontology.graph_read import (
+from basis.core.explorer.ontology.hub.kb_scoped_state import KbOntologyState
+from basis.core.explorer.ontology.hub.create_write import create_ontology as create_ontology_write
+from basis.core.explorer.ontology.browse.graph_read import (
     get_entity_detail as get_entity_detail_read,
     get_ontology_graph as get_ontology_graph_read,
     search_entities as search_entities_read,
 )
-from basis.core.explorer.ontology.load_write import load_ontology as load_ontology_write
-from basis.core.explorer.ontology.preview_read import preview_ontology as preview_ontology_read
-from basis.core.explorer.ontology.health_read import ontology_health as ontology_health_read
-from basis.core.explorer.ontology.refresh_write import refresh_ontology as refresh_ontology_write
-from basis.core.explorer.ontology.registry_write import (
+from basis.core.explorer.ontology.hub.load_write import load_ontology as load_ontology_write
+from basis.core.explorer.ontology.browse.preview_read import preview_ontology as preview_ontology_read
+from basis.core.explorer.ontology.browse.health_read import ontology_health as ontology_health_read
+from basis.core.explorer.ontology.hub.refresh_write import refresh_ontology as refresh_ontology_write
+from basis.core.explorer.ontology.hub.registry_write import (
     remove_ontology as remove_ontology_write,
     toggle_ontology as toggle_ontology_write,
 )
-from basis.core.explorer.ontology.shacl_read import (
+from basis.core.explorer.ontology.shacl.shacl_read import (
     generate_shacl as generate_shacl_read,
     list_shacl_shapes as list_shacl_shapes_read,
     validate_shacl as validate_shacl_read,
 )
-from basis.core.explorer.ontology.skos_read import (
+from basis.core.explorer.ontology.browse.skos_read import (
     get_skos_concept as get_skos_concept_read,
     list_skos_schemes as list_skos_schemes_read,
     search_skos_concepts as search_skos_concepts_read,
 )
-from basis.core.explorer.ontology.hub_models import (
+from basis.core.explorer.ontology.hub.hub_models import (
     CreateOntologyRequest,
     LoadOntologyRequest,
     PreviewOntologyRequest,

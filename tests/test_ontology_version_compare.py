@@ -2,8 +2,8 @@ import pytest
 
 pytest.importorskip("semantica")
 
-from basis.core.explorer.ontology.hub_models import VersionCompareRequest
-from basis.core.explorer.ontology.version_store import compare_versions
+from basis.core.explorer.ontology.hub.hub_models import VersionCompareRequest
+from basis.core.explorer.ontology.hub.version_store import compare_versions
 from basis.control.admin.errors import AdminError
 
 

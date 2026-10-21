@@ -5,21 +5,21 @@ from __future__ import annotations
 import asyncio
 from typing import Any
 
-from basis.core.explorer.ontology.draft_store import get_draft as get_draft_sync
-from basis.core.explorer.ontology.draft_store import list_drafts as list_drafts_sync
-from basis.core.explorer.ontology.draft_store import save_draft as save_draft_sync
-from basis.core.explorer.ontology.proposal_store import (
+from basis.core.explorer.ontology.hub.draft_store import get_draft as get_draft_sync
+from basis.core.explorer.ontology.hub.draft_store import list_drafts as list_drafts_sync
+from basis.core.explorer.ontology.hub.draft_store import save_draft as save_draft_sync
+from basis.core.explorer.ontology.hub.proposal_store import (
     add_proposal_comment as add_proposal_comment_sync,
     approve_proposal as approve_proposal_sync,
     get_proposal as get_proposal_sync,
     list_proposals as list_proposals_sync,
     reject_proposal as reject_proposal_sync,
 )
-from basis.core.explorer.ontology.proposal_lifecycle import (
+from basis.core.explorer.ontology.hub.proposal_lifecycle import (
     publish_proposal as publish_proposal_sync,
     submit_proposal as submit_proposal_sync,
 )
-from basis.core.explorer.ontology.version_store import (
+from basis.core.explorer.ontology.hub.version_store import (
     compare_versions as compare_versions_sync,
     list_versions as list_versions_sync,
 )

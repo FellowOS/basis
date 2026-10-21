@@ -79,7 +79,7 @@ Server-side adapters for vendored `web/src/explorer` — **not** a second ledger
 | --- | --- |
 | `session/` | Registry, guard, probe, `BasisKbGraphSession` |
 | `graph/` | Projection reads, diff, staging payloads, import/export, semantic neighborhood |
-| `ontology/` | Hub catalog, RDF I/O, SHACL, proposals, per-KB hub stores (`kb_scoped_state`) |
+| `ontology/` | `hub/` (catalog, persistence, proposals, writes), `shacl/`, `browse/` (graph/preview/health), `rdf_io.py` |
 | `governance/` | Decisions, enrich, provenance, governance trip side effects |
 | `vocabulary/` | SKOS browse + import |
 | `temporal/` / `sparql/` | Temporal bounds; read-only SPARQL |

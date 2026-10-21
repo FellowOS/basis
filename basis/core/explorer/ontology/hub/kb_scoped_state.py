@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from basis.core.explorer.ontology.hub_persistence import ensure_kb_ontology_hub_loaded
+from basis.core.explorer.ontology.hub.hub_persistence import ensure_kb_ontology_hub_loaded
 
 
 class KbOntologyState:

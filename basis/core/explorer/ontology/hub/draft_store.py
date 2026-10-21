@@ -49,7 +49,7 @@ def save_draft(drafts: dict[str, Any], body: Any) -> dict[str, Any]:
         "updated_at": now,
     }
     try:
-        from basis.core.explorer.ontology.hub_models import DraftResponse
+        from basis.core.explorer.ontology.hub.hub_models import DraftResponse
 
         drafts[draft_id] = DraftResponse.model_validate(record)
     except Exception:

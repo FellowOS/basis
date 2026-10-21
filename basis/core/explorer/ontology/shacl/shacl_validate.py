@@ -6,10 +6,10 @@ import asyncio
 import os
 from typing import Any
 
-from basis.core.explorer.ontology.analysis_graph import load_ontology_analysis_graph
-from basis.core.explorer.ontology.data_graph_read import data_graph_turtle_for_uri
-from basis.core.explorer.ontology.graph_scope import GraphTruncationError
-from basis.core.explorer.ontology.shacl_limits import get_shacl_semaphore
+from basis.core.explorer.ontology.browse.analysis_graph import load_ontology_analysis_graph
+from basis.core.explorer.ontology.browse.data_graph_read import data_graph_turtle_for_uri
+from basis.core.explorer.ontology.browse.graph_scope import GraphTruncationError
+from basis.core.explorer.ontology.shacl.shacl_limits import get_shacl_semaphore
 from basis.core.errors import AdminError
 
 _MAX_SHACL_TURTLE_BYTES = int(os.environ.get("SEMANTICA_MAX_SHACL_TURTLE_BYTES", "262144"))

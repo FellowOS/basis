@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from basis.core.explorer.ontology.catalog import (
+from basis.core.explorer.ontology.hub.catalog import (
     _CLASS_TYPES,
     _CONCEPT_TYPES,
     _INDIVIDUAL_TYPES,

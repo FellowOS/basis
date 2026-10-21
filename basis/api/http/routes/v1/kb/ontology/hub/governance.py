@@ -15,8 +15,8 @@ from basis.api.http.deps import (
     get_store,
     save_graph,
 )
-from basis.core.explorer.ontology.kb_scoped_state import KbOntologyState
-from basis.core.explorer.ontology.governance import (
+from basis.core.explorer.ontology.hub.kb_scoped_state import KbOntologyState
+from basis.core.explorer.ontology.hub.governance import (
     add_proposal_comment,
     approve_proposal,
     compare_versions,
@@ -30,7 +30,7 @@ from basis.core.explorer.ontology.governance import (
     save_draft,
     submit_proposal,
 )
-from basis.core.explorer.ontology.hub_models import (
+from basis.core.explorer.ontology.hub.hub_models import (
     CommentRequest,
     DraftRequest,
     ProposalRequest,

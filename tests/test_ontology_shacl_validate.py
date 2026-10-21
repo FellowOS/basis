@@ -4,7 +4,7 @@ import pytest
 
 pytest.importorskip("semantica")
 
-from basis.core.explorer.ontology.shacl_validate import validate_shacl
+from basis.core.explorer.ontology.shacl.shacl_validate import validate_shacl
 from basis.control.admin.errors import AdminError
 
 

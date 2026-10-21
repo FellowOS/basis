@@ -70,7 +70,7 @@ def ensure_kb_ontology_hub_loaded(request: Any, kb_id: str) -> None:
         except (json.JSONDecodeError, OSError):
             payload = {}
         if int(payload.get("schema_version", 0)) == _HUB_SCHEMA_VERSION:
-            from basis.core.explorer.ontology.hub_models import (
+            from basis.core.explorer.ontology.hub.hub_models import (
                 DraftResponse,
                 ProposalResponse,
                 VersionEntry,

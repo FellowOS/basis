@@ -6,13 +6,13 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
-from basis.core.explorer.ontology.analysis_graph import load_ontology_analysis_graph
-from basis.core.explorer.ontology.catalog import (
+from basis.core.explorer.ontology.browse.analysis_graph import load_ontology_analysis_graph
+from basis.core.explorer.ontology.hub.catalog import (
     _entry_field,
     _ontology_entities,
     resolve_registry_entry,
 )
-from basis.core.explorer.ontology.shacl_support import (
+from basis.core.explorer.ontology.shacl.shacl_support import (
     basic_shacl_turtle,
     ontology_dict_from_nodes,
     summarize_shacl_shapes,

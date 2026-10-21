@@ -12,14 +12,14 @@ from basis.control.admin.store import AdminStore, User
 from basis.api.http.deps import get_current_user, get_kb_for_editor, get_knowledge_store, get_store
 from basis.runtime.config import Settings
 from basis.core.explorer.governance.decision import emit_governance_tripped_for_kb
-from basis.core.explorer.ontology.kb_scoped_state import KbOntologyState
+from basis.core.explorer.ontology.hub.kb_scoped_state import KbOntologyState
 from basis.core.explorer.session.guard import require_explorer_graph_session
 from basis.core.ledger.services.conflict_review import scan_statement_conflicts
 from basis.core.ledger.store import KnowledgeStore
 from basis.api.http.deps import explorer_runtime_for, save_graph
-from basis.core.explorer.ontology.create_write import create_ontology as create_ontology_write
-from basis.core.explorer.ontology.governance import save_draft, submit_proposal
-from basis.core.explorer.ontology.hub_models import DraftDiff, DraftRequest, ProposalRequest
+from basis.core.explorer.ontology.hub.create_write import create_ontology as create_ontology_write
+from basis.core.explorer.ontology.hub.governance import save_draft, submit_proposal
+from basis.core.explorer.ontology.hub.hub_models import DraftDiff, DraftRequest, ProposalRequest
 
 router = APIRouter(tags=["knowledge-bases"])
 

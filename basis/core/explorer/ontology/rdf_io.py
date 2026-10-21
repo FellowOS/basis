@@ -10,7 +10,7 @@ from urllib.parse import urljoin, urlparse
 
 from fastapi import HTTPException
 
-from basis.core.explorer.ontology.catalog import _humanize_rdf_label, uri_to_prefixed
+from basis.core.explorer.ontology.hub.catalog import _humanize_rdf_label, uri_to_prefixed
 from basis.core.explorer.io.admin_errors import admin_error_from_http_status
 
 _MAX_FETCH_BYTES = 20 * 1024 * 1024

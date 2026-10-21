@@ -296,7 +296,7 @@ def resolve_registry_entry(
     uri: str,
 ) -> dict[str, Any]:
     """Return registry row for ``uri``, including implicit owl:Ontology nodes in the graph."""
-    from basis.core.explorer.ontology.graph_scope import known_ontology_uris
+    from basis.core.explorer.ontology.browse.graph_scope import known_ontology_uris
 
     known = known_ontology_uris(session, registry)
     if uri not in known:

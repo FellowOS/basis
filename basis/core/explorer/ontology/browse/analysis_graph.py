@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from basis.core.explorer.ontology.graph_scope import (
+from basis.core.explorer.ontology.browse.graph_scope import (
     GraphTruncationError,
     collect_core_nodes,
     known_ontology_uris,

@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from basis.core.explorer.ontology.catalog import _classify_node_type, _node_label
-from basis.core.explorer.ontology.graph_scope import (
+from basis.core.explorer.ontology.hub.catalog import _classify_node_type, _node_label
+from basis.core.explorer.ontology.browse.graph_scope import (
     GraphTruncationError,
     collect_core_nodes,
     known_ontology_uris,
@@ -13,7 +13,7 @@ from basis.core.explorer.ontology.graph_scope import (
     searchable_node_types,
     select_structure_edges,
 )
-from basis.core.explorer.ontology.preview_read import extract_namespace
+from basis.core.explorer.ontology.browse.preview_read import extract_namespace
 from basis.core.errors import AdminError
 
 

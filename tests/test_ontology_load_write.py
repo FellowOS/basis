@@ -1,6 +1,6 @@
 import pytest
 
-from basis.core.explorer.ontology.load_write import load_ontology
+from basis.core.explorer.ontology.hub.load_write import load_ontology
 from basis.control.admin.errors import AdminError
 
 

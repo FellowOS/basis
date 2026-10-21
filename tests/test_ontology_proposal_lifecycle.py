@@ -2,10 +2,10 @@ import pytest
 
 pytest.importorskip("semantica")
 
-from basis.core.explorer.ontology.draft_store import save_draft
-from basis.core.explorer.ontology.proposal_lifecycle import publish_proposal
-from basis.core.explorer.ontology.proposal_store import approve_proposal
-from basis.core.explorer.ontology.hub_models import DraftDiff, DraftRequest, ProposalResponse
+from basis.core.explorer.ontology.hub.draft_store import save_draft
+from basis.core.explorer.ontology.hub.proposal_lifecycle import publish_proposal
+from basis.core.explorer.ontology.hub.proposal_store import approve_proposal
+from basis.core.explorer.ontology.hub.hub_models import DraftDiff, DraftRequest, ProposalResponse
 from basis.control.admin.errors import AdminError
 
 

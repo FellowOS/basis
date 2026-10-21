@@ -1,6 +1,6 @@
 import pytest
 
-from basis.core.explorer.ontology.catalog import delete_alignment, upsert_alignment
+from basis.core.explorer.ontology.hub.catalog import delete_alignment, upsert_alignment
 from basis.control.admin.errors import AdminError
 
 

@@ -1,6 +1,6 @@
 import pytest
 
-from basis.core.explorer.ontology.registry_write import remove_ontology, toggle_ontology
+from basis.core.explorer.ontology.hub.registry_write import remove_ontology, toggle_ontology
 from basis.control.admin.errors import AdminError
 
 

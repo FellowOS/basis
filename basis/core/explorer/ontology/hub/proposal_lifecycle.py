@@ -7,7 +7,7 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any
 
-from basis.core.explorer.ontology.proposal_store import _get_field, _set_field
+from basis.core.explorer.ontology.hub.proposal_store import _get_field, _set_field
 from basis.core.errors import AdminError
 
 logger = logging.getLogger(__name__)
@@ -149,7 +149,7 @@ def submit_proposal(
         "comments": [],
     }
     try:
-        from basis.core.explorer.ontology.hub_models import ProposalResponse
+        from basis.core.explorer.ontology.hub.hub_models import ProposalResponse
 
         proposals[proposal_id] = ProposalResponse.model_validate(record)
     except Exception:
@@ -202,7 +202,7 @@ def publish_proposal(
             changes=[_get_field(proposal, "summary")],
         )
 
-        from basis.core.explorer.ontology.hub_models import VersionEntry
+        from basis.core.explorer.ontology.hub.hub_models import VersionEntry
 
         entry = VersionEntry(
             version_id=version_str,

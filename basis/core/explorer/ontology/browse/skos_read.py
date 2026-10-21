@@ -5,8 +5,8 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from basis.core.explorer.ontology.catalog import _CONCEPT_TYPES, _node_label
-from basis.core.explorer.ontology.preview_read import extract_namespace
+from basis.core.explorer.ontology.hub.catalog import _CONCEPT_TYPES, _node_label
+from basis.core.explorer.ontology.browse.preview_read import extract_namespace
 from basis.core.errors import AdminError
 
 logger = logging.getLogger(__name__)

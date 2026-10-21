@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from basis.core.explorer.ontology.catalog import _classify_node_type, _node_label
-from basis.core.explorer.ontology.preview_read import extract_namespace
+from basis.core.explorer.ontology.hub.catalog import _classify_node_type, _node_label
+from basis.core.explorer.ontology.browse.preview_read import extract_namespace
 
 
 def _entity_description(node: dict[str, Any]) -> str:
