@@ -13,13 +13,13 @@ import { Button } from '@/components/ui/button.js';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs.js';
 import { useI18n } from '@/i18n/context.js';
 import { useWorkspaceCatalog } from '@/lib/workspace/context.js';
-import type { OntologyHubTab } from '@/lib/workspace/hub-route.js';
-import { workspaceAnalyzeHubPath } from '@/lib/workspace/hub-route.js';
+import type { OntologyHubTab } from '@/modules/analyze/lib/hub-route.js';
+import { workspaceAnalyzeHubPath } from '@/modules/analyze/lib/hub-route.js';
 import {
   normalizeOntologyHubTabId,
   ontologyHubTabEnabled,
   resolveOntologyHubTab,
-} from '@/lib/workspace/hub-tabs.js';
+} from '@/modules/analyze/lib/hub-tabs.js';
 import { useWorkspaceCapabilities } from '@/lib/workspace/capabilities.js';
 import { workspacePath } from '@/lib/nav-config.js';
 

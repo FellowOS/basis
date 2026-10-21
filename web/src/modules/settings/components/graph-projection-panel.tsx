@@ -10,7 +10,7 @@ import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
 import { fmt, formatLocaleDateTime, formatLocaleNumber } from '@/i18n/format.js';
 import type { Locale } from '@/i18n/locale.js';
-import { graphProjectionStatusLabel } from '@/lib/workspace/graph-projection-labels.js';
+import { graphProjectionStatusLabel } from '@/modules/settings/lib/graph-projection-labels.js';
 import { workspaceOpenApiGET } from '@/lib/openapi-client.js';
 import { formatUserFacingApiError, messageForApiErrorCode } from '@/lib/api-error-message.js';
 import { workspacePath } from '@/lib/nav-config.js';

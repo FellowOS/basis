@@ -35,23 +35,23 @@ import { useWorkspaceCapabilities } from '@/lib/workspace/capabilities.js';
 import { workspaceOpenApiGET, workspaceOpenApiPOST, workspaceOpenApiPUT } from '@/lib/openapi-client.js';
 import { Input } from '@/components/ui/input.js';
 import { Label } from '@/components/ui/label.js';
-import { graphPath } from '@/lib/graphUrlState.js';
-import { useWorkspaceNodeLabels } from '@/lib/workspace/node-labels.js';
-import { graphDiffPreviewPath, graphImportDialogPath } from '@/lib/graphUrlState.js';
+import { graphPath } from '@/modules/graph/lib/graphUrlState.js';
+import { useWorkspaceNodeLabels } from '@/lib/explorer/node-labels.js';
+import { graphDiffPreviewPath, graphImportDialogPath } from '@/modules/graph/lib/graphUrlState.js';
 import { workspaceGraphDiffPath, workspacePath } from '@/lib/nav-config.js';
 import { toast } from 'sonner';
-import { searchPath } from '@/lib/searchUrlState.js';
-import { endOfLocalDayIso, startOfLocalDayIso } from '@/lib/temporal/day-range.js';
-import { resolveScrubberBounds } from '@/lib/temporal/scrubber-bounds.js';
+import { searchPath } from '@/modules/search/lib/searchUrlState.js';
+import { endOfLocalDayIso, startOfLocalDayIso } from '@/modules/graph/lib/temporal/day-range.js';
+import { resolveScrubberBounds } from '@/modules/graph/lib/temporal/scrubber-bounds.js';
 import { cn } from '@/lib/utils.js';
 import {
   clearGraphStagingDraft,
   readGraphStagingDraft,
   writeGraphStagingDraft,
-} from '@/lib/graph-staging-draft.js';
+} from '@/modules/graph/lib/graph-staging-draft.js';
 import { basisSessionFetch } from '@/lib/basis-session-fetch.js';
-import { workspaceApiPath } from '@/lib/workspace/api-path.js';
-import { buildGraphAuditPack, triggerJsonFileDownload } from '@/lib/workspace/graph-audit-pack.js';
+import { workspaceApiPath } from '@/lib/explorer/api-path.js';
+import { buildGraphAuditPack, triggerJsonFileDownload } from '@/modules/graph/lib/graph-audit-pack.js';
 
 type GraphDiffResponse = {
   from_time: string;

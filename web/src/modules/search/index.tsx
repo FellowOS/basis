@@ -29,21 +29,21 @@ import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
 import { fmt, formatLocaleNumber, pickCountForm } from '@/i18n/format.js';
 import type { Locale } from '@/i18n/locale.js';
-import { workspaceApiClient } from '@/lib/workspace/api-client.js';
+import { workspaceApiClient } from '@/modules/search/lib/api-client.js';
 import { formatUserFacingApiError } from '@/lib/api-error-message.js';
 import { useWorkspaceCatalog } from '@/lib/workspace/context.js';
 import { useWorkspaceCapabilities } from '@/lib/workspace/capabilities.js';
-import { useWorkspaceTemporalBounds } from '@/lib/workspace/use-temporal-bounds.js';
+import { useWorkspaceTemporalBounds } from '@/modules/search/lib/use-temporal-bounds.js';
 import type { LedgerEntityHit } from '@/modules/entities/components/ledger-entity-browser.js';
-import { useWorkspaceNodeLabels } from '@/lib/workspace/node-labels.js';
-import { graphPath } from '@/lib/graphUrlState.js';
+import { useWorkspaceNodeLabels } from '@/lib/explorer/node-labels.js';
+import { graphPath } from '@/modules/graph/lib/graphUrlState.js';
 import { workspaceGraphDiffPath, workspacePath } from '@/lib/nav-config.js';
 import {
   searchPath,
   parseSearchUrlState,
   resolveSearchScope,
   type SearchScope,
-} from '@/lib/searchUrlState.js';
+} from '@/modules/search/lib/searchUrlState.js';
 
 const PREVIEW_LIMIT = 8;
 const SEARCH_LIMIT = 30;

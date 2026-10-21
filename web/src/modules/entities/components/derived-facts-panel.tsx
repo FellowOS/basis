@@ -9,10 +9,10 @@ import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
 import { fmt, formatLocaleDateTime, formatLocaleNumber, pickCountForm } from '@/i18n/format.js';
 import type { Locale } from '@/i18n/locale.js';
-import { useWorkspaceNodeLabels } from '@/lib/workspace/node-labels.js';
-import { hrefForDerivedFactPremise } from '@/lib/derived-fact-premise-link.js';
-import { graphPath } from '@/lib/graphUrlState.js';
-import { workspaceAnalyzeHubPath } from '@/lib/workspace/hub-route.js';
+import { useWorkspaceNodeLabels } from '@/lib/explorer/node-labels.js';
+import { hrefForDerivedFactPremise } from '@/modules/entities/lib/derived-fact-premise-link.js';
+import { graphPath } from '@/modules/graph/lib/graphUrlState.js';
+import { workspaceAnalyzeHubPath } from '@/modules/analyze/lib/hub-route.js';
 import { workspaceOpenApiGET } from '@/lib/openapi-client.js';
 
 export type DerivedFactView = {

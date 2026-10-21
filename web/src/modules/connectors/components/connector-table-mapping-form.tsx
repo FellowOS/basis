@@ -31,18 +31,18 @@ import {
   workspaceConnectionOptionKey,
   parseWorkspaceConnectionOptionKey,
   type StoredConnection,
-} from '@/lib/workspace/connector-connections.js';
-import type { ConnectorTableMappingFormValues } from '@/lib/workspace/connector-mapping-form.js';
+} from '@/modules/connectors/lib/connector-connections.js';
+import type { ConnectorTableMappingFormValues } from '@/modules/connectors/lib/connector-mapping-form.js';
 import {
   parseStreamParamsJson,
   resolveStreamParamsFromFormValues,
-} from '@/lib/workspace/connector-mapping-form.js';
+} from '@/modules/connectors/lib/connector-mapping-form.js';
 import {
   extractStreamParamKeysFromStream,
   fieldMapFromStreamParams,
   mergeStreamParamFieldMap,
   type ManifestStreamSnippet,
-} from '@/lib/workspace/connector-stream-params.js';
+} from '@/modules/connectors/lib/connector-stream-params.js';
 import { workspaceOpenApiGET } from '@/lib/openapi-client.js';
 
 export type ConnectorTableMappingFormProps = {

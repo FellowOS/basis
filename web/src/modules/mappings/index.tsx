@@ -40,7 +40,7 @@ import { workspaceOpenApiGET, workspaceOpenApiPOST } from '@/lib/openapi-client.
 import { useApiErrorMessage } from '@/lib/use-api-error-message.js';
 import { useWorkspaceCatalog } from '@/lib/workspace/context.js';
 import { EntityRefLine } from '@/components/app/shared/workspace/entity-ref-line.js';
-import { useWorkspaceNodeLabels } from '@/lib/workspace/node-labels.js';
+import { useWorkspaceNodeLabels } from '@/lib/explorer/node-labels.js';
 import { workspacePath } from '@/lib/nav-config.js';
 import { cn } from '@/lib/utils.js';
 import type { LocaleMessages } from '@/i18n/en.js';

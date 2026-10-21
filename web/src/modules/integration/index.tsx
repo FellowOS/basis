@@ -6,7 +6,7 @@ import { OpenApiIntegrationPanel } from './components/openapi-integration-panel.
 import { ConsolePageLayout } from '@/components/app/shared/console/index.js';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs.js';
 import { useI18n } from '@/i18n/context.js';
-import { useWorkspaceMcpIntegration } from '@/lib/workspace/use-mcp-integration.js';
+import { useWorkspaceMcpIntegration } from '@/modules/integration/lib/use-mcp-integration.js';
 import { useWorkspaceCatalog } from '@/lib/workspace/context.js';
 import { workspaceOpenApiGET } from '@/lib/openapi-client.js';
 

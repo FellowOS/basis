@@ -16,7 +16,7 @@ import { writeActiveWorkspaceId } from '@/lib/workspace/active-id.js';
 import { useWorkspaceCatalog } from '@/lib/workspace/context.js';
 import { workspacePath } from '@/lib/nav-config.js';
 import { usePlatformAdminCrumbs } from '@/lib/use-platform-admin-crumbs.js';
-import { workspaceMemberRoleLabel, workspaceVisibilityLabel } from '@/lib/workspace/settings-labels.js';
+import { workspaceMemberRoleLabel, workspaceVisibilityLabel } from '@/modules/settings/lib/settings-labels.js';
 import { useApiErrorMessage } from '@/lib/use-api-error-message.js';
 
 type Kb = {

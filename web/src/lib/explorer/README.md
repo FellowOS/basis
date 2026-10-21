@@ -9,4 +9,6 @@ Scoped HTTP and graph runtime for `/workspaces/:id/*` routes.
 | `buildWorkspaceApiPath`, `buildWorkspaceGraphApiPath` | Path builders |
 | `graphStore`, `graphTheme`, … | Graph canvas client state |
 
-Configure via `buildWorkspaceHttpConfig` in `lib/workspace/ws-host.ts`.
+| `api-path`, `ws-host`, `ws-client`, `ws-context`, `node-labels` | API root helpers, HTTP config, WS client shell, label resolution |
+
+Configure workspace routes with `buildWorkspaceHttpConfig` in `ws-host.ts`.

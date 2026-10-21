@@ -5,7 +5,7 @@ import {
   formatGraphAuditAction,
   formatGraphAuditDetail,
   type GraphAuditEvent,
-} from '@/lib/workspace/graph-audit.js';
+} from '@/modules/graph/lib/graph-audit.js';
 import { formatUserFacingApiError } from '@/lib/api-error-message.js';
 import { workspaceOpenApiGET } from '@/lib/openapi-client.js';
 import { workspacePath } from '@/lib/nav-config.js';

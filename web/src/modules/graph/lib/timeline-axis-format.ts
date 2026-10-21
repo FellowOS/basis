@@ -1,1 +1,1 @@
-export { buildTimelineAxisFormat } from '@/lib/temporal/timeline-axis-format.js';
+export { buildTimelineAxisFormat } from './temporal/timeline-axis-format.js';

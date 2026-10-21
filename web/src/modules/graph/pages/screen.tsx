@@ -63,7 +63,7 @@ import {
 import { useGraphCatalogStats } from '../hooks/use-graph-catalog-stats.js';
 import { loadGraphEffectsState, saveGraphEffectsState } from '../lib/graph-effects-persistence.js';
 import { GRAPH_THEME, withAlpha } from "@/lib/explorer/graphTheme.js";
-import { syncBasisGraphTheme } from "@/lib/graph/basis-graph-theme-sync";
+import { syncBasisGraphTheme } from "@/modules/graph/lib/graph/basis-graph-theme-sync";
 import {
   graphPluginLoading,
   graphShell,
@@ -1011,7 +1011,7 @@ interface GraphScreenProps {
   /** Overrides graph copy/API error locale; defaults to the app i18n locale. */
   apiErrorLocale?: "zh" | "en";
   /** F-DIFF-01 read-only diff emphasis on the canvas (added/modified vs dimmed). */
-  externalDiffOverlay?: import("@/lib/graph-diff-overlay.js").GraphDiffOverlayState | null;
+  externalDiffOverlay?: import("@/modules/graph/lib/graph-diff-overlay.js").GraphDiffOverlayState | null;
   /** F-DIFF-01 canvas pick (e.g. entity merge staging on diff preview). */
   onNodeSelectNotify?: (nodeId: string) => void;
 }

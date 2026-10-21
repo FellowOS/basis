@@ -16,10 +16,10 @@ import {
   endOfLocalDayIso,
   startOfLocalDay,
   startOfLocalDayIso,
-} from '@/lib/temporal/day-range.js';
-import { parseInstantMs } from '@/lib/temporal/instant.js';
-import { resolveScrubberBounds } from '@/lib/temporal/scrubber-bounds.js';
-import { TemporalRangeTimeline } from '@/lib/temporal/TemporalRangeTimeline.js';
+} from '@/modules/graph/lib/temporal/day-range.js';
+import { parseInstantMs } from '@/modules/graph/lib/temporal/instant.js';
+import { resolveScrubberBounds } from '@/modules/graph/lib/temporal/scrubber-bounds.js';
+import { TemporalRangeTimeline } from '@/modules/graph/lib/temporal/TemporalRangeTimeline.js';
 
 export function TemporalRangePicker({
   fromTime,

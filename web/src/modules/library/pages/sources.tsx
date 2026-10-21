@@ -63,25 +63,25 @@ import type { LocaleMessages } from '@/i18n/en.js';
 import { messageForApiErrorCode } from '@/lib/api-error-message.js';
 import { useWorkspaceCatalog } from '@/lib/workspace/context.js';
 import { useWorkspaceCapabilities } from '@/lib/workspace/capabilities.js';
-import { useWorkspaceWsClient } from '@/lib/workspace/ws-context.js';
+import { useWorkspaceWsClient } from '@/lib/explorer/ws-context.js';
 import { workspacePath } from '@/lib/nav-config.js';
 import {
   processingJobPath,
   processingPath,
   parseProcessingUrlState,
-} from '@/lib/processingUrlState.js';
+} from '@/modules/processing/lib/processingUrlState.js';
 import { ProcessingOptionsSnapshot } from '@/modules/processing/components/processing-options-snapshot.js';
 import {
   buildIngestLimitsHint,
   buildIngestOpsQueueHint,
-} from '@/lib/workspace/ingest-ops-hints.js';
-import { type ProcessingJob, jobIsActive, statusIsProcessing } from '@/lib/workspace/processing-job.js';
-import { parseSourcesUrlState } from '@/lib/sourcesUrlState.js';
-import { formatByteSize } from '@/lib/format-byte-size.js';
+} from '@/modules/processing/lib/ingest-ops-hints.js';
+import { type ProcessingJob, jobIsActive, statusIsProcessing } from '@/modules/processing/lib/processing-job.js';
+import { parseSourcesUrlState } from '@/modules/library/lib/sourcesUrlState.js';
+import { formatByteSize } from '@/modules/library/lib/format-byte-size.js';
 import { DocumentTimelinePanel } from '../components/document-timeline-panel.js';
-import { uploadExceedsMaxBytes } from '@/lib/ingest-upload-limit.js';
+import { uploadExceedsMaxBytes } from '@/modules/library/lib/ingest-upload-limit.js';
 import { formatUserFacingApiError } from '@/lib/api-error-message.js';
-import { processingStartIdempotencyKey } from '@/lib/processing-idempotency.js';
+import { processingStartIdempotencyKey } from '@/modules/processing/lib/processing-idempotency.js';
 
 const PAGE_SIZE = 10;
 

@@ -29,14 +29,14 @@ import type { Locale } from '@/i18n/locale.js';
 import {
   formatBasisAuditMemberRole,
   formatBasisAuditModelKind,
-} from '@/lib/basis-audit-detail.js';
+} from '@/modules/admin-audit/lib/basis-audit-detail.js';
 import {
   formatGraphAuditAction,
   formatGraphAuditDetail,
   workspaceIdFromPlatformAuditEvent,
   type GraphAuditEvent,
-} from '@/lib/workspace/graph-audit.js';
-import { decisionIdFromDetail } from '@/lib/reviewUrlState.js';
+} from '@/modules/graph/lib/graph-audit.js';
+import { decisionIdFromDetail } from '@/modules/review/lib/reviewUrlState.js';
 import { usePlatformAdminCrumbs } from '@/lib/use-platform-admin-crumbs.js';
 
 type AuditDetail = Record<string, unknown>;

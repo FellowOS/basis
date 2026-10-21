@@ -25,7 +25,7 @@ import { useI18n } from '@/i18n/context.js';
 import { fmt, formatLocaleNumber } from '@/i18n/format.js';
 import { downloadTextBlob } from '@/lib/download-text-blob.js';
 import { rowsToCsv } from '@/lib/csv.js';
-import { parsePlatformAllowlistFile } from '@/lib/platform-connector-allowlist-import.js';
+import { parsePlatformAllowlistFile } from '@/modules/admin-connectors/lib/platform-connector-allowlist-import.js';
 import { openApiGET, openApiPOST, openApiPUT } from '@/lib/openapi-client.js';
 import { resourceCardSurfaceClass } from '@/lib/ui-classes/card-surface.js';
 import { useApiErrorMessage } from '@/lib/use-api-error-message.js';

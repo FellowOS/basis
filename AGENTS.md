@@ -142,7 +142,7 @@ Run relevant checks after substantive edits; say if something was not run.
 | Feature list / progress | [docs/features.md](./docs/features.md) (F-* spec), [docs/progress.md](./docs/progress.md) (status: §0.1 done, §0.2 API baseline, §3.1 UX / §3.2 e2e gaps) |
 | Web OpenAPI transport | `web/src/lib/basis-openapi/` (`transport.ts` + generated `schema.d.ts`); app helpers in `web/src/lib/openapi-client.ts` |
 | Web ↔ operationId audit | [openapi/web-openapi-operation-audit.md](./openapi/web-openapi-operation-audit.md) — `scripts/audit-web-operation-ids.py` |
-| HTTP in web | Typed: `openapi-client.ts` (`openApi*` / `workspaceOpenApi*` / `publicOpenApi*`); stream/multipart: `basis-session-fetch.ts`; paths: `lib/workspace/api-path.ts`, `lib/nav-config.ts` (`workspacePath`), `api-v1-path.ts`; E2E `e2e/api-v1-path.ts` (`e2eWorkspaceApiPath`) |
+| HTTP in web | Typed: `openapi-client.ts` (`openApi*` / `workspaceOpenApi*` / `publicOpenApi*`); stream/multipart: `basis-session-fetch.ts`; paths: `lib/explorer/api-path.ts`, `lib/nav-config.ts` (`workspacePath`), `api-v1-path.ts`; E2E `e2e/api-v1-path.ts` (`e2eWorkspaceApiPath`) |
 
 **Naming:** Normative HTTP = **live export** at `/openapi/v1.json` (same as `app.openapi()` + Basis annotations); committed snapshots in **`openapi/basis-v1.json`**. `basis/application/` = server operations (OpenAPI + MCP call this). **semantica** = in-process runtime. **Application HTTP client** = web `basis-openapi/` transport (OpenAPI-generated types; not a published SDK). Server exposes **only OpenAPI + MCP** to clients.
 

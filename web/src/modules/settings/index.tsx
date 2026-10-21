@@ -54,7 +54,7 @@ import { GovernanceConfigPanel } from './components/governance-config-panel.js';
 import { GraphProjectionPanel } from './components/graph-projection-panel.js';
 import { useWorkspaceCatalog } from '@/lib/workspace/context.js';
 import { useWorkspaceCapabilities } from '@/lib/workspace/capabilities.js';
-import { workspaceMemberRoleLabel, workspaceVisibilityLabel } from '@/lib/workspace/settings-labels.js';
+import { workspaceMemberRoleLabel, workspaceVisibilityLabel } from '@/modules/settings/lib/settings-labels.js';
 import {
   workspaceOpenApiDELETE,
   workspaceOpenApiGET,

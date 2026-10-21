@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/select.js';
 import { useI18n } from '@/i18n/context.js';
 import { DocsSidebarNav, useProductDocsFlatPages } from '@/components/app/marketing/docs/docs-sidebar-nav.js';
-import { docsPath, type DocSlug } from '@/lib/product-docs-nav.js';
+import { docsPath, type DocSlug } from '@/modules/docs/lib/product-docs-nav.js';
 
 type DocsShellProps = {
   /** Omitted on the 404 page so no page is marked current. */

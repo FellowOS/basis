@@ -39,7 +39,7 @@ import {
 } from '@/routes/lazy-pages.js';
 import { basisAuthRequired, basisIsDesktopProduct } from '@/lib/basis-runtime.js';
 import { useBasisSession } from '@/lib/basis-session.js';
-import { AnalyzeHubTabRedirect, OntologyHubTabRedirect } from '@/lib/workspace/hub-route.js';
+import { AnalyzeHubTabRedirect, OntologyHubTabRedirect } from '@/modules/analyze/lib/hub-route.js';
 import { AdminLandingRedirect } from '@/routes/admin-landing-redirect.js';
 import {
   AdminOnly,

@@ -1,7 +1,7 @@
 import { useMemo, type ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { WorkspaceHostProvider } from '@/lib/explorer/ws-http.js';
-import { buildWorkspaceHttpConfig } from '@/lib/workspace/ws-host.js';
+import { buildWorkspaceHttpConfig } from '@/lib/explorer/ws-host.js';
 import { useI18n } from '@/i18n/context.js';
 import { cn } from '@/lib/utils.js';
 const governanceQueryClient = new QueryClient({

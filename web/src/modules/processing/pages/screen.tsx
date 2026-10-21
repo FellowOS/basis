@@ -23,18 +23,18 @@ import type { Locale } from '@/i18n/locale.js';
 import {
   buildIngestLimitsHint,
   buildIngestOpsQueueHint,
-} from '@/lib/workspace/ingest-ops-hints.js';
+} from '@/modules/processing/lib/ingest-ops-hints.js';
 import { formatUserFacingApiError } from '@/lib/api-error-message.js';
-import { useWorkspaceWsClient } from '@/lib/workspace/ws-context.js';
+import { useWorkspaceWsClient } from '@/lib/explorer/ws-context.js';
 import { useWorkspaceCatalog } from '@/lib/workspace/context.js';
 import { useWorkspaceCapabilities } from '@/lib/workspace/capabilities.js';
 import {
   type ProcessingJob,
   jobIsActive,
   sortProcessingJobs,
-} from '@/lib/workspace/processing-job.js';
+} from '@/modules/processing/lib/processing-job.js';
 import { workspacePath } from '@/lib/nav-config.js';
-import { processingPath } from '@/lib/processingUrlState.js';
+import { processingPath } from '@/modules/processing/lib/processingUrlState.js';
 
 export function ProcessingScreen({
   workspaceId,

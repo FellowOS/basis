@@ -42,11 +42,11 @@ import {
 import {
   formatGraphExportNodeIds,
   parseGraphExportNodeIds,
-} from "@/lib/parse-graph-export-node-ids.js";
+} from "@/modules/graph/lib/parse-graph-export-node-ids.js";
 import {
   buildGraphAuditPack,
   triggerJsonFileDownload,
-} from "@/lib/workspace/graph-audit-pack.js";
+} from "@/modules/graph/lib/graph-audit-pack.js";
 
 interface Toast {
   id: number;

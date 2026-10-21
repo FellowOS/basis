@@ -1,5 +1,5 @@
 import { Suspense, type ReactNode } from 'react';
-import { WorkspaceRouteShell } from '@/lib/workspace/ws-context.js';
+import { WorkspaceRouteShell } from '@/lib/explorer/ws-context.js';
 
 export function Lazy({ children }: { children: ReactNode }) {
   return <Suspense fallback={null}>{children}</Suspense>;

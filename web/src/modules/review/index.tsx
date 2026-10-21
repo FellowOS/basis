@@ -9,7 +9,7 @@ import { useWorkspaceCapabilities } from '@/lib/workspace/capabilities.js';
 import { useI18n } from '@/i18n/context.js';
 import { useWorkspaceCatalog } from '@/lib/workspace/context.js';
 import { workspacePath } from '@/lib/nav-config.js';
-import { parseReviewUrlState } from '@/lib/reviewUrlState.js';
+import { parseReviewUrlState } from '@/modules/review/lib/reviewUrlState.js';
 
 export function ReviewPage() {
   const { id } = useParams();

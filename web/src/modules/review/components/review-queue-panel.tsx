@@ -20,10 +20,10 @@ import {
   formatGraphAuditAction,
   proposalIdFromGraphAuditDetail,
   reviewItemIdFromGraphAuditDetail,
-} from '@/lib/workspace/graph-audit.js';
+} from '@/modules/graph/lib/graph-audit.js';
 import { formatNodeRef, formatNodeRefDetail } from '@/lib/format-node-ref.js';
-import { fetchWorkspaceNodeLabels } from '@/lib/workspace/node-labels.js';
-import { workspaceAlertsPath, reviewAlertEpisodeKey } from '@/lib/workspace/alerts-url.js';
+import { fetchWorkspaceNodeLabels } from '@/lib/explorer/node-labels.js';
+import { workspaceAlertsPath, reviewAlertEpisodeKey } from '@/modules/alerts/lib/alerts-url.js';
 import { workspaceOntologyProposalPath, workspaceOntologyVersionsPath, workspacePath } from '@/lib/nav-config.js';
 import {
   auditEventMatchesReviewItem,
@@ -31,7 +31,7 @@ import {
   decisionIdFromDetail,
   reviewDecisionPath,
   reviewItemPath,
-} from '@/lib/reviewUrlState.js';
+} from '@/modules/review/lib/reviewUrlState.js';
 import { Button } from '@/components/ui/button.js';
 import { cn } from '@/lib/utils.js';
 import { toast } from 'sonner';

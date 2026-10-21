@@ -20,7 +20,7 @@ import { formatUserFacingApiError } from '@/lib/api-error-message.js';
 import {
   workspaceConnectorsMappingsTabPath,
   type StoredConnection,
-} from '@/lib/workspace/connector-connections.js';
+} from '@/modules/connectors/lib/connector-connections.js';
 import { workspaceConnectorPanelPath, workspacePath } from '@/lib/nav-config.js';
 import { workspaceOpenApiGET } from '@/lib/openapi-client.js';
 

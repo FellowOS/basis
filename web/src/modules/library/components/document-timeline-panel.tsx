@@ -10,8 +10,8 @@ import {
   documentTimelineDiffRange,
   documentTimelineEventLine,
   type DocumentTimelineResponse,
-} from '@/lib/workspace/document-timeline.js';
-import { graphPath } from '@/lib/graphUrlState.js';
+} from '@/modules/library/lib/document-timeline.js';
+import { graphPath } from '@/modules/graph/lib/graphUrlState.js';
 import { workspaceGraphDiffPath } from '@/lib/nav-config.js';
 import { workspaceOpenApiGET } from '@/lib/openapi-client.js';
 

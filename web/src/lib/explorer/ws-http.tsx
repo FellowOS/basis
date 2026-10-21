@@ -10,7 +10,7 @@ import { localeFromBrowser, type Locale } from "@/i18n/locale.js";
 import { messagesForLocale } from "@/i18n/pick-locale.js";
 import { errorFromApiResponse } from "@/lib/api-error.js";
 import { basisApiUrl } from "@/lib/basis-session-fetch.js";
-import { isWorkspaceScopedApiPath, workspaceApiRoot } from "@/lib/workspace/api-path.js";
+import { isWorkspaceScopedApiPath, workspaceApiRoot } from "@/lib/explorer/api-path.js";
 import { ensureRequestIdHeader } from "@/lib/request-id.js";
 
 export type WorkspaceHttpConfig = {

@@ -2,10 +2,10 @@ import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } fro
 import { Link, useSearchParams } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { WorkspaceHostProvider } from '@/lib/explorer/ws-http.js';
-import { buildWorkspaceHttpConfig } from '@/lib/workspace/ws-host.js';
+import { buildWorkspaceHttpConfig } from '@/lib/explorer/ws-host.js';
 import { GraphDiffPreviewBar } from '../components/graph-diff-preview-bar.js';
 import { GraphRebuildButton } from '@/modules/graph/components/graph-rebuild-button.js';
-import { graphDiffOverlayFromResponse, emptyGraphDiffOverlay } from '@/lib/graph-diff-overlay.js';
+import { graphDiffOverlayFromResponse, emptyGraphDiffOverlay } from '@/modules/graph/lib/graph-diff-overlay.js';
 import {
   applyGraphDiffMergePick,
   emptyGraphDiffMergePick,
@@ -13,10 +13,10 @@ import {
   isGraphDiffMergeCandidate,
   type GraphDiffMergePick,
   type GraphDiffMergePickSlot,
-} from '@/lib/graph-diff-merge-pick.js';
-import type { GraphDiffPreviewParams } from '@/lib/graphUrlState.js';
-import { mergeGraphDiffFocusParam } from '@/lib/graphUrlState.js';
-import { useWorkspaceGraphDiff } from '@/lib/workspace/use-graph-diff.js';
+} from '@/modules/graph/lib/graph-diff-merge-pick.js';
+import type { GraphDiffPreviewParams } from '@/modules/graph/lib/graphUrlState.js';
+import { mergeGraphDiffFocusParam } from '@/modules/graph/lib/graphUrlState.js';
+import { useWorkspaceGraphDiff } from '@/modules/graph/lib/use-graph-diff.js';
 import { workspaceOpenApiPOST } from '@/lib/openapi-client.js';
 import { formatUserFacingApiError } from '@/lib/api-error-message.js';
 import { toast } from 'sonner';
@@ -24,7 +24,7 @@ import {
   clearGraphStagingDraft,
   readGraphStagingDraft,
   writeGraphStagingDraft,
-} from '@/lib/graph-staging-draft.js';
+} from '@/modules/graph/lib/graph-staging-draft.js';
 import { ImportExportDialog } from '@/modules/graph/components/import-export/import-export-dialog.js';
 import { useWorkspaceCapabilities } from '@/lib/workspace/capabilities.js';
 import { WorkspaceUnavailable } from '@/components/app/shared/workspace/frame/ws-unavailable.js';
@@ -33,9 +33,9 @@ import { SIDEBAR_ICON_BUTTON_CLASS, SidebarIcon } from '@/components/app/shared/
 import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
 import type { Locale } from '@/i18n/locale.js';
-import { GraphWsThemeSync } from '@/lib/graph/graph-ws-theme-sync.js';
+import { GraphWsThemeSync } from '@/modules/graph/lib/graph/graph-ws-theme-sync.js';
 import { workspaceGraphDiffPath } from '@/lib/nav-config.js';
-import { searchPath } from '@/lib/searchUrlState.js';
+import { searchPath } from '@/modules/search/lib/searchUrlState.js';
 const GraphScreen = lazy(() =>
   import('@/modules/graph/pages/screen.js').then((module) => ({
     default: module.GraphScreen,

@@ -22,7 +22,7 @@ import {
 import {
   resolveGraphNodeEvidenceLinks,
   type GraphEvidenceLink,
-} from "@/lib/graph-evidence-links.js";
+} from "@/modules/graph/lib/graph-evidence-links.js";
 import { GraphInspectorDecisions } from "./graph-inspector-decisions";
 import {
   graphNodeAccentDotStyle,

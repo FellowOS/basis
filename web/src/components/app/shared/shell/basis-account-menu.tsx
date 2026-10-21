@@ -25,7 +25,7 @@ import {
   platformAdminEntryPath,
   visiblePlatformNavItems,
 } from '@/lib/nav-config.js';
-import { useWorkspaceAlertsNavId, useWorkspaceUnreadAlerts } from '@/lib/workspace/use-unread-alerts.js';
+import { useWorkspaceAlertsNavId, useWorkspaceUnreadAlerts } from '@/modules/alerts/lib/use-unread-alerts.js';
 import { useTheme } from '@/lib/theme.js';
 import { cn } from '@/lib/utils.js';
 import { basisIsDesktopProduct } from '@/lib/basis-runtime.js';

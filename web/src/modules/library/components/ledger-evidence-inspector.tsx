@@ -15,8 +15,8 @@ import type { Locale } from '@/i18n/locale.js';
 import {
   ledgerChunkOriginLabel,
   ledgerStatementStatusLabel,
-} from '@/lib/workspace/ledger-labels.js';
-import { useWorkspaceNodeLabels } from '@/lib/workspace/node-labels.js';
+} from '@/modules/library/lib/ledger-labels.js';
+import { useWorkspaceNodeLabels } from '@/lib/explorer/node-labels.js';
 import { workspacePath } from '@/lib/nav-config.js';
 import { workspaceOpenApiGET } from '@/lib/openapi-client.js';
 import { useApiErrorMessage } from '@/lib/use-api-error-message.js';

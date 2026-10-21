@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { workspaceApiRoot } from '@/lib/workspace/api-path.js';
+import { workspaceApiRoot } from '@/lib/explorer/api-path.js';
 
 import {
   buildWorkspaceGraphApiPath,

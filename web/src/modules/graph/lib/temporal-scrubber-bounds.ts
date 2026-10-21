@@ -4,4 +4,4 @@ export {
   resolveScrubberBounds,
   type ScrubberBounds,
   type ScrubberBoundsInput,
-} from '@/lib/temporal/scrubber-bounds.js';
+} from './temporal/scrubber-bounds.js';

@@ -1,6 +1,6 @@
 import { lazy, Suspense, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { mergeKbDecisionParam } from '@/lib/reviewUrlState.js';
+import { mergeKbDecisionParam } from '@/modules/review/lib/reviewUrlState.js';
 import { GovernanceWorkspaceShell } from '@/components/app/shared/workspace/frame/governance-ws-shell.js';
 import { WorkspaceUnavailable } from '@/components/app/shared/workspace/frame/ws-unavailable.js';
 import { Spinner } from '@/components/ui/spinner.js';

@@ -18,7 +18,7 @@ import {
 import { Label } from "@/components/ui/label.js";
 import { Slider } from "@/components/ui/slider.js";
 import { buildWorkspaceApiPath, workspaceFetch } from '@/lib/explorer/ws-http';
-import { fetchWorkspaceNodeLabels } from "@/lib/workspace/node-labels.js";
+import { fetchWorkspaceNodeLabels } from "@/lib/explorer/node-labels.js";
 import { errorFromApiResponse } from "@/lib/api-error.js";
 import { useApiErrorMessage } from "@/lib/use-api-error-message.js";
 import { logEvent, useRegistry } from '@/lib/explorer/registryStore';

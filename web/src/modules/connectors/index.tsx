@@ -40,7 +40,7 @@ import {
   workspaceConnectorMappingEditPath,
   workspaceConnectorMappingNewPath,
   type StoredConnection,
-} from '@/lib/workspace/connector-connections.js';
+} from '@/modules/connectors/lib/connector-connections.js';
 import { useWorkspaceCatalog } from '@/lib/workspace/context.js';
 import {
   type ConnectorPanel,
@@ -60,7 +60,7 @@ import {
   generatePkcePair,
   workspaceConnectorOAuthRedirectUri,
   savePendingConnectorOAuth,
-} from '@/lib/workspace/connector-oauth.js';
+} from '@/modules/connectors/lib/connector-oauth.js';
 import { cn } from '@/lib/utils.js';
 
 type CatalogConnector = {

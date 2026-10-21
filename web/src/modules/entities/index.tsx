@@ -4,7 +4,7 @@ import { DerivedFactsPanel } from '@/modules/entities/components/derived-facts-p
 import { LedgerEntityBrowser } from '@/modules/entities/components/ledger-entity-browser.js';
 import { useI18n } from '@/i18n/context.js';
 import { useWorkspaceCatalog } from '@/lib/workspace/context.js';
-import { parseEntitiesUrlState } from '@/lib/entitiesUrlState.js';
+import { parseEntitiesUrlState } from '@/modules/entities/lib/entitiesUrlState.js';
 import { workspacePath } from '@/lib/nav-config.js';
 
 export function EntitiesPage() {

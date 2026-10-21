@@ -25,7 +25,7 @@ import { PublicIcon } from '@/components/app/shared/primitives/public-icon.js';
 import { useI18n } from '@/i18n/context.js';
 import { fmt, formatLocaleDateTime, formatLocaleNumber } from '@/i18n/format.js';
 import type { Locale } from '@/i18n/locale.js';
-import { mcpTokenScopeLabel } from '@/lib/workspace/mcp-labels.js';
+import { mcpTokenScopeLabel } from '@/modules/integration/lib/mcp-labels.js';
 
 export type ApiTokenRow = {
   id: string;

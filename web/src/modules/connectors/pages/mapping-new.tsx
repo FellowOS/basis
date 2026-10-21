@@ -15,14 +15,14 @@ import {
   workspaceConnectorsMappingsTabPath,
   parseWorkspaceConnectionOptionKey,
   type StoredConnection,
-} from '@/lib/workspace/connector-connections.js';
+} from '@/modules/connectors/lib/connector-connections.js';
 import {
   columnSpecFromMappings,
   createConnectorTableMappingFormSchema,
   defaultConnectorTableMappingFormValues,
   mappingRequestBodyFromFormValues,
   type ConnectorTableMappingFormValues,
-} from '@/lib/workspace/connector-mapping-form.js';
+} from '@/modules/connectors/lib/connector-mapping-form.js';
 import { useWorkspaceCatalog } from '@/lib/workspace/context.js';
 import { workspaceConnectorPanelPath, workspacePath } from '@/lib/nav-config.js';
 import { workspaceOpenApiGET, workspaceOpenApiPOST } from '@/lib/openapi-client.js';

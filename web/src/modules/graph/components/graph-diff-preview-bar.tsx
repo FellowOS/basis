@@ -10,19 +10,19 @@ import type { Locale } from '@/i18n/locale.js';
 import {
   diffFocusEntries,
   nextDiffFocusIndex,
-} from '@/lib/graph-diff-focus.js';
+} from '@/modules/graph/lib/graph-diff-focus.js';
 import {
   clearGraphDiffPreviewParams,
   mergeGraphDiffFocusParam,
   parseGraphUrlState,
-} from '@/lib/graphUrlState.js';
-import type { GraphDiffPayload } from '@/lib/workspace/use-graph-diff.js';
+} from '@/modules/graph/lib/graphUrlState.js';
+import type { GraphDiffPayload } from '@/modules/graph/lib/use-graph-diff.js';
 import { workspaceGraphDiffPath } from '@/lib/nav-config.js';
 import {
   graphDiffMergePickReady,
   type GraphDiffMergePick,
   type GraphDiffMergePickSlot,
-} from '@/lib/graph-diff-merge-pick.js';
+} from '@/modules/graph/lib/graph-diff-merge-pick.js';
 import { cn } from '@/lib/utils.js';
 
 function changeTotal(summary: GraphDiffPayload['summary']): number {

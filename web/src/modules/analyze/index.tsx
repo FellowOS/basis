@@ -8,8 +8,8 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs.js';
 import { useI18n } from '@/i18n/context.js';
 import { useWorkspaceCatalog } from '@/lib/workspace/context.js';
-import type { AnalyzeHubTab } from '@/lib/workspace/hub-route.js';
-import { analyzeHubTabEnabled, resolveAnalyzeHubTab } from '@/lib/workspace/hub-tabs.js';
+import type { AnalyzeHubTab } from '@/modules/analyze/lib/hub-route.js';
+import { analyzeHubTabEnabled, resolveAnalyzeHubTab } from '@/modules/analyze/lib/hub-tabs.js';
 import { useWorkspaceCapabilities } from '@/lib/workspace/capabilities.js';
 import { workspacePath } from '@/lib/nav-config.js';
 

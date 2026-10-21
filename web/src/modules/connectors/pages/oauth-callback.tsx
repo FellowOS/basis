@@ -10,7 +10,7 @@ import {
   clearPendingConnectorOAuth,
   workspaceConnectorOAuthRedirectUri,
   readPendingConnectorOAuth,
-} from '@/lib/workspace/connector-oauth.js';
+} from '@/modules/connectors/lib/connector-oauth.js';
 import { workspaceConnectorPanelPath } from '@/lib/nav-config.js';
 import { workspaceOpenApiPOST } from '@/lib/openapi-client.js';
 

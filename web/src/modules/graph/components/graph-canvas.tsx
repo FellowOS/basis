@@ -64,7 +64,7 @@ import {
   drawSemanticaNodeHover,
   drawSemanticaNodeLabel,
 } from '../lib/sigma-native-rendering.js';
-import { getSigmaCanvasLabelSettings } from "@/lib/graph/basis-graph-theme-sync";
+import { getSigmaCanvasLabelSettings } from "@/modules/graph/lib/graph/basis-graph-theme-sync";
 import {
   graphCanvasHost,
   graphCanvasOverlay,
@@ -106,7 +106,7 @@ import {
   graphDiffEdgeKey,
   graphDiffEdgeTouchesChange,
   type GraphDiffOverlayState,
-} from "@/lib/graph-diff-overlay.js";
+} from "@/modules/graph/lib/graph-diff-overlay.js";
 import type { GraphSceneGraph, GraphSceneRuntime } from '../lib/scene.js';
 
 export type { GraphViewMode } from '../lib/types.js';
