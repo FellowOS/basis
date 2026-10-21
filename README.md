@@ -17,6 +17,11 @@ Basis is an open-source stack on the [Semantica](https://github.com/semantica-ag
 
 > **Status:** Early development (`0.1.x`). HTTP and MCP surfaces are stabilizing; pin releases for production pilots.
 
+<p align="center">
+  <img src="assets/graph.png" alt="Basis graph workspace — force-directed ledger projection, ontology navigation, temporal scrubber" width="900" />
+</p>
+<p align="center"><sub>Graph workspace in the Basis studio (Explorer).</sub></p>
+
 ---
 
 ## Features
