@@ -320,7 +320,7 @@ export function WorkspaceSettingsPage() {
           <TabsTrigger value="general">{t.settings.tabs.general}</TabsTrigger>
           <TabsTrigger value="search">{t.settings.tabs.search}</TabsTrigger>
           <TabsTrigger value="graph">
-            {graphEnabled ? t.settings.tabs.explorer_graph : ks.explorer_tab}
+            {graphEnabled ? t.settings.tabs.graph_projection : ks.graph_runtime_short}
           </TabsTrigger>
           <TabsTrigger value="members">{t.settings.tabs.members}</TabsTrigger>
           <TabsTrigger value="danger">{t.settings.tabs.danger}</TabsTrigger>

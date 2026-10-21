@@ -1,4 +1,4 @@
-/** Explorer surfaces — Tailwind via `@/lib/ui-classes/sem-ui.js`. */
+/** Graph canvas surfaces — Tailwind via `@/lib/ui-classes/sem-ui.js`. */
 import type { ReactNode } from "react";
 import {
   semInspector,

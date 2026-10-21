@@ -6,7 +6,7 @@ import { buildWorkspaceHttpConfig } from '@/lib/workspace/ws-host.js';
 import { useWorkspaceCapabilities } from '@/lib/workspace/capabilities.js';
 import { useI18n } from '@/i18n/context.js';
 import { cn } from '@/lib/utils.js';
-const explorerConsoleQueryClient = new QueryClient({
+const workspaceConsoleQueryClient = new QueryClient({
   defaultOptions: {
     queries: { retry: 1, refetchOnWindowFocus: false },
   },
@@ -17,7 +17,7 @@ export function WorkspaceConsoleShell({
   className,
   children,
   feature = 'sparql',
-  requireExplorerRuntime = true,
+  requireGraphRuntime = true,
   requireGraph = true,
   capabilityOk,
 }: {
@@ -25,7 +25,7 @@ export function WorkspaceConsoleShell({
   className?: string;
   children: ReactNode;
   feature?: 'graph' | 'sparql' | 'review' | 'import' | 'vocabulary' | 'lineage';
-  requireExplorerRuntime?: boolean;
+  requireGraphRuntime?: boolean;
   requireGraph?: boolean;
   /** When set, must return true to render children (e.g. caps.sparql). */
   capabilityOk?: (caps: NonNullable<ReturnType<typeof useWorkspaceCapabilities>['caps']>) => boolean;
@@ -34,13 +34,13 @@ export function WorkspaceConsoleShell({
   const { caps, loading: capsLoading } = useWorkspaceCapabilities();
   const config = useMemo(() => buildWorkspaceHttpConfig(workspaceId, locale), [workspaceId, locale]);
 
-  const explorerReady =
+  const graphRuntimeReady =
     caps &&
-    (!requireExplorerRuntime || caps.explorer_runtime) &&
+    (!requireGraphRuntime || caps.explorer_runtime) &&
     (!requireGraph || caps.graph) &&
     (!capabilityOk || capabilityOk(caps));
 
-  if (!capsLoading && caps && !explorerReady) {
+  if (!capsLoading && caps && !graphRuntimeReady) {
     return <WorkspaceUnavailable workspaceId={workspaceId} feature={feature} />;
   }
 
@@ -52,7 +52,7 @@ export function WorkspaceConsoleShell({
       )}
       data-workspace-id={workspaceId}
     >
-      <QueryClientProvider client={explorerConsoleQueryClient}>
+      <QueryClientProvider client={workspaceConsoleQueryClient}>
         <WorkspaceHostProvider config={config}>{children}</WorkspaceHostProvider>
       </QueryClientProvider>
     </div>

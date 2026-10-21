@@ -83,9 +83,9 @@ export default {
     bad_algorithm: "路径算法无效，请使用 bfs 或 dijkstra。",
     semantic_unavailable: "当前图谱不支持语义相似度。",
     semantic_node_not_found: "语义距离接口未找到所选节点。",
-    explorer_unavailable: "Explorer 图会话不可用，请确认依赖已安装并重启服务。",
+    explorer_unavailable: "工作区图会话不可用，请确认依赖已安装并重启服务。",
     kb_graph_session_unavailable: "工作区图会话不可用，请确认依赖已安装并重启服务。",
-    explorer_graph_error: "Explorer 图接口返回错误。",
+    explorer_graph_error: "工作区图接口返回错误。",
     bad_path: "路径查询须同时提供 source 与 target。",
     bad_signature: "映射签名不能为空。",
     bad_target_kind: "映射目标类型无效。",
@@ -204,7 +204,7 @@ export default {
       hint: "导航按资料、知识、探索、治理和设置组织；文档处理状态与操作集中在资料页。"
     },
     capabilities: {
-      explorer_unavailable: "未安装 Explorer 运行时。请在后端执行 uv sync --extra explorer 后重启服务。",
+      explorer_unavailable: "未安装图运行时。请在后端执行 uv sync --extra explorer 后重启服务。",
       unavailable: "当前工作区未启用此能力。",
       feature_unavailable_title: "功能不可用",
       import_editor_required: "需要编辑者权限才能导入图数据。"
@@ -212,7 +212,7 @@ export default {
   },
   workspace_runtime: {
     workspace_context_required:
-      "工作区 Explorer API 需要工作区上下文（传入 workspaceId，或通过 WorkspaceHostProvider 配置 apiRoot）。",
+      "工作区 API 需要工作区上下文（传入 workspaceId，或通过 WorkspaceHostProvider 配置 apiRoot）。",
     graph_updates_web_socket_required: "图谱实时更新需要 WorkspaceHostProvider（工作区实时 ticket）。",
     realtime_ticket_failed: "实时 ticket 失败（{status}）"
   }

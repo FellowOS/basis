@@ -3,7 +3,7 @@ import { type ReactNode, useLayoutEffect } from 'react';
 import { useTheme } from '@/lib/shell/theme.js';
 import { syncBasisGraphTheme } from '@/modules/graph/lib/graph/basis-graph-theme-sync.js';
 
-/** Apply Basis CSS tokens to Explorer graph theme before children mount (canvas/HUD). */
+/** Apply Basis CSS tokens to graph theme before children mount (canvas/HUD). */
 export function GraphWsThemeSync({ children }: { children: ReactNode }) {
   const { theme } = useTheme();
 

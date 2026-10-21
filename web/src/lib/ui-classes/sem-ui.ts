@@ -1,5 +1,5 @@
 /**
- * Explorer `sem-*` surfaces (replaces `sem-components.css` rules used from TSX).
+ * Workspace graph `sem-*` surfaces (replaces `sem-components.css` rules used from TSX).
  */
 
 export const semSurface =

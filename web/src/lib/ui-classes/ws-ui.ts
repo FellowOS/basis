@@ -1,5 +1,5 @@
 /**
- * Workspace Explorer console Tailwind bundles (`exWs*`).
+ * Workspace console Tailwind bundles (`exWs*`).
  * Composes `console-ws.ts` / `governance-ui.ts`. Button variant chrome: `styles.css` (`[data-basis-app]`).
  */
 

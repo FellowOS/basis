@@ -990,7 +990,7 @@ function collectPluginOverlays(
 }
 
 interface GraphScreenProps {
-  /** Workspace id — graph APIs use `/api/v1/workspaces/{workspaceId}/graph/...` via Explorer HTTP config. */
+  /** Workspace id — graph APIs use `/api/v1/workspaces/{workspaceId}/graph/...` via workspace HTTP config. */
   workspaceId: string;
   externalFocusNodeId?: string;
   externalFocusToken?: number;
