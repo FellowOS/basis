@@ -9,7 +9,7 @@ pytest.importorskip("semantica")
 from fastapi.testclient import TestClient
 
 from basis.interface.http.app import create_app
-from basis.infra.runtime.capabilities import graph_workspace_available
+from basis.infra.runtime.capabilities import kb_graph_runtime_available
 from basis.domain.tenancy.admin.store import AdminStore
 from basis.infra.runtime.config import Settings
 from basis.domain.knowledge.blob_store import BlobStore
@@ -155,7 +155,7 @@ def test_list_derived_facts_filtered_by_entity(tmp_path) -> None:
 
 
 def test_reasoning_apply_persists_derived_facts(tmp_path) -> None:
-    if not graph_workspace_available():
+    if not kb_graph_runtime_available():
         pytest.skip("explorer extra not installed")
 
     client = TestClient(create_app(Settings(data_dir=tmp_path)))

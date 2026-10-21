@@ -16,7 +16,7 @@ from basis.interface.http.deps import (
     get_store,
 )
 from basis.domain.ontology.hub.kb_scoped_state import KbOntologyState
-from basis.interface.http.kb_ontology_session import graph_workspace_session
+from basis.interface.http.kb_ontology_session import kb_graph_session
 
 router = APIRouter(tags=["knowledge-bases"])
 
@@ -31,12 +31,12 @@ async def kb_ontology_registry(
     store: AdminStore = Depends(get_store),
 ) -> Any:
     """
-Kb Ontology Registry. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Kb Ontology Registry. Ontology hub (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
     """
     get_kb_for_viewer(request, user, kb_id, store)
     from basis.domain.ontology.hub.catalog import list_registry
 
-    session = graph_workspace_session(request, kb_id)
+    session = kb_graph_session(request, kb_id)
     with KbOntologyState(request, kb_id):
         registry = request.app.state.kb_ontology_registries[kb_id]
         return await asyncio.to_thread(
@@ -58,7 +58,7 @@ async def kb_list_alignments(
     store: AdminStore = Depends(get_store),
 ) -> Any:
     """
-Kb List Alignments. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Kb List Alignments. Ontology hub (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
     """
     get_kb_for_viewer(request, user, kb_id, store)
 
@@ -90,7 +90,7 @@ async def kb_upsert_alignment(
     store: AdminStore = Depends(get_store),
 ) -> Any:
     """
-Kb Upsert Alignment. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Kb Upsert Alignment. Ontology hub (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
     """
     get_kb_for_editor(request, user, kb_id, store)
     from basis.domain.ontology.hub.catalog import upsert_alignment
@@ -98,7 +98,7 @@ Kb Upsert Alignment. Ontology workspace (SKOS, alignments) via Explorer. Require
     raw = await request.json()
     if not isinstance(raw, dict):
         raise AdminError(422, "validation_error", "请求体须为 JSON 对象")
-    session = graph_workspace_session(request, kb_id)
+    session = kb_graph_session(request, kb_id)
     with KbOntologyState(request, kb_id):
         align_store = request.app.state.kb_ontology_alignments[kb_id]
         return await asyncio.to_thread(
@@ -126,7 +126,7 @@ async def kb_delete_alignment(
     store: AdminStore = Depends(get_store),
 ) -> Any:
     """
-Kb Delete Alignment. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Kb Delete Alignment. Ontology hub (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
     """
     get_kb_for_editor(request, user, kb_id, store)
     from basis.domain.ontology.hub.catalog import delete_alignment
@@ -144,7 +144,7 @@ async def kb_suggest_alignments(
     store: AdminStore = Depends(get_store),
 ) -> Any:
     """
-Kb Suggest Alignments. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Kb Suggest Alignments. Ontology hub (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
     """
     get_kb_for_viewer(request, user, kb_id, store)
     from basis.domain.ontology.hub.catalog import suggest_alignments
@@ -152,7 +152,7 @@ Kb Suggest Alignments. Ontology workspace (SKOS, alignments) via Explorer. Requi
     raw = await request.json()
     if not isinstance(raw, dict):
         raise AdminError(422, "validation_error", "请求体须为 JSON 对象")
-    session = graph_workspace_session(request, kb_id)
+    session = kb_graph_session(request, kb_id)
     return await asyncio.to_thread(
         suggest_alignments,
         session,

@@ -1,4 +1,4 @@
-"""Per-KB graph workspace session cache (read/index/analytics)."""
+"""Per-KB graph session cache (read/index/analytics)."""
 
 from __future__ import annotations
 
@@ -13,7 +13,7 @@ from basis.domain.graph.session.probe import build_kb_graph_adapter
 from basis.domain.knowledge.store import KnowledgeStore
 
 
-def _rebuild_workspace_adapter(basis_session: GraphSession) -> Any:
+def _rebuild_kb_graph_adapter(basis_session: GraphSession) -> Any:
     return build_kb_graph_adapter(basis_session)
 
 
@@ -24,7 +24,7 @@ def _adapter_wrapped_graph(adapter: Any | None) -> Any | None:
 
 
 @dataclass
-class KbGraphWorkspaceRuntime:
+class KbGraphRuntime:
     kb_id: str
     projection_revision: int
     basis: GraphSession
@@ -35,12 +35,12 @@ class KbGraphWorkspaceRuntime:
         self.last_access = time.monotonic()
 
 
-class GraphWorkspaceSessionRegistry:
-    """One workspace adapter per KB projection revision; single-flight load per KB."""
+class KbGraphSessionRegistry:
+    """One KB graph adapter per KB projection revision; single-flight load per KB."""
 
     def __init__(self, *, idle_seconds: int = 1800) -> None:
         self._idle_seconds = idle_seconds
-        self._cache: dict[str, KbGraphWorkspaceRuntime] = {}
+        self._cache: dict[str, KbGraphRuntime] = {}
         self._guard = threading.Lock()
         self._load_locks: dict[str, threading.Lock] = {}
 
@@ -50,14 +50,14 @@ class GraphWorkspaceSessionRegistry:
         *,
         knowledge: KnowledgeStore,
         basis_for_kb: Callable[[str], GraphSession],
-    ) -> KbGraphWorkspaceRuntime:
+    ) -> KbGraphRuntime:
         revision = knowledge.get_projection_state(kb_id)["revision"]
 
         with self._guard:
             cached = self._cache.get(kb_id)
             if cached is not None and cached.projection_revision == revision:
                 if _adapter_wrapped_graph(cached.adapter) is not cached.basis.graph:
-                    cached.adapter = _rebuild_workspace_adapter(cached.basis)
+                    cached.adapter = _rebuild_kb_graph_adapter(cached.basis)
                 cached.touch()
                 return cached
 
@@ -67,14 +67,14 @@ class GraphWorkspaceSessionRegistry:
                 cached = self._cache.get(kb_id)
                 if cached is not None and cached.projection_revision == revision:
                     if _adapter_wrapped_graph(cached.adapter) is not cached.basis.graph:
-                        cached.adapter = _rebuild_workspace_adapter(cached.basis)
+                        cached.adapter = _rebuild_kb_graph_adapter(cached.basis)
                     cached.touch()
                     return cached
 
             basis_session = basis_for_kb(kb_id)
-            adapter_session = _rebuild_workspace_adapter(basis_session)
+            adapter_session = _rebuild_kb_graph_adapter(basis_session)
 
-            runtime = KbGraphWorkspaceRuntime(
+            runtime = KbGraphRuntime(
                 kb_id=kb_id,
                 projection_revision=revision,
                 basis=basis_session,

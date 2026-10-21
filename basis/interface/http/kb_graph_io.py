@@ -11,13 +11,13 @@ from fastapi.responses import Response
 from basis.domain.errors import AdminError
 from basis.domain.tenancy.admin.store import AdminStore, User
 from basis.interface.http.deps import (
-    graph_workspace_runtime_for,
+    kb_graph_runtime_for,
     get_current_user,
     get_kb_for_editor,
     get_kb_for_viewer,
     get_store,
 )
-from basis.domain.graph.session.guard import require_graph_workspace_session
+from basis.domain.graph.session.guard import require_kb_graph_session
 from basis.domain.knowledge.services.graph_audit import audit_kb_graph
 
 router = APIRouter(tags=["knowledge-bases"])
@@ -51,8 +51,8 @@ async def kb_export_graph(
 Kb Export Graph. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
     """
     get_kb_for_viewer(request, user, kb_id, store)
-    runtime = graph_workspace_runtime_for(request, kb_id)
-    session = require_graph_workspace_session(runtime)
+    runtime = kb_graph_runtime_for(request, kb_id)
+    session = require_kb_graph_session(runtime)
     from basis.domain.graph.reads.export_read import export_graph
 
     raw = await request.json()

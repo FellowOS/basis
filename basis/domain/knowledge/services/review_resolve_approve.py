@@ -7,12 +7,12 @@ from dataclasses import dataclass
 from typing import Any, Callable
 
 from basis.domain.errors import AdminError
-from basis.domain.bridges.graph_workspace import (
-    KbGraphWorkspaceRuntime,
+from basis.domain.bridges.kb_graph_session import (
+    KbGraphRuntime,
     import_graph_file,
     merge_nodes,
     record_governance_decision_for_kb,
-    require_graph_workspace_session,
+    require_kb_graph_session,
 )
 from basis.domain.graph.projection.projection_lifecycle import GraphProjectionBindings
 from basis.domain.knowledge.blob_store import BlobStore
@@ -55,7 +55,7 @@ def ledger_entity_merge_ids(
 class ReviewApproveDeps:
     projection_bindings: GraphProjectionBindings | None
     blob_store: BlobStore | None
-    runtime_loader: Callable[[], KbGraphWorkspaceRuntime]
+    runtime_loader: Callable[[], KbGraphRuntime]
     persist_graph: Callable[[str], None]
     rebuild_projection: Callable[[], dict[str, Any]]
 
@@ -152,7 +152,7 @@ async def approve_review_item(
             from basis.domain.knowledge.services.graph_sync import resolve_ledger_entity_id
 
             runtime = deps.runtime_loader()
-            session = require_graph_workspace_session(runtime)
+            session = require_kb_graph_session(runtime)
             primary_ledger = resolve_ledger_entity_id(
                 knowledge, kb_id, runtime.basis, primary_id
             )
@@ -312,7 +312,7 @@ async def approve_review_item(
     elif item["kind"] == "graph_import":
         approve_action = "kb.graph.import"
         runtime = deps.runtime_loader()
-        session = require_graph_workspace_session(runtime)
+        session = require_kb_graph_session(runtime)
         if deps.blob_store is None:
             raise AdminError(500, "internal_error", "blob store required for graph import approve")
         upload = upload_file_from_staged(deps.blob_store, kb_id, item["payload"])

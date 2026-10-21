@@ -8,7 +8,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from basis.interface.http.app import create_app
-from basis.infra.runtime.capabilities import graph_workspace_available
+from basis.infra.runtime.capabilities import kb_graph_runtime_available
 from basis.infra.runtime.config import Settings
 
 _LOOP_MARKER = "MCP_GRAPH_LOOP_UNIQUE_2010"
@@ -251,7 +251,7 @@ def test_mcp_tools_with_api_token(tmp_path) -> None:
 
 def test_mcp_reject_review_item_entity_merge(tmp_path) -> None:
     """MCP reject_review_item matches HTTP reject for entity_merge proposals."""
-    if not graph_workspace_available():
+    if not kb_graph_runtime_available():
         pytest.skip("explorer extra not installed")
 
     client = TestClient(create_app(Settings(data_dir=tmp_path)))

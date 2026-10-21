@@ -45,6 +45,7 @@ export const apiErrorCodes = {
   semantic_unavailable: "当前图谱不支持语义相似度。",
   semantic_node_not_found: "语义距离接口未找到所选节点。",
   explorer_unavailable: "Explorer 图会话不可用，请确认依赖已安装并重启服务。",
+  kb_graph_session_unavailable: "KB 图会话不可用，请确认依赖已安装并重启服务。",
   explorer_graph_error: "Explorer 图接口返回错误。",
   bad_path: "路径查询须同时提供 source 与 target。",
   bad_signature: "映射签名不能为空。",

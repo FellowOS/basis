@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from basis.domain.errors import AdminError
 from basis.domain.tenancy.admin.store import AdminStore, User
 from basis.interface.http.deps import (
-    graph_workspace_runtime_for,
+    kb_graph_runtime_for,
     get_blob_store,
     get_current_user,
     graph_projection_bindings,
@@ -17,7 +17,7 @@ from basis.interface.http.deps import (
     rebuild_kb_projection,
     save_graph,
 )
-from basis.interface.http.graph_workspace_route_errors import admin_error_from_graph_workspace_http
+from basis.interface.http.kb_graph_route_errors import admin_error_from_kb_graph_http
 from basis.domain.graph.governance.decision import maybe_emit_governance_tripped_on_review_approve
 from basis.domain.knowledge.store import KnowledgeStore
 from basis.domain.knowledge.services.review_resolve_approve import (
@@ -50,7 +50,7 @@ Approve Review Item. Human review queue for merges, imports, and conflicts. Requ
     deps = ReviewApproveDeps(
         projection_bindings=graph_projection_bindings(request),
         blob_store=get_blob_store(request),
-        runtime_loader=lambda: graph_workspace_runtime_for(request, kb_id),
+        runtime_loader=lambda: kb_graph_runtime_for(request, kb_id),
         persist_graph=lambda kid: save_graph(request, kid),
         rebuild_projection=lambda: rebuild_kb_projection(request, kb_id),
     )
@@ -67,7 +67,7 @@ Approve Review Item. Human review queue for merges, imports, and conflicts. Requ
             deps=deps,
         )
     except HTTPException as exc:
-        mapped = admin_error_from_graph_workspace_http(exc, context="enrich")
+        mapped = admin_error_from_kb_graph_http(exc, context="enrich")
         maybe_emit_governance_tripped_on_review_approve(
             kb_id,
             knowledge,
@@ -79,7 +79,7 @@ Approve Review Item. Human review queue for merges, imports, and conflicts. Requ
                 "source": "review_approve",
             },
             actor_id=user.id,
-            runtime_loader=lambda: graph_workspace_runtime_for(request, kb_id),
+            runtime_loader=lambda: kb_graph_runtime_for(request, kb_id),
             persist_graph=lambda kid: save_graph(request, kid),
         )
         raise mapped
@@ -95,7 +95,7 @@ Approve Review Item. Human review queue for merges, imports, and conflicts. Requ
                 "source": "review_approve",
             },
             actor_id=user.id,
-            runtime_loader=lambda: graph_workspace_runtime_for(request, kb_id),
+            runtime_loader=lambda: kb_graph_runtime_for(request, kb_id),
             persist_graph=lambda kid: save_graph(request, kid),
         )
         raise

@@ -10,12 +10,12 @@ from fastapi import HTTPException
 from fastapi.testclient import TestClient
 
 from basis.interface.http.app import create_app
-from basis.infra.runtime.capabilities import graph_workspace_available
+from basis.infra.runtime.capabilities import kb_graph_runtime_available
 from basis.infra.runtime.config import Settings
 
 
 def test_entity_merge_review_propose_list_reject(tmp_path) -> None:
-    if not graph_workspace_available():
+    if not kb_graph_runtime_available():
         pytest.skip("explorer extra not installed")
 
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
@@ -57,7 +57,7 @@ def test_entity_merge_review_propose_list_reject(tmp_path) -> None:
 
 
 def test_direct_enrich_merge_blocked(tmp_path) -> None:
-    if not graph_workspace_available():
+    if not kb_graph_runtime_available():
         pytest.skip("explorer extra not installed")
 
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
@@ -78,7 +78,7 @@ def test_direct_enrich_merge_blocked(tmp_path) -> None:
 
 
 def test_review_approve_failure_emits_governance_alert(tmp_path) -> None:
-    if not graph_workspace_available():
+    if not kb_graph_runtime_available():
         pytest.skip("explorer extra not installed")
 
     client = TestClient(create_app(Settings(data_dir=tmp_path)))

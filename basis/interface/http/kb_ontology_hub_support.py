@@ -7,8 +7,8 @@ from typing import Any
 from fastapi import Request
 
 from basis.domain.tenancy.admin.store import AdminStore, User
-from basis.interface.http.deps import graph_workspace_runtime_for
-from basis.domain.graph.session.guard import require_graph_workspace_session
+from basis.interface.http.deps import kb_graph_runtime_for
+from basis.domain.graph.session.guard import require_kb_graph_session
 from basis.domain.knowledge.services.graph_audit import audit_kb_graph
 from basis.domain.graph.governance.decision import emit_governance_tripped_for_kb
 from basis.domain.knowledge.store import KnowledgeStore
@@ -17,8 +17,8 @@ WRITE_METHODS = frozenset({"POST", "PUT", "PATCH", "DELETE"})
 
 
 def ontology_session(request: Request, kb_id: str):
-    runtime = graph_workspace_runtime_for(request, kb_id)
-    return require_graph_workspace_session(runtime)
+    runtime = kb_graph_runtime_for(request, kb_id)
+    return require_kb_graph_session(runtime)
 
 
 def min_role(method: str) -> str:

@@ -220,7 +220,7 @@ def main() -> int:
         projection_revision=state["revision"],
         schema_version=state["schema_version"],
     )
-    app.state.graph_workspace_registry.invalidate(KB_ID)
+    app.state.kb_graph_session_registry.invalidate(KB_ID)
 
     print(
         "rebuild ok:",

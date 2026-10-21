@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from basis.domain.graph.session.registry import KbGraphWorkspaceRuntime
+    from basis.domain.graph.session.registry import KbGraphRuntime
 
 
 def diff_session_at(session: Any, from_time: str, to_time: str) -> dict[str, Any]:
@@ -28,8 +28,8 @@ def staging_session_key(kb_id: str, from_time: str, to_time: str) -> str:
     return _impl(kb_id, from_time, to_time)
 
 
-def require_graph_workspace_session(runtime: KbGraphWorkspaceRuntime) -> Any:
-    from basis.domain.graph.session.guard import require_graph_workspace_session as _impl
+def require_kb_graph_session(runtime: KbGraphRuntime) -> Any:
+    from basis.domain.graph.session.guard import require_kb_graph_session as _impl
 
     return _impl(runtime)
 
@@ -61,21 +61,21 @@ def parse_reasoning_fact(*args: Any, **kwargs: Any) -> Any:
 
 
 def __getattr__(name: str) -> Any:
-    if name == "KbGraphWorkspaceRuntime":
-        from basis.domain.graph.session.registry import KbGraphWorkspaceRuntime
+    if name == "KbGraphRuntime":
+        from basis.domain.graph.session.registry import KbGraphRuntime
 
-        return KbGraphWorkspaceRuntime
+        return KbGraphRuntime
     raise AttributeError(name)
 
 
 __all__ = [
-    "KbGraphWorkspaceRuntime",
+    "KbGraphRuntime",
     "build_graph_staging_payload",
     "diff_session_at",
     "import_graph_file",
     "merge_nodes",
     "parse_reasoning_fact",
     "record_governance_decision_for_kb",
-    "require_graph_workspace_session",
+    "require_kb_graph_session",
     "staging_session_key",
 ]

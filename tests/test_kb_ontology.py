@@ -7,12 +7,12 @@ pytest.importorskip("semantica")
 from fastapi.testclient import TestClient
 
 from basis.interface.http.app import create_app
-from basis.infra.runtime.capabilities import graph_workspace_available
+from basis.infra.runtime.capabilities import kb_graph_runtime_available
 from basis.infra.runtime.config import Settings
 
 
 def test_vocabulary_schemes_empty_graph(tmp_path) -> None:
-    if not graph_workspace_available():
+    if not kb_graph_runtime_available():
         pytest.skip("explorer extra not installed")
 
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
@@ -29,7 +29,7 @@ def test_vocabulary_schemes_empty_graph(tmp_path) -> None:
 
 
 def test_alignments_isolated_between_kbs(tmp_path) -> None:
-    if not graph_workspace_available():
+    if not kb_graph_runtime_available():
         pytest.skip("explorer extra not installed")
 
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
@@ -66,7 +66,7 @@ def test_alignments_isolated_between_kbs(tmp_path) -> None:
 
 
 def test_drafts_isolated_between_kbs(tmp_path) -> None:
-    if not graph_workspace_available():
+    if not kb_graph_runtime_available():
         pytest.skip("explorer extra not installed")
 
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
@@ -126,7 +126,7 @@ def test_drafts_isolated_between_kbs(tmp_path) -> None:
 
 
 def test_ontology_registry_persisted_across_app_restart(tmp_path) -> None:
-    if not graph_workspace_available():
+    if not kb_graph_runtime_available():
         pytest.skip("explorer extra not installed")
 
     settings = Settings(data_dir=tmp_path)
@@ -161,7 +161,7 @@ def test_ontology_registry_persisted_across_app_restart(tmp_path) -> None:
 
 
 def test_ontology_graph_requires_uri(tmp_path) -> None:
-    if not graph_workspace_available():
+    if not kb_graph_runtime_available():
         pytest.skip("explorer extra not installed")
 
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
@@ -199,7 +199,7 @@ def test_ontology_graph_requires_uri(tmp_path) -> None:
 
 
 def test_ontology_health_after_create(tmp_path) -> None:
-    if not graph_workspace_available():
+    if not kb_graph_runtime_available():
         pytest.skip("explorer extra not installed")
 
     client = TestClient(create_app(Settings(data_dir=tmp_path)))

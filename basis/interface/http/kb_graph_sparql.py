@@ -10,13 +10,13 @@ from fastapi import APIRouter, Depends, Request
 from basis.domain.errors import AdminError
 from basis.domain.tenancy.admin.store import AdminStore, User
 from basis.interface.http.deps import (
-    graph_workspace_runtime_for,
+    kb_graph_runtime_for,
     get_current_user,
     get_kb_for_viewer,
     get_store,
 )
-from basis.domain.graph.session.guard import require_graph_workspace_session
-from basis.interface.http.kb_graph_workspace_shared import sparql_semaphore
+from basis.domain.graph.session.guard import require_kb_graph_session
+from basis.interface.http.kb_graph_shared import sparql_semaphore
 from basis.domain.graph.sparql.read import (
     SPARQL_TIMEOUT_S,
     build_sparql_graph,
@@ -39,8 +39,8 @@ async def kb_sparql_execute(
 Kb Sparql Execute. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
     """
     get_kb_for_viewer(request, user, kb_id, store)
-    runtime = graph_workspace_runtime_for(request, kb_id)
-    session = require_graph_workspace_session(runtime)
+    runtime = kb_graph_runtime_for(request, kb_id)
+    session = require_kb_graph_session(runtime)
     raw = await request.json()
     query = raw.get("query", "") if isinstance(raw, dict) else ""
     if not isinstance(query, str):

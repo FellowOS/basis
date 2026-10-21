@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 def _rebuild_kb_projection_for_app(app: FastAPI, kb_id: str) -> dict:
     """Rebuild graph projection from ledger after connector sync (no HTTP request)."""
-    app.state.graph_workspace_registry.invalidate(kb_id)
+    app.state.kb_graph_session_registry.invalidate(kb_id)
     knowledge = app.state.knowledge_store
     persistence = app.state.graph_persistence
     graphs = app.state.graphs

@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any, TYPE_CHECKING
 
 from basis.domain.integration.canonical_db import LockedCanonicalConn
-from basis.domain.bridges.graph_workspace import (
+from basis.domain.bridges.kb_graph_session import (
     build_graph_staging_payload,
     diff_session_at,
     staging_session_key,

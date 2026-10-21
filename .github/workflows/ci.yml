@@ -118,7 +118,7 @@ jobs:
           uv run python scripts/audit-semantica-explorer-imports.py
           uv run python scripts/audit-semantica-explorer-session-imports.py
           uv run python scripts/audit-semantica-explorer-package-imports.py
-          uv run python scripts/audit-graph-workspace-shim-imports.py
+          uv run python scripts/audit-graph-shim-imports.py
           uv run python scripts/audit-compat-shim-imports.py
           uv run python scripts/audit-legacy-package-imports.py
           uv run python scripts/audit-kb-http-aggregators.py
@@ -127,9 +127,9 @@ jobs:
         run: >-
           uv run pytest -q
           tests/test_basis_kb_graph_session.py
-          tests/test_graph_workspace_registry.py
+          tests/test_kb_graph_session_registry.py
           tests/test_kb_ontology.py
-          tests/test_kb_graph_workspace_routes.py
+          tests/test_kb_graph_session_routes.py
 
       - name: Run tests
         run: uv run pytest -q

@@ -1,4 +1,4 @@
-"""Ontology workspace graph reads (search, subgraph, entity detail)."""
+"""Ontology hub graph reads (search, subgraph, entity detail)."""
 
 from __future__ import annotations
 

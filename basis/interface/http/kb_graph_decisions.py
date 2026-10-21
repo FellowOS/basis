@@ -9,13 +9,13 @@ from fastapi import APIRouter, Depends, Query, Request
 
 from basis.domain.tenancy.admin.store import AdminStore, User
 from basis.interface.http.deps import (
-    graph_workspace_runtime_for,
+    kb_graph_runtime_for,
     get_current_user,
     get_kb_for_viewer,
     get_runtime_limits,
     get_store,
 )
-from basis.domain.graph.session.guard import require_graph_workspace_session
+from basis.domain.graph.session.guard import require_kb_graph_session
 from basis.infra.runtime.limits import RuntimeLimits
 
 router = APIRouter(tags=["knowledge-bases"])
@@ -35,11 +35,11 @@ async def kb_list_decisions(
 Kb List Decisions. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
     """
     get_kb_for_viewer(request, user, kb_id, store)
-    runtime = graph_workspace_runtime_for(request, kb_id)
-    session = require_graph_workspace_session(runtime)
+    runtime = kb_graph_runtime_for(request, kb_id)
+    session = require_kb_graph_session(runtime)
     from basis.domain.graph.governance.decisions_read import list_decisions
 
-    capped = min(max(1, limit), limits.graph_workspace_decisions_max_limit)
+    capped = min(max(1, limit), limits.kb_graph_decisions_max_limit)
     return await asyncio.to_thread(
         list_decisions,
         session,
@@ -61,8 +61,8 @@ async def kb_decision_chain(
 Kb Decision Chain. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
     """
     get_kb_for_viewer(request, user, kb_id, store)
-    runtime = graph_workspace_runtime_for(request, kb_id)
-    session = require_graph_workspace_session(runtime)
+    runtime = kb_graph_runtime_for(request, kb_id)
+    session = require_kb_graph_session(runtime)
     from basis.domain.graph.governance.decisions_read import get_causal_chain
 
     return await asyncio.to_thread(get_causal_chain, session, decision_id)

@@ -11,7 +11,7 @@ from basis.domain.graph.projection.snapshot_store import GraphPersistence
 from basis.domain.knowledge.store import KnowledgeStore
 
 if TYPE_CHECKING:
-    from basis.domain.graph.session.registry import GraphWorkspaceSessionRegistry
+    from basis.domain.graph.session.registry import KbGraphSessionRegistry
 
 
 @dataclass
@@ -19,7 +19,7 @@ class GraphProjectionBindings:
     graphs: dict[str, GraphSession]
     persistence: GraphPersistence
     knowledge: KnowledgeStore
-    graph_workspace_registry: GraphWorkspaceSessionRegistry
+    kb_graph_session_registry: KbGraphSessionRegistry
     persist_ontology_hub: Callable[[str], None]
     broadcast_projection: Callable[[str, int], None]
 
@@ -62,13 +62,13 @@ def save_graph(bindings: GraphProjectionBindings, kb_id: str, *, sync_ledger: bo
         projection_revision=ledger["revision"],
         schema_version=ledger["schema_version"],
     )
-    bindings.graph_workspace_registry.invalidate(kb_id)
+    bindings.kb_graph_session_registry.invalidate(kb_id)
     bindings.persist_ontology_hub(kb_id)
     bindings.broadcast_projection(kb_id, int(ledger["revision"]))
 
 
 def rebuild_kb_projection(bindings: GraphProjectionBindings, kb_id: str) -> dict:
-    bindings.graph_workspace_registry.invalidate(kb_id)
+    bindings.kb_graph_session_registry.invalidate(kb_id)
     session = graph_session_for_kb(bindings, kb_id)
     meta = apply_rebuild_to_session(bindings.knowledge, kb_id, session)
     save_graph(bindings, kb_id)

@@ -6,7 +6,7 @@ from collections import deque
 from typing import Any
 
 from basis.domain.errors import AdminError
-from basis.domain.graph.session.registry import KbGraphWorkspaceRuntime
+from basis.domain.graph.session.registry import KbGraphRuntime
 from basis.domain.graph.projection.export import _iter_edges
 from basis.infra.runtime.limits import GRAPH_NODE_SEARCH_MAX_LIMIT, GRAPH_PAGE_MAX_EDGES
 
@@ -22,7 +22,7 @@ def _normalize_neighbor(raw: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def get_node(runtime: KbGraphWorkspaceRuntime, node_id: str) -> dict[str, Any] | None:
+def get_node(runtime: KbGraphRuntime, node_id: str) -> dict[str, Any] | None:
     if runtime.adapter is not None:
         return runtime.adapter.get_node(node_id)
     node = runtime.basis.graph.find_node(node_id)
@@ -38,7 +38,7 @@ def get_node(runtime: KbGraphWorkspaceRuntime, node_id: str) -> dict[str, Any] |
 
 
 def list_neighbors(
-    runtime: KbGraphWorkspaceRuntime,
+    runtime: KbGraphRuntime,
     node_id: str,
     *,
     depth: int = 1,
@@ -63,7 +63,7 @@ def _build_adjacency(session: Any, *, directed: bool) -> dict[str, list[str]]:
 
 
 def find_path(
-    runtime: KbGraphWorkspaceRuntime,
+    runtime: KbGraphRuntime,
     *,
     source: str,
     target: str,
@@ -114,7 +114,7 @@ def find_path(
     return {"found": False, "nodes": [], "algorithm": "bfs", "engine": "bfs"}
 
 
-def _active_node_ids_at(runtime: KbGraphWorkspaceRuntime, at_iso: str) -> set[str]:
+def _active_node_ids_at(runtime: KbGraphRuntime, at_iso: str) -> set[str]:
     from basis.domain.graph.reads.diff import parse_query_dt
 
     at_dt = parse_query_dt(at_iso)
@@ -124,7 +124,7 @@ def _active_node_ids_at(runtime: KbGraphWorkspaceRuntime, at_iso: str) -> set[st
 
 
 def search_nodes(
-    runtime: KbGraphWorkspaceRuntime,
+    runtime: KbGraphRuntime,
     *,
     query: str,
     limit: int = 20,
@@ -173,7 +173,7 @@ def search_nodes(
 
 
 def paginate_edges(
-    runtime: KbGraphWorkspaceRuntime,
+    runtime: KbGraphRuntime,
     *,
     edge_type: str | None = None,
     source: str | None = None,

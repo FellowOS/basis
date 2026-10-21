@@ -9,12 +9,12 @@ pytest.importorskip("semantica")
 from fastapi.testclient import TestClient
 
 from basis.interface.http.app import create_app
-from basis.infra.runtime.capabilities import graph_workspace_available
+from basis.infra.runtime.capabilities import kb_graph_runtime_available
 from basis.infra.runtime.config import Settings
 
 
 def test_temporal_bounds_after_ingest(tmp_path) -> None:
-    if not graph_workspace_available():
+    if not kb_graph_runtime_available():
         pytest.skip("explorer extra not installed")
 
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
@@ -38,7 +38,7 @@ def test_temporal_bounds_after_ingest(tmp_path) -> None:
 
 
 def test_temporal_diff_after_ingest(tmp_path) -> None:
-    if not graph_workspace_available():
+    if not kb_graph_runtime_available():
         pytest.skip("explorer extra not installed")
 
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
@@ -71,7 +71,7 @@ def test_temporal_diff_after_ingest(tmp_path) -> None:
 
 
 def test_graph_diff_includes_edges_summary(tmp_path) -> None:
-    if not graph_workspace_available():
+    if not kb_graph_runtime_available():
         pytest.skip("explorer extra not installed")
 
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
@@ -105,7 +105,7 @@ def test_graph_diff_includes_edges_summary(tmp_path) -> None:
 
 def test_ingest_temporal_bounds_align_with_graph_diff(tmp_path) -> None:
     """F-TIM-03: ledger bounds, end snapshot, and diff from min→max stay consistent after ingest."""
-    if not graph_workspace_available():
+    if not kb_graph_runtime_available():
         pytest.skip("explorer extra not installed")
 
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
@@ -166,7 +166,7 @@ def test_ingest_temporal_bounds_align_with_graph_diff(tmp_path) -> None:
 
 
 def test_enrich_dedup_after_ingest(tmp_path) -> None:
-    if not graph_workspace_available():
+    if not kb_graph_runtime_available():
         pytest.skip("explorer extra not installed")
 
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
@@ -195,7 +195,7 @@ def test_enrich_dedup_after_ingest(tmp_path) -> None:
 
 
 def test_sparql_select_after_ingest(tmp_path) -> None:
-    if not graph_workspace_available():
+    if not kb_graph_runtime_available():
         pytest.skip("explorer extra not installed")
 
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
@@ -224,7 +224,7 @@ def test_sparql_select_after_ingest(tmp_path) -> None:
 
 
 def test_provenance_lineage_after_ingest(tmp_path) -> None:
-    if not graph_workspace_available():
+    if not kb_graph_runtime_available():
         pytest.skip("explorer extra not installed")
 
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
@@ -259,7 +259,7 @@ def test_provenance_lineage_after_ingest(tmp_path) -> None:
 
 
 def test_decisions_list_empty_after_ingest(tmp_path) -> None:
-    if not graph_workspace_available():
+    if not kb_graph_runtime_available():
         pytest.skip("explorer extra not installed")
 
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
@@ -282,7 +282,7 @@ def test_decisions_list_empty_after_ingest(tmp_path) -> None:
 
 
 def test_distance_matrix_after_ingest(tmp_path) -> None:
-    if not graph_workspace_available():
+    if not kb_graph_runtime_available():
         pytest.skip("explorer extra not installed")
 
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
@@ -317,7 +317,7 @@ def test_distance_matrix_after_ingest(tmp_path) -> None:
 
 
 def test_reasoning_run_without_graph_write(tmp_path) -> None:
-    if not graph_workspace_available():
+    if not kb_graph_runtime_available():
         pytest.skip("explorer extra not installed")
 
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
@@ -349,7 +349,7 @@ def test_reasoning_run_without_graph_write(tmp_path) -> None:
 
 
 def test_graph_import_export_roundtrip(tmp_path) -> None:
-    if not graph_workspace_available():
+    if not kb_graph_runtime_available():
         pytest.skip("explorer extra not installed")
 
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
@@ -423,7 +423,7 @@ def test_graph_import_export_roundtrip(tmp_path) -> None:
 
 
 def test_semantic_neighborhood_unknown_node_returns_coded_detail(tmp_path) -> None:
-    if not graph_workspace_available():
+    if not kb_graph_runtime_available():
         pytest.skip("explorer extra not installed")
 
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
@@ -450,7 +450,7 @@ def test_semantic_neighborhood_unknown_node_returns_coded_detail(tmp_path) -> No
 
 
 def test_graph_path_requires_source_and_target(tmp_path) -> None:
-    if not graph_workspace_available():
+    if not kb_graph_runtime_available():
         pytest.skip("explorer extra not installed")
 
     client = TestClient(create_app(Settings(data_dir=tmp_path)))

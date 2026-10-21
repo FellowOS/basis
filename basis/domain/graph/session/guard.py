@@ -1,14 +1,14 @@
-"""Guards for KB-scoped graph workspace session usage."""
+"""Guards for KB-scoped graph session usage."""
 
 from __future__ import annotations
 
 from typing import Any
 
 from basis.domain.errors import AdminError
-from basis.domain.graph.session.registry import KbGraphWorkspaceRuntime
+from basis.domain.graph.session.registry import KbGraphRuntime
 
 
-def require_graph_workspace_session(runtime: KbGraphWorkspaceRuntime) -> Any:
+def require_kb_graph_session(runtime: KbGraphRuntime) -> Any:
     if runtime.adapter is None:
-        raise AdminError(503, "graph_workspace_unavailable", "Graph workspace session unavailable")
+        raise AdminError(503, "kb_graph_session_unavailable", "KB graph session unavailable")
     return runtime.adapter

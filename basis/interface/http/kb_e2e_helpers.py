@@ -13,10 +13,10 @@ from basis.interface.http.deps import get_current_user, get_kb_for_editor, get_k
 from basis.infra.runtime.config import Settings
 from basis.domain.graph.governance.decision import emit_governance_tripped_for_kb
 from basis.domain.ontology.hub.kb_scoped_state import KbOntologyState
-from basis.domain.graph.session.guard import require_graph_workspace_session
+from basis.domain.graph.session.guard import require_kb_graph_session
 from basis.domain.knowledge.services.conflict_review import scan_statement_conflicts
 from basis.domain.knowledge.store import KnowledgeStore
-from basis.interface.http.deps import graph_workspace_runtime_for, save_graph
+from basis.interface.http.deps import kb_graph_runtime_for, save_graph
 from basis.domain.ontology.hub.create_write import create_ontology as create_ontology_write
 from basis.domain.ontology.hub.governance import save_draft, submit_proposal
 from basis.domain.ontology.hub.hub_models import DraftDiff, DraftRequest, ProposalRequest
@@ -47,7 +47,7 @@ async def e2e_governance_trip(
         message="E2E governance gate trip",
         detail={"source": "e2e_governance_trip"},
         actor_id=user.id,
-        runtime_loader=lambda: graph_workspace_runtime_for(request, kb_id),
+        runtime_loader=lambda: kb_graph_runtime_for(request, kb_id),
         persist_graph=lambda kid: save_graph(request, kid),
     )
     return {"decision_id": decision_id}
@@ -127,8 +127,8 @@ async def e2e_ontology_proposal(
         raise AdminError(404, "not_found", "资源不存在")
     get_kb_for_editor(request, user, kb_id, store)
 
-    runtime = graph_workspace_runtime_for(request, kb_id)
-    session = require_graph_workspace_session(runtime)
+    runtime = kb_graph_runtime_for(request, kb_id)
+    session = require_kb_graph_session(runtime)
     namespace = f"http://example.org/e2e-{uuid4().hex}"
     ontology_uri = f"{namespace}#ontology"
     class_uri = f"{namespace}#E2EClass"

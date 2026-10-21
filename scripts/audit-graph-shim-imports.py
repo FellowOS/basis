@@ -13,7 +13,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 GRAPH_ROOT = ROOT / "basis" / "domain" / "graph"
 SCAN_DIRS = (ROOT / "basis", ROOT / "tests")
-ALLOWLIST_PATH = ROOT / "scripts" / "graph-workspace-shim-imports.allowlist"
+ALLOWLIST_PATH = ROOT / "scripts" / "graph-shim-imports.allowlist"
 
 SUBPACKAGES = frozenset(
     {

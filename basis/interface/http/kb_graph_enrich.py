@@ -12,15 +12,15 @@ from basis.domain.errors import AdminError
 from basis.domain.tenancy.admin.store import AdminStore, User
 from basis.interface.http.deps import (
     get_current_user,
-    graph_workspace_runtime_for,
+    kb_graph_runtime_for,
     get_kb_for_editor,
     get_kb_for_viewer,
     get_runtime_limits,
     get_store,
 )
-from basis.domain.graph.session.guard import require_graph_workspace_session
+from basis.domain.graph.session.guard import require_kb_graph_session
 from basis.infra.runtime.limits import RuntimeLimits
-from basis.interface.http.kb_graph_workspace_shared import link_prediction_semaphore
+from basis.interface.http.kb_graph_shared import link_prediction_semaphore
 
 router = APIRouter(tags=["knowledge-bases"])
 
@@ -35,8 +35,8 @@ async def kb_enrich_links(
 Kb Enrich Links. Graph enrichment and governance proposals. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
     """
     get_kb_for_viewer(request, user, kb_id, store)
-    runtime = graph_workspace_runtime_for(request, kb_id)
-    session = require_graph_workspace_session(runtime)
+    runtime = kb_graph_runtime_for(request, kb_id)
+    session = require_kb_graph_session(runtime)
     from basis.domain.graph.governance.enrich_read import predict_links
 
     raw = await request.json()
@@ -70,8 +70,8 @@ async def kb_enrich_dedup(
 Kb Enrich Dedup. Graph enrichment and governance proposals. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
     """
     get_kb_for_viewer(request, user, kb_id, store)
-    runtime = graph_workspace_runtime_for(request, kb_id)
-    session = require_graph_workspace_session(runtime)
+    runtime = kb_graph_runtime_for(request, kb_id)
+    session = require_kb_graph_session(runtime)
     from basis.domain.graph.governance.enrich_read import detect_duplicates
 
     raw = await request.json()
@@ -107,8 +107,8 @@ async def kb_provenance_lineage(
 Kb Provenance Lineage. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
     """
     get_kb_for_viewer(request, user, kb_id, store)
-    runtime = graph_workspace_runtime_for(request, kb_id)
-    session = require_graph_workspace_session(runtime)
+    runtime = kb_graph_runtime_for(request, kb_id)
+    session = require_kb_graph_session(runtime)
     from basis.domain.graph.governance.provenance_read import get_provenance_lineage
 
     return await asyncio.to_thread(get_provenance_lineage, session, node_id)
@@ -127,8 +127,8 @@ async def kb_provenance_report(
 Kb Provenance Report. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
     """
     get_kb_for_viewer(request, user, kb_id, store)
-    runtime = graph_workspace_runtime_for(request, kb_id)
-    session = require_graph_workspace_session(runtime)
+    runtime = kb_graph_runtime_for(request, kb_id)
+    session = require_kb_graph_session(runtime)
     from basis.domain.graph.governance.provenance_read import export_provenance_report
 
     body, media_type, disposition = await asyncio.to_thread(

@@ -1,4 +1,4 @@
-"""Ledger helpers for KB manage workspaces — aggregates sub-routers."""
+"""Ledger helpers for KB manage console — aggregates sub-routers."""
 
 from __future__ import annotations
 

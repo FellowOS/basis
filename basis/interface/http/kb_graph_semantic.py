@@ -10,12 +10,12 @@ from fastapi import APIRouter, Depends, Query, Request
 from basis.domain.errors import AdminError
 from basis.domain.tenancy.admin.store import AdminStore, User
 from basis.interface.http.deps import (
-    graph_workspace_runtime_for,
+    kb_graph_runtime_for,
     get_current_user,
     get_kb_for_viewer,
     get_store,
 )
-from basis.domain.graph.session.guard import require_graph_workspace_session
+from basis.domain.graph.session.guard import require_kb_graph_session
 
 router = APIRouter(tags=["knowledge-bases"])
 
@@ -33,8 +33,8 @@ async def kb_graph_semantic_neighborhood(
 Kb Graph Semantic Neighborhood. Projected graph read API (Explorer runtime). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
     """
     get_kb_for_viewer(request, user, kb_id, store)
-    runtime = graph_workspace_runtime_for(request, kb_id)
-    session = require_graph_workspace_session(runtime)
+    runtime = kb_graph_runtime_for(request, kb_id)
+    session = require_kb_graph_session(runtime)
     from basis.domain.graph.reads.semantic_read import semantic_neighborhood
 
     return await asyncio.to_thread(
@@ -57,8 +57,8 @@ async def kb_graph_distance_matrix(
 Kb Graph Distance Matrix. Projected graph read API (Explorer runtime). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
     """
     get_kb_for_viewer(request, user, kb_id, store)
-    runtime = graph_workspace_runtime_for(request, kb_id)
-    session = require_graph_workspace_session(runtime)
+    runtime = kb_graph_runtime_for(request, kb_id)
+    session = require_kb_graph_session(runtime)
     from basis.domain.graph.reads.semantic_read import distance_matrix
 
     raw = await request.json()

@@ -10,7 +10,7 @@ from fastapi import APIRouter, Depends, Request
 from basis.domain.errors import AdminError
 from basis.domain.tenancy.admin.store import AdminStore, User
 from basis.interface.http.deps import (
-    graph_workspace_runtime_for,
+    kb_graph_runtime_for,
     get_current_user,
     get_kb_for_editor,
     get_kb_for_viewer,
@@ -123,7 +123,7 @@ async def graph_nodes_route(
 Graph Nodes Route. Projected graph read API (Explorer runtime). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
     """
     get_kb_for_viewer(request, user, kb_id, store)
-    runtime = graph_workspace_runtime_for(request, kb_id)
+    runtime = kb_graph_runtime_for(request, kb_id)
     page_limit = min(max(1, limit), limits.graph_page_max_nodes)
     if runtime.adapter is not None:
         nodes, total, next_cursor = runtime.adapter.paginate_nodes(
@@ -161,7 +161,7 @@ Resolve Graph Node Labels. Projected graph read API (Explorer runtime). Requires
     get_kb_for_viewer(request, user, kb_id, store)
     ids = [str(i).strip() for i in body.ids if str(i).strip()]
     labels = knowledge.entity_labels_by_ids(kb_id, ids)
-    runtime = graph_workspace_runtime_for(request, kb_id)
+    runtime = kb_graph_runtime_for(request, kb_id)
     for node_id in ids:
         if labels.get(node_id):
             continue
@@ -187,7 +187,7 @@ async def graph_node_route(
 Graph Node Route. Projected graph read API (Explorer runtime). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
     """
     get_kb_for_viewer(request, user, kb_id, store)
-    runtime = graph_workspace_runtime_for(request, kb_id)
+    runtime = kb_graph_runtime_for(request, kb_id)
     node = await asyncio.to_thread(get_node, runtime, node_id)
     if node is None:
         raise AdminError(404, "not_found", "节点不存在")
@@ -264,7 +264,7 @@ async def graph_edges_route(
 Graph Edges Route. Projected graph read API (Explorer runtime). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
     """
     get_kb_for_viewer(request, user, kb_id, store)
-    runtime = graph_workspace_runtime_for(request, kb_id)
+    runtime = kb_graph_runtime_for(request, kb_id)
     return await asyncio.to_thread(
         paginate_edges,
         runtime,

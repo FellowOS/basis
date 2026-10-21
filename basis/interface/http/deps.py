@@ -11,7 +11,7 @@ from basis.domain.graph.projection.projection_lifecycle import (
     rebuild_kb_projection as rebuild_kb_projection_bindings,
     save_graph as save_graph_bindings,
 )
-from basis.domain.graph.session.registry import KbGraphWorkspaceRuntime
+from basis.domain.graph.session.registry import KbGraphRuntime
 from basis.domain.tenancy.admin.store import AdminStore, ApiTokenRecord, User
 from basis.domain.graph.projection.snapshot_store import GraphPersistence
 from basis.domain.graph.projection.session import GraphSession
@@ -45,8 +45,8 @@ def get_runtime_limits(request: Request) -> RuntimeLimits:
     return request.app.state.limits
 
 
-def get_graph_workspace_registry(request: Request):
-    return request.app.state.graph_workspace_registry
+def get_kb_graph_session_registry(request: Request):
+    return request.app.state.kb_graph_session_registry
 
 
 def graph_projection_bindings(request: Request) -> GraphProjectionBindings:
@@ -66,15 +66,15 @@ def graph_projection_bindings(request: Request) -> GraphProjectionBindings:
         graphs=request.app.state.graphs,
         persistence=get_graph_persistence(request),
         knowledge=get_knowledge_store(request),
-        graph_workspace_registry=get_graph_workspace_registry(request),
+        kb_graph_session_registry=get_kb_graph_session_registry(request),
         persist_ontology_hub=lambda kb_id: persist_kb_ontology_hub(request, kb_id),
         broadcast_projection=_broadcast,
     )
 
 
-def graph_workspace_runtime_for(request: Request, kb_id: str) -> KbGraphWorkspaceRuntime:
+def kb_graph_runtime_for(request: Request, kb_id: str) -> KbGraphRuntime:
     bindings = graph_projection_bindings(request)
-    return get_graph_workspace_registry(request).get(
+    return get_kb_graph_session_registry(request).get(
         kb_id,
         knowledge=bindings.knowledge,
         basis_for_kb=lambda kid: graph_session_for_kb(bindings, kid),

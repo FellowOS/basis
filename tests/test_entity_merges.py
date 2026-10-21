@@ -10,7 +10,7 @@ from fastapi.testclient import TestClient
 
 from basis.domain.tenancy.admin.store import AdminStore
 from basis.interface.http.app import create_app
-from basis.infra.runtime.capabilities import graph_workspace_available
+from basis.infra.runtime.capabilities import kb_graph_runtime_available
 from basis.infra.runtime.config import Settings
 from basis.domain.graph.projection.projector import rebuild_graph_from_ledger
 from basis.domain.graph.projection.snapshot_store import GraphPersistence
@@ -45,7 +45,7 @@ def test_record_and_list_entity_merges(tmp_path: Path) -> None:
 
 
 def test_approve_entity_merge_records_ledger_rows(tmp_path: Path) -> None:
-    if not graph_workspace_available():
+    if not kb_graph_runtime_available():
         pytest.skip("explorer extra not installed")
 
     settings = Settings(data_dir=tmp_path)
@@ -64,7 +64,7 @@ def test_approve_entity_merge_records_ledger_rows(tmp_path: Path) -> None:
     session = rebuild_graph_from_ledger(knowledge, kb_id)
     revision = knowledge.bump_projection_revision(kb_id)
     app.state.graph_persistence.save(kb_id, session, projection_revision=revision)
-    app.state.graph_workspace_registry.invalidate(kb_id)
+    app.state.kb_graph_session_registry.invalidate(kb_id)
 
     proposed = client.post(
         f"/api/v1/kbs/{kb_id}/review/items/entity-merge",
@@ -121,7 +121,7 @@ def test_revert_entity_merge(tmp_path: Path) -> None:
 
 
 def test_revert_entity_merge_refreshes_explorer_nodes(tmp_path: Path) -> None:
-    if not graph_workspace_available():
+    if not kb_graph_runtime_available():
         pytest.skip("explorer extra not installed")
 
     settings = Settings(data_dir=tmp_path)

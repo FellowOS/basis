@@ -70,7 +70,7 @@ def register_kb_ontology_hub_catalog_routes(router: APIRouter) -> None:
         store: AdminStore = Depends(get_store),
     ) -> Any:
         """
-Kb Ont 1 Preview Ontology. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Kb Ont 1 Preview Ontology. Ontology hub (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
         """
         get_kb_for_role(request, user, kb_id, store, min_role("POST"))
         with KbOntologyState(request, kb_id):
@@ -93,7 +93,7 @@ Kb Ont 1 Preview Ontology. Ontology workspace (SKOS, alignments) via Explorer. R
         store: AdminStore = Depends(get_store),
     ) -> Any:
         """
-Kb Ont 2 Load Ontology. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Kb Ont 2 Load Ontology. Ontology hub (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
         """
         get_kb_for_role(request, user, kb_id, store, min_role("POST"))
         session = ontology_session(request, kb_id)
@@ -128,7 +128,7 @@ Kb Ont 2 Load Ontology. Ontology workspace (SKOS, alignments) via Explorer. Requ
         store: AdminStore = Depends(get_store),
     ) -> Any:
         """
-Kb Ont 3 Create Ontology. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Kb Ont 3 Create Ontology. Ontology hub (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
         """
         get_kb_for_role(request, user, kb_id, store, min_role("POST"))
         session = ontology_session(request, kb_id)
@@ -164,7 +164,7 @@ Kb Ont 3 Create Ontology. Ontology workspace (SKOS, alignments) via Explorer. Re
         store: AdminStore = Depends(get_store),
     ) -> Any:
         """
-Kb Ont 4 Search Entities. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Kb Ont 4 Search Entities. Ontology hub (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
         """
         get_kb_for_role(request, user, kb_id, store, min_role("GET"))
         session = ontology_session(request, kb_id)
@@ -187,7 +187,7 @@ Kb Ont 4 Search Entities. Ontology workspace (SKOS, alignments) via Explorer. Re
         store: AdminStore = Depends(get_store),
     ) -> Any:
         """
-Kb Ont 5 Get Ontology Graph. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Kb Ont 5 Get Ontology Graph. Ontology hub (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
         """
         get_kb_for_role(request, user, kb_id, store, min_role("GET"))
         session = ontology_session(request, kb_id)
@@ -210,7 +210,7 @@ Kb Ont 5 Get Ontology Graph. Ontology workspace (SKOS, alignments) via Explorer.
         store: AdminStore = Depends(get_store),
     ) -> Any:
         """
-Kb Ont 6 Get Entity Detail. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Kb Ont 6 Get Entity Detail. Ontology hub (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
         """
         get_kb_for_role(request, user, kb_id, store, min_role("GET"))
         session = ontology_session(request, kb_id)
@@ -232,7 +232,7 @@ Kb Ont 6 Get Entity Detail. Ontology workspace (SKOS, alignments) via Explorer. 
         store: AdminStore = Depends(get_store),
     ) -> Any:
         """
-Kb Ont 7 List Skos Schemes. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Kb Ont 7 List Skos Schemes. Ontology hub (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
         """
         get_kb_for_role(request, user, kb_id, store, min_role("GET"))
         session = ontology_session(request, kb_id)
@@ -249,7 +249,7 @@ Kb Ont 7 List Skos Schemes. Ontology workspace (SKOS, alignments) via Explorer. 
         store: AdminStore = Depends(get_store),
     ) -> Any:
         """
-Kb Ont 8 Search Skos Concepts. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Kb Ont 8 Search Skos Concepts. Ontology hub (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
         """
         get_kb_for_role(request, user, kb_id, store, min_role("POST"))
         session = ontology_session(request, kb_id)
@@ -273,7 +273,7 @@ Kb Ont 8 Search Skos Concepts. Ontology workspace (SKOS, alignments) via Explore
         store: AdminStore = Depends(get_store),
     ) -> Any:
         """
-Kb Ont 9 Get Skos Concept. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Kb Ont 9 Get Skos Concept. Ontology hub (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
         """
         get_kb_for_role(request, user, kb_id, store, min_role("GET"))
         session = ontology_session(request, kb_id)
@@ -290,7 +290,7 @@ Kb Ont 9 Get Skos Concept. Ontology workspace (SKOS, alignments) via Explorer. R
         store: AdminStore = Depends(get_store),
     ) -> Any:
         """
-Kb Ont 10 Ontology Health. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Kb Ont 10 Ontology Health. Ontology hub (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
         """
         get_kb_for_role(request, user, kb_id, store, min_role("GET"))
         session = ontology_session(request, kb_id)
@@ -309,7 +309,7 @@ Kb Ont 10 Ontology Health. Ontology workspace (SKOS, alignments) via Explorer. R
         store: AdminStore = Depends(get_store),
     ) -> Any:
         """
-Kb Ont 11 Generate Shacl. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Kb Ont 11 Generate Shacl. Ontology hub (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
         """
         get_kb_for_role(request, user, kb_id, store, min_role("POST"))
         session = ontology_session(request, kb_id)
@@ -334,7 +334,7 @@ Kb Ont 11 Generate Shacl. Ontology workspace (SKOS, alignments) via Explorer. Re
         store: AdminStore = Depends(get_store),
     ) -> Any:
         """
-Kb Ont 12 List Shacl Shapes. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Kb Ont 12 List Shacl Shapes. Ontology hub (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
         """
         get_kb_for_role(request, user, kb_id, store, min_role("GET"))
         session = ontology_session(request, kb_id)
@@ -352,7 +352,7 @@ Kb Ont 12 List Shacl Shapes. Ontology workspace (SKOS, alignments) via Explorer.
         store: AdminStore = Depends(get_store),
     ) -> Any:
         """
-Kb Ont 13 Validate Shacl. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Kb Ont 13 Validate Shacl. Ontology hub (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
         """
         get_kb_for_role(request, user, kb_id, store, min_role("POST"))
         session = ontology_session(request, kb_id)
@@ -377,7 +377,7 @@ Kb Ont 13 Validate Shacl. Ontology workspace (SKOS, alignments) via Explorer. Re
         store: AdminStore = Depends(get_store),
     ) -> Any:
         """
-Kb Ont 14 Remove Ontology. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Kb Ont 14 Remove Ontology. Ontology hub (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
         """
         get_kb_for_role(request, user, kb_id, store, min_role("DELETE"))
         with KbOntologyState(request, kb_id):
@@ -399,7 +399,7 @@ Kb Ont 14 Remove Ontology. Ontology workspace (SKOS, alignments) via Explorer. R
         store: AdminStore = Depends(get_store),
     ) -> Any:
         """
-Kb Ont 15 Toggle Ontology. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Kb Ont 15 Toggle Ontology. Ontology hub (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
         """
         get_kb_for_role(request, user, kb_id, store, min_role("PATCH"))
         with KbOntologyState(request, kb_id):
@@ -418,7 +418,7 @@ Kb Ont 15 Toggle Ontology. Ontology workspace (SKOS, alignments) via Explorer. R
         store: AdminStore = Depends(get_store),
     ) -> Any:
         """
-Kb Ont 16 Refresh Ontology. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Kb Ont 16 Refresh Ontology. Ontology hub (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
         """
         get_kb_for_role(request, user, kb_id, store, min_role("POST"))
         session = ontology_session(request, kb_id)

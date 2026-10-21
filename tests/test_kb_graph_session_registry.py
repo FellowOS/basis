@@ -5,15 +5,15 @@ import time
 from basis.domain.graph.session.basis_kb_graph_session import BasisKbGraphSession
 from basis.domain.graph.session.probe import build_kb_graph_adapter
 from basis.domain.graph.session.registry import (
-    GraphWorkspaceSessionRegistry,
-    KbGraphWorkspaceRuntime,
+    KbGraphSessionRegistry,
+    KbGraphRuntime,
     _adapter_wrapped_graph,
-    _rebuild_workspace_adapter,
+    _rebuild_kb_graph_adapter,
 )
 from basis.domain.graph.projection.session import GraphSession
 
 
-def test_rebuild_workspace_adapter_tracks_basis_graph_swap() -> None:
+def test_rebuild_kb_graph_adapter_tracks_basis_graph_swap() -> None:
     session = GraphSession()
     session.add_node("a", "entity", content="A")
     stale = type("E", (), {"graph": session.graph})()
@@ -23,7 +23,7 @@ def test_rebuild_workspace_adapter_tracks_basis_graph_swap() -> None:
     session.add_node("b", "entity", content="B")
     assert _adapter_wrapped_graph(stale) is not session.graph
 
-    fresh = _rebuild_workspace_adapter(session)
+    fresh = _rebuild_kb_graph_adapter(session)
     assert fresh is not None
     assert _adapter_wrapped_graph(fresh) is session.graph
     assert isinstance(fresh, BasisKbGraphSession)
@@ -36,9 +36,9 @@ def test_build_kb_graph_adapter_is_basis() -> None:
 
 
 def test_evict_idle_drops_stale_runtimes() -> None:
-    registry = GraphWorkspaceSessionRegistry(idle_seconds=1)
+    registry = KbGraphSessionRegistry(idle_seconds=1)
     session = GraphSession()
-    registry._cache["kb-stale"] = KbGraphWorkspaceRuntime(
+    registry._cache["kb-stale"] = KbGraphRuntime(
         kb_id="kb-stale",
         projection_revision=1,
         basis=session,

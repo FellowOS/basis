@@ -16,7 +16,7 @@ from basis.interface.http.deps import (
     save_graph,
 )
 from basis.domain.knowledge.services.graph_audit import audit_kb_graph
-from basis.interface.http.kb_ontology_session import graph_workspace_session
+from basis.interface.http.kb_ontology_session import kb_graph_session
 
 router = APIRouter(tags=["knowledge-bases"])
 
@@ -33,7 +33,7 @@ Kb Vocabulary Schemes. Requires KB membership (session) or KB API token with rea
     get_kb_for_viewer(request, user, kb_id, store)
     from basis.domain.ontology.vocabulary.read import list_schemes
 
-    session = graph_workspace_session(request, kb_id)
+    session = kb_graph_session(request, kb_id)
     return await asyncio.to_thread(list_schemes, session)
 
 
@@ -52,7 +52,7 @@ Kb Vocabulary Concepts. Requires KB membership (session) or KB API token with re
     get_kb_for_viewer(request, user, kb_id, store)
     from basis.domain.ontology.vocabulary.read import list_concepts
 
-    session = graph_workspace_session(request, kb_id)
+    session = kb_graph_session(request, kb_id)
     return await asyncio.to_thread(list_concepts, session, scheme=scheme, search=search)
 
 
@@ -70,7 +70,7 @@ Kb Vocabulary Hierarchy. Requires KB membership (session) or KB API token with r
     get_kb_for_viewer(request, user, kb_id, store)
     from basis.domain.ontology.vocabulary.read import get_hierarchy
 
-    session = graph_workspace_session(request, kb_id)
+    session = kb_graph_session(request, kb_id)
     return await asyncio.to_thread(get_hierarchy, session, scheme=scheme)
 
 
@@ -90,7 +90,7 @@ Kb Vocabulary Import. Requires KB membership (session) or KB API token with read
     get_kb_for_editor(request, user, kb_id, store)
     from basis.domain.ontology.vocabulary.write import import_vocabulary
 
-    session = graph_workspace_session(request, kb_id)
+    session = kb_graph_session(request, kb_id)
     if file is not None:
         content = await file.read()
         result = await asyncio.to_thread(

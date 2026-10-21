@@ -45,6 +45,7 @@ export const apiErrorCodes = {
   semantic_unavailable: "Semantic similarity is unavailable for this graph.",
   semantic_node_not_found: "Selected node was not found by the semantic distance API.",
   explorer_unavailable: "Explorer graph session is unavailable. Check dependencies and restart the server.",
+  kb_graph_session_unavailable: "KB graph session is unavailable. Check dependencies and restart the server.",
   explorer_graph_error: "The Explorer graph API returned an error.",
   bad_path: "Path lookup requires both source and target node IDs.",
   bad_signature: "Mapping signature cannot be empty.",

@@ -10,12 +10,12 @@ from fastapi import APIRouter, Depends, Query, Request
 from basis.domain.tenancy.admin.store import AdminStore, User
 from basis.interface.http.deps import (
     get_current_user,
-    graph_workspace_runtime_for,
+    kb_graph_runtime_for,
     get_kb_for_viewer,
     get_knowledge_store,
     get_store,
 )
-from basis.domain.graph.session.guard import require_graph_workspace_session
+from basis.domain.graph.session.guard import require_kb_graph_session
 
 router = APIRouter(tags=["knowledge-bases"])
 
@@ -33,8 +33,8 @@ async def kb_temporal_bounds(
     `min` / `max` fall back to ledger timestamps (statements, facts, current document version).
     """
     get_kb_for_viewer(request, user, kb_id, store)
-    runtime = graph_workspace_runtime_for(request, kb_id)
-    session = require_graph_workspace_session(runtime)
+    runtime = kb_graph_runtime_for(request, kb_id)
+    session = require_kb_graph_session(runtime)
     from basis.domain.graph.temporal.read import get_temporal_bounds
 
     base_bounds = await asyncio.to_thread(get_temporal_bounds, session)
@@ -63,8 +63,8 @@ async def kb_temporal_snapshot(
     projector supports `state_at`, falls back to the same snapshot used by `GET .../graph/diff`.
     """
     get_kb_for_viewer(request, user, kb_id, store)
-    runtime = graph_workspace_runtime_for(request, kb_id)
-    session = require_graph_workspace_session(runtime)
+    runtime = kb_graph_runtime_for(request, kb_id)
+    session = require_kb_graph_session(runtime)
     from basis.domain.graph.reads.diff import parse_query_dt
     from basis.domain.graph.temporal.read import get_temporal_snapshot
     from basis.domain.graph.projection.projector import build_temporal_graph_from_ledger
@@ -113,8 +113,8 @@ async def kb_temporal_diff(
 Kb Temporal Diff. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
     """
     get_kb_for_viewer(request, user, kb_id, store)
-    runtime = graph_workspace_runtime_for(request, kb_id)
-    session = require_graph_workspace_session(runtime)
+    runtime = kb_graph_runtime_for(request, kb_id)
+    session = require_kb_graph_session(runtime)
     from basis.domain.graph.reads.diff import diff_session_at
     from basis.domain.graph.projection.projector import build_temporal_graph_from_ledger
 

@@ -10,14 +10,14 @@ from fastapi import APIRouter, Depends, Request
 from basis.domain.errors import AdminError
 from basis.domain.tenancy.admin.store import AdminStore, User
 from basis.interface.http.deps import (
-    graph_workspace_runtime_for,
+    kb_graph_runtime_for,
     get_current_user,
     get_knowledge_store,
     get_store,
     rebuild_kb_projection,
     save_graph,
 )
-from basis.domain.graph.session.guard import require_graph_workspace_session
+from basis.domain.graph.session.guard import require_kb_graph_session
 from basis.domain.knowledge.services.graph_audit import audit_kb_graph
 from basis.domain.knowledge.store import KnowledgeStore
 
@@ -47,8 +47,8 @@ Kb Reasoning Run. KB-local reasoning rules and runs. Requires KB membership (ses
     apply_to_graph = bool(raw.get("apply_to_graph", False))
     role = "editor" if apply_to_graph else "viewer"
     store.get_kb_for(user, kb_id, role)
-    runtime = graph_workspace_runtime_for(request, kb_id)
-    session = require_graph_workspace_session(runtime)
+    runtime = kb_graph_runtime_for(request, kb_id)
+    session = require_kb_graph_session(runtime)
     summary = await asyncio.to_thread(
         run_reasoning,
         session,
