@@ -72,8 +72,8 @@ KB_MOVES: tuple[tuple[str, str], ...] = (
 )
 
 PLATFORM_MOVES: tuple[tuple[str, str], ...] = (
-    ("auth.py", "platform/auth.py"),
-    ("oauth.py", "platform/oauth/__init__.py"),
+    ("auth.py", "platform/auth/session.py"),
+    ("oauth.py", "platform/auth/__init__.py"),
     ("organizations.py", "platform/organizations.py"),
     ("settings.py", "platform/settings.py"),
     ("platform.py", "platform/platform.py"),

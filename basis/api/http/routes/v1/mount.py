@@ -28,7 +28,6 @@ from basis.api.http.routes.v1.platform import auth
 from basis.api.http.routes.v1.platform import mcp
 from basis.api.http.routes.v1.platform import model_providers
 from basis.api.http.routes.v1.platform import models as models_routes
-from basis.api.http.routes.v1.platform import oauth
 from basis.api.http.routes.v1.platform import organizations
 from basis.api.http.routes.v1.platform import platform
 from basis.api.http.routes.v1.platform import realtime
@@ -70,7 +69,6 @@ def register_v1_api_routers(
 
     for root in roots:
         app.include_router(auth.router, prefix=f"{root}/auth")
-        app.include_router(oauth.router, prefix=f"{root}/auth")
         app.include_router(platform.router, prefix=f"{root}/platform")
         app.include_router(organizations.router, prefix=f"{root}/orgs")
         app.include_router(users.router, prefix=root)

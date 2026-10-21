@@ -11,7 +11,7 @@ from basis.api.http.deps import get_store
 from basis.control.identity.http_paths import auth_v1_path
 from basis.control.identity.saml_capabilities import saml_sp_available
 
-from basis.api.http.routes.v1.platform.oauth.support import auth_settings
+from basis.api.http.routes.v1.platform.auth.support import auth_settings
 
 router = APIRouter()
 

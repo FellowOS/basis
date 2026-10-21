@@ -129,7 +129,7 @@ KB HTTP surface is split under `api/http/routes/v1/kb/` (paths/operationIds unch
 
 Other KB modules under `kb/`: `e2e_helpers.py` (test-only when enabled).
 
-Platform federated login: `api/http/routes/v1/platform/oauth/` (`bootstrap`, `social`, `oidc`, `saml`, `magic_link`; shared helpers in `support.py`). Mounted at `/api/v1/auth` beside `auth.py` (password session).
+Platform login HTTP: `api/http/routes/v1/platform/auth/` — `session.py` (password register/login/logout/me/desktop) plus federated modules (`bootstrap`, `social`, `oidc`, `saml`, `magic_link`; `support.py`). Mounted once at `/api/v1/auth`.
 
 `basis/core/explorer/graph/` — projection adapters. `ontology/` — hub logic; HTTP in `api/http/routes/v1/kb/ontology/hub/`. `session/`, `governance/`, `vocabulary/`, `temporal/`, `sparql/`, `reasoning/`, `io/` — see [explorer README](../../basis/core/explorer/README.md).
 

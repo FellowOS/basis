@@ -15,7 +15,7 @@ from basis.control.identity.magic_link import deliver_magic_link
 from basis.control.identity.org_login_policy import assert_local_login_allowed
 from basis.control.identity.http_paths import auth_v1_path
 
-from basis.api.http.routes.v1.platform.oauth.support import auth_settings, redirect_with_token
+from basis.api.http.routes.v1.platform.auth.support import auth_settings, redirect_with_token
 
 router = APIRouter()
 

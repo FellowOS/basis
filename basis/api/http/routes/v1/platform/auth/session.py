@@ -11,7 +11,7 @@ from basis.control.identity.desktop_principal import issue_desktop_session_token
 from basis.control.identity.org_login_policy import assert_local_login_allowed
 from basis.control.identity.settings import load_auth_settings_from_store
 
-router = APIRouter(tags=["auth"])
+router = APIRouter()
 
 
 def _reject_if_desktop(request: Request) -> None:
