@@ -29,8 +29,6 @@ Basis is an open-source stack on the [Semantica](https://github.com/semantica-ag
 - **Agent APIs** — KB-scoped **OpenAPI v1** and **MCP** (`search_chunks`, `find_entities`, connector tools, review ops).
 - **Platform** — users, org SSO (OIDC/SAML optional), KB roles, API tokens, audit.
 
-After `npm run dev`, in-app product docs: **`http://127.0.0.1:5173/docs`** · API explorer: **`/swagger`** · live spec: **`/openapi/v1.json`**.
-
 ---
 
 ## Architecture
@@ -83,6 +81,8 @@ cd web && npm install && npm run dev
 ```
 
 Open `http://127.0.0.1:5173` · register — the **first user** becomes platform admin.
+
+In-app product docs: **`http://127.0.0.1:5173/docs`** · API explorer: **`http://127.0.0.1:8090/swagger`** · live spec: **`http://127.0.0.1:8090/openapi/v1.json`**.
 
 ### 3. Smoke-test in the UI
 

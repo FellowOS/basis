@@ -27,8 +27,6 @@ Basis 是基于 [Semantica](https://github.com/semantica-agi/semantica) Python S
 - **智能体接口** — 库级 **OpenAPI v1** 与 **MCP**（检索、图、连接器、审核等工具）。
 - **平台** — 用户、组织 SSO（可选 OIDC/SAML）、KB 角色、API 令牌、审计。
 
-`npm run dev` 后：产品文档 **`http://127.0.0.1:5173/docs`** · 接口 **`/swagger`** · 规范 **`/openapi/v1.json`**。
-
 ---
 
 ## 架构
@@ -81,6 +79,8 @@ cd web && npm install && npm run dev
 ```
 
 浏览器打开 `http://127.0.0.1:5173`，**首个注册用户**为平台管理员。
+
+产品文档 **`http://127.0.0.1:5173/docs`** · 接口探索 **`http://127.0.0.1:8090/swagger`** · 在线规范 **`http://127.0.0.1:8090/openapi/v1.json`**。
 
 ### 3. 冒烟验证
 
