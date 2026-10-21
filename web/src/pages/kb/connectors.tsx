@@ -35,6 +35,7 @@ import { useI18n } from '@/i18n/context.js';
 import { fmt, formatLocaleDateTime } from '@/i18n/format.js';
 import type { Locale } from '@/i18n/locale.js';
 import { formatUserFacingApiError } from '@/lib/api-error-message.js';
+import { ConnectorMappingSuggestDialog } from '@/components/app/kb/connectors/connector-mapping-suggest-dialog.js';
 import {
   kbConnectorMappingEditPath,
   kbConnectorMappingNewPath,
@@ -184,6 +185,7 @@ export function KbConnectorsPage() {
   const [syncingId, setSyncingId] = useState<string | null>(null);
   const [deleteMappingId, setDeleteMappingId] = useState<string | null>(null);
   const [deletingMappingId, setDeletingMappingId] = useState<string | null>(null);
+  const [suggestMappingsOpen, setSuggestMappingsOpen] = useState(false);
 
   const loadCatalogAndConnections = useCallback(async () => {
     if (!kbId) return;
@@ -677,14 +679,33 @@ export function KbConnectorsPage() {
               title={c.mappings.title}
               subtitle={c.mappings.subtitle}
               actions={
-                <Button
-                  size="sm"
-                  onClick={() => goToNewMapping()}
-                  data-testid="create-table-mapping-btn"
-                >
-                  <PublicIcon name="plus-01" size={14} className="mr-1" />
-                  {c.mappings.createButton}
-                </Button>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    asChild
+                  >
+                    <Link to={kbPath(kbId, 'onboarding/data')}>
+                      {c.mappings.wizardLink}
+                    </Link>
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setSuggestMappingsOpen(true)}
+                    data-testid="suggest-table-mappings-btn"
+                  >
+                    {c.mappings.suggestButton}
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={() => goToNewMapping()}
+                    data-testid="create-table-mapping-btn"
+                  >
+                    <PublicIcon name="plus-01" size={14} className="mr-1" />
+                    {c.mappings.createButton}
+                  </Button>
+                </div>
               }
             />
             <DataPanelBody padded={false}>
@@ -1011,6 +1032,15 @@ export function KbConnectorsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {kbId ? (
+        <ConnectorMappingSuggestDialog
+          kbId={kbId}
+          open={suggestMappingsOpen}
+          onOpenChange={setSuggestMappingsOpen}
+          onApplied={() => void loadMappings()}
+        />
+      ) : null}
 
       <AlertDialog
         open={deleteMappingId !== null}

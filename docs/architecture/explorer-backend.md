@@ -3,7 +3,7 @@
 **最后更新：** 2026-10-20  
 **相关：** [explorer-integration.md](explorer-integration.md)（多 KB 产品与 WS）· [package-layout.md](package-layout.md) · [ADR 0001](adrs/0001-canonical-knowledge-model.md)
 
-Basis 以 **Semantica 核心 SDK** 承载图能力；**KB Explorer HTTP** 由 `basis/core/explorer/*` 与 `BasisKbGraphSession` 实现，对接 vendored `web/src/explorer` 的 OpenAPI 契约。线 1 迁移已于 2026-10 完成；日常状态见 [progress.md §3.4](../progress.md)。
+Basis 以 **Semantica 核心 SDK** 承载图能力；**KB Explorer HTTP** 由 `basis/domain/graph/explorer/*` 与 `BasisKbGraphSession` 实现，对接 vendored `web/src/explorer` 的 OpenAPI 契约。线 1 迁移已于 2026-10 完成；日常状态见 [progress.md §3.4](../progress.md)。
 
 **不在范围：** 企业 OWL（如 FIBO）导入后画布节点/边「更满」——不作为 Basis 交付项。
 
@@ -11,18 +11,18 @@ Basis 以 **Semantica 核心 SDK** 承载图能力；**KB Explorer HTTP** 由 `b
 
 ## 会话注册表
 
-`basis.core.explorer.session.registry.ExplorerSessionRegistry` 为每个 KB 缓存：
+`basis.domain.graph.explorer.session.registry.ExplorerSessionRegistry` 为每个 KB 缓存：
 
 | 组件 | 类型 | 作用 |
 | --- | --- | --- |
-| `basis` | `basis.core.projection.GraphSession` | **Canonical** 可变图（持久化、投影、账本 rebuild） |
+| `basis` | `basis.domain.graph.projection.GraphSession` | **Canonical** 可变图（持久化、投影、账本 rebuild） |
 | `explorer` | `BasisKbGraphSession` | Explorer HTTP 适配：邻域、时态、`search`、本体写入等 |
 
 加载：`graph_for(request, kb_id)` → 同一 `ContextGraph` → `build_kb_graph_adapter` → `BasisKbGraphSession`。
 
 ### HTTP 接线
 
-- 路由：`api/http/routes/v1/kb/explorer/*`、`kb/ontology/*`（含 `ontology/hub/`）→ `basis/core/explorer/<subpackage>/`。
+- 路由：`interface/http/kb_explorer_*.py`、`kb_ontology_*`（含 hub）→ `basis/domain/graph/explorer/<subpackage>/`。
 - 会话：`require_explorer_graph_session(runtime)` → `runtime.explorer`。
 - 图读：`explorer/graph/read.py`（节点、邻域、搜索、边分页）。
 
@@ -46,28 +46,28 @@ Basis 以 **Semantica 核心 SDK** 承载图能力；**KB Explorer HTTP** 由 `b
 ```text
 semantica.context.ContextGraph
         ↑
-basis.core.projection.GraphSession
+basis.domain.graph.projection.GraphSession
         ↑
 持久化 / projector / ledger
         ↑
-basis.core.explorer.BasisKbGraphSession
+basis.domain.graph.explorer.BasisKbGraphSession
         ↑
-basis/core/explorer/* + api/http/routes/v1/kb/*
+basis/domain/graph/explorer/* + interface/http/kb_*
 ```
 
 | 能力 | 实现位置 |
 | --- | --- |
 | 图会话 | `session.probe.build_kb_graph_adapter` → `BasisKbGraphSession` |
-| RDF / SKOS | `core/explorer/io/rdf_parse.py` |
+| RDF / SKOS | `domain/graph/explorer/io/rdf_parse.py` |
 | 本体 Hub 元数据 | `ontology/*` + sidecar（见下节） |
-| 向量 / 文库搜索 | `core/ledger/search/*`（非 Explorer 图 scan） |
+| 向量 / 文库搜索 | `domain/knowledge/search/*`（非 Explorer 图 scan） |
 
 ### 维护原则
 
 1. **单一图真相：** 读写经 `graph_for` / 域服务进入同一 `ContextGraph`。
 2. **契约稳定：** 对 `web/src/explorer` 的 HTTP 以 OpenAPI snapshot + e2e 为准。
-3. **新逻辑在 `basis/core`：** 禁止恢复已删除的兼容 shim 路径；CI 见下表。
-4. **`load_ontology` 产品语义不变；** 实现位于 `core/explorer/ontology/`。
+3. **新逻辑在 `basis/domain`（L3）：** 禁止恢复已删除的兼容 shim 路径；CI 见下表。
+4. **`load_ontology` 产品语义不变；** 实现位于 `domain/graph/explorer/ontology/`。
 
 ### CI 护栏
 
@@ -79,8 +79,8 @@ basis/core/explorer/* + api/http/routes/v1/kb/*
 | `audit-explorer-shim-imports.py` | 禁止顶层 explorer 兼容 shim |
 | `audit-compat-shim-imports.py` | 禁止已删 platform/transport 兼容 re-export |
 | `audit-kb-http-aggregators.py` | KB 聚合模块不得定义 `@router` handler |
-| `audit-legacy-package-imports.py` | 禁止 `basis.transport` / `basis.domain` 等旧包名 |
-| `lint-imports` (`importlinter.ini`) | `core` ↛ `api` / `application` / `control`；`application.mcp.openapi` ↛ `api` |
+| `audit-legacy-package-imports.py` | 禁止 `basis.api` / `basis.core` / `basis.transport` 等旧 import 前缀 |
+| `lint-imports` (`importlinter.ini`) | domain ↛ `interface` / `application`；`application` ↛ `interface.http`；`contract.mcp.openapi` ↛ `interface.http` |
 
 ---
 

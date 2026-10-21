@@ -1,7 +1,10 @@
 export const kbMappings = {
+  pageTitle: 'Statement mappings',
+  pageSubtitle:
+    'Map surface signatures in text to predicate URIs (extraction). For external rows → ledger, use Connectors → Connector sync mappings.',
   refresh: 'Refresh',
   newMapping: 'New mapping',
-  sectionMappings: 'Mappings',
+  sectionMappings: 'Statement mappings',
   sectionTypedFacts: 'Typed facts',
   loading: 'Loading…',
   mappingsEmptyTitle: 'No mappings',

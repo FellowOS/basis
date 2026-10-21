@@ -6,6 +6,7 @@ import {
   KbGraphPage,
   KbLibraryPage,
   KbConnectorsPage,
+  KbDataOnboardingPage,
   KbConnectorsRedirect,
   KbConnectorMappingNewPage,
   KbConnectorMappingEditPage,
@@ -289,6 +290,14 @@ function AuthedApp() {
           element={
             <Suspense fallback={null}>
               <KbLibraryPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/kbs/:id/onboarding/data"
+          element={
+            <Suspense fallback={null}>
+              <KbDataOnboardingPage />
             </Suspense>
           }
         />

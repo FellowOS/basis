@@ -44,8 +44,8 @@ Content-Type: application/json
 
 ## Implementation anchors
 
-- Conflict scan: `basis/core/ledger/conflict_review.py` · `POST .../review/scan-statement-conflicts`
-- Schedulers pattern: `basis/core/ledger/connector_poll_scheduler.py` · `basis/api/http/app.py` lifespan
+- Conflict scan: `basis/domain/knowledge/services/conflict_review.py` · `POST .../review/scan-statement-conflicts`
+- Schedulers pattern: `basis/domain/knowledge/schedulers/connector_poll_scheduler.py` · `basis/interface/http/app.py` lifespan
 - Review UI: `web/src/components/app/kb/widgets/kb-review-queue-tab.tsx` (extend kind labels + approve for `low_confidence`)
 - Tests: mirror `tests/test_conflict_review.py` + `web/e2e/governance.spec.ts`
 

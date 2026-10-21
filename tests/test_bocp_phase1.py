@@ -9,10 +9,10 @@ import sqlite3
 
 import yaml
 
-from basis.core.connectors import get_connector_catalog
-from basis.core.connectors.catalog import ConnectorCatalog
-from basis.core.connectors.manifest_actions import entity_action_from_stream
-from basis.core.connectors.manifest_schema import (
+from basis.domain.integration import get_connector_catalog
+from basis.domain.integration.catalog import ConnectorCatalog
+from basis.domain.integration.manifest_actions import entity_action_from_stream
+from basis.domain.integration.manifest_schema import (
     AuthSpec,
     ConfigFieldSpec,
     ConnectorManifest,
@@ -20,15 +20,15 @@ from basis.core.connectors.manifest_schema import (
     RetrieverSpec,
     StreamSpec,
 )
-from basis.core.connectors.catalog import default_providers_dir
-from basis.core.connectors.provider_bundle import (
+from basis.domain.integration.catalog import default_providers_dir
+from basis.domain.integration.provider_bundle import (
     load_connector_manifest,
     load_provider_bundle,
     manifest_wire_payload,
     provider_manifest_path,
     write_provider_bundle,
 )
-from basis.core.ledger.structured_models import (
+from basis.domain.knowledge.structured_models import (
     ColumnMappingSpec,
     ConnectorSourceConfig,
     OutboxFieldChange,
@@ -36,7 +36,7 @@ from basis.core.ledger.structured_models import (
     StructuredImportProvenance,
     compute_canonical_row_hash,
 )
-from basis.tooling.db.sqlite_migrations import run_migrations
+from basis.infra.tooling.db.sqlite_migrations import run_migrations
 
 
 def test_provider_sql_bundle_without_openapi(tmp_path: Path) -> None:

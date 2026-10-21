@@ -1,7 +1,7 @@
 """BasisKbGraphSession adapter tests."""
 
-from basis.core.explorer.session.basis_kb_graph_session import BasisKbGraphSession
-from basis.core.projection.session import GraphSession
+from basis.domain.graph.explorer.session.basis_kb_graph_session import BasisKbGraphSession
+from basis.domain.graph.projection.session import GraphSession
 
 
 def test_basis_kb_graph_session_round_trip_nodes_edges() -> None:

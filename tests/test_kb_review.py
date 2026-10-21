@@ -9,9 +9,9 @@ pytest.importorskip("semantica")
 from fastapi import HTTPException
 from fastapi.testclient import TestClient
 
-from basis.api.http.app import create_app
-from basis.runtime.capabilities import explorer_available
-from basis.runtime.config import Settings
+from basis.interface.http.app import create_app
+from basis.infra.runtime.capabilities import explorer_available
+from basis.infra.runtime.config import Settings
 
 
 def test_entity_merge_review_propose_list_reject(tmp_path) -> None:
@@ -96,11 +96,11 @@ def test_review_approve_failure_emits_governance_alert(tmp_path) -> None:
     ).json()["item"]
 
     def fail_merge(*_args, **_kwargs):
-        from basis.control.admin.errors import AdminError
+        from basis.domain.tenancy.admin.errors import AdminError
 
         raise AdminError(422, "impact_gate", "blocked")
 
-    with patch("basis.core.explorer.governance.enrich_write.merge_nodes", side_effect=fail_merge):
+    with patch("basis.domain.graph.explorer.governance.enrich_write.merge_nodes", side_effect=fail_merge):
         failed = client.post(
             f"/api/v1/kbs/{kb_id}/review/items/{proposed['id']}/approve",
             headers=headers,

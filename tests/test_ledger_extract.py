@@ -1,9 +1,9 @@
 from pathlib import Path
 
-from basis.control.admin.store import AdminStore
-from basis.core.ledger.blob_store import BlobStore
-from basis.core.ledger.store import KnowledgeStore
-from basis.core.pipeline.ledger_extract import apply_kg_to_ledger
+from basis.domain.tenancy.admin.store import AdminStore
+from basis.domain.knowledge.blob_store import BlobStore
+from basis.domain.knowledge.store import KnowledgeStore
+from basis.domain.knowledge.pipeline.ledger_extract import apply_kg_to_ledger
 
 
 def _kb_and_chunk(tmp_path: Path) -> tuple[KnowledgeStore, str, str, str]:

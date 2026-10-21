@@ -7,8 +7,8 @@ from pathlib import Path
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, text
 
-from basis.runtime.config import Settings
-from basis.api.http.app import create_app
+from basis.infra.runtime.config import Settings
+from basis.interface.http.app import create_app
 
 
 def test_connectors_http_endpoints_and_review_writeback_flow(tmp_path: Path) -> None:

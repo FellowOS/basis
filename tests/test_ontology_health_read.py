@@ -4,9 +4,9 @@ import pytest
 
 pytest.importorskip("semantica")
 
-from basis.core.explorer.ontology.hub.create_write import create_ontology
-from basis.core.explorer.ontology.browse.health_read import ontology_health
-from basis.control.admin.errors import AdminError
+from basis.domain.graph.explorer.ontology.hub.create_write import create_ontology
+from basis.domain.graph.explorer.ontology.browse.health_read import ontology_health
+from basis.domain.tenancy.admin.errors import AdminError
 
 
 def test_ontology_health_for_scratch_ontology() -> None:

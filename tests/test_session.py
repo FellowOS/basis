@@ -4,10 +4,10 @@ pytest.importorskip("semantica")
 
 from fastapi.testclient import TestClient
 
-from basis.api.http.app import create_app
-from basis.runtime.config import Settings
-from basis.core.projection.session import GraphSession
-from basis.core.projection.legacy_ontology import LegacyGraphOntologyService as OntologyService
+from basis.interface.http.app import create_app
+from basis.infra.runtime.config import Settings
+from basis.domain.graph.projection.session import GraphSession
+from basis.domain.graph.projection.legacy_ontology import LegacyGraphOntologyService as OntologyService
 
 
 def _auth(token: str) -> dict[str, str]:

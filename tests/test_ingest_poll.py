@@ -2,7 +2,7 @@
 
 from datetime import datetime, timezone
 
-from basis.core.ledger.services.ingest_source_service import is_http_poll_due
+from basis.domain.knowledge.services.ingest_source_service import is_http_poll_due
 
 
 def test_http_poll_due_without_interval() -> None:

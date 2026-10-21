@@ -1,25 +1,26 @@
 export const marketing = {
   brand: 'Basis',
+  documentTitle: 'Basis — Ontology-driven context for AI agents',
   skipToContent: 'Skip to content',
   heroHeadline: 'Give AI agents',
   heroHeadlineRest: "your company's real context",
   heroSubhead:
-    'Connect documents, databases, and 1,000+ systems. Every answer cites evidence; every write goes through review.',
-  heroEyebrow: 'Open source · Self-hosted',
+    'Map documents, databases, and business systems through a business ontology into an evidence ledger. Every answer is traceable; every write is governed.',
+  heroEyebrow: 'Ontology-driven · Self-hosted',
   trust: [
     {
       label: 'Apache-2.0',
       to: 'https://github.com/fellowos/basis/blob/main/LICENSE',
       external: true,
     },
-    { label: 'Self-hosted', to: '/docs/deployment' },
-    { label: '1,000+ connectors', to: '/docs/bocp' },
+    { label: 'Business ontology', to: '/docs/concepts' },
+    { label: 'Declarative connectors', to: '/docs/bocp' },
     { label: 'OpenAPI + MCP', to: '/docs/mcp' },
   ],
   highlights: [
     {
       index: '01',
-      tag: 'Context Read',
+      tag: 'Ontology · Evidence',
       title: 'Read with evidence',
       protocol: 'Evidence Ledger · OWL / SHACL',
       body: 'Align unstructured documents and database rows via business ontologies and an evidence ledger with full source lineage.',
@@ -30,8 +31,8 @@ export const marketing = {
       index: '02',
       tag: 'System Sync',
       title: 'Connect without glue code',
-      protocol: 'BOCP Engine · DB & 1,000+ SaaS',
-      body: 'Built-in SQL adapters and 1,000+ declarative SaaS connectors auto-discover schemas, sync incrementally, and map to objects.',
+      protocol: 'BOCP Engine · DB & SaaS',
+      body: 'Built-in SQL adapters and declarative SaaS connectors auto-discover schemas, sync incrementally, and map to objects.',
       code: 'BOCP discover_schema() → sync_stream(watermark, row_hash)',
       href: '/docs/bocp',
     },
@@ -77,12 +78,12 @@ export const marketing = {
   ctaLogin: 'Sign in',
   ctaGetStarted: 'Get started',
   ctaRegister: 'Create account',
-  ctaDocs: 'Read the docs',
+  ctaDocs: 'Learn more',
   footerCopyright: '© {year} Basis',
   capabilitiesEyebrow: 'Capabilities',
   capabilitiesTitle: 'Context, connectivity, and governed writes in one service',
   capabilitiesSubhead:
-    'Reads come from an evidence ledger with source lineage; writes go through review gates. Graph and search stay rebuildable projections.',
+    'A business ontology aligns documents and rows into an evidence ledger; writes go through review gates. Graph and search stay rebuildable projections.',
   selfHostEyebrow: 'Self-host',
   selfHostTitle: 'Run Basis on your own infrastructure',
   selfHostBody:
@@ -99,12 +100,12 @@ export const marketing = {
       {
         index: '01',
         title: 'Connect',
-        body: 'Documents, PostgreSQL/MySQL, and 1,000+ declarative SaaS connectors.',
+        body: 'Documents, PostgreSQL/MySQL, and declarative SaaS connectors.',
       },
       {
         index: '02',
-        title: 'Align',
-        body: 'Map sources into business ontologies and write them to an evidence ledger with source lineage.',
+        title: 'Model',
+        body: 'Map sources into a business ontology—customers, orders, policies—and write the facts to an evidence ledger.',
       },
       {
         index: '03',
@@ -114,7 +115,7 @@ export const marketing = {
     ],
     cta: 'Read the concepts',
     previewTitle: 'Acme knowledge base',
-    previewCaption: 'Console preview — graph, evidence, and review in one place.',
+    previewCaption: 'Console preview — ontology, evidence, and review in one place.',
     preview: {
       graphTab: 'Graph',
       evidence: 'Evidence',
@@ -156,6 +157,10 @@ export const marketing = {
         a: 'Yes — Apache-2.0. Self-host it, inspect the code, and extend the connectors.',
       },
       {
+        q: 'What does “ontology” mean here?',
+        a: 'A business ontology is the shared model of your customers, orders, policies, and other concepts. Basis uses it to align sources and make every answer traceable.',
+      },
+      {
         q: 'Where does our data live?',
         a: 'In your infrastructure. SQLite by default, PostgreSQL for production; data does not leave your deployment.',
       },
@@ -165,12 +170,12 @@ export const marketing = {
       },
       {
         q: 'Which systems can we connect?',
-        a: 'PostgreSQL and MySQL out of the box, plus 1,000+ declarative SaaS connectors; add a BOCP manifest for anything custom.',
+        a: 'PostgreSQL and MySQL out of the box, plus declarative SaaS connectors; add a BOCP manifest for anything custom.',
       },
     ],
   },
   footer: {
-    description: 'Open-source, self-hosted context for enterprise agents.',
+    description: 'Ontology-driven, open-source, self-hosted context for enterprise agents.',
     productTitle: 'Product',
     developersTitle: 'Developers',
     resourcesTitle: 'Resources',

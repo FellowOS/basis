@@ -117,13 +117,13 @@ Run relevant checks after substantive edits; say if something was not run.
 
 ## Python / API
 
-- Package layout: [package-layout.md](./docs/architecture/package-layout.md) — `api/`, `application/`, `core/`, `control/`, `runtime/`, `tooling/` (CI: `audit-legacy-package-imports.py`).
-- **Semantica 线 1：** 新后端逻辑放在 `basis/core/*`；Explorer 见 `basis/core/explorer/README.md` 与 [explorer-backend.md](./docs/architecture/explorer-backend.md)（含 CI 护栏表）。KB HTTP 聚合器见 `package-layout.md`。
-- CLI entry: `pyproject.toml` (`basis` → `basis.cli:main`); app factory `basis.api.http.app:create_app`.
-- Schema SQL: `basis/tooling/db/migrations/`; Alembic `basis/tooling/db/alembic/`.
-- Layer imports: `uv run lint-imports --config importlinter.ini` — `core` ↛ `api`/`application`/`control`; `application.mcp.openapi` ↛ `api`.
-- Application core (MCP + OpenAPI ops): `basis/application/` (`KbCoreContext`, `run`). **MCP tools** (23 static core tools; minimal graph loop in [openapi-v1.md §6.1](./docs/architecture/openapi-v1.md)): graph/review + connector ops in `registry.py` / `mcp/openapi.py`.
-- OpenAPI: served live from `app.openapi()` via `basis.application.openapi.v1_export` (`/openapi/v1.json`); handler docstrings → `description`. Optional JSON snapshots in `openapi/*.json`: `scripts/generate-openapi-v1.py` (CI drift + `web` typegen; fails if any operation lacks a docstring).
+- Package layout: [package-layout.md](./docs/architecture/package-layout.md) — `interface/`, `application/`, `domain/`, `infra/` (CI: `audit-legacy-package-imports.py`, `lint-imports`).
+- **Semantica 线 1：** 新后端逻辑放在 `basis/domain/*`（L3）；Explorer 见 `basis/domain/graph/explorer/README.md` 与 [explorer-backend.md](./docs/architecture/explorer-backend.md)（含 CI 护栏表）。分层见 [package-layout.md](./docs/architecture/package-layout.md)。
+- CLI entry: `pyproject.toml` (`basis` → `basis.cli:main`); app factory `basis.interface.http.app:create_app`.
+- Schema SQL: `basis/infra/tooling/db/migrations/`; Alembic `basis/infra/tooling/db/alembic/`.
+- Layer imports: `uv run lint-imports --config importlinter.ini` — domain ↛ `interface`/`application`; `application` ↛ `interface.http`; `interface.contract.mcp.openapi` ↛ `interface.http`.
+- Application core (MCP + OpenAPI ops): `basis/application/` (`KbCoreContext`, `run`). **MCP tools** (23 static core tools; minimal graph loop in [openapi-v1.md §6.1](./docs/architecture/openapi-v1.md)): graph/review + connector ops in `registry.py` / `interface/contract/mcp/`.
+- OpenAPI: served live from `app.openapi()` via `basis.interface.contract.openapi.v1_export` (`/openapi/v1.json`); handler docstrings → `description`. Optional JSON snapshots in `openapi/*.json`: `scripts/generate-openapi-v1.py` (CI drift + `web` typegen; fails if any operation lacks a docstring).
 - Prefer existing patterns in route handlers and services; follow pytest style in `tests/`.
 
 ## Docs for specific tasks

@@ -3188,6 +3188,154 @@
         "x-basis-auth": "session-or-kb-api-token"
       }
     },
+    "/api/v1/kbs/{kb_id}/connectors/table-mappings/batch-create": {
+      "post": {
+        "tags": [
+          "knowledge-bases",
+          "knowledge-bases"
+        ],
+        "summary": "Batch Create Kb Table Mappings",
+        "description": "Create multiple stream-to-ontology table mappings and optionally run first inbound sync.",
+        "operationId": "batch_create_kb_table_mappings_api_v1_kbs__kb_id__connectors_table_mappings_batch_create_post",
+        "parameters": [
+          {
+            "name": "kb_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Kb Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BatchCreateTableMappingsRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Batch Create Kb Table Mappings Api V1 Kbs  Kb Id  Connectors Table Mappings Batch Create Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-basis-surface": "knowledge-base",
+        "x-basis-auth": "session-or-kb-api-token"
+      }
+    },
+    "/api/v1/kbs/{kb_id}/connectors/table-mappings/suggest": {
+      "post": {
+        "tags": [
+          "knowledge-bases",
+          "knowledge-bases"
+        ],
+        "summary": "Suggest Kb Table Mappings",
+        "description": "Propose cross-stream connector mapping drafts grouped by inferred entity type (discover-backed).",
+        "operationId": "suggest_kb_table_mappings_api_v1_kbs__kb_id__connectors_table_mappings_suggest_post",
+        "parameters": [
+          {
+            "name": "kb_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Kb Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SuggestTableMappingsRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Suggest Kb Table Mappings Api V1 Kbs  Kb Id  Connectors Table Mappings Suggest Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-basis-surface": "knowledge-base",
+        "x-basis-auth": "session-or-kb-api-token"
+      }
+    },
     "/api/v1/kbs/{kb_id}/connectors/table-mappings/{mapping_id}": {
       "get": {
         "tags": [
@@ -7858,7 +8006,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/basis__transport__http__routes__v1__kb_documents_models__CreateOntologyRequest"
+                "$ref": "#/components/schemas/basis__api__http__routes__v1__kb__documents__models__CreateOntologyRequest"
               }
             }
           }
@@ -8138,7 +8286,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/basis__domain__explorer__ontology__hub_models__CreateOntologyRequest"
+                "$ref": "#/components/schemas/basis__core__explorer__ontology__hub__hub_models__CreateOntologyRequest"
               }
             }
           }
@@ -13625,6 +13773,29 @@
         "title": "ApproveReviewItemResponse",
         "description": "Approve review item (merge, import, remember, …) including optional governance decision id."
       },
+      "BatchCreateTableMappingsRequest": {
+        "properties": {
+          "mappings": {
+            "items": {
+              "$ref": "#/components/schemas/CreateTableMappingRequest"
+            },
+            "type": "array",
+            "maxItems": 50,
+            "minItems": 1,
+            "title": "Mappings"
+          },
+          "run_sync": {
+            "type": "boolean",
+            "title": "Run Sync",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "mappings"
+        ],
+        "title": "BatchCreateTableMappingsRequest"
+      },
       "Body_append_document_version_upload_api_v1_kbs__kb_id__documents__document_id__versions_upload_post": {
         "properties": {
           "file": {
@@ -15974,6 +16145,77 @@
         ],
         "title": "StartProcessingRequest"
       },
+      "SuggestStreamTargetRequest": {
+        "properties": {
+          "provider": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Provider"
+          },
+          "connection_name": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Connection Name",
+            "default": "default"
+          },
+          "stream_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stream Name"
+          },
+          "external_table": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Table"
+          }
+        },
+        "type": "object",
+        "required": [
+          "provider"
+        ],
+        "title": "SuggestStreamTargetRequest"
+      },
+      "SuggestTableMappingsRequest": {
+        "properties": {
+          "targets": {
+            "items": {
+              "$ref": "#/components/schemas/SuggestStreamTargetRequest"
+            },
+            "type": "array",
+            "title": "Targets"
+          },
+          "max_streams_per_connection": {
+            "type": "integer",
+            "maximum": 32.0,
+            "minimum": 1.0,
+            "title": "Max Streams Per Connection",
+            "default": 8
+          },
+          "sql_tables": {
+            "items": {
+              "$ref": "#/components/schemas/SuggestStreamTargetRequest"
+            },
+            "type": "array",
+            "title": "Sql Tables",
+            "description": "SQL targets with external_table set (merged after auto REST expansion)."
+          }
+        },
+        "type": "object",
+        "title": "SuggestTableMappingsRequest",
+        "description": "Optional explicit streams; when empty, auto-expand REST entity streams on saved connections."
+      },
       "SyncIngestSourceRequest": {
         "properties": {
           "auto_process": {
@@ -16457,7 +16699,38 @@
         ],
         "title": "WebhookIngestRequest"
       },
-      "basis__domain__explorer__ontology__hub_models__CreateOntologyRequest": {
+      "basis__api__http__routes__v1__kb__documents__models__CreateOntologyRequest": {
+        "properties": {
+          "namespace": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Namespace"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          }
+        },
+        "type": "object",
+        "required": [
+          "namespace",
+          "name"
+        ],
+        "title": "CreateOntologyRequest"
+      },
+      "basis__core__explorer__ontology__hub__hub_models__CreateOntologyRequest": {
         "properties": {
           "mode": {
             "type": "string",
@@ -16538,37 +16811,6 @@
               }
             ],
             "title": "Model"
-          }
-        },
-        "type": "object",
-        "required": [
-          "namespace",
-          "name"
-        ],
-        "title": "CreateOntologyRequest"
-      },
-      "basis__transport__http__routes__v1__kb_documents_models__CreateOntologyRequest": {
-        "properties": {
-          "namespace": {
-            "type": "string",
-            "minLength": 1,
-            "title": "Namespace"
-          },
-          "name": {
-            "type": "string",
-            "minLength": 1,
-            "title": "Name"
-          },
-          "description": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Description"
           }
         },
         "type": "object",

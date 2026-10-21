@@ -4,20 +4,20 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
-from basis.api.http.app import create_app
-from basis.runtime.config import Settings
-from basis.core.ledger.blob_store import BlobStore
-from basis.core.ledger.services.conflict_review import (
+from basis.interface.http.app import create_app
+from basis.infra.runtime.config import Settings
+from basis.domain.knowledge.blob_store import BlobStore
+from basis.domain.knowledge.services.conflict_review import (
     STATEMENT_CONFLICT_KIND,
     find_statement_conflict_groups,
     resolve_statement_conflict_group,
     scan_statement_conflicts,
 )
-from basis.core.ledger.store import KnowledgeStore
+from basis.domain.knowledge.store import KnowledgeStore
 
 
 def _kb(tmp_path: Path) -> tuple[str, KnowledgeStore]:
-    from basis.control.admin.store import AdminStore
+    from basis.domain.tenancy.admin.store import AdminStore
 
     admin = AdminStore(tmp_path / "basis.db")
     user, _ = admin.register("conf@example.com", "password1", "Conf")

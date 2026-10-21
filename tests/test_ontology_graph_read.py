@@ -1,8 +1,8 @@
 import pytest
 
-from basis.core.explorer.ontology.hub.create_write import create_ontology
-from basis.core.explorer.ontology.browse.graph_read import get_ontology_graph, search_entities
-from basis.control.admin.errors import AdminError
+from basis.domain.graph.explorer.ontology.hub.create_write import create_ontology
+from basis.domain.graph.explorer.ontology.browse.graph_read import get_ontology_graph, search_entities
+from basis.domain.tenancy.admin.errors import AdminError
 
 
 def test_search_entities_requires_query() -> None:

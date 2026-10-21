@@ -2,11 +2,11 @@ import pytest
 
 pytest.importorskip("semantica")
 
-from basis.core.explorer.ontology.hub.draft_store import save_draft
-from basis.core.explorer.ontology.hub.proposal_lifecycle import publish_proposal
-from basis.core.explorer.ontology.hub.proposal_store import approve_proposal
-from basis.core.explorer.ontology.hub.hub_models import DraftDiff, DraftRequest, ProposalResponse
-from basis.control.admin.errors import AdminError
+from basis.domain.graph.explorer.ontology.hub.draft_store import save_draft
+from basis.domain.graph.explorer.ontology.hub.proposal_lifecycle import publish_proposal
+from basis.domain.graph.explorer.ontology.hub.proposal_store import approve_proposal
+from basis.domain.graph.explorer.ontology.hub.hub_models import DraftDiff, DraftRequest, ProposalResponse
+from basis.domain.tenancy.admin.errors import AdminError
 
 
 def test_publish_requires_approved_proposal() -> None:

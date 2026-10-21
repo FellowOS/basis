@@ -1,4 +1,4 @@
-from basis.core.explorer.temporal.read import get_temporal_bounds, get_temporal_snapshot
+from basis.domain.graph.explorer.temporal.read import get_temporal_bounds, get_temporal_snapshot
 
 
 def test_get_temporal_bounds_from_session() -> None:

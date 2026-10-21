@@ -13,7 +13,7 @@
 将外部连接器资产 **合并为 BOCP v2 单文件 Provider bundle**：
 
 ```text
-basis/core/connectors/providers/{service}.yaml
+basis/domain/integration/providers/{service}.yaml
 ```
 
 每个 bundle 至少包含：
@@ -40,8 +40,8 @@ basis/core/connectors/providers/{service}.yaml
 |------|------|
 | 已发布 `providers/*.yaml` | **8**：`postgres`、`mysql`、`github`、`slack`、`notion`、`gitlab`、`jira`、`hubspot`（`build_connector_manifests.py --all-batches`） |
 | 合成脚本 | `merge_service()` + Nango auth + AnyConnect procedures；**Slack 可无 `slack.py` 生成器**（`catalog_procedures_only`） |
-| AnyConnect 目录（参考） | `fellowos/connectors/catalog/apps/*.json` ≈ **1,381** app；actions 元数据丰富，**无** REST path（逻辑在 `executors.ts`） |
-| Nango | `packages/providers/providers.yaml` ≈ **1,058** 条，偏 **auth/proxy** |
+| AnyConnect 目录（参考） | `fellowos/connectors/catalog/apps/*.json` 上千个 app；actions 元数据丰富，**无** REST path（逻辑在 `executors.ts`） |
+| Nango | `packages/providers/providers.yaml` 上千条，偏 **auth/proxy** |
 | Airbyte 声明式源 | `manifest.yaml` ≈ **539**，偏 **entity `list`** 与分页 |
 | 动态 MCP | `connector_{service}__{action}__{primitive}` 已接 manifest `actions[]` |
 
@@ -106,7 +106,7 @@ flowchart LR
 
 | 里程碑 | 交付物 | 验收 |
 |--------|--------|------|
-| **P0** | `basis/core/connectors/synthesis/`（或 `scripts/synthesis/`）`merge_service(service) -> ConnectorManifest` | 对 `github` 合成结果与现手写 manifest **语义等价**（允许字段顺序差异） |
+| **P0** | `basis/domain/integration/synthesis/`（或 `scripts/synthesis/`）`merge_service(service) -> ConnectorManifest` | 对 `github` 合成结果与现手写 manifest **语义等价**（允许字段顺序差异） |
 | **P1** | Nango → `auth[]` 导入器 | 随机抽 20 个 service 校验 OAuth 块 |
 | **P2** | Airbyte → `entity` 导入器 | 抽 10 个有 `manifest.yaml` 的源，LIST 与 Airbyte 文档 path 一致 |
 | **P3** | AnyConnect catalog → `procedure` 导入器 | 输出 schema；invoke path 覆盖率报表 |
@@ -117,7 +117,7 @@ flowchart LR
 **目录约定（保持 flat）：**
 
 ```text
-basis/core/connectors/providers/
+basis/domain/integration/providers/
   github.yaml
   slack.yaml
   github.openapi.yaml          # 仅当需要 OpenAPI sidecar
@@ -133,7 +133,7 @@ basis/core/connectors/providers/
 | **手写 `.py`** | 仅旗舰/回归样本（如 `github`）、SQL 共用模块、或合成器尚未覆盖时的临时兜底 |
 | **Slack 示范** | `batch_1.yaml` 的 `catalog_procedures_only: [slack]` → 23 条 procedure 来自 AnyConnect JSON + `slack_invoke_map` / `executors-index.json`，auth 来自 Nango |
 
-环境变量见 [`.env.synthesis.example`](../../.env.synthesis.example)；覆盖率：`uv run python scripts/synthesis_catalog_report.py`。
+环境变量见 [`.env.synthesis.example`](../../../.env.synthesis.example)；操作步骤见 [synthesis-pipeline.zh.md](synthesis-pipeline.zh.md)；覆盖率：`uv run python scripts/synthesis_catalog_report.py`。
 
 ---
 
@@ -273,7 +273,7 @@ basis/core/connectors/providers/
 
 | 策略 | 说明 |
 |------|------|
-| **机器批** | 剩余 AnyConnect catalog（~1000+）按 **Nango auth 命中 + Airbyte list 命中** 自动合并为 `Catalog` 级 |
+| **机器批** | 剩余 AnyConnect catalog（大批量）按 **Nango auth 命中 + Airbyte list 命中** 自动合并为 `Catalog` 级 |
 | **人工晋升** | 客户工单 / 内部用量 Top N 每月从 Catalog → Beta → GA |
 | **去重** | 同一 API 多 brand（如 `google_*`）合并 `service` 命名规则见 [bocp §7.2](bocp.zh.md) |
 | **下线** | `Blocked` 或 6 个月无 CHECK 成功的从目录隐藏 |
@@ -322,7 +322,7 @@ basis/core/connectors/providers/
 | Slack 等 `application/x-www-form-urlencoded` | REST 适配器扩展 `body_encoding: form`（Batch 1 前） |
 | 合成数量导致仓库体积 | 单文件 YAML &lt;500KB 限制；超大 action 列表拆 `x-basis-actions-ref` sidecar（需协议扩展则走 BOCP patch） |
 | OAuth 回调多租户 | 沿用 `kb_oauth_configs`；每批验证 redirect URL |
-| progress.md「1060 done」与真实 shipped 不符 | 每批合并后更新 **shipped 计数** 与 **Catalog 计数** 分列 |
+| progress.md 连接器规模表述与真实 shipped 不符 | 每批合并后更新 **shipped 计数** 与 **Catalog 计数** 分列 |
 
 ---
 
@@ -366,10 +366,10 @@ basis/core/connectors/providers/
 | 路径 | 作用 |
 |------|------|
 | `scripts/build_connector_manifests.py` | 扩展为批构建入口 |
-| `basis/core/connectors/provider_bundle.py` | 读写 flat YAML |
-| `basis/core/connectors/catalog.py` | 扫描 `providers/*.yaml` |
-| `basis/core/connectors/adapters/rest/curated_dev.py` | 旗舰样本（迁移到 shipped 前的试验田） |
-| `basis/integration/mcp_connector_tools.py` | 动态 MCP |
+| `basis/domain/integration/provider_bundle.py` | 读写 flat YAML |
+| `basis/domain/integration/catalog.py` | 扫描 `providers/*.yaml` |
+| `basis/domain/integration/adapters/rest/curated_dev.py` | 旗舰样本（迁移到 shipped 前的试验田） |
+| `basis/interface/contract/mcp/connector_tools.py` | 动态 MCP |
 | `tests/test_connector_primitive_invoke.py` | 真实集成测模板 |
 
 ### C. 批状态跟踪（手动更新）

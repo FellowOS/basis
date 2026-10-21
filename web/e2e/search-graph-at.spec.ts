@@ -18,6 +18,8 @@ test('search graph tab runs query', async ({ page }) => {
     test.skip(true, 'graph search requires explorer_runtime');
   }
 
-  await expect(page.getByPlaceholder(/Node id|节点 id/i)).toHaveValue('smoke', { timeout: 30_000 });
+  await expect(page.getByPlaceholder(/Search graph nodes|搜索图谱节点/i)).toHaveValue('smoke', {
+    timeout: 30_000,
+  });
   await expect(page.getByText(/result|结果/i).first()).toBeVisible({ timeout: 60_000 });
 });

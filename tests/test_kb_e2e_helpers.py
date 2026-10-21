@@ -1,4 +1,4 @@
-"""E2E-only API helpers are gated on data-e2e dir."""
+"""E2E-only API helpers are gated on Playwright data/e2e dir."""
 
 from pathlib import Path
 
@@ -8,9 +8,9 @@ pytest.importorskip("semantica")
 
 from fastapi.testclient import TestClient
 
-from basis.api.http.app import create_app
-from basis.runtime.capabilities import explorer_available
-from basis.runtime.config import Settings
+from basis.interface.http.app import create_app
+from basis.infra.runtime.capabilities import explorer_available
+from basis.infra.runtime.config import Settings
 
 
 def test_e2e_governance_trip_disabled_outside_data_e2e(tmp_path) -> None:
@@ -29,8 +29,8 @@ def test_e2e_governance_trip_records_alert_and_decision(tmp_path) -> None:
     if not explorer_available():
         pytest.skip("explorer extra not installed")
 
-    e2e_dir = tmp_path / "data-e2e"
-    e2e_dir.mkdir()
+    e2e_dir = tmp_path / "data" / "e2e"
+    e2e_dir.mkdir(parents=True)
     client = TestClient(create_app(Settings(data_dir=e2e_dir)))
     admin = client.post(
         "/api/v1/auth/register",
@@ -63,8 +63,8 @@ def test_e2e_statement_conflict_disabled_outside_data_e2e(tmp_path) -> None:
 
 
 def test_e2e_statement_conflict_creates_review_and_alert(tmp_path) -> None:
-    e2e_dir = tmp_path / "data-e2e"
-    e2e_dir.mkdir()
+    e2e_dir = tmp_path / "data" / "e2e"
+    e2e_dir.mkdir(parents=True)
     client = TestClient(create_app(Settings(data_dir=e2e_dir)))
     admin = client.post(
         "/api/v1/auth/register",
@@ -102,8 +102,8 @@ def test_e2e_ontology_proposal_seeds_proposed_change(tmp_path) -> None:
     if not explorer_available():
         pytest.skip("explorer extra not installed")
 
-    e2e_dir = tmp_path / "data-e2e"
-    e2e_dir.mkdir()
+    e2e_dir = tmp_path / "data" / "e2e"
+    e2e_dir.mkdir(parents=True)
     client = TestClient(create_app(Settings(data_dir=e2e_dir)))
     admin = client.post(
         "/api/v1/auth/register",

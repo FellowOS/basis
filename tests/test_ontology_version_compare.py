@@ -2,9 +2,9 @@ import pytest
 
 pytest.importorskip("semantica")
 
-from basis.core.explorer.ontology.hub.hub_models import VersionCompareRequest
-from basis.core.explorer.ontology.hub.version_store import compare_versions
-from basis.control.admin.errors import AdminError
+from basis.domain.graph.explorer.ontology.hub.hub_models import VersionCompareRequest
+from basis.domain.graph.explorer.ontology.hub.version_store import compare_versions
+from basis.domain.tenancy.admin.errors import AdminError
 
 
 def test_compare_versions_not_found() -> None:

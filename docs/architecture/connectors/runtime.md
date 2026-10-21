@@ -57,12 +57,12 @@ Basis-specific REST extensions (ignored by other BOCP hosts): `x-basis-dynamic-s
 
 | Component | Location |
 |-----------|----------|
-| Runtime | `basis/core/connectors/runtime.py` |
-| REST adapter | `basis/core/connectors/adapters/rest/` |
-| SQL adapter | `basis/core/connectors/adapters/sql/` |
-| Provider bundles | `basis/core/connectors/providers/` |
-| Manifest schema | `basis/core/connectors/manifest_schema.py` |
-| Catalog | `basis/core/connectors/catalog.py` |
+| Runtime | `basis/domain/integration/runtime.py` |
+| REST adapter | `basis/domain/integration/adapters/rest/` |
+| SQL adapter | `basis/domain/integration/adapters/sql/` |
+| Provider bundles | `basis/domain/integration/providers/` |
+| Manifest schema | `basis/domain/integration/manifest_schema.py` |
+| Catalog | `basis/domain/integration/catalog.py` |
 | Build shipped bundles | `scripts/build_connector_manifests.py` |
 
 ---
@@ -72,7 +72,7 @@ Basis-specific REST extensions (ignored by other BOCP hosts): `x-basis-dynamic-s
 | Surface | Location |
 |---------|----------|
 | HTTP | `/api/v1/kbs/{kb_id}/connectors/*` (see [openapi-v1.md](openapi-v1.md) and live `/openapi/v1.json`) |
-| MCP | `basis/integration/ops_connectors.py` (`invoke_connector_primitive`, sync, catalog, …) |
+| MCP | `basis/application/operations_connectors.py` (`invoke_connector_primitive`, sync, catalog, …) |
 
 Persistence and KB projection: [data-model.md](../data-model.md) §18.
 

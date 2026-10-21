@@ -4,12 +4,12 @@ import pytest
 
 pytest.importorskip("semantica")
 
-from basis.control.admin.store import AdminStore
-from basis.core.projection.snapshot_store import GraphPersistence
-from basis.core.projection.session import GraphSession
-from basis.core.ledger.blob_store import BlobStore
-from basis.core.ledger.store import KnowledgeStore
-from basis.tooling.migration.legacy_graph import migrate_legacy_graph
+from basis.domain.tenancy.admin.store import AdminStore
+from basis.domain.graph.projection.snapshot_store import GraphPersistence
+from basis.domain.graph.projection.session import GraphSession
+from basis.domain.knowledge.blob_store import BlobStore
+from basis.domain.knowledge.store import KnowledgeStore
+from basis.infra.tooling.migration.legacy_graph import migrate_legacy_graph
 
 
 def _kb(tmp_path: Path) -> str:

@@ -11,14 +11,14 @@ test('connectors workspace displays BOCP catalog, policy, and mappings tabs', as
 
   await page.goto(`/kbs/${kbId}/connectors/catalog`);
 
-  // Verify catalog panel loads built-in stream-enabled connectors (postgres, airtable, github, etc.)
+  // Verify catalog panel loads built-in stream-enabled connectors (postgres, github, …)
   await expect(page.getByTestId('catalog-connector-card-postgres')).toBeVisible({ timeout: 30_000 });
-  await expect(page.getByTestId('catalog-connector-card-airtable')).toBeVisible();
+  await expect(page.getByTestId('catalog-connector-card-github')).toBeVisible();
 
   await page.goto(`/kbs/${kbId}/connectors/policy`);
   const policyInput = page.getByTestId('policy-allowed-providers-input');
   await expect(policyInput).toBeVisible();
-  await policyInput.fill('postgres, airtable, github');
+  await policyInput.fill('postgres, github');
   await page.getByTestId('save-connector-policy-btn').click();
 
   await page.goto(`/kbs/${kbId}/connectors/mappings`);

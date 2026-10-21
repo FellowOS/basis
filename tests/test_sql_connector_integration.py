@@ -1,7 +1,7 @@
 """BOCP SQL connector against real PostgreSQL / MySQL (not SQLite stand-ins).
 
 Configure via ``.env.test`` (copy from ``.env.test.example``); pytest loads it via
-``basis.tooling.test_support.integration_env`` from ``tests/conftest.py``. Variables:
+``basis.infra.tooling.test_support.integration_env`` from ``tests/conftest.py``. Variables:
 
   - ``BASIS_TEST_POSTGRES_URL`` — CI uses ephemeral DB per test; locally, CREATEDB may be
     denied and tests reuse the URL database (unique table names).
@@ -19,8 +19,8 @@ import pytest
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import make_url
 
-from basis.core.connectors import ConnectorRuntime
-from basis.tooling.db.sqlite_migrations import run_migrations
+from basis.domain.integration import ConnectorRuntime
+from basis.infra.tooling.db.sqlite_migrations import run_migrations
 
 
 def _setup_kb_db(tmp_path: Path) -> sqlite3.Connection:

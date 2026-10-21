@@ -2,15 +2,15 @@
 
 import time
 
-from basis.core.explorer.session.basis_kb_graph_session import BasisKbGraphSession
-from basis.core.explorer.session.probe import build_kb_graph_adapter
-from basis.core.explorer.session.registry import (
+from basis.domain.graph.explorer.session.basis_kb_graph_session import BasisKbGraphSession
+from basis.domain.graph.explorer.session.probe import build_kb_graph_adapter
+from basis.domain.graph.explorer.session.registry import (
     ExplorerSessionRegistry,
     KbExplorerRuntime,
     _explorer_wrapped_graph,
     _rebuild_explorer_wrapper,
 )
-from basis.core.projection.session import GraphSession
+from basis.domain.graph.projection.session import GraphSession
 
 
 def test_rebuild_explorer_wrapper_tracks_basis_graph_swap() -> None:

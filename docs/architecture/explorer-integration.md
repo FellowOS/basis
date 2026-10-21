@@ -10,7 +10,7 @@ Related decision: [0001 — Evidence ledger is canonical](0001-canonical-knowled
 
 Basis reuses Explorer at two levels:
 
-1. **Python (Basis-owned)**: `basis.core.explorer.*` and `BasisKbGraphSession` over
+1. **Python (Basis-owned)**: `basis.domain.graph.explorer.*` and `BasisKbGraphSession` over
    `semantica.context.ContextGraph` (see [explorer-backend.md](explorer-backend.md)).
 2. **React workspace components**: vendored `web/src/explorer/*` (Graph, Ontology, SPARQL, …) with
    injected KB API client and capabilities.
@@ -48,7 +48,7 @@ Basis endpoint
   → Basis domain service / ledger transaction
   → ExplorerSessionRegistry(kb_id)
       ├─ BasisKbGraphSession (read/search/temporal/ontology mutations)
-      ├─ basis.core.projection.GraphSession / ContextGraph projection
+      ├─ basis.domain.graph.projection.GraphSession / ContextGraph projection
       ├─ per-KB WebSocket hub
       └─ projection persistence/rebuild
 ```
@@ -66,7 +66,7 @@ class ExplorerSessionRegistry:
 
 `KbExplorerRuntime` contains:
 
-- `basis` — canonical `basis.core.projection.GraphSession`;
+- `basis` — canonical `basis.domain.graph.projection.GraphSession`;
 - `explorer` — `BasisKbGraphSession` adapter (same `ContextGraph` as `basis`);
 - the current projection revision;
 - last-access time for cache eviction.

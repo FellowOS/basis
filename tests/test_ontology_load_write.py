@@ -1,7 +1,7 @@
 import pytest
 
-from basis.core.explorer.ontology.hub.load_write import load_ontology
-from basis.control.admin.errors import AdminError
+from basis.domain.graph.explorer.ontology.hub.load_write import load_ontology
+from basis.domain.tenancy.admin.errors import AdminError
 
 
 def test_load_ontology_requires_payload() -> None:

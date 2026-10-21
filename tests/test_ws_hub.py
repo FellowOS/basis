@@ -1,6 +1,6 @@
 import asyncio
 
-from basis.control.realtime.hub import GraphWsHub
+from basis.domain.tenancy.realtime.hub import GraphWsHub
 
 
 class _FakeWebSocket:

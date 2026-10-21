@@ -31,8 +31,8 @@ from typing import Any
 
 import httpx
 
-from basis.runtime.config import Settings
-from basis.api.http.app import create_app
+from basis.infra.runtime.config import Settings
+from basis.interface.http.app import create_app
 
 
 def _issue_owner_token(kb_id: str) -> str:

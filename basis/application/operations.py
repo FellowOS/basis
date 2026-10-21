@@ -9,19 +9,19 @@ from fastapi import HTTPException
 
 from basis.application.context import KbCoreContext
 from basis.application.errors import CoreError
-from basis.core.explorer.graph.read import find_path, list_neighbors, search_nodes
+from basis.domain.graph.explorer.graph.read import find_path, list_neighbors, search_nodes
 from basis.application.governance_hooks import record_governance_decision_from_context
-from basis.core.ledger.services.remember_service import propose_remember
-from basis.core.ledger.services.review_resolve import (
+from basis.domain.knowledge.services.remember_service import propose_remember
+from basis.domain.knowledge.services.review_resolve import (
     approve_statement_remember_review,
     reject_review_item as reject_review_item_domain,
     reject_statement_remember_review,
 )
-from basis.core.ledger.services.review_resolve_approve import (
+from basis.domain.knowledge.services.review_resolve_approve import (
     approve_review_item as approve_review_item_domain,
 )
 from basis.application.review_deps import review_approve_deps
-from basis.core.errors import AdminError
+from basis.domain.errors import AdminError
 
 OperationHandler = Callable[[KbCoreContext, dict[str, Any]], dict[str, Any]]
 
@@ -271,24 +271,6 @@ def op_reject_statement_remember_review(
     )
 
 
-def _review_projection_bindings(ctx: KbCoreContext):
-    request = ctx.http_request
-    if request is None:
-        return None
-    from basis.api.http.deps import graph_projection_bindings
-
-    return graph_projection_bindings(request)
-
-
-def _review_blob_store(ctx: KbCoreContext):
-    request = ctx.http_request
-    if request is None:
-        return None
-    from basis.api.http.deps import get_blob_store
-
-    return get_blob_store(request)
-
-
 def op_approve_review_item(ctx: KbCoreContext, args: dict[str, Any]) -> dict[str, Any]:
     item_id = str(args.get("item_id", "")).strip()
     if not item_id:
@@ -330,6 +312,6 @@ def op_reject_review_item(ctx: KbCoreContext, args: dict[str, Any]) -> dict[str,
         kb_id=ctx.kb.id,
         item_id=item_id,
         rationale=rationale,
-        blob_store=_review_blob_store(ctx),
-        projection_bindings=_review_projection_bindings(ctx),
+        blob_store=ctx.blob_store,
+        projection_bindings=ctx.projection_bindings,
     )

@@ -2,10 +2,10 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
-from basis.runtime.config import Settings
-from basis.control.admin.store import AdminStore
-from basis.control.identity.saml_capabilities import saml_sp_available
-from basis.api.http.app import create_app
+from basis.infra.runtime.config import Settings
+from basis.domain.tenancy.admin.store import AdminStore
+from basis.domain.tenancy.identity.saml_capabilities import saml_sp_available
+from basis.interface.http.app import create_app
 
 _SAMPLE_CERT = """-----BEGIN CERTIFICATE-----
 MIIBkTCB+wIJAKHBfpEWqJzTMA0GCSqGSIb3DQEBCwUAMBQxEjAQBgNVBAMMCWxv
@@ -74,7 +74,7 @@ def test_org_saml_slo_requires_idp_url(tmp_path: Path) -> None:
     kb = admin.create_kb(user, "Slo Co", None, "restricted")
     org_id = kb.organization_id
     assert org_id
-    from basis.control.admin.errors import AdminError
+    from basis.domain.tenancy.admin.errors import AdminError
 
     try:
         admin.upsert_org_saml_config(
@@ -97,7 +97,7 @@ def test_org_saml_signing_requires_key_material(tmp_path: Path) -> None:
     kb = admin.create_kb(user, "Sign Co", None, "restricted")
     org_id = kb.organization_id
     assert org_id
-    from basis.control.admin.errors import AdminError
+    from basis.domain.tenancy.admin.errors import AdminError
 
     try:
         admin.upsert_org_saml_config(

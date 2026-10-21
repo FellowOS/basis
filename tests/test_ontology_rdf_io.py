@@ -1,6 +1,6 @@
 import pytest
 
-from basis.core.explorer.ontology.rdf_io import (
+from basis.domain.graph.explorer.ontology.rdf_io import (
     content_likely_owl_schema,
     convert_ontology_to_graph,
     parse_rdf_sync_for_basis,
@@ -29,7 +29,7 @@ def test_parse_rdf_sync_builds_nodes_and_metadata() -> None:
 
 def test_parse_skos_file_extracts_concepts() -> None:
     pytest.importorskip("rdflib")
-    from basis.core.explorer.io.rdf_parse import parse_skos_file
+    from basis.domain.graph.explorer.io.rdf_parse import parse_skos_file
 
     ttl = (
         "@prefix skos: <http://www.w3.org/2004/02/skos/core#> .\n"

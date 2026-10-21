@@ -15,10 +15,10 @@ LEGACY_MANIFESTS_DIR = (
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from basis.core.connectors.catalog import default_providers_dir  # noqa: E402
-from basis.core.connectors.adapters.sql.providers import sql_provider_manifests  # noqa: E402
-from basis.core.connectors.manifest_schema import ConnectorManifest  # noqa: E402
-from basis.core.connectors.provider_bundle import write_provider_bundle  # noqa: E402
+from basis.domain.integration.catalog import default_providers_dir  # noqa: E402
+from basis.domain.integration.adapters.sql.providers import sql_provider_manifests  # noqa: E402
+from basis.domain.integration.manifest_schema import ConnectorManifest  # noqa: E402
+from basis.domain.integration.provider_bundle import write_provider_bundle  # noqa: E402
 
 
 def collect_legacy_manifests() -> list[ConnectorManifest]:

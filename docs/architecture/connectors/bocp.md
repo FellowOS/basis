@@ -11,7 +11,7 @@ description: Normative BOCP v2.0 specification plus a reader's guide for newcome
 | **Document** | BOCP v2.0 |
 | **Status** | Basis Standards Track (normative for Basis releases) |
 | **Wire format** | YAML manifest + this specification |
-| **Schema companion** | `basis/core/connectors/manifest_schema.py` (Pydantic v2) |
+| **Schema companion** | `basis/domain/integration/manifest_schema.py` (Pydantic v2) |
 | **Related** | [runtime.md](runtime.md) (Basis host; non-normative) |
 
 ---
@@ -748,7 +748,7 @@ None. A future revision **MAY** register a media type. Until then, host-specific
 
 ### 14.1 Normative
 
-- **BOCP-SCHEMA** — `basis/core/connectors/manifest_schema.py`  
+- **BOCP-SCHEMA** — `basis/domain/integration/manifest_schema.py`  
 - **RFC2119**, **RFC8174** — BCP 14 keywords  
 
 ### 14.2 Informative
@@ -797,7 +797,7 @@ Not required manifest keys.
 
 ## Appendix C. GitHub example
 
-Informative. Canonical file: `basis/core/connectors/providers/github.yaml`. Regenerate: `scripts/build_connector_manifests.py`.
+Informative. Canonical file: `basis/domain/integration/providers/github.yaml`. Regenerate: `scripts/build_connector_manifests.py`.
 
 ### C.1 Complete manifest
 

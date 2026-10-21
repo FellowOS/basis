@@ -94,23 +94,23 @@ HUB_MOVES: tuple[tuple[str, str], ...] = (
 
 
 def _module_path(rel: str) -> str:
-    """v1/kb/graph/read.py -> basis.api.http.routes.v1.kb.graph.read"""
+    """v1/kb/graph/read.py -> basis.interface.http.kb_graph_read"""
     stem = rel.replace("/", ".").removesuffix(".py")
     if stem.endswith(".__init__"):
         stem = stem[: -len(".__init__")]
-    return f"basis.api.http.routes.v1.{stem}"
+    return f"basis.interface.http.routes.v1.{stem}"
 
 
 def _build_import_replacements() -> list[tuple[str, str]]:
     pairs: list[tuple[str, str]] = []
     for src, dst in KB_MOVES + PLATFORM_MOVES:
-        old_mod = f"basis.api.http.routes.v1.{src.removesuffix('.py')}"
+        old_mod = f"basis.interface.http.routes.v1.{src.removesuffix('.py')}"
         new_mod = _module_path(dst)
         pairs.append((old_mod, new_mod))
     http = ROOT / "basis" / "api" / "http"
     for src, dst in HUB_MOVES:
         old_name = Path(src).name.removesuffix(".py")
-        old_mod = f"basis.api.http.{old_name}"
+        old_mod = f"basis.interface.http.{old_name}"
         new_mod = _module_path(f"kb/ontology/hub/{Path(dst).name}")
         pairs.append((old_mod, new_mod))
     pairs.sort(key=lambda x: len(x[0]), reverse=True)

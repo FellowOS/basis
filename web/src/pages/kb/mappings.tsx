@@ -264,10 +264,11 @@ export function KbMappingsPage() {
 
   return (
     <ConsolePageLayout
+      subtitle={m.pageSubtitle}
       crumbs={[
         { label: t.menu.platform.kbs, to: '/kbs' },
         { label: name, to: id ? kbPath(id, 'graph') : '/kbs' },
-        { label: t.menu.kb.mappings },
+        { label: m.pageTitle },
       ]}
       className="min-h-0 overflow-hidden"
       actions={

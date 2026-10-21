@@ -6,11 +6,11 @@ pytest.importorskip("semantica")
 
 from fastapi.testclient import TestClient
 
-from basis.api.http.app import create_app
-from basis.runtime.config import Settings
-from basis.core.pipeline.document import TextIngestOptions, build_kg_from_text
-from basis.core.ledger.blob_store import BlobStore
-from basis.core.ledger.store import KnowledgeStore
+from basis.interface.http.app import create_app
+from basis.infra.runtime.config import Settings
+from basis.domain.knowledge.pipeline.document import TextIngestOptions, build_kg_from_text
+from basis.domain.knowledge.blob_store import BlobStore
+from basis.domain.knowledge.store import KnowledgeStore
 
 
 def test_build_kg_from_text_runs_pattern_ner() -> None:
@@ -30,9 +30,9 @@ def test_build_kg_from_text_runs_pattern_ner() -> None:
 
 
 def test_version_ingest_writes_entities_to_ledger(tmp_path) -> None:
-    from basis.control.admin.store import AdminStore
-    from basis.core.projection.session import GraphSession
-    from basis.core.pipeline.version_ingest import run_version_ingest
+    from basis.domain.tenancy.admin.store import AdminStore
+    from basis.domain.graph.projection.session import GraphSession
+    from basis.domain.knowledge.pipeline.version_ingest import run_version_ingest
 
     admin = AdminStore(tmp_path / "basis.db")
     user, _ = admin.register("extract@example.com", "password1", "U")

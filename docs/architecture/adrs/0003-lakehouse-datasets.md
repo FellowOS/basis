@@ -44,9 +44,9 @@ Basis does **not** introduce a parallel Parquet warehouse or a second KB mode:
 
 ### 2. Inbound & Outbound: Basis Open Connector Protocol (BOCP — Pure Python Declarative Engine)
 
-Instead of maintaining 1,390 imperative TypeScript provider executors across a second Node.js runtime or limiting
+Instead of maintaining a large fleet of imperative TypeScript provider executors across a second Node.js runtime or limiting
 connectors to flat stateless RPC calls, Basis adopts the **Basis Open Connector Protocol (BOCP)**—a **100% pure Python
-declarative runtime** (`basis/core/connectors/`) that synthesizes the best primitives of **Nango** (declarative
+declarative runtime** (`basis/domain/integration/`) that synthesizes the best primitives of **Nango** (declarative
 17-mode auth templates + stateful sync checkpoints & delete tracking), **Airbyte** (`DeclarativeSource` YAML streams,
 `DISCOVER` dynamic schema introspection, `DefaultPaginator`, `SubstreamPartitionRouter`), and **AnyConnect** (OAuth
 dialect envelopes & MCP tool annotations):

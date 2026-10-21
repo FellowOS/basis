@@ -4,9 +4,9 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
-from basis.api.http.app import create_app
-from basis.runtime.config import Settings
-from basis.runtime.limits import GRAPH_PAGE_MAX_EDGES, GRAPH_PAGE_MAX_NODES
+from basis.interface.http.app import create_app
+from basis.infra.runtime.config import Settings
+from basis.infra.runtime.limits import GRAPH_PAGE_MAX_EDGES, GRAPH_PAGE_MAX_NODES
 
 
 def test_graph_nodes_limit_capped(tmp_path: Path) -> None:

@@ -65,7 +65,7 @@
 | time | Timeline | `F-TIM` | **全量** |
 | interface | GraphWorkspace | `F-UI` | **全量** |
 | chat-and-mcp | LLM extras | `F-CHAT` | **全量** |
-| Basis Connector（关系库 + AnyConnect 1,390+ SaaS） | `postgres`/`mysql` + 10,000+ Actions | `F-LAKE` | **可选模块**（统一 `kind = 'connector'`，见 §5.17/§5.18） |
+| Basis Connector（关系库 + AnyConnect SaaS） | `postgres`/`mysql` + 声明式 Actions | `F-LAKE` | **可选模块**（统一 `kind = 'connector'`，见 §5.17/§5.18） |
 | operational ontology（对标 Palantir） | —（Basis 组装） | `F-OPS` | **可选模块**（与 `F-LAKE` 同批；见 §5.18） |
 
 | Explorer Workspace | Basis 落点（UI） | 纳入 |
@@ -307,7 +307,7 @@
 
 ### 5.13 Agent 集成与 remember `F-CHAT`
 
-Basis **不在 API 层提供** Utopia 式「服务端 Chat 会话 + SSE LLM」，**控制台也不再提供** KB 内浏览器 Playground。智能体经 **HTTP MCP**（与 OpenAPI 对齐的 `basis/integration` 操作）集成。
+Basis **不在 API 层提供** Utopia 式「服务端 Chat 会话 + SSE LLM」，**控制台也不再提供** KB 内浏览器 Playground。智能体经 **HTTP MCP**（与 OpenAPI 对齐的 `basis/application` 操作）集成。
 
 | ID | 能力 | 实现落点 |
 | --- | --- | --- |
@@ -349,9 +349,9 @@ Basis **不在 API 层提供** Utopia 式「服务端 Chat 会话 + SSE LLM」�
 
 ---
 
-### 5.16 统一声明式连接器（BOCP：数据库 + 1,000+ SaaS）与双向同步 `F-LAKE` / `F-OPS`
+### 5.16 统一声明式连接器（BOCP：数据库 + 声明式 SaaS）与双向同步 `F-LAKE` / `F-OPS`
 
-> **注**：保留历史编号 `F-LAKE`，但**不建平行的 Parquet 数据湖或 DuckDB SQL 沙箱，也不引入跨语言 Node.js 执行器**。关系型数据库（`postgres` / `mysql`，底层 SQLAlchemy 2.0）与 1,000+ SaaS 应用统一由 **100% 纯 Python 原生的 Basis Open Connector Protocol (BOCP)**（融合 **Nango** 的 17 种声明式认证与增量状态机 + **Airbyte** 的 `DeclarativeSource` YAML 流抽取与 `DISCOVER` 动态 Schema 发现 + **AnyConnect** 的 OAuth 方言与动作目录，`ingest_sources.kind = 'connector'`）驱动，共享同一套证据账本（`entities` + `statements` + `typed_facts`）与唯一 Python MCP 服务（见 [ADR 0003](architecture/adrs/0003-lakehouse-datasets.md) 与 [connectors/product.md](architecture/connectors/product.md)）：
+> **注**：保留历史编号 `F-LAKE`，但**不建平行的 Parquet 数据湖或 DuckDB SQL 沙箱，也不引入跨语言 Node.js 执行器**。关系型数据库（`postgres` / `mysql`，底层 SQLAlchemy 2.0）与 声明式 SaaS 应用统一由 **100% 纯 Python 原生的 Basis Open Connector Protocol (BOCP)**（融合 **Nango** 的 17 种声明式认证与增量状态机 + **Airbyte** 的 `DeclarativeSource` YAML 流抽取与 `DISCOVER` 动态 Schema 发现 + **AnyConnect** 的 OAuth 方言与动作目录，`ingest_sources.kind = 'connector'`）驱动，共享同一套证据账本（`entities` + `statements` + `typed_facts`）与唯一 Python MCP 服务（见 [ADR 0003](architecture/adrs/0003-lakehouse-datasets.md) 与 [connectors/product.md](architecture/connectors/product.md)）：
 
 | ID | 能力 |
 | --- | --- |
@@ -375,7 +375,7 @@ Explorer Memory Workspace：长期 Agent 记忆图。**纳入策略**：当 F-CH
 
 | 环节 | 文档证据路径（`资料 /kbs/:id/sources`） | 业务系统连接器路径（`连接器 /kbs/:id/connectors`，`F-LAKE` + `F-OPS`） |
 | --- | --- | --- |
-| **入向** | 文档分块 + NER/LLM 抽取 → 开放陈述 → 映射 | 统一执行 BOCP `Stream READ`（SQLAlchemy `postgres`/`mysql` 或 1,000+ SaaS 声明式流）+ `source_table_mappings` → 直接生成/更新实体与陈述（`entity_external_refs`） |
+| **入向** | 文档分块 + NER/LLM 抽取 → 开放陈述 → 映射 | 统一执行 BOCP `Stream READ`（SQLAlchemy `postgres`/`mysql` 或 SaaS 声明式流）+ `source_table_mappings` → 直接生成/更新实体与陈述（`entity_external_refs`） |
 | **中间核心（统一）** | **同一套账本 · 同一套本体 · 同一张图谱 · 同一个 Review 队列 · 唯一 Python MCP** | 同左（同一实体节点可同时汇聚 PDF 合同风险、ERP 数据库字段与 HubSpot/Jira 状态） |
 | **出向（Write-back）** | 仅更新 KB 内部账本与图投影 | 修改绑定属性或触发 Declared Action → `entity_sync_outbox` → 经 Review 批准后统一调用 BOCP `Stream MUTATE` 写回数据库或外部 SaaS |
 
@@ -413,7 +413,7 @@ Basis Web
         ▼ Bearer + KB role
 Basis API
   ├─ AdminStore（SQLite）
-  ├─ Per-KB ContextGraph + BasisKbGraphSession（basis/core/explorer）
+  ├─ Per-KB ContextGraph + BasisKbGraphSession（basis/domain/graph/explorer）
   ├─ Per-KB VectorIndex / chunk search
   ├─ Per-KB ReviewStore / ledger
   └─ Basis routes: graph, sparql, ontology hub, decisions, vocabulary, …
@@ -493,7 +493,7 @@ semantica SDK（parse, kg, ontology, reasoning, embeddings, …）
 
 完整实施契约见 [explorer.md](architecture/explorer-integration.md)。关键约束：
 
-1. **后端**：每 KB 使用 `BasisKbGraphSession` + `basis/core/explorer/*`（见
+1. **后端**：每 KB 使用 `BasisKbGraphSession` + `basis/domain/graph/explorer/*`（见
    [explorer-backend.md](architecture/explorer-backend.md)）。
 2. **路径与鉴权**：公共 URL 为 **`/api/v1/kbs/{kb_id}/...`**；HTTP 使用 Basis JWT + KB
    role；WebSocket 使用短时、一次性 realtime ticket，不使用 Explorer API Key。
@@ -575,7 +575,7 @@ F-LAKE-01–03, F-OPS-01–06（建议顺序见 §5.18）, F-MEM-*, F-ACC-07, Ne
 
 ---
 
-*修订：2026-10-19 — §5.17/§5.18 统一为 Basis Connector（`kind = 'connector'`，合入 AnyConnect 1,390+ SaaS 与独立 `/kbs/:kbId/connectors` 页面）。*
+*修订：2026-10-19 — §5.17/§5.18 统一为 Basis Connector（`kind = 'connector'`，合入 AnyConnect SaaS 与独立 `/kbs/:kbId/connectors` 页面）。*
 
 *修订：2026-10-17 — §7 对齐 progress §0.1/§0.2/§3.1/§3.2；§5 API v1 路径；状态只在 progress。*
 

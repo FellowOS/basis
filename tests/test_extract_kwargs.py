@@ -2,9 +2,9 @@
 
 import pytest
 
-from basis.control.admin.errors import AdminError
-from basis.core.pipeline.document import TextIngestOptions
-from basis.core.pipeline.extract_kwargs import (
+from basis.domain.tenancy.admin.errors import AdminError
+from basis.domain.knowledge.pipeline.document import TextIngestOptions
+from basis.domain.knowledge.pipeline.extract_kwargs import (
     semantica_build_kwargs,
     validate_extract_options,
 )

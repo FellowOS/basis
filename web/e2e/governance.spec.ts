@@ -316,7 +316,9 @@ test('approve remember records governance decision deep link', async ({ page }) 
 
   const decisionLink = page.getByTestId('review-approve-decision-link');
   await expect(decisionLink).toBeVisible({ timeout: 30_000 });
-  await expect(page.getByTestId('review-item-decision-narrative')).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByTestId('review-item-decision-narrative').first()).toBeVisible({
+    timeout: 30_000,
+  });
   await expect(page.getByTestId('review-decision-narrative')).toBeVisible({ timeout: 30_000 });
   await decisionLink.click();
   await expect(page).toHaveURL(/\/decisions/);
@@ -348,7 +350,9 @@ test('resolved review deep link shows banner and decision links', async ({ page 
   await page.reload();
   await expect(page.getByTestId('review-resolved-item-banner')).toBeVisible({ timeout: 30_000 });
   await expect(page.getByTestId(/^review-resolved-decision-/).first()).toBeVisible();
-  await expect(page.getByTestId('review-item-decision-narrative')).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByTestId('review-item-decision-narrative').first()).toBeVisible({
+    timeout: 30_000,
+  });
 });
 
 test('search graph tab shows temporal hint and link to graph workspace', async ({ page }) => {

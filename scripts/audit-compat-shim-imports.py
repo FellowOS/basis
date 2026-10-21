@@ -22,12 +22,12 @@ REMOVED_SHIM_FILES = (
 
 # If these paths are imported from ``basis/`` or ``tests/``, CI fails.
 FORBIDDEN_IMPORT_PREFIXES = (
-    "basis.control.admin.migrations",
-    "basis.control.admin.postgres_migrations",
-    "basis.control.admin.org_backfill",
-    "basis.api.http.openapi_v1_export",
-    "basis.api.http.openapi_spec",
-    "basis.api.http.ingest_tasks",
+    "basis.domain.tenancy.admin.migrations",
+    "basis.domain.tenancy.admin.postgres_migrations",
+    "basis.domain.tenancy.admin.org_backfill",
+    "basis.interface.http.openapi_v1_export",
+    "basis.interface.http.openapi_spec",
+    "basis.interface.http.ingest_tasks",
 )
 
 IMPORT_RE = re.compile(

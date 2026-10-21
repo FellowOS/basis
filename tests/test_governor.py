@@ -4,19 +4,19 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
-from basis.core.ledger.blob_store import BlobStore
-from basis.core.ledger.services.governor import (
+from basis.domain.knowledge.blob_store import BlobStore
+from basis.domain.knowledge.services.governor import (
     LOW_CONFIDENCE_KIND,
     run_governor_pass,
     scan_low_confidence_statements,
 )
-from basis.core.ledger.store import KnowledgeStore
-from basis.runtime.config import Settings
-from basis.api.http.app import create_app
+from basis.domain.knowledge.store import KnowledgeStore
+from basis.infra.runtime.config import Settings
+from basis.interface.http.app import create_app
 
 
 def _kb(tmp_path: Path) -> tuple[str, KnowledgeStore]:
-    from basis.control.admin.store import AdminStore
+    from basis.domain.tenancy.admin.store import AdminStore
 
     admin = AdminStore(tmp_path / "basis.db")
     user, _ = admin.register("gov@example.com", "password1", "Gov")

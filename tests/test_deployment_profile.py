@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from basis.runtime.deployment_profile import (
+from basis.infra.runtime.deployment_profile import (
     apply_profile_dict,
     bootstrap_profile_from_env,
     default_desktop_profile_path,

@@ -3,11 +3,11 @@
 import json
 import logging
 
-from basis.runtime.observability.json_logging import JsonLogFormatter
-from basis.runtime.observability.uvicorn_logging import UvicornAccessJsonFormatter
-from basis.runtime.observability.log_context import correlation_log_extra
-from basis.runtime.observability.redaction import REDACTED, redact_for_log, redact_string
-from basis.runtime.observability.request_context import (
+from basis.infra.runtime.observability.json_logging import JsonLogFormatter
+from basis.infra.runtime.observability.uvicorn_logging import UvicornAccessJsonFormatter
+from basis.infra.runtime.observability.log_context import correlation_log_extra
+from basis.infra.runtime.observability.redaction import REDACTED, redact_for_log, redact_string
+from basis.infra.runtime.observability.request_context import (
     current_request_id,
     reset_request_id,
     set_request_id,

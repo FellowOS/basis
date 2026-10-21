@@ -103,7 +103,7 @@ This ADR defines **read surfaces** and **proposal-only canvas writes** so new UI
 
 | Concern | Location |
 | --- | --- |
-| Graph audit write | `basis/core/ledger/graph_audit.py` · `audit_kb_graph` |
+| Graph audit write | `basis/domain/knowledge/services/graph_audit.py` · `audit_kb_graph` |
 | Graph audit list | `GET .../audit/graph-mutations` · `kb_review.py` |
 | Diff / staging | `kb_explorer.py` · `knowledge.graph_staging_at` · `kb_graph_staging_sessions` |
 | Entity merge propose | `POST .../graph/staging/entity-merge` · `propose_entity_merge` |

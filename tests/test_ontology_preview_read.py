@@ -1,7 +1,7 @@
 import pytest
 
-from basis.core.explorer.ontology.browse.preview_read import detect_format, preview_ontology
-from basis.control.admin.errors import AdminError
+from basis.domain.graph.explorer.ontology.browse.preview_read import detect_format, preview_ontology
+from basis.domain.tenancy.admin.errors import AdminError
 
 
 def test_detect_format_turtle_prefix() -> None:

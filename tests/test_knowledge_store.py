@@ -2,10 +2,10 @@ from pathlib import Path
 
 import pytest
 
-from basis.control.admin.errors import AdminError
-from basis.control.admin.store import AdminStore
-from basis.core.ledger.blob_store import BlobStore
-from basis.core.ledger.store import KnowledgeStore
+from basis.domain.tenancy.admin.errors import AdminError
+from basis.domain.tenancy.admin.store import AdminStore
+from basis.domain.knowledge.blob_store import BlobStore
+from basis.domain.knowledge.store import KnowledgeStore
 
 
 def _kb_id(tmp_path: Path, *, email: str = "u@example.com", name: str = "Test KB") -> str:

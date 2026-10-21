@@ -57,12 +57,12 @@ Basis 特有的 REST 扩展（其他 BOCP 宿主忽略）：entity action 上的
 
 | 组件 | 位置 |
 |------|------|
-| Runtime | `basis/core/connectors/runtime.py` |
-| REST adapter | `basis/core/connectors/adapters/rest/` |
-| SQL adapter | `basis/core/connectors/adapters/sql/` |
-| Provider bundles | `basis/core/connectors/providers/` |
-| Manifest 模式 | `basis/core/connectors/manifest_schema.py` |
-| 目录 | `basis/core/connectors/catalog.py` |
+| Runtime | `basis/domain/integration/runtime.py` |
+| REST adapter | `basis/domain/integration/adapters/rest/` |
+| SQL adapter | `basis/domain/integration/adapters/sql/` |
+| Provider bundles | `basis/domain/integration/providers/` |
+| Manifest 模式 | `basis/domain/integration/manifest_schema.py` |
+| 目录 | `basis/domain/integration/catalog.py` |
 | 构建随版 bundle | `scripts/build_connector_manifests.py` |
 
 ---
@@ -72,7 +72,7 @@ Basis 特有的 REST 扩展（其他 BOCP 宿主忽略）：entity action 上的
 | 面 | 位置 |
 |----|------|
 | HTTP | `/api/v1/kbs/{kb_id}/connectors/*`（见 [openapi-v1.md](openapi-v1.md) 与 live `/openapi/v1.json`） |
-| MCP | `basis/integration/ops_connectors.py`（含 `invoke_connector_primitive`） |
+| MCP | `basis/application/operations_connectors.py`（含 `invoke_connector_primitive`） |
 
 持久化与 KB 投影：[data-model.md](../data-model.md) §18。
 

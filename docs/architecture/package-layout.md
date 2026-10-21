@@ -2,158 +2,226 @@
 
 Physical layout for the `basis` installable package (repo `basis/`). Integration contract: [openapi-v1.md](openapi-v1.md).
 
-Deprecated import prefixes (`basis.transport`, `basis.domain`, …) are blocked by `scripts/audit-legacy-package-imports.py`.
+Pre-layered import prefixes (`basis.api`, `basis.core`, `basis.control`, `basis.runtime`, `basis.tooling`, …) are blocked by `scripts/audit-legacy-package-imports.py`.
+
+## Architectural layers
+
+| Layer | Path | Core capabilities |
+| --- | --- | --- |
+| **L1 Interface** | `basis/interface/` | HTTP, MCP wire protocol, OpenAPI/MCP contract (`contract/`) |
+| **L2 Application** | `basis/application/` | `KbCoreContext`, operation registry, use-case handlers, DTOs |
+| **L3 Domain** | `basis/domain/` | Product + platform business rules (four subdomains below) |
+| **L4 Infra** | `basis/infra/` | Config, DB pool, limits, observability, SQL migrations, test DB helpers |
+
+Entry: `basis/cli.py` → Uvicorn `basis.interface.http.app:create_app`.
+
+### L3 Domain subdomains
+
+| Subdomain | Path | Capabilities |
+| --- | --- | --- |
+| **Knowledge** | `domain/knowledge/` | Evidence ledger (canonical SQL), ingest `pipeline/`, review, search, connector ledger sync, schedulers |
+| **Graph** | `domain/graph/` | `projection/` (ContextGraph), `explorer/` (Explorer HTTP domain) |
+| **Integration** | `domain/integration/` | BOCP engine: manifests, runtime, adapters, vault, `providers/` bundles |
+| **Tenancy** | `domain/tenancy/` | AdminStore, org/users, SSO/OIDC/SAML, model catalog, realtime |
+
+Shared domain errors: `basis/domain/errors.py` (`AdminError`; tenancy re-exports for compatibility).
+
+### Dependency rules
+
+1. **Domain** must not import `basis.interface` or `basis.application`.
+2. **Application** may import domain + infra (+ `interface.contract.mcp` for result formatting); must not import `interface.http`.
+3. **Interface** may import application, domain, infra.
+4. **Knowledge** should not import graph / integration / tenancy; **tenancy** may call **knowledge** for purge/roles; **graph** and **integration** may call **knowledge**.
+
+CI: [import-linter](https://import-linter.readthedocs.io/) (`importlinter.ini`).
+
+```mermaid
+flowchart TB
+  clients["Clients (browser, agents)"]
+  subgraph L1["L1 interface"]
+    http["http/ routes + deps"]
+    contract["contract/openapi · contract/mcp"]
+  end
+  subgraph L2["L2 application"]
+    app["context · registry · operations_*"]
+  end
+  subgraph L3["L3 domain"]
+    dom["knowledge · graph · integration · tenancy"]
+  end
+  subgraph L4["L4 infra"]
+    infra["runtime · tooling/db"]
+  end
+  clients --> http
+  http --> app
+  http --> dom
+  http --> contract
+  http --> infra
+  app --> dom
+  app --> infra
+  app --> contract
+```
+
+Solid arrows are **allowed** import/call direction at runtime. Domain must not depend on L1/L2 (enforced by `importlinter.ini` + `audit-legacy-package-imports.py`).
+
+### Shared operation dispatch (HTTP + MCP)
+
+| Step | Location | Role |
+| --- | --- | --- |
+| 1 | `interface/http/kb_core_context.py` | `build_kb_core_context` — KB, `KnowledgeStore`, graph runtime loader, blob/projection bindings |
+| 2 | `interface/http/platform_mcp.py`, KB MCP routes | JSON-RPC → `application.registry.execute` / `run` |
+| 3 | `application/operations_catalog.py` | Static operation name → handler (`operations.py`, `operations_connectors.py`) |
+| 4 | `application/registry.py` | Validate args (`models.py`), dispatch, MCP `tools/list` (+ connector tools when `ctx` set) |
+| 5 | `interface/contract/mcp/openapi.py` | Derive MCP `inputSchema` from live OpenAPI where possible |
+
+Many REST handlers call **domain** services directly; graph/review/MCP core tools go through **application** so HTTP and MCP share one registry. Normative surface: [openapi-v1.md](openapi-v1.md).
+
+### CI layout guards
+
+Run in `.github/workflows/ci.yml` (`pytest` job, before full `pytest`):
+
+| Check | Command |
+| --- | --- |
+| Layer import contracts | `uv run lint-imports --config importlinter.ini` |
+| Explorer legacy imports | `audit-semantica-explorer-{imports,session-imports,package-imports}.py` |
+| Explorer / platform shims | `audit-explorer-shim-imports.py`, `audit-compat-shim-imports.py` |
+| Deprecated `basis.*` prefixes | `audit-legacy-package-imports.py` |
+| KB HTTP aggregators | `audit-kb-http-aggregators.py` |
+
+OpenAPI job (same workflow): `generate-openapi-v1.py`, `audit-web-openapi-paths.mjs`, `audit-web-operation-ids.py`, TS schema drift.
 
 ## Package tree (quick reference)
 
-| Path | Role |
+| Path | Layer |
 | --- | --- |
-| `basis/api/` | HTTP + MCP adapters |
-| `basis/application/` | `KbCoreContext`, operations registry, OpenAPI export |
-| `basis/core/` | `ledger`, `pipeline`, `projection`, `explorer`, `connectors` |
-| `basis/control/` | `admin`, `identity`, `catalog`, `realtime` |
-| `basis/runtime/` | config, DB pool, observability |
-| `basis/tooling/` | SQL migrations, Alembic, test support |
+| `basis/interface/http/`, `interface/mcp/`, `interface/contract/` | L1 |
+| `basis/application/` | L2 |
+| `basis/domain/knowledge/`, `graph/`, `integration/`, `tenancy/` | L3 |
+| `basis/infra/runtime/`, `infra/tooling/` | L4 |
 
-HTTP routes: `api/http/routes/v1/platform/*`, `api/http/routes/v1/kb/*` ([KB aggregators](#kb-http-surface) below).
+HTTP handlers live as flat modules under `interface/http/` (e.g. `kb_connectors_oauth.py`). URLs unchanged ([KB aggregators](#kb-http-surface)).
 
-## Layers
+### `basis/interface` layout
 
-| Layer | Path | Role |
-| --- | --- | --- |
-| API | `basis/api/http/`, `basis/api/mcp/` | FastAPI routes, middleware, MCP JSON-RPC — thin adapters |
-| Application | `basis/application/` | KB operations (`KbCoreContext`, `registry` + `registry_catalog`); `openapi/` export; `mcp/` tool schemas |
-| Core | `basis/core/*/` | Ledger, pipeline, projection, Explorer, connectors |
-| Control | `basis/control/*/` | Admin store, auth, realtime, model catalog |
-| Runtime | `basis/runtime/` | Config, database pool, limits, capabilities, observability |
-| Tooling | `basis/tooling/` | Migrations, test helpers, Alembic storage schema |
-
-Entry: `basis/cli.py` → Uvicorn `basis.api.http.app:create_app`.
+| Location | Purpose |
+| --- | --- |
+| `http/` | FastAPI app, deps, `mount_v1`, flat `kb_*` / `platform_*` routes |
+| `mcp/` | JSON-RPC protocol (`protocol.py`, `tools.py`); KB route in `http/platform_mcp.py` |
+| `contract/openapi/` | Live OpenAPI export (`v1_export.py`), CI `spec.py` |
+| `contract/mcp/` | MCP `inputSchema` from OpenAPI, connector tool defs, `format.py` |
 
 ### `basis/application` layout
 
 | Location | Purpose |
 | --- | --- |
-| `context.py`, `registry.py`, `registry_catalog.py`, `operations.py` | `KbCoreContext`, MCP/OpenAPI operation dispatch |
-| `ops_connectors.py`, `review_deps.py`, `governance_hooks.py` | Connector + review operation helpers |
-| `http.py`, `models.py`, `errors.py` | HTTP payload mapping and shared DTOs |
-| `openapi/` | `v1_export.py` (live export), `spec.py` (ephemeral app for tests/CI) |
-| `mcp/` | `openapi.py` (tool `inputSchema` from OpenAPI), `connector_tools.py`, `format.py` |
+| `context.py`, `registry.py`, `operations_catalog.py`, `operations.py` | `KbCoreContext`, MCP/HTTP-shared operation dispatch |
+| `operations_connectors.py`, `review_deps.py`, `governance_hooks.py` | Connector + review operation helpers |
+| `operation_http.py`, `models.py`, `errors.py` | Operation HTTP response helpers and shared DTOs |
 
-## Core packages
+#### Module wiring
 
-| Package | Former path |
-| --- | --- |
-| `basis.core.ledger` | `basis.knowledge`, `basis.domain.kb` |
-| `basis.core.pipeline` | `basis.pipeline`, `basis.domain.ingest` |
-| `basis.core.projection` | `basis.graph`, `basis.domain.graph` |
-| `basis.core.explorer` | `basis.explorer`, `basis.domain.explorer` |
-| `basis.core.connectors` | `basis.domain.connectors` |
+| Module | Imports | Called from |
+| --- | --- | --- |
+| `context.py` | domain stores, graph runtime types | `interface/http/kb_core_context.py`, MCP protocol |
+| `registry.py` | `operations_catalog`, `contract/mcp/*`, `models` | `interface/mcp/*`, `platform_mcp.py`, ledger/graph/review HTTP routes |
+| `operations_catalog.py` | `operations`, `operations_connectors` | `registry` only (single catalog) |
+| `operations.py` | domain knowledge/graph; `review_deps`, `governance_hooks` | Catalog handlers for KB search/graph/review |
+| `operations_connectors.py` | domain integration + knowledge connector services | Catalog + dynamic `connector_*` MCP tools |
+| `review_deps.py` | `ReviewApproveDeps` from context fields | `operations` approve/reject paths |
+| `governance_hooks.py` | Explorer governance decision recorder | `operations` where graph governance is logged |
+| `operation_http.py` | maps `{error: …}` payloads to `HTTPException` | KB routes that call `registry.run` |
 
-KB canonical SQL lives under `basis/core/ledger/persistence/` (caller often holds `KnowledgeStore._lock`; use raw `conn` inside an existing lock block to avoid nested lock deadlocks). `KnowledgeStore` (`store.py`) is a thin façade: DB handle, scope guards (`persistence/guards.py`), and `setattr` delegates to `basis/core/ledger/access/*` (connector, documents, processing, ingest_ledger, review, mappings, projection, facts, entity_merges, ingest_sources, reasoning_rules, kb_alerts, governance, search, ledger, …). Row DTOs: `ledger_rows.py`. Core services (e.g. `connector_sync.py`) call persistence via the store or `LockedCanonicalConn`.
+#### Static operations (`OPERATIONS` in `operations_catalog.py`)
 
-| `basis.core.projection.ontology_legacy` | 旧图会话 `POST …/ontology`（非 Explorer hub） |
-| `basis.core.explorer.reasoning` | 图推理 HTTP / Explorer（无顶层 `basis.core.reasoning` 包） |
+| Group | Tool names | Handler module |
+| --- | --- | --- |
+| KB summary & RAG | `describe_kb`, `search_chunks`, `get_chunk` | `operations.py` |
+| Graph & entities | `find_entities`, `neighbors`, `paths`, `entity_facts`, `graph_search` | `operations.py` |
+| Remember & review | `propose_remember`, `list_review_items`, `get_review_item`, `approve_statement_remember_review`, `reject_statement_remember_review`, `approve_review_item`, `reject_review_item` | `operations.py` |
+| Processing | `list_processing_jobs` (`mcp: false` — HTTP/OpenAPI only) | `operations.py` |
+| Connectors | `list_connector_catalog`, `describe_connector_service`, `list_connector_connections`, `list_connector_table_mappings`, `sync_connector_table_mapping`, `invoke_connector_primitive`, `execute_connector_tool`, `propose_entity_writeback` | `operations_connectors.py` |
 
-### `basis/core/ledger` layout
+Manifest-expanded MCP tools (`connector_{service}__…`) resolve to `invoke_connector_primitive` in `registry.py` via `interface/contract/mcp/connector_tools.py`. Full HTTP↔tool map: [openapi-v1.md §6](openapi-v1.md).
+
+## Knowledge (`domain/knowledge`)
+
+KB canonical SQL lives in `domain/knowledge/sql_*.py` modules (caller often holds `KnowledgeStore._lock`; use raw `conn` inside an existing lock block). Shared connector SQL types: `domain/knowledge/sql.py`. `KnowledgeStore` (`store.py`) delegates to `domain/knowledge/access/*`. Row DTOs: `ledger_rows.py`. Ingest pipeline: `domain/knowledge/pipeline/`.
 
 | Location | Purpose |
 | --- | --- |
-| `store.py` | `KnowledgeStore` façade (lock, blob store, delegates) |
-| `persistence/` | Canonical ledger SQL (`conn` only; caller holds `_lock`) |
-| `access/` | Lock + validation + orchestration per slice |
-| `ledger_rows.py` | Row DTOs returned by store APIs |
-| `services/` | Workflows, audit side-effects (`graph_audit`), KB alerts (`kb_alerts_emit`), governor/review |
-| `schedulers/` | `*_poll_scheduler.py` ticks and `*_poll_due.py` schedule predicates |
-| `search/` | Hybrid chunk search (`ChunkSearchService`), embeddings, vector indexes, `search_config` |
-| `services/connector_sync.py` | Ledger-side BOCP sync orchestration (`ConnectorLedgerSyncService`) |
-| `connector_sync.py` | Re-export of `services.connector_sync` (stable import path) |
-| `structured_models.py` | BOCP mapping / outbox DTOs shared with connector services |
-| `governance_config.py` | KB governor config types + validation (SQL in `persistence/governance_config`) |
+| `store.py` | `KnowledgeStore` façade |
+| `sql_*.py` | Canonical ledger SQL (one module per topic, e.g. `sql_documents`, `sql_connector_sync`) |
+| `access/` | Lock + validation per slice |
+| `services/` | Governor, review, connector_sync, remember, … |
+| `schedulers/` | Poll ticks + due predicates |
+| `search/` | Chunk search, embeddings |
+| `pipeline/` | Document ingest / version ingest |
 
-### `basis/core/explorer` layout
+## Graph (`domain/graph`)
 
-Server-side adapters for vendored `web/src/explorer` — **not** a second ledger. Graph writes still go through Review / ledger APIs.
-
-| Subpackage | Role |
+| Package | Role |
 | --- | --- |
-| `session/` | Registry, guard, probe, `BasisKbGraphSession` |
-| `graph/` | Projection reads, diff, staging payloads, import/export, semantic neighborhood |
-| `ontology/` | `hub/` (catalog, persistence, proposals, writes), `shacl/`, `browse/` (graph/preview/health), `rdf_io.py` |
-| `governance/` | Decisions, enrich, provenance, governance trip side effects |
-| `vocabulary/` | SKOS browse + import |
-| `temporal/` / `sparql/` | Temporal bounds; read-only SPARQL |
-| `reasoning/` | Forward reasoning run + Explorer helpers |
-| `io/` | RDF parse helpers; Explorer HTTP error mapping |
-| `api/http/kb_ontology_hub*.py` | Ontology Hub HTTP (`_catalog` / `_governance` + `_support`; core logic in `ontology/`) |
+| `projection/` | `GraphSession`, snapshot JSON, projector, legacy ontology session |
+| `explorer/` | Explorer adapters — see [explorer README](../../basis/domain/graph/explorer/README.md) |
 
-**Imports:** use `basis.core.explorer.<subpackage>.<module>` only (flat `graph_read` / `registry` shims were removed). CI runs `scripts/audit-explorer-shim-imports.py` on `basis/` + `tests/` to prevent new root-level shim files.
+**Imports:** `basis.domain.graph.explorer.<subpackage>.<module>` only. CI: `scripts/audit-explorer-shim-imports.py`.
 
-See [explorer.md](explorer-integration.md), [explorer-backend.md](explorer-backend.md), [ADR 0007](adrs/0007-graph-activity-and-canvas-merge.md).
+## Integration vs knowledge (BOCP)
 
-**线 1：** 新后端逻辑在 `basis/core/*`；Explorer HTTP 用 `basis/core/explorer/<subpackage>/`（[README](../../basis/core/explorer/README.md)）。Import 护栏见 [explorer-backend.md](explorer-backend.md#ci-护栏)。
-
-### Other core packages
-
-| Package | Notes |
+| Concern | Path |
 | --- | --- |
-| `graph/snapshot_store.py` | On-disk ContextGraph JSON per KB — **not** SQL `persistence/` |
-| `graph/persistence.py` | Deprecated re-export of `snapshot_store` |
-| `explorer/graph/staging.py` | Staging **payload**; SQL in `kb/persistence/graph_staging.py` |
-| `connectors/` | BOCP runtime, vault crypto, `adapters/{sql,rest}/` — no ledger SQL |
+| Engine | `domain/integration/` — no canonical connector table SQL |
+| Ledger sync | `domain/knowledge/services/connector_sync.py` + `sql_connector_*.py` |
+| Bridge | `domain/integration/canonical_db.py` (`LockedCanonicalConn`) |
 
-### BOCP: `connectors/` vs `kb/connector_sync`
+HTTP/MCP: `interface/http/...` + `application/operations_connectors.py` compose engine + `KnowledgeStore`.
 
-| Layer | Path | Responsibility |
-| --- | --- | --- |
-| **Engine** | `core/connectors/` | Manifest schema, `ConnectorRuntime`, `adapters/sql` + `adapters/rest`, vault crypto (`auth_vault`), shipped `providers/{service}/` bundles |
-| **Ledger** | `core/ledger/services/connector_sync.py` + `ledger/persistence/connector_*.py` | Map streams ↔ `entities` / `statements` / outbox; row-hash sync; writeback via review; SQL on canonical DB |
-| **Bridge** | `core/connectors/canonical_db.py` | `LockedCanonicalConn` — run ledger SQL under an existing `KnowledgeStore` lock |
+## KB HTTP surface
 
-HTTP/MCP entry: routes and `application/ops_connectors.py` compose engine + `KnowledgeStore` connector access. Do not add canonical connector table SQL under `core/connectors/`.
+Aggregators: `kb_connectors.py`, `kb_documents.py`, `kb_explorer.py`, … — each `include_router` from sibling `kb_*` / `kb_*_*` modules. Former path map:
 
-KB HTTP surface is split under `api/http/routes/v1/kb/` (paths/operationIds unchanged; aggregator `__init__.py` modules `include_router`):
-
-| Aggregator (`kb/…`) | Sub-routers |
-|------------|-------------|
-| `workspace/` | `{kbs,tokens}` — KB CRUD, members, API tokens |
+| Aggregator | Sub-routers |
+| --- | --- |
+| `workspace/` | `{kbs,tokens}` |
 | `graph/` | `{read,search,models}` |
 | `documents/` | `{crud,jobs,ontology,models,processing_support}` |
 | `explorer/` | `{sparql,semantic,decisions,reasoning,graph_io,temporal,staging,governance,shared}` |
-| `ontology/` | `{vocabulary,alignments,session}` + `hub/` (`register_kb_ontology_hub_routes`) |
+| `ontology/` | `{vocabulary,alignments,session}` + `hub/` |
 | `review/` | `{models,queue,audit}`; `resolve` → `{approve,reject}` |
 | `connectors/` | `{catalog,connections,mappings,outbox,oauth,tools,models,support}` |
 | `ledger/` | `{read,remember,mutations,models}` |
 | `sources/` | `{crud,ingest,models,support}` |
 | `config/` | `{mappings,alerts,governance,reasoning_rules}` |
 
-Other KB modules under `kb/`: `e2e_helpers.py` (test-only when enabled).
+Platform auth: `platform_auth.py` aggregates `platform_auth_session.py`, `platform_auth_saml.py`, …
 
-Platform login HTTP: `api/http/routes/v1/platform/auth/` — `session.py` (password register/login/logout/me/desktop) plus federated modules (`bootstrap`, `social`, `oidc`, `saml`, `magic_link`; `support.py`). Mounted once at `/api/v1/auth`.
+## Tenancy admin store
 
-`basis/core/explorer/graph/` — projection adapters. `ontology/` — hub logic; HTTP in `api/http/routes/v1/kb/ontology/hub/`. `session/`, `governance/`, `vocabulary/`, `temporal/`, `sparql/`, `reasoning/`, `io/` — see [explorer README](../../basis/core/explorer/README.md).
+Canonical admin SQL: `domain/tenancy/admin/persistence/`. `AdminStore` façade: `domain/tenancy/admin/store.py`, delegates `admin/access/*`.
 
-KB core services that need audit or embedding settings take `basis.core.ledger.ports` protocols (`KbAuditStore`, `EmbedSettingsStore`); `api` passes `AdminStore` at the edge.
+## Infra
 
-## Import rules
+- SQL migrations: `infra/tooling/db/migrations/`
+- Alembic: repo-root `alembic.ini` → `basis/infra/tooling/db/alembic`
+- Package data: `pyproject.toml` → `basis.infra.tooling.db`, `basis.domain.integration`
 
-1. **Core** must not import `basis.api`.
-2. **Application** may import core + control + runtime.
-3. **API** may import all lower layers.
-4. Prefer injecting callables into core over importing HTTP `deps` (legacy cleanup in progress).
+## Migration from v2 layout
 
-CI enforces these with [import-linter](https://import-linter.readthedocs.io/) (`importlinter.ini` at repo root): core must not import `api`, `application`, or `control`; MCP OpenAPI bridge must not import `api`.
+| v2 | v3 (layered) |
+| --- | --- |
+| `basis.api` | `basis.interface` (via `basis.delivery` interim) |
+| `basis.delivery` | `basis.interface` |
+| `basis.interfaces` | `basis.interface` |
+| `basis.application.openapi` | `basis.interface.contract.openapi` |
+| `basis.application.mcp` | `basis.interface.contract.mcp` |
+| `basis.core.ledger` | `basis.domain.knowledge` |
+| `basis.core.pipeline` | `basis.domain.knowledge.pipeline` |
+| `basis.core.projection` | `basis.domain.graph.projection` |
+| `basis.core.explorer` | `basis.domain.graph.explorer` |
+| `basis.core.connectors` | `basis.domain.integration` |
+| `basis.core.errors` | `basis.domain.errors` |
+| `basis.control` | `basis.domain.tenancy` |
+| `basis.runtime` | `basis.infra.runtime` |
+| `basis.tooling` | `basis.infra.tooling` |
+| `basis.infrastructure` | `basis.infra` |
 
-Canonical SQL migrations live under `basis/tooling/db/migrations/` (`sqlite_migrations.py`, `postgres_migrations.py`).
-
-Shared API/core errors: `basis.core.errors.AdminError` (control re-exports from `basis.control.admin.errors` for backward compatibility). Code under `basis/core/` should import `AdminError` from `basis.core.errors`.
-
-## Control admin store
-
-Canonical admin SQL lives under `basis/control/admin/persistence/` (caller holds `AdminStore._lock`; persistence functions take raw `conn` only). `AdminStore` (`store.py`) is a thin façade: DB handle, internal helpers (`_setting`, `_put_setting`, `_audit`, `_insert_kb`, …), and `setattr` delegates to `basis/control/admin/access/*` (auth, users, api_tokens, knowledge_bases, models, settings, audit, organizations, desktop). Row DTOs and mappers: `admin_types.py`.
-
-## Tooling
-
-- SQL migrations ship with `basis.tooling.db` (`migrations/*.sql`); BOCP provider YAML and synthesis batch assets ship with `basis.core.connectors` / `basis.core.connectors.synthesis` (`pyproject.toml` `package-data`).
-- Alembic for `basis.tooling.db` storage baseline: repo-root `alembic.ini` → `basis/tooling/db/alembic` (override URL via `BASIS_DATABASE_URL`).
-- Normative OpenAPI export: `basis.application.openapi.v1_export` / `openapi.spec`; committed snapshots under `openapi/`; web types via `npm run gen:openapi-types`.
+Rewrite scripts: `migrate_package_layout_v3_layers.py`, `flatten_delivery_http_v3.py`, `flatten_knowledge_sql_v3.py`, `migrate_interfaces_v4.py`, `migrate_interface_singular_v5.py`, `migrate_infra_v6.py`.

@@ -37,6 +37,9 @@ export const KbLibraryPage = lazy(() =>
 export const KbConnectorsPage = lazy(() =>
   import('@/pages/kb/connectors').then((m) => ({ default: m.KbConnectorsPage })),
 );
+export const KbDataOnboardingPage = lazy(() =>
+  import('@/pages/kb/data-onboarding').then((m) => ({ default: m.KbDataOnboardingPage })),
+);
 export const KbConnectorOAuthCallbackPage = lazy(() =>
   import('@/pages/kb/connector-oauth-callback').then((m) => ({
     default: m.KbConnectorOAuthCallbackPage,

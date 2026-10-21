@@ -7,9 +7,9 @@ from unittest.mock import patch
 import pytest
 from fastapi.testclient import TestClient
 
-from basis.api.http.app import create_app
-from basis.runtime.capabilities import explorer_available
-from basis.runtime.config import Settings
+from basis.interface.http.app import create_app
+from basis.infra.runtime.capabilities import explorer_available
+from basis.infra.runtime.config import Settings
 
 _LOOP_MARKER = "MCP_GRAPH_LOOP_UNIQUE_2010"
 
@@ -312,7 +312,7 @@ def test_mcp_timeout(tmp_path) -> None:
         time.sleep(2)
         return {"jsonrpc": "2.0", "id": 1, "result": {}}
 
-    with patch("basis.api.http.routes.v1.platform.mcp.handle_batch", side_effect=slow_batch):
+    with patch("basis.interface.http.platform_mcp.handle_batch", side_effect=slow_batch):
         resp = client.post(
             f"/api/v1/kbs/{kb_id}/mcp",
             headers=headers,

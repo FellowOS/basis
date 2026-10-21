@@ -121,7 +121,7 @@ export const pages = {
     sources:
       'Document upload, text paste, URL fetch, and source versions.',
     connectors:
-      'Basis Open Connector Protocol (BOCP): connect relational databases and 1,000+ SaaS APIs with bidirectional ontology ledger sync.',
+      'Basis Open Connector Protocol (BOCP): connect relational databases and SaaS APIs with bidirectional ontology ledger sync.',
     processing:
       'Extract, chunk, and project jobs; start from source versions and retry failures.',
     graphDiff:

@@ -1,6 +1,6 @@
 """SAML AuthnRequest signing settings."""
 
-from basis.control.identity.saml_client import build_saml_settings
+from basis.domain.tenancy.identity.saml_client import build_saml_settings
 
 
 def test_build_saml_settings_unsigned_by_default() -> None:

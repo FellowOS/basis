@@ -2,17 +2,17 @@
 
 from pathlib import Path
 
-from basis.core.ledger.blob_store import BlobStore
-from basis.core.ledger.services.governor_cluster import (
+from basis.domain.knowledge.blob_store import BlobStore
+from basis.domain.knowledge.services.governor_cluster import (
     ENTITY_CLUSTER_KIND,
     find_entity_label_clusters,
     scan_entity_label_clusters,
 )
-from basis.core.ledger.store import KnowledgeStore
+from basis.domain.knowledge.store import KnowledgeStore
 
 
 def _kb(tmp_path: Path) -> tuple[str, KnowledgeStore]:
-    from basis.control.admin.store import AdminStore
+    from basis.domain.tenancy.admin.store import AdminStore
 
     admin = AdminStore(tmp_path / "basis.db")
     user, _ = admin.register("cl@example.com", "password1", "Cl")
@@ -45,8 +45,8 @@ def test_scan_enqueues_cluster_review(tmp_path: Path) -> None:
 def test_cluster_approve_promotes_entity_merge(tmp_path: Path) -> None:
     from fastapi.testclient import TestClient
 
-    from basis.runtime.config import Settings
-    from basis.api.http.app import create_app
+    from basis.infra.runtime.config import Settings
+    from basis.interface.http.app import create_app
 
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
     admin = client.post(

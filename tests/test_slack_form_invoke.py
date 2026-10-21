@@ -6,9 +6,9 @@ from pathlib import Path
 
 import httpx
 
-from basis.core.connectors import ConnectorAuthVault, ConnectorRuntime
-from basis.core.connectors.primitive_invoke import execute_connector_primitive
-from basis.tooling.db.sqlite_migrations import run_migrations
+from basis.domain.integration import ConnectorAuthVault, ConnectorRuntime
+from basis.domain.integration.primitive_invoke import execute_connector_primitive
+from basis.infra.tooling.db.sqlite_migrations import run_migrations
 
 
 def _setup_kb_db(tmp_path: Path):

@@ -1,17 +1,17 @@
 from pathlib import Path
 
-from basis.control.admin.store import AdminStore
-from basis.core.explorer.graph.diff import diff_graph_states
-from basis.core.projection.projector import (
+from basis.domain.tenancy.admin.store import AdminStore
+from basis.domain.graph.explorer.graph.diff import diff_graph_states
+from basis.domain.graph.projection.projector import (
     build_temporal_graph_from_ledger,
     graph_projection_signature,
     rebuild_graph_from_ledger,
 )
-from basis.core.projection.session import GraphSession
-from basis.core.ledger.blob_store import BlobStore
-from basis.core.ledger.store import KnowledgeStore
-from basis.core.pipeline.ledger_extract import apply_kg_to_ledger
-from basis.core.ledger.services.derived_facts_service import persist_reasoning_derived
+from basis.domain.graph.projection.session import GraphSession
+from basis.domain.knowledge.blob_store import BlobStore
+from basis.domain.knowledge.store import KnowledgeStore
+from basis.domain.knowledge.pipeline.ledger_extract import apply_kg_to_ledger
+from basis.domain.knowledge.services.derived_facts_service import persist_reasoning_derived
 
 
 def _kb_store(tmp_path: Path) -> tuple[str, KnowledgeStore]:

@@ -1,10 +1,10 @@
 from pathlib import Path
 
-from basis.control.admin.store import AdminStore
-from basis.core.ledger.blob_store import BlobStore
-from basis.core.ledger.store import KnowledgeStore
-from basis.core.pipeline.chunk_meta import prepare_chunks
-from basis.core.pipeline.document import TextIngestOptions
+from basis.domain.tenancy.admin.store import AdminStore
+from basis.domain.knowledge.blob_store import BlobStore
+from basis.domain.knowledge.store import KnowledgeStore
+from basis.domain.knowledge.pipeline.chunk_meta import prepare_chunks
+from basis.domain.knowledge.pipeline.document import TextIngestOptions
 
 
 def test_prepare_chunks_records_heading_offsets_and_language() -> None:

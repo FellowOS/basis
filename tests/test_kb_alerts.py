@@ -4,8 +4,8 @@ from unittest.mock import MagicMock, patch
 
 from fastapi.testclient import TestClient
 
-from basis.api.http.app import create_app
-from basis.runtime.config import Settings
+from basis.interface.http.app import create_app
+from basis.infra.runtime.config import Settings
 
 
 def _test_settings(tmp_path) -> Settings:
@@ -37,7 +37,7 @@ def test_sync_failure_emits_alert(tmp_path) -> None:
     mock_http.__exit__ = MagicMock(return_value=False)
 
     with patch(
-        "basis.core.ledger.services.ingest_source_service.httpx.Client", return_value=mock_http
+        "basis.domain.knowledge.services.ingest_source_service.httpx.Client", return_value=mock_http
     ):
         failed = client.post(f"/api/v1/kbs/{kb_id}/sources/{source_id}/sync", headers=headers, json={})
     assert failed.status_code >= 400

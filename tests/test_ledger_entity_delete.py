@@ -4,10 +4,10 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
-from basis.api.http.app import create_app
-from basis.runtime.config import Settings
-from basis.core.ledger.blob_store import BlobStore
-from basis.core.ledger.store import KnowledgeStore
+from basis.interface.http.app import create_app
+from basis.infra.runtime.config import Settings
+from basis.domain.knowledge.blob_store import BlobStore
+from basis.domain.knowledge.store import KnowledgeStore
 
 
 def _seed(tmp_path: Path) -> tuple[TestClient, dict[str, str], str, KnowledgeStore]:

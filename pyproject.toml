@@ -56,9 +56,9 @@ basis = "basis.cli:main"
 include = ["basis*"]
 
 [tool.setuptools.package-data]
-"basis.tooling.db" = ["migrations/*.sql"]
-"basis.core.connectors" = ["providers/*.yaml", "providers/*.yml"]
-"basis.core.connectors.synthesis" = ["batches/*.yaml", "executors-index.json"]
+"basis.infra.tooling.db" = ["migrations/*.sql"]
+"basis.domain.integration" = ["providers/*.yaml", "providers/*.yml"]
+"basis.domain.integration.synthesis" = ["batches/*.yaml", "executors-index.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -33,8 +33,8 @@ Implementation today leads the contract (`FastAPI` routes → auto `/openapi.jso
 
 **Current order (implemented):**
 
-1. **Normative export** — live `GET /openapi/v1.json` from `app.openapi()` + handler docstrings (`basis/application/openapi/v1_export.py`); snapshots [`openapi/basis-v1*.json`](../../openapi/basis-v1.json) for CI and web typegen.
-2. **`basis/integration/`** — operations shared by HTTP and MCP (`KbCoreContext`, registry).
+1. **Normative export** — live `GET /openapi/v1.json` from `app.openapi()` + handler docstrings (`basis/interface/contract/openapi/v1_export.py`); snapshots [`openapi/basis-v1*.json`](../../openapi/basis-v1.json) for CI and web typegen.
+2. **`basis/application/`** — operations shared by HTTP and MCP (`KbCoreContext`, `registry`).
 3. **HTTP handlers** — thin wrappers calling integration; new public ops need docstrings + OpenAPI export update.
 4. **`web/`** — `web/src/lib/basis-openapi/` types from JSON snapshots.
 
@@ -46,7 +46,7 @@ New integration-facing operations should appear in the KB slice export and (when
 | --- | --- | --- |
 | **Served documents** | `GET /openapi/v1.json`, `GET /openapi/v1/platform.json`, `GET /openapi/v1/kb.json` | Live `app.openapi()` export (+ Basis extensions) |
 | **JSON snapshots** (optional) | [`openapi/basis-v1.json`](../../openapi/basis-v1.json), platform/kb slices | CI drift check + `web` `gen:openapi-types` |
-| **MCP tool schemas** | Derived from KB OpenAPI slice via `basis/application/mcp/openapi.py` (`MCP_TOOL_OPERATIONS`) | Path/query params + JSON body merged into one flat `inputSchema`; `describe_kb` → `GET .../kbs/{kb_id}` (empty args; `kb_id` from MCP session) |
+| **MCP tool schemas** | Derived from KB OpenAPI slice via `basis/interface/contract/mcp/openapi.py` (`MCP_TOOL_OPERATIONS`) | Path/query params + JSON body merged into one flat `inputSchema`; `describe_kb` → `GET .../kbs/{kb_id}` (empty args; `kb_id` from MCP session) |
 | **Error codes** | `components.schemas.ApiError` + enum aligned with `web/src/i18n/locales/en/apiErrorCodes.ts` | |
 
 **Baseline:** OpenAPI is **generated from code** (`app.openapi()` + export helpers). Handler docstrings → `description`. Snapshots: `uv run python scripts/generate-openapi-v1.py` → `openapi/*.json` (CI drift + web typegen; fails if any operation lacks `description`). One-off backfill: `uv run python scripts/backfill_route_docstrings.py` (reads `openapi/basis-v1.json`).
@@ -123,7 +123,7 @@ Map every **current** router module to OpenAPI **tags** and paths. Check off whe
 | `Audit` | `audit.py` | 1 | ☐ | |
 | `Realtime` | `realtime.py` | 1 | ☐ | WS ticket |
 | `MCP` | `mcp.py` | 2 | ☐ | Discovery GET + JSON-RPC POST |
-| `E2E` | `kb_e2e_helpers.py` | 2 | ☐ | **Exclude** from public spec or `x-internal: true` (omitted unless `data-e2e`) |
+| `E2E` | `kb_e2e_helpers.py` | 2 | ☐ | **Exclude** from public spec or `x-internal: true` (omitted unless `data/e2e`) |
 
 Generated baseline includes all routes registered in a default app instance (typically **without** e2e helpers).
 
@@ -172,9 +172,9 @@ Ingest and processing jobs stay on OpenAPI (`POST .../documents`, `GET .../proce
 
 **Parity principle:** console-capable KB read/write flows that agents need should land in core + MCP. Full review approve/reject (`approve_review_item` / `reject_review_item`) call the same domain services as HTTP; statement-only tool names remain for backward compatibility.
 
-Paths above match the KB OpenAPI slice (`openapi/basis-v1-kb.json` export). Implementation map: `MCP_TOOL_OPERATIONS` in `basis/application/mcp/openapi.py` (method + path per tool).
+Paths above match the KB OpenAPI slice (`openapi/basis-v1-kb.json` export). Implementation map: `MCP_TOOL_OPERATIONS` in `basis/interface/contract/mcp/openapi.py` (method + path per tool).
 
-**Rule:** MCP `inputSchema` = merged OpenAPI **parameters** (path/query, with aliases such as `q` → `query`) **plus** `requestBody` JSON schema when present. Example: `approve_statement_remember_review` exposes flat `{ item_id, rationale? }` from `.../items/{item_id}/approve` + `ResolveReviewRequest`; `describe_kb` maps to `GET .../kbs/{kb_id}` (no tool args). HTTP approve review returns `ApproveReviewItemResponse` (`item`, optional `decision_id`, plus merge/import fields). MCP response shapes are validated in `basis/integration/models.py`, not re-exported as MCP output schemas.
+**Rule:** MCP `inputSchema` = merged OpenAPI **parameters** (path/query, with aliases such as `q` → `query`) **plus** `requestBody` JSON schema when present. Example: `approve_statement_remember_review` exposes flat `{ item_id, rationale? }` from `.../items/{item_id}/approve` + `ResolveReviewRequest`; `describe_kb` maps to `GET .../kbs/{kb_id}` (no tool args). HTTP approve review returns `ApproveReviewItemResponse` (`item`, optional `decision_id`, plus merge/import fields). MCP response shapes are validated in `basis/application/models.py`, not re-exported as MCP output schemas.
 
 Tests: `tests/test_mcp_openapi_schemas.py`, closed loop `tests/test_mcp.py::test_mcp_basic_graph_closed_loop`.
 
@@ -189,12 +189,12 @@ Tests: `tests/test_mcp_openapi_schemas.py`, closed loop `tests/test_mcp.py::test
 | **S5** | CI | Drift check: served export vs committed `openapi/basis-v1*.json` |
 | **S6** | API | Deprecate unversioned `/api/*` unless `BASIS_LEGACY_API_ENABLED` |
 
-## 8. Relation to `basis/integration/`
+## 8. Relation to `basis/application/`
 
 - Integration-facing OpenAPI operations have a **registry handler** (or deliberate HTTP-only exception documented in [progress.md](../progress.md)).
-- MCP **only** calls integration; HTTP handlers should call the same ops where parity is required.
-- **Forbidden:** agent-critical business logic only in route bodies with no integration entry (reviewer rule of thumb).
+- MCP **only** calls `application.registry`; HTTP handlers should call the same ops where parity is required.
+- **Forbidden:** agent-critical business logic only in route bodies with no application entry (reviewer rule of thumb).
 
 ## 9. Related documents
 
-- [package-layout.md](package-layout.md) — `basis/integration/` operation registry
+- [package-layout.md](package-layout.md) — `basis/application/` operation registry

@@ -1,7 +1,7 @@
 import pytest
 
-from basis.core.explorer.graph.semantic_read import semantic_neighborhood
-from basis.control.admin.errors import AdminError
+from basis.domain.graph.explorer.graph.semantic_read import semantic_neighborhood
+from basis.domain.tenancy.admin.errors import AdminError
 
 
 def test_semantic_neighborhood_missing_node() -> None:

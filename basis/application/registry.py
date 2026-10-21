@@ -9,15 +9,15 @@ from pydantic import ValidationError
 
 from basis.application.context import KbCoreContext
 from basis.application.errors import CoreError
-from basis.core.errors import AdminError
-from basis.application.mcp.format import mcp_text_result
+from basis.domain.errors import AdminError
+from basis.interface.contract.mcp.format import mcp_text_result
 from basis.application.models import (
     coerce_operation_args,
     validate_operation_response,
     validation_error_payload,
 )
-import basis.application.ops_connectors as conn_ops
-from basis.application.registry_catalog import OPERATIONS, OperationHandler
+import basis.application.operations_connectors as conn_ops
+from basis.application.operations_catalog import OPERATIONS, OperationHandler
 
 def _mcp_exposed(name: str) -> bool:
     return OPERATIONS[name].get("mcp", True)
@@ -26,7 +26,7 @@ def _mcp_exposed(name: str) -> bool:
 TOOL_NAMES: tuple[str, ...] = tuple(name for name in OPERATIONS if _mcp_exposed(name))
 
 def _mcp_input_schema(name: str, fallback: dict[str, Any]) -> dict[str, Any]:
-    from basis.application.mcp.openapi import input_schema_for_tool
+    from basis.interface.contract.mcp.openapi import input_schema_for_tool
 
     derived = input_schema_for_tool(name)
     return derived if derived else fallback
@@ -49,7 +49,7 @@ def get_tool_definitions(ctx: KbCoreContext | None = None) -> list[dict[str, Any
     """MCP tools/list payload; includes manifest-derived connector tools when ``ctx`` is set."""
     tools = list(get_static_tool_definitions())
     if ctx is not None:
-        from basis.application.mcp.connector_tools import connector_tool_definitions_for_kb
+        from basis.interface.contract.mcp.connector_tools import connector_tool_definitions_for_kb
 
         tools.extend(connector_tool_definitions_for_kb(ctx))
     return tools
@@ -71,7 +71,7 @@ _HANDLERS: dict[str, OperationHandler] = {
 def _resolve_mcp_tool_handler(name: str) -> OperationHandler | None:
     if name in _HANDLERS:
         return _HANDLERS[name]
-    from basis.application.mcp.connector_tools import parse_connector_mcp_tool_name
+    from basis.interface.contract.mcp.connector_tools import parse_connector_mcp_tool_name
 
     if parse_connector_mcp_tool_name(name) is not None:
         return conn_ops.op_invoke_connector_primitive
@@ -89,7 +89,7 @@ def run(ctx: KbCoreContext, name: str, arguments: dict[str, Any] | None) -> dict
         return {"error": f"unknown tool: {name}"}
     binding: dict[str, Any] | None = None
     if name not in _HANDLERS:
-        from basis.application.mcp.connector_tools import parse_connector_mcp_tool_name
+        from basis.interface.contract.mcp.connector_tools import parse_connector_mcp_tool_name
 
         binding = parse_connector_mcp_tool_name(name)
     try:

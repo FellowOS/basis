@@ -1,25 +1,26 @@
 export const marketing = {
   brand: 'Basis',
+  documentTitle: 'Basis — 本体驱动的智能体上下文服务',
   skipToContent: '跳到主要内容',
   heroHeadline: '让智能体读懂',
   heroHeadlineRest: '真实业务',
   heroSubhead:
-    '连接文档、数据库与 1,000+ 业务系统：每次回答都有原文依据，每次写回都经过审核。',
-  heroEyebrow: '开源 · 私有化部署',
+    '把文档、数据库与业务系统映射到业务本体，沉淀为可溯源的证据账本；每次回答都有依据，每次写回都受审核。',
+  heroEyebrow: '本体驱动 · 私有化部署',
   trust: [
     {
       label: 'Apache-2.0',
       to: 'https://github.com/fellowos/basis/blob/main/LICENSE',
       external: true,
     },
-    { label: '私有化部署', to: '/docs/deployment' },
-    { label: '1,000+ 连接器', to: '/docs/bocp' },
+    { label: '业务本体', to: '/docs/concepts' },
+    { label: '声明式连接器', to: '/docs/bocp' },
     { label: 'OpenAPI + MCP', to: '/docs/mcp' },
   ],
   highlights: [
     {
       index: '01',
-      tag: '上下文读取',
+      tag: '本体 · 证据',
       title: '带依据地读取',
       protocol: 'Evidence Ledger · OWL / SHACL',
       body: '通过业务本体与证据账本对齐非结构化文档和数据库记录，向智能体提供带原文段落与主键依据的真实上下文。',
@@ -30,8 +31,8 @@ export const marketing = {
       index: '02',
       tag: '跨系统连接',
       title: '无需胶水代码的连接',
-      protocol: 'BOCP Engine · DB & 1,000+ SaaS',
-      body: '内置关系型数据库直连与 1,000+ 声明式 SaaS 连接器，自动探测表结构、增量同步并映射为统一业务对象。',
+      protocol: 'BOCP Engine · DB & SaaS',
+      body: '内置关系型数据库直连与声明式 SaaS 连接器，自动探测表结构、增量同步并映射为统一业务对象。',
       code: 'BOCP discover_schema() → sync_stream(watermark, row_hash)',
       href: '/docs/bocp',
     },
@@ -74,15 +75,15 @@ export const marketing = {
     },
   },
   openConsole: '进入工作台',
-  ctaLogin: '登录工作台',
+  ctaLogin: '登录',
   ctaGetStarted: '开始使用',
   ctaRegister: '创建账号',
-  ctaDocs: '阅读文档',
+  ctaDocs: '了解更多',
   footerCopyright: '© {year} Basis',
   capabilitiesEyebrow: '核心功能',
   capabilitiesTitle: '上下文、连接与受控写入，一个服务全部覆盖',
   capabilitiesSubhead:
-    '读取来自带原文溯源的证据账本，写入必须经过审核闸口；图谱与检索始终是可重建的投影。',
+    '业务本体把文档与数据库记录对齐到证据账本；写入必须经过审核闸口，图谱与检索始终是可重建的投影。',
   selfHostEyebrow: '私有化部署',
   selfHostTitle: '在你自己的基础设施上运行 Basis',
   selfHostBody:
@@ -98,12 +99,12 @@ export const marketing = {
       {
         index: '01',
         title: '连接',
-        body: '文档、PostgreSQL/MySQL，以及 1,000+ 声明式 SaaS 连接器。',
+        body: '文档、PostgreSQL/MySQL，以及声明式 SaaS 连接器。',
       },
       {
         index: '02',
-        title: '对齐',
-        body: '将数据源映射到业务本体，并写入带原文溯源的证据账本。',
+        title: '建模',
+        body: '把数据源映射为业务本体——客户、订单、策略——并将事实写入带原文溯源的证据账本。',
       },
       {
         index: '03',
@@ -113,7 +114,7 @@ export const marketing = {
     ],
     cta: '阅读核心概念',
     previewTitle: 'Acme 知识库',
-    previewCaption: '控制台预览 — 图谱、证据与审核在同一处',
+    previewCaption: '控制台预览 — 本体、证据与审核在同一处',
     preview: {
       graphTab: '图谱',
       evidence: '证据',
@@ -155,6 +156,10 @@ export const marketing = {
         a: '是，Apache-2.0。可以自托管、审阅源码，并按需扩展连接器。',
       },
       {
+        q: '这里的“本体”是什么？',
+        a: '业务本体是对客户、订单、策略等业务概念的统一建模。Basis 用它对齐数据源，让每个回答都能追溯到原文与主键。',
+      },
+      {
         q: '数据放在哪里？',
         a: '在你自己的基础设施内。默认 SQLite，生产使用 PostgreSQL，数据不会离开你的部署环境。',
       },
@@ -164,12 +169,12 @@ export const marketing = {
       },
       {
         q: '能连接哪些系统？',
-        a: '开箱支持 PostgreSQL 与 MySQL，另有 1,000+ 声明式 SaaS 连接器；自定义系统可编写 BOCP Manifest。',
+        a: '开箱支持 PostgreSQL 与 MySQL，另有声明式 SaaS 连接器；自定义系统可编写 BOCP Manifest。',
       },
     ],
   },
   footer: {
-    description: '面向企业智能体的开源、私有化上下文服务。',
+    description: '面向企业智能体的本体驱动、开源、私有化上下文服务。',
     productTitle: '产品',
     developersTitle: '开发者',
     resourcesTitle: '资源',

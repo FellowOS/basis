@@ -88,11 +88,11 @@ export function LoginScreen() {
 
   useEffect(() => {
     const previous = document.title;
-    document.title = `${m.brand} — ${m.heroHeadline} ${m.heroHeadlineRest}`;
+    document.title = m.documentTitle;
     return () => {
       document.title = previous;
     };
-  }, [m.brand, m.heroHeadline, m.heroHeadlineRest]);
+  }, [m.documentTitle]);
 
   // React Router updates the hash without scrolling; keep nav anchors usable.
   useEffect(() => {
@@ -150,10 +150,10 @@ export function LoginScreen() {
 
       <ProductSiteHeader onGetStarted={() => openAuth('register')} />
 
-      <main className="relative flex flex-1 flex-col sm:-mt-16">
+      <main className="relative -mt-14 flex flex-1 flex-col sm:-mt-16">
         <section
           id="product"
-          className="relative flex min-h-[calc(100dvh-3.5rem)] flex-col overflow-x-clip sm:min-h-dvh"
+          className="relative flex min-h-dvh flex-col overflow-x-clip"
         >
           <div className="absolute inset-y-0 right-0 z-[1] w-full sm:w-[54%] lg:w-[50%]" aria-hidden>
             <Suspense
@@ -176,7 +176,7 @@ export function LoginScreen() {
               aria-hidden
             />
             <div
-              className="pointer-events-none absolute inset-x-0 top-0 z-[2] hidden h-24 bg-gradient-to-b from-[var(--login-canvas)] via-[var(--login-canvas)]/45 to-transparent sm:block"
+              className="pointer-events-none absolute inset-x-0 top-0 z-[2] h-16 bg-gradient-to-b from-[var(--login-canvas)] via-[var(--login-canvas)]/45 to-transparent sm:h-24"
               aria-hidden
             />
           </div>
@@ -219,9 +219,10 @@ export function LoginScreen() {
                   type="button"
                   size="default"
                   className="bg-[var(--login-cta-bg)] px-6 text-[var(--login-cta-fg)] hover:bg-[var(--login-cta-bg)] hover:brightness-110 sm:px-7"
-                  onClick={() => openAuth('register')}
+                  onClick={() => openAuth('login')}
+                  data-analytics="cta_sign_in"
                 >
-                  {m.ctaRegister}
+                  {m.ctaLogin}
                 </Button>
                 <Button
                   type="button"
@@ -234,14 +235,6 @@ export function LoginScreen() {
                     {m.ctaDocs}
                   </Link>
                 </Button>
-                <button
-                  type="button"
-                  className="text-sm font-medium text-foreground underline-offset-4 hover:underline"
-                  onClick={() => openAuth('login')}
-                  data-analytics="cta_sign_in"
-                >
-                  {m.ctaLogin}
-                </button>
               </div>
               <ul className="mt-6 flex flex-wrap gap-x-4 gap-y-2 border-t border-border/60 pt-4 text-[11px] leading-relaxed text-muted-foreground sm:mt-7 sm:pt-5 sm:text-xs">
                 {m.trust.map((item) => (

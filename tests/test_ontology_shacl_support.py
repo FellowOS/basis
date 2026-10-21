@@ -1,4 +1,4 @@
-from basis.core.explorer.ontology.shacl.shacl_support import (
+from basis.domain.graph.explorer.ontology.shacl.shacl_support import (
     basic_shacl_turtle,
     ontology_dict_from_nodes,
     summarize_shacl_shapes,

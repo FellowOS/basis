@@ -1,7 +1,10 @@
 export const kbMappings = {
+  pageTitle: '抽取映射',
+  pageSubtitle:
+    '将文本中的表面签名映射到谓词 URI（抽取）。外部行 → 账本请使用「连接器 → 连接器同步映射」。',
   refresh: '刷新',
   newMapping: '新建映射',
-  sectionMappings: '映射',
+  sectionMappings: '抽取映射',
   sectionTypedFacts: '类型化事实',
   loading: '加载中…',
   mappingsEmptyTitle: '暂无映射',

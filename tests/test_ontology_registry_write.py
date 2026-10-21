@@ -1,7 +1,7 @@
 import pytest
 
-from basis.core.explorer.ontology.hub.registry_write import remove_ontology, toggle_ontology
-from basis.control.admin.errors import AdminError
+from basis.domain.graph.explorer.ontology.hub.registry_write import remove_ontology, toggle_ontology
+from basis.domain.tenancy.admin.errors import AdminError
 
 
 def test_remove_and_toggle_registry_entry() -> None:

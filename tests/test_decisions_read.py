@@ -1,7 +1,7 @@
 import pytest
 
-from basis.core.explorer.governance.decisions_read import get_causal_chain, list_decisions
-from basis.control.admin.errors import AdminError
+from basis.domain.graph.explorer.governance.decisions_read import get_causal_chain, list_decisions
+from basis.domain.tenancy.admin.errors import AdminError
 
 
 def test_list_decisions_filters_category() -> None:

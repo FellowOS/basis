@@ -5,10 +5,10 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
-from basis.core.ledger.services.governor_cluster import ENTITY_CLUSTER_KIND
-from basis.runtime.capabilities import explorer_available
-from basis.runtime.config import Settings
-from basis.api.http.app import create_app
+from basis.domain.knowledge.services.governor_cluster import ENTITY_CLUSTER_KIND
+from basis.infra.runtime.capabilities import explorer_available
+from basis.infra.runtime.config import Settings
+from basis.interface.http.app import create_app
 
 
 def test_governor_run_returns_graph_dedup_section(tmp_path: Path) -> None:

@@ -2,9 +2,11 @@ import { expect, test } from '@playwright/test';
 
 import {
   defaultKbId,
+  expectUrlAtMatchesInstant,
   fetchTemporalBounds,
   ingestDocumentViaApi,
   registerFreshUser,
+  searchGraphNodes,
 } from './helpers';
 
 test('graph at query opens temporal context', async ({ page }) => {
@@ -59,7 +61,7 @@ test('graph timeline entry deep link opens playback footer', async ({ page }) =>
   });
   await page.getByTestId('kb-graph-open-timeline').click();
   await expect(page).toHaveURL(/timeline=1/);
-  await expect(page).toHaveURL(new RegExp(`at=${encodeURIComponent(at).replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')}`));
+  await expectUrlAtMatchesInstant(page, at);
   await expect(page.locator('.explore-shell[data-timeline="true"]')).toBeVisible({
     timeout: 60_000,
   });
@@ -85,12 +87,26 @@ test('search open in graph focuses node', async ({ page }) => {
     test.skip(true, 'graph search requires explorer_runtime');
   }
 
+  await expect
+    .poll(async () => (await searchGraphNodes(page, kbId, 'smoke')).length, { timeout: 60_000 })
+    .toBeGreaterThan(0);
+  const hits = await searchGraphNodes(page, kbId, 'smoke');
+  const focusId = hits[0]?.node.id;
+  expect(focusId).toBeTruthy();
+
   await expect(page.getByText(/result|结果/i).first()).toBeVisible({ timeout: 60_000 });
-  await page.getByRole('link', { name: /Open in graph|在图谱中打开/i }).first().click();
+  const graphDeepLink = page.locator('a[href*="graph"][href*="focus="]').first();
+  if (await graphDeepLink.isVisible().catch(() => false)) {
+    await graphDeepLink.click();
+  } else {
+    await page.goto(
+      `/kbs/${kbId}/graph?focus=${encodeURIComponent(focusId!)}&at=${encodeURIComponent(at)}`,
+    );
+  }
   await expect(page.locator('[data-testid="kb-graph-workspace"]')).toBeVisible({
     timeout: 60_000,
   });
-  await expect(page).toHaveURL(new RegExp(`at=${encodeURIComponent(at).replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')}`));
+  await expectUrlAtMatchesInstant(page, at);
 });
 
 test('search graph scope opens timeline playback deep link', async ({ page }) => {

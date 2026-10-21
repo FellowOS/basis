@@ -11,7 +11,7 @@ description: BOCP v2.0 规范性说明 + 零基础读者指南（Manifest、原�
 | **文档** | BOCP v2.0 |
 | **状态** | Basis Standards Track（Basis 发行版规范性文档） |
 | **格式** | YAML Manifest + 本规范 |
-| **模式伴生** | `basis/core/connectors/manifest_schema.py`（Pydantic v2） |
+| **模式伴生** | `basis/domain/integration/manifest_schema.py`（Pydantic v2） |
 | **相关** | [runtime.zh.md](runtime.zh.md)（Basis 宿主；非规范性） |
 
 ---
@@ -191,7 +191,7 @@ Manifest **不含密码**；用户在 **宿主** 里保存 **Connection**（密�
 - 任何以 `x-` 开头的对象成员都是 **扩展字段**；其他未声明成员一律非法。  
 - 实体 `rest.operations` 的键封闭为 `list`、`create`、`update`、`upsert`、`delete`；`sql.operations` 另允许 `discover`；procedure 的 `rest.operations` **必须** 且只能包含 `invoke`。以 `x-` 开头的键是忽略的扩展，不是 operation。  
 
-权威机器可读模式：`basis/core/connectors/manifest_schema.py`。本规范与模式文件 **应当** 同步维护。
+权威机器可读模式：`basis/domain/integration/manifest_schema.py`。本规范与模式文件 **应当** 同步维护。
 
 ---
 
@@ -704,7 +704,7 @@ Bundle **符合** 当且仅当：
 
 ### 14.1 规范性
 
-- **BOCP-SCHEMA** — `basis/core/connectors/manifest_schema.py`  
+- **BOCP-SCHEMA** — `basis/domain/integration/manifest_schema.py`  
 - **RFC2119**、**RFC8174** — BCP 14 关键词  
 
 ### 14.2 资料性
@@ -755,7 +755,7 @@ Bundle **符合** 当且仅当：
 
 ## 附录 C. GitHub 示例
 
-权威文件：`basis/core/connectors/providers/github.yaml`。构建：`scripts/build_connector_manifests.py`。
+权威文件：`basis/domain/integration/providers/github.yaml`。构建：`scripts/build_connector_manifests.py`。
 
 ### C.1 完整 Manifest（`connector.yaml`）
 

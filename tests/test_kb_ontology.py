@@ -6,9 +6,9 @@ pytest.importorskip("semantica")
 
 from fastapi.testclient import TestClient
 
-from basis.api.http.app import create_app
-from basis.runtime.capabilities import explorer_available
-from basis.runtime.config import Settings
+from basis.interface.http.app import create_app
+from basis.infra.runtime.capabilities import explorer_available
+from basis.infra.runtime.config import Settings
 
 
 def test_vocabulary_schemes_empty_graph(tmp_path) -> None:

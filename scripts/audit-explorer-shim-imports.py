@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Disallow new imports of ``basis.core.explorer`` compatibility shims.
+"""Disallow new imports of ``basis.domain.graph.explorer`` compatibility shims.
 
-Prefer subpackages: ``explorer.graph.read``, ``explorer.session.registry``, etc.
+Prefer subpackages: ``graph.read``, ``session.registry``, etc.
 """
 
 from __future__ import annotations
@@ -11,7 +11,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-EXPLORER_ROOT = ROOT / "basis" / "core" / "explorer"
+EXPLORER_ROOT = ROOT / "basis" / "domain" / "graph" / "explorer"
 SCAN_DIRS = (ROOT / "basis", ROOT / "tests")
 ALLOWLIST_PATH = ROOT / "scripts" / "explorer-shim-imports.allowlist"
 
@@ -30,7 +30,7 @@ SUBPACKAGES = frozenset(
 )
 
 IMPORT_RE = re.compile(
-    r"^\s*(?:from|import)\s+(basis\.core\.explorer\.[a-zA-Z0-9_.]+)",
+    r"^\s*(?:from|import)\s+(basis\.domain\.graph\.explorer\.[a-zA-Z0-9_.]+)",
     re.MULTILINE,
 )
 
@@ -47,7 +47,7 @@ def _shim_module_names() -> frozenset[str]:
 
 
 def _is_shim_import(target: str) -> bool:
-    prefix = "basis.core.explorer."
+    prefix = "basis.domain.graph.explorer."
     if not target.startswith(prefix):
         return False
     rest = target[len(prefix) :]
@@ -66,7 +66,7 @@ def _collect() -> list[tuple[str, str]]:
             continue
         for path in sorted(base.rglob("*.py")):
             rel = path.relative_to(ROOT)
-            if rel.parts[:3] == ("basis", "core", "explorer"):
+            if rel.parts[:4] == ("basis", "domain", "graph", "explorer"):
                 # Shim files and subpackages may reference shims internally.
                 if path.parent == EXPLORER_ROOT and path.stem in shims:
                     continue

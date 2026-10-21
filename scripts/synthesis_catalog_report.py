@@ -11,10 +11,10 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from basis.core.connectors.synthesis.anyconnect_catalog import load_anyconnect_procedures
-from basis.core.connectors.synthesis.executor_index import invoke_wire_for_action
-from basis.core.connectors.synthesis.nango_auth import load_nango_provider_raw
-from basis.core.connectors.synthesis.paths import anyconnect_catalog_dir, nango_providers_yaml
+from basis.domain.integration.synthesis.anyconnect_catalog import load_anyconnect_procedures
+from basis.domain.integration.synthesis.executor_index import invoke_wire_for_action
+from basis.domain.integration.synthesis.nango_auth import load_nango_provider_raw
+from basis.domain.integration.synthesis.paths import anyconnect_catalog_dir, nango_providers_yaml
 
 
 def main() -> None:

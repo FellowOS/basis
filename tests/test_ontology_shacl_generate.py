@@ -2,9 +2,9 @@ import pytest
 
 pytest.importorskip("semantica")
 
-from basis.core.explorer.ontology.hub.create_write import create_ontology
-from basis.core.explorer.ontology.shacl.shacl_generate import generate_shacl
-from basis.control.admin.errors import AdminError
+from basis.domain.graph.explorer.ontology.hub.create_write import create_ontology
+from basis.domain.graph.explorer.ontology.shacl.shacl_generate import generate_shacl
+from basis.domain.tenancy.admin.errors import AdminError
 
 
 def test_generate_shacl_unknown_uri() -> None:

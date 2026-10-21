@@ -11,9 +11,9 @@ import pytest
 
 from fastapi.testclient import TestClient
 
-from basis.api.http.app import create_app
-from basis.runtime.config import Settings
-from basis.tooling.test_support.postgres import create_postgres_database, drop_postgres_database
+from basis.interface.http.app import create_app
+from basis.infra.runtime.config import Settings
+from basis.infra.tooling.test_support.postgres import create_postgres_database, drop_postgres_database
 
 
 def _auth(token: str) -> dict[str, str]:

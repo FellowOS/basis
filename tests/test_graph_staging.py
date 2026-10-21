@@ -8,13 +8,13 @@ pytest.importorskip("semantica")
 
 from fastapi.testclient import TestClient
 
-from basis.core.explorer.graph.staging import (
+from basis.domain.graph.explorer.graph.staging import (
     build_graph_staging_payload,
     staging_session_key,
 )
-from basis.runtime.capabilities import explorer_available
-from basis.runtime.config import Settings
-from basis.api.http.app import create_app
+from basis.infra.runtime.capabilities import explorer_available
+from basis.infra.runtime.config import Settings
+from basis.interface.http.app import create_app
 
 
 def test_build_graph_staging_payload_focus_nodes() -> None:

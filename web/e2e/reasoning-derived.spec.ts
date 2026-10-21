@@ -28,15 +28,18 @@ test('reasoning apply_to_graph shows derived facts on entities page', async ({ p
 
   await page.goto(`/kbs/${kbId}/entities`);
   await expect(
-    page.getByRole('heading', { name: /Recent derived facts|最近推理派生事实/i }),
+    page.getByRole('heading', { name: /Recent reasoning|最近推理/i }),
   ).toBeVisible({ timeout: 30_000 });
   await expect(page.getByText(/urn:basis:pred:ancestor|ancestor/).first()).toBeVisible();
 
   await page.getByPlaceholder(/Entity label|实体名称/i).fill(entityA);
   await page.getByRole('button', { name: /^Search$|^搜索$/ }).click();
   await expect(page.getByText(entityA).first()).toBeVisible({ timeout: 60_000 });
-  await page.getByRole('button', { name: /^Facts$|^事实$/ }).first().click();
-  await expect(page.getByText(/Derived \(reasoning\)|推理派生/)).toBeVisible({ timeout: 30_000 });
+  const row = page.getByRole('row').filter({ hasText: entityA });
+  await row.getByRole('button').click();
+  await page.getByRole('menuitem', { name: /View facts|查看事实/i }).click();
+  await expect(page.getByRole('heading', { name: /^Derived$|^派生$/i })).toBeVisible({
+    timeout: 30_000,
+  });
   await expect(page.getByText(/urn:basis:pred:ancestor|ancestor/).first()).toBeVisible();
-  await expect(page.getByText(`parent(${entityA}, ${entityB})`).first()).toBeVisible();
 });

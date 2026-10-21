@@ -8,14 +8,14 @@ pytest.importorskip("semantica")
 
 from fastapi.testclient import TestClient
 
-from basis.control.admin.store import AdminStore
-from basis.api.http.app import create_app
-from basis.runtime.capabilities import explorer_available
-from basis.runtime.config import Settings
-from basis.core.projection.projector import rebuild_graph_from_ledger
-from basis.core.projection.snapshot_store import GraphPersistence
-from basis.core.ledger.blob_store import BlobStore
-from basis.core.ledger.store import KnowledgeStore
+from basis.domain.tenancy.admin.store import AdminStore
+from basis.interface.http.app import create_app
+from basis.infra.runtime.capabilities import explorer_available
+from basis.infra.runtime.config import Settings
+from basis.domain.graph.projection.projector import rebuild_graph_from_ledger
+from basis.domain.graph.projection.snapshot_store import GraphPersistence
+from basis.domain.knowledge.blob_store import BlobStore
+from basis.domain.knowledge.store import KnowledgeStore
 
 
 def test_record_and_list_entity_merges(tmp_path: Path) -> None:
@@ -89,7 +89,7 @@ def test_approve_entity_merge_records_ledger_rows(tmp_path: Path) -> None:
     assert rows[0]["target_entity_id"] == primary
     assert rows[0]["why"] == "confirmed duplicate"
 
-    from basis.core.projection.snapshot_store import GraphPersistence
+    from basis.domain.graph.projection.snapshot_store import GraphPersistence
 
     loaded, _ = GraphPersistence(tmp_path).load_snapshot(kb_id)
     node_ids = sorted(loaded.graph.nodes.keys())

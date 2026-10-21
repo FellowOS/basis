@@ -196,7 +196,7 @@ Blob key is content-addressed, for example
 **Ingest source `kind` (today):** `webhook`, `http_poll`, `git` (GitHub raw paths).
 
 **Planned connector kind ([ADR 0003](0003-lakehouse-datasets.md) & §18):** `connector` (unified across relational databases
-`postgres` / `mysql` and AnyConnect's 1,390+ SaaS providers; maps external records into canonical `entities`,
+`postgres` / `mysql` and AnyConnect's SaaS providers; maps external records into canonical `entities`,
 `statements`, and `typed_facts` via `source_table_mappings`, plus governed write-back via `entity_sync_outbox`).
 
 ## 6. Chunks and extraction diagnostics
@@ -615,7 +615,7 @@ Structured source binding and bidirectional entity sync ([ADR 0003](0003-lakehou
 
 ### 18.0 Platform catalog ceiling & dual allowlist
 
-The **shipped BOCP provider catalog** (`basis/core/connectors/providers/{service}.yaml` +
+The **shipped BOCP provider catalog** (`basis/domain/integration/providers/{service}.yaml` +
 `openapi.yaml`, built by `scripts/build_connector_manifests.py`) is read-only at runtime. **Which provider keys are operable** is governed by
 two layers:
 
@@ -637,7 +637,7 @@ Platform HTTP (system admin): `GET|PUT /api/v1/settings/connectors`, `GET /api/v
 |---------|----------|
 | **Background inbound sync** | `source_table_mappings.checkpoint_json` may include `poll_interval_minutes` (integer &gt; 0) and `last_synced_at` (ISO). When the API process sets `BASIS_HTTP_POLL_TICK_SECONDS`, `connector_poll_scheduler.run_due_connector_syncs` runs due mappings on the same tick as ingest `http_poll`. |
 | **OAuth2 connections** | Web console redirect URI: `/kbs/{kbId}/connectors/oauth/callback` (register in the OAuth app). Optional PKCE when manifest `oauth2.pkce_s256` is true. Tokens land in `kb_connections.value_encrypted`. |
-| **KB MCP** (`basis/integration/ops_connectors.py`) | `invoke_connector_primitive` plus manifest-expanded `connector_{service}__{action_id}__{suffix}` tools from `tools/list` (§10 discover/list/mutate/invoke); catalog/connections/mappings/sync/writeback tools, `execute_connector_tool` (procedures). HTTP twin: `POST …/connectors/connections/{service}/{connection_name}/invoke-primitive`. Policy: `action_policy_json.entities`, effective allowlist. |
+| **KB MCP** (`basis/application/operations_connectors.py`) | `invoke_connector_primitive` plus manifest-expanded `connector_{service}__{action_id}__{suffix}` tools from `tools/list` (§10 discover/list/mutate/invoke); catalog/connections/mappings/sync/writeback tools, `execute_connector_tool` (procedures). HTTP twin: `POST …/connectors/connections/{service}/{connection_name}/invoke-primitive`. Policy: `action_policy_json.entities`, effective allowlist. |
 
 ```sql
 -- Migration 0012_platform_connector_allowlist.sql (SQLite file 0012 / PostgreSQL schema version 13)
@@ -645,7 +645,7 @@ INSERT OR IGNORE INTO settings(key, value) VALUES ('connector_allowed_providers'
 ```
 
 Instead of a parallel Parquet warehouse or a split Node.js executor process, records from relational databases and
-1,000+ SaaS providers are driven by the **pure-Python Basis Open Connector Protocol (BOCP)** (synthesizing Nango's
+declarative SaaS providers are driven by the **pure-Python Basis Open Connector Protocol (BOCP)** (synthesizing Nango's
 declarative auth & sync checkpoint model with Airbyte's declarative `Stream` / `Discover` / `Paginator` YAML manifests)
 and map directly into canonical **`entities`**, **`statements`**, and **`typed_facts`**. **Seven tables** in total—four
 connector runtime tables (`kb_connector_policies`, `kb_connections`, `kb_oauth_configs`, `kb_connector_runs`) and three
@@ -786,7 +786,7 @@ CREATE INDEX IF NOT EXISTS idx_entity_sync_outbox_kb_status
 
 ### 18.4 Normative JSON contracts (`config_json`, `column_mappings_json`, `patch_json`, `import_provenance_json`)
 
-1. **`ingest_sources` for `kind = 'connector'` (unified across DBs and 1,000+ SaaS providers):**
+1. **`ingest_sources` for `kind = 'connector'` (unified across DBs and declarative SaaS providers):**
    - `config_json` (`ConnectorSourceConfig`, identical envelope for PostgreSQL, MySQL, Airtable, HubSpot, etc.):
      ```json
      {
@@ -870,5 +870,5 @@ CREATE INDEX IF NOT EXISTS idx_entity_sync_outbox_kb_status
   - `ADDED` / `UPDATED`: changed fields supersede previous `proposed_by = 'connector'` statements/typed_facts in a single transaction—unless an active statement on the same `(subject_id, surface_phrase)` was authored by `user` or `agent` (`proposed_by IN ('user', 'agent')`), which triggers `scan_statement_conflicts()` (`kind = 'statement_conflict'` in `review_items`).
   - `DELETED` (when `track_deletes = 1` or via webhook): marks `entity_external_refs.deleted_upstream_at` and retracts active connector statements.
 - **Outbound write-back (Basis → Declarative Stream `MUTATE`):** when `writeback_mode = 'review'`, editing a writable mapped attribute creates a `pending_review` outbox row and a `review_items` entry (`kind = 'entity_writeback'`, `subject_type = 'entity_sync_outbox'`, `subject_id = outbox.id`). Approving the review item records an `agent_decisions` row, transitions the outbox row to `queued`, and enqueues a `jobs` worker (`kind = 'entity_writeback'`), which executes `runtime.execute_mutation()` in Python (`sql_adapter` uses **SQLAlchemy 2.0 Core** `Table` + `update()`, while `rest_declarative_adapter` renders the stream's Jinja2 mutation request via `httpx`), recomputes `entity_external_refs.row_hash` (preventing echo loops), and marks `status = 'synced'`.
-- **Framework discipline:** all JSON payloads in §18.4 and connector manifests (`basis/core/connectors/manifest_schema.py`) are validated via **Pydantic v2** models, and the built-in `postgres`/`mysql` adapter uses **`sqlalchemy.inspect(engine)`** and **SQLAlchemy Core** rather than hand-written SQL.
-- **Entity / Source deletion cascade:** `basis/core/ledger/entity_delete.py` must delete `entity_sync_outbox` and `entity_external_refs` rows for `entity_id` (and `review_items` with `subject_type = 'entity_sync_outbox'`) before deleting `entities`.
+- **Framework discipline:** all JSON payloads in §18.4 and connector manifests (`basis/domain/integration/manifest_schema.py`) are validated via **Pydantic v2** models, and the built-in `postgres`/`mysql` adapter uses **`sqlalchemy.inspect(engine)`** and **SQLAlchemy Core** rather than hand-written SQL.
+- **Entity / Source deletion cascade:** `basis/domain/knowledge/access/entity_delete.py` must delete `entity_sync_outbox` and `entity_external_refs` rows for `entity_id` (and `review_items` with `subject_type = 'entity_sync_outbox'`) before deleting `entities`.

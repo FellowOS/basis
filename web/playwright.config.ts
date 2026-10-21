@@ -13,7 +13,7 @@ function e2eApiEnv(): Record<string, string> {
   const env = { ...process.env } as Record<string, string>;
   // Empty string prevents repo `.env` Postgres URL from being applied after load_dotenv().
   env.BASIS_DATABASE_URL = '';
-  env.BASIS_DATA_DIR = desktopE2e ? 'data-e2e-desktop' : 'data-e2e';
+  env.BASIS_DATA_DIR = desktopE2e ? 'data/e2e-desktop' : 'data/e2e';
   env.BASIS_HOST = '127.0.0.1';
   env.BASIS_PORT = String(apiPort);
   env.BASIS_INGEST_INLINE = '1';
@@ -65,7 +65,7 @@ export default defineConfig({
           cwd: repoRoot,
           env: e2eApiEnv(),
           url: `http://127.0.0.1:${apiPort}/health`,
-          // Always start a fresh API so it matches `data-e2e` after globalSetup.
+          // Always start a fresh API so it matches `data/e2e` after globalSetup.
           reuseExistingServer: false,
           timeout: 120_000,
         },

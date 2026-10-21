@@ -6,8 +6,8 @@ import pytest
 
 pytest.importorskip("semantica")
 
-from basis.core.projection.snapshot_store import GraphPersistence
-from basis.core.projection.session import GraphSession
+from basis.domain.graph.projection.snapshot_store import GraphPersistence
+from basis.domain.graph.projection.session import GraphSession
 
 
 def test_incomplete_tmp_does_not_replace_valid_snapshot(tmp_path: Path) -> None:

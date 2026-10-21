@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 import { e2eApiBaseUrl } from './api-v1-path.js';
-import { registerFreshUser } from './helpers';
+import { ensureUserOrganization, registerFreshUser } from './helpers';
 
 const SAMPLE_CERT = `-----BEGIN CERTIFICATE-----
 MIIBkTCB+wIJAKHBfpEWqJzTMA0GCSqGSIb3DQEBCwUAMBQxEjAQBgNVBAMMCWxv
@@ -9,23 +9,6 @@ Y2FsaG9zdDAeFw0yNTAxMDEwMDAwMDBaFw00NTAxMDEwMDAwMDBaMBQxEjAQBgNV
 BAMMCWxvY2FsaG9zdDBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABDummyCertFor
 TestsOnlyNotValid==
 -----END CERTIFICATE-----`;
-
-async function orgIdForUser(page: import('@playwright/test').Page, token: string): Promise<string> {
-  const api = e2eApiBaseUrl();
-  let orgId: string | undefined;
-  await expect
-    .poll(async () => {
-      const mine = await page.request.get(`${api}/api/v1/orgs/mine`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!mine.ok()) return '';
-      const body = (await mine.json()) as { organizations?: Array<{ id: string }> };
-      orgId = body.organizations?.[0]?.id;
-      return orgId ?? '';
-    }, { timeout: 30_000 })
-    .not.toBe('');
-  return orgId!;
-}
 
 test('settings shows SAML panel after API configure', async ({ page }) => {
   test.setTimeout(120_000);
@@ -37,7 +20,7 @@ test('settings shows SAML panel after API configure', async ({ page }) => {
   expect(token).toBeTruthy();
 
   const api = e2eApiBaseUrl();
-  const orgId = await orgIdForUser(page, token!);
+  const orgId = await ensureUserOrganization(page);
 
   const put = await page.request.put(`${api}/api/v1/orgs/${orgId}/saml`, {
     headers: { Authorization: `Bearer ${token}` },

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Write provider bundles to ``basis/core/connectors/providers/``."""
+"""Write provider bundles to ``basis/domain/integration/providers/``."""
 
 from __future__ import annotations
 
@@ -11,13 +11,13 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from basis.core.connectors.manifest_schema import ConnectorManifest
-from basis.core.connectors.provider_bundle import write_provider_bundle
-from basis.core.connectors.synthesis.batches import load_batch, list_batch_files
-from basis.core.connectors.synthesis.generators import all_generator_services
-from basis.core.connectors.synthesis.merge import merge_service
+from basis.domain.integration.manifest_schema import ConnectorManifest
+from basis.domain.integration.provider_bundle import write_provider_bundle
+from basis.domain.integration.synthesis.batches import load_batch, list_batch_files
+from basis.domain.integration.synthesis.generators import all_generator_services
+from basis.domain.integration.synthesis.merge import merge_service
 
-PROVIDERS_OUT_DIR = REPO_ROOT / "basis" / "domain" / "connectors" / "providers"
+PROVIDERS_OUT_DIR = REPO_ROOT / "basis" / "domain" / "integration" / "providers"
 
 
 def _services_from_args(
@@ -65,7 +65,7 @@ def build_manifests(
                 )
             )
         else:
-            from basis.core.connectors.synthesis.generators import manifest_from_generator
+            from basis.domain.integration.synthesis.generators import manifest_from_generator
 
             m = manifest_from_generator(service)
             if m is None:

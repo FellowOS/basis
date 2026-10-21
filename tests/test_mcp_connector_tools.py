@@ -8,15 +8,15 @@ from pathlib import Path
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, text
 
-from basis.core.connectors.auth_vault import ConnectorPolicy
-from basis.core.connectors import get_connector_catalog
-from basis.runtime.config import Settings
-from basis.application.mcp.connector_tools import (
+from basis.domain.integration.auth_vault import ConnectorPolicy
+from basis.domain.integration import get_connector_catalog
+from basis.infra.runtime.config import Settings
+from basis.interface.contract.mcp.connector_tools import (
     connector_mcp_tool_name,
     connector_tool_definitions_for_manifest,
     parse_connector_mcp_tool_name,
 )
-from basis.api.http.app import create_app
+from basis.interface.http.app import create_app
 
 
 def test_connector_mcp_tool_name_roundtrip() -> None:

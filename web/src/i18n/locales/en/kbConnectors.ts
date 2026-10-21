@@ -2,12 +2,12 @@ export const kbConnectors = {
   title: 'Connectors',
   tabs: {
     catalog: 'Catalog & Connections',
-    mappings: 'Ontology Mappings',
+    mappings: 'Connector sync mappings',
     policy: 'Action Policy',
     runs: 'Run Logs',
   },
   catalog: {
-    searchPlaceholder: 'Search 1,000+ connectors (e.g. postgres, airtable, github, hubspot)…',
+    searchPlaceholder: 'Search connectors (e.g. postgres, airtable, github, hubspot)…',
     streamsOnlyFilter: 'Has data streams',
     configuredTitle: 'Configured connections',
     configuredEmpty: 'No connections configured yet. Select a connector below to connect.',
@@ -44,11 +44,15 @@ export const kbConnectors = {
     oauthBackToCatalog: 'Back to connector catalog',
   },
   mappings: {
-    title: 'Stream → Ontology Mappings',
-    subtitle: 'Map relational tables or SaaS object streams into canonical ledger entities and typed facts.',
-    createButton: 'New table mapping',
-    emptyTitle: 'No table mappings yet',
-    emptyDescription: 'Create a mapping to synchronize external database tables or SaaS streams into the knowledge ledger.',
+    title: 'Connector sync mappings',
+    subtitle:
+      'Map external rows (SQL tables or SaaS streams) into ledger entities — distinct from Schema → Statement mappings (text → predicates).',
+    createButton: 'New connector mapping',
+    wizardLink: 'Data & ontology wizard',
+    suggestButton: 'Suggest cross-stream mappings',
+    emptyTitle: 'No connector mappings yet',
+    emptyDescription:
+      'Create a mapping or run the wizard to sync external data into the ledger.',
     syncButton: 'Sync now',
     syncing: 'Syncing…',
     syncResultSummary: 'Fetched {fetched}: +{added} added, ~{updated} updated, ={unchanged} unchanged, -{deleted} deleted',
@@ -121,6 +125,18 @@ export const kbConnectors = {
       '0 = manual sync only. Requires BASIS_HTTP_POLL_TICK_SECONDS on the server for background runs.',
     validationInvalidJson: 'Enter valid JSON.',
     validationInvalidJsonObject: 'Stream parameters must be a JSON object.',
+  },
+  suggest: {
+    dialogTitle: 'Cross-stream mapping suggestions',
+    dialogDescription:
+      'Grouped entity drafts from DISCOVER across your connections. Selected rows are saved to connector mappings and synced once.',
+    loading: 'Generating suggestions…',
+    empty: 'No suggestions available. Add REST connections or list SQL tables, then try again.',
+    skippedSummary: '{count} target(s) skipped (already mapped or discover failed).',
+    cancelButton: 'Cancel',
+    applyButton: 'Save & sync ({count})',
+    applying: 'Saving…',
+    appliedToast: '{count} connector mapping(s) saved and synced',
   },
   policy: {
     title: 'Connector & Writeback Governance Policy',

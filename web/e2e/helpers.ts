@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 
+import { persistPlatformAdminIfApplicable } from './e2e-admin-session.js';
 import { E2E_KBS_COLLECTION, e2eApiBaseUrl, e2eKbPath } from './api-v1-path.js';
 
 export async function bearerToken(page: Page): Promise<string> {
@@ -12,7 +13,7 @@ export async function bearerToken(page: Page): Promise<string> {
 
 export async function registerFreshUser(page: Page): Promise<{ email: string; password: string }> {
   const stamp = Date.now();
-  const email = `e2e-${stamp}@example.com`;
+  const email = `e2e-${stamp}@e2e-${stamp}.invalid`;
   const password = 'password1xy';
 
   await page.goto('/');
@@ -28,6 +29,7 @@ export async function registerFreshUser(page: Page): Promise<{ email: string; pa
   expect(reg.ok(), `register failed: ${reg.status()} ${await reg.text()}`).toBeTruthy();
   const body = (await reg.json()) as { token: string };
   await page.evaluate((token) => localStorage.setItem('basis_token', token), body.token);
+  await persistPlatformAdminIfApplicable(page, { email, password }, body.token);
   await page.goto('/kbs');
   await expect(page).toHaveURL(/\/kbs/, { timeout: 60_000 });
   await expect
@@ -328,6 +330,77 @@ export async function seedOntologyProposalViaApi(
     proposalId: body.proposal_id,
     summary: body.summary ?? '',
   };
+}
+
+/** Ensures the user belongs to an org (creates a KB + org when needed). */
+export async function ensureUserOrganization(page: Page): Promise<string> {
+  const token = await bearerToken(page);
+  const api = e2eApiBaseUrl();
+  let orgId: string | undefined;
+  await expect
+    .poll(async () => {
+      const mine = await page.request.get(`${api}/api/v1/orgs/mine`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!mine.ok()) return '';
+      const body = (await mine.json()) as { organizations?: Array<{ id: string }> };
+      orgId = body.organizations?.[0]?.id;
+      if (orgId) return orgId;
+      await defaultKbId(page);
+      return '';
+    }, { timeout: 60_000 })
+    .not.toBe('');
+  return orgId!;
+}
+
+export async function approveReviewItemViaApi(
+  page: Page,
+  kbId: string,
+  reviewItemId: string,
+): Promise<{ decisionId?: string }> {
+  const token = await bearerToken(page);
+  const response = await page.request.post(
+    e2eKbPath(kbId, `review/items/${reviewItemId}/approve`),
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      data: { rationale: 'E2E approve' },
+    },
+  );
+  expect(response.ok(), `approve failed: ${response.status()} ${await response.text()}`).toBeTruthy();
+  const body = (await response.json()) as { decision_id?: string | null };
+  return { decisionId: body.decision_id ?? undefined };
+}
+
+export async function rebuildGraphProjectionViaApi(page: Page, kbId: string): Promise<void> {
+  const token = await bearerToken(page);
+  const response = await page.request.post(e2eKbPath(kbId, 'graph/rebuild'), {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  expect(response.ok(), `graph rebuild failed: ${response.status()} ${await response.text()}`).toBeTruthy();
+}
+
+/** URL `at` query may use Z or offset; compare instants. */
+export async function expectUrlAtMatchesInstant(
+  page: import('@playwright/test').Page,
+  atIso: string,
+): Promise<void> {
+  const expectedMs = Date.parse(atIso);
+  expect(Number.isFinite(expectedMs), `invalid at ISO: ${atIso}`).toBeTruthy();
+  await expect
+    .poll(() => {
+      try {
+        const atParam = new URL(page.url()).searchParams.get('at');
+        if (!atParam) return false;
+        const actualMs = Date.parse(atParam);
+        return Number.isFinite(actualMs) && actualMs === expectedMs;
+      } catch {
+        return false;
+      }
+    }, { timeout: 15_000 })
+    .toBe(true);
 }
 
 export async function proposeRememberViaApi(

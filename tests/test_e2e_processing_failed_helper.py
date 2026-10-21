@@ -4,13 +4,13 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
-from basis.api.http.app import create_app
-from basis.runtime.config import Settings
+from basis.interface.http.app import create_app
+from basis.infra.runtime.config import Settings
 
 
 def test_e2e_processing_failed_helper(tmp_path: Path) -> None:
-    data_dir = tmp_path / "data-e2e"
-    data_dir.mkdir()
+    data_dir = tmp_path / "data" / "e2e"
+    data_dir.mkdir(parents=True)
     client = TestClient(create_app(Settings(data_dir=data_dir, ingest_inline=True)))
     admin = client.post(
         "/api/v1/auth/register",
@@ -48,8 +48,8 @@ def test_e2e_processing_failed_helper(tmp_path: Path) -> None:
 
 
 def test_e2e_sync_failed_helper(tmp_path: Path) -> None:
-    data_dir = tmp_path / "data-e2e"
-    data_dir.mkdir()
+    data_dir = tmp_path / "data" / "e2e"
+    data_dir.mkdir(parents=True)
     client = TestClient(create_app(Settings(data_dir=data_dir, ingest_inline=True)))
     admin = client.post(
         "/api/v1/auth/register",

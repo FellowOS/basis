@@ -2,12 +2,12 @@ export const kbConnectors = {
   title: '连接器',
   tabs: {
     catalog: '连接目录',
-    mappings: '本体映射向导',
+    mappings: '连接器同步映射',
     policy: '动作策略与写回门禁',
     runs: '运行日志',
   },
   catalog: {
-    searchPlaceholder: '搜索 1,000+ 连接器（如 postgres、airtable、github、hubspot）…',
+    searchPlaceholder: '搜索连接器（如 postgres、airtable、github、hubspot）…',
     streamsOnlyFilter: '仅显示含数据流',
     configuredTitle: '已配置连接',
     configuredEmpty: '当前知识库尚未配置外部连接，请在下方目录中选择连接器进行配置。',
@@ -44,11 +44,14 @@ export const kbConnectors = {
     oauthBackToCatalog: '返回连接器目录',
   },
   mappings: {
-    title: '外部数据流 → 本体账本映射',
-    subtitle: '将关系型数据库表或 SaaS 业务流映射为证据账本实体（entities）与受控事实（typed_facts）。',
-    createButton: '新建表映射',
-    emptyTitle: '暂无结构化表映射',
-    emptyDescription: '创建映射后可将 PostgreSQL / MySQL / Airtable / HubSpot 等数据流增量同步入账本，并支持双向受控写回。',
+    title: '连接器同步映射',
+    subtitle:
+      '将外部行（SQL 表或 SaaS 流）映射到账本实体；与「模式 → 抽取映射」（文中陈述 → 谓词）不同。',
+    createButton: '新建连接器映射',
+    wizardLink: '数据与本体向导',
+    suggestButton: '跨 stream 实体建议',
+    emptyTitle: '暂无连接器映射',
+    emptyDescription: '创建映射或运行向导，将外部数据同步入账本。',
     syncButton: '立即同步',
     syncing: '同步中…',
     syncResultSummary: '拉取 {fetched} 行：新增 +{added}，更新 ~{updated}，未变 ={unchanged}，上游删除 -{deleted}',
@@ -119,6 +122,18 @@ export const kbConnectors = {
       '0 表示仅手动同步。后台调度需服务端设置 BASIS_HTTP_POLL_TICK_SECONDS。',
     validationInvalidJson: '请输入合法的 JSON。',
     validationInvalidJsonObject: '流参数必须是 JSON 对象。',
+  },
+  suggest: {
+    dialogTitle: '跨 stream 映射建议',
+    dialogDescription:
+      '基于各连接的 DISCOVER 按实体类型分组。所选行将写入连接器映射并执行一次同步。',
+    loading: '正在生成建议…',
+    empty: '暂无建议。请添加 REST 连接或填写 SQL 表名后重试。',
+    skippedSummary: '已跳过 {count} 个目标（已映射或发现失败）。',
+    cancelButton: '取消',
+    applyButton: '保存并同步（{count}）',
+    applying: '保存中…',
+    appliedToast: '已保存并同步 {count} 条连接器映射',
   },
   policy: {
     title: '连接器准入与写回治理策略',

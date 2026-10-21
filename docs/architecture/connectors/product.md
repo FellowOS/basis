@@ -8,16 +8,16 @@
 
 对比 [Helix Foundry](https://github.com/helixdb/helix-foundry)（多源连接器、跨源实体对齐、业务对象操作）、同级目录中的 **Nango (`../nango`)**、**Airbyte (`../airbyte`)**、**AnyConnect (`../fellowos/connectors`)** 与 Basis 后，Basis **不搞第二套菜单、不建独立的 Parquet 数据湖、不引入 DuckDB SQL 沙箱，也彻底摒弃跨进程调用 Node.js TS 代码的双栈妥协**。
 
-我们在 Basis 的 **Python FastAPI 单一后端**内直接建立 **`Basis Open Connector Protocol (BOCP)` 纯 Python 声明式连接器引擎（`basis/core/connectors/`）**：
+我们在 Basis 的 **Python FastAPI 单一后端**内直接建立 **`Basis Open Connector Protocol (BOCP)` 纯 Python 声明式连接器引擎（`basis/domain/integration/`）**：
 - **认证与连接层（吸收 Nango `providers.yaml` + AnyConnect 认证方言）**：100% 声明式支持 `OAUTH2`（含 PKCE、自定义Envelope解包）、`OAUTH2_CC`（机器凭证）、`BASIC`（账号密码）、`TWO_STEP`（账密登录换 Session Token）、`API_KEY`、`DATABASE_DSN` 与 `CUSTOM`（动态实例域名 `connection_config` + AES-256-GCM 加密密钥）。
-- **流发现与同步层（吸收 Airbyte `DeclarativeSource` YAML + Nango `Sync` 状态机）**：统一关系型数据库（`postgres` / `mysql`，由 **SQLAlchemy 2.0** 驱动）与 1,000+ SaaS 应用（由声明式 `HttpRequester` + `DpathExtractor` + 4 种标准 `Paginator` + `DynamicSchemaLoader` 驱动）。
+- **流发现与同步层（吸收 Airbyte `DeclarativeSource` YAML + Nango `Sync` 状态机）**：统一关系型数据库（`postgres` / `mysql`，由 **SQLAlchemy 2.0** 驱动）与 声明式 SaaS 应用（由声明式 `HttpRequester` + `DpathExtractor` + 4 种标准 `Paginator` + `DynamicSchemaLoader` 驱动）。
 - **受控写回与工具层（吸收 Nango `Action/Tool` + Hightouch 写回模板 + MCP `ToolAnnotations`）**：不管是数据库表还是 SaaS 对象，入向全部走 **`Stream READ` → `source_table_mappings`（含 `checkpoint_json` 水位线与 `row_hash` 去重）→ 进账本**，出向全部走 **`Review` → `entity_sync_outbox` → `Stream MUTATE` 写回**：
 
 ```mermaid
 flowchart LR
   subgraph Inbound["1. 入向：数据源接入"]
     DOC["文档 PDF/MD\n(/kbs/:kbId/sources)"] -->|分块 + NER/LLM 抽取| LEDGER
-    CONN["统一声明式连接器 (kind = 'connector')\n• 关系库 Adapter (postgres / mysql — SQLAlchemy 2.0)\n• 1,000+ SaaS Declarative Streams (Airbyte + Nango 融合)"] -->|执行 Stream READ (自动分页/增量游标)\n+ 同一套 source_table_mappings| LEDGER
+    CONN["统一声明式连接器 (kind = 'connector')\n• 关系库 Adapter (postgres / mysql — SQLAlchemy 2.0)\n• 声明式 SaaS Declarative Streams (Airbyte + Nango 融合)"] -->|执行 Stream READ (自动分页/增量游标)\n+ 同一套 source_table_mappings| LEDGER
   end
 
   subgraph Core["2. 统一核心层（Basis 本体服务与账本 — 100% 纯 Python）"]
@@ -41,7 +41,7 @@ flowchart LR
 
 **为什么不塞进「资料 (`sources`)」页？**
 - 现有 `资料` 页（`/kbs/:kbId/sources`）面向的是**非结构化文档**（「添加文档」弹窗中的上传文件、粘贴文本、从 URL 获取）。
-- 而 **Basis Connector（数据库 + AnyConnect 1,390+ SaaS）** 面向的是**外部业务系统连接、OAuth2 凭据、表/对象到本体的双向映射、10,000+ Actions 与调用日志**，与“文档资料”并不是一回事。
+- 而 **Basis Connector（数据库 + AnyConnect SaaS）** 面向的是**外部业务系统连接、OAuth2 凭据、表/对象到本体的双向映射、声明式 Actions 与调用日志**，与“文档资料”并不是一回事。
 
 因此，删掉 `资料` 页原有的连接器弹窗与按钮，仅在「添加文档」弹窗保留第 3 个 Tab（`从 URL 获取`），并在左侧栏 **`数据与抽取`（`KB_NAV_BY_ZONE.knowledge`）** 下直接新增独立的 **`连接器`（`/kbs/:kbId/connectors`）** 菜单项：
 
@@ -50,7 +50,7 @@ flowchart LR
 | 菜单项 | 路由路径 | 定位与职责 |
 | --- | --- | --- |
 | **资料** (`sources`) | `/kbs/:kbId/sources` | **非结构化文档入口**：上传文件、粘贴文本、从 URL 获取文档，产出 `documents` 与 `chunks` |
-| **连接器** (`connectors`，**新增**) | `/kbs/:kbId/connectors` | **结构化数据库与 1,390+ SaaS 统一入口**：承接 AnyConnect 全部功能与表/Action 本体映射 |
+| **连接器** (`connectors`，**新增**) | `/kbs/:kbId/connectors` | **结构化数据库与 SaaS 统一入口**：承接 AnyConnect 全部功能与表/Action 本体映射 |
 | **处理任务** (`processing`) | `/kbs/:kbId/processing` | 文档切分/抽取任务队列与后台同步 Job 状态 |
 | **实体账本** (`entities`) | `/kbs/:kbId/entities` | 统一查看文档抽取与连接器同步进来的所有实体，支持外部字段内联修改与触发写回 |
 | **实体解析** (`entity-resolution`) | `/kbs/:kbId/entity-resolution` | 跨文档、跨数据库/SaaS 的同名/同键实体对齐与合并 |
@@ -63,9 +63,9 @@ flowchart LR
 
 | `/kbs/:kbId/connectors` 内部 Tab | 对应原 AnyConnect 组件 | 核心功能 |
 | --- | --- | --- |
-| **Tab 1：连接与服务目录 (`Connections & Providers`)** | 动态认证表单与目录 | 顶部展示当前 KB 已激活的连接（`postgres`、`mysql`、`airtable`、`hubspot` 等）；下方浏览/搜索 1,000+ Providers，根据 `AuthSpec` 自动渲染 OAuth2 一键授权、OAuth2_CC、账号密码（Basic/Two-Step）、API Key、数据库 DSN 或自定义实例域名表单，保存时自动执行 `CHECK` 验证 |
+| **Tab 1：连接与服务目录 (`Connections & Providers`)** | 动态认证表单与目录 | 顶部展示当前 KB 已激活的连接（`postgres`、`mysql`、`airtable`、`hubspot` 等）；下方浏览/搜索 目录中的 Providers，根据 `AuthSpec` 自动渲染 OAuth2 一键授权、OAuth2_CC、账号密码（Basic/Two-Step）、API Key、数据库 DSN 或自定义实例域名表单，保存时自动执行 `CHECK` 验证 |
 | **Tab 2：本体映射与同步 (`Ontology Mappings`)** | Stream → 本体映射向导 | 配置 `source_table_mappings`：通过 `DISCOVER` 动态探测并选择已连接的数据库表或 SaaS `Stream`，指定主键列、增量游标列、名称列，将字段映射为本体类（`target_class_uri`）与谓词（`predicate_uri`），设置入向/双向写回模式并一键触发同步 |
-| **Tab 3：动作目录与策略 (`Actions & Policy`)** | `actions.tsx` + `access.tsx` | 搜索/调试 10,000+ Actions（查看入参/出参 JSON Schema 与 Agent Markdown 指南），配置当前 KB 的 `kb_connector_policies`（允许/禁止的 Providers 与 Actions 白名单，落地 `F-OPS-02`） |
+| **Tab 3：动作目录与策略 (`Actions & Policy`)** | `actions.tsx` + `access.tsx` | 搜索/调试 Actions（查看入参/出参 JSON Schema 与 Agent Markdown 指南），配置当前 KB 的 `kb_connector_policies`（允许/禁止的 Providers 与 Actions 白名单，落地 `F-OPS-02`） |
 | **Tab 4：运行日志 (`Runs`)** | `runs.tsx` | 查看 `kb_connector_runs`：每次入向拉取与出向 Action 执行的脱敏输入/输出快照、耗时、状态码与报错详情 |
 
 ---
@@ -105,7 +105,7 @@ flowchart LR
    - `projector.py:rebuild_graph_from_ledger` 会自动去重同一三元组的 open statement 与 typed fact，将实体属性/外键关系直接投影到 `ContextGraph`。
 3. **决策外键表名**：
    - `entity_sync_outbox.decision_id` 外键必须指向 **`agent_decisions(id)`**（`0002_knowledge_ledger.sql` 真实表名），而非 `decisions(id)`。
-4. **实体删除级联（`basis/core/ledger/entity_delete.py`）**：
+4. **实体删除级联（`basis/domain/knowledge/access/entity_delete.py`）**：
    - 删除实体时，必须在 `entity_delete.py` 中先清理 `entity_sync_outbox`、`entity_external_refs` 以及 `subject_type = 'entity_sync_outbox'` 的 `review_items`。
 
 ### 4.2 入向同步事务（业务库 → Basis 实体）
@@ -133,7 +133,7 @@ flowchart LR
 
 ## 5. REST API 与 MCP 接口契约（开发规范）
 
-所有新增 HTTP 接口挂在现有 `/api/v1/kbs/{kb_id}/...` 路由下，遵循 `basis/integration/openapi_v1_export.py` 规范（每个 handler 必须包含 docstring，同步运行 `scripts/generate-openapi-v1.py` 更新 `openapi/basis-v1.json` 与前端 `schema.d.ts`）。
+所有新增 HTTP 接口挂在现有 `/api/v1/kbs/{kb_id}/...` 路由下，遵循 `basis/interface/contract/openapi/v1_export.py` 规范（每个 handler 必须包含 docstring，同步运行 `scripts/generate-openapi-v1.py` 更新 `openapi/basis-v1.json` 与前端 `schema.d.ts`）。
 
 ### 5.1 数据源、连接与流映射接口（`kb_connectors.py` / `kb_sources.py`）
 
@@ -154,10 +154,10 @@ flowchart LR
 | `POST /api/v1/kbs/{kb_id}/review/{item_id}/decide` | 复用现有决策端点 | `kb.review` | 在现有 handler 中新增对 `kind == 'entity_writeback'` 的分支：若 `decision == 'approve'`，将关联 `entity_sync_outbox` 置为 `queued` 并调用 BOCP `runtime.execute_mutation()` 写回；若 `reject`，置为 `rejected` 并回滚/作废待定 statement |
 
 ### 5.3 统一 MCP 服务入口（对外仅暴露 Python `basis-kb-mcp` 一个服务）
-- **100% 纯 Python 单一进程**：Agent 侧只连接 Basis Python 的**唯一 MCP 服务（`basis/integration/registry.py`）**，不存在任何跨语言 Node.js MCP 或内部 HTTP 转发。
+- **100% 纯 Python 单一进程**：Agent 侧只连接 Basis Python 的**唯一 MCP 服务（`basis/application/registry.py`）**，不存在任何跨语言 Node.js MCP 或内部 HTTP 转发。
 - **读路径（13 个现有 KB 工具）**：`kb_search`、`kb_entity_get`、`kb_graph_neighbors`、`kb_sparql_query` 等直接读取账本中的实体与属性。
-- **连接器与受控动作路径（`basis/integration/ops_connectors.py`）**：
-  - 在 `basis/integration/registry.py` 中注册连接器与动作工具：`list_connections`、`search_connector_tools`、`get_connector_tool_guide`、`execute_connector_tool`、`kb_entity_propose_writeback`。
+- **连接器与受控动作路径（`basis/application/operations_connectors.py`）**：
+  - 在 `basis/application/registry.py` 中注册连接器与动作工具：`list_connections`、`search_connector_tools`、`get_connector_tool_guide`、`execute_connector_tool`、`kb_entity_propose_writeback`。
   - 根据 BOCP Manifest 中的 **MCP `ToolAnnotations`**（`readOnlyHint`、`destructiveHint`、`idempotentHint`）与 `kb_connector_policies`：
     - `readOnlyHint: true` 的查询动作可由 Agent 直接执行；
     - `readOnlyHint: false` 的写操作与实体属性变更默认拦截并进入 `entity_sync_outbox` + `Review` 审批队列。
@@ -184,24 +184,17 @@ flowchart LR
 
 ```text
 basis/
-├── ops/db/migrations/
-│   └── 0011_entity_external_sync.sql      # 7 张核心表（连接/OAuth/策略/运行日志 + 映射/外部主键/写回Outbox）等有序 SQL
+├── infra/tooling/db/migrations/
+│   └── …                                  # 含 0011_entity_external_sync（连接器 + 映射/外部主键/写回 Outbox）
 ├── domain/
-│   ├── connectors/                        # 【新增】纯 Python 声明式连接器运行时 (BOCP Engine)
-│   │   ├── manifest_schema.py             # Pydantic v2 定义 BOCP Manifest 四大原语契约 (Auth/Stream/Sync/Mutation)
-│   │   ├── catalog.py                     # 加载内置 manifests/*.yaml（由 Nango + Airbyte + AnyConnect 合并生成）
-│   │   ├── auth_engine.py                 # 统一认证引擎：OAuth2(authlib)、OAUTH2_CC、BASIC、TWO_STEP、API_KEY、DSN
-│   │   ├── guarded_http.py                # httpx Transport 层：SSRF 内网/元数据拦截 + Quota/Rate-Limit 自动退避
-│   │   ├── sql_adapter.py                 # SQLAlchemy 2.0 适配器：关系库 DISCOVER / READ / MUTATE
-│   │   ├── rest_declarative_adapter.py    # 声明式 REST 适配器：解析 Airbyte 风格 Retriever/Paginator/Dpath/Jinja2
-│   │   └── runtime.py                     # 统一入口：check_connection / discover_streams / read_stream / execute_mutation
-│   └── kb/
-│       ├── structured_models.py           # Pydantic v2 定义映射、溯源、Outbox JSON 契约
-│       └── connector_sync.py              # 账本桥接引擎：uuid5 + row_hash 比对 + 写 entities/statements + Outbox 写回
-├── transport/http/routes/v1/
-│   └── kb_connectors.py                   # /api/v1/kbs/{kb_id}/connectors/* 统一 REST 接口
-└── integration/
-    └── ops_connectors.py                  # 挂载到 basis-kb-mcp 的连接器发现与受控执行工具
+│   ├── integration/                       # BOCP 引擎（manifest、catalog、runtime、adapters/*、providers/*.yaml）
+│   └── knowledge/
+│       ├── structured_models.py           # 映射、溯源、Outbox JSON 契约（Pydantic v2）
+│       └── services/connector_sync.py     # 账本桥接：row_hash、entities/statements、Outbox 写回
+├── interface/http/
+│   └── kb_connectors*.py                  # /api/v1/kbs/{kb_id}/connectors/* REST 聚合
+└── application/
+    └── operations_connectors.py           # KB MCP 连接器工具（与 registry /catalog 联动）
 
 scripts/
 └── build_connector_manifests.py           # 从同级 ../nango、../airbyte、../connectors 提取合成标准 BOCP YAML 目录
@@ -216,8 +209,8 @@ web/src/
 
 #### Phase 1：数据库底座与 BOCP 协议契约 + 开源资产合成脚本（预计 2~3 天）
 - **落地 `0011_entity_external_sync.sql`（7 张表）**：4 张连接器治理与凭据表（`kb_connector_policies`、`kb_connections`、`kb_oauth_configs`、`kb_connector_runs`）+ 3 张账本双向同步表（`source_table_mappings`、`entity_external_refs`、`entity_sync_outbox`）。
-- **定义 BOCP 协议 Schema (`basis/core/connectors/manifest_schema.py`)**：用 Pydantic v2 定义 `AuthSpec`（17 种认证模式 + `check` 校验端点）、`StreamSpec`（静态 Schema 或 `DynamicSchemaLoader`）、`RetrieverSpec`（`DpathExtractor` + 4 种标准 `Paginator` + 父子流路由）、`MutationSpec` & `ToolSpec`。
-- **编写跨仓资产合成脚本 (`scripts/build_connector_manifests.py`)**：从同级目录 `../nango/packages/providers/providers.yaml`（1,000+ Provider 认证模板）、`../airbyte/airbyte-integrations/connectors/*/manifest.yaml`（516 个声明式流配置）与 `../fellowos/connectors/catalog/apps/`（图标与动作元数据）自动合成标准 BOCP YAML 目录。
+- **定义 BOCP 协议 Schema (`basis/domain/integration/manifest_schema.py`)**：用 Pydantic v2 定义 `AuthSpec`（17 种认证模式 + `check` 校验端点）、`StreamSpec`（静态 Schema 或 `DynamicSchemaLoader`）、`RetrieverSpec`（`DpathExtractor` + 4 种标准 `Paginator` + 父子流路由）、`MutationSpec` & `ToolSpec`。
+- **编写跨仓资产合成脚本 (`scripts/build_connector_manifests.py`)**：从同级目录 `../nango/packages/providers/providers.yaml`（Nango Provider 认证模板）、`../airbyte/airbyte-integrations/connectors/*/manifest.yaml`（Airbyte 声明式流配置）与 `../fellowos/connectors/catalog/apps/`（图标与动作元数据）自动合成标准 BOCP YAML 目录。
 - **DoD**：`uv run pytest` 通过迁移测试；Pydantic 100% 加载并校验合成后的连接器 Manifest 目录。
 
 #### Phase 2：纯 Python 连接与认证引擎 + 声明式流读取/动态发现引擎（预计 4~5 天）
@@ -228,12 +221,12 @@ web/src/
 - **DoD**：单测覆盖关系库与典型 REST SaaS 的 `CHECK`、动态 `DISCOVER`、多页自动翻页 `READ`、增量 `cursor` 推进与 SSRF 拦截。
 
 #### Phase 3：证据账本双向同步引擎（Inbound Sync ↔ Review ↔ Outbound Write-back）（预计 4~5 天）
-- **入向四路同步状态机 (`basis/core/ledger/connector_sync.py`)**：计算 `row_hash`（SHA-256），自动分流处理 `UNCHANGED`（跳过）、`ADDED`（建实体与 `statements` + `typed_facts`）、`UPDATED`（未覆写则 supersede，存在 `user`/`agent` 覆写则生成 `statement_conflict` 审核项）、`DELETED`（`track_deletes` 软撤销），持久化 `checkpoint_json` 并刷新图投影。
+- **入向四路同步状态机 (`basis/domain/knowledge/services/connector_sync.py`)**：计算 `row_hash`（SHA-256），自动分流处理 `UNCHANGED`（跳过）、`ADDED`（建实体与 `statements` + `typed_facts`）、`UPDATED`（未覆写则 supersede，存在 `user`/`agent` 覆写则生成 `statement_conflict` 审核项）、`DELETED`（`track_deletes` 软撤销），持久化 `checkpoint_json` 并刷新图投影。
 - **出向写回与防回环状态机 (`entity_sync_outbox` + `conflict_review.py`)**：修改绑定属性生成 `pending_review` outbox 记录与 `review_items`；审批通过后写入 `agent_decisions`，调用 `runtime.execute_mutation()` 写回外部系统，**立即重算并更新 `entity_external_refs.row_hash`**（彻底杜绝下一轮定时拉取产生假冲突回环）；在 `entity_delete.py` 补齐级联清理。
 - **DoD**：端到端测试跑通「首次拉取建图 → 二次拉取幂等跳过 → 本地修改属性产生冲突审核 → Outbox 审批写回 → 写回后更新 `row_hash` 防回环」。
 
 #### Phase 4：OpenAPI / MCP 暴露与前端独立「连接器 (`/kbs/:kbId/connectors`)」控制台（预计 4~5 天）
-- **REST API 与 MCP 导出 (`kb_connectors.py` + `ops_connectors.py`)**：暴露连接器目录、凭据管理、OAuth 回调、`discover`、`mappings`、`sync`、`writeback` 接口，同步生成 OpenAPI 快照与前端 TS 类型；在 `basis-kb-mcp` 注册连接器工具。
+- **REST API 与 MCP 导出 (`kb_connectors.py` + `operations_connectors.py`)**：暴露连接器目录、凭据管理、OAuth 回调、`discover`、`mappings`、`sync`、`writeback` 接口，同步生成 OpenAPI 快照与前端 TS 类型；在 `basis-kb-mcp` 注册连接器工具。
 - **前端「连接器」独立工作台 (`web/src/pages/kb/connectors.tsx`)**：左侧栏 **连接器** 分区四路由（目录 / 映射 / 策略 / 运行日志）；平台 **`/admin/connectors`** 管理 Provider allowlist；映射支持 `poll_interval_minutes` 与 `BASIS_HTTP_POLL_TICK_SECONDS` 后台入向调度；`review.tsx` 写回 `Before → After` Diff；`npm run audit:locale` + `npm run typecheck`。
 
 ---
@@ -250,14 +243,14 @@ flowchart TB
     MCP_API["Basis OpenAPI & 唯一 Python MCP\n(/api/v1/kbs/{kb_id}/connectors/*)"]
   end
 
-  subgraph BOCP["纯 Python 声明式连接器引擎 (basis/core/connectors/)"]
+  subgraph BOCP["纯 Python 声明式连接器引擎 (basis/domain/integration/)"]
     CAT["1. Spec & Auth Engine\n(OAuth2 / OAuth2_CC / Basic / Two-Step / API Key / DSN\n+ CHECK 连通性验证 & Quota 限流)"]
     DISC["2. Streams & Discovery (DISCOVER)\n(静态 JSON Schema + DynamicSchemaLoader / SQLAlchemy inspect)"]
     RET["3. Declarative Retriever (READ)\n(DpathExtractor + Cursor/Offset/Page/Link Paginator + SubstreamRouter)"]
     MUT["4. Mutations & Tools (WRITE / RPC)\n(SQLAlchemy update / Jinja2 REST 写回模板 + MCP ToolAnnotations)"]
   end
 
-  subgraph LedgerSync["账本双向同步引擎 (basis/core/ledger/connector_sync.py)"]
+  subgraph LedgerSync["账本双向同步引擎 (basis/domain/knowledge/services/connector_sync.py)"]
     IN_SYNC["入向状态机: Stream READ → checkpoint_json 推进 → row_hash 四路分流\n(UNCHANGED / ADDED / UPDATED / DELETED) → 写 entities / statements / typed_facts"]
     OUT_SYNC["出向状态机: entity_sync_outbox 审批通过 → 调用 Stream MUTATE → 重算 row_hash 防回环"]
   end

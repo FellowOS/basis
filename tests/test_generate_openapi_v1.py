@@ -16,7 +16,7 @@ def _load_gen():
 
 
 def test_openapi_kb_slice_has_many_paths(tmp_path) -> None:
-    from basis.application.openapi.v1_export import filter_openapi_paths
+    from basis.interface.contract.openapi.v1_export import filter_openapi_paths
 
     gen = _load_gen()
     full = gen.build_openapi_v1(data_dir=tmp_path)

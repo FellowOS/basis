@@ -3,9 +3,9 @@ from pathlib import Path
 
 import pytest
 
-from basis.control.admin.errors import AdminError
-from basis.tooling.db.sqlite_migrations import MigrationError, load_migrations, run_migrations
-from basis.control.admin.store import AdminStore
+from basis.domain.tenancy.admin.errors import AdminError
+from basis.infra.tooling.db.sqlite_migrations import MigrationError, load_migrations, run_migrations
+from basis.domain.tenancy.admin.store import AdminStore
 
 
 def _expected_migration_versions() -> list[int]:

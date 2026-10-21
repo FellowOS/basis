@@ -2,7 +2,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from basis.core.pipeline.file_ingest import FileParseError, text_from_bytes
+from basis.domain.knowledge.pipeline.file_ingest import FileParseError, text_from_bytes
 
 
 def test_docx_missing_style_falls_back_to_paragraph_text() -> None:

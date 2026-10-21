@@ -4,8 +4,8 @@ import pytest
 
 pytest.importorskip("semantica")
 
-from basis.core.explorer.ontology.shacl.shacl_validate import validate_shacl
-from basis.control.admin.errors import AdminError
+from basis.domain.graph.explorer.ontology.shacl.shacl_validate import validate_shacl
+from basis.domain.tenancy.admin.errors import AdminError
 
 
 def test_validate_empty_turtle_raises() -> None:

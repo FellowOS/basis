@@ -2,8 +2,8 @@
 
 from fastapi.testclient import TestClient
 
-from basis.api.http.app import create_app
-from basis.runtime.config import Settings
+from basis.interface.http.app import create_app
+from basis.infra.runtime.config import Settings
 
 
 def test_mapping_create_list_confirm(tmp_path) -> None:

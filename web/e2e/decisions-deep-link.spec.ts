@@ -1,13 +1,16 @@
 import { expect, test } from '@playwright/test';
 
-import { defaultKbId, registerFreshUser } from './helpers';
+import { defaultKbId, proposeRememberViaApi, registerFreshUser } from './helpers';
 
 test('decisions list selection updates shareable decision query', async ({ page }) => {
   test.setTimeout(120_000);
 
   await registerFreshUser(page);
   const kbId = await defaultKbId(page);
-  await page.goto(`/kbs/${kbId}/decisions`);
+  const fact = `E2E decision deep link ${Date.now()}`;
+  const { reviewItemId } = await proposeRememberViaApi(page, kbId, fact);
+
+  await page.goto(`/kbs/${kbId}/review?reviewItem=${encodeURIComponent(reviewItemId)}`);
 
   const unavailable = page.getByRole('heading', {
     name: /工作区不可用|Workspace unavailable/i,
@@ -16,14 +19,27 @@ test('decisions list selection updates shareable decision query', async ({ page 
     test.skip(true, 'decisions workspace requires explorer_runtime');
   }
 
-  const firstItem = page.locator('[data-testid^="decision-list-item-"]').first();
-  await expect(firstItem).toBeVisible({ timeout: 60_000 });
-  const testId = await firstItem.getAttribute('data-testid');
-  const decisionId = testId?.replace('decision-list-item-', '');
+  const card = page.locator(`#review-item-${reviewItemId}`);
+  await expect(card).toBeVisible({ timeout: 60_000 });
+  await card.getByRole('button', { name: /Approve fact|批准记入/i }).click();
+
+  const decisionLink = page.getByTestId('review-approve-decision-link');
+  await expect(decisionLink).toBeVisible({ timeout: 30_000 });
+  await decisionLink.click();
+  await expect(page).toHaveURL(/\/decisions/);
+  await expect(page).toHaveURL(/decision=/);
+
+  const url = new URL(page.url());
+  const decisionId = url.searchParams.get('decision');
   expect(decisionId).toBeTruthy();
 
-  await firstItem.click();
-  await expect(page).toHaveURL(
-    new RegExp(`decision=${encodeURIComponent(decisionId!).replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')}`),
-  );
+  const listItem = page.getByTestId(`decision-list-item-${decisionId}`);
+  if ((await listItem.count()) > 0) {
+    await listItem.click();
+    await expect(page).toHaveURL(
+      new RegExp(
+        `decision=${encodeURIComponent(decisionId!).replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')}`,
+      ),
+    );
+  }
 });

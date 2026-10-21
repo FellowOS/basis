@@ -1,0 +1,164 @@
+"""KB ontology registry and alignment routes."""
+
+from __future__ import annotations
+
+import asyncio
+from typing import Any, Optional
+
+from fastapi import APIRouter, Depends, Query, Request
+
+from basis.domain.errors import AdminError
+from basis.domain.tenancy.admin.store import AdminStore, User
+from basis.interface.http.deps import (
+    get_current_user,
+    get_kb_for_editor,
+    get_kb_for_viewer,
+    get_store,
+)
+from basis.domain.graph.explorer.ontology.hub.kb_scoped_state import KbOntologyState
+from basis.interface.http.kb_ontology_session import explorer_graph_session
+
+router = APIRouter(tags=["knowledge-bases"])
+
+@router.get("/{kb_id}/ontology/registry")
+async def kb_ontology_registry(
+    kb_id: str,
+    request: Request,
+    q: Optional[str] = Query(None),
+    status: Optional[str] = Query(None),
+    format: Optional[str] = Query(None),
+    user: User = Depends(get_current_user),
+    store: AdminStore = Depends(get_store),
+) -> Any:
+    """
+Kb Ontology Registry. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+    """
+    get_kb_for_viewer(request, user, kb_id, store)
+    from basis.domain.graph.explorer.ontology.hub.catalog import list_registry
+
+    session = explorer_graph_session(request, kb_id)
+    with KbOntologyState(request, kb_id):
+        registry = request.app.state.kb_ontology_registries[kb_id]
+        return await asyncio.to_thread(
+            list_registry,
+            registry,
+            session,
+            q=q,
+            status=status,
+            format=format,
+        )
+
+
+@router.get("/{kb_id}/ontology/alignments")
+async def kb_list_alignments(
+    kb_id: str,
+    request: Request,
+    uri: Optional[str] = Query(None),
+    user: User = Depends(get_current_user),
+    store: AdminStore = Depends(get_store),
+) -> Any:
+    """
+Kb List Alignments. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+    """
+    get_kb_for_viewer(request, user, kb_id, store)
+
+    with KbOntologyState(request, kb_id):
+        align_store = request.app.state.kb_ontology_alignments[kb_id]
+        alignments = list(align_store.values())
+        if uri:
+            alignments = [
+                item
+                for item in alignments
+                if str(item.get("source_uri", "")).startswith(uri)
+                or str(item.get("target_uri", "")).startswith(uri)
+            ]
+        return sorted(
+            alignments,
+            key=lambda item: (
+                item.get("source_label", ""),
+                item.get("target_label", ""),
+                item.get("relation", ""),
+            ),
+        )
+
+
+@router.post("/{kb_id}/ontology/alignments")
+async def kb_upsert_alignment(
+    kb_id: str,
+    request: Request,
+    user: User = Depends(get_current_user),
+    store: AdminStore = Depends(get_store),
+) -> Any:
+    """
+Kb Upsert Alignment. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+    """
+    get_kb_for_editor(request, user, kb_id, store)
+    from basis.domain.graph.explorer.ontology.hub.catalog import upsert_alignment
+
+    raw = await request.json()
+    if not isinstance(raw, dict):
+        raise AdminError(422, "validation_error", "请求体须为 JSON 对象")
+    session = explorer_graph_session(request, kb_id)
+    with KbOntologyState(request, kb_id):
+        align_store = request.app.state.kb_ontology_alignments[kb_id]
+        return await asyncio.to_thread(
+            upsert_alignment,
+            align_store,
+            session,
+            source_uri=str(raw.get("source_uri", "")),
+            target_uri=str(raw.get("target_uri", "")),
+            relation=str(raw.get("relation", "")),
+            source_label=raw.get("source_label"),
+            target_label=raw.get("target_label"),
+            confidence=float(raw.get("confidence", 1.0)),
+            provenance=raw.get("provenance"),
+            source=raw.get("source"),
+            reviewer=raw.get("reviewer"),
+        )
+
+
+@router.delete("/{kb_id}/ontology/alignments")
+async def kb_delete_alignment(
+    kb_id: str,
+    request: Request,
+    id: str = Query(...),
+    user: User = Depends(get_current_user),
+    store: AdminStore = Depends(get_store),
+) -> Any:
+    """
+Kb Delete Alignment. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+    """
+    get_kb_for_editor(request, user, kb_id, store)
+    from basis.domain.graph.explorer.ontology.hub.catalog import delete_alignment
+
+    with KbOntologyState(request, kb_id):
+        align_store = request.app.state.kb_ontology_alignments[kb_id]
+        return await asyncio.to_thread(delete_alignment, align_store, id)
+
+
+@router.post("/{kb_id}/ontology/suggest-alignments")
+async def kb_suggest_alignments(
+    kb_id: str,
+    request: Request,
+    user: User = Depends(get_current_user),
+    store: AdminStore = Depends(get_store),
+) -> Any:
+    """
+Kb Suggest Alignments. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+    """
+    get_kb_for_viewer(request, user, kb_id, store)
+    from basis.domain.graph.explorer.ontology.hub.catalog import suggest_alignments
+
+    raw = await request.json()
+    if not isinstance(raw, dict):
+        raise AdminError(422, "validation_error", "请求体须为 JSON 对象")
+    session = explorer_graph_session(request, kb_id)
+    return await asyncio.to_thread(
+        suggest_alignments,
+        session,
+        source_ontology_uri=raw.get("source_ontology_uri"),
+        target_ontology_uri=raw.get("target_ontology_uri"),
+        threshold=float(raw.get("threshold", 0.65)),
+        limit=int(raw.get("limit", 25)),
+    )
+

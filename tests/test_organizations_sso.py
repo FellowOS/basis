@@ -3,10 +3,10 @@ from unittest.mock import AsyncMock, patch
 
 from fastapi.testclient import TestClient
 
-from basis.runtime.config import Settings
-from basis.control.identity.oauth_client import build_oidc_authorize_url
-from basis.control.admin.store import AdminStore
-from basis.api.http.app import create_app
+from basis.infra.runtime.config import Settings
+from basis.domain.tenancy.identity.oauth_client import build_oidc_authorize_url
+from basis.domain.tenancy.admin.store import AdminStore
+from basis.interface.http.app import create_app
 def _store(tmp_path: Path) -> AdminStore:
     return AdminStore(tmp_path / "basis.db")
 
@@ -113,7 +113,7 @@ def test_org_oidc_start_redirects_to_idp(tmp_path: Path) -> None:
         "token_endpoint": "https://idp.example.com/token",
     }
     with patch(
-        "basis.api.http.routes.v1.platform.auth.oidc.fetch_oidc_metadata",
+        "basis.interface.http.platform_auth_oidc.fetch_oidc_metadata",
         new_callable=AsyncMock,
         return_value=metadata,
     ):
