@@ -6,10 +6,10 @@ import {
   wsMutationResult,
   wsPartialSuccessWarning,
   parseWsJson,
-} from '@/lib/explorer/ws-api-error';
-import { workspaceFetch } from '@/lib/explorer/ws-http';
+} from '@/lib/workspace/ws-api-error';
+import { workspaceFetch } from '@/lib/workspace/ws-http';
 import { ontologyPath, useOntologyWorkspaceId } from "./ontology-workspace-context";
-import { workspaceOntologyProposalPath } from "@/lib/nav-config.js";
+import { workspaceOntologyProposalPath } from "@/lib/nav/nav-config.js";
 import { readOntologyUrlState, writeProposalSelection } from '../lib/ontology-url-state.js';
 import { cn } from "@/lib/utils.js";
 import { Button } from "@/components/ui/button.js";

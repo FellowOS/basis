@@ -1,7 +1,7 @@
 import type { IconType } from 'react-icons';
 import type { ReactNode } from 'react';
 import { Card, CardSubtitle } from '@/components/app/shared/console/Card.js';
-import { getPublicIconComponent } from '@/lib/public-icon-map.js';
+import { getPublicIconComponent } from '@/lib/marketing/public-icon-map.js';
 import { cn } from '@/lib/utils.js';
 
 export function DataPanel({ className, children }: { className?: string; children: ReactNode }) {

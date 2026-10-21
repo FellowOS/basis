@@ -2,8 +2,8 @@ import { fmt } from "@/i18n/format.js";
 import type { Locale } from "@/i18n/locale.js";
 import { messagesForLocale } from "@/i18n/pick-locale.js";
 
-import { parseWsJson } from '@/lib/explorer/ws-api-error';
-import { workspaceFetch } from '@/lib/explorer/ws-http';
+import { parseWsJson } from '@/lib/workspace/ws-api-error';
+import { workspaceFetch } from '@/lib/workspace/ws-http';
 import { ontologyPath } from '../components/ontology-workspace-context.js';
 import type {
   AlignmentRelation,

@@ -4,8 +4,8 @@ import { useI18n } from '@/i18n/context.js';
 import { consumeWorkspaceAlertsStream, type WorkspaceAlertStreamItem } from '@/modules/alerts/lib/alerts-stream.js';
 import { isSetupWorkspaceId, resolveSidebarWorkspaceId } from '@/lib/workspace/active-id.js';
 import { useWorkspaceCatalog } from '@/lib/workspace/context.js';
-import { isWorkspaceScopedPath, parseWorkspaceIdFromPath } from '@/lib/nav-config.js';
-import { workspaceOpenApiGET } from '@/lib/openapi-client.js';
+import { isWorkspaceScopedPath, parseWorkspaceIdFromPath } from '@/lib/nav/nav-config.js';
+import { workspaceOpenApiGET } from '@/lib/openapi/client.js';
 
 function useWorkspaceAlertsTargetId(): string {
   const location = useLocation();

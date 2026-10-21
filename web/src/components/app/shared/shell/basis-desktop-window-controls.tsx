@@ -1,7 +1,7 @@
 import { Copy, Minus, Square, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-import { getBasisDesktopBridge } from '@/lib/desktop-bridge.js';
+import { getBasisDesktopBridge } from '@/lib/shell/desktop-bridge.js';
 import { cn } from '@/lib/utils.js';
 
 const noDrag = '[-webkit-app-region:no-drag]';

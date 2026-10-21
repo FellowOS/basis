@@ -3,13 +3,13 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { useDropzone } from "react-dropzone";
 import { Button } from "@/components/ui/button.js";
 import { Textarea } from "@/components/ui/textarea.js";
-import { errorFromApiResponse } from "@/lib/api-error.js";
-import { formatUserFacingApiError } from "@/lib/api-error-message.js";
+import { errorFromApiResponse } from "@/lib/errors/api-error.js";
+import { formatUserFacingApiError } from "@/lib/errors/api-error-message.js";
 import { useI18n } from "@/i18n/context.js";
 import { fmt, formatLocaleFixedDecimals } from "@/i18n/format.js";
 import type { Locale } from "@/i18n/locale.js";
-import { buildWorkspaceApiPath, workspaceFetch } from '@/lib/explorer/ws-http';
-import { logEvent } from '@/lib/explorer/registryStore';
+import { buildWorkspaceApiPath, workspaceFetch } from '@/lib/workspace/ws-http';
+import { logEvent } from '@/modules/graph/lib/registry-store.js';
 import { cn } from "@/lib/utils.js";
 import {
   exWsCardTitleRow,

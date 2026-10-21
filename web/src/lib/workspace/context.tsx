@@ -8,8 +8,8 @@ import {
   useState,
 } from 'react';
 import { devMessage } from '@/i18n/dev-messages.js';
-import { basisSessionClient } from '@/lib/basis-session-client.js';
-import { unwrapOpenApi } from '@/lib/openapi-response.js';
+import { basisSessionClient } from '@/lib/session/basis-session-client.js';
+import { unwrapOpenApi } from '@/lib/openapi/response.js';
 
 export type WorkspaceSummary = {
   id: string;

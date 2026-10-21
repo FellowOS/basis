@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button.js';
 import { useI18n } from '@/i18n/context.js';
 import { pickDefaultWorkspaceId, writeActiveWorkspaceId } from '@/lib/workspace/active-id.js';
 import { useWorkspaceCatalog } from '@/lib/workspace/context.js';
-import { workspacePath } from '@/lib/nav-config.js';
+import { workspacePath } from '@/lib/nav/nav-config.js';
 
 function SetupEmptyView() {
   const { t } = useI18n();

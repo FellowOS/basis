@@ -16,9 +16,9 @@ import {
   isProductNavActive,
   productNavHref,
   type ProductNavKey,
-} from '@/lib/product-nav.js';
+} from '@/lib/marketing/product-nav.js';
 import { cn } from '@/lib/utils.js';
-import { productDeveloperLinkLabels, productNavLabel } from '@/lib/product-nav-i18n.js';
+import { productDeveloperLinkLabels, productNavLabel } from '@/lib/marketing/product-nav-i18n.js';
 
 type ProductSiteNavProps = {
   activeKey?: ProductNavKey;

@@ -1,4 +1,4 @@
-import { workspacePath } from '@/lib/nav-config.js';
+import { workspacePath } from '@/lib/nav/nav-config.js';
 
 /** Legacy URL tab values (still parsed). */
 export type SearchTab = 'chunks' | 'graph' | 'entities';

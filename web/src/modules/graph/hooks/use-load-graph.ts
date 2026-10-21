@@ -1,8 +1,8 @@
 ﻿import { useCallback } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { batchMergeEdges, batchMergeNodes, clearGraph } from '@/lib/explorer/graphStore';
-import type { EdgeAttributes, NodeAttributes } from '@/lib/explorer/graphStore';
-import { curveGroupForPair, pairRegistryKey } from '@/lib/explorer/edgePairKeys.js';
+import { batchMergeEdges, batchMergeNodes, clearGraph } from '@/lib/workspace/graphStore';
+import type { EdgeAttributes, NodeAttributes } from '@/lib/workspace/graphStore';
+import { curveGroupForPair, pairRegistryKey } from '@/lib/workspace/edgePairKeys.js';
 import {
   GRAPH_THEME,
   clamp,
@@ -14,7 +14,7 @@ import {
   type GraphEntityShapeVariant,
   type GraphLabelVisibilityPolicy,
   type GraphNodeShapeVariant,
-} from "@/lib/explorer/graphTheme.js";
+} from "@/lib/workspace/graphTheme.js";
 import { classifyEntityShape } from '../lib/graph-entity-shape.js';
 import { assignSemanticGroupColors, colorForSemanticGroupIndex } from '../lib/semantic-group-color.js';
 import {
@@ -32,8 +32,8 @@ import {
   resolveNodeLayoutPosition,
 } from '../lib/small-graph-layout.js';
 import type { GraphLoadProgress, GraphLoadSummary } from '../lib/types.js';
-import { throwIfWsNotOk } from '@/lib/explorer/ws-api-error';
-import { buildWorkspaceGraphApiPath, workspaceFetch } from '@/lib/explorer/ws-http';
+import { throwIfWsNotOk } from '@/lib/workspace/ws-api-error';
+import { buildWorkspaceGraphApiPath, workspaceFetch } from '@/lib/workspace/ws-http';
 
 const SEMANTIC_COLOR_FIELDS = [
   "community",

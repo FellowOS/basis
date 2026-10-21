@@ -24,8 +24,8 @@ import {
   buildIngestLimitsHint,
   buildIngestOpsQueueHint,
 } from '@/modules/processing/lib/ingest-ops-hints.js';
-import { formatUserFacingApiError } from '@/lib/api-error-message.js';
-import { useWorkspaceWsClient } from '@/lib/explorer/ws-context.js';
+import { formatUserFacingApiError } from '@/lib/errors/api-error-message.js';
+import { useWorkspaceWsClient } from '@/lib/workspace/ws-context.js';
 import { useWorkspaceCatalog } from '@/lib/workspace/context.js';
 import { useWorkspaceCapabilities } from '@/lib/workspace/capabilities.js';
 import {
@@ -33,7 +33,7 @@ import {
   jobIsActive,
   sortProcessingJobs,
 } from '@/modules/processing/lib/processing-job.js';
-import { workspacePath } from '@/lib/nav-config.js';
+import { workspacePath } from '@/lib/nav/nav-config.js';
 import { processingPath } from '@/modules/processing/lib/processingUrlState.js';
 
 export function ProcessingScreen({

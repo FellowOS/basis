@@ -19,17 +19,17 @@ import { formatBadgeCount } from '@/i18n/format.js';
 import type { Locale } from '@/i18n/locale.js';
 import { LocaleMenuItems } from '@/i18n/locale-menu.js';
 import { isSetupWorkspaceId } from '@/lib/workspace/active-id.js';
-import { useBasisSession } from '@/lib/basis-session.js';
+import { useBasisSession } from '@/lib/session/basis-session.js';
 import {
   workspacePath,
   platformAdminEntryPath,
   visiblePlatformNavItems,
-} from '@/lib/nav-config.js';
+} from '@/lib/nav/nav-config.js';
 import { useWorkspaceAlertsNavId, useWorkspaceUnreadAlerts } from '@/modules/alerts/lib/use-unread-alerts.js';
-import { useTheme } from '@/lib/theme.js';
+import { useTheme } from '@/lib/shell/theme.js';
 import { cn } from '@/lib/utils.js';
-import { basisIsDesktopProduct } from '@/lib/basis-runtime.js';
-import { useSettingsAccess } from '@/lib/use-settings-access.js';
+import { basisIsDesktopProduct } from '@/lib/runtime/basis-runtime.js';
+import { useSettingsAccess } from '@/lib/shell/use-settings-access.js';
 
 function MenuIcon({ name, className }: { name: string; className?: string }) {
   return <PublicIcon name={name} size={16} className={className} />;

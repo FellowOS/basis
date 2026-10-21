@@ -4,27 +4,27 @@ import { useQueryClient } from '@tanstack/react-query';
 import { PublicIcon } from '@/components/app/shared/primitives/public-icon.js';
 import { EntityMergePropertyDiff } from '@/modules/entity-resolution/components/entity-merge-property-diff.js';
 import { ReviewDecisionNarrative } from './review-decision-narrative.js';
-import { buildWorkspaceApiPath, workspaceFetch } from '@/lib/explorer/ws-http.js';
+import { buildWorkspaceApiPath, workspaceFetch } from '@/lib/workspace/ws-http.js';
 import { useI18n } from '@/i18n/context.js';
 import { fmt, formatLocaleDateTime, formatLocaleNumber } from '@/i18n/format.js';
 import type { LocaleMessages } from '@/i18n/en.js';
 import type { Locale } from '@/i18n/locale.js';
 import { useWorkspaceCapabilities } from '@/lib/workspace/capabilities.js';
-import { throwIfApiNotOk } from '@/lib/api-error.js';
+import { throwIfApiNotOk } from '@/lib/errors/api-error.js';
 import {
   formatUserFacingApiError,
   isGovernanceGateErrorCode,
   readApiErrorCode,
-} from '@/lib/api-error-message.js';
+} from '@/lib/errors/api-error-message.js';
 import {
   formatGraphAuditAction,
   proposalIdFromGraphAuditDetail,
   reviewItemIdFromGraphAuditDetail,
 } from '@/modules/graph/lib/graph-audit.js';
-import { formatNodeRef, formatNodeRefDetail } from '@/lib/format-node-ref.js';
-import { fetchWorkspaceNodeLabels } from '@/lib/explorer/node-labels.js';
+import { formatNodeRef, formatNodeRefDetail } from '@/lib/workspace/format-node-ref.js';
+import { fetchWorkspaceNodeLabels } from '@/lib/workspace/node-labels.js';
 import { workspaceAlertsPath, reviewAlertEpisodeKey } from '@/modules/alerts/lib/alerts-url.js';
-import { workspaceOntologyProposalPath, workspaceOntologyVersionsPath, workspacePath } from '@/lib/nav-config.js';
+import { workspaceOntologyProposalPath, workspaceOntologyVersionsPath, workspacePath } from '@/lib/nav/nav-config.js';
 import {
   auditEventMatchesReviewItem,
   decisionIdFromApproveResponse,

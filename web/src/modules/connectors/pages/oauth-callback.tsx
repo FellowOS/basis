@@ -5,14 +5,14 @@ import { ConsolePageLayout } from '@/components/app/shared/console/index.js';
 import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
 import type { Locale } from '@/i18n/locale.js';
-import { formatUserFacingApiError } from '@/lib/api-error-message.js';
+import { formatUserFacingApiError } from '@/lib/errors/api-error-message.js';
 import {
   clearPendingConnectorOAuth,
   workspaceConnectorOAuthRedirectUri,
   readPendingConnectorOAuth,
 } from '@/modules/connectors/lib/connector-oauth.js';
-import { workspaceConnectorPanelPath } from '@/lib/nav-config.js';
-import { workspaceOpenApiPOST } from '@/lib/openapi-client.js';
+import { workspaceConnectorPanelPath } from '@/lib/nav/nav-config.js';
+import { workspaceOpenApiPOST } from '@/lib/openapi/client.js';
 
 type CallbackPhase = 'working' | 'success' | 'error';
 

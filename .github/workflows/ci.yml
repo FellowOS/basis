@@ -95,7 +95,7 @@ jobs:
         run: npm ci && npm run gen:openapi-types
 
       - name: Fail on schema drift
-        run: git diff --exit-code web/src/lib/basis-openapi/schema.d.ts web/src/lib/basis-openapi/schema-kb.d.ts
+        run: git diff --exit-code web/src/lib/openapi/schema.d.ts web/src/lib/openapi/schema-kb.d.ts
 
   pytest:
     runs-on: ubuntu-latest

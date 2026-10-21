@@ -4,9 +4,9 @@ import { PlatformAccessSettings } from '@/components/admin/platform-access-setti
 import { PlatformOrgSsoSection } from '@/components/admin/platform-org-sso-section.js';
 import { ConsolePageLayout } from '@/components/app/shared/console/index.js';
 import { useI18n } from '@/i18n/context.js';
-import { useBasisSession } from '@/lib/basis-session.js';
-import { basisIsDesktopProduct } from '@/lib/basis-runtime.js';
-import { usePlatformAdminCrumbs } from '@/lib/use-platform-admin-crumbs.js';
+import { useBasisSession } from '@/lib/session/basis-session.js';
+import { basisIsDesktopProduct } from '@/lib/runtime/basis-runtime.js';
+import { usePlatformAdminCrumbs } from '@/lib/admin/use-platform-admin-crumbs.js';
 
 function SettingsSection({
   title,

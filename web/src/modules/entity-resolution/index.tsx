@@ -8,7 +8,7 @@ import {
 import { Button } from '@/components/ui/button.js';
 import { useI18n } from '@/i18n/context.js';
 import { useWorkspaceCatalog } from '@/lib/workspace/context.js';
-import { workspacePath } from '@/lib/nav-config.js';
+import { workspacePath } from '@/lib/nav/nav-config.js';
 
 export function EntityResolutionPage() {
   const { id } = useParams();

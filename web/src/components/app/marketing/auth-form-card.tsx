@@ -17,10 +17,10 @@ import { PublicIcon } from '@/components/app/shared/primitives/public-icon.js';
 import { useI18n } from '@/i18n/context.js';
 import type { Locale } from '@/i18n/locale.js';
 import { fmt } from '@/i18n/format.js';
-import { formatUserFacingApiError } from '@/lib/api-error-message.js';
-import { authV1Path } from '@/lib/api-v1-path.js';
-import { useBasisSession } from '@/lib/basis-session.js';
-import { publicOpenApiGET, publicOpenApiPOST } from '@/lib/openapi-client.js';
+import { formatUserFacingApiError } from '@/lib/errors/api-error-message.js';
+import { authV1Path } from '@/lib/openapi/api-v1-path.js';
+import { useBasisSession } from '@/lib/session/basis-session.js';
+import { publicOpenApiGET, publicOpenApiPOST } from '@/lib/openapi/client.js';
 import { cn } from '@/lib/utils.js';
 
 type AuthMode = 'login' | 'register';

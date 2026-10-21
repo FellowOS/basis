@@ -4,7 +4,7 @@ import {
   reviewItemIdFromGraphAuditDetail,
 } from '@/modules/graph/lib/graph-audit.js';
 import { useI18n } from '@/i18n/context.js';
-import { workspaceOntologyProposalPath } from '@/lib/nav-config.js';
+import { workspaceOntologyProposalPath } from '@/lib/nav/nav-config.js';
 import {
   decisionIdFromDetail,
   reviewDecisionPath,

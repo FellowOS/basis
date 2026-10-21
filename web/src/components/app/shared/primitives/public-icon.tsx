@@ -1,5 +1,5 @@
 import type { IconType } from "react-icons";
-import { getPublicIconComponent } from "@/lib/public-icon-map.js";
+import { getPublicIconComponent } from "@/lib/marketing/public-icon-map.js";
 import { cn } from "@/lib/utils.js";
 
 type PublicIconProps = {

@@ -10,7 +10,7 @@ Instructions for AI coding agents working in this repository. Humans can skim th
 |------|------|--------|
 | API | `basis/` Python package (layered; see [package-layout.md](./docs/architecture/package-layout.md)) | Python 3.10+, FastAPI, Semantica SDK |
 | Web | `web/` | Vite, React, React Router, Tailwind v4, shadcn |
-| Explorer UI | `web/src/modules/<segment>/` + `app/shared/workspace/` + `lib/explorer/` + `lib/workspace/` | Feature modules; workspace frame in `app/shared/workspace/` |
+| Workspace console | `web/src/modules/<segment>/` + `app/shared/workspace/` + `lib/workspace/` | Feature modules; layout frame in `app/shared/workspace/` |
 
 ## Before you change code
 
@@ -87,7 +87,7 @@ After sync: `npm run typecheck` — fix **primitives**, **shell**, and imports, 
 
 1. `web/src/routes/index.tsx` — all `/kbs/*`, `/admin/*`, and related URLs; modules export route entry `index.tsx` (lazy via `routes/lazy-pages.ts`).
 2. `web/src/modules/<segment>/` — `index.tsx` (route entry), `pages/` (screen + glue), `i18n/`, `components/` (required); optional `hooks/`, `lib/`; workspace frame from `app/shared/workspace/frame/`.
-3. `web/src/lib/explorer/` — shared client (`ws-http`, `graphStore`, …); import `@/lib/explorer/…` ([README](./web/src/lib/explorer/README.md)).
+3. `web/src/lib/workspace/` — shared client (`ws-http`, `graphStore`, …); import `@/lib/workspace/…` ([README](./web/src/lib/workspace/README.md)).
 
 ### Forms and console
 
@@ -136,15 +136,15 @@ Run relevant checks after substantive edits; say if something was not run.
 | Task | Read |
 |------|------|
 | Web structure / workspace modules | [web/README.md](./web/README.md) |
-| Explorer layout | [web/src/modules/README.md](./web/src/modules/README.md), [web/src/routes/README.md](./web/src/routes/README.md), [web/src/components/app/shared/README.md](./web/src/components/app/shared/README.md), [web/src/lib/explorer/README.md](./web/src/lib/explorer/README.md) |
+| Explorer layout | [web/src/modules/README.md](./web/src/modules/README.md), [web/src/routes/README.md](./web/src/routes/README.md), [web/src/components/app/shared/README.md](./web/src/components/app/shared/README.md), [web/src/lib/workspace/README.md](./web/src/lib/workspace/README.md) |
 | Docs (features / progress / architecture) | [docs/README.md](./docs/README.md) |
 | OpenAPI v1 (platform + workspace surfaces) | [docs/architecture/openapi-v1.md](./docs/architecture/openapi-v1.md), live `/openapi/v1.json`; snapshots `openapi/basis-v1*.json` |
 | Feature list / progress | [docs/features.md](./docs/features.md) (F-* spec), [docs/progress.md](./docs/progress.md) (status: §0.1 done, §0.2 API baseline, §3.1 UX / §3.2 e2e gaps) |
-| Web OpenAPI transport | `web/src/lib/basis-openapi/` (`transport.ts` + generated `schema.d.ts`); app helpers in `web/src/lib/openapi-client.ts` |
+| Web OpenAPI transport | `web/src/lib/openapi/` (`transport.ts` + generated `schema.d.ts`); app helpers in `web/src/lib/openapi/client.ts` |
 | Web ↔ operationId audit | [openapi/web-openapi-operation-audit.md](./openapi/web-openapi-operation-audit.md) — `scripts/audit-web-operation-ids.py` |
-| HTTP in web | Typed: `openapi-client.ts` (`openApi*` / `workspaceOpenApi*` / `publicOpenApi*`); stream/multipart: `basis-session-fetch.ts`; paths: `lib/explorer/api-path.ts`, `lib/nav-config.ts` (`workspacePath`), `api-v1-path.ts`; E2E `e2e/api-v1-path.ts` (`e2eWorkspaceApiPath`) |
+| HTTP in web | Typed: `lib/openapi/client.ts` (`openApi*` / `workspaceOpenApi*` / `publicOpenApi*`); stream/multipart: `lib/session/basis-session-fetch.ts`; paths: `lib/workspace/api-path.ts`, `lib/nav/nav-config.ts` (`workspacePath`), `lib/openapi/api-v1-path.ts`; E2E `e2e/api-v1-path.ts` (`e2eWorkspaceApiPath`) |
 
-**Naming:** Normative HTTP = **live export** at `/openapi/v1.json` (same as `app.openapi()` + Basis annotations); committed snapshots in **`openapi/basis-v1.json`**. `basis/application/` = server operations (OpenAPI + MCP call this). **semantica** = in-process runtime. **Application HTTP client** = web `basis-openapi/` transport (OpenAPI-generated types; not a published SDK). Server exposes **only OpenAPI + MCP** to clients.
+**Naming:** Normative HTTP = **live export** at `/openapi/v1.json` (same as `app.openapi()` + Basis annotations); committed snapshots in **`openapi/basis-v1.json`**. `basis/application/` = server operations (OpenAPI + MCP call this). **semantica** = in-process runtime. **Application HTTP client** = web `lib/openapi/` transport (OpenAPI-generated types; not a published SDK). Server exposes **only OpenAPI + MCP** to clients.
 
 ## Out of scope unless asked
 

@@ -34,7 +34,7 @@ import { Switch } from '@/components/ui/switch.js';
 import { useI18n } from '@/i18n/context.js';
 import { fmt, formatLocaleDateTime } from '@/i18n/format.js';
 import type { Locale } from '@/i18n/locale.js';
-import { formatUserFacingApiError } from '@/lib/api-error-message.js';
+import { formatUserFacingApiError } from '@/lib/errors/api-error-message.js';
 import { ConnectorMappingSuggestDialog } from '@/modules/connectors/components/connector-mapping-suggest-dialog.js';
 import {
   workspaceConnectorMappingEditPath,
@@ -46,13 +46,13 @@ import {
   type ConnectorPanel,
   workspaceConnectorPanelPath,
   workspacePath,
-} from '@/lib/nav-config.js';
+} from '@/lib/nav/nav-config.js';
 import {
   workspaceOpenApiDELETE,
   workspaceOpenApiGET,
   workspaceOpenApiPOST,
   workspaceOpenApiPUT,
-} from '@/lib/openapi-client.js';
+} from '@/lib/openapi/client.js';
 import { resourceCardSurfaceClass } from '@/lib/ui-classes/card-surface.js';
 import {
   connectorAuthNeedsPkce,

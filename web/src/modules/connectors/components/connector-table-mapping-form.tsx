@@ -43,7 +43,7 @@ import {
   mergeStreamParamFieldMap,
   type ManifestStreamSnippet,
 } from '@/modules/connectors/lib/connector-stream-params.js';
-import { workspaceOpenApiGET } from '@/lib/openapi-client.js';
+import { workspaceOpenApiGET } from '@/lib/openapi/client.js';
 
 export type ConnectorTableMappingFormProps = {
   workspaceId: string;

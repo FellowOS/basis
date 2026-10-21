@@ -29,12 +29,12 @@ import {
 import { Input } from "@/components/ui/input.js";
 import { Label } from "@/components/ui/label.js";
 import { Checkbox } from "@/components/ui/checkbox.js";
-import { buildWorkspaceApiPath, workspaceFetch } from '@/lib/explorer/ws-http';
-import { errorFromApiResponse } from "@/lib/api-error.js";
-import { useApiErrorMessage } from "@/lib/use-api-error-message.js";
+import { buildWorkspaceApiPath, workspaceFetch } from '@/lib/workspace/ws-http';
+import { errorFromApiResponse } from "@/lib/errors/api-error.js";
+import { useApiErrorMessage } from "@/lib/errors/use-api-error-message.js";
 import { useWorkspaceCapabilitiesOptional } from "@/lib/workspace/capabilities.js";
 import { exWsPageRow } from "@/lib/ui-classes/ws-ui.js";
-import { workspaceOpenApiGET, workspaceOpenApiPOST } from '@/lib/openapi-client.js';
+import { workspaceOpenApiGET, workspaceOpenApiPOST } from '@/lib/openapi/client.js';
 
 type SavedRule = ReasoningRule;
 

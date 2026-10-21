@@ -1,6 +1,6 @@
 /** Shared helpers for workspace BOCP connection pickers and mapping routes. */
 
-import { workspaceConnectorPanelPath } from '@/lib/nav-config.js';
+import { workspaceConnectorPanelPath } from '@/lib/nav/nav-config.js';
 
 export type StoredConnection = {
   workspace_id: string;

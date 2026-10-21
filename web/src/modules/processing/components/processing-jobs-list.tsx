@@ -7,7 +7,7 @@ import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
 import { fmt, formatLocaleDateTime, formatLocaleNumber } from '@/i18n/format.js';
 import type { Locale } from '@/i18n/locale.js';
-import { messageForApiErrorCode } from '@/lib/api-error-message.js';
+import { messageForApiErrorCode } from '@/lib/errors/api-error-message.js';
 import {
   type ProcessingJob,
   jobIsActive,
@@ -16,7 +16,7 @@ import {
 } from '@/modules/processing/lib/processing-job.js';
 import { ProcessingOptionsSnapshot } from '@/modules/processing/components/processing-options-snapshot.js';
 import { workspaceAlertsPath, processingAlertEpisodeKey } from '@/modules/alerts/lib/alerts-url.js';
-import { workspacePath } from '@/lib/nav-config.js';
+import { workspacePath } from '@/lib/nav/nav-config.js';
 import { sourcesDocumentPath } from '@/modules/library/lib/sourcesUrlState.js';
 import { cn } from '@/lib/utils.js';
 

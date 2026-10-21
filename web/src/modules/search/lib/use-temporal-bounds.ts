@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { workspaceOpenApiGET } from '@/lib/openapi-client.js';
+import { workspaceOpenApiGET } from '@/lib/openapi/client.js';
 
 type TemporalBounds = { min?: string | null; max?: string | null };
 

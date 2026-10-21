@@ -1,6 +1,6 @@
 import { type ReactNode, useLayoutEffect } from 'react';
 
-import { useTheme } from '@/lib/theme.js';
+import { useTheme } from '@/lib/shell/theme.js';
 import { syncBasisGraphTheme } from '@/modules/graph/lib/graph/basis-graph-theme-sync.js';
 
 /** Apply Basis CSS tokens to Explorer graph theme before children mount (canvas/HUD). */

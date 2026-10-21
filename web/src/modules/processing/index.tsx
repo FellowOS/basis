@@ -1,6 +1,6 @@
 import { useParams, useSearchParams } from 'react-router-dom';
 import { ProcessingScreen } from '@/modules/processing/pages/screen.js';
-import { WorkspaceRouteShell } from '@/lib/explorer/ws-context.js';
+import { WorkspaceRouteShell } from '@/lib/workspace/ws-context.js';
 import { parseProcessingUrlState } from '@/modules/processing/lib/processingUrlState.js';
 
 export function ProcessingPage() {

@@ -12,8 +12,8 @@ import {
 } from '@/components/ui/select.js';
 import { useI18n } from '@/i18n/context.js';
 import { productDocsPageMeta } from '@/modules/docs/lib/product-docs-page-meta.js';
-import { getToken } from '@/lib/auth-token.js';
-import { openapiSpecUrl, type OpenApiSpecVariant } from '@/lib/openapi-spec-url.js';
+import { getToken } from '@/lib/auth/auth-token.js';
+import { openapiSpecUrl, type OpenApiSpecVariant } from '@/lib/openapi/spec-url.js';
 
 export function SwaggerPage() {
   const { t, locale } = useI18n();

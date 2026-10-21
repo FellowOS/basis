@@ -1,4 +1,4 @@
-import type { NodeAttributes } from '@/lib/explorer/graphStore';
+import type { NodeAttributes } from '@/lib/workspace/graphStore';
 
 export function normalizeKeywordFilter(query: string): string {
   return query.trim().toLocaleLowerCase();

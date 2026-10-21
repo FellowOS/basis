@@ -1,5 +1,5 @@
 import { Navigate, useLocation, useParams } from 'react-router-dom';
-import { workspacePath } from '@/lib/nav-config.js';
+import { workspacePath } from '@/lib/nav/nav-config.js';
 
 export type OntologyHubTab =
   | 'registry'

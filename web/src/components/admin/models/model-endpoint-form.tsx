@@ -23,8 +23,8 @@ import {
   SelectValue,
 } from '@/components/ui/select.js';
 import { useI18n } from '@/i18n/context.js';
-import { openApiGET, openApiPOST } from '@/lib/openapi-client.js';
-import { useApiErrorMessage } from '@/lib/use-api-error-message.js';
+import { openApiGET, openApiPOST } from '@/lib/openapi/client.js';
+import { useApiErrorMessage } from '@/lib/errors/use-api-error-message.js';
 import { cn } from '@/lib/utils.js';
 import type { ModelKind } from '@/components/admin/models/model-endpoint-panel.js';
 

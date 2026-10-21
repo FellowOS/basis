@@ -21,7 +21,7 @@ import {
   resolveOntologyHubTab,
 } from '@/modules/analyze/lib/hub-tabs.js';
 import { useWorkspaceCapabilities } from '@/lib/workspace/capabilities.js';
-import { workspacePath } from '@/lib/nav-config.js';
+import { workspacePath } from '@/lib/nav/nav-config.js';
 
 const WORKSPACE_CLASS = 'min-h-0 flex-1 rounded-lg border border-border';
 const INTERIOR_WORKSPACE_CLASS = 'h-[calc(100svh-14rem)] min-h-[28rem] flex-1 rounded-lg border border-border';

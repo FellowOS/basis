@@ -1,7 +1,7 @@
 import MonacoEditor from "@monaco-editor/react";
 import type { editor } from "monaco-editor";
 import { useMemo } from "react";
-import { useTheme } from "@/lib/theme.js";
+import { useTheme } from "@/lib/shell/theme.js";
 import { cn } from "@/lib/utils.js";
 
 const EXT_LANGUAGE: Record<string, string> = {

@@ -1,5 +1,5 @@
 import type { WorkspaceAlertStreamItem } from '@/modules/alerts/lib/alerts-stream.js';
-import { workspaceOntologyProposalPath, workspacePath } from '@/lib/nav-config.js';
+import { workspaceOntologyProposalPath, workspacePath } from '@/lib/nav/nav-config.js';
 import { decisionIdFromDetail, reviewDecisionPath, reviewItemPath } from '@/modules/review/lib/reviewUrlState.js';
 import { processingJobPath } from '@/modules/processing/lib/processingUrlState.js';
 

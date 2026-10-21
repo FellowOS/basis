@@ -50,7 +50,7 @@ import {
   suggestAlignments,
 } from '../lib/api.js';
 import { useOntologyWorkspaceId } from "./ontology-workspace-context";
-import { wsApiErrorMessage } from '@/lib/explorer/ws-api-error';
+import { wsApiErrorMessage } from '@/lib/workspace/ws-api-error';
 import type { LocaleMessages } from "@/i18n/en.js";
 import type { AlignmentRelation, AlignmentSuggestion, OntologyAlignment, OntologyEntry } from '../lib/types.js';
 

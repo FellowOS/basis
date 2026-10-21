@@ -20,9 +20,9 @@ import { Spinner } from '@/components/ui/spinner.js';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group.js';
 import { Switch } from '@/components/ui/switch.js';
 import { useI18n } from '@/i18n/context.js';
-import { openApiGET, openApiPUT } from '@/lib/openapi-client.js';
-import { useApiErrorMessage } from '@/lib/use-api-error-message.js';
-import { normalizeSiteUrl, platformAuthCallbacks } from '@/lib/auth-site-url.js';
+import { openApiGET, openApiPUT } from '@/lib/openapi/client.js';
+import { useApiErrorMessage } from '@/lib/errors/use-api-error-message.js';
+import { normalizeSiteUrl, platformAuthCallbacks } from '@/lib/auth/auth-site-url.js';
 import { cn } from '@/lib/utils.js';
 
 type ProviderId = 'password' | 'email' | 'github' | 'google';

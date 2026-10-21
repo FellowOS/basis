@@ -1,4 +1,4 @@
-import { workspacePath } from '@/lib/nav-config.js';
+import { workspacePath } from '@/lib/nav/nav-config.js';
 
 const STATEMENT_PARAM = 'statement';
 

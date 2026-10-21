@@ -9,7 +9,7 @@ import {
 } from "@/i18n/format.js";
 import type { Locale } from "@/i18n/locale.js";
 import { messagesForLocale } from "@/i18n/pick-locale.js";
-import type { GraphZoomTier } from "@/lib/explorer/graphTheme.js";
+import type { GraphZoomTier } from "@/lib/workspace/graphTheme.js";
 
 export type GraphScreenLocale = Locale;
 

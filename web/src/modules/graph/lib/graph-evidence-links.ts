@@ -1,5 +1,5 @@
-import { graph } from '@/lib/explorer/graphStore.js';
-import { workspacePath } from '@/lib/nav-config.js';
+import { graph } from '@/lib/workspace/graphStore.js';
+import { workspacePath } from '@/lib/nav/nav-config.js';
 
 export type GraphEvidenceLink = {
   kind: 'sources-doc' | 'sources-chunk' | 'search';

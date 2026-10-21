@@ -1,7 +1,7 @@
 import type { ForwardRefExoticComponent, ReactNode, RefAttributes } from "react";
 import type Graph from "graphology";
 
-import { graph, type EdgeAttributes, type NodeAttributes } from '@/lib/explorer/graphStore';
+import { graph, type EdgeAttributes, type NodeAttributes } from '@/lib/workspace/graphStore';
 import type {
   GraphAnalyticsSnapshot,
   GraphCameraState,

@@ -4,7 +4,7 @@ import type { ComponentProps } from "react";
 import {
 	appendInlinePreviewQuery,
 	injectInlinePreviewScrollbarStyle,
-} from "@/lib/inline-preview-style.js";
+} from "@/components/app/shared/primitives/lib/inline-preview-style.js";
 import { cn } from "@/lib/utils.js";
 
 type EmbeddedIframeProps = Omit<ComponentProps<"iframe">, "src" | "srcDoc"> & {

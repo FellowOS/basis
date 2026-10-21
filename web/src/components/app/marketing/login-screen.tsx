@@ -18,7 +18,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog.js';
 import { useI18n } from '@/i18n/context.js';
-import { useTheme } from '@/lib/theme.js';
+import { useTheme } from '@/lib/shell/theme.js';
 import { cn } from '@/lib/utils.js';
 
 import {

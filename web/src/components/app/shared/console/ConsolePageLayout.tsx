@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
 import { PageHeader, type Crumb } from '@/components/app/shared/console/PageHeader.js';
 import { SidebarIcon } from '@/components/app/shared/shell/sidebar-icon.js';
-import { menuIconForPath } from '@/lib/nav-config.js';
+import { menuIconForPath } from '@/lib/nav/nav-config.js';
 import { cn } from '@/lib/utils.js';
 
 export type ConsolePageLayoutProps = {

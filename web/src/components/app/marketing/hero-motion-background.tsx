@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 
 import SilkWaves from '@/components/app/shared/effects/silk-waves.js';
-import { useTheme } from '@/lib/theme.js';
+import { useTheme } from '@/lib/shell/theme.js';
 
 import { HeroBackground } from './hero-background.js';
 

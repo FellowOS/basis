@@ -2,7 +2,7 @@ import { PublicIcon } from '@/components/app/shared/primitives/public-icon.js';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button.js';
 import { useI18n } from '@/i18n/context.js';
-import { workspacePath } from '@/lib/nav-config.js';
+import { workspacePath } from '@/lib/nav/nav-config.js';
 import { useWorkspaceCapabilities } from '@/lib/workspace/capabilities.js';
 
 export function WorkspaceUnavailable({

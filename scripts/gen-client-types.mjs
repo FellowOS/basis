@@ -21,4 +21,4 @@ if (result.status !== 0) {
   process.exit(result.status ?? 1);
 }
 
-console.log('Wrote web/src/lib/basis-openapi/schema.d.ts (+ schema-kb.d.ts)');
+console.log('Wrote web/src/lib/openapi/schema.d.ts (+ schema-kb.d.ts)');

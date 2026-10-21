@@ -1,6 +1,6 @@
 import type Graph from "graphology";
 
-import type { NodeAttributes } from '@/lib/explorer/graphStore';
+import type { NodeAttributes } from '@/lib/workspace/graphStore';
 
 export type GraphNodeTypeCount = {
   type: string;

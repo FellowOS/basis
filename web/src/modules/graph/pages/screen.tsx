@@ -7,18 +7,18 @@ import {
   buildWorkspaceApiPath,
   workspaceFetch,
   openGraphUpdatesWebSocket,
-} from '@/lib/explorer/ws-http';
-import { errorFromApiResponse } from "@/lib/api-error.js";
+} from '@/lib/workspace/ws-http';
+import { errorFromApiResponse } from "@/lib/errors/api-error.js";
 import { cn } from "@/lib/utils.js";
 import {
   wsApiErrorMessage,
   parseWsJson,
   throwIfWsNotOk,
-} from '@/lib/explorer/ws-api-error';
-import { batchMergeEdges, batchMergeNodes, graph } from '@/lib/explorer/graphStore';
-import { logEvent } from '@/lib/explorer/registryStore';
-import type { EdgeAttributes, NodeAttributes } from '@/lib/explorer/graphStore';
-import { InspectorPanel, SurfaceCard } from '@/lib/explorer/primitives';
+} from '@/lib/workspace/ws-api-error';
+import { batchMergeEdges, batchMergeNodes, graph } from '@/lib/workspace/graphStore';
+import { logEvent } from '@/modules/graph/lib/registry-store.js';
+import type { EdgeAttributes, NodeAttributes } from '@/lib/workspace/graphStore';
+import { InspectorPanel, SurfaceCard } from '@/modules/graph/lib/graph-surface-primitives.js';
 import { lazy, Suspense } from "react";
 import { SigmaSceneAdapter } from '../components/sigma-scene-adapter.js';
 import { useLoadGraph, useReloadGraph } from '../hooks/use-load-graph.js';
@@ -50,7 +50,7 @@ import { Badge } from "@/components/ui/badge.js";
 import { Button } from "@/components/ui/button.js";
 import { SIDEBAR_ICON_BUTTON_CLASS, SidebarIcon } from "@/components/app/shared/shell/sidebar-icon.js";
 import { useI18n } from "@/i18n/context.js";
-import { useTheme } from "@/lib/theme.js";
+import { useTheme } from "@/lib/shell/theme.js";
 import {
   alignLoadBudgetWithLoaded,
   clampLoadBudget,
@@ -62,7 +62,7 @@ import {
 } from '../lib/graph-load-budget.js';
 import { useGraphCatalogStats } from '../hooks/use-graph-catalog-stats.js';
 import { loadGraphEffectsState, saveGraphEffectsState } from '../lib/graph-effects-persistence.js';
-import { GRAPH_THEME, withAlpha } from "@/lib/explorer/graphTheme.js";
+import { GRAPH_THEME, withAlpha } from "@/lib/workspace/graphTheme.js";
 import { syncBasisGraphTheme } from "@/modules/graph/lib/graph/basis-graph-theme-sync";
 import {
   graphPluginLoading,

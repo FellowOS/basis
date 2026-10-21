@@ -1,6 +1,6 @@
 import type { IconType } from 'react-icons';
 import type { ReactNode } from 'react';
-import { getPublicIconComponent } from '@/lib/public-icon-map.js';
+import { getPublicIconComponent } from '@/lib/marketing/public-icon-map.js';
 import { cn } from '@/lib/utils.js';
 
 /** Sidebar menu icon slot — fixed 16×16 layout box, 16px glyph. */

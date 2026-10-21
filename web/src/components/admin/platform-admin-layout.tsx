@@ -1,10 +1,10 @@
 import { Navigate, Outlet } from 'react-router-dom';
 import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
-import { useBasisSession } from '@/lib/basis-session.js';
-import { basisIsDesktopProduct } from '@/lib/basis-runtime.js';
-import { visiblePlatformNavItems } from '@/lib/nav-config.js';
-import { useSettingsAccess } from '@/lib/use-settings-access.js';
+import { useBasisSession } from '@/lib/session/basis-session.js';
+import { basisIsDesktopProduct } from '@/lib/runtime/basis-runtime.js';
+import { visiblePlatformNavItems } from '@/lib/nav/nav-config.js';
+import { useSettingsAccess } from '@/lib/shell/use-settings-access.js';
 
 export function PlatformAdminLayout() {
   const { t } = useI18n();

@@ -1,6 +1,6 @@
 import Graph from "graphology";
 
-import { graph, type EdgeAttributes, type NodeAttributes } from '@/lib/explorer/graphStore';
+import { graph, type EdgeAttributes, type NodeAttributes } from '@/lib/workspace/graphStore';
 import {
   clamp,
   blendHex,
@@ -18,7 +18,7 @@ import {
   hashString,
   withAlpha,
   zoomTierAtLeast,
-} from "@/lib/explorer/graphTheme.js";
+} from "@/lib/workspace/graphTheme.js";
 import { getSemanticNodeColor } from "./graph-color-legend";
 import { classifyEntityShape } from "./graph-entity-shape";
 import { computeGraphAnalyticsBase } from "./graph-analytics";

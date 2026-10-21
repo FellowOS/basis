@@ -11,7 +11,7 @@ import { useWorkspaceCatalog } from '@/lib/workspace/context.js';
 import type { AnalyzeHubTab } from '@/modules/analyze/lib/hub-route.js';
 import { analyzeHubTabEnabled, resolveAnalyzeHubTab } from '@/modules/analyze/lib/hub-tabs.js';
 import { useWorkspaceCapabilities } from '@/lib/workspace/capabilities.js';
-import { workspacePath } from '@/lib/nav-config.js';
+import { workspacePath } from '@/lib/nav/nav-config.js';
 
 const WORKSPACE_CLASS = 'min-h-0 flex-1 rounded-lg border border-border';
 

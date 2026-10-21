@@ -13,10 +13,10 @@ import {
 import { PublicIcon } from '@/components/app/shared/primitives/public-icon.js';
 import { useI18n } from '@/i18n/context.js';
 import { LocaleMenuItems } from '@/i18n/locale-menu.js';
-import { useBasisSession } from '@/lib/basis-session.js';
-import type { ProductNavKey } from '@/lib/product-nav.js';
+import { useBasisSession } from '@/lib/session/basis-session.js';
+import type { ProductNavKey } from '@/lib/marketing/product-nav.js';
 import { cn } from '@/lib/utils.js';
-import { useTheme } from '@/lib/theme.js';
+import { useTheme } from '@/lib/shell/theme.js';
 
 type ProductSiteHeaderProps = {
   activeKey?: ProductNavKey;

@@ -24,7 +24,7 @@ import { Input } from "@/components/ui/input.js";
 import { Label } from "@/components/ui/label.js";
 import { Textarea } from "@/components/ui/textarea.js";
 import { useI18n } from "@/i18n/context.js";
-import { useApiErrorMessage } from "@/lib/use-api-error-message.js";
+import { useApiErrorMessage } from "@/lib/errors/use-api-error-message.js";
 import { cn } from "@/lib/utils.js";
 import { exWsHint, exWsMonoMuted, exWsRuleRow } from "@/lib/ui-classes/ws-ui.js";
 import { wsEmpty, wsEmptyBody, wsEmptyTitle, wsTextarea } from "@/lib/ui-classes/console-ws.js";
@@ -32,7 +32,7 @@ import {
   workspaceOpenApiDELETE,
   workspaceOpenApiPATCH,
   workspaceOpenApiPOST,
-} from "@/lib/openapi-client.js";
+} from "@/lib/openapi/client.js";
 
 export type ReasoningRule = {
   id: string;

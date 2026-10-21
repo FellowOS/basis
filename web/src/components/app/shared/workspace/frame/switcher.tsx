@@ -13,7 +13,7 @@ import { SidebarMenuButton, useSidebar } from '@/components/ui/sidebar.js';
 import { useI18n } from '@/i18n/context.js';
 import { writeActiveWorkspaceId } from '@/lib/workspace/active-id.js';
 import { useWorkspaceCatalog } from '@/lib/workspace/context.js';
-import { workspacePath, parseWorkspaceIdFromPath } from '@/lib/nav-config.js';
+import { workspacePath, parseWorkspaceIdFromPath } from '@/lib/nav/nav-config.js';
 
 export function WorkspaceSwitcher() {
   const { t } = useI18n();

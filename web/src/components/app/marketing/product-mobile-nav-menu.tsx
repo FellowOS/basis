@@ -13,15 +13,15 @@ import {
 } from '@/components/ui/dropdown-menu.js';
 import { LocaleMenuItems } from '@/i18n/locale-menu.js';
 import { useI18n } from '@/i18n/context.js';
-import { useBasisSession } from '@/lib/basis-session.js';
+import { useBasisSession } from '@/lib/session/basis-session.js';
 import {
   PRODUCT_DEVELOPER_LINKS,
   PRODUCT_NAV,
   productNavHref,
-} from '@/lib/product-nav.js';
-import { productDeveloperLinkLabels, productNavLabel } from '@/lib/product-nav-i18n.js';
+} from '@/lib/marketing/product-nav.js';
+import { productDeveloperLinkLabels, productNavLabel } from '@/lib/marketing/product-nav-i18n.js';
 import { cn } from '@/lib/utils.js';
-import { useTheme } from '@/lib/theme.js';
+import { useTheme } from '@/lib/shell/theme.js';
 
 const EASE_OUT: [number, number, number, number] = [0.23, 1, 0.32, 1];
 

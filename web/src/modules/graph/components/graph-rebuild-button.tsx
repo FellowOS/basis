@@ -8,8 +8,8 @@ import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
 import { fmt, formatLocaleNumber } from '@/i18n/format.js';
 import type { Locale } from '@/i18n/locale.js';
-import { formatUserFacingApiError } from '@/lib/api-error-message.js';
-import { workspaceOpenApiPOST } from '@/lib/openapi-client.js';
+import { formatUserFacingApiError } from '@/lib/errors/api-error-message.js';
+import { workspaceOpenApiPOST } from '@/lib/openapi/client.js';
 
 type GraphRebuildMeta = {
   projection_revision?: number;

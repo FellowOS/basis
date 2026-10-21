@@ -4,8 +4,8 @@ import { useI18n } from '@/i18n/context.js';
 import type { ApiTokenRow } from '@/modules/integration/components/api-tokens-panel.js';
 import type { McpIntegrationInfo } from '@/modules/integration/components/mcp-integration-panel.js';
 import { workspaceApiClient } from '@/modules/search/lib/api-client.js';
-import { workspaceOpenApiDELETE, workspaceOpenApiGET, workspaceOpenApiPOST } from '@/lib/openapi-client.js';
-import { useApiErrorMessage } from '@/lib/use-api-error-message.js';
+import { workspaceOpenApiDELETE, workspaceOpenApiGET, workspaceOpenApiPOST } from '@/lib/openapi/client.js';
+import { useApiErrorMessage } from '@/lib/errors/use-api-error-message.js';
 
 export function useWorkspaceMcpIntegration(workspaceId: string | undefined, canManageTokens: boolean) {
   const { t } = useI18n();

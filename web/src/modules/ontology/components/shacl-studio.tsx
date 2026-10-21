@@ -10,7 +10,7 @@ import {
 import { useI18n } from "@/i18n/context.js";
 import { fmt, formatLocaleNumber, pickCountForm } from "@/i18n/format.js";
 import type { Locale } from "@/i18n/locale.js";
-import { useTheme } from "@/lib/theme.js";
+import { useTheme } from "@/lib/shell/theme.js";
 import { exWsHint, exWsScrollFill, exWsSplitMain, exWsSplitSidebar } from "@/lib/ui-classes/ws-ui.js";
 import {
   generateShacl,
@@ -19,7 +19,7 @@ import {
   validateShacl,
 } from '../lib/api.js';
 import { useOntologyWorkspaceId } from "./ontology-workspace-context";
-import { wsApiErrorMessage } from '@/lib/explorer/ws-api-error';
+import { wsApiErrorMessage } from '@/lib/workspace/ws-api-error';
 import type { OntologyEntry, ShaclShapeSummary, ShaclValidationResponse } from '../lib/types.js';
 
 function localName(value: string): string {

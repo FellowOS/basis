@@ -6,10 +6,10 @@ import {
   formatGraphAuditDetail,
   type GraphAuditEvent,
 } from '@/modules/graph/lib/graph-audit.js';
-import { formatUserFacingApiError } from '@/lib/api-error-message.js';
-import { workspaceOpenApiGET } from '@/lib/openapi-client.js';
-import { workspacePath } from '@/lib/nav-config.js';
-import { useBasisSession } from '@/lib/basis-session.js';
+import { formatUserFacingApiError } from '@/lib/errors/api-error-message.js';
+import { workspaceOpenApiGET } from '@/lib/openapi/client.js';
+import { workspacePath } from '@/lib/nav/nav-config.js';
+import { useBasisSession } from '@/lib/session/basis-session.js';
 import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
 import { formatLocaleDateTime } from '@/i18n/format.js';

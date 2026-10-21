@@ -9,10 +9,10 @@ import {
 } from 'react';
 import { useLocation } from 'react-router-dom';
 import { devMessage } from '@/i18n/dev-messages.js';
-import type { WorkspaceNavKey } from '@/lib/nav-config.js';
+import type { WorkspaceNavKey } from '@/lib/nav/nav-config.js';
 import { isSetupWorkspaceId } from '@/lib/workspace/active-id.js';
-import { parseWorkspaceIdFromPath } from '@/lib/nav-config.js';
-import { workspaceOpenApiGET } from '@/lib/openapi-client.js';
+import { parseWorkspaceIdFromPath } from '@/lib/nav/nav-config.js';
+import { workspaceOpenApiGET } from '@/lib/openapi/client.js';
 
 export type WorkspaceCapabilities = {
   workspace_id: string;

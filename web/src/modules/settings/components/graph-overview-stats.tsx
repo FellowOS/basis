@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { formatUserFacingApiError } from '@/lib/api-error-message.js';
-import { workspacePath } from '@/lib/nav-config.js';
-import { workspaceOpenApiGET } from '@/lib/openapi-client.js';
+import { formatUserFacingApiError } from '@/lib/errors/api-error-message.js';
+import { workspacePath } from '@/lib/nav/nav-config.js';
+import { workspaceOpenApiGET } from '@/lib/openapi/client.js';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card.js';
 import { Spinner } from '@/components/ui/spinner.js';
 import { graphProgressWidthStyle } from '@/lib/ui-classes/graph-ui.js';

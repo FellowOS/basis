@@ -33,7 +33,7 @@ function walk(dir, files = []) {
   for (const ent of fs.readdirSync(dir, { withFileTypes: true })) {
     const p = path.join(dir, ent.name);
     if (ent.isDirectory()) {
-      if (ent.name === 'node_modules' || ent.name === 'dist' || ent.name === 'basis-openapi') continue;
+      if (ent.name === 'node_modules' || ent.name === 'dist' || ent.name === 'openapi') continue;
       walk(p, files);
     } else if (/\.(tsx?|mjs|spec\.ts)$/.test(ent.name)) {
       files.push(p);

@@ -2,10 +2,10 @@ import type { ReactNode } from 'react';
 import { Navigate, useLocation, useParams } from 'react-router-dom';
 import { Spinner } from '@/components/ui/spinner.js';
 import { isSetupWorkspaceId, WORKSPACE_SETUP_ID } from '@/lib/workspace/active-id.js';
-import { workspacePath } from '@/lib/nav-config.js';
-import { useBasisSession } from '@/lib/basis-session.js';
+import { workspacePath } from '@/lib/nav/nav-config.js';
+import { useBasisSession } from '@/lib/session/basis-session.js';
 import { useI18n } from '@/i18n/context.js';
-import { useSettingsAccess } from '@/lib/use-settings-access.js';
+import { useSettingsAccess } from '@/lib/shell/use-settings-access.js';
 
 export function AdminOnly({ children }: { children: ReactNode }) {
   const { t } = useI18n();

@@ -1,7 +1,7 @@
 import { fmt } from "@/i18n/format.js";
-import { errorFromApiResponse } from "@/lib/api-error.js";
+import { errorFromApiResponse } from "@/lib/errors/api-error.js";
 
-import { buildWorkspaceGraphApiPath, workspaceFetch } from '@/lib/explorer/ws-http';
+import { buildWorkspaceGraphApiPath, workspaceFetch } from '@/lib/workspace/ws-http';
 import { graphCopy, type GraphScreenLocale } from '../i18n/screen-copy.js';
 
 export interface NodeMarkdownAttributeUpdate {

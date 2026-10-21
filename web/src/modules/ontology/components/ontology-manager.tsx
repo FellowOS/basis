@@ -6,8 +6,8 @@ import {
   wsMutationResult,
   parseWsJson,
   throwIfWsNotOk,
-} from '@/lib/explorer/ws-api-error';
-import { workspaceFetch } from '@/lib/explorer/ws-http';
+} from '@/lib/workspace/ws-api-error';
+import { workspaceFetch } from '@/lib/workspace/ws-http';
 import { ontologyPath, useOntologyWorkspaceId } from "./ontology-workspace-context";
 import { OntologyLoader } from "./ontology-loader";
 import { OntologySearch } from "./ontology-search";

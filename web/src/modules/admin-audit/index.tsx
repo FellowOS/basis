@@ -23,8 +23,8 @@ import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
 import { fmt, formatLocaleDateTime, formatLocaleNumber, pickCountForm } from '@/i18n/format.js';
 import type { LocaleMessages } from '@/i18n/en.js';
-import { openApiGET } from '@/lib/openapi-client.js';
-import { formatUserFacingApiError } from '@/lib/api-error-message.js';
+import { openApiGET } from '@/lib/openapi/client.js';
+import { formatUserFacingApiError } from '@/lib/errors/api-error-message.js';
 import type { Locale } from '@/i18n/locale.js';
 import {
   formatBasisAuditMemberRole,
@@ -37,7 +37,7 @@ import {
   type GraphAuditEvent,
 } from '@/modules/graph/lib/graph-audit.js';
 import { decisionIdFromDetail } from '@/modules/review/lib/reviewUrlState.js';
-import { usePlatformAdminCrumbs } from '@/lib/use-platform-admin-crumbs.js';
+import { usePlatformAdminCrumbs } from '@/lib/admin/use-platform-admin-crumbs.js';
 
 type AuditDetail = Record<string, unknown>;
 

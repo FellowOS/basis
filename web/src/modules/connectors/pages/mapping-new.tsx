@@ -8,7 +8,7 @@ import { ConsolePageLayout } from '@/components/app/shared/console/index.js';
 import { Button } from '@/components/ui/button.js';
 import { useI18n } from '@/i18n/context.js';
 import type { Locale } from '@/i18n/locale.js';
-import { formatUserFacingApiError } from '@/lib/api-error-message.js';
+import { formatUserFacingApiError } from '@/lib/errors/api-error-message.js';
 import {
   defaultConnectorStreamName,
   workspaceConnectionOptionKey,
@@ -24,8 +24,8 @@ import {
   type ConnectorTableMappingFormValues,
 } from '@/modules/connectors/lib/connector-mapping-form.js';
 import { useWorkspaceCatalog } from '@/lib/workspace/context.js';
-import { workspaceConnectorPanelPath, workspacePath } from '@/lib/nav-config.js';
-import { workspaceOpenApiGET, workspaceOpenApiPOST } from '@/lib/openapi-client.js';
+import { workspaceConnectorPanelPath, workspacePath } from '@/lib/nav/nav-config.js';
+import { workspaceOpenApiGET, workspaceOpenApiPOST } from '@/lib/openapi/client.js';
 
 export function ConnectorMappingNewPage() {
   const { id: workspaceId } = useParams();

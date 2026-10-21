@@ -3,13 +3,13 @@ import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { ReactFlow, Background, Controls } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { errorFromApiResponse } from '@/lib/api-error.js';
-import { useApiErrorMessage } from '@/lib/use-api-error-message.js';
+import { errorFromApiResponse } from '@/lib/errors/api-error.js';
+import { useApiErrorMessage } from '@/lib/errors/use-api-error-message.js';
 import {
   buildWorkspaceApiPath,
   workspaceFetch,
   workspaceFetchJson,
-} from '@/lib/explorer/ws-http.js';
+} from '@/lib/workspace/ws-http.js';
 import { Button } from '@/components/ui/button.js';
 import { Input } from '@/components/ui/input.js';
 import { useI18n } from '@/i18n/context.js';

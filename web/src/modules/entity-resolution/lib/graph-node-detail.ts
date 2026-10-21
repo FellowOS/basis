@@ -1,4 +1,4 @@
-import { workspaceOpenApiGET } from '@/lib/openapi-client.js';
+import { workspaceOpenApiGET } from '@/lib/openapi/client.js';
 
 export type GraphNodeRecord = {
   id: string;

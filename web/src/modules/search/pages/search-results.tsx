@@ -8,8 +8,8 @@ import {
 import { fmt, formatLocaleFixedDecimals } from '@/i18n/format.js';
 import type { Locale } from '@/i18n/locale.js';
 import type { LocaleMessages } from '@/i18n/en.js';
-import { formatNodeRefDetail } from '@/lib/format-node-ref.js';
-import { workspacePath } from '@/lib/nav-config.js';
+import { formatNodeRefDetail } from '@/lib/workspace/format-node-ref.js';
+import { workspacePath } from '@/lib/nav/nav-config.js';
 import { graphPath } from '@/modules/graph/lib/graphUrlState.js';
 import { graphNodeTypeLabel } from '@/modules/graph/i18n/screen-copy.js';
 

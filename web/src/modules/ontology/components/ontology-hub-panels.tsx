@@ -4,7 +4,7 @@ import { WorkspaceConsoleShell } from '@/components/app/shared/workspace/frame/w
 import { OntologyWorkspaceCatalogProvider } from '@/modules/ontology/components/ontology-workspace-context.js';
 import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
-import { workspacePath } from '@/lib/nav-config.js';
+import { workspacePath } from '@/lib/nav/nav-config.js';
 import { cn } from '@/lib/utils.js';
 import { wsPage } from '@/lib/ui-classes/console-ws.js';
 import type { OntologyInteriorPanel } from '@/modules/ontology/pages/ontology-screen.js';

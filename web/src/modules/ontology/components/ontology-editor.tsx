@@ -1,6 +1,6 @@
 import { PublicIcon } from "@/components/app/shared/primitives/public-icon.js";
 import { useCallback, useEffect, useState } from "react";
-import { workspaceFetch } from '@/lib/explorer/ws-http';
+import { workspaceFetch } from '@/lib/workspace/ws-http';
 import {
   ReactFlow,
   Background,
@@ -18,7 +18,7 @@ import "@xyflow/react/dist/style.css";
 import {
   wsApiErrorMessage,
   parseWsJson,
-} from '@/lib/explorer/ws-api-error';
+} from '@/lib/workspace/ws-api-error';
 import { loadOntologyEntityOwner, loadOntologyGraph, loadOntologyRegistry } from '../lib/api.js';
 import { ontologyPath, useOntologyWorkspaceId } from "./ontology-workspace-context";
 import type { OntologyGraphEdge, OntologyGraphNode } from '../lib/api.js';

@@ -9,7 +9,7 @@ import {
   buildWorkspaceApiPath,
   workspaceFetch,
   resolveWorkspaceApiUrl,
-} from '@/lib/explorer/ws-http';
+} from '@/lib/workspace/ws-http';
 
 export type MarkdownClientOptions = {
   locale?: Locale;

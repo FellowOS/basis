@@ -6,7 +6,7 @@ import {
   decisionChainStepTypeLabel,
 } from '@/modules/decisions/i18n/screen-copy.js';
 import { useI18n } from '@/i18n/context.js';
-import { workspaceOpenApiGET } from '@/lib/openapi-client.js';
+import { workspaceOpenApiGET } from '@/lib/openapi/client.js';
 import { reviewDecisionPath } from '@/modules/review/lib/reviewUrlState.js';
 
 type ChainStep = {

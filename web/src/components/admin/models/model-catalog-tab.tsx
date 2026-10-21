@@ -16,8 +16,8 @@ import {
 } from '@/components/ui/dialog.js';
 import { Switch } from '@/components/ui/switch.js';
 import { useI18n } from '@/i18n/context.js';
-import { openApiDELETE, openApiGET, openApiPATCH } from '@/lib/openapi-client.js';
-import { useApiErrorMessage } from '@/lib/use-api-error-message.js';
+import { openApiDELETE, openApiGET, openApiPATCH } from '@/lib/openapi/client.js';
+import { useApiErrorMessage } from '@/lib/errors/use-api-error-message.js';
 import { cn } from '@/lib/utils.js';
 
 export type ConfiguredModel = {

@@ -10,9 +10,9 @@ import {
 
 import { fmt } from "@/i18n/format.js";
 
-import { graph, type EdgeAttributes, type NodeAttributes } from '@/lib/explorer/graphStore';
+import { graph, type EdgeAttributes, type NodeAttributes } from '@/lib/workspace/graphStore';
 import { graphEffectReasonsCopy, type GraphScreenLocale } from '../i18n/screen-copy.js';
-import { GRAPH_THEME, hashString } from "@/lib/explorer/graphTheme.js";
+import { GRAPH_THEME, hashString } from "@/lib/workspace/graphTheme.js";
 import type {
   GraphAnalyticsSnapshot,
   GraphDataSnapshot,

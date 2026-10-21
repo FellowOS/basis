@@ -10,7 +10,7 @@ Vite + React front end for the Basis platform and per-workspace Explorer screens
 | `src/modules/` | Feature modules (menu/URL) — [modules/README.md](src/modules/README.md) |
 | `src/components/app/shared/` | Layout, page patterns, workspace frame — [README](src/components/app/shared/README.md) |
 | `src/components/` | React UI — three roots: **`ui`**, **`admin`**, **`app`** (see below). |
-| `src/lib/` | OpenAPI client, session fetch, **`workspace/`**, **`explorer/`**; see [lib/workspace/README.md](src/lib/workspace/README.md), [lib/explorer/README.md](src/lib/explorer/README.md). |
+| `src/lib/` | Subdirs: `openapi/`, `session/`, `workspace/`, `nav/`, … + root `utils.ts`; see [lib/README.md](src/lib/README.md). |
 | `content/docs/` | **Product docs** (`/docs/*`) — Fumadocs MDX (`en/`, `zh/`). IA: `{locale}/meta.json`; page chrome: frontmatter `title`, `description`, optional `sidebarTitle`; prev/next from sidebar order. Long-form pages (`bocp.md`, `connectors-basis.md`, …) are edited here directly. |
 | `source.config.ts` | Fumadocs MDX config; `postinstall` runs `fumadocs-mdx` → `.source/` (gitignored). |
 | `server/` | **Hono web layer** — production static + `/api` reverse proxy (`server/prod.ts`); dev entry `server/dev.ts` (Hono + Vite middleware). Playground LLM config is browser-local. |
@@ -46,7 +46,7 @@ Tailwind class bundles: [`src/lib/ui-classes/`](src/lib/ui-classes/README.md).
 1. **`routes/index.tsx`** — `AppRoutes` (platform, workspaces, docs, auth); lazy chunks in `routes/lazy-pages.ts`.
 2. **`modules/<segment>/`** — `index.tsx` (route entry), `pages/` (`screen.tsx`, glue); Sigma graph in `modules/graph/`.
 3. **`app/shared/workspace/`** — workspace frame; entity browser under `modules/entities/`.
-4. **`lib/explorer/`** — scoped HTTP, graph store, Sigma theme.
+4. **`lib/workspace/`** — scoped HTTP, graph store, Sigma theme.
 
 Auth: `modules/login`, `home`; admin/workspace/docs/swagger routes are in the same `routes/index.tsx` table.
 

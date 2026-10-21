@@ -3,7 +3,7 @@ import { createContext, useContext, type ReactNode } from "react";
 import { localeFromBrowser } from "@/i18n/locale.js";
 import { messagesForLocale } from "@/i18n/pick-locale.js";
 
-import { buildWorkspaceApiPath } from '@/lib/explorer/ws-http';
+import { buildWorkspaceApiPath } from '@/lib/workspace/ws-http';
 
 const OntologyWorkspaceCatalogContext = createContext<string | null>(null);
 

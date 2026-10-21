@@ -5,7 +5,7 @@ import { LedgerEntityBrowser } from '@/modules/entities/components/ledger-entity
 import { useI18n } from '@/i18n/context.js';
 import { useWorkspaceCatalog } from '@/lib/workspace/context.js';
 import { parseEntitiesUrlState } from '@/modules/entities/lib/entitiesUrlState.js';
-import { workspacePath } from '@/lib/nav-config.js';
+import { workspacePath } from '@/lib/nav/nav-config.js';
 
 export function EntitiesPage() {
   const { id } = useParams();

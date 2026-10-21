@@ -10,9 +10,9 @@ import {
   SelectValue,
 } from '@/components/ui/select.js';
 import { useI18n } from '@/i18n/context.js';
-import { openApiGET } from '@/lib/openapi-client.js';
-import { useBasisSession } from '@/lib/basis-session.js';
-import { useApiErrorMessage } from '@/lib/use-api-error-message.js';
+import { openApiGET } from '@/lib/openapi/client.js';
+import { useBasisSession } from '@/lib/session/basis-session.js';
+import { useApiErrorMessage } from '@/lib/errors/use-api-error-message.js';
 
 type OrgRow = {
   id: string;

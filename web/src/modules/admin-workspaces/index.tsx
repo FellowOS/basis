@@ -14,10 +14,10 @@ import { useI18n } from '@/i18n/context.js';
 import { fmt, formatLocaleNumber, pickCountForm } from '@/i18n/format.js';
 import { writeActiveWorkspaceId } from '@/lib/workspace/active-id.js';
 import { useWorkspaceCatalog } from '@/lib/workspace/context.js';
-import { workspacePath } from '@/lib/nav-config.js';
-import { usePlatformAdminCrumbs } from '@/lib/use-platform-admin-crumbs.js';
+import { workspacePath } from '@/lib/nav/nav-config.js';
+import { usePlatformAdminCrumbs } from '@/lib/admin/use-platform-admin-crumbs.js';
 import { workspaceMemberRoleLabel, workspaceVisibilityLabel } from '@/modules/settings/lib/settings-labels.js';
-import { useApiErrorMessage } from '@/lib/use-api-error-message.js';
+import { useApiErrorMessage } from '@/lib/errors/use-api-error-message.js';
 
 type Kb = {
   id: string;

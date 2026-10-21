@@ -62,8 +62,8 @@ import {
   workspaceOpenApiPOST,
   workspaceOpenApiPUT,
   openApiGET,
-} from '@/lib/openapi-client.js';
-import { useApiErrorMessage } from '@/lib/use-api-error-message.js';
+} from '@/lib/openapi/client.js';
+import { useApiErrorMessage } from '@/lib/errors/use-api-error-message.js';
 
 type Member = {
   user_id: string;

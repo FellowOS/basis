@@ -16,10 +16,10 @@ import {
   ledgerChunkOriginLabel,
   ledgerStatementStatusLabel,
 } from '@/modules/library/lib/ledger-labels.js';
-import { useWorkspaceNodeLabels } from '@/lib/explorer/node-labels.js';
-import { workspacePath } from '@/lib/nav-config.js';
-import { workspaceOpenApiGET } from '@/lib/openapi-client.js';
-import { useApiErrorMessage } from '@/lib/use-api-error-message.js';
+import { useWorkspaceNodeLabels } from '@/lib/workspace/node-labels.js';
+import { workspacePath } from '@/lib/nav/nav-config.js';
+import { workspaceOpenApiGET } from '@/lib/openapi/client.js';
+import { useApiErrorMessage } from '@/lib/errors/use-api-error-message.js';
 
 type ChunkFields = {
   heading?: string | null;

@@ -1,8 +1,8 @@
 import type Graph from "graphology";
 import Sigma from "sigma";
 
-import { graph, type EdgeAttributes, type NodeAttributes } from '@/lib/explorer/graphStore';
-import { blendHex, GRAPH_THEME, withAlpha, zoomTierAtLeast } from "@/lib/explorer/graphTheme.js";
+import { graph, type EdgeAttributes, type NodeAttributes } from '@/lib/workspace/graphStore';
+import { blendHex, GRAPH_THEME, withAlpha, zoomTierAtLeast } from "@/lib/workspace/graphTheme.js";
 import type {
   GraphAnalyticsSnapshot,
   GraphEffectsState,

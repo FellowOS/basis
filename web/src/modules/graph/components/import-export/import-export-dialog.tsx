@@ -1,8 +1,8 @@
 import { lazy, Suspense, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { WorkspaceHostProvider } from '@/lib/explorer/ws-http.js';
-import { buildWorkspaceHttpConfig } from '@/lib/explorer/ws-host.js';
+import { WorkspaceHostProvider } from '@/lib/workspace/ws-http.js';
+import { buildWorkspaceHttpConfig } from '@/lib/workspace/ws-host.js';
 import {
   Dialog,
   DialogContent,
@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/dialog.js';
 import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
-import { workspacePath } from '@/lib/nav-config.js';
+import { workspacePath } from '@/lib/nav/nav-config.js';
 const ImportExportScreen = lazy(() =>
   import('./import-export-screen.js').then((module) => ({
     default: module.ImportExportScreen,

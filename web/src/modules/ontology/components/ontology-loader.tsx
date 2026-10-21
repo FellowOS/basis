@@ -1,7 +1,7 @@
 import { PublicIcon } from "@/components/app/shared/primitives/public-icon.js";
 import { useRef, useState } from "react";
-import { wsApiErrorMessage, parseWsJson } from '@/lib/explorer/ws-api-error';
-import { workspaceFetch } from '@/lib/explorer/ws-http';
+import { wsApiErrorMessage, parseWsJson } from '@/lib/workspace/ws-api-error';
+import { workspaceFetch } from '@/lib/workspace/ws-http';
 import { ontologyPath, useOntologyWorkspaceId } from "./ontology-workspace-context";
 import {
   Dialog,

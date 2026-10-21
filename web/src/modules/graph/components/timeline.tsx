@@ -20,7 +20,7 @@ import { fmt, formatLocaleNumber, formatLocaleYearMonth } from "@/i18n/format.js
 import type { Locale } from "@/i18n/locale.js";
 import { Pause, Play } from "lucide-react";
 import { cn } from "@/lib/utils.js";
-import { GRAPH_THEME } from "@/lib/explorer/graphTheme.js";
+import { GRAPH_THEME } from "@/lib/workspace/graphTheme.js";
 import { DEFAULT_MIN_DATE, resolvePlayStepMs, resolveScrubberBounds } from '../lib/temporal-scrubber-bounds.js';
 import { buildTimelineAxisFormat } from "../lib/timeline-axis-format.js";
 

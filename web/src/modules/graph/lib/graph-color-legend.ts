@@ -1,7 +1,7 @@
 import type Graph from "graphology";
 
-import type { NodeAttributes } from '@/lib/explorer/graphStore';
-import { GRAPH_THEME, type GraphTheme } from "@/lib/explorer/graphTheme.js";
+import type { NodeAttributes } from '@/lib/workspace/graphStore';
+import { GRAPH_THEME, type GraphTheme } from "@/lib/workspace/graphTheme.js";
 
 export type GraphColorLegendItem = {
   id: string;

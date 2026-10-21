@@ -1,14 +1,14 @@
 import { useMemo } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { ConsolePageLayout } from '@/components/app/shared/console/index.js';
-import { WorkspaceHostProvider } from '@/lib/explorer/ws-http.js';
-import { buildWorkspaceHttpConfig } from '@/lib/explorer/ws-host.js';
+import { WorkspaceHostProvider } from '@/lib/workspace/ws-http.js';
+import { buildWorkspaceHttpConfig } from '@/lib/workspace/ws-host.js';
 import { useWorkspaceCapabilities } from '@/lib/workspace/capabilities.js';
 import { WorkspaceUnavailable } from '@/components/app/shared/workspace/frame/ws-unavailable.js';
 import { LineagePanel } from './components/lineage-panel.js';
 import { useI18n } from '@/i18n/context.js';
 import { useWorkspaceCatalog } from '@/lib/workspace/context.js';
-import { workspacePath } from '@/lib/nav-config.js';
+import { workspacePath } from '@/lib/nav/nav-config.js';
 import { cn } from '@/lib/utils.js';
 
 export function LineagePage() {

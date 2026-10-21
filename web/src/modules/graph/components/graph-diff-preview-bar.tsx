@@ -17,7 +17,7 @@ import {
   parseGraphUrlState,
 } from '@/modules/graph/lib/graphUrlState.js';
 import type { GraphDiffPayload } from '@/modules/graph/lib/use-graph-diff.js';
-import { workspaceGraphDiffPath } from '@/lib/nav-config.js';
+import { workspaceGraphDiffPath } from '@/lib/nav/nav-config.js';
 import {
   graphDiffMergePickReady,
   type GraphDiffMergePick,

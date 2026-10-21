@@ -1,4 +1,4 @@
-import type { GraphEntityShapeVariant } from "@/lib/explorer/graphTheme.js";
+import type { GraphEntityShapeVariant } from "@/lib/workspace/graphTheme.js";
 
 export const ENTITY_SHAPE_ALIASES: Array<[GraphEntityShapeVariant, RegExp]> = [
   ["biomolecule", /\b(gene|protein|enzyme|receptor|target|transcript|rna|dna|mirna|biomolecule|peptide)\b/i],

@@ -40,7 +40,7 @@ import { useMarkdownEditor } from '../hooks/use-markdown-editor.js';
 import type { MarkdownEditorError } from '../lib/markdown-editor-state.js';
 import { useI18n } from "@/i18n/context.js";
 import { fmt } from "@/i18n/format.js";
-import { useApiErrorMessage } from "@/lib/use-api-error-message.js";
+import { useApiErrorMessage } from "@/lib/errors/use-api-error-message.js";
 
 export interface MarkdownContentViewerProps {
   workspaceId: string;

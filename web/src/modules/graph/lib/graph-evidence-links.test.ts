@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { batchMergeEdges, batchMergeNodes, clearGraph } from '@/lib/explorer/graphStore.js';
+import { batchMergeEdges, batchMergeNodes, clearGraph } from '@/lib/workspace/graphStore.js';
 import { resolveGraphNodeEvidenceLinks } from './graph-evidence-links.js';
 
 describe('resolveGraphNodeEvidenceLinks', () => {

@@ -1,9 +1,9 @@
 import type { ReactNode } from "react";
 import type Graph from "graphology";
 
-import { graph, type EdgeAttributes, type NodeAttributes } from '@/lib/explorer/graphStore';
+import { graph, type EdgeAttributes, type NodeAttributes } from '@/lib/workspace/graphStore';
 import type { GraphScreenLocale } from "../i18n/screen-copy.js";
-import type { GraphTheme } from "@/lib/explorer/graphTheme.js";
+import type { GraphTheme } from "@/lib/workspace/graphTheme.js";
 import type { GraphSceneRuntime } from "./scene";
 import type {
   GraphAnalyticsSnapshot,

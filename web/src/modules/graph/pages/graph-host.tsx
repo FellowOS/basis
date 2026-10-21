@@ -1,8 +1,8 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { WorkspaceHostProvider } from '@/lib/explorer/ws-http.js';
-import { buildWorkspaceHttpConfig } from '@/lib/explorer/ws-host.js';
+import { WorkspaceHostProvider } from '@/lib/workspace/ws-http.js';
+import { buildWorkspaceHttpConfig } from '@/lib/workspace/ws-host.js';
 import { GraphDiffPreviewBar } from '../components/graph-diff-preview-bar.js';
 import { GraphRebuildButton } from '@/modules/graph/components/graph-rebuild-button.js';
 import { graphDiffOverlayFromResponse, emptyGraphDiffOverlay } from '@/modules/graph/lib/graph-diff-overlay.js';
@@ -17,8 +17,8 @@ import {
 import type { GraphDiffPreviewParams } from '@/modules/graph/lib/graphUrlState.js';
 import { mergeGraphDiffFocusParam } from '@/modules/graph/lib/graphUrlState.js';
 import { useWorkspaceGraphDiff } from '@/modules/graph/lib/use-graph-diff.js';
-import { workspaceOpenApiPOST } from '@/lib/openapi-client.js';
-import { formatUserFacingApiError } from '@/lib/api-error-message.js';
+import { workspaceOpenApiPOST } from '@/lib/openapi/client.js';
+import { formatUserFacingApiError } from '@/lib/errors/api-error-message.js';
 import { toast } from 'sonner';
 import {
   clearGraphStagingDraft,
@@ -34,7 +34,7 @@ import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
 import type { Locale } from '@/i18n/locale.js';
 import { GraphWsThemeSync } from '@/modules/graph/lib/graph/graph-ws-theme-sync.js';
-import { workspaceGraphDiffPath } from '@/lib/nav-config.js';
+import { workspaceGraphDiffPath } from '@/lib/nav/nav-config.js';
 import { searchPath } from '@/modules/search/lib/searchUrlState.js';
 const GraphScreen = lazy(() =>
   import('@/modules/graph/pages/screen.js').then((module) => ({

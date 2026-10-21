@@ -1,5 +1,5 @@
-import { appIsDesktopProduct } from '@/lib/app-runtime.js';
-import { getBasisDesktopBridge, isMacDesktop } from '@/lib/desktop-bridge.js';
+import { appIsDesktopProduct } from '@/lib/runtime/app-runtime.js';
+import { getBasisDesktopBridge, isMacDesktop } from '@/lib/shell/desktop-bridge.js';
 import { AppLogo } from '@/components/app/shared/shell/app-logo.js';
 import { BasisShellBrandMark } from '@/components/app/shared/shell/basis-shell-brand.js';
 import { BasisDesktopWindowControls } from '@/components/app/shared/shell/basis-desktop-window-controls.js';

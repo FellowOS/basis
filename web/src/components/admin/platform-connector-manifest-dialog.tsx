@@ -15,9 +15,9 @@ import { Spinner } from '@/components/ui/spinner.js';
 import { Switch } from '@/components/ui/switch.js';
 import { useI18n } from '@/i18n/context.js';
 import { fmt } from '@/i18n/format.js';
-import { openApiGET } from '@/lib/openapi-client.js';
-import { downloadTextBlob } from '@/lib/download-text-blob.js';
-import { useApiErrorMessage } from '@/lib/use-api-error-message.js';
+import { openApiGET } from '@/lib/openapi/client.js';
+import { downloadTextBlob } from '@/lib/admin/download-text-blob.js';
+import { useApiErrorMessage } from '@/lib/errors/use-api-error-message.js';
 
 type ManifestDialogProps = {
   service: string | null;

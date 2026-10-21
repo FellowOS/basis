@@ -21,9 +21,9 @@ import {
 } from '@/components/ui/form.js';
 import { Input } from '@/components/ui/input.js';
 import { useI18n } from '@/i18n/context.js';
-import { basisSessionClient } from '@/lib/basis-session-client.js';
-import { unwrapOpenApi } from '@/lib/openapi-response.js';
-import { useApiErrorMessage } from '@/lib/use-api-error-message.js';
+import { basisSessionClient } from '@/lib/session/basis-session-client.js';
+import { unwrapOpenApi } from '@/lib/openapi/response.js';
+import { useApiErrorMessage } from '@/lib/errors/use-api-error-message.js';
 
 export type CreatedKb = {
   id: string;

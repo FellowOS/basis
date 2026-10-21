@@ -1,4 +1,4 @@
-import { isWorkspaceScopedPath, parseWorkspaceIdFromPath } from '@/lib/nav-config.js';
+import { isWorkspaceScopedPath, parseWorkspaceIdFromPath } from '@/lib/nav/nav-config.js';
 
 /** Placeholder workspace id for sidebar + nav when the user has no workspaces yet. */
 export const WORKSPACE_SETUP_ID = 'setup';

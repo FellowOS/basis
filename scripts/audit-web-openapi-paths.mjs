@@ -11,8 +11,8 @@ const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'
 const webSrc = path.join(repoRoot, 'web', 'src');
 
 const SKIP_FILES = [
-  'lib/explorer/ws-http.tsx',
-  'lib/explorer/ws-http.test.ts',
+  'lib/workspace/ws-http.tsx',
+  'lib/workspace/ws-http.test.ts',
   'lib/workspace/ws-client.ts',
 ];
 

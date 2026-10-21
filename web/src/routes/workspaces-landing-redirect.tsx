@@ -3,7 +3,7 @@ import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
 import { isSetupWorkspaceId, WORKSPACE_SETUP_ID, pickDefaultWorkspaceId } from '@/lib/workspace/active-id.js';
 import { useWorkspaceCatalog } from '@/lib/workspace/context.js';
-import { workspacePath } from '@/lib/nav-config.js';
+import { workspacePath } from '@/lib/nav/nav-config.js';
 
 export function WorkspacesLandingRedirect() {
   const { t } = useI18n();

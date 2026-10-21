@@ -49,7 +49,7 @@ import { Switch } from '@/components/ui/switch.js';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs.js';
 import { Textarea } from '@/components/ui/textarea.js';
 import { cn } from '@/lib/utils.js';
-import { useBasisSession } from '@/lib/basis-session.js';
+import { useBasisSession } from '@/lib/session/basis-session.js';
 import { useI18n } from '@/i18n/context.js';
 import {
   compareLocaleStrings,
@@ -60,11 +60,11 @@ import {
 } from '@/i18n/format.js';
 import type { Locale } from '@/i18n/locale.js';
 import type { LocaleMessages } from '@/i18n/en.js';
-import { messageForApiErrorCode } from '@/lib/api-error-message.js';
+import { messageForApiErrorCode } from '@/lib/errors/api-error-message.js';
 import { useWorkspaceCatalog } from '@/lib/workspace/context.js';
 import { useWorkspaceCapabilities } from '@/lib/workspace/capabilities.js';
-import { useWorkspaceWsClient } from '@/lib/explorer/ws-context.js';
-import { workspacePath } from '@/lib/nav-config.js';
+import { useWorkspaceWsClient } from '@/lib/workspace/ws-context.js';
+import { workspacePath } from '@/lib/nav/nav-config.js';
 import {
   processingJobPath,
   processingPath,
@@ -80,7 +80,7 @@ import { parseSourcesUrlState } from '@/modules/library/lib/sourcesUrlState.js';
 import { formatByteSize } from '@/modules/library/lib/format-byte-size.js';
 import { DocumentTimelinePanel } from '../components/document-timeline-panel.js';
 import { uploadExceedsMaxBytes } from '@/modules/library/lib/ingest-upload-limit.js';
-import { formatUserFacingApiError } from '@/lib/api-error-message.js';
+import { formatUserFacingApiError } from '@/lib/errors/api-error-message.js';
 import { processingStartIdempotencyKey } from '@/modules/processing/lib/processing-idempotency.js';
 
 const PAGE_SIZE = 10;

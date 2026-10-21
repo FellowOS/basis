@@ -5,7 +5,7 @@ import type { NodeDisplayData, RenderParams } from "sigma/types";
 import { floatColor } from "sigma/utils";
 import type { NodeHoverDrawingFunction, NodeLabelDrawingFunction } from "sigma/rendering";
 
-import { GRAPH_THEME, type GraphEntityShapeVariant, withAlpha } from "@/lib/explorer/graphTheme.js";
+import { GRAPH_THEME, type GraphEntityShapeVariant, withAlpha } from "@/lib/workspace/graphTheme.js";
 
 type semanticaNodeDrawData = {
   x: number;

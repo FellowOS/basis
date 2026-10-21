@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 import type { Locale } from "@/i18n/locale.js";
 
-import { buildWorkspaceGraphApiPath, workspaceFetchJson } from '@/lib/explorer/ws-http';
+import { buildWorkspaceGraphApiPath, workspaceFetchJson } from '@/lib/workspace/ws-http';
 import type { GraphCatalogTotals } from '../lib/graph-load-budget.js';
 
 const EMPTY_TOTALS: GraphCatalogTotals = { nodeTotal: null, edgeTotal: null };

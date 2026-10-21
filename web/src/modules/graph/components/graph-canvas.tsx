@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useCallback, forwardRef, useImperativeHandle, useState, type ReactNode } from "react";
 import Sigma from "sigma";
 import FA2Layout from "graphology-layout-forceatlas2/worker";
-import { graph, type EdgeAttributes, type NodeAttributes } from '@/lib/explorer/graphStore';
+import { graph, type EdgeAttributes, type NodeAttributes } from '@/lib/workspace/graphStore';
 import type { GraphBehavior, GraphBehaviorContext, GraphBehaviorActionRequest } from '../lib/behavior-types.js';
 import { hoverActivationBehavior } from '../lib/behavior-hover-activation-behavior.js';
 import { clickSelectionBehavior } from '../lib/behavior-click-selection-behavior.js';
@@ -17,7 +17,7 @@ import {
   type GraphZoomTier,
   withAlpha,
   zoomTierAtLeast,
-} from "@/lib/explorer/graphTheme.js";
+} from "@/lib/workspace/graphTheme.js";
 import {
   buildFocusSetInGraph,
   buildEdgeEndpointSet,

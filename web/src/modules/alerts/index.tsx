@@ -22,9 +22,9 @@ import { groupAlertsByEpisode, alertDetailLines } from '@/modules/alerts/lib/ale
 import { consumeWorkspaceAlertsStream, type WorkspaceAlertStreamItem } from '@/modules/alerts/lib/alerts-stream.js';
 import { useWorkspaceCatalog } from '@/lib/workspace/context.js';
 import { workspaceAlertsPath, parseKbAlertsUrlState } from '@/modules/alerts/lib/alerts-url.js';
-import { workspacePath } from '@/lib/nav-config.js';
+import { workspacePath } from '@/lib/nav/nav-config.js';
 import { cn } from '@/lib/utils.js';
-import { workspaceOpenApiGET, workspaceOpenApiPOST } from '@/lib/openapi-client.js';
+import { workspaceOpenApiGET, workspaceOpenApiPOST } from '@/lib/openapi/client.js';
 
 type AlertsResponse = {
   alerts: WorkspaceAlertStreamItem[];

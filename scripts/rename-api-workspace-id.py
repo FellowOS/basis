@@ -117,7 +117,7 @@ def main() -> None:
         for path in root.rglob("*"):
             if not path.is_file() or not should_process(path):
                 continue
-            if "basis-openapi/schema" in str(path) and path.suffix == ".d.ts":
+            if "lib/openapi/schema" in str(path) and path.suffix == ".d.ts":
                 continue  # regenerated
             try:
                 raw = path.read_text(encoding="utf-8")

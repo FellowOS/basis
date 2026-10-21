@@ -1,7 +1,7 @@
 import { useParams } from 'react-router-dom';
 import { LedgerEvidenceInspector } from './components/ledger-evidence-inspector.js';
 import { SourcesPage } from '@/modules/library/pages/sources.js';
-import { WorkspaceRouteShell } from '@/lib/explorer/ws-context.js';
+import { WorkspaceRouteShell } from '@/lib/workspace/ws-context.js';
 
 export function LibraryPage() {
   const { id } = useParams();

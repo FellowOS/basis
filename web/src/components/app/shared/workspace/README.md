@@ -7,6 +7,6 @@ Per-workspace **console chrome** (switcher, shells, unavailable states) and smal
 | `frame/` | `@/components/app/shared/workspace/frame/` |
 | `entity-ref-line.tsx` | `@/components/app/shared/workspace/entity-ref-line.js` |
 
-HTTP/WebSocket: `@/lib/explorer/` (`ws-http`, `ws-host`, `ws-context`). Catalog/capabilities: `@/lib/workspace/`.
+HTTP/WebSocket: `@/lib/workspace/` (`ws-http`, `ws-host`, `ws-context`). Catalog/capabilities: `@/lib/workspace/`.
 
 Shell roots use the `basis-ws-console` CSS hook (and segment classes like `basis-graph-canvas`) plus `data-workspace-id` for E2E targeting.

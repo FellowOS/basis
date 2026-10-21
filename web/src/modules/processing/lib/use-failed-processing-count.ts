@@ -2,8 +2,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { isSetupWorkspaceId, resolveSidebarWorkspaceId } from '@/lib/workspace/active-id.js';
 import { useWorkspaceCatalog } from '@/lib/workspace/context.js';
-import { isWorkspaceScopedPath, parseWorkspaceIdFromPath } from '@/lib/nav-config.js';
-import { workspaceOpenApiGET } from '@/lib/openapi-client.js';
+import { isWorkspaceScopedPath, parseWorkspaceIdFromPath } from '@/lib/nav/nav-config.js';
+import { workspaceOpenApiGET } from '@/lib/openapi/client.js';
 
 type JobsResponse = { jobs: Array<{ status: string }> };
 

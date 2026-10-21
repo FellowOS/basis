@@ -37,8 +37,8 @@ import {
   SwaggerPage,
   UsersPage,
 } from '@/routes/lazy-pages.js';
-import { basisAuthRequired, basisIsDesktopProduct } from '@/lib/basis-runtime.js';
-import { useBasisSession } from '@/lib/basis-session.js';
+import { basisAuthRequired, basisIsDesktopProduct } from '@/lib/runtime/basis-runtime.js';
+import { useBasisSession } from '@/lib/session/basis-session.js';
 import { AnalyzeHubTabRedirect, OntologyHubTabRedirect } from '@/modules/analyze/lib/hub-route.js';
 import { AdminLandingRedirect } from '@/routes/admin-landing-redirect.js';
 import {

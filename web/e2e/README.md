@@ -19,7 +19,7 @@ Many workspace graph Explorer routes **skip** when `explorer_runtime` is missing
 
 ## Route ↔ E2E matrix
 
-Routes follow [`web/src/routes/index.tsx`](../src/routes/index.tsx) (`AppRoutes`) and workspace sidebar [`nav-config.ts`](../src/lib/nav-config.ts).
+Routes follow [`web/src/routes/index.tsx`](../src/routes/index.tsx) (`AppRoutes`) and workspace sidebar [`nav-config.ts`](../src/lib/nav/nav-config.ts).
 
 ### Marketing & auth
 

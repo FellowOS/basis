@@ -1,4 +1,4 @@
-/** OpenAPI v1 paths for Playwright request helpers (mirrors `src/lib/explorer/api-path.ts`). */
+/** OpenAPI v1 paths for Playwright request helpers (mirrors `src/lib/workspace/api-path.ts`). */
 
 /** Basis API origin for `page.request` (bypasses Vite when a reused dev server has no `/api` proxy). */
 export function e2eApiBaseUrl(): string {

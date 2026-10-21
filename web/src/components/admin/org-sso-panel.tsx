@@ -19,9 +19,9 @@ import { Spinner } from '@/components/ui/spinner.js';
 import { Switch } from '@/components/ui/switch.js';
 import { useI18n } from '@/i18n/context.js';
 import type { Locale } from '@/i18n/locale.js';
-import { openApiGET, openApiPUT } from '@/lib/openapi-client.js';
-import { formatUserFacingApiError } from '@/lib/api-error-message.js';
-import { orgSsoPublicUrls } from '@/lib/auth-site-url.js';
+import { openApiGET, openApiPUT } from '@/lib/openapi/client.js';
+import { formatUserFacingApiError } from '@/lib/errors/api-error-message.js';
+import { orgSsoPublicUrls } from '@/lib/auth/auth-site-url.js';
 
 type OrgPublic = { id: string; name: string; slug: string };
 

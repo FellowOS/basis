@@ -1,7 +1,7 @@
 import { Navigate } from 'react-router-dom';
 
 import { LoginScreen } from '@/components/app/marketing/login-screen.js';
-import { useBasisSession } from '@/lib/basis-session.js';
+import { useBasisSession } from '@/lib/session/basis-session.js';
 
 export function HomePage() {
   const { ready, user, homePath } = useBasisSession();

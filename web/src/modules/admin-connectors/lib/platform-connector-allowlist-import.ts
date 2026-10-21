@@ -1,6 +1,6 @@
 /** Parse platform connector allowlist imports (JSON envelope or CSV). */
 
-import { parseCsvLine } from '@/lib/csv.js';
+import { parseCsvLine } from '@/lib/admin/csv.js';
 
 export type ParsedPlatformAllowlist = string[] | '*';
 

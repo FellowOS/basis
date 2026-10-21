@@ -5,7 +5,7 @@ import { useI18n } from "@/i18n/context.js";
 import { fmt, formatLocaleNumber, pickCountForm } from "@/i18n/format.js";
 import type { Locale } from "@/i18n/locale.js";
 import { useEffect, useState } from "react";
-import { wsApiErrorMessage, wsGetJson } from '@/lib/explorer/ws-api-error';
+import { wsApiErrorMessage, wsGetJson } from '@/lib/workspace/ws-api-error';
 import { ontologyPath, useOntologyWorkspaceId, vocabularyPath } from "./ontology-workspace-context";
 import { cn } from "@/lib/utils.js";
 import {

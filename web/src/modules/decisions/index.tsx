@@ -3,7 +3,7 @@ import { ConsolePageLayout } from '@/components/app/shared/console/index.js';
 import { DecisionsPanel } from '@/modules/decisions/pages/panel.js';
 import { useI18n } from '@/i18n/context.js';
 import { useWorkspaceCatalog } from '@/lib/workspace/context.js';
-import { workspacePath } from '@/lib/nav-config.js';
+import { workspacePath } from '@/lib/nav/nav-config.js';
 
 export function DecisionsPage() {
   const { id } = useParams();

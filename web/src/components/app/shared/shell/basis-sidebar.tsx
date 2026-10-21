@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/sidebar.js';
 import { ScrollShadow } from '@/components/app/shared/primitives/scroll-shadow.js';
 import { useI18n } from '@/i18n/context.js';
-import { workspaceNavMenuLabel } from '@/lib/workspace-nav-label.js';
+import { workspaceNavMenuLabel } from '@/lib/nav/workspace-nav-label.js';
 import {
   WORKSPACE_NAV_BY_ZONE,
   WORKSPACE_ZONES,
@@ -31,16 +31,16 @@ import {
   platformAdminEntryPath,
   platformPathActive,
   visiblePlatformNavItems,
-} from '@/lib/nav-config.js';
+} from '@/lib/nav/nav-config.js';
 import { resolveSidebarWorkspaceId } from '@/lib/workspace/active-id.js';
-import { useBasisSession } from '@/lib/basis-session.js';
+import { useBasisSession } from '@/lib/session/basis-session.js';
 import { useWorkspaceCatalog } from '@/lib/workspace/context.js';
 import { workspaceNavSegmentEnabled, useWorkspaceCapabilities } from '@/lib/workspace/capabilities.js';
-import { appIsDesktopProduct } from '@/lib/app-runtime.js';
-import { basisIsDesktopProduct } from '@/lib/basis-runtime.js';
-import { isMacDesktop } from '@/lib/desktop-bridge.js';
+import { appIsDesktopProduct } from '@/lib/runtime/app-runtime.js';
+import { basisIsDesktopProduct } from '@/lib/runtime/basis-runtime.js';
+import { isMacDesktop } from '@/lib/shell/desktop-bridge.js';
 import { cn } from '@/lib/utils.js';
-import { useSettingsAccess } from '@/lib/use-settings-access.js';
+import { useSettingsAccess } from '@/lib/shell/use-settings-access.js';
 import { useWorkspaceFailedProcessingCount } from '@/modules/processing/lib/use-failed-processing-count.js';
 import { Badge } from '@/components/ui/badge.js';
 

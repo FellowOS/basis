@@ -17,11 +17,11 @@ import {
 } from "@/components/ui/dialog.js";
 import { Label } from "@/components/ui/label.js";
 import { Slider } from "@/components/ui/slider.js";
-import { buildWorkspaceApiPath, workspaceFetch } from '@/lib/explorer/ws-http';
-import { fetchWorkspaceNodeLabels } from "@/lib/explorer/node-labels.js";
-import { errorFromApiResponse } from "@/lib/api-error.js";
-import { useApiErrorMessage } from "@/lib/use-api-error-message.js";
-import { logEvent, useRegistry } from '@/lib/explorer/registryStore';
+import { buildWorkspaceApiPath, workspaceFetch } from '@/lib/workspace/ws-http';
+import { fetchWorkspaceNodeLabels } from "@/lib/workspace/node-labels.js";
+import { errorFromApiResponse } from "@/lib/errors/api-error.js";
+import { useApiErrorMessage } from "@/lib/errors/use-api-error-message.js";
+import { logEvent, useRegistry } from '@/modules/graph/lib/registry-store.js';
 import { EntityMergePropertyDiff } from "@/modules/entity-resolution/components/entity-merge-property-diff.js";
 import { useI18n } from "@/i18n/context.js";
 import {

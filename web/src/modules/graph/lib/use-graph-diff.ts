@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import type { Locale } from '@/i18n/locale.js';
-import { formatUserFacingApiError } from '@/lib/api-error-message.js';
+import { formatUserFacingApiError } from '@/lib/errors/api-error-message.js';
 import type { GraphDiffOverlayInput } from '@/modules/graph/lib/graph-diff-overlay.js';
-import { workspaceOpenApiGET } from '@/lib/openapi-client.js';
+import { workspaceOpenApiGET } from '@/lib/openapi/client.js';
 
 export type GraphStagingManifest = {
   session_key?: string;

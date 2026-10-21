@@ -4,10 +4,10 @@ import SwaggerUI from 'swagger-ui-react';
 import 'swagger-ui-react/swagger-ui.css';
 import { Button } from '@/components/ui/button.js';
 import { useI18n } from '@/i18n/context.js';
-import { basisApiBaseUrl } from '@/lib/basis-api-url.js';
-import { getToken } from '@/lib/auth-token.js';
-import { workspaceApiRoot } from '@/lib/explorer/api-path.js';
-import { openapiSpecUrl } from '@/lib/openapi-spec-url.js';
+import { basisApiBaseUrl } from '@/lib/openapi/basis-api-url.js';
+import { getToken } from '@/lib/auth/auth-token.js';
+import { workspaceApiRoot } from '@/lib/workspace/api-path.js';
+import { openapiSpecUrl } from '@/lib/openapi/spec-url.js';
 
 type OpenApiIntegrationPanelProps = {
   workspaceId: string;

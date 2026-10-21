@@ -4,11 +4,11 @@ import { Link } from "react-router-dom";
 
 import { Button } from "@/components/ui/button.js";
 import { Spinner } from "@/components/ui/spinner.js";
-import { workspacePath } from "@/lib/nav-config.js";
-import { buildWorkspaceApiPath, workspaceFetch } from '@/lib/explorer/ws-http';
+import { workspacePath } from "@/lib/nav/nav-config.js";
+import { buildWorkspaceApiPath, workspaceFetch } from '@/lib/workspace/ws-http';
 import type { LocaleMessages } from "@/i18n/en.js";
 import { messagesForLocale } from "@/i18n/pick-locale.js";
-import { wsApiErrorMessage, parseWsJson } from '@/lib/explorer/ws-api-error';
+import { wsApiErrorMessage, parseWsJson } from '@/lib/workspace/ws-api-error';
 import {
   decisionCategoryLabel,
   decisionOutcomeLabel,

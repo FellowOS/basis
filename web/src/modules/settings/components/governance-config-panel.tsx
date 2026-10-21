@@ -24,9 +24,9 @@ import {
   formatLocaleNumber,
 } from '@/i18n/format.js';
 import type { Locale } from '@/i18n/locale.js';
-import { formatUserFacingApiError } from '@/lib/api-error-message.js';
-import { workspaceOpenApiGET, workspaceOpenApiPUT } from '@/lib/openapi-client.js';
-import { workspacePath } from '@/lib/nav-config.js';
+import { formatUserFacingApiError } from '@/lib/errors/api-error-message.js';
+import { workspaceOpenApiGET, workspaceOpenApiPUT } from '@/lib/openapi/client.js';
+import { workspacePath } from '@/lib/nav/nav-config.js';
 
 type GovernanceConfig = {
   governor_enabled: boolean;

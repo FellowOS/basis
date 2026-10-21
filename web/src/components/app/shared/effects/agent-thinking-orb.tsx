@@ -1,6 +1,6 @@
 import { type OrbState, ThinkingOrb, type ThinkingOrbProps } from 'thinking-orbs';
 
-import { useTheme } from '@/lib/theme.js';
+import { useTheme } from '@/lib/shell/theme.js';
 import { cn } from '@/lib/utils.js';
 
 export type { OrbState };

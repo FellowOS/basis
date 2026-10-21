@@ -1,4 +1,4 @@
-import { formatNodeRefDetail } from '@/lib/format-node-ref.js';
+import { formatNodeRefDetail } from '@/lib/workspace/format-node-ref.js';
 
 /** One-line entity display with optional UUID subtitle. */
 export function EntityRefLine({

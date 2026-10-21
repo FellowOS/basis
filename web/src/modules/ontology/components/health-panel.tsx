@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/native-select.js";
 import { useI18n } from "@/i18n/context.js";
 import type { Locale } from "@/i18n/locale.js";
-import { wsApiErrorMessage } from '@/lib/explorer/ws-api-error';
+import { wsApiErrorMessage } from '@/lib/workspace/ws-api-error';
 import { loadOntologyHealth, loadOntologyRegistry } from '../lib/api.js';
 import { useOntologyWorkspaceId } from "./ontology-workspace-context";
 import type { OntologyEntry, OntologyHealthResponse, HealthIssue } from '../lib/types.js';

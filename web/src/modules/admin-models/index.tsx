@@ -5,7 +5,7 @@ import { ModelCatalogTab } from '@/components/admin/models/model-catalog-tab.js'
 import { Button } from '@/components/ui/button.js';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs.js';
 import { useI18n } from '@/i18n/context.js';
-import { usePlatformAdminCrumbs } from '@/lib/use-platform-admin-crumbs.js';
+import { usePlatformAdminCrumbs } from '@/lib/admin/use-platform-admin-crumbs.js';
 
 type ModelTab = 'llm' | 'embed';
 

@@ -2,9 +2,9 @@
  * Maps Basis `styles.css` design tokens onto Explorer `GRAPH_THEME` for Sigma/canvas code.
  * Explorer has no separate product theme in Basis — call `syncBasisGraphTheme` before graph UI paints.
  */
-import type { Theme } from '@/lib/theme.js';
+import type { Theme } from '@/lib/shell/theme.js';
 
-import { GRAPH_THEME } from '@/lib/explorer/graphTheme.js';
+import { GRAPH_THEME } from '@/lib/workspace/graphTheme.js';
 
 function readCssVarRgb(property: 'color' | 'background-color', cssVar: string): string {
   const probe = document.createElement('span');

@@ -1,6 +1,6 @@
-import type { EdgeAttributes } from '@/lib/explorer/graphStore';
-import { curveGroupForPair } from '@/lib/explorer/edgePairKeys.js';
-import { GRAPH_THEME } from "@/lib/explorer/graphTheme.js";
+import type { EdgeAttributes } from '@/lib/workspace/graphStore';
+import { curveGroupForPair } from '@/lib/workspace/edgePairKeys.js';
+import { GRAPH_THEME } from "@/lib/workspace/graphTheme.js";
 
 export type RealtimeEdgePayload = {
   id: string;

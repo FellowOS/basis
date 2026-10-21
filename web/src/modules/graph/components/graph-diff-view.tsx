@@ -30,15 +30,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs.j
 import { useI18n } from '@/i18n/context.js';
 import { formatLocaleDateTime, formatLocaleNumber } from '@/i18n/format.js';
 import type { Locale } from '@/i18n/locale.js';
-import { formatUserFacingApiError } from '@/lib/api-error-message.js';
+import { formatUserFacingApiError } from '@/lib/errors/api-error-message.js';
 import { useWorkspaceCapabilities } from '@/lib/workspace/capabilities.js';
-import { workspaceOpenApiGET, workspaceOpenApiPOST, workspaceOpenApiPUT } from '@/lib/openapi-client.js';
+import { workspaceOpenApiGET, workspaceOpenApiPOST, workspaceOpenApiPUT } from '@/lib/openapi/client.js';
 import { Input } from '@/components/ui/input.js';
 import { Label } from '@/components/ui/label.js';
 import { graphPath } from '@/modules/graph/lib/graphUrlState.js';
-import { useWorkspaceNodeLabels } from '@/lib/explorer/node-labels.js';
+import { useWorkspaceNodeLabels } from '@/lib/workspace/node-labels.js';
 import { graphDiffPreviewPath, graphImportDialogPath } from '@/modules/graph/lib/graphUrlState.js';
-import { workspaceGraphDiffPath, workspacePath } from '@/lib/nav-config.js';
+import { workspaceGraphDiffPath, workspacePath } from '@/lib/nav/nav-config.js';
 import { toast } from 'sonner';
 import { searchPath } from '@/modules/search/lib/searchUrlState.js';
 import { endOfLocalDayIso, startOfLocalDayIso } from '@/modules/graph/lib/temporal/day-range.js';
@@ -49,8 +49,8 @@ import {
   readGraphStagingDraft,
   writeGraphStagingDraft,
 } from '@/modules/graph/lib/graph-staging-draft.js';
-import { basisSessionFetch } from '@/lib/basis-session-fetch.js';
-import { workspaceApiPath } from '@/lib/explorer/api-path.js';
+import { basisSessionFetch } from '@/lib/session/basis-session-fetch.js';
+import { workspaceApiPath } from '@/lib/workspace/api-path.js';
 import { buildGraphAuditPack, triggerJsonFileDownload } from '@/modules/graph/lib/graph-audit-pack.js';
 
 type GraphDiffResponse = {

@@ -1,8 +1,8 @@
 // queries.ts
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useI18n } from '@/i18n/context.js';
-import { errorFromApiResponse } from '@/lib/api-error.js';
-import { workspaceFetch } from '@/lib/explorer/ws-http';
+import { errorFromApiResponse } from '@/lib/errors/api-error.js';
+import { workspaceFetch } from '@/lib/workspace/ws-http';
 import type { VocabularyScheme, ConceptNode, ImportResponse } from './types';
 import { useVocabularyWorkspaceId, vocabularyPath } from '../components/vocabulary-workspace-context.js';
 

@@ -1,8 +1,8 @@
 import type Graph from "graphology";
 import type Sigma from "sigma";
 
-import type { EdgeAttributes, NodeAttributes } from '@/lib/explorer/graphStore';
-import { GRAPH_THEME, withAlpha } from "@/lib/explorer/graphTheme.js";
+import type { EdgeAttributes, NodeAttributes } from '@/lib/workspace/graphStore';
+import { GRAPH_THEME, withAlpha } from "@/lib/workspace/graphTheme.js";
 import type {
   GraphFullEdgeClass,
   GraphFullEdgeClassDiagnostics,

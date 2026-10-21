@@ -8,7 +8,7 @@ import {
 } from 'react';
 import { Link } from 'react-router-dom';
 
-import { docsHeadingSlug } from '@/lib/docs-slug.js';
+import { docsHeadingSlug } from '@/lib/marketing/docs-slug.js';
 import { cn } from '@/lib/utils.js';
 
 export type DocsMdxComponents = {

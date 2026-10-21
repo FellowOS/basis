@@ -2,7 +2,7 @@ import type { CSSProperties } from 'react';
 import { useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { isSetupWorkspaceId, writeActiveWorkspaceId } from '@/lib/workspace/active-id.js';
-import { parseWorkspaceIdFromPath } from '@/lib/nav-config.js';
+import { parseWorkspaceIdFromPath } from '@/lib/nav/nav-config.js';
 import { BasisSidebar } from '@/components/app/shared/shell/basis-sidebar.js';
 import {
   BasisDesktopAppTitlebar,
@@ -10,8 +10,8 @@ import {
 } from '@/components/app/shared/shell/basis-desktop-titlebar.js';
 import { WorkspaceCatalogProvider } from '@/lib/workspace/context.js';
 import { WorkspaceCapabilitiesProvider } from '@/lib/workspace/capabilities.js';
-import { appIsDesktopProduct } from '@/lib/app-runtime.js';
-import { isMacDesktop } from '@/lib/desktop-bridge.js';
+import { appIsDesktopProduct } from '@/lib/runtime/app-runtime.js';
+import { isMacDesktop } from '@/lib/shell/desktop-bridge.js';
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar.js';
 import { Toaster } from '@/components/ui/sonner.js';
 import { TooltipProvider } from '@/components/ui/tooltip.js';

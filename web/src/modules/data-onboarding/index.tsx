@@ -16,13 +16,13 @@ import { Label } from '@/components/ui/label.js';
 import { useI18n } from '@/i18n/context.js';
 import type { Locale } from '@/i18n/locale.js';
 import { fmt } from '@/i18n/format.js';
-import { formatUserFacingApiError } from '@/lib/api-error-message.js';
+import { formatUserFacingApiError } from '@/lib/errors/api-error-message.js';
 import {
   workspaceConnectorsMappingsTabPath,
   type StoredConnection,
 } from '@/modules/connectors/lib/connector-connections.js';
-import { workspaceConnectorPanelPath, workspacePath } from '@/lib/nav-config.js';
-import { workspaceOpenApiGET } from '@/lib/openapi-client.js';
+import { workspaceConnectorPanelPath, workspacePath } from '@/lib/nav/nav-config.js';
+import { workspaceOpenApiGET } from '@/lib/openapi/client.js';
 
 type WizardStep = 'connections' | 'suggest' | 'done';
 

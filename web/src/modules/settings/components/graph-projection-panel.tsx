@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useBasisSession } from '@/lib/basis-session.js';
+import { useBasisSession } from '@/lib/session/basis-session.js';
 import { ImportExportDialog } from '@/modules/graph/components/import-export/import-export-dialog.js';
 import { GraphAuditRecent } from './graph-audit-recent.js';
 import { GraphRebuildButton } from '@/modules/graph/components/graph-rebuild-button.js';
@@ -11,9 +11,9 @@ import { useI18n } from '@/i18n/context.js';
 import { fmt, formatLocaleDateTime, formatLocaleNumber } from '@/i18n/format.js';
 import type { Locale } from '@/i18n/locale.js';
 import { graphProjectionStatusLabel } from '@/modules/settings/lib/graph-projection-labels.js';
-import { workspaceOpenApiGET } from '@/lib/openapi-client.js';
-import { formatUserFacingApiError, messageForApiErrorCode } from '@/lib/api-error-message.js';
-import { workspacePath } from '@/lib/nav-config.js';
+import { workspaceOpenApiGET } from '@/lib/openapi/client.js';
+import { formatUserFacingApiError, messageForApiErrorCode } from '@/lib/errors/api-error-message.js';
+import { workspacePath } from '@/lib/nav/nav-config.js';
 
 type GraphProjectionStatus = {
   revision: number;

@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { PublicIcon } from "@/components/app/shared/primitives/public-icon.js";
-import { workspacePath } from "@/lib/nav-config.js";
+import { workspacePath } from "@/lib/nav/nav-config.js";
 import { cn } from "@/lib/utils.js";
 import {
   exWsErrorBanner,

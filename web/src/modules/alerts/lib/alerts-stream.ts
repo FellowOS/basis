@@ -2,8 +2,8 @@ import { fmt } from '@/i18n/format.js';
 import type { Locale } from '@/i18n/locale.js';
 import { localeFromBrowser } from '@/i18n/locale.js';
 import { messagesForLocale } from '@/i18n/pick-locale.js';
-import { basisSessionFetch } from '@/lib/basis-session-fetch.js';
-import { workspaceApiPath } from '@/lib/explorer/api-path.js';
+import { basisSessionFetch } from '@/lib/session/basis-session-fetch.js';
+import { workspaceApiPath } from '@/lib/workspace/api-path.js';
 
 function resolveLocale(locale?: Locale): Locale {
   if (locale) {

@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs.j
 import { useI18n } from '@/i18n/context.js';
 import { useWorkspaceMcpIntegration } from '@/modules/integration/lib/use-mcp-integration.js';
 import { useWorkspaceCatalog } from '@/lib/workspace/context.js';
-import { workspaceOpenApiGET } from '@/lib/openapi-client.js';
+import { workspaceOpenApiGET } from '@/lib/openapi/client.js';
 
 type WorkspaceRecord = { my_role: string };
 

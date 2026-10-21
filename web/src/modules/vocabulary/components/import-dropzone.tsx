@@ -5,7 +5,7 @@ import { useImportVocabulary } from '../lib/queries.js';
 import type { ImportResponse } from '../lib/types.js';
 import { useI18n } from '@/i18n/context.js';
 import { fmt, formatLocaleNumber } from '@/i18n/format.js';
-import { useApiErrorMessage } from '@/lib/use-api-error-message.js';
+import { useApiErrorMessage } from '@/lib/errors/use-api-error-message.js';
 import { cn } from '@/lib/utils.js';
 import {
   exWsVocabImportDropzone,

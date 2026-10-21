@@ -17,7 +17,7 @@ const pairs = [
 ];
 
 const skipFiles = new Set([
-  path.join(root, 'src/lib/basis-openapi/schema-kb.d.ts'),
+  path.join(root, 'src/lib/openapi/schema-kb.d.ts'),
 ]);
 
 function walk(dir, files = []) {

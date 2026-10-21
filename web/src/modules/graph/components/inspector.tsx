@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input.js";
 import { Separator } from "@/components/ui/separator.js";
 import { useI18n } from "@/i18n/context.js";
 import { formatLocaleFixedDecimals, formatLocalePercent } from "@/i18n/format.js";
-import { workspacePath } from "@/lib/nav-config.js";
+import { workspacePath } from "@/lib/nav/nav-config.js";
 import { useWorkspaceCapabilitiesOptional } from "@/lib/workspace/capabilities.js";
 import type { GraphScreenLocale } from '../i18n/screen-copy.js';
 import { graphNodeTypeLabel } from '../i18n/screen-copy.js';
@@ -43,7 +43,7 @@ import {
   graphNodePanelSummary,
 } from "@/lib/ui-classes/graph-inspector-ui.js";
 import { cn } from "@/lib/utils.js";
-import { graph } from '@/lib/explorer/graphStore';
+import { graph } from '@/lib/workspace/graphStore';
 import type { FocusedUnavailableReason, GraphSelectedNodeKind } from '../lib/types.js';
 import { focusedUnavailableReasonText } from '../i18n/graph-view-copy.js';
 import { MarkdownContentViewer } from "./markdown-content-viewer";

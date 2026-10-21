@@ -15,8 +15,8 @@ import {
 import { useI18n } from '@/i18n/context.js';
 import { fmt } from '@/i18n/format.js';
 import type { Locale } from '@/i18n/locale.js';
-import { formatUserFacingApiError } from '@/lib/api-error-message.js';
-import { workspaceOpenApiPOST } from '@/lib/openapi-client.js';
+import { formatUserFacingApiError } from '@/lib/errors/api-error-message.js';
+import { workspaceOpenApiPOST } from '@/lib/openapi/client.js';
 
 export type ConnectorMappingDraft = {
   provider: string;
