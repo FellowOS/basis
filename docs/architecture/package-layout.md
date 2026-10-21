@@ -115,8 +115,9 @@ KB HTTP surface is split under `api/http/routes/v1/kb/` (paths/operationIds unch
 | `connectors/` | `{catalog,connections,mappings,outbox,oauth,tools,models,support}` |
 | `ledger/` | `{read,remember,mutations,models}` |
 | `sources/` | `{crud,ingest,models,support}` |
+| `config/` | `{mappings,alerts,governance,reasoning_rules}` |
 
-Other KB modules under `kb/`: `mappings.py`, `alerts.py`, `governance.py`, `e2e_helpers.py`, `reasoning_rules.py`.
+Other KB modules under `kb/`: `e2e_helpers.py` (test-only when enabled).
 
 `basis/core/explorer/graph/` — projection adapters. `ontology/` — hub logic; HTTP in `api/http/routes/v1/kb/ontology/hub/`. `session/`, `governance/`, `vocabulary/`, `temporal/`, `sparql/`, `reasoning/`, `io/` — see [explorer README](../../basis/core/explorer/README.md).
 

@@ -5,12 +5,12 @@ from __future__ import annotations
 from fastapi import FastAPI
 
 from basis.api.http.routes.v1 import users
-from basis.api.http.routes.v1.kb import alerts as kb_alerts
 from basis.api.http.routes.v1.kb import connectors as kb_connectors
 from basis.api.http.routes.v1.kb import e2e_helpers as kb_e2e_helpers
-from basis.api.http.routes.v1.kb import governance as kb_governance
-from basis.api.http.routes.v1.kb import mappings as kb_mappings
-from basis.api.http.routes.v1.kb import reasoning_rules as kb_reasoning_rules
+from basis.api.http.routes.v1.kb.config import alerts as kb_alerts
+from basis.api.http.routes.v1.kb.config import governance as kb_governance
+from basis.api.http.routes.v1.kb.config import mappings as kb_mappings
+from basis.api.http.routes.v1.kb.config import reasoning_rules as kb_reasoning_rules
 from basis.api.http.routes.v1.kb.workspace import kbs
 from basis.api.http.routes.v1.kb.workspace import tokens as kb_tokens
 from basis.api.http.routes.v1.kb import documents as kb_documents
