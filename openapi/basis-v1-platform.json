@@ -6713,38 +6713,7 @@
         ],
         "title": "WebhookIngestRequest"
       },
-      "basis__api__http__routes__v1__kb__documents__models__CreateOntologyRequest": {
-        "properties": {
-          "namespace": {
-            "type": "string",
-            "minLength": 1,
-            "title": "Namespace"
-          },
-          "name": {
-            "type": "string",
-            "minLength": 1,
-            "title": "Name"
-          },
-          "description": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Description"
-          }
-        },
-        "type": "object",
-        "required": [
-          "namespace",
-          "name"
-        ],
-        "title": "CreateOntologyRequest"
-      },
-      "basis__core__explorer__ontology__hub__hub_models__CreateOntologyRequest": {
+      "basis__domain__ontology__hub__hub_models__CreateOntologyRequest": {
         "properties": {
           "mode": {
             "type": "string",
@@ -6825,6 +6794,37 @@
               }
             ],
             "title": "Model"
+          }
+        },
+        "type": "object",
+        "required": [
+          "namespace",
+          "name"
+        ],
+        "title": "CreateOntologyRequest"
+      },
+      "basis__interface__http__kb_documents_models__CreateOntologyRequest": {
+        "properties": {
+          "namespace": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Namespace"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
           }
         },
         "type": "object",

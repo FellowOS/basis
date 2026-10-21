@@ -1047,6 +1047,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/kbs/{kb_id}/connectors/table-mappings/batch-create": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Batch Create Kb Table Mappings
+         * @description Create multiple stream-to-ontology table mappings and optionally run first inbound sync.
+         */
+        post: operations["batch_create_kb_table_mappings_api_v1_kbs__kb_id__connectors_table_mappings_batch_create_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/kbs/{kb_id}/connectors/table-mappings/suggest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Suggest Kb Table Mappings
+         * @description Propose cross-stream connector mapping drafts grouped by inferred entity type (discover-backed).
+         */
+        post: operations["suggest_kb_table_mappings_api_v1_kbs__kb_id__connectors_table_mappings_suggest_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/kbs/{kb_id}/connectors/table-mappings/{mapping_id}": {
         parameters: {
             query?: never;
@@ -4153,6 +4193,16 @@ export interface components {
         } & {
             [key: string]: unknown;
         };
+        /** BatchCreateTableMappingsRequest */
+        BatchCreateTableMappingsRequest: {
+            /** Mappings */
+            mappings: components["schemas"]["CreateTableMappingRequest"][];
+            /**
+             * Run Sync
+             * @default true
+             */
+            run_sync: boolean;
+        };
         /** Body_append_document_version_upload_api_v1_kbs__kb_id__documents__document_id__versions_upload_post */
         Body_append_document_version_upload_api_v1_kbs__kb_id__documents__document_id__versions_upload_post: {
             /** File */
@@ -5109,6 +5159,38 @@ export interface components {
             /** Idempotency Key */
             idempotency_key?: string | null;
         };
+        /** SuggestStreamTargetRequest */
+        SuggestStreamTargetRequest: {
+            /** Provider */
+            provider: string;
+            /**
+             * Connection Name
+             * @default default
+             */
+            connection_name: string;
+            /** Stream Name */
+            stream_name?: string | null;
+            /** External Table */
+            external_table?: string | null;
+        };
+        /**
+         * SuggestTableMappingsRequest
+         * @description Optional explicit streams; when empty, auto-expand REST entity streams on saved connections.
+         */
+        SuggestTableMappingsRequest: {
+            /** Targets */
+            targets?: components["schemas"]["SuggestStreamTargetRequest"][];
+            /**
+             * Max Streams Per Connection
+             * @default 8
+             */
+            max_streams_per_connection: number;
+            /**
+             * Sql Tables
+             * @description SQL targets with external_table set (merged after auto REST expansion).
+             */
+            sql_tables?: components["schemas"]["SuggestStreamTargetRequest"][];
+        };
         /** SyncIngestSourceRequest */
         SyncIngestSourceRequest: {
             /**
@@ -5288,7 +5370,7 @@ export interface components {
             auto_process: boolean;
         };
         /** CreateOntologyRequest */
-        basis__domain__explorer__ontology__hub_models__CreateOntologyRequest: {
+        basis__domain__ontology__hub__hub_models__CreateOntologyRequest: {
             /**
              * Mode
              * @default scratch
@@ -5313,7 +5395,7 @@ export interface components {
             model?: string | null;
         };
         /** CreateOntologyRequest */
-        basis__transport__http__routes__v1__kb_documents_models__CreateOntologyRequest: {
+        basis__interface__http__kb_documents_models__CreateOntologyRequest: {
             /** Namespace */
             namespace: string;
             /** Name */
@@ -7291,6 +7373,84 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["CreateTableMappingRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    batch_create_kb_table_mappings_api_v1_kbs__kb_id__connectors_table_mappings_batch_create_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                kb_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BatchCreateTableMappingsRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    suggest_kb_table_mappings_api_v1_kbs__kb_id__connectors_table_mappings_suggest_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                kb_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SuggestTableMappingsRequest"];
             };
         };
         responses: {
@@ -9646,7 +9806,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["basis__transport__http__routes__v1__kb_documents_models__CreateOntologyRequest"];
+                "application/json": components["schemas"]["basis__interface__http__kb_documents_models__CreateOntologyRequest"];
             };
         };
         responses: {
@@ -9788,7 +9948,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["basis__domain__explorer__ontology__hub_models__CreateOntologyRequest"];
+                "application/json": components["schemas"]["basis__domain__ontology__hub__hub_models__CreateOntologyRequest"];
             };
         };
         responses: {
