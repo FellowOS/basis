@@ -1,6 +1,4 @@
-# Basis
-
-## Let agents understand real business
+# Basis — Let agents understand real business
 
 **Ontology-driven enterprise business semantics layer.**
 
