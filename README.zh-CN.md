@@ -4,7 +4,7 @@
 
 Basis 是基于 [Semantica](https://github.com/semantica-agi/semantica) Python SDK 构建的本体驱动智能体上下文服务底座：**FastAPI 后端**（`basis`）+ **React 建模与治理工作台**（`@basis/web`）。它将企业散乱的文档、关系型数据库（`postgres`/`mysql`）与 SaaS 系统（通过声明式 **BOCP** 引擎）统一对齐为**证据账本与业务对象**，并向智能体暴露标准的 **OpenAPI v1 与 MCP 服务接口**——实现读取可溯源、状态写回必经审批。
 
-[English](./README.md) · [文档索引](./docs/README.md) · [接口参考](http://127.0.0.1:5173/swagger)（web dev：`/swagger`；规范 `/openapi/v1.json`）
+[English](./README.md) · [接口参考](http://127.0.0.1:5173/swagger)（web dev：`/swagger`；live 规范 `/openapi/v1.json`；产品文档 `/docs`）
 
 [![CI](https://github.com/fellowos/basis/actions/workflows/ci.yml/badge.svg)](https://github.com/fellowos/basis/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
@@ -21,7 +21,7 @@ Basis 是基于 [Semantica](https://github.com/semantica-agi/semantica) Python S
 | **系统连接与接口** | 每个项目手写胶水代码 | **BOCP** 声明式数据库与 声明式 SaaS 连接器，统一暴露 **OpenAPI v1** 与 **MCP** |
 | **部署运维** | 多套组件拼装 | 默认 **两个进程**：Basis API + Basis Web（SQLite 零配置，生产支持 PostgreSQL） |
 
-架构决策：[ADR 0001 — 证据账本为主存](docs/architecture/adrs/0001-canonical-knowledge-model.md)。
+**证据账本**为主存；图与搜索为可重建投影。
 
 ---
 
@@ -44,7 +44,7 @@ Basis 是基于 [Semantica](https://github.com/semantica-agi/semantica) Python S
 - **账本** — 开放层 / 类型化层、推理派生事实与证据链
 - **告警** — 同步失败、治理熔断、`governance.tripped` 等深链至审核/决策
 
-文档：[功能清单](docs/features.md) · [开发进展](docs/progress.md) · [架构](docs/architecture/package-layout.md)。项目仍在积极迭代。
+`npm run dev` 后产品文档见 `http://127.0.0.1:5173/docs`。项目仍在积极迭代。
 
 ---
 
@@ -133,7 +133,7 @@ uv run basis
 
 **Agent 治理扫描（F-GOV-04）：** 服务端 `BASIS_GOVERNOR_TICK_SECONDS`（>0 启用定时 tick）；KB **设置 → Explorer 图 → Agent 治理扫描** 开启 `governor_enabled`；Review 队列可手动 **治理扫描**（冲突 / 低置信 / 同标签实体聚类）。
 
-**组织 SAML（F-ACC-07）：** API 主机需 `uv sync --extra saml`（`python3-saml`）；平台 **设置 → 组织 SSO** 配置 SAML IdP，将 SP metadata / ACS（及可选 SLO）URL 填入 IdP。运维签收见 [docs/operations/enterprise-sso.md](docs/operations/enterprise-sso.md)；本地 OIDC（Logto）见 [docs/operations/logto-oidc-dev.md](docs/operations/logto-oidc-dev.md)。OIDC 无需 `saml` extra。
+**组织 SAML（F-ACC-07）：** API 主机需 `uv sync --extra saml`（`python3-saml`）；平台 **设置 → 组织 SSO** 配置 SAML IdP，将 SP metadata / ACS（及可选 SLO）URL 填入 IdP。OIDC 无需 `saml` extra。
 
 **连接器（当前固定种类）：** webhook、HTTP 轮询、GitHub raw — 在 KB **Sources** 配置。
 

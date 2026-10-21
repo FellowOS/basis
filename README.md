@@ -4,7 +4,7 @@
 
 Basis is an open-source **ontology-driven agent context service** built on the [Semantica](https://github.com/semantica-agi/semantica) Python SDK: a **FastAPI backend** (`basis`) plus a **React studio** (`@basis/web`). It connects unstructured documents, relational databases (`postgres`/`mysql`), and SaaS apps (via the declarative **BOCP** engine), aligns them through business ontologies into a canonical **evidence ledger**, and exposes high-semantic read/write interfaces to agents via **OpenAPI v1** and **MCP**—with human-in-the-loop review gates for every state mutation.
 
-[简体中文](./README.zh-CN.md) · [Documentation](./docs/README.md) · [API reference](http://127.0.0.1:5173/swagger) (web dev: `/swagger`; spec at `/openapi/v1.json`)
+[简体中文](./README.zh-CN.md) · [API reference](http://127.0.0.1:5173/swagger) (web dev: `/swagger`; live spec `/openapi/v1.json`; product docs `/docs`)
 
 [![CI](https://github.com/fellowos/basis/actions/workflows/ci.yml/badge.svg)](https://github.com/fellowos/basis/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
@@ -27,7 +27,7 @@ cd web && npm install && npm run dev  # Web  :5173
 
 The first registered user becomes the platform administrator.
 
-**Desktop (local, no login):** [ADR 0004](docs/architecture/adrs/0004-desktop-deployment.md) — `BASIS_DEPLOYMENT_PROFILE=desktop` + `web` `npm run dev:desktop`, or `cd desktop && npm run dev` for Electron. Data defaults to `~/.basis`.
+**Desktop (local, no login):** see [desktop/README.md](desktop/README.md) — `BASIS_DEPLOYMENT_PROFILE=desktop` + `web` `npm run dev:desktop`, or `cd desktop && npm run dev` for Electron. Data defaults to `~/.basis`.
 
 ---
 
@@ -41,9 +41,9 @@ The first registered user becomes the platform administrator.
 | **Connectivity** | Custom glue code per system | **BOCP** declarative DB & declarative SaaS connectors, **OpenAPI v1**, and **MCP** |
 | **Operations** | Many services | **Two processes** (API + Web), SQLite by default, PostgreSQL for production |
 
-Design rationale: [ADR 0001 — Evidence ledger is canonical](docs/architecture/adrs/0001-canonical-knowledge-model.md).
+The **evidence ledger** is canonical; graph and search are rebuildable projections.
 
-Documentation: [features](docs/features.md) · [progress](docs/progress.md) · [architecture](docs/architecture/package-layout.md).
+After `npm run dev`, product documentation is at `http://127.0.0.1:5173/docs`.
 
 ---
 
@@ -63,7 +63,7 @@ PostgreSQL: `docker compose -f compose.postgres.yml up -d`, then set `BASIS_DATA
 
 **Connector integration tests (real Postgres + GitHub):** `cp .env.test.example .env.test`, fill `BASIS_TEST_POSTGRES_URL` and GitHub vars, then `uv run pytest tests/test_sql_connector_integration.py tests/test_connector_primitive_invoke.py -q -m integration`. Postgres compose: `docker compose -f compose.postgres.yml up -d` (host port **5433**). Optional MySQL: `compose.mysql.yml` + `BASIS_TEST_MYSQL_URL` in `.env.test`.
 
-**Provider bundles (BOCP synthesis):** `uv run python scripts/build_connector_manifests.py --all-batches` writes `basis/domain/integration/providers/*.yaml` (batch 0: postgres/mysql/github; batch 1: slack). Optional upstream paths: `BASIS_SYNTHESIS_NANGO_PROVIDERS`, `BASIS_SYNTHESIS_ANYCONNECT_CATALOG`, `BASIS_SYNTHESIS_AIRBYTE_ROOT`. See [connectors/provider-migration.zh.md](docs/architecture/connectors/provider-migration.zh.md).
+**Provider bundles (BOCP synthesis):** `uv run python scripts/build_connector_manifests.py --all-batches` writes `basis/domain/integration/providers/*.yaml` (batch 0: postgres/mysql/github; batch 1: slack). Optional upstream paths: see `.env.synthesis.example` (`BASIS_SYNTHESIS_*`).
 
 Migrate SQLite → Postgres: `uv run basis migrate-postgres --database-url postgresql://…`
 

@@ -69,6 +69,62 @@ test('connector mappings list sync now runs inbound sync', async ({ page }) => {
   await expect(page.getByText(/Fetched|拉取/).first()).toBeVisible({ timeout: 30_000 });
 });
 
+test('connector oauth callback exchanges code and returns to catalog', async ({ page }) => {
+  test.setTimeout(90_000);
+
+  await registerFreshUser(page);
+  const kbId = await defaultKbId(page);
+  const state = 'e2e-oauth-state-ok';
+  const connectionName = 'e2e_oauth_ok';
+
+  await page.goto(`/kbs/${kbId}/connectors/catalog`);
+  await page.evaluate(
+    ({ kbId: kid, state: oauthState, connectionName: connName }) => {
+      const redirectUri = `${window.location.origin}/kbs/${kid}/connectors/oauth/callback`;
+      sessionStorage.setItem(
+        'basis_bocp_oauth_pending',
+        JSON.stringify({
+          kbId: kid,
+          service: 'github',
+          connectionName: connName,
+          connectionConfig: {},
+          state: oauthState,
+          redirectUri,
+        }),
+      );
+    },
+    { kbId, state, connectionName },
+  );
+
+  await page.route(`**/api/v1/kbs/${kbId}/connectors/oauth/github/exchange`, async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        connection: {
+          service: 'github',
+          connection_name: connectionName,
+          auth_type: 'oauth2',
+        },
+      }),
+    });
+  });
+
+  const exchangeRequest = page.waitForRequest(
+    (req) =>
+      req.method() === 'POST' &&
+      req.url().includes(`/kbs/${kbId}/connectors/oauth/github/exchange`),
+  );
+  await page.goto(`/kbs/${kbId}/connectors/oauth/callback?code=e2e-fake-code&state=${state}`);
+  const exchangeBody = (await exchangeRequest).postDataJSON() as Record<string, unknown>;
+  expect(exchangeBody.code).toBe('e2e-fake-code');
+  expect(exchangeBody.connection_name).toBe(connectionName);
+  await expect(page).toHaveURL(new RegExp(`/kbs/${kbId}/connectors/catalog`), {
+    timeout: 30_000,
+  });
+  await expect(page.getByTestId('connectors-panel-catalog')).toBeVisible({ timeout: 30_000 });
+});
+
 test('connector oauth callback without session shows error', async ({ page }) => {
   test.setTimeout(60_000);
 

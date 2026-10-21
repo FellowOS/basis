@@ -13,7 +13,6 @@ PATTERN = re.compile(
     r"^\s*(?:from|import)\s+semantica\.explorer(?:\.|\s)",
     re.MULTILINE,
 )
-ALLOWLIST_PATH = ROOT / "scripts" / "semantica-explorer-package.allowlist"
 
 
 def _collect() -> list[str]:
@@ -29,27 +28,13 @@ def _collect() -> list[str]:
 
 
 def main() -> int:
-    found = _collect()
-    allow: set[str] = set()
-    if ALLOWLIST_PATH.is_file():
-        allow = {
-            line.strip()
-            for line in ALLOWLIST_PATH.read_text(encoding="utf-8").splitlines()
-            if line.strip() and not line.strip().startswith("#")
-        }
-    extra = sorted(set(found) - allow)
-    missing = sorted(allow - set(found))
-    if extra:
-        print("Unexpected legacy Explorer package imports (not in allowlist):", file=sys.stderr)
-        for path in extra:
+    found = sorted(set(_collect()))
+    if found:
+        print("Legacy semantica.explorer package imports:", file=sys.stderr)
+        for path in found:
             print(f"  {path}", file=sys.stderr)
-    if missing:
-        print("Allowlist entries with no import (stale):", file=sys.stderr)
-        for path in missing:
-            print(f"  {path}", file=sys.stderr)
-    if extra or missing:
         return 1
-    print(f"OK: {len(found)} file(s) match explorer package allowlist.")
+    print("OK: no legacy Explorer package imports.")
     return 0
 
 

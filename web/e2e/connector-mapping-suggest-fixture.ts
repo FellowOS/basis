@@ -63,6 +63,71 @@ export type SuggestApiGroup = {
   }>;
 };
 
+export async function suggestAutoTableMappings(
+  page: Page,
+  kbId: string,
+): Promise<{ groups: SuggestApiGroup[]; skipped: Array<{ reason?: string }> }> {
+  const token = await bearerToken(page);
+  const response = await page.request.post(e2eKbPath(kbId, 'connectors/table-mappings/suggest'), {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    data: {},
+  });
+  const text = await response.text();
+  expect(response.ok(), `suggest failed: ${response.status()} ${text}`).toBeTruthy();
+  const body = JSON.parse(text) as { groups?: SuggestApiGroup[]; skipped?: Array<{ reason?: string }> };
+  return { groups: body.groups ?? [], skipped: body.skipped ?? [] };
+}
+
+export async function putE2eGithubApiKeyConnection(
+  page: Page,
+  kbId: string,
+  connectionName: string,
+  personalAccessToken: string,
+): Promise<void> {
+  const token = await bearerToken(page);
+  const response = await page.request.put(
+    e2eKbPath(kbId, `connectors/connections/github/${connectionName}`),
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      data: {
+        auth_type: 'api_key',
+        connection_config: {},
+        credentials: { personal_access_token: personalAccessToken },
+      },
+    },
+  );
+  expect(response.ok(), `github connection put failed: ${response.status()} ${await response.text()}`).toBeTruthy();
+}
+
+export type ConnectorMappingDraftPayload = SuggestApiGroup['drafts'][number]['draft'] &
+  Record<string, unknown>;
+
+export async function batchCreateTableMappings(
+  page: Page,
+  kbId: string,
+  mappings: ConnectorMappingDraftPayload[],
+  opts?: { runSync?: boolean },
+): Promise<Array<{ id: string }>> {
+  const token = await bearerToken(page);
+  const response = await page.request.post(e2eKbPath(kbId, 'connectors/table-mappings/batch-create'), {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    data: { mappings, run_sync: opts?.runSync ?? false },
+  });
+  const text = await response.text();
+  expect(response.ok(), `batch-create failed: ${response.status()} ${text}`).toBeTruthy();
+  const body = JSON.parse(text) as { mappings?: Array<{ id: string }> };
+  return body.mappings ?? [];
+}
+
 export async function suggestSqlTableMappings(
   page: Page,
   kbId: string,

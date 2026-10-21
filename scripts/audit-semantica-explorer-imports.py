@@ -14,7 +14,6 @@ PATTERN = re.compile(
     r'["\']semantica\.explorer\.routes',
     re.MULTILINE,
 )
-ALLOWLIST_PATH = ROOT / "scripts" / "semantica-explorer-routes.allowlist"
 
 
 def _collect() -> list[str]:
@@ -30,27 +29,13 @@ def _collect() -> list[str]:
 
 
 def main() -> int:
-    found = _collect()
-    allow = set()
-    if ALLOWLIST_PATH.is_file():
-        allow = {
-            line.strip()
-            for line in ALLOWLIST_PATH.read_text(encoding="utf-8").splitlines()
-            if line.strip() and not line.strip().startswith("#")
-        }
-    extra = sorted(set(found) - allow)
-    missing = sorted(allow - set(found))
-    if extra:
-        print("Unexpected legacy Explorer routes imports (not in allowlist):", file=sys.stderr)
-        for path in extra:
+    found = sorted(set(_collect()))
+    if found:
+        print("Legacy semantica.explorer.routes imports:", file=sys.stderr)
+        for path in found:
             print(f"  {path}", file=sys.stderr)
-    if missing:
-        print("Allowlist entries with no import (stale):", file=sys.stderr)
-        for path in missing:
-            print(f"  {path}", file=sys.stderr)
-    if extra or missing:
         return 1
-    print(f"OK: {len(found)} file(s) match allowlist.")
+    print("OK: no legacy Explorer routes imports.")
     return 0
 
 

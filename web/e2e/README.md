@@ -27,7 +27,7 @@ Routes follow `web/src/app.tsx` and KB sidebar [`nav-config.ts`](../src/lib/nav-
 |-----------------|-----|---------|-------|
 | `/` (marketing) | P | `home.spec.ts` | Anchors, register mode |
 | `/login` | S | `shell.spec.ts`, `home.spec.ts` | Fields / register URL |
-| Org SSO on login | P | `org-sso-login.spec.ts` | SSO entry visible |
+| Org SSO on login | P | `org-sso-login.spec.ts` | SSO entry, hint API, `sso_required` policy |
 | `/settings` (org OIDC/SAML) | S | `org-saml-settings.spec.ts` | Panels visible |
 
 ### Product docs
@@ -41,11 +41,11 @@ Routes follow `web/src/app.tsx` and KB sidebar [`nav-config.ts`](../src/lib/nav-
 | Route | E2E | Spec(s) | Notes |
 |-------|-----|---------|-------|
 | `/admin/connectors` | S | `admin-connectors.spec.ts` | Catalog search + nav |
-| `/admin/kbs` | — | | |
+| `/admin/kbs` | S | `platform-admin.spec.ts` | KB table + create |
 | `/admin/users` | S | `platform-admin.spec.ts` | Lists first platform admin (`data/e2e/playwright-admin.json`) |
-| `/admin/models` | — | | |
-| `/admin/audit` | — | | |
-| `/admin/settings` | S | `desktop-product.spec.ts` | Desktop: route blocked |
+| `/admin/models` | S | `platform-admin.spec.ts` | LLM tab + add model |
+| `/admin/audit` | S | `platform-admin.spec.ts` | KB filter + refresh |
+| `/admin/settings` | S | `platform-admin.spec.ts`, `desktop-product.spec.ts` | Login + org SSO (server); desktop redirects away |
 
 ### KB — Explore
 
@@ -69,11 +69,11 @@ Routes follow `web/src/app.tsx` and KB sidebar [`nav-config.ts`](../src/lib/nav-
 | `/kbs/:id/onboarding/data` | D | `connector-mapping-suggest.spec.ts` | SQL hint → suggest → sync |
 | `…/connectors/catalog` | S | `connectors.spec.ts` | Cards, connection → new mapping |
 | `…/connectors/policy` | S | `connectors.spec.ts` | Save allowlist |
-| `…/connectors/mappings` | P | `connectors.spec.ts`, `connector-mapping-suggest.spec.ts` | List; suggest dialog smoke |
+| `…/connectors/mappings` | P | `connectors.spec.ts`, `connector-mapping-suggest.spec.ts` | List; REST suggest (mock); cross-stream dialog |
 | `…/connectors/mappings/new` | S | `connectors.spec.ts` | Prefill from connection |
 | `…/connectors/mappings/:id/edit` | P | `connector-workspace.spec.ts` | Save target class + return to list |
 | `…/connectors/runs` | S | `connector-workspace.spec.ts` | After `check`, run row visible |
-| `…/connectors/oauth/callback` | S | `connector-workspace.spec.ts` | Missing code/state error UI |
+| `…/connectors/oauth/callback` | P | `connector-workspace.spec.ts` | Mock exchange success; missing code/state error |
 | Review writeback diff (connector) | P | `connectors.spec.ts` | From review queue UI |
 | Mapping **Sync now** (list) | P | `connector-workspace.spec.ts` | Inbound sync toast |
 
@@ -126,10 +126,10 @@ Routes follow `web/src/app.tsx` and KB sidebar [`nav-config.ts`](../src/lib/nav-
 |------|----------------|
 | `admin-connectors.spec.ts` | Platform connector catalog admin |
 | `analyze-hub.spec.ts` | Query & reasoning hub + legacy routes |
-| `connector-mapping-suggest.spec.ts` | Data onboarding wizard + mapping suggest API/UI |
-| `connector-workspace.spec.ts` | Runs, mapping edit, sync now, OAuth error callback |
+| `connector-mapping-suggest.spec.ts` | Onboarding wizard; SQL/REST suggest API; auto-expand; mappings dialog |
+| `connector-workspace.spec.ts` | Runs, mapping edit, sync now, OAuth callback (mock exchange + error) |
 | `kb-settings-tabs.spec.ts` | KB settings general/members/search tabs |
-| `platform-admin.spec.ts` | `/admin/users` (reuses `playwright-admin.json`) |
+| `platform-admin.spec.ts` | `/admin/kbs`, `/admin/users`, `/admin/models`, `/admin/audit`, `/admin/settings` |
 | `connectors.spec.ts` | KB connectors zones (catalog/policy/mappings) |
 | `decisions-deep-link.spec.ts` | Decisions list URL state |
 | `desktop-product.spec.ts` | Desktop profile routing |
@@ -153,12 +153,16 @@ Routes follow `web/src/app.tsx` and KB sidebar [`nav-config.ts`](../src/lib/nav-
 | `settings-graph-audit.spec.ts` | KB settings graph audit tab |
 | `shell.spec.ts` | Login form |
 
+## Optional env (live connector)
+
+| Variable | Spec | Purpose |
+|----------|------|---------|
+| `BASIS_E2E_GITHUB_TOKEN` | `connector-mapping-suggest.spec.ts` | Live GitHub PAT: auto-suggest, batch-create, mappings dialog (skipped when unset) |
+
 ## What to add next (suggested)
 
-High-value gaps for UI E2E (still absent or **—** above):
-
-- OAuth callback **success** path (mock exchange)
-- Connector **REST** suggest (no SQL table hint) on mappings panel
-- `/admin/kbs`, `/admin/models`, `/admin/audit` smoke
+- Connector OAuth **exchange** against a real provider (or recorded HTTP fixture on the API process)
+- Org SSO **full browser login** loop (see `scripts/enterprise_sso_smoke.py` for manual/CI smoke)
+- Live GitHub suggest with `run_sync: true` in a gated job (network + rate limits)
 
 When adding specs, extend this table and link the F-* row in `docs/progress.md` if it closes a §3.1 gap.
