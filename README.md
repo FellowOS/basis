@@ -1,89 +1,160 @@
 # Basis
 
-**Ontology-driven agent context service** — give AI agents verifiable enterprise context and governed state mutations across documents, databases, and many business systems.
+**Ontology-driven agent context service** — verifiable enterprise context and governed state mutations for AI agents across documents, databases, and business systems.
 
-Basis is an open-source **ontology-driven agent context service** built on the [Semantica](https://github.com/semantica-agi/semantica) Python SDK: a **FastAPI backend** (`basis`) plus a **React studio** (`@basis/web`). It connects unstructured documents, relational databases (`postgres`/`mysql`), and SaaS apps (via the declarative **BOCP** engine), aligns them through business ontologies into a canonical **evidence ledger**, and exposes high-semantic read/write interfaces to agents via **OpenAPI v1** and **MCP**—with human-in-the-loop review gates for every state mutation.
+Basis is an open-source stack on the [Semantica](https://github.com/semantica-agi/semantica) Python SDK: a **FastAPI** backend (`basis`) and a **React studio** (`@basis/web`). Unstructured files, SQL databases, and SaaS apps (via the declarative **BOCP** connector engine) align to a canonical **evidence ledger**; graph and search are **rebuildable projections**. Agents integrate through **OpenAPI v1** and **MCP**, with human-in-the-loop review for state-changing operations.
 
-[简体中文](./README.zh-CN.md) · [API reference](http://127.0.0.1:5173/swagger) (web dev: `/swagger`; live spec `/openapi/v1.json`; product docs `/docs`)
+[简体中文](./README.zh-CN.md)
 
-[![CI](https://github.com/fellowos/basis/actions/workflows/ci.yml/badge.svg)](https://github.com/fellowos/basis/actions/workflows/ci.yml)
+[![CI](https://github.com/FellowOS/basis/actions/workflows/ci.yml/badge.svg)](https://github.com/FellowOS/basis/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10--3.13-blue.svg)](pyproject.toml)
 [![Node](https://img.shields.io/badge/node-%3E%3D22-green.svg)](web/package.json)
+
+> **Status:** Early development (`0.1.x`). HTTP and MCP surfaces are stabilizing; pin releases for production pilots.
+
+---
+
+## Features
+
+- **Evidence ledger** — canonical statements, entities, provenance; graph and vectors are projections you can rebuild.
+- **Knowledge bases** — document ingest, chunk search (lexical + embeddings), processing jobs, review queue.
+- **Graph & ontology** — Explorer-style graph UI, vocabulary, SHACL, SPARQL, ontology hub workflows.
+- **Connectors (BOCP)** — shipped providers (e.g. postgres, mysql, github, slack); inbound sync and governed writeback.
+- **Agent APIs** — KB-scoped **OpenAPI v1** and **MCP** (`search_chunks`, `find_entities`, connector tools, review ops).
+- **Platform** — users, org SSO (OIDC/SAML optional), KB roles, API tokens, audit.
+
+After `npm run dev`, in-app product docs: **`http://127.0.0.1:5173/docs`** · API explorer: **`/swagger`** · live spec: **`/openapi/v1.json`**.
+
+---
+
+## Architecture
+
+```text
+Basis Web (:5173)  ──proxy /api──▶  Basis API (:8090)  FastAPI
+                                     ├─ interface/  HTTP + MCP wire
+                                     ├─ application/  shared agent operations
+                                     ├─ domain/  ledger, graph, connectors, tenancy
+                                     └─ semantica SDK  parse, graph, LLM, vectors…
+```
+
+Integrations should call **Basis** (`/api/v1/...` and KB MCP), not Semantica directly.
 
 ---
 
 ## Quick start
 
-```bash
-git clone https://github.com/fellowos/basis.git
-cd basis
-cp .env.example .env
-cp web/.env.example web/.env
+### Prerequisites
 
-uv sync --extra dev && uv run basis   # API :8090
-cd web && npm install && npm run dev  # Web  :5173
+- **Python** 3.10–3.13 and [uv](https://docs.astral.sh/uv/)
+- **Node.js** ≥ 22 and npm
+- **Semantica** — this repo expects a sibling checkout (see below)
+
+### 1. Clone repositories
+
+`pyproject.toml` points `semantica` at `../../semantica` (editable). Use a common parent directory:
+
+```bash
+mkdir -p ~/src && cd ~/src
+git clone https://github.com/FellowOS/basis.git
+git clone https://github.com/semantica-agi/semantica.git
+# ~/src/semantica and ~/src/basis
 ```
 
-The first registered user becomes the platform administrator.
+Optional: `cp basis/uv.toml.example basis/uv.toml` if your Semantica path differs.
 
-**Desktop (local, no login):** see [desktop/README.md](desktop/README.md) — `BASIS_DEPLOYMENT_PROFILE=desktop` + `web` `npm run dev:desktop`, or `cd desktop && npm run dev` for Electron. Data defaults to `~/.basis`.
+### 2. Configure and run API
+
+```bash
+cd basis
+cp .env.example .env
+uv sync --extra dev
+uv run basis
+```
+
+API listens on `http://127.0.0.1:8090` by default.
+
+### 3. Run Web
+
+```bash
+cp web/.env.example web/.env
+cd web && npm install && npm run dev
+```
+
+Open `http://127.0.0.1:5173` · register — the **first user** becomes platform admin.
+
+### 4. Smoke-test in the UI
+
+1. Create a knowledge base.
+2. **Sources** — paste or upload a short text file; wait for processing.
+3. Open **Graph** or **Search** for that KB.
+
+### Desktop (optional, no login)
+
+See [desktop/README.md](desktop/README.md): `BASIS_DEPLOYMENT_PROFILE=desktop`, `npm run dev:desktop`, or Electron via `cd desktop && npm run dev`.
+
+---
+
+## Agent integration (MCP)
+
+Create a **KB API token** (KB settings → Tokens). MCP endpoint:
+
+`POST /api/v1/kbs/{kb_id}/mcp` with `Authorization: Bearer <token>`.
+
+Example `tools/call` (after `tools/list`):
+
+```bash
+curl -sS "http://127.0.0.1:8090/api/v1/kbs/YOUR_KB_ID/mcp" \
+  -H "Authorization: Bearer YOUR_KB_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"describe_kb","arguments":{}}}'
+```
+
+Tool names and HTTP paths share the same operation catalog; see live **`/openapi/v1/kb.json`** when the API is running.
 
 ---
 
 ## Why Basis
 
-| | Typical “RAG + Raw Tool” stack | **Basis (Context & State Service)** |
+| | Typical “RAG + raw tools” | **Basis** |
 | --- | --- | --- |
-| **Agent Context (Read)** | Unverified vector chunks & raw SQL tables | **Evidence ledger** & business objects; graph and vectors are **rebuildable projections** |
-| **Agent State (Write)** | Direct, ungoverned API calls or stateless chat | **Governed state mutations** (`remember` & `entity_sync_outbox` review gates) |
-| **Semantics** | Ad-hoc prompt labels | **Ontologies**, mappings, rules, SHACL, SPARQL |
-| **Connectivity** | Custom glue code per system | **BOCP** declarative DB & declarative SaaS connectors, **OpenAPI v1**, and **MCP** |
-| **Operations** | Many services | **Two processes** (API + Web), SQLite by default, PostgreSQL for production |
-
-The **evidence ledger** is canonical; graph and search are rebuildable projections.
-
-After `npm run dev`, product documentation is at `http://127.0.0.1:5173/docs`.
+| **Read path** | Unverified chunks / ad hoc SQL | Ledger + entities; graph/search rebuilt from ledger |
+| **Write path** | Ungoverned API calls | Review gates (`remember`, connector writeback, conflicts) |
+| **Semantics** | Prompt labels | Ontologies, mappings, rules, SHACL, SPARQL |
+| **Connectivity** | Per-system glue | BOCP manifests, OpenAPI v1, MCP |
+| **Ops** | Many services | API + Web; SQLite dev, PostgreSQL for production |
 
 ---
 
-## Configuration
+## Configuration (essentials)
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
 | `BASIS_HOST` / `BASIS_PORT` | `127.0.0.1` / `8090` | API bind |
 | `BASIS_DATA_DIR` | `./data` | SQLite, blobs, graph JSON |
 | `BASIS_DATABASE_URL` | *(unset → SQLite)* | PostgreSQL for production |
-| `BASIS_API_URL` | `http://127.0.0.1:8090` | Vite dev proxy target (`web/.env`) |
-| `VITE_BASIS_API_URL` | *(unset → same-origin)* | Browser fetch base when not using the dev proxy |
-| `BASIS_LEGACY_API_ENABLED` | `0` | Set `1` to allow unversioned `/api/*` (deprecated) |
-| `BASIS_REST_V1_MAX_INFLIGHT` | `64` | Concurrent `/api/v1/*` requests (503 `api_busy`) |
+| `BASIS_API_URL` | `http://127.0.0.1:8090` | Web dev proxy (`web/.env`) |
 
-PostgreSQL: `docker compose -f compose.postgres.yml up -d`, then set `BASIS_DATABASE_URL=postgresql://basis:basis@127.0.0.1:5433/basis` (host port **5433** avoids clashing with a local Postgres on 5432).
+Full list: [.env.example](.env.example).
 
-**Connector integration tests (real Postgres + GitHub):** `cp .env.test.example .env.test`, fill `BASIS_TEST_POSTGRES_URL` and GitHub vars, then `uv run pytest tests/test_sql_connector_integration.py tests/test_connector_primitive_invoke.py -q -m integration`. Postgres compose: `docker compose -f compose.postgres.yml up -d` (host port **5433**). Optional MySQL: `compose.mysql.yml` + `BASIS_TEST_MYSQL_URL` in `.env.test`.
+**PostgreSQL:** `docker compose -f compose.postgres.yml up -d`, then  
+`BASIS_DATABASE_URL=postgresql://basis:basis@127.0.0.1:5433/basis` (host port **5433**).
 
-**Provider bundles (BOCP synthesis):** `uv run python scripts/build_connector_manifests.py --all-batches` writes `basis/domain/integration/providers/*.yaml` (batch 0: postgres/mysql/github; batch 1: slack). Optional upstream paths: see `.env.synthesis.example` (`BASIS_SYNTHESIS_*`).
-
-Migrate SQLite → Postgres: `uv run basis migrate-postgres --database-url postgresql://…`
+**Backups:** `./scripts/backup_basis_data.sh` (SQLite) or `./scripts/backup_basis_postgres.sh` (Postgres).
 
 ---
 
-## Operations
+## Semantica dependency
 
-**Backup (SQLite dev):** `./scripts/backup_basis_data.sh` → `backups/basis-data-*.tar.gz` (`basis.db`, `blobs/`, `graphs/`). Restore: stop API, extract into `BASIS_DATA_DIR`, restart; run `POST /api/v1/kbs/{kb_id}/graph/rebuild` per KB if graphs were omitted.
+`uv sync` installs Basis runtime extras (document parse, embeddings, SHACL, OpenAI-compatible LLM, etc.). Optional groups: `dev`, `heavy`, `explorer`, `saml` — see [pyproject.toml](pyproject.toml).
 
-**Backup (PostgreSQL):** `./scripts/backup_basis_postgres.sh` (needs `pg_dump` + `BASIS_DATABASE_URL`).
+For ML NER in processing jobs:
 
-**Ingest / API limits** (see `.env.example`): `BASIS_UPLOAD_MAX_BYTES`, `BASIS_INGEST_MAX_INFLIGHT` / `BASIS_INGEST_MAX_PENDING`, `BASIS_INGEST_EXTRACT_TIMEOUT_SECONDS`, `BASIS_CHUNK_SEARCH_MAX_LIMIT`, `BASIS_MCP_MAX_INFLIGHT`, `BASIS_MCP_TIMEOUT_SECONDS`, `BASIS_REST_V1_MAX_INFLIGHT`. Set `BASIS_LOG_JSON=1` for JSON logs; responses include `X-Request-ID`.
+```bash
+uv run python -m spacy download en_core_web_sm
+```
 
-**Connectors (frozen set):** webhook, HTTP poll, GitHub raw — configure in KB **Sources**; no git clone / SaaS OAuth yet.
-
-**Realtime:** KB WebSocket `projection_updated` on graph save / rebuild / ingest (single API worker; no Redis pub/sub).
-
-**Smoke checks:** `uv run pytest tests/test_release_gate.py tests/test_m6_smoke.py -q`; manual UI path in CI-equivalent flows (register → upload → process → graph).
-
-**Renamed from Sema:** env `SEMA_*` → `BASIS_*`; DB file `basis.db`; web token key `basis_token`; users re-login after deploy.
+Chat/embeddings in the console need provider API keys only when you use LLM-backed features.
 
 ---
 
@@ -91,10 +162,20 @@ Migrate SQLite → Postgres: `uv run basis migrate-postgres --database-url postg
 
 ```bash
 uv run pytest -q
-cd web && npm test
+uv run lint-imports --config importlinter.ini
+cd web && npm run typecheck && npm test
+cd web && CI=1 npm run test:e2e   # optional; Playwright + API
 ```
 
-See [CONTRIBUTING.md](CONTRIBUTING.md), [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md), [SECURITY.md](SECURITY.md).
+Layout for contributors: `basis/interface`, `application`, `domain`, `infra` — see [AGENTS.md](AGENTS.md).
+
+---
+
+## Community
+
+- **Bug reports & features:** [GitHub Issues](https://github.com/FellowOS/basis/issues)
+- **Security vulnerabilities:** [SECURITY.md](SECURITY.md) (please do not file public issues)
+- **Contributing:** [CONTRIBUTING.md](CONTRIBUTING.md) · [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
 
 ---
 
