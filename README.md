@@ -35,12 +35,19 @@ After `npm run dev`, in-app product docs: **`http://127.0.0.1:5173/docs`** · AP
 
 ## Architecture
 
-```text
-Basis Web (:5173)  ──proxy /api──▶  Basis API (:8090)  FastAPI
-                                     ├─ interface/  HTTP + MCP wire
-                                     ├─ application/  shared agent operations
-                                     ├─ domain/  ledger, graph, connectors, tenancy
-                                     └─ semantica SDK  parse, graph, LLM, vectors…
+```mermaid
+flowchart LR
+  WEB["Basis Web<br/>:5173"]
+  WEB -->|proxy /api| INT
+
+  subgraph API["Basis API :8090 · FastAPI"]
+    direction TB
+    INT["interface/<br/>HTTP + MCP wire"]
+    APP["application/<br/>shared agent operations"]
+    DOM["domain/<br/>ledger, graph, connectors, tenancy"]
+    SDK["semantica SDK<br/>parse, graph, LLM, vectors…"]
+    INT --> APP --> DOM --> SDK
+  end
 ```
 
 Integrations should call **Basis** (`/api/v1/...` and KB MCP), not Semantica directly.

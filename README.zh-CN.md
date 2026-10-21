@@ -33,12 +33,19 @@ Basis 是基于 [Semantica](https://github.com/semantica-agi/semantica) Python S
 
 ## 架构
 
-```text
-Basis Web (:5173)  ──/api──▶  Basis API (:8090)  FastAPI
-                              ├─ interface/  HTTP + MCP
-                              ├─ application/  共用操作层
-                              ├─ domain/  账本、图、连接器、租户
-                              └─ semantica SDK  解析、图、LLM、向量…
+```mermaid
+flowchart LR
+  WEB["Basis Web<br/>:5173"]
+  WEB -->|/api| INT
+
+  subgraph API["Basis API :8090 · FastAPI"]
+    direction TB
+    INT["interface/<br/>HTTP + MCP"]
+    APP["application/<br/>共用操作层"]
+    DOM["domain/<br/>账本、图、连接器、租户"]
+    SDK["semantica SDK<br/>解析、图、LLM、向量…"]
+    INT --> APP --> DOM --> SDK
+  end
 ```
 
 集成方应调用 **Basis**（`/api/v1/...` 与 KB MCP），而非直接依赖 Semantica。
