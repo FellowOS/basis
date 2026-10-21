@@ -1,8 +1,12 @@
 # Basis
 
-**Ontology-driven agent context service** — verifiable enterprise context and governed state mutations for AI agents across documents, databases, and business systems.
+## Let agents understand real business
 
-Basis is an open-source stack on the [Semantica](https://github.com/semantica-agi/semantica) Python SDK: a **FastAPI** backend (`basis`) and a **React studio** (`@basis/web`). Unstructured files, SQL databases, and SaaS apps (via the declarative **BOCP** connector engine) align to a canonical **evidence ledger**; graph and search are **rebuildable projections**. Agents integrate through **OpenAPI v1** and **MCP**, with human-in-the-loop review for state-changing operations.
+**Ontology-driven enterprise business semantics layer.**
+
+Map documents, databases, and SaaS to **entities, types, and governed facts**—the shared meaning layer above raw systems. Expose **OpenAPI v1** and **MCP** on desktop, self-hosted, or cloud; state changes go through review, not silent API calls.
+
+Basis is an open-source stack on the [Semantica](https://github.com/semantica-agi/semantica) Python SDK: a **FastAPI** backend (`basis`) and a **React studio** (`@basis/web`). **Business semantics**—mappings, ontologies, rules, SHACL—sit on a canonical **evidence ledger**; graph and search are **rebuildable projections**.
 
 [简体中文](./README.zh-CN.md)
 
@@ -17,7 +21,8 @@ Basis is an open-source stack on the [Semantica](https://github.com/semantica-ag
 
 ## Features
 
-- **Evidence ledger** — canonical statements, entities, provenance; graph and vectors are projections you can rebuild.
+- **Business semantics** — entities, typed facts, mappings, and ontologies; the unit of meaning is not “another chunk.”
+- **Evidence ledger** — canonical statements, provenance; graph and vectors are projections you can rebuild.
 - **Knowledge bases** — document ingest, chunk search (lexical + embeddings), processing jobs, review queue.
 - **Graph & ontology** — Explorer-style graph UI, vocabulary, SHACL, SPARQL, ontology hub workflows.
 - **Connectors (BOCP)** — shipped providers (e.g. postgres, mysql, github, slack); inbound sync and governed writeback.
@@ -109,7 +114,7 @@ Tool names and HTTP paths share the same operation catalog; see live **`/openapi
 | --- | --- | --- |
 | **Read path** | Unverified chunks / ad hoc SQL | Ledger + entities; graph/search rebuilt from ledger |
 | **Write path** | Ungoverned API calls | Review gates (`remember`, connector writeback, conflicts) |
-| **Semantics** | Prompt labels | Ontologies, mappings, rules, SHACL, SPARQL |
+| **Business semantics** | Prompt labels | Shared entities & types, mappings, ontologies, rules, SHACL, SPARQL |
 | **Connectivity** | Per-system glue | BOCP manifests, OpenAPI v1, MCP |
 | **Ops** | Many services | API + Web; SQLite dev, PostgreSQL for production |
 

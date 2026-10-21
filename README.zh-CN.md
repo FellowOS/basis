@@ -1,8 +1,12 @@
 # Basis
 
-**本体驱动的智能体上下文服务** — 让智能体获得可溯源的企业上下文，并在审批边界内安全改写业务状态。
+## 让智能体读懂真实业务
 
-Basis 是基于 [Semantica](https://github.com/semantica-agi/semantica) Python SDK 的开源底座：**FastAPI 后端**（`basis`）+ **React 工作台**（`@basis/web`）。文档、数据库与 SaaS（声明式 **BOCP** 连接器）对齐到**证据账本**；图与搜索为**可重建投影**。智能体通过 **OpenAPI v1** 与 **MCP** 集成，状态变更经人工审核。
+**本体驱动的企业业务语义层。**
+
+将文档、库表与 SaaS 对齐为**实体、类型与可治理事实**，在源系统之上形成可复用的共享语义，而不是另一套碎片索引。支持桌面、自托管与云端部署，通过 **OpenAPI v1** 与 **MCP** 对外集成；写回业务状态须经审核，而非裸调 API。
+
+Basis 是基于 [Semantica](https://github.com/semantica-agi/semantica) Python SDK 的开源底座：**FastAPI 后端**（`basis`）+ **React 工作台**（`@basis/web`）。**业务语义**（映射、本体、规则、SHACL）落在**证据账本**之上；图与搜索为**可重建投影**。
 
 [English](./README.md)
 
@@ -15,7 +19,8 @@ Basis 是基于 [Semantica](https://github.com/semantica-agi/semantica) Python S
 
 ## 能力概览
 
-- **证据账本** — 陈述、实体、溯源；图与向量为可重建投影。
+- **业务语义** — 实体、类型化事实、映射与本体；语义单元不是「又一坨切片」。
+- **证据账本** — 陈述、溯源；图与向量为可重建投影。
 - **知识库** — 文库 ingest、混合检索、处理任务、审核队列。
 - **图谱与本体** — Explorer 图工作区、词表、SHACL、SPARQL、Ontology Hub。
 - **连接器（BOCP）** — 内置 provider（如 postgres、mysql、github、slack）；入向同步与受控写回。
@@ -105,7 +110,7 @@ curl -sS "http://127.0.0.1:8090/api/v1/kbs/YOUR_KB_ID/mcp" \
 | --- | --- | --- |
 | **读取** | 碎片向量 / 裸 SQL | 账本与实体；图/搜索由账本重建 |
 | **写入** | 无治理写库 | `remember`、连接器写回等审核闸口 |
-| **语义** | 提示词标签 | 本体、映射、规则、SHACL、SPARQL |
+| **业务语义** | 提示词标签 | 共享实体与类型、映射、本体、规则、SHACL、SPARQL |
 | **连接** | 手写胶水 | BOCP、OpenAPI v1、MCP |
 | **运维** | 多组件 | API + Web；开发 SQLite，生产 PostgreSQL |
 
