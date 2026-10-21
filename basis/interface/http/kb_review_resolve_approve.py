@@ -18,7 +18,7 @@ from basis.interface.http.deps import (
     save_graph,
 )
 from basis.interface.http.graph_workspace_route_errors import admin_error_from_graph_workspace_http
-from basis.domain.graph.workspace.governance.decision import maybe_emit_governance_tripped_on_review_approve
+from basis.domain.graph.governance.decision import maybe_emit_governance_tripped_on_review_approve
 from basis.domain.knowledge.store import KnowledgeStore
 from basis.domain.knowledge.services.review_resolve_approve import (
     ReviewApproveDeps,

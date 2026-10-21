@@ -8,9 +8,9 @@ from fastapi import Request
 
 from basis.domain.tenancy.admin.store import AdminStore, User
 from basis.interface.http.deps import graph_workspace_runtime_for
-from basis.domain.graph.workspace.session.guard import require_graph_workspace_session
+from basis.domain.graph.session.guard import require_graph_workspace_session
 from basis.domain.knowledge.services.graph_audit import audit_kb_graph
-from basis.domain.graph.workspace.governance.decision import emit_governance_tripped_for_kb
+from basis.domain.graph.governance.decision import emit_governance_tripped_for_kb
 from basis.domain.knowledge.store import KnowledgeStore
 
 WRITE_METHODS = frozenset({"POST", "PUT", "PATCH", "DELETE"})

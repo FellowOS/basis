@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from basis.domain.errors import AdminError
-from basis.domain.graph.workspace.session.registry import KbGraphWorkspaceRuntime
+from basis.domain.graph.session.registry import KbGraphWorkspaceRuntime
 
 
 def require_graph_workspace_session(runtime: KbGraphWorkspaceRuntime) -> Any:

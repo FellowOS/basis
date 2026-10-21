@@ -1,1 +1,1 @@
-"""Graph subdomain: projection (ContextGraph) and Explorer adapters."""
+"""Graph subdomain: projection (ContextGraph) and interactive session/reads."""

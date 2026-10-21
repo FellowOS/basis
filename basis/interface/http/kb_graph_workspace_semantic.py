@@ -15,7 +15,7 @@ from basis.interface.http.deps import (
     get_kb_for_viewer,
     get_store,
 )
-from basis.domain.graph.workspace.session.guard import require_graph_workspace_session
+from basis.domain.graph.session.guard import require_graph_workspace_session
 
 router = APIRouter(tags=["knowledge-bases"])
 
@@ -35,7 +35,7 @@ Kb Graph Semantic Neighborhood. Projected graph read API (Explorer runtime). Req
     get_kb_for_viewer(request, user, kb_id, store)
     runtime = graph_workspace_runtime_for(request, kb_id)
     session = require_graph_workspace_session(runtime)
-    from basis.domain.graph.workspace.graph.semantic_read import semantic_neighborhood
+    from basis.domain.graph.reads.semantic_read import semantic_neighborhood
 
     return await asyncio.to_thread(
         semantic_neighborhood,
@@ -59,7 +59,7 @@ Kb Graph Distance Matrix. Projected graph read API (Explorer runtime). Requires 
     get_kb_for_viewer(request, user, kb_id, store)
     runtime = graph_workspace_runtime_for(request, kb_id)
     session = require_graph_workspace_session(runtime)
-    from basis.domain.graph.workspace.graph.semantic_read import distance_matrix
+    from basis.domain.graph.reads.semantic_read import distance_matrix
 
     raw = await request.json()
     node_ids = raw.get("node_ids") if isinstance(raw, dict) else None

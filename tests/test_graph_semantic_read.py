@@ -1,6 +1,6 @@
 import pytest
 
-from basis.domain.graph.workspace.graph.semantic_read import semantic_neighborhood
+from basis.domain.graph.reads.semantic_read import semantic_neighborhood
 from basis.domain.tenancy.admin.errors import AdminError
 
 

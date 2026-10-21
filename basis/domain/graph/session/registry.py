@@ -9,7 +9,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from basis.domain.graph.projection.session import GraphSession
-from basis.domain.graph.workspace.session.probe import build_kb_graph_adapter
+from basis.domain.graph.session.probe import build_kb_graph_adapter
 from basis.domain.knowledge.store import KnowledgeStore
 
 

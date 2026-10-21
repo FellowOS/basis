@@ -9,7 +9,7 @@ from fastapi import HTTPException
 
 from basis.application.context import KbCoreContext
 from basis.application.errors import CoreError
-from basis.domain.graph.workspace.graph.read import find_path, list_neighbors, search_nodes
+from basis.domain.graph.reads.read import find_path, list_neighbors, search_nodes
 from basis.application.governance_hooks import record_governance_decision_from_context
 from basis.domain.knowledge.services.remember_service import propose_remember
 from basis.domain.knowledge.services.review_resolve import (

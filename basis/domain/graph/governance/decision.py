@@ -8,8 +8,8 @@ from collections.abc import Callable
 from typing import Any
 
 from basis.domain.errors import AdminError
-from basis.domain.graph.workspace.session.registry import KbGraphWorkspaceRuntime
-from basis.domain.graph.workspace.session.guard import require_graph_workspace_session
+from basis.domain.graph.session.registry import KbGraphWorkspaceRuntime
+from basis.domain.graph.session.guard import require_graph_workspace_session
 from basis.domain.knowledge.services.kb_alerts_emit import emit_governance_tripped_alert
 from basis.domain.knowledge.store import KnowledgeStore
 

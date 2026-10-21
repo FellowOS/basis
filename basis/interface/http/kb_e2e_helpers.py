@@ -11,9 +11,9 @@ from basis.domain.errors import AdminError
 from basis.domain.tenancy.admin.store import AdminStore, User
 from basis.interface.http.deps import get_current_user, get_kb_for_editor, get_knowledge_store, get_store
 from basis.infra.runtime.config import Settings
-from basis.domain.graph.workspace.governance.decision import emit_governance_tripped_for_kb
+from basis.domain.graph.governance.decision import emit_governance_tripped_for_kb
 from basis.domain.ontology.hub.kb_scoped_state import KbOntologyState
-from basis.domain.graph.workspace.session.guard import require_graph_workspace_session
+from basis.domain.graph.session.guard import require_graph_workspace_session
 from basis.domain.knowledge.services.conflict_review import scan_statement_conflicts
 from basis.domain.knowledge.store import KnowledgeStore
 from basis.interface.http.deps import graph_workspace_runtime_for, save_graph

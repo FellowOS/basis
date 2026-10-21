@@ -11,7 +11,7 @@ from basis.domain.graph.projection.snapshot_store import GraphPersistence
 from basis.domain.knowledge.store import KnowledgeStore
 
 if TYPE_CHECKING:
-    from basis.domain.graph.workspace.session.registry import GraphWorkspaceSessionRegistry
+    from basis.domain.graph.session.registry import GraphWorkspaceSessionRegistry
 
 
 @dataclass

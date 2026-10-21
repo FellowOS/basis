@@ -17,7 +17,7 @@ from basis.interface.http.deps import (
 )
 from basis.domain.ontology.hub.kb_scoped_state import KbOntologyState
 from basis.domain.ontology.hub.create_write import create_ontology as create_ontology_domain
-from basis.domain.graph.workspace.session.guard import require_graph_workspace_session
+from basis.domain.graph.session.guard import require_graph_workspace_session
 from basis.domain.ontology.legacy_graph_create import LegacyGraphOntologyService
 from basis.infra.runtime.capabilities import graph_workspace_available
 from basis.domain.knowledge.services.graph_audit import audit_kb_graph

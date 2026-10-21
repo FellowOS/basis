@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Disallow new imports of ``basis.domain.graph.workspace`` compatibility shims.
+"""Disallow new imports of ``basis.domain.graph`` compatibility shims.
 
-Prefer subpackages: ``graph.read``, ``session.registry``, etc.
+Prefer subpackages: ``graph.reads``, ``graph.session.registry``, etc.
 """
 
 from __future__ import annotations
@@ -11,13 +11,14 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-WORKSPACE_ROOT = ROOT / "basis" / "domain" / "graph" / "workspace"
+GRAPH_ROOT = ROOT / "basis" / "domain" / "graph"
 SCAN_DIRS = (ROOT / "basis", ROOT / "tests")
 ALLOWLIST_PATH = ROOT / "scripts" / "graph-workspace-shim-imports.allowlist"
 
 SUBPACKAGES = frozenset(
     {
-        "graph",
+        "projection",
+        "reads",
         "session",
         "governance",
         "temporal",
@@ -27,14 +28,14 @@ SUBPACKAGES = frozenset(
 )
 
 IMPORT_RE = re.compile(
-    r"^\s*(?:from|import)\s+(basis\.domain\.graph\.workspace\.[a-zA-Z0-9_.]+)",
+    r"^\s*(?:from|import)\s+(basis\.domain\.graph\.[a-zA-Z0-9_.]+)",
     re.MULTILINE,
 )
 
 
 def _shim_module_names() -> frozenset[str]:
     names: set[str] = set()
-    for path in WORKSPACE_ROOT.glob("*.py"):
+    for path in GRAPH_ROOT.glob("*.py"):
         if path.name == "__init__.py":
             continue
         head = path.read_text(encoding="utf-8")[:300]
@@ -44,7 +45,7 @@ def _shim_module_names() -> frozenset[str]:
 
 
 def _is_shim_import(target: str) -> bool:
-    prefix = "basis.domain.graph.workspace."
+    prefix = "basis.domain.graph."
     if not target.startswith(prefix):
         return False
     rest = target[len(prefix) :]
@@ -63,9 +64,8 @@ def _collect() -> list[tuple[str, str]]:
             continue
         for path in sorted(base.rglob("*.py")):
             rel = path.relative_to(ROOT)
-            if rel.parts[:4] == ("basis", "domain", "graph", "workspace"):
-                # Shim files and subpackages may reference shims internally.
-                if path.parent == WORKSPACE_ROOT and path.stem in shims:
+            if rel.parts[:3] == ("basis", "domain", "graph") and len(rel.parts) == 4:
+                if path.parent == GRAPH_ROOT and path.stem in shims:
                     continue
             text = path.read_text(encoding="utf-8")
             for match in IMPORT_RE.finditer(text):
@@ -88,7 +88,7 @@ def main() -> int:
     extra = sorted(set(by_file) - allow)
     missing = sorted(allow - set(by_file))
     if extra:
-        print("Imports via graph.workspace compatibility shims (use subpackages):", file=sys.stderr)
+        print("Imports via graph domain compatibility shims (use subpackages):", file=sys.stderr)
         for path in extra:
             targets = sorted({t for p, t in hits if p == path})
             print(f"  {path}", file=sys.stderr)
@@ -100,7 +100,9 @@ def main() -> int:
             print(f"  {path}", file=sys.stderr)
     if extra or missing:
         return 1
-    print(f"OK: no disallowed graph.workspace shim imports ({len(shims := _shim_module_names())} shims tracked).")
+    print(
+        f"OK: no disallowed graph domain shim imports ({len(shims := _shim_module_names())} shims tracked)."
+    )
     return 0
 
 

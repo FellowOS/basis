@@ -8,7 +8,7 @@ pytest.importorskip("semantica")
 
 from fastapi.testclient import TestClient
 
-from basis.domain.graph.workspace.graph.staging import (
+from basis.domain.graph.reads.staging import (
     build_graph_staging_payload,
     staging_session_key,
 )

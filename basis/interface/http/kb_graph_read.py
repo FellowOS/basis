@@ -25,7 +25,7 @@ from basis.application.operation_http import http_response_from_payload
 from basis.application.registry import run
 from basis.infra.runtime.limits import RuntimeLimits
 from basis.domain.knowledge.store import KnowledgeStore
-from basis.domain.graph.workspace.graph.read import get_node, paginate_edges
+from basis.domain.graph.reads.read import get_node, paginate_edges
 from basis.domain.graph.projection.export import graph_snapshot
 from basis.domain.graph.projection.projector import apply_rebuild_to_session
 from basis.domain.knowledge.services.graph_audit import audit_kb_graph

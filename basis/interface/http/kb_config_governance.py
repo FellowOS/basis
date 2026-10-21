@@ -11,7 +11,7 @@ from pydantic import BaseModel, Field
 
 from basis.domain.errors import AdminError
 from basis.domain.tenancy.admin.store import AdminStore, User
-from basis.domain.graph.workspace.session.guard import require_graph_workspace_session
+from basis.domain.graph.session.guard import require_graph_workspace_session
 from basis.domain.knowledge.services.governor import run_governor_pass
 from basis.domain.knowledge.services.governor_graph_dedup import (
     DEFAULT_GOVERNOR_DEDUP_THRESHOLD,

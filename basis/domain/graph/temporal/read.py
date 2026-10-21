@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any
 
-from basis.domain.graph.workspace.graph.diff import parse_query_dt
+from basis.domain.graph.reads.diff import parse_query_dt
 
 
 def get_temporal_bounds(session: Any) -> dict[str, Any]:

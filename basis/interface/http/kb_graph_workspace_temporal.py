@@ -15,7 +15,7 @@ from basis.interface.http.deps import (
     get_knowledge_store,
     get_store,
 )
-from basis.domain.graph.workspace.session.guard import require_graph_workspace_session
+from basis.domain.graph.session.guard import require_graph_workspace_session
 
 router = APIRouter(tags=["knowledge-bases"])
 
@@ -35,7 +35,7 @@ async def kb_temporal_bounds(
     get_kb_for_viewer(request, user, kb_id, store)
     runtime = graph_workspace_runtime_for(request, kb_id)
     session = require_graph_workspace_session(runtime)
-    from basis.domain.graph.workspace.temporal.read import get_temporal_bounds
+    from basis.domain.graph.temporal.read import get_temporal_bounds
 
     base_bounds = await asyncio.to_thread(get_temporal_bounds, session)
     if isinstance(base_bounds, dict):
@@ -65,8 +65,8 @@ async def kb_temporal_snapshot(
     get_kb_for_viewer(request, user, kb_id, store)
     runtime = graph_workspace_runtime_for(request, kb_id)
     session = require_graph_workspace_session(runtime)
-    from basis.domain.graph.workspace.graph.diff import parse_query_dt
-    from basis.domain.graph.workspace.temporal.read import get_temporal_snapshot
+    from basis.domain.graph.reads.diff import parse_query_dt
+    from basis.domain.graph.temporal.read import get_temporal_snapshot
     from basis.domain.graph.projection.projector import build_temporal_graph_from_ledger
 
     payload = await asyncio.to_thread(get_temporal_snapshot, session, at)
@@ -115,7 +115,7 @@ Kb Temporal Diff. Requires KB membership (session) or KB API token with read/wri
     get_kb_for_viewer(request, user, kb_id, store)
     runtime = graph_workspace_runtime_for(request, kb_id)
     session = require_graph_workspace_session(runtime)
-    from basis.domain.graph.workspace.graph.diff import diff_session_at
+    from basis.domain.graph.reads.diff import diff_session_at
     from basis.domain.graph.projection.projector import build_temporal_graph_from_ledger
 
     temporal_session = build_temporal_graph_from_ledger(

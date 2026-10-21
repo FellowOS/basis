@@ -11,7 +11,7 @@ from basis.domain.graph.projection.projection_lifecycle import (
     rebuild_kb_projection as rebuild_kb_projection_bindings,
     save_graph as save_graph_bindings,
 )
-from basis.domain.graph.workspace.session.registry import KbGraphWorkspaceRuntime
+from basis.domain.graph.session.registry import KbGraphWorkspaceRuntime
 from basis.domain.tenancy.admin.store import AdminStore, ApiTokenRecord, User
 from basis.domain.graph.projection.snapshot_store import GraphPersistence
 from basis.domain.graph.projection.session import GraphSession

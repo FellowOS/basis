@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from basis.domain.graph.workspace.reasoning.forward import _parse_fact, infer_with_proof_chains
+from basis.domain.graph.reasoning.forward import _parse_fact, infer_with_proof_chains
 
 
 def _apply_inferred_edges(

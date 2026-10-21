@@ -1,6 +1,6 @@
 import pytest
 
-from basis.domain.graph.workspace.governance.decisions_read import get_causal_chain, list_decisions
+from basis.domain.graph.governance.decisions_read import get_causal_chain, list_decisions
 from basis.domain.tenancy.admin.errors import AdminError
 
 

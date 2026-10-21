@@ -2,9 +2,9 @@
 
 import time
 
-from basis.domain.graph.workspace.session.basis_kb_graph_session import BasisKbGraphSession
-from basis.domain.graph.workspace.session.probe import build_kb_graph_adapter
-from basis.domain.graph.workspace.session.registry import (
+from basis.domain.graph.session.basis_kb_graph_session import BasisKbGraphSession
+from basis.domain.graph.session.probe import build_kb_graph_adapter
+from basis.domain.graph.session.registry import (
     GraphWorkspaceSessionRegistry,
     KbGraphWorkspaceRuntime,
     _adapter_wrapped_graph,

@@ -6,7 +6,7 @@ from collections import deque
 from typing import Any
 
 from basis.domain.errors import AdminError
-from basis.domain.graph.workspace.session.registry import KbGraphWorkspaceRuntime
+from basis.domain.graph.session.registry import KbGraphWorkspaceRuntime
 from basis.domain.graph.projection.export import _iter_edges
 from basis.infra.runtime.limits import GRAPH_NODE_SEARCH_MAX_LIMIT, GRAPH_PAGE_MAX_EDGES
 
@@ -115,7 +115,7 @@ def find_path(
 
 
 def _active_node_ids_at(runtime: KbGraphWorkspaceRuntime, at_iso: str) -> set[str]:
-    from basis.domain.graph.workspace.graph.diff import parse_query_dt
+    from basis.domain.graph.reads.diff import parse_query_dt
 
     at_dt = parse_query_dt(at_iso)
     graph = runtime.basis.graph

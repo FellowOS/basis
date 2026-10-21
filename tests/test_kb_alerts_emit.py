@@ -7,7 +7,7 @@ from basis.infra.runtime.config import Settings
 from unittest.mock import MagicMock, patch
 
 from basis.domain.tenancy.admin.errors import AdminError
-from basis.domain.graph.workspace.governance.decision import (
+from basis.domain.graph.governance.decision import (
     admin_error_triggers_governance_alert,
     maybe_emit_governance_tripped_for_admin_error,
     maybe_emit_governance_tripped_on_review_approve,
@@ -34,7 +34,7 @@ def test_should_emit_governance_tripped_on_review_approve() -> None:
 def test_maybe_emit_governance_tripped_for_admin_error_skips_non_gate() -> None:
     request = MagicMock()
     knowledge = MagicMock()
-    with patch("basis.domain.graph.workspace.governance.decision.emit_governance_tripped_for_kb") as emit:
+    with patch("basis.domain.graph.governance.decision.emit_governance_tripped_for_kb") as emit:
         maybe_emit_governance_tripped_for_admin_error(
             "kb-1",
             knowledge,
@@ -46,7 +46,7 @@ def test_maybe_emit_governance_tripped_for_admin_error_skips_non_gate() -> None:
 def test_maybe_emit_governance_tripped_on_review_approve_skips_review_closed() -> None:
     request = MagicMock()
     knowledge = MagicMock()
-    with patch("basis.domain.graph.workspace.governance.decision.emit_governance_tripped_for_kb") as emit:
+    with patch("basis.domain.graph.governance.decision.emit_governance_tripped_for_kb") as emit:
         maybe_emit_governance_tripped_on_review_approve(
             "kb-1",
             knowledge,

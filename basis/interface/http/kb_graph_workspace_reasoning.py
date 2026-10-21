@@ -17,7 +17,7 @@ from basis.interface.http.deps import (
     rebuild_kb_projection,
     save_graph,
 )
-from basis.domain.graph.workspace.session.guard import require_graph_workspace_session
+from basis.domain.graph.session.guard import require_graph_workspace_session
 from basis.domain.knowledge.services.graph_audit import audit_kb_graph
 from basis.domain.knowledge.store import KnowledgeStore
 
@@ -34,8 +34,8 @@ async def kb_reasoning_run(
     """
 Kb Reasoning Run. KB-local reasoning rules and runs. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
     """
-    from basis.domain.graph.workspace.reasoning.forward import proof_chains_for_run
-    from basis.domain.graph.workspace.reasoning.run import run_reasoning
+    from basis.domain.graph.reasoning.forward import proof_chains_for_run
+    from basis.domain.graph.reasoning.run import run_reasoning
 
     raw = await request.json()
     if not isinstance(raw, dict):

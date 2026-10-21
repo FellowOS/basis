@@ -7,7 +7,7 @@ from typing import Any, Callable
 
 from basis.domain.tenancy.admin.store import AdminStore, KnowledgeBase, User
 
-from basis.domain.graph.workspace.session.registry import KbGraphWorkspaceRuntime
+from basis.domain.graph.session.registry import KbGraphWorkspaceRuntime
 from basis.domain.graph.projection.projection_lifecycle import GraphProjectionBindings
 from basis.domain.knowledge.blob_store import BlobStore
 from basis.domain.knowledge.search import ChunkSearchService

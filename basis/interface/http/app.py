@@ -21,7 +21,7 @@ from basis.infra.runtime.limits import RuntimeLimits
 from basis.infra.runtime.database import get_database
 from basis.domain.graph.projection.snapshot_store import GraphPersistence
 from basis.domain.knowledge.blob_store import BlobStore
-from basis.domain.graph.workspace.session.registry import GraphWorkspaceSessionRegistry
+from basis.domain.graph.session.registry import GraphWorkspaceSessionRegistry
 from basis.domain.knowledge.search import ChunkSearchService
 from basis.domain.knowledge.store import KnowledgeStore
 from basis.domain.tenancy.realtime.hub import GraphWsHub

@@ -18,7 +18,7 @@ from basis.interface.http.deps import (
     get_runtime_limits,
     get_store,
 )
-from basis.domain.graph.workspace.session.guard import require_graph_workspace_session
+from basis.domain.graph.session.guard import require_graph_workspace_session
 from basis.infra.runtime.limits import RuntimeLimits
 from basis.interface.http.kb_graph_workspace_shared import link_prediction_semaphore
 
@@ -37,7 +37,7 @@ Kb Enrich Links. Graph enrichment and governance proposals. Requires KB membersh
     get_kb_for_viewer(request, user, kb_id, store)
     runtime = graph_workspace_runtime_for(request, kb_id)
     session = require_graph_workspace_session(runtime)
-    from basis.domain.graph.workspace.governance.enrich_read import predict_links
+    from basis.domain.graph.governance.enrich_read import predict_links
 
     raw = await request.json()
     if not isinstance(raw, dict):
@@ -72,7 +72,7 @@ Kb Enrich Dedup. Graph enrichment and governance proposals. Requires KB membersh
     get_kb_for_viewer(request, user, kb_id, store)
     runtime = graph_workspace_runtime_for(request, kb_id)
     session = require_graph_workspace_session(runtime)
-    from basis.domain.graph.workspace.governance.enrich_read import detect_duplicates
+    from basis.domain.graph.governance.enrich_read import detect_duplicates
 
     raw = await request.json()
     threshold = float(raw.get("threshold", 0.8)) if isinstance(raw, dict) else 0.8
@@ -109,7 +109,7 @@ Kb Provenance Lineage. Requires KB membership (session) or KB API token with rea
     get_kb_for_viewer(request, user, kb_id, store)
     runtime = graph_workspace_runtime_for(request, kb_id)
     session = require_graph_workspace_session(runtime)
-    from basis.domain.graph.workspace.governance.provenance_read import get_provenance_lineage
+    from basis.domain.graph.governance.provenance_read import get_provenance_lineage
 
     return await asyncio.to_thread(get_provenance_lineage, session, node_id)
 
@@ -129,7 +129,7 @@ Kb Provenance Report. Requires KB membership (session) or KB API token with read
     get_kb_for_viewer(request, user, kb_id, store)
     runtime = graph_workspace_runtime_for(request, kb_id)
     session = require_graph_workspace_session(runtime)
-    from basis.domain.graph.workspace.governance.provenance_read import export_provenance_report
+    from basis.domain.graph.governance.provenance_read import export_provenance_report
 
     body, media_type, disposition = await asyncio.to_thread(
         export_provenance_report,

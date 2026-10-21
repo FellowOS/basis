@@ -5,7 +5,7 @@ from __future__ import annotations
 import hashlib
 from typing import Any
 
-from basis.domain.graph.workspace.graph.diff import diff_session_at
+from basis.domain.graph.reads.diff import diff_session_at
 
 
 def staging_session_key(kb_id: str, from_time: str, to_time: str) -> str:

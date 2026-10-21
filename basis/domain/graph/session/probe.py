@@ -8,6 +8,6 @@ from basis.domain.graph.projection.session import GraphSession
 
 
 def build_kb_graph_adapter(basis_session: GraphSession) -> Any:
-    from basis.domain.graph.workspace.session.basis_kb_graph_session import BasisKbGraphSession
+    from basis.domain.graph.session.basis_kb_graph_session import BasisKbGraphSession
 
     return BasisKbGraphSession(basis_session)

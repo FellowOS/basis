@@ -1,4 +1,4 @@
-from basis.domain.graph.workspace.graph.diff import diff_graph_states
+from basis.domain.graph.reads.diff import diff_graph_states
 
 
 def test_diff_graph_states_nodes_and_edges() -> None:

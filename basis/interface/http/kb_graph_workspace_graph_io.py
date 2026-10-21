@@ -17,7 +17,7 @@ from basis.interface.http.deps import (
     get_kb_for_viewer,
     get_store,
 )
-from basis.domain.graph.workspace.session.guard import require_graph_workspace_session
+from basis.domain.graph.session.guard import require_graph_workspace_session
 from basis.domain.knowledge.services.graph_audit import audit_kb_graph
 
 router = APIRouter(tags=["knowledge-bases"])
@@ -53,7 +53,7 @@ Kb Export Graph. Requires KB membership (session) or KB API token with read/writ
     get_kb_for_viewer(request, user, kb_id, store)
     runtime = graph_workspace_runtime_for(request, kb_id)
     session = require_graph_workspace_session(runtime)
-    from basis.domain.graph.workspace.graph.export_read import export_graph
+    from basis.domain.graph.reads.export_read import export_graph
 
     raw = await request.json()
     fmt = raw.get("format", "json") if isinstance(raw, dict) else "json"

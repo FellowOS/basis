@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from basis.domain.graph.workspace.governance.decision import record_governance_decision_for_kb
+from basis.domain.graph.governance.decision import record_governance_decision_for_kb
 from basis.application.context import KbCoreContext
 
 

@@ -36,7 +36,7 @@ from basis.domain.ontology.hub.hub_models import (
     ProposalRequest,
     VersionCompareRequest,
 )
-from basis.domain.graph.workspace.governance.decision import (
+from basis.domain.graph.governance.decision import (
     maybe_emit_governance_tripped_for_admin_error,
 )
 from basis.domain.errors import AdminError

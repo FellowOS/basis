@@ -16,7 +16,7 @@ from basis.interface.http.deps import (
     get_knowledge_store,
     get_store,
 )
-from basis.domain.graph.workspace.session.guard import require_graph_workspace_session
+from basis.domain.graph.session.guard import require_graph_workspace_session
 from basis.domain.knowledge.store import KnowledgeStore
 from basis.interface.http.kb_review import (
     CreateEntityMergeReviewRequest,
@@ -45,7 +45,7 @@ async def kb_graph_diff(
     get_kb_for_viewer(request, user, kb_id, store)
     runtime = graph_workspace_runtime_for(request, kb_id)
     session = require_graph_workspace_session(runtime)
-    from basis.domain.graph.workspace.graph.diff import diff_session_at
+    from basis.domain.graph.reads.diff import diff_session_at
     from basis.domain.graph.projection.projector import build_temporal_graph_from_ledger
 
     temporal_session = build_temporal_graph_from_ledger(

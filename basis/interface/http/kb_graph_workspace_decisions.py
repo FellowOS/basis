@@ -15,7 +15,7 @@ from basis.interface.http.deps import (
     get_runtime_limits,
     get_store,
 )
-from basis.domain.graph.workspace.session.guard import require_graph_workspace_session
+from basis.domain.graph.session.guard import require_graph_workspace_session
 from basis.infra.runtime.limits import RuntimeLimits
 
 router = APIRouter(tags=["knowledge-bases"])
@@ -37,7 +37,7 @@ Kb List Decisions. Requires KB membership (session) or KB API token with read/wr
     get_kb_for_viewer(request, user, kb_id, store)
     runtime = graph_workspace_runtime_for(request, kb_id)
     session = require_graph_workspace_session(runtime)
-    from basis.domain.graph.workspace.governance.decisions_read import list_decisions
+    from basis.domain.graph.governance.decisions_read import list_decisions
 
     capped = min(max(1, limit), limits.graph_workspace_decisions_max_limit)
     return await asyncio.to_thread(
@@ -63,7 +63,7 @@ Kb Decision Chain. Requires KB membership (session) or KB API token with read/wr
     get_kb_for_viewer(request, user, kb_id, store)
     runtime = graph_workspace_runtime_for(request, kb_id)
     session = require_graph_workspace_session(runtime)
-    from basis.domain.graph.workspace.governance.decisions_read import get_causal_chain
+    from basis.domain.graph.governance.decisions_read import get_causal_chain
 
     return await asyncio.to_thread(get_causal_chain, session, decision_id)
 

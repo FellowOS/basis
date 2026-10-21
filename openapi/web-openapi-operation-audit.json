@@ -530,6 +530,18 @@
     },
     {
       "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/connectors/table-mappings/batch-create",
+      "operationId": "batch_create_kb_table_mappings_api_v1_kbs__kb_id__connectors_table_mappings_batch_create_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/connectors/table-mappings/suggest",
+      "operationId": "suggest_kb_table_mappings_api_v1_kbs__kb_id__connectors_table_mappings_suggest_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema-kb.d.ts",
       "kind": "dynamic",
       "path": "/api/v1/kbs/{kb_id}/connectors/table-mappings/{mapping_id}",
       "operationId": "get_kb_table_mapping_api_v1_kbs__kb_id__connectors_table_mappings__mapping_id__get"
@@ -1547,6 +1559,18 @@
       "kind": "literal",
       "path": "/api/v1/kbs/{kb_id}/connectors/table-mappings",
       "operationId": "list_kb_table_mappings_api_v1_kbs__kb_id__connectors_table_mappings_get"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/connectors/table-mappings/batch-create",
+      "operationId": "batch_create_kb_table_mappings_api_v1_kbs__kb_id__connectors_table_mappings_batch_create_post"
+    },
+    {
+      "file": "web/src/lib/basis-openapi/schema.d.ts",
+      "kind": "literal",
+      "path": "/api/v1/kbs/{kb_id}/connectors/table-mappings/suggest",
+      "operationId": "suggest_kb_table_mappings_api_v1_kbs__kb_id__connectors_table_mappings_suggest_post"
     },
     {
       "file": "web/src/lib/basis-openapi/schema.d.ts",
