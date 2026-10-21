@@ -22,13 +22,23 @@ HTTP routes: `api/http/routes/v1/platform/*`, `api/http/routes/v1/kb/*` ([KB agg
 | Layer | Path | Role |
 | --- | --- | --- |
 | API | `basis/api/http/`, `basis/api/mcp/` | FastAPI routes, middleware, MCP JSON-RPC — thin adapters |
-| Application | `basis/application/` | KB operations (`KbCoreContext`, `registry` + `registry_catalog`); OpenAPI export |
+| Application | `basis/application/` | KB operations (`KbCoreContext`, `registry` + `registry_catalog`); `openapi/` export; `mcp/` tool schemas |
 | Core | `basis/core/*/` | Ledger, pipeline, projection, Explorer, connectors |
 | Control | `basis/control/*/` | Admin store, auth, realtime, model catalog |
 | Runtime | `basis/runtime/` | Config, database pool, limits, capabilities, observability |
 | Tooling | `basis/tooling/` | Migrations, test helpers, Alembic storage schema |
 
 Entry: `basis/cli.py` → Uvicorn `basis.api.http.app:create_app`.
+
+### `basis/application` layout
+
+| Location | Purpose |
+| --- | --- |
+| `context.py`, `registry.py`, `registry_catalog.py`, `operations.py` | `KbCoreContext`, MCP/OpenAPI operation dispatch |
+| `ops_connectors.py`, `review_deps.py`, `governance_hooks.py` | Connector + review operation helpers |
+| `http.py`, `models.py`, `errors.py` | HTTP payload mapping and shared DTOs |
+| `openapi/` | `v1_export.py` (live export), `spec.py` (ephemeral app for tests/CI) |
+| `mcp/` | `openapi.py` (tool `inputSchema` from OpenAPI), `connector_tools.py`, `format.py` |
 
 ## Core packages
 
@@ -144,4 +154,4 @@ Canonical admin SQL lives under `basis/control/admin/persistence/` (caller holds
 
 - SQL migrations ship with `basis.tooling.db` (`migrations/*.sql`); BOCP provider YAML and synthesis batch assets ship with `basis.core.connectors` / `basis.core.connectors.synthesis` (`pyproject.toml` `package-data`).
 - Alembic for `basis.tooling.db` storage baseline: repo-root `alembic.ini` → `basis/tooling/db/alembic` (override URL via `BASIS_DATABASE_URL`).
-- Normative OpenAPI export: `basis.application.openapi_v1_export` / `openapi_spec`; committed snapshots under `openapi/`; web types via `npm run gen:openapi-types`.
+- Normative OpenAPI export: `basis.application.openapi.v1_export` / `openapi.spec`; committed snapshots under `openapi/`; web types via `npm run gen:openapi-types`.

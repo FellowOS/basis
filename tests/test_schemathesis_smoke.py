@@ -4,7 +4,7 @@ import schemathesis
 from fastapi.testclient import TestClient
 
 from basis.api.http.app import create_app
-from basis.application.openapi_spec import openapi_v1_full
+from basis.application.openapi.spec import openapi_v1_full
 from basis.runtime.config import Settings
 
 

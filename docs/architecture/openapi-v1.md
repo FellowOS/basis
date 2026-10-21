@@ -33,7 +33,7 @@ Implementation today leads the contract (`FastAPI` routes → auto `/openapi.jso
 
 **Current order (implemented):**
 
-1. **Normative export** — live `GET /openapi/v1.json` from `app.openapi()` + handler docstrings (`basis/integration/openapi_v1_export.py`); snapshots [`openapi/basis-v1*.json`](../../openapi/basis-v1.json) for CI and web typegen.
+1. **Normative export** — live `GET /openapi/v1.json` from `app.openapi()` + handler docstrings (`basis/application/openapi/v1_export.py`); snapshots [`openapi/basis-v1*.json`](../../openapi/basis-v1.json) for CI and web typegen.
 2. **`basis/integration/`** — operations shared by HTTP and MCP (`KbCoreContext`, registry).
 3. **HTTP handlers** — thin wrappers calling integration; new public ops need docstrings + OpenAPI export update.
 4. **`web/`** — `web/src/lib/basis-openapi/` types from JSON snapshots.
@@ -46,7 +46,7 @@ New integration-facing operations should appear in the KB slice export and (when
 | --- | --- | --- |
 | **Served documents** | `GET /openapi/v1.json`, `GET /openapi/v1/platform.json`, `GET /openapi/v1/kb.json` | Live `app.openapi()` export (+ Basis extensions) |
 | **JSON snapshots** (optional) | [`openapi/basis-v1.json`](../../openapi/basis-v1.json), platform/kb slices | CI drift check + `web` `gen:openapi-types` |
-| **MCP tool schemas** | Derived from KB OpenAPI slice via `basis/integration/mcp_openapi.py` (`MCP_TOOL_OPERATIONS`) | Path/query params + JSON body merged into one flat `inputSchema`; `describe_kb` → `GET .../kbs/{kb_id}` (empty args; `kb_id` from MCP session) |
+| **MCP tool schemas** | Derived from KB OpenAPI slice via `basis/application/mcp/openapi.py` (`MCP_TOOL_OPERATIONS`) | Path/query params + JSON body merged into one flat `inputSchema`; `describe_kb` → `GET .../kbs/{kb_id}` (empty args; `kb_id` from MCP session) |
 | **Error codes** | `components.schemas.ApiError` + enum aligned with `web/src/i18n/locales/en/apiErrorCodes.ts` | |
 
 **Baseline:** OpenAPI is **generated from code** (`app.openapi()` + export helpers). Handler docstrings → `description`. Snapshots: `uv run python scripts/generate-openapi-v1.py` → `openapi/*.json` (CI drift + web typegen; fails if any operation lacks `description`). One-off backfill: `uv run python scripts/backfill_route_docstrings.py` (reads `openapi/basis-v1.json`).
@@ -172,7 +172,7 @@ Ingest and processing jobs stay on OpenAPI (`POST .../documents`, `GET .../proce
 
 **Parity principle:** console-capable KB read/write flows that agents need should land in core + MCP. Full review approve/reject (`approve_review_item` / `reject_review_item`) call the same domain services as HTTP; statement-only tool names remain for backward compatibility.
 
-Paths above match the KB OpenAPI slice (`openapi/basis-v1-kb.json` export). Implementation map: `MCP_TOOL_OPERATIONS` in `basis/integration/mcp_openapi.py` (method + path per tool).
+Paths above match the KB OpenAPI slice (`openapi/basis-v1-kb.json` export). Implementation map: `MCP_TOOL_OPERATIONS` in `basis/application/mcp/openapi.py` (method + path per tool).
 
 **Rule:** MCP `inputSchema` = merged OpenAPI **parameters** (path/query, with aliases such as `q` → `query`) **plus** `requestBody` JSON schema when present. Example: `approve_statement_remember_review` exposes flat `{ item_id, rationale? }` from `.../items/{item_id}/approve` + `ResolveReviewRequest`; `describe_kb` maps to `GET .../kbs/{kb_id}` (no tool args). HTTP approve review returns `ApproveReviewItemResponse` (`item`, optional `decision_id`, plus merge/import fields). MCP response shapes are validated in `basis/integration/models.py`, not re-exported as MCP output schemas.
 

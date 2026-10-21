@@ -7,7 +7,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
-from basis.application.openapi_v1_export import (
+from basis.application.openapi.v1_export import (
     export_openapi_v1_document,
     export_openapi_v1_kb,
     export_openapi_v1_platform,

@@ -80,7 +80,7 @@ basis/core/explorer/* + api/http/routes/v1/kb/*
 | `audit-compat-shim-imports.py` | 禁止已删 platform/transport 兼容 re-export |
 | `audit-kb-http-aggregators.py` | KB 聚合模块不得定义 `@router` handler |
 | `audit-legacy-package-imports.py` | 禁止 `basis.transport` / `basis.domain` 等旧包名 |
-| `lint-imports` (`importlinter.ini`) | `core` ↛ `api` / `application` / `control`；`application.mcp_openapi` ↛ `api` |
+| `lint-imports` (`importlinter.ini`) | `core` ↛ `api` / `application` / `control`；`application.mcp.openapi` ↛ `api` |
 
 ---
 

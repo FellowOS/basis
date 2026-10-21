@@ -5,7 +5,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 
-from basis.application.openapi_v1_export import (
+from basis.application.openapi.v1_export import (
     cached_openapi_v1_full,
     cached_openapi_v1_kb,
     cached_openapi_v1_platform,

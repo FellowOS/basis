@@ -6,7 +6,7 @@ import weakref
 from functools import lru_cache
 from typing import Any
 
-from basis.application.openapi_v1_export import cached_openapi_v1_kb
+from basis.application.openapi.v1_export import cached_openapi_v1_kb
 
 _SKIP_PARAMS = frozenset({"kb_id", "authorization"})
 
@@ -161,7 +161,7 @@ def _kb_openapi_spec() -> dict[str, Any]:
     if app is None:
         raise RuntimeError(
             "MCP OpenAPI schemas require bind_openapi_app(app) on the FastAPI app "
-            "(tests: use bind_openapi_app from integration.openapi_spec._spec_app())."
+            "(tests: bind_openapi_app via basis.application.openapi.spec._spec_app())."
         )
     return cached_openapi_v1_kb(app)
 

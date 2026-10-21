@@ -195,7 +195,7 @@ def create_app(app_settings: Settings | None = None) -> FastAPI:
     )
     app.include_router(openapi_v1_routes.router)
 
-    from basis.application.mcp_openapi import bind_openapi_app
+    from basis.application.mcp.openapi import bind_openapi_app
 
     bind_openapi_app(app)
 
