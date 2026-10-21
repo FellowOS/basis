@@ -1,4 +1,4 @@
-"""Explorer semantic graph analytics."""
+"""Workspace graph semantic graph analytics."""
 
 from __future__ import annotations
 
@@ -30,7 +30,7 @@ async def kb_graph_semantic_neighborhood(
     store: AdminStore = Depends(get_store),
 ) -> Any:
     """
-Graph Semantic Neighborhood. Projected graph read API (Explorer runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+Graph Semantic Neighborhood. Projected graph read API (graph runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
     get_workspace_for_viewer(request, user, workspace_id, store)
     runtime = kb_graph_runtime_for(request, workspace_id)
@@ -54,7 +54,7 @@ async def kb_graph_distance_matrix(
     store: AdminStore = Depends(get_store),
 ) -> Any:
     """
-Graph Distance Matrix. Projected graph read API (Explorer runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+Graph Distance Matrix. Projected graph read API (graph runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
     get_workspace_for_viewer(request, user, workspace_id, store)
     runtime = kb_graph_runtime_for(request, workspace_id)

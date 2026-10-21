@@ -616,7 +616,7 @@ export interface paths {
         };
         /**
          * Get Kb Capabilities
-         * @description Feature flags for Explorer, ingest, mappings, and diagnostics for this workspace and role.
+         * @description Feature flags for graph runtime, ingest, mappings, and diagnostics for this workspace and role.
          */
         get: operations["get_kb_capabilities_api_v1_workspaces__workspace_id__capabilities_get"];
         put?: never;
@@ -1371,7 +1371,7 @@ export interface paths {
          * Kb Graph Diff
          * @description Whole-graph diff between two instants (F-DIFF-01).
          *
-         *     Compares Explorer projection snapshots at `from` and `to` (ISO instants). Response includes
+         *     Compares graph projection snapshots at `from` and `to` (ISO instants). Response includes
          *     `added_nodes`, `removed_nodes`, `modified_nodes`, `added_edges`, `removed_edges`, `summary`,
          *     and echo `from_time` / `to_time`. Node/edge membership follows ledger `recorded_at` → projected
          *     `valid_from` and `invalidated_at` → projected `valid_until` (F-TIM-01). Console graph preview dims unchanged elements and highlights
@@ -1397,7 +1397,7 @@ export interface paths {
         put?: never;
         /**
          * Kb Graph Distance Matrix
-         * @description Graph Distance Matrix. Projected graph read API (Explorer runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+         * @description Graph Distance Matrix. Projected graph read API (graph runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
         post: operations["kb_graph_distance_matrix_api_v1_workspaces__workspace_id__graph_distance_matrix_post"];
         delete?: never;
@@ -1415,7 +1415,7 @@ export interface paths {
         };
         /**
          * Graph Edges Route
-         * @description Graph Edges Route. Projected graph read API (Explorer runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+         * @description Graph Edges Route. Projected graph read API (graph runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
         get: operations["graph_edges_route_api_v1_workspaces__workspace_id__graph_edges_get"];
         put?: never;
@@ -1435,7 +1435,7 @@ export interface paths {
         };
         /**
          * Graph Nodes Route
-         * @description Graph Nodes Route. Projected graph read API (Explorer runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+         * @description Graph Nodes Route. Projected graph read API (graph runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
         get: operations["graph_nodes_route_api_v1_workspaces__workspace_id__graph_nodes_get"];
         put?: never;
@@ -1455,7 +1455,7 @@ export interface paths {
         };
         /**
          * Graph Node Route
-         * @description Graph Node Route. Projected graph read API (Explorer runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+         * @description Graph Node Route. Projected graph read API (graph runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
         get: operations["graph_node_route_api_v1_workspaces__workspace_id__graph_nodes__node_id__get"];
         put?: never;
@@ -1475,7 +1475,7 @@ export interface paths {
         };
         /**
          * Graph Neighbors Route
-         * @description Graph Neighbors Route. Projected graph read API (Explorer runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+         * @description Graph Neighbors Route. Projected graph read API (graph runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
         get: operations["graph_neighbors_route_api_v1_workspaces__workspace_id__graph_nodes__node_id__neighbors_get"];
         put?: never;
@@ -1495,7 +1495,7 @@ export interface paths {
         };
         /**
          * Graph Path Route
-         * @description Graph Path Route. Projected graph read API (Explorer runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+         * @description Graph Path Route. Projected graph read API (graph runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
         get: operations["graph_path_route_api_v1_workspaces__workspace_id__graph_path_get"];
         put?: never;
@@ -1515,7 +1515,7 @@ export interface paths {
         };
         /**
          * Graph Projection Status
-         * @description Graph Projection Status. Projected graph read API (Explorer runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+         * @description Graph Projection Status. Projected graph read API (graph runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
         get: operations["graph_projection_status_api_v1_workspaces__workspace_id__graph_projection_get"];
         put?: never;
@@ -1537,7 +1537,7 @@ export interface paths {
         put?: never;
         /**
          * Rebuild Graph
-         * @description Rebuild Graph. Projected graph read API (Explorer runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+         * @description Rebuild Graph. Projected graph read API (graph runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
         post: operations["rebuild_graph_api_v1_workspaces__workspace_id__graph_rebuild_post"];
         delete?: never;
@@ -1557,7 +1557,7 @@ export interface paths {
         put?: never;
         /**
          * Resolve Graph Node Labels
-         * @description Resolve Graph Node Labels. Projected graph read API (Explorer runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+         * @description Resolve Graph Node Labels. Projected graph read API (graph runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
         post: operations["resolve_graph_node_labels_api_v1_workspaces__workspace_id__graph_resolve_labels_post"];
         delete?: never;
@@ -1577,7 +1577,7 @@ export interface paths {
         put?: never;
         /**
          * Graph Search Route
-         * @description Graph Search Route. Projected graph read API (Explorer runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+         * @description Graph Search Route. Projected graph read API (graph runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
         post: operations["graph_search_route_api_v1_workspaces__workspace_id__graph_search_post"];
         delete?: never;
@@ -1595,7 +1595,7 @@ export interface paths {
         };
         /**
          * Kb Graph Semantic Neighborhood
-         * @description Graph Semantic Neighborhood. Projected graph read API (Explorer runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+         * @description Graph Semantic Neighborhood. Projected graph read API (graph runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
         get: operations["kb_graph_semantic_neighborhood_api_v1_workspaces__workspace_id__graph_semantic_neighborhood_get"];
         put?: never;
@@ -1615,7 +1615,7 @@ export interface paths {
         };
         /**
          * Graph Snapshot Route
-         * @description Graph Snapshot Route. Projected graph read API (Explorer runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+         * @description Graph Snapshot Route. Projected graph read API (graph runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
         get: operations["graph_snapshot_route_api_v1_workspaces__workspace_id__graph_snapshot_get"];
         put?: never;
@@ -1703,7 +1703,7 @@ export interface paths {
         };
         /**
          * Graph Stats
-         * @description Graph Stats. Projected graph read API (Explorer runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+         * @description Graph Stats. Projected graph read API (graph runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
         get: operations["graph_stats_api_v1_workspaces__workspace_id__graph_stats_get"];
         put?: never;
@@ -2113,7 +2113,7 @@ export interface paths {
         put?: never;
         /**
          * Create Ontology
-         * @description Create Ontology. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+         * @description Create Ontology. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
         post: operations["create_ontology_api_v1_workspaces__workspace_id__ontology_post"];
         delete?: never;
@@ -2131,18 +2131,18 @@ export interface paths {
         };
         /**
          * Kb List Alignments
-         * @description List Alignments. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+         * @description List Alignments. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
         get: operations["kb_list_alignments_api_v1_workspaces__workspace_id__ontology_alignments_get"];
         put?: never;
         /**
          * Kb Upsert Alignment
-         * @description Upsert Alignment. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+         * @description Upsert Alignment. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
         post: operations["kb_upsert_alignment_api_v1_workspaces__workspace_id__ontology_alignments_post"];
         /**
          * Kb Delete Alignment
-         * @description Delete alignment. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+         * @description Delete alignment. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
         delete: operations["kb_delete_alignment_api_v1_workspaces__workspace_id__ontology_alignments_delete"];
         options?: never;
@@ -2161,7 +2161,7 @@ export interface paths {
         put?: never;
         /**
          * Kb Ont 3 Create Ontology
-         * @description Create Ontology. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+         * @description Create Ontology. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
         post: operations["_kb_ont_3_create_ontology_api_v1_workspaces__workspace_id__ontology_create_post"];
         delete?: never;
@@ -2185,7 +2185,7 @@ export interface paths {
         head?: never;
         /**
          * Kb Ont 17 Save Draft
-         * @description Save Draft. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+         * @description Save Draft. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
         patch: operations["_kb_ont_17_save_draft_api_v1_workspaces__workspace_id__ontology_draft_patch"];
         trace?: never;
@@ -2199,7 +2199,7 @@ export interface paths {
         };
         /**
          * Kb Ont 19 Get Draft
-         * @description Get Draft. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+         * @description Get Draft. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
         get: operations["_kb_ont_19_get_draft_api_v1_workspaces__workspace_id__ontology_draft__draft_id__get"];
         put?: never;
@@ -2219,7 +2219,7 @@ export interface paths {
         };
         /**
          * Kb Ont 18 List Drafts
-         * @description List Drafts. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+         * @description List Drafts. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
         get: operations["_kb_ont_18_list_drafts_api_v1_workspaces__workspace_id__ontology_drafts__ontology_uri__get"];
         put?: never;
@@ -2239,7 +2239,7 @@ export interface paths {
         };
         /**
          * Kb Ont 6 Get Entity Detail
-         * @description Get Entity Detail. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+         * @description Get Entity Detail. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
         get: operations["_kb_ont_6_get_entity_detail_api_v1_workspaces__workspace_id__ontology_entity__entity_uri__get"];
         put?: never;
@@ -2259,7 +2259,7 @@ export interface paths {
         };
         /**
          * Kb Ont 5 Get Ontology Graph
-         * @description Get Ontology Graph. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+         * @description Get Ontology Graph. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
         get: operations["_kb_ont_5_get_ontology_graph_api_v1_workspaces__workspace_id__ontology_graph_get"];
         put?: never;
@@ -2279,7 +2279,7 @@ export interface paths {
         };
         /**
          * Kb Ont 10 Ontology Health
-         * @description Ontology Health. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+         * @description Ontology Health. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
         get: operations["_kb_ont_10_ontology_health_api_v1_workspaces__workspace_id__ontology_health_get"];
         put?: never;
@@ -2301,7 +2301,7 @@ export interface paths {
         put?: never;
         /**
          * Kb Ont 2 Load Ontology
-         * @description Load Ontology. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+         * @description Load Ontology. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
         post: operations["_kb_ont_2_load_ontology_api_v1_workspaces__workspace_id__ontology_load_post"];
         delete?: never;
@@ -2321,7 +2321,7 @@ export interface paths {
         put?: never;
         /**
          * Kb Ont 1 Preview Ontology
-         * @description Preview Ontology. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+         * @description Preview Ontology. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
         post: operations["_kb_ont_1_preview_ontology_api_v1_workspaces__workspace_id__ontology_preview_post"];
         delete?: never;
@@ -2339,7 +2339,7 @@ export interface paths {
         };
         /**
          * Kb Ont 21 List Proposals
-         * @description List Proposals. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+         * @description List Proposals. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
         get: operations["_kb_ont_21_list_proposals_api_v1_workspaces__workspace_id__ontology_proposals_get"];
         put?: never;
@@ -2359,7 +2359,7 @@ export interface paths {
         };
         /**
          * Kb Ont 22 Get Proposal
-         * @description Get Proposal. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+         * @description Get Proposal. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
         get: operations["_kb_ont_22_get_proposal_api_v1_workspaces__workspace_id__ontology_proposals__proposal_id__get"];
         put?: never;
@@ -2381,7 +2381,7 @@ export interface paths {
         put?: never;
         /**
          * Kb Ont 23 Approve Proposal
-         * @description Approve Proposal. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+         * @description Approve Proposal. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
         post: operations["_kb_ont_23_approve_proposal_api_v1_workspaces__workspace_id__ontology_proposals__proposal_id__approve_post"];
         delete?: never;
@@ -2401,7 +2401,7 @@ export interface paths {
         put?: never;
         /**
          * Kb Ont 26 Add Comment
-         * @description Add Comment. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+         * @description Add Comment. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
         post: operations["_kb_ont_26_add_comment_api_v1_workspaces__workspace_id__ontology_proposals__proposal_id__comment_post"];
         delete?: never;
@@ -2421,7 +2421,7 @@ export interface paths {
         put?: never;
         /**
          * Kb Ont 25 Publish Proposal
-         * @description Publish Proposal. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+         * @description Publish Proposal. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
         post: operations["_kb_ont_25_publish_proposal_api_v1_workspaces__workspace_id__ontology_proposals__proposal_id__publish_post"];
         delete?: never;
@@ -2441,7 +2441,7 @@ export interface paths {
         put?: never;
         /**
          * Kb Ont 24 Reject Proposal
-         * @description Reject Proposal. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+         * @description Reject Proposal. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
         post: operations["_kb_ont_24_reject_proposal_api_v1_workspaces__workspace_id__ontology_proposals__proposal_id__reject_post"];
         delete?: never;
@@ -2461,7 +2461,7 @@ export interface paths {
         put?: never;
         /**
          * Kb Ont 20 Submit Proposal
-         * @description Submit Proposal. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+         * @description Submit Proposal. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
         post: operations["_kb_ont_20_submit_proposal_api_v1_workspaces__workspace_id__ontology_propose_post"];
         delete?: never;
@@ -2479,7 +2479,7 @@ export interface paths {
         };
         /**
          * Kb Ontology Registry
-         * @description Ontology Registry. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+         * @description Ontology Registry. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
         get: operations["kb_ontology_registry_api_v1_workspaces__workspace_id__ontology_registry_get"];
         put?: never;
@@ -2499,7 +2499,7 @@ export interface paths {
         };
         /**
          * Kb Ont 4 Search Entities
-         * @description Search Entities. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+         * @description Search Entities. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
         get: operations["_kb_ont_4_search_entities_api_v1_workspaces__workspace_id__ontology_search_get"];
         put?: never;
@@ -2521,7 +2521,7 @@ export interface paths {
         put?: never;
         /**
          * Kb Ont 11 Generate Shacl
-         * @description Generate Shacl. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+         * @description Generate Shacl. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
         post: operations["_kb_ont_11_generate_shacl_api_v1_workspaces__workspace_id__ontology_shacl_generate_post"];
         delete?: never;
@@ -2539,7 +2539,7 @@ export interface paths {
         };
         /**
          * Kb Ont 12 List Shacl Shapes
-         * @description List Shacl Shapes. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+         * @description List Shacl Shapes. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
         get: operations["_kb_ont_12_list_shacl_shapes_api_v1_workspaces__workspace_id__ontology_shacl_shapes_get"];
         put?: never;
@@ -2561,7 +2561,7 @@ export interface paths {
         put?: never;
         /**
          * Kb Ont 13 Validate Shacl
-         * @description Validate Shacl. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+         * @description Validate Shacl. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
         post: operations["_kb_ont_13_validate_shacl_api_v1_workspaces__workspace_id__ontology_shacl_validate_post"];
         delete?: never;
@@ -2579,7 +2579,7 @@ export interface paths {
         };
         /**
          * Kb Ont 9 Get Skos Concept
-         * @description Get Skos Concept. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+         * @description Get Skos Concept. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
         get: operations["_kb_ont_9_get_skos_concept_api_v1_workspaces__workspace_id__ontology_skos_concept__concept_uri__get"];
         put?: never;
@@ -2599,7 +2599,7 @@ export interface paths {
         };
         /**
          * Kb Ont 7 List Skos Schemes
-         * @description List Skos Schemes. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+         * @description List Skos Schemes. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
         get: operations["_kb_ont_7_list_skos_schemes_api_v1_workspaces__workspace_id__ontology_skos_schemes_get"];
         put?: never;
@@ -2621,7 +2621,7 @@ export interface paths {
         put?: never;
         /**
          * Kb Ont 8 Search Skos Concepts
-         * @description Search Skos Concepts. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+         * @description Search Skos Concepts. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
         post: operations["_kb_ont_8_search_skos_concepts_api_v1_workspaces__workspace_id__ontology_skos_search_post"];
         delete?: never;
@@ -2641,7 +2641,7 @@ export interface paths {
         put?: never;
         /**
          * Kb Suggest Alignments
-         * @description Suggest Alignments. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+         * @description Suggest Alignments. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
         post: operations["kb_suggest_alignments_api_v1_workspaces__workspace_id__ontology_suggest_alignments_post"];
         delete?: never;
@@ -2659,7 +2659,7 @@ export interface paths {
         };
         /**
          * Kb Ont 27 List Versions
-         * @description List Versions. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+         * @description List Versions. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
         get: operations["_kb_ont_27_list_versions_api_v1_workspaces__workspace_id__ontology_versions__ontology_uri__get"];
         put?: never;
@@ -2681,7 +2681,7 @@ export interface paths {
         put?: never;
         /**
          * Kb Ont 28 Compare Versions
-         * @description Compare Versions. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+         * @description Compare Versions. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
         post: operations["_kb_ont_28_compare_versions_api_v1_workspaces__workspace_id__ontology_versions__ontology_uri__compare_post"];
         delete?: never;
@@ -2702,7 +2702,7 @@ export interface paths {
         post?: never;
         /**
          * Kb Ont 14 Remove Ontology
-         * @description Remove Ontology. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+         * @description Remove Ontology. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
         delete: operations["_kb_ont_14_remove_ontology_api_v1_workspaces__workspace_id__ontology__ontology_uri__delete"];
         options?: never;
@@ -2721,7 +2721,7 @@ export interface paths {
         put?: never;
         /**
          * Kb Ont 16 Refresh Ontology
-         * @description Refresh Ontology. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+         * @description Refresh Ontology. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
         post: operations["_kb_ont_16_refresh_ontology_api_v1_workspaces__workspace_id__ontology__ontology_uri__refresh_post"];
         delete?: never;
@@ -2745,7 +2745,7 @@ export interface paths {
         head?: never;
         /**
          * Kb Ont 15 Toggle Ontology
-         * @description Toggle Ontology. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+         * @description Toggle Ontology. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
         patch: operations["_kb_ont_15_toggle_ontology_api_v1_workspaces__workspace_id__ontology__ontology_uri__toggle_patch"];
         trace?: never;
@@ -3329,7 +3329,7 @@ export interface paths {
          * Kb Temporal Bounds
          * @description Temporal scrubber bounds for the workspace graph (F-TIM-03 / F-TIM-04).
          *
-         *     Returns `{min, max}` ISO instants. When the Explorer projection lacks node `valid_from`,
+         *     Returns `{min, max}` ISO instants. When the graph projection lacks node `valid_from`,
          *     `min` / `max` fall back to ledger timestamps (statements, facts, current document version).
          */
         get: operations["kb_temporal_bounds_api_v1_workspaces__workspace_id__temporal_bounds_get"];
@@ -3372,7 +3372,7 @@ export interface paths {
          * Kb Temporal Snapshot
          * @description Graph projection at an instant (F-TIM-03 / scrubber).
          *
-         *     Primary path: Explorer `temporal_snapshot`. When that returns no nodes but the Basis
+         *     Primary path: `graph `temporal_snapshot`. When that returns no nodes but the Basis
          *     projector supports `state_at`, falls back to the same snapshot used by `GET .../graph/diff`.
          */
         get: operations["kb_temporal_snapshot_api_v1_workspaces__workspace_id__temporal_snapshot_get"];

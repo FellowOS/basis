@@ -31,7 +31,7 @@ async def kb_ontology_registry(
     store: AdminStore = Depends(get_store),
 ) -> Any:
     """
-Ontology Registry. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+Ontology Registry. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
     get_workspace_for_viewer(request, user, workspace_id, store)
     from basis.domain.ontology.hub.catalog import list_registry
@@ -58,7 +58,7 @@ async def kb_list_alignments(
     store: AdminStore = Depends(get_store),
 ) -> Any:
     """
-List Alignments. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+List Alignments. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
     get_workspace_for_viewer(request, user, workspace_id, store)
 
@@ -90,7 +90,7 @@ async def kb_upsert_alignment(
     store: AdminStore = Depends(get_store),
 ) -> Any:
     """
-Upsert Alignment. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+Upsert Alignment. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
     get_workspace_for_editor(request, user, workspace_id, store)
     from basis.domain.ontology.hub.catalog import upsert_alignment
@@ -126,7 +126,7 @@ async def kb_delete_alignment(
     store: AdminStore = Depends(get_store),
 ) -> Any:
     """
-Delete alignment. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+Delete alignment. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
     get_workspace_for_editor(request, user, workspace_id, store)
     from basis.domain.ontology.hub.catalog import delete_alignment
@@ -144,7 +144,7 @@ async def kb_suggest_alignments(
     store: AdminStore = Depends(get_store),
 ) -> Any:
     """
-Suggest Alignments. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+Suggest Alignments. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
     get_workspace_for_viewer(request, user, workspace_id, store)
     from basis.domain.ontology.hub.catalog import suggest_alignments

@@ -26,5 +26,5 @@ async def reason(
     raise AdminError(
         410,
         "reason_endpoint_removed",
-        "全局 /api/reason 已停用，请使用 POST /api/workspaces/{workspace_id}/reasoning/run（Explorer 推理工作台）",
+        "全局 /api/reason 已停用，请使用 POST /api/workspaces/{workspace_id}/reasoning/run（工作区推理工作台）",
     )

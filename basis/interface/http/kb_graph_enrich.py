@@ -1,4 +1,4 @@
-"""Explorer enrich, provenance, and decisions routes."""
+"""Workspace graph enrich, provenance, and decisions routes."""
 
 from __future__ import annotations
 

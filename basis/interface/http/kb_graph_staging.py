@@ -1,4 +1,4 @@
-"""Explorer graph diff and staging studio routes."""
+"""Workspace graph graph diff and staging studio routes."""
 
 from __future__ import annotations
 
@@ -36,7 +36,7 @@ async def kb_graph_diff(
 ) -> Any:
     """Whole-graph diff between two instants (F-DIFF-01).
 
-    Compares Explorer projection snapshots at `from` and `to` (ISO instants). Response includes
+    Compares graph projection snapshots at `from` and `to` (ISO instants). Response includes
     `added_nodes`, `removed_nodes`, `modified_nodes`, `added_edges`, `removed_edges`, `summary`,
     and echo `from_time` / `to_time`. Node/edge membership follows ledger `recorded_at` → projected
     `valid_from` and `invalidated_at` → projected `valid_until` (F-TIM-01). Console graph preview dims unchanged elements and highlights

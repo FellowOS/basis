@@ -1,4 +1,4 @@
-"""Explorer SPARQL execution."""
+"""Workspace graph SPARQL execution."""
 
 from __future__ import annotations
 

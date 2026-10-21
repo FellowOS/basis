@@ -1,4 +1,4 @@
-"""Explorer graph session helper for workspace ontology/vocabulary routes."""
+"""Workspace graph graph session helper for workspace ontology/vocabulary routes."""
 
 from __future__ import annotations
 

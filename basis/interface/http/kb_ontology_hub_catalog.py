@@ -70,7 +70,7 @@ def register_kb_ontology_hub_catalog_routes(router: APIRouter) -> None:
         store: AdminStore = Depends(get_store),
     ) -> Any:
         """
-Preview Ontology. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+Preview Ontology. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
         """
         get_kb_for_role(request, user, workspace_id, store, min_role("POST"))
         with KbOntologyState(request, workspace_id):
@@ -93,7 +93,7 @@ Preview Ontology. Ontology hub (SKOS, alignments) via Explorer. Requires workspa
         store: AdminStore = Depends(get_store),
     ) -> Any:
         """
-Load Ontology. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+Load Ontology. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
         """
         get_kb_for_role(request, user, workspace_id, store, min_role("POST"))
         session = ontology_session(request, workspace_id)
@@ -128,7 +128,7 @@ Load Ontology. Ontology hub (SKOS, alignments) via Explorer. Requires workspace 
         store: AdminStore = Depends(get_store),
     ) -> Any:
         """
-Create Ontology. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+Create Ontology. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
         """
         get_kb_for_role(request, user, workspace_id, store, min_role("POST"))
         session = ontology_session(request, workspace_id)
@@ -164,7 +164,7 @@ Create Ontology. Ontology hub (SKOS, alignments) via Explorer. Requires workspac
         store: AdminStore = Depends(get_store),
     ) -> Any:
         """
-Search Entities. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+Search Entities. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
         """
         get_kb_for_role(request, user, workspace_id, store, min_role("GET"))
         session = ontology_session(request, workspace_id)
@@ -187,7 +187,7 @@ Search Entities. Ontology hub (SKOS, alignments) via Explorer. Requires workspac
         store: AdminStore = Depends(get_store),
     ) -> Any:
         """
-Get Ontology Graph. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+Get Ontology Graph. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
         """
         get_kb_for_role(request, user, workspace_id, store, min_role("GET"))
         session = ontology_session(request, workspace_id)
@@ -210,7 +210,7 @@ Get Ontology Graph. Ontology hub (SKOS, alignments) via Explorer. Requires works
         store: AdminStore = Depends(get_store),
     ) -> Any:
         """
-Get Entity Detail. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+Get Entity Detail. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
         """
         get_kb_for_role(request, user, workspace_id, store, min_role("GET"))
         session = ontology_session(request, workspace_id)
@@ -232,7 +232,7 @@ Get Entity Detail. Ontology hub (SKOS, alignments) via Explorer. Requires worksp
         store: AdminStore = Depends(get_store),
     ) -> Any:
         """
-List Skos Schemes. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+List Skos Schemes. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
         """
         get_kb_for_role(request, user, workspace_id, store, min_role("GET"))
         session = ontology_session(request, workspace_id)
@@ -249,7 +249,7 @@ List Skos Schemes. Ontology hub (SKOS, alignments) via Explorer. Requires worksp
         store: AdminStore = Depends(get_store),
     ) -> Any:
         """
-Search Skos Concepts. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+Search Skos Concepts. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
         """
         get_kb_for_role(request, user, workspace_id, store, min_role("POST"))
         session = ontology_session(request, workspace_id)
@@ -273,7 +273,7 @@ Search Skos Concepts. Ontology hub (SKOS, alignments) via Explorer. Requires wor
         store: AdminStore = Depends(get_store),
     ) -> Any:
         """
-Get Skos Concept. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+Get Skos Concept. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
         """
         get_kb_for_role(request, user, workspace_id, store, min_role("GET"))
         session = ontology_session(request, workspace_id)
@@ -290,7 +290,7 @@ Get Skos Concept. Ontology hub (SKOS, alignments) via Explorer. Requires workspa
         store: AdminStore = Depends(get_store),
     ) -> Any:
         """
-Ontology Health. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+Ontology Health. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
         """
         get_kb_for_role(request, user, workspace_id, store, min_role("GET"))
         session = ontology_session(request, workspace_id)
@@ -309,7 +309,7 @@ Ontology Health. Ontology hub (SKOS, alignments) via Explorer. Requires workspac
         store: AdminStore = Depends(get_store),
     ) -> Any:
         """
-Generate Shacl. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+Generate Shacl. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
         """
         get_kb_for_role(request, user, workspace_id, store, min_role("POST"))
         session = ontology_session(request, workspace_id)
@@ -334,7 +334,7 @@ Generate Shacl. Ontology hub (SKOS, alignments) via Explorer. Requires workspace
         store: AdminStore = Depends(get_store),
     ) -> Any:
         """
-List Shacl Shapes. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+List Shacl Shapes. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
         """
         get_kb_for_role(request, user, workspace_id, store, min_role("GET"))
         session = ontology_session(request, workspace_id)
@@ -352,7 +352,7 @@ List Shacl Shapes. Ontology hub (SKOS, alignments) via Explorer. Requires worksp
         store: AdminStore = Depends(get_store),
     ) -> Any:
         """
-Validate Shacl. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+Validate Shacl. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
         """
         get_kb_for_role(request, user, workspace_id, store, min_role("POST"))
         session = ontology_session(request, workspace_id)
@@ -377,7 +377,7 @@ Validate Shacl. Ontology hub (SKOS, alignments) via Explorer. Requires workspace
         store: AdminStore = Depends(get_store),
     ) -> Any:
         """
-Remove Ontology. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+Remove Ontology. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
         """
         get_kb_for_role(request, user, workspace_id, store, min_role("DELETE"))
         with KbOntologyState(request, workspace_id):
@@ -399,7 +399,7 @@ Remove Ontology. Ontology hub (SKOS, alignments) via Explorer. Requires workspac
         store: AdminStore = Depends(get_store),
     ) -> Any:
         """
-Toggle Ontology. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+Toggle Ontology. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
         """
         get_kb_for_role(request, user, workspace_id, store, min_role("PATCH"))
         with KbOntologyState(request, workspace_id):
@@ -418,7 +418,7 @@ Toggle Ontology. Ontology hub (SKOS, alignments) via Explorer. Requires workspac
         store: AdminStore = Depends(get_store),
     ) -> Any:
         """
-Refresh Ontology. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+Refresh Ontology. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
         """
         get_kb_for_role(request, user, workspace_id, store, min_role("POST"))
         session = ontology_session(request, workspace_id)

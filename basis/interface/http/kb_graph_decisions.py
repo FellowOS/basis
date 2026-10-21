@@ -1,4 +1,4 @@
-"""Explorer governance decision read routes."""
+"""Workspace graph governance decision read routes."""
 
 from __future__ import annotations
 

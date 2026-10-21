@@ -1,4 +1,4 @@
-"""Workspace-scoped adapters for Explorer ontology hub routes."""
+"""Workspace-scoped adapters for workspace ontology hub routes."""
 
 from __future__ import annotations
 

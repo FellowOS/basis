@@ -1,4 +1,4 @@
-"""Shared limits for Explorer route modules."""
+"""Shared limits for workspace graph route modules."""
 
 from __future__ import annotations
 

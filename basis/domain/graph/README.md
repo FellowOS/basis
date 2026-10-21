@@ -2,7 +2,7 @@
 
 Graph **projection** (`projection/`) and **interactive session** subpackages for the workspace graph UI (`web/src/modules/graph/`, `web/src/lib/workspace/`). Mutations still flow through Review / ledger APIs — not a second write path.
 
-**Architecture docs:** [explorer-integration.md](../../../docs/architecture/explorer-integration.md), [explorer-backend.md](../../../docs/architecture/explorer-backend.md), [package-layout.md](../../../docs/architecture/package-layout.md) (import rules).
+**Architecture docs:** [graph-workspace-integration.md](../../../docs/architecture/graph-workspace-integration.md), [graph-workspace-backend.md](../../../docs/architecture/graph-workspace-backend.md), [package-layout.md](../../../docs/architecture/package-layout.md) (import rules).
 
 ## Subpackages
 

@@ -36,7 +36,7 @@ async def create_ontology(
     store: AdminStore = Depends(get_store),
 ) -> dict[str, Any]:
     """
-Create Ontology. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+Create Ontology. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
     store.get_workspace_for(user, workspace_id, "admin")
     if kb_graph_runtime_available():

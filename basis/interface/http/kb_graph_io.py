@@ -1,4 +1,4 @@
-"""Explorer graph import/export routes."""
+"""Workspace graph graph import/export routes."""
 
 from __future__ import annotations
 

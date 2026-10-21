@@ -45,7 +45,7 @@ async def rebuild_graph(
     store: AdminStore = Depends(get_store),
 ) -> dict[str, Any]:
     """
-Rebuild Graph. Projected graph read API (Explorer runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+Rebuild Graph. Projected graph read API (graph runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
     get_workspace_for_editor(request, user, workspace_id, store)
     session = graph_for(request, workspace_id)
@@ -79,7 +79,7 @@ async def graph_projection_status(
     store: AdminStore = Depends(get_store),
 ) -> dict[str, Any]:
     """
-Graph Projection Status. Projected graph read API (Explorer runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+Graph Projection Status. Projected graph read API (graph runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
     get_workspace_for_viewer(request, user, workspace_id, store)
     knowledge = get_knowledge_store(request)
@@ -101,7 +101,7 @@ async def graph_stats(
     store: AdminStore = Depends(get_store),
 ) -> dict[str, int]:
     """
-Graph Stats. Projected graph read API (Explorer runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+Graph Stats. Projected graph read API (graph runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
     get_workspace_for_viewer(request, user, workspace_id, store)
     return graph_for(request, workspace_id).stats()
@@ -120,7 +120,7 @@ async def graph_nodes_route(
     limits: RuntimeLimits = Depends(get_runtime_limits),
 ) -> dict[str, Any]:
     """
-Graph Nodes Route. Projected graph read API (Explorer runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+Graph Nodes Route. Projected graph read API (graph runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
     get_workspace_for_viewer(request, user, workspace_id, store)
     runtime = kb_graph_runtime_for(request, workspace_id)
@@ -156,7 +156,7 @@ async def resolve_graph_node_labels(
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> dict[str, Any]:
     """
-Resolve Graph Node Labels. Projected graph read API (Explorer runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+Resolve Graph Node Labels. Projected graph read API (graph runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
     get_workspace_for_viewer(request, user, workspace_id, store)
     ids = [str(i).strip() for i in body.ids if str(i).strip()]
@@ -184,7 +184,7 @@ async def graph_node_route(
     store: AdminStore = Depends(get_store),
 ) -> dict[str, Any]:
     """
-Graph Node Route. Projected graph read API (Explorer runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+Graph Node Route. Projected graph read API (graph runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
     get_workspace_for_viewer(request, user, workspace_id, store)
     runtime = kb_graph_runtime_for(request, workspace_id)
@@ -204,7 +204,7 @@ async def graph_neighbors_route(
     store: AdminStore = Depends(get_store),
 ) -> dict[str, Any]:
     """
-Graph Neighbors Route. Projected graph read API (Explorer runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+Graph Neighbors Route. Projected graph read API (graph runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
     ctx = build_workspace_core_context(request, workspace_id=workspace_id, user=user, store=store)
     payload = await asyncio.to_thread(
@@ -228,7 +228,7 @@ async def graph_path_route(
     store: AdminStore = Depends(get_store),
 ) -> dict[str, Any]:
     """
-Graph Path Route. Projected graph read API (Explorer runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+Graph Path Route. Projected graph read API (graph runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
     if algorithm not in {"bfs", "dijkstra"}:
         raise AdminError(422, "bad_algorithm", "algorithm 须为 bfs 或 dijkstra")
@@ -261,7 +261,7 @@ async def graph_edges_route(
     limits: RuntimeLimits = Depends(get_runtime_limits),
 ) -> dict[str, Any]:
     """
-Graph Edges Route. Projected graph read API (Explorer runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+Graph Edges Route. Projected graph read API (graph runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
     get_workspace_for_viewer(request, user, workspace_id, store)
     runtime = kb_graph_runtime_for(request, workspace_id)
@@ -287,7 +287,7 @@ async def graph_search_route(
     limits: RuntimeLimits = Depends(get_runtime_limits),
 ) -> dict[str, Any]:
     """
-Graph Search Route. Projected graph read API (Explorer runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+Graph Search Route. Projected graph read API (graph runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
     ctx = build_workspace_core_context(request, workspace_id=workspace_id, user=user, store=store)
     payload = await asyncio.to_thread(
@@ -315,7 +315,7 @@ async def graph_snapshot_route(
     limits: RuntimeLimits = Depends(get_runtime_limits),
 ) -> dict[str, Any]:
     """
-Graph Snapshot Route. Projected graph read API (Explorer runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+Graph Snapshot Route. Projected graph read API (graph runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
     get_workspace_for_viewer(request, user, workspace_id, store)
     session = graph_for(request, workspace_id)

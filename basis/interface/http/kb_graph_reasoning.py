@@ -1,4 +1,4 @@
-"""Explorer reasoning run route."""
+"""Workspace graph reasoning run route."""
 
 from __future__ import annotations
 

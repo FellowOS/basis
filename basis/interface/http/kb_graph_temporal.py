@@ -1,4 +1,4 @@
-"""Explorer temporal scrubber routes."""
+"""Workspace graph temporal scrubber routes."""
 
 from __future__ import annotations
 
@@ -29,7 +29,7 @@ async def kb_temporal_bounds(
 ) -> Any:
     """Temporal scrubber bounds for the workspace graph (F-TIM-03 / F-TIM-04).
 
-    Returns `{min, max}` ISO instants. When the Explorer projection lacks node `valid_from`,
+    Returns `{min, max}` ISO instants. When the graph projection lacks node `valid_from`,
     `min` / `max` fall back to ledger timestamps (statements, facts, current document version).
     """
     get_workspace_for_viewer(request, user, workspace_id, store)
@@ -59,7 +59,7 @@ async def kb_temporal_snapshot(
 ) -> Any:
     """Graph projection at an instant (F-TIM-03 / scrubber).
 
-    Primary path: Explorer `temporal_snapshot`. When that returns no nodes but the Basis
+    Primary path: `graph `temporal_snapshot`. When that returns no nodes but the Basis
     projector supports `state_at`, falls back to the same snapshot used by `GET .../graph/diff`.
     """
     get_workspace_for_viewer(request, user, workspace_id, store)
