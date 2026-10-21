@@ -8,7 +8,8 @@ Vite + React front end for the Basis platform and per–knowledge-base Explorer 
 |------|------|
 | `src/pages/` | **Routes** — thin pages: params, `ConsolePageLayout`, i18n. KB features live under `pages/kb/<segment>.tsx`. |
 | `src/components/` | React UI — three roots: **`ui`**, **`admin`**, **`app`** (see below). |
-| `src/explorer/` | **Explorer implementation** (vendored from semantica); see `src/explorer/README.md`. |
+| `src/workspaces/` | **KB workspace screens** (vendored from semantica Explorer); see [workspaces/README.md](src/workspaces/README.md). |
+| `src/ws/` | Shared workspace runtime (`explorerHttp`, `graphStore`, …). |
 | `src/lib/` | `basis-openapi/` (generated types + `transport.ts`), `openapi-client.ts` (app helpers), session fetch, `kb-api-path.ts`. JSON: `openApi*` / `kbOpenApi*`. Regen types: `npm run gen:openapi-types`. |
 | `content/docs/` | **Product docs** (`/docs/*`) — Fumadocs MDX (`en/`, `zh/`). IA: `{locale}/meta.json`; page chrome: frontmatter `title`, `description`, optional `sidebarTitle`; prev/next from sidebar order. Long-form pages (`bocp.md`, `connectors-basis.md`, …) are edited here directly. |
 | `source.config.ts` | Fumadocs MDX config; `postinstall` runs `fumadocs-mdx` → `.source/` (gitignored). |
@@ -44,7 +45,7 @@ Tailwind class bundles: [`src/lib/ui-classes/`](src/lib/ui-classes/README.md).
 
 1. **`pages/kb/*.tsx`** — routing, breadcrumbs, page-level actions, capability gates.
 2. **`components/app/kb/workspaces/kb-*-workspace.tsx`** — `KbExplorerConsoleShell`, lazy `import()` of Explorer, loading copy.
-3. **`explorer/workspaces/*/`** — screens, stores, Sigma/graph/ontology UI.
+3. **`workspaces/*/`** — screens, stores, Sigma/graph/ontology UI.
 
 Platform-only pages (e.g. `pages/kbs.tsx`, `pages/settings.tsx`) skip layer 2–3.
 
@@ -55,7 +56,7 @@ Platform-only pages (e.g. `pages/kbs.tsx`, `pages/settings.tsx`) skip layer 2–
 - `widgets/` — panels, stats, bells, merge diff, KB integration (OpenAPI + MCP) pieces used by pages.
 - `dialogs/` — import/export and ingest modals shared across KB UI.
 - `ledger/` — entity browser, evidence inspector, entity ref line.
-- `graph/` — graph toolbar / overview chrome (full graph UI stays in `src/explorer/`).
+- `graph/` — graph toolbar / overview chrome (full graph UI stays in `src/workspaces/`).
 
 ## Styling conventions
 

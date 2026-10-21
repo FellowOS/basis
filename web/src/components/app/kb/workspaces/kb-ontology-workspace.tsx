@@ -2,10 +2,10 @@ import { lazy, Suspense } from 'react';
 import { KbExplorerConsoleShell } from '@/components/app/kb/explorer-shell/kb-explorer-console-shell.js';
 import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
-import type { OntologyInteriorPanel } from '@/explorer/workspaces/OntologyWorkspace/index.js';
+import type { OntologyInteriorPanel } from '@/workspaces/OntologyWorkspace/index.js';
 
 const OntologyWorkspace = lazy(() =>
-  import('@/explorer/workspaces/OntologyWorkspace/index.js').then((module) => ({
+  import('@/workspaces/OntologyWorkspace/index.js').then((module) => ({
     default: module.OntologyWorkspace,
   })),
 );

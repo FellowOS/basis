@@ -1,7 +1,7 @@
 import { lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { KbExplorerConsoleShell } from '@/components/app/kb/explorer-shell/kb-explorer-console-shell.js';
-import { OntologyKbProvider } from '@/explorer/workspaces/OntologyWorkspace/ontologyKb.js';
+import { OntologyKbProvider } from '@/workspaces/OntologyWorkspace/ontologyKb.js';
 import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
 import { kbPath } from '@/lib/nav-config.js';
@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils.js';
 import { wsPage } from '@/lib/ui-classes/console-ws.js';
 
 const ShaclStudio = lazy(() =>
-  import('@/explorer/workspaces/OntologyWorkspace/ShaclStudio.js').then((module) => ({
+  import('@/workspaces/OntologyWorkspace/ShaclStudio.js').then((module) => ({
     default: module.ShaclStudio,
   })),
 );

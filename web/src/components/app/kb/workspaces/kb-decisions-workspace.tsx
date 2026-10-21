@@ -8,7 +8,7 @@ import { useKbCapabilities } from '@/lib/kb-capabilities.js';
 import { useI18n } from '@/i18n/context.js';
 
 const DecisionWorkspace = lazy(() =>
-  import('@/explorer/workspaces/DecisionWorkspace/DecisionWorkspace.js').then((module) => ({
+  import('@/workspaces/DecisionWorkspace/DecisionWorkspace.js').then((module) => ({
     default: module.DecisionWorkspace,
   })),
 );

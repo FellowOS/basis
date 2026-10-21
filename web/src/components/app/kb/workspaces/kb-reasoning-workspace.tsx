@@ -4,7 +4,7 @@ import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
 
 const ReasoningWorkspace = lazy(() =>
-  import('@/explorer/workspaces/ReasoningWorkspace.js').then((module) => ({
+  import('@/workspaces/ReasoningWorkspace.js').then((module) => ({
     default: module.ReasoningWorkspace,
   })),
 );

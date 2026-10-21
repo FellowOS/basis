@@ -4,7 +4,7 @@
  */
 import type { Theme } from '@/lib/theme.js';
 
-import { GRAPH_THEME } from '@/explorer/workspaces/GraphWorkspace/graphTheme';
+import { GRAPH_THEME } from '@/workspaces/GraphWorkspace/graphTheme';
 
 function readCssVarRgb(property: 'color' | 'background-color', cssVar: string): string {
   const probe = document.createElement('span');

@@ -1,7 +1,7 @@
 import { lazy, Suspense, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ExplorerHostProvider } from '@/explorer/explorerHttp.js';
+import { ExplorerHostProvider } from '@/ws/explorerHttp.js';
 import { buildKbExplorerHttpConfig } from '@/lib/kb-explorer-host.js';
 import {
   Dialog,
@@ -14,7 +14,7 @@ import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
 import { kbPath } from '@/lib/nav-config.js';
 const ImportExportWorkspace = lazy(() =>
-  import('@/explorer/workspaces/ImportExportWorkspace/ImportExportWorkspace.js').then((module) => ({
+  import('@/workspaces/ImportExportWorkspace/ImportExportWorkspace.js').then((module) => ({
     default: module.ImportExportWorkspace,
   })),
 );

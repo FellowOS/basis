@@ -1,4 +1,4 @@
-import { graph } from '@/explorer/graphStore.js';
+import { graph } from '@/ws/graphStore.js';
 import { kbPath } from '@/lib/nav-config.js';
 
 export type GraphEvidenceLink = {

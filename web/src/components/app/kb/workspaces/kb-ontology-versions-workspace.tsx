@@ -1,11 +1,11 @@
 import { lazy, Suspense } from 'react';
 import { KbExplorerConsoleShell } from '@/components/app/kb/explorer-shell/kb-explorer-console-shell.js';
-import { OntologyKbProvider } from '@/explorer/workspaces/OntologyWorkspace/ontologyKb.js';
+import { OntologyKbProvider } from '@/workspaces/OntologyWorkspace/ontologyKb.js';
 import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
 
 const VersionsTab = lazy(() =>
-  import('@/explorer/workspaces/OntologyWorkspace/VersionsTab.js').then((module) => ({
+  import('@/workspaces/OntologyWorkspace/VersionsTab.js').then((module) => ({
     default: module.VersionsTab,
   })),
 );

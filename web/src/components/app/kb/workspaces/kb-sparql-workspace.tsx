@@ -4,7 +4,7 @@ import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
 
 const SparqlWorkspace = lazy(() =>
-  import('@/explorer/workspaces/SparqlWorkspace/SparqlWorkspace.js').then((module) => ({
+  import('@/workspaces/SparqlWorkspace/SparqlWorkspace.js').then((module) => ({
     default: module.SparqlWorkspace,
   })),
 );

@@ -187,7 +187,7 @@
       "operationId": "google_start_api_v1_auth_oauth_google_start_get"
     },
     {
-      "file": "web/src/explorer/host/explorerHttp.tsx",
+      "file": "web/src/ws/explorerHttp.tsx",
       "kind": "helper",
       "path": "/api/v1/kbs/{kb_id}",
       "operationId": "get_kb_api_v1_kbs__kb_id__get"

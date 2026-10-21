@@ -11,7 +11,7 @@ import type { LocaleMessages } from '@/i18n/locales/en/index.js';
 import { formatNodeRefDetail } from '@/lib/format-node-ref.js';
 import { kbPath } from '@/lib/nav-config.js';
 import { kbGraphPath } from '@/lib/graphUrlState.js';
-import { graphNodeTypeLabel } from '@/explorer/workspaces/GraphWorkspace/graphWorkspaceCopy.js';
+import { graphNodeTypeLabel } from '@/workspaces/GraphWorkspace/graphWorkspaceCopy.js';
 
 export type GraphSearchHit = {
   node: { id: string; type: string; content: string };

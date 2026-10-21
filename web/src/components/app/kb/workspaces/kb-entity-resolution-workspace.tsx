@@ -6,7 +6,7 @@ import { useKbCapabilities } from '@/lib/kb-capabilities.js';
 import { useI18n } from '@/i18n/context.js';
 
 const EntityResolutionTab = lazy(() =>
-  import('@/explorer/workspaces/EnrichWorkspace/EntityResolutionTab.js').then((module) => ({
+  import('@/workspaces/EnrichWorkspace/EntityResolutionTab.js').then((module) => ({
     default: module.EntityResolutionTab,
   })),
 );

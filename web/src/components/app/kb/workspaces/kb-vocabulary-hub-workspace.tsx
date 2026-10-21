@@ -1,6 +1,6 @@
 import { lazy, Suspense, useMemo } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ExplorerHostProvider } from '@/explorer/explorerHttp.js';
+import { ExplorerHostProvider } from '@/ws/explorerHttp.js';
 import { buildKbExplorerHttpConfig } from '@/lib/kb-explorer-host.js';
 import { useKbCapabilities } from '@/lib/kb-capabilities.js';
 import { KbExplorerUnavailable } from '@/components/app/kb/explorer-shell/kb-explorer-unavailable.js';
@@ -8,10 +8,10 @@ import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
 import { cn } from '@/lib/utils.js';
 import { govEmbeddedWorkspaceShell } from '@/lib/ui-classes/governance-ui.js';
-import { OntologyKbProvider } from '@/explorer/workspaces/OntologyWorkspace/ontologyKb.js';
+import { OntologyKbProvider } from '@/workspaces/OntologyWorkspace/ontologyKb.js';
 
 const VocabularyWorkspace = lazy(() =>
-  import('@/explorer/workspaces/VocabularyWorkspace/VocabularyWorkspace.js').then((module) => ({
+  import('@/workspaces/VocabularyWorkspace/VocabularyWorkspace.js').then((module) => ({
     default: module.VocabularyWorkspace,
   })),
 );

@@ -4,7 +4,7 @@ import { PublicIcon } from '@/components/app/shared/primitives/public-icon.js';
 import {
   decisionChainRelationshipLabel,
   decisionChainStepTypeLabel,
-} from '@/explorer/workspaces/DecisionWorkspace/decisionWorkspaceCopy.js';
+} from '@/workspaces/DecisionWorkspace/decisionWorkspaceCopy.js';
 import { useI18n } from '@/i18n/context.js';
 import { kbOpenApiGET } from '@/lib/openapi-client.js';
 import { kbReviewDecisionPath } from '@/lib/reviewUrlState.js';

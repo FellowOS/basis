@@ -10,7 +10,7 @@ Instructions for AI coding agents working in this repository. Humans can skim th
 |------|------|--------|
 | API | `basis/` Python package (layered; see [package-layout.md](./docs/architecture/package-layout.md)) | Python 3.10+, FastAPI, Semantica SDK |
 | Web | `web/` | Vite, React, React Router, Tailwind v4, shadcn |
-| Explorer UI | `web/src/explorer/` | Vendored workspace UI (graph, ontology, …) |
+| KB workspace UI | `web/src/workspaces/` + `web/src/ws/` | Vendored screens (graph, ontology, …) + shared runtime |
 
 ## Before you change code
 
@@ -82,7 +82,7 @@ After sync: `npm run typecheck` — fix **primitives**, **shell**, and imports, 
 
 1. `web/src/pages/kb/*.tsx` — routes, crumbs, gates.
 2. `web/src/components/app/kb/workspaces/kb-*-workspace.tsx` — lazy-load Explorer.
-3. `web/src/explorer/workspaces/*/` — implementation ([explorer README](./web/src/explorer/README.md)).
+3. `web/src/workspaces/*/` — implementation ([workspaces README](./web/src/workspaces/README.md)); HTTP/graph shared code in `web/src/ws/`.
 
 ### Forms and console
 
@@ -131,7 +131,7 @@ Run relevant checks after substantive edits; say if something was not run.
 | Task | Read |
 |------|------|
 | Web structure / KB folders | [web/README.md](./web/README.md) |
-| Explorer vendoring | [web/src/explorer/README.md](./web/src/explorer/README.md) |
+| Workspace vendoring | [web/src/workspaces/README.md](./web/src/workspaces/README.md) |
 | Docs (features / progress / architecture) | [docs/README.md](./docs/README.md) |
 | OpenAPI v1 (platform + KB surfaces) | [docs/architecture/openapi-v1.md](./docs/architecture/openapi-v1.md), live `/openapi/v1.json`; snapshots `openapi/basis-v1*.json` |
 | Feature list / progress | [docs/features.md](./docs/features.md) (F-* spec), [docs/progress.md](./docs/progress.md) (status: §0.1 done, §0.2 API baseline, §3.1 UX / §3.2 e2e gaps) |

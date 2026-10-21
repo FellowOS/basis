@@ -1,7 +1,7 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ExplorerHostProvider } from '@/explorer/explorerHttp.js';
+import { ExplorerHostProvider } from '@/ws/explorerHttp.js';
 import { buildKbExplorerHttpConfig } from '@/lib/kb-explorer-host.js';
 import { KbGraphDiffPreviewBar } from '@/components/app/kb/widgets/kb-graph-diff-preview-bar.js';
 import { KbGraphRebuildButton } from '@/components/app/kb/widgets/kb-graph-rebuild-button.js';
@@ -37,7 +37,7 @@ import { GraphExplorerThemeSync } from '@/lib/graph/explorer-theme-sync.js';
 import { kbGraphDiffPath } from '@/lib/nav-config.js';
 import { kbSearchPath } from '@/lib/searchUrlState.js';
 const GraphWorkspace = lazy(() =>
-  import('@/explorer/workspaces/GraphWorkspace/GraphWorkspace.js').then((module) => ({
+  import('@/workspaces/GraphWorkspace/GraphWorkspace.js').then((module) => ({
     default: module.GraphWorkspace,
   })),
 );
