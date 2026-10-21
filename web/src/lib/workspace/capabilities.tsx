@@ -32,7 +32,7 @@ export type WorkspaceCapabilities = {
   vocabulary: boolean;
   mappings: boolean;
   agent_memory: boolean;
-  explorer_runtime: boolean;
+  graph_runtime: boolean;
   diagnostic: string | null;
   graph_page_max_nodes?: number;
   graph_page_max_edges?: number;
@@ -112,7 +112,7 @@ export function workspaceNavSegmentEnabled(segment: string, caps: WorkspaceCapab
     return caps.sparql || caps.reasoning;
   }
   if (segment === 'ontology-versions' || segment === 'alignments' || segment === 'shacl') {
-    return caps.explorer_runtime && caps.graph;
+    return caps.graph_runtime && caps.graph;
   }
   const key = segment as WorkspaceNavKey;
   switch (key) {
@@ -122,7 +122,7 @@ export function workspaceNavSegmentEnabled(segment: string, caps: WorkspaceCapab
     case 'lineage':
       return caps.provenance && caps.graph;
     case 'ontology':
-      return caps.explorer_runtime && caps.graph;
+      return caps.graph_runtime && caps.graph;
     case 'sparql':
       return caps.sparql;
     case 'reasoning':

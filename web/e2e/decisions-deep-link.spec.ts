@@ -16,7 +16,7 @@ test('decisions list selection updates shareable decision query', async ({ page 
     name: /工作区不可用|Workspace unavailable/i,
   });
   if ((await unavailable.count()) > 0) {
-    test.skip(true, 'decisions workspace requires explorer_runtime');
+    test.skip(true, 'decisions workspace requires graph_runtime');
   }
 
   const card = page.locator(`#review-item-${reviewItemId}`);

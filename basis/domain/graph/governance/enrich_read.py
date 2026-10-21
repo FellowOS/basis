@@ -33,7 +33,7 @@ def predict_links(
     if predictor is None:
         raise AdminError(
             503,
-            "explorer_unavailable",
+            "graph_runtime_unavailable",
             "LinkPredictor not available; KG extras may not be installed.",
         )
 
@@ -99,7 +99,7 @@ def detect_duplicates(session: Any, *, threshold: float = 0.8) -> dict[str, Any]
     try:
         from semantica.deduplication import DuplicateDetector
     except ImportError:
-        raise AdminError(503, "explorer_unavailable", "Deduplication module not available.")
+        raise AdminError(503, "graph_runtime_unavailable", "Deduplication module not available.")
 
     detector = DuplicateDetector()
     nodes, _ = session.get_nodes(skip=0, limit=999_999)

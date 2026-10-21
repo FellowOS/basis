@@ -16,12 +16,12 @@ export function WorkspaceUnavailable({
   const { caps } = useWorkspaceCapabilities();
 
   const message =
-    caps?.diagnostic === 'explorer_unavailable'
-      ? t.core.workspace_nav.capabilities.explorer_unavailable
+    caps?.diagnostic === 'graph_runtime_unavailable'
+      ? t.core.workspace_nav.capabilities.graph_runtime_unavailable
       : t.core.workspace_nav.capabilities.unavailable;
 
   const featureHint =
-    feature === 'import' && caps && !caps.import_export && caps.explorer_runtime
+    feature === 'import' && caps && !caps.import_export && caps.graph_runtime
       ? t.core.workspace_nav.capabilities.import_editor_required
       : null;
 

@@ -39,10 +39,10 @@ def admin_error_from_http_status(
     if status_code == 422:
         return AdminError(422, "validation_error", message or "请求无效")
     if status_code == 503:
-        return AdminError(503, "explorer_unavailable", message or "Explorer 会话不可用")
+        return AdminError(503, "graph_runtime_unavailable", message or "工作区图会话不可用")
 
     return AdminError(
         status_code,
-        "explorer_graph_error",
+        "graph_projection_error",
         message or "Explorer 图接口错误",
     )

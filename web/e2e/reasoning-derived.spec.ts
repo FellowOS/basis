@@ -20,8 +20,8 @@ test('reasoning apply_to_graph shows derived facts on entities page', async ({ p
     );
     expect((out.derived_facts_persisted?.created ?? 0) >= 1).toBeTruthy();
   } catch (err) {
-    if (String(err).includes('explorer_unavailable')) {
-      test.skip(true, 'reasoning/run requires explorer_runtime');
+    if (String(err).includes('graph_runtime_unavailable')) {
+      test.skip(true, 'reasoning/run requires graph_runtime');
     }
     throw err;
   }

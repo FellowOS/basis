@@ -55,7 +55,7 @@ export async function skipUnlessWorkspaceGraphWrite(page: Page, workspaceId: str
   expect(response.ok()).toBeTruthy();
   const body = (await response.json()) as { graph_write?: boolean };
   if (!body.graph_write) {
-    test.skip(true, 'requires explorer_runtime (graph_write)');
+    test.skip(true, 'requires graph_runtime (graph_write)');
   }
 }
 
@@ -225,7 +225,7 @@ export async function runReasoningApplyViaApi(
     },
   });
   if (response.status() === 503) {
-    throw new Error('explorer_unavailable');
+    throw new Error('graph_runtime_unavailable');
   }
   expect(response.ok()).toBeTruthy();
   return (await response.json()) as { derived_facts_persisted?: { created?: number } };

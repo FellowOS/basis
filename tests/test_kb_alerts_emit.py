@@ -28,7 +28,7 @@ def test_admin_error_triggers_governance_alert() -> None:
 def test_should_emit_governance_tripped_on_review_approve() -> None:
     assert should_emit_governance_tripped_on_review_approve("impact_gate_blocked")
     assert not should_emit_governance_tripped_on_review_approve("review_closed")
-    assert not should_emit_governance_tripped_on_review_approve("explorer_graph_error")
+    assert not should_emit_governance_tripped_on_review_approve("graph_projection_error")
 
 
 def test_maybe_emit_governance_tripped_for_admin_error_skips_non_gate() -> None:

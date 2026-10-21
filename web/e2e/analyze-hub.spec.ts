@@ -31,7 +31,7 @@ test('analyze hub tabs and legacy SPARQL/reasoning routes redirect', async ({ pa
     name: /工作区不可用|Workspace unavailable/i,
   });
   if ((await unavailable.count()) > 0) {
-    test.skip(true, 'reasoning workspace requires explorer_runtime');
+    test.skip(true, 'reasoning workspace requires graph_runtime');
   }
 
   await expect(page.getByRole('button', { name: /Run reasoning|运行推理/i })).toBeVisible({

@@ -77,7 +77,7 @@ def export_graph(
             from semantica.export import RDFExporter
             from semantica.utils.exceptions import ValidationError
         except ImportError as exc:
-            raise AdminError(503, "explorer_unavailable", f"RDF export unavailable: {exc}") from exc
+            raise AdminError(503, "graph_runtime_unavailable", f"RDF export unavailable: {exc}") from exc
         try:
             content = RDFExporter().export_to_rdf(graph_dict, format=_RDF_FORMATS[fmt])
         except ValidationError as exc:
@@ -93,7 +93,7 @@ def export_graph(
             from semantica.export import GraphExporter
             from semantica.utils.exceptions import ValidationError
         except ImportError as exc:
-            raise AdminError(503, "explorer_unavailable", f"GraphML export unavailable: {exc}") from exc
+            raise AdminError(503, "graph_runtime_unavailable", f"GraphML export unavailable: {exc}") from exc
         try:
             with tempfile.TemporaryDirectory() as tmpdir:
                 tmp_path = Path(tmpdir) / "export.graphml"

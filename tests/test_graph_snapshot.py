@@ -113,4 +113,4 @@ def test_platform_reports_capabilities(tmp_path) -> None:
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
     info = client.get("/api/v1/platform").json()
     assert info["capabilities"]["graph_snapshot"] is True
-    assert isinstance(info["capabilities"]["explorer_runtime"], bool)
+    assert isinstance(info["capabilities"]["graph_runtime"], bool)

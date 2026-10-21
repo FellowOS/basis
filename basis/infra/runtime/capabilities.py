@@ -1,4 +1,4 @@
-"""Optional runtime capability probes (Explorer, etc.)."""
+"""Optional runtime capability probes (graph session, etc.)."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ def kb_graph_runtime_available() -> bool:
 def platform_capabilities() -> dict[str, bool]:
     return {
         "graph_snapshot": True,
-        "explorer_runtime": kb_graph_runtime_available(),
+        "graph_runtime": kb_graph_runtime_available(),
     }
 
 
@@ -22,7 +22,7 @@ def _role_can_write(role: str) -> bool:
 
 
 def workspace_capabilities(role: str) -> dict[str, bool | str | None]:
-    """Per-workspace Explorer feature flags for authorized callers (design §12)."""
+    """Per-workspace graph console feature flags for authorized callers (design §12)."""
     can_write = _role_can_write(role)
     return {
         "graph": True,
@@ -40,6 +40,6 @@ def workspace_capabilities(role: str) -> dict[str, bool | str | None]:
         "vocabulary": True,
         "mappings": True,
         "agent_memory": False,
-        "explorer_runtime": True,
+        "graph_runtime": True,
         "diagnostic": None,
     }

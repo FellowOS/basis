@@ -15,7 +15,7 @@ End-to-end tests exercise **real browser + API** (`BASIS_DATA_DIR=data/e2e`, `/_
 | **P** | Partial: one primary flow, deep link, or redirect |
 | **D** | Deeper: multi-step UI and/or API seed + UI assertion |
 
-Many workspace graph Explorer routes **skip** when `explorer_runtime` is missing (`skipUnlessWorkspaceGraphWrite`, capabilities unavailable UI).
+Many workspace graph routes **skip** when `graph_runtime` is missing (`skipUnlessWorkspaceGraphWrite`, capabilities unavailable UI).
 
 ## Route ↔ E2E matrix
 

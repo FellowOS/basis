@@ -33,7 +33,7 @@ def test_kb_capabilities_http(tmp_path) -> None:
     assert body["workspace_id"] == workspace_id
     assert body["role"] == "owner"
     assert body["graph_write"] is True
-    assert body["explorer_runtime"] == kb_graph_runtime_available()
+    assert body["graph_runtime"] == kb_graph_runtime_available()
     assert "sparql" in body and "decisions" in body
     assert body["upload_max_bytes"] > 0
     assert body["ingest_max_inflight"] >= 1

@@ -7,7 +7,7 @@ Everything scoped to `/workspaces/:id/*` console routes: React frame, HTTP/WS, a
 | File | Role |
 | --- | --- |
 | `context.tsx` | Workspace catalog (`WorkspaceCatalogProvider`, `useWorkspaceCatalog`) |
-| `capabilities.tsx` | Feature flags / nav gating (`explorer_runtime`, segments, …) |
+| `capabilities.tsx` | Feature flags / nav gating (`graph_runtime`, segments, …) |
 | `active-id.ts` | Active workspace id (localStorage, setup id, sidebar resolve) |
 
 ## HTTP / WebSocket

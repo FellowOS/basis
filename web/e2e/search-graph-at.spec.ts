@@ -15,7 +15,7 @@ test('search graph tab runs query', async ({ page }) => {
     name: /工作区不可用|Workspace unavailable/i,
   });
   if ((await unavailable.count()) > 0) {
-    test.skip(true, 'graph search requires explorer_runtime');
+    test.skip(true, 'graph search requires graph_runtime');
   }
 
   await expect(page.getByPlaceholder(/Search graph nodes|搜索图谱节点/i)).toHaveValue('smoke', {

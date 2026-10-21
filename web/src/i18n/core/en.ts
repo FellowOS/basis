@@ -83,9 +83,9 @@ export default {
     bad_algorithm: "Invalid path algorithm. Use bfs or dijkstra.",
     semantic_unavailable: "Semantic similarity is unavailable for this graph.",
     semantic_node_not_found: "Selected node was not found by the semantic distance API.",
-    explorer_unavailable: "Workspace graph session is unavailable. Check dependencies and restart the server.",
+    graph_runtime_unavailable: "Workspace graph session is unavailable. Check dependencies and restart the server.",
     kb_graph_session_unavailable: "Workspace graph session is unavailable. Check dependencies and restart the server.",
-    explorer_graph_error: "The workspace graph API returned an error.",
+    graph_projection_error: "The workspace graph API returned an error.",
     bad_path: "Path lookup requires both source and target node IDs.",
     bad_signature: "Mapping signature cannot be empty.",
     bad_target_kind: "Invalid mapping target kind.",
@@ -204,7 +204,7 @@ export default {
       hint: "Navigation follows the knowledge lifecycle; document processing status and actions live with Sources."
     },
     capabilities: {
-      explorer_unavailable: "Graph runtime is not installed. Run uv sync --extra explorer on the API host and restart.",
+      graph_runtime_unavailable: "Graph runtime is not installed. Run uv sync --extra explorer on the API host and restart.",
       unavailable: "This capability is not enabled for this workspace.",
       feature_unavailable_title: "Feature unavailable",
       import_editor_required: "Editor role is required to import graph data."

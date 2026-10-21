@@ -28,7 +28,7 @@ test('ontology versions deep link highlights proposal from URL', async ({ page }
     name: /工作区不可用|Workspace unavailable/i,
   });
   if ((await unavailable.count()) > 0) {
-    test.skip(true, 'ontology versions workspace requires explorer_runtime');
+    test.skip(true, 'ontology versions workspace requires graph_runtime');
   }
 
   const row = page.getByTestId(`ontology-proposal-list-item-${proposalId}`);

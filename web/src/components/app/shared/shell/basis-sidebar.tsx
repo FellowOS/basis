@@ -86,8 +86,8 @@ export function BasisSidebar({ onLogout }: { onLogout: () => void }) {
     const label = workspaceNavMenuLabel(t, item.labelKey as SidebarMenuKey);
     const enabled = workspaceNavSegmentEnabled(item.segment, caps);
     const disabledTooltip =
-      caps?.diagnostic === 'explorer_unavailable'
-        ? t.core.workspace_nav.capabilities.explorer_unavailable
+      caps?.diagnostic === 'graph_runtime_unavailable'
+        ? t.core.workspace_nav.capabilities.graph_runtime_unavailable
         : t.core.workspace_nav.capabilities.unavailable;
     return (
       <SidebarMenuItem key={item.segment}>

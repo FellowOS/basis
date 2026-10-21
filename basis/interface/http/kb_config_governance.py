@@ -80,7 +80,7 @@ Governance Governor Run. Batch conflict scan and low-confidence review enqueue (
             threshold=dedup_threshold,
         )
     except AdminError as exc:
-        if exc.code == "explorer_unavailable":
+        if exc.code == "graph_runtime_unavailable":
             graph_dedup = {**graph_dedup, "unavailable": True}
         else:
             raise

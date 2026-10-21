@@ -15,7 +15,7 @@ test('graph toolbar links to graph diff workspace', async ({ page }) => {
     name: /工作区不可用|Workspace unavailable/i,
   });
   if ((await unavailable.count()) > 0) {
-    test.skip(true, 'graph workspace requires explorer_runtime');
+    test.skip(true, 'graph workspace requires graph_runtime');
   }
 
   const diffLink = page.getByTestId('workspace-graph-open-diff');

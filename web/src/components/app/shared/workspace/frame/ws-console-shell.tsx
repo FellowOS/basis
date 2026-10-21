@@ -36,7 +36,7 @@ export function WorkspaceConsoleShell({
 
   const graphRuntimeReady =
     caps &&
-    (!requireGraphRuntime || caps.explorer_runtime) &&
+    (!requireGraphRuntime || caps.graph_runtime) &&
     (!requireGraph || caps.graph) &&
     (!capabilityOk || capabilityOk(caps));
 

@@ -27,7 +27,7 @@ test('search URL keeps as_of and at for shareable links', async ({ page }) => {
     name: /工作区不可用|Workspace unavailable/i,
   });
   if ((await unavailable.count()) > 0) {
-    test.skip(true, 'graph search requires explorer_runtime');
+    test.skip(true, 'graph search requires graph_runtime');
   }
 
   await expect(page.getByTestId('workspace-search-at')).toHaveValue(at, { timeout: 30_000 });

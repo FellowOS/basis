@@ -30,7 +30,7 @@ test('review queue scan statement conflicts button', async ({ page }) => {
     name: /工作区不可用|Workspace unavailable/i,
   });
   if ((await unavailable.count()) > 0) {
-    test.skip(true, 'review workspace requires explorer_runtime');
+    test.skip(true, 'review workspace requires graph_runtime');
   }
 
   const scanBtn = page.getByTestId('review-scan-statement-conflicts');
@@ -50,7 +50,7 @@ test('review queue surfaces link to ontology versions tab', async ({ page }) => 
     name: /工作区不可用|Workspace unavailable/i,
   });
   if ((await unavailable.count()) > 0) {
-    test.skip(true, 'review workspace requires explorer_runtime');
+    test.skip(true, 'review workspace requires graph_runtime');
   }
 
   const ontologyLink = page.getByRole('link', {
@@ -78,7 +78,7 @@ test('review queue deep link highlights remembered fact item', async ({ page }) 
     name: /工作区不可用|Workspace unavailable/i,
   });
   if ((await unavailable.count()) > 0) {
-    test.skip(true, 'review workspace requires explorer_runtime');
+    test.skip(true, 'review workspace requires graph_runtime');
   }
 
   const card = page.locator(`#review-item-${reviewItemId}`);
@@ -159,7 +159,7 @@ test('statement conflict alert links to review queue item', async ({ page }) => 
     name: /工作区不可用|Workspace unavailable/i,
   });
   if ((await unavailable.count()) > 0) {
-    test.skip(true, 'review workspace requires explorer_runtime');
+    test.skip(true, 'review workspace requires graph_runtime');
   }
 
   const card = page.locator(`#review-item-${reviewItemId}`);
@@ -307,7 +307,7 @@ test('approve remember records governance decision deep link', async ({ page }) 
     name: /工作区不可用|Workspace unavailable/i,
   });
   if ((await unavailable.count()) > 0) {
-    test.skip(true, 'review workspace requires explorer_runtime');
+    test.skip(true, 'review workspace requires graph_runtime');
   }
 
   const card = page.locator(`#review-item-${reviewItemId}`);
@@ -339,7 +339,7 @@ test('resolved review deep link shows banner and decision links', async ({ page 
     name: /工作区不可用|Workspace unavailable/i,
   });
   if ((await unavailable.count()) > 0) {
-    test.skip(true, 'review workspace requires explorer_runtime');
+    test.skip(true, 'review workspace requires graph_runtime');
   }
 
   const card = page.locator(`#review-item-${reviewItemId}`);
@@ -366,7 +366,7 @@ test('search graph tab shows temporal hint and link to graph workspace', async (
     name: /工作区不可用|Workspace unavailable/i,
   });
   if ((await unavailable.count()) > 0) {
-    test.skip(true, 'graph search requires explorer_runtime');
+    test.skip(true, 'graph search requires graph_runtime');
   }
 
   await expect(page.getByTestId('workspace-search-at')).toBeVisible({ timeout: 30_000 });

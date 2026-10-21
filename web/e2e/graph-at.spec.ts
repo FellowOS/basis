@@ -25,7 +25,7 @@ test('graph at query opens temporal context', async ({ page }) => {
     name: /工作区不可用|Workspace unavailable/i,
   });
   if ((await unavailable.count()) > 0) {
-    test.skip(true, 'graph workspace requires explorer_runtime');
+    test.skip(true, 'graph workspace requires graph_runtime');
   }
 
   await expect(page.locator('[data-testid="workspace-graph-canvas"]')).toBeVisible({
@@ -53,7 +53,7 @@ test('graph timeline entry deep link opens playback footer', async ({ page }) =>
     name: /工作区不可用|Workspace unavailable/i,
   });
   if ((await unavailable.count()) > 0) {
-    test.skip(true, 'graph workspace requires explorer_runtime');
+    test.skip(true, 'graph workspace requires graph_runtime');
   }
 
   await expect(page.locator('[data-testid="workspace-graph-canvas"]')).toBeVisible({
@@ -84,7 +84,7 @@ test('search open in graph focuses node', async ({ page }) => {
     name: /工作区不可用|Workspace unavailable/i,
   });
   if ((await unavailable.count()) > 0) {
-    test.skip(true, 'graph search requires explorer_runtime');
+    test.skip(true, 'graph search requires graph_runtime');
   }
 
   await expect
@@ -126,7 +126,7 @@ test('search graph scope opens timeline playback deep link', async ({ page }) =>
     name: /工作区不可用|Workspace unavailable/i,
   });
   if ((await unavailable.count()) > 0) {
-    test.skip(true, 'graph search requires explorer_runtime');
+    test.skip(true, 'graph search requires graph_runtime');
   }
 
   await page.getByTestId('workspace-search-open-graph-timeline').click();

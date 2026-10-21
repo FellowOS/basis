@@ -16,7 +16,7 @@ function ingestPollTimeoutMessage(locale: Locale): string {
 
 export type ExplorerCapabilities = {
   graph_snapshot: boolean;
-  explorer_runtime: boolean;
+  graph_runtime: boolean;
 };
 
 export type DocumentStoreResult = {

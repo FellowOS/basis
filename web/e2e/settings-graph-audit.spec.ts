@@ -45,6 +45,6 @@ test('workspace settings graph tab links recent audit to review queue', async ({
     name: /工作区不可用|Workspace unavailable/i,
   });
   if ((await unavailable.count()) > 0) {
-    test.skip(true, 'review workspace requires explorer_runtime');
+    test.skip(true, 'review workspace requires graph_runtime');
   }
 });

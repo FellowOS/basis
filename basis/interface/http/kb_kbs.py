@@ -94,7 +94,7 @@ async def get_kb_capabilities(
     store: AdminStore = Depends(get_store),
     limits: RuntimeLimits = Depends(get_runtime_limits),
 ) -> dict[str, Any]:
-    """Feature flags for Explorer, ingest, mappings, and diagnostics for this workspace and role."""
+    """Feature flags for graph runtime, ingest, mappings, and diagnostics for this workspace and role."""
     kb, role = get_workspace_for_viewer(request, user, workspace_id, store)
     return {
         "workspace_id": kb.id,
