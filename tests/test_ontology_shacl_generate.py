@@ -2,8 +2,8 @@ import pytest
 
 pytest.importorskip("semantica")
 
-from basis.domain.graph.explorer.ontology.hub.create_write import create_ontology
-from basis.domain.graph.explorer.ontology.shacl.shacl_generate import generate_shacl
+from basis.domain.ontology.hub.create_write import create_ontology
+from basis.domain.ontology.shacl.shacl_generate import generate_shacl
 from basis.domain.tenancy.admin.errors import AdminError
 
 

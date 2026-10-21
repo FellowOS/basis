@@ -1,6 +1,6 @@
 """BasisKbGraphSession adapter tests."""
 
-from basis.domain.graph.explorer.session.basis_kb_graph_session import BasisKbGraphSession
+from basis.domain.graph.workspace.session.basis_kb_graph_session import BasisKbGraphSession
 from basis.domain.graph.projection.session import GraphSession
 
 

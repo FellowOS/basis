@@ -1,6 +1,6 @@
 import pytest
 
-from basis.domain.graph.explorer.ontology.browse.preview_read import detect_format, preview_ontology
+from basis.domain.ontology.browse.preview_read import detect_format, preview_ontology
 from basis.domain.tenancy.admin.errors import AdminError
 
 

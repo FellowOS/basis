@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from basis.domain.tenancy.admin.store import AdminStore
-from basis.domain.graph.explorer.graph.diff import diff_graph_states
+from basis.domain.graph.workspace.graph.diff import diff_graph_states
 from basis.domain.graph.projection.projector import (
     build_temporal_graph_from_ledger,
     graph_projection_signature,

@@ -21,12 +21,12 @@ from basis.infra.runtime.limits import RuntimeLimits
 from basis.infra.runtime.database import get_database
 from basis.domain.graph.projection.snapshot_store import GraphPersistence
 from basis.domain.knowledge.blob_store import BlobStore
-from basis.domain.graph.explorer.session.registry import ExplorerSessionRegistry
+from basis.domain.graph.workspace.session.registry import GraphWorkspaceSessionRegistry
 from basis.domain.knowledge.search import ChunkSearchService
 from basis.domain.knowledge.store import KnowledgeStore
 from basis.domain.tenancy.realtime.hub import GraphWsHub
 from basis.domain.tenancy.realtime.tickets import RealtimeTicketStore
-from basis.infra.runtime.capabilities import explorer_available
+from basis.infra.runtime.capabilities import graph_workspace_available
 from basis.infra.tooling.test_support.playwright_e2e import is_playwright_e2e_data_dir
 from basis.interface.http.legacy_api_gate import LegacyApiGateMiddleware
 from basis.interface.http.legacy_deprecation import LegacyApiDeprecationMiddleware
@@ -46,11 +46,11 @@ async def _app_lifespan(app: FastAPI):
     settings = app.state.settings
     emit_process_ready(settings)
     tasks: list[asyncio.Task[None]] = []
-    if explorer_available():
-        interval = max(30, app.state.settings.explorer_evict_interval_seconds)
+    if graph_workspace_available():
+        interval = max(30, app.state.settings.graph_workspace_evict_interval_seconds)
 
         async def _evict_loop() -> None:
-            registry = app.state.explorer_registry
+            registry = app.state.graph_workspace_registry
             while True:
                 await asyncio.sleep(interval)
                 registry.evict_idle()
@@ -141,8 +141,8 @@ def create_app(app_settings: Settings | None = None) -> FastAPI:
         app_settings.data_dir,
     )
     app.state.graphs = {}
-    app.state.explorer_registry = ExplorerSessionRegistry(
-        idle_seconds=app_settings.explorer_idle_seconds,
+    app.state.graph_workspace_registry = GraphWorkspaceSessionRegistry(
+        idle_seconds=app_settings.graph_workspace_idle_seconds,
     )
     app.state.realtime_tickets = RealtimeTicketStore()
     app.state.ws_hub = GraphWsHub()

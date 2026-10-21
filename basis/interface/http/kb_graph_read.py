@@ -10,7 +10,7 @@ from fastapi import APIRouter, Depends, Request
 from basis.domain.errors import AdminError
 from basis.domain.tenancy.admin.store import AdminStore, User
 from basis.interface.http.deps import (
-    explorer_runtime_for,
+    graph_workspace_runtime_for,
     get_current_user,
     get_kb_for_editor,
     get_kb_for_viewer,
@@ -25,7 +25,7 @@ from basis.application.operation_http import http_response_from_payload
 from basis.application.registry import run
 from basis.infra.runtime.limits import RuntimeLimits
 from basis.domain.knowledge.store import KnowledgeStore
-from basis.domain.graph.explorer.graph.read import get_node, paginate_edges
+from basis.domain.graph.workspace.graph.read import get_node, paginate_edges
 from basis.domain.graph.projection.export import graph_snapshot
 from basis.domain.graph.projection.projector import apply_rebuild_to_session
 from basis.domain.knowledge.services.graph_audit import audit_kb_graph
@@ -123,10 +123,10 @@ async def graph_nodes_route(
 Graph Nodes Route. Projected graph read API (Explorer runtime). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
     """
     get_kb_for_viewer(request, user, kb_id, store)
-    runtime = explorer_runtime_for(request, kb_id)
+    runtime = graph_workspace_runtime_for(request, kb_id)
     page_limit = min(max(1, limit), limits.graph_page_max_nodes)
-    if runtime.explorer is not None:
-        nodes, total, next_cursor = runtime.explorer.paginate_nodes(
+    if runtime.adapter is not None:
+        nodes, total, next_cursor = runtime.adapter.paginate_nodes(
             node_type=node_type,
             search=search,
             limit=page_limit,
@@ -161,7 +161,7 @@ Resolve Graph Node Labels. Projected graph read API (Explorer runtime). Requires
     get_kb_for_viewer(request, user, kb_id, store)
     ids = [str(i).strip() for i in body.ids if str(i).strip()]
     labels = knowledge.entity_labels_by_ids(kb_id, ids)
-    runtime = explorer_runtime_for(request, kb_id)
+    runtime = graph_workspace_runtime_for(request, kb_id)
     for node_id in ids:
         if labels.get(node_id):
             continue
@@ -187,7 +187,7 @@ async def graph_node_route(
 Graph Node Route. Projected graph read API (Explorer runtime). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
     """
     get_kb_for_viewer(request, user, kb_id, store)
-    runtime = explorer_runtime_for(request, kb_id)
+    runtime = graph_workspace_runtime_for(request, kb_id)
     node = await asyncio.to_thread(get_node, runtime, node_id)
     if node is None:
         raise AdminError(404, "not_found", "节点不存在")
@@ -264,7 +264,7 @@ async def graph_edges_route(
 Graph Edges Route. Projected graph read API (Explorer runtime). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
     """
     get_kb_for_viewer(request, user, kb_id, store)
-    runtime = explorer_runtime_for(request, kb_id)
+    runtime = graph_workspace_runtime_for(request, kb_id)
     return await asyncio.to_thread(
         paginate_edges,
         runtime,

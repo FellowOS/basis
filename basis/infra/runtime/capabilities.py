@@ -3,15 +3,15 @@
 from __future__ import annotations
 
 
-def explorer_available() -> bool:
-    """KB graph / Explorer HTTP stack (``BasisKbGraphSession``) is always available."""
+def graph_workspace_available() -> bool:
+    """KB graph workspace HTTP stack (``BasisKbGraphSession``) is always available."""
     return True
 
 
 def platform_capabilities() -> dict[str, bool]:
     return {
         "graph_snapshot": True,
-        "explorer_runtime": explorer_available(),
+        "explorer_runtime": graph_workspace_available(),
     }
 
 

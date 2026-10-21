@@ -1,6 +1,6 @@
 import pytest
 
-from basis.domain.graph.explorer.ontology.hub.registry_write import remove_ontology, toggle_ontology
+from basis.domain.ontology.hub.registry_write import remove_ontology, toggle_ontology
 from basis.domain.tenancy.admin.errors import AdminError
 
 

@@ -9,7 +9,7 @@ pytest.importorskip("semantica")
 from fastapi.testclient import TestClient
 
 from basis.interface.http.app import create_app
-from basis.infra.runtime.capabilities import explorer_available
+from basis.infra.runtime.capabilities import graph_workspace_available
 from basis.infra.runtime.config import Settings
 
 
@@ -26,7 +26,7 @@ def test_e2e_governance_trip_disabled_outside_data_e2e(tmp_path) -> None:
 
 
 def test_e2e_governance_trip_records_alert_and_decision(tmp_path) -> None:
-    if not explorer_available():
+    if not graph_workspace_available():
         pytest.skip("explorer extra not installed")
 
     e2e_dir = tmp_path / "data" / "e2e"
@@ -99,7 +99,7 @@ def test_e2e_ontology_proposal_disabled_outside_data_e2e(tmp_path) -> None:
 
 
 def test_e2e_ontology_proposal_seeds_proposed_change(tmp_path) -> None:
-    if not explorer_available():
+    if not graph_workspace_available():
         pytest.skip("explorer extra not installed")
 
     e2e_dir = tmp_path / "data" / "e2e"

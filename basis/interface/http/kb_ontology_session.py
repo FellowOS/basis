@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from fastapi import Request
 
-from basis.interface.http.deps import explorer_runtime_for
-from basis.domain.graph.explorer.session.guard import require_explorer_graph_session
+from basis.interface.http.deps import graph_workspace_runtime_for
+from basis.domain.graph.workspace.session.guard import require_graph_workspace_session
 
 
-def explorer_graph_session(request: Request, kb_id: str):
-    runtime = explorer_runtime_for(request, kb_id)
-    return require_explorer_graph_session(runtime)
+def graph_workspace_session(request: Request, kb_id: str):
+    runtime = graph_workspace_runtime_for(request, kb_id)
+    return require_graph_workspace_session(runtime)

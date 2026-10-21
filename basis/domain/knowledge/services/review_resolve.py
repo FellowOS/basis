@@ -16,7 +16,7 @@ from basis.domain.knowledge.services.conflict_review import STATEMENT_CONFLICT_K
 from basis.domain.knowledge.services.governor import LOW_CONFIDENCE_KIND, resolve_low_confidence_reject
 from basis.domain.knowledge.services.governor_cluster import ENTITY_CLUSTER_KIND
 from basis.domain.knowledge.services.import_review import discard_staged_import
-from basis.domain.knowledge.services.mapping_service import (
+from basis.domain.ontology.mappings.service import (
     MAPPING_REVIEW_KIND,
     apply_mapping_status_change,
 )

@@ -6,7 +6,7 @@ from fastapi import Request
 
 from basis.domain.tenancy.admin.store import AdminStore, User
 from basis.interface.http.deps import (
-    explorer_runtime_for,
+    graph_workspace_runtime_for,
     get_blob_store,
     get_chunk_search,
     get_kb_for_editor,
@@ -39,7 +39,7 @@ def build_kb_core_context(
         knowledge=get_knowledge_store(request),
         store=store,
         chunk_search=get_chunk_search(request),
-        runtime_loader=lambda: explorer_runtime_for(request, kb_id),
+        runtime_loader=lambda: graph_workspace_runtime_for(request, kb_id),
         assert_kb_editor=lambda: get_kb_for_editor(request, user, kb_id, store),
         rebuild_projection=lambda: rebuild_kb_projection(request, kb_id),
         persist_graph=lambda kid: save_graph(request, kid),

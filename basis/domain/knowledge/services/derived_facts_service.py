@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from basis.domain.graph.explorer.reasoning.forward import _parse_fact
+from basis.domain.bridges.graph_workspace import parse_reasoning_fact as _parse_fact
 from basis.domain.knowledge.store import KnowledgeStore
 
 

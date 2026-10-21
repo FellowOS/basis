@@ -1,6 +1,6 @@
 import pytest
 
-from basis.domain.graph.explorer.ontology.hub.load_write import load_ontology
+from basis.domain.ontology.hub.load_write import load_ontology
 from basis.domain.tenancy.admin.errors import AdminError
 
 

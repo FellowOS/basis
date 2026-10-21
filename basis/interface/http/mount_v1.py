@@ -12,10 +12,10 @@ from basis.interface.http.kb_config_reasoning_rules import router as kb_reasonin
 from basis.interface.http.kb_connectors import router as kb_connectors_router
 from basis.interface.http.kb_documents import router as kb_documents_router
 from basis.interface.http.kb_e2e_helpers import router as kb_e2e_helpers_router
-from basis.interface.http.kb_explorer import router as kb_explorer_query_router
-from basis.interface.http.kb_explorer_governance import router as kb_explorer_governance_router
-from basis.interface.http.kb_explorer_staging import router as kb_explorer_staging_router
-from basis.interface.http.kb_explorer_temporal import router as kb_explorer_temporal_router
+from basis.interface.http.kb_graph_workspace_queries import router as kb_graph_workspace_query_router
+from basis.interface.http.kb_graph_workspace_governance import router as kb_graph_workspace_governance_router
+from basis.interface.http.kb_graph_workspace_staging import router as kb_graph_workspace_staging_router
+from basis.interface.http.kb_graph_workspace_temporal import router as kb_graph_workspace_temporal_router
 from basis.interface.http.kb_graph import router as kb_graph_router
 from basis.interface.http.kb_ledger import router as kb_ledger_router
 from basis.interface.http.kb_ontology import router as kb_ontology_router
@@ -40,10 +40,10 @@ _KB_ROUTERS = (
     kb_documents_router,
     mcp_router,
     kb_tokens_router,
-    kb_explorer_temporal_router,
-    kb_explorer_staging_router,
-    kb_explorer_governance_router,
-    kb_explorer_query_router,
+    kb_graph_workspace_temporal_router,
+    kb_graph_workspace_staging_router,
+    kb_graph_workspace_governance_router,
+    kb_graph_workspace_query_router,
     kb_ontology_router,
     kb_review_router,
     kb_ledger_router,

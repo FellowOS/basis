@@ -1,6 +1,6 @@
 import pytest
 
-from basis.domain.graph.explorer.ontology.hub.catalog import delete_alignment, upsert_alignment
+from basis.domain.ontology.hub.catalog import delete_alignment, upsert_alignment
 from basis.domain.tenancy.admin.errors import AdminError
 
 

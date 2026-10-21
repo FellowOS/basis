@@ -11,7 +11,7 @@ from basis.domain.graph.projection.projection_lifecycle import (
     rebuild_kb_projection as rebuild_kb_projection_bindings,
     save_graph as save_graph_bindings,
 )
-from basis.domain.graph.explorer.session.registry import KbExplorerRuntime
+from basis.domain.graph.workspace.session.registry import KbGraphWorkspaceRuntime
 from basis.domain.tenancy.admin.store import AdminStore, ApiTokenRecord, User
 from basis.domain.graph.projection.snapshot_store import GraphPersistence
 from basis.domain.graph.projection.session import GraphSession
@@ -45,12 +45,12 @@ def get_runtime_limits(request: Request) -> RuntimeLimits:
     return request.app.state.limits
 
 
-def get_explorer_registry(request: Request):
-    return request.app.state.explorer_registry
+def get_graph_workspace_registry(request: Request):
+    return request.app.state.graph_workspace_registry
 
 
 def graph_projection_bindings(request: Request) -> GraphProjectionBindings:
-    from basis.domain.graph.explorer.ontology.hub.hub_persistence import persist_kb_ontology_hub
+    from basis.domain.ontology.hub.hub_persistence import persist_kb_ontology_hub
 
     def _broadcast(kb_id: str, revision: int) -> None:
         request.app.state.ws_hub.try_broadcast(
@@ -66,15 +66,15 @@ def graph_projection_bindings(request: Request) -> GraphProjectionBindings:
         graphs=request.app.state.graphs,
         persistence=get_graph_persistence(request),
         knowledge=get_knowledge_store(request),
-        explorer_registry=get_explorer_registry(request),
+        graph_workspace_registry=get_graph_workspace_registry(request),
         persist_ontology_hub=lambda kb_id: persist_kb_ontology_hub(request, kb_id),
         broadcast_projection=_broadcast,
     )
 
 
-def explorer_runtime_for(request: Request, kb_id: str) -> KbExplorerRuntime:
+def graph_workspace_runtime_for(request: Request, kb_id: str) -> KbGraphWorkspaceRuntime:
     bindings = graph_projection_bindings(request)
-    return get_explorer_registry(request).get(
+    return get_graph_workspace_registry(request).get(
         kb_id,
         knowledge=bindings.knowledge,
         basis_for_kb=lambda kid: graph_session_for_kb(bindings, kid),
@@ -244,7 +244,7 @@ def drop_graph(request: Request, kb_id: str) -> None:
     request.app.state.graphs.pop(kb_id, None)
     persistence = get_graph_persistence(request)
     persistence.delete(kb_id)
-    from basis.domain.graph.explorer.ontology.hub.hub_persistence import delete_kb_ontology_hub
+    from basis.domain.ontology.hub.hub_persistence import delete_kb_ontology_hub
 
     delete_kb_ontology_hub(persistence, kb_id)
     loaded: set[str] = getattr(request.app.state, "_kb_ontology_hub_loaded", set())

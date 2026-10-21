@@ -9,14 +9,14 @@ from fastapi import APIRouter, Depends, Query, Request
 from basis.domain.tenancy.admin.store import AdminStore, User
 from basis.interface.http.deps import (
     get_current_user,
-    explorer_runtime_for,
+    graph_workspace_runtime_for,
     get_kb_for_role,
     get_knowledge_store,
     get_store,
     save_graph,
 )
-from basis.domain.graph.explorer.ontology.hub.kb_scoped_state import KbOntologyState
-from basis.domain.graph.explorer.ontology.hub.governance import (
+from basis.domain.ontology.hub.kb_scoped_state import KbOntologyState
+from basis.domain.ontology.hub.governance import (
     add_proposal_comment,
     approve_proposal,
     compare_versions,
@@ -30,13 +30,13 @@ from basis.domain.graph.explorer.ontology.hub.governance import (
     save_draft,
     submit_proposal,
 )
-from basis.domain.graph.explorer.ontology.hub.hub_models import (
+from basis.domain.ontology.hub.hub_models import (
     CommentRequest,
     DraftRequest,
     ProposalRequest,
     VersionCompareRequest,
 )
-from basis.domain.graph.explorer.governance.decision import (
+from basis.domain.graph.workspace.governance.decision import (
     maybe_emit_governance_tripped_for_admin_error,
 )
 from basis.domain.errors import AdminError
@@ -213,7 +213,7 @@ Kb Ont 23 Approve Proposal. Ontology workspace (SKOS, alignments) via Explorer. 
                     exc,
                     detail={"proposal_id": proposal_id, "source": "ontology_approve"},
                     actor_id=user.id,
-                    runtime_loader=lambda: explorer_runtime_for(request, kb_id),
+                    runtime_loader=lambda: graph_workspace_runtime_for(request, kb_id),
                     persist_graph=lambda kid: save_graph(request, kid),
                 )
                 raise
@@ -276,7 +276,7 @@ Kb Ont 25 Publish Proposal. Ontology workspace (SKOS, alignments) via Explorer. 
                     exc,
                     detail={"proposal_id": proposal_id, "source": "ontology_publish"},
                     actor_id=user.id,
-                    runtime_loader=lambda: explorer_runtime_for(request, kb_id),
+                    runtime_loader=lambda: graph_workspace_runtime_for(request, kb_id),
                     persist_graph=lambda kid: save_graph(request, kid),
                 )
                 raise

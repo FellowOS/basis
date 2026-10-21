@@ -10,12 +10,12 @@ from fastapi import HTTPException
 from fastapi.testclient import TestClient
 
 from basis.interface.http.app import create_app
-from basis.infra.runtime.capabilities import explorer_available
+from basis.infra.runtime.capabilities import graph_workspace_available
 from basis.infra.runtime.config import Settings
 
 
 def test_entity_merge_review_propose_list_reject(tmp_path) -> None:
-    if not explorer_available():
+    if not graph_workspace_available():
         pytest.skip("explorer extra not installed")
 
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
@@ -57,7 +57,7 @@ def test_entity_merge_review_propose_list_reject(tmp_path) -> None:
 
 
 def test_direct_enrich_merge_blocked(tmp_path) -> None:
-    if not explorer_available():
+    if not graph_workspace_available():
         pytest.skip("explorer extra not installed")
 
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
@@ -78,7 +78,7 @@ def test_direct_enrich_merge_blocked(tmp_path) -> None:
 
 
 def test_review_approve_failure_emits_governance_alert(tmp_path) -> None:
-    if not explorer_available():
+    if not graph_workspace_available():
         pytest.skip("explorer extra not installed")
 
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
@@ -100,7 +100,7 @@ def test_review_approve_failure_emits_governance_alert(tmp_path) -> None:
 
         raise AdminError(422, "impact_gate", "blocked")
 
-    with patch("basis.domain.graph.explorer.governance.enrich_write.merge_nodes", side_effect=fail_merge):
+    with patch("basis.domain.graph.workspace.governance.enrich_write.merge_nodes", side_effect=fail_merge):
         failed = client.post(
             f"/api/v1/kbs/{kb_id}/review/items/{proposed['id']}/approve",
             headers=headers,

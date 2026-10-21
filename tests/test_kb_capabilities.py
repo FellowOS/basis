@@ -3,7 +3,7 @@
 from fastapi.testclient import TestClient
 
 from basis.interface.http.app import create_app
-from basis.infra.runtime.capabilities import explorer_available, kb_capabilities
+from basis.infra.runtime.capabilities import graph_workspace_available, kb_capabilities
 from basis.infra.runtime.config import Settings
 
 
@@ -12,7 +12,7 @@ def test_kb_capabilities_unit_viewer_vs_editor() -> None:
     owner = kb_capabilities("owner")
     assert viewer["graph_write"] is False
     assert owner["graph_write"] is True
-    if explorer_available():
+    if graph_workspace_available():
         assert viewer["import_export"] is False
         assert owner["import_export"] is True
         assert viewer["sparql"] is True
@@ -33,7 +33,7 @@ def test_kb_capabilities_http(tmp_path) -> None:
     assert body["kb_id"] == kb_id
     assert body["role"] == "owner"
     assert body["graph_write"] is True
-    assert body["explorer_runtime"] == explorer_available()
+    assert body["explorer_runtime"] == graph_workspace_available()
     assert "sparql" in body and "decisions" in body
     assert body["upload_max_bytes"] > 0
     assert body["ingest_max_inflight"] >= 1

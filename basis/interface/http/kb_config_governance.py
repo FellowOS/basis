@@ -11,7 +11,7 @@ from pydantic import BaseModel, Field
 
 from basis.domain.errors import AdminError
 from basis.domain.tenancy.admin.store import AdminStore, User
-from basis.domain.graph.explorer.session.guard import require_explorer_graph_session
+from basis.domain.graph.workspace.session.guard import require_graph_workspace_session
 from basis.domain.knowledge.services.governor import run_governor_pass
 from basis.domain.knowledge.services.governor_graph_dedup import (
     DEFAULT_GOVERNOR_DEDUP_THRESHOLD,
@@ -20,7 +20,7 @@ from basis.domain.knowledge.services.governor_graph_dedup import (
 from basis.domain.knowledge.store import KnowledgeStore
 from basis.interface.http.deps import (
     get_current_user,
-    explorer_runtime_for,
+    graph_workspace_runtime_for,
     get_kb_for_editor,
     get_kb_for_viewer,
     get_knowledge_store,
@@ -71,8 +71,8 @@ Kb Governance Governor Run. Batch conflict scan and low-confidence review enqueu
     result = run_governor_pass(knowledge, kb_id, confidence_min=confidence_min)
     graph_dedup: dict[str, Any] = {"created": 0, "skipped": 0}
     try:
-        runtime = explorer_runtime_for(request, kb_id)
-        session = require_explorer_graph_session(runtime)
+        runtime = graph_workspace_runtime_for(request, kb_id)
+        session = require_graph_workspace_session(runtime)
         graph_dedup = await scan_graph_semantic_dedup_clusters(
             knowledge,
             kb_id,

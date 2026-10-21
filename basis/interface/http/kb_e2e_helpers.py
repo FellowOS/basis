@@ -11,15 +11,15 @@ from basis.domain.errors import AdminError
 from basis.domain.tenancy.admin.store import AdminStore, User
 from basis.interface.http.deps import get_current_user, get_kb_for_editor, get_knowledge_store, get_store
 from basis.infra.runtime.config import Settings
-from basis.domain.graph.explorer.governance.decision import emit_governance_tripped_for_kb
-from basis.domain.graph.explorer.ontology.hub.kb_scoped_state import KbOntologyState
-from basis.domain.graph.explorer.session.guard import require_explorer_graph_session
+from basis.domain.graph.workspace.governance.decision import emit_governance_tripped_for_kb
+from basis.domain.ontology.hub.kb_scoped_state import KbOntologyState
+from basis.domain.graph.workspace.session.guard import require_graph_workspace_session
 from basis.domain.knowledge.services.conflict_review import scan_statement_conflicts
 from basis.domain.knowledge.store import KnowledgeStore
-from basis.interface.http.deps import explorer_runtime_for, save_graph
-from basis.domain.graph.explorer.ontology.hub.create_write import create_ontology as create_ontology_write
-from basis.domain.graph.explorer.ontology.hub.governance import save_draft, submit_proposal
-from basis.domain.graph.explorer.ontology.hub.hub_models import DraftDiff, DraftRequest, ProposalRequest
+from basis.interface.http.deps import graph_workspace_runtime_for, save_graph
+from basis.domain.ontology.hub.create_write import create_ontology as create_ontology_write
+from basis.domain.ontology.hub.governance import save_draft, submit_proposal
+from basis.domain.ontology.hub.hub_models import DraftDiff, DraftRequest, ProposalRequest
 from basis.infra.tooling.test_support.playwright_e2e import is_playwright_e2e_data_dir
 
 router = APIRouter(tags=["knowledge-bases"])
@@ -47,7 +47,7 @@ async def e2e_governance_trip(
         message="E2E governance gate trip",
         detail={"source": "e2e_governance_trip"},
         actor_id=user.id,
-        runtime_loader=lambda: explorer_runtime_for(request, kb_id),
+        runtime_loader=lambda: graph_workspace_runtime_for(request, kb_id),
         persist_graph=lambda kid: save_graph(request, kid),
     )
     return {"decision_id": decision_id}
@@ -127,8 +127,8 @@ async def e2e_ontology_proposal(
         raise AdminError(404, "not_found", "资源不存在")
     get_kb_for_editor(request, user, kb_id, store)
 
-    runtime = explorer_runtime_for(request, kb_id)
-    session = require_explorer_graph_session(runtime)
+    runtime = graph_workspace_runtime_for(request, kb_id)
+    session = require_graph_workspace_session(runtime)
     namespace = f"http://example.org/e2e-{uuid4().hex}"
     ontology_uri = f"{namespace}#ontology"
     class_uri = f"{namespace}#E2EClass"

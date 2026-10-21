@@ -10,7 +10,7 @@ from fastapi.testclient import TestClient
 
 from basis.domain.knowledge.blob_store import BlobStore
 from basis.domain.knowledge.store import KnowledgeStore
-from basis.infra.runtime.capabilities import explorer_available
+from basis.infra.runtime.capabilities import graph_workspace_available
 from basis.infra.runtime.config import Settings
 from basis.domain.tenancy.admin.store import AdminStore
 from basis.interface.http.app import create_app
@@ -38,7 +38,7 @@ def test_list_document_timeline_events_unit(tmp_path: Path) -> None:
 
 
 def test_document_timeline_route_after_ingest(tmp_path: Path) -> None:
-    if not explorer_available():
+    if not graph_workspace_available():
         pytest.skip("explorer extra not installed")
 
     client = TestClient(create_app(Settings(data_dir=tmp_path)))

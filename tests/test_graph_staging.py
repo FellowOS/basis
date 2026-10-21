@@ -8,11 +8,11 @@ pytest.importorskip("semantica")
 
 from fastapi.testclient import TestClient
 
-from basis.domain.graph.explorer.graph.staging import (
+from basis.domain.graph.workspace.graph.staging import (
     build_graph_staging_payload,
     staging_session_key,
 )
-from basis.infra.runtime.capabilities import explorer_available
+from basis.infra.runtime.capabilities import graph_workspace_available
 from basis.infra.runtime.config import Settings
 from basis.interface.http.app import create_app
 
@@ -51,7 +51,7 @@ def test_staging_session_key_stable() -> None:
 
 
 def test_graph_staging_route_after_ingest(tmp_path: Path) -> None:
-    if not explorer_available():
+    if not graph_workspace_available():
         pytest.skip("explorer extra not installed")
 
     client = TestClient(create_app(Settings(data_dir=tmp_path)))

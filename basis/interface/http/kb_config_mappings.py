@@ -18,7 +18,7 @@ from basis.interface.http.deps import (
     rebuild_kb_projection,
 )
 from basis.domain.knowledge.services.graph_audit import audit_kb_graph
-from basis.domain.knowledge.services.mapping_service import (
+from basis.domain.ontology.mappings.service import (
     apply_mapping_status_change,
     ensure_mapping_review_item,
 )

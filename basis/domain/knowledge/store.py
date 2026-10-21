@@ -12,16 +12,16 @@ from basis.domain.knowledge.access.governance import GovernanceAccess
 from basis.domain.knowledge.access.document_delete import DocumentDeleteAccess
 from basis.domain.knowledge.access.entity_delete import EntityDeleteAccess
 from basis.domain.knowledge.access.entity_merges import EntityMergesAccess
-from basis.domain.knowledge.access.explorer import ExplorerKbAccess
+from basis.domain.knowledge.access.graph_staging import GraphStagingKbAccess
 from basis.domain.knowledge.access.documents import DocumentsAccess
 from basis.domain.knowledge.access.ingest_ledger import IngestLedgerAccess
 from basis.domain.knowledge.access.ledger import LedgerAccess
 from basis.domain.knowledge.access.ingest_sources import IngestSourcesAccess
 from basis.domain.knowledge.access.kb_alerts import KbAlertsAccess
-from basis.domain.knowledge.access.reasoning_rules import ReasoningRulesAccess
+from basis.domain.ontology.reasoning_rules import ReasoningRulesAccess
 from basis.domain.knowledge.access.processing import ProcessingJobsAccess
 from basis.domain.knowledge.access.facts import FactsAccess
-from basis.domain.knowledge.access.mappings import MappingsAccess
+from basis.domain.ontology.mappings import MappingsAccess
 from basis.domain.knowledge.access.projection import ProjectionAccess
 from basis.domain.knowledge.access.review import ReviewAccess, merge_review_subject_key
 from basis.domain.knowledge.access.search import SearchAccess
@@ -42,7 +42,7 @@ class KnowledgeStore:
         self._lock = self._db.lock
         self._conn = self._db.conn
         self._connector = ConnectorKbAccess(self)
-        self._explorer = ExplorerKbAccess(self)
+        self._graph_staging = GraphStagingKbAccess(self)
         self._entity_delete = EntityDeleteAccess(self)
         self._entity_merges = EntityMergesAccess(self)
         self._document_delete = DocumentDeleteAccess(self)
@@ -109,7 +109,7 @@ for _name in (
     setattr(KnowledgeStore, _name, _kb_access_delegate("_connector", _name))
 
 for _name in ("graph_staging_at", "upsert_graph_staging_session"):
-    setattr(KnowledgeStore, _name, _kb_access_delegate("_explorer", _name))
+    setattr(KnowledgeStore, _name, _kb_access_delegate("_graph_staging", _name))
 
 for _name in ("preview_entity_deletion", "execute_delete_entity"):
     setattr(KnowledgeStore, _name, _kb_access_delegate("_entity_delete", _name))

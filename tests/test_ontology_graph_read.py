@@ -1,7 +1,7 @@
 import pytest
 
-from basis.domain.graph.explorer.ontology.hub.create_write import create_ontology
-from basis.domain.graph.explorer.ontology.browse.graph_read import get_ontology_graph, search_entities
+from basis.domain.ontology.hub.create_write import create_ontology
+from basis.domain.ontology.browse.graph_read import get_ontology_graph, search_entities
 from basis.domain.tenancy.admin.errors import AdminError
 
 

@@ -7,7 +7,7 @@ from typing import Any, Callable
 
 from basis.domain.tenancy.admin.store import AdminStore, KnowledgeBase, User
 
-from basis.domain.graph.explorer.session.registry import KbExplorerRuntime
+from basis.domain.graph.workspace.session.registry import KbGraphWorkspaceRuntime
 from basis.domain.graph.projection.projection_lifecycle import GraphProjectionBindings
 from basis.domain.knowledge.blob_store import BlobStore
 from basis.domain.knowledge.search import ChunkSearchService
@@ -21,15 +21,15 @@ class KbCoreContext:
     knowledge: KnowledgeStore
     store: AdminStore
     chunk_search: ChunkSearchService | None = None
-    runtime: KbExplorerRuntime | None = None
-    runtime_loader: Callable[[], KbExplorerRuntime] | None = None
+    runtime: KbGraphWorkspaceRuntime | None = None
+    runtime_loader: Callable[[], KbGraphWorkspaceRuntime] | None = None
     assert_kb_editor: Callable[[], None] | None = None
     rebuild_projection: Callable[[], Any] | None = None
     persist_graph: Callable[[str], None] | None = None
     blob_store: BlobStore | None = None
     projection_bindings: GraphProjectionBindings | None = None
 
-    def graph_runtime(self) -> KbExplorerRuntime:
+    def graph_runtime(self) -> KbGraphWorkspaceRuntime:
         if self.runtime is not None:
             return self.runtime
         if self.runtime_loader is None:

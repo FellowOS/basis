@@ -2,4 +2,8 @@
 
 from basis.domain.knowledge.ports.platform import EmbedSettingsStore, KbAuditActor, KbAuditStore
 
-__all__ = ["EmbedSettingsStore", "KbAuditActor", "KbAuditStore"]
+__all__ = [
+    "EmbedSettingsStore",
+    "KbAuditActor",
+    "KbAuditStore",
+]

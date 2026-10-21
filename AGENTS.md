@@ -118,7 +118,7 @@ Run relevant checks after substantive edits; say if something was not run.
 ## Python / API
 
 - Package layout: [package-layout.md](./docs/architecture/package-layout.md) — `interface/`, `application/`, `domain/`, `infra/` (CI: `audit-legacy-package-imports.py`, `lint-imports`).
-- **Semantica 线 1：** 新后端逻辑放在 `basis/domain/*`（L3）；Explorer 见 `basis/domain/graph/explorer/README.md` 与 [explorer-backend.md](./docs/architecture/explorer-backend.md)（含 CI 护栏表）。分层见 [package-layout.md](./docs/architecture/package-layout.md)。
+- **Semantica 线 1：** 新后端逻辑放在 `basis/domain/*`（L3）：`knowledge` · `ontology` · `graph`（`projection/` + `workspace/`）· `integration` · `tenancy`。图交互见 `basis/domain/graph/workspace/README.md`；本体 Hub 见 `basis/domain/ontology/README.md`。分层见 [package-layout.md](./docs/architecture/package-layout.md)。
 - CLI entry: `pyproject.toml` (`basis` → `basis.cli:main`); app factory `basis.interface.http.app:create_app`.
 - Schema SQL: `basis/infra/tooling/db/migrations/`; Alembic `basis/infra/tooling/db/alembic/`.
 - Layer imports: `uv run lint-imports --config importlinter.ini` — domain ↛ `interface`/`application`; `application` ↛ `interface.http`; `interface.contract.mcp.openapi` ↛ `interface.http`.

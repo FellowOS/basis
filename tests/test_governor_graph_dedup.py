@@ -6,13 +6,13 @@ import pytest
 from fastapi.testclient import TestClient
 
 from basis.domain.knowledge.services.governor_cluster import ENTITY_CLUSTER_KIND
-from basis.infra.runtime.capabilities import explorer_available
+from basis.infra.runtime.capabilities import graph_workspace_available
 from basis.infra.runtime.config import Settings
 from basis.interface.http.app import create_app
 
 
 def test_governor_run_returns_graph_dedup_section(tmp_path: Path) -> None:
-    if not explorer_available():
+    if not graph_workspace_available():
         pytest.skip("explorer extra not installed")
 
     client = TestClient(create_app(Settings(data_dir=tmp_path)))

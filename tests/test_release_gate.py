@@ -14,7 +14,7 @@ pytest.importorskip("semantica")
 from fastapi.testclient import TestClient
 
 from basis.interface.http.app import create_app
-from basis.infra.runtime.capabilities import explorer_available
+from basis.infra.runtime.capabilities import graph_workspace_available
 from basis.infra.runtime.config import Settings
 
 
@@ -222,7 +222,7 @@ def test_viewer_can_read_graph_and_cannot_start_processing(tmp_path) -> None:
 
 def test_viewer_cannot_apply_reasoning_to_graph(tmp_path) -> None:
     """§9.4 — viewers may run dry-run reasoning but not mutate the graph."""
-    if not explorer_available():
+    if not graph_workspace_available():
         pytest.skip("explorer extra not installed")
 
     client = TestClient(create_app(_settings(tmp_path)))

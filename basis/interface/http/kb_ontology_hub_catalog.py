@@ -15,32 +15,32 @@ from basis.interface.http.deps import (
     get_store,
     save_graph,
 )
-from basis.domain.graph.explorer.ontology.hub.kb_scoped_state import KbOntologyState
-from basis.domain.graph.explorer.ontology.hub.create_write import create_ontology as create_ontology_write
-from basis.domain.graph.explorer.ontology.browse.graph_read import (
+from basis.domain.ontology.hub.kb_scoped_state import KbOntologyState
+from basis.domain.ontology.hub.create_write import create_ontology as create_ontology_write
+from basis.domain.ontology.browse.graph_read import (
     get_entity_detail as get_entity_detail_read,
     get_ontology_graph as get_ontology_graph_read,
     search_entities as search_entities_read,
 )
-from basis.domain.graph.explorer.ontology.hub.load_write import load_ontology as load_ontology_write
-from basis.domain.graph.explorer.ontology.browse.preview_read import preview_ontology as preview_ontology_read
-from basis.domain.graph.explorer.ontology.browse.health_read import ontology_health as ontology_health_read
-from basis.domain.graph.explorer.ontology.hub.refresh_write import refresh_ontology as refresh_ontology_write
-from basis.domain.graph.explorer.ontology.hub.registry_write import (
+from basis.domain.ontology.hub.load_write import load_ontology as load_ontology_write
+from basis.domain.ontology.browse.preview_read import preview_ontology as preview_ontology_read
+from basis.domain.ontology.browse.health_read import ontology_health as ontology_health_read
+from basis.domain.ontology.hub.refresh_write import refresh_ontology as refresh_ontology_write
+from basis.domain.ontology.hub.registry_write import (
     remove_ontology as remove_ontology_write,
     toggle_ontology as toggle_ontology_write,
 )
-from basis.domain.graph.explorer.ontology.shacl.shacl_read import (
+from basis.domain.ontology.shacl.shacl_read import (
     generate_shacl as generate_shacl_read,
     list_shacl_shapes as list_shacl_shapes_read,
     validate_shacl as validate_shacl_read,
 )
-from basis.domain.graph.explorer.ontology.browse.skos_read import (
+from basis.domain.ontology.browse.skos_read import (
     get_skos_concept as get_skos_concept_read,
     list_skos_schemes as list_skos_schemes_read,
     search_skos_concepts as search_skos_concepts_read,
 )
-from basis.domain.graph.explorer.ontology.hub.hub_models import (
+from basis.domain.ontology.hub.hub_models import (
     CreateOntologyRequest,
     LoadOntologyRequest,
     PreviewOntologyRequest,
@@ -48,7 +48,7 @@ from basis.domain.graph.explorer.ontology.hub.hub_models import (
     ShaclValidateRequest,
     SKOSConceptSearchRequest,
 )
-from basis.domain.graph.explorer.ontology.rdf_io import (
+from basis.domain.ontology.rdf_io import (
     content_likely_owl_schema,
     convert_ontology_to_graph,
     fetch_ontology_url_bytes,

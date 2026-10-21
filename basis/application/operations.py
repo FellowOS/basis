@@ -9,7 +9,7 @@ from fastapi import HTTPException
 
 from basis.application.context import KbCoreContext
 from basis.application.errors import CoreError
-from basis.domain.graph.explorer.graph.read import find_path, list_neighbors, search_nodes
+from basis.domain.graph.workspace.graph.read import find_path, list_neighbors, search_nodes
 from basis.application.governance_hooks import record_governance_decision_from_context
 from basis.domain.knowledge.services.remember_service import propose_remember
 from basis.domain.knowledge.services.review_resolve import (
@@ -107,7 +107,7 @@ def op_graph_search(ctx: KbCoreContext, args: dict[str, Any]) -> dict[str, Any]:
         max_limit=max_limit,
         at=at,
     )
-    engine = "explorer" if runtime.explorer is not None else "snapshot"
+    engine = "explorer" if runtime.adapter is not None else "snapshot"
     payload: dict[str, Any] = {"results": results, "engine": engine}
     if at:
         payload["at"] = at

@@ -16,13 +16,26 @@ def _bounded_int(name: str, default: int, *, lo: int, hi: int) -> int:
     return max(lo, min(hi, int(raw)))
 
 
+def _env(primary: str, legacy: str, default: str) -> str:
+    return os.environ.get(primary) or os.environ.get(legacy) or default
+
+
+def _bounded_int_env(
+    primary: str, legacy: str, default: int, *, lo: int, hi: int
+) -> int:
+    raw = os.environ.get(primary) or os.environ.get(legacy)
+    if raw is None or not str(raw).strip():
+        return default
+    return max(lo, min(hi, int(raw)))
+
+
 @dataclass(frozen=True)
 class Settings:
     host: str = "127.0.0.1"
     port: int = 8090
     data_dir: Path = Path("data")
-    explorer_idle_seconds: int = 1800
-    explorer_evict_interval_seconds: int = 300
+    graph_workspace_idle_seconds: int = 1800
+    graph_workspace_evict_interval_seconds: int = 300
     database_url: str | None = None
     db_pool_size: int = 10
     db_max_overflow: int = 20
@@ -38,7 +51,7 @@ class Settings:
     graph_page_max_nodes: int = 200
     graph_page_max_edges: int = 400
     chunk_search_max_limit: int = 50
-    explorer_decisions_max_limit: int = 200
+    graph_workspace_decisions_max_limit: int = 200
     graph_node_search_max_limit: int = 50
     import_max_bytes: int = 50 * 1024 * 1024
     upload_max_bytes: int = 50 * 1024 * 1024
@@ -82,9 +95,15 @@ class Settings:
             host=os.environ.get("BASIS_HOST", "127.0.0.1"),
             port=int(os.environ.get("BASIS_PORT", "8090")),
             data_dir=Path(os.environ.get("BASIS_DATA_DIR", "data")),
-            explorer_idle_seconds=int(os.environ.get("BASIS_EXPLORER_IDLE_SECONDS", "1800")),
-            explorer_evict_interval_seconds=int(
-                os.environ.get("BASIS_EXPLORER_EVICT_INTERVAL_SECONDS", "300")
+            graph_workspace_idle_seconds=int(
+                _env("BASIS_GRAPH_WORKSPACE_IDLE_SECONDS", "BASIS_EXPLORER_IDLE_SECONDS", "1800")
+            ),
+            graph_workspace_evict_interval_seconds=int(
+                _env(
+                    "BASIS_GRAPH_WORKSPACE_EVICT_INTERVAL_SECONDS",
+                    "BASIS_EXPLORER_EVICT_INTERVAL_SECONDS",
+                    "300",
+                )
             ),
             database_url=os.environ.get("BASIS_DATABASE_URL") or None,
             db_pool_size=int(os.environ.get("BASIS_DB_POOL_SIZE", "10")),
@@ -108,8 +127,12 @@ class Settings:
             chunk_search_max_limit=_bounded_int(
                 "BASIS_CHUNK_SEARCH_MAX_LIMIT", 50, lo=1, hi=500
             ),
-            explorer_decisions_max_limit=_bounded_int(
-                "BASIS_EXPLORER_DECISIONS_MAX_LIMIT", 200, lo=1, hi=2000
+            graph_workspace_decisions_max_limit=_bounded_int_env(
+                "BASIS_GRAPH_WORKSPACE_DECISIONS_MAX_LIMIT",
+                "BASIS_EXPLORER_DECISIONS_MAX_LIMIT",
+                200,
+                lo=1,
+                hi=2000,
             ),
             graph_node_search_max_limit=_bounded_int(
                 "BASIS_GRAPH_NODE_SEARCH_MAX_LIMIT", 50, lo=1, hi=500
