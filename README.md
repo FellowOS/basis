@@ -48,24 +48,13 @@ Integrations should call **Basis** (`/api/v1/...` and KB MCP), not Semantica dir
 
 - **Python** 3.10–3.13 and [uv](https://docs.astral.sh/uv/)
 - **Node.js** ≥ 22 and npm
-- **Semantica** — this repo expects a sibling checkout (see below)
 
-### 1. Clone repositories
+The **Semantica** SDK installs from **PyPI** when you run `uv sync` (pinned in `uv.lock`).
 
-`pyproject.toml` points `semantica` at `../../semantica` (editable). Use a common parent directory:
+### 1. Clone and configure API
 
 ```bash
-mkdir -p ~/src && cd ~/src
 git clone https://github.com/FellowOS/basis.git
-git clone https://github.com/semantica-agi/semantica.git
-# ~/src/semantica and ~/src/basis
-```
-
-Optional: `cp basis/uv.toml.example basis/uv.toml` if your Semantica path differs.
-
-### 2. Configure and run API
-
-```bash
 cd basis
 cp .env.example .env
 uv sync --extra dev
@@ -74,7 +63,7 @@ uv run basis
 
 API listens on `http://127.0.0.1:8090` by default.
 
-### 3. Run Web
+### 2. Run Web
 
 ```bash
 cp web/.env.example web/.env
@@ -83,7 +72,7 @@ cd web && npm install && npm run dev
 
 Open `http://127.0.0.1:5173` · register — the **first user** becomes platform admin.
 
-### 4. Smoke-test in the UI
+### 3. Smoke-test in the UI
 
 1. Create a knowledge base.
 2. **Sources** — paste or upload a short text file; wait for processing.
@@ -146,7 +135,9 @@ Full list: [.env.example](.env.example).
 
 ## Semantica dependency
 
-`uv sync` installs Basis runtime extras (document parse, embeddings, SHACL, OpenAI-compatible LLM, etc.). Optional groups: `dev`, `heavy`, `explorer`, `saml` — see [pyproject.toml](pyproject.toml).
+`semantica` resolves from **PyPI** (see `uv.lock`). `uv sync` installs Basis runtime extras (document parse, embeddings, SHACL, OpenAI-compatible LLM, etc.). Optional groups: `dev`, `heavy`, `explorer`, `saml` — see [pyproject.toml](pyproject.toml).
+
+Do not add a local `[tool.uv.sources]` override for `semantica` (a gitignored `uv.toml` would still take precedence over defaults — leave it unset for PyPI).
 
 For ML NER in processing jobs:
 

@@ -46,23 +46,13 @@ Basis Web (:5173)  ──/api──▶  Basis API (:8090)  FastAPI
 
 - **Python** 3.10–3.13、[uv](https://docs.astral.sh/uv/)
 - **Node.js** ≥ 22、npm
-- **Semantica** — 需与仓库约定的目录布局（见下）
 
-### 1. 克隆仓库
+**Semantica** 在 `uv sync` 时从 **PyPI** 安装（版本见 `uv.lock`）。
 
-`pyproject.toml` 将 `semantica` 指向 `../../semantica`（editable）。建议同一父目录：
+### 1. 克隆并启动 API
 
 ```bash
-mkdir -p ~/src && cd ~/src
 git clone https://github.com/FellowOS/basis.git
-git clone https://github.com/semantica-agi/semantica.git
-```
-
-路径不同时可 `cp basis/uv.toml.example basis/uv.toml` 并修改。
-
-### 2. 启动 API
-
-```bash
 cd basis
 cp .env.example .env
 uv sync --extra dev
@@ -71,7 +61,7 @@ uv run basis
 
 默认 `http://127.0.0.1:8090`。
 
-### 3. 启动 Web
+### 2. 启动 Web
 
 ```bash
 cp web/.env.example web/.env
@@ -80,7 +70,7 @@ cd web && npm install && npm run dev
 
 浏览器打开 `http://127.0.0.1:5173`，**首个注册用户**为平台管理员。
 
-### 4. 冒烟验证
+### 3. 冒烟验证
 
 1. 创建知识库  
 2. **Sources** 粘贴或上传短文，等待处理完成  
@@ -141,7 +131,9 @@ curl -sS "http://127.0.0.1:8090/api/v1/kbs/YOUR_KB_ID/mcp" \
 
 ## Semantica 依赖
 
-`uv sync` 安装运行时推荐 extras。可选：`dev`、`heavy`、`explorer`、`saml`（见 [pyproject.toml](pyproject.toml)）。
+`semantica` 从 **PyPI** 解析（见 `uv.lock`）。`uv sync` 安装运行时推荐 extras。可选：`dev`、`heavy`、`explorer`、`saml`（见 [pyproject.toml](pyproject.toml)）。
+
+请勿为 `semantica` 配置本地 `[tool.uv.sources]`（未提交的 `uv.toml` 会覆盖默认源）。
 
 处理任务使用 ML NER 时可安装：
 

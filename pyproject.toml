@@ -10,8 +10,7 @@ readme = "README.md"
 requires-python = ">=3.10,<3.14"
 license = { text = "Apache-2.0" }
 dependencies = [
-  # semantica SDK — Basis 运行时推荐组合（见 README「semantica 依赖」）
-  "semantica[documents,parse-pdf,nlp-spacy,llm-openai,embeddings-local,vectorstore-faiss,vectorstore-sqlite,shacl,split-tiktoken,ingest-git]",
+  "semantica[documents,parse-pdf,nlp-spacy,llm-openai,embeddings-local,vectorstore-faiss,vectorstore-sqlite,shacl,split-tiktoken,ingest-git]>=0.7.0,<0.8.0",
   "fastapi>=0.115",
   "uvicorn[standard]>=0.32",
   "pydantic>=2",
@@ -39,11 +38,11 @@ dev = [
 ]
 # 扫描件 PDF、更多向量后端、多 LLM 网关（体积大，按需装）
 heavy = [
-  "semantica[parse-docling,vectorstore-pgvector,llm-litellm,graph-neo4j]",
+  "semantica[parse-docling,vectorstore-pgvector,llm-litellm,graph-neo4j]>=0.7.0,<0.8.0",
 ]
 # Optional: upstream ``semantica-explorer`` CLI only (not required for ``uv run basis``).
 explorer = [
-  "semantica[explorer]",
+  "semantica[explorer]>=0.7.0,<0.8.0",
 ]
 saml = [
   "python3-saml>=1.16.0",
@@ -65,6 +64,3 @@ testpaths = ["tests"]
 markers = [
   "integration: real database or external service (optional env)",
 ]
-
-[tool.uv.sources]
-semantica = { path = "../../semantica", editable = true }
