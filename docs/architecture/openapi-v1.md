@@ -104,7 +104,7 @@ Map every **current** router module to OpenAPI **tags** and paths. Check off whe
 | Tag | Current module(s) | ~Routes | In v1 YAML | Notes |
 | --- | --- | ---: | --- | --- |
 | `Health` | `health.py` | 1 | ☐ | |
-| `Auth` | `auth.py`, `oauth.py` | 13 | ☐ | OAuth flows |
+| `Auth` | `auth.py`, `oauth/` | 13 | ☐ | OAuth flows |
 | `Users` | `users.py` | 5 | ☐ | |
 | `Organizations` | `organizations.py` | 5 | ☐ | SSO / org admin |
 | `Platform` | `platform.py`, `settings.py` | 5 | ☐ | |
