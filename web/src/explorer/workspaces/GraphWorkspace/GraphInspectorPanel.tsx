@@ -43,7 +43,7 @@ import {
   graphNodePanelSummary,
 } from "@/lib/ui-classes/graph-inspector-ui.js";
 import { cn } from "@/lib/utils.js";
-import { graph } from "../../store/graphStore";
+import { graph } from "../../graphStore";
 import type { FocusedUnavailableReason, GraphSelectedNodeKind } from "./types";
 import { focusedUnavailableReasonText } from "./graphViewCopy";
 import { MarkdownContentViewer } from "./MarkdownContentViewer";

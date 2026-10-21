@@ -2,8 +2,8 @@ import { fmt } from "@/i18n/format.js";
 import type { Locale } from "@/i18n/locale.js";
 import { messagesForLocale } from "@/i18n/pick-locale.js";
 
-import { parseExplorerJson } from "../../lib/explorer-api-error";
-import { explorerFetch } from "../../host/explorerHttp";
+import { parseExplorerJson } from "../../explorer-api-error";
+import { explorerFetch } from "../../explorerHttp";
 import { ontologyPath } from "./ontologyKb";
 import type {
   AlignmentRelation,

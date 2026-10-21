@@ -1,7 +1,7 @@
 import type Graph from "graphology";
 import Sigma from "sigma";
 
-import { graph, type EdgeAttributes, type NodeAttributes } from "../../store/graphStore";
+import { graph, type EdgeAttributes, type NodeAttributes } from "../../graphStore";
 import { blendHex, GRAPH_THEME, withAlpha, zoomTierAtLeast } from "./graphTheme";
 import type {
   GraphAnalyticsSnapshot,

@@ -9,7 +9,7 @@ import {
   buildExplorerKbApiPath,
   explorerFetch,
   resolveExplorerApiUrl,
-} from "../../host/explorerHttp";
+} from "../../explorerHttp";
 
 export type MarkdownClientOptions = {
   locale?: Locale;

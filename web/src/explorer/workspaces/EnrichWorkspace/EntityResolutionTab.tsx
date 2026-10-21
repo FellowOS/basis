@@ -17,11 +17,11 @@ import {
 } from "@/components/ui/dialog.js";
 import { Label } from "@/components/ui/label.js";
 import { Slider } from "@/components/ui/slider.js";
-import { buildExplorerKbApiPath, explorerFetch } from "../../host/explorerHttp";
+import { buildExplorerKbApiPath, explorerFetch } from "../../explorerHttp";
 import { fetchKbNodeLabels } from "@/lib/kb-node-labels.js";
 import { errorFromApiResponse } from "@/lib/api-error.js";
 import { useApiErrorMessage } from "@/lib/use-api-error-message.js";
-import { logEvent, useRegistry } from "../../store/registryStore";
+import { logEvent, useRegistry } from "../../registryStore";
 import { KbEntityMergePropertyDiff } from "@/components/app/kb/widgets/kb-entity-merge-property-diff.js";
 import { useI18n } from "@/i18n/context.js";
 import {

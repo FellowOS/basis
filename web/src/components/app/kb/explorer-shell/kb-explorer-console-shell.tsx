@@ -1,6 +1,6 @@
 import { useMemo, type ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ExplorerHostProvider } from '@/explorer/host/explorerHttp.js';
+import { ExplorerHostProvider } from '@/explorer/explorerHttp.js';
 import { KbExplorerUnavailable } from '@/components/app/kb/explorer-shell/kb-explorer-unavailable.js';
 import { buildKbExplorerHttpConfig } from '@/lib/kb-explorer-host.js';
 import { useKbCapabilities } from '@/lib/kb-capabilities.js';

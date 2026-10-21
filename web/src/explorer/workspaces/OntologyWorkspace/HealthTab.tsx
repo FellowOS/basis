@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/native-select.js";
 import { useI18n } from "@/i18n/context.js";
 import type { Locale } from "@/i18n/locale.js";
-import { explorerApiErrorMessage } from "../../lib/explorer-api-error";
+import { explorerApiErrorMessage } from "../../explorer-api-error";
 import { loadOntologyHealth, loadOntologyRegistry } from "./api";
 import { useOntologyKbId } from "./ontologyKb";
 import type { OntologyEntry, OntologyHealthResponse, HealthIssue } from "./types";

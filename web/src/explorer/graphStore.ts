@@ -6,7 +6,7 @@ import type {
   GraphEntityShapeVariant,
   GraphLabelVisibilityPolicy,
   GraphNodeShapeVariant,
-} from "../workspaces/GraphWorkspace/graphTheme";
+} from "./workspaces/GraphWorkspace/graphTheme";
 import { curveGroupForPair, pairRegistryKey } from "./edgePairKeys.js";
 
 

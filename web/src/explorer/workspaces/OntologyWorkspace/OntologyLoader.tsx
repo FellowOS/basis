@@ -1,7 +1,7 @@
 import { PublicIcon } from "@/components/app/shared/primitives/public-icon.js";
 import { useRef, useState } from "react";
-import { explorerApiErrorMessage, parseExplorerJson } from "../../lib/explorer-api-error";
-import { explorerFetch } from "../../host/explorerHttp";
+import { explorerApiErrorMessage, parseExplorerJson } from "../../explorer-api-error";
+import { explorerFetch } from "../../explorerHttp";
 import { ontologyPath, useOntologyKbId } from "./ontologyKb";
 import {
   Dialog,

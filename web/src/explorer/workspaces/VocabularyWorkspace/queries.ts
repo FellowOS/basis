@@ -2,7 +2,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useI18n } from '@/i18n/context.js';
 import { errorFromApiResponse } from '@/lib/api-error.js';
-import { explorerFetch } from '../../host/explorerHttp';
+import { explorerFetch } from '../../explorerHttp';
 import type { VocabularyScheme, ConceptNode, ImportResponse } from './types';
 import { useVocabularyKbId, vocabularyPath } from './vocabularyKb';
 

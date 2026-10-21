@@ -6,8 +6,8 @@ import {
   explorerMutationResult,
   parseExplorerJson,
   throwIfExplorerNotOk,
-} from "../../lib/explorer-api-error";
-import { explorerFetch } from "../../host/explorerHttp";
+} from "../../explorer-api-error";
+import { explorerFetch } from "../../explorerHttp";
 import { ontologyPath, useOntologyKbId } from "./ontologyKb";
 import { OntologyLoader } from "./OntologyLoader";
 import { OntologySearch } from "./OntologySearch";

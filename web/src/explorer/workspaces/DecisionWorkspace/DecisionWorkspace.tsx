@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { PublicIcon } from "@/components/app/shared/primitives/public-icon.js";
 import { Button } from "@/components/ui/button.js";
 import { Input } from "@/components/ui/input.js";
-import { buildExplorerKbApiPath, explorerFetch } from "../../host/explorerHttp";
+import { buildExplorerKbApiPath, explorerFetch } from "../../explorerHttp";
 import { errorFromApiResponse } from "@/lib/api-error.js";
 import { kbReviewDecisionPath } from "@/lib/reviewUrlState.js";
 import { useApiErrorMessage } from "@/lib/use-api-error-message.js";

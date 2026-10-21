@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import type Graph from "graphology";
 
-import { graph, type EdgeAttributes, type NodeAttributes } from "../../../store/graphStore";
+import { graph, type EdgeAttributes, type NodeAttributes } from "../../../graphStore";
 import type { GraphWorkspaceLocale } from "../graphWorkspaceCopy.js";
 import type { GraphTheme } from "../graphTheme";
 import type { GraphSceneRuntime } from "../scene";

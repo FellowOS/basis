@@ -19,7 +19,7 @@ import {
   validateShacl,
 } from "./api";
 import { useOntologyKbId } from "./ontologyKb";
-import { explorerApiErrorMessage } from "../../lib/explorer-api-error";
+import { explorerApiErrorMessage } from "../../explorer-api-error";
 import type { OntologyEntry, ShaclShapeSummary, ShaclValidationResponse } from "./types";
 
 function localName(value: string): string {

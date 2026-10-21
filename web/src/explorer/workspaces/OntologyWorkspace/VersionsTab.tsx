@@ -6,8 +6,8 @@ import {
   explorerMutationResult,
   explorerPartialSuccessWarning,
   parseExplorerJson,
-} from "../../lib/explorer-api-error";
-import { explorerFetch } from "../../host/explorerHttp";
+} from "../../explorer-api-error";
+import { explorerFetch } from "../../explorerHttp";
 import { ontologyPath, useOntologyKbId } from "./ontologyKb";
 import { kbOntologyProposalPath } from "@/lib/nav-config.js";
 import { readOntologyUrlState, writeProposalSelection } from "./ontologyUrlState";

@@ -1,8 +1,8 @@
 ﻿import { useCallback } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { batchMergeEdges, batchMergeNodes, clearGraph } from "../../store/graphStore";
-import type { EdgeAttributes, NodeAttributes } from "../../store/graphStore";
-import { curveGroupForPair, pairRegistryKey } from "../../store/edgePairKeys.js";
+import { batchMergeEdges, batchMergeNodes, clearGraph } from "../../graphStore";
+import type { EdgeAttributes, NodeAttributes } from "../../graphStore";
+import { curveGroupForPair, pairRegistryKey } from "../../edgePairKeys.js";
 import {
   GRAPH_THEME,
   clamp,
@@ -32,8 +32,8 @@ import {
   resolveNodeLayoutPosition,
 } from "./smallGraphLayout";
 import type { GraphLoadProgress, GraphLoadSummary } from "./types";
-import { throwIfExplorerNotOk } from "../../lib/explorer-api-error";
-import { buildExplorerGraphApiPath, explorerFetch } from "../../host/explorerHttp";
+import { throwIfExplorerNotOk } from "../../explorer-api-error";
+import { buildExplorerGraphApiPath, explorerFetch } from "../../explorerHttp";
 
 const SEMANTIC_COLOR_FIELDS = [
   "community",

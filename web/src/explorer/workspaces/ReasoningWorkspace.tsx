@@ -29,7 +29,7 @@ import {
 import { Input } from "@/components/ui/input.js";
 import { Label } from "@/components/ui/label.js";
 import { Checkbox } from "@/components/ui/checkbox.js";
-import { buildExplorerKbApiPath, explorerFetch } from "../host/explorerHttp";
+import { buildExplorerKbApiPath, explorerFetch } from "../explorerHttp";
 import { errorFromApiResponse } from "@/lib/api-error.js";
 import { useApiErrorMessage } from "@/lib/use-api-error-message.js";
 import { useKbCapabilitiesOptional } from "@/lib/kb-capabilities.js";

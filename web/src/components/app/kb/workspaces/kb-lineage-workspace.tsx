@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { ExplorerHostProvider } from '@/explorer/host/explorerHttp.js';
+import { ExplorerHostProvider } from '@/explorer/explorerHttp.js';
 import { buildKbExplorerHttpConfig } from '@/lib/kb-explorer-host.js';
 import { useKbCapabilities } from '@/lib/kb-capabilities.js';
 import { KbExplorerUnavailable } from '@/components/app/kb/explorer-shell/kb-explorer-unavailable.js';

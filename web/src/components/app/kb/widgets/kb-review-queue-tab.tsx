@@ -4,7 +4,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { PublicIcon } from '@/components/app/shared/primitives/public-icon.js';
 import { KbEntityMergePropertyDiff } from '@/components/app/kb/widgets/kb-entity-merge-property-diff.js';
 import { KbReviewDecisionNarrative } from '@/components/app/kb/widgets/kb-review-decision-narrative.js';
-import { buildExplorerKbApiPath, explorerFetch } from '@/explorer/host/explorerHttp.js';
+import { buildExplorerKbApiPath, explorerFetch } from '@/explorer/explorerHttp.js';
 import { useI18n } from '@/i18n/context.js';
 import { fmt, formatLocaleDateTime, formatLocaleNumber } from '@/i18n/format.js';
 import type { LocaleMessages } from '@/i18n/locales/en/index.js';

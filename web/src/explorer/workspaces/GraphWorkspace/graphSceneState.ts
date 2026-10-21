@@ -1,6 +1,6 @@
 import Graph from "graphology";
 
-import { graph, type EdgeAttributes, type NodeAttributes } from "../../store/graphStore";
+import { graph, type EdgeAttributes, type NodeAttributes } from "../../graphStore";
 import {
   clamp,
   blendHex,

@@ -8,8 +8,8 @@ import { formatUserFacingApiError } from "@/lib/api-error-message.js";
 import { useI18n } from "@/i18n/context.js";
 import { fmt, formatLocaleFixedDecimals } from "@/i18n/format.js";
 import type { Locale } from "@/i18n/locale.js";
-import { buildExplorerKbApiPath, explorerFetch } from "../../host/explorerHttp";
-import { logEvent } from "../../store/registryStore";
+import { buildExplorerKbApiPath, explorerFetch } from "../../explorerHttp";
+import { logEvent } from "../../registryStore";
 import { cn } from "@/lib/utils.js";
 import {
   exWsCardTitleRow,

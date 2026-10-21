@@ -10,7 +10,7 @@ import {
 
 import { fmt } from "@/i18n/format.js";
 
-import { graph, type EdgeAttributes, type NodeAttributes } from "../../store/graphStore";
+import { graph, type EdgeAttributes, type NodeAttributes } from "../../graphStore";
 import { graphEffectReasonsCopy, type GraphWorkspaceLocale } from "./graphWorkspaceCopy";
 import { GRAPH_THEME, hashString } from "./graphTheme";
 import type {

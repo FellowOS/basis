@@ -1,4 +1,4 @@
-import type { ExplorerHttpConfig } from '@/explorer/host/explorerHttp.js';
+import type { ExplorerHttpConfig } from '@/explorer/explorerHttp.js';
 import { fmt } from '@/i18n/format.js';
 import { localeFromBrowser, type Locale } from '@/i18n/locale.js';
 import { messagesForLocale } from '@/i18n/pick-locale.js';

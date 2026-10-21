@@ -9,7 +9,7 @@ import {
   buildExplorerKbApiPath,
   explorerFetch,
   explorerFetchJson,
-} from '@/explorer/host/explorerHttp.js';
+} from '@/explorer/explorerHttp.js';
 import { Button } from '@/components/ui/button.js';
 import { Input } from '@/components/ui/input.js';
 import { useI18n } from '@/i18n/context.js';

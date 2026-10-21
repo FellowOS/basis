@@ -16,7 +16,7 @@ import { useI18n } from "@/i18n/context.js";
 import { fmt, formatLocaleNumber, pickCountForm, requestFailedStatusMessage } from "@/i18n/format.js";
 import type { Locale } from "@/i18n/locale.js";
 import type { LocaleMessages } from "@/i18n/locales/en/index.js";
-import { buildExplorerKbApiPath, explorerFetch } from "../../host/explorerHttp";
+import { buildExplorerKbApiPath, explorerFetch } from "../../explorerHttp";
 import { errorFromApiResponse } from "@/lib/api-error.js";
 import { useApiErrorMessage } from "@/lib/use-api-error-message.js";
 import { useTheme } from "@/lib/theme.js";

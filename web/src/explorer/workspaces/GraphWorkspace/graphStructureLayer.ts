@@ -1,7 +1,7 @@
 import type Graph from "graphology";
 import type Sigma from "sigma";
 
-import type { EdgeAttributes, NodeAttributes } from "../../store/graphStore";
+import type { EdgeAttributes, NodeAttributes } from "../../graphStore";
 import { GRAPH_THEME, withAlpha } from "./graphTheme";
 import type {
   GraphFullEdgeClass,

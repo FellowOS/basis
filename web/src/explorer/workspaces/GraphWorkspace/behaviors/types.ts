@@ -1,7 +1,7 @@
 import type Graph from "graphology";
 import type Sigma from "sigma";
 
-import { graph, type EdgeAttributes, type NodeAttributes } from "../../../store/graphStore";
+import { graph, type EdgeAttributes, type NodeAttributes } from "../../../graphStore";
 import type { GraphCameraState, GraphInteractionState } from "../types";
 
 export type GraphBehaviorActionRequest =

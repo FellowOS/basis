@@ -5,10 +5,10 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button.js";
 import { Spinner } from "@/components/ui/spinner.js";
 import { kbPath } from "@/lib/nav-config.js";
-import { buildExplorerKbApiPath, explorerFetch } from "../../host/explorerHttp";
+import { buildExplorerKbApiPath, explorerFetch } from "../../explorerHttp";
 import type { LocaleMessages } from "@/i18n/locales/en/index.js";
 import { messagesForLocale } from "@/i18n/pick-locale.js";
-import { explorerApiErrorMessage, parseExplorerJson } from "../../lib/explorer-api-error";
+import { explorerApiErrorMessage, parseExplorerJson } from "../../explorer-api-error";
 import {
   decisionCategoryLabel,
   decisionOutcomeLabel,

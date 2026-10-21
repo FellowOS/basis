@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 import type { Locale } from "@/i18n/locale.js";
 
-import { buildExplorerGraphApiPath, explorerFetchJson } from "../../host/explorerHttp";
+import { buildExplorerGraphApiPath, explorerFetchJson } from "../../explorerHttp";
 import type { GraphCatalogTotals } from "./graphLoadBudget";
 
 const EMPTY_TOTALS: GraphCatalogTotals = { nodeTotal: null, edgeTotal: null };

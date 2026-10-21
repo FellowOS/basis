@@ -1,7 +1,7 @@
 import { lazy, Suspense, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ExplorerHostProvider } from '@/explorer/host/explorerHttp.js';
+import { ExplorerHostProvider } from '@/explorer/explorerHttp.js';
 import { buildKbExplorerHttpConfig } from '@/lib/kb-explorer-host.js';
 import {
   Dialog,

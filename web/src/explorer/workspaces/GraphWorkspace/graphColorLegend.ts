@@ -1,6 +1,6 @@
 import type Graph from "graphology";
 
-import type { NodeAttributes } from "../../store/graphStore";
+import type { NodeAttributes } from "../../graphStore";
 import { GRAPH_THEME, type GraphTheme } from "./graphTheme";
 
 export type GraphColorLegendItem = {

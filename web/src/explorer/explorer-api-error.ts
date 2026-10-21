@@ -3,7 +3,7 @@ import type { Locale } from '@/i18n/locale.js';
 import { messagesForLocale } from '@/i18n/pick-locale.js';
 import { errorFromApiResponse } from '@/lib/api-error.js';
 import { formatUserFacingApiError } from '@/lib/api-error-message.js';
-import { explorerFetch } from '../host/explorerHttp';
+import { explorerFetch } from './explorerHttp';
 
 function explorerMessages(locale: Locale = 'en') {
   return messagesForLocale(locale).common;

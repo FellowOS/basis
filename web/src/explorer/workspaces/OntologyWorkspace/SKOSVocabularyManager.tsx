@@ -5,7 +5,7 @@ import { useI18n } from "@/i18n/context.js";
 import { fmt, formatLocaleNumber, pickCountForm } from "@/i18n/format.js";
 import type { Locale } from "@/i18n/locale.js";
 import { useEffect, useState } from "react";
-import { explorerApiErrorMessage, explorerGetJson } from "../../lib/explorer-api-error";
+import { explorerApiErrorMessage, explorerGetJson } from "../../explorer-api-error";
 import { ontologyPath, useOntologyKbId, vocabularyPath } from "./ontologyKb";
 import { cn } from "@/lib/utils.js";
 import {

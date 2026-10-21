@@ -50,7 +50,7 @@ import {
   suggestAlignments,
 } from "./api";
 import { useOntologyKbId } from "./ontologyKb";
-import { explorerApiErrorMessage } from "../../lib/explorer-api-error";
+import { explorerApiErrorMessage } from "../../explorer-api-error";
 import type { LocaleMessages } from "@/i18n/locales/en/index.js";
 import type { AlignmentRelation, AlignmentSuggestion, OntologyAlignment, OntologyEntry } from "./types";
 

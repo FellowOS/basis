@@ -1,6 +1,6 @@
 import { PublicIcon } from "@/components/app/shared/primitives/public-icon.js";
 import { useCallback, useEffect, useState } from "react";
-import { explorerFetch } from "../../host/explorerHttp";
+import { explorerFetch } from "../../explorerHttp";
 import {
   ReactFlow,
   Background,
@@ -18,7 +18,7 @@ import "@xyflow/react/dist/style.css";
 import {
   explorerApiErrorMessage,
   parseExplorerJson,
-} from "../../lib/explorer-api-error";
+} from "../../explorer-api-error";
 import { loadOntologyEntityOwner, loadOntologyGraph, loadOntologyRegistry } from "./api";
 import { ontologyPath, useOntologyKbId } from "./ontologyKb";
 import type { OntologyGraphEdge, OntologyGraphNode } from "./api";

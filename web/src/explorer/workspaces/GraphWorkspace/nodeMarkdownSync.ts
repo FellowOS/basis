@@ -1,7 +1,7 @@
 import { fmt } from "@/i18n/format.js";
 import { errorFromApiResponse } from "@/lib/api-error.js";
 
-import { buildExplorerGraphApiPath, explorerFetch } from "../../host/explorerHttp";
+import { buildExplorerGraphApiPath, explorerFetch } from "../../explorerHttp";
 import { graphCopy, type GraphWorkspaceLocale } from "./graphWorkspaceCopy";
 
 export interface NodeMarkdownAttributeUpdate {

@@ -1,7 +1,7 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ExplorerHostProvider } from '@/explorer/host/explorerHttp.js';
+import { ExplorerHostProvider } from '@/explorer/explorerHttp.js';
 import { buildKbExplorerHttpConfig } from '@/lib/kb-explorer-host.js';
 import { KbGraphDiffPreviewBar } from '@/components/app/kb/widgets/kb-graph-diff-preview-bar.js';
 import { KbGraphRebuildButton } from '@/components/app/kb/widgets/kb-graph-rebuild-button.js';

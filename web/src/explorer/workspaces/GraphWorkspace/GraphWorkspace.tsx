@@ -7,18 +7,18 @@ import {
   buildExplorerKbApiPath,
   explorerFetch,
   openGraphUpdatesWebSocket,
-} from "../../host/explorerHttp";
+} from "../../explorerHttp";
 import { errorFromApiResponse } from "@/lib/api-error.js";
 import { cn } from "@/lib/utils.js";
 import {
   explorerApiErrorMessage,
   parseExplorerJson,
   throwIfExplorerNotOk,
-} from "../../lib/explorer-api-error";
-import { batchMergeEdges, batchMergeNodes, graph } from "../../store/graphStore";
-import { logEvent } from "../../store/registryStore";
-import type { EdgeAttributes, NodeAttributes } from "../../store/graphStore";
-import { InspectorPanel, SurfaceCard } from "../../ui/primitives";
+} from "../../explorer-api-error";
+import { batchMergeEdges, batchMergeNodes, graph } from "../../graphStore";
+import { logEvent } from "../../registryStore";
+import type { EdgeAttributes, NodeAttributes } from "../../graphStore";
+import { InspectorPanel, SurfaceCard } from "../../primitives";
 import { lazy, Suspense } from "react";
 import { SigmaSceneAdapter } from "./SigmaSceneAdapter";
 import { useLoadGraph, useReloadGraph } from "./useLoadGraph";

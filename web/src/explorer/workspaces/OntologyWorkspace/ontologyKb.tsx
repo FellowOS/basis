@@ -3,7 +3,7 @@ import { createContext, useContext, type ReactNode } from "react";
 import { localeFromBrowser } from "@/i18n/locale.js";
 import { messagesForLocale } from "@/i18n/pick-locale.js";
 
-import { buildExplorerKbApiPath } from "../../host/explorerHttp";
+import { buildExplorerKbApiPath } from "../../explorerHttp";
 
 const OntologyKbContext = createContext<string | null>(null);
 

@@ -1,5 +1,5 @@
 /**
- * src/store/registryStore.ts
+ * explorer/registryStore.ts
  *
  * Lightweight client-side audit log for all KG / Ontology mutations.
  * No backend required — events are dispatched by each workspace after
