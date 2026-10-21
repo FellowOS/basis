@@ -16,7 +16,7 @@ Basis 是基于 [Semantica](https://github.com/semantica-agi/semantica) Python S
 > **状态：** 早期开发（`0.1.x`）。HTTP / MCP 契约仍在收敛；生产试点请锁定版本。
 
 <p align="center">
-  <img src="assets/graph.png" alt="Basis 图谱工作区 — 力导向图、本体导航、时间轴回放" width="900" />
+  <img src="assets/graph.png" alt="Basis 图谱工作区 — 力导向图、本体导航、时间轴回放" width="900" style="border-radius: 12px;" />
 </p>
 <p align="center"><sub>Basis 工作台中的图谱工作区（Explorer）。</sub></p>
 
