@@ -29,7 +29,7 @@ class AuditAccess:
 
     def list_audit_for_kb(
         self,
-        kb_id: str,
+        workspace_id: str,
         *,
         action_prefix: str | None = None,
         limit: int = 50,
@@ -38,7 +38,7 @@ class AuditAccess:
         with self._store._lock:
             rows = audit_persist.list_audit_for_kb(
                 self._store._conn,
-                kb_id,
+                workspace_id,
                 limit,
                 action_prefix=action_prefix,
                 backend=self._store._db.backend,

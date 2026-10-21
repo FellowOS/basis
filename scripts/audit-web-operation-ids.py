@@ -18,9 +18,11 @@ OUT_MD = REPO / "openapi" / "web-openapi-operation-audit.md"
 HELPER_PATTERNS: list[tuple[str, str]] = [
     (r"authV1Path\(\s*['\"]([^'\"]+)['\"]", "/api/v1/auth/{segment}"),
     (r"platformV1Path\(\s*['\"]([^'\"]+)['\"]", "/api/v1/{segment}"),
-    (r"kbApiPath\(\s*[^,]+,\s*['\"]([^'\"]+)['\"]", "/api/v1/kbs/{kb_id}/{segment}"),
-    (r"kbApiRoot\(\s*[^)]+\)", "/api/v1/kbs/{kb_id}"),
-    (r"platformKbsCollectionPath", "/api/v1/kbs"),
+    (r"workspaceApiPath\(\s*[^,]+,\s*['\"]([^'\"]+)['\"]", "/api/v1/workspaces/{workspace_id}/{segment}"),
+    (r"workspaceApiRoot\(\s*[^)]+\)", "/api/v1/workspaces/{workspace_id}"),
+    (r"kbApiPath\(\s*[^,]+,\s*['\"]([^'\"]+)['\"]", "/api/v1/workspaces/{workspace_id}/{segment}"),
+    (r"kbApiRoot\(\s*[^)]+\)", "/api/v1/workspaces/{workspace_id}"),
+    (r"platformKbsCollectionPath", "/api/v1/workspaces"),
 ]
 
 LITERAL_V1 = re.compile(r"""['"`](/api/v1/[^'"`\s]+)['"`]""")
@@ -39,7 +41,7 @@ def classify_hit(hit: dict[str, str]) -> dict[str, str]:
     path = hit["path"]
     if "..." in path or "<suffix>" in path or "{subpath}" in path or "/{suffix}" in path:
         return {**hit, "kind": "doc_template"}
-    if path.startswith("/api/v1/kbs/{kb_id}/") and path.count("{") >= 2:
+    if path.startswith("/api/v1/workspaces/{workspace_id}/") and path.count("{") >= 2:
         return {**hit, "kind": "dynamic"}
     return hit
 
@@ -62,8 +64,8 @@ def load_operations() -> dict[str, dict[str, str]]:
 def normalize_template(path: str) -> str:
     path = path.split("?", 1)[0]
     path = re.sub(r"\$\{[^}]+\}", "{param}", path)
-    path = re.sub(r"\{kbId\}", "{kb_id}", path)
-    path = re.sub(r"\{id\}", "{kb_id}", path)
+    path = re.sub(r"\{kbId\}", "{workspace_id}", path)
+    path = re.sub(r"\{id\}", "{workspace_id}", path)
     return path
 
 
@@ -91,7 +93,7 @@ def scan_web(*, include_tests: bool) -> list[dict[str, str]]:
 def match_operation(path_template: str, operations: dict[str, dict[str, str]]) -> str | None:
     candidates = [path_template]
     if "{param}" in path_template:
-        candidates.append(path_template.replace("{param}", "{kb_id}"))
+        candidates.append(path_template.replace("{param}", "{workspace_id}"))
     for cand in candidates:
         for openapi_path, methods in operations.items():
             if _path_match(cand, openapi_path):

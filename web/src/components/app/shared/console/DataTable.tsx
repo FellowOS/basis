@@ -54,7 +54,7 @@ export function DataTable<T>({
   className,
 }: DataTableProps<T>) {
   const { t } = useI18n();
-  const message = emptyMessage ?? t.common.noRecords;
+  const message = emptyMessage ?? t.core.common.noRecords;
   if (data.length === 0) {
     return (
       <div className={cn('py-10 text-center text-sm text-muted-foreground', className)}>

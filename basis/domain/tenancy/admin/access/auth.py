@@ -42,10 +42,10 @@ class AuthAccess:
             token = self._store._issue_token(user.id)
             if first:
                 org = self._store._organizations.create_organization_locked(
-                    "公共知识库", owner_user_id=user.id
+                    "公共工作区", owner_user_id=user.id
                 )
-                kb_id = self._store._insert_kb("公共知识库", "", "open", user.id, org.id)
-                self._store._set_member(kb_id, user.id, "owner", user.id)
+                workspace_id = self._store._insert_workspace("公共工作区", "", "open", user.id, org.id)
+                self._store._set_member(workspace_id, user.id, "owner", user.id)
             audit_persist.insert_audit(
                 conn,
                 actor_id=user.id,

@@ -1,16 +1,16 @@
-import type { LocaleMessages } from '@/i18n/locales/en/index.js';
+import type { LocaleMessages } from '@/i18n/en.js';
 import type { Locale } from '@/i18n/locale.js';
 import { messagesForLocale } from '@/i18n/pick-locale.js';
-import { kbMemberRoleLabel } from '@/lib/kb-settings-labels.js';
+import { workspaceMemberRoleLabel } from '@/lib/workspace/settings-labels.js';
 
 export function formatBasisAuditModelKind(locale: Locale, kind: string): string {
-  const models = messagesForLocale(locale).models;
-  if (kind === 'llm') return models.tabLlm;
-  if (kind === 'embed') return models.tabEmbed;
+  const models = messagesForLocale(locale).admin_models.page;
+  if (kind === 'llm') return models.tab_llm;
+  if (kind === 'embed') return models.tab_embed;
   return kind;
 }
 
 export function formatBasisAuditMemberRole(locale: Locale, role: string): string {
-  const ks = messagesForLocale(locale).kbSettings as LocaleMessages['kbSettings'];
-  return kbMemberRoleLabel(ks, role);
+  const ks = messagesForLocale(locale).settings.panel;
+  return workspaceMemberRoleLabel(ks, role);
 }

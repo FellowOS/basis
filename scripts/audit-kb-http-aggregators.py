@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""KB HTTP route aggregators must not define handlers (only include_router / hub register)."""
+"""Workspace HTTP route aggregators must not define handlers (only include_router / hub register)."""
 
 from __future__ import annotations
 
@@ -53,7 +53,7 @@ def main() -> int:
         for line in errors:
             print(line, file=sys.stderr)
         return 1
-    print(f"OK: {len(AGGREGATORS)} KB HTTP aggregators are thin mount modules.")
+    print(f"OK: {len(AGGREGATORS)} workspace HTTP aggregators are thin mount modules.")
     return 0
 
 

@@ -1,5 +1,5 @@
-import { graph } from '@/ws/graphStore.js';
-import { kbPath } from '@/lib/nav-config.js';
+import { graph } from '@/lib/explorer/graphStore.js';
+import { workspacePath } from '@/lib/nav-config.js';
 
 export type GraphEvidenceLink = {
   kind: 'sources-doc' | 'sources-chunk' | 'search';
@@ -81,7 +81,7 @@ function collectLedgerHintsFromGraph(nodeId: string): {
 
 /** Deep links from a graph node to Basis knowledge UI (sources / search). */
 export function resolveGraphNodeEvidenceLinks(
-  kbId: string,
+  workspaceId: string,
   nodeId: string,
   nodeType?: string | null,
   properties?: Record<string, unknown>,
@@ -114,13 +114,13 @@ export function resolveGraphNodeEvidenceLinks(
   if (chunkId) {
     add({
       kind: 'sources-chunk',
-      to: `${kbPath(kbId, 'sources')}?chunk=${encodeURIComponent(chunkId)}`,
+      to: `${workspacePath(workspaceId, 'sources')}?chunk=${encodeURIComponent(chunkId)}`,
     });
   }
   if (docId) {
     add({
       kind: 'sources-doc',
-      to: `${kbPath(kbId, 'sources')}?doc=${encodeURIComponent(docId)}`,
+      to: `${workspacePath(workspaceId, 'sources')}?doc=${encodeURIComponent(docId)}`,
     });
   }
 
@@ -128,12 +128,12 @@ export function resolveGraphNodeEvidenceLinks(
     if (type.includes('chunk')) {
       add({
         kind: 'sources-chunk',
-        to: `${kbPath(kbId, 'sources')}?chunk=${encodeURIComponent(nodeId)}`,
+        to: `${workspacePath(workspaceId, 'sources')}?chunk=${encodeURIComponent(nodeId)}`,
       });
     } else if (type.includes('doc') || type === 'document') {
       add({
         kind: 'sources-doc',
-        to: `${kbPath(kbId, 'sources')}?doc=${encodeURIComponent(nodeId)}`,
+        to: `${workspacePath(workspaceId, 'sources')}?doc=${encodeURIComponent(nodeId)}`,
       });
     }
   }
@@ -142,20 +142,20 @@ export function resolveGraphNodeEvidenceLinks(
   for (const hintChunk of graphHints.chunkIds) {
     add({
       kind: 'sources-chunk',
-      to: `${kbPath(kbId, 'sources')}?chunk=${encodeURIComponent(hintChunk)}`,
+      to: `${workspacePath(workspaceId, 'sources')}?chunk=${encodeURIComponent(hintChunk)}`,
     });
   }
   for (const hintDoc of graphHints.docIds) {
     add({
       kind: 'sources-doc',
-      to: `${kbPath(kbId, 'sources')}?doc=${encodeURIComponent(hintDoc)}`,
+      to: `${workspacePath(workspaceId, 'sources')}?doc=${encodeURIComponent(hintDoc)}`,
     });
   }
 
   if (links.length === 0 && nodeId.trim()) {
     add({
       kind: 'search',
-      to: `${kbPath(kbId, 'search')}?q=${encodeURIComponent(nodeId)}`,
+      to: `${workspacePath(workspaceId, 'search')}?q=${encodeURIComponent(nodeId)}`,
     });
   }
 

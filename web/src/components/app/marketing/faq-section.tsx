@@ -5,10 +5,11 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion.js';
 import { useI18n } from '@/i18n/context.js';
+import { i18nIndexedList } from '@/i18n/indexed-list.js';
 
 export function FaqSection() {
   const { t } = useI18n();
-  const f = t.marketing.faq;
+  const f = t.home.marketing.faq;
 
   return (
     <section
@@ -26,7 +27,7 @@ export function FaqSection() {
         </div>
 
         <Accordion type="single" collapsible className="w-full">
-          {f.items.map((item) => (
+          {i18nIndexedList(f.items).map((item) => (
             <AccordionItem key={item.q} value={item.q}>
               <AccordionTrigger className="text-base">{item.q}</AccordionTrigger>
               <AccordionContent className="max-w-2xl text-sm leading-relaxed text-muted-foreground">

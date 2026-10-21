@@ -132,7 +132,7 @@ async def get_connector_allowlist_settings(
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> dict[str, Any]:
-    """Get platform-wide BOCP provider allowlist (KB policies must stay within this ceiling)."""
+    """Get platform-wide BOCP provider allowlist (workspace policies must stay within this ceiling)."""
     require_system_admin(user)
     allowed = store.get_platform_allowed_providers()
     catalog = get_connector_catalog()

@@ -1,4 +1,4 @@
-"""Map KB graph HTTP errors to stable AdminError codes for Basis clients."""
+"""Map workspace graph HTTP errors to stable AdminError codes for Basis clients."""
 
 from __future__ import annotations
 

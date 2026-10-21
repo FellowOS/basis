@@ -7,14 +7,14 @@ import sqlite3
 from typing import Any
 
 _INGEST_SOURCE_SELECT = """
-    SELECT id, kb_id, kind, name, config_json, enabled, created_by, created_at, updated_at
+    SELECT id, workspace_id, kind, name, config_json, enabled, created_by, created_at, updated_at
 """
 
 
 def ingest_source_row_to_dict(row: sqlite3.Row) -> dict[str, Any]:
     return {
         "id": row["id"],
-        "kb_id": row["kb_id"],
+        "workspace_id": row["workspace_id"],
         "kind": row["kind"],
         "name": row["name"],
         "config": json.loads(row["config_json"]),
@@ -31,20 +31,20 @@ def list_scheduled_ingest_source_rows(conn: Any) -> list[Any]:
         {_INGEST_SOURCE_SELECT}
         FROM ingest_sources
         WHERE deleted_at IS NULL AND enabled = 1 AND kind IN ('http_poll', 'git')
-        ORDER BY kb_id, created_at ASC
+        ORDER BY workspace_id, created_at ASC
         """
     ).fetchall()
 
 
-def list_ingest_source_rows(conn: Any, kb_id: str) -> list[Any]:
+def list_ingest_source_rows(conn: Any, workspace_id: str) -> list[Any]:
     return conn.execute(
         f"""
         {_INGEST_SOURCE_SELECT}
         FROM ingest_sources
-        WHERE kb_id = ? AND deleted_at IS NULL
+        WHERE workspace_id = ? AND deleted_at IS NULL
         ORDER BY created_at DESC
         """,
-        (kb_id,),
+        (workspace_id,),
     ).fetchall()
 
 
@@ -52,7 +52,7 @@ def insert_ingest_source(
     conn: Any,
     *,
     source_id: str,
-    kb_id: str,
+    workspace_id: str,
     kind: str,
     name: str,
     config_json: str,
@@ -65,13 +65,13 @@ def insert_ingest_source(
     conn.execute(
         """
         INSERT INTO ingest_sources (
-            id, kb_id, kind, name, config_json, secret_ref, enabled,
+            id, workspace_id, kind, name, config_json, secret_ref, enabled,
             created_by, created_at, updated_at, deleted_at
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)
         """,
         (
             source_id,
-            kb_id,
+            workspace_id,
             kind,
             name,
             config_json,
@@ -84,40 +84,40 @@ def insert_ingest_source(
     )
 
 
-def fetch_ingest_source_row(conn: Any, kb_id: str, source_id: str) -> Any:
+def fetch_ingest_source_row(conn: Any, workspace_id: str, source_id: str) -> Any:
     return conn.execute(
         f"""
         {_INGEST_SOURCE_SELECT}
         FROM ingest_sources
-        WHERE kb_id = ? AND id = ? AND deleted_at IS NULL
+        WHERE workspace_id = ? AND id = ? AND deleted_at IS NULL
         """,
-        (kb_id, source_id),
+        (workspace_id, source_id),
     ).fetchone()
 
 
-def fetch_ingest_source_secret(conn: Any, kb_id: str, source_id: str) -> Any:
+def fetch_ingest_source_secret(conn: Any, workspace_id: str, source_id: str) -> Any:
     return conn.execute(
         """
         SELECT secret_ref FROM ingest_sources
-        WHERE kb_id = ? AND id = ? AND deleted_at IS NULL
+        WHERE workspace_id = ? AND id = ? AND deleted_at IS NULL
         """,
-        (kb_id, source_id),
+        (workspace_id, source_id),
     ).fetchone()
 
 
-def fetch_ingest_source_for_update(conn: Any, kb_id: str, source_id: str) -> Any:
+def fetch_ingest_source_for_update(conn: Any, workspace_id: str, source_id: str) -> Any:
     return conn.execute(
         """
         SELECT name, config_json, enabled FROM ingest_sources
-        WHERE kb_id = ? AND id = ? AND deleted_at IS NULL
+        WHERE workspace_id = ? AND id = ? AND deleted_at IS NULL
         """,
-        (kb_id, source_id),
+        (workspace_id, source_id),
     ).fetchone()
 
 
 def update_ingest_source_row(
     conn: Any,
-    kb_id: str,
+    workspace_id: str,
     source_id: str,
     *,
     name: str,
@@ -129,28 +129,28 @@ def update_ingest_source_row(
         """
         UPDATE ingest_sources
         SET name = ?, config_json = ?, enabled = ?, updated_at = ?
-        WHERE kb_id = ? AND id = ?
+        WHERE workspace_id = ? AND id = ?
         """,
-        (name, config_json, enabled, updated_at, kb_id, source_id),
+        (name, config_json, enabled, updated_at, workspace_id, source_id),
     )
 
 
 def soft_delete_ingest_source(
-    conn: Any, kb_id: str, source_id: str, *, deleted_at: str, updated_at: str
+    conn: Any, workspace_id: str, source_id: str, *, deleted_at: str, updated_at: str
 ) -> int:
     cur = conn.execute(
         """
         UPDATE ingest_sources SET deleted_at = ?, updated_at = ?, enabled = 0
-        WHERE kb_id = ? AND id = ? AND deleted_at IS NULL
+        WHERE workspace_id = ? AND id = ? AND deleted_at IS NULL
         """,
-        (deleted_at, updated_at, kb_id, source_id),
+        (deleted_at, updated_at, workspace_id, source_id),
     )
     return int(cur.rowcount)
 
 
 def rotate_ingest_source_secret(
     conn: Any,
-    kb_id: str,
+    workspace_id: str,
     source_id: str,
     *,
     secret_ref: str,
@@ -160,8 +160,8 @@ def rotate_ingest_source_secret(
         """
         UPDATE ingest_sources
         SET secret_ref = ?, updated_at = ?
-        WHERE kb_id = ? AND id = ? AND deleted_at IS NULL
+        WHERE workspace_id = ? AND id = ? AND deleted_at IS NULL
         """,
-        (secret_ref, updated_at, kb_id, source_id),
+        (secret_ref, updated_at, workspace_id, source_id),
     )
     return int(cur.rowcount)

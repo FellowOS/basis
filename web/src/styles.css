@@ -533,8 +533,8 @@ input[type="checkbox"] {
 }
 
 /*
- * KB console Button chrome (shadcn `Button` under `[data-basis-app]`).
- * TS segment helpers: `lib/ui-classes/explorer-ws.ts` (`exWsGhost*`, …).
+ * Workspace console Button chrome (shadcn `Button` under `[data-basis-app]`).
+ * TS segment helpers: `lib/ui-classes/ws-ui.ts` (`exWsGhost*`, …).
  */
 [data-basis-app] {
   --basis-btn-outline-bg: color-mix(in oklch, var(--muted) 32%, var(--card));

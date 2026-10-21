@@ -3,8 +3,8 @@ import {
   auditEventMatchesReviewItem,
   decisionIdFromApproveResponse,
   decisionIdFromDetail,
-  kbReviewDecisionPath,
-  kbReviewItemPath,
+  reviewDecisionPath,
+  reviewItemPath,
   mergeKbDecisionParam,
   parseDecisionUrlState,
   parseReviewUrlState,
@@ -17,13 +17,13 @@ describe('reviewUrlState', () => {
   });
 
   it('builds review item path', () => {
-    const href = kbReviewItemPath('kb-1', 'item-42');
-    expect(href).toBe('/kbs/kb-1/review?reviewItem=item-42');
+    const href = reviewItemPath('kb-1', 'item-42');
+    expect(href).toBe('/workspaces/kb-1/review?reviewItem=item-42');
   });
 
   it('builds decision deep link path', () => {
-    expect(kbReviewDecisionPath('kb-1', 'dec-1')).toBe(
-      '/kbs/kb-1/decisions?decision=dec-1',
+    expect(reviewDecisionPath('kb-1', 'dec-1')).toBe(
+      '/workspaces/kb-1/decisions?decision=dec-1',
     );
   });
 

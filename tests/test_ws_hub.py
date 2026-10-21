@@ -29,7 +29,7 @@ def test_disconnect_user_from_kb_closes_matching_sockets() -> None:
         other = _FakeWebSocket()
         await hub.connect("kb-1", other, "user-b")
 
-        closed = await hub.disconnect_user_from_kb("kb-1", "user-a")
+        closed = await hub.disconnect_user_from_workspace("kb-1", "user-a")
         assert closed == 1
         assert socket.sent[-1]["type"] == "access_revoked"
         assert socket.close_code == 4403
@@ -64,11 +64,11 @@ def test_broadcast_only_reaches_target_kb_room() -> None:
 
         await hub.broadcast(
             "kb-a",
-            {"type": "projection_updated", "kb_id": "kb-a", "projection_revision": 3},
+            {"type": "projection_updated", "workspace_id": "kb-a", "projection_revision": 3},
         )
 
         assert len(a.sent) == 1
-        assert a.sent[0]["kb_id"] == "kb-a"
+        assert a.sent[0]["workspace_id"] == "kb-a"
         assert b.sent == []
 
     asyncio.run(run())

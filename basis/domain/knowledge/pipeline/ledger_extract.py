@@ -49,7 +49,7 @@ def _quote_for_relationship(
 
 def apply_kg_to_ledger(
     knowledge: KnowledgeStore,
-    kb_id: str,
+    workspace_id: str,
     version_id: str,
     chunk_id: str,
     chunk_text: str,
@@ -70,7 +70,7 @@ def apply_kg_to_ledger(
     for entity in entities:
         if not isinstance(entity, dict):
             knowledge.add_extraction_drop(
-                kb_id,
+                workspace_id,
                 version_id,
                 chunk_id,
                 "invalid_entity",
@@ -84,7 +84,7 @@ def apply_kg_to_ledger(
         node_key = _entity_id(entity)
         if node_key in label_to_entity_id:
             continue
-        entity_id = knowledge.get_or_create_entity_by_label(kb_id, label)
+        entity_id = knowledge.get_or_create_entity_by_label(workspace_id, label)
         label_to_entity_id[node_key] = entity_id
         label_to_entity_id[label] = entity_id
         entities_written += 1
@@ -92,7 +92,7 @@ def apply_kg_to_ledger(
     for relationship in relationships:
         if not isinstance(relationship, dict):
             knowledge.add_extraction_drop(
-                kb_id,
+                workspace_id,
                 version_id,
                 chunk_id,
                 "invalid_relationship",
@@ -103,7 +103,7 @@ def apply_kg_to_ledger(
         source_id, target_id = _rel_endpoints(relationship)
         if not source_id or not target_id:
             knowledge.add_extraction_drop(
-                kb_id,
+                workspace_id,
                 version_id,
                 chunk_id,
                 "missing_endpoints",
@@ -115,10 +115,10 @@ def apply_kg_to_ledger(
         subject_label = str(source_id)
         object_label = str(target_id)
         subject_entity = label_to_entity_id.get(subject_label) or knowledge.get_or_create_entity_by_label(
-            kb_id, subject_label
+            workspace_id, subject_label
         )
         object_entity = label_to_entity_id.get(object_label) or knowledge.get_or_create_entity_by_label(
-            kb_id, object_label
+            workspace_id, object_label
         )
         label_to_entity_id.setdefault(subject_label, subject_entity)
         label_to_entity_id.setdefault(object_label, object_entity)
@@ -135,7 +135,7 @@ def apply_kg_to_ledger(
             chunk_text, subject_label, object_label, surface
         )
         if knowledge.has_statement_on_chunk(
-            kb_id,
+            workspace_id,
             chunk_id,
             subject_entity,
             surface,
@@ -146,7 +146,7 @@ def apply_kg_to_ledger(
 
         try:
             knowledge.add_open_statement(
-                kb_id,
+                workspace_id,
                 subject_id=subject_entity,
                 surface_phrase=surface,
                 object_entity_id=object_entity,
@@ -162,7 +162,7 @@ def apply_kg_to_ledger(
             statements_written += 1
         except Exception as exc:
             knowledge.add_extraction_drop(
-                kb_id,
+                workspace_id,
                 version_id,
                 chunk_id,
                 "statement_rejected",

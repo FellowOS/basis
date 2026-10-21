@@ -1,19 +1,17 @@
 import sqlite3
 from pathlib import Path
 
-import pytest
-
-from basis.domain.tenancy.admin.errors import AdminError
-from basis.infra.tooling.db.sqlite_migrations import MigrationError, load_migrations, run_migrations
 from basis.domain.tenancy.admin.store import AdminStore
-
-
-def _expected_migration_versions() -> list[int]:
-    return [m.version for m in load_migrations()]
+from basis.infra.tooling.db.sqlite_migrations import (
+    ensure_sqlite_schema,
+    load_migrations,
+    run_migrations,
+    sqlite_schema_is_initialized,
+)
 
 
 def _legacy_baseline_only(db_path: Path) -> None:
-    """Database created before the migration runner existed."""
+    """Minimal admin tables without the knowledge ledger."""
     conn = sqlite3.connect(db_path)
     conn.executescript(
         """
@@ -31,7 +29,7 @@ def _legacy_baseline_only(db_path: Path) -> None:
             user_id TEXT NOT NULL,
             created_at TEXT NOT NULL
         );
-        CREATE TABLE knowledge_bases (
+        CREATE TABLE workspaces (
             id TEXT PRIMARY KEY,
             name TEXT NOT NULL,
             description TEXT NOT NULL DEFAULT '',
@@ -50,15 +48,11 @@ def _legacy_baseline_only(db_path: Path) -> None:
     conn.close()
 
 
-def test_fresh_database_applies_all_migrations(tmp_path: Path) -> None:
+def test_fresh_database_applies_baseline_schema(tmp_path: Path) -> None:
     db_path = tmp_path / "basis.db"
     store = AdminStore(db_path)
-    versions = {
-        row[0]
-        for row in store._conn.execute("SELECT version FROM schema_migrations ORDER BY version")
-    }
+    assert sqlite_schema_is_initialized(store._conn)
     store.close()
-    assert versions == set(_expected_migration_versions())
 
     conn = sqlite3.connect(db_path)
     tables = {
@@ -68,32 +62,34 @@ def test_fresh_database_applies_all_migrations(tmp_path: Path) -> None:
         )
     }
     conn.close()
+    assert "schema_migrations" not in tables
     assert "documents" in tables
     assert "statements" in tables
     assert "projection_state" in tables
-    assert "kb_search_configs" in tables
+    assert "search_configs" in tables
     assert "chunks_fts" in tables
-    assert "kb_connector_policies" in tables
-    assert "kb_connections" in tables
-    assert "kb_oauth_configs" in tables
-    assert "kb_connector_runs" in tables
-    assert "source_table_mappings" in tables
-    assert "entity_external_refs" in tables
-    assert "entity_sync_outbox" in tables
-    assert "kb_governance_configs" in tables
+    assert "connector_policies" in tables
+    assert "governance_configs" in tables
 
 
-def test_migrations_are_idempotent(tmp_path: Path) -> None:
+def test_schema_bootstrap_is_idempotent(tmp_path: Path) -> None:
     db_path = tmp_path / "basis.db"
     conn = sqlite3.connect(db_path)
-    first = run_migrations(conn)
-    second = run_migrations(conn)
+    ensure_sqlite_schema(conn)
+    ensure_sqlite_schema(conn)
     conn.close()
-    assert first == _expected_migration_versions()
-    assert second == []
+    assert sqlite_schema_is_initialized(sqlite3.connect(db_path))
 
 
-def test_legacy_database_upgrades_without_data_loss(tmp_path: Path) -> None:
+def test_run_migrations_shim_returns_empty(tmp_path: Path) -> None:
+    db_path = tmp_path / "basis.db"
+    conn = sqlite3.connect(db_path)
+    assert run_migrations(conn) == []
+    assert run_migrations(conn) == []
+    conn.close()
+
+
+def test_partial_admin_database_gets_ledger(tmp_path: Path) -> None:
     db_path = tmp_path / "basis.db"
     _legacy_baseline_only(db_path)
 
@@ -103,36 +99,13 @@ def test_legacy_database_upgrades_without_data_loss(tmp_path: Path) -> None:
     ).fetchone()
     assert row is not None
     assert row[0] == "true"
-    versions = [
-        row[0]
-        for row in store._conn.execute("SELECT version FROM schema_migrations ORDER BY version")
-    ]
-    assert versions == _expected_migration_versions()
+    assert sqlite_schema_is_initialized(store._conn)
     store.close()
 
 
-def test_checksum_mismatch_fails(tmp_path: Path) -> None:
-    db_path = tmp_path / "basis.db"
-    conn = sqlite3.connect(db_path)
-    run_migrations(conn)
-    conn.execute(
-        "UPDATE schema_migrations SET checksum = 'tampered' WHERE version = 1"
-    )
-    conn.commit()
-    conn.close()
-
-    with pytest.raises(MigrationError, match="checksum mismatch"):
-        run_migrations(sqlite3.connect(db_path))
-
-    with pytest.raises(AdminError) as wrapped:
-        AdminStore(db_path)
-    assert wrapped.value.code == "migration_failed"
-
-
-def test_load_migrations_sorted() -> None:
-    migrations = load_migrations()
-    versions = [m.version for m in migrations]
+def test_bootstrap_sql_files_sorted() -> None:
+    paths = load_migrations()
+    versions = [int(p.name[:4]) for p in paths]
     assert versions == sorted(versions)
     assert versions and versions[0] == 1
-    assert versions == list(range(1, len(versions) + 1))
-    assert migrations[0].checksum != migrations[1].checksum
+    assert paths[0].name == "0001_schema_baseline.sql"

@@ -1,11 +1,11 @@
-"""KB-scoped execution context for integration operations (HTTP, MCP, chat tools)."""
+"""Workspace-scoped execution context for integration operations (HTTP, MCP, chat tools)."""
 
 from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Any, Callable
 
-from basis.domain.tenancy.admin.store import AdminStore, KnowledgeBase, User
+from basis.domain.tenancy.admin.store import AdminStore, User, Workspace
 
 from basis.domain.graph.session.registry import KbGraphRuntime
 from basis.domain.graph.projection.projection_lifecycle import GraphProjectionBindings
@@ -16,7 +16,7 @@ from basis.domain.knowledge.store import KnowledgeStore
 
 @dataclass(frozen=True)
 class KbCoreContext:
-    kb: KnowledgeBase
+    workspace: Workspace
     user: User
     knowledge: KnowledgeStore
     store: AdminStore

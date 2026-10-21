@@ -1,4 +1,4 @@
-"""Domain errors shared across KB, Explorer, and platform adapters."""
+"""Domain errors shared across workspace, Explorer, and platform adapters."""
 
 
 class AdminError(Exception):

@@ -11,17 +11,17 @@ from basis.domain.knowledge.store import KnowledgeStore
 def _kb_id(tmp_path: Path, *, email: str = "u@example.com", name: str = "Test KB") -> str:
     admin = AdminStore(tmp_path / "basis.db")
     user, _ = admin.register(email, "password1", "U")
-    kb = admin.create_kb(user, name, None, "restricted")
+    kb = admin.create_workspace(user, name, None, "restricted")
     admin.close()
     return kb.id
 
 
 def test_store_upload_and_read_roundtrip(tmp_path: Path) -> None:
-    kb_id = _kb_id(tmp_path)
+    workspace_id = _kb_id(tmp_path)
     blobs = BlobStore(tmp_path)
     store = KnowledgeStore(tmp_path / "basis.db", blobs)
     doc_id, version_id, job_id, blob = store.store_upload_bytes(
-        kb_id,
+        workspace_id,
         title="note.txt",
         mime_type="text/plain",
         data=b"alpha",
@@ -29,21 +29,21 @@ def test_store_upload_and_read_roundtrip(tmp_path: Path) -> None:
     )
     assert doc_id and version_id and job_id
     assert blob.byte_size == 5
-    assert store.read_version_bytes(kb_id, version_id) == b"alpha"
-    row = store.get_version(kb_id, version_id)
+    assert store.read_version_bytes(workspace_id, version_id) == b"alpha"
+    row = store.get_version(workspace_id, version_id)
     assert row.status == "queued"
     store.close()
 
 
 def test_same_bytes_two_versions_two_documents(tmp_path: Path) -> None:
-    kb_id = _kb_id(tmp_path)
+    workspace_id = _kb_id(tmp_path)
     blobs = BlobStore(tmp_path)
     store = KnowledgeStore(tmp_path / "basis.db", blobs)
     d1, v1, _, _ = store.store_upload_bytes(
-        kb_id, title="a", mime_type="text/plain", data=b"same", created_by=None
+        workspace_id, title="a", mime_type="text/plain", data=b"same", created_by=None
     )
     d2, v2, _, _ = store.store_upload_bytes(
-        kb_id, title="b", mime_type="text/plain", data=b"same", created_by=None
+        workspace_id, title="b", mime_type="text/plain", data=b"same", created_by=None
     )
     assert d1 != d2
     assert v1 != v2
@@ -53,25 +53,25 @@ def test_same_bytes_two_versions_two_documents(tmp_path: Path) -> None:
 def test_open_statement_validation_and_kb_guard(tmp_path: Path) -> None:
     admin = AdminStore(tmp_path / "basis.db")
     user, _ = admin.register("stmt@example.com", "password1", "U")
-    kb_id = admin.create_kb(user, "KB A", None, "restricted").id
-    other_kb = admin.create_kb(user, "KB B", None, "restricted").id
+    workspace_id = admin.create_workspace(user, "KB A", None, "restricted").id
+    other_kb = admin.create_workspace(user, "KB B", None, "restricted").id
     admin.close()
     blobs = BlobStore(tmp_path)
     store = KnowledgeStore(tmp_path / "basis.db", blobs)
     _, version_id, _, _ = store.store_upload_bytes(
-        kb_id, title="doc", mime_type="text/plain", data=b"x", created_by=None
+        workspace_id, title="doc", mime_type="text/plain", data=b"x", created_by=None
     )
-    chunk_id = store.create_chunk(kb_id, version_id, ordinal=0, text="Alice knows Bob.")
-    e1 = store.create_entity(kb_id, canonical_label="Alice")
-    e2 = store.create_entity(kb_id, canonical_label="Bob")
-    e3 = store.create_entity(kb_id, canonical_label="Alice")
-    assert store.count_entities_named(kb_id, "Alice") == 2
+    chunk_id = store.create_chunk(workspace_id, version_id, ordinal=0, text="Alice knows Bob.")
+    e1 = store.create_entity(workspace_id, canonical_label="Alice")
+    e2 = store.create_entity(workspace_id, canonical_label="Bob")
+    e3 = store.create_entity(workspace_id, canonical_label="Alice")
+    assert store.count_entities_named(workspace_id, "Alice") == 2
 
     quote = "knows Bob"
     start = "Alice knows Bob.".index(quote)
     end = start + len(quote)
     sid = store.add_open_statement(
-        kb_id,
+        workspace_id,
         subject_id=e1,
         surface_phrase="knows",
         object_entity_id=e2,
@@ -87,7 +87,7 @@ def test_open_statement_validation_and_kb_guard(tmp_path: Path) -> None:
 
     with pytest.raises(AdminError) as bad:
         store.add_open_statement(
-            kb_id,
+            workspace_id,
             subject_id=e1,
             surface_phrase="x",
             object_entity_id=e2,

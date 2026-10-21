@@ -19,7 +19,7 @@ function nodeRect(node: PreviewNode) {
 
 export function ProductPreview() {
   const { t } = useI18n();
-  const h = t.marketing.howItWorks;
+  const h = t.home.marketing.how_it_works;
   const p = h.preview;
 
   const nodes: PreviewNode[] = [
@@ -42,7 +42,7 @@ export function ProductPreview() {
         <span className="size-2 rounded-full bg-amber-400/70" aria-hidden />
         <span className="size-2 rounded-full bg-emerald-400/70" aria-hidden />
         <span className="ml-2 truncate text-[11px] text-muted-foreground">
-          {h.previewTitle} / {p.graphTab}
+          {h.preview_title} / {p.graph_tab}
         </span>
       </div>
 
@@ -52,7 +52,7 @@ export function ProductPreview() {
             viewBox="0 0 420 300"
             className="h-full w-full"
             role="img"
-            aria-label={h.previewCaption}
+            aria-label={h.preview_caption}
           >
             <g stroke="var(--border)" strokeWidth="1">
               {edges.map(([from, to]) => {
@@ -128,7 +128,7 @@ export function ProductPreview() {
       </div>
 
       <figcaption className="border-t border-border/60 px-4 py-2 text-[11px] text-muted-foreground">
-        {h.previewCaption}
+        {h.preview_caption}
       </figcaption>
     </figure>
   );

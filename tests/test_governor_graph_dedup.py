@@ -21,10 +21,10 @@ def test_governor_run_returns_graph_dedup_section(tmp_path: Path) -> None:
         json={"email": "gd@example.com", "password": "password1", "display_name": "GD"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
 
     client.post(
-        f"/api/v1/kbs/{kb_id}/documents",
+        f"/api/v1/workspaces/{workspace_id}/documents",
         headers=headers,
         json={
             "doc_id": "gd1",
@@ -35,7 +35,7 @@ def test_governor_run_returns_graph_dedup_section(tmp_path: Path) -> None:
     )
 
     dedup = client.post(
-        f"/api/v1/kbs/{kb_id}/enrich/dedup",
+        f"/api/v1/workspaces/{workspace_id}/enrich/dedup",
         headers=headers,
         json={"threshold": 0.5},
     )
@@ -43,7 +43,7 @@ def test_governor_run_returns_graph_dedup_section(tmp_path: Path) -> None:
     flagged = int(dedup.json().get("total_flagged") or 0)
 
     run = client.post(
-        f"/api/v1/kbs/{kb_id}/governance/governor/run",
+        f"/api/v1/workspaces/{workspace_id}/governance/governor/run",
         headers=headers,
         json={"dedup_threshold": 0.5},
     )
@@ -56,7 +56,7 @@ def test_governor_run_returns_graph_dedup_section(tmp_path: Path) -> None:
     if flagged > 0:
         assert graph_section["created"] >= 1
         items = client.get(
-            f"/api/v1/kbs/{kb_id}/review/items",
+            f"/api/v1/workspaces/{workspace_id}/review/items",
             headers=headers,
             params={"kind": ENTITY_CLUSTER_KIND},
         ).json()["items"]

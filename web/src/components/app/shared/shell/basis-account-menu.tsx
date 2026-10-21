@@ -18,14 +18,14 @@ import { useI18n } from '@/i18n/context.js';
 import { formatBadgeCount } from '@/i18n/format.js';
 import type { Locale } from '@/i18n/locale.js';
 import { LocaleMenuItems } from '@/i18n/locale-menu.js';
-import { isSetupKbId } from '@/lib/kb-active-id.js';
+import { isSetupWorkspaceId } from '@/lib/workspace/active-id.js';
 import { useBasisSession } from '@/lib/basis-session.js';
 import {
-  kbPath,
+  workspacePath,
   platformAdminEntryPath,
   visiblePlatformNavItems,
 } from '@/lib/nav-config.js';
-import { useKbAlertsNavKbId, useKbUnreadAlerts } from '@/lib/use-kb-unread-alerts.js';
+import { useWorkspaceAlertsNavId, useWorkspaceUnreadAlerts } from '@/lib/workspace/use-unread-alerts.js';
 import { useTheme } from '@/lib/theme.js';
 import { cn } from '@/lib/utils.js';
 import { basisIsDesktopProduct } from '@/lib/basis-runtime.js';
@@ -45,18 +45,18 @@ export function BasisAccountMenu({ onLogout }: { onLogout: () => void }) {
   const { t, locale } = useI18n();
   const location = useLocation();
   const { user, isAdmin } = useBasisSession();
-  const alertsKbId = useKbAlertsNavKbId();
-  const unreadAlertsCount = useKbUnreadAlerts();
-  const showAlertsLink = !isSetupKbId(alertsKbId);
+  const alertsWorkspaceId = useWorkspaceAlertsNavId();
+  const unreadAlertsCount = useWorkspaceUnreadAlerts();
+  const showAlertsLink = !isSetupWorkspaceId(alertsWorkspaceId);
   const alertsActive =
     showAlertsLink &&
-    (location.pathname === kbPath(alertsKbId, 'alerts') ||
-      location.pathname.startsWith(`${kbPath(alertsKbId, 'alerts')}/`));
+    (location.pathname === workspacePath(alertsWorkspaceId, 'alerts') ||
+      location.pathname.startsWith(`${workspacePath(alertsWorkspaceId, 'alerts')}/`));
   const canSettings = useSettingsAccess();
   const { theme, setTheme } = useTheme();
 
-  const accountTitle = user?.display_name || user?.email || t.sidebar.accountTitle;
-  const accountRole = isAdmin ? t.sidebar.roleBasisAdmin : t.sidebar.roleBasisUser;
+  const accountTitle = user?.display_name || user?.email || t.core.shell.sidebar.account_title;
+  const accountRole = isAdmin ? t.core.shell.sidebar.role_basis_admin : t.core.shell.sidebar.role_basis_user;
   const initials = (accountTitle[0] ?? 'S').toUpperCase();
 
   const desktopProduct = basisIsDesktopProduct();
@@ -118,21 +118,21 @@ export function BasisAccountMenu({ onLogout }: { onLogout: () => void }) {
         <DropdownMenuSeparator />
         <DropdownMenuSub>
           <AccountMenuSubTrigger
-            hint={theme === 'dark' ? t.sidebar.themeDark : t.sidebar.themeLight}
+            hint={theme === 'dark' ? t.core.shell.sidebar.theme_dark : t.core.shell.sidebar.theme_light}
           >
             <MenuIcon name={theme === 'dark' ? 'moon-01' : 'sun-01'} />
-            {t.sidebar.theme}
+            {t.core.shell.sidebar.theme}
           </AccountMenuSubTrigger>
           <DropdownMenuPortal>
             <DropdownMenuSubContent>
               <DropdownMenuItem onClick={() => setTheme('light')}>
                 <MenuIcon name="sun-01" />
-                {t.sidebar.themeLight}
+                {t.core.shell.sidebar.theme_light}
                 {theme === 'light' ? <MenuIcon name="check-01" className="ml-auto" /> : null}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setTheme('dark')}>
                 <MenuIcon name="moon-01" />
-                {t.sidebar.themeDark}
+                {t.core.shell.sidebar.theme_dark}
                 {theme === 'dark' ? <MenuIcon name="check-01" className="ml-auto" /> : null}
               </DropdownMenuItem>
             </DropdownMenuSubContent>
@@ -141,7 +141,7 @@ export function BasisAccountMenu({ onLogout }: { onLogout: () => void }) {
         <DropdownMenuSub>
           <AccountMenuSubTrigger>
             <MenuIcon name="globe-02" />
-            {t.sidebar.language}
+            {t.core.shell.sidebar.language}
           </AccountMenuSubTrigger>
           <DropdownMenuPortal>
             <DropdownMenuSubContent>
@@ -153,13 +153,13 @@ export function BasisAccountMenu({ onLogout }: { onLogout: () => void }) {
           <>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild data-active={alertsActive ? true : undefined}>
-              <Link to={kbPath(alertsKbId, 'alerts')}>
+              <Link to={workspacePath(alertsWorkspaceId, 'alerts')}>
                 <MenuIcon name="bell-01" />
-                {t.menu.kb.alerts}
+                {t.alerts.menu.alerts}
                 {showAlertsBadge ? (
                   <span
                     className="ml-auto rounded-md bg-destructive/15 px-1.5 text-xs font-medium tabular-nums text-destructive"
-                    data-testid="kb-account-alerts-badge"
+                    data-testid="workspace-account-alerts-badge"
                   >
                     {alertsBadgeLabel}
                   </span>
@@ -174,7 +174,7 @@ export function BasisAccountMenu({ onLogout }: { onLogout: () => void }) {
             <DropdownMenuItem asChild>
               <Link to={managementHref}>
                 <MenuIcon name="settings" />
-                {t.sidebar.management}
+                {t.core.shell.sidebar.management}
               </Link>
             </DropdownMenuItem>
           </>
@@ -188,7 +188,7 @@ export function BasisAccountMenu({ onLogout }: { onLogout: () => void }) {
               }}
             >
               <MenuIcon name="logout-01" />
-              {t.sidebar.logout}
+              {t.core.shell.sidebar.logout}
             </DropdownMenuItem>
           </>
         ) : null}

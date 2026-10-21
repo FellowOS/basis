@@ -27,7 +27,7 @@ export function BasisShellBrandMark({
           textClassName,
         )}
       >
-        {t.sidebar.brand}
+        {t.core.shell.sidebar.brand}
       </span>
     </div>
   );

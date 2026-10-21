@@ -1,14 +1,14 @@
 import { expect, test } from '@playwright/test';
 
-import { defaultKbId, registerFreshUser } from './helpers.js';
+import { defaultWorkspaceId, registerFreshUser } from './helpers.js';
 
 test('statement mappings page shows extraction-focused chrome', async ({ page }) => {
   test.setTimeout(90_000);
 
   await registerFreshUser(page);
-  const kbId = await defaultKbId(page);
+  const workspaceId = await defaultWorkspaceId(page);
 
-  await page.goto(`/kbs/${kbId}/mappings`);
+  await page.goto(`/workspaces/${workspaceId}/mappings`);
   await expect(
     page.getByText(/Statement mappings|抽取映射/i).first(),
   ).toBeVisible({ timeout: 30_000 });
@@ -22,9 +22,9 @@ test('entity resolution workspace loads', async ({ page }) => {
   test.setTimeout(90_000);
 
   await registerFreshUser(page);
-  const kbId = await defaultKbId(page);
+  const workspaceId = await defaultWorkspaceId(page);
 
-  await page.goto(`/kbs/${kbId}/entity-resolution`);
+  await page.goto(`/workspaces/${workspaceId}/entity-resolution`);
   await expect(
     page.getByText(/Entity resolution|实体解析/i).first(),
   ).toBeVisible({ timeout: 30_000 });
@@ -37,9 +37,9 @@ test('vocabulary hub loads', async ({ page }) => {
   test.setTimeout(90_000);
 
   await registerFreshUser(page);
-  const kbId = await defaultKbId(page);
+  const workspaceId = await defaultWorkspaceId(page);
 
-  await page.goto(`/kbs/${kbId}/vocabulary`);
+  await page.goto(`/workspaces/${workspaceId}/vocabulary`);
   await expect(page.getByText(/Vocabulary|受控词表|词表/i).first()).toBeVisible({
     timeout: 30_000,
   });
@@ -49,10 +49,10 @@ test('legacy SHACL route opens ontology hub SHACL tab', async ({ page }) => {
   test.setTimeout(90_000);
 
   await registerFreshUser(page);
-  const kbId = await defaultKbId(page);
+  const workspaceId = await defaultWorkspaceId(page);
 
-  await page.goto(`/kbs/${kbId}/shacl`);
-  await expect(page).toHaveURL(new RegExp(`/kbs/${kbId}/ontology\\?tab=shacl`), {
+  await page.goto(`/workspaces/${workspaceId}/shacl`);
+  await expect(page).toHaveURL(new RegExp(`/workspaces/${workspaceId}/ontology\\?tab=shacl`), {
     timeout: 30_000,
   });
   await expect(page.getByRole('tab', { name: /^SHACL$/i })).toHaveAttribute('data-state', 'active');
@@ -62,10 +62,10 @@ test('legacy alignments route opens ontology hub alignments tab', async ({ page 
   test.setTimeout(90_000);
 
   await registerFreshUser(page);
-  const kbId = await defaultKbId(page);
+  const workspaceId = await defaultWorkspaceId(page);
 
-  await page.goto(`/kbs/${kbId}/alignments`);
-  await expect(page).toHaveURL(new RegExp(`/kbs/${kbId}/ontology\\?tab=alignments`), {
+  await page.goto(`/workspaces/${workspaceId}/alignments`);
+  await expect(page).toHaveURL(new RegExp(`/workspaces/${workspaceId}/ontology\\?tab=alignments`), {
     timeout: 30_000,
   });
   await expect(page.getByRole('tab', { name: /Alignments|对齐/i })).toHaveAttribute(

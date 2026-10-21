@@ -17,7 +17,7 @@ from basis.domain.knowledge.access.documents import DocumentsAccess
 from basis.domain.knowledge.access.ingest_ledger import IngestLedgerAccess
 from basis.domain.knowledge.access.ledger import LedgerAccess
 from basis.domain.knowledge.access.ingest_sources import IngestSourcesAccess
-from basis.domain.knowledge.access.kb_alerts import KbAlertsAccess
+from basis.domain.knowledge.access.kb_alerts import WorkspaceAlertsAccess
 from basis.domain.ontology.reasoning_rules import ReasoningRulesAccess
 from basis.domain.knowledge.access.processing import ProcessingJobsAccess
 from basis.domain.knowledge.access.facts import FactsAccess
@@ -55,7 +55,7 @@ class KnowledgeStore:
         self._facts = FactsAccess(self)
         self._ingest_sources = IngestSourcesAccess(self)
         self._reasoning_rules = ReasoningRulesAccess(self)
-        self._kb_alerts = KbAlertsAccess(self)
+        self._alerts = WorkspaceAlertsAccess(self)
         self._governance = GovernanceAccess(self)
         self._search = SearchAccess(self)
         self._ledger = LedgerAccess(self)
@@ -68,24 +68,24 @@ class KnowledgeStore:
     def database(self) -> Database:
         return self._db
 
-    def hard_delete_document(self, kb_id: str, document_id: str) -> dict[str, Any]:
-        return self._document_delete.execute_hard_delete_document(kb_id, document_id)
+    def hard_delete_document(self, workspace_id: str, document_id: str) -> dict[str, Any]:
+        return self._document_delete.execute_hard_delete_document(workspace_id, document_id)
 
-    def delete_entity(self, kb_id: str, entity_id: str) -> dict[str, Any]:
-        return self._entity_delete.execute_delete_entity(kb_id, entity_id)
+    def delete_entity(self, workspace_id: str, entity_id: str) -> dict[str, Any]:
+        return self._entity_delete.execute_delete_entity(workspace_id, entity_id)
 
     PROJECTION_SCHEMA_VERSION = 1
 
     def merge_review_subject_key(primary_id: str, duplicate_ids: list[str]) -> str:
         return merge_review_subject_key(primary_id, duplicate_ids)
 
-    def _assert_kb_exists(self, kb_id: str) -> None:
-        ledger_guards.assert_kb_exists(self._conn, kb_id)
+    def _assert_workspace_exists(self, workspace_id: str) -> None:
+        ledger_guards.assert_kb_exists(self._conn, workspace_id)
 
-    def _assert_row_in_kb(self, table: str, row_id: str, kb_id: str) -> None:
-        ledger_guards.assert_row_in_kb(self._conn, table, row_id, kb_id)
+    def _assert_row_in_workspace(self, table: str, row_id: str, workspace_id: str) -> None:
+        ledger_guards.assert_row_in_kb(self._conn, table, row_id, workspace_id)
 
-def _kb_access_delegate(access_attr: str, method_name: str):
+def _workspace_access_delegate(access_attr: str, method_name: str):
     def _wrapped(self, *args, **kwargs):
         return getattr(getattr(self, access_attr), method_name)(*args, **kwargs)
 
@@ -103,16 +103,16 @@ for _name in (
     "list_source_table_mapping_ids",
     "list_entity_sync_outbox_ids",
     "reject_entity_sync_outbox",
-    "list_kb_connector_runs",
+    "list_connector_runs",
     "list_active_connector_table_mappings_global",
 ):
-    setattr(KnowledgeStore, _name, _kb_access_delegate("_connector", _name))
+    setattr(KnowledgeStore, _name, _workspace_access_delegate("_connector", _name))
 
 for _name in ("graph_staging_at", "upsert_graph_staging_session"):
-    setattr(KnowledgeStore, _name, _kb_access_delegate("_graph_staging", _name))
+    setattr(KnowledgeStore, _name, _workspace_access_delegate("_graph_staging", _name))
 
 for _name in ("preview_entity_deletion", "execute_delete_entity"):
-    setattr(KnowledgeStore, _name, _kb_access_delegate("_entity_delete", _name))
+    setattr(KnowledgeStore, _name, _workspace_access_delegate("_entity_delete", _name))
 
 for _name in (
     "store_upload_bytes",
@@ -127,7 +127,7 @@ for _name in (
     "read_version_bytes",
     "list_chunks_for_version",
 ):
-    setattr(KnowledgeStore, _name, _kb_access_delegate("_documents", _name))
+    setattr(KnowledgeStore, _name, _workspace_access_delegate("_documents", _name))
 
 for _name in (
     "find_processing_job_by_idempotency_key",
@@ -142,7 +142,7 @@ for _name in (
     "fail_version",
     "fail_job",
 ):
-    setattr(KnowledgeStore, _name, _kb_access_delegate("_processing", _name))
+    setattr(KnowledgeStore, _name, _workspace_access_delegate("_processing", _name))
 
 for _name in (
     "get_or_create_entity_by_label",
@@ -158,7 +158,7 @@ for _name in (
     "set_statement_status",
     "invalidate_statement",
 ):
-    setattr(KnowledgeStore, _name, _kb_access_delegate("_ingest_ledger", _name))
+    setattr(KnowledgeStore, _name, _workspace_access_delegate("_ingest_ledger", _name))
 
 for _name in (
     "create_review_item",
@@ -167,7 +167,7 @@ for _name in (
     "get_review_item",
     "resolve_review_item",
 ):
-    setattr(KnowledgeStore, _name, _kb_access_delegate("_review", _name))
+    setattr(KnowledgeStore, _name, _workspace_access_delegate("_review", _name))
 
 for _name in (
     "list_mappings",
@@ -177,7 +177,7 @@ for _name in (
     "list_distinct_surface_phrases",
     "materialize_mapping_facts",
 ):
-    setattr(KnowledgeStore, _name, _kb_access_delegate("_mappings", _name))
+    setattr(KnowledgeStore, _name, _workspace_access_delegate("_mappings", _name))
 
 for _name in (
     "get_ledger_temporal_bounds",
@@ -195,7 +195,7 @@ for _name in (
     "list_typed_facts_for_projection",
     "list_derived_facts_for_projection",
 ):
-    setattr(KnowledgeStore, _name, _kb_access_delegate("_projection", _name))
+    setattr(KnowledgeStore, _name, _workspace_access_delegate("_projection", _name))
 
 for _name in (
     "list_typed_facts",
@@ -203,7 +203,7 @@ for _name in (
     "list_derived_facts",
     "list_derived_facts_for_entity",
 ):
-    setattr(KnowledgeStore, _name, _kb_access_delegate("_facts", _name))
+    setattr(KnowledgeStore, _name, _workspace_access_delegate("_facts", _name))
 
 for _name in (
     "entity_labels_by_ids",
@@ -214,7 +214,7 @@ for _name in (
     "revert_entity_merge",
     "list_entity_merges",
 ):
-    setattr(KnowledgeStore, _name, _kb_access_delegate("_entity_merges", _name))
+    setattr(KnowledgeStore, _name, _workspace_access_delegate("_entity_merges", _name))
 
 for _name in (
     "list_scheduled_ingest_sources_global",
@@ -227,7 +227,7 @@ for _name in (
     "delete_ingest_source",
     "rotate_ingest_source_token",
 ):
-    setattr(KnowledgeStore, _name, _kb_access_delegate("_ingest_sources", _name))
+    setattr(KnowledgeStore, _name, _workspace_access_delegate("_ingest_sources", _name))
 
 for _name in (
     "list_reasoning_rules",
@@ -236,28 +236,28 @@ for _name in (
     "update_reasoning_rule",
     "delete_reasoning_rule",
 ):
-    setattr(KnowledgeStore, _name, _kb_access_delegate("_reasoning_rules", _name))
+    setattr(KnowledgeStore, _name, _workspace_access_delegate("_reasoning_rules", _name))
 
 for _name in (
-    "create_kb_alert",
-    "get_kb_alert",
-    "list_kb_alerts",
-    "count_kb_alerts",
-    "count_kb_unread_alerts",
-    "list_kb_alerts_since",
+    "create_workspace_alert",
+    "get_workspace_alert",
+    "list_alerts",
+    "count_alerts",
+    "count_workspace_unread_alerts",
+    "list_alerts_since",
     "dismiss_kb_alert",
-    "dismiss_all_kb_alerts",
-    "mark_all_kb_alerts_read",
+    "dismiss_all_alerts",
+    "mark_all_alerts_read",
 ):
-    setattr(KnowledgeStore, _name, _kb_access_delegate("_kb_alerts", _name))
+    setattr(KnowledgeStore, _name, _workspace_access_delegate("_alerts", _name))
 
 for _name in (
     "get_governance_config",
     "update_governance_config",
     "touch_governor_last_run",
-    "list_governor_enabled_kb_ids",
+    "list_governor_enabled_workspace_ids",
 ):
-    setattr(KnowledgeStore, _name, _kb_access_delegate("_governance", _name))
+    setattr(KnowledgeStore, _name, _workspace_access_delegate("_governance", _name))
 
 for _name in (
     "get_search_config",
@@ -271,7 +271,7 @@ for _name in (
     "upsert_embedding_record",
     "delete_all_embedding_records",
 ):
-    setattr(KnowledgeStore, _name, _kb_access_delegate("_search", _name))
+    setattr(KnowledgeStore, _name, _workspace_access_delegate("_search", _name))
 
 for _name in (
     "list_document_timeline_events",
@@ -287,4 +287,4 @@ for _name in (
     "list_entity_facts",
     "get_statement_browse",
 ):
-    setattr(KnowledgeStore, _name, _kb_access_delegate("_ledger", _name))
+    setattr(KnowledgeStore, _name, _workspace_access_delegate("_ledger", _name))

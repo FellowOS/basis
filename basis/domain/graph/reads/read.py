@@ -1,4 +1,4 @@
-"""KB-scoped graph read helpers (Explorer or ContextGraph fallback)."""
+"""Workspace-scoped graph read helpers (Explorer or ContextGraph fallback)."""
 
 from __future__ import annotations
 

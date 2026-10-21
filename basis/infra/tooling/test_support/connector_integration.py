@@ -24,7 +24,7 @@ def setup_kb_sqlite(tmp_path: Path) -> sqlite3.Connection:
     )
     conn.execute(
         """
-        INSERT INTO knowledge_bases (id, name, description, visibility, created_by, created_at)
+        INSERT INTO workspaces (id, name, description, visibility, created_by, created_at)
         VALUES ('kb1', 'KB 1', '', 'private', 'u1', '2026-01-01T00:00:00Z')
         """
     )
@@ -33,7 +33,7 @@ def setup_kb_sqlite(tmp_path: Path) -> sqlite3.Connection:
 
 
 def postgres_connection_payload(database_url: str) -> dict:
-    """KB connection PUT body for ``postgres`` provider ``database_dsn`` auth."""
+    """Workspace connection PUT body for ``postgres`` provider ``database_dsn`` auth."""
     url = make_url(database_url)
     connection_config: dict = {
         "host": url.host or "localhost",

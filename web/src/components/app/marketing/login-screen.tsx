@@ -10,6 +10,7 @@ import { ProductSiteHeader } from '@/components/app/marketing/product-site-heade
 import { SelfHostSection } from '@/components/app/marketing/self-host-section.js';
 import { UseCasesSection } from '@/components/app/marketing/use-cases-section.js';
 import { Button } from '@/components/ui/button.js';
+import { i18nIndexedList } from '@/i18n/indexed-list.js';
 import {
   Dialog,
   DialogContent,
@@ -33,7 +34,7 @@ const AstralShell = lazy(() =>
 export function LoginScreen() {
   const { t, locale } = useI18n();
   const { theme } = useTheme();
-  const m = t.marketing;
+  const m = t.home.marketing;
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const [open, setOpen] = useState(() => {
@@ -88,11 +89,11 @@ export function LoginScreen() {
 
   useEffect(() => {
     const previous = document.title;
-    document.title = m.documentTitle;
+    document.title = m.document_title;
     return () => {
       document.title = previous;
     };
-  }, [m.documentTitle]);
+  }, [m.document_title]);
 
   // React Router updates the hash without scrolling; keep nav anchors usable.
   useEffect(() => {
@@ -145,7 +146,7 @@ export function LoginScreen() {
         href="#product"
         className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-background focus:px-4 focus:py-2 focus:text-sm focus:text-foreground focus:shadow-lg"
       >
-        {m.skipToContent}
+        {m.skip_to_content}
       </a>
 
       <ProductSiteHeader onGetStarted={() => openAuth('register')} />
@@ -185,17 +186,17 @@ export function LoginScreen() {
             <div className="pointer-events-auto flex min-h-0 min-w-0 flex-1 flex-col justify-center">
               <div className="min-w-0 w-full max-w-2xl">
                 <p className="max-w-xl text-xs leading-relaxed text-pretty text-muted-foreground sm:text-[13px]">
-                  {m.heroEyebrow}
+                  {m.hero_eyebrow}
                 </p>
                 <h1
                   className={cn(
                     'mt-5 min-w-0 max-w-full font-semibold leading-[1.1] tracking-[-0.035em] sm:mt-5',
                     heroTitleSize,
                   )}
-                  aria-label={`${m.heroHeadline} ${m.heroHeadlineRest}`}
+                  aria-label={`${m.hero_headline} ${m.hero_headline_rest}`}
                 >
                   <span className="relative block w-fit max-w-full">
-                    {m.heroHeadline}
+                    {m.hero_headline}
                     <BotAvatar
                       type="drop"
                       state="default"
@@ -208,11 +209,11 @@ export function LoginScreen() {
                     />
                   </span>
                   <span className="mt-1 block text-[var(--login-gold)] sm:mt-2">
-                    {m.heroHeadlineRest}
+                    {m.hero_headline_rest}
                   </span>
                 </h1>
               <p className="mt-5 max-w-xl text-[13px] leading-relaxed text-pretty text-muted-foreground sm:mt-6 sm:text-sm">
-                {m.heroSubhead}
+                {m.hero_subhead}
               </p>
               <div className="mt-5 flex flex-wrap items-center gap-2.5 sm:mt-6 sm:gap-3">
                 <Button
@@ -222,7 +223,7 @@ export function LoginScreen() {
                   onClick={() => openAuth('login')}
                   data-analytics="cta_sign_in"
                 >
-                  {m.ctaLogin}
+                  {m.cta_login}
                 </Button>
                 <Button
                   type="button"
@@ -232,12 +233,12 @@ export function LoginScreen() {
                   asChild
                 >
                   <Link to="/docs/quickstart" data-analytics="cta_read_docs">
-                    {m.ctaDocs}
+                    {m.cta_docs}
                   </Link>
                 </Button>
               </div>
               <ul className="mt-6 flex flex-wrap gap-x-4 gap-y-2 border-t border-border/60 pt-4 text-[11px] leading-relaxed text-muted-foreground sm:mt-7 sm:pt-5 sm:text-xs">
-                {m.trust.map((item) => (
+                {i18nIndexedList(m.trust).map((item) => (
                   <li key={item.label}>
                     {'external' in item && item.external ? (
                       <a
@@ -276,10 +277,10 @@ export function LoginScreen() {
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="flex max-h-[calc(100%-1rem)] flex-col gap-0 overflow-hidden border-black/10 bg-white p-0 shadow-[0_24px_64px_-20px_rgb(0_0_0_/_0.45)] sm:max-w-[24.5rem] data-[state=closed]:[--tw-exit-scale:1] data-[state=open]:[--tw-enter-scale:1] dark:border-white/10 dark:bg-[#141a22] [&_[data-slot=dialog-close]]:top-3.5 [&_[data-slot=dialog-close]]:right-3.5">
           <DialogTitle className="sr-only">
-            {isRegister ? t.login.registerTitle : t.login.title}
+            {isRegister ? t.login.page.register_title : t.login.page.title}
           </DialogTitle>
           <DialogDescription className="sr-only">
-            {isRegister ? t.login.registerSubtitle : t.login.subtitle}
+            {isRegister ? t.login.page.register_subtitle : t.login.page.subtitle}
           </DialogDescription>
           <AuthFormCard providers={authProviders} />
         </DialogContent>

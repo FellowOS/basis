@@ -1,4 +1,4 @@
-"""Shared limits for KB Explorer route modules."""
+"""Shared limits for Explorer route modules."""
 
 from __future__ import annotations
 

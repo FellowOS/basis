@@ -150,7 +150,7 @@ function Field({
 
 function CopyableUrl({ label, url }: { label: string; url: string }) {
   const { t } = useI18n();
-  const copyMsg = t.platformSettings.access.urlCopied;
+  const copyMsg = t.admin_settings.page.access.url_copied;
 
   function copy() {
     void navigator.clipboard.writeText(url).then(() => toast.success(copyMsg));
@@ -164,7 +164,7 @@ function CopyableUrl({ label, url }: { label: string; url: string }) {
           {url}
         </code>
         <Button type="button" variant="outline" size="sm" className="h-7 shrink-0 px-2 text-xs" onClick={copy}>
-          {t.common.copy}
+          {t.core.common.copy}
         </Button>
       </div>
     </div>
@@ -197,7 +197,7 @@ function SecretInput({
           variant="ghost"
           size="icon-sm"
           className="absolute top-1/2 right-1 -translate-y-1/2 text-muted-foreground"
-          aria-label={visible ? t.login.hidePassword : t.login.showPassword}
+          aria-label={visible ? t.login.page.hide_password : t.login.page.show_password}
           aria-pressed={visible}
           onClick={() => setVisible((v) => !v)}
         >
@@ -222,7 +222,7 @@ function ProviderBlock({
   children?: ReactNode;
 }) {
   const { t } = useI18n();
-  const copy = t.platformSettings.access;
+  const copy = t.admin_settings.page.access;
 
   return (
     <div className="border-t border-border/80 pt-6 first:border-t-0 first:pt-0">
@@ -232,7 +232,7 @@ function ProviderBlock({
             <h3 className="text-sm font-semibold tracking-tight">{title}</h3>
             {enabled ? (
               <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-primary">
-                {copy.enabledBadge}
+                {copy.enabled_badge}
               </span>
             ) : null}
           </div>
@@ -240,9 +240,9 @@ function ProviderBlock({
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <Label htmlFor={`enable-${title}`} className="sr-only">
-            {copy.enableOnLoginPage}
+            {copy.enable_on_login_page}
           </Label>
-          <span className="text-xs text-muted-foreground">{copy.enableOnLoginPage}</span>
+          <span className="text-xs text-muted-foreground">{copy.enable_on_login_page}</span>
           <Switch id={`enable-${title}`} checked={enabled} onCheckedChange={onEnabledChange} />
         </div>
       </div>
@@ -292,7 +292,7 @@ export function PlatformAccessSettings({
   onSiteUrlChange?: (siteUrl: string) => void;
 }) {
   const { t } = useI18n();
-  const copy = t.platformSettings.access;
+  const copy = t.admin_settings.page.access;
   const apiError = useApiErrorMessage();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -384,7 +384,7 @@ export function PlatformAccessSettings({
         },
       });
       applyAccess(data);
-      toast.success(t.common.save);
+      toast.success(t.core.common.save);
     } catch (err) {
       const msg = apiError(err);
       setError(msg);
@@ -404,7 +404,7 @@ export function PlatformAccessSettings({
       <Card>
         <CardContent className="flex items-center gap-2 py-10 text-sm text-muted-foreground">
           <Spinner className="size-4" />
-          {t.common.loading}
+          {t.core.common.loading}
         </CardContent>
       </Card>
     );
@@ -429,19 +429,19 @@ export function PlatformAccessSettings({
 
       <Card>
         <CardHeader className="pb-4">
-          <CardTitle className="text-base">{copy.formTitle}</CardTitle>
-          <CardDescription>{copy.formDesc}</CardDescription>
+          <CardTitle className="text-base">{copy.form_title}</CardTitle>
+          <CardDescription>{copy.form_desc}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <FormField
             control={form.control}
             name="siteUrl"
             render={({ field }) => (
-              <Field id="site-url" label={copy.siteUrl} hint={copy.siteUrlHint}>
+              <Field id="site-url" label={copy.site_url} hint={copy.site_url_hint}>
                 <Input
                   id="site-url"
                   className="h-9 font-mono text-sm"
-                  placeholder={copy.siteUrlPlaceholder}
+                  placeholder={copy.site_url_placeholder}
                   {...field}
                 />
               </Field>
@@ -450,25 +450,25 @@ export function PlatformAccessSettings({
 
           {callbacks ? (
             <div className="space-y-2">
-              <Label className="text-[13px] font-medium">{copy.callbacksTitle}</Label>
-              <p className="text-xs text-muted-foreground">{copy.callbacksDesc}</p>
+              <Label className="text-[13px] font-medium">{copy.callbacks_title}</Label>
+              <p className="text-xs text-muted-foreground">{copy.callbacks_desc}</p>
               <div className="grid gap-2">
-                <CopyableUrl label={copy.callbackGithub} url={callbacks.github} />
-                <CopyableUrl label={copy.callbackGoogle} url={callbacks.google} />
-                <CopyableUrl label={copy.callbackOrgOidc} url={callbacks.org_oidc} />
+                <CopyableUrl label={copy.callback_github} url={callbacks.github} />
+                <CopyableUrl label={copy.callback_google} url={callbacks.google} />
+                <CopyableUrl label={copy.callback_org_oidc} url={callbacks.org_oidc} />
                 {callbacks.org_saml_acs ? (
-                  <CopyableUrl label={copy.callbackOrgSamlAcs} url={callbacks.org_saml_acs} />
+                  <CopyableUrl label={copy.callback_org_saml_acs} url={callbacks.org_saml_acs} />
                 ) : null}
                 {callbacks.org_saml_slo ? (
-                  <CopyableUrl label={copy.callbackOrgSamlSlo} url={callbacks.org_saml_slo} />
+                  <CopyableUrl label={copy.callback_org_saml_slo} url={callbacks.org_saml_slo} />
                 ) : null}
               </div>
             </div>
           ) : null}
 
           <div className="space-y-2">
-            <Label className="text-[13px] font-medium">{copy.signupTitle}</Label>
-            <p className="text-xs text-muted-foreground">{copy.signupDesc}</p>
+            <Label className="text-[13px] font-medium">{copy.signup_title}</Label>
+            <p className="text-xs text-muted-foreground">{copy.signup_desc}</p>
             <FormField
               control={form.control}
               name="signupPolicy"
@@ -480,13 +480,13 @@ export function PlatformAccessSettings({
                 >
                   <SignupOption
                     value="open"
-                    label={copy.signupOpenShort}
-                    description={copy.signupOpenDetail}
+                    label={copy.signup_open_short}
+                    description={copy.signup_open_detail}
                   />
                   <SignupOption
                     value="closed"
-                    label={copy.signupClosedShort}
-                    description={copy.signupClosedDetail}
+                    label={copy.signup_closed_short}
+                    description={copy.signup_closed_detail}
                   />
                 </RadioGroup>
               )}
@@ -497,13 +497,13 @@ export function PlatformAccessSettings({
 
       <Card>
         <CardHeader className="pb-4">
-          <CardTitle className="text-base">{copy.providersTitle}</CardTitle>
-          <CardDescription>{copy.providersDesc}</CardDescription>
+          <CardTitle className="text-base">{copy.providers_title}</CardTitle>
+          <CardDescription>{copy.providers_desc}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <ProviderBlock
-            title={copy.providerPassword}
-            hint={copy.passwordHint}
+            title={copy.provider_password}
+            hint={copy.password_hint}
             enabled={isEnabled(providers, 'password')}
             onEnabledChange={(on) =>
               form.setValue('providers', setProviderEnabled(form.getValues('providers'), 'password', on))
@@ -511,8 +511,8 @@ export function PlatformAccessSettings({
           />
 
           <ProviderBlock
-            title={copy.providerEmail}
-            hint={copy.emailDesc}
+            title={copy.provider_email}
+            hint={copy.email_desc}
             enabled={isEnabled(providers, 'email')}
             onEnabledChange={(on) =>
               form.setValue('providers', setProviderEnabled(form.getValues('providers'), 'email', on))
@@ -523,7 +523,7 @@ export function PlatformAccessSettings({
               name="magicLinkDevLog"
               render={({ field }) => (
                 <label className="flex items-center justify-between gap-4 rounded-md border border-border/50 bg-background/80 px-3 py-2 text-sm">
-                  <span className="text-[13px]">{copy.magicLinkDevLog}</span>
+                  <span className="text-[13px]">{copy.magic_link_dev_log}</span>
                   <Switch checked={field.value} onCheckedChange={field.onChange} />
                 </label>
               )}
@@ -532,7 +532,7 @@ export function PlatformAccessSettings({
               control={form.control}
               name="emailFrom"
               render={({ field }) => (
-                <Field id="email-from" label={copy.emailFrom}>
+                <Field id="email-from" label={copy.email_from}>
                   <Input id="email-from" className="h-9" {...field} />
                 </Field>
               )}
@@ -541,14 +541,14 @@ export function PlatformAccessSettings({
               control={form.control}
               name="mailTransport"
               render={({ field }) => (
-                <Field id="mail-transport" label={copy.mailTransport}>
+                <Field id="mail-transport" label={copy.mail_transport}>
                   <Select value={field.value} onValueChange={field.onChange}>
                     <SelectTrigger id="mail-transport" className="h-9">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="resend">{copy.transportResend}</SelectItem>
-                      <SelectItem value="smtp">{copy.transportSmtp}</SelectItem>
+                      <SelectItem value="resend">{copy.transport_resend}</SelectItem>
+                      <SelectItem value="smtp">{copy.transport_smtp}</SelectItem>
                     </SelectContent>
                   </Select>
                 </Field>
@@ -559,7 +559,7 @@ export function PlatformAccessSettings({
                 control={form.control}
                 name="resendApiKey"
                 render={({ field }) => (
-                  <SecretInput id="resend-key" label={copy.resendApiKey} {...field} />
+                  <SecretInput id="resend-key" label={copy.resend_api_key} {...field} />
                 )}
               />
             ) : (
@@ -568,7 +568,7 @@ export function PlatformAccessSettings({
                   control={form.control}
                   name="smtpHost"
                   render={({ field }) => (
-                    <Field id="smtp-host" label={copy.smtpHost} className="sm:col-span-2">
+                    <Field id="smtp-host" label={copy.smtp_host} className="sm:col-span-2">
                       <Input id="smtp-host" className="h-9" {...field} />
                     </Field>
                   )}
@@ -577,7 +577,7 @@ export function PlatformAccessSettings({
                   control={form.control}
                   name="smtpPort"
                   render={({ field }) => (
-                    <Field id="smtp-port" label={copy.smtpPort}>
+                    <Field id="smtp-port" label={copy.smtp_port}>
                       <Input id="smtp-port" className="h-9" {...field} />
                     </Field>
                   )}
@@ -586,7 +586,7 @@ export function PlatformAccessSettings({
                   control={form.control}
                   name="smtpUsername"
                   render={({ field }) => (
-                    <Field id="smtp-user" label={copy.smtpUsername}>
+                    <Field id="smtp-user" label={copy.smtp_username}>
                       <Input id="smtp-user" className="h-9" {...field} />
                     </Field>
                   )}
@@ -596,7 +596,7 @@ export function PlatformAccessSettings({
                     control={form.control}
                     name="smtpPassword"
                     render={({ field }) => (
-                      <SecretInput id="smtp-pass" label={copy.smtpPassword} {...field} />
+                      <SecretInput id="smtp-pass" label={copy.smtp_password} {...field} />
                     )}
                   />
                 </div>
@@ -605,7 +605,7 @@ export function PlatformAccessSettings({
           </ProviderBlock>
 
           <ProviderBlock
-            title={copy.providerGithub}
+            title={copy.provider_github}
             enabled={isEnabled(providers, 'github')}
             onEnabledChange={(on) =>
               form.setValue('providers', setProviderEnabled(form.getValues('providers'), 'github', on))
@@ -615,7 +615,7 @@ export function PlatformAccessSettings({
               control={form.control}
               name="githubClientId"
               render={({ field }) => (
-                <Field id="gh-id" label={copy.oauthClientId}>
+                <Field id="gh-id" label={copy.oauth_client_id}>
                   <Input id="gh-id" className="h-9 font-mono text-sm" {...field} />
                 </Field>
               )}
@@ -624,13 +624,13 @@ export function PlatformAccessSettings({
               control={form.control}
               name="githubClientSecret"
               render={({ field }) => (
-                <SecretInput id="gh-secret" label={copy.oauthClientSecret} {...field} />
+                <SecretInput id="gh-secret" label={copy.oauth_client_secret} {...field} />
               )}
             />
           </ProviderBlock>
 
           <ProviderBlock
-            title={copy.providerGoogle}
+            title={copy.provider_google}
             enabled={isEnabled(providers, 'google')}
             onEnabledChange={(on) =>
               form.setValue('providers', setProviderEnabled(form.getValues('providers'), 'google', on))
@@ -640,7 +640,7 @@ export function PlatformAccessSettings({
               control={form.control}
               name="googleClientId"
               render={({ field }) => (
-                <Field id="go-id" label={copy.oauthClientId}>
+                <Field id="go-id" label={copy.oauth_client_id}>
                   <Input id="go-id" className="h-9 font-mono text-sm" {...field} />
                 </Field>
               )}
@@ -649,7 +649,7 @@ export function PlatformAccessSettings({
               control={form.control}
               name="googleClientSecret"
               render={({ field }) => (
-                <SecretInput id="go-secret" label={copy.oauthClientSecret} {...field} />
+                <SecretInput id="go-secret" label={copy.oauth_client_secret} {...field} />
               )}
             />
           </ProviderBlock>
@@ -661,10 +661,10 @@ export function PlatformAccessSettings({
           {saving ? (
             <>
               <Spinner className="mr-2 size-4" />
-              {t.common.processing}
+              {t.core.common.processing}
             </>
           ) : (
-            t.common.save
+            t.core.common.save
           )}
         </Button>
       </div>

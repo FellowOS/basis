@@ -1,4 +1,4 @@
-"""KB graph session query surface — aggregates sub-routers."""
+"""Workspace graph session query surface — aggregates sub-routers."""
 
 from __future__ import annotations
 

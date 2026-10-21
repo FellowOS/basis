@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { e2eKbPath } from './api-v1-path.js';
+import { e2eWorkspaceApiPath } from './api-v1-path.js';
 import {
   batchCreateTableMappings,
   putE2eGithubApiKeyConnection,
@@ -9,20 +9,20 @@ import {
   suggestAutoTableMappings,
   suggestSqlTableMappings,
 } from './connector-mapping-suggest-fixture.js';
-import { bearerToken, defaultKbId, registerFreshUser } from './helpers.js';
+import { bearerToken, defaultWorkspaceId, registerFreshUser } from './helpers.js';
 
 test('connector table-mapping suggest and batch-create API (SQL discover)', async ({ page }) => {
   test.setTimeout(120_000);
 
   await registerFreshUser(page);
-  const kbId = await defaultKbId(page);
+  const workspaceId = await defaultWorkspaceId(page);
   const token = await bearerToken(page);
   const dbPath = seedE2eSqliteCustomersDb();
   const connectionName = 'e2e_suggest_api';
 
-  await putE2ePostgresSqliteConnection(page, kbId, connectionName, dbPath);
+  await putE2ePostgresSqliteConnection(page, workspaceId, connectionName, dbPath);
 
-  const suggested = await suggestSqlTableMappings(page, kbId, [
+  const suggested = await suggestSqlTableMappings(page, workspaceId, [
     {
       provider: 'postgres',
       connection_name: connectionName,
@@ -35,7 +35,7 @@ test('connector table-mapping suggest and batch-create API (SQL discover)', asyn
   expect(draft?.primary_key_column).toBe('customer_id');
   expect(draft?.target_class_uri).toContain('Customers');
 
-  const batch = await page.request.post(e2eKbPath(kbId, 'connectors/table-mappings/batch-create'), {
+  const batch = await page.request.post(e2eWorkspaceApiPath(workspaceId, 'connectors/table-mappings/batch-create'), {
     headers: {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
@@ -46,7 +46,7 @@ test('connector table-mapping suggest and batch-create API (SQL discover)', asyn
   const batchBody = (await batch.json()) as { mappings: Array<{ id: string }> };
   expect(batchBody.mappings.length).toBe(1);
 
-  const list = await page.request.get(e2eKbPath(kbId, 'connectors/table-mappings'), {
+  const list = await page.request.get(e2eWorkspaceApiPath(workspaceId, 'connectors/table-mappings'), {
     headers: { Authorization: `Bearer ${token}` },
   });
   expect(list.ok()).toBeTruthy();
@@ -58,13 +58,13 @@ test('data onboarding wizard: SQL table input → suggest dialog → save and sy
   test.setTimeout(120_000);
 
   await registerFreshUser(page);
-  const kbId = await defaultKbId(page);
+  const workspaceId = await defaultWorkspaceId(page);
   const dbPath = seedE2eSqliteCustomersDb();
   const connectionName = 'e2e_suggest_wizard';
 
-  await putE2ePostgresSqliteConnection(page, kbId, connectionName, dbPath);
+  await putE2ePostgresSqliteConnection(page, workspaceId, connectionName, dbPath);
 
-  await page.goto(`/kbs/${kbId}/onboarding/data`);
+  await page.goto(`/workspaces/${workspaceId}/onboarding/data`);
   await expect(page.getByLabel(/SQL tables|SQL 表/i)).toBeVisible({ timeout: 30_000 });
   await page.getByLabel(/SQL tables|SQL 表/i).fill('customers');
   await page.getByRole('button', { name: /Suggest mappings|生成映射建议/i }).click();
@@ -79,7 +79,7 @@ test('data onboarding wizard: SQL table input → suggest dialog → save and sy
   });
 
   await page.getByRole('link', { name: /View connector mappings|查看连接器映射/i }).click();
-  await expect(page).toHaveURL(new RegExp(`/kbs/${kbId}/connectors/mappings`));
+  await expect(page).toHaveURL(new RegExp(`/workspaces/${workspaceId}/connectors/mappings`));
   await expect(page.getByTestId('connectors-panel-mappings')).toBeVisible();
   await expect(
     page.getByTestId('connectors-panel-mappings').getByText('customers', { exact: true }),
@@ -90,10 +90,10 @@ test('connector suggest auto-expand hits REST streams (skipped or grouped)', asy
   test.setTimeout(120_000);
 
   await registerFreshUser(page);
-  const kbId = await defaultKbId(page);
-  await putE2eGithubApiKeyConnection(page, kbId, 'e2e_auto_rest', 'invalid-e2e-pat');
+  const workspaceId = await defaultWorkspaceId(page);
+  await putE2eGithubApiKeyConnection(page, workspaceId, 'e2e_auto_rest', 'invalid-e2e-pat');
 
-  const { groups, skipped } = await suggestAutoTableMappings(page, kbId);
+  const { groups, skipped } = await suggestAutoTableMappings(page, workspaceId);
   expect(groups.length + skipped.length).toBeGreaterThan(0);
 });
 
@@ -106,21 +106,21 @@ test('connector suggest auto-expand with live GitHub token', async ({ page }) =>
   }
 
   await registerFreshUser(page);
-  const kbId = await defaultKbId(page);
-  await putE2eGithubApiKeyConnection(page, kbId, 'e2e_live_github', livePat!);
+  const workspaceId = await defaultWorkspaceId(page);
+  await putE2eGithubApiKeyConnection(page, workspaceId, 'e2e_live_github', livePat!);
 
-  const { groups } = await suggestAutoTableMappings(page, kbId);
+  const { groups } = await suggestAutoTableMappings(page, workspaceId);
   expect(groups.length).toBeGreaterThan(0);
   const draft = groups[0]?.drafts[0]?.draft;
   expect(draft?.provider).toBe('github');
   expect(draft?.stream_name).toBeTruthy();
 
-  const created = await batchCreateTableMappings(page, kbId, [draft!], { runSync: false });
+  const created = await batchCreateTableMappings(page, workspaceId, [draft!], { runSync: false });
   expect(created.length).toBe(1);
   expect(created[0]?.id).toBeTruthy();
 
   const token = await bearerToken(page);
-  const list = await page.request.get(e2eKbPath(kbId, 'connectors/table-mappings'), {
+  const list = await page.request.get(e2eWorkspaceApiPath(workspaceId, 'connectors/table-mappings'), {
     headers: { Authorization: `Bearer ${token}` },
   });
   expect(list.ok()).toBeTruthy();
@@ -140,10 +140,10 @@ test('connector mappings panel live REST suggest shows drafts', async ({ page })
   }
 
   await registerFreshUser(page);
-  const kbId = await defaultKbId(page);
-  await putE2eGithubApiKeyConnection(page, kbId, 'e2e_live_ui', livePat!);
+  const workspaceId = await defaultWorkspaceId(page);
+  await putE2eGithubApiKeyConnection(page, workspaceId, 'e2e_live_ui', livePat!);
 
-  await page.goto(`/kbs/${kbId}/connectors/mappings`);
+  await page.goto(`/workspaces/${workspaceId}/connectors/mappings`);
   await page.getByTestId('suggest-table-mappings-btn').click();
 
   const dialog = page.getByRole('dialog');
@@ -159,9 +159,9 @@ test('connector mappings panel REST suggest loads drafts without SQL hints', asy
   test.setTimeout(120_000);
 
   await registerFreshUser(page);
-  const kbId = await defaultKbId(page);
+  const workspaceId = await defaultWorkspaceId(page);
 
-  await page.route(`**/api/v1/kbs/${kbId}/connectors/table-mappings/suggest`, async (route) => {
+  await page.route(`**/api/v1/workspaces/${workspaceId}/connectors/table-mappings/suggest`, async (route) => {
     if (route.request().method() !== 'POST') {
       await route.continue();
       return;
@@ -207,7 +207,7 @@ test('connector mappings panel REST suggest loads drafts without SQL hints', asy
     });
   });
 
-  await page.goto(`/kbs/${kbId}/connectors/mappings`);
+  await page.goto(`/workspaces/${workspaceId}/connectors/mappings`);
   await page.getByTestId('suggest-table-mappings-btn').click();
 
   const dialog = page.getByRole('dialog');
@@ -222,9 +222,9 @@ test('connector mappings panel opens cross-stream suggest dialog', async ({ page
   test.setTimeout(120_000);
 
   await registerFreshUser(page);
-  const kbId = await defaultKbId(page);
+  const workspaceId = await defaultWorkspaceId(page);
 
-  await page.goto(`/kbs/${kbId}/connectors/mappings`);
+  await page.goto(`/workspaces/${workspaceId}/connectors/mappings`);
   await page.getByTestId('suggest-table-mappings-btn').click();
 
   const dialog = page.getByRole('dialog');

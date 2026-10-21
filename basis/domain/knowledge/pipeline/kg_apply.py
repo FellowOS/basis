@@ -30,7 +30,7 @@ def apply_kg_to_session(
     doc_id: str,
     link_document: bool = True,
 ) -> dict[str, int]:
-    """Merge builder entities/relationships into the per-KB ContextGraph."""
+    """Merge builder entities/relationships into the per-workspace ContextGraph."""
     entities = kg.get("entities") or []
     relationships = kg.get("relationships") or []
     entities_added = 0

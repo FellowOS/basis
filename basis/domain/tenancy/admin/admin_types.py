@@ -77,7 +77,7 @@ class ApiTokenRecord:
 
 
 @dataclass(frozen=True)
-class KnowledgeBase:
+class Workspace:
     id: str
     name: str
     description: str
@@ -129,10 +129,10 @@ def user_from_row(row: sqlite3.Row | Any) -> User:
     )
 
 
-def kb_from_row(row: sqlite3.Row | Any) -> KnowledgeBase:
+def workspace_from_row(row: sqlite3.Row | Any) -> Workspace:
     keys = row.keys()
     org_id = row["organization_id"] if "organization_id" in keys else None
-    return KnowledgeBase(
+    return Workspace(
         id=row["id"],
         name=row["name"],
         description=row["description"],
@@ -144,7 +144,7 @@ def kb_from_row(row: sqlite3.Row | Any) -> KnowledgeBase:
 
 
 def api_token_from_row(row: sqlite3.Row | Any) -> ApiTokenRecord:
-    kb_ids = json.loads(row["kb_ids_json"] or "[]")
+    kb_ids = json.loads(row["workspace_ids_json"] or "[]")
     if not isinstance(kb_ids, list):
         kb_ids = []
     secret = row["token_secret"] if "token_secret" in row.keys() else None

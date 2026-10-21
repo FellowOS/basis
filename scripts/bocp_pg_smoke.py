@@ -35,14 +35,14 @@ from basis.infra.runtime.config import Settings
 from basis.interface.http.app import create_app
 
 
-def _issue_owner_token(kb_id: str) -> str:
+def _issue_owner_token(workspace_id: str) -> str:
     store = create_app(Settings.from_env()).state.store
     row = store._conn.execute(
-        "SELECT user_id FROM kb_members WHERE kb_id = ? AND role = 'owner' LIMIT 1",
-        (kb_id,),
+        "SELECT user_id FROM members WHERE workspace_id = ? AND role = 'owner' LIMIT 1",
+        (workspace_id,),
     ).fetchone()
     if not row:
-        raise SystemExit(f"No owner for KB {kb_id}")
+        raise SystemExit(f"No owner for workspace {workspace_id}")
     token = store._issue_token(row[0])
     store._conn.commit()
     return token
@@ -51,7 +51,7 @@ def _issue_owner_token(kb_id: str) -> str:
 def _sync_mapping(
     *,
     base: str,
-    kb_id: str,
+    workspace_id: str,
     mapping_id: str,
     headers: dict[str, str],
     use_mcp: bool,
@@ -67,7 +67,7 @@ def _sync_mapping(
             },
         }
         r = httpx.post(
-            f"{base}/api/v1/kbs/{kb_id}/mcp",
+            f"{base}/api/v1/workspaces/{workspace_id}/mcp",
             headers=headers,
             json=payload,
             timeout=120,
@@ -78,7 +78,7 @@ def _sync_mapping(
             raise SystemExit(json.dumps(body, indent=2))
         return json.loads(body["result"]["content"][0]["text"])
     r = httpx.post(
-        f"{base}/api/v1/kbs/{kb_id}/connectors/table-mappings/{mapping_id}/sync",
+        f"{base}/api/v1/workspaces/{workspace_id}/connectors/table-mappings/{mapping_id}/sync",
         headers=headers,
         timeout=120,
     )
@@ -88,7 +88,7 @@ def _sync_mapping(
 
 def _list_review_items(
     base: str,
-    kb_id: str,
+    workspace_id: str,
     headers: dict[str, str],
     *,
     kind: str | None = None,
@@ -97,7 +97,7 @@ def _list_review_items(
     if kind:
         params["kind"] = kind
     r = httpx.get(
-        f"{base}/api/v1/kbs/{kb_id}/review/items",
+        f"{base}/api/v1/workspaces/{workspace_id}/review/items",
         headers=headers,
         params=params,
         timeout=60,
@@ -106,15 +106,15 @@ def _list_review_items(
     return list(r.json().get("items") or [])
 
 
-def _list_review_summary(base: str, kb_id: str, headers: dict[str, str]) -> dict[str, int]:
-    items = _list_review_items(base, kb_id, headers)
+def _list_review_summary(base: str, workspace_id: str, headers: dict[str, str]) -> dict[str, int]:
+    items = _list_review_items(base, workspace_id, headers)
     counts = Counter(str(item.get("kind") or "?") for item in items)
     return dict(counts)
 
 
 def _approve_review_item(
     base: str,
-    kb_id: str,
+    workspace_id: str,
     headers: dict[str, str],
     item_id: str,
     *,
@@ -124,7 +124,7 @@ def _approve_review_item(
     if keeper_statement_id:
         body["keeper_statement_id"] = keeper_statement_id
     r = httpx.post(
-        f"{base}/api/v1/kbs/{kb_id}/review/items/{item_id}/approve",
+        f"{base}/api/v1/workspaces/{workspace_id}/review/items/{item_id}/approve",
         headers=headers,
         json=body,
         timeout=120,
@@ -134,9 +134,9 @@ def _approve_review_item(
     return r.json()
 
 
-def _scan_conflicts(base: str, kb_id: str, headers: dict[str, str]) -> dict[str, Any]:
+def _scan_conflicts(base: str, workspace_id: str, headers: dict[str, str]) -> dict[str, Any]:
     r = httpx.post(
-        f"{base}/api/v1/kbs/{kb_id}/review/scan-statement-conflicts",
+        f"{base}/api/v1/workspaces/{workspace_id}/review/scan-statement-conflicts",
         headers=headers,
         timeout=120,
     )
@@ -146,13 +146,13 @@ def _scan_conflicts(base: str, kb_id: str, headers: dict[str, str]) -> dict[str,
 
 def _propose_writeback(
     base: str,
-    kb_id: str,
+    workspace_id: str,
     headers: dict[str, str],
     entity_id: str,
     field_updates: dict[str, Any],
 ) -> dict[str, Any]:
     r = httpx.post(
-        f"{base}/api/v1/kbs/{kb_id}/connectors/outbox/propose",
+        f"{base}/api/v1/workspaces/{workspace_id}/connectors/outbox/propose",
         headers=headers,
         json={"entity_id": entity_id, "field_updates": field_updates},
         timeout=120,
@@ -206,7 +206,7 @@ def main() -> int:
 
     settings = Settings.from_env()
     base = f"http://{settings.host}:{settings.port}"
-    token = _issue_owner_token(args.kb_id)
+    token = _issue_owner_token(args.workspace_id)
     headers = {"Authorization": f"Bearer {token}"}
 
     health = httpx.get(f"{base}/health", timeout=30)
@@ -216,7 +216,7 @@ def main() -> int:
     if not args.skip_sync:
         stats = _sync_mapping(
             base=base,
-            kb_id=args.kb_id,
+            workspace_id=args.workspace_id,
             mapping_id=args.mapping_id,
             headers=headers,
             use_mcp=args.mcp,
@@ -224,7 +224,7 @@ def main() -> int:
         print("sync:", json.dumps(stats, indent=2, default=str))
 
     if args.scan_conflicts:
-        scan = _scan_conflicts(base, args.kb_id, headers)
+        scan = _scan_conflicts(base, args.workspace_id, headers)
         print("scan_conflicts:", json.dumps(scan, indent=2, default=str))
 
     if args.writeback:
@@ -234,21 +234,21 @@ def main() -> int:
                 raise SystemExit(f"bad --set value: {pair}")
             col, val = pair.split("=", 1)
             updates[col.strip()] = val.strip()
-        wb = _propose_writeback(base, args.kb_id, headers, args.writeback, updates)
+        wb = _propose_writeback(base, args.workspace_id, headers, args.writeback, updates)
         print("writeback:", json.dumps(wb, indent=2, default=str))
 
     if args.approve_writeback:
         writebacks = _list_review_items(
-            base, args.kb_id, headers, kind="connector_writeback"
+            base, args.workspace_id, headers, kind="connector_writeback"
         )
         if not writebacks:
             raise SystemExit("no open connector_writeback review items")
         item_id = str(writebacks[0]["id"])
-        approved = _approve_review_item(base, args.kb_id, headers, item_id)
+        approved = _approve_review_item(base, args.workspace_id, headers, item_id)
         print("approve_writeback:", json.dumps(approved, indent=2, default=str))
 
     if args.list_review or args.scan_conflicts or args.writeback or args.approve_writeback:
-        summary = _list_review_summary(base, args.kb_id, headers)
+        summary = _list_review_summary(base, args.workspace_id, headers)
         print("open_review_by_kind:", json.dumps(summary, indent=2))
 
     return 0

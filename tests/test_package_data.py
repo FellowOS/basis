@@ -28,5 +28,5 @@ def test_synthesis_executor_index_in_package_data() -> None:
 def test_ops_db_migration_sql_in_package_data() -> None:
     migrations = pkg_resources.files("basis.infra.tooling.db") / "migrations"
     names = {p.name for p in migrations.iterdir() if p.is_file()}
-    assert "0001_admin_baseline.sql" in names
-    assert "0002_knowledge_ledger.sql" in names
+    assert "0001_schema_baseline.sql" in names
+    assert len(names) == 1

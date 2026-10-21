@@ -8,7 +8,7 @@ from basis.infra.runtime.observability.request_context import current_request_id
 def correlation_log_extra(
     *,
     job_id: str | None = None,
-    kb_id: str | None = None,
+    workspace_id: str | None = None,
     version_id: str | None = None,
     projection_revision: int | None = None,
 ) -> dict[str, str | int]:
@@ -18,8 +18,8 @@ def correlation_log_extra(
         extra["request_id"] = rid
     if job_id:
         extra["job_id"] = job_id
-    if kb_id:
-        extra["kb_id"] = kb_id
+    if workspace_id:
+        extra["workspace_id"] = workspace_id
     if version_id:
         extra["version_id"] = version_id
     if projection_revision is not None:

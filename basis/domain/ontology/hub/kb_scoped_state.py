@@ -1,4 +1,4 @@
-"""Per-KB in-memory ontology registry, alignments, drafts, proposals, versions."""
+"""Per-workspace in-memory ontology registry, alignments, drafts, proposals, versions."""
 
 from __future__ import annotations
 
@@ -8,11 +8,11 @@ from basis.domain.ontology.hub.hub_persistence import ensure_kb_ontology_hub_loa
 
 
 class KbOntologyState:
-    """Ensure per-KB hub stores exist and load sidecar persistence once per process."""
+    """Ensure per-workspace hub stores exist and load sidecar persistence once per process."""
 
-    def __init__(self, request: Any, kb_id: str) -> None:
+    def __init__(self, request: Any, workspace_id: str) -> None:
         self._request = request
-        self._kb_id = kb_id
+        self._kb_id = workspace_id
 
     def __enter__(self) -> KbOntologyState:
         app_state = self._request.app.state

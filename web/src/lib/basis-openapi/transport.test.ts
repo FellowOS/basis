@@ -11,13 +11,13 @@ describe("createBasisSessionClient", () => {
       baseUrl: "http://localhost",
       getAccessToken: () => "tok",
     });
-    await client.sessionFetch("/api/v1/kbs/k1/alerts/stream", {
+    await client.sessionFetch("/api/v1/workspaces/k1/alerts/stream", {
       headers: { Accept: "text/event-stream" },
     });
 
     expect(fetchMock).toHaveBeenCalledOnce();
     const [url, init] = fetchMock.mock.calls[0]!;
-    expect(url).toBe("http://localhost/api/v1/kbs/k1/alerts/stream");
+    expect(url).toBe("http://localhost/api/v1/workspaces/k1/alerts/stream");
     expect(new Headers(init?.headers).get("Authorization")).toBe("Bearer tok");
     expect(new Headers(init?.headers).get("Accept")).toBe("text/event-stream");
   });
@@ -35,7 +35,7 @@ describe("createBasisClient", () => {
   it("calls v1 MCP discovery with bearer token", async () => {
     const fetchMock = vi.fn<typeof fetch>();
     fetchMock.mockResolvedValue(
-      Response.json({ mcp_url: "http://localhost/api/v1/kbs/k1/mcp" }),
+      Response.json({ mcp_url: "http://localhost/api/v1/workspaces/k1/mcp" }),
     );
     vi.stubGlobal("fetch", fetchMock);
 
@@ -44,7 +44,7 @@ describe("createBasisClient", () => {
 
     expect(fetchMock).toHaveBeenCalledOnce();
     const [url, init] = fetchMock.mock.calls[0]!;
-    expect(url).toBe("http://localhost/api/v1/kbs/k1/mcp");
+    expect(url).toBe("http://localhost/api/v1/workspaces/k1/mcp");
     expect(new Headers(init?.headers).get("Authorization")).toBe("Bearer secret");
   });
 
@@ -58,7 +58,7 @@ describe("createBasisClient", () => {
     const client = createBasisClient({ baseUrl: "", accessToken: "t" });
     await client.kb("kb-1").findEntities("Paris", 5);
 
-    expect(fetchMock.mock.calls[0]![0]).toBe("/api/v1/kbs/kb-1/entities/find?q=Paris&limit=5");
+    expect(fetchMock.mock.calls[0]![0]).toBe("/api/v1/workspaces/kb-1/entities/find?q=Paris&limit=5");
   });
 
   it("posts v1 graph search", async () => {
@@ -70,7 +70,7 @@ describe("createBasisClient", () => {
     await client.kb("k1").searchGraph("node", 10);
 
     const [url, init] = fetchMock.mock.calls[0]!;
-    expect(url).toBe("http://localhost/api/v1/kbs/k1/graph/search");
+    expect(url).toBe("http://localhost/api/v1/workspaces/k1/graph/search");
     expect(init?.method).toBe("POST");
   });
 });

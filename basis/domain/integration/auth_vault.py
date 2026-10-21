@@ -159,7 +159,7 @@ def extract_dot_path(data: Any, path: str | None) -> Any:
 
 @dataclass
 class StoredConnection:
-    kb_id: str
+    workspace_id: str
     service: str
     connection_name: str
     auth_type: str
@@ -172,7 +172,7 @@ class StoredConnection:
     def to_public_dict(self) -> dict[str, Any]:
         """Return safe connection metadata without exposing decrypted credentials."""
         return {
-            "kb_id": self.kb_id,
+            "workspace_id": self.workspace_id,
             "service": self.service,
             "connection_name": self.connection_name,
             "auth_type": self.auth_type,
@@ -186,7 +186,7 @@ class StoredConnection:
 
 @dataclass
 class ConnectorPolicy:
-    kb_id: str
+    workspace_id: str
     allowed_providers: list[str] | str = "*"
     action_policy: dict[str, Any] = field(default_factory=dict)
     updated_at: str = ""
@@ -276,14 +276,14 @@ class ConnectorAuthVault:
 
     # ── Policies ─────────────────────────────────────────────────────────────
 
-    def get_policy(self, kb_id: str) -> ConnectorPolicy:
-        row = self._persist.fetch_policy_row(kb_id)
+    def get_policy(self, workspace_id: str) -> ConnectorPolicy:
+        row = self._persist.fetch_policy_row(workspace_id)
         if not row:
-            return ConnectorPolicy(kb_id=kb_id, allowed_providers="*", action_policy={})
+            return ConnectorPolicy(workspace_id=workspace_id, allowed_providers="*", action_policy={})
         allowed = json.loads(row[0]) if row[0] else "*"
         action_policy = json.loads(row[1]) if row[1] else {}
         return ConnectorPolicy(
-            kb_id=kb_id,
+            workspace_id=workspace_id,
             allowed_providers=allowed,
             action_policy=action_policy,
             updated_at=row[2] or "",
@@ -291,7 +291,7 @@ class ConnectorAuthVault:
 
     def upsert_policy(
         self,
-        kb_id: str,
+        workspace_id: str,
         *,
         allowed_providers: list[str] | str = "*",
         action_policy: dict[str, Any] | None = None,
@@ -308,22 +308,22 @@ class ConnectorAuthVault:
         now = _now_iso()
         allowed_json = json.dumps(allowed_providers, ensure_ascii=False)
         action_json = json.dumps(action_policy or {}, ensure_ascii=False)
-        self._persist.upsert_policy(kb_id, allowed_json, action_json, now)
-        return self.get_policy(kb_id)
+        self._persist.upsert_policy(workspace_id, allowed_json, action_json, now)
+        return self.get_policy(workspace_id)
 
     def get_platform_allowed_providers(self) -> list[str] | str:
         if self._store is not None:
             return self._store.get_platform_allowed_providers()
         return self._db.get_platform_allowed_providers()
 
-    def effective_allowed_providers(self, kb_id: str) -> list[str] | str:
+    def effective_allowed_providers(self, workspace_id: str) -> list[str] | str:
         platform = self.get_platform_allowed_providers()
-        kb_policy = self.get_policy(kb_id)
+        kb_policy = self.get_policy(workspace_id)
         return effective_allowed_providers(platform, kb_policy.allowed_providers)
 
-    def assert_service_allowed(self, kb_id: str, service: str) -> None:
+    def assert_service_allowed(self, workspace_id: str, service: str) -> None:
         platform = self.get_platform_allowed_providers()
-        kb_policy = self.get_policy(kb_id)
+        kb_policy = self.get_policy(workspace_id)
         layer = provider_blocked_layer(service, platform, kb_policy.allowed_providers)
         if layer == "platform":
             raise PermissionError(
@@ -331,14 +331,14 @@ class ConnectorAuthVault:
             )
         if layer == "kb":
             raise PermissionError(
-                f"Connector service '{service}' is blocked by KB connector policy"
+                f"Connector service '{service}' is blocked by workspace connector policy"
             )
 
     # ── OAuth App Configs ────────────────────────────────────────────────────
 
     def upsert_oauth_config(
         self,
-        kb_id: str,
+        workspace_id: str,
         service: str,
         *,
         client_id: str,
@@ -354,11 +354,11 @@ class ConnectorAuthVault:
             **(extra or {}),
         }
         encrypted = encrypt_vault_payload(payload, secret=self._vault_secret)
-        self._persist.upsert_oauth_config(kb_id, service, encrypted, now)
-        return {"kb_id": kb_id, "service": service, "client_id": client_id, "updated_at": now}
+        self._persist.upsert_oauth_config(workspace_id, service, encrypted, now)
+        return {"workspace_id": workspace_id, "service": service, "client_id": client_id, "updated_at": now}
 
-    def get_oauth_config(self, kb_id: str, service: str) -> dict[str, Any] | None:
-        row = self._persist.fetch_oauth_config_row(kb_id, service)
+    def get_oauth_config(self, workspace_id: str, service: str) -> dict[str, Any] | None:
+        row = self._persist.fetch_oauth_config_row(workspace_id, service)
         if not row:
             return None
         decrypted = decrypt_vault_payload(row[0], secret=self._vault_secret)
@@ -369,7 +369,7 @@ class ConnectorAuthVault:
 
     def upsert_connection(
         self,
-        kb_id: str,
+        workspace_id: str,
         service: str,
         *,
         connection_name: str = "default",
@@ -379,7 +379,7 @@ class ConnectorAuthVault:
         account_profile: dict[str, Any] | None = None,
     ) -> StoredConnection:
         now = _now_iso()
-        existing = self.get_connection(kb_id, service, connection_name=connection_name)
+        existing = self.get_connection(workspace_id, service, connection_name=connection_name)
         rev = (existing.revision + 1) if existing else 1
         merged_cfg = (
             dict(existing.connection_config, **(connection_config or {}))
@@ -399,7 +399,7 @@ class ConnectorAuthVault:
 
         encrypted = encrypt_vault_payload(merged_creds, secret=self._vault_secret)
         self._persist.upsert_connection(
-            kb_id=kb_id,
+            workspace_id=workspace_id,
             service=service,
             connection_name=connection_name,
             auth_type=auth_type,
@@ -409,18 +409,18 @@ class ConnectorAuthVault:
             revision=rev,
             updated_at=now,
         )
-        res = self.get_connection(kb_id, service, connection_name=connection_name)
+        res = self.get_connection(workspace_id, service, connection_name=connection_name)
         assert res is not None
         return res
 
     def get_connection(
-        self, kb_id: str, service: str, *, connection_name: str = "default"
+        self, workspace_id: str, service: str, *, connection_name: str = "default"
     ) -> StoredConnection | None:
-        row = self._persist.fetch_connection_row(kb_id, service, connection_name)
+        row = self._persist.fetch_connection_row(workspace_id, service, connection_name)
         if not row:
             return None
         return StoredConnection(
-            kb_id=kb_id,
+            workspace_id=workspace_id,
             service=service,
             connection_name=connection_name,
             auth_type=row[0],
@@ -431,11 +431,11 @@ class ConnectorAuthVault:
             updated_at=row[5] or "",
         )
 
-    def list_connections(self, kb_id: str, *, service: str | None = None) -> list[StoredConnection]:
-        rows = self._persist.list_connection_rows(kb_id, service=service)
+    def list_connections(self, workspace_id: str, *, service: str | None = None) -> list[StoredConnection]:
+        rows = self._persist.list_connection_rows(workspace_id, service=service)
         return [
             StoredConnection(
-                kb_id=kb_id,
+                workspace_id=workspace_id,
                 service=r[0],
                 connection_name=r[1],
                 auth_type=r[2],
@@ -449,15 +449,15 @@ class ConnectorAuthVault:
         ]
 
     def delete_connection(
-        self, kb_id: str, service: str, *, connection_name: str = "default"
+        self, workspace_id: str, service: str, *, connection_name: str = "default"
     ) -> bool:
-        return self._persist.delete_connection(kb_id, service, connection_name) > 0
+        return self._persist.delete_connection(workspace_id, service, connection_name) > 0
 
     # ── Audit Runs ───────────────────────────────────────────────────────────
 
     def record_run(
         self,
-        kb_id: str,
+        workspace_id: str,
         *,
         service: str,
         operation_kind: str,
@@ -472,7 +472,7 @@ class ConnectorAuthVault:
         done_at = completed_at or _now_iso()
         self._persist.insert_connector_run(
             run_id=run_id,
-            kb_id=kb_id,
+            workspace_id=workspace_id,
             service=service,
             operation_kind=operation_kind,
             target_id=target_id,
@@ -544,7 +544,7 @@ class ConnectorAuthVault:
 
     def build_oauth2_authorize_url(
         self,
-        kb_id: str,
+        workspace_id: str,
         service: str,
         *,
         state: str,
@@ -558,7 +558,7 @@ class ConnectorAuthVault:
         auth_spec = self._match_auth_spec(manifest, "oauth2")
         if not auth_spec or not auth_spec.oauth2 or not auth_spec.oauth2.authorization_url:
             raise ValueError(f"Service {service} does not support OAuth2 authorization URL")
-        oauth_cfg = self.get_oauth_config(kb_id, service)
+        oauth_cfg = self.get_oauth_config(workspace_id, service)
         if not oauth_cfg:
             raise ValueError(f"OAuth2 client config not configured for {service}")
 
@@ -587,7 +587,7 @@ class ConnectorAuthVault:
 
     def exchange_oauth2_code(
         self,
-        kb_id: str,
+        workspace_id: str,
         service: str,
         *,
         code: str,
@@ -604,7 +604,7 @@ class ConnectorAuthVault:
         auth_spec = self._match_auth_spec(manifest, "oauth2")
         if not auth_spec or not auth_spec.oauth2 or not auth_spec.oauth2.token_url:
             raise ValueError(f"Service {service} does not support OAuth2 token exchange")
-        oauth_cfg = self.get_oauth_config(kb_id, service)
+        oauth_cfg = self.get_oauth_config(workspace_id, service)
         if not oauth_cfg:
             raise ValueError(f"OAuth2 client config not configured for {service}")
 
@@ -646,7 +646,7 @@ class ConnectorAuthVault:
             raise ValueError("OAuth2 token endpoint did not return an access_token")
 
         return self.upsert_connection(
-            kb_id,
+            workspace_id,
             service,
             connection_name=connection_name,
             auth_type="oauth2",

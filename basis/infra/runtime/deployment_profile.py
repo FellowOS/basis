@@ -135,4 +135,3 @@ def bootstrap_profile_from_env(profile_spec: str | None = None) -> Path | None:
     apply_profile_dict(load_profile_yaml(path))
     os.environ["BASIS_PROFILE_PATH"] = str(path.resolve())
     return path
-

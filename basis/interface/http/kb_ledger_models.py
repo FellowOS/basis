@@ -1,4 +1,4 @@
-"""Pydantic models for KB ledger routes."""
+"""Pydantic models for workspace ledger routes."""
 
 from __future__ import annotations
 

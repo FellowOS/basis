@@ -1,4 +1,4 @@
-"""Per-KB MCP over HTTP (JSON-RPC)."""
+"""Per-workspace MCP over HTTP (JSON-RPC)."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ from typing import Any
 from fastapi import APIRouter, Header, HTTPException, Request
 
 from basis.interface.http.deps import get_store, resolve_bearer
-from basis.interface.http.kb_core_context import build_kb_core_context
+from basis.interface.http.kb_core_context import build_workspace_core_context
 from basis.interface.mcp.protocol import handle_batch
 from basis.application.registry import TOOL_NAMES, get_tool_definitions
 from basis.interface.mcp.tools import PROTOCOL_VERSION
@@ -16,24 +16,24 @@ from basis.interface.mcp.tools import PROTOCOL_VERSION
 router = APIRouter(tags=["mcp"])
 
 
-@router.get("/{kb_id}/mcp")
+@router.get("/{workspace_id}/mcp")
 async def mcp_integration_info(
-    kb_id: str,
+    workspace_id: str,
     request: Request,
     authorization: str | None = Header(default=None),
 ) -> dict[str, Any]:
     """
-Mcp Integration Info. MCP JSON-RPC transport for agent integrations. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Mcp Integration Info. MCP JSON-RPC transport for agent integrations. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
     user, _auth_kind = resolve_bearer(request, authorization)
     store = get_store(request)
-    ctx = build_kb_core_context(request, kb_id=kb_id, user=user, store=store)
+    ctx = build_workspace_core_context(request, workspace_id=workspace_id, user=user, store=store)
     tool_names = [t["name"] for t in get_tool_definitions(ctx)]
     base = str(request.base_url).rstrip("/")
-    mcp_url = f"{base}/api/v1/kbs/{kb_id}/mcp"
+    mcp_url = f"{base}/api/v1/workspaces/{workspace_id}/mcp"
     return {
-        "kb_id": kb_id,
-        "kb_name": ctx.kb.name,
+        "workspace_id": workspace_id,
+        "kb_name": ctx.workspace.name,
         "mcp_url": mcp_url,
         "transport": "http",
         "protocol_version": PROTOCOL_VERSION,
@@ -51,9 +51,9 @@ Mcp Integration Info. MCP JSON-RPC transport for agent integrations. Requires KB
     }
 
 
-@router.post("/{kb_id}/mcp")
+@router.post("/{workspace_id}/mcp")
 async def mcp_jsonrpc(
-    kb_id: str,
+    workspace_id: str,
     request: Request,
     authorization: str | None = Header(default=None),
 ) -> Any:
@@ -63,7 +63,7 @@ MCP JSON-RPC over HTTP; tools match integration core operations (search, graph r
     user, _auth_kind = resolve_bearer(request, authorization)
     store = get_store(request)
     body = await request.json()
-    ctx = build_kb_core_context(request, kb_id=kb_id, user=user, store=store)
+    ctx = build_workspace_core_context(request, workspace_id=workspace_id, user=user, store=store)
     semaphore: asyncio.Semaphore = request.app.state.mcp_semaphore
     try:
         await asyncio.wait_for(semaphore.acquire(), timeout=1.0)

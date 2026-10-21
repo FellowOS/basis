@@ -18,7 +18,7 @@ def record_governance_decision_from_context(
     if ctx.runtime_loader is None or ctx.persist_graph is None:
         return None
     return record_governance_decision_for_kb(
-        ctx.kb.id,
+        ctx.workspace.id,
         message=message,
         detail=detail,
         actor_id=ctx.user.id,

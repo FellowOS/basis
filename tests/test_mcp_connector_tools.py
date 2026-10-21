@@ -35,7 +35,7 @@ def test_connector_mcp_tool_name_roundtrip() -> None:
 def test_shipped_github_manifest_expands_entity_tools() -> None:
     manifest = get_connector_catalog().get("github")
     assert manifest is not None
-    policy = ConnectorPolicy(kb_id="kb1", allowed_providers="*")
+    policy = ConnectorPolicy(workspace_id="kb1", allowed_providers="*")
     names = {t["name"] for t in connector_tool_definitions_for_manifest(manifest, policy)}
     assert "connector_github__repositories__list" in names
     assert "connector_github__issues__list" in names
@@ -47,7 +47,7 @@ def test_shipped_github_manifest_expands_entity_tools() -> None:
 def test_shipped_notion_manifest_expands_entity_tools() -> None:
     manifest = get_connector_catalog().get("notion")
     assert manifest is not None
-    policy = ConnectorPolicy(kb_id="kb1", allowed_providers="*")
+    policy = ConnectorPolicy(workspace_id="kb1", allowed_providers="*")
     names = {t["name"] for t in connector_tool_definitions_for_manifest(manifest, policy)}
     assert "connector_notion__database_pages__list" in names
     assert "connector_notion__database_pages__mutate_update" in names
@@ -56,7 +56,7 @@ def test_shipped_notion_manifest_expands_entity_tools() -> None:
 def test_shipped_slack_manifest_expands_invoke_tools() -> None:
     manifest = get_connector_catalog().get("slack")
     assert manifest is not None
-    policy = ConnectorPolicy(kb_id="kb1", allowed_providers="*")
+    policy = ConnectorPolicy(workspace_id="kb1", allowed_providers="*")
     names = {t["name"] for t in connector_tool_definitions_for_manifest(manifest, policy)}
     assert "connector_slack__slack_post_message__invoke" in names
 
@@ -65,7 +65,7 @@ def test_manifest_tools_omit_disabled_entity_primitives() -> None:
     manifest = get_connector_catalog().get("github")
     assert manifest is not None
     policy = ConnectorPolicy(
-        kb_id="kb1",
+        workspace_id="kb1",
         allowed_providers="*",
         action_policy={"entities": {"github:issues.list": "disabled"}},
     )
@@ -86,10 +86,10 @@ def test_mcp_tools_list_includes_dynamic_connector_tools(tmp_path: Path) -> None
         },
     ).json()
     headers = {"Authorization": f"Bearer {reg['token']}"}
-    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
 
     tools = client.post(
-        f"/api/v1/kbs/{kb_id}/mcp",
+        f"/api/v1/workspaces/{workspace_id}/mcp",
         headers=headers,
         json={"jsonrpc": "2.0", "id": 1, "method": "tools/list", "params": {}},
     ).json()
@@ -98,7 +98,7 @@ def test_mcp_tools_list_includes_dynamic_connector_tools(tmp_path: Path) -> None
     assert "connector_postgres__table_records__list" in names
     assert "connector_github__issues__list" in names
 
-    info = client.get(f"/api/v1/kbs/{kb_id}/mcp", headers=headers).json()
+    info = client.get(f"/api/v1/workspaces/{workspace_id}/mcp", headers=headers).json()
     assert "connector_github__issues__list" in info["tools"]
     assert "search_chunks" in info["tools"]
 
@@ -114,10 +114,10 @@ def test_mcp_tools_list_respects_kb_action_policy(tmp_path: Path) -> None:
         },
     ).json()
     headers = {"Authorization": f"Bearer {reg['token']}"}
-    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
 
     put = client.put(
-        f"/api/v1/kbs/{kb_id}/connectors/policy",
+        f"/api/v1/workspaces/{workspace_id}/connectors/policy",
         headers=headers,
         json={
             "allowed_providers": ["github", "postgres", "mysql"],
@@ -127,7 +127,7 @@ def test_mcp_tools_list_respects_kb_action_policy(tmp_path: Path) -> None:
     assert put.status_code == 200
 
     tools = client.post(
-        f"/api/v1/kbs/{kb_id}/mcp",
+        f"/api/v1/workspaces/{workspace_id}/mcp",
         headers=headers,
         json={"jsonrpc": "2.0", "id": 1, "method": "tools/list", "params": {}},
     ).json()
@@ -169,10 +169,10 @@ def test_mcp_dynamic_connector_tool_call_list(tmp_path: Path) -> None:
         },
     ).json()
     headers = {"Authorization": f"Bearer {reg['token']}"}
-    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
 
     client.put(
-        f"/api/v1/kbs/{kb_id}/connectors/connections/postgres/prim",
+        f"/api/v1/workspaces/{workspace_id}/connectors/connections/postgres/prim",
         headers=headers,
         json={
             "auth_type": "database_dsn",
@@ -183,7 +183,7 @@ def test_mcp_dynamic_connector_tool_call_list(tmp_path: Path) -> None:
 
     tool_name = connector_mcp_tool_name("postgres", "table_records", "list")
     mcp_resp = client.post(
-        f"/api/v1/kbs/{kb_id}/mcp",
+        f"/api/v1/workspaces/{workspace_id}/mcp",
         headers=headers,
         json={
             "jsonrpc": "2.0",

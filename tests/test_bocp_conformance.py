@@ -185,7 +185,7 @@ def test_api_key_auth_requires_explicit_header_or_query_placement() -> None:
         )
 
     connection = StoredConnection(
-        kb_id="kb1",
+        workspace_id="kb1",
         service="demo",
         connection_name="default",
         auth_type="api_key",

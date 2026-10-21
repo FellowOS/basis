@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 from basis.domain.tenancy.admin.admin_types import User, secrets_token, user_from_row, utc_now_iso
 from basis.domain.tenancy.admin.passwords import hash_password
 from basis.domain.tenancy.admin.persistence import audit as audit_persist
-from basis.domain.tenancy.admin.persistence import knowledge_bases as kb_persist
+from basis.domain.tenancy.admin.persistence import workspaces as workspace_persist
 from basis.domain.tenancy.admin.persistence import users as users_persist
 
 if TYPE_CHECKING:
@@ -56,12 +56,12 @@ class DesktopAccess:
                 ),
             )
             org = self._store._organizations.create_organization_locked(
-                "本地知识库", owner_user_id=DESKTOP_USER_ID
+                "本地工作区", owner_user_id=DESKTOP_USER_ID
             )
-            kb_id = self._store._insert_kb(
-                "本地知识库", "", "restricted", DESKTOP_USER_ID, org.id
+            workspace_id = self._store._insert_workspace(
+                "本地工作区", "", "restricted", DESKTOP_USER_ID, org.id
             )
-            self._store._set_member(kb_id, DESKTOP_USER_ID, "owner", DESKTOP_USER_ID)
+            self._store._set_member(workspace_id, DESKTOP_USER_ID, "owner", DESKTOP_USER_ID)
             audit_persist.insert_audit(
                 conn,
                 actor_id=DESKTOP_USER_ID,
@@ -77,13 +77,13 @@ class DesktopAccess:
 
     def _ensure_desktop_default_kb(self, user_id: str) -> None:
         with self._store._lock:
-            if kb_persist.kb_count(self._store._conn) > 0:
+            if workspace_persist.workspace_count(self._store._conn) > 0:
                 return
             org = self._store._organizations.create_organization_locked(
-                "本地知识库", owner_user_id=user_id
+                "本地工作区", owner_user_id=user_id
             )
-            kb_id = self._store._insert_kb("本地知识库", "", "restricted", user_id, org.id)
-            self._store._set_member(kb_id, user_id, "owner", user_id)
+            workspace_id = self._store._insert_workspace("本地工作区", "", "restricted", user_id, org.id)
+            self._store._set_member(workspace_id, user_id, "owner", user_id)
 
     def issue_desktop_session_token(self, user: User) -> str:
         with self._store._lock:

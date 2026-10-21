@@ -1,4 +1,4 @@
-"""KB Explorer graph diff and staging studio routes."""
+"""Explorer graph diff and staging studio routes."""
 
 from __future__ import annotations
 
@@ -11,8 +11,8 @@ from basis.domain.tenancy.admin.store import AdminStore, User
 from basis.interface.http.deps import (
     get_current_user,
     kb_graph_runtime_for,
-    get_kb_for_editor,
-    get_kb_for_viewer,
+    get_workspace_for_editor,
+    get_workspace_for_viewer,
     get_knowledge_store,
     get_store,
 )
@@ -25,9 +25,9 @@ from basis.interface.http.kb_review import (
 
 router = APIRouter(tags=["knowledge-bases"])
 
-@router.get("/{kb_id}/graph/diff")
+@router.get("/{workspace_id}/graph/diff")
 async def kb_graph_diff(
-    kb_id: str,
+    workspace_id: str,
     request: Request,
     from_time: str = Query(..., alias="from"),
     to_time: str = Query(..., alias="to"),
@@ -42,21 +42,21 @@ async def kb_graph_diff(
     `valid_from` and `invalidated_at` → projected `valid_until` (F-TIM-01). Console graph preview dims unchanged elements and highlights
     added/modified nodes and added edges at the end instant.
     """
-    get_kb_for_viewer(request, user, kb_id, store)
-    runtime = kb_graph_runtime_for(request, kb_id)
+    get_workspace_for_viewer(request, user, workspace_id, store)
+    runtime = kb_graph_runtime_for(request, workspace_id)
     session = require_kb_graph_session(runtime)
     from basis.domain.graph.reads.diff import diff_session_at
     from basis.domain.graph.projection.projector import build_temporal_graph_from_ledger
 
     temporal_session = build_temporal_graph_from_ledger(
-        get_knowledge_store(request), kb_id, preserve_from=session
+        get_knowledge_store(request), workspace_id, preserve_from=session
     )
     return diff_session_at(temporal_session, from_time, to_time)
 
 
-@router.get("/{kb_id}/graph/staging")
+@router.get("/{workspace_id}/graph/staging")
 async def kb_graph_staging(
-    kb_id: str,
+    workspace_id: str,
     request: Request,
     from_time: str = Query(..., alias="from"),
     to_time: str = Query(..., alias="to"),
@@ -70,18 +70,18 @@ async def kb_graph_staging(
     graph import), and `change_total`. The nested `diff` matches `GET .../graph/diff` for the
     same instants.
     """
-    get_kb_for_viewer(request, user, kb_id, store)
-    runtime = kb_graph_runtime_for(request, kb_id)
+    get_workspace_for_viewer(request, user, workspace_id, store)
+    runtime = kb_graph_runtime_for(request, workspace_id)
     session = require_kb_graph_session(runtime)
     from basis.domain.graph.projection.projector import build_temporal_graph_from_ledger
 
     knowledge = get_knowledge_store(request)
     temporal_session = build_temporal_graph_from_ledger(
-        knowledge, kb_id, preserve_from=session
+        knowledge, workspace_id, preserve_from=session
     )
     return knowledge.graph_staging_at(
         temporal_session,
-        kb_id,
+        workspace_id,
         from_time,
         to_time,
         updated_by=user.id,
@@ -95,9 +95,9 @@ class PutGraphStagingDraftRequest(BaseModel):
     duplicate: str = Field(default="")
 
 
-@router.put("/{kb_id}/graph/staging/{session_key}/draft")
+@router.put("/{workspace_id}/graph/staging/{session_key}/draft")
 async def kb_put_graph_staging_draft(
-    kb_id: str,
+    workspace_id: str,
     session_key: str,
     body: PutGraphStagingDraftRequest,
     request: Request,
@@ -106,9 +106,9 @@ async def kb_put_graph_staging_draft(
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> dict[str, Any]:
     """Persist server-side staging studio merge draft for a compare session (F-DIFF-01)."""
-    get_kb_for_editor(request, user, kb_id, store)
+    get_workspace_for_editor(request, user, workspace_id, store)
     return knowledge.upsert_graph_staging_session(
-        kb_id,
+        workspace_id,
         session_key=session_key,
         from_time=body.from_time,
         to_time=body.to_time,
@@ -117,9 +117,9 @@ async def kb_put_graph_staging_draft(
     )
 
 
-@router.post("/{kb_id}/graph/staging/entity-merge")
+@router.post("/{workspace_id}/graph/staging/entity-merge")
 async def kb_graph_staging_entity_merge(
-    kb_id: str,
+    workspace_id: str,
     request: Request,
     body: CreateEntityMergeReviewRequest,
     user: User = Depends(get_current_user),
@@ -131,6 +131,5 @@ async def kb_graph_staging_entity_merge(
     JSON body: `{primary_id, duplicate_ids[]}`. Creates a review-queue item (`entity_merge`);
     identical semantics to `POST .../review/items/entity-merge`.
     """
-    return await propose_entity_merge(kb_id, request, body, user, store, knowledge)
-
+    return await propose_entity_merge(workspace_id, request, body, user, store, knowledge)
 

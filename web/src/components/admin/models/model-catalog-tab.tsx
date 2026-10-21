@@ -40,7 +40,7 @@ type Props = {
 export function ModelCatalogTab({ kind, addOpen, onAddOpenChange }: Props) {
   const { t } = useI18n();
   const apiError = useApiErrorMessage();
-  const m = t.models;
+  const m = t.admin_models.page;
   const [models, setModels] = useState<ConfiguredModel[]>([]);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -92,7 +92,7 @@ export function ModelCatalogTab({ kind, addOpen, onAddOpenChange }: Props) {
       await openApiDELETE('/api/v1/models/{model_id}', {
         params: { path: { model_id: model.id } },
       });
-      toast.success(m.removedToast);
+      toast.success(m.removed_toast);
       await load();
     } catch (err) {
       toast.error(apiError(err));
@@ -105,7 +105,7 @@ export function ModelCatalogTab({ kind, addOpen, onAddOpenChange }: Props) {
     <DataPanel>
       <DataPanelBody padded={false} className="p-0">
       {loading ? (
-        <p className="p-4 text-sm text-muted-foreground">{t.common.loading}</p>
+        <p className="p-4 text-sm text-muted-foreground">{t.core.common.loading}</p>
       ) : models.length === 0 ? (
         <div
           className={cn(
@@ -113,10 +113,10 @@ export function ModelCatalogTab({ kind, addOpen, onAddOpenChange }: Props) {
             'm-4 flex flex-col items-center gap-3 rounded-xl border border-dashed px-6 py-10 text-center',
           )}
         >
-          <p className="text-sm font-medium">{m.emptyTitle}</p>
-          <p className="max-w-md text-sm text-muted-foreground">{m.emptyDescription}</p>
+          <p className="text-sm font-medium">{m.empty_title}</p>
+          <p className="max-w-md text-sm text-muted-foreground">{m.empty_description}</p>
           <Button type="button" size="sm" onClick={() => onAddOpenChange(true)}>
-            {m.addModel}
+            {m.add_model}
           </Button>
         </div>
       ) : (
@@ -144,7 +144,7 @@ export function ModelCatalogTab({ kind, addOpen, onAddOpenChange }: Props) {
                     variant={model.configured ? 'outline' : 'secondary'}
                     className={model.configured ? 'badge-status-success' : undefined}
                   >
-                    {model.configured ? m.configured : m.notConfigured}
+                    {model.configured ? m.configured : m.not_configured}
                   </Badge>
                 </div>
                 <div className="mt-auto flex items-center justify-between gap-2">
@@ -154,11 +154,11 @@ export function ModelCatalogTab({ kind, addOpen, onAddOpenChange }: Props) {
                       disabled={busyId === model.id}
                       onCheckedChange={(checked) => void toggleEnabled(model, checked)}
                     />
-                    {m.enabledLabel}
+                    {m.enabled_label}
                   </label>
                   <ConfirmAlertDialog
-                    title={m.removeTitle}
-                    description={m.removeNote.replace(
+                    title={m.remove_title}
+                    description={m.remove_note.replace(
                       '{name}',
                       model.display_name || model.model,
                     )}
@@ -172,7 +172,7 @@ export function ModelCatalogTab({ kind, addOpen, onAddOpenChange }: Props) {
                         className="text-destructive hover:text-destructive"
                         disabled={busyId === model.id}
                       >
-                        {t.common.remove}
+                        {t.core.common.remove}
                       </Button>
                     }
                   />
@@ -187,8 +187,8 @@ export function ModelCatalogTab({ kind, addOpen, onAddOpenChange }: Props) {
       <Dialog open={addOpen} onOpenChange={onAddOpenChange}>
         <DialogContent className="flex max-h-[85vh] flex-col gap-0 overflow-hidden sm:max-w-2xl">
           <DialogHeader className="shrink-0 pb-4">
-            <DialogTitle>{m.addModel}</DialogTitle>
-            <DialogDescription>{m.addModelDescription}</DialogDescription>
+            <DialogTitle>{m.add_model}</DialogTitle>
+            <DialogDescription>{m.add_model_description}</DialogDescription>
           </DialogHeader>
           <div className="min-h-0 flex-1 overflow-y-auto p-1">
             <ModelEndpointForm

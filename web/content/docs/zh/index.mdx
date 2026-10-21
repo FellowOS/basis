@@ -6,10 +6,10 @@ description: "本体驱动的智能体上下文服务：证据账本、业务本
 
 ## 可依赖的能力
 
-Basis 提供 `/api/v1/*` 版本化 REST、按库路由 `/api/v1/kbs/{kb_id}/*`，以及在 `/openapi/v1.json` 发布的 OpenAPI。每个知识库可开启 HTTP MCP。
+Basis 提供 `/api/v1/*` 版本化 REST、按工作区路由 `/api/v1/workspaces/{workspace_id}/*`，以及在 `/openapi/v1.json` 发布的 OpenAPI。每个工作区可开启 HTTP MCP。
 
-- 平台 API — 用户、知识库、模型、审计、设置
-- 知识库 API — 摄入、账本、检索、图谱、本体、问答
+- 平台 API — 用户、工作区、模型、审计、设置
+- 工作区 API — 摄入、账本、检索、图谱、本体、问答
 - MCP — 与 OpenAPI 对齐的工具面
 
 ## 建议阅读顺序

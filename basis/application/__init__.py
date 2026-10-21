@@ -1,4 +1,4 @@
-"""KB integration core — shared by MCP, OpenAPI (future), and chat tools."""
+"""Workspace integration core — shared by MCP, OpenAPI, and agent tools."""
 
 from __future__ import annotations
 

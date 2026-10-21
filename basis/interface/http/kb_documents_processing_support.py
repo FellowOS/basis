@@ -18,13 +18,13 @@ from basis.interface.http.kb_documents_models import StartProcessingRequest
 
 def document_store_payload(
     knowledge: KnowledgeStore,
-    kb_id: str,
+    workspace_id: str,
     outcome: StoreDocumentOutcome,
     *,
     doc_id: str,
     filename: str,
 ) -> dict[str, Any]:
-    version = knowledge.get_version(kb_id, outcome.version_id)
+    version = knowledge.get_version(workspace_id, outcome.version_id)
     unchanged = not outcome.new_document and not outcome.new_version
     return {
         "document_id": outcome.document_id,
@@ -42,14 +42,14 @@ def document_store_payload(
 
 async def await_terminal_processing_job(
     knowledge: KnowledgeStore,
-    kb_id: str,
+    workspace_id: str,
     job_id: str,
     *,
     timeout_sec: float = 600,
 ) -> Any:
     deadline = asyncio.get_running_loop().time() + timeout_sec
     while asyncio.get_running_loop().time() < deadline:
-        job = knowledge.get_job(kb_id, job_id)
+        job = knowledge.get_job(workspace_id, job_id)
         if job.status in {"succeeded", "failed", "cancelled"}:
             return job
         await asyncio.sleep(0.25)
@@ -58,7 +58,7 @@ async def await_terminal_processing_job(
 
 async def respond_idempotent_processing_job(
     knowledge: KnowledgeStore,
-    kb_id: str,
+    workspace_id: str,
     job: dict[str, Any],
     body: StartProcessingRequest,
     context: dict[str, Any],
@@ -80,11 +80,11 @@ async def respond_idempotent_processing_job(
 
     if body.wait:
         terminal = (
-            knowledge.get_job(kb_id, job["id"])
+            knowledge.get_job(workspace_id, job["id"])
             if job["status"] in {"succeeded", "failed", "cancelled"}
             else await await_terminal_processing_job(
                 knowledge,
-                kb_id,
+                workspace_id,
                 job["id"],
                 timeout_sec=timeout_sec,
             )

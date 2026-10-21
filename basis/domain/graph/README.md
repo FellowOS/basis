@@ -1,6 +1,6 @@
 # `basis.domain.graph`
 
-Graph **projection** (`projection/`) and **interactive session** subpackages for the vendored KB workspace UI (`web/src/workspaces/`, `web/src/ws/`). Mutations still flow through Review / ledger APIs — not a second write path.
+Graph **projection** (`projection/`) and **interactive session** subpackages for the workspace Explorer UI (`web/src/modules/graph/`, `web/src/lib/explorer/`). Mutations still flow through Review / ledger APIs — not a second write path.
 
 **Architecture docs:** [explorer-integration.md](../../../docs/architecture/explorer-integration.md), [explorer-backend.md](../../../docs/architecture/explorer-backend.md), [package-layout.md](../../../docs/architecture/package-layout.md) (import rules).
 

@@ -1,4 +1,4 @@
-"""KB reasoning run (Semantica Reasoner + optional graph apply)."""
+"""Workspace reasoning run (Semantica Reasoner + optional graph apply)."""
 
 from __future__ import annotations
 

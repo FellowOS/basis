@@ -17,10 +17,10 @@ def test_graph_nodes_limit_capped(tmp_path: Path) -> None:
         json={"email": "lim@example.com", "password": "password1", "display_name": "Lim"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
 
     res = client.get(
-        f"/api/v1/kbs/{kb_id}/graph/nodes?limit=9999",
+        f"/api/v1/workspaces/{workspace_id}/graph/nodes?limit=9999",
         headers=headers,
     )
     assert res.status_code == 200
@@ -37,10 +37,10 @@ def test_graph_snapshot_limits_capped(tmp_path: Path) -> None:
         json={"email": "snap@example.com", "password": "password1", "display_name": "Snap"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
 
     res = client.get(
-        f"/api/v1/kbs/{kb_id}/graph/snapshot?limit_nodes=99999&limit_edges=99999",
+        f"/api/v1/workspaces/{workspace_id}/graph/snapshot?limit_nodes=99999&limit_edges=99999",
         headers=headers,
     )
     assert res.status_code == 200

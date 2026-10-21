@@ -1,6 +1,6 @@
 /**
- * Graph workspace chrome (`graph*`) + small runtime style helpers.
- * Explorer-wide bundles: `lib/ui-classes/explorer-ws.ts`.
+ * Graph canvas chrome (`graph*`) + small runtime style helpers.
+ * Explorer-wide bundles: `lib/ui-classes/ws-ui.ts`.
  */
 
 import type { CSSProperties } from "react";

@@ -1,4 +1,4 @@
-"""KB-scoped vocabulary and ontology alignment routes."""
+"""Workspace-scoped vocabulary and ontology alignment routes."""
 
 import pytest
 
@@ -21,9 +21,9 @@ def test_vocabulary_schemes_empty_graph(tmp_path) -> None:
         json={"email": "voc@example.com", "password": "password1", "display_name": "Voc"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
 
-    response = client.get(f"/api/v1/kbs/{kb_id}/vocabulary/schemes", headers=headers)
+    response = client.get(f"/api/v1/workspaces/{workspace_id}/vocabulary/schemes", headers=headers)
     assert response.status_code == 200
     assert response.json() == []
 
@@ -38,9 +38,9 @@ def test_alignments_isolated_between_kbs(tmp_path) -> None:
         json={"email": "ali@example.com", "password": "password1", "display_name": "Ali"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_a = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+    kb_a = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
     kb_b = client.post(
-        "/api/v1/kbs",
+        "/api/v1/workspaces",
         headers=headers,
         json={"name": "Other", "visibility": "restricted"},
     ).json()["id"]
@@ -51,16 +51,16 @@ def test_alignments_isolated_between_kbs(tmp_path) -> None:
         "relation": "skos:exactMatch",
         "confidence": 0.9,
     }
-    created = client.post(f"/api/v1/kbs/{kb_a}/ontology/alignments", headers=headers, json=payload)
+    created = client.post(f"/api/v1/workspaces/{kb_a}/ontology/alignments", headers=headers, json=payload)
     assert created.status_code == 200
     alignment_id = created.json()["id"]
 
-    list_a = client.get(f"/api/v1/kbs/{kb_a}/ontology/alignments", headers=headers)
+    list_a = client.get(f"/api/v1/workspaces/{kb_a}/ontology/alignments", headers=headers)
     assert list_a.status_code == 200
     assert len(list_a.json()) == 1
     assert list_a.json()[0]["id"] == alignment_id
 
-    list_b = client.get(f"/api/v1/kbs/{kb_b}/ontology/alignments", headers=headers)
+    list_b = client.get(f"/api/v1/workspaces/{kb_b}/ontology/alignments", headers=headers)
     assert list_b.status_code == 200
     assert list_b.json() == []
 
@@ -75,9 +75,9 @@ def test_drafts_isolated_between_kbs(tmp_path) -> None:
         json={"email": "dft@example.com", "password": "password1", "display_name": "Dft"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_a = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+    kb_a = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
     kb_b = client.post(
-        "/api/v1/kbs",
+        "/api/v1/workspaces",
         headers=headers,
         json={"name": "Other", "visibility": "restricted"},
     ).json()["id"]
@@ -97,7 +97,7 @@ def test_drafts_isolated_between_kbs(tmp_path) -> None:
         "annotation_changes": {},
     }
     saved = client.patch(
-        f"/api/v1/kbs/{kb_a}/ontology/draft",
+        f"/api/v1/workspaces/{kb_a}/ontology/draft",
         headers=headers,
         json={
             "ontology_uri": ontology_uri,
@@ -110,7 +110,7 @@ def test_drafts_isolated_between_kbs(tmp_path) -> None:
     draft_id = saved.json()["draft_id"]
 
     list_a = client.get(
-        f"/api/v1/kbs/{kb_a}/ontology/drafts/{ontology_uri}",
+        f"/api/v1/workspaces/{kb_a}/ontology/drafts/{ontology_uri}",
         headers=headers,
     )
     assert list_a.status_code == 200
@@ -118,7 +118,7 @@ def test_drafts_isolated_between_kbs(tmp_path) -> None:
     assert list_a.json()[0]["draft_id"] == draft_id
 
     list_b = client.get(
-        f"/api/v1/kbs/{kb_b}/ontology/drafts/{ontology_uri}",
+        f"/api/v1/workspaces/{kb_b}/ontology/drafts/{ontology_uri}",
         headers=headers,
     )
     assert list_b.status_code == 200
@@ -136,10 +136,10 @@ def test_ontology_registry_persisted_across_app_restart(tmp_path) -> None:
         json={"email": "per@example.com", "password": "password1", "display_name": "Per"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
 
     created = client.post(
-        f"/api/v1/kbs/{kb_id}/ontology",
+        f"/api/v1/workspaces/{workspace_id}/ontology",
         headers=headers,
         json={"name": "Persisted", "namespace": "http://example.org/persist"},
     )
@@ -152,7 +152,7 @@ def test_ontology_registry_persisted_across_app_restart(tmp_path) -> None:
         json={"email": "per@example.com", "password": "password1"},
     ).json()
     headers2 = {"Authorization": f"Bearer {admin2['token']}"}
-    reg = client2.get(f"/api/v1/kbs/{kb_id}/ontology/registry", headers=headers2)
+    reg = client2.get(f"/api/v1/workspaces/{workspace_id}/ontology/registry", headers=headers2)
     assert reg.status_code == 200
     by_uri = {entry.get("uri"): entry for entry in reg.json()}
     assert uri in by_uri
@@ -170,18 +170,18 @@ def test_ontology_graph_requires_uri(tmp_path) -> None:
         json={"email": "ogr@example.com", "password": "password1", "display_name": "Ogr"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
 
-    missing = client.get(f"/api/v1/kbs/{kb_id}/ontology/graph", headers=headers)
+    missing = client.get(f"/api/v1/workspaces/{workspace_id}/ontology/graph", headers=headers)
     assert missing.status_code == 422
 
     client.post(
-        f"/api/v1/kbs/{kb_id}/ontology",
+        f"/api/v1/workspaces/{workspace_id}/ontology",
         headers=headers,
         json={"name": "Demo", "namespace": "http://example.org/demo"},
     )
     graph = client.get(
-        f"/api/v1/kbs/{kb_id}/ontology/graph",
+        f"/api/v1/workspaces/{workspace_id}/ontology/graph",
         headers=headers,
         params={"uri": "http://example.org/demo#ontology"},
     )
@@ -189,7 +189,7 @@ def test_ontology_graph_requires_uri(tmp_path) -> None:
     assert graph.json()["uri"] == "http://example.org/demo#ontology"
 
     audit = client.get(
-        f"/api/v1/kbs/{kb_id}/audit/graph-mutations",
+        f"/api/v1/workspaces/{workspace_id}/audit/graph-mutations",
         headers=headers,
         params={"action_prefix": "kb.graph.ontology"},
     )
@@ -208,11 +208,11 @@ def test_ontology_health_after_create(tmp_path) -> None:
         json={"email": "hlth@example.com", "password": "password1", "display_name": "Hlth"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
 
     namespace = "http://example.org/health-http"
     created = client.post(
-        f"/api/v1/kbs/{kb_id}/ontology",
+        f"/api/v1/workspaces/{workspace_id}/ontology",
         headers=headers,
         json={"name": "Health HTTP", "namespace": namespace},
     )
@@ -220,7 +220,7 @@ def test_ontology_health_after_create(tmp_path) -> None:
     uri = created.json()["uri"]
 
     health = client.get(
-        f"/api/v1/kbs/{kb_id}/ontology/health",
+        f"/api/v1/workspaces/{workspace_id}/ontology/health",
         headers=headers,
         params={"uri": uri},
     )

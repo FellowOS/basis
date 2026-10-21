@@ -28,17 +28,17 @@ class ProcessingJobsAccess:
     def __init__(self, store: KnowledgeStore) -> None:
         self._store = store
 
-    def has_active_ingest_job(self, kb_id: str, version_id: str) -> bool:
-        return dv_persist.has_active_ingest_job(self._store._conn, kb_id, version_id)
+    def has_active_ingest_job(self, workspace_id: str, version_id: str) -> bool:
+        return dv_persist.has_active_ingest_job(self._store._conn, workspace_id, version_id)
 
-    def supersede_version(self, kb_id: str, version_id: str) -> None:
-        dv_persist.supersede_version(self._store._conn, kb_id, version_id)
+    def supersede_version(self, workspace_id: str, version_id: str) -> None:
+        dv_persist.supersede_version(self._store._conn, workspace_id, version_id)
 
     @staticmethod
     def _processing_job_dict(
         *,
         job_id: str,
-        kb_id: str,
+        workspace_id: str,
         version_id: str,
         attempt: int,
         now: str,
@@ -46,7 +46,7 @@ class ProcessingJobsAccess:
     ) -> dict[str, Any]:
         return {
             "id": job_id,
-            "kb_id": kb_id,
+            "workspace_id": workspace_id,
             "kind": "ingest",
             "subject_type": "document_version",
             "subject_id": version_id,
@@ -64,18 +64,18 @@ class ProcessingJobsAccess:
 
     def find_processing_job_by_idempotency_key(
         self,
-        kb_id: str,
+        workspace_id: str,
         idempotency_key: str,
     ) -> dict[str, Any] | None:
         key = idempotency_key.strip()
         if not key:
             return None
         with self._store._lock:
-            return job_persist.find_job_by_idempotency_key(self._store._conn, kb_id, key)
+            return job_persist.find_job_by_idempotency_key(self._store._conn, workspace_id, key)
 
     def create_processing_job(
         self,
-        kb_id: str,
+        workspace_id: str,
         *,
         version_id: str,
         options: dict[str, Any],
@@ -83,23 +83,23 @@ class ProcessingJobsAccess:
     ) -> tuple[dict[str, Any], bool]:
         normalized_key = (idempotency_key or "").strip() or None
         if normalized_key:
-            existing = self.find_processing_job_by_idempotency_key(kb_id, normalized_key)
+            existing = self.find_processing_job_by_idempotency_key(workspace_id, normalized_key)
             if existing is not None:
                 return existing, False
 
         job_id = str(uuid.uuid4())
         now = _now()
         with self._store._lock:
-            self._store._assert_row_in_kb("document_versions", version_id, kb_id)
+            self._store._assert_row_in_workspace("document_versions", version_id, workspace_id)
             conn = self._store._conn
-            if job_persist.fetch_active_ingest_job_for_version(conn, kb_id, version_id):
+            if job_persist.fetch_active_ingest_job_for_version(conn, workspace_id, version_id):
                 raise AdminError(409, "processing_active", "该文档版本已有处理任务")
-            attempt = job_persist.next_ingest_attempt(conn, kb_id, version_id)
+            attempt = job_persist.next_ingest_attempt(conn, workspace_id, version_id)
             try:
                 job_persist.insert_ingest_job(
                     conn,
                     job_id=job_id,
-                    kb_id=kb_id,
+                    workspace_id=workspace_id,
                     version_id=version_id,
                     attempt=attempt,
                     normalized_key=normalized_key,
@@ -109,17 +109,17 @@ class ProcessingJobsAccess:
             except sqlite3.IntegrityError:
                 if normalized_key:
                     row = job_persist.fetch_job_by_idempotency_after_conflict(
-                        conn, kb_id, normalized_key
+                        conn, workspace_id, normalized_key
                     )
                     if row is not None:
                         return row, False
                 raise
-            dv_persist.queue_version_after_job_create(conn, kb_id, version_id)
+            dv_persist.queue_version_after_job_create(conn, workspace_id, version_id)
             conn.commit()
         return (
             self._processing_job_dict(
                 job_id=job_id,
-                kb_id=kb_id,
+                workspace_id=workspace_id,
                 version_id=version_id,
                 attempt=attempt,
                 now=now,
@@ -128,14 +128,14 @@ class ProcessingJobsAccess:
             True,
         )
 
-    def get_version(self, kb_id: str, version_id: str) -> DocumentVersionRow:
+    def get_version(self, workspace_id: str, version_id: str) -> DocumentVersionRow:
         with self._store._lock:
-            return dv_persist.fetch_version_row(self._store._conn, kb_id, version_id)
+            return dv_persist.fetch_version_row(self._store._conn, workspace_id, version_id)
 
-    def get_processing_context(self, kb_id: str, version_id: str) -> dict[str, Any]:
+    def get_processing_context(self, workspace_id: str, version_id: str) -> dict[str, Any]:
         with self._store._lock:
             row = dv_persist.fetch_processing_context_row(
-                self._store._conn, kb_id, version_id
+                self._store._conn, workspace_id, version_id
             )
         if row is None:
             raise AdminError(404, "not_found", "文档版本不存在")
@@ -148,22 +148,22 @@ class ProcessingJobsAccess:
             "mime_type": row["mime_type"],
         }
 
-    def get_job(self, kb_id: str, job_id: str) -> JobRow:
+    def get_job(self, workspace_id: str, job_id: str) -> JobRow:
         with self._store._lock:
-            return job_persist.fetch_job_row(self._store._conn, kb_id, job_id)
+            return job_persist.fetch_job_row(self._store._conn, workspace_id, job_id)
 
     def list_processing_jobs(
         self,
-        kb_id: str,
+        workspace_id: str,
         *,
         status: str | None = None,
         limit: int = 100,
     ) -> list[dict[str, Any]]:
         limit = min(max(1, limit), 200)
         with self._store._lock:
-            self._store._assert_kb_exists(kb_id)
+            self._store._assert_workspace_exists(workspace_id)
             rows = job_persist.list_ingest_jobs(
-                self._store._conn, kb_id, status=status, limit=limit
+                self._store._conn, workspace_id, status=status, limit=limit
             )
         return [
             {
@@ -193,20 +193,20 @@ class ProcessingJobsAccess:
             for row in rows
         ]
 
-    def set_job_result(self, kb_id: str, job_id: str, result: dict[str, Any]) -> None:
+    def set_job_result(self, workspace_id: str, job_id: str, result: dict[str, Any]) -> None:
         with self._store._lock:
             conn = self._store._conn
-            if not job_persist.job_exists(conn, kb_id, job_id):
+            if not job_persist.job_exists(conn, workspace_id, job_id):
                 raise AdminError(404, "not_found", "任务不存在")
             job_persist.update_job_result(
                 conn,
-                kb_id,
+                workspace_id,
                 job_id,
                 json.dumps(result, ensure_ascii=False, default=str),
             )
             conn.commit()
 
-    def set_version_status(self, kb_id: str, version_id: str, status: str) -> None:
+    def set_version_status(self, workspace_id: str, version_id: str, status: str) -> None:
         allowed = {
             "uploaded",
             "queued",
@@ -221,37 +221,37 @@ class ProcessingJobsAccess:
         if status not in allowed:
             raise AdminError(422, "bad_status", "版本状态无效")
         with self._store._lock:
-            self._store._assert_row_in_kb("document_versions", version_id, kb_id)
+            self._store._assert_row_in_workspace("document_versions", version_id, workspace_id)
             ready_at = _now() if status == "ready" else None
             dv_persist.set_version_status(
-                self._store._conn, kb_id, version_id, status, ready_at=ready_at
+                self._store._conn, workspace_id, version_id, status, ready_at=ready_at
             )
             self._store._conn.commit()
 
-    def set_job_status(self, kb_id: str, job_id: str, status: str) -> None:
+    def set_job_status(self, workspace_id: str, job_id: str, status: str) -> None:
         if status not in {"queued", "running", "succeeded", "failed", "cancelled"}:
             raise AdminError(422, "bad_status", "任务状态无效")
         with self._store._lock:
             conn = self._store._conn
-            if not job_persist.job_exists(conn, kb_id, job_id):
+            if not job_persist.job_exists(conn, workspace_id, job_id):
                 raise AdminError(404, "not_found", "任务不存在")
             started = _now() if status == "running" else None
             finished = _now() if status in {"succeeded", "failed", "cancelled"} else None
             job_persist.update_job_status(
-                conn, kb_id, job_id, status, started_at=started, finished_at=finished
+                conn, workspace_id, job_id, status, started_at=started, finished_at=finished
             )
             conn.commit()
 
-    def fail_version(self, kb_id: str, version_id: str, code: str, message: str) -> None:
+    def fail_version(self, workspace_id: str, version_id: str, code: str, message: str) -> None:
         with self._store._lock:
-            dv_persist.fail_version(self._store._conn, kb_id, version_id, code, message)
+            dv_persist.fail_version(self._store._conn, workspace_id, version_id, code, message)
             self._store._conn.commit()
 
-    def fail_job(self, kb_id: str, job_id: str, code: str, message: str) -> None:
+    def fail_job(self, workspace_id: str, job_id: str, code: str, message: str) -> None:
         with self._store._lock:
             job_persist.fail_job_row(
                 self._store._conn,
-                kb_id,
+                workspace_id,
                 job_id,
                 code,
                 json.dumps({"message": message}, ensure_ascii=False),
@@ -261,10 +261,10 @@ class ProcessingJobsAccess:
         try:
             from basis.domain.knowledge.services.kb_alerts_emit import emit_processing_failed_alert
 
-            emit_processing_failed_alert(self._store, kb_id, job_id, code, message)
+            emit_processing_failed_alert(self._store, workspace_id, job_id, code, message)
         except Exception:
             logger.exception(
-                "processing.failed alert not recorded kb_id=%s job_id=%s",
-                kb_id,
+                "processing.failed alert not recorded workspace_id=%s job_id=%s",
+                workspace_id,
                 job_id,
             )

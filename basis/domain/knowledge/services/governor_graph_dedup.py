@@ -57,7 +57,7 @@ async def _detect_duplicate_pairs(session: Any, threshold: float) -> list[dict[s
 
 async def scan_graph_semantic_dedup_clusters(
     knowledge: KnowledgeStore,
-    kb_id: str,
+    workspace_id: str,
     session: Any,
     *,
     threshold: float = DEFAULT_GOVERNOR_DEDUP_THRESHOLD,
@@ -90,7 +90,7 @@ async def scan_graph_semantic_dedup_clusters(
         }
         try:
             item = knowledge.create_review_item(
-                kb_id,
+                workspace_id,
                 kind=ENTITY_CLUSTER_KIND,
                 subject_type=ENTITY_CLUSTER_SUBJECT_TYPE,
                 subject_id=subject_id,

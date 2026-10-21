@@ -139,4 +139,3 @@ class InvokeConnectorPrimitiveRequest(BaseModel):
     cursor_watermark: Any | None = None
     primary_key_column: str = Field(default="id", min_length=1)
     cursor_column: str | None = None
-

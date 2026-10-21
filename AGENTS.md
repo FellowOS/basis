@@ -10,7 +10,7 @@ Instructions for AI coding agents working in this repository. Humans can skim th
 |------|------|--------|
 | API | `basis/` Python package (layered; see [package-layout.md](./docs/architecture/package-layout.md)) | Python 3.10+, FastAPI, Semantica SDK |
 | Web | `web/` | Vite, React, React Router, Tailwind v4, shadcn |
-| KB workspace UI | `web/src/workspaces/` + `web/src/ws/` | Vendored screens (graph, ontology, …) + shared runtime |
+| Explorer UI | `web/src/modules/<segment>/` + `app/shared/workspace/` + `lib/explorer/` + `lib/workspace/` | Feature modules; workspace frame in `app/shared/workspace/` |
 
 ## Before you change code
 
@@ -28,7 +28,7 @@ Instructions for AI coding agents working in this repository. Humans can skim th
 |------|------|--------|
 | **Vendor** | `web/src/components/ui/*` | **Do not hand-edit.** Update only via `npx shadcn add …` (use `-o` to sync). |
 | **Admin** | `web/src/components/admin/*` | `/admin/*` UI only (layout, SSO, access, `admin/models/`, …). |
-| **App** | `web/src/components/app/*` | `shared/` (cross-product) + `kb/` + `marketing/`. |
+| **App** | `web/src/components/app/*` | `shared/` (layout, page patterns, `workspace/`) + `marketing/`. |
 
 No files at `components/` root. Full map: [web/README.md](./web/README.md).
 
@@ -39,9 +39,9 @@ No files at `components/` root. Full map: [web/README.md](./web/README.md).
 | `app/shared/primitives/` | PublicIcon, DatePicker, editors, … |
 | `app/shared/effects/` | Decorative motion. |
 | `app/shared/console/` | DataTable, ConsolePageLayout, EmptyState, … |
-| `app/shared/shell/` | Global layout — not `app/kb/explorer-shell/`. |
+| `app/shared/shell/` | Global layout — not `app/shared/workspace/frame/`. |
 
-`app/kb/` and `app/marketing/` are product-specific; they may import `app/shared/*` and `ui/*`.
+`app/marketing/` is product-specific; modules may import `app/shared/*` and `ui/*`.
 
 ### Imports
 
@@ -49,7 +49,8 @@ No files at `components/` root. Full map: [web/README.md](./web/README.md).
 - Primitives / effects → `@/components/app/shared/primitives/…`, `…/effects/…`
 - Console patterns → `@/components/app/shared/console`
 - Admin-only blocks → `@/components/admin/*`
-- KB product → `@/components/app/kb/*`
+- Workspace frame / ledger primitives → `@/components/app/shared/workspace/…`
+- Workspace feature routes → `@/modules/<segment>/index.js`, `@/modules/<segment>/pages/…`, `@/modules/<segment>/components/…`, `@/modules/<segment>/i18n/…`
 
 **Direction:** `admin/` and `app/` → `ui/` and `app/shared/*`. Never `ui/` → `app/` or `admin/`.
 
@@ -60,8 +61,8 @@ Use `resourceCardSurfaceClass` / `cardElevationClass` from `@/lib/ui-classes/car
 ### Do not (UI)
 
 - Patch `web/src/components/ui/` for Basis branding or app APIs.
-- Add styled raw `<select>` / checkbox in `web/src/pages/` or `web/src/components/admin/`.
-- Put cross-product patterns under `app/kb/` — use `app/shared/console/` or `app/shared/primitives/`.
+- Add styled raw `<select>` / checkbox in `web/src/modules/` or `web/src/components/admin/`.
+- Put cross-product patterns under `app/shared/console/` or `app/shared/workspace/` — not inside `modules/`.
 - Reintroduce a `basis-ui/` wrapper layer for styling that belongs in project CSS.
 
 ### Syncing shadcn
@@ -76,13 +77,17 @@ After sync: `npm run typecheck` — fix **primitives**, **shell**, and imports, 
 
 - Prefer design tokens (`border-border`, `text-muted-foreground`) over one-off hex.
 - **Project-wide control chrome** (field focus without ring, status badges, console outline buttons) lives in **`web/src/styles.css`** — `data-slot`, `[data-basis-app]`, utilities like `badge-status-success`, `native-select--full`.
-- Explorer layout/chrome: `lib/ui-classes/`; graph search dock shadows live in Explorer sources, not global CSS.
+- Workspace console layout/chrome: `lib/ui-classes/`; Sigma graph UI in `modules/graph/`, not global CSS.
 
-### KB Explorer layering
+### Routing (`web/src/routes/`)
 
-1. `web/src/pages/kb/*.tsx` — routes, crumbs, gates.
-2. `web/src/components/app/kb/workspaces/kb-*-workspace.tsx` — lazy-load Explorer.
-3. `web/src/workspaces/*/` — implementation ([workspaces README](./web/src/workspaces/README.md)); HTTP/graph shared code in `web/src/ws/`.
+`AppRoutes` in `routes/index.tsx` (single route table). Feature UI in `modules/` (workspace segments, `admin-*`, `login`, `home`, `docs`, `swagger`).
+
+### Workspace Explorer layering
+
+1. `web/src/routes/index.tsx` — all `/kbs/*`, `/admin/*`, and related URLs; modules export route entry `index.tsx` (lazy via `routes/lazy-pages.ts`).
+2. `web/src/modules/<segment>/` — `index.tsx` (route entry), `pages/` (screen + glue), `i18n/`, `components/` (required); optional `hooks/`, `lib/`; workspace frame from `app/shared/workspace/frame/`.
+3. `web/src/lib/explorer/` — shared client (`ws-http`, `graphStore`, …); import `@/lib/explorer/…` ([README](./web/src/lib/explorer/README.md)).
 
 ### Forms and console
 
@@ -92,7 +97,7 @@ After sync: `npm run typecheck` — fix **primitives**, **shell**, and imports, 
 
 ## Web i18n
 
-- Strings in `web/src/i18n/locales/{en,zh}/*.ts` (zh mirrors `locales/en/index.ts`). React: `useI18n()` → `t.<ns>.<key>`; interpolation: `fmt()` from `@/i18n/format.js`. Non-React / Explorer: `messagesForLocale(locale)` or existing `*Copy.ts` bridges (`graphWorkspaceCopy`, `graphInspectorCopy`, …).
+- Feature copy: `web/src/modules/<segment>/i18n/{en,zh}.ts` (`export default { … }`); barrel `i18n/index.ts` → `{ default as en, default as zh }`. Namespace = segment (`admin-audit` → `admin_audit`), keys `namespace.area.snake_leaf` ([convention](./web/src/modules/i18n-convention.md)). New module: `npx tsx scripts/refresh-module-i18n-index.mjs`. Product-wide shell/nav/runtime: `i18n/core/{en,zh}.ts` (`shell`, `workspace_nav`, `workspace_runtime`, `common`, `dev`). Aggregator: `i18n/en.ts`, `i18n/zh.ts` + generated `i18n/module-locales.ts`. React: `useI18n()`; `fmt()` from `@/i18n/format.js`. Sidebar labels: `lib/workspace-nav-label.ts`.
 - **Do not** hardcode UI copy, inline `locale === 'zh' ? …`, or duplicate inspector/helpers keys. API-keyed maps (`apiErrorCodes`, audit actions, status labels, …): keep en/zh in sync.
 - Tables: `t.common.emptyCell` (`—`), `t.common.ellipsis` (`…`).
 - After new keys: `cd web && npm run audit:locale && npm run typecheck`.
@@ -130,14 +135,14 @@ Run relevant checks after substantive edits; say if something was not run.
 
 | Task | Read |
 |------|------|
-| Web structure / KB folders | [web/README.md](./web/README.md) |
-| Workspace vendoring | [web/src/workspaces/README.md](./web/src/workspaces/README.md) |
+| Web structure / workspace modules | [web/README.md](./web/README.md) |
+| Explorer layout | [web/src/modules/README.md](./web/src/modules/README.md), [web/src/routes/README.md](./web/src/routes/README.md), [web/src/components/app/shared/README.md](./web/src/components/app/shared/README.md), [web/src/lib/explorer/README.md](./web/src/lib/explorer/README.md) |
 | Docs (features / progress / architecture) | [docs/README.md](./docs/README.md) |
-| OpenAPI v1 (platform + KB surfaces) | [docs/architecture/openapi-v1.md](./docs/architecture/openapi-v1.md), live `/openapi/v1.json`; snapshots `openapi/basis-v1*.json` |
+| OpenAPI v1 (platform + workspace surfaces) | [docs/architecture/openapi-v1.md](./docs/architecture/openapi-v1.md), live `/openapi/v1.json`; snapshots `openapi/basis-v1*.json` |
 | Feature list / progress | [docs/features.md](./docs/features.md) (F-* spec), [docs/progress.md](./docs/progress.md) (status: §0.1 done, §0.2 API baseline, §3.1 UX / §3.2 e2e gaps) |
 | Web OpenAPI transport | `web/src/lib/basis-openapi/` (`transport.ts` + generated `schema.d.ts`); app helpers in `web/src/lib/openapi-client.ts` |
 | Web ↔ operationId audit | [openapi/web-openapi-operation-audit.md](./openapi/web-openapi-operation-audit.md) — `scripts/audit-web-operation-ids.py` |
-| HTTP in web | Typed: `openapi-client.ts` (`openApi*` / `kbOpenApi*` / `publicOpenApi*`); stream/multipart: `basis-session-fetch.ts`; paths: `kb-api-path.ts`, `api-v1-path.ts`; E2E `e2e/api-v1-path.ts` |
+| HTTP in web | Typed: `openapi-client.ts` (`openApi*` / `workspaceOpenApi*` / `publicOpenApi*`); stream/multipart: `basis-session-fetch.ts`; paths: `lib/workspace/api-path.ts`, `lib/nav-config.ts` (`workspacePath`), `api-v1-path.ts`; E2E `e2e/api-v1-path.ts` (`e2eWorkspaceApiPath`) |
 
 **Naming:** Normative HTTP = **live export** at `/openapi/v1.json` (same as `app.openapi()` + Basis annotations); committed snapshots in **`openapi/basis-v1.json`**. `basis/application/` = server operations (OpenAPI + MCP call this). **semantica** = in-process runtime. **Application HTTP client** = web `basis-openapi/` transport (OpenAPI-generated types; not a published SDK). Server exposes **only OpenAPI + MCP** to clients.
 

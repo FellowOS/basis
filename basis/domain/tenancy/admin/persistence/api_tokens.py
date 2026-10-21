@@ -32,14 +32,14 @@ def insert_api_token(
     user_id: str,
     name: str,
     scope: str,
-    kb_ids_json: str,
+    workspace_ids_json: str,
     created_at: str,
     expires_at: str | None,
 ) -> None:
     conn.execute(
         """
         INSERT INTO api_tokens(
-            id, token_hash, token_secret, user_id, name, scope, kb_ids_json,
+            id, token_hash, token_secret, user_id, name, scope, workspace_ids_json,
             created_at, expires_at, last_used_at, revoked_at
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, NULL)
         """,
@@ -50,7 +50,7 @@ def insert_api_token(
             user_id,
             name,
             scope,
-            kb_ids_json,
+            workspace_ids_json,
             created_at,
             expires_at,
         ),

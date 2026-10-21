@@ -1,1 +1,1 @@
-"""SQLite-backed accounts and knowledge bases."""
+"""SQLite-backed accounts and workspaces."""

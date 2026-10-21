@@ -1,0 +1,113 @@
+export default {
+  hub: {
+    hub_tabs: {
+      sparql: "SPARQL",
+      reasoning: "规则推理"
+    },
+    integration_hint: "SPARQL 与规则推理 HTTP API：集成 → OpenAPI。",
+    loading_sparql: "加载 SPARQL…",
+    loading_reasoning: "加载推理…"
+  },
+  reasoning: {
+    results_title: "结果",
+    tab_inferences: "推断",
+    tab_proofs: "证明链",
+    facts_title: "事实",
+    facts_placeholder: "每行一条 predicate(主体, 客体)",
+    rules_title: "规则",
+    rules_placeholder: "IF … AND … THEN …，一行一条",
+    templates_title: "模版",
+    library_section: "规则库",
+    draft_section: "草稿",
+    fact_issue: "第 {n} 行不是 predicate(…)",
+    rule_issue: "第 {n} 行不是 IF … THEN …",
+    library_rule_issue: "库规则「{name}」不是 IF … THEN …",
+    replace_title: "替换当前输入？",
+    replace_body: "事实和规则草稿会被替换。",
+    reset_body: "恢复为药物示例，并取消已选的库规则。",
+    replace_confirm: "替换",
+    result_stale: "输入已变更，以下仍是上次运行的结果。",
+    save_draft_only: "只保存草稿文本框，不含已选库规则",
+    manage_rules: "管理规则",
+    save_to_library: "存为库规则",
+    library_combobox_placeholder: "搜索并加入本次运行…",
+    library_combobox_empty: "没有匹配的规则",
+    template_labels: {
+      drug: "药物",
+      gene: "基因",
+      pathway: "通路"
+    },
+    write_graph: "写回图谱",
+    write_graph_hint: "将推断二元事实写入图为边",
+    write_graph_view_only: "只读，不会改图",
+    load_draft: "草稿",
+    run: "运行推理",
+    running: "推理中…",
+    partial_run: "警告：推理部分成功。",
+    reset: "恢复示例",
+    results_empty_title: "尚无结果",
+    results_empty_body: "运行后在此查看推断与证明链。",
+    results_empty_ready: "输入已就绪，运行后在此查看推断。",
+    rules_fired: "{n} 条规则触发",
+    edges_added: "{n} 条边写入",
+    graph_updated: "图谱已更新",
+    preview_only: "仅预览",
+    derived_link: "{n} 条派生 → 实体账本",
+    complete_empty: "当前事实与规则未推断出新事实。",
+    save_title: "保存到规则库",
+    save_desc: "只保存草稿文本框中的规则，不含已加入本次运行的库规则。",
+    save_name: "名称",
+    save_placeholder: "例如：设施子类传递",
+    save_include_run: "保存并加入本次运行",
+    rules_dialog: {
+      title: "管理推理规则",
+      description: "维护工作区内的命名规则。加入本次运行请在工作台左侧规则库 Combobox 中选择。",
+      new_rule: "新建规则",
+      edit_rule: "编辑规则",
+      name: "名称",
+      name_placeholder: "例如：设施子类传递",
+      body: "规则正文",
+      body_placeholder: "IF … AND … THEN …",
+      body_hint: "一行一条 IF … THEN … 规则；语法与左侧 Rules 相同。",
+      save_include_run: "保存并加入本次运行",
+      no_rules_title: "暂无已保存规则",
+      no_rules_can_write: "点击「新建规则」，或在工作台左侧草稿区使用「存为库规则」。",
+      no_rules_read_only: "仅可查看；编辑需要编辑者或更高权限。",
+      load: "载入",
+      edit: "编辑",
+      delete: "删除",
+      delete_title: "删除规则？",
+      delete_description: "删除后无法恢复；若已勾选本次运行，侧栏选中也会消失。"
+    }
+  },
+  sparql: {
+    templates: "模版",
+    results: "结果",
+    rows: "{count} 行",
+    rows_one: "{count} 行",
+    export_csv: "导出 CSV",
+    run: "执行查询",
+    running: "执行中…",
+    replace_title: "替换当前查询？",
+    replace_body: "编辑器里的查询会被模版覆盖。",
+    replace_confirm: "替换",
+    stale: "查询已变更，以下仍是上次结果。",
+    empty_title: "尚无结果",
+    empty_ready: "查询已就绪，执行后在此查看。",
+    empty_body: "选择模版或编写 SPARQL，然后执行。",
+    no_rows: "查询返回 0 行。",
+    partial_query: "警告：查询部分成功。",
+    template_labels: {
+      triples: "三元组",
+      types: "类型",
+      edges: "出边",
+      path: "路径"
+    }
+  },
+  page: {
+    subtitle: "在本库上执行 SPARQL 查询与规则推理试跑。"
+  },
+  menu: {
+    analyze: "查询推理"
+  }
+} as const;

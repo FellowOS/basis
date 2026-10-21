@@ -1,4 +1,4 @@
-"""KB document processing and ingest job routes."""
+"""Workspace document processing and ingest job routes."""
 
 from __future__ import annotations
 
@@ -11,8 +11,8 @@ from basis.domain.errors import AdminError
 from basis.domain.tenancy.admin.store import AdminStore, User
 from basis.interface.http.deps import (
     get_current_user,
-    get_kb_for_editor,
-    get_kb_for_viewer,
+    get_workspace_for_editor,
+    get_workspace_for_viewer,
     get_knowledge_store,
     get_store,
     graph_for,
@@ -36,9 +36,9 @@ from basis.interface.http.kb_documents_processing_support import (
 router = APIRouter(tags=["knowledge-bases"])
 
 
-@router.get("/{kb_id}/processing/jobs")
+@router.get("/{workspace_id}/processing/jobs")
 async def list_processing_jobs(
-    kb_id: str,
+    workspace_id: str,
     request: Request,
     status: str | None = None,
     limit: int = 100,
@@ -47,23 +47,23 @@ async def list_processing_jobs(
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> dict[str, Any]:
     """
-List Processing Jobs. Document processing jobs (extract, chunk, project). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+List Processing Jobs. Document processing jobs (extract, chunk, project). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
-    get_kb_for_viewer(request, user, kb_id, store)
+    get_workspace_for_viewer(request, user, workspace_id, store)
     if status and status not in {"queued", "running", "succeeded", "failed", "cancelled"}:
         raise AdminError(422, "bad_status", "任务状态无效")
     return {
         "jobs": knowledge.list_processing_jobs(
-            kb_id,
+            workspace_id,
             status=status,
             limit=min(max(1, limit), 200),
         )
     }
 
 
-@router.post("/{kb_id}/processing/jobs", response_model=None)
+@router.post("/{workspace_id}/processing/jobs", response_model=None)
 async def start_processing_job(
-    kb_id: str,
+    workspace_id: str,
     body: StartProcessingRequest,
     request: Request,
     user: User = Depends(get_current_user),
@@ -71,10 +71,10 @@ async def start_processing_job(
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> Any:
     """
-Start Processing Job. Document processing jobs (extract, chunk, project). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Start Processing Job. Document processing jobs (extract, chunk, project). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
-    get_kb_for_editor(request, user, kb_id, store)
-    context = knowledge.get_processing_context(kb_id, body.version_id)
+    get_workspace_for_editor(request, user, workspace_id, store)
+    context = knowledge.get_processing_context(workspace_id, body.version_id)
     options, options_payload = processing_options(
         body, store, filename=context["filename"]
     )
@@ -82,7 +82,7 @@ Start Processing Job. Document processing jobs (extract, chunk, project). Requir
     if trigger_rid:
         options_payload = {**options_payload, "request_id": trigger_rid}
     job, created = knowledge.create_processing_job(
-        kb_id,
+        workspace_id,
         version_id=body.version_id,
         options=options_payload,
         idempotency_key=body.idempotency_key,
@@ -91,18 +91,18 @@ Start Processing Job. Document processing jobs (extract, chunk, project). Requir
     if not created:
         return await respond_idempotent_processing_job(
             knowledge,
-            kb_id,
+            workspace_id,
             job,
             body,
             context,
             timeout_sec=job_timeout,
         )
-    session = graph_for(request, kb_id) if body.wait else None
+    session = graph_for(request, workspace_id) if body.wait else None
 
     def _run() -> Any:
         return respond_ingest(
             request.app,
-            kb_id,
+            workspace_id,
             body.version_id,
             job["id"],
             context["document_id"],
@@ -125,13 +125,13 @@ Start Processing Job. Document processing jobs (extract, chunk, project). Requir
     except ExtractionTimeoutError as exc:
         raise AdminError(504, "extract_timeout", exc.message) from exc
     if body.wait:
-        save_graph(request, kb_id)
+        save_graph(request, workspace_id)
     return result
 
 
-@router.get("/{kb_id}/processing/jobs/{job_id}")
+@router.get("/{workspace_id}/processing/jobs/{job_id}")
 async def get_processing_job(
-    kb_id: str,
+    workspace_id: str,
     request: Request,
     job_id: str,
     user: User = Depends(get_current_user),
@@ -139,14 +139,14 @@ async def get_processing_job(
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> dict[str, Any]:
     """
-Get Processing Job. Document processing jobs (extract, chunk, project). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Get Processing Job. Document processing jobs (extract, chunk, project). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
-    get_kb_for_viewer(request, user, kb_id, store)
-    job = knowledge.get_job(kb_id, job_id)
+    get_workspace_for_viewer(request, user, workspace_id, store)
+    job = knowledge.get_job(workspace_id, job_id)
     return {
         "job": {
             "id": job.id,
-            "kb_id": job.kb_id,
+            "workspace_id": job.workspace_id,
             "kind": job.kind,
             "subject_type": job.subject_type,
             "version_id": job.subject_id,
@@ -164,9 +164,9 @@ Get Processing Job. Document processing jobs (extract, chunk, project). Requires
     }
 
 
-@router.post("/{kb_id}/processing/jobs/{job_id}/retry", response_model=None)
+@router.post("/{workspace_id}/processing/jobs/{job_id}/retry", response_model=None)
 async def retry_processing_job(
-    kb_id: str,
+    workspace_id: str,
     job_id: str,
     body: RetryProcessingRequest,
     request: Request,
@@ -175,10 +175,10 @@ async def retry_processing_job(
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> Any:
     """
-Retry Processing Job. Document processing jobs (extract, chunk, project). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Retry Processing Job. Document processing jobs (extract, chunk, project). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
-    get_kb_for_editor(request, user, kb_id, store)
-    previous = knowledge.get_job(kb_id, job_id)
+    get_workspace_for_editor(request, user, workspace_id, store)
+    previous = knowledge.get_job(workspace_id, job_id)
     if previous.status not in {"failed", "cancelled"}:
         raise AdminError(409, "job_not_retryable", "仅失败或已取消任务可重试")
     request_body = StartProcessingRequest(
@@ -187,7 +187,7 @@ Retry Processing Job. Document processing jobs (extract, chunk, project). Requir
         **previous.options,
     )
     return await start_processing_job(
-        kb_id=kb_id,
+        workspace_id=workspace_id,
         body=request_body,
         request=request,
         user=user,
@@ -196,9 +196,9 @@ Retry Processing Job. Document processing jobs (extract, chunk, project). Requir
     )
 
 
-@router.get("/{kb_id}/ingest/jobs")
+@router.get("/{workspace_id}/ingest/jobs")
 async def list_ingest_jobs(
-    kb_id: str,
+    workspace_id: str,
     request: Request,
     status: str | None = None,
     limit: int = 100,
@@ -207,36 +207,36 @@ async def list_ingest_jobs(
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> dict[str, Any]:
     """F-SRC-08: document ingest jobs (alias of ``GET .../processing/jobs``)."""
-    get_kb_for_viewer(request, user, kb_id, store)
+    get_workspace_for_viewer(request, user, workspace_id, store)
     if status and status not in {"queued", "running", "succeeded", "failed", "cancelled"}:
         raise AdminError(422, "bad_status", "任务状态无效")
     return {
         "jobs": knowledge.list_processing_jobs(
-            kb_id,
+            workspace_id,
             status=status,
             limit=min(max(1, limit), 200),
         ),
-        "processing_jobs_path": f"/api/kbs/{kb_id}/processing/jobs",
+        "processing_jobs_path": f"/api/workspaces/{workspace_id}/processing/jobs",
     }
 
 
-@router.get("/{kb_id}/ingest/jobs/{job_id}")
+@router.get("/{workspace_id}/ingest/jobs/{job_id}")
 async def get_ingest_job(
-    kb_id: str,
+    workspace_id: str,
     job_id: str,
     request: Request,
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> dict[str, Any]:
     """
-Get Ingest Job. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Get Ingest Job. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
-    get_kb_for_viewer(request, user, kb_id, store)
+    get_workspace_for_viewer(request, user, workspace_id, store)
     knowledge = get_knowledge_store(request)
-    job = knowledge.get_job(kb_id, job_id)
+    job = knowledge.get_job(workspace_id, job_id)
     payload: dict[str, Any] = {
         "id": job.id,
-        "kb_id": job.kb_id,
+        "workspace_id": job.workspace_id,
         "kind": job.kind,
         "subject_type": job.subject_type,
         "subject_id": job.subject_id,
@@ -253,7 +253,7 @@ Get Ingest Job. Requires KB membership (session) or KB API token with read/write
     }
     version_payload: dict[str, Any] | None = None
     if job.subject_type == "document_version":
-        version = knowledge.get_version(kb_id, job.subject_id)
+        version = knowledge.get_version(workspace_id, job.subject_id)
         version_payload = {
             "id": version.id,
             "document_id": version.document_id,

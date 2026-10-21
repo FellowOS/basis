@@ -1,4 +1,4 @@
-"""KB Basis Open Connector Protocol (BOCP) routes — aggregates sub-routers."""
+"""Workspace Basis Open Connector Protocol (BOCP) routes — aggregates sub-routers."""
 
 from __future__ import annotations
 

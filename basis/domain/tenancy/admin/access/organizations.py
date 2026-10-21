@@ -94,8 +94,8 @@ class OrganizationsAccess:
     def _db_backend(self) -> str:
         return getattr(self._store._db, "backend", "sqlite")
 
-    def ensure_knowledge_bases_organization_column(self) -> None:
-        """Add knowledge_bases.organization_id when migration ALTER was skipped (e.g. PG privileges)."""
+    def ensure_workspaces_organization_column(self) -> None:
+        """Add workspaces.organization_id when migration ALTER was skipped (e.g. PG privileges)."""
         with self._store._lock:
             if self._db_backend() == "postgres":
                 row = self._store._conn.execute(
@@ -103,7 +103,7 @@ class OrganizationsAccess:
                     SELECT EXISTS (
                         SELECT 1 FROM information_schema.columns
                         WHERE table_schema = 'public'
-                          AND table_name = 'knowledge_bases'
+                          AND table_name = 'workspaces'
                           AND column_name = 'organization_id'
                     )
                     """
@@ -113,7 +113,7 @@ class OrganizationsAccess:
                 try:
                     self._store._conn.execute(
                         """
-                        ALTER TABLE knowledge_bases
+                        ALTER TABLE workspaces
                         ADD COLUMN IF NOT EXISTS organization_id TEXT
                         REFERENCES organizations(id)
                         """
@@ -123,7 +123,7 @@ class OrganizationsAccess:
                     try:
                         self._store._conn.execute(
                             """
-                            ALTER TABLE knowledge_bases
+                            ALTER TABLE workspaces
                             ADD COLUMN IF NOT EXISTS organization_id TEXT
                             """
                         )
@@ -135,7 +135,7 @@ class OrganizationsAccess:
                     SELECT EXISTS (
                         SELECT 1 FROM information_schema.columns
                         WHERE table_schema = 'public'
-                          AND table_name = 'knowledge_bases'
+                          AND table_name = 'workspaces'
                           AND column_name = 'organization_id'
                     )
                     """
@@ -144,28 +144,28 @@ class OrganizationsAccess:
                     owner_row = self._store._conn.execute(
                         """
                         SELECT tableowner FROM pg_tables
-                        WHERE schemaname = 'public' AND tablename = 'knowledge_bases'
+                        WHERE schemaname = 'public' AND tablename = 'workspaces'
                         """
                     ).fetchone()
                     owner = owner_row[0] if owner_row else "unknown"
                     raise AdminError(
                         500,
                         "schema_incomplete",
-                        f"knowledge_bases.organization_id is missing (table owner={owner}). "
+                        f"workspaces.organization_id is missing (table owner={owner}). "
                         "Connect as that role or a superuser and run: "
-                        "ALTER TABLE knowledge_bases ADD COLUMN IF NOT EXISTS organization_id TEXT;",
+                        "ALTER TABLE workspaces ADD COLUMN IF NOT EXISTS organization_id TEXT;",
                     )
                 return
             cols = {
                 r[1]
-                for r in self._store._conn.execute("PRAGMA table_info(knowledge_bases)").fetchall()
+                for r in self._store._conn.execute("PRAGMA table_info(workspaces)").fetchall()
             }
             if "organization_id" in cols:
                 return
             try:
                 self._store._conn.execute(
                     """
-                    ALTER TABLE knowledge_bases
+                    ALTER TABLE workspaces
                     ADD COLUMN organization_id TEXT REFERENCES organizations(id)
                     """
                 )
@@ -174,12 +174,12 @@ class OrganizationsAccess:
                 pass
 
     def ensure_kb_organization_links(self) -> int:
-        """Create an organization for each KB missing organization_id (idempotent)."""
+        """Create an organization for each workspace missing organization_id (idempotent)."""
         with self._store._lock:
             try:
                 pending = self._store._conn.execute(
                     """
-                    SELECT id, name, created_by FROM knowledge_bases
+                    SELECT id, name, created_by FROM workspaces
                     WHERE organization_id IS NULL OR TRIM(organization_id) = ''
                     """
                 ).fetchall()
@@ -190,9 +190,9 @@ class OrganizationsAccess:
             count = 0
             now = utc_now_iso()
             for kb in pending:
-                kb_id = kb["id"]
+                workspace_id = kb["id"]
                 org_id = str(uuid.uuid4())
-                slug = _slug_for_kb(kb_id, kb["name"] or "org")
+                slug = _slug_for_kb(workspace_id, kb["name"] or "org")
                 while self._store._conn.execute(
                     "SELECT 1 FROM organizations WHERE slug = ?", (slug,)
                 ).fetchone():
@@ -206,10 +206,10 @@ class OrganizationsAccess:
                 )
                 owners = self._store._conn.execute(
                     """
-                    SELECT user_id FROM kb_members
-                    WHERE kb_id = ? AND role = 'owner'
+                    SELECT user_id FROM members
+                    WHERE workspace_id = ? AND role = 'owner'
                     """,
-                    (kb_id,),
+                    (workspace_id,),
                 ).fetchall()
                 member_ids = {kb["created_by"]}
                 for o in owners:
@@ -225,8 +225,8 @@ class OrganizationsAccess:
                         (org_id, uid, now),
                     )
                 self._store._conn.execute(
-                    "UPDATE knowledge_bases SET organization_id = ? WHERE id = ?",
-                    (org_id, kb_id),
+                    "UPDATE workspaces SET organization_id = ? WHERE id = ?",
+                    (org_id, workspace_id),
                 )
                 count += 1
             if count:
@@ -234,14 +234,14 @@ class OrganizationsAccess:
             return count
 
     def reconcile_organization_memberships(self) -> None:
-        """KB owner/admin → org owner/admin on the KB's organization."""
+        """Workspace owner/admin → org owner/admin on the workspace organization."""
         with self._store._lock:
             try:
                 rows = self._store._conn.execute(
                     """
                     SELECT kb.organization_id AS org_id, m.user_id, m.role AS kb_role
-                    FROM kb_members m
-                    INNER JOIN knowledge_bases kb ON kb.id = m.kb_id
+                    FROM members m
+                    INNER JOIN workspaces kb ON kb.id = m.workspace_id
                     WHERE kb.organization_id IS NOT NULL AND TRIM(kb.organization_id) != ''
                       AND m.role IN ('owner', 'admin')
                     """
@@ -296,7 +296,7 @@ class OrganizationsAccess:
         return org
 
     def prepare_organization_sso_directory(self, actor: "User | None" = None) -> None:
-        self.ensure_knowledge_bases_organization_column()
+        self.ensure_workspaces_organization_column()
         self.ensure_kb_organization_links()
         self.reconcile_organization_memberships()
         if actor is not None:
@@ -918,4 +918,3 @@ class OrganizationsAccess:
             (user_id, email, display_name, hash_password(random_pw), created_at),
         )
         return User(user_id, email, display_name, False, None, created_at)
-

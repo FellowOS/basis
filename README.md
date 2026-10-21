@@ -26,11 +26,11 @@ Basis is an open-source stack on the [Semantica](https://github.com/semantica-ag
 
 - **Business semantics** — entities, typed facts, mappings, and ontologies; the unit of meaning is not “another chunk.”
 - **Evidence ledger** — canonical statements, provenance; graph and vectors are projections you can rebuild.
-- **Knowledge bases** — document ingest, chunk search (lexical + embeddings), processing jobs, review queue.
+- **Workspaces** — document ingest, chunk search (lexical + embeddings), processing jobs, review queue.
 - **Graph & ontology** — Explorer-style graph UI, vocabulary, SHACL, SPARQL, ontology hub workflows.
 - **Connectors (BOCP)** — shipped providers (e.g. postgres, mysql, github, slack); inbound sync and governed writeback.
-- **Agent APIs** — KB-scoped **OpenAPI v1** and **MCP** (`search_chunks`, `find_entities`, connector tools, review ops).
-- **Platform** — users, org SSO (OIDC/SAML optional), KB roles, API tokens, audit.
+- **Agent APIs** — workspace-scoped **OpenAPI v1** and **MCP** (`search_chunks`, `find_entities`, connector tools, review ops).
+- **Platform** — users, org SSO (OIDC/SAML optional), workspace roles, API tokens, audit.
 
 ---
 
@@ -51,7 +51,7 @@ flowchart LR
   end
 ```
 
-Integrations should call **Basis** (`/api/v1/...` and KB MCP), not Semantica directly.
+Integrations should call **Basis** (`/api/v1/...` and workspace MCP), not Semantica directly.
 
 ---
 
@@ -89,9 +89,9 @@ In-app product docs: **`http://127.0.0.1:5173/docs`** · API explorer: **`http:/
 
 ### 3. Smoke-test in the UI
 
-1. Create a knowledge base.
+1. Create a workspace.
 2. **Sources** — paste or upload a short text file; wait for processing.
-3. Open **Graph** or **Search** for that KB.
+3. Open **Graph** or **Search** for that workspace.
 
 ### Desktop (optional, no login)
 
@@ -101,7 +101,7 @@ See [desktop/README.md](desktop/README.md): `BASIS_DEPLOYMENT_PROFILE=desktop`, 
 
 ## Agent integration (MCP)
 
-Create a **KB API token** (KB settings → Tokens). MCP endpoint:
+Create a **workspace API token** (workspace settings → Tokens). MCP endpoint:
 
 `POST /api/v1/kbs/{kb_id}/mcp` with `Authorization: Bearer <token>`.
 
@@ -142,7 +142,7 @@ Tool names and HTTP paths share the same operation catalog; see live **`/openapi
 Full list: [.env.example](.env.example).
 
 **PostgreSQL:** `docker compose -f compose.postgres.yml up -d`, then  
-`BASIS_DATABASE_URL=postgresql://basis:basis@127.0.0.1:5433/basis` (host port **5433**).
+`BASIS_DATABASE_URL=postgresql://basis:basis@127.0.0.1:5432/basis` (host port **5432**).
 
 **Backups:** `./scripts/backup_basis_data.sh` (SQLite) or `./scripts/backup_basis_postgres.sh` (Postgres).
 

@@ -1,4 +1,4 @@
-"""KB membership role ordering (shared by platform auth and capability flags)."""
+"""Workspace membership role ordering (shared by platform auth and capability flags)."""
 
 from __future__ import annotations
 

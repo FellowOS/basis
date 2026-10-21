@@ -59,10 +59,10 @@ def test_suggest_http_with_sql_table(tmp_path: Path) -> None:
         },
     )
     headers = {"Authorization": f"Bearer {reg.json()['token']}"}
-    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
 
     client.put(
-        f"/api/v1/kbs/{kb_id}/connectors/connections/postgres/erp",
+        f"/api/v1/workspaces/{workspace_id}/connectors/connections/postgres/erp",
         headers=headers,
         json={
             "auth_type": "database_dsn",
@@ -72,7 +72,7 @@ def test_suggest_http_with_sql_table(tmp_path: Path) -> None:
     )
 
     suggest = client.post(
-        f"/api/v1/kbs/{kb_id}/connectors/table-mappings/suggest",
+        f"/api/v1/workspaces/{workspace_id}/connectors/table-mappings/suggest",
         headers=headers,
         json={
             "sql_tables": [
@@ -93,7 +93,7 @@ def test_suggest_http_with_sql_table(tmp_path: Path) -> None:
     assert draft["target_class_uri"] == "urn:basis:class:Customers"
 
     batch = client.post(
-        f"/api/v1/kbs/{kb_id}/connectors/table-mappings/batch-create",
+        f"/api/v1/workspaces/{workspace_id}/connectors/table-mappings/batch-create",
         headers=headers,
         json={"mappings": [draft], "run_sync": True},
     )

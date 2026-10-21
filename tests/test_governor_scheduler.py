@@ -16,29 +16,29 @@ def _kb(tmp_path: Path) -> tuple[str, KnowledgeStore]:
 
     admin = AdminStore(tmp_path / "basis.db")
     user, _ = admin.register("sched@example.com", "password1", "Sched")
-    kb_id = admin.create_kb(user, "Sched KB", None, "restricted").id
+    workspace_id = admin.create_workspace(user, "Sched KB", None, "restricted").id
     admin.close()
     store = KnowledgeStore(tmp_path / "basis.db", BlobStore(tmp_path))
-    return kb_id, store
+    return workspace_id, store
 
 
 def test_is_governor_due_when_enabled_and_never_run(tmp_path: Path) -> None:
-    kb_id, store = _kb(tmp_path)
+    workspace_id, store = _kb(tmp_path)
     store.update_governance_config(
-        kb_id,
+        workspace_id,
         governor_enabled=True,
         governor_interval_minutes=60,
         governor_confidence_min=0.8,
     )
-    config = store.get_governance_config(kb_id)
+    config = store.get_governance_config(workspace_id)
     now = datetime.now(timezone.utc)
     assert is_governor_due(config, now) is True
 
 
 def test_run_due_governor_passes_executes(tmp_path: Path) -> None:
-    kb_id, store = _kb(tmp_path)
+    workspace_id, store = _kb(tmp_path)
     store.update_governance_config(
-        kb_id,
+        workspace_id,
         governor_enabled=True,
         governor_interval_minutes=60,
         governor_confidence_min=0.75,
@@ -47,10 +47,10 @@ def test_run_due_governor_passes_executes(tmp_path: Path) -> None:
     app.state.knowledge_store = store
     ran = run_due_governor_passes(app)
     assert ran == 1
-    config = store.get_governance_config(kb_id)
+    config = store.get_governance_config(workspace_id)
     assert config.governor_last_run_at is not None
 
 
 def test_governor_disabled_not_due(tmp_path: Path) -> None:
-    config = GovernanceConfig(kb_id="x", governor_enabled=False, governor_interval_minutes=60)
+    config = GovernanceConfig(workspace_id="x", governor_enabled=False, governor_interval_minutes=60)
     assert is_governor_due(config, datetime.now(timezone.utc)) is False

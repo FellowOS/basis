@@ -7,7 +7,7 @@ from typing import Any
 
 def find_active_derived_fact_duplicate(
     conn: Any,
-    kb_id: str,
+    workspace_id: str,
     subject_id: str,
     predicate_uri: str,
     object_entity_id: str | None,
@@ -16,13 +16,13 @@ def find_active_derived_fact_duplicate(
     return conn.execute(
         """
         SELECT id FROM derived_facts
-        WHERE kb_id = ? AND subject_id = ? AND predicate_uri = ?
+        WHERE workspace_id = ? AND subject_id = ? AND predicate_uri = ?
           AND COALESCE(object_entity_id, '') = COALESCE(?, '')
           AND COALESCE(object_value, '') = COALESCE(?, '')
           AND invalidated_at IS NULL
         LIMIT 1
         """,
-        (kb_id, subject_id, predicate_uri, object_entity_id, object_value),
+        (workspace_id, subject_id, predicate_uri, object_entity_id, object_value),
     ).fetchone()
 
 
@@ -30,7 +30,7 @@ def insert_derived_fact_row(
     conn: Any,
     *,
     fact_id: str,
-    kb_id: str,
+    workspace_id: str,
     subject_id: str,
     predicate_uri: str,
     object_entity_id: str | None,
@@ -41,14 +41,14 @@ def insert_derived_fact_row(
     conn.execute(
         """
         INSERT INTO derived_facts (
-            id, kb_id, subject_id, predicate_uri,
+            id, workspace_id, subject_id, predicate_uri,
             object_entity_id, object_value, object_datatype,
             rule_id, recorded_at, invalidated_at
         ) VALUES (?, ?, ?, ?, ?, ?, NULL, ?, ?, NULL)
         """,
         (
             fact_id,
-            kb_id,
+            workspace_id,
             subject_id,
             predicate_uri,
             object_entity_id,
@@ -108,17 +108,17 @@ def _derived_fact_dict(row: Any, deriv_rows: list[Any]) -> dict[str, Any]:
     }
 
 
-def list_derived_facts_limited(conn: Any, kb_id: str, limit: int) -> list[dict[str, Any]]:
+def list_derived_facts_limited(conn: Any, workspace_id: str, limit: int) -> list[dict[str, Any]]:
     rows = conn.execute(
         """
-        SELECT id, kb_id, subject_id, predicate_uri,
+        SELECT id, workspace_id, subject_id, predicate_uri,
                object_entity_id, object_value, rule_id, recorded_at
         FROM derived_facts
-        WHERE kb_id = ? AND invalidated_at IS NULL
+        WHERE workspace_id = ? AND invalidated_at IS NULL
         ORDER BY recorded_at DESC
         LIMIT ?
         """,
-        (kb_id, limit),
+        (workspace_id, limit),
     ).fetchall()
     facts: list[dict[str, Any]] = []
     for row in rows:
@@ -128,19 +128,19 @@ def list_derived_facts_limited(conn: Any, kb_id: str, limit: int) -> list[dict[s
 
 
 def list_derived_facts_for_entity(
-    conn: Any, kb_id: str, entity_id: str, limit: int
+    conn: Any, workspace_id: str, entity_id: str, limit: int
 ) -> list[dict[str, Any]]:
     rows = conn.execute(
         """
-        SELECT id, kb_id, subject_id, predicate_uri,
+        SELECT id, workspace_id, subject_id, predicate_uri,
                object_entity_id, object_value, rule_id, recorded_at
         FROM derived_facts
-        WHERE kb_id = ? AND invalidated_at IS NULL
+        WHERE workspace_id = ? AND invalidated_at IS NULL
           AND (subject_id = ? OR object_entity_id = ?)
         ORDER BY recorded_at DESC
         LIMIT ?
         """,
-        (kb_id, entity_id, entity_id, limit),
+        (workspace_id, entity_id, entity_id, limit),
     ).fetchall()
     facts: list[dict[str, Any]] = []
     for row in rows:

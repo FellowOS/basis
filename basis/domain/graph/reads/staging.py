@@ -8,9 +8,9 @@ from typing import Any
 from basis.domain.graph.reads.diff import diff_session_at
 
 
-def staging_session_key(kb_id: str, from_time: str, to_time: str) -> str:
+def staging_session_key(workspace_id: str, from_time: str, to_time: str) -> str:
     """Stable id for a compare range (client draft persistence; F-DIFF-01)."""
-    payload = f"{kb_id}\x1f{from_time.strip()}\x1f{to_time.strip()}".encode()
+    payload = f"{workspace_id}\x1f{from_time.strip()}\x1f{to_time.strip()}".encode()
     return hashlib.sha256(payload).hexdigest()[:16]
 
 
@@ -25,7 +25,7 @@ def _change_total(summary: dict[str, Any]) -> int:
 
 
 def build_graph_staging_payload(
-    kb_id: str,
+    workspace_id: str,
     diff: dict[str, Any],
     *,
     draft: dict[str, Any] | None = None,
@@ -36,9 +36,9 @@ def build_graph_staging_payload(
     from_time = str(diff.get("from_time") or "")
     to_time = str(diff.get("to_time") or "")
     return {
-        "kb_id": kb_id,
+        "workspace_id": workspace_id,
         "manifest": {
-            "session_key": staging_session_key(kb_id, from_time, to_time),
+            "session_key": staging_session_key(workspace_id, from_time, to_time),
             "from_time": from_time or diff.get("from_time"),
             "to_time": to_time or diff.get("to_time"),
             "change_total": _change_total(summary),
@@ -59,7 +59,7 @@ def build_graph_staging_payload(
 
 def graph_staging_at(
     session: Any,
-    kb_id: str,
+    workspace_id: str,
     from_time: str,
     to_time: str,
     *,
@@ -68,4 +68,4 @@ def graph_staging_at(
 ) -> dict[str, Any]:
     """Diff-only staging payload (no DB). Use KnowledgeStore.graph_staging_at to persist."""
     diff = diff_session_at(session, from_time, to_time)
-    return build_graph_staging_payload(kb_id, diff)
+    return build_graph_staging_payload(workspace_id, diff)

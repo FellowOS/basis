@@ -14,31 +14,31 @@ def _in_clause(ids: list[str]) -> str:
     return ",".join("?" * len(ids))
 
 
-def purge_entity_connector_sync_data(conn: Any, kb_id: str, entity_id: str) -> None:
+def purge_entity_connector_sync_data(conn: Any, workspace_id: str, entity_id: str) -> None:
     """Remove outbox + external refs for an entity (no commit; caller owns transaction)."""
     outbox_ids = [
         row[0]
         for row in conn.execute(
-            "SELECT id FROM entity_sync_outbox WHERE kb_id = ? AND entity_id = ?",
-            (kb_id, entity_id),
+            "SELECT id FROM entity_sync_outbox WHERE workspace_id = ? AND entity_id = ?",
+            (workspace_id, entity_id),
         ).fetchall()
     ]
     if outbox_ids:
         conn.execute(
             f"""
             DELETE FROM review_items
-            WHERE kb_id = ? AND subject_type = 'entity_sync_outbox'
+            WHERE workspace_id = ? AND subject_type = 'entity_sync_outbox'
               AND subject_id IN ({_in_clause(outbox_ids)})
             """,
-            (kb_id, *outbox_ids),
+            (workspace_id, *outbox_ids),
         )
     conn.execute(
-        "DELETE FROM entity_sync_outbox WHERE kb_id = ? AND entity_id = ?",
-        (kb_id, entity_id),
+        "DELETE FROM entity_sync_outbox WHERE workspace_id = ? AND entity_id = ?",
+        (workspace_id, entity_id),
     )
     conn.execute(
-        "DELETE FROM entity_external_refs WHERE kb_id = ? AND entity_id = ?",
-        (kb_id, entity_id),
+        "DELETE FROM entity_external_refs WHERE workspace_id = ? AND entity_id = ?",
+        (workspace_id, entity_id),
     )
 
 
@@ -56,7 +56,7 @@ class ConnectorSyncPersistence:
         self,
         *,
         mapping_id: str,
-        kb_id: str,
+        workspace_id: str,
         source_id: str,
         stream_name: str,
         external_table: str,
@@ -78,7 +78,7 @@ class ConnectorSyncPersistence:
         self._db.execute(
             """
             INSERT INTO source_table_mappings (
-                id, kb_id, source_id, stream_name, external_table,
+                id, workspace_id, source_id, stream_name, external_table,
                 stream_params_json, primary_key_column, cursor_column,
                 label_column, target_class_uri, column_mappings_json,
                 sync_mode, track_deletes, checkpoint_json,
@@ -88,7 +88,7 @@ class ConnectorSyncPersistence:
             """,
             (
                 mapping_id,
-                kb_id,
+                workspace_id,
                 source_id,
                 stream_name,
                 external_table,
@@ -112,7 +112,7 @@ class ConnectorSyncPersistence:
 
     def update_ingest_source_config(
         self,
-        kb_id: str,
+        workspace_id: str,
         source_id: str,
         config_json: str,
         updated_at: str,
@@ -121,9 +121,9 @@ class ConnectorSyncPersistence:
             """
             UPDATE ingest_sources
             SET config_json = ?, updated_at = ?
-            WHERE kb_id = ? AND id = ? AND deleted_at IS NULL
+            WHERE workspace_id = ? AND id = ? AND deleted_at IS NULL
             """,
-            (config_json, updated_at, kb_id, source_id),
+            (config_json, updated_at, workspace_id, source_id),
         )
 
     def update_table_mapping(
@@ -144,7 +144,7 @@ class ConnectorSyncPersistence:
         writeback_mode: str,
         max_rows: int,
         updated_at: str,
-        kb_id: str,
+        workspace_id: str,
         mapping_id: str,
     ) -> None:
         self._db.execute(
@@ -165,7 +165,7 @@ class ConnectorSyncPersistence:
                 writeback_mode = ?,
                 max_rows = ?,
                 updated_at = ?
-            WHERE kb_id = ? AND id = ?
+            WHERE workspace_id = ? AND id = ?
             """,
             (
                 stream_name,
@@ -183,44 +183,44 @@ class ConnectorSyncPersistence:
                 writeback_mode,
                 max_rows,
                 updated_at,
-                kb_id,
+                workspace_id,
                 mapping_id,
             ),
         )
         self._db.commit()
 
-    def delete_table_mapping(self, kb_id: str, mapping_id: str) -> int:
+    def delete_table_mapping(self, workspace_id: str, mapping_id: str) -> int:
         cur = self._db.execute(
-            "DELETE FROM source_table_mappings WHERE kb_id = ? AND id = ?",
-            (kb_id, mapping_id),
+            "DELETE FROM source_table_mappings WHERE workspace_id = ? AND id = ?",
+            (workspace_id, mapping_id),
         )
         self._db.commit()
         return int(cur.rowcount if cur.rowcount is not None and cur.rowcount >= 0 else 0)
 
-    def fetch_table_mapping_row(self, kb_id: str, mapping_id: str) -> Any:
+    def fetch_table_mapping_row(self, workspace_id: str, mapping_id: str) -> Any:
         return self._db.execute(
             """
-            SELECT id, kb_id, source_id, stream_name, external_table,
+            SELECT id, workspace_id, source_id, stream_name, external_table,
                    stream_params_json, primary_key_column, cursor_column,
                    label_column, target_class_uri, column_mappings_json,
                    sync_mode, track_deletes, checkpoint_json,
                    sync_direction, writeback_mode, max_rows, status,
                    created_at, updated_at
             FROM source_table_mappings
-            WHERE kb_id = ? AND id = ?
+            WHERE workspace_id = ? AND id = ?
             """,
-            (kb_id, mapping_id),
+            (workspace_id, mapping_id),
         ).fetchone()
 
-    def fetch_ingest_source_row(self, kb_id: str, source_id: str) -> Any:
+    def fetch_ingest_source_row(self, workspace_id: str, source_id: str) -> Any:
         return self._db.execute(
-            "SELECT kind, config_json FROM ingest_sources WHERE kb_id = ? AND id = ? AND deleted_at IS NULL",
-            (kb_id, source_id),
+            "SELECT kind, config_json FROM ingest_sources WHERE workspace_id = ? AND id = ? AND deleted_at IS NULL",
+            (workspace_id, source_id),
         ).fetchone()
 
     def fetch_external_ref_by_pk(
         self,
-        kb_id: str,
+        workspace_id: str,
         source_id: str,
         external_table: str,
         external_pk: str,
@@ -229,15 +229,15 @@ class ConnectorSyncPersistence:
             """
             SELECT id, entity_id, row_hash, deleted_upstream_at
             FROM entity_external_refs
-            WHERE kb_id = ? AND source_id = ? AND external_table = ? AND external_pk = ?
+            WHERE workspace_id = ? AND source_id = ? AND external_table = ? AND external_pk = ?
             """,
-            (kb_id, source_id, external_table, external_pk),
+            (workspace_id, source_id, external_table, external_pk),
         ).fetchone()
 
     def insert_sync_entity(
         self,
         entity_id: str,
-        kb_id: str,
+        workspace_id: str,
         label: str,
         description: str,
         created_at: str,
@@ -245,17 +245,17 @@ class ConnectorSyncPersistence:
         self.execute(
             """
             INSERT INTO entities (
-                id, kb_id, canonical_label, description, entity_kind, created_at, invalidated_at
+                id, workspace_id, canonical_label, description, entity_kind, created_at, invalidated_at
             ) VALUES (?, ?, ?, ?, 'named', ?, NULL)
             """,
-            (entity_id, kb_id, label, description, created_at),
+            (entity_id, workspace_id, label, description, created_at),
         )
 
     def insert_external_ref(
         self,
         *,
         ref_id: str,
-        kb_id: str,
+        workspace_id: str,
         entity_id: str,
         source_id: str,
         mapping_id: str,
@@ -267,13 +267,13 @@ class ConnectorSyncPersistence:
         self.execute(
             """
             INSERT INTO entity_external_refs (
-                id, kb_id, entity_id, source_id, mapping_id,
+                id, workspace_id, entity_id, source_id, mapping_id,
                 external_table, external_pk, row_hash, last_synced_at, deleted_upstream_at
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)
             """,
             (
                 ref_id,
-                kb_id,
+                workspace_id,
                 entity_id,
                 source_id,
                 mapping_id,
@@ -290,10 +290,10 @@ class ConnectorSyncPersistence:
             (last_synced_at, ref_id),
         )
 
-    def update_entity_label(self, label: str, entity_id: str, kb_id: str) -> None:
+    def update_entity_label(self, label: str, entity_id: str, workspace_id: str) -> None:
         self.execute(
-            "UPDATE entities SET canonical_label = ?, invalidated_at = NULL WHERE id = ? AND kb_id = ?",
-            (label, entity_id, kb_id),
+            "UPDATE entities SET canonical_label = ?, invalidated_at = NULL WHERE id = ? AND workspace_id = ?",
+            (label, entity_id, workspace_id),
         )
 
     def refresh_external_ref_hash(
@@ -311,14 +311,14 @@ class ConnectorSyncPersistence:
             (row_hash, last_synced_at, ref_id),
         )
 
-    def list_active_external_refs_for_mapping(self, kb_id: str, mapping_id: str) -> list[Any]:
+    def list_active_external_refs_for_mapping(self, workspace_id: str, mapping_id: str) -> list[Any]:
         return self.execute(
             """
             SELECT id, entity_id, external_pk
             FROM entity_external_refs
-            WHERE kb_id = ? AND mapping_id = ? AND deleted_upstream_at IS NULL
+            WHERE workspace_id = ? AND mapping_id = ? AND deleted_upstream_at IS NULL
             """,
-            (kb_id, mapping_id),
+            (workspace_id, mapping_id),
         ).fetchall()
 
     def mark_external_ref_deleted_upstream(self, ref_id: str, deleted_at: str) -> None:
@@ -330,7 +330,7 @@ class ConnectorSyncPersistence:
     def invalidate_connector_subject_statements(
         self,
         invalidated_at: str,
-        kb_id: str,
+        workspace_id: str,
         entity_id: str,
         proposed_by: str,
     ) -> None:
@@ -338,24 +338,24 @@ class ConnectorSyncPersistence:
             """
             UPDATE statements
             SET status = 'invalidated', invalidated_at = ?
-            WHERE kb_id = ? AND subject_id = ? AND proposed_by = ? AND invalidated_at IS NULL
+            WHERE workspace_id = ? AND subject_id = ? AND proposed_by = ? AND invalidated_at IS NULL
             """,
-            (invalidated_at, kb_id, entity_id, proposed_by),
+            (invalidated_at, workspace_id, entity_id, proposed_by),
         )
 
     def invalidate_connector_subject_typed_facts(
         self,
         invalidated_at: str,
-        kb_id: str,
+        workspace_id: str,
         entity_id: str,
     ) -> None:
         self.execute(
             """
             UPDATE typed_facts
             SET invalidated_at = ?
-            WHERE kb_id = ? AND subject_id = ? AND import_provenance_json IS NOT NULL AND invalidated_at IS NULL
+            WHERE workspace_id = ? AND subject_id = ? AND import_provenance_json IS NOT NULL AND invalidated_at IS NULL
             """,
-            (invalidated_at, kb_id, entity_id),
+            (invalidated_at, workspace_id, entity_id),
         )
 
     def update_mapping_checkpoint(
@@ -363,63 +363,63 @@ class ConnectorSyncPersistence:
         checkpoint_json: str,
         updated_at: str,
         mapping_id: str,
-        kb_id: str,
+        workspace_id: str,
     ) -> None:
         self.execute(
             """
             UPDATE source_table_mappings
             SET checkpoint_json = ?, updated_at = ?
-            WHERE id = ? AND kb_id = ?
+            WHERE id = ? AND workspace_id = ?
             """,
-            (checkpoint_json, updated_at, mapping_id, kb_id),
+            (checkpoint_json, updated_at, mapping_id, workspace_id),
         )
 
-    def fetch_outbox_row(self, kb_id: str, outbox_id: str) -> Any:
+    def fetch_outbox_row(self, workspace_id: str, outbox_id: str) -> Any:
         return self.execute(
             """
-            SELECT id, kb_id, entity_id, external_ref_id, statement_id, typed_fact_id,
+            SELECT id, workspace_id, entity_id, external_ref_id, statement_id, typed_fact_id,
                    action_kind, patch_json, status, review_item_id, decision_id,
                    job_id, error_code, error_detail_json, created_by, created_at, synced_at
             FROM entity_sync_outbox
-            WHERE kb_id = ? AND id = ?
+            WHERE workspace_id = ? AND id = ?
             """,
-            (kb_id, outbox_id),
+            (workspace_id, outbox_id),
         ).fetchone()
 
-    def fetch_outbox_execution_row(self, kb_id: str, outbox_id: str) -> Any:
+    def fetch_outbox_execution_row(self, workspace_id: str, outbox_id: str) -> Any:
         return self.execute(
             """
             SELECT o.entity_id, o.external_ref_id, o.patch_json, o.status,
                    r.source_id, r.mapping_id, r.external_table, r.external_pk
             FROM entity_sync_outbox o
             JOIN entity_external_refs r ON r.id = o.external_ref_id
-            WHERE o.kb_id = ? AND o.id = ?
+            WHERE o.workspace_id = ? AND o.id = ?
             """,
-            (kb_id, outbox_id),
+            (workspace_id, outbox_id),
         ).fetchone()
 
     def fetch_fk_entity_id(
-        self, kb_id: str, external_table: str, external_pk: str
+        self, workspace_id: str, external_table: str, external_pk: str
     ) -> Any:
         return self.execute(
             """
             SELECT entity_id FROM entity_external_refs
-            WHERE kb_id = ? AND external_table = ? AND external_pk = ?
+            WHERE workspace_id = ? AND external_table = ? AND external_pk = ?
             LIMIT 1
             """,
-            (kb_id, external_table, external_pk),
+            (workspace_id, external_table, external_pk),
         ).fetchone()
 
     def list_active_typed_facts_for_predicate(
-        self, kb_id: str, entity_id: str, predicate_uri: str
+        self, workspace_id: str, entity_id: str, predicate_uri: str
     ) -> list[Any]:
         return self.execute(
             """
             SELECT id, object_entity_id, object_value, from_statement_id, import_provenance_json
             FROM typed_facts
-            WHERE kb_id = ? AND subject_id = ? AND predicate_uri = ? AND invalidated_at IS NULL
+            WHERE workspace_id = ? AND subject_id = ? AND predicate_uri = ? AND invalidated_at IS NULL
             """,
-            (kb_id, entity_id, predicate_uri),
+            (workspace_id, entity_id, predicate_uri),
         ).fetchall()
 
     def invalidate_typed_fact_by_id(self, fact_id: str, invalidated_at: str) -> None:
@@ -444,7 +444,7 @@ class ConnectorSyncPersistence:
         self,
         *,
         statement_id: str,
-        kb_id: str,
+        workspace_id: str,
         entity_id: str,
         surface_phrase: str,
         object_entity_id: str | None,
@@ -457,14 +457,14 @@ class ConnectorSyncPersistence:
         self.execute(
             """
             INSERT INTO statements (
-                id, kb_id, subject_id, surface_phrase, object_entity_id, object_value,
+                id, workspace_id, subject_id, surface_phrase, object_entity_id, object_value,
                 object_datatype, confidence, status, proposed_by, recorded_at,
                 invalidated_at, supersedes_id
             ) VALUES (?, ?, ?, ?, ?, ?, ?, 1.0, 'confirmed', ?, ?, NULL, ?)
             """,
             (
                 statement_id,
-                kb_id,
+                workspace_id,
                 entity_id,
                 surface_phrase,
                 object_entity_id,
@@ -480,7 +480,7 @@ class ConnectorSyncPersistence:
         self,
         *,
         fact_id: str,
-        kb_id: str,
+        workspace_id: str,
         entity_id: str,
         predicate_uri: str,
         object_entity_id: str | None,
@@ -494,7 +494,7 @@ class ConnectorSyncPersistence:
         self.execute(
             """
             INSERT INTO typed_facts (
-                id, kb_id, subject_id, predicate_uri,
+                id, workspace_id, subject_id, predicate_uri,
                 object_entity_id, object_value, object_datatype,
                 from_statement_id, import_provenance_json, confidence,
                 recorded_at, invalidated_at, supersedes_id
@@ -502,7 +502,7 @@ class ConnectorSyncPersistence:
             """,
             (
                 fact_id,
-                kb_id,
+                workspace_id,
                 entity_id,
                 predicate_uri,
                 object_entity_id,
@@ -518,7 +518,7 @@ class ConnectorSyncPersistence:
     def upsert_entity_column_facts(
         self,
         *,
-        kb_id: str,
+        workspace_id: str,
         provider: str,
         mapping: Any,
         ref_id: str,
@@ -536,13 +536,13 @@ class ConnectorSyncPersistence:
             obj_entity_id: str | None = None
             obj_value: str | None = str_val
             if col_spec.kind == "relation" and col_spec.fk_target_table and str_val:
-                fk_row = self.fetch_fk_entity_id(kb_id, col_spec.fk_target_table, str_val)
+                fk_row = self.fetch_fk_entity_id(workspace_id, col_spec.fk_target_table, str_val)
                 if fk_row:
                     obj_entity_id = fk_row[0]
                     obj_value = None
 
             existing_facts = self.list_active_typed_facts_for_predicate(
-                kb_id, entity_id, pred_uri
+                workspace_id, entity_id, pred_uri
             )
             matched_fact = None
             for fact_row in existing_facts:
@@ -585,7 +585,7 @@ class ConnectorSyncPersistence:
 
             self.insert_connector_statement(
                 statement_id=new_stmt_id,
-                kb_id=kb_id,
+                workspace_id=workspace_id,
                 entity_id=entity_id,
                 surface_phrase=col_spec.surface_phrase,
                 object_entity_id=obj_entity_id,
@@ -607,7 +607,7 @@ class ConnectorSyncPersistence:
             )
             self.insert_connector_typed_fact(
                 fact_id=new_fact_id,
-                kb_id=kb_id,
+                workspace_id=workspace_id,
                 entity_id=entity_id,
                 predicate_uri=pred_uri,
                 object_entity_id=obj_entity_id,
@@ -619,62 +619,62 @@ class ConnectorSyncPersistence:
                 supersedes_id=old_fact_id,
             )
 
-    def fetch_external_ref_context_row(self, kb_id: str, entity_id: str) -> Any:
+    def fetch_external_ref_context_row(self, workspace_id: str, entity_id: str) -> Any:
         return self.execute(
             """
             SELECT id, source_id, mapping_id, external_table, external_pk, last_synced_at, deleted_upstream_at
             FROM entity_external_refs
-            WHERE kb_id = ? AND entity_id = ?
+            WHERE workspace_id = ? AND entity_id = ?
             ORDER BY last_synced_at DESC
             LIMIT 1
             """,
-            (kb_id, entity_id),
+            (workspace_id, entity_id),
         ).fetchone()
 
     def fetch_typed_fact_object_value(
-        self, kb_id: str, entity_id: str, predicate_uri: str
+        self, workspace_id: str, entity_id: str, predicate_uri: str
     ) -> Any:
         return self.execute(
             """
             SELECT object_value
             FROM typed_facts
-            WHERE kb_id = ? AND subject_id = ? AND predicate_uri = ? AND invalidated_at IS NULL
+            WHERE workspace_id = ? AND subject_id = ? AND predicate_uri = ? AND invalidated_at IS NULL
             ORDER BY recorded_at DESC
             LIMIT 1
             """,
-            (kb_id, entity_id, predicate_uri),
+            (workspace_id, entity_id, predicate_uri),
         ).fetchone()
 
-    def fetch_active_external_ref_for_writeback(self, kb_id: str, entity_id: str) -> Any:
+    def fetch_active_external_ref_for_writeback(self, workspace_id: str, entity_id: str) -> Any:
         return self.execute(
             """
             SELECT id, source_id, mapping_id, external_table, external_pk, row_hash
             FROM entity_external_refs
-            WHERE kb_id = ? AND entity_id = ? AND deleted_upstream_at IS NULL
+            WHERE workspace_id = ? AND entity_id = ? AND deleted_upstream_at IS NULL
             LIMIT 1
             """,
-            (kb_id, entity_id),
+            (workspace_id, entity_id),
         ).fetchone()
 
     def fetch_typed_fact_writeback_baseline(
-        self, kb_id: str, entity_id: str, predicate_uri: str
+        self, workspace_id: str, entity_id: str, predicate_uri: str
     ) -> Any:
         return self.execute(
             """
             SELECT object_value, from_statement_id
             FROM typed_facts
-            WHERE kb_id = ? AND subject_id = ? AND predicate_uri = ? AND invalidated_at IS NULL
+            WHERE workspace_id = ? AND subject_id = ? AND predicate_uri = ? AND invalidated_at IS NULL
             ORDER BY recorded_at DESC
             LIMIT 1
             """,
-            (kb_id, entity_id, predicate_uri),
+            (workspace_id, entity_id, predicate_uri),
         ).fetchone()
 
     def insert_connector_writeback_review(
         self,
         *,
         review_item_id: str,
-        kb_id: str,
+        workspace_id: str,
         outbox_id: str,
         payload_json: str,
         created_at: str,
@@ -682,18 +682,18 @@ class ConnectorSyncPersistence:
         self.execute(
             """
             INSERT INTO review_items (
-                id, kb_id, kind, subject_type, subject_id, status,
+                id, workspace_id, kind, subject_type, subject_id, status,
                 priority, payload_json, version, created_at
             ) VALUES (?, ?, 'connector_writeback', 'entity_sync_outbox', ?, 'open', 10, ?, 1, ?)
             """,
-            (review_item_id, kb_id, outbox_id, payload_json, created_at),
+            (review_item_id, workspace_id, outbox_id, payload_json, created_at),
         )
 
     def insert_sync_outbox_item(
         self,
         *,
         outbox_id: str,
-        kb_id: str,
+        workspace_id: str,
         entity_id: str,
         external_ref_id: str,
         statement_id: str | None,
@@ -707,13 +707,13 @@ class ConnectorSyncPersistence:
         self.execute(
             """
             INSERT INTO entity_sync_outbox (
-                id, kb_id, entity_id, external_ref_id, statement_id, typed_fact_id,
+                id, workspace_id, entity_id, external_ref_id, statement_id, typed_fact_id,
                 action_kind, patch_json, status, review_item_id, created_by, created_at
             ) VALUES (?, ?, ?, ?, ?, ?, 'update_fields', ?, ?, ?, ?, ?)
             """,
             (
                 outbox_id,
-                kb_id,
+                workspace_id,
                 entity_id,
                 external_ref_id,
                 statement_id,
@@ -733,22 +733,22 @@ class ConnectorSyncPersistence:
         resolved_by: str | None,
         rationale: str,
         review_item_id: str,
-        kb_id: str,
+        workspace_id: str,
     ) -> None:
         self.execute(
             """
             UPDATE review_items
             SET status = 'approved', resolved_at = ?, resolved_by = ?, rationale = ?
-            WHERE id = ? AND kb_id = ?
+            WHERE id = ? AND workspace_id = ?
             """,
-            (resolved_at, resolved_by, rationale, review_item_id, kb_id),
+            (resolved_at, resolved_by, rationale, review_item_id, workspace_id),
         )
 
     def insert_writeback_agent_decision(
         self,
         *,
         decision_id: str,
-        kb_id: str,
+        workspace_id: str,
         review_item_id: str | None,
         rationale: str,
         trace_json: str,
@@ -758,13 +758,13 @@ class ConnectorSyncPersistence:
         self.execute(
             """
             INSERT INTO agent_decisions (
-                id, kb_id, review_item_id, action, status, confidence,
+                id, workspace_id, review_item_id, action, status, confidence,
                 rationale, trace_json, created_at, applied_at
             ) VALUES (?, ?, ?, 'approve_connector_writeback', 'applied', 1.0, ?, ?, ?, ?)
             """,
             (
                 decision_id,
-                kb_id,
+                workspace_id,
                 review_item_id,
                 rationale,
                 trace_json,
@@ -774,15 +774,15 @@ class ConnectorSyncPersistence:
         )
 
     def queue_outbox_after_approval(
-        self, decision_id: str, outbox_id: str, kb_id: str
+        self, decision_id: str, outbox_id: str, workspace_id: str
     ) -> None:
         self.execute(
             """
             UPDATE entity_sync_outbox
             SET status = 'queued', decision_id = ?
-            WHERE id = ? AND kb_id = ?
+            WHERE id = ? AND workspace_id = ?
             """,
-            (decision_id, outbox_id, kb_id),
+            (decision_id, outbox_id, workspace_id),
         )
 
     def update_external_ref_row_hash(
@@ -797,101 +797,101 @@ class ConnectorSyncPersistence:
             (row_hash, last_synced_at, ref_id),
         )
 
-    def mark_outbox_synced(self, synced_at: str, outbox_id: str, kb_id: str) -> None:
+    def mark_outbox_synced(self, synced_at: str, outbox_id: str, workspace_id: str) -> None:
         self.execute(
             """
             UPDATE entity_sync_outbox
             SET status = 'synced', synced_at = ?, error_code = NULL, error_detail_json = NULL
-            WHERE id = ? AND kb_id = ?
+            WHERE id = ? AND workspace_id = ?
             """,
-            (synced_at, outbox_id, kb_id),
+            (synced_at, outbox_id, workspace_id),
         )
 
     def mark_outbox_writeback_failed(
-        self, error_detail_json: str, outbox_id: str, kb_id: str
+        self, error_detail_json: str, outbox_id: str, workspace_id: str
     ) -> None:
         self.execute(
             """
             UPDATE entity_sync_outbox
             SET status = 'failed', error_code = 'writeback_failed', error_detail_json = ?
-            WHERE id = ? AND kb_id = ?
+            WHERE id = ? AND workspace_id = ?
             """,
-            (error_detail_json, outbox_id, kb_id),
+            (error_detail_json, outbox_id, workspace_id),
         )
 
-    def fetch_entity_canonical_label(self, entity_id: str, kb_id: str) -> Any:
+    def fetch_entity_canonical_label(self, entity_id: str, workspace_id: str) -> Any:
         return self.execute(
-            "SELECT canonical_label FROM entities WHERE id = ? AND kb_id = ?",
-            (entity_id, kb_id),
+            "SELECT canonical_label FROM entities WHERE id = ? AND workspace_id = ?",
+            (entity_id, workspace_id),
         ).fetchone()
 
-    def list_mapping_ids(self, kb_id: str, *, limit: int | None = None) -> list[str]:
+    def list_mapping_ids(self, workspace_id: str, *, limit: int | None = None) -> list[str]:
         if limit is not None:
             rows = self.execute(
                 """
                 SELECT id FROM source_table_mappings
-                WHERE kb_id = ?
+                WHERE workspace_id = ?
                 ORDER BY created_at DESC
                 LIMIT ?
                 """,
-                (kb_id, limit),
+                (workspace_id, limit),
             ).fetchall()
         else:
             rows = self.execute(
                 """
                 SELECT id FROM source_table_mappings
-                WHERE kb_id = ?
+                WHERE workspace_id = ?
                 ORDER BY created_at DESC
                 """,
-                (kb_id,),
+                (workspace_id,),
             ).fetchall()
         return [str(row[0]) for row in rows]
 
     def list_outbox_ids(
-        self, kb_id: str, *, status: str | None = None, limit: int = 50
+        self, workspace_id: str, *, status: str | None = None, limit: int = 50
     ) -> list[str]:
         if status:
             rows = self.execute(
                 """
                 SELECT id FROM entity_sync_outbox
-                WHERE kb_id = ? AND status = ?
+                WHERE workspace_id = ? AND status = ?
                 ORDER BY created_at DESC
                 LIMIT ?
                 """,
-                (kb_id, status, limit),
+                (workspace_id, status, limit),
             ).fetchall()
         else:
             rows = self.execute(
                 """
                 SELECT id FROM entity_sync_outbox
-                WHERE kb_id = ?
+                WHERE workspace_id = ?
                 ORDER BY created_at DESC
                 LIMIT ?
                 """,
-                (kb_id, limit),
+                (workspace_id, limit),
             ).fetchall()
         return [str(row[0]) for row in rows]
 
-    def reject_outbox(self, kb_id: str, outbox_id: str) -> None:
+    def reject_outbox(self, workspace_id: str, outbox_id: str) -> None:
         self.execute(
             """
             UPDATE entity_sync_outbox
             SET status = 'rejected'
-            WHERE id = ? AND kb_id = ?
+            WHERE id = ? AND workspace_id = ?
             """,
-            (outbox_id, kb_id),
+            (outbox_id, workspace_id),
         )
         self.commit()
 
     def list_active_inbound_mapping_pairs(self) -> list[tuple[str, str]]:
-        """(kb_id, mapping_id) for scheduler — active inbound/bidirectional mappings."""
+        """(workspace_id, mapping_id) for scheduler — active inbound/bidirectional mappings."""
         rows = self.execute(
             """
-            SELECT kb_id, id
+            SELECT workspace_id, id
             FROM source_table_mappings
             WHERE status = 'active'
               AND sync_direction IN ('inbound', 'bidirectional')
-            ORDER BY kb_id, created_at ASC
+            ORDER BY workspace_id, created_at ASC
             """,
         ).fetchall()
         return [(str(row[0]), str(row[1])) for row in rows]

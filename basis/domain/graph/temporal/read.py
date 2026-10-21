@@ -1,4 +1,4 @@
-"""KB temporal graph bounds and snapshots."""
+"""Workspace temporal graph bounds and snapshots."""
 
 from __future__ import annotations
 

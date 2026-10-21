@@ -1,4 +1,4 @@
-"""Pydantic models for KB ingest source routes."""
+"""Pydantic models for workspace ingest source routes."""
 
 from __future__ import annotations
 
@@ -29,4 +29,3 @@ class WebhookIngestRequest(BaseModel):
 
 class SyncIngestSourceRequest(BaseModel):
     auto_process: bool = True
-

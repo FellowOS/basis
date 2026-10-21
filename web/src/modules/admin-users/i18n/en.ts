@@ -1,0 +1,22 @@
+export default {
+  page: {
+    col_display_name: "Display name",
+    col_email: "Email",
+    col_admin: "Admin",
+    yes: "Yes",
+    no: "No",
+    count: "{count} users",
+    count_one: "{count} user",
+    create_user: "Create user",
+    empty_title: "No users yet",
+    empty_description: "Provision accounts so people can sign in.",
+    create_dialog_title: "Create user",
+    create_dialog_desc: "Provision an account; password must be at least 8 characters.",
+    email_label: "Email",
+    display_name_label: "Display name",
+    password_label: "Password",
+    system_admin: "System administrator",
+    creating: "Creating…",
+    create: "Create",
+  },
+} as const;

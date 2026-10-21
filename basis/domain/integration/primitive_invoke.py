@@ -23,7 +23,7 @@ def _json_safe(value: Any) -> Any:
 
 def execute_connector_primitive(
     runtime: ConnectorRuntime,
-    kb_id: str,
+    workspace_id: str,
     service: str,
     *,
     action_id: str,
@@ -46,7 +46,7 @@ def execute_connector_primitive(
     if not action_id or not primitive:
         raise ValueError("action_id and primitive are required")
 
-    policy = runtime.vault.get_policy(kb_id)
+    policy = runtime.vault.get_policy(workspace_id)
     mode = policy.resolve_primitive_execution_mode(
         service,
         action_id,
@@ -56,14 +56,14 @@ def execute_connector_primitive(
     if mode == "disabled":
         raise PermissionError(
             f"Primitive '{primitive}' on action '{action_id}' "
-            f"(service '{service}') is disabled by KB action policy"
+            f"(service '{service}') is disabled by workspace action policy"
         )
 
     params = dict(action_params or {})
 
     if primitive == "invoke":
         out = runtime.execute_tool(
-            kb_id,
+            workspace_id,
             service,
             action_id,
             connection_name=connection_name,
@@ -73,7 +73,7 @@ def execute_connector_primitive(
 
     if primitive == "discover":
         info = runtime.discover_schema(
-            kb_id,
+            workspace_id,
             service,
             connection_name=connection_name,
             stream_name=action_id,
@@ -94,7 +94,7 @@ def execute_connector_primitive(
 
     if primitive == "list":
         read_res = runtime.read_stream(
-            kb_id,
+            workspace_id,
             service,
             connection_name=connection_name,
             stream_name=action_id,
@@ -125,7 +125,7 @@ def execute_connector_primitive(
         if operation != "create" and pk is None:
             raise ValueError("external_id is required for mutate operations other than create")
         out = runtime.mutate_stream(
-            kb_id,
+            workspace_id,
             service,
             connection_name=connection_name,
             stream_name=action_id,

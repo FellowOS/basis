@@ -1,4 +1,4 @@
-"""KB-scoped Explorer adapter routes (temporal, enrich, provenance)."""
+"""Workspace-scoped Explorer adapter routes (temporal, enrich, provenance)."""
 
 import json
 
@@ -24,14 +24,14 @@ def test_temporal_bounds_after_ingest(tmp_path) -> None:
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
 
-    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
     client.post(
-        f"/api/v1/kbs/{kb_id}/documents",
+        f"/api/v1/workspaces/{workspace_id}/documents",
         headers=headers,
         json={"doc_id": "t1", "text": "Alice knows Bob.", "wait": True, "extract": True},
     )
 
-    bounds = client.get(f"/api/v1/kbs/{kb_id}/temporal/bounds", headers=headers)
+    bounds = client.get(f"/api/v1/workspaces/{workspace_id}/temporal/bounds", headers=headers)
     assert bounds.status_code == 200
     body = bounds.json()
     assert "min" in body and "max" in body
@@ -48,20 +48,20 @@ def test_temporal_diff_after_ingest(tmp_path) -> None:
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
 
-    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
     client.post(
-        f"/api/v1/kbs/{kb_id}/documents",
+        f"/api/v1/workspaces/{workspace_id}/documents",
         headers=headers,
         json={"doc_id": "td1", "text": "Alice knows Bob.", "wait": True, "extract": True},
     )
 
-    bounds = client.get(f"/api/v1/kbs/{kb_id}/temporal/bounds", headers=headers)
+    bounds = client.get(f"/api/v1/workspaces/{workspace_id}/temporal/bounds", headers=headers)
     assert bounds.status_code == 200
     b = bounds.json()
     t_from, t_to = b["min"], b["max"]
 
     diff = client.get(
-        f"/api/v1/kbs/{kb_id}/temporal/diff",
+        f"/api/v1/workspaces/{workspace_id}/temporal/diff",
         headers=headers,
         params={"from": t_from, "to": t_to},
     )
@@ -81,18 +81,18 @@ def test_graph_diff_includes_edges_summary(tmp_path) -> None:
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
 
-    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
     client.post(
-        f"/api/v1/kbs/{kb_id}/documents",
+        f"/api/v1/workspaces/{workspace_id}/documents",
         headers=headers,
         json={"doc_id": "gd1", "text": "Carol knows Dave.", "wait": True, "extract": True},
     )
 
-    bounds = client.get(f"/api/v1/kbs/{kb_id}/temporal/bounds", headers=headers).json()
+    bounds = client.get(f"/api/v1/workspaces/{workspace_id}/temporal/bounds", headers=headers).json()
     t_from = bounds.get("min") or "2020-01-01T00:00:00"
     t_to = bounds.get("max") or "2030-01-01T00:00:00"
     diff = client.get(
-        f"/api/v1/kbs/{kb_id}/graph/diff",
+        f"/api/v1/workspaces/{workspace_id}/graph/diff",
         headers=headers,
         params={"from": t_from, "to": t_to},
     )
@@ -115,9 +115,9 @@ def test_ingest_temporal_bounds_align_with_graph_diff(tmp_path) -> None:
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
 
-    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
     client.post(
-        f"/api/v1/kbs/{kb_id}/documents",
+        f"/api/v1/workspaces/{workspace_id}/documents",
         headers=headers,
         json={
             "doc_id": "tim1",
@@ -127,12 +127,12 @@ def test_ingest_temporal_bounds_align_with_graph_diff(tmp_path) -> None:
         },
     )
 
-    bounds = client.get(f"/api/v1/kbs/{kb_id}/temporal/bounds", headers=headers).json()
+    bounds = client.get(f"/api/v1/workspaces/{workspace_id}/temporal/bounds", headers=headers).json()
     t_from = bounds.get("min") or "2020-01-01T00:00:00"
     t_to = bounds.get("max") or "2030-01-01T00:00:00"
 
     diff = client.get(
-        f"/api/v1/kbs/{kb_id}/graph/diff",
+        f"/api/v1/workspaces/{workspace_id}/graph/diff",
         headers=headers,
         params={"from": t_from, "to": t_to},
     )
@@ -144,7 +144,7 @@ def test_ingest_temporal_bounds_align_with_graph_diff(tmp_path) -> None:
 
     snap_at = body.get("to_time") or t_to
     snap = client.get(
-        f"/api/v1/kbs/{kb_id}/temporal/snapshot",
+        f"/api/v1/workspaces/{workspace_id}/temporal/snapshot",
         headers=headers,
         params={"at": snap_at},
     )
@@ -158,7 +158,7 @@ def test_ingest_temporal_bounds_align_with_graph_diff(tmp_path) -> None:
 
     if bounds.get("min") and bounds.get("max"):
         ledger_diff = client.get(
-            f"/api/v1/kbs/{kb_id}/graph/diff",
+            f"/api/v1/workspaces/{workspace_id}/graph/diff",
             headers=headers,
             params={"from": bounds["min"], "to": bounds["max"]},
         )
@@ -176,15 +176,15 @@ def test_enrich_dedup_after_ingest(tmp_path) -> None:
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
 
-    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
     client.post(
-        f"/api/v1/kbs/{kb_id}/documents",
+        f"/api/v1/workspaces/{workspace_id}/documents",
         headers=headers,
         json={"doc_id": "d1", "text": "Alice knows Bob. Alice works with Bob.", "wait": True, "extract": True},
     )
 
     dedup = client.post(
-        f"/api/v1/kbs/{kb_id}/enrich/dedup",
+        f"/api/v1/workspaces/{workspace_id}/enrich/dedup",
         headers=headers,
         json={"threshold": 0.5},
     )
@@ -205,15 +205,15 @@ def test_sparql_select_after_ingest(tmp_path) -> None:
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
 
-    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
     client.post(
-        f"/api/v1/kbs/{kb_id}/documents",
+        f"/api/v1/workspaces/{workspace_id}/documents",
         headers=headers,
         json={"doc_id": "s1", "text": "Alice knows Bob.", "wait": True, "extract": True},
     )
 
     sparql = client.post(
-        f"/api/v1/kbs/{kb_id}/sparql",
+        f"/api/v1/workspaces/{workspace_id}/sparql",
         headers=headers,
         json={"query": "SELECT ?s ?p ?o WHERE { ?s ?p ?o } LIMIT 5"},
     )
@@ -234,14 +234,14 @@ def test_provenance_lineage_after_ingest(tmp_path) -> None:
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
 
-    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
     client.post(
-        f"/api/v1/kbs/{kb_id}/documents",
+        f"/api/v1/workspaces/{workspace_id}/documents",
         headers=headers,
         json={"doc_id": "p1", "text": "Alice knows Bob.", "wait": True, "extract": True},
     )
 
-    nodes = client.get(f"/api/v1/kbs/{kb_id}/graph/nodes?limit=5", headers=headers)
+    nodes = client.get(f"/api/v1/workspaces/{workspace_id}/graph/nodes?limit=5", headers=headers)
     assert nodes.status_code == 200
     node_list = nodes.json().get("nodes") or []
     if not node_list:
@@ -249,7 +249,7 @@ def test_provenance_lineage_after_ingest(tmp_path) -> None:
 
     node_id = node_list[0]["id"]
     lineage = client.get(
-        f"/api/v1/kbs/{kb_id}/provenance",
+        f"/api/v1/workspaces/{workspace_id}/provenance",
         headers=headers,
         params={"node_id": node_id},
     )
@@ -269,14 +269,14 @@ def test_decisions_list_empty_after_ingest(tmp_path) -> None:
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
 
-    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
     client.post(
-        f"/api/v1/kbs/{kb_id}/documents",
+        f"/api/v1/workspaces/{workspace_id}/documents",
         headers=headers,
         json={"doc_id": "c1", "text": "Alice knows Bob.", "wait": True, "extract": True},
     )
 
-    decisions = client.get(f"/api/v1/kbs/{kb_id}/decisions", headers=headers)
+    decisions = client.get(f"/api/v1/workspaces/{workspace_id}/decisions", headers=headers)
     assert decisions.status_code == 200
     assert isinstance(decisions.json(), list)
 
@@ -292,14 +292,14 @@ def test_distance_matrix_after_ingest(tmp_path) -> None:
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
 
-    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
     client.post(
-        f"/api/v1/kbs/{kb_id}/documents",
+        f"/api/v1/workspaces/{workspace_id}/documents",
         headers=headers,
         json={"doc_id": "dm1", "text": "Alice knows Bob. Bob knows Carol.", "wait": True, "extract": True},
     )
 
-    nodes = client.get(f"/api/v1/kbs/{kb_id}/graph/nodes", headers=headers, params={"limit": 20})
+    nodes = client.get(f"/api/v1/workspaces/{workspace_id}/graph/nodes", headers=headers, params={"limit": 20})
     assert nodes.status_code == 200
     node_list = nodes.json().get("nodes") or []
     if len(node_list) < 2:
@@ -307,7 +307,7 @@ def test_distance_matrix_after_ingest(tmp_path) -> None:
 
     ids = [n["id"] for n in node_list[:3]]
     matrix = client.post(
-        f"/api/v1/kbs/{kb_id}/graph/distance-matrix",
+        f"/api/v1/workspaces/{workspace_id}/graph/distance-matrix",
         headers=headers,
         json={"node_ids": ids, "metric": "hops"},
     )
@@ -327,10 +327,10 @@ def test_reasoning_run_without_graph_write(tmp_path) -> None:
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
 
-    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
 
     reasoning = client.post(
-        f"/api/v1/kbs/{kb_id}/reasoning/run",
+        f"/api/v1/workspaces/{workspace_id}/reasoning/run",
         headers=headers,
         json={
             "facts": ["inhibits(Metformin, mTOR)", "causes(mTOR, Neurodegeneration)"],
@@ -359,7 +359,7 @@ def test_graph_import_export_roundtrip(tmp_path) -> None:
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
 
-    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
     payload = {
         "nodes": [
             {"id": "import-node-1", "type": "entity", "properties": {"content": "Hello import"}},
@@ -369,19 +369,19 @@ def test_graph_import_export_roundtrip(tmp_path) -> None:
     files = {
         "file": ("graph.json", json.dumps(payload), "application/json"),
     }
-    blocked = client.post(f"/api/v1/kbs/{kb_id}/import", headers=headers, files=files)
+    blocked = client.post(f"/api/v1/workspaces/{workspace_id}/import", headers=headers, files=files)
     assert blocked.status_code == 409
     assert blocked.json()["detail"]["code"] == "import_requires_review"
 
     proposed = client.post(
-        f"/api/v1/kbs/{kb_id}/review/items/graph-import",
+        f"/api/v1/workspaces/{workspace_id}/review/items/graph-import",
         headers=headers,
         files=files,
     )
     assert proposed.status_code == 200
     item_id = proposed.json()["item"]["id"]
     approved = client.post(
-        f"/api/v1/kbs/{kb_id}/review/items/{item_id}/approve",
+        f"/api/v1/workspaces/{workspace_id}/review/items/{item_id}/approve",
         headers=headers,
         json={},
     )
@@ -389,7 +389,7 @@ def test_graph_import_export_roundtrip(tmp_path) -> None:
     assert approved.json().get("import", {}).get("nodes_imported", 0) >= 1
 
     exported = client.post(
-        f"/api/v1/kbs/{kb_id}/export",
+        f"/api/v1/workspaces/{workspace_id}/export",
         headers=headers,
         json={"format": "json"},
     )
@@ -397,7 +397,7 @@ def test_graph_import_export_roundtrip(tmp_path) -> None:
     assert exported.headers.get("content-type", "").startswith("application/json")
 
     subgraph = client.post(
-        f"/api/v1/kbs/{kb_id}/export",
+        f"/api/v1/workspaces/{workspace_id}/export",
         headers=headers,
         json={"format": "json", "node_ids": ["import-node-1", "does-not-exist"]},
     )
@@ -405,7 +405,7 @@ def test_graph_import_export_roundtrip(tmp_path) -> None:
     assert subgraph.headers.get("content-type", "").startswith("application/json")
 
     ttl = client.post(
-        f"/api/v1/kbs/{kb_id}/export",
+        f"/api/v1/workspaces/{workspace_id}/export",
         headers=headers,
         json={"format": "ttl"},
     )
@@ -415,7 +415,7 @@ def test_graph_import_export_roundtrip(tmp_path) -> None:
     ctype = (ttl.headers.get("content-type") or "").lower()
     assert "turtle" in ctype or ttl.content[:1]
 
-    audit = client.get(f"/api/v1/kbs/{kb_id}/audit/graph-mutations", headers=headers)
+    audit = client.get(f"/api/v1/workspaces/{workspace_id}/audit/graph-mutations", headers=headers)
     assert audit.status_code == 200
     actions = [e["action"] for e in audit.json()["events"]]
     assert "kb.graph.import" in actions or "kb.graph.import_proposed" in actions
@@ -433,15 +433,15 @@ def test_semantic_neighborhood_unknown_node_returns_coded_detail(tmp_path) -> No
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
 
-    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
     client.post(
-        f"/api/v1/kbs/{kb_id}/documents",
+        f"/api/v1/workspaces/{workspace_id}/documents",
         headers=headers,
         json={"doc_id": "s1", "text": "Alice knows Bob.", "wait": True, "extract": True},
     )
 
     missing = client.get(
-        f"/api/v1/kbs/{kb_id}/graph/semantic-neighborhood",
+        f"/api/v1/workspaces/{workspace_id}/graph/semantic-neighborhood",
         headers=headers,
         params={"node_id": "definitely-missing-node-id"},
     )
@@ -460,15 +460,15 @@ def test_graph_path_requires_source_and_target(tmp_path) -> None:
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
 
-    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
     client.post(
-        f"/api/v1/kbs/{kb_id}/documents",
+        f"/api/v1/workspaces/{workspace_id}/documents",
         headers=headers,
         json={"doc_id": "p1", "text": "Alice knows Bob.", "wait": True, "extract": True},
     )
 
     bad = client.get(
-        f"/api/v1/kbs/{kb_id}/graph/path",
+        f"/api/v1/workspaces/{workspace_id}/graph/path",
         headers=headers,
         params={"source": "", "target": "x", "algorithm": "bfs"},
     )

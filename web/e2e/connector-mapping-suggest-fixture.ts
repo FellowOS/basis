@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 
 import { expect, type Page } from '@playwright/test';
 
-import { e2eKbPath } from './api-v1-path.js';
+import { e2eWorkspaceApiPath } from './api-v1-path.js';
 import { bearerToken } from './helpers.js';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
@@ -31,13 +31,13 @@ export function sqlalchemySqliteDsn(absoluteDbPath: string): string {
 
 export async function putE2ePostgresSqliteConnection(
   page: Page,
-  kbId: string,
+  workspaceId: string,
   connectionName: string,
   dbPath: string,
 ): Promise<void> {
   const token = await bearerToken(page);
   const response = await page.request.put(
-    e2eKbPath(kbId, `connectors/connections/postgres/${connectionName}`),
+    e2eWorkspaceApiPath(workspaceId, `connectors/connections/postgres/${connectionName}`),
     {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -65,10 +65,10 @@ export type SuggestApiGroup = {
 
 export async function suggestAutoTableMappings(
   page: Page,
-  kbId: string,
+  workspaceId: string,
 ): Promise<{ groups: SuggestApiGroup[]; skipped: Array<{ reason?: string }> }> {
   const token = await bearerToken(page);
-  const response = await page.request.post(e2eKbPath(kbId, 'connectors/table-mappings/suggest'), {
+  const response = await page.request.post(e2eWorkspaceApiPath(workspaceId, 'connectors/table-mappings/suggest'), {
     headers: {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
@@ -83,13 +83,13 @@ export async function suggestAutoTableMappings(
 
 export async function putE2eGithubApiKeyConnection(
   page: Page,
-  kbId: string,
+  workspaceId: string,
   connectionName: string,
   personalAccessToken: string,
 ): Promise<void> {
   const token = await bearerToken(page);
   const response = await page.request.put(
-    e2eKbPath(kbId, `connectors/connections/github/${connectionName}`),
+    e2eWorkspaceApiPath(workspaceId, `connectors/connections/github/${connectionName}`),
     {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -110,12 +110,12 @@ export type ConnectorMappingDraftPayload = SuggestApiGroup['drafts'][number]['dr
 
 export async function batchCreateTableMappings(
   page: Page,
-  kbId: string,
+  workspaceId: string,
   mappings: ConnectorMappingDraftPayload[],
   opts?: { runSync?: boolean },
 ): Promise<Array<{ id: string }>> {
   const token = await bearerToken(page);
-  const response = await page.request.post(e2eKbPath(kbId, 'connectors/table-mappings/batch-create'), {
+  const response = await page.request.post(e2eWorkspaceApiPath(workspaceId, 'connectors/table-mappings/batch-create'), {
     headers: {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
@@ -130,11 +130,11 @@ export async function batchCreateTableMappings(
 
 export async function suggestSqlTableMappings(
   page: Page,
-  kbId: string,
+  workspaceId: string,
   sqlTables: Array<{ provider: string; connection_name: string; external_table: string }>,
 ): Promise<{ groups: SuggestApiGroup[] }> {
   const token = await bearerToken(page);
-  const response = await page.request.post(e2eKbPath(kbId, 'connectors/table-mappings/suggest'), {
+  const response = await page.request.post(e2eWorkspaceApiPath(workspaceId, 'connectors/table-mappings/suggest'), {
     headers: {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
@@ -152,13 +152,13 @@ export async function suggestSqlTableMappings(
 
 export async function postE2eConnectionCheck(
   page: Page,
-  kbId: string,
+  workspaceId: string,
   service: string,
   connectionName: string,
 ): Promise<void> {
   const token = await bearerToken(page);
   const response = await page.request.post(
-    e2eKbPath(kbId, `connectors/connections/${service}/${connectionName}/check`),
+    e2eWorkspaceApiPath(workspaceId, `connectors/connections/${service}/${connectionName}/check`),
     { headers: { Authorization: `Bearer ${token}` } },
   );
   expect(response.ok(), `check failed: ${response.status()} ${await response.text()}`).toBeTruthy();
@@ -166,10 +166,10 @@ export async function postE2eConnectionCheck(
 
 export async function createCustomersTableMappingViaApi(
   page: Page,
-  kbId: string,
+  workspaceId: string,
   connectionName: string,
 ): Promise<string> {
-  const suggested = await suggestSqlTableMappings(page, kbId, [
+  const suggested = await suggestSqlTableMappings(page, workspaceId, [
     { provider: 'postgres', connection_name: connectionName, external_table: 'customers' },
   ]);
   const draft = suggested.groups[0]?.drafts[0]?.draft;
@@ -177,7 +177,7 @@ export async function createCustomersTableMappingViaApi(
     throw new Error('no mapping draft from suggest');
   }
   const token = await bearerToken(page);
-  const response = await page.request.post(e2eKbPath(kbId, 'connectors/table-mappings/batch-create'), {
+  const response = await page.request.post(e2eWorkspaceApiPath(workspaceId, 'connectors/table-mappings/batch-create'), {
     headers: {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',

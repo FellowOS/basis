@@ -17,14 +17,14 @@ def test_e2e_processing_failed_helper(tmp_path: Path) -> None:
         json={"email": "epf@example.com", "password": "password1", "display_name": "EPF"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
 
-    seeded = client.post(f"/api/v1/kbs/{kb_id}/_e2e/processing-failed", headers=headers)
+    seeded = client.post(f"/api/v1/workspaces/{workspace_id}/_e2e/processing-failed", headers=headers)
     assert seeded.status_code == 200
     body = seeded.json()
     job_id = body["job_id"]
 
-    listed = client.get(f"/api/v1/kbs/{kb_id}/alerts", headers=headers).json()
+    listed = client.get(f"/api/v1/workspaces/{workspace_id}/alerts", headers=headers).json()
     match = next(
         (a for a in listed["alerts"] if a["kind"] == "processing.failed"),
         None,
@@ -37,11 +37,11 @@ def test_e2e_processing_failed_helper(tmp_path: Path) -> None:
         "/api/v1/auth/register",
         json={"email": "no@example.com", "password": "password1", "display_name": "No"},
     ).json()
-    kb2 = disabled.get("/api/v1/kbs", headers={"Authorization": f"Bearer {admin2['token']}"}).json()[
+    kb2 = disabled.get("/api/v1/workspaces", headers={"Authorization": f"Bearer {admin2['token']}"}).json()[
         "kbs"
     ][0]["id"]
     denied = disabled.post(
-        f"/api/v1/kbs/{kb2}/_e2e/processing-failed",
+        f"/api/v1/workspaces/{kb2}/_e2e/processing-failed",
         headers={"Authorization": f"Bearer {admin2['token']}"},
     )
     assert denied.status_code == 404
@@ -56,13 +56,13 @@ def test_e2e_sync_failed_helper(tmp_path: Path) -> None:
         json={"email": "esf@example.com", "password": "password1", "display_name": "ESF"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
 
-    seeded = client.post(f"/api/v1/kbs/{kb_id}/_e2e/sync-failed", headers=headers)
+    seeded = client.post(f"/api/v1/workspaces/{workspace_id}/_e2e/sync-failed", headers=headers)
     assert seeded.status_code == 200
     source_id = seeded.json()["source_id"]
 
-    listed = client.get(f"/api/v1/kbs/{kb_id}/alerts", headers=headers).json()
+    listed = client.get(f"/api/v1/workspaces/{workspace_id}/alerts", headers=headers).json()
     match = next((a for a in listed["alerts"] if a["kind"] == "sync_failed"), None)
     assert match is not None
     assert match["detail"]["source_id"] == source_id

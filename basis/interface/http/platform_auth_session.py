@@ -70,7 +70,7 @@ async def login(
     store: AdminStore = Depends(get_store),
 ) -> dict:
     """
-Authenticate with email and password. Returns a session Bearer token for platform and KB routes.
+Authenticate with email and password. Returns a session Bearer token for platform and workspace routes.
     """
     _reject_if_desktop(request)
     auth = _auth_settings(request)

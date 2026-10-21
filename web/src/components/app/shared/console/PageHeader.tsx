@@ -26,7 +26,7 @@ export function PageHeader({ crumbs, className }: PageHeaderProps) {
 
   return (
     <Breadcrumb
-      aria-label={t.common.breadcrumbNavAria}
+      aria-label={t.core.common.breadcrumbNavAria}
       className={cn('box-border flex h-(--console-chrome-row) shrink-0 items-center', className)}
     >
       <BreadcrumbList className="text-[12.5px]">

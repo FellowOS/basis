@@ -29,30 +29,30 @@ def approve_statement_remember_review(
     knowledge: KnowledgeStore,
     store: KbAuditStore,
     user: KbAuditActor,
-    kb_id: str,
+    workspace_id: str,
     item_id: str,
     rationale: str | None,
     rebuild_projection: Callable[[], Any] | None = None,
     audit_extra: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Approve an open ``statement_remember`` review item (MCP / core parity with console)."""
-    item = knowledge.get_review_item(kb_id, item_id)
+    item = knowledge.get_review_item(workspace_id, item_id)
     if item["status"] != "open":
         raise AdminError(409, "review_closed", "审核项已处理")
     if item.get("kind") != STATEMENT_REVIEW_KIND:
         raise AdminError(422, "unsupported_review_kind", f"不支持的审核类型: {item.get('kind')}")
     payload = item.get("payload") or {}
     statement_id = str(payload.get("statement_id") or item["subject_id"])
-    knowledge.set_statement_status(kb_id, statement_id, "confirmed")
+    knowledge.set_statement_status(workspace_id, statement_id, "confirmed")
     if rebuild_projection is not None:
         rebuild_projection()
     merge_result = {
         "statement_id": statement_id,
         "status": "confirmed",
-        "conflicts": scan_statement_conflicts(knowledge, kb_id),
+        "conflicts": scan_statement_conflicts(knowledge, workspace_id),
     }
     resolved = knowledge.resolve_review_item(
-        kb_id,
+        workspace_id,
         item_id,
         status="approved",
         resolved_by=user.id,
@@ -64,7 +64,7 @@ def approve_statement_remember_review(
     audit_kb_graph(
         store,
         user,
-        kb_id,
+        workspace_id,
         "kb.statement.remember_approved",
         review_item_id=item_id,
         extra=audit_extra_merged,
@@ -77,21 +77,21 @@ def reject_statement_remember_review(
     knowledge: KnowledgeStore,
     store: KbAuditStore,
     user: KbAuditActor,
-    kb_id: str,
+    workspace_id: str,
     item_id: str,
     rationale: str | None,
 ) -> dict[str, Any]:
     """Reject an open ``statement_remember`` review item."""
-    item = knowledge.get_review_item(kb_id, item_id)
+    item = knowledge.get_review_item(workspace_id, item_id)
     if item["status"] != "open":
         raise AdminError(409, "review_closed", "审核项已处理")
     if item.get("kind") != STATEMENT_REVIEW_KIND:
         raise AdminError(422, "unsupported_review_kind", f"不支持的审核类型: {item.get('kind')}")
     payload = item.get("payload") or {}
     statement_id = str(payload.get("statement_id") or item["subject_id"])
-    knowledge.set_statement_status(kb_id, statement_id, "rejected")
+    knowledge.set_statement_status(workspace_id, statement_id, "rejected")
     resolved = knowledge.resolve_review_item(
-        kb_id,
+        workspace_id,
         item_id,
         status="rejected",
         resolved_by=user.id,
@@ -100,7 +100,7 @@ def reject_statement_remember_review(
     audit_kb_graph(
         store,
         user,
-        kb_id,
+        workspace_id,
         "kb.statement.remember_rejected",
         review_item_id=item_id,
         extra={"rationale": rationale, "payload": item.get("payload")},
@@ -113,24 +113,24 @@ def reject_review_item(
     knowledge: KnowledgeStore,
     store: KbAuditStore,
     user: KbAuditActor,
-    kb_id: str,
+    workspace_id: str,
     item_id: str,
     rationale: str | None,
     blob_store: BlobStore | None = None,
     projection_bindings: GraphProjectionBindings | None = None,
 ) -> dict[str, Any]:
     """Reject an open review item (HTTP / future MCP parity)."""
-    item = knowledge.get_review_item(kb_id, item_id)
+    item = knowledge.get_review_item(workspace_id, item_id)
     kind = item.get("kind")
     if kind == "graph_import":
         if blob_store is None:
             raise AdminError(500, "internal_error", "blob store required for graph import reject")
-        discard_staged_import(blob_store, kb_id, item.get("payload") or {})
+        discard_staged_import(blob_store, workspace_id, item.get("payload") or {})
     elif kind == MAPPING_REVIEW_KIND:
         payload = item.get("payload") or {}
         mapping_id = str(payload.get("mapping_id") or item["subject_id"])
         apply_mapping_status_change(
-            kb_id,
+            workspace_id,
             mapping_id,
             user,
             store,
@@ -145,15 +145,15 @@ def reject_review_item(
             knowledge=knowledge,
             store=store,
             user=user,
-            kb_id=kb_id,
+            workspace_id=workspace_id,
             item_id=item_id,
             rationale=rationale,
         )
     elif kind == "connector_writeback":
         outbox_id = str((item.get("payload") or {}).get("outbox_id") or item["subject_id"])
-        knowledge.reject_entity_sync_outbox(kb_id, outbox_id)
+        knowledge.reject_entity_sync_outbox(workspace_id, outbox_id)
     resolved = knowledge.resolve_review_item(
-        kb_id,
+        workspace_id,
         item_id,
         status="rejected",
         resolved_by=user.id,
@@ -172,16 +172,16 @@ def reject_review_item(
     elif kind == LOW_CONFIDENCE_KIND:
         payload = dict(item.get("payload") or {})
         statement_id = str(payload.get("statement_id") or item["subject_id"])
-        resolve_low_confidence_reject(knowledge, kb_id, statement_id)
+        resolve_low_confidence_reject(knowledge, workspace_id, statement_id)
         if projection_bindings is not None:
-            rebuild_kb_projection(projection_bindings, kb_id)
+            rebuild_kb_projection(projection_bindings, workspace_id)
         reject_action = "kb.statement.low_confidence_rejected"
     else:
         reject_action = "kb.graph.merge_rejected"
     audit_kb_graph(
         store,
         user,
-        kb_id,
+        workspace_id,
         reject_action,
         review_item_id=item_id,
         extra={"rationale": rationale, "payload": item.get("payload")},

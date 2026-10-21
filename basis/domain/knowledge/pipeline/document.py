@@ -12,7 +12,7 @@ from basis.domain.knowledge.pipeline.kg_apply import apply_kg_to_session
 
 @dataclass(frozen=True)
 class TextIngestOptions:
-    """Controls how raw text is processed before landing on the KB graph."""
+    """Controls how raw text is processed before landing on the workspace graph."""
 
     extract: bool = True
     chunk: bool = False
@@ -92,7 +92,7 @@ def ingest_text(
     *,
     options: TextIngestOptions | None = None,
 ) -> dict[str, Any]:
-    """Record a document and optionally run semantica extraction into the KB graph."""
+    """Record a document and optionally run semantica extraction into the workspace graph."""
     options = options or TextIngestOptions()
     session.add_node(doc_id, "document", content=text, text=text)
 

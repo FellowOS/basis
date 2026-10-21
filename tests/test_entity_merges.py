@@ -21,15 +21,15 @@ from basis.domain.knowledge.store import KnowledgeStore
 def test_record_and_list_entity_merges(tmp_path: Path) -> None:
     admin = AdminStore(tmp_path / "basis.db")
     user, _ = admin.register("em@example.com", "password1", "U")
-    kb_id = admin.create_kb(user, "KB", None, "restricted").id
+    workspace_id = admin.create_workspace(user, "KB", None, "restricted").id
     actor_id = user.id
     admin.close()
 
     store = KnowledgeStore(tmp_path / "basis.db", BlobStore(tmp_path))
-    source = store.create_entity(kb_id, canonical_label="Dup")
-    target = store.create_entity(kb_id, canonical_label="Primary")
+    source = store.create_entity(workspace_id, canonical_label="Dup")
+    target = store.create_entity(workspace_id, canonical_label="Primary")
     row = store.record_entity_merge(
-        kb_id,
+        workspace_id,
         source_entity_id=source,
         target_entity_id=target,
         actor_id=actor_id,
@@ -39,7 +39,7 @@ def test_record_and_list_entity_merges(tmp_path: Path) -> None:
     assert row["target_entity_id"] == target
     assert row["reverted_at"] is None
 
-    listed = store.list_entity_merges(kb_id)
+    listed = store.list_entity_merges(workspace_id)
     assert len(listed) == 1
     assert listed[0]["id"] == row["id"]
 
@@ -56,18 +56,18 @@ def test_approve_entity_merge_records_ledger_rows(tmp_path: Path) -> None:
         json={"email": "ap@example.com", "password": "password1", "display_name": "Ap"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
 
     knowledge: KnowledgeStore = app.state.knowledge_store
-    primary = knowledge.create_entity(kb_id, canonical_label="Alice")
-    duplicate = knowledge.create_entity(kb_id, canonical_label="Alice duplicate")
-    session = rebuild_graph_from_ledger(knowledge, kb_id)
-    revision = knowledge.bump_projection_revision(kb_id)
-    app.state.graph_persistence.save(kb_id, session, projection_revision=revision)
-    app.state.kb_graph_session_registry.invalidate(kb_id)
+    primary = knowledge.create_entity(workspace_id, canonical_label="Alice")
+    duplicate = knowledge.create_entity(workspace_id, canonical_label="Alice duplicate")
+    session = rebuild_graph_from_ledger(knowledge, workspace_id)
+    revision = knowledge.bump_projection_revision(workspace_id)
+    app.state.graph_persistence.save(workspace_id, session, projection_revision=revision)
+    app.state.kb_graph_session_registry.invalidate(workspace_id)
 
     proposed = client.post(
-        f"/api/v1/kbs/{kb_id}/review/items/entity-merge",
+        f"/api/v1/workspaces/{workspace_id}/review/items/entity-merge",
         headers=headers,
         json={"primary_id": primary, "duplicate_ids": [duplicate]},
     )
@@ -75,13 +75,13 @@ def test_approve_entity_merge_records_ledger_rows(tmp_path: Path) -> None:
     item_id = proposed.json()["item"]["id"]
 
     approved = client.post(
-        f"/api/v1/kbs/{kb_id}/review/items/{item_id}/approve",
+        f"/api/v1/workspaces/{workspace_id}/review/items/{item_id}/approve",
         headers=headers,
         json={"rationale": "confirmed duplicate"},
     )
     assert approved.status_code == 200
 
-    merges = client.get(f"/api/v1/kbs/{kb_id}/ledger/entity-merges", headers=headers)
+    merges = client.get(f"/api/v1/workspaces/{workspace_id}/ledger/entity-merges", headers=headers)
     assert merges.status_code == 200
     rows = merges.json()["merges"]
     assert len(rows) == 1
@@ -91,7 +91,7 @@ def test_approve_entity_merge_records_ledger_rows(tmp_path: Path) -> None:
 
     from basis.domain.graph.projection.snapshot_store import GraphPersistence
 
-    loaded, _ = GraphPersistence(tmp_path).load_snapshot(kb_id)
+    loaded, _ = GraphPersistence(tmp_path).load_snapshot(workspace_id)
     node_ids = sorted(loaded.graph.nodes.keys())
     assert duplicate not in node_ids
     assert primary in node_ids
@@ -100,24 +100,24 @@ def test_approve_entity_merge_records_ledger_rows(tmp_path: Path) -> None:
 def test_revert_entity_merge(tmp_path: Path) -> None:
     admin = AdminStore(tmp_path / "basis.db")
     user, _ = admin.register("rev@example.com", "password1", "U")
-    kb_id = admin.create_kb(user, "KB", None, "restricted").id
+    workspace_id = admin.create_workspace(user, "KB", None, "restricted").id
     actor_id = user.id
     admin.close()
 
     store = KnowledgeStore(tmp_path / "basis.db", BlobStore(tmp_path))
-    source = store.create_entity(kb_id, canonical_label="X")
-    target = store.create_entity(kb_id, canonical_label="Y")
+    source = store.create_entity(workspace_id, canonical_label="X")
+    target = store.create_entity(workspace_id, canonical_label="Y")
     row = store.record_entity_merge(
-        kb_id,
+        workspace_id,
         source_entity_id=source,
         target_entity_id=target,
         actor_id=actor_id,
     )
-    reverted = store.revert_entity_merge(kb_id, row["id"], reverted_by=actor_id)
+    reverted = store.revert_entity_merge(workspace_id, row["id"], reverted_by=actor_id)
     assert reverted["reverted_at"] is not None
     assert reverted["reverted_by"] == actor_id
-    assert store.list_entity_merges(kb_id, active_only=True) == []
-    assert len(store.list_entity_merges(kb_id, active_only=False)) == 1
+    assert store.list_entity_merges(workspace_id, active_only=True) == []
+    assert len(store.list_entity_merges(workspace_id, active_only=False)) == 1
 
 
 def test_revert_entity_merge_refreshes_explorer_nodes(tmp_path: Path) -> None:
@@ -132,23 +132,23 @@ def test_revert_entity_merge_refreshes_explorer_nodes(tmp_path: Path) -> None:
         json={"email": "revx@example.com", "password": "password1", "display_name": "Rev"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
     knowledge: KnowledgeStore = app.state.knowledge_store
 
     _, version_id, _, _ = knowledge.store_upload_bytes(
-        kb_id,
+        workspace_id,
         title="t.txt",
         mime_type="text/plain",
         data=b"x",
         created_by=None,
         external_key="doc-revert-explorer",
     )
-    chunk_id = knowledge.create_chunk(kb_id, version_id, ordinal=0, text="Alice knows Bob.")
-    knowledge.set_version_status(kb_id, version_id, "ready")
-    alice = knowledge.create_entity(kb_id, canonical_label="Alice")
-    bob = knowledge.create_entity(kb_id, canonical_label="Bob")
+    chunk_id = knowledge.create_chunk(workspace_id, version_id, ordinal=0, text="Alice knows Bob.")
+    knowledge.set_version_status(workspace_id, version_id, "ready")
+    alice = knowledge.create_entity(workspace_id, canonical_label="Alice")
+    bob = knowledge.create_entity(workspace_id, canonical_label="Bob")
     knowledge.add_open_statement(
-        kb_id,
+        workspace_id,
         subject_id=alice,
         surface_phrase="knows",
         object_entity_id=bob,
@@ -158,28 +158,28 @@ def test_revert_entity_merge_refreshes_explorer_nodes(tmp_path: Path) -> None:
         chunk_id=chunk_id,
         quote="knows Bob",
     )
-    session = rebuild_graph_from_ledger(knowledge, kb_id)
-    ledger = knowledge.get_projection_state(kb_id)
+    session = rebuild_graph_from_ledger(knowledge, workspace_id)
+    ledger = knowledge.get_projection_state(workspace_id)
     app.state.graph_persistence.save(
-        kb_id,
+        workspace_id,
         session,
         projection_revision=ledger["revision"],
         schema_version=ledger["schema_version"],
     )
-    app.state.graphs[kb_id] = session
+    app.state.graphs[workspace_id] = session
 
     merge_row = knowledge.record_entity_merge(
-        kb_id,
+        workspace_id,
         source_entity_id=bob,
         target_entity_id=alice,
         actor_id=admin["user"]["id"],
     )
-    rebuild = client.post(f"/api/v1/kbs/{kb_id}/graph/rebuild", headers=headers)
+    rebuild = client.post(f"/api/v1/workspaces/{workspace_id}/graph/rebuild", headers=headers)
     assert rebuild.status_code == 200
 
     def entity_node_ids() -> set[str]:
         resp = client.get(
-            f"/api/v1/kbs/{kb_id}/graph/nodes",
+            f"/api/v1/workspaces/{workspace_id}/graph/nodes",
             headers=headers,
             params={"node_type": "entity", "limit": 100},
         )
@@ -193,7 +193,7 @@ def test_revert_entity_merge_refreshes_explorer_nodes(tmp_path: Path) -> None:
     assert entity_node_ids() == merged_ids
 
     revert = client.post(
-        f"/api/v1/kbs/{kb_id}/ledger/entity-merges/{merge_row['id']}/revert",
+        f"/api/v1/workspaces/{workspace_id}/ledger/entity-merges/{merge_row['id']}/revert",
         headers=headers,
     )
     assert revert.status_code == 200
@@ -211,18 +211,18 @@ def test_revert_entity_merge_http(tmp_path: Path) -> None:
         json={"email": "http@example.com", "password": "password1", "display_name": "Http"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
     knowledge: KnowledgeStore = app.state.knowledge_store
-    source = knowledge.create_entity(kb_id, canonical_label="S")
-    target = knowledge.create_entity(kb_id, canonical_label="T")
+    source = knowledge.create_entity(workspace_id, canonical_label="S")
+    target = knowledge.create_entity(workspace_id, canonical_label="T")
     row = knowledge.record_entity_merge(
-        kb_id,
+        workspace_id,
         source_entity_id=source,
         target_entity_id=target,
         actor_id=admin["user"]["id"],
     )
     resp = client.post(
-        f"/api/v1/kbs/{kb_id}/ledger/entity-merges/{row['id']}/revert",
+        f"/api/v1/workspaces/{workspace_id}/ledger/entity-merges/{row['id']}/revert",
         headers=headers,
     )
     assert resp.status_code == 200

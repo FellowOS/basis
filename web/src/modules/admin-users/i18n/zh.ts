@@ -1,0 +1,22 @@
+export default {
+  page: {
+    col_display_name: "显示名",
+    col_email: "邮箱",
+    col_admin: "管理员",
+    yes: "是",
+    no: "否",
+    count: "共 {count} 位用户",
+    count_one: "共 {count} 位用户",
+    create_user: "创建用户",
+    empty_title: "暂无用户",
+    empty_description: "代开账号后用户可登录系统。",
+    create_dialog_title: "创建用户",
+    create_dialog_desc: "代开账号；密码至少 8 位。",
+    email_label: "邮箱",
+    display_name_label: "显示名",
+    password_label: "密码",
+    system_admin: "系统管理员",
+    creating: "创建中…",
+    create: "创建",
+  },
+} as const;

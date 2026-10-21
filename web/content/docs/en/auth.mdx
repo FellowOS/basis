@@ -1,7 +1,7 @@
 ---
 title: "Authentication & access"
 sidebarTitle: "Authentication"
-description: "Users, sessions, API tokens, and KB-scoped credentials."
+description: "Users, sessions, API tokens, and workspace-scoped credentials."
 ---
 
 ## Console users
@@ -10,8 +10,8 @@ Register and sign in via `/api/v1/auth/*`. Sessions use cookies; the SPA stores 
 
 ## Access tokens
 
-Create tokens in the console for scripts and agents. Knowledge-base tokens scope MCP and KB OpenAPI paths to a single KB.
+Create tokens in the console for scripts and agents. Workspace tokens scope MCP and workspace OpenAPI paths to a single workspace (`workspace_id` in the API).
 
 ## Roles
 
-Platform admins manage users and settings. KB members have roles (viewer, editor, …) enforced on each KB route.
+Platform admins manage users and settings. Workspace members have roles (viewer, editor, …) enforced on each `/api/v1/workspaces/{workspace_id}/*` route.

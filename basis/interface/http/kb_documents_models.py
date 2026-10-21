@@ -1,4 +1,4 @@
-"""Pydantic models for KB document and processing routes."""
+"""Pydantic models for workspace document and processing routes."""
 
 from __future__ import annotations
 

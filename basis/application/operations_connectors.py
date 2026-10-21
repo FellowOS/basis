@@ -26,7 +26,7 @@ def _require_kb_editor(ctx: KbCoreContext) -> None:
         if ctx.assert_kb_editor is not None:
             ctx.assert_kb_editor()
         else:
-            ctx.store.get_kb_for(ctx.user, ctx.kb.id, "editor")
+            ctx.store.get_workspace_for(ctx.user, ctx.workspace.id, "editor")
     except HTTPException as exc:
         detail = exc.detail if isinstance(exc.detail, dict) else {"message": str(exc.detail)}
         raise CoreError(detail, status_code=exc.status_code) from exc
@@ -38,7 +38,7 @@ def _connector_service(ctx: KbCoreContext) -> ConnectorLedgerSyncService:
 
 def _require_kb_viewer(ctx: KbCoreContext) -> None:
     try:
-        ctx.store.get_kb_for(ctx.user, ctx.kb.id, "viewer")
+        ctx.store.get_workspace_for(ctx.user, ctx.workspace.id, "viewer")
     except HTTPException as exc:
         detail = exc.detail if isinstance(exc.detail, dict) else {"message": str(exc.detail)}
         raise CoreError(detail, status_code=exc.status_code) from exc
@@ -46,7 +46,7 @@ def _require_kb_viewer(ctx: KbCoreContext) -> None:
 
 def _filter_manifests_for_kb(ctx: KbCoreContext, manifests: list[Any]) -> list[Any]:
     runtime = ctx.knowledge.connector_runtime()
-    effective = runtime.vault.effective_allowed_providers(ctx.kb.id)
+    effective = runtime.vault.effective_allowed_providers(ctx.workspace.id)
     if effective == "*":
         return manifests
     allowed = set(effective) if isinstance(effective, list) else set()
@@ -94,7 +94,7 @@ def op_describe_connector_service(ctx: KbCoreContext, args: dict[str, Any]) -> d
         return {"error": f"unknown connector service: {service}"}
     filtered = _filter_manifests_for_kb(ctx, [manifest])
     if not filtered:
-        return {"error": "connector not allowed by platform or KB policy"}
+        return {"error": "connector not allowed by platform or workspace policy"}
     m = filtered[0]
     return {
         "connector": {
@@ -119,7 +119,7 @@ def op_list_connector_connections(ctx: KbCoreContext, args: dict[str, Any]) -> d
     _require_kb_viewer(ctx)
     service = str(args.get("service") or "").strip() or None
     runtime = ctx.knowledge.connector_runtime()
-    connections = runtime.vault.list_connections(ctx.kb.id, service=service)
+    connections = runtime.vault.list_connections(ctx.workspace.id, service=service)
     return {
         "connections": [
             {
@@ -140,12 +140,12 @@ def op_list_connector_table_mappings(ctx: KbCoreContext, args: dict[str, Any]) -
     mapping_limit = min(max(1, int(args.get("limit") or 50)), 200)
     items: list[dict[str, Any]] = []
     for mapping_id in ctx.knowledge.list_source_table_mapping_ids(
-        ctx.kb.id, limit=mapping_limit
+        ctx.workspace.id, limit=mapping_limit
     ):
-        rec = svc.get_table_mapping(ctx.kb.id, mapping_id)
+        rec = svc.get_table_mapping(ctx.workspace.id, mapping_id)
         if not rec:
             continue
-        binding = svc.get_mapping_connection_binding(ctx.kb.id, rec.source_id)
+        binding = svc.get_mapping_connection_binding(ctx.workspace.id, rec.source_id)
         items.append(
             {
                 "id": rec.id,
@@ -169,7 +169,7 @@ def op_sync_connector_table_mapping(ctx: KbCoreContext, args: dict[str, Any]) ->
         return {"error": "mapping_id is required"}
     svc = _connector_service(ctx)
     try:
-        stats = svc.sync_inbound_mapping(ctx.kb.id, mapping_id)
+        stats = svc.sync_inbound_mapping(ctx.workspace.id, mapping_id)
     except LookupError:
         return {"error": "mapping not found"}
     except Exception as exc:
@@ -226,7 +226,7 @@ def op_invoke_connector_primitive(ctx: KbCoreContext, args: dict[str, Any]) -> d
     try:
         return execute_connector_primitive(
             runtime,
-            ctx.kb.id,
+            ctx.workspace.id,
             service,
             action_id=action_id,
             primitive=primitive,
@@ -263,7 +263,7 @@ def op_execute_connector_tool(ctx: KbCoreContext, args: dict[str, Any]) -> dict[
     runtime = ctx.knowledge.connector_runtime()
     try:
         return runtime.execute_tool(
-            ctx.kb.id,
+            ctx.workspace.id,
             service,
             tool_id,
             connection_name=connection_name,
@@ -286,7 +286,7 @@ def op_propose_entity_writeback(ctx: KbCoreContext, args: dict[str, Any]) -> dic
     svc = _connector_service(ctx)
     try:
         outbox = svc.propose_entity_writeback(
-            ctx.kb.id,
+            ctx.workspace.id,
             entity_id=entity_id,
             field_updates=field_updates,
             created_by=ctx.user.id,

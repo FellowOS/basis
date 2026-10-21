@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { AppLogo } from '@/components/app/shared/shell/app-logo.js';
 import { BasisShellBrandMark } from '@/components/app/shared/shell/basis-shell-brand.js';
-import { KbSwitcher } from '@/components/app/kb/explorer-shell/kb-switcher.js';
+import { WorkspaceSwitcher } from '@/components/app/shared/workspace/frame/switcher.js';
 import { BasisAccountMenu } from '@/components/app/shared/shell/basis-account-menu.js';
 import { SidebarIcon } from '@/components/app/shared/shell/sidebar-icon.js';
 import {
@@ -19,27 +19,29 @@ import {
 } from '@/components/ui/sidebar.js';
 import { ScrollShadow } from '@/components/app/shared/primitives/scroll-shadow.js';
 import { useI18n } from '@/i18n/context.js';
+import { workspaceNavMenuLabel } from '@/lib/workspace-nav-label.js';
 import {
-  KB_NAV_BY_ZONE,
-  KB_WORKSPACE_ZONES,
-  type KbSidebarNavItem,
+  WORKSPACE_NAV_BY_ZONE,
+  WORKSPACE_ZONES,
+  type SidebarMenuKey,
+  type SidebarNavItem,
   type NavItem,
   isPlatformAdminPath,
-  kbPath,
+  workspacePath,
   platformAdminEntryPath,
   platformPathActive,
   visiblePlatformNavItems,
 } from '@/lib/nav-config.js';
-import { resolveSidebarKbId } from '@/lib/kb-active-id.js';
+import { resolveSidebarWorkspaceId } from '@/lib/workspace/active-id.js';
 import { useBasisSession } from '@/lib/basis-session.js';
-import { useKbCatalog } from '@/lib/kb-context.js';
-import { kbNavSegmentEnabled, useKbCapabilities } from '@/lib/kb-capabilities.js';
+import { useWorkspaceCatalog } from '@/lib/workspace/context.js';
+import { workspaceNavSegmentEnabled, useWorkspaceCapabilities } from '@/lib/workspace/capabilities.js';
 import { appIsDesktopProduct } from '@/lib/app-runtime.js';
 import { basisIsDesktopProduct } from '@/lib/basis-runtime.js';
 import { isMacDesktop } from '@/lib/desktop-bridge.js';
 import { cn } from '@/lib/utils.js';
 import { useSettingsAccess } from '@/lib/use-settings-access.js';
-import { useKbFailedProcessingCount } from '@/lib/use-kb-failed-processing-count.js';
+import { useWorkspaceFailedProcessingCount } from '@/lib/workspace/use-failed-processing-count.js';
 import { Badge } from '@/components/ui/badge.js';
 
 export function BasisSidebar({ onLogout }: { onLogout: () => void }) {
@@ -57,16 +59,16 @@ export function BasisSidebar({ onLogout }: { onLogout: () => void }) {
     ? visiblePlatformNavItems(isAdmin, canSettings === true, desktopProduct)
     : [];
   const isPlatformAdmin = isPlatformAdminPath(location.pathname);
-  const { kbs } = useKbCatalog();
-  const { caps } = useKbCapabilities();
-  const failedProcessingCount = useKbFailedProcessingCount();
-  const navKbId = resolveSidebarKbId(location.pathname, kbs);
+  const { workspaces } = useWorkspaceCatalog();
+  const { caps } = useWorkspaceCapabilities();
+  const failedProcessingCount = useWorkspaceFailedProcessingCount();
+  const navWorkspaceId = resolveSidebarWorkspaceId(location.pathname, workspaces);
   const adminHome =
     platformNavReady
       ? platformAdminEntryPath(isAdmin, canSettings === true, desktopProduct)
-      : '/admin/kbs';
-  const consoleGraphHref = kbPath(navKbId, 'graph');
-  const homeHref = isPlatformAdmin ? adminHome : '/kbs';
+      : '/admin/workspaces';
+  const consoleGraphHref = workspacePath(navWorkspaceId, 'graph');
+  const homeHref = isPlatformAdmin ? adminHome : '/workspaces';
   const macDesktopBrand = isDesktopShell && isMac;
   const fellowStyleBrand = macDesktopBrand;
 
@@ -75,23 +77,23 @@ export function BasisSidebar({ onLogout }: { onLogout: () => void }) {
   }
 
   function isKbActive(segment: string) {
-    const prefix = `/kbs/${navKbId}/${segment}`;
+    const prefix = `/workspaces/${navWorkspaceId}/${segment}`;
     return location.pathname === prefix || location.pathname.startsWith(`${prefix}/`);
   }
 
-  function renderKbNavItem(currentKbId: string, item: KbSidebarNavItem) {
+  function renderWorkspaceNavItem(currentKbId: string, item: SidebarNavItem) {
     const active = isKbActive(item.segment);
-    const label = t.menu.kb[item.labelKey];
-    const enabled = kbNavSegmentEnabled(item.segment, caps);
+    const label = workspaceNavMenuLabel(t, item.labelKey as SidebarMenuKey);
+    const enabled = workspaceNavSegmentEnabled(item.segment, caps);
     const disabledTooltip =
       caps?.diagnostic === 'explorer_unavailable'
-        ? t.menu.capabilities.explorerUnavailable
-        : t.menu.capabilities.unavailable;
+        ? t.core.workspace_nav.capabilities.explorer_unavailable
+        : t.core.workspace_nav.capabilities.unavailable;
     return (
       <SidebarMenuItem key={item.segment}>
         {enabled ? (
           <SidebarMenuButton asChild isActive={active} tooltip={label}>
-            <Link to={kbPath(currentKbId, item.segment)} onClick={closeMobile}>
+            <Link to={workspacePath(currentKbId, item.segment)} onClick={closeMobile}>
               <SidebarIcon name={item.icon} />
               <span className="min-w-0 flex-1 truncate group-data-[collapsible=icon]:hidden">
                 {label}
@@ -125,7 +127,7 @@ export function BasisSidebar({ onLogout }: { onLogout: () => void }) {
 
   function renderPlatformNavItem(item: NavItem) {
     const active = platformPathActive(location.pathname, item.to, item.exact);
-    const label = t.menu.platform[item.labelKey];
+    const label = t.core.workspace_nav.platform[item.labelKey];
     return (
       <SidebarMenuItem key={item.to}>
         <SidebarMenuButton asChild isActive={active} tooltip={label}>
@@ -189,7 +191,7 @@ export function BasisSidebar({ onLogout }: { onLogout: () => void }) {
                   'relative z-50 size-8 shrink-0 opacity-70 hover:opacity-100',
                   fellowStyleBrand && '[-webkit-app-region:no-drag]',
                 )}
-                aria-label={t.sidebar.collapseSidebar}
+                aria-label={t.core.shell.sidebar.collapse_sidebar}
               />
             </div>
           ) : (
@@ -205,7 +207,7 @@ export function BasisSidebar({ onLogout }: { onLogout: () => void }) {
                 e.stopPropagation();
                 toggleSidebar();
               }}
-              title={t.sidebar.brand}
+              title={t.core.shell.sidebar.brand}
             >
               <AppLogo size={20} className="pointer-events-none" />
             </button>
@@ -221,11 +223,11 @@ export function BasisSidebar({ onLogout }: { onLogout: () => void }) {
                   <div className="mb-1 px-0.5 group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
                     <SidebarMenu>
                       <SidebarMenuItem>
-                        <SidebarMenuButton asChild tooltip={t.sidebar.backToKnowledgeConsole}>
+                        <SidebarMenuButton asChild tooltip={t.core.shell.sidebar.back_to_workspace_console}>
                           <Link to={consoleGraphHref} onClick={closeMobile}>
                             <SidebarIcon name="arrow-left" />
                             <span className="min-w-0 flex-1 truncate group-data-[collapsible=icon]:hidden">
-                              {t.sidebar.backToKnowledgeConsole}
+                              {t.core.shell.sidebar.back_to_workspace_console}
                             </span>
                           </Link>
                         </SidebarMenuButton>
@@ -236,7 +238,7 @@ export function BasisSidebar({ onLogout }: { onLogout: () => void }) {
                     <div
                       className="px-2 pb-0.5 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/50 group-data-[collapsible=icon]:hidden"
                     >
-                      {t.sidebar.management}
+                      {t.core.shell.sidebar.management}
                     </div>
                     <SidebarMenu>
                       {platformItems.map((item) => renderPlatformNavItem(item))}
@@ -251,12 +253,12 @@ export function BasisSidebar({ onLogout }: { onLogout: () => void }) {
                       isDesktopShell ? 'px-2' : 'px-0.5',
                     )}
                   >
-                    <KbSwitcher />
+                    <WorkspaceSwitcher />
                   </div>
                   <div className="flex flex-col gap-3.5 group-data-[collapsible=icon]:gap-2">
-                    {KB_WORKSPACE_ZONES.map((zone, zoneIndex) => {
-                      const zoneLabel = t.menu.kbZones[zone];
-                      const items = KB_NAV_BY_ZONE[zone];
+                    {WORKSPACE_ZONES.map((zone, zoneIndex) => {
+                      const zoneLabel = t.core.workspace_nav.workspace_zones[zone];
+                      const items = WORKSPACE_NAV_BY_ZONE[zone];
                       return (
                         <div key={zone} className="flex flex-col gap-0.5">
                           {zoneIndex > 0 ? (
@@ -268,7 +270,7 @@ export function BasisSidebar({ onLogout }: { onLogout: () => void }) {
                             {zoneLabel}
                           </div>
                           <SidebarMenu>
-                            {items.map((item) => renderKbNavItem(navKbId, item))}
+                            {items.map((item) => renderWorkspaceNavItem(navWorkspaceId, item))}
                           </SidebarMenu>
                         </div>
                       );

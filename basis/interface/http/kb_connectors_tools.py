@@ -10,7 +10,7 @@ from basis.domain.errors import AdminError
 from basis.domain.tenancy.admin.store import AdminStore, User
 from basis.interface.http.deps import (
     get_current_user,
-    get_kb_for_editor,
+    get_workspace_for_editor,
     get_knowledge_store,
     get_store,
 )
@@ -20,21 +20,21 @@ from basis.interface.http.kb_connectors_support import runtime_for
 
 router = APIRouter(tags=["knowledge-bases"])
 
-@router.post("/{kb_id}/connectors/tools/execute")
+@router.post("/{workspace_id}/connectors/tools/execute")
 async def execute_kb_connector_tool(
-    kb_id: str,
+    workspace_id: str,
     body: ExecuteConnectorToolRequest,
     request: Request,
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> dict[str, Any]:
-    """Execute a standalone BOCP connector tool (`ToolSpec`) with KB policy enforcement."""
-    get_kb_for_editor(request, user, kb_id, store)
+    """Execute a standalone BOCP connector tool (`ToolSpec`) with workspace policy enforcement."""
+    get_workspace_for_editor(request, user, workspace_id, store)
     rt = runtime_for(knowledge)
     try:
         res = rt.execute_tool(
-            kb_id,
+            workspace_id,
             body.service,
             body.tool_id,
             connection_name=body.connection_name,
@@ -47,4 +47,3 @@ async def execute_kb_connector_tool(
         raise AdminError(403, "connector_policy_blocked", str(exc)) from exc
     except Exception as exc:
         raise AdminError(422, "connector_tool_execution_failed", str(exc)) from exc
-

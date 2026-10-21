@@ -61,7 +61,7 @@ def _setup_kb_db(tmp_path: Path) -> sqlite3.Connection:
     )
     conn.execute(
         """
-        INSERT INTO knowledge_bases (id, name, description, visibility, created_by, created_at)
+        INSERT INTO workspaces (id, name, description, visibility, created_by, created_at)
         VALUES ('kb1', 'KB 1', '', 'private', 'u1', '2026-01-01T00:00:00Z')
         """
     )
@@ -217,7 +217,7 @@ def test_sql_adapter_via_connector_runtime(tmp_path: Path) -> None:
 
         # Verify audit runs were recorded
         runs = conn.execute(
-            "SELECT operation_kind, ok FROM kb_connector_runs WHERE kb_id = 'kb1' ORDER BY started_at"
+            "SELECT operation_kind, ok FROM connector_runs WHERE workspace_id = 'kb1' ORDER BY started_at"
         ).fetchall()
         assert [r[0] for r in runs] == ["check", "read_stream", "mutate_update"]
         assert all(r[1] == 1 for r in runs)
@@ -349,7 +349,7 @@ def test_rest_declarative_adapter_airtable_flow(tmp_path: Path) -> None:
 
         # Policy enforcement check
         runtime.vault.upsert_policy("kb1", allowed_providers=["postgres"])
-        with pytest.raises(PermissionError, match="blocked by KB connector policy"):
+        with pytest.raises(PermissionError, match="blocked by workspace connector policy"):
             runtime.check_connection("kb1", "airtable")
     finally:
         mock_client.close()
@@ -406,4 +406,3 @@ def test_oauth2_code_exchange_and_tool_execution(tmp_path: Path) -> None:
     finally:
         mock_client.close()
         conn.close()
-

@@ -1,7 +1,10 @@
 import { expect, test, type Page } from '@playwright/test';
 
-import { persistPlatformAdminIfApplicable } from './e2e-admin-session.js';
-import { E2E_KBS_COLLECTION, e2eApiBaseUrl, e2eKbPath } from './api-v1-path.js';
+import {
+  persistPlatformAdminIfApplicable,
+  waitForPlatformAdminSession,
+} from './e2e-admin-session.js';
+import { E2E_WORKSPACES_COLLECTION, e2eApiBaseUrl, e2eWorkspaceApiPath } from './api-v1-path.js';
 
 export async function bearerToken(page: Page): Promise<string> {
   const token = await page.evaluate(() => localStorage.getItem('basis_token'));
@@ -30,8 +33,9 @@ export async function registerFreshUser(page: Page): Promise<{ email: string; pa
   const body = (await reg.json()) as { token: string };
   await page.evaluate((token) => localStorage.setItem('basis_token', token), body.token);
   await persistPlatformAdminIfApplicable(page, { email, password }, body.token);
-  await page.goto('/kbs');
-  await expect(page).toHaveURL(/\/kbs/, { timeout: 60_000 });
+  await page.goto('/workspaces');
+  await expect(page).toHaveURL(/\/workspaces/, { timeout: 60_000 });
+  await waitForPlatformAdminSession(page);
   await expect
     .poll(async () => page.evaluate(() => localStorage.getItem('basis_token')), { timeout: 30_000 })
     .toBeTruthy();
@@ -43,9 +47,9 @@ function isEditableRole(role: string | undefined): boolean {
   return role === 'admin' || role === 'owner' || role === 'editor';
 }
 
-export async function skipUnlessKbGraphWrite(page: Page, kbId: string): Promise<void> {
+export async function skipUnlessWorkspaceGraphWrite(page: Page, workspaceId: string): Promise<void> {
   const token = await bearerToken(page);
-  const response = await page.request.get(e2eKbPath(kbId, 'capabilities'), {
+  const response = await page.request.get(e2eWorkspaceApiPath(workspaceId, 'capabilities'), {
     headers: { Authorization: `Bearer ${token}` },
   });
   expect(response.ok()).toBeTruthy();
@@ -55,9 +59,9 @@ export async function skipUnlessKbGraphWrite(page: Page, kbId: string): Promise<
   }
 }
 
-export async function defaultKbId(page: Page): Promise<string> {
+export async function defaultWorkspaceId(page: Page): Promise<string> {
   const token = await bearerToken(page);
-  const response = await page.request.get(`${e2eApiBaseUrl()}${E2E_KBS_COLLECTION}`, {
+  const response = await page.request.get(`${e2eApiBaseUrl()}${E2E_WORKSPACES_COLLECTION}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   expect(response.ok()).toBeTruthy();
@@ -65,19 +69,19 @@ export async function defaultKbId(page: Page): Promise<string> {
     kbs?: Array<{ id: string; my_role?: string }>;
   };
   const kbs = body.kbs ?? [];
-  const editable = kbs.find((kb) => isEditableRole(kb.my_role));
+  const editable = workspaces.find((kb) => isEditableRole(kb.my_role));
   if (editable?.id) {
     return editable.id;
   }
 
   const stamp = Date.now();
-  const created = await page.request.post(`${e2eApiBaseUrl()}${E2E_KBS_COLLECTION}`, {
+  const created = await page.request.post(`${e2eApiBaseUrl()}${E2E_WORKSPACES_COLLECTION}`, {
     headers: {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
     },
     data: {
-      name: `E2E KB ${stamp}`,
+      name: `E2E workspace ${stamp}`,
       description: 'Playwright isolation',
       visibility: 'restricted',
     },
@@ -85,17 +89,17 @@ export async function defaultKbId(page: Page): Promise<string> {
   expect(created.ok()).toBeTruthy();
   const kb = (await created.json()) as { id: string };
   if (!kb.id) {
-    throw new Error('POST /api/v1/kbs did not return id');
+    throw new Error('POST /api/v1/workspaces did not return id');
   }
   return kb.id;
 }
 
 export async function fetchGraphStats(
   page: Page,
-  kbId: string,
+  workspaceId: string,
 ): Promise<{ node_count: number; edge_count: number }> {
   const token = await bearerToken(page);
-  const response = await page.request.get(e2eKbPath(kbId, 'graph/stats'), {
+  const response = await page.request.get(e2eWorkspaceApiPath(workspaceId, 'graph/stats'), {
     headers: { Authorization: `Bearer ${token}` },
   });
   expect(response.ok()).toBeTruthy();
@@ -104,11 +108,11 @@ export async function fetchGraphStats(
 
 export async function searchGraphNodes(
   page: Page,
-  kbId: string,
+  workspaceId: string,
   query: string,
 ): Promise<Array<{ node: { id: string; content?: string; label?: string } }>> {
   const token = await bearerToken(page);
-  const response = await page.request.post(e2eKbPath(kbId, 'graph/search'), {
+  const response = await page.request.post(e2eWorkspaceApiPath(workspaceId, 'graph/search'), {
     headers: {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
@@ -122,9 +126,9 @@ export async function searchGraphNodes(
   return body.results ?? [];
 }
 
-export async function fetchFirstGraphNodeId(page: Page, kbId: string): Promise<string> {
+export async function fetchFirstGraphNodeId(page: Page, workspaceId: string): Promise<string> {
   const token = await bearerToken(page);
-  const response = await page.request.get(`${e2eKbPath(kbId, 'graph/nodes')}?limit=1`, {
+  const response = await page.request.get(`${e2eWorkspaceApiPath(workspaceId, 'graph/nodes')}?limit=1`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   expect(response.ok()).toBeTruthy();
@@ -138,12 +142,12 @@ export async function fetchFirstGraphNodeId(page: Page, kbId: string): Promise<s
 
 export async function fetchProvenanceLineage(
   page: Page,
-  kbId: string,
+  workspaceId: string,
   nodeId: string,
 ): Promise<{ nodes: unknown[]; edges: unknown[] }> {
   const token = await bearerToken(page);
   const response = await page.request.get(
-    `${e2eKbPath(kbId, 'provenance')}?node_id=${encodeURIComponent(nodeId)}`,
+    `${e2eWorkspaceApiPath(workspaceId, 'provenance')}?node_id=${encodeURIComponent(nodeId)}`,
     { headers: { Authorization: `Bearer ${token}` } },
   );
   expect(response.ok()).toBeTruthy();
@@ -153,11 +157,11 @@ export async function fetchProvenanceLineage(
 /** Ingest via API (wait + extract) — reliable for graph/provenance e2e. */
 export async function ingestDocumentViaApi(
   page: Page,
-  kbId: string,
+  workspaceId: string,
   text: string,
 ): Promise<void> {
   const token = await bearerToken(page);
-  const response = await page.request.post(e2eKbPath(kbId, 'documents'), {
+  const response = await page.request.post(e2eWorkspaceApiPath(workspaceId, 'documents'), {
     headers: {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
@@ -170,14 +174,14 @@ export async function ingestDocumentViaApi(
     },
   });
   expect(response.ok()).toBeTruthy();
-  const stats = await fetchGraphStats(page, kbId);
+  const stats = await fetchGraphStats(page, workspaceId);
   expect(stats.node_count).toBeGreaterThan(0);
 }
 
 /** Minimal document ingest (pattern extract) for graph projection smoke. */
-export async function fetchLatestIngestJobId(page: Page, kbId: string): Promise<string> {
+export async function fetchLatestIngestJobId(page: Page, workspaceId: string): Promise<string> {
   const token = await bearerToken(page);
-  const response = await page.request.get(`${e2eKbPath(kbId, 'ingest/jobs')}?limit=5`, {
+  const response = await page.request.get(`${e2eWorkspaceApiPath(workspaceId, 'ingest/jobs')}?limit=5`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   expect(response.ok()).toBeTruthy();
@@ -191,10 +195,10 @@ export async function fetchLatestIngestJobId(page: Page, kbId: string): Promise<
 
 export async function fetchTemporalBounds(
   page: Page,
-  kbId: string,
+  workspaceId: string,
 ): Promise<{ min?: string; max?: string }> {
   const token = await bearerToken(page);
-  const response = await page.request.get(e2eKbPath(kbId, 'temporal/bounds'), {
+  const response = await page.request.get(e2eWorkspaceApiPath(workspaceId, 'temporal/bounds'), {
     headers: { Authorization: `Bearer ${token}` },
   });
   expect(response.ok()).toBeTruthy();
@@ -203,12 +207,12 @@ export async function fetchTemporalBounds(
 
 export async function runReasoningApplyViaApi(
   page: Page,
-  kbId: string,
+  workspaceId: string,
   facts: string[],
   rules: string[],
 ): Promise<{ derived_facts_persisted?: { created?: number } }> {
   const token = await bearerToken(page);
-  const response = await page.request.post(e2eKbPath(kbId, 'reasoning/run'), {
+  const response = await page.request.post(e2eWorkspaceApiPath(workspaceId, 'reasoning/run'), {
     headers: {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
@@ -230,10 +234,10 @@ export async function runReasoningApplyViaApi(
 /** Seed governance.tripped + graph decision (Playwright data-e2e API only). */
 export async function seedGovernanceTrippedViaApi(
   page: Page,
-  kbId: string,
+  workspaceId: string,
 ): Promise<{ decisionId: string | null }> {
   const token = await bearerToken(page);
-  const response = await page.request.post(e2eKbPath(kbId, '_e2e/governance-trip'), {
+  const response = await page.request.post(e2eWorkspaceApiPath(workspaceId, '_e2e/governance-trip'), {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (response.status() === 404) {
@@ -247,10 +251,10 @@ export async function seedGovernanceTrippedViaApi(
 /** Seed processing.failed alert with job_id (Playwright data-e2e API only). */
 export async function seedProcessingFailedViaApi(
   page: Page,
-  kbId: string,
+  workspaceId: string,
 ): Promise<{ jobId: string; docId: string }> {
   const token = await bearerToken(page);
-  const response = await page.request.post(e2eKbPath(kbId, '_e2e/processing-failed'), {
+  const response = await page.request.post(e2eWorkspaceApiPath(workspaceId, '_e2e/processing-failed'), {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (response.status() === 404) {
@@ -267,10 +271,10 @@ export async function seedProcessingFailedViaApi(
 /** Seed sync_failed alert with source_id (Playwright data-e2e API only). */
 export async function seedSyncFailedViaApi(
   page: Page,
-  kbId: string,
+  workspaceId: string,
 ): Promise<{ sourceId: string }> {
   const token = await bearerToken(page);
-  const response = await page.request.post(e2eKbPath(kbId, '_e2e/sync-failed'), {
+  const response = await page.request.post(e2eWorkspaceApiPath(workspaceId, '_e2e/sync-failed'), {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (response.status() === 404) {
@@ -287,10 +291,10 @@ export async function seedSyncFailedViaApi(
 /** Seed statement_conflict review item + alert (Playwright data-e2e API only). */
 export async function seedStatementConflictViaApi(
   page: Page,
-  kbId: string,
+  workspaceId: string,
 ): Promise<{ reviewItemId: string; surfacePhrase: string }> {
   const token = await bearerToken(page);
-  const response = await page.request.post(e2eKbPath(kbId, '_e2e/statement-conflict'), {
+  const response = await page.request.post(e2eWorkspaceApiPath(workspaceId, '_e2e/statement-conflict'), {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (response.status() === 404) {
@@ -312,10 +316,10 @@ export async function seedStatementConflictViaApi(
 
 export async function seedOntologyProposalViaApi(
   page: Page,
-  kbId: string,
+  workspaceId: string,
 ): Promise<{ proposalId: string; summary: string }> {
   const token = await bearerToken(page);
-  const response = await page.request.post(e2eKbPath(kbId, '_e2e/ontology-proposal'), {
+  const response = await page.request.post(e2eWorkspaceApiPath(workspaceId, '_e2e/ontology-proposal'), {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (response.status() === 404) {
@@ -332,7 +336,7 @@ export async function seedOntologyProposalViaApi(
   };
 }
 
-/** Ensures the user belongs to an org (creates a KB + org when needed). */
+/** Ensures the user belongs to an org (creates a workspace + org when needed). */
 export async function ensureUserOrganization(page: Page): Promise<string> {
   const token = await bearerToken(page);
   const api = e2eApiBaseUrl();
@@ -346,7 +350,7 @@ export async function ensureUserOrganization(page: Page): Promise<string> {
       const body = (await mine.json()) as { organizations?: Array<{ id: string }> };
       orgId = body.organizations?.[0]?.id;
       if (orgId) return orgId;
-      await defaultKbId(page);
+      await defaultWorkspaceId(page);
       return '';
     }, { timeout: 60_000 })
     .not.toBe('');
@@ -355,12 +359,12 @@ export async function ensureUserOrganization(page: Page): Promise<string> {
 
 export async function approveReviewItemViaApi(
   page: Page,
-  kbId: string,
+  workspaceId: string,
   reviewItemId: string,
 ): Promise<{ decisionId?: string }> {
   const token = await bearerToken(page);
   const response = await page.request.post(
-    e2eKbPath(kbId, `review/items/${reviewItemId}/approve`),
+    e2eWorkspaceApiPath(workspaceId, `review/items/${reviewItemId}/approve`),
     {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -374,9 +378,9 @@ export async function approveReviewItemViaApi(
   return { decisionId: body.decision_id ?? undefined };
 }
 
-export async function rebuildGraphProjectionViaApi(page: Page, kbId: string): Promise<void> {
+export async function rebuildGraphProjectionViaApi(page: Page, workspaceId: string): Promise<void> {
   const token = await bearerToken(page);
-  const response = await page.request.post(e2eKbPath(kbId, 'graph/rebuild'), {
+  const response = await page.request.post(e2eWorkspaceApiPath(workspaceId, 'graph/rebuild'), {
     headers: { Authorization: `Bearer ${token}` },
   });
   expect(response.ok(), `graph rebuild failed: ${response.status()} ${await response.text()}`).toBeTruthy();
@@ -405,11 +409,11 @@ export async function expectUrlAtMatchesInstant(
 
 export async function proposeRememberViaApi(
   page: Page,
-  kbId: string,
+  workspaceId: string,
   content: string,
 ): Promise<{ reviewItemId: string }> {
   const token = await bearerToken(page);
-  const response = await page.request.post(e2eKbPath(kbId, 'remember/proposals'), {
+  const response = await page.request.post(e2eWorkspaceApiPath(workspaceId, 'remember/proposals'), {
     headers: {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
@@ -424,7 +428,7 @@ export async function proposeRememberViaApi(
   return { reviewItemId: body.review_item_id };
 }
 
-export async function ingestPasteText(page: Page, kbId: string, text: string): Promise<void> {
+export async function ingestPasteText(page: Page, workspaceId: string, text: string): Promise<void> {
   await Promise.all([
     page.waitForResponse(
       (response) =>
@@ -432,9 +436,9 @@ export async function ingestPasteText(page: Page, kbId: string, text: string): P
         response.request().method() === 'GET' &&
         response.ok(),
     ),
-    page.goto(`/kbs/${kbId}/sources`),
+    page.goto(`/workspaces/${workspaceId}/sources`),
   ]);
-  await expect(page.locator('.kb-library-workspace')).toBeVisible({ timeout: 60_000 });
+  await expect(page.locator('.basis-library-shell')).toBeVisible({ timeout: 60_000 });
   const addDoc = page.getByRole('button', { name: /添加文档|Add document/i }).first();
   await expect(addDoc).toBeVisible({ timeout: 60_000 });
   await addDoc.click();
@@ -445,6 +449,6 @@ export async function ingestPasteText(page: Page, kbId: string, text: string): P
   await dialog.getByRole('button', { name: /^保存$|^Save$/i }).click();
   await expect(page.getByText(text, { exact: false })).toBeVisible({ timeout: 90_000 });
   await expect(page.getByText(/就绪|Ready/i).first()).toBeVisible({ timeout: 90_000 });
-  const stats = await fetchGraphStats(page, kbId);
+  const stats = await fetchGraphStats(page, workspaceId);
   expect(stats.node_count).toBeGreaterThan(0);
 }

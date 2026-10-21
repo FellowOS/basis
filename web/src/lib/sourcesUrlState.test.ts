@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
-  kbSourcesDocumentPath,
-  kbSourcesProcessPath,
+  sourcesDocumentPath,
+  sourcesProcessPath,
   parseSourcesUrlState,
 } from '@/lib/sourcesUrlState.js';
 
@@ -13,9 +13,9 @@ describe('sourcesUrlState', () => {
   });
 
   it('builds document and process deep links', () => {
-    expect(kbSourcesDocumentPath('kb-1', 'doc-a')).toBe('/kbs/kb-1/sources?doc=doc-a');
-    expect(kbSourcesProcessPath('kb-1', 'ver-1')).toBe(
-      '/kbs/kb-1/sources?version=ver-1&process=1',
+    expect(sourcesDocumentPath('kb-1', 'doc-a')).toBe('/workspaces/kb-1/sources?doc=doc-a');
+    expect(sourcesProcessPath('kb-1', 'ver-1')).toBe(
+      '/workspaces/kb-1/sources?version=ver-1&process=1',
     );
   });
 });

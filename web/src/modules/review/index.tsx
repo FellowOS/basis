@@ -1,0 +1,79 @@
+import { Link, Navigate, useParams, useSearchParams } from 'react-router-dom';
+import { Suspense } from 'react';
+import { ConsolePageLayout } from '@/components/app/shared/console/index.js';
+import { GovernanceWorkspaceShell } from '@/components/app/shared/workspace/frame/governance-ws-shell.js';
+import { WorkspaceUnavailable } from '@/components/app/shared/workspace/frame/ws-unavailable.js';
+import { ReviewQueuePanel } from './components/review-queue-panel.js';
+import { Spinner } from '@/components/ui/spinner.js';
+import { useWorkspaceCapabilities } from '@/lib/workspace/capabilities.js';
+import { useI18n } from '@/i18n/context.js';
+import { useWorkspaceCatalog } from '@/lib/workspace/context.js';
+import { workspacePath } from '@/lib/nav-config.js';
+import { parseReviewUrlState } from '@/lib/reviewUrlState.js';
+
+export function ReviewPage() {
+  const { id } = useParams();
+  const [searchParams] = useSearchParams();
+  const { t } = useI18n();
+  const { getWorkspace } = useWorkspaceCatalog();
+  const { caps, loading: capsLoading } = useWorkspaceCapabilities();
+  const reviewUrl = parseReviewUrlState(searchParams.toString());
+  const reviewFocusItemId = reviewUrl.reviewItemId?.trim() || '';
+
+  if (!id) {
+    return null;
+  }
+
+  const legacyTab = searchParams.get('tab');
+  if (legacyTab === 'resolve') {
+    return <Navigate to={workspacePath(id, 'entity-resolution')} replace />;
+  }
+  if (legacyTab === 'decisions') {
+    const decision = searchParams.get('decision');
+    const q = decision ? `?decision=${encodeURIComponent(decision)}` : '';
+    return <Navigate to={`${workspacePath(id, 'decisions')}${q}`} replace />;
+  }
+
+  const reviewBody =
+    !capsLoading && caps && !caps.review ? (
+      <WorkspaceUnavailable workspaceId={id} feature="review" />
+    ) : (
+      <GovernanceWorkspaceShell workspaceId={id} className="min-h-0 flex-1">
+        <Suspense
+          fallback={
+            <div className="flex flex-1 items-center justify-center gap-2 text-sm text-muted-foreground">
+              <Spinner className="size-4" />
+              {t.review.page.loading}
+            </div>
+          }
+        >
+          <ReviewQueuePanel workspaceId={id} focusItemId={reviewFocusItemId || undefined} />
+        </Suspense>
+      </GovernanceWorkspaceShell>
+    );
+
+  return (
+    <ConsolePageLayout
+      crumbs={[
+        { label: t.core.workspace_nav.platform.workspaces, to: '/workspaces' },
+        { label: getWorkspace(id)?.name ?? id, to: workspacePath(id, 'graph') },
+        { label: t.review.menu.review },
+      ]}
+      subtitle={
+        <>
+          {t.review.page.subtitle}{' '}
+          <Link
+            to={workspacePath(id, 'decisions')}
+            className="text-primary underline-offset-2 hover:underline"
+            data-testid="review-open-decisions"
+          >
+            {t.alerts.page.view_decisions}
+          </Link>
+        </>
+      }
+      className="min-h-0 overflow-hidden"
+    >
+      {reviewBody}
+    </ConsolePageLayout>
+  );
+}

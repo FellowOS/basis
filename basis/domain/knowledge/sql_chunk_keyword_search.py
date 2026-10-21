@@ -22,7 +22,7 @@ def chunk_hit_from_row(row: sqlite3.Row) -> dict[str, Any]:
 
 
 def search_chunks_postgres(
-    conn: Any, kb_id: str, *, query: str, limit: int
+    conn: Any, workspace_id: str, *, query: str, limit: int
 ) -> list[sqlite3.Row]:
     escaped = query.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
     pattern = f"%{escaped}%"
@@ -31,7 +31,7 @@ def search_chunks_postgres(
         WITH ranked AS MATERIALIZED (
             SELECT id AS chunk_id, 1 - (text <-> ?) AS keyword_score
             FROM chunks
-            WHERE kb_id = ? AND text ILIKE ? ESCAPE '\\'
+            WHERE workspace_id = ? AND text ILIKE ? ESCAPE '\\'
             ORDER BY text <-> ?, created_at DESC
             LIMIT ?
         )
@@ -41,16 +41,16 @@ def search_chunks_postgres(
         FROM ranked
         INNER JOIN chunks c ON c.id = ranked.chunk_id
         INNER JOIN document_versions dv
-            ON dv.id = c.version_id AND dv.kb_id = c.kb_id
+            ON dv.id = c.version_id AND dv.workspace_id = c.workspace_id
         INNER JOIN documents d
-            ON d.id = dv.document_id AND d.kb_id = c.kb_id
+            ON d.id = dv.document_id AND d.workspace_id = c.workspace_id
         ORDER BY ranked.keyword_score DESC, c.created_at DESC
         """,
-        (query, kb_id, pattern, query, limit),
+        (query, workspace_id, pattern, query, limit),
     ).fetchall()
 
 
-def search_chunks_fts(conn: Any, kb_id: str, *, query: str, limit: int) -> list[Any]:
+def search_chunks_fts(conn: Any, workspace_id: str, *, query: str, limit: int) -> list[Any]:
     escaped_query = query.replace('"', '""')
     match_query = f'"{escaped_query}"'
     return conn.execute(
@@ -58,7 +58,7 @@ def search_chunks_fts(conn: Any, kb_id: str, *, query: str, limit: int) -> list[
         WITH ranked AS MATERIALIZED (
             SELECT chunk_id, -rank AS keyword_score
             FROM chunks_fts
-            WHERE chunks_fts MATCH ? AND chunks_fts.kb_id = ?
+            WHERE chunks_fts MATCH ? AND chunks_fts.workspace_id = ?
             ORDER BY rank
             LIMIT ?
         )
@@ -68,40 +68,40 @@ def search_chunks_fts(conn: Any, kb_id: str, *, query: str, limit: int) -> list[
         FROM ranked
         INNER JOIN chunks c ON c.id = ranked.chunk_id
         INNER JOIN document_versions dv
-            ON dv.id = c.version_id AND dv.kb_id = c.kb_id
+            ON dv.id = c.version_id AND dv.workspace_id = c.workspace_id
         INNER JOIN documents d
-            ON d.id = dv.document_id AND d.kb_id = c.kb_id
+            ON d.id = dv.document_id AND d.workspace_id = c.workspace_id
         ORDER BY ranked.keyword_score DESC, c.created_at DESC
         """,
-        (match_query, kb_id, limit),
+        (match_query, workspace_id, limit),
     ).fetchall()
 
 
-def search_chunks_like(conn: Any, kb_id: str, *, query: str, limit: int) -> list[Any]:
+def search_chunks_like(conn: Any, workspace_id: str, *, query: str, limit: int) -> list[Any]:
     pattern = f"%{query.replace('%', '')}%"
     return conn.execute(
         """
         SELECT c.id AS chunk_id, c.ordinal, c.text, d.id AS document_id, d.title AS document_title
         FROM chunks c
-        INNER JOIN document_versions dv ON dv.id = c.version_id AND dv.kb_id = c.kb_id
-        INNER JOIN documents d ON d.id = dv.document_id AND d.kb_id = c.kb_id
-        WHERE c.kb_id = ? AND c.text LIKE ?
+        INNER JOIN document_versions dv ON dv.id = c.version_id AND dv.workspace_id = c.workspace_id
+        INNER JOIN documents d ON d.id = dv.document_id AND d.workspace_id = c.workspace_id
+        WHERE c.workspace_id = ? AND c.text LIKE ?
         ORDER BY c.created_at DESC
         LIMIT ?
         """,
-        (kb_id, pattern, limit),
+        (workspace_id, pattern, limit),
     ).fetchall()
 
 
-def fetch_chunks_by_ids(conn: Any, kb_id: str, chunk_ids: list[str]) -> list[Any]:
+def fetch_chunks_by_ids(conn: Any, workspace_id: str, chunk_ids: list[str]) -> list[Any]:
     placeholders = ",".join("?" * len(chunk_ids))
     return conn.execute(
         f"""
         SELECT c.id AS chunk_id, c.ordinal, c.text, d.id AS document_id, d.title AS document_title
         FROM chunks c
-        INNER JOIN document_versions dv ON dv.id = c.version_id AND dv.kb_id = c.kb_id
-        INNER JOIN documents d ON d.id = dv.document_id AND d.kb_id = c.kb_id
-        WHERE c.kb_id = ? AND c.id IN ({placeholders})
+        INNER JOIN document_versions dv ON dv.id = c.version_id AND dv.workspace_id = c.workspace_id
+        INNER JOIN documents d ON d.id = dv.document_id AND d.workspace_id = c.workspace_id
+        WHERE c.workspace_id = ? AND c.id IN ({placeholders})
         """,
-        (kb_id, *chunk_ids),
+        (workspace_id, *chunk_ids),
     ).fetchall()

@@ -1,4 +1,4 @@
-"""KB review queue — aggregates sub-routers (Gate D)."""
+"""Workspace review queue — aggregates sub-routers (Gate D)."""
 
 from __future__ import annotations
 

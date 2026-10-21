@@ -36,14 +36,14 @@ def test_version_ingest_writes_entities_to_ledger(tmp_path) -> None:
 
     admin = AdminStore(tmp_path / "basis.db")
     user, _ = admin.register("extract@example.com", "password1", "U")
-    kb = admin.create_kb(user, "KB", None, "restricted")
-    kb_id = kb.id
+    kb = admin.create_workspace(user, "KB", None, "restricted")
+    workspace_id = kb.id
     admin.close()
 
     blobs = BlobStore(tmp_path)
     knowledge = KnowledgeStore(tmp_path / "basis.db", blobs)
     _, version_id, job_id, _ = knowledge.store_upload_bytes(
-        kb_id,
+        workspace_id,
         title="story.txt",
         mime_type="text/plain",
         data=b"Alice knows Bob.",
@@ -54,7 +54,7 @@ def test_version_ingest_writes_entities_to_ledger(tmp_path) -> None:
     result = run_version_ingest(
         knowledge,
         graph,
-        kb_id,
+        workspace_id,
         version_id,
         job_id,
         filename="story.txt",
@@ -74,14 +74,14 @@ def test_documents_api_english_extract(tmp_path) -> None:
         json={"email": "api@example.com", "password": "password1", "display_name": "U"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
 
     body = client.post(
-        f"/api/v1/kbs/{kb_id}/documents",
+        f"/api/v1/workspaces/{workspace_id}/documents",
         headers=headers,
         json={"doc_id": "en-1", "text": "Alice knows Bob.", "wait": True, "chunk": False},
     ).json()
     assert body.get("ledger_entities_written", 0) >= 2
-    stats = client.get(f"/api/v1/kbs/{kb_id}/graph/stats", headers=headers).json()
+    stats = client.get(f"/api/v1/workspaces/{workspace_id}/graph/stats", headers=headers).json()
     assert stats["node_count"] >= 3
     assert stats["edge_count"] >= 1

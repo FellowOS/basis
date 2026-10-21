@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { OrgSamlPanel } from '@/components/app/kb/widgets/kb-org-saml-panel.js';
-import { OrgSsoPanel } from '@/components/app/kb/widgets/kb-org-sso-panel.js';
+import { OrgSamlPanel } from './org-saml-panel.js';
+import { OrgSsoPanel } from './org-sso-panel.js';
 import { Label } from '@/components/ui/label.js';
 import {
   Select,
@@ -25,7 +25,7 @@ const ORG_ADMIN_ROLES = new Set(['owner', 'admin']);
 
 export function PlatformOrgSsoSection({ siteBaseUrl }: { siteBaseUrl?: string }) {
   const { t } = useI18n();
-  const ps = t.platformSettings;
+  const ps = t.admin_settings.page;
   const { isAdmin } = useBasisSession();
   const apiError = useApiErrorMessage();
   const [orgs, setOrgs] = useState<OrgRow[]>([]);
@@ -60,7 +60,7 @@ export function PlatformOrgSsoSection({ siteBaseUrl }: { siteBaseUrl?: string })
   );
 
   if (loading) {
-    return <p className="text-sm text-muted-foreground">{t.common.loading}</p>;
+    return <p className="text-sm text-muted-foreground">{t.core.common.loading}</p>;
   }
 
   if (error) {
@@ -70,7 +70,7 @@ export function PlatformOrgSsoSection({ siteBaseUrl }: { siteBaseUrl?: string })
   if (orgs.length === 0) {
     return (
       <p className="text-sm text-muted-foreground">
-        {isAdmin ? ps.orgSsoEmptyAdmin : ps.orgSsoEmpty}
+        {isAdmin ? ps.org_sso_empty_admin : ps.org_sso_empty}
       </p>
     );
   }
@@ -79,10 +79,10 @@ export function PlatformOrgSsoSection({ siteBaseUrl }: { siteBaseUrl?: string })
     <div className="space-y-4">
       {orgs.length > 1 ? (
         <div className="max-w-md space-y-2">
-          <Label htmlFor="platform-org-picker">{ps.orgSsoPickerLabel}</Label>
+          <Label htmlFor="platform-org-picker">{ps.org_sso_picker_label}</Label>
           <Select value={selectedOrgId} onValueChange={setSelectedOrgId}>
             <SelectTrigger id="platform-org-picker">
-              <SelectValue placeholder={ps.orgSsoPickerLabel} />
+              <SelectValue placeholder={ps.org_sso_picker_label} />
             </SelectTrigger>
             <SelectContent>
               {orgs.map((org) => (
@@ -95,7 +95,7 @@ export function PlatformOrgSsoSection({ siteBaseUrl }: { siteBaseUrl?: string })
         </div>
       ) : selectedOrg ? (
         <p className="text-sm text-muted-foreground">
-          {ps.orgSsoSingleOrg}: <span className="font-medium text-foreground">{selectedOrg.name}</span>
+          {ps.org_sso_single_org}: <span className="font-medium text-foreground">{selectedOrg.name}</span>
         </p>
       ) : null}
       <OrgSsoPanel organizationId={selectedOrgId || null} siteBaseUrl={siteBaseUrl} />

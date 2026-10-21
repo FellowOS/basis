@@ -1,4 +1,4 @@
-"""Accounts, knowledge bases, membership, settings, and the audit log."""
+"""Accounts, workspaces, membership, settings, and the audit log."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ from basis.domain.tenancy.admin.access.api_tokens import ApiTokensAccess
 from basis.domain.tenancy.admin.access.audit import AuditAccess
 from basis.domain.tenancy.admin.access.auth import AuthAccess
 from basis.domain.tenancy.admin.access.desktop import DesktopAccess
-from basis.domain.tenancy.admin.access.knowledge_bases import KnowledgeBasesAccess
+from basis.domain.tenancy.admin.access.workspaces import WorkspacesAccess
 from basis.domain.tenancy.admin.access.models import ModelsAccess
 from basis.domain.tenancy.admin.access.organizations import OrganizationsAccess
 from basis.domain.tenancy.admin.access.settings import SettingsAccess
@@ -19,7 +19,7 @@ from basis.domain.tenancy.admin.access.users import UsersAccess
 from basis.domain.tenancy.admin.admin_types import (
     ROLE_RANK,
     ApiTokenRecord,
-    KnowledgeBase,
+    Workspace,
     User,
     require_system_admin,
     secrets_token,
@@ -27,7 +27,7 @@ from basis.domain.tenancy.admin.admin_types import (
     utc_now_iso,
 )
 from basis.domain.tenancy.admin.persistence import audit as audit_persist
-from basis.domain.tenancy.admin.persistence import knowledge_bases as kb_persist
+from basis.domain.tenancy.admin.persistence import workspaces as workspace_persist
 from basis.domain.tenancy.admin.persistence import settings as settings_persist
 from basis.domain.tenancy.admin.persistence import users as users_persist
 from basis.domain.tenancy.admin.passwords import hash_token
@@ -59,14 +59,14 @@ class AdminStore:
         self._auth = AuthAccess(self)
         self._users = UsersAccess(self)
         self._api_tokens = ApiTokensAccess(self)
-        self._knowledge_bases = KnowledgeBasesAccess(self)
+        self._workspaces = WorkspacesAccess(self)
         self._models = ModelsAccess(self)
         self._settings = SettingsAccess(self)
         self._audit_access = AuditAccess(self)
         self._organizations = OrganizationsAccess(self)
         self._desktop = DesktopAccess(self)
         if getattr(self._db, "backend", "") == "postgres":
-            self._organizations.ensure_knowledge_bases_organization_column()
+            self._organizations.ensure_workspaces_organization_column()
             self._organizations.ensure_kb_organization_links()
 
     def close(self) -> None:
@@ -111,7 +111,7 @@ class AdminStore:
         users_persist.issue_session_token(self._conn, hash_token(token), user_id)
         return token
 
-    def _insert_kb(
+    def _insert_workspace(
         self,
         name: str,
         description: str,
@@ -119,9 +119,9 @@ class AdminStore:
         created_by: str,
         organization_id: str,
     ) -> str:
-        return kb_persist.insert_kb(
+        return workspace_persist.insert_workspace(
             self._conn,
-            kb_id=str(uuid.uuid4()),
+            workspace_id=str(uuid.uuid4()),
             name=name,
             description=description,
             visibility=visibility,
@@ -129,18 +129,18 @@ class AdminStore:
             organization_id=organization_id,
         )
 
-    def _set_member(self, kb_id: str, user_id: str, role: str, added_by: str | None) -> None:
-        kb_persist.set_member(self._conn, kb_id, user_id, role, added_by)
+    def _set_member(self, workspace_id: str, user_id: str, role: str, added_by: str | None) -> None:
+        workspace_persist.set_member(self._conn, workspace_id, user_id, role, added_by)
 
-    def _access_role(self, user: User, kb: KnowledgeBase) -> str | None:
-        member = kb_persist.member_role(self._conn, kb.id, user.id)
+    def _access_role(self, user: User, workspace: Workspace) -> str | None:
+        member = workspace_persist.member_role(self._conn, workspace.id, user.id)
         if member == "owner":
             return "owner"
         if user.is_admin:
             return "admin"
         if member:
             return member
-        if kb.visibility == "open":
+        if workspace.visibility == "open":
             return "viewer"
         return None
 
@@ -214,17 +214,17 @@ for _name in (
     setattr(AdminStore, _name, _admin_access_delegate("_api_tokens", _name))
 
 for _name in (
-    "list_visible_kbs",
-    "list_kb_ids",
-    "create_kb",
-    "get_kb_for",
-    "update_kb",
-    "delete_kb",
+    "list_visible_workspaces",
+    "list_workspace_ids",
+    "create_workspace",
+    "get_workspace_for",
+    "update_workspace",
+    "delete_workspace",
     "list_members",
     "set_member_role",
     "remove_member",
 ):
-    setattr(AdminStore, _name, _admin_access_delegate("_knowledge_bases", _name))
+    setattr(AdminStore, _name, _admin_access_delegate("_workspaces", _name))
 
 for _name in (
     "list_configured_models",
@@ -252,7 +252,7 @@ for _name in ("list_audit", "list_audit_for_kb", "record_audit"):
 for _name in (
     "list_orgs_for_user",
     "list_all_organizations",
-    "ensure_knowledge_bases_organization_column",
+    "ensure_workspaces_organization_column",
     "ensure_kb_organization_links",
     "reconcile_organization_memberships",
     "ensure_default_organization",

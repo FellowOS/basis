@@ -13,9 +13,9 @@ def _session_client(tmp_path) -> tuple[TestClient, str, dict[str, str]]:
         json={"email": "core-http@example.com", "password": "password1", "display_name": "C"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
     client.post(
-        f"/api/v1/kbs/{kb_id}/documents",
+        f"/api/v1/workspaces/{workspace_id}/documents",
         headers=headers,
         json={
             "doc_id": "core-http-doc",
@@ -25,13 +25,13 @@ def _session_client(tmp_path) -> tuple[TestClient, str, dict[str, str]]:
             "chunk": True,
         },
     )
-    return client, kb_id, headers
+    return client, workspace_id, headers
 
 
 def test_search_and_chunk_via_core(tmp_path) -> None:
-    client, kb_id, headers = _session_client(tmp_path)
+    client, workspace_id, headers = _session_client(tmp_path)
     search = client.get(
-        f"/api/v1/kbs/{kb_id}/search",
+        f"/api/v1/workspaces/{workspace_id}/search",
         headers=headers,
         params={"q": "Vienna", "limit": 5},
     )
@@ -40,7 +40,7 @@ def test_search_and_chunk_via_core(tmp_path) -> None:
     assert "chunks" in body or "hits" in body or body.get("query")
 
     mcp = client.post(
-        f"/api/v1/kbs/{kb_id}/mcp",
+        f"/api/v1/workspaces/{workspace_id}/mcp",
         headers=headers,
         json={
             "jsonrpc": "2.0",
@@ -53,13 +53,13 @@ def test_search_and_chunk_via_core(tmp_path) -> None:
 
 
 def test_find_entities_and_describe_kb_via_core(tmp_path) -> None:
-    client, kb_id, headers = _session_client(tmp_path)
-    kb = client.get(f"/api/v1/kbs/{kb_id}", headers=headers).json()
+    client, workspace_id, headers = _session_client(tmp_path)
+    kb = client.get(f"/api/v1/workspaces/{workspace_id}", headers=headers).json()
     assert kb.get("document_count", 0) >= 1
     assert "chunk_count" in kb
 
     found = client.get(
-        f"/api/v1/kbs/{kb_id}/entities/find",
+        f"/api/v1/workspaces/{workspace_id}/entities/find",
         headers=headers,
         params={"q": "Vienna", "limit": 5},
     )
@@ -68,14 +68,14 @@ def test_find_entities_and_describe_kb_via_core(tmp_path) -> None:
     assert body.get("query") == "Vienna"
     assert "ledger_entities" in body
 
-    caps = client.get(f"/api/v1/kbs/{kb_id}/capabilities", headers=headers).json()
+    caps = client.get(f"/api/v1/workspaces/{workspace_id}/capabilities", headers=headers).json()
     assert "search_chunks" in caps.get("mcp_tools", [])
 
 
 def test_graph_search_via_core(tmp_path) -> None:
-    client, kb_id, headers = _session_client(tmp_path)
+    client, workspace_id, headers = _session_client(tmp_path)
     resp = client.post(
-        f"/api/v1/kbs/{kb_id}/graph/search",
+        f"/api/v1/workspaces/{workspace_id}/graph/search",
         headers=headers,
         json={"query": "Vienna", "limit": 5},
     )
@@ -84,9 +84,9 @@ def test_graph_search_via_core(tmp_path) -> None:
 
 
 def test_remember_via_core(tmp_path) -> None:
-    client, kb_id, headers = _session_client(tmp_path)
+    client, workspace_id, headers = _session_client(tmp_path)
     resp = client.post(
-        f"/api/v1/kbs/{kb_id}/remember/proposals",
+        f"/api/v1/workspaces/{workspace_id}/remember/proposals",
         headers=headers,
         json={"content": "Austria uses euros."},
     )

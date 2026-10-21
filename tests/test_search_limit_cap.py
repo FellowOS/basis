@@ -19,23 +19,23 @@ def test_chunk_search_route_caps_limit(tmp_path: Path) -> None:
         json={"email": "cap@example.com", "password": "password1", "display_name": "Cap"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
 
     store = KnowledgeStore(tmp_path / "basis.db", BlobStore(tmp_path))
     _, version_id, _, _ = store.store_upload_bytes(
-        kb_id,
+        workspace_id,
         title="one.txt",
         mime_type="text/plain",
         data=b"alpha beta gamma",
         created_by=None,
         external_key="one",
     )
-    store.create_chunk(kb_id, version_id, ordinal=0, text="alpha beta gamma delta")
-    store.set_version_status(kb_id, version_id, "ready")
+    store.create_chunk(workspace_id, version_id, ordinal=0, text="alpha beta gamma delta")
+    store.set_version_status(workspace_id, version_id, "ready")
     store.close()
 
     res = client.get(
-        f"/api/v1/kbs/{kb_id}/search?q=alpha&limit=999",
+        f"/api/v1/workspaces/{workspace_id}/search?q=alpha&limit=999",
         headers=headers,
     )
     assert res.status_code == 200
@@ -43,7 +43,7 @@ def test_chunk_search_route_caps_limit(tmp_path: Path) -> None:
     assert len(chunks) <= CHUNK_SEARCH_MAX_LIMIT
 
     scoped = client.get(
-        f"/api/v1/kbs/{kb_id}/search?q=alpha&document_id=one",
+        f"/api/v1/workspaces/{workspace_id}/search?q=alpha&document_id=one",
         headers=headers,
     )
     assert scoped.status_code == 200

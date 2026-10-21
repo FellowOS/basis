@@ -40,15 +40,15 @@ from basis.domain.knowledge.store import KnowledgeStore
 
 def ledger_entity_merge_ids(
     knowledge: KnowledgeStore,
-    kb_id: str,
+    workspace_id: str,
     primary_id: str,
     duplicate_ids: list[str],
 ) -> bool:
     if not primary_id or not duplicate_ids:
         return False
-    if not knowledge.ledger_entity_exists(kb_id, primary_id):
+    if not knowledge.ledger_entity_exists(workspace_id, primary_id):
         return False
-    return all(knowledge.ledger_entity_exists(kb_id, dup) for dup in duplicate_ids)
+    return all(knowledge.ledger_entity_exists(workspace_id, dup) for dup in duplicate_ids)
 
 
 @dataclass(frozen=True)
@@ -66,14 +66,14 @@ async def approve_review_item(
     knowledge: KnowledgeStore,
     store: KbAuditStore,
     user: KbAuditActor,
-    kb_id: str,
+    workspace_id: str,
     item_id: str,
     rationale: str | None,
     keeper_statement_id: str | None,
     primary_id_override: str | None,
     deps: ReviewApproveDeps,
 ) -> dict[str, Any]:
-    item = knowledge.get_review_item(kb_id, item_id)
+    item = knowledge.get_review_item(workspace_id, item_id)
     if item["status"] != "open":
         raise AdminError(409, "review_closed", "审核项已处理")
 
@@ -88,7 +88,7 @@ async def approve_review_item(
         payload = item["payload"] or {}
         mapping_id = str(payload.get("mapping_id") or item["subject_id"])
         mapping_result = apply_mapping_status_change(
-            kb_id,
+            workspace_id,
             mapping_id,
             user,
             store,
@@ -100,14 +100,14 @@ async def approve_review_item(
         )
         mapping_result = {
             **mapping_result,
-            "conflicts": scan_statement_conflicts(knowledge, kb_id),
+            "conflicts": scan_statement_conflicts(knowledge, workspace_id),
         }
     elif item["kind"] == "entity_merge":
         payload = item["payload"]
         primary_id = str(payload.get("primary_id") or "")
         duplicate_ids = [str(d) for d in payload.get("duplicate_ids") or []]
         graph_decision_id = record_governance_decision_for_kb(
-            kb_id,
+            workspace_id,
             message="Review approve: entity_merge",
             detail={
                 "item_id": item_id,
@@ -119,7 +119,7 @@ async def approve_review_item(
             persist_graph=lambda kid: deps.persist_graph(kid),
         )
         decision_id = knowledge.record_agent_decision(
-            kb_id,
+            workspace_id,
             action="approve_entity_merge",
             review_item_id=item_id,
             rationale=rationale,
@@ -130,10 +130,10 @@ async def approve_review_item(
             },
         )
 
-        if ledger_entity_merge_ids(knowledge, kb_id, primary_id, duplicate_ids):
+        if ledger_entity_merge_ids(knowledge, workspace_id, primary_id, duplicate_ids):
             ledger_merges = [
                 knowledge.record_entity_merge(
-                    kb_id,
+                    workspace_id,
                     source_entity_id=dup,
                     target_entity_id=primary_id,
                     actor_id=user.id,
@@ -154,15 +154,15 @@ async def approve_review_item(
             runtime = deps.runtime_loader()
             session = require_kb_graph_session(runtime)
             primary_ledger = resolve_ledger_entity_id(
-                knowledge, kb_id, runtime.basis, primary_id
+                knowledge, workspace_id, runtime.basis, primary_id
             )
             ledger_merges = []
             if primary_ledger:
                 for dup in duplicate_ids:
-                    if dup != primary_ledger and knowledge.ledger_entity_exists(kb_id, dup):
+                    if dup != primary_ledger and knowledge.ledger_entity_exists(workspace_id, dup):
                         ledger_merges.append(
                             knowledge.record_entity_merge(
-                                kb_id,
+                                workspace_id,
                                 source_entity_id=dup,
                                 target_entity_id=primary_ledger,
                                 actor_id=user.id,
@@ -176,7 +176,7 @@ async def approve_review_item(
                 primary_id=str(payload.get("primary_id") or primary_id),
                 duplicate_ids=[str(d) for d in duplicate_ids],
             )
-            deps.persist_graph(kb_id)
+            deps.persist_graph(workspace_id)
             if ledger_merges:
                 merge_result = {**merge_result, "ledger_merges": ledger_merges}
             elif duplicate_ids:
@@ -199,7 +199,7 @@ async def approve_review_item(
                 }
     elif item["kind"] == STATEMENT_REVIEW_KIND:
         decision_id = record_governance_decision_for_kb(
-            kb_id,
+            workspace_id,
             message="Review approve: statement_remember",
             detail={"item_id": item_id},
             actor_id=user.id,
@@ -211,7 +211,7 @@ async def approve_review_item(
             knowledge=knowledge,
             store=store,
             user=user,
-            kb_id=kb_id,
+            workspace_id=workspace_id,
             item_id=item_id,
             rationale=rationale,
             rebuild_projection=lambda: deps.rebuild_projection(),
@@ -237,7 +237,7 @@ async def approve_review_item(
             raise AdminError(422, "bad_cluster", "实体聚类无效")
         subject_id = KnowledgeStore.merge_review_subject_key(primary_id, duplicate_ids)
         merge_item = knowledge.create_review_item(
-            kb_id,
+            workspace_id,
             kind="entity_merge",
             subject_type="graph_nodes",
             subject_id=subject_id,
@@ -252,7 +252,7 @@ async def approve_review_item(
     elif item["kind"] == LOW_CONFIDENCE_KIND:
         payload = dict(item.get("payload") or {})
         statement_id = str(payload.get("statement_id") or item["subject_id"])
-        resolution = resolve_low_confidence_approve(knowledge, kb_id, statement_id)
+        resolution = resolve_low_confidence_approve(knowledge, workspace_id, statement_id)
         deps.rebuild_projection()
         approve_action = "kb.statement.low_confidence_confirmed"
         merge_result = {"status": "confirmed", "resolution": resolution, "payload": payload}
@@ -262,7 +262,7 @@ async def approve_review_item(
         if keeper_statement_id:
             resolution = resolve_statement_conflict_group(
                 knowledge,
-                kb_id,
+                workspace_id,
                 statement_ids,
                 keeper_statement_id,
             )
@@ -281,18 +281,18 @@ async def approve_review_item(
         outbox_id = str((item.get("payload") or {}).get("outbox_id") or item["subject_id"])
         sync_svc = knowledge.connector_sync_service()
         executed_outbox = sync_svc.approve_and_execute_outbox(
-            kb_id,
+            workspace_id,
             outbox_id,
             actor_id=user.id,
             rationale=rationale or "Approved connector writeback",
         )
         deps.rebuild_projection()
         decision_id = executed_outbox.get("decision_id")
-        resolved_item = knowledge.get_review_item(kb_id, item_id)
+        resolved_item = knowledge.get_review_item(workspace_id, item_id)
         audit_kb_graph(
             store,
             user,
-            kb_id,
+            workspace_id,
             approve_action,
             review_item_id=item_id,
             extra={
@@ -315,7 +315,7 @@ async def approve_review_item(
         session = require_kb_graph_session(runtime)
         if deps.blob_store is None:
             raise AdminError(500, "internal_error", "blob store required for graph import approve")
-        upload = upload_file_from_staged(deps.blob_store, kb_id, item["payload"])
+        upload = upload_file_from_staged(deps.blob_store, workspace_id, item["payload"])
         raw_bytes = await upload.read()
         import_result = await asyncio.to_thread(
             import_graph_file,
@@ -323,14 +323,14 @@ async def approve_review_item(
             filename=str(upload.filename or "import.json"),
             content=raw_bytes,
         )
-        deps.persist_graph(kb_id)
-        discard_staged_import(deps.blob_store, kb_id, item["payload"])
+        deps.persist_graph(workspace_id)
+        discard_staged_import(deps.blob_store, workspace_id, item["payload"])
     else:
         raise AdminError(422, "unsupported_review_kind", f"不支持的审核类型: {item['kind']}")
 
     if decision_id is None:
         decision_id = record_governance_decision_for_kb(
-            kb_id,
+            workspace_id,
             message=f"Review approve: {item['kind']}",
             detail={"item_id": item_id, "kind": item.get("kind")},
             actor_id=user.id,
@@ -339,7 +339,7 @@ async def approve_review_item(
         )
 
     resolved = knowledge.resolve_review_item(
-        kb_id,
+        workspace_id,
         item_id,
         status="approved",
         resolved_by=user.id,
@@ -363,7 +363,7 @@ async def approve_review_item(
     audit_kb_graph(
         store,
         user,
-        kb_id,
+        workspace_id,
         approve_action,
         review_item_id=item_id,
         extra=audit_extra,

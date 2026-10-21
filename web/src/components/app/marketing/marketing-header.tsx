@@ -28,7 +28,7 @@ export function MarketingHeader({
 }: Props) {
   const { t } = useI18n();
   const { theme, toggleTheme } = useTheme();
-  const m = t.marketing;
+  const m = t.home.marketing;
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -62,13 +62,13 @@ export function MarketingHeader({
                   to={registerTo}
                   className="hidden rounded-md px-2.5 py-1.5 text-sm text-muted-foreground no-underline transition-colors hover:text-foreground sm:inline-flex"
                 >
-                  {m.ctaRegister}
+                  {m.cta_register}
                 </Link>
                 <Link
                   to={loginTo}
                   className="inline-flex h-8 items-center justify-center rounded-full bg-[var(--login-cta-bg,#152033)] px-4 text-sm font-medium text-white no-underline transition-[filter] hover:brightness-110 sm:h-9 sm:px-5"
                 >
-                  {m.ctaLogin}
+                  {m.cta_login}
                 </Link>
                 <span className="mx-0.5 hidden h-4 w-px bg-border/60 sm:mx-1 sm:block" aria-hidden />
               </>
@@ -79,7 +79,7 @@ export function MarketingHeader({
               variant="ghost"
               size="icon-sm"
               onClick={toggleTheme}
-              aria-label={theme === 'dark' ? m.a11yThemeLight : m.a11yThemeDark}
+              aria-label={theme === 'dark' ? m.a11y_theme_light : m.a11y_theme_dark}
               className="text-muted-foreground hover:text-foreground"
             >
               <PublicIcon name={theme === 'dark' ? 'sun-01' : 'moon-01'} size={18} />
@@ -90,7 +90,7 @@ export function MarketingHeader({
                   type="button"
                   variant="ghost"
                   size="icon-sm"
-                  aria-label={t.sidebar.language}
+                  aria-label={t.core.shell.sidebar.language}
                   className="text-muted-foreground hover:text-foreground"
                 >
                   <PublicIcon name="globe-02" size={18} />

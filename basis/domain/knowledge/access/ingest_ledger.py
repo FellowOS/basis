@@ -25,21 +25,21 @@ class IngestLedgerAccess:
     def __init__(self, store: KnowledgeStore) -> None:
         self._store = store
 
-    def get_or_create_entity_by_label(self, kb_id: str, label: str) -> str:
+    def get_or_create_entity_by_label(self, workspace_id: str, label: str) -> str:
         clean = label.strip()
         if not clean:
             raise AdminError(422, "bad_entity", "实体名称无效")
         with self._store._lock:
             row = entity_persist.find_active_entity_id_by_label(
-                self._store._conn, kb_id, clean
+                self._store._conn, workspace_id, clean
             )
         if row is not None:
             return row["id"]
-        return self.create_entity(kb_id, canonical_label=clean)
+        return self.create_entity(workspace_id, canonical_label=clean)
 
     def create_entity(
         self,
-        kb_id: str,
+        workspace_id: str,
         *,
         canonical_label: str | None = None,
         description: str | None = None,
@@ -49,11 +49,11 @@ class IngestLedgerAccess:
             raise AdminError(422, "bad_entity_kind", "实体类型无效")
         entity_id = str(uuid.uuid4())
         with self._store._lock:
-            self._store._assert_kb_exists(kb_id)
+            self._store._assert_workspace_exists(workspace_id)
             entity_persist.insert_entity(
                 self._store._conn,
                 entity_id=entity_id,
-                kb_id=kb_id,
+                workspace_id=workspace_id,
                 canonical_label=canonical_label,
                 description=description,
                 entity_kind=entity_kind,
@@ -62,13 +62,13 @@ class IngestLedgerAccess:
             self._store._conn.commit()
         return entity_id
 
-    def count_entities_named(self, kb_id: str, label: str) -> int:
+    def count_entities_named(self, workspace_id: str, label: str) -> int:
         with self._store._lock:
-            return entity_persist.count_entities_named(self._store._conn, kb_id, label)
+            return entity_persist.count_entities_named(self._store._conn, workspace_id, label)
 
     def has_statement_on_chunk(
         self,
-        kb_id: str,
+        workspace_id: str,
         chunk_id: str,
         subject_id: str,
         surface_phrase: str,
@@ -79,7 +79,7 @@ class IngestLedgerAccess:
         with self._store._lock:
             return stmt_persist.has_statement_on_chunk(
                 self._store._conn,
-                kb_id,
+                workspace_id,
                 chunk_id,
                 subject_id,
                 surface_phrase,
@@ -89,7 +89,7 @@ class IngestLedgerAccess:
 
     def has_equivalent_statement(
         self,
-        kb_id: str,
+        workspace_id: str,
         subject_id: str,
         surface_phrase: str,
         *,
@@ -99,7 +99,7 @@ class IngestLedgerAccess:
         with self._store._lock:
             return stmt_persist.has_equivalent_statement(
                 self._store._conn,
-                kb_id,
+                workspace_id,
                 subject_id,
                 surface_phrase,
                 object_entity_id=object_entity_id,
@@ -108,7 +108,7 @@ class IngestLedgerAccess:
 
     def add_extraction_drop(
         self,
-        kb_id: str,
+        workspace_id: str,
         version_id: str,
         chunk_id: str | None,
         code: str,
@@ -118,14 +118,14 @@ class IngestLedgerAccess:
     ) -> str:
         drop_id = str(uuid.uuid4())
         with self._store._lock:
-            self._store._assert_kb_exists(kb_id)
-            self._store._assert_row_in_kb("document_versions", version_id, kb_id)
+            self._store._assert_workspace_exists(workspace_id)
+            self._store._assert_row_in_workspace("document_versions", version_id, workspace_id)
             if chunk_id:
-                self._store._assert_row_in_kb("chunks", chunk_id, kb_id)
+                self._store._assert_row_in_workspace("chunks", chunk_id, workspace_id)
             drop_persist.insert_extraction_drop(
                 self._store._conn,
                 drop_id=drop_id,
-                kb_id=kb_id,
+                workspace_id=workspace_id,
                 version_id=version_id,
                 chunk_id=chunk_id,
                 code=code,
@@ -136,15 +136,15 @@ class IngestLedgerAccess:
             self._store._conn.commit()
         return drop_id
 
-    def count_statements_for_version(self, kb_id: str, version_id: str) -> int:
+    def count_statements_for_version(self, workspace_id: str, version_id: str) -> int:
         with self._store._lock:
             return stmt_persist.count_statements_for_version(
-                self._store._conn, kb_id, version_id
+                self._store._conn, workspace_id, version_id
             )
 
     def add_open_statement(
         self,
-        kb_id: str,
+        workspace_id: str,
         *,
         subject_id: str,
         surface_phrase: str,
@@ -167,10 +167,10 @@ class IngestLedgerAccess:
         now = _now()
         with self._store._lock:
             conn = self._store._conn
-            self._store._assert_row_in_kb("entities", subject_id, kb_id)
+            self._store._assert_row_in_workspace("entities", subject_id, workspace_id)
             if object_entity_id:
-                self._store._assert_row_in_kb("entities", object_entity_id, kb_id)
-            self._store._assert_row_in_kb("chunks", chunk_id, kb_id)
+                self._store._assert_row_in_workspace("entities", object_entity_id, workspace_id)
+            self._store._assert_row_in_workspace("chunks", chunk_id, workspace_id)
             if quote_start is not None and quote_end is not None:
                 chunk_persist.validate_quote_in_chunk(
                     conn, chunk_id, quote, quote_start, quote_end
@@ -178,7 +178,7 @@ class IngestLedgerAccess:
             stmt_persist.insert_statement_with_evidence(
                 conn,
                 statement_id=statement_id,
-                kb_id=kb_id,
+                workspace_id=workspace_id,
                 subject_id=subject_id,
                 surface_phrase=surface_phrase,
                 object_entity_id=object_entity_id,
@@ -198,7 +198,7 @@ class IngestLedgerAccess:
 
     def create_chunk(
         self,
-        kb_id: str,
+        workspace_id: str,
         version_id: str,
         *,
         ordinal: int,
@@ -213,11 +213,11 @@ class IngestLedgerAccess:
     ) -> str:
         chunk_id = str(uuid.uuid4())
         with self._store._lock:
-            self._store._assert_row_in_kb("document_versions", version_id, kb_id)
+            self._store._assert_row_in_workspace("document_versions", version_id, workspace_id)
             chunk_persist.insert_chunk(
                 self._store._conn,
                 chunk_id=chunk_id,
-                kb_id=kb_id,
+                workspace_id=workspace_id,
                 version_id=version_id,
                 ordinal=ordinal,
                 text=text,
@@ -235,7 +235,7 @@ class IngestLedgerAccess:
 
     def create_chunks(
         self,
-        kb_id: str,
+        workspace_id: str,
         version_id: str,
         texts: list[str] | list[dict[str, Any]],
     ) -> list[str]:
@@ -249,7 +249,7 @@ class IngestLedgerAccess:
             rows.append(
                 (
                     chunk_id,
-                    kb_id,
+                    workspace_id,
                     version_id,
                     ordinal,
                     payload["text"],
@@ -264,12 +264,12 @@ class IngestLedgerAccess:
                 )
             )
         with self._store._lock:
-            self._store._assert_row_in_kb("document_versions", version_id, kb_id)
+            self._store._assert_row_in_workspace("document_versions", version_id, workspace_id)
             chunk_persist.insert_chunks_many(self._store._conn, rows)
             self._store._conn.commit()
         return chunk_ids
 
-    def set_statement_status(self, kb_id: str, statement_id: str, status: str) -> None:
+    def set_statement_status(self, workspace_id: str, statement_id: str, status: str) -> None:
         allowed = {"pending", "confirmed", "rejected", "invalidated", "superseded"}
         if status not in allowed:
             raise AdminError(422, "bad_status", "陈述状态无效")
@@ -279,24 +279,24 @@ class IngestLedgerAccess:
             row = stmt_persist.fetch_statement_kb_status(conn, statement_id)
             if row is None:
                 raise AdminError(404, "not_found", "陈述不存在")
-            if row["kb_id"] != kb_id:
-                raise AdminError(403, "forbidden", "记录不属于该知识库")
+            if row["workspace_id"] != workspace_id:
+                raise AdminError(403, "forbidden", "记录不属于该工作区")
             if row["status"] != "pending" and status in {"confirmed", "rejected"}:
                 raise AdminError(409, "statement_not_pending", "陈述已处理")
             invalidated_at = now if status in {"invalidated", "rejected", "superseded"} else None
             stmt_persist.update_statement_status(
-                conn, kb_id, statement_id, status, invalidated_at
+                conn, workspace_id, statement_id, status, invalidated_at
             )
             conn.commit()
 
-    def invalidate_statement(self, kb_id: str, statement_id: str) -> None:
+    def invalidate_statement(self, workspace_id: str, statement_id: str) -> None:
         now = _now()
         with self._store._lock:
             conn = self._store._conn
             row = stmt_persist.fetch_statement_kb(conn, statement_id)
             if row is None:
                 raise AdminError(404, "not_found", "陈述不存在")
-            if row["kb_id"] != kb_id:
-                raise AdminError(403, "forbidden", "记录不属于该知识库")
-            stmt_persist.invalidate_statement_row(conn, kb_id, statement_id, now)
+            if row["workspace_id"] != workspace_id:
+                raise AdminError(403, "forbidden", "记录不属于该工作区")
+            stmt_persist.invalidate_statement_row(conn, workspace_id, statement_id, now)
             conn.commit()

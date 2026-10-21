@@ -22,7 +22,7 @@ This document defines the **Basis Open Connector Protocol (BOCP)**: a **consumer
 
 A manifest declares **`auth`** and **`actions`**. Each action is an **entity** (DISCOVER, LIST, optional MUTATE) or a **procedure** (INVOKE). Reaching upstream systems is expressed only through **`rest`** or **`sql`** executor blocks (`operations` maps) interpreted by the host implementation layer. v2 defines execution only for `rest` and `sql`; `graphql` / `grpc` are attachment hints, not executable executors.
 
-Runtimes expose **CHECK**, **DISCOVER**, **LIST**, **MUTATE**, and **INVOKE**. Connections, policy, scheduling, and knowledge-base projection are **host bindings** and MUST NOT appear in `connector.yaml`.
+Runtimes expose **CHECK**, **DISCOVER**, **LIST**, **MUTATE**, and **INVOKE**. Connections, policy, scheduling, and workspace projection are **host bindings** and MUST NOT appear in `connector.yaml`.
 
 Wire `version` **MUST** be `"2.0"`. Other versions are not accepted.
 
@@ -270,7 +270,7 @@ CHECK applies to the **connection** (auth), not to a single action id.
 
 Any consumer **MAY** invoke any primitive the runtime exposes; BOCP does not assign primitives to “agent” vs “sync” roles.
 
-The same manifest and runtime **MUST** be usable for both **knowledge projection** (for example ledger sync and governed writeback) and **interactive agents** (for example MCP tools that call LIST without prior mapping). The manifest does not choose a consumer; the **host** wires one or more bindings (Section 4.3.1).
+The same manifest and runtime **MUST** be usable for both **workspace projection** (for example ledger sync and governed writeback) and **interactive agents** (for example MCP tools that call LIST without prior mapping). The manifest does not choose a consumer; the **host** wires one or more bindings (Section 4.3.1).
 
 ### 4.3 Host bindings
 
@@ -285,7 +285,7 @@ Product hosts (for example [runtime.md](runtime.md)) typically attach **two para
 | Consumer | Typical host binding | Primitive use |
 |----------|----------------------|---------------|
 | **Ontology / ledger** | Stream-to-entity mappings, scheduled inbound sync, outbox writeback | LIST / MUTATE during sync and approved outbound changes |
-| **Agents (MCP, chat tools)** | Direct primitive APIs on the KB MCP server and/or OpenAPI | DISCOVER, LIST, MUTATE, INVOKE **without** requiring mapping rows |
+| **Agents (MCP, chat tools)** | Direct primitive APIs on the workspace MCP server and/or OpenAPI | DISCOVER, LIST, MUTATE, INVOKE **without** requiring mapping rows |
 
 Neither binding **MAY** require a second manifest or duplicate operation definitions. Agent LIST **MUST** remain valid with no ledger configuration (Section 10.4).
 
@@ -942,7 +942,7 @@ Informative walkthrough using the GitHub provider. Exact HTTP/MCP names depend o
 |------|----------------|
 | **Connector author** | Writes `providers/github/connector.yaml` (Appendix C). |
 | **Host operator** | Loads bundles into a catalog, configures platform allowlists. |
-| **End user** | Creates a **connection** (OAuth or PAT) in a KB or workspace. |
+| **End user** | Creates a **connection** (OAuth or PAT) in a workspace. |
 | **Consumer** | UI, batch job, or agent that calls **primitives**. |
 
 ### D.2 Minimal manifest concepts (GitHub `issues`)
@@ -1011,7 +1011,7 @@ Basis exposes a **generic** MCP tool plus **expanded** tools derived from each m
 | Generic | `invoke_connector_primitive` | Pass `service`, `action_id`, `primitive`, … |
 | Expanded | `connector_{service}__{action_id}__{suffix}` | `suffix` = `list`, `discover`, `invoke`, or `mutate_{create\|update\|upsert\|delete}` |
 
-`tools/list` is KB-scoped: provider allowlist and `action_policy.entities` omit tools whose primitive is `disabled` (e.g. `github:issues.list`).
+`tools/list` is workspace-scoped: provider allowlist and `action_policy.entities` omit tools whose primitive is `disabled` (e.g. `github:issues.list`).
 
 Generic example:
 
@@ -1042,7 +1042,7 @@ Expanded equivalent:
 }
 ```
 
-HTTP equivalent: `POST /api/v1/kbs/{kb_id}/connectors/connections/github/default/invoke-primitive` with the same fields in the JSON body.
+HTTP equivalent: `POST /api/v1/workspaces/{workspace_id}/connectors/connections/github/default/invoke-primitive` with the same fields in the JSON body.
 
 ### D.8 Ledger path (same manifest, different host binding)
 

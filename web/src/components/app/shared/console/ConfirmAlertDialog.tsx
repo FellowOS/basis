@@ -42,12 +42,12 @@ export function ConfirmAlertDialog({
           <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>{cancelLabel ?? t.common.cancel}</AlertDialogCancel>
+          <AlertDialogCancel>{cancelLabel ?? t.core.common.cancel}</AlertDialogCancel>
           <AlertDialogAction
             variant={destructive ? 'destructive' : 'default'}
             onClick={() => void onConfirm()}
           >
-            {confirmLabel ?? t.common.confirm}
+            {confirmLabel ?? t.core.common.confirm}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

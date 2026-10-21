@@ -26,7 +26,7 @@ class GraphStagingKbAccess:
     def graph_staging_at(
         self,
         session: Any,
-        kb_id: str,
+        workspace_id: str,
         from_time: str,
         to_time: str,
         *,
@@ -35,13 +35,13 @@ class GraphStagingKbAccess:
         with self._store._lock:
             diff = diff_session_at(session, from_time, to_time)
             skey = staging_session_key(
-                kb_id, str(diff.get("from_time") or from_time), str(diff.get("to_time") or to_time)
+                workspace_id, str(diff.get("from_time") or from_time), str(diff.get("to_time") or to_time)
             )
             persist = self._persist()
-            persisted_draft = persist.get_draft(kb_id, skey)
-            payload = build_graph_staging_payload(kb_id, diff, draft=persisted_draft)
+            persisted_draft = persist.get_draft(workspace_id, skey)
+            payload = build_graph_staging_payload(workspace_id, diff, draft=persisted_draft)
             persist.upsert_session(
-                kb_id,
+                workspace_id,
                 session_key=skey,
                 from_time=str(diff.get("from_time") or from_time),
                 to_time=str(diff.get("to_time") or to_time),
@@ -53,7 +53,7 @@ class GraphStagingKbAccess:
 
     def upsert_graph_staging_session(
         self,
-        kb_id: str,
+        workspace_id: str,
         *,
         session_key: str,
         from_time: str = "",
@@ -63,7 +63,7 @@ class GraphStagingKbAccess:
     ) -> dict[str, Any]:
         with self._store._lock:
             return self._persist().upsert_session(
-                kb_id,
+                workspace_id,
                 session_key=session_key,
                 from_time=from_time,
                 to_time=to_time,

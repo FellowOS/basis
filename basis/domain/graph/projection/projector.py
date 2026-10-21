@@ -117,26 +117,26 @@ def _entity_valid_from(
 
 def _build_entity_first_seen(
     knowledge: KnowledgeStore,
-    kb_id: str,
+    workspace_id: str,
     merge_redirect: dict[str, str],
     *,
     include_invalidated: bool = False,
 ) -> dict[str, str]:
     seen: dict[str, str] = {}
     statements = (
-        knowledge.list_statements_for_temporal_projection(kb_id)
+        knowledge.list_statements_for_temporal_projection(workspace_id)
         if include_invalidated
-        else knowledge.list_statements_for_projection(kb_id)
+        else knowledge.list_statements_for_projection(workspace_id)
     )
     typed_facts = (
-        knowledge.list_typed_facts_for_temporal_projection(kb_id)
+        knowledge.list_typed_facts_for_temporal_projection(workspace_id)
         if include_invalidated
-        else knowledge.list_typed_facts_for_projection(kb_id)
+        else knowledge.list_typed_facts_for_projection(workspace_id)
     )
     derived_facts = (
-        knowledge.list_derived_facts_for_temporal_projection(kb_id)
+        knowledge.list_derived_facts_for_temporal_projection(workspace_id)
         if include_invalidated
-        else knowledge.list_derived_facts_for_projection(kb_id)
+        else knowledge.list_derived_facts_for_projection(workspace_id)
     )
     for row in statements:
         at = row.get("recorded_at")
@@ -155,21 +155,21 @@ def _build_entity_first_seen(
 
 def build_temporal_graph_from_ledger(
     knowledge: KnowledgeStore,
-    kb_id: str,
+    workspace_id: str,
     *,
     preserve_from: GraphSession | None = None,
 ) -> GraphSession:
     """Build a temporal ContextGraph including invalidated rows with `valid_until` (F-TIM-01–04)."""
-    merge_redirect = knowledge.entity_merge_redirect(kb_id)
+    merge_redirect = knowledge.entity_merge_redirect(workspace_id)
     session = GraphSession()
     if preserve_from is not None:
         _copy_preserved_nodes(preserve_from, session)
 
     entity_first_seen = _build_entity_first_seen(
-        knowledge, kb_id, merge_redirect, include_invalidated=True
+        knowledge, workspace_id, merge_redirect, include_invalidated=True
     )
 
-    for doc in knowledge.list_ready_documents_for_projection(kb_id):
+    for doc in knowledge.list_ready_documents_for_projection(workspace_id):
         graph_doc_id = doc["graph_doc_id"]
         text = doc["text"]
         doc_valid_from = doc.get("version_created_at")
@@ -185,7 +185,7 @@ def build_temporal_graph_from_ledger(
             **({"valid_from": doc_valid_from} if doc_valid_from else {}),
         )
 
-    for entity in knowledge.list_entities_for_temporal_projection(kb_id):
+    for entity in knowledge.list_entities_for_temporal_projection(workspace_id):
         if entity["id"] in merge_redirect:
             continue
         label = entity["canonical_label"] or ""
@@ -206,8 +206,8 @@ def build_temporal_graph_from_ledger(
             **({"valid_until": valid_until} if valid_until else {}),
         )
 
-    typed_facts = knowledge.list_typed_facts_for_temporal_projection(kb_id)
-    for row in knowledge.list_statements_for_temporal_projection(kb_id):
+    typed_facts = knowledge.list_typed_facts_for_temporal_projection(workspace_id)
+    for row in knowledge.list_statements_for_temporal_projection(workspace_id):
         surface = row["surface_phrase"]
         statement_id = row["statement_id"]
         evidence_id = row.get("evidence_id")
@@ -305,7 +305,7 @@ def build_temporal_graph_from_ledger(
             edge_props["valid_until"] = invalidated_at
         session.add_edge(subject_id, target_id, edge_label, **edge_props)
 
-    for fact in knowledge.list_derived_facts_for_temporal_projection(kb_id):
+    for fact in knowledge.list_derived_facts_for_temporal_projection(workspace_id):
         subject_id = _canon_entity_id(fact["subject_id"], merge_redirect)
         recorded_at = fact.get("recorded_at")
         invalidated_at = fact.get("invalidated_at")
@@ -343,24 +343,24 @@ def build_temporal_graph_from_ledger(
 
 def rebuild_graph_from_ledger(
     knowledge: KnowledgeStore,
-    kb_id: str,
+    workspace_id: str,
     *,
     preserve_from: GraphSession | None = None,
     include_version_ids: tuple[str, ...] | None = None,
 ) -> GraphSession:
-    """Full rebuild of KB graph content from ledger rows (ontology nodes may be preserved)."""
-    knowledge.ensure_projection_state(kb_id)
-    knowledge.set_projection_status(kb_id, "building")
-    merge_redirect = knowledge.entity_merge_redirect(kb_id)
+    """Full rebuild of workspace graph content from ledger rows (ontology nodes may be preserved)."""
+    knowledge.ensure_projection_state(workspace_id)
+    knowledge.set_projection_status(workspace_id, "building")
+    merge_redirect = knowledge.entity_merge_redirect(workspace_id)
     try:
         session = GraphSession()
         if preserve_from is not None:
             _copy_preserved_nodes(preserve_from, session)
 
-        entity_first_seen = _build_entity_first_seen(knowledge, kb_id, merge_redirect)
+        entity_first_seen = _build_entity_first_seen(knowledge, workspace_id, merge_redirect)
 
         for doc in knowledge.list_ready_documents_for_projection(
-            kb_id, include_version_ids=include_version_ids
+            workspace_id, include_version_ids=include_version_ids
         ):
             graph_doc_id = doc["graph_doc_id"]
             text = doc["text"]
@@ -377,7 +377,7 @@ def rebuild_graph_from_ledger(
                 **({"valid_from": doc_valid_from} if doc_valid_from else {}),
             )
 
-        for entity in knowledge.list_entities_for_projection(kb_id):
+        for entity in knowledge.list_entities_for_projection(workspace_id):
             if entity["id"] in merge_redirect:
                 continue
             label = entity["canonical_label"] or ""
@@ -397,7 +397,7 @@ def rebuild_graph_from_ledger(
             )
 
         typed_triples: set[tuple[str, str, str]] = set()
-        for fact in knowledge.list_typed_facts_for_projection(kb_id):
+        for fact in knowledge.list_typed_facts_for_projection(workspace_id):
             subject_id = _canon_entity_id(fact["subject_id"], merge_redirect)
             if fact["object_entity_id"]:
                 target_id = _canon_entity_id(fact["object_entity_id"], merge_redirect)
@@ -408,7 +408,7 @@ def rebuild_graph_from_ledger(
             typed_triples.add((subject_id, target_id, _predicate_edge_label(fact["predicate_uri"])))
 
         mentioned: set[tuple[str, str]] = set()
-        for row in knowledge.list_statements_for_projection(kb_id):
+        for row in knowledge.list_statements_for_projection(workspace_id):
             surface = row["surface_phrase"]
             statement_id = row["statement_id"]
             evidence_id = row.get("evidence_id")
@@ -472,7 +472,7 @@ def rebuild_graph_from_ledger(
                     )
                     mentioned.add(pair)
 
-        for fact in knowledge.list_typed_facts_for_projection(kb_id):
+        for fact in knowledge.list_typed_facts_for_projection(workspace_id):
             subject_id = _canon_entity_id(fact["subject_id"], merge_redirect)
             recorded_at = fact.get("recorded_at")
             if fact["object_entity_id"]:
@@ -503,7 +503,7 @@ def rebuild_graph_from_ledger(
                 edge_props["valid_from"] = recorded_at
             session.add_edge(subject_id, target_id, edge_label, **edge_props)
 
-        for fact in knowledge.list_derived_facts_for_projection(kb_id):
+        for fact in knowledge.list_derived_facts_for_projection(workspace_id):
             subject_id = _canon_entity_id(fact["subject_id"], merge_redirect)
             recorded_at = fact.get("recorded_at")
             if fact["object_entity_id"]:
@@ -532,16 +532,16 @@ def rebuild_graph_from_ledger(
                 edge_props["valid_from"] = recorded_at
             session.add_edge(subject_id, target_id, edge_label, **edge_props)
 
-        knowledge.bump_projection_revision(kb_id)
+        knowledge.bump_projection_revision(workspace_id)
         return session
     except Exception:
-        knowledge.set_projection_status(kb_id, "failed", error_code="build_failed")
+        knowledge.set_projection_status(workspace_id, "failed", error_code="build_failed")
         raise
 
 
 def apply_rebuild_to_session(
     knowledge: KnowledgeStore,
-    kb_id: str,
+    workspace_id: str,
     session: GraphSession,
     *,
     include_version_ids: tuple[str, ...] | None = None,
@@ -549,12 +549,12 @@ def apply_rebuild_to_session(
     """Replace session graph from ledger; returns build metadata."""
     rebuilt = rebuild_graph_from_ledger(
         knowledge,
-        kb_id,
+        workspace_id,
         preserve_from=session,
         include_version_ids=include_version_ids,
     )
     session.graph = rebuilt.graph
-    state = knowledge.get_projection_state(kb_id)
+    state = knowledge.get_projection_state(workspace_id)
     return {
         "projection_revision": state["revision"],
         "projection_status": state["status"],

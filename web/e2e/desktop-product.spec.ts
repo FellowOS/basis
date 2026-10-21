@@ -9,15 +9,15 @@ test.describe('desktop product (ADR 0004)', () => {
     }
   });
 
-  test('opens KB console without login', async ({ page }) => {
-    await page.goto('/kbs');
-    await expect(page).toHaveURL(/\/kbs/, { timeout: 60_000 });
+  test('opens workspace console without login', async ({ page }) => {
+    await page.goto('/workspaces');
+    await expect(page).toHaveURL(/\/workspaces/, { timeout: 60_000 });
     await expect(page).not.toHaveURL(/\/login/);
   });
 
   test('redirects cloud-only admin routes to home', async ({ page }) => {
-    await page.goto('/kbs');
-    await expect(page).toHaveURL(/\/kbs/, { timeout: 60_000 });
+    await page.goto('/workspaces');
+    await expect(page).toHaveURL(/\/workspaces/, { timeout: 60_000 });
 
     await page.goto('/admin/users');
     await expect(page).not.toHaveURL(/\/admin\/users/);

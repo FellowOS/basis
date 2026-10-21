@@ -1,4 +1,4 @@
-"""KB ingest source sync and webhook ingestion."""
+"""Workspace ingest source sync and webhook ingestion."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, Header, Request
 
 from basis.domain.errors import AdminError
 from basis.domain.tenancy.admin.store import AdminStore, User
-from basis.interface.http.deps import get_current_user, get_kb_for_editor, get_knowledge_store, get_store
+from basis.interface.http.deps import get_current_user, get_workspace_for_editor, get_knowledge_store, get_store
 from basis.domain.knowledge.services.graph_audit import audit_kb_graph
 from basis.domain.knowledge.services.ingest_source_service import (
     enqueue_text_from_source,
@@ -28,9 +28,9 @@ from basis.interface.http.kb_sources_support import (
 
 router = APIRouter(tags=["knowledge-bases"])
 
-@router.post("/{kb_id}/sources/{source_id}/sync")
+@router.post("/{workspace_id}/sources/{source_id}/sync")
 async def sync_ingest_source(
-    kb_id: str,
+    workspace_id: str,
     source_id: str,
     request: Request,
     body: SyncIngestSourceRequest,
@@ -39,29 +39,29 @@ async def sync_ingest_source(
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> dict[str, Any]:
     """
-Sync Ingest Source. Ingest sources (HTTP poll, webhook, manual sync). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Sync Ingest Source. Ingest sources (HTTP poll, webhook, manual sync). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
-    get_kb_for_editor(request, user, kb_id, store)
+    get_workspace_for_editor(request, user, workspace_id, store)
     result = execute_ingest_source_sync(
         request.app,
         knowledge,
-        kb_id,
+        workspace_id,
         source_id,
         auto_process=body.auto_process,
     )
     audit_kb_graph(
         store,
         user,
-        kb_id,
+        workspace_id,
         "kb.ingest_source.sync",
         extra={"source_id": source_id, "doc_id": result.get("doc_id")},
     )
     return {"source_id": source_id, "result": result}
 
 
-@router.post("/{kb_id}/sources/{source_id}/webhook")
+@router.post("/{workspace_id}/sources/{source_id}/webhook")
 async def ingest_via_webhook(
-    kb_id: str,
+    workspace_id: str,
     source_id: str,
     body: WebhookIngestRequest,
     request: Request,
@@ -69,14 +69,14 @@ async def ingest_via_webhook(
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> dict[str, Any]:
     """
-Ingest Via Webhook. Ingest sources (HTTP poll, webhook, manual sync). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Ingest Via Webhook. Ingest sources (HTTP poll, webhook, manual sync). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
     token = bearer_token(authorization)
-    expected = knowledge.get_ingest_source_secret(kb_id, source_id)
+    expected = knowledge.get_ingest_source_secret(workspace_id, source_id)
     if not expected or not token or token != expected:
         raise AdminError(401, "unauthorized", "Webhook 令牌无效")
 
-    source = knowledge.get_ingest_source(kb_id, source_id)
+    source = knowledge.get_ingest_source(workspace_id, source_id)
     if source["kind"] != "webhook" or not source["enabled"]:
         raise AdminError(403, "forbidden", "来源未启用")
 
@@ -87,7 +87,7 @@ Ingest Via Webhook. Ingest sources (HTTP poll, webhook, manual sync). Requires K
         result = enqueue_text_from_source(
             request.app,
             knowledge,
-            kb_id,
+            workspace_id,
             source_id,
             title=title,
             text=body.text,
@@ -97,7 +97,7 @@ Ingest Via Webhook. Ingest sources (HTTP poll, webhook, manual sync). Requires K
     except Exception as exc:
         record_ingest_source_event(
             knowledge,
-            kb_id,
+            workspace_id,
             source_id,
             {"at": at, "status": "failed", "mode": "webhook", "error": str(exc)[:500]},
         )
@@ -105,7 +105,7 @@ Ingest Via Webhook. Ingest sources (HTTP poll, webhook, manual sync). Requires K
 
     record_ingest_source_event(
         knowledge,
-        kb_id,
+        workspace_id,
         source_id,
         {
             "at": at,

@@ -1,4 +1,4 @@
-"""KB ontology mapping ledger routes."""
+"""Workspace ontology mapping ledger routes."""
 
 from __future__ import annotations
 
@@ -10,8 +10,8 @@ from pydantic import BaseModel, Field
 from basis.domain.tenancy.admin.store import AdminStore, User
 from basis.interface.http.deps import (
     get_current_user,
-    get_kb_for_editor,
-    get_kb_for_viewer,
+    get_workspace_for_editor,
+    get_workspace_for_viewer,
     get_knowledge_store,
     get_store,
     graph_projection_bindings,
@@ -41,9 +41,9 @@ class UpdateMappingStatusRequest(BaseModel):
     why: str | None = Field(default=None, max_length=2000)
 
 
-@router.get("/{kb_id}/mappings")
+@router.get("/{workspace_id}/mappings")
 async def list_kb_mappings(
-    kb_id: str,
+    workspace_id: str,
     request: Request,
     status: str | None = Query(None),
     limit: int = Query(100, ge=1, le=200),
@@ -52,16 +52,16 @@ async def list_kb_mappings(
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> dict[str, Any]:
     """
-List Kb Mappings. Statement-to-entity mapping proposals and status. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+List Mappings. Statement-to-entity mapping proposals and status. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
-    get_kb_for_viewer(request, user, kb_id, store)
-    mappings = knowledge.list_mappings(kb_id, status=status, limit=limit)
+    get_workspace_for_viewer(request, user, workspace_id, store)
+    mappings = knowledge.list_mappings(workspace_id, status=status, limit=limit)
     return {"mappings": mappings}
 
 
-@router.post("/{kb_id}/mappings")
+@router.post("/{workspace_id}/mappings")
 async def create_kb_mapping(
-    kb_id: str,
+    workspace_id: str,
     body: CreateMappingRequest,
     request: Request,
     user: User = Depends(get_current_user),
@@ -69,12 +69,12 @@ async def create_kb_mapping(
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> dict[str, Any]:
     """
-Create Kb Mapping. Statement-to-entity mapping proposals and status. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Create Mapping. Statement-to-entity mapping proposals and status. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
     minimum = "editor" if body.status == "confirmed" else "viewer"
-    store.get_kb_for(user, kb_id, minimum)
+    store.get_workspace_for(user, workspace_id, minimum)
     mapping = knowledge.create_mapping(
-        kb_id,
+        workspace_id,
         user.id,
         signature=body.signature,
         target_uri=body.target_uri,
@@ -86,15 +86,15 @@ Create Kb Mapping. Statement-to-entity mapping proposals and status. Requires KB
     materialized = None
     projection = None
     if body.status == "proposed":
-        ensure_mapping_review_item(knowledge, kb_id, mapping)
+        ensure_mapping_review_item(knowledge, workspace_id, mapping)
     else:
-        materialized = knowledge.materialize_mapping_facts(kb_id, mapping["id"])
+        materialized = knowledge.materialize_mapping_facts(workspace_id, mapping["id"])
         if materialized.get("created", 0) > 0:
-            projection = rebuild_kb_projection(request, kb_id)
+            projection = rebuild_kb_projection(request, workspace_id)
     audit_kb_graph(
         store,
         user,
-        kb_id,
+        workspace_id,
         "kb.mapping.created",
         extra={
             "mapping_id": mapping["id"],
@@ -106,9 +106,9 @@ Create Kb Mapping. Statement-to-entity mapping proposals and status. Requires KB
     return {"mapping": mapping, "materialized": materialized, "projection": projection}
 
 
-@router.post("/{kb_id}/mappings/{mapping_id}/status")
+@router.post("/{workspace_id}/mappings/{mapping_id}/status")
 async def update_kb_mapping_status(
-    kb_id: str,
+    workspace_id: str,
     mapping_id: str,
     request: Request,
     body: UpdateMappingStatusRequest,
@@ -117,11 +117,11 @@ async def update_kb_mapping_status(
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> dict[str, Any]:
     """
-Update Kb Mapping Status. Statement-to-entity mapping proposals and status. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Update Mapping Status. Statement-to-entity mapping proposals and status. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
-    get_kb_for_editor(request, user, kb_id, store)
+    get_workspace_for_editor(request, user, workspace_id, store)
     return apply_mapping_status_change(
-        kb_id,
+        workspace_id,
         mapping_id,
         user,
         store,

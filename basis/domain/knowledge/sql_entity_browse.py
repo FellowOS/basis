@@ -15,66 +15,66 @@ def entity_browse_row(row: Any) -> dict[str, Any]:
     }
 
 
-def list_active_entity_id_label_rows(conn: Any, kb_id: str) -> list[Any]:
+def list_active_entity_id_label_rows(conn: Any, workspace_id: str) -> list[Any]:
     return conn.execute(
         """
         SELECT id AS entity_id, canonical_label
         FROM entities
-        WHERE kb_id = ? AND invalidated_at IS NULL
+        WHERE workspace_id = ? AND invalidated_at IS NULL
         """,
-        (kb_id,),
+        (workspace_id,),
     ).fetchall()
 
 
-def count_browse_entities(conn: Any, kb_id: str, *, pattern: str | None) -> int:
+def count_browse_entities(conn: Any, workspace_id: str, *, pattern: str | None) -> int:
     if pattern:
         row = conn.execute(
             """
             SELECT COUNT(*) AS n
             FROM entities
-            WHERE kb_id = ? AND invalidated_at IS NULL
+            WHERE workspace_id = ? AND invalidated_at IS NULL
               AND (canonical_label LIKE ? OR description LIKE ?)
             """,
-            (kb_id, pattern, pattern),
+            (workspace_id, pattern, pattern),
         ).fetchone()
     else:
         row = conn.execute(
             """
             SELECT COUNT(*) AS n
             FROM entities
-            WHERE kb_id = ? AND invalidated_at IS NULL
+            WHERE workspace_id = ? AND invalidated_at IS NULL
             """,
-            (kb_id,),
+            (workspace_id,),
         ).fetchone()
     return int(row["n"] or 0)
 
 
 def list_recent_entity_rows(
-    conn: Any, kb_id: str, *, limit: int, offset: int
+    conn: Any, workspace_id: str, *, limit: int, offset: int
 ) -> list[Any]:
     return conn.execute(
         """
         SELECT id, canonical_label, description, entity_kind
         FROM entities
-        WHERE kb_id = ? AND invalidated_at IS NULL
+        WHERE workspace_id = ? AND invalidated_at IS NULL
         ORDER BY created_at DESC
         LIMIT ? OFFSET ?
         """,
-        (kb_id, limit, offset),
+        (workspace_id, limit, offset),
     ).fetchall()
 
 
 def find_entity_rows(
-    conn: Any, kb_id: str, *, pattern: str, limit: int, offset: int
+    conn: Any, workspace_id: str, *, pattern: str, limit: int, offset: int
 ) -> list[Any]:
     return conn.execute(
         """
         SELECT id, canonical_label, description, entity_kind
         FROM entities
-        WHERE kb_id = ? AND invalidated_at IS NULL
+        WHERE workspace_id = ? AND invalidated_at IS NULL
           AND (canonical_label LIKE ? OR description LIKE ?)
         ORDER BY canonical_label
         LIMIT ? OFFSET ?
         """,
-        (kb_id, pattern, pattern, limit, offset),
+        (workspace_id, pattern, pattern, limit, offset),
     ).fetchall()

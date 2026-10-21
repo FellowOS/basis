@@ -24,52 +24,52 @@ class GraphProjectionBindings:
     broadcast_projection: Callable[[str, int], None]
 
 
-def graph_session_for_kb(bindings: GraphProjectionBindings, kb_id: str) -> GraphSession:
-    session = bindings.graphs.get(kb_id)
+def graph_session_for_kb(bindings: GraphProjectionBindings, workspace_id: str) -> GraphSession:
+    session = bindings.graphs.get(workspace_id)
     if session is not None:
         return session
 
-    session, meta = bindings.persistence.load_snapshot(kb_id)
-    ledger = bindings.knowledge.get_projection_state(kb_id)
+    session, meta = bindings.persistence.load_snapshot(workspace_id)
+    ledger = bindings.knowledge.get_projection_state(workspace_id)
     stale = meta is None or meta.projection_revision < ledger["revision"]
-    has_ledger_docs = bool(bindings.knowledge.list_ready_documents_for_projection(kb_id))
+    has_ledger_docs = bool(bindings.knowledge.list_ready_documents_for_projection(workspace_id))
     if stale and (ledger["revision"] > 0 or has_ledger_docs):
-        apply_rebuild_to_session(bindings.knowledge, kb_id, session)
-        ledger = bindings.knowledge.get_projection_state(kb_id)
+        apply_rebuild_to_session(bindings.knowledge, workspace_id, session)
+        ledger = bindings.knowledge.get_projection_state(workspace_id)
         bindings.persistence.save(
-            kb_id,
+            workspace_id,
             session,
             projection_revision=ledger["revision"],
             schema_version=ledger["schema_version"],
         )
-    bindings.graphs[kb_id] = session
+    bindings.graphs[workspace_id] = session
     return session
 
 
-def save_graph(bindings: GraphProjectionBindings, kb_id: str, *, sync_ledger: bool = True) -> None:
-    session = graph_session_for_kb(bindings, kb_id)
+def save_graph(bindings: GraphProjectionBindings, workspace_id: str, *, sync_ledger: bool = True) -> None:
+    session = graph_session_for_kb(bindings, workspace_id)
     knowledge = bindings.knowledge
     if sync_ledger:
         from basis.domain.knowledge.services.graph_sync import sync_graph_to_ledger
 
-        synced = sync_graph_to_ledger(knowledge, kb_id, session)
+        synced = sync_graph_to_ledger(knowledge, workspace_id, session)
         if synced["entities_created"] or synced["statements_created"]:
-            apply_rebuild_to_session(knowledge, kb_id, session)
-    ledger = knowledge.get_projection_state(kb_id)
+            apply_rebuild_to_session(knowledge, workspace_id, session)
+    ledger = knowledge.get_projection_state(workspace_id)
     bindings.persistence.save(
-        kb_id,
+        workspace_id,
         session,
         projection_revision=ledger["revision"],
         schema_version=ledger["schema_version"],
     )
-    bindings.kb_graph_session_registry.invalidate(kb_id)
-    bindings.persist_ontology_hub(kb_id)
-    bindings.broadcast_projection(kb_id, int(ledger["revision"]))
+    bindings.kb_graph_session_registry.invalidate(workspace_id)
+    bindings.persist_ontology_hub(workspace_id)
+    bindings.broadcast_projection(workspace_id, int(ledger["revision"]))
 
 
-def rebuild_kb_projection(bindings: GraphProjectionBindings, kb_id: str) -> dict:
-    bindings.kb_graph_session_registry.invalidate(kb_id)
-    session = graph_session_for_kb(bindings, kb_id)
-    meta = apply_rebuild_to_session(bindings.knowledge, kb_id, session)
-    save_graph(bindings, kb_id)
+def rebuild_kb_projection(bindings: GraphProjectionBindings, workspace_id: str) -> dict:
+    bindings.kb_graph_session_registry.invalidate(workspace_id)
+    session = graph_session_for_kb(bindings, workspace_id)
+    meta = apply_rebuild_to_session(bindings.knowledge, workspace_id, session)
+    save_graph(bindings, workspace_id)
     return meta

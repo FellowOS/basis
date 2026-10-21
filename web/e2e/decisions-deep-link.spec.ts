@@ -1,16 +1,16 @@
 import { expect, test } from '@playwright/test';
 
-import { defaultKbId, proposeRememberViaApi, registerFreshUser } from './helpers';
+import { defaultWorkspaceId, proposeRememberViaApi, registerFreshUser } from './helpers';
 
 test('decisions list selection updates shareable decision query', async ({ page }) => {
   test.setTimeout(120_000);
 
   await registerFreshUser(page);
-  const kbId = await defaultKbId(page);
+  const workspaceId = await defaultWorkspaceId(page);
   const fact = `E2E decision deep link ${Date.now()}`;
-  const { reviewItemId } = await proposeRememberViaApi(page, kbId, fact);
+  const { reviewItemId } = await proposeRememberViaApi(page, workspaceId, fact);
 
-  await page.goto(`/kbs/${kbId}/review?reviewItem=${encodeURIComponent(reviewItemId)}`);
+  await page.goto(`/workspaces/${workspaceId}/review?reviewItem=${encodeURIComponent(reviewItemId)}`);
 
   const unavailable = page.getByRole('heading', {
     name: /工作区不可用|Workspace unavailable/i,

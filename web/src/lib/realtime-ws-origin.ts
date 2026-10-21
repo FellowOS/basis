@@ -1,4 +1,4 @@
-/** WebSocket origin for KB graph-updates (dev: direct to API; prod: same host as the SPA). */
+/** WebSocket origin for workspace graph-updates (dev: direct to API; prod: same host as the SPA). */
 export function realtimeWsOrigin(): string {
   if (!import.meta.env.DEV) {
     const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';

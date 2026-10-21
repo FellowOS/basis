@@ -12,13 +12,13 @@ from basis.interface.http.app import create_app
 
 def _mcp_call(
     client: TestClient,
-    kb_id: str,
+    workspace_id: str,
     headers: dict[str, str],
     name: str,
     arguments: dict,
 ) -> dict:
     resp = client.post(
-        f"/api/v1/kbs/{kb_id}/mcp",
+        f"/api/v1/workspaces/{workspace_id}/mcp",
         headers=headers,
         json={
             "jsonrpc": "2.0",
@@ -44,11 +44,11 @@ def test_mcp_list_connector_catalog_and_mappings(tmp_path: Path) -> None:
         },
     ).json()
     headers = {"Authorization": f"Bearer {reg['token']}"}
-    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
 
     catalog = _mcp_call(
         client,
-        kb_id,
+        workspace_id,
         headers,
         "list_connector_catalog",
         {"has_streams_only": True, "limit": 20},
@@ -59,7 +59,7 @@ def test_mcp_list_connector_catalog_and_mappings(tmp_path: Path) -> None:
 
     detail = _mcp_call(
         client,
-        kb_id,
+        workspace_id,
         headers,
         "describe_connector_service",
         {"service": "postgres"},
@@ -69,7 +69,7 @@ def test_mcp_list_connector_catalog_and_mappings(tmp_path: Path) -> None:
 
     mappings = _mcp_call(
         client,
-        kb_id,
+        workspace_id,
         headers,
         "list_connector_table_mappings",
         {"limit": 10},
@@ -78,7 +78,7 @@ def test_mcp_list_connector_catalog_and_mappings(tmp_path: Path) -> None:
 
     blocked = _mcp_call(
         client,
-        kb_id,
+        workspace_id,
         headers,
         "execute_connector_tool",
         {"service": "postgres", "tool_id": "nonexistent_tool"},
@@ -118,10 +118,10 @@ def test_mcp_sync_connector_table_mapping_inbound(tmp_path: Path) -> None:
         },
     ).json()
     headers = {"Authorization": f"Bearer {reg['token']}"}
-    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
 
     put_conn = client.put(
-        f"/api/v1/kbs/{kb_id}/connectors/connections/postgres/mcp_sync",
+        f"/api/v1/workspaces/{workspace_id}/connectors/connections/postgres/mcp_sync",
         headers=headers,
         json={
             "auth_type": "database_dsn",
@@ -132,7 +132,7 @@ def test_mcp_sync_connector_table_mapping_inbound(tmp_path: Path) -> None:
     assert put_conn.status_code == 200
 
     map_resp = client.post(
-        f"/api/v1/kbs/{kb_id}/connectors/table-mappings",
+        f"/api/v1/workspaces/{workspace_id}/connectors/table-mappings",
         headers=headers,
         json={
             "provider": "postgres",
@@ -153,7 +153,7 @@ def test_mcp_sync_connector_table_mapping_inbound(tmp_path: Path) -> None:
 
     stats = _mcp_call(
         client,
-        kb_id,
+        workspace_id,
         headers,
         "sync_connector_table_mapping",
         {"mapping_id": mapping_id},
@@ -163,7 +163,7 @@ def test_mcp_sync_connector_table_mapping_inbound(tmp_path: Path) -> None:
 
     stats2 = _mcp_call(
         client,
-        kb_id,
+        workspace_id,
         headers,
         "sync_connector_table_mapping",
         {"mapping_id": mapping_id},

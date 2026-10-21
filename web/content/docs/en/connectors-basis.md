@@ -21,7 +21,7 @@ A complete **Basis host MUST** expose that same runtime on **two first-class bin
 | Consumer | Binding | How primitives are reached |
 |----------|---------|----------------------------|
 | **Ontology / ledger** | `source_table_mappings`, inbound sync, `entity_sync_outbox` writeback | `ConnectorRuntime.read_stream` / `mutate_stream` inside `connector_sync` and approved outbox execution |
-| **Agents (MCP)** | KB MCP tools (and matching OpenAPI where applicable) | **Direct** Section 10 calls: `service` + `action_id` + primitive + `action_params` / `scope` — **without** requiring mapping rows for LIST |
+| **Agents (MCP)** | Workspace MCP tools (and matching OpenAPI where applicable) | **Direct** Section 10 calls: `service` + `action_id` + primitive + `action_params` / `scope` — **without** requiring mapping rows for LIST |
 
 Examples: GitHub `issues` `rest.operations.list` backs both scheduled sync into the evidence ledger **and** an agent asking for the current issue list via MCP. The manifest does not fork; only the host entry point differs.
 
@@ -31,8 +31,9 @@ Agents **MUST NOT** need a parallel manifest, generated OpenAPI per vendor path,
 
 | Binding | Status |
 |---------|--------|
-| Ledger / projection | **Shipped** — HTTP `/api/v1/kbs/{kb_id}/connectors/*`, MCP `sync_connector_table_mapping`, `propose_entity_writeback`, … |
+| Ledger / projection | **Shipped** — HTTP `/api/v1/workspaces/{workspace_id}/connectors/*`, MCP `sync_connector_table_mapping`, `propose_entity_writeback`, … |
 | Agent primitives | **Shipped** — MCP `invoke_connector_primitive` + per-action `connector_{service}__{action_id}__{suffix}` tools from `tools/list`; HTTP `POST …/invoke-primitive` — same runtime as ledger sync |
+| Console UI | **Shipped** — `/kbs/{workspace_id}/connectors` (`web/src/modules/connectors/`); platform allowlist at `/admin/connectors` |
 
 Policy: `action_policy.entities` keys (e.g. `github:issues.list`, `issues.create`) plus `default_entity_read_mode` / `default_entity_write_mode`. Procedures: `execute_connector_tool` or `primitive: invoke`.
 
@@ -71,10 +72,10 @@ Basis-specific REST extensions (ignored by other BOCP hosts): `x-basis-dynamic-s
 
 | Surface | Location |
 |---------|----------|
-| HTTP | `/api/v1/kbs/{kb_id}/connectors/*` (see [openapi-v1.md](openapi-v1.md) and live `/openapi/v1.json`) |
+| HTTP | `/api/v1/workspaces/{workspace_id}/connectors/*` (see [openapi-v1.md](openapi-v1.md) and live `/openapi/v1.json`) |
 | MCP | `basis/application/operations_connectors.py` (`invoke_connector_primitive`, sync, catalog, …) |
 
-Persistence and KB projection: [data-model.md](../data-model.md) §18.
+Persistence and workspace projection: [data-model.md](../data-model.md) §18.
 
 ---
 

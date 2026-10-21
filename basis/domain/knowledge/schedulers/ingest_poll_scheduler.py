@@ -25,17 +25,17 @@ def run_due_http_polls(app: FastAPI) -> int:
     for source in sources:
         if not is_ingest_poll_due(source, now):
             continue
-        kb_id = source["kb_id"]
+        workspace_id = source["workspace_id"]
         source_id = source["id"]
         try:
-            execute_ingest_source_sync(app, knowledge, kb_id, source_id, auto_process=True)
+            execute_ingest_source_sync(app, knowledge, workspace_id, source_id, auto_process=True)
             ran += 1
         except Exception:
             logger.exception(
                 "scheduled ingest failed kb=%s source=%s kind=%s",
-                kb_id,
+                workspace_id,
                 source_id,
                 source.get("kind"),
-                extra=correlation_log_extra(kb_id=kb_id, source_id=source_id),
+                extra=correlation_log_extra(workspace_id=workspace_id, source_id=source_id),
             )
     return ran

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
-  kbProcessingJobPath,
-  kbProcessingPath,
+  processingJobPath,
+  processingPath,
   parseProcessingUrlState,
 } from '@/lib/processingUrlState.js';
 
@@ -15,12 +15,12 @@ describe('processingUrlState', () => {
   });
 
   it('builds processing job deep link', () => {
-    expect(kbProcessingJobPath('kb-1', 'job-9')).toBe('/kbs/kb-1/processing?job=job-9');
+    expect(processingJobPath('kb-1', 'job-9')).toBe('/workspaces/kb-1/processing?job=job-9');
   });
 
   it('builds processing list with filter', () => {
-    expect(kbProcessingPath('kb-1', { filter: 'failed' })).toBe(
-      '/kbs/kb-1/processing?filter=failed',
+    expect(processingPath('kb-1', { filter: 'failed' })).toBe(
+      '/workspaces/kb-1/processing?filter=failed',
     );
   });
 });

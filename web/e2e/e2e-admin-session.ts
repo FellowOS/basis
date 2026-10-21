@@ -27,6 +27,14 @@ function writeAdminFixture(fixture: AdminFixture): void {
   fs.writeFileSync(ADMIN_FIXTURE_PATH, JSON.stringify(fixture));
 }
 
+function clearAdminFixture(): void {
+  try {
+    fs.rmSync(ADMIN_FIXTURE_PATH, { force: true });
+  } catch {
+    // ignore
+  }
+}
+
 export async function persistPlatformAdminIfApplicable(
   page: Page,
   creds: AdminFixture,
@@ -44,22 +52,57 @@ export async function persistPlatformAdminIfApplicable(
   }
 }
 
+async function authMeIsPlatformAdmin(page: Page, token: string): Promise<boolean> {
+  const meRes = await page.request.get(`${e2eApiBaseUrl()}/api/v1/auth/me`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!meRes.ok()) {
+    return false;
+  }
+  const me = (await meRes.json()) as { user?: { is_admin?: boolean } };
+  return me.user?.is_admin === true;
+}
+
+/** Wait until API + browser token reflect a platform admin session. */
+export async function waitForPlatformAdminSession(page: Page): Promise<void> {
+  await expect
+    .poll(
+      async () => {
+        const token = await page.evaluate(() => localStorage.getItem('basis_token'));
+        if (!token) {
+          return false;
+        }
+        return authMeIsPlatformAdmin(page, token);
+      },
+      { timeout: 60_000 },
+    )
+    .toBe(true);
+}
+
+async function applySessionToken(page: Page, token: string): Promise<void> {
+  await page.goto('/');
+  await page.evaluate(() => localStorage.clear());
+  await page.evaluate((t) => localStorage.setItem('basis_token', t), token);
+  await page.goto('/workspaces');
+  await expect(page).toHaveURL(/\/workspaces/, { timeout: 60_000 });
+  await waitForPlatformAdminSession(page);
+}
+
 export async function loginPlatformAdmin(page: Page): Promise<AdminFixture> {
   const saved = readAdminFixture();
-  if (saved) {
-    const login = await page.request.post(`${e2eApiBaseUrl()}/api/v1/auth/login`, {
-      data: { email: saved.email, password: saved.password },
-    });
-    expect(login.ok(), `admin login failed: ${login.status()} ${await login.text()}`).toBeTruthy();
-    const body = (await login.json()) as { token: string };
-    await page.goto('/');
-    await page.evaluate(() => localStorage.clear());
-    await page.evaluate((token) => localStorage.setItem('basis_token', token), body.token);
-    await page.goto('/kbs');
-    await expect(page).toHaveURL(/\/kbs/, { timeout: 60_000 });
-    return saved;
+  if (!saved) {
+    throw new Error(
+      'platform admin fixture missing; run any test that registers the first user in data/e2e first',
+    );
   }
-  throw new Error(
-    'platform admin fixture missing; run any test that registers the first user in data/e2e first',
-  );
+  const login = await page.request.post(`${e2eApiBaseUrl()}/api/v1/auth/login`, {
+    data: { email: saved.email, password: saved.password },
+  });
+  if (!login.ok()) {
+    clearAdminFixture();
+    throw new Error(`admin login failed: ${login.status()} ${await login.text()}`);
+  }
+  const body = (await login.json()) as { token: string };
+  await applySessionToken(page, body.token);
+  return saved;
 }

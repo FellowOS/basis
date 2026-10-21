@@ -5,10 +5,10 @@ from __future__ import annotations
 from fastapi import FastAPI
 
 from basis.interface.http import users
-from basis.interface.http.kb_config_alerts import router as kb_alerts_router
+from basis.interface.http.kb_config_alerts import router as alerts_router
 from basis.interface.http.kb_config_governance import router as kb_governance_router
 from basis.interface.http.kb_config_mappings import router as kb_mappings_router
-from basis.interface.http.kb_config_reasoning_rules import router as kb_reasoning_rules_router
+from basis.interface.http.kb_config_reasoning_rules import router as reasoning_rules_router
 from basis.interface.http.kb_connectors import router as kb_connectors_router
 from basis.interface.http.kb_documents import router as kb_documents_router
 from basis.interface.http.kb_e2e_helpers import router as kb_e2e_helpers_router
@@ -48,8 +48,8 @@ _KB_ROUTERS = (
     kb_review_router,
     kb_ledger_router,
     kb_mappings_router,
-    kb_reasoning_rules_router,
-    kb_alerts_router,
+    reasoning_rules_router,
+    alerts_router,
     kb_sources_router,
     kb_connectors_router,
     kb_governance_router,
@@ -78,8 +78,8 @@ def register_v1_api_routers(
         app.include_router(audit_router, prefix=f"{root}/audit")
         app.include_router(reasoning_router, prefix=f"{root}/reason")
         for kb_router in _KB_ROUTERS:
-            app.include_router(kb_router, prefix=f"{root}/kbs")
+            app.include_router(kb_router, prefix=f"{root}/workspaces")
 
     if include_e2e_helpers:
         for root in roots:
-            app.include_router(kb_e2e_helpers_router, prefix=f"{root}/kbs")
+            app.include_router(kb_e2e_helpers_router, prefix=f"{root}/workspaces")

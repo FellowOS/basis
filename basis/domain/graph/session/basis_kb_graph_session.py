@@ -1,4 +1,4 @@
-"""KB graph session adapter for Explorer HTTP (wraps ``basis.domain.graph.projection.GraphSession``)."""
+"""Workspace graph session adapter for Explorer HTTP (wraps ``basis.domain.graph.projection.GraphSession``)."""
 
 from __future__ import annotations
 

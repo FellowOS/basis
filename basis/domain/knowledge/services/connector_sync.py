@@ -27,7 +27,7 @@ def _now_iso() -> str:
 @dataclass
 class SourceTableMappingRecord:
     id: str
-    kb_id: str
+    workspace_id: str
     source_id: str
     stream_name: str
     external_table: str
@@ -77,7 +77,7 @@ class ConnectorLedgerSyncService:
 
     def create_table_mapping(
         self,
-        kb_id: str,
+        workspace_id: str,
         *,
         source_id: str,
         stream_name: str,
@@ -107,7 +107,7 @@ class ConnectorLedgerSyncService:
         checkpoint_json = json.dumps(checkpoint, ensure_ascii=False)
         self._persist.insert_table_mapping(
             mapping_id=mapping_id,
-            kb_id=kb_id,
+            workspace_id=workspace_id,
             source_id=source_id,
             stream_name=stream_name,
             external_table=external_table,
@@ -126,13 +126,13 @@ class ConnectorLedgerSyncService:
             created_at=now,
             updated_at=now,
         )
-        rec = self.get_table_mapping(kb_id, mapping_id)
+        rec = self.get_table_mapping(workspace_id, mapping_id)
         assert rec is not None
         return rec
 
     def update_table_mapping(
         self,
-        kb_id: str,
+        workspace_id: str,
         mapping_id: str,
         *,
         provider: str | None = None,
@@ -152,12 +152,12 @@ class ConnectorLedgerSyncService:
         max_rows: int = 10000,
         poll_interval_minutes: int = 0,
     ) -> SourceTableMappingRecord:
-        existing = self.get_table_mapping(kb_id, mapping_id)
+        existing = self.get_table_mapping(workspace_id, mapping_id)
         if not existing:
-            raise LookupError(f"Table mapping '{mapping_id}' not found in KB '{kb_id}'")
+            raise LookupError(f"Table mapping '{mapping_id}' not found in workspace '{workspace_id}'")
 
         if provider is not None or connection_name is not None:
-            cfg = self._get_source_config(kb_id, existing.source_id)
+            cfg = self._get_source_config(workspace_id, existing.source_id)
             merged = cfg.model_copy(
                 update={
                     "provider": provider or cfg.provider,
@@ -166,7 +166,7 @@ class ConnectorLedgerSyncService:
             )
             now = _now_iso()
             self._persist.update_ingest_source_config(
-                kb_id,
+                workspace_id,
                 existing.source_id,
                 json.dumps(merged.model_dump(mode="json", exclude_none=True)),
                 now,
@@ -199,31 +199,31 @@ class ConnectorLedgerSyncService:
             writeback_mode=writeback_mode,
             max_rows=max_rows,
             updated_at=now,
-            kb_id=kb_id,
+            workspace_id=workspace_id,
             mapping_id=mapping_id,
         )
-        rec = self.get_table_mapping(kb_id, mapping_id)
+        rec = self.get_table_mapping(workspace_id, mapping_id)
         assert rec is not None
         return rec
 
-    def delete_table_mapping(self, kb_id: str, mapping_id: str) -> bool:
-        return self._persist.delete_table_mapping(kb_id, mapping_id) > 0
+    def delete_table_mapping(self, workspace_id: str, mapping_id: str) -> bool:
+        return self._persist.delete_table_mapping(workspace_id, mapping_id) > 0
 
     def get_mapping_connection_binding(
-        self, kb_id: str, source_id: str
+        self, workspace_id: str, source_id: str
     ) -> ConnectorSourceConfig:
-        return self._get_source_config(kb_id, source_id)
+        return self._get_source_config(workspace_id, source_id)
 
     def get_table_mapping(
-        self, kb_id: str, mapping_id: str
+        self, workspace_id: str, mapping_id: str
     ) -> SourceTableMappingRecord | None:
-        row = self._persist.fetch_table_mapping_row(kb_id, mapping_id)
+        row = self._persist.fetch_table_mapping_row(workspace_id, mapping_id)
         if not row:
             return None
         raw_cols = json.loads(row[10]) if row[10] else []
         return SourceTableMappingRecord(
             id=row[0],
-            kb_id=row[1],
+            workspace_id=row[1],
             source_id=row[2],
             stream_name=row[3],
             external_table=row[4],
@@ -244,24 +244,24 @@ class ConnectorLedgerSyncService:
             updated_at=row[19] or "",
         )
 
-    def _get_source_config(self, kb_id: str, source_id: str) -> ConnectorSourceConfig:
-        row = self._persist.fetch_ingest_source_row(kb_id, source_id)
+    def _get_source_config(self, workspace_id: str, source_id: str) -> ConnectorSourceConfig:
+        row = self._persist.fetch_ingest_source_row(workspace_id, source_id)
         if not row:
-            raise LookupError(f"Ingest source '{source_id}' not found in KB '{kb_id}'")
+            raise LookupError(f"Ingest source '{source_id}' not found in workspace '{workspace_id}'")
         raw_cfg = json.loads(row[1]) if row[1] else {}
         return ConnectorSourceConfig.model_validate(raw_cfg)
 
     # ── Inbound Sync: Stream READ → Evidence Ledger ──────────────────────────
 
     def sync_inbound_mapping(
-        self, kb_id: str, mapping_id: str
+        self, workspace_id: str, mapping_id: str
     ) -> InboundSyncStats:
         """Pull records from BOCP stream and route via 4-way row_hash diff into the Evidence Ledger."""
-        mapping = self.get_table_mapping(kb_id, mapping_id)
+        mapping = self.get_table_mapping(workspace_id, mapping_id)
         if not mapping:
             raise LookupError(f"Table mapping '{mapping_id}' not found")
 
-        src_cfg = self._get_source_config(kb_id, mapping.source_id)
+        src_cfg = self._get_source_config(workspace_id, mapping.source_id)
         watermark = (
             mapping.checkpoint.get("cursor_watermark")
             if mapping.sync_mode == "incremental" and not mapping.track_deletes
@@ -269,7 +269,7 @@ class ConnectorLedgerSyncService:
         )
 
         read_res: UnifiedReadResult = self.runtime.read_stream(
-            kb_id,
+            workspace_id,
             src_cfg.provider,
             connection_name=src_cfg.connection_name,
             stream_name=mapping.stream_name,
@@ -306,7 +306,7 @@ class ConnectorLedgerSyncService:
             )
 
             existing_ref = self._persist.fetch_external_ref_by_pk(
-                kb_id, mapping.source_id, mapping.external_table, ext_pk
+                workspace_id, mapping.source_id, mapping.external_table, ext_pk
             )
 
             if existing_ref is None:
@@ -317,14 +317,14 @@ class ConnectorLedgerSyncService:
 
                 self._persist.insert_sync_entity(
                     entity_id,
-                    kb_id,
+                    workspace_id,
                     label_val,
                     f"Synced from {src_cfg.provider}:{mapping.external_table} ({ext_pk})",
                     now,
                 )
                 self._persist.insert_external_ref(
                     ref_id=ref_id,
-                    kb_id=kb_id,
+                    workspace_id=workspace_id,
                     entity_id=entity_id,
                     source_id=mapping.source_id,
                     mapping_id=mapping.id,
@@ -334,7 +334,7 @@ class ConnectorLedgerSyncService:
                     last_synced_at=now,
                 )
                 self._persist.upsert_entity_column_facts(
-                    kb_id=kb_id,
+                    workspace_id=workspace_id,
                     provider=src_cfg.provider,
                     mapping=mapping,
                     ref_id=ref_id,
@@ -360,9 +360,9 @@ class ConnectorLedgerSyncService:
                     label_val = (
                         str(row.get(mapping.label_column) or ext_pk).strip() or ext_pk
                     )
-                    self._persist.update_entity_label(label_val, entity_id, kb_id)
+                    self._persist.update_entity_label(label_val, entity_id, workspace_id)
                     self._persist.upsert_entity_column_facts(
-                        kb_id=kb_id,
+                        workspace_id=workspace_id,
                         provider=src_cfg.provider,
                         mapping=mapping,
                         ref_id=ref_id,
@@ -376,15 +376,15 @@ class ConnectorLedgerSyncService:
 
         # 4. DELETED: if track_deletes is enabled on full snapshot, mark missing rows as deleted upstream
         if mapping.track_deletes:
-            active_refs = self._persist.list_active_external_refs_for_mapping(kb_id, mapping.id)
+            active_refs = self._persist.list_active_external_refs_for_mapping(workspace_id, mapping.id)
             proposed_by = f"connector:{src_cfg.provider}"
             for r_id, ent_id, r_pk in active_refs:
                 if r_pk not in seen_pks:
                     self._persist.mark_external_ref_deleted_upstream(r_id, now)
                     self._persist.invalidate_connector_subject_statements(
-                        now, kb_id, ent_id, proposed_by
+                        now, workspace_id, ent_id, proposed_by
                     )
-                    self._persist.invalidate_connector_subject_typed_facts(now, kb_id, ent_id)
+                    self._persist.invalidate_connector_subject_typed_facts(now, workspace_id, ent_id)
                     stats.deleted += 1
 
         # Update mapping checkpoint_json
@@ -396,7 +396,7 @@ class ConnectorLedgerSyncService:
             json.dumps(new_checkpoint, ensure_ascii=False),
             now,
             mapping.id,
-            kb_id,
+            workspace_id,
         )
         self._persist.commit()
         return stats
@@ -405,11 +405,11 @@ class ConnectorLedgerSyncService:
 
     def get_entity_external_sync_context(
         self,
-        kb_id: str,
+        workspace_id: str,
         entity_id: str,
     ) -> dict[str, Any] | None:
         """Return external connector provenance and writable column values for an entity, if any."""
-        ref_row = self._persist.fetch_external_ref_context_row(kb_id, entity_id)
+        ref_row = self._persist.fetch_external_ref_context_row(workspace_id, entity_id)
         if not ref_row:
             return None
         (
@@ -421,11 +421,11 @@ class ConnectorLedgerSyncService:
             last_synced_at,
             deleted_upstream_at,
         ) = ref_row
-        mapping = self.get_table_mapping(kb_id, mapping_id)
+        mapping = self.get_table_mapping(workspace_id, mapping_id)
         if not mapping:
             return None
         try:
-            src_cfg = self._get_source_config(kb_id, source_id)
+            src_cfg = self._get_source_config(workspace_id, source_id)
             provider = src_cfg.provider
         except LookupError:
             provider = "unknown"
@@ -436,7 +436,7 @@ class ConnectorLedgerSyncService:
                 continue
             pred_uri = col_spec.predicate_uri or f"urn:basis:prop:{col_spec.column}"
             val_row = self._persist.fetch_typed_fact_object_value(
-                kb_id, entity_id, pred_uri
+                workspace_id, entity_id, pred_uri
             )
             writable_columns.append(
                 {
@@ -462,7 +462,7 @@ class ConnectorLedgerSyncService:
 
     def propose_entity_writeback(
         self,
-        kb_id: str,
+        workspace_id: str,
         *,
         entity_id: str,
         field_updates: dict[str, Any],
@@ -471,14 +471,14 @@ class ConnectorLedgerSyncService:
         typed_fact_id: str | None = None,
     ) -> dict[str, Any]:
         """Stage an outbound mutation in `entity_sync_outbox` and open a `review_items` gate if required."""
-        ref_row = self._persist.fetch_active_external_ref_for_writeback(kb_id, entity_id)
+        ref_row = self._persist.fetch_active_external_ref_for_writeback(workspace_id, entity_id)
         if not ref_row:
             raise LookupError(
                 f"Entity '{entity_id}' has no active external connector reference"
             )
         ref_id, source_id, mapping_id, external_table, external_pk, _ = ref_row
 
-        mapping = self.get_table_mapping(kb_id, mapping_id)
+        mapping = self.get_table_mapping(workspace_id, mapping_id)
         if not mapping:
             raise LookupError(f"Mapping '{mapping_id}' not found")
         if mapping.sync_direction != "bidirectional" or mapping.writeback_mode == "disabled":
@@ -486,7 +486,7 @@ class ConnectorLedgerSyncService:
                 f"Writeback is disabled on mapping '{mapping.id}' ({mapping.external_table})"
             )
 
-        src_cfg = self._get_source_config(kb_id, source_id)
+        src_cfg = self._get_source_config(workspace_id, source_id)
         writable_cols = {
             c.column: c for c in mapping.column_mappings if c.writable
         }
@@ -500,7 +500,7 @@ class ConnectorLedgerSyncService:
                 )
             pred_uri = col_spec.predicate_uri or f"urn:basis:prop:{col_name}"
             old_row = self._persist.fetch_typed_fact_writeback_baseline(
-                kb_id, entity_id, pred_uri
+                workspace_id, entity_id, pred_uri
             )
             old_val = old_row[0] if old_row else None
             old_stmt = old_row[1] if old_row else None
@@ -543,7 +543,7 @@ class ConnectorLedgerSyncService:
             }
             self._persist.insert_connector_writeback_review(
                 review_item_id=review_item_id,
-                kb_id=kb_id,
+                workspace_id=workspace_id,
                 outbox_id=outbox_id,
                 payload_json=json.dumps(review_payload, ensure_ascii=False),
                 created_at=now,
@@ -551,7 +551,7 @@ class ConnectorLedgerSyncService:
 
         self._persist.insert_sync_outbox_item(
             outbox_id=outbox_id,
-            kb_id=kb_id,
+            workspace_id=workspace_id,
             entity_id=entity_id,
             external_ref_id=ref_id,
             statement_id=statement_id,
@@ -565,20 +565,20 @@ class ConnectorLedgerSyncService:
         self._persist.commit()
 
         if mapping.writeback_mode == "auto":
-            return self.execute_outbox_item(kb_id, outbox_id)
+            return self.execute_outbox_item(workspace_id, outbox_id)
 
-        return self.get_outbox_item(kb_id, outbox_id)
+        return self.get_outbox_item(workspace_id, outbox_id)
 
     def approve_and_execute_outbox(
         self,
-        kb_id: str,
+        workspace_id: str,
         outbox_id: str,
         *,
         actor_id: str | None = None,
         rationale: str = "Approved connector writeback",
     ) -> dict[str, Any]:
         """Resolve the governance review item, record an agent_decision, and execute the remote mutation."""
-        item = self.get_outbox_item(kb_id, outbox_id)
+        item = self.get_outbox_item(workspace_id, outbox_id)
         now = _now_iso()
         decision_id = f"dec_{uuid.uuid4().hex[:16]}"
         review_item_id = item.get("review_item_id")
@@ -589,25 +589,25 @@ class ConnectorLedgerSyncService:
                 resolved_by=actor_id,
                 rationale=rationale,
                 review_item_id=review_item_id,
-                kb_id=kb_id,
+                workspace_id=workspace_id,
             )
 
         self._persist.insert_writeback_agent_decision(
             decision_id=decision_id,
-            kb_id=kb_id,
+            workspace_id=workspace_id,
             review_item_id=review_item_id,
             rationale=rationale,
             trace_json=json.dumps({"outbox_id": outbox_id, "actor_id": actor_id}),
             created_at=now,
             applied_at=now,
         )
-        self._persist.queue_outbox_after_approval(decision_id, outbox_id, kb_id)
+        self._persist.queue_outbox_after_approval(decision_id, outbox_id, workspace_id)
         self._persist.commit()
-        return self.execute_outbox_item(kb_id, outbox_id)
+        return self.execute_outbox_item(workspace_id, outbox_id)
 
-    def execute_outbox_item(self, kb_id: str, outbox_id: str) -> dict[str, Any]:
+    def execute_outbox_item(self, workspace_id: str, outbox_id: str) -> dict[str, Any]:
         """Execute a queued outbox item against the upstream connector and update ledger + row_hash."""
-        row = self._persist.fetch_outbox_execution_row(kb_id, outbox_id)
+        row = self._persist.fetch_outbox_execution_row(workspace_id, outbox_id)
         if not row:
             raise LookupError(f"Outbox item '{outbox_id}' not found")
 
@@ -627,16 +627,16 @@ class ConnectorLedgerSyncService:
             )
 
         patch = OutboxPatchSpec.model_validate(json.loads(patch_json))
-        mapping = self.get_table_mapping(kb_id, mapping_id)
+        mapping = self.get_table_mapping(workspace_id, mapping_id)
         assert mapping is not None
-        src_cfg = self._get_source_config(kb_id, source_id)
+        src_cfg = self._get_source_config(workspace_id, source_id)
 
         raw_changes = {col: chg.new for col, chg in patch.changes.items()}
         now = _now_iso()
 
         try:
             remote_res = self.runtime.mutate_stream(
-                kb_id,
+                workspace_id,
                 src_cfg.provider,
                 connection_name=src_cfg.connection_name,
                 stream_name=patch.stream_name,
@@ -650,7 +650,7 @@ class ConnectorLedgerSyncService:
 
             # Update local ledger facts for the mutated columns
             merged_row = self._build_current_entity_row(
-                kb_id, entity_id, mapping, overrides=raw_changes
+                workspace_id, entity_id, mapping, overrides=raw_changes
             )
             if isinstance(remote_res, dict) and remote_res:
                 # If remote returned updated fields, merge any mapped columns
@@ -664,7 +664,7 @@ class ConnectorLedgerSyncService:
                         merged_row[col_spec.column] = remote_fields[col_spec.column]
 
             self._persist.upsert_entity_column_facts(
-                kb_id=kb_id,
+                workspace_id=workspace_id,
                 provider=src_cfg.provider,
                 mapping=mapping,
                 ref_id=ref_id,
@@ -681,46 +681,46 @@ class ConnectorLedgerSyncService:
                 column_mappings=mapping.column_mappings,
             )
             self._persist.update_external_ref_row_hash(ref_id, new_hash, now)
-            self._persist.mark_outbox_synced(now, outbox_id, kb_id)
+            self._persist.mark_outbox_synced(now, outbox_id, workspace_id)
             self._persist.commit()
         except Exception as exc:
             self._persist.mark_outbox_writeback_failed(
-                json.dumps({"message": str(exc)}), outbox_id, kb_id
+                json.dumps({"message": str(exc)}), outbox_id, workspace_id
             )
             self._persist.commit()
             raise
 
-        return self.get_outbox_item(kb_id, outbox_id)
+        return self.get_outbox_item(workspace_id, outbox_id)
 
     def _build_current_entity_row(
         self,
-        kb_id: str,
+        workspace_id: str,
         entity_id: str,
         mapping: SourceTableMappingRecord,
         *,
         overrides: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
-        ent_row = self._persist.fetch_entity_canonical_label(entity_id, kb_id)
+        ent_row = self._persist.fetch_entity_canonical_label(entity_id, workspace_id)
         row_dict: dict[str, Any] = {
             mapping.label_column: ent_row[0] if ent_row else ""
         }
         for col_spec in mapping.column_mappings:
             pred_uri = col_spec.predicate_uri or f"urn:basis:prop:{col_spec.column}"
             f_row = self._persist.fetch_typed_fact_object_value(
-                kb_id, entity_id, pred_uri
+                workspace_id, entity_id, pred_uri
             )
             row_dict[col_spec.column] = f_row[0] if f_row else None
         if overrides:
             row_dict.update(overrides)
         return row_dict
 
-    def get_outbox_item(self, kb_id: str, outbox_id: str) -> dict[str, Any]:
-        row = self._persist.fetch_outbox_row(kb_id, outbox_id)
+    def get_outbox_item(self, workspace_id: str, outbox_id: str) -> dict[str, Any]:
+        row = self._persist.fetch_outbox_row(workspace_id, outbox_id)
         if not row:
             raise LookupError(f"Outbox item '{outbox_id}' not found")
         return {
             "id": row[0],
-            "kb_id": row[1],
+            "workspace_id": row[1],
             "entity_id": row[2],
             "external_ref_id": row[3],
             "statement_id": row[4],

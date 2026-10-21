@@ -1,4 +1,4 @@
-import { kbPath } from '@/lib/nav-config.js';
+import { workspacePath } from '@/lib/nav-config.js';
 
 /** Sole owner of review queue deep-link query params. */
 const ITEM_PARAM = 'reviewItem';
@@ -11,15 +11,15 @@ export function parseReviewUrlState(search: string): { reviewItemId?: string } {
 }
 
 /** Deep-link to the review queue with a specific item in view (F-GOV / F-ALT). */
-export function kbReviewItemPath(kbId: string, itemId: string): string {
+export function reviewItemPath(workspaceId: string, itemId: string): string {
   const params = new URLSearchParams({ [ITEM_PARAM]: itemId });
-  return `${kbPath(kbId, 'review')}?${params.toString()}`;
+  return `${workspacePath(workspaceId, 'review')}?${params.toString()}`;
 }
 
 /** Deep-link to Decisions workspace with causal chain loaded (F-GOV-07). */
-export function kbReviewDecisionPath(kbId: string, decisionId: string): string {
+export function reviewDecisionPath(workspaceId: string, decisionId: string): string {
   const params = new URLSearchParams({ decision: decisionId });
-  return `${kbPath(kbId, 'decisions')}?${params.toString()}`;
+  return `${workspacePath(workspaceId, 'decisions')}?${params.toString()}`;
 }
 
 const DECISION_PARAM = 'decision';

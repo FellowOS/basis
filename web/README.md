@@ -1,16 +1,16 @@
 # @basis/web
 
-Vite + React front end for the Basis platform and per–knowledge-base Explorer workspaces.
+Vite + React front end for the Basis platform and per-workspace Explorer screens.
 
 ## Source layout
 
 | Path | Role |
 |------|------|
-| `src/pages/` | **Routes** — thin pages: params, `ConsolePageLayout`, i18n. KB features live under `pages/kb/<segment>.tsx`. |
+| `src/routes/` | App route tree — [routes/README.md](src/routes/README.md) |
+| `src/modules/` | Feature modules (menu/URL) — [modules/README.md](src/modules/README.md) |
+| `src/components/app/shared/` | Layout, page patterns, workspace frame — [README](src/components/app/shared/README.md) |
 | `src/components/` | React UI — three roots: **`ui`**, **`admin`**, **`app`** (see below). |
-| `src/workspaces/` | **KB workspace screens** (vendored from semantica Explorer); see [workspaces/README.md](src/workspaces/README.md). |
-| `src/ws/` | Shared workspace runtime (`explorerHttp`, `graphStore`, …). |
-| `src/lib/` | `basis-openapi/` (generated types + `transport.ts`), `openapi-client.ts` (app helpers), session fetch, `kb-api-path.ts`. JSON: `openApi*` / `kbOpenApi*`. Regen types: `npm run gen:openapi-types`. |
+| `src/lib/` | OpenAPI client, session fetch, **`workspace/`**, **`explorer/`**; see [lib/workspace/README.md](src/lib/workspace/README.md), [lib/explorer/README.md](src/lib/explorer/README.md). |
 | `content/docs/` | **Product docs** (`/docs/*`) — Fumadocs MDX (`en/`, `zh/`). IA: `{locale}/meta.json`; page chrome: frontmatter `title`, `description`, optional `sidebarTitle`; prev/next from sidebar order. Long-form pages (`bocp.md`, `connectors-basis.md`, …) are edited here directly. |
 | `source.config.ts` | Fumadocs MDX config; `postinstall` runs `fumadocs-mdx` → `.source/` (gitignored). |
 | `server/` | **Hono web layer** — production static + `/api` reverse proxy (`server/prod.ts`); dev entry `server/dev.ts` (Hono + Vite middleware). Playground LLM config is browser-local. |
@@ -23,40 +23,32 @@ Vite + React front end for the Basis platform and per–knowledge-base Explorer 
 |------|------|
 | **`ui/`** | shadcn registry only — update with `npx shadcn add -o`, no hand edits. |
 | **`admin/`** | `/admin/*` UI — layout, section nav, org SSO, access settings; `admin/models/` for model catalog. |
-| **`app/`** | Main product experience (KB, global shell, marketing, shared patterns, design extensions). |
+| **`app/`** | Marketing site + cross-product shared UI (`app/shared/`). |
 
-**Dependency:** `admin/` and `app/` may import `ui/` and `app/*` shared layers; `ui/` must not import `admin/` or `app/`. No files at `components/` root except the three folders above.
+**Dependency:** `admin/` and `app/` may import `ui/` and `app/shared/*`; `ui/` must not import `admin/` or `app/`. Feature routes live in `modules/`; workspace frame in `app/shared/workspace/`.
 
-### `app/` subfolders
+### `app/shared/`
 
 | Path | Role |
 |------|------|
-| `app/shared/` | Cross-product UI (KB, marketing, admin pages, Explorer chrome). |
-| `app/shared/primitives/` | Non-registry controls (icons, editors, date picker, …). |
-| `app/shared/effects/` | Decorative motion. |
-| `app/shared/console/` | List/data page patterns — used by `pages/*` and KB blocks. |
-| `app/shared/shell/` | Global app chrome — `BasisLayout`, sidebar, account menu. |
-| `app/kb/` | KB-only product UI — see [KB grouping](#appkb-grouping). |
-| `app/marketing/` | Login and landing; `marketing/blocks/`. |
+| `primitives/` | Non-registry controls (icons, editors, date picker, …). |
+| `effects/` | Decorative motion. |
+| `console/` | List/data page patterns — used by `modules/*` and admin. |
+| `shell/` | Global app chrome — `BasisLayout`, sidebar, account menu. |
+| `workspace/` | Per-workspace frame (`frame/`) + `entity-ref-line`. |
+
+`app/marketing/` — login/landing and docs chrome blocks.
 
 Tailwind class bundles: [`src/lib/ui-classes/`](src/lib/ui-classes/README.md).
 
-## Three-layer flow (KB Explorer features)
+## Workspace Explorer flow
 
-1. **`pages/kb/*.tsx`** — routing, breadcrumbs, page-level actions, capability gates.
-2. **`components/app/kb/workspaces/kb-*-workspace.tsx`** — `KbExplorerConsoleShell`, lazy `import()` of Explorer, loading copy.
-3. **`workspaces/*/`** — screens, stores, Sigma/graph/ontology UI.
+1. **`routes/index.tsx`** — `AppRoutes` (platform, workspaces, docs, auth); lazy chunks in `routes/lazy-pages.ts`.
+2. **`modules/<segment>/`** — `index.tsx` (route entry), `pages/` (`screen.tsx`, glue); Sigma graph in `modules/graph/`.
+3. **`app/shared/workspace/`** — workspace frame; entity browser under `modules/entities/`.
+4. **`lib/explorer/`** — scoped HTTP, graph store, Sigma theme.
 
-Platform-only pages (e.g. `pages/kbs.tsx`, `pages/settings.tsx`) skip layer 2–3.
-
-## `app/kb/` grouping {#appkb-grouping}
-
-- `explorer-shell/` — KB Explorer console frame (zone tabs, switcher, unavailable). Not `app/shared/shell/` (global layout).
-- `workspaces/` — one file per KB nav destination that embeds Explorer.
-- `widgets/` — panels, stats, bells, merge diff, KB integration (OpenAPI + MCP) pieces used by pages.
-- `dialogs/` — import/export and ingest modals shared across KB UI.
-- `ledger/` — entity browser, evidence inspector, entity ref line.
-- `graph/` — graph toolbar / overview chrome (full graph UI stays in `src/workspaces/`).
+Auth: `modules/login`, `home`; admin/workspace/docs/swagger routes are in the same `routes/index.tsx` table.
 
 ## Styling conventions
 

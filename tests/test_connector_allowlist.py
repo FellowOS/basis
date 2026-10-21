@@ -1,4 +1,4 @@
-"""Platform + KB dual-layer BOCP provider allowlists."""
+"""Platform + workspace dual-layer BOCP provider allowlists."""
 
 from __future__ import annotations
 
@@ -151,7 +151,7 @@ def test_runtime_respects_platform_ceiling(tmp_path: Path) -> None:
     conn = _fresh_db(tmp_path)
     try:
         conn.execute(
-            "INSERT INTO knowledge_bases (id, name, description, visibility, created_by, created_at) "
+            "INSERT INTO workspaces (id, name, description, visibility, created_by, created_at) "
             "VALUES ('kb1', 'KB', '', 'private', 'u1', '2026-01-01T00:00:00Z')"
         )
         conn.commit()

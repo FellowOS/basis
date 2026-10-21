@@ -1,1 +1,1 @@
-"""KB Explorer graph read/write adapters (projection session)."""
+"""Explorer graph read/write adapters (projection session)."""

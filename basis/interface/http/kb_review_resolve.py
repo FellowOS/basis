@@ -1,4 +1,4 @@
-"""KB review approve / reject — aggregates sub-routers."""
+"""Workspace review approve / reject — aggregates sub-routers."""
 
 from __future__ import annotations
 

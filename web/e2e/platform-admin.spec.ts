@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 
-import { loginPlatformAdmin } from './e2e-admin-session.js';
+import { loginPlatformAdmin, waitForPlatformAdminSession } from './e2e-admin-session.js';
 import { registerFreshUser } from './helpers.js';
 
 async function ensurePlatformAdminSession(page: Page): Promise<{ email: string }> {
@@ -17,6 +17,7 @@ test('platform users page lists the registering admin', async ({ page }) => {
 
   const { email } = await ensurePlatformAdminSession(page);
   await page.goto('/admin/users');
+  await waitForPlatformAdminSession(page);
 
   await expect(page.getByRole('button', { name: /Create user|创建用户/i })).toBeVisible({
     timeout: 30_000,
@@ -29,13 +30,16 @@ test('platform kbs page shows catalog table and create action', async ({ page })
   test.setTimeout(90_000);
 
   await ensurePlatformAdminSession(page);
-  await page.goto('/admin/kbs');
+  await page.goto('/admin/workspaces', { waitUntil: 'networkidle' });
+  await waitForPlatformAdminSession(page);
 
-  await expect(page).toHaveURL(/\/admin\/kbs/);
-  await expect(page.getByRole('button', { name: /New knowledge base|新建知识库/i })).toBeVisible({
+  await expect(page).toHaveURL(/\/admin\/workspaces/);
+  await expect(page.getByRole('columnheader', { name: /Name|名称/i })).toBeVisible({
+    timeout: 60_000,
+  });
+  await expect(page.getByRole('button', { name: /New workspace|新建工作区/i })).toBeVisible({
     timeout: 30_000,
   });
-  await expect(page.getByRole('columnheader', { name: /Name|名称/i })).toBeVisible();
 });
 
 test('platform models page shows LLM tab and add model action', async ({ page }) => {
@@ -71,7 +75,7 @@ test('platform audit page shows filters and refresh', async ({ page }) => {
   await page.goto('/admin/audit');
 
   await expect(page).toHaveURL(/\/admin\/audit/);
-  await expect(page.getByPlaceholder(/Filter by KB ID|按知识库 ID 筛选/i)).toBeVisible({
+  await expect(page.getByPlaceholder(/Filter by workspace ID|按工作区 ID 筛选/i)).toBeVisible({
     timeout: 30_000,
   });
   await expect(page.getByRole('button', { name: /Refresh|刷新/i })).toBeVisible();

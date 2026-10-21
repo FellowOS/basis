@@ -11,8 +11,8 @@ from basis.domain.knowledge.structured_models import ConnectorSourceConfig
 from basis.domain.tenancy.admin.store import AdminStore, User
 from basis.interface.http.deps import (
     get_current_user,
-    get_kb_for_editor,
-    get_kb_for_viewer,
+    get_workspace_for_editor,
+    get_workspace_for_viewer,
     get_knowledge_store,
     get_store,
     rebuild_kb_projection,
@@ -37,28 +37,28 @@ from basis.domain.knowledge.services.mapping_suggestions import (
 
 router = APIRouter(tags=["knowledge-bases"])
 
-@router.get("/{kb_id}/connectors/table-mappings")
+@router.get("/{workspace_id}/connectors/table-mappings")
 async def list_kb_table_mappings(
-    kb_id: str,
+    workspace_id: str,
     request: Request,
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> dict[str, Any]:
-    """List structured stream-to-ontology table mappings configured in this KB."""
-    get_kb_for_viewer(request, user, kb_id, store)
+    """List structured stream-to-ontology table mappings configured in this workspace."""
+    get_workspace_for_viewer(request, user, workspace_id, store)
     svc = sync_service_for(knowledge)
     mappings = []
-    for m_id in knowledge.list_source_table_mapping_ids(kb_id):
-        rec = svc.get_table_mapping(kb_id, m_id)
+    for m_id in knowledge.list_source_table_mapping_ids(workspace_id):
+        rec = svc.get_table_mapping(workspace_id, m_id)
         if rec:
-            mappings.append(table_mapping_api_dict(svc, kb_id, rec))
+            mappings.append(table_mapping_api_dict(svc, workspace_id, rec))
     return {"mappings": mappings}
 
 
-@router.get("/{kb_id}/connectors/table-mappings/{mapping_id}")
+@router.get("/{workspace_id}/connectors/table-mappings/{mapping_id}")
 async def get_kb_table_mapping(
-    kb_id: str,
+    workspace_id: str,
     mapping_id: str,
     request: Request,
     user: User = Depends(get_current_user),
@@ -66,17 +66,17 @@ async def get_kb_table_mapping(
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> dict[str, Any]:
     """Fetch one stream-to-ontology table mapping with connector connection binding."""
-    get_kb_for_viewer(request, user, kb_id, store)
+    get_workspace_for_viewer(request, user, workspace_id, store)
     svc = sync_service_for(knowledge)
-    rec = svc.get_table_mapping(kb_id, mapping_id)
+    rec = svc.get_table_mapping(workspace_id, mapping_id)
     if not rec:
         raise AdminError(404, "mapping_not_found", "表映射不存在")
-    return {"mapping": table_mapping_api_dict(svc, kb_id, rec)}
+    return {"mapping": table_mapping_api_dict(svc, workspace_id, rec)}
 
 
-@router.put("/{kb_id}/connectors/table-mappings/{mapping_id}")
+@router.put("/{workspace_id}/connectors/table-mappings/{mapping_id}")
 async def update_kb_table_mapping(
-    kb_id: str,
+    workspace_id: str,
     mapping_id: str,
     body: UpdateTableMappingRequest,
     request: Request,
@@ -85,11 +85,11 @@ async def update_kb_table_mapping(
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> dict[str, Any]:
     """Update a stream-to-ontology table mapping and optional connector connection binding."""
-    get_kb_for_editor(request, user, kb_id, store)
+    get_workspace_for_editor(request, user, workspace_id, store)
     svc = sync_service_for(knowledge)
     try:
         rec = svc.update_table_mapping(
-            kb_id,
+            workspace_id,
             mapping_id,
             provider=body.provider,
             connection_name=body.connection_name,
@@ -108,16 +108,16 @@ async def update_kb_table_mapping(
             max_rows=body.max_rows,
             poll_interval_minutes=body.poll_interval_minutes,
         )
-        return {"mapping": table_mapping_api_dict(svc, kb_id, rec)}
+        return {"mapping": table_mapping_api_dict(svc, workspace_id, rec)}
     except LookupError as exc:
         raise AdminError(404, "mapping_not_found", str(exc)) from exc
     except Exception as exc:
         raise AdminError(422, "mapping_update_failed", str(exc)) from exc
 
 
-@router.delete("/{kb_id}/connectors/table-mappings/{mapping_id}")
+@router.delete("/{workspace_id}/connectors/table-mappings/{mapping_id}")
 async def delete_kb_table_mapping(
-    kb_id: str,
+    workspace_id: str,
     mapping_id: str,
     request: Request,
     user: User = Depends(get_current_user),
@@ -125,17 +125,17 @@ async def delete_kb_table_mapping(
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> dict[str, Any]:
     """Delete a stream-to-ontology table mapping (cascades `entity_external_refs`)."""
-    get_kb_for_editor(request, user, kb_id, store)
+    get_workspace_for_editor(request, user, workspace_id, store)
     svc = sync_service_for(knowledge)
-    deleted = svc.delete_table_mapping(kb_id, mapping_id)
+    deleted = svc.delete_table_mapping(workspace_id, mapping_id)
     if not deleted:
         raise AdminError(404, "mapping_not_found", "表映射不存在")
     return {"deleted": True, "mapping_id": mapping_id}
 
 
-@router.post("/{kb_id}/connectors/table-mappings/suggest")
+@router.post("/{workspace_id}/connectors/table-mappings/suggest")
 async def suggest_kb_table_mappings(
-    kb_id: str,
+    workspace_id: str,
     body: SuggestTableMappingsRequest,
     request: Request,
     user: User = Depends(get_current_user),
@@ -143,16 +143,16 @@ async def suggest_kb_table_mappings(
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> dict[str, Any]:
     """Propose cross-stream connector mapping drafts grouped by inferred entity type (discover-backed)."""
-    get_kb_for_viewer(request, user, kb_id, store)
+    get_workspace_for_viewer(request, user, workspace_id, store)
     rt = runtime_for(knowledge)
     svc = sync_service_for(knowledge)
 
     existing: set[tuple[str, str, str, str]] = set()
-    for m_id in knowledge.list_source_table_mapping_ids(kb_id):
-        rec = svc.get_table_mapping(kb_id, m_id)
+    for m_id in knowledge.list_source_table_mapping_ids(workspace_id):
+        rec = svc.get_table_mapping(workspace_id, m_id)
         if not rec:
             continue
-        binding = svc.get_mapping_connection_binding(kb_id, rec.source_id)
+        binding = svc.get_mapping_connection_binding(workspace_id, rec.source_id)
         existing.add(
             (
                 binding.provider,
@@ -184,11 +184,11 @@ async def suggest_kb_table_mappings(
     if not targets:
         targets = expand_auto_targets(
             rt,
-            kb_id,
+            workspace_id,
             max_streams_per_connection=body.max_streams_per_connection,
         )
 
-    result = suggest_table_mapping_drafts(rt, kb_id, targets, existing_fingerprints=existing)
+    result = suggest_table_mapping_drafts(rt, workspace_id, targets, existing_fingerprints=existing)
     return {
         "groups": result.groups,
         "skipped": [
@@ -204,9 +204,9 @@ async def suggest_kb_table_mappings(
     }
 
 
-@router.post("/{kb_id}/connectors/table-mappings/batch-create")
+@router.post("/{workspace_id}/connectors/table-mappings/batch-create")
 async def batch_create_kb_table_mappings(
-    kb_id: str,
+    workspace_id: str,
     body: BatchCreateTableMappingsRequest,
     request: Request,
     user: User = Depends(get_current_user),
@@ -214,7 +214,7 @@ async def batch_create_kb_table_mappings(
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> dict[str, Any]:
     """Create multiple stream-to-ontology table mappings and optionally run first inbound sync."""
-    get_kb_for_editor(request, user, kb_id, store)
+    get_workspace_for_editor(request, user, workspace_id, store)
     svc = sync_service_for(knowledge)
     created: list[dict[str, Any]] = []
     sync_results: list[dict[str, Any]] = []
@@ -227,7 +227,7 @@ async def batch_create_kb_table_mappings(
                 connection_name=mapping_body.connection_name,
             )
             created_src, _ = knowledge.create_ingest_source(
-                kb_id,
+                workspace_id,
                 user.id,
                 kind="connector",
                 name=f"{mapping_body.provider}:{mapping_body.external_table}",
@@ -237,7 +237,7 @@ async def batch_create_kb_table_mappings(
             source_id = str(created_src["id"])
 
         rec = svc.create_table_mapping(
-            kb_id,
+            workspace_id,
             source_id=source_id,
             stream_name=mapping_body.stream_name,
             external_table=mapping_body.external_table,
@@ -254,13 +254,13 @@ async def batch_create_kb_table_mappings(
             max_rows=mapping_body.max_rows,
             poll_interval_minutes=mapping_body.poll_interval_minutes,
         )
-        row = table_mapping_api_dict(svc, kb_id, rec)
+        row = table_mapping_api_dict(svc, workspace_id, rec)
         created.append(row)
         if body.run_sync:
             try:
-                stats = svc.sync_inbound_mapping(kb_id, rec.id)
+                stats = svc.sync_inbound_mapping(workspace_id, rec.id)
                 if stats.added > 0 or stats.updated > 0 or stats.deleted > 0:
-                    rebuild_kb_projection(request, kb_id)
+                    rebuild_kb_projection(request, workspace_id)
                 sync_results.append(
                     {
                         "mapping_id": stats.mapping_id,
@@ -281,9 +281,9 @@ async def batch_create_kb_table_mappings(
     return {"mappings": created, "sync_results": sync_results}
 
 
-@router.post("/{kb_id}/connectors/table-mappings")
+@router.post("/{workspace_id}/connectors/table-mappings")
 async def create_kb_table_mapping(
-    kb_id: str,
+    workspace_id: str,
     body: CreateTableMappingRequest,
     request: Request,
     user: User = Depends(get_current_user),
@@ -291,7 +291,7 @@ async def create_kb_table_mapping(
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> dict[str, Any]:
     """Create a stream-to-ontology table mapping (auto-creating a `connector` ingest_source if omitted)."""
-    get_kb_for_editor(request, user, kb_id, store)
+    get_workspace_for_editor(request, user, workspace_id, store)
     source_id = body.source_id
     if not source_id:
         src_cfg = ConnectorSourceConfig(
@@ -299,7 +299,7 @@ async def create_kb_table_mapping(
             connection_name=body.connection_name,
         )
         created_src, _ = knowledge.create_ingest_source(
-            kb_id,
+            workspace_id,
             user.id,
             kind="connector",
             name=f"{body.provider}:{body.external_table}",
@@ -310,7 +310,7 @@ async def create_kb_table_mapping(
 
     svc = sync_service_for(knowledge)
     rec = svc.create_table_mapping(
-        kb_id,
+        workspace_id,
         source_id=source_id,
         stream_name=body.stream_name,
         external_table=body.external_table,
@@ -330,7 +330,7 @@ async def create_kb_table_mapping(
     return {
         "mapping": {
             "id": rec.id,
-            "kb_id": rec.kb_id,
+            "workspace_id": rec.workspace_id,
             "source_id": rec.source_id,
             "stream_name": rec.stream_name,
             "external_table": rec.external_table,
@@ -343,9 +343,9 @@ async def create_kb_table_mapping(
     }
 
 
-@router.post("/{kb_id}/connectors/table-mappings/{mapping_id}/sync")
+@router.post("/{workspace_id}/connectors/table-mappings/{mapping_id}/sync")
 async def sync_kb_table_mapping(
-    kb_id: str,
+    workspace_id: str,
     mapping_id: str,
     request: Request,
     user: User = Depends(get_current_user),
@@ -353,12 +353,12 @@ async def sync_kb_table_mapping(
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> dict[str, Any]:
     """Execute inbound 4-way sync from the BOCP stream into the Evidence Ledger."""
-    get_kb_for_editor(request, user, kb_id, store)
+    get_workspace_for_editor(request, user, workspace_id, store)
     svc = sync_service_for(knowledge)
     try:
-        stats = svc.sync_inbound_mapping(kb_id, mapping_id)
+        stats = svc.sync_inbound_mapping(workspace_id, mapping_id)
         if stats.added > 0 or stats.updated > 0 or stats.deleted > 0:
-            rebuild_kb_projection(request, kb_id)
+            rebuild_kb_projection(request, workspace_id)
         return {
             "mapping_id": stats.mapping_id,
             "external_table": stats.external_table,
@@ -373,4 +373,3 @@ async def sync_kb_table_mapping(
         raise AdminError(404, "mapping_not_found", str(exc)) from exc
     except Exception as exc:
         raise AdminError(422, "connector_sync_failed", str(exc)) from exc
-

@@ -20,7 +20,7 @@ class LedgerAccess:
 
     def list_document_timeline_events(
         self,
-        kb_id: str,
+        workspace_id: str,
         document_id: str,
         *,
         limit: int = 200,
@@ -28,13 +28,13 @@ class LedgerAccess:
         limit = min(max(1, limit), 500)
         events: list[dict[str, Any]] = []
         with self._store._lock:
-            self._store._assert_kb_exists(kb_id)
+            self._store._assert_workspace_exists(workspace_id)
             conn = self._store._conn
-            doc = timeline_persist.fetch_document_header(conn, kb_id, document_id)
+            doc = timeline_persist.fetch_document_header(conn, workspace_id, document_id)
             if doc is None:
                 return []
             version_rows = timeline_persist.list_document_version_rows(
-                conn, kb_id, document_id
+                conn, workspace_id, document_id
             )
             version_ids = [row["id"] for row in version_rows]
             for row in version_rows:
@@ -49,7 +49,7 @@ class LedgerAccess:
                 )
             if version_ids:
                 for row in timeline_persist.list_ingest_jobs_for_versions(
-                    conn, kb_id, version_ids
+                    conn, workspace_id, version_ids
                 ):
                     events.append(
                         {
@@ -61,7 +61,7 @@ class LedgerAccess:
                         }
                     )
                 for row in timeline_persist.list_statements_for_document_versions(
-                    conn, kb_id, version_ids
+                    conn, workspace_id, version_ids
                 ):
                     events.append(
                         {
@@ -75,7 +75,7 @@ class LedgerAccess:
                         }
                     )
                 for row in timeline_persist.list_time_mentions_for_versions(
-                    conn, kb_id, version_ids
+                    conn, workspace_id, version_ids
                 ):
                     events.append(
                         {
@@ -91,17 +91,17 @@ class LedgerAccess:
         events.sort(key=lambda ev: str(ev.get("at") or ""))
         return events[-limit:]
 
-    def list_active_statements(self, kb_id: str) -> list[dict[str, Any]]:
+    def list_active_statements(self, workspace_id: str) -> list[dict[str, Any]]:
         with self._store._lock:
-            self._store._assert_kb_exists(kb_id)
-            rows = stmt_persist.list_active_statement_rows(self._store._conn, kb_id)
+            self._store._assert_workspace_exists(workspace_id)
+            rows = stmt_persist.list_active_statement_rows(self._store._conn, workspace_id)
         return [dict(row) for row in rows]
 
-    def list_active_entity_id_labels(self, kb_id: str) -> list[dict[str, str]]:
+    def list_active_entity_id_labels(self, workspace_id: str) -> list[dict[str, str]]:
         with self._store._lock:
-            self._store._assert_kb_exists(kb_id)
+            self._store._assert_workspace_exists(workspace_id)
             rows = entity_persist.list_active_entity_id_label_rows(
-                self._store._conn, kb_id
+                self._store._conn, workspace_id
             )
         return [
             {
@@ -112,27 +112,27 @@ class LedgerAccess:
         ]
 
     def list_active_statements_below_confidence(
-        self, kb_id: str, confidence_min: float
+        self, workspace_id: str, confidence_min: float
     ) -> list[dict[str, Any]]:
         with self._store._lock:
-            self._store._assert_kb_exists(kb_id)
+            self._store._assert_workspace_exists(workspace_id)
             rows = stmt_persist.list_active_statements_below_confidence_rows(
-                self._store._conn, kb_id, confidence_min
+                self._store._conn, workspace_id, confidence_min
             )
         return [dict(row) for row in rows]
 
-    def kb_mcp_stats(self, kb_id: str) -> dict[str, int]:
+    def kb_mcp_stats(self, workspace_id: str) -> dict[str, int]:
         with self._store._lock:
-            return stats_persist.kb_mcp_stats(self._store._conn, kb_id)
+            return stats_persist.kb_mcp_stats(self._store._conn, workspace_id)
 
     def list_statements_for_chunk(
-        self, kb_id: str, chunk_id: str, *, limit: int = 50
+        self, workspace_id: str, chunk_id: str, *, limit: int = 50
     ) -> list[dict[str, Any]]:
         limit = min(max(1, limit), 100)
         with self._store._lock:
-            self._store._assert_row_in_kb("chunks", chunk_id, kb_id)
+            self._store._assert_row_in_workspace("chunks", chunk_id, workspace_id)
             rows = stmt_persist.list_statements_for_chunk_rows(
-                self._store._conn, kb_id, chunk_id, limit
+                self._store._conn, workspace_id, chunk_id, limit
             )
         return [
             {
@@ -147,10 +147,10 @@ class LedgerAccess:
             for row in rows
         ]
 
-    def get_chunk(self, kb_id: str, chunk_id: str) -> dict[str, Any] | None:
+    def get_chunk(self, workspace_id: str, chunk_id: str) -> dict[str, Any] | None:
         with self._store._lock:
             row = chunk_persist.fetch_chunk_with_document(
-                self._store._conn, kb_id, chunk_id
+                self._store._conn, workspace_id, chunk_id
             )
         if row is None:
             return None
@@ -161,18 +161,18 @@ class LedgerAccess:
             **chunk_persist.chunk_api_row(row),
         }
 
-    def count_browse_entities(self, kb_id: str, *, query: str = "") -> int:
+    def count_browse_entities(self, workspace_id: str, *, query: str = "") -> int:
         query = query.strip()
         pattern = f"%{query.replace('%', '')}%" if query else None
         with self._store._lock:
-            self._store._assert_kb_exists(kb_id)
+            self._store._assert_workspace_exists(workspace_id)
             return entity_persist.count_browse_entities(
-                self._store._conn, kb_id, pattern=pattern
+                self._store._conn, workspace_id, pattern=pattern
             )
 
     def list_recent_entities(
         self,
-        kb_id: str,
+        workspace_id: str,
         *,
         limit: int = 20,
         offset: int = 0,
@@ -180,15 +180,15 @@ class LedgerAccess:
         limit = min(max(1, limit), 50)
         offset = max(0, offset)
         with self._store._lock:
-            self._store._assert_kb_exists(kb_id)
+            self._store._assert_workspace_exists(workspace_id)
             rows = entity_persist.list_recent_entity_rows(
-                self._store._conn, kb_id, limit=limit, offset=offset
+                self._store._conn, workspace_id, limit=limit, offset=offset
             )
         return [entity_persist.entity_browse_row(row) for row in rows]
 
     def find_entities(
         self,
-        kb_id: str,
+        workspace_id: str,
         *,
         query: str,
         limit: int = 20,
@@ -201,20 +201,20 @@ class LedgerAccess:
         offset = max(0, offset)
         pattern = f"%{query.replace('%', '')}%"
         with self._store._lock:
-            self._store._assert_kb_exists(kb_id)
+            self._store._assert_workspace_exists(workspace_id)
             rows = entity_persist.find_entity_rows(
-                self._store._conn, kb_id, pattern=pattern, limit=limit, offset=offset
+                self._store._conn, workspace_id, pattern=pattern, limit=limit, offset=offset
             )
         return [entity_persist.entity_browse_row(row) for row in rows]
 
     def list_entity_facts(
-        self, kb_id: str, *, entity_id: str, limit: int = 50
+        self, workspace_id: str, *, entity_id: str, limit: int = 50
     ) -> list[dict[str, Any]]:
         limit = min(max(1, limit), 100)
         with self._store._lock:
-            self._store._assert_row_in_kb("entities", entity_id, kb_id)
+            self._store._assert_row_in_workspace("entities", entity_id, workspace_id)
             rows = stmt_persist.list_entity_fact_rows(
-                self._store._conn, kb_id, entity_id, limit
+                self._store._conn, workspace_id, entity_id, limit
             )
         return [
             {
@@ -232,11 +232,11 @@ class LedgerAccess:
         ]
 
     def get_statement_browse(
-        self, kb_id: str, *, statement_id: str
+        self, workspace_id: str, *, statement_id: str
     ) -> dict[str, Any] | None:
         with self._store._lock:
             row = stmt_persist.fetch_statement_browse_row(
-                self._store._conn, kb_id, statement_id
+                self._store._conn, workspace_id, statement_id
             )
         if row is None:
             return None

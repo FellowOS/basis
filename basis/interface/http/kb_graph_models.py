@@ -1,4 +1,4 @@
-"""Pydantic models for KB graph and chunk search routes."""
+"""Pydantic models for workspace graph and chunk search routes."""
 
 from __future__ import annotations
 

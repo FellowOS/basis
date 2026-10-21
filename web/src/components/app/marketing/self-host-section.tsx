@@ -12,7 +12,7 @@ const COMMANDS = [
 
 export function SelfHostSection() {
   const { t } = useI18n();
-  const m = t.marketing;
+  const m = t.home.marketing;
 
   return (
     <section
@@ -22,23 +22,23 @@ export function SelfHostSection() {
       <div className="grid w-full gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
         <div>
           <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-            {m.selfHostEyebrow}
+            {m.self_host_eyebrow}
           </p>
           <h2 className="mt-4 font-display text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-            {m.selfHostTitle}
+            {m.self_host_title}
           </h2>
           <p className="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground">
-            {m.selfHostBody}
+            {m.self_host_body}
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Button asChild>
               <Link to="/docs/deployment" data-analytics="cta_deployment">
-                {m.selfHostDocs}
+                {m.self_host_docs}
               </Link>
             </Button>
             <Button variant="outline" asChild>
               <Link to="/docs/quickstart" data-analytics="cta_quickstart">
-                {m.selfHostQuickstart}
+                {m.self_host_quickstart}
               </Link>
             </Button>
             <Button variant="ghost" asChild>
@@ -48,7 +48,7 @@ export function SelfHostSection() {
                 rel="noreferrer"
                 data-analytics="cta_github"
               >
-                {m.selfHostGithub}
+                {m.self_host_github}
               </a>
             </Button>
           </div>

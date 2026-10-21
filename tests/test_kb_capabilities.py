@@ -1,15 +1,15 @@
-"""KB capability endpoint (Explorer integration design §12)."""
+"""Workspace capability endpoint (Explorer integration design §12)."""
 
 from fastapi.testclient import TestClient
 
 from basis.interface.http.app import create_app
-from basis.infra.runtime.capabilities import kb_graph_runtime_available, kb_capabilities
+from basis.infra.runtime.capabilities import kb_graph_runtime_available, workspace_capabilities
 from basis.infra.runtime.config import Settings
 
 
 def test_kb_capabilities_unit_viewer_vs_editor() -> None:
-    viewer = kb_capabilities("viewer")
-    owner = kb_capabilities("owner")
+    viewer = workspace_capabilities("viewer")
+    owner = workspace_capabilities("owner")
     assert viewer["graph_write"] is False
     assert owner["graph_write"] is True
     if kb_graph_runtime_available():
@@ -26,11 +26,11 @@ def test_kb_capabilities_http(tmp_path) -> None:
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
 
-    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
-    response = client.get(f"/api/v1/kbs/{kb_id}/capabilities", headers=headers)
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    response = client.get(f"/api/v1/workspaces/{workspace_id}/capabilities", headers=headers)
     assert response.status_code == 200
     body = response.json()
-    assert body["kb_id"] == kb_id
+    assert body["workspace_id"] == workspace_id
     assert body["role"] == "owner"
     assert body["graph_write"] is True
     assert body["explorer_runtime"] == kb_graph_runtime_available()

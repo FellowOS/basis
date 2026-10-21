@@ -63,17 +63,17 @@ from basis.interface.http.kb_ontology_hub_support import (
 
 def register_kb_ontology_hub_catalog_routes(router: APIRouter) -> None:
     async def _kb_ont_1_preview_ontology(
-        kb_id: str,
+        workspace_id: str,
         request: Request,
         body: PreviewOntologyRequest,
         user: User = Depends(get_current_user),
         store: AdminStore = Depends(get_store),
     ) -> Any:
         """
-Kb Ont 1 Preview Ontology. Ontology hub (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Preview Ontology. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
         """
-        get_kb_for_role(request, user, kb_id, store, min_role("POST"))
-        with KbOntologyState(request, kb_id):
+        get_kb_for_role(request, user, workspace_id, store, min_role("POST"))
+        with KbOntologyState(request, workspace_id):
             return await asyncio.to_thread(
                 preview_ontology_read,
                 url=body.url,
@@ -83,22 +83,22 @@ Kb Ont 1 Preview Ontology. Ontology hub (SKOS, alignments) via Explorer. Require
                 parse_rdf_sync=parse_rdf_sync_for_basis,
             )
 
-    router.add_api_route("/{kb_id}/ontology/preview", _kb_ont_1_preview_ontology, methods=["POST"], name="_kb_ont_1_preview_ontology")
+    router.add_api_route("/{workspace_id}/ontology/preview", _kb_ont_1_preview_ontology, methods=["POST"], name="_kb_ont_1_preview_ontology")
 
     async def _kb_ont_2_load_ontology(
-        kb_id: str,
+        workspace_id: str,
         request: Request,
         body: LoadOntologyRequest,
         user: User = Depends(get_current_user),
         store: AdminStore = Depends(get_store),
     ) -> Any:
         """
-Kb Ont 2 Load Ontology. Ontology hub (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Load Ontology. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
         """
-        get_kb_for_role(request, user, kb_id, store, min_role("POST"))
-        session = ontology_session(request, kb_id)
-        with KbOntologyState(request, kb_id):
-            registry = request.app.state.kb_ontology_registries[kb_id]
+        get_kb_for_role(request, user, workspace_id, store, min_role("POST"))
+        session = ontology_session(request, workspace_id)
+        with KbOntologyState(request, workspace_id):
+            registry = request.app.state.kb_ontology_registries[workspace_id]
             result = await asyncio.to_thread(
                 load_ontology_write,
                 session,
@@ -114,26 +114,26 @@ Kb Ont 2 Load Ontology. Ontology hub (SKOS, alignments) via Explorer. Requires K
                 content_likely_owl=content_likely_owl_schema,
                 convert_ontology_to_graph=convert_ontology_to_graph,
             )
-            save_graph(request, kb_id, sync_ledger=False)
-            audit_ontology_graph_write(store, user, kb_id, "kb.graph.ontology_load", result)
+            save_graph(request, workspace_id, sync_ledger=False)
+            audit_ontology_graph_write(store, user, workspace_id, "kb.graph.ontology_load", result)
             return result
 
-    router.add_api_route("/{kb_id}/ontology/load", _kb_ont_2_load_ontology, methods=["POST"], name="_kb_ont_2_load_ontology")
+    router.add_api_route("/{workspace_id}/ontology/load", _kb_ont_2_load_ontology, methods=["POST"], name="_kb_ont_2_load_ontology")
 
     async def _kb_ont_3_create_ontology(
-        kb_id: str,
+        workspace_id: str,
         request: Request,
         body: CreateOntologyRequest,
         user: User = Depends(get_current_user),
         store: AdminStore = Depends(get_store),
     ) -> Any:
         """
-Kb Ont 3 Create Ontology. Ontology hub (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Create Ontology. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
         """
-        get_kb_for_role(request, user, kb_id, store, min_role("POST"))
-        session = ontology_session(request, kb_id)
-        with KbOntologyState(request, kb_id):
-            registry = request.app.state.kb_ontology_registries[kb_id]
+        get_kb_for_role(request, user, workspace_id, store, min_role("POST"))
+        session = ontology_session(request, workspace_id)
+        with KbOntologyState(request, workspace_id):
+            registry = request.app.state.kb_ontology_registries[workspace_id]
             result = await asyncio.to_thread(
                 create_ontology_write,
                 session,
@@ -148,14 +148,14 @@ Kb Ont 3 Create Ontology. Ontology hub (SKOS, alignments) via Explorer. Requires
                 provider=body.provider,
                 model=body.model,
             )
-            save_graph(request, kb_id, sync_ledger=False)
-            audit_ontology_graph_write(store, user, kb_id, "kb.graph.ontology_create", result)
+            save_graph(request, workspace_id, sync_ledger=False)
+            audit_ontology_graph_write(store, user, workspace_id, "kb.graph.ontology_create", result)
             return result
 
-    router.add_api_route("/{kb_id}/ontology/create", _kb_ont_3_create_ontology, methods=["POST"], name="_kb_ont_3_create_ontology")
+    router.add_api_route("/{workspace_id}/ontology/create", _kb_ont_3_create_ontology, methods=["POST"], name="_kb_ont_3_create_ontology")
 
     async def _kb_ont_4_search_entities(
-        kb_id: str,
+        workspace_id: str,
         request: Request,
         q: str = Query(PydanticUndefined),
         entity_type: Optional[str] = Query(None),
@@ -164,11 +164,11 @@ Kb Ont 3 Create Ontology. Ontology hub (SKOS, alignments) via Explorer. Requires
         store: AdminStore = Depends(get_store),
     ) -> Any:
         """
-Kb Ont 4 Search Entities. Ontology hub (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Search Entities. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
         """
-        get_kb_for_role(request, user, kb_id, store, min_role("GET"))
-        session = ontology_session(request, kb_id)
-        with KbOntologyState(request, kb_id):
+        get_kb_for_role(request, user, workspace_id, store, min_role("GET"))
+        session = ontology_session(request, workspace_id)
+        with KbOntologyState(request, workspace_id):
             return await asyncio.to_thread(
                 search_entities_read,
                 session,
@@ -177,22 +177,22 @@ Kb Ont 4 Search Entities. Ontology hub (SKOS, alignments) via Explorer. Requires
                 limit=limit,
             )
 
-    router.add_api_route("/{kb_id}/ontology/search", _kb_ont_4_search_entities, methods=["GET"], name="_kb_ont_4_search_entities")
+    router.add_api_route("/{workspace_id}/ontology/search", _kb_ont_4_search_entities, methods=["GET"], name="_kb_ont_4_search_entities")
 
     async def _kb_ont_5_get_ontology_graph(
-        kb_id: str,
+        workspace_id: str,
         request: Request,
         uri: str = Query(PydanticUndefined),
         user: User = Depends(get_current_user),
         store: AdminStore = Depends(get_store),
     ) -> Any:
         """
-Kb Ont 5 Get Ontology Graph. Ontology hub (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Get Ontology Graph. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
         """
-        get_kb_for_role(request, user, kb_id, store, min_role("GET"))
-        session = ontology_session(request, kb_id)
-        with KbOntologyState(request, kb_id):
-            registry = request.app.state.kb_ontology_registries[kb_id]
+        get_kb_for_role(request, user, workspace_id, store, min_role("GET"))
+        session = ontology_session(request, workspace_id)
+        with KbOntologyState(request, workspace_id):
+            registry = request.app.state.kb_ontology_registries[workspace_id]
             return await asyncio.to_thread(
                 get_ontology_graph_read,
                 session,
@@ -200,22 +200,22 @@ Kb Ont 5 Get Ontology Graph. Ontology hub (SKOS, alignments) via Explorer. Requi
                 uri=uri,
             )
 
-    router.add_api_route("/{kb_id}/ontology/graph", _kb_ont_5_get_ontology_graph, methods=["GET"], name="_kb_ont_5_get_ontology_graph")
+    router.add_api_route("/{workspace_id}/ontology/graph", _kb_ont_5_get_ontology_graph, methods=["GET"], name="_kb_ont_5_get_ontology_graph")
 
     async def _kb_ont_6_get_entity_detail(
-        kb_id: str,
+        workspace_id: str,
         request: Request,
         entity_uri: str,
         user: User = Depends(get_current_user),
         store: AdminStore = Depends(get_store),
     ) -> Any:
         """
-Kb Ont 6 Get Entity Detail. Ontology hub (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Get Entity Detail. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
         """
-        get_kb_for_role(request, user, kb_id, store, min_role("GET"))
-        session = ontology_session(request, kb_id)
-        with KbOntologyState(request, kb_id):
-            registry = request.app.state.kb_ontology_registries[kb_id]
+        get_kb_for_role(request, user, workspace_id, store, min_role("GET"))
+        session = ontology_session(request, workspace_id)
+        with KbOntologyState(request, workspace_id):
+            registry = request.app.state.kb_ontology_registries[workspace_id]
             return await asyncio.to_thread(
                 get_entity_detail_read,
                 session,
@@ -223,207 +223,207 @@ Kb Ont 6 Get Entity Detail. Ontology hub (SKOS, alignments) via Explorer. Requir
                 entity_uri=entity_uri,
             )
 
-    router.add_api_route("/{kb_id}/ontology/entity/{entity_uri:path}", _kb_ont_6_get_entity_detail, methods=["GET"], name="_kb_ont_6_get_entity_detail")
+    router.add_api_route("/{workspace_id}/ontology/entity/{entity_uri:path}", _kb_ont_6_get_entity_detail, methods=["GET"], name="_kb_ont_6_get_entity_detail")
 
     async def _kb_ont_7_list_skos_schemes(
-        kb_id: str,
+        workspace_id: str,
         request: Request,
         user: User = Depends(get_current_user),
         store: AdminStore = Depends(get_store),
     ) -> Any:
         """
-Kb Ont 7 List Skos Schemes. Ontology hub (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+List Skos Schemes. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
         """
-        get_kb_for_role(request, user, kb_id, store, min_role("GET"))
-        session = ontology_session(request, kb_id)
-        with KbOntologyState(request, kb_id):
+        get_kb_for_role(request, user, workspace_id, store, min_role("GET"))
+        session = ontology_session(request, workspace_id)
+        with KbOntologyState(request, workspace_id):
             return await asyncio.to_thread(list_skos_schemes_read, session)
 
-    router.add_api_route("/{kb_id}/ontology/skos/schemes", _kb_ont_7_list_skos_schemes, methods=["GET"], name="_kb_ont_7_list_skos_schemes")
+    router.add_api_route("/{workspace_id}/ontology/skos/schemes", _kb_ont_7_list_skos_schemes, methods=["GET"], name="_kb_ont_7_list_skos_schemes")
 
     async def _kb_ont_8_search_skos_concepts(
-        kb_id: str,
+        workspace_id: str,
         request: Request,
         body: SKOSConceptSearchRequest,
         user: User = Depends(get_current_user),
         store: AdminStore = Depends(get_store),
     ) -> Any:
         """
-Kb Ont 8 Search Skos Concepts. Ontology hub (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Search Skos Concepts. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
         """
-        get_kb_for_role(request, user, kb_id, store, min_role("POST"))
-        session = ontology_session(request, kb_id)
-        with KbOntologyState(request, kb_id):
+        get_kb_for_role(request, user, workspace_id, store, min_role("POST"))
+        session = ontology_session(request, workspace_id)
+        with KbOntologyState(request, workspace_id):
             result = await asyncio.to_thread(
                 search_skos_concepts_read,
                 session,
                 query=body.query,
                 scheme_uri=body.scheme_uri,
             )
-            save_graph(request, kb_id, sync_ledger=False)
+            save_graph(request, workspace_id, sync_ledger=False)
             return result
 
-    router.add_api_route("/{kb_id}/ontology/skos/search", _kb_ont_8_search_skos_concepts, methods=["POST"], name="_kb_ont_8_search_skos_concepts")
+    router.add_api_route("/{workspace_id}/ontology/skos/search", _kb_ont_8_search_skos_concepts, methods=["POST"], name="_kb_ont_8_search_skos_concepts")
 
     async def _kb_ont_9_get_skos_concept(
-        kb_id: str,
+        workspace_id: str,
         request: Request,
         concept_uri: str,
         user: User = Depends(get_current_user),
         store: AdminStore = Depends(get_store),
     ) -> Any:
         """
-Kb Ont 9 Get Skos Concept. Ontology hub (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Get Skos Concept. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
         """
-        get_kb_for_role(request, user, kb_id, store, min_role("GET"))
-        session = ontology_session(request, kb_id)
-        with KbOntologyState(request, kb_id):
+        get_kb_for_role(request, user, workspace_id, store, min_role("GET"))
+        session = ontology_session(request, workspace_id)
+        with KbOntologyState(request, workspace_id):
             return await asyncio.to_thread(get_skos_concept_read, session, concept_uri)
 
-    router.add_api_route("/{kb_id}/ontology/skos/concept/{concept_uri:path}", _kb_ont_9_get_skos_concept, methods=["GET"], name="_kb_ont_9_get_skos_concept")
+    router.add_api_route("/{workspace_id}/ontology/skos/concept/{concept_uri:path}", _kb_ont_9_get_skos_concept, methods=["GET"], name="_kb_ont_9_get_skos_concept")
 
     async def _kb_ont_10_ontology_health(
-        kb_id: str,
+        workspace_id: str,
         request: Request,
         uri: str = Query(PydanticUndefined),
         user: User = Depends(get_current_user),
         store: AdminStore = Depends(get_store),
     ) -> Any:
         """
-Kb Ont 10 Ontology Health. Ontology hub (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Ontology Health. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
         """
-        get_kb_for_role(request, user, kb_id, store, min_role("GET"))
-        session = ontology_session(request, kb_id)
-        with KbOntologyState(request, kb_id):
-            registry = request.app.state.kb_ontology_registries[kb_id]
-            alignments = request.app.state.kb_ontology_alignments[kb_id]
+        get_kb_for_role(request, user, workspace_id, store, min_role("GET"))
+        session = ontology_session(request, workspace_id)
+        with KbOntologyState(request, workspace_id):
+            registry = request.app.state.kb_ontology_registries[workspace_id]
+            alignments = request.app.state.kb_ontology_alignments[workspace_id]
             return await ontology_health_read(session, registry, alignments, uri=uri)
 
-    router.add_api_route("/{kb_id}/ontology/health", _kb_ont_10_ontology_health, methods=["GET"], name="_kb_ont_10_ontology_health")
+    router.add_api_route("/{workspace_id}/ontology/health", _kb_ont_10_ontology_health, methods=["GET"], name="_kb_ont_10_ontology_health")
 
     async def _kb_ont_11_generate_shacl(
-        kb_id: str,
+        workspace_id: str,
         request: Request,
         body: ShaclGenerateRequest,
         user: User = Depends(get_current_user),
         store: AdminStore = Depends(get_store),
     ) -> Any:
         """
-Kb Ont 11 Generate Shacl. Ontology hub (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Generate Shacl. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
         """
-        get_kb_for_role(request, user, kb_id, store, min_role("POST"))
-        session = ontology_session(request, kb_id)
-        with KbOntologyState(request, kb_id):
-            registry = request.app.state.kb_ontology_registries[kb_id]
+        get_kb_for_role(request, user, workspace_id, store, min_role("POST"))
+        session = ontology_session(request, workspace_id)
+        with KbOntologyState(request, workspace_id):
+            registry = request.app.state.kb_ontology_registries[workspace_id]
             result = await generate_shacl_read(
                 session,
                 registry,
                 uri=body.uri,
                 quality_tier=body.quality_tier,
             )
-            save_graph(request, kb_id, sync_ledger=False)
+            save_graph(request, workspace_id, sync_ledger=False)
             return result
 
-    router.add_api_route("/{kb_id}/ontology/shacl/generate", _kb_ont_11_generate_shacl, methods=["POST"], name="_kb_ont_11_generate_shacl")
+    router.add_api_route("/{workspace_id}/ontology/shacl/generate", _kb_ont_11_generate_shacl, methods=["POST"], name="_kb_ont_11_generate_shacl")
 
     async def _kb_ont_12_list_shacl_shapes(
-        kb_id: str,
+        workspace_id: str,
         request: Request,
         uri: str = Query(PydanticUndefined),
         user: User = Depends(get_current_user),
         store: AdminStore = Depends(get_store),
     ) -> Any:
         """
-Kb Ont 12 List Shacl Shapes. Ontology hub (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+List Shacl Shapes. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
         """
-        get_kb_for_role(request, user, kb_id, store, min_role("GET"))
-        session = ontology_session(request, kb_id)
-        with KbOntologyState(request, kb_id):
-            registry = request.app.state.kb_ontology_registries[kb_id]
+        get_kb_for_role(request, user, workspace_id, store, min_role("GET"))
+        session = ontology_session(request, workspace_id)
+        with KbOntologyState(request, workspace_id):
+            registry = request.app.state.kb_ontology_registries[workspace_id]
             return await list_shacl_shapes_read(session, registry, uri=uri)
 
-    router.add_api_route("/{kb_id}/ontology/shacl/shapes", _kb_ont_12_list_shacl_shapes, methods=["GET"], name="_kb_ont_12_list_shacl_shapes")
+    router.add_api_route("/{workspace_id}/ontology/shacl/shapes", _kb_ont_12_list_shacl_shapes, methods=["GET"], name="_kb_ont_12_list_shacl_shapes")
 
     async def _kb_ont_13_validate_shacl(
-        kb_id: str,
+        workspace_id: str,
         request: Request,
         body: ShaclValidateRequest,
         user: User = Depends(get_current_user),
         store: AdminStore = Depends(get_store),
     ) -> Any:
         """
-Kb Ont 13 Validate Shacl. Ontology hub (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Validate Shacl. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
         """
-        get_kb_for_role(request, user, kb_id, store, min_role("POST"))
-        session = ontology_session(request, kb_id)
-        with KbOntologyState(request, kb_id):
-            registry = request.app.state.kb_ontology_registries[kb_id]
+        get_kb_for_role(request, user, workspace_id, store, min_role("POST"))
+        session = ontology_session(request, workspace_id)
+        with KbOntologyState(request, workspace_id):
+            registry = request.app.state.kb_ontology_registries[workspace_id]
             result = await validate_shacl_read(
                 session,
                 registry,
                 uri=body.uri,
                 shacl_turtle=body.shacl_turtle,
             )
-            save_graph(request, kb_id, sync_ledger=False)
+            save_graph(request, workspace_id, sync_ledger=False)
             return result
 
-    router.add_api_route("/{kb_id}/ontology/shacl/validate", _kb_ont_13_validate_shacl, methods=["POST"], name="_kb_ont_13_validate_shacl")
+    router.add_api_route("/{workspace_id}/ontology/shacl/validate", _kb_ont_13_validate_shacl, methods=["POST"], name="_kb_ont_13_validate_shacl")
 
     async def _kb_ont_14_remove_ontology(
-        kb_id: str,
+        workspace_id: str,
         request: Request,
         ontology_uri: str,
         user: User = Depends(get_current_user),
         store: AdminStore = Depends(get_store),
     ) -> Any:
         """
-Kb Ont 14 Remove Ontology. Ontology hub (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Remove Ontology. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
         """
-        get_kb_for_role(request, user, kb_id, store, min_role("DELETE"))
-        with KbOntologyState(request, kb_id):
-            registry = request.app.state.kb_ontology_registries[kb_id]
+        get_kb_for_role(request, user, workspace_id, store, min_role("DELETE"))
+        with KbOntologyState(request, workspace_id):
+            registry = request.app.state.kb_ontology_registries[workspace_id]
             result = await asyncio.to_thread(remove_ontology_write, registry, ontology_uri)
-            save_graph(request, kb_id, sync_ledger=False)
+            save_graph(request, workspace_id, sync_ledger=False)
             audit_ontology_graph_write(
-                store, user, kb_id, "kb.graph.ontology_remove", {"ontology_uri": ontology_uri}
+                store, user, workspace_id, "kb.graph.ontology_remove", {"ontology_uri": ontology_uri}
             )
             return result
 
-    router.add_api_route("/{kb_id}/ontology/{ontology_uri:path}", _kb_ont_14_remove_ontology, methods=["DELETE"], name="_kb_ont_14_remove_ontology")
+    router.add_api_route("/{workspace_id}/ontology/{ontology_uri:path}", _kb_ont_14_remove_ontology, methods=["DELETE"], name="_kb_ont_14_remove_ontology")
 
     async def _kb_ont_15_toggle_ontology(
-        kb_id: str,
+        workspace_id: str,
         request: Request,
         ontology_uri: str,
         user: User = Depends(get_current_user),
         store: AdminStore = Depends(get_store),
     ) -> Any:
         """
-Kb Ont 15 Toggle Ontology. Ontology hub (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Toggle Ontology. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
         """
-        get_kb_for_role(request, user, kb_id, store, min_role("PATCH"))
-        with KbOntologyState(request, kb_id):
-            registry = request.app.state.kb_ontology_registries[kb_id]
+        get_kb_for_role(request, user, workspace_id, store, min_role("PATCH"))
+        with KbOntologyState(request, workspace_id):
+            registry = request.app.state.kb_ontology_registries[workspace_id]
             result = await asyncio.to_thread(toggle_ontology_write, registry, ontology_uri)
-            save_graph(request, kb_id, sync_ledger=False)
+            save_graph(request, workspace_id, sync_ledger=False)
             return result
 
-    router.add_api_route("/{kb_id}/ontology/{ontology_uri:path}/toggle", _kb_ont_15_toggle_ontology, methods=["PATCH"], name="_kb_ont_15_toggle_ontology")
+    router.add_api_route("/{workspace_id}/ontology/{ontology_uri:path}/toggle", _kb_ont_15_toggle_ontology, methods=["PATCH"], name="_kb_ont_15_toggle_ontology")
 
     async def _kb_ont_16_refresh_ontology(
-        kb_id: str,
+        workspace_id: str,
         request: Request,
         ontology_uri: str,
         user: User = Depends(get_current_user),
         store: AdminStore = Depends(get_store),
     ) -> Any:
         """
-Kb Ont 16 Refresh Ontology. Ontology hub (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Refresh Ontology. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
         """
-        get_kb_for_role(request, user, kb_id, store, min_role("POST"))
-        session = ontology_session(request, kb_id)
-        with KbOntologyState(request, kb_id):
-            registry = request.app.state.kb_ontology_registries[kb_id]
+        get_kb_for_role(request, user, workspace_id, store, min_role("POST"))
+        session = ontology_session(request, workspace_id)
+        with KbOntologyState(request, workspace_id):
+            registry = request.app.state.kb_ontology_registries[workspace_id]
             result = await asyncio.to_thread(
                 refresh_ontology_write,
                 session,
@@ -432,8 +432,7 @@ Kb Ont 16 Refresh Ontology. Ontology hub (SKOS, alignments) via Explorer. Requir
                 fetch_url_bytes=fetch_ontology_url_bytes,
                 parse_rdf_sync=parse_rdf_sync_for_basis,
             )
-            save_graph(request, kb_id, sync_ledger=False)
+            save_graph(request, workspace_id, sync_ledger=False)
             return result
 
-    router.add_api_route("/{kb_id}/ontology/{ontology_uri:path}/refresh", _kb_ont_16_refresh_ontology, methods=["POST"], name="_kb_ont_16_refresh_ontology")
-
+    router.add_api_route("/{workspace_id}/ontology/{ontology_uri:path}/refresh", _kb_ont_16_refresh_ontology, methods=["POST"], name="_kb_ont_16_refresh_ontology")

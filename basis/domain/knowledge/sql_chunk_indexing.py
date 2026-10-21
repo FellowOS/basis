@@ -6,7 +6,7 @@ from typing import Any
 
 
 def list_chunks_for_indexing_rows(
-    conn: Any, kb_id: str, chunk_ids: list[str] | None
+    conn: Any, workspace_id: str, chunk_ids: list[str] | None
 ) -> list[Any]:
     if chunk_ids:
         placeholders = ",".join("?" * len(chunk_ids))
@@ -17,9 +17,9 @@ def list_chunks_for_indexing_rows(
             FROM chunks c
             INNER JOIN document_versions dv ON dv.id = c.version_id
             INNER JOIN documents d ON d.id = dv.document_id
-            WHERE c.kb_id = ? AND c.id IN ({placeholders})
+            WHERE c.workspace_id = ? AND c.id IN ({placeholders})
             """,
-            (kb_id, *chunk_ids),
+            (workspace_id, *chunk_ids),
         ).fetchall()
     return conn.execute(
         """
@@ -28,23 +28,23 @@ def list_chunks_for_indexing_rows(
         FROM chunks c
         INNER JOIN document_versions dv ON dv.id = c.version_id
         INNER JOIN documents d ON d.id = dv.document_id
-        WHERE c.kb_id = ?
+        WHERE c.workspace_id = ?
         """,
-        (kb_id,),
+        (workspace_id,),
     ).fetchall()
 
 
 def chunk_ids_matching_filters(
     conn: Any,
-    kb_id: str,
+    workspace_id: str,
     *,
     document_id: str | None,
     entity_id: str | None,
     created_after: str | None,
     created_before: str | None,
 ) -> set[str]:
-    clauses = ["c.kb_id = ?"]
-    params: list[Any] = [kb_id]
+    clauses = ["c.workspace_id = ?"]
+    params: list[Any] = [workspace_id]
     if document_id:
         clauses.append("d.id = ?")
         params.append(document_id)
@@ -60,7 +60,7 @@ def chunk_ids_matching_filters(
             EXISTS (
                 SELECT 1 FROM statement_evidence se
                 INNER JOIN statements s ON s.id = se.statement_id
-                WHERE se.chunk_id = c.id AND se.kb_id = c.kb_id
+                WHERE se.chunk_id = c.id AND se.workspace_id = c.workspace_id
                   AND s.invalidated_at IS NULL
                   AND (s.subject_id = ? OR s.object_entity_id = ?)
             )

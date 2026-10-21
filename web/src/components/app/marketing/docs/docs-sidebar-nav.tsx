@@ -75,7 +75,7 @@ export function DocsSidebarNav({ className }: DocsSidebarNavProps) {
   const tree = productDocsPageTree(locale);
 
   return (
-    <nav aria-label={t.docs.sidebarAria} className={className} data-testid="docs-sidebar">
+    <nav aria-label={t.docs.page.sidebar_aria} className={className} data-testid="docs-sidebar">
       <DocsSidebarNodes nodes={tree.children} />
     </nav>
   );

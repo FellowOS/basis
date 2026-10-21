@@ -1,4 +1,4 @@
-"""KB documents, processing jobs, and legacy ontology create — aggregates sub-routers."""
+"""Workspace documents, processing jobs, and legacy ontology create — aggregates sub-routers."""
 
 from __future__ import annotations
 

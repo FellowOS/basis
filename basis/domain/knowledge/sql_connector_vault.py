@@ -14,64 +14,64 @@ class ConnectorVaultPersistence:
     def __init__(self, db: LockedCanonicalConn) -> None:
         self._db = db
 
-    def fetch_policy_row(self, kb_id: str) -> Any:
+    def fetch_policy_row(self, workspace_id: str) -> Any:
         return self._db.execute(
             """
             SELECT allowed_providers_json, action_policy_json, updated_at
-            FROM kb_connector_policies
-            WHERE kb_id = ?
+            FROM connector_policies
+            WHERE workspace_id = ?
             """,
-            (kb_id,),
+            (workspace_id,),
         ).fetchone()
 
     def upsert_policy(
         self,
-        kb_id: str,
+        workspace_id: str,
         allowed_json: str,
         action_json: str,
         updated_at: str,
     ) -> None:
         self._db.execute(
             """
-            INSERT INTO kb_connector_policies (kb_id, allowed_providers_json, action_policy_json, updated_at)
+            INSERT INTO connector_policies (workspace_id, allowed_providers_json, action_policy_json, updated_at)
             VALUES (?, ?, ?, ?)
-            ON CONFLICT(kb_id) DO UPDATE SET
+            ON CONFLICT(workspace_id) DO UPDATE SET
                 allowed_providers_json = excluded.allowed_providers_json,
                 action_policy_json = excluded.action_policy_json,
                 updated_at = excluded.updated_at
             """,
-            (kb_id, allowed_json, action_json, updated_at),
+            (workspace_id, allowed_json, action_json, updated_at),
         )
         self._db.commit()
 
-    def fetch_oauth_config_row(self, kb_id: str, service: str) -> Any:
+    def fetch_oauth_config_row(self, workspace_id: str, service: str) -> Any:
         return self._db.execute(
-            "SELECT value_encrypted, updated_at FROM kb_oauth_configs WHERE kb_id = ? AND service = ?",
-            (kb_id, service),
+            "SELECT value_encrypted, updated_at FROM connector_oauth_configs WHERE workspace_id = ? AND service = ?",
+            (workspace_id, service),
         ).fetchone()
 
     def upsert_oauth_config(
         self,
-        kb_id: str,
+        workspace_id: str,
         service: str,
         value_encrypted: str,
         updated_at: str,
     ) -> None:
         self._db.execute(
             """
-            INSERT INTO kb_oauth_configs (kb_id, service, value_encrypted, updated_at)
+            INSERT INTO connector_oauth_configs (workspace_id, service, value_encrypted, updated_at)
             VALUES (?, ?, ?, ?)
-            ON CONFLICT(kb_id, service) DO UPDATE SET
+            ON CONFLICT(workspace_id, service) DO UPDATE SET
                 value_encrypted = excluded.value_encrypted,
                 updated_at = excluded.updated_at
             """,
-            (kb_id, service, value_encrypted, updated_at),
+            (workspace_id, service, value_encrypted, updated_at),
         )
         self._db.commit()
 
     def fetch_connection_row(
         self,
-        kb_id: str,
+        workspace_id: str,
         service: str,
         connection_name: str,
     ) -> Any:
@@ -79,39 +79,39 @@ class ConnectorVaultPersistence:
             """
             SELECT auth_type, connection_config_json, value_encrypted,
                    account_profile_json, revision, updated_at
-            FROM kb_connections
-            WHERE kb_id = ? AND service = ? AND connection_name = ?
+            FROM connector_connections
+            WHERE workspace_id = ? AND service = ? AND connection_name = ?
             """,
-            (kb_id, service, connection_name),
+            (workspace_id, service, connection_name),
         ).fetchone()
 
-    def list_connection_rows(self, kb_id: str, *, service: str | None = None) -> list[Any]:
+    def list_connection_rows(self, workspace_id: str, *, service: str | None = None) -> list[Any]:
         if service:
             return self._db.execute(
                 """
                 SELECT service, connection_name, auth_type, connection_config_json,
                        value_encrypted, account_profile_json, revision, updated_at
-                FROM kb_connections
-                WHERE kb_id = ? AND service = ?
+                FROM connector_connections
+                WHERE workspace_id = ? AND service = ?
                 ORDER BY service, connection_name
                 """,
-                (kb_id, service),
+                (workspace_id, service),
             ).fetchall()
         return self._db.execute(
             """
             SELECT service, connection_name, auth_type, connection_config_json,
                    value_encrypted, account_profile_json, revision, updated_at
-            FROM kb_connections
-            WHERE kb_id = ?
+            FROM connector_connections
+            WHERE workspace_id = ?
             ORDER BY service, connection_name
             """,
-            (kb_id,),
+            (workspace_id,),
         ).fetchall()
 
     def upsert_connection(
         self,
         *,
-        kb_id: str,
+        workspace_id: str,
         service: str,
         connection_name: str,
         auth_type: str,
@@ -123,12 +123,12 @@ class ConnectorVaultPersistence:
     ) -> None:
         self._db.execute(
             """
-            INSERT INTO kb_connections (
-                kb_id, service, connection_name, auth_type,
+            INSERT INTO connector_connections (
+                workspace_id, service, connection_name, auth_type,
                 connection_config_json, value_encrypted, account_profile_json,
                 revision, updated_at
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ON CONFLICT(kb_id, service, connection_name) DO UPDATE SET
+            ON CONFLICT(workspace_id, service, connection_name) DO UPDATE SET
                 auth_type = excluded.auth_type,
                 connection_config_json = excluded.connection_config_json,
                 value_encrypted = excluded.value_encrypted,
@@ -137,7 +137,7 @@ class ConnectorVaultPersistence:
                 updated_at = excluded.updated_at
             """,
             (
-                kb_id,
+                workspace_id,
                 service,
                 connection_name,
                 auth_type,
@@ -150,10 +150,10 @@ class ConnectorVaultPersistence:
         )
         self._db.commit()
 
-    def delete_connection(self, kb_id: str, service: str, connection_name: str) -> int:
+    def delete_connection(self, workspace_id: str, service: str, connection_name: str) -> int:
         cur = self._db.execute(
-            "DELETE FROM kb_connections WHERE kb_id = ? AND service = ? AND connection_name = ?",
-            (kb_id, service, connection_name),
+            "DELETE FROM connector_connections WHERE workspace_id = ? AND service = ? AND connection_name = ?",
+            (workspace_id, service, connection_name),
         )
         self._db.commit()
         return int(cur.rowcount if cur.rowcount is not None and cur.rowcount >= 0 else 0)
@@ -162,7 +162,7 @@ class ConnectorVaultPersistence:
         self,
         *,
         run_id: str,
-        kb_id: str,
+        workspace_id: str,
         service: str,
         operation_kind: str,
         target_id: str,
@@ -174,14 +174,14 @@ class ConnectorVaultPersistence:
     ) -> None:
         self._db.execute(
             """
-            INSERT INTO kb_connector_runs (
-                id, kb_id, service, operation_kind, target_id,
+            INSERT INTO connector_runs (
+                id, workspace_id, service, operation_kind, target_id,
                 connection_name, started_at, completed_at, ok, value_json
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 run_id,
-                kb_id,
+                workspace_id,
                 service,
                 operation_kind,
                 target_id,
@@ -196,7 +196,7 @@ class ConnectorVaultPersistence:
 
     def list_connector_runs(
         self,
-        kb_id: str,
+        workspace_id: str,
         *,
         service: str | None = None,
         limit: int = 50,
@@ -206,24 +206,24 @@ class ConnectorVaultPersistence:
                 """
                 SELECT id, service, operation_kind, target_id, connection_name,
                        started_at, completed_at, ok, value_json
-                FROM kb_connector_runs
-                WHERE kb_id = ? AND service = ?
+                FROM connector_runs
+                WHERE workspace_id = ? AND service = ?
                 ORDER BY started_at DESC
                 LIMIT ?
                 """,
-                (kb_id, service, limit),
+                (workspace_id, service, limit),
             ).fetchall()
         else:
             rows = self._db.execute(
                 """
                 SELECT id, service, operation_kind, target_id, connection_name,
                        started_at, completed_at, ok, value_json
-                FROM kb_connector_runs
-                WHERE kb_id = ?
+                FROM connector_runs
+                WHERE workspace_id = ?
                 ORDER BY started_at DESC
                 LIMIT ?
                 """,
-                (kb_id, limit),
+                (workspace_id, limit),
             ).fetchall()
         runs: list[dict[str, Any]] = []
         for row in rows:

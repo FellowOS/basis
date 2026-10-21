@@ -1,4 +1,4 @@
-"""KB ingest sources (webhook, poll, git, connector) — KnowledgeStore API."""
+"""Workspace ingest sources (webhook, poll, git, connector) — KnowledgeStore API."""
 
 from __future__ import annotations
 
@@ -37,15 +37,15 @@ class IngestSourcesAccess:
             if s["kind"] == "http_poll"
         ]
 
-    def list_ingest_sources(self, kb_id: str) -> list[dict[str, Any]]:
+    def list_ingest_sources(self, workspace_id: str) -> list[dict[str, Any]]:
         with self._store._lock:
-            self._store._assert_kb_exists(kb_id)
-            rows = source_persist.list_ingest_source_rows(self._store._conn, kb_id)
+            self._store._assert_workspace_exists(workspace_id)
+            rows = source_persist.list_ingest_source_rows(self._store._conn, workspace_id)
         return [source_persist.ingest_source_row_to_dict(row) for row in rows]
 
     def create_ingest_source(
         self,
-        kb_id: str,
+        workspace_id: str,
         actor_id: str,
         *,
         kind: str,
@@ -78,11 +78,11 @@ class IngestSourcesAccess:
             one_time_secret = secrets.token_urlsafe(32)
             secret_ref = one_time_secret
         with self._store._lock:
-            self._store._assert_kb_exists(kb_id)
+            self._store._assert_workspace_exists(workspace_id)
             source_persist.insert_ingest_source(
                 self._store._conn,
                 source_id=source_id,
-                kb_id=kb_id,
+                workspace_id=workspace_id,
                 kind=kind,
                 name=name,
                 config_json=json.dumps(config_payload),
@@ -93,22 +93,22 @@ class IngestSourcesAccess:
                 updated_at=now,
             )
             self._store._conn.commit()
-        return self.get_ingest_source(kb_id, source_id), one_time_secret
+        return self.get_ingest_source(workspace_id, source_id), one_time_secret
 
-    def get_ingest_source(self, kb_id: str, source_id: str) -> dict[str, Any]:
+    def get_ingest_source(self, workspace_id: str, source_id: str) -> dict[str, Any]:
         with self._store._lock:
-            self._store._assert_kb_exists(kb_id)
+            self._store._assert_workspace_exists(workspace_id)
             row = source_persist.fetch_ingest_source_row(
-                self._store._conn, kb_id, source_id
+                self._store._conn, workspace_id, source_id
             )
         if row is None:
             raise AdminError(404, "not_found", "来源不存在")
         return source_persist.ingest_source_row_to_dict(row)
 
-    def get_ingest_source_secret(self, kb_id: str, source_id: str) -> str | None:
+    def get_ingest_source_secret(self, workspace_id: str, source_id: str) -> str | None:
         with self._store._lock:
             row = source_persist.fetch_ingest_source_secret(
-                self._store._conn, kb_id, source_id
+                self._store._conn, workspace_id, source_id
             )
         if row is None:
             return None
@@ -116,7 +116,7 @@ class IngestSourcesAccess:
 
     def update_ingest_source(
         self,
-        kb_id: str,
+        workspace_id: str,
         source_id: str,
         *,
         name: str | None = None,
@@ -124,9 +124,9 @@ class IngestSourcesAccess:
         config: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         with self._store._lock:
-            self._store._assert_kb_exists(kb_id)
+            self._store._assert_workspace_exists(workspace_id)
             row = source_persist.fetch_ingest_source_for_update(
-                self._store._conn, kb_id, source_id
+                self._store._conn, workspace_id, source_id
             )
             if row is None:
                 raise AdminError(404, "not_found", "来源不存在")
@@ -140,7 +140,7 @@ class IngestSourcesAccess:
             now = _now()
             source_persist.update_ingest_source_row(
                 self._store._conn,
-                kb_id,
+                workspace_id,
                 source_id,
                 name=new_name,
                 config_json=json.dumps(merged_config),
@@ -148,15 +148,15 @@ class IngestSourcesAccess:
                 updated_at=now,
             )
             self._store._conn.commit()
-        return self.get_ingest_source(kb_id, source_id)
+        return self.get_ingest_source(workspace_id, source_id)
 
-    def delete_ingest_source(self, kb_id: str, source_id: str) -> None:
+    def delete_ingest_source(self, workspace_id: str, source_id: str) -> None:
         now = _now()
         with self._store._lock:
-            self._store._assert_kb_exists(kb_id)
+            self._store._assert_workspace_exists(workspace_id)
             n = source_persist.soft_delete_ingest_source(
                 self._store._conn,
-                kb_id,
+                workspace_id,
                 source_id,
                 deleted_at=now,
                 updated_at=now,
@@ -165,8 +165,8 @@ class IngestSourcesAccess:
             if n == 0:
                 raise AdminError(404, "not_found", "来源不存在")
 
-    def rotate_ingest_source_token(self, kb_id: str, source_id: str) -> str:
-        source = self.get_ingest_source(kb_id, source_id)
+    def rotate_ingest_source_token(self, workspace_id: str, source_id: str) -> str:
+        source = self.get_ingest_source(workspace_id, source_id)
         if source["kind"] != "webhook":
             raise AdminError(422, "bad_kind", "仅 Webhook 来源可轮换令牌")
         new_token = secrets.token_urlsafe(32)
@@ -174,7 +174,7 @@ class IngestSourcesAccess:
         with self._store._lock:
             n = source_persist.rotate_ingest_source_secret(
                 self._store._conn,
-                kb_id,
+                workspace_id,
                 source_id,
                 secret_ref=new_token,
                 updated_at=now,

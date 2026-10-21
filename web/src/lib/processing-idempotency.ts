@@ -18,7 +18,7 @@ function stableHash(input: string): string {
   return Math.abs(hash).toString(36);
 }
 
-/** KB-scoped idempotency key for `POST .../processing/jobs` (safe retries / double-submit). */
+/** Workspace-scoped idempotency key for `POST .../processing/jobs` (safe retries / double-submit). */
 export function processingStartIdempotencyKey(
   versionId: string,
   options?: ProcessingStartOptions,

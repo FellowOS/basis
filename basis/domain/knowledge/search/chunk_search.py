@@ -1,4 +1,4 @@
-"""KB retrieval orchestration over canonical chunks and pluggable vector indexes."""
+"""Workspace retrieval orchestration over canonical chunks and pluggable vector indexes."""
 
 from __future__ import annotations
 
@@ -42,24 +42,24 @@ class ChunkSearchService:
         if database.backend == "postgres":
             self._backends["pgvector"] = PgVectorIndex(getattr(database, "engine"))
 
-    def delete_chunk_vectors(self, kb_id: str, chunk_ids: list[str]) -> None:
+    def delete_chunk_vectors(self, workspace_id: str, chunk_ids: list[str]) -> None:
         if not chunk_ids:
             return
-        self._backend(kb_id).delete(kb_id, chunk_ids)
+        self._backend(workspace_id).delete(workspace_id, chunk_ids)
 
-    def _backend(self, kb_id: str) -> VectorIndexBackend:
-        name = self._knowledge.get_search_config(kb_id).vector_backend
+    def _backend(self, workspace_id: str) -> VectorIndexBackend:
+        name = self._knowledge.get_search_config(workspace_id).vector_backend
         backend = self._backends.get(name)
         if backend is None:
             raise AdminError(503, "vector_backend_unavailable", "向量存储后端不可用")
         return backend
 
-    def _embed_settings(self, kb_id: str) -> dict[str, str | None]:
-        config = self._knowledge.get_search_config(kb_id)
+    def _embed_settings(self, workspace_id: str) -> dict[str, str | None]:
+        config = self._knowledge.get_search_config(workspace_id)
         return self._admin.get_embed_settings(config.embedding_model_id)
 
-    def _current_model_ref(self, kb_id: str) -> str:
-        settings = self._embed_settings(kb_id)
+    def _current_model_ref(self, workspace_id: str) -> str:
+        settings = self._embed_settings(workspace_id)
         api_key = (settings.get("api_key") or "").strip()
         model = (settings.get("model") or "").strip()
         if api_key and model:
@@ -68,7 +68,7 @@ class ChunkSearchService:
 
     def _chunk_filter_ids(
         self,
-        kb_id: str,
+        workspace_id: str,
         *,
         document_id: str | None,
         entity_id: str | None,
@@ -78,20 +78,20 @@ class ChunkSearchService:
         if not document_id and not entity_id and not created_after and not created_before:
             return None
         return self._knowledge.chunk_ids_matching_filters(
-            kb_id,
+            workspace_id,
             document_id=document_id,
             entity_id=entity_id,
             created_after=created_after,
             created_before=created_before,
         )
 
-    def index_chunks(self, kb_id: str, chunk_ids: list[str] | None = None) -> dict[str, Any]:
-        config = self._knowledge.get_search_config(kb_id)
+    def index_chunks(self, workspace_id: str, chunk_ids: list[str] | None = None) -> dict[str, Any]:
+        config = self._knowledge.get_search_config(workspace_id)
         if not config.semantic_enabled:
             return {"indexed": 0, "skipped": 0, "disabled": True}
-        model_ref = self._current_model_ref(kb_id)
-        settings = self._embed_settings(kb_id)
-        rows = self._knowledge.list_chunks_for_indexing(kb_id, chunk_ids=chunk_ids)
+        model_ref = self._current_model_ref(workspace_id)
+        settings = self._embed_settings(workspace_id)
+        rows = self._knowledge.list_chunks_for_indexing(workspace_id, chunk_ids=chunk_ids)
         if not rows:
             return {"indexed": 0, "skipped": 0}
 
@@ -99,7 +99,7 @@ class ChunkSearchService:
         skipped = 0
         for row in rows:
             digest = content_sha256(row["text"])
-            existing = self._knowledge.get_embedding_record(kb_id, row["chunk_id"], model_ref)
+            existing = self._knowledge.get_embedding_record(workspace_id, row["chunk_id"], model_ref)
             if existing and existing.get("content_sha256") == digest:
                 skipped += 1
                 continue
@@ -117,14 +117,14 @@ class ChunkSearchService:
         ids = [r["chunk_id"] for r in to_embed]
         metadata = [
             {
-                "kb_id": kb_id,
+                "workspace_id": workspace_id,
                 "document_id": r["document_id"],
                 "version_id": r["version_id"],
             }
             for r in to_embed
         ]
-        self._backend(kb_id).upsert(
-            kb_id,
+        self._backend(workspace_id).upsert(
+            workspace_id,
             vectors,
             ids=ids,
             metadata=metadata,
@@ -133,7 +133,7 @@ class ChunkSearchService:
 
         for row in to_embed:
             self._knowledge.upsert_embedding_record(
-                kb_id,
+                workspace_id,
                 chunk_id=row["chunk_id"],
                 model_ref=model_ref,
                 dimension=dimension,
@@ -143,20 +143,20 @@ class ChunkSearchService:
 
         return {"indexed": len(to_embed), "skipped": skipped}
 
-    def index_version(self, kb_id: str, version_id: str) -> dict[str, Any]:
-        rows = self._knowledge.list_chunks_for_version(kb_id, version_id)
-        return self.index_chunks(kb_id, [r["id"] for r in rows])
+    def index_version(self, workspace_id: str, version_id: str) -> dict[str, Any]:
+        rows = self._knowledge.list_chunks_for_version(workspace_id, version_id)
+        return self.index_chunks(workspace_id, [r["id"] for r in rows])
 
-    def reindex_kb(self, kb_id: str) -> dict[str, Any]:
-        self._knowledge.delete_all_embedding_records(kb_id)
-        self._backend(kb_id).reset(kb_id)
-        return self.index_chunks(kb_id, chunk_ids=None)
+    def reindex_kb(self, workspace_id: str) -> dict[str, Any]:
+        self._knowledge.delete_all_embedding_records(workspace_id)
+        self._backend(workspace_id).reset(workspace_id)
+        return self.index_chunks(workspace_id, chunk_ids=None)
 
-    def status(self, kb_id: str) -> dict[str, Any]:
-        config = self._knowledge.get_search_config(kb_id)
-        manifest = self._backend(kb_id).manifest(kb_id)
-        embed_settings = self._embed_settings(kb_id)
-        current_model_ref = self._current_model_ref(kb_id)
+    def status(self, workspace_id: str) -> dict[str, Any]:
+        config = self._knowledge.get_search_config(workspace_id)
+        manifest = self._backend(workspace_id).manifest(workspace_id)
+        embed_settings = self._embed_settings(workspace_id)
+        current_model_ref = self._current_model_ref(workspace_id)
         indexed_model_ref = manifest.get("model_ref")
         vector_state = "not_indexed"
         if not config.semantic_enabled:
@@ -178,7 +178,7 @@ class ChunkSearchService:
 
     def search(
         self,
-        kb_id: str,
+        workspace_id: str,
         *,
         query: str,
         limit: int = 10,
@@ -193,20 +193,20 @@ class ChunkSearchService:
         if not query:
             return {"query": query, "mode": "none", "chunks": []}
 
-        config = self._knowledge.get_search_config(kb_id)
+        config = self._knowledge.get_search_config(workspace_id)
         requested_mode = mode or config.default_mode
         if requested_mode == "keyword" and not config.keyword_enabled:
-            raise AdminError(409, "search_mode_disabled", "该知识库未启用全文搜索")
+            raise AdminError(409, "search_mode_disabled", "该工作区未启用全文搜索")
         if requested_mode == "semantic" and not config.semantic_enabled:
-            raise AdminError(409, "search_mode_disabled", "该知识库未启用语义搜索")
+            raise AdminError(409, "search_mode_disabled", "该工作区未启用语义搜索")
         if requested_mode == "hybrid" and not (
             config.keyword_enabled and config.semantic_enabled
         ):
-            raise AdminError(409, "search_mode_disabled", "该知识库未启用混合搜索")
+            raise AdminError(409, "search_mode_disabled", "该工作区未启用混合搜索")
 
         limit = min(max(1, limit), 50)
         allow = self._chunk_filter_ids(
-            kb_id,
+            workspace_id,
             document_id=document_id,
             entity_id=entity_id,
             created_after=created_after,
@@ -214,7 +214,7 @@ class ChunkSearchService:
         )
 
         keyword_hits = (
-            self._knowledge.search_chunks_keyword(kb_id, query=query, limit=limit * 3)
+            self._knowledge.search_chunks_keyword(workspace_id, query=query, limit=limit * 3)
             if requested_mode in ("keyword", "hybrid")
             else []
         )
@@ -225,13 +225,13 @@ class ChunkSearchService:
         vector_rank: list[str] = []
         effective_mode = "keyword"
         warnings: list[str] = []
-        backend = self._backend(kb_id)
-        manifest = backend.manifest(kb_id)
-        model_ref = manifest.get("model_ref") or self._current_model_ref(kb_id)
+        backend = self._backend(workspace_id)
+        manifest = backend.manifest(workspace_id)
+        model_ref = manifest.get("model_ref") or self._current_model_ref(workspace_id)
 
         if requested_mode in ("semantic", "hybrid") and manifest.get("dimension"):
             try:
-                settings = self._embed_settings(kb_id)
+                settings = self._embed_settings(workspace_id)
                 qvec, q_ref = embed_query(query, settings)
                 if q_ref == model_ref or not manifest.get("model_ref"):
                     filt: dict[str, Any] | None = None
@@ -244,7 +244,7 @@ class ChunkSearchService:
                         if created_before:
                             filt["created_before"] = created_before
                     raw = backend.search(
-                        kb_id, qvec, limit=limit * 3, filters=filt
+                        workspace_id, qvec, limit=limit * 3, filters=filt
                     )
                     for hit in raw:
                         cid = str(hit.get("id", ""))
@@ -275,7 +275,7 @@ class ChunkSearchService:
         by_id = {h["chunk_id"]: h for h in keyword_hits}
         missing = [cid for cid in chunk_ids if cid not in by_id]
         if missing:
-            for row in self._knowledge.get_chunks_by_ids(kb_id, missing):
+            for row in self._knowledge.get_chunks_by_ids(workspace_id, missing):
                 by_id[row["chunk_id"]] = row
 
         chunks = []

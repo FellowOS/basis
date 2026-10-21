@@ -1,0 +1,113 @@
+export default {
+  hub: {
+    hub_tabs: {
+      sparql: "SPARQL",
+      reasoning: "Reasoning"
+    },
+    integration_hint: "SPARQL and reasoning HTTP APIs: Integration → OpenAPI.",
+    loading_sparql: "Loading SPARQL…",
+    loading_reasoning: "Loading reasoning…"
+  },
+  reasoning: {
+    results_title: "Results",
+    tab_inferences: "Inferences",
+    tab_proofs: "Proofs",
+    facts_title: "Facts",
+    facts_placeholder: "One predicate(subject, object) per line",
+    rules_title: "Rules",
+    rules_placeholder: "One IF … THEN … rule per line",
+    templates_title: "Templates",
+    library_section: "Library",
+    draft_section: "Draft",
+    fact_issue: "Line {n} is not predicate(…)",
+    rule_issue: "Line {n} is not IF … THEN …",
+    library_rule_issue: "Library rule \"{name}\" is not IF … THEN …",
+    replace_title: "Replace the current input?",
+    replace_body: "Facts and the draft will be replaced.",
+    reset_body: "Restores the drug example and clears selected library rules.",
+    replace_confirm: "Replace",
+    result_stale: "Input changed. Showing the previous run.",
+    save_draft_only: "Saves the draft box only, not selected library rules",
+    manage_rules: "Manage rules",
+    save_to_library: "Save to library",
+    library_combobox_placeholder: "Search to add to this run…",
+    library_combobox_empty: "No matching rules",
+    template_labels: {
+      drug: "Drug",
+      gene: "Gene",
+      pathway: "Pathway"
+    },
+    write_graph: "Write to graph",
+    write_graph_hint: "Persist inferred binary facts as edges",
+    write_graph_view_only: "View-only",
+    load_draft: "Draft",
+    run: "Run reasoning",
+    running: "Running…",
+    partial_run: "Warning: Partial success reasoning.",
+    reset: "Reset example",
+    results_empty_title: "No results yet",
+    results_empty_body: "Inferences and proof chains appear here after you run.",
+    results_empty_ready: "Input is ready. Run to see inferences here.",
+    rules_fired: "{n} rules fired",
+    edges_added: "{n} edges added",
+    graph_updated: "Graph updated",
+    preview_only: "Preview only",
+    derived_link: "{n} derived → ledger",
+    complete_empty: "No new facts were inferred.",
+    save_title: "Save to rule library",
+    save_desc: "Saves rules in the draft box only, not library rules already in this run.",
+    save_name: "Name",
+    save_placeholder: "e.g. Facility subclass chain",
+    save_include_run: "Save and include in this run",
+    rules_dialog: {
+      title: "Manage reasoning rules",
+      description: "Manage named rules for this workspace. Add rules to a run from the library combobox on the reasoning view.",
+      new_rule: "New rule",
+      edit_rule: "Edit rule",
+      name: "Name",
+      name_placeholder: "e.g. Facility subclass chain",
+      body: "Rule body",
+      body_placeholder: "IF … AND … THEN …",
+      body_hint: "One IF … THEN … rule per line; same syntax as the Rules box.",
+      save_include_run: "Save and include in this run",
+      no_rules_title: "No saved rules yet",
+      no_rules_can_write: "Create a rule here, or save a draft from the reasoning editor.",
+      no_rules_read_only: "View only; editing requires editor access or higher.",
+      load: "Load",
+      edit: "Edit",
+      delete: "Delete",
+      delete_title: "Delete rule?",
+      delete_description: "This cannot be undone. It is removed from the library and this run’s selection."
+    }
+  },
+  sparql: {
+    templates: "Templates",
+    results: "Results",
+    rows: "{count} rows",
+    rows_one: "{count} row",
+    export_csv: "Export CSV",
+    run: "Run query",
+    running: "Running…",
+    replace_title: "Replace the current query?",
+    replace_body: "The editor query will be replaced by the template.",
+    replace_confirm: "Replace",
+    stale: "Query changed. Showing the previous result.",
+    empty_title: "No results yet",
+    empty_ready: "Query is ready. Run it to see rows here.",
+    empty_body: "Pick a template or write SPARQL, then run.",
+    no_rows: "The query returned 0 rows.",
+    partial_query: "Warning: Partial success running query.",
+    template_labels: {
+      triples: "Triples",
+      types: "Types",
+      edges: "Edges",
+      path: "Path"
+    }
+  },
+  page: {
+    subtitle: "SPARQL queries and rule reasoning against this workspace."
+  },
+  menu: {
+    analyze: "Query & reasoning"
+  }
+} as const;

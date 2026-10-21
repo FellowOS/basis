@@ -28,7 +28,7 @@ export function ProductSiteHeader({ activeKey, onGetStarted }: ProductSiteHeader
   const { t } = useI18n();
   const { theme, toggleTheme } = useTheme();
   const { ready, user, homePath } = useBasisSession();
-  const m = t.marketing;
+  const m = t.home.marketing;
   const isDark = theme === 'dark';
   const [scrolled, setScrolled] = useState(false);
 
@@ -48,7 +48,7 @@ export function ProductSiteHeader({ activeKey, onGetStarted }: ProductSiteHeader
         onClick={onGetStarted}
         data-analytics="cta_get_started"
       >
-        {m.ctaGetStarted}
+        {m.cta_get_started}
       </Button>
     ) : (
       <Button
@@ -58,7 +58,7 @@ export function ProductSiteHeader({ activeKey, onGetStarted }: ProductSiteHeader
         asChild
       >
         <Link to="/?mode=register" data-analytics="cta_get_started">
-          {m.ctaGetStarted}
+          {m.cta_get_started}
         </Link>
       </Button>
     );
@@ -84,7 +84,7 @@ export function ProductSiteHeader({ activeKey, onGetStarted }: ProductSiteHeader
         <div className="ml-auto flex items-center gap-0.5 sm:gap-1">
           {ready && user ? (
             <Button type="button" variant="ghost" size="sm" className="hidden md:inline-flex" asChild>
-              <Link to={homePath}>{m.openConsole}</Link>
+              <Link to={homePath}>{m.open_console}</Link>
             </Button>
           ) : null}
 
@@ -93,7 +93,7 @@ export function ProductSiteHeader({ activeKey, onGetStarted }: ProductSiteHeader
             variant="ghost"
             size="icon-sm"
             onClick={toggleTheme}
-            aria-label={isDark ? m.a11yThemeLight : m.a11yThemeDark}
+            aria-label={isDark ? m.a11y_theme_light : m.a11y_theme_dark}
             className="text-muted-foreground hover:text-foreground"
           >
             <PublicIcon name={isDark ? 'sun-01' : 'moon-01'} size={18} />
@@ -104,7 +104,7 @@ export function ProductSiteHeader({ activeKey, onGetStarted }: ProductSiteHeader
                 type="button"
                 variant="ghost"
                 size="icon-sm"
-                aria-label={t.sidebar.language}
+                aria-label={t.core.shell.sidebar.language}
                 className="text-muted-foreground hover:text-foreground"
               >
                 <PublicIcon name="globe-02" size={18} />

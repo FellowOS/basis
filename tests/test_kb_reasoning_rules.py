@@ -1,4 +1,4 @@
-"""KB reasoning rule library routes."""
+"""Workspace reasoning rule library routes."""
 
 from fastapi.testclient import TestClient
 
@@ -13,14 +13,14 @@ def test_reasoning_rules_crud_and_isolation(tmp_path) -> None:
         json={"email": "rules@example.com", "password": "password1", "display_name": "Rules"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_id = client.post(
-        "/api/v1/kbs",
+    workspace_id = client.post(
+        "/api/v1/workspaces",
         headers=headers,
         json={"name": "Rules KB", "visibility": "restricted"},
     ).json()["id"]
 
     created = client.post(
-        f"/api/v1/kbs/{kb_id}/rules",
+        f"/api/v1/workspaces/{workspace_id}/rules",
         headers=headers,
         json={
             "name": "Drug candidate",
@@ -31,21 +31,21 @@ def test_reasoning_rules_crud_and_isolation(tmp_path) -> None:
     assert created.status_code == 200
     rule_id = created.json()["rule"]["id"]
 
-    listed = client.get(f"/api/v1/kbs/{kb_id}/rules", headers=headers)
+    listed = client.get(f"/api/v1/workspaces/{workspace_id}/rules", headers=headers)
     assert listed.status_code == 200
     assert any(r["id"] == rule_id for r in listed.json()["rules"])
 
     updated = client.patch(
-        f"/api/v1/kbs/{kb_id}/rules/{rule_id}",
+        f"/api/v1/workspaces/{workspace_id}/rules/{rule_id}",
         headers=headers,
         json={"enabled": False},
     )
     assert updated.status_code == 200
     assert updated.json()["rule"]["enabled"] is False
 
-    deleted = client.delete(f"/api/v1/kbs/{kb_id}/rules/{rule_id}", headers=headers)
+    deleted = client.delete(f"/api/v1/workspaces/{workspace_id}/rules/{rule_id}", headers=headers)
     assert deleted.status_code == 200
-    assert client.get(f"/api/v1/kbs/{kb_id}/rules", headers=headers).json()["rules"] == []
+    assert client.get(f"/api/v1/workspaces/{workspace_id}/rules", headers=headers).json()["rules"] == []
 
     other = client.post(
         "/api/v1/auth/register",
@@ -53,7 +53,7 @@ def test_reasoning_rules_crud_and_isolation(tmp_path) -> None:
     ).json()
     headers_b = {"Authorization": f"Bearer {other['token']}"}
 
-    denied = client.get(f"/api/v1/kbs/{kb_id}/rules", headers=headers_b)
+    denied = client.get(f"/api/v1/workspaces/{workspace_id}/rules", headers=headers_b)
     assert denied.status_code == 403
 
 
@@ -64,8 +64,8 @@ def test_viewer_cannot_mutate_rules(tmp_path) -> None:
         json={"email": "own@example.com", "password": "password1", "display_name": "Own"},
     ).json()
     owner_headers = {"Authorization": f"Bearer {owner['token']}"}
-    kb_id = client.post(
-        "/api/v1/kbs",
+    workspace_id = client.post(
+        "/api/v1/workspaces",
         headers=owner_headers,
         json={"name": "Viewer Rules KB", "visibility": "restricted"},
     ).json()["id"]
@@ -75,7 +75,7 @@ def test_viewer_cannot_mutate_rules(tmp_path) -> None:
         json={"email": "view@example.com", "password": "password1", "display_name": "View"},
     ).json()
     client.post(
-        f"/api/v1/kbs/{kb_id}/members",
+        f"/api/v1/workspaces/{workspace_id}/members",
         headers=owner_headers,
         json={"user_id": viewer["user"]["id"], "role": "viewer"},
     )
@@ -83,7 +83,7 @@ def test_viewer_cannot_mutate_rules(tmp_path) -> None:
 
     assert (
         client.post(
-            f"/api/v1/kbs/{kb_id}/rules",
+            f"/api/v1/workspaces/{workspace_id}/rules",
             headers=viewer_headers,
             json={"name": "X", "body": "IF a THEN b", "enabled": True},
         ).status_code
@@ -91,19 +91,19 @@ def test_viewer_cannot_mutate_rules(tmp_path) -> None:
     )
 
     created = client.post(
-        f"/api/v1/kbs/{kb_id}/rules",
+        f"/api/v1/workspaces/{workspace_id}/rules",
         headers=owner_headers,
         json={"name": "Y", "body": "IF c THEN d", "enabled": True},
     ).json()["rule"]["id"]
 
     assert (
         client.patch(
-            f"/api/v1/kbs/{kb_id}/rules/{created}",
+            f"/api/v1/workspaces/{workspace_id}/rules/{created}",
             headers=viewer_headers,
             json={"enabled": False},
         ).status_code
         == 403
     )
     assert (
-        client.delete(f"/api/v1/kbs/{kb_id}/rules/{created}", headers=viewer_headers).status_code == 403
+        client.delete(f"/api/v1/workspaces/{workspace_id}/rules/{created}", headers=viewer_headers).status_code == 403
     )

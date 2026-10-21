@@ -6,21 +6,21 @@ from basis.domain.knowledge.blob_store import BlobStore
 from basis.domain.knowledge.store import KnowledgeStore
 
 
-def _fixture_kb(store: KnowledgeStore, kb_id: str, actor_id: str) -> tuple[str, str]:
+def _fixture_kb(store: KnowledgeStore, workspace_id: str, actor_id: str) -> tuple[str, str]:
     _, version_id, _, _ = store.store_upload_bytes(
-        kb_id,
+        workspace_id,
         title="t.txt",
         mime_type="text/plain",
         data=b"x",
         created_by=None,
         external_key="doc-merge",
     )
-    chunk_id = store.create_chunk(kb_id, version_id, ordinal=0, text="Alice knows Bob.")
-    store.set_version_status(kb_id, version_id, "ready")
-    alice = store.create_entity(kb_id, canonical_label="Alice")
-    bob = store.create_entity(kb_id, canonical_label="Bob")
+    chunk_id = store.create_chunk(workspace_id, version_id, ordinal=0, text="Alice knows Bob.")
+    store.set_version_status(workspace_id, version_id, "ready")
+    alice = store.create_entity(workspace_id, canonical_label="Alice")
+    bob = store.create_entity(workspace_id, canonical_label="Bob")
     store.add_open_statement(
-        kb_id,
+        workspace_id,
         subject_id=alice,
         surface_phrase="knows",
         object_entity_id=bob,
@@ -36,23 +36,23 @@ def _fixture_kb(store: KnowledgeStore, kb_id: str, actor_id: str) -> tuple[str, 
 def test_active_merge_collapses_entity_nodes(tmp_path: Path) -> None:
     admin = AdminStore(tmp_path / "basis.db")
     user, _ = admin.register("mp@example.com", "password1", "U")
-    kb_id = admin.create_kb(user, "KB", None, "restricted").id
+    workspace_id = admin.create_workspace(user, "KB", None, "restricted").id
     actor_id = user.id
     admin.close()
 
     store = KnowledgeStore(tmp_path / "basis.db", BlobStore(tmp_path))
-    alice, bob = _fixture_kb(store, kb_id, actor_id)
+    alice, bob = _fixture_kb(store, workspace_id, actor_id)
 
-    before = rebuild_graph_from_ledger(store, kb_id)
+    before = rebuild_graph_from_ledger(store, workspace_id)
     assert bob in graph_projection_signature(before)["node_ids"]
 
     store.record_entity_merge(
-        kb_id,
+        workspace_id,
         source_entity_id=bob,
         target_entity_id=alice,
         actor_id=actor_id,
     )
-    after = rebuild_graph_from_ledger(store, kb_id)
+    after = rebuild_graph_from_ledger(store, workspace_id)
     node_ids = graph_projection_signature(after)["node_ids"]
     assert bob not in node_ids
     assert alice in node_ids
@@ -64,21 +64,21 @@ def test_active_merge_collapses_entity_nodes(tmp_path: Path) -> None:
 def test_revert_merge_restores_distinct_entities(tmp_path: Path) -> None:
     admin = AdminStore(tmp_path / "basis.db")
     user, _ = admin.register("rv@example.com", "password1", "U")
-    kb_id = admin.create_kb(user, "KB", None, "restricted").id
+    workspace_id = admin.create_workspace(user, "KB", None, "restricted").id
     actor_id = user.id
     admin.close()
 
     store = KnowledgeStore(tmp_path / "basis.db", BlobStore(tmp_path))
-    alice, bob = _fixture_kb(store, kb_id, actor_id)
+    alice, bob = _fixture_kb(store, workspace_id, actor_id)
     row = store.record_entity_merge(
-        kb_id,
+        workspace_id,
         source_entity_id=bob,
         target_entity_id=alice,
         actor_id=actor_id,
     )
-    store.revert_entity_merge(kb_id, row["id"], reverted_by=actor_id)
+    store.revert_entity_merge(workspace_id, row["id"], reverted_by=actor_id)
 
-    session = rebuild_graph_from_ledger(store, kb_id)
+    session = rebuild_graph_from_ledger(store, workspace_id)
     node_ids = graph_projection_signature(session)["node_ids"]
     assert alice in node_ids and bob in node_ids
     store.close()

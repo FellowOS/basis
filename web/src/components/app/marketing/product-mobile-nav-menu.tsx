@@ -19,6 +19,7 @@ import {
   PRODUCT_NAV,
   productNavHref,
 } from '@/lib/product-nav.js';
+import { productDeveloperLinkLabels, productNavLabel } from '@/lib/product-nav-i18n.js';
 import { cn } from '@/lib/utils.js';
 import { useTheme } from '@/lib/theme.js';
 
@@ -43,7 +44,7 @@ type ProductMobileNavMenuProps = {
 export function ProductMobileNavMenu({ onGetStarted }: ProductMobileNavMenuProps) {
   const reduce = useReducedMotion();
   const { t } = useI18n();
-  const m = t.marketing;
+  const m = t.home.marketing;
   const { theme, toggleTheme } = useTheme();
   const { ready, user, homePath } = useBasisSession();
   const isDark = theme === 'dark';
@@ -51,7 +52,7 @@ export function ProductMobileNavMenu({ onGetStarted }: ProductMobileNavMenuProps
   const [section, setSection] = useState<string | null>('developers');
 
   const menu = useMemo((): MenuSection[] => {
-    const devMenu = m.nav.developersMenu;
+    const devMenu = m.nav.developers_menu;
     return [
       {
         id: 'product',
@@ -59,7 +60,7 @@ export function ProductMobileNavMenu({ onGetStarted }: ProductMobileNavMenuProps
         children: PRODUCT_NAV.filter((item) =>
           ['product', 'howItWorks', 'capabilities'].includes(item.key),
         ).map((item) => ({
-          label: m.nav[item.key],
+          label: productNavLabel(m.nav, item.key),
           href: productNavHref(item),
         })),
       },
@@ -67,14 +68,14 @@ export function ProductMobileNavMenu({ onGetStarted }: ProductMobileNavMenuProps
         id: 'developers',
         label: m.nav.developers,
         children: PRODUCT_DEVELOPER_LINKS.map((link) => ({
-          label: devMenu[link.key],
+          label: productDeveloperLinkLabels(devMenu, link.key).title,
           href: link.to,
           external: link.external,
         })),
       },
       {
         id: 'selfHost',
-        label: m.nav.selfHost,
+        label: m.nav.self_host,
         href: productNavHref(PRODUCT_NAV.find((item) => item.key === 'selfHost')!),
       },
       {
@@ -135,7 +136,7 @@ export function ProductMobileNavMenu({ onGetStarted }: ProductMobileNavMenuProps
         <motion.div
           role="dialog"
           aria-modal="true"
-          aria-label={m.nav.ariaMain}
+          aria-label={m.nav.aria_main}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0, transition: { duration: 0.16, ease: EASE_OUT } }}
@@ -146,7 +147,7 @@ export function ProductMobileNavMenu({ onGetStarted }: ProductMobileNavMenuProps
             <p className="font-display text-[15px] font-medium tracking-tight text-foreground">{m.brand}</p>
             <button
               type="button"
-              aria-label={t.common.close}
+              aria-label={t.core.common.close}
               onClick={close}
               className={cn(
                 'inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl text-muted-foreground hover:bg-accent hover:text-foreground',
@@ -158,7 +159,7 @@ export function ProductMobileNavMenu({ onGetStarted }: ProductMobileNavMenuProps
             </button>
           </div>
 
-          <nav aria-label={m.nav.ariaMain} className="min-h-0 flex-1 overflow-y-auto px-3 pb-4 sm:px-5">
+          <nav aria-label={m.nav.aria_main} className="min-h-0 flex-1 overflow-y-auto px-3 pb-4 sm:px-5">
             {menu.map((entry, i) => {
               const isOpen = section === entry.id;
               const hasChildren = entry.children && entry.children.length > 0;
@@ -254,13 +255,13 @@ export function ProductMobileNavMenu({ onGetStarted }: ProductMobileNavMenuProps
                 variant="ghost"
                 size="icon-sm"
                 onClick={toggleTheme}
-                aria-label={isDark ? m.a11yThemeLight : m.a11yThemeDark}
+                aria-label={isDark ? m.a11y_theme_light : m.a11y_theme_dark}
               >
                 <PublicIcon name={isDark ? 'sun-01' : 'moon-01'} size={18} />
               </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button type="button" variant="ghost" size="icon-sm" aria-label={t.sidebar.language}>
+                  <Button type="button" variant="ghost" size="icon-sm" aria-label={t.core.shell.sidebar.language}>
                     <PublicIcon name="globe-02" size={18} />
                   </Button>
                 </DropdownMenuTrigger>
@@ -293,7 +294,7 @@ export function ProductMobileNavMenu({ onGetStarted }: ProductMobileNavMenuProps
                   {user.email && user.display_name ? (
                     <span className="mt-0.5 block truncate text-xs text-muted-foreground">{user.email}</span>
                   ) : (
-                    <span className="mt-0.5 block truncate text-xs text-muted-foreground">{m.openConsole}</span>
+                    <span className="mt-0.5 block truncate text-xs text-muted-foreground">{m.open_console}</span>
                   )}
                 </span>
               </Link>
@@ -305,7 +306,7 @@ export function ProductMobileNavMenu({ onGetStarted }: ProductMobileNavMenuProps
                     className="w-full rounded-full bg-[var(--login-cta-bg,#152033)] text-[var(--login-cta-fg,#f6f4ef)]"
                     onClick={() => { onGetStarted(); close(); }}
                   >
-                    {m.ctaGetStarted}
+                    {m.cta_get_started}
                   </Button>
                 ) : (
                   <Button
@@ -314,7 +315,7 @@ export function ProductMobileNavMenu({ onGetStarted }: ProductMobileNavMenuProps
                     asChild
                   >
                     <Link to="/?mode=register" onClick={close}>
-                      {m.ctaGetStarted}
+                      {m.cta_get_started}
                     </Link>
                   </Button>
                 )}
@@ -333,7 +334,7 @@ export function ProductMobileNavMenu({ onGetStarted }: ProductMobileNavMenuProps
         variant="ghost"
         size="icon-sm"
         className="lg:hidden"
-        aria-label={m.nav.openMenu}
+        aria-label={m.nav.open_menu}
         aria-expanded={open}
         onClick={() => setOpen(true)}
       >

@@ -1,4 +1,4 @@
-"""Shared ingest request/response helpers for KB document routes."""
+"""Shared ingest request/response helpers for workspace document routes."""
 
 from __future__ import annotations
 
@@ -21,7 +21,7 @@ from basis.domain.knowledge.pipeline.version_ingest import run_version_ingest
 
 def run_ingest_blocking(
     app: FastAPI,
-    kb_id: str,
+    workspace_id: str,
     version_id: str,
     job_id: str,
     *,
@@ -38,7 +38,7 @@ def run_ingest_blocking(
         return run_version_ingest(
             knowledge,
             graph_session,
-            kb_id,
+            workspace_id,
             version_id,
             job_id,
             filename=filename,
@@ -52,7 +52,7 @@ def run_ingest_blocking(
         )
     result = run_version_ingest_for_app(
         app,
-        kb_id,
+        workspace_id,
         version_id,
         job_id,
         filename=filename,
@@ -67,7 +67,7 @@ def run_ingest_blocking(
 
 def respond_ingest(
     app: FastAPI,
-    kb_id: str,
+    workspace_id: str,
     version_id: str,
     job_id: str,
     ledger_document_id: str,
@@ -82,7 +82,7 @@ def respond_ingest(
     if not wait:
         enqueue_version_ingest(
             app,
-            kb_id,
+            workspace_id,
             version_id,
             job_id,
             filename=filename,
@@ -102,7 +102,7 @@ def respond_ingest(
         )
     result = run_ingest_blocking(
         app,
-        kb_id,
+        workspace_id,
         version_id,
         job_id,
         filename=filename,

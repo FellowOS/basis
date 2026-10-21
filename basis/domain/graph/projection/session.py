@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 
-# KB projections do not use Node2Vec; disabling avoids a gensim import warning on
+# Workspace projections do not use Node2Vec; disabling avoids a gensim import warning on
 # every ContextGraph() when semantica[graph-embeddings] is not installed.
 _DEFAULT_CONTEXT_GRAPH_CONFIG = {"node_embeddings": False}
 

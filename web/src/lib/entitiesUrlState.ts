@@ -1,4 +1,4 @@
-import { kbPath } from '@/lib/nav-config.js';
+import { workspacePath } from '@/lib/nav-config.js';
 
 const STATEMENT_PARAM = 'statement';
 
@@ -8,7 +8,7 @@ export function parseEntitiesUrlState(search: string): { statementId?: string } 
 }
 
 /** Deep-link to Entities with a ledger statement highlighted (F-RUL-03). */
-export function kbEntitiesStatementPath(kbId: string, statementId: string): string {
+export function entitiesStatementPath(workspaceId: string, statementId: string): string {
   const params = new URLSearchParams({ [STATEMENT_PARAM]: statementId });
-  return `${kbPath(kbId, 'entities')}?${params.toString()}`;
+  return `${workspacePath(workspaceId, 'entities')}?${params.toString()}`;
 }

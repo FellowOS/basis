@@ -13,14 +13,14 @@ STATEMENT_REVIEW_KIND = "statement_remember"
 STATEMENT_REVIEW_SUBJECT_TYPE = "statement"
 
 
-def _agent_chunk(knowledge: KnowledgeStore, kb_id: str, actor_id: str) -> str:
+def _agent_chunk(knowledge: KnowledgeStore, workspace_id: str, actor_id: str) -> str:
     doc = next(
-        (d for d in knowledge.list_documents(kb_id) if d.get("doc_id") == AGENT_REMEMBER_DOC_ID),
+        (d for d in knowledge.list_documents(workspace_id) if d.get("doc_id") == AGENT_REMEMBER_DOC_ID),
         None,
     )
     if doc is None:
         outcome = knowledge.store_document_bytes(
-            kb_id,
+            workspace_id,
             title="Agent remembered facts",
             mime_type="text/plain",
             data=b"(synthetic anchor for chat/MCP remember proposals)\n",
@@ -29,7 +29,7 @@ def _agent_chunk(knowledge: KnowledgeStore, kb_id: str, actor_id: str) -> str:
         )
         version_id = outcome.version_id
         return knowledge.create_chunk(
-            kb_id,
+            workspace_id,
             version_id,
             ordinal=0,
             text="Agent-proposed facts awaiting review are anchored here.",
@@ -37,11 +37,11 @@ def _agent_chunk(knowledge: KnowledgeStore, kb_id: str, actor_id: str) -> str:
     version_id = doc.get("version_id")
     if not version_id:
         raise AdminError(500, "remember_anchor_broken", "Agent remember 锚点文档无版本")
-    chunks = knowledge.list_chunks_for_version(kb_id, version_id)
+    chunks = knowledge.list_chunks_for_version(workspace_id, version_id)
     if chunks:
         return chunks[0]["id"]
     return knowledge.create_chunk(
-        kb_id,
+        workspace_id,
         version_id,
         ordinal=0,
         text="Agent-proposed facts awaiting review are anchored here.",
@@ -50,7 +50,7 @@ def _agent_chunk(knowledge: KnowledgeStore, kb_id: str, actor_id: str) -> str:
 
 def propose_remember(
     knowledge: KnowledgeStore,
-    kb_id: str,
+    workspace_id: str,
     actor_id: str,
     content: str,
     *,
@@ -62,12 +62,12 @@ def propose_remember(
     if len(text) > 8000:
         raise AdminError(422, "validation_error", "remember 内容过长")
 
-    chunk_id = _agent_chunk(knowledge, kb_id, actor_id)
-    subject_id = knowledge.get_or_create_entity_by_label(kb_id, AGENT_REMEMBER_SUBJECT_LABEL)
+    chunk_id = _agent_chunk(knowledge, workspace_id, actor_id)
+    subject_id = knowledge.get_or_create_entity_by_label(workspace_id, AGENT_REMEMBER_SUBJECT_LABEL)
     quote = text if len(text) <= 512 else text[:509] + "..."
 
     statement_id = knowledge.add_open_statement(
-        kb_id,
+        workspace_id,
         subject_id=subject_id,
         surface_phrase="remember",
         object_entity_id=None,
@@ -79,7 +79,7 @@ def propose_remember(
     )
     try:
         item = knowledge.create_review_item(
-            kb_id,
+            workspace_id,
             kind=STATEMENT_REVIEW_KIND,
             subject_type=STATEMENT_REVIEW_SUBJECT_TYPE,
             subject_id=statement_id,
@@ -92,6 +92,6 @@ def propose_remember(
         )
     except AdminError as exc:
         if exc.code == "review_exists":
-            knowledge.invalidate_statement(kb_id, statement_id)
+            knowledge.invalidate_statement(workspace_id, statement_id)
         raise
     return {"statement_id": statement_id, "review_item_id": item["id"], "status": "pending"}

@@ -1,9 +1,9 @@
 /**
- * Governance / ontology-hub `.oh-*` and embedded workspace shell (replaces `governance.css` oh/vocab/er rules used in TSX).
+ * Governance / ontology-hub `.oh-*` and embedded route shell (replaces `governance.css` oh/vocab/er rules used in TSX).
  */
 
-/** SPARQL / ontology / review / vocabulary hub viewport height (was `.kb-explorer-console.kb-*-workspace`). */
-export const govEmbeddedWorkspaceShell =
+/** SPARQL / ontology / review / vocabulary hub viewport height. */
+export const govEmbeddedPanelShell =
   "min-h-[20rem] flex-1 h-[clamp(20rem,calc(100dvh-11rem),56rem)] max-h-[calc(100dvh-11rem)]";
 
 export const govOhKicker =

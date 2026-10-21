@@ -21,7 +21,7 @@ Provider bundle（`connector.yaml`）**只写一份**。BOCP 运行时把 `actio
 | 消费者 | 绑定 | 如何触达原语 |
 |--------|------|----------------|
 | **本体 / 账本** | `source_table_mappings`、入向 sync、`entity_sync_outbox` 写回 | `connector_sync` 与审批后的 outbox 内调用 `ConnectorRuntime.read_stream` / `mutate_stream` |
-| **智能体（MCP）** | KB MCP 工具（及对应的 OpenAPI） | **直接**调用 §10 原语：`service` + `action_id` + 原语种类 + `action_params` / `scope` — LIST **不要求**先建 mapping |
+| **智能体（MCP）** | 工作区 MCP 工具（及对应的 OpenAPI） | **直接**调用 §10 原语：`service` + `action_id` + 原语种类 + `action_params` / `scope` — LIST **不要求**先建 mapping |
 
 示例：GitHub `issues` 的 `rest.operations.list` 既用于定时同步进证据账本，也用于智能体经 MCP 拉取当前 issue 列表。Manifest 不分叉，只有宿主入口不同。
 
@@ -31,8 +31,9 @@ Provider bundle（`connector.yaml`）**只写一份**。BOCP 运行时把 `actio
 
 | 绑定 | 状态 |
 |------|------|
-| 账本 / 投影 | **已交付** — HTTP `/api/v1/kbs/{kb_id}/connectors/*`，MCP `sync_connector_table_mapping`、`propose_entity_writeback` 等 |
+| 账本 / 投影 | **已交付** — HTTP `/api/v1/workspaces/{workspace_id}/connectors/*`，MCP `sync_connector_table_mapping`、`propose_entity_writeback` 等 |
 | 智能体原语 | **已交付** — MCP `invoke_connector_primitive` 与 `tools/list` 按 action 展开的 `connector_{service}__{action_id}__{suffix}`；HTTP `POST …/invoke-primitive` |
+| 控制台 UI | **已交付** — `/kbs/{workspace_id}/connectors`（`web/src/modules/connectors/`）；平台 allowlist：`/admin/connectors` |
 
 策略：`action_policy.entities`（如 `github:issues.list`）及 `default_entity_read_mode` / `default_entity_write_mode`。
 
@@ -71,10 +72,10 @@ Basis 特有的 REST 扩展（其他 BOCP 宿主忽略）：entity action 上的
 
 | 面 | 位置 |
 |----|------|
-| HTTP | `/api/v1/kbs/{kb_id}/connectors/*`（见 [openapi-v1.md](openapi-v1.md) 与 live `/openapi/v1.json`） |
+| HTTP | `/api/v1/workspaces/{workspace_id}/connectors/*`（见 [openapi-v1.md](openapi-v1.md) 与 live `/openapi/v1.json`） |
 | MCP | `basis/application/operations_connectors.py`（含 `invoke_connector_primitive`） |
 
-持久化与 KB 投影：[data-model.md](../data-model.md) §18。
+持久化与工作区投影：[data-model.md](../data-model.md) §18。
 
 ---
 

@@ -22,17 +22,17 @@ class FactsAccess:
     def __init__(self, store: KnowledgeStore) -> None:
         self._store = store
 
-    def list_typed_facts(self, kb_id: str, *, limit: int = 100) -> list[dict[str, Any]]:
+    def list_typed_facts(self, workspace_id: str, *, limit: int = 100) -> list[dict[str, Any]]:
         limit = min(max(1, limit), 200)
         with self._store._lock:
-            self._store._assert_kb_exists(kb_id)
+            self._store._assert_workspace_exists(workspace_id)
             return typed_persist.list_typed_facts_limited(
-                self._store._conn, kb_id, limit
+                self._store._conn, workspace_id, limit
             )
 
     def insert_derived_fact(
         self,
-        kb_id: str,
+        workspace_id: str,
         *,
         subject_id: str,
         predicate_uri: str,
@@ -48,12 +48,12 @@ class FactsAccess:
         now = _now()
         with self._store._lock:
             conn = self._store._conn
-            self._store._assert_row_in_kb("entities", subject_id, kb_id)
+            self._store._assert_row_in_workspace("entities", subject_id, workspace_id)
             if object_entity_id:
-                self._store._assert_row_in_kb("entities", object_entity_id, kb_id)
+                self._store._assert_row_in_workspace("entities", object_entity_id, workspace_id)
             if derived_persist.find_active_derived_fact_duplicate(
                 conn,
-                kb_id,
+                workspace_id,
                 subject_id,
                 predicate_uri,
                 object_entity_id,
@@ -64,7 +64,7 @@ class FactsAccess:
             derived_persist.insert_derived_fact_row(
                 conn,
                 fact_id=fact_id,
-                kb_id=kb_id,
+                workspace_id=workspace_id,
                 subject_id=subject_id,
                 predicate_uri=predicate_uri,
                 object_entity_id=object_entity_id,
@@ -79,23 +79,23 @@ class FactsAccess:
             conn.commit()
         return fact_id
 
-    def list_derived_facts(self, kb_id: str, *, limit: int = 100) -> list[dict[str, Any]]:
+    def list_derived_facts(self, workspace_id: str, *, limit: int = 100) -> list[dict[str, Any]]:
         limit = min(max(1, limit), 200)
         with self._store._lock:
             return derived_persist.list_derived_facts_limited(
-                self._store._conn, kb_id, limit
+                self._store._conn, workspace_id, limit
             )
 
     def list_derived_facts_for_entity(
         self,
-        kb_id: str,
+        workspace_id: str,
         entity_id: str,
         *,
         limit: int = 50,
     ) -> list[dict[str, Any]]:
         limit = min(max(1, limit), 100)
         with self._store._lock:
-            self._store._assert_row_in_kb("entities", entity_id, kb_id)
+            self._store._assert_row_in_workspace("entities", entity_id, workspace_id)
             return derived_persist.list_derived_facts_for_entity(
-                self._store._conn, kb_id, entity_id, limit
+                self._store._conn, workspace_id, entity_id, limit
             )

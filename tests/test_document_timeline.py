@@ -19,19 +19,19 @@ from basis.interface.http.app import create_app
 def test_list_document_timeline_events_unit(tmp_path: Path) -> None:
     admin = AdminStore(tmp_path / "basis.db")
     user, _ = admin.register("tl@example.com", "password1", "U")
-    kb_id = admin.create_kb(user, "KB", None, "restricted").id
+    workspace_id = admin.create_workspace(user, "KB", None, "restricted").id
     admin.close()
     store = KnowledgeStore(tmp_path / "basis.db", BlobStore(tmp_path))
     doc_uuid, version_id, _, _ = store.store_upload_bytes(
-        kb_id,
+        workspace_id,
         title="a.txt",
         mime_type="text/plain",
         data=b"hello",
         created_by=None,
         external_key="doc-tl",
     )
-    store.set_version_status(kb_id, version_id, "ready")
-    events = store.list_document_timeline_events(kb_id, doc_uuid)
+    store.set_version_status(workspace_id, version_id, "ready")
+    events = store.list_document_timeline_events(workspace_id, doc_uuid)
     kinds = {e["kind"] for e in events}
     assert "version_created" in kinds
     store.close()
@@ -48,16 +48,16 @@ def test_document_timeline_route_after_ingest(tmp_path: Path) -> None:
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
 
-    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
     created = client.post(
-        f"/api/v1/kbs/{kb_id}/documents",
+        f"/api/v1/workspaces/{workspace_id}/documents",
         headers=headers,
         json={"doc_id": "tl2", "text": "Kim knows Lou.", "wait": True, "extract": True},
     ).json()
 
     doc_ref = created.get("document_id") or created.get("doc_id") or "tl2"
     timeline = client.get(
-        f"/api/v1/kbs/{kb_id}/documents/{doc_ref}/timeline",
+        f"/api/v1/workspaces/{workspace_id}/documents/{doc_ref}/timeline",
         headers=headers,
     )
     assert timeline.status_code == 200

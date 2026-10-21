@@ -1,11 +1,9 @@
-"""PostgreSQL equivalents of the canonical Basis schema migrations."""
+"""PostgreSQL schema bootstrap from the canonical SQLite baseline SQL."""
 
 from __future__ import annotations
 
-import hashlib
 import logging
 import re
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -13,13 +11,41 @@ from sqlalchemy import text
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import ProgrammingError
 
+_logger = logging.getLogger(__name__)
+
+_LEDGER_SENTINEL_TABLE = "documents"
+
+
+class PostgresSchemaBootstrapError(RuntimeError):
+    """PostgreSQL bootstrap failed (often missing extensions or privileges)."""
+
+
+def reset_postgres_public_schema(engine: Engine) -> None:
+    """Drop and recreate ``public`` (dev only — destroys all data)."""
+    with engine.begin() as conn:
+        conn.exec_driver_sql("DROP SCHEMA IF EXISTS public CASCADE")
+        conn.exec_driver_sql("CREATE SCHEMA public")
+        conn.exec_driver_sql("GRANT ALL ON SCHEMA public TO PUBLIC")
+
 
 def _migration_root() -> Path:
     return Path(__file__).resolve().parent / "migrations"
 
 
-def _checksum(sql: str) -> str:
-    return hashlib.sha256(sql.encode("utf-8")).hexdigest()
+def _baseline_path() -> Path:
+    matches = sorted(_migration_root().glob("0001_*.sql"))
+    if not matches:
+        raise RuntimeError("No 0001_* schema baseline SQL found")
+    return matches[0]
+
+
+def _strip_line_comments(sql: str) -> str:
+    lines: list[str] = []
+    for line in sql.splitlines():
+        if line.strip().startswith("--"):
+            continue
+        lines.append(line)
+    return "\n".join(lines)
 
 
 def _statements(sql: str) -> list[str]:
@@ -42,21 +68,50 @@ def _postgresize(sql: str) -> str:
     return sql
 
 
+def _pg_extension_installed(conn: Any, name: str) -> bool:
+    row = conn.execute(
+        text("SELECT 1 FROM pg_extension WHERE extname = :name LIMIT 1"),
+        {"name": name},
+    ).fetchone()
+    return row is not None
+
+
+def _ensure_pg_extension(conn: Any, name: str) -> None:
+    if _pg_extension_installed(conn, name):
+        return
+    try:
+        conn.exec_driver_sql(f"CREATE EXTENSION IF NOT EXISTS {name}")
+    except ProgrammingError as exc:
+        orig = getattr(exc, "orig", None)
+        sqlstate = getattr(orig, "sqlstate", None)
+        msg = str(orig or exc).lower()
+        if sqlstate == "42501" or "permission denied" in msg:
+            raise PostgresSchemaBootstrapError(
+                f"Cannot CREATE EXTENSION {name}: the database role is not allowed to "
+                "install extensions (PostgreSQL superuser required).\n\n"
+                "Fix (pick one):\n"
+                f"  1) As superuser on database basis: CREATE EXTENSION IF NOT EXISTS {name};\n"
+                "  2) Docker (compose.postgres.yml): docker compose -f compose.postgres.yml "
+                f'exec postgres psql -U basis -d basis -c "CREATE EXTENSION IF NOT EXISTS {name};"\n'
+                "     (if that fails, recreate the volume: down -v && up -d — init script installs extensions)\n"
+                "  3) Use SQLite locally: unset BASIS_DATABASE_URL"
+            ) from exc
+        raise
+
+
 def _fts_and_vector_sql() -> list[str]:
     return [
-        "CREATE EXTENSION IF NOT EXISTS pg_trgm",
-        "CREATE EXTENSION IF NOT EXISTS vector",
         """
         CREATE INDEX IF NOT EXISTS chunks_text_trgm
         ON chunks USING gin (text gin_trgm_ops)
         """,
         """
-        CREATE INDEX IF NOT EXISTS chunks_kb_created
-        ON chunks(kb_id, created_at DESC)
+        CREATE INDEX IF NOT EXISTS chunks_workspace_created
+        ON chunks(workspace_id, created_at DESC)
         """,
         """
-        CREATE TABLE IF NOT EXISTS kb_vector_manifests (
-            kb_id TEXT PRIMARY KEY REFERENCES knowledge_bases(id) ON DELETE CASCADE,
+        CREATE TABLE IF NOT EXISTS vector_manifests (
+            workspace_id TEXT PRIMARY KEY REFERENCES workspaces(id) ON DELETE CASCADE,
             backend TEXT NOT NULL,
             model_ref TEXT NOT NULL,
             dimension INTEGER NOT NULL,
@@ -65,13 +120,13 @@ def _fts_and_vector_sql() -> list[str]:
         """,
         """
         CREATE TABLE IF NOT EXISTS chunk_vectors (
-            kb_id TEXT NOT NULL REFERENCES knowledge_bases(id) ON DELETE CASCADE,
+            workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
             chunk_id TEXT NOT NULL REFERENCES chunks(id) ON DELETE CASCADE,
             dimension INTEGER NOT NULL,
             embedding vector NOT NULL,
             metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
             model_ref TEXT NOT NULL,
-            PRIMARY KEY (kb_id, chunk_id, dimension)
+            PRIMARY KEY (workspace_id, chunk_id, dimension)
         ) PARTITION BY LIST (dimension)
         """,
     ]
@@ -87,7 +142,6 @@ def _postgres_search_v2_sql() -> list[str]:
 
 
 def _vector_partition_bootstrap_sql() -> list[str]:
-    """Default local-embedding dimension (384); index owned by migration role."""
     return [
         """
         CREATE TABLE IF NOT EXISTS chunk_vectors_d384
@@ -115,53 +169,72 @@ def _organizations_table_exists(conn: Any) -> bool:
     return bool(row)
 
 
-def _kb_table_owner(conn: Any) -> str | None:
+def _workspace_registry_table(conn: Any) -> str | None:
     row = conn.execute(
         text(
             """
-            SELECT tableowner FROM pg_tables
-            WHERE schemaname = 'public' AND tablename = 'knowledge_bases'
+            SELECT tablename FROM pg_tables
+            WHERE schemaname = 'public' AND tablename = 'workspaces'
+            LIMIT 1
             """
         )
     ).fetchone()
     return str(row[0]) if row else None
 
 
+def _kb_table_owner(conn: Any) -> str | None:
+    table = _workspace_registry_table(conn)
+    if not table:
+        return None
+    row = conn.execute(
+        text(
+            """
+            SELECT tableowner FROM pg_tables
+            WHERE schemaname = 'public' AND tablename = :table
+            """
+        ),
+        {"table": table},
+    ).fetchone()
+    return str(row[0]) if row else None
+
+
 def _kb_organization_id_column_exists(conn: Any) -> bool:
+    table = _workspace_registry_table(conn)
+    if not table:
+        return False
     row = conn.execute(
         text(
             """
             SELECT EXISTS (
                 SELECT 1 FROM information_schema.columns
                 WHERE table_schema = 'public'
-                  AND table_name = 'knowledge_bases'
+                  AND table_name = :table
                   AND column_name = 'organization_id'
             )
             """
-        )
+        ),
+        {"table": table},
     ).scalar()
     return bool(row)
 
 
 def ensure_kb_organization_id_column(conn: Any) -> bool:
-    """Repair PG when migration 11 was recorded but ALTER was skipped (e.g. not table owner).
-
-    Returns True when the column exists (or organizations table is absent). False when repair
-    could not add the column (caller should log; do not abort unrelated startup work).
-    """
     if not _organizations_table_exists(conn):
         return True
     if _kb_organization_id_column_exists(conn):
         return True
+    table = _workspace_registry_table(conn)
+    if not table:
+        return True
     nested = getattr(conn, "begin_nested", None)
     for statement in (
-        """
-        ALTER TABLE knowledge_bases
+        f"""
+        ALTER TABLE {table}
         ADD COLUMN IF NOT EXISTS organization_id TEXT
         REFERENCES organizations(id)
         """,
-        """
-        ALTER TABLE knowledge_bases
+        f"""
+        ALTER TABLE {table}
         ADD COLUMN IF NOT EXISTS organization_id TEXT
         """,
     ):
@@ -179,17 +252,16 @@ def ensure_kb_organization_id_column(conn: Any) -> bool:
 
 
 def repair_kb_organization_id_column(engine: Engine) -> None:
-    """Autocommit repair after the main migration transaction commits."""
     log = logging.getLogger(__name__)
     with engine.connect().execution_options(isolation_level="AUTOCOMMIT") as conn:
         if ensure_kb_organization_id_column(conn):
             return
         owner = _kb_table_owner(conn)
         log.warning(
-            "PostgreSQL schema: knowledge_bases.organization_id is still missing "
+            "PostgreSQL schema: workspaces.organization_id is still missing "
             "(table owner=%s, connected as migration user). "
             "Run as owner or superuser: "
-            "ALTER TABLE knowledge_bases ADD COLUMN IF NOT EXISTS organization_id TEXT;",
+            "ALTER TABLE workspaces ADD COLUMN IF NOT EXISTS organization_id TEXT;",
             owner or "unknown",
         )
 
@@ -208,363 +280,69 @@ def _exec_sql_best_effort(conn: Any, statement: str, *, skip_owner_errors: bool)
         raise
 
 
-def _apply_sql_migration(
-    conn: Any,
-    applied: dict[int, str],
-    applied_now: list[int],
-    version: int,
-) -> None:
-    path = next(_migration_root().glob(f"{version:04d}_*.sql"))
-    source = path.read_text(encoding="utf-8")
-    checksum = _checksum(source)
-    if version in applied:
-        if applied[version] != checksum:
-            raise RuntimeError(f"PostgreSQL migration {version} checksum mismatch")
-        return
-    for statement in _statements(_postgresize(source)):
+def _apply_baseline_sql_to_postgres(conn: Any, source: str) -> None:
+    ddl = _postgresize(_strip_line_comments(source))
+    for statement in _statements(ddl):
+        upper = statement.upper().lstrip()
+        if not upper:
+            continue
+        if "PRAGMA" in upper:
+            continue
+        if "CHUNKS_FTS" in upper or "USING FTS5" in upper:
+            continue
+        if upper.startswith("CREATE TRIGGER") and "CHUNKS_FTS" in upper:
+            continue
+        if upper.startswith("DROP TRIGGER") and "CHUNKS_FTS" in upper:
+            continue
+        if upper.startswith("INSERT INTO CHUNKS_FTS"):
+            continue
+        if upper.startswith("ALTER TABLE WORKSPACES ADD COLUMN"):
+            _exec_sql_best_effort(
+                conn,
+                """
+                ALTER TABLE workspaces
+                ADD COLUMN IF NOT EXISTS organization_id TEXT
+                REFERENCES organizations(id)
+                """,
+                skip_owner_errors=True,
+            )
+            continue
         conn.exec_driver_sql(statement)
-    conn.execute(
-        text(
-            """
-            INSERT INTO schema_migrations(version, name, checksum, applied_at)
-            VALUES (:version, :name, :checksum, :applied_at)
-            """
-        ),
-        {
-            "version": version,
-            "name": path.name,
-            "checksum": checksum,
-            "applied_at": datetime.now(timezone.utc).isoformat(),
-        },
-    )
-    applied_now.append(version)
+
+
+def _apply_postgres_storage_extras(conn: Any) -> None:
+    _ensure_pg_extension(conn, "pg_trgm")
+    _ensure_pg_extension(conn, "vector")
+    for statement in _fts_and_vector_sql():
+        conn.exec_driver_sql(statement)
+    for statement in _postgres_search_v2_sql():
+        conn.exec_driver_sql(statement)
+    bootstrap = _vector_partition_bootstrap_sql()
+    conn.exec_driver_sql(bootstrap[0])
+    _exec_sql_best_effort(conn, bootstrap[1], skip_owner_errors=True)
+
+
+def postgres_schema_is_initialized(conn: Any) -> bool:
+    row = conn.execute(
+        text("SELECT to_regclass('public.documents') IS NOT NULL")
+    ).scalar()
+    return bool(row)
 
 
 def run_postgres_migrations(engine: Engine) -> list[int]:
-    """Apply the PostgreSQL schema, preserving SQLite migration version numbers."""
-    applied_now: list[int] = []
+    """Bootstrap PostgreSQL schema once when ledger tables are absent."""
+    with engine.connect() as probe:
+        if postgres_schema_is_initialized(probe):
+            repair_kb_organization_id_column(engine)
+            return []
+
+    baseline_source = _baseline_path().read_text(encoding="utf-8")
     with engine.begin() as conn:
-        conn.execute(
-            text(
-                """
-                CREATE TABLE IF NOT EXISTS schema_migrations (
-                    version INTEGER PRIMARY KEY,
-                    name TEXT NOT NULL,
-                    checksum TEXT NOT NULL,
-                    applied_at TEXT NOT NULL
-                )
-                """
-            )
-        )
-        rows = conn.execute(
-            text("SELECT version, checksum FROM schema_migrations")
-        ).fetchall()
-        applied = {int(row[0]): row[1] for row in rows}
+        _apply_baseline_sql_to_postgres(conn, baseline_source)
+        _apply_postgres_storage_extras(conn)
+        from basis.infra.tooling.db.org_backfill import ensure_organization_backfill_postgres
 
-        for version in range(1, 5):
-            path = next(_migration_root().glob(f"{version:04d}_*.sql"))
-            source = path.read_text(encoding="utf-8")
-            checksum = _checksum(source)
-            if version in applied:
-                if applied[version] != checksum:
-                    raise RuntimeError(f"PostgreSQL migration {version} checksum mismatch")
-                continue
-            for statement in _statements(_postgresize(source)):
-                conn.exec_driver_sql(statement)
-            conn.execute(
-                text(
-                    """
-                    INSERT INTO schema_migrations(version, name, checksum, applied_at)
-                    VALUES (:version, :name, :checksum, :applied_at)
-                    """
-                ),
-                {
-                    "version": version,
-                    "name": path.name,
-                    "checksum": checksum,
-                    "applied_at": datetime.now(timezone.utc).isoformat(),
-                },
-            )
-            applied_now.append(version)
-
-        fts_source = (_migration_root() / "0005_chunk_fts.sql").read_text(encoding="utf-8")
-        fts_checksum = _checksum(fts_source)
-        if 5 in applied:
-            if applied[5] != fts_checksum:
-                raise RuntimeError("PostgreSQL migration 5 checksum mismatch")
-        else:
-            for statement in _fts_and_vector_sql():
-                conn.exec_driver_sql(statement)
-            conn.execute(
-                text(
-                    """
-                    INSERT INTO schema_migrations(version, name, checksum, applied_at)
-                    VALUES (5, '0005_chunk_fts.sql', :checksum, :applied_at)
-                    """
-                ),
-                {
-                    "checksum": fts_checksum,
-                    "applied_at": datetime.now(timezone.utc).isoformat(),
-                },
-            )
-            applied_now.append(5)
-
-        search_source = (
-            _migration_root() / "0006_postgres_search.sql"
-        ).read_text(encoding="utf-8")
-        search_checksum = _checksum(search_source)
-        if 6 in applied:
-            if applied[6] != search_checksum:
-                raise RuntimeError("PostgreSQL migration 6 checksum mismatch")
-        else:
-            for statement in _postgres_search_v2_sql():
-                conn.exec_driver_sql(statement)
-            conn.execute(
-                text(
-                    """
-                    INSERT INTO schema_migrations(version, name, checksum, applied_at)
-                    VALUES (6, '0006_postgres_search.sql', :checksum, :applied_at)
-                    """
-                ),
-                {
-                    "checksum": search_checksum,
-                    "applied_at": datetime.now(timezone.utc).isoformat(),
-                },
-            )
-            applied_now.append(6)
-
-        processing_source = (
-            _migration_root() / "0007_processing_jobs.sql"
-        ).read_text(encoding="utf-8")
-        processing_checksum = _checksum(processing_source)
-        if 7 in applied:
-            if applied[7] != processing_checksum:
-                raise RuntimeError("PostgreSQL migration 7 checksum mismatch")
-        else:
-            for statement in _statements(_postgresize(processing_source)):
-                conn.exec_driver_sql(statement)
-            conn.execute(
-                text(
-                    """
-                    INSERT INTO schema_migrations(version, name, checksum, applied_at)
-                    VALUES (7, '0007_processing_jobs.sql', :checksum, :applied_at)
-                    """
-                ),
-                {
-                    "checksum": processing_checksum,
-                    "applied_at": datetime.now(timezone.utc).isoformat(),
-                },
-            )
-            applied_now.append(7)
-
-        for version in (8, 9):
-            _apply_sql_migration(conn, applied, applied_now, version)
-
-        vector_bootstrap_checksum = _checksum("chunk_vectors_d384_bootstrap_v1")
-        if 10 in applied:
-            if applied[10] != vector_bootstrap_checksum:
-                raise RuntimeError("PostgreSQL migration 10 checksum mismatch")
-        else:
-            bootstrap = _vector_partition_bootstrap_sql()
-            conn.exec_driver_sql(bootstrap[0])
-            _exec_sql_best_effort(conn, bootstrap[1], skip_owner_errors=True)
-            conn.execute(
-                text(
-                    """
-                    INSERT INTO schema_migrations(version, name, checksum, applied_at)
-                    VALUES (10, 'vector_partition_d384_bootstrap', :checksum, :applied_at)
-                    """
-                ),
-                {
-                    "checksum": vector_bootstrap_checksum,
-                    "applied_at": datetime.now(timezone.utc).isoformat(),
-                },
-            )
-            applied_now.append(10)
-
-        # SQLite file 0010; PG version 10 is vector bootstrap — org/SSO is version 11.
-        org_path = _migration_root() / "0010_organizations_sso.sql"
-        org_source = org_path.read_text(encoding="utf-8")
-        org_checksum = _checksum(org_source)
-        if 11 in applied:
-            if applied[11] != org_checksum:
-                raise RuntimeError("PostgreSQL migration 11 checksum mismatch")
-        else:
-            for statement in _statements(_postgresize(org_source)):
-                if statement.upper().startswith("ALTER TABLE KNOWLEDGE_BASES ADD COLUMN"):
-                    _exec_sql_best_effort(
-                        conn,
-                        """
-                        ALTER TABLE knowledge_bases
-                        ADD COLUMN IF NOT EXISTS organization_id TEXT
-                        REFERENCES organizations(id)
-                        """,
-                        skip_owner_errors=True,
-                    )
-                else:
-                    conn.exec_driver_sql(statement)
-            conn.execute(
-                text(
-                    """
-                    INSERT INTO schema_migrations(version, name, checksum, applied_at)
-                    VALUES (11, :name, :checksum, :applied_at)
-                    """
-                ),
-                {
-                    "name": org_path.name,
-                    "checksum": org_checksum,
-                    "applied_at": datetime.now(timezone.utc).isoformat(),
-                },
-            )
-            applied_now.append(11)
-            from basis.infra.tooling.db.org_backfill import ensure_organization_backfill_postgres
-
-            ensure_organization_backfill_postgres(conn)
-
-        # SQLite file 0011; PG version 12 is BOCP & bidirectional entity sync.
-        sync_path = _migration_root() / "0011_entity_external_sync.sql"
-        sync_source = sync_path.read_text(encoding="utf-8")
-        sync_checksum = _checksum(sync_source)
-        if 12 in applied:
-            if applied[12] != sync_checksum:
-                raise RuntimeError("PostgreSQL migration 12 checksum mismatch")
-        else:
-            for statement in _statements(_postgresize(sync_source)):
-                conn.exec_driver_sql(statement)
-            conn.execute(
-                text(
-                    """
-                    INSERT INTO schema_migrations(version, name, checksum, applied_at)
-                    VALUES (12, :name, :checksum, :applied_at)
-                    """
-                ),
-                {
-                    "name": sync_path.name,
-                    "checksum": sync_checksum,
-                    "applied_at": datetime.now(timezone.utc).isoformat(),
-                },
-            )
-            applied_now.append(12)
-
-        allowlist_path = _migration_root() / "0012_platform_connector_allowlist.sql"
-        allowlist_source = allowlist_path.read_text(encoding="utf-8")
-        allowlist_checksum = _checksum(allowlist_source)
-        if 13 in applied:
-            if applied[13] != allowlist_checksum:
-                raise RuntimeError("PostgreSQL migration 13 checksum mismatch")
-        else:
-            for statement in _statements(_postgresize(allowlist_source)):
-                conn.exec_driver_sql(statement)
-            conn.execute(
-                text(
-                    """
-                    INSERT INTO schema_migrations(version, name, checksum, applied_at)
-                    VALUES (13, :name, :checksum, :applied_at)
-                    """
-                ),
-                {
-                    "name": allowlist_path.name,
-                    "checksum": allowlist_checksum,
-                    "applied_at": datetime.now(timezone.utc).isoformat(),
-                },
-            )
-            applied_now.append(13)
-
-        governance_path = _migration_root() / "0013_kb_governance_config.sql"
-        governance_source = governance_path.read_text(encoding="utf-8")
-        governance_checksum = _checksum(governance_source)
-        if 14 in applied:
-            if applied[14] != governance_checksum:
-                raise RuntimeError("PostgreSQL migration 14 checksum mismatch")
-        else:
-            for statement in _statements(_postgresize(governance_source)):
-                conn.exec_driver_sql(statement)
-            conn.execute(
-                text(
-                    """
-                    INSERT INTO schema_migrations(version, name, checksum, applied_at)
-                    VALUES (14, :name, :checksum, :applied_at)
-                    """
-                ),
-                {
-                    "name": governance_path.name,
-                    "checksum": governance_checksum,
-                    "applied_at": datetime.now(timezone.utc).isoformat(),
-                },
-            )
-            applied_now.append(14)
-
-        saml_path = _migration_root() / "0014_org_saml_config.sql"
-        saml_source = saml_path.read_text(encoding="utf-8")
-        saml_checksum = _checksum(saml_source)
-        if 15 in applied:
-            if applied[15] != saml_checksum:
-                raise RuntimeError("PostgreSQL migration 15 checksum mismatch")
-        else:
-            for statement in _statements(_postgresize(saml_source)):
-                conn.exec_driver_sql(statement)
-            conn.execute(
-                text(
-                    """
-                    INSERT INTO schema_migrations(version, name, checksum, applied_at)
-                    VALUES (15, :name, :checksum, :applied_at)
-                    """
-                ),
-                {
-                    "name": saml_path.name,
-                    "checksum": saml_checksum,
-                    "applied_at": datetime.now(timezone.utc).isoformat(),
-                },
-            )
-            applied_now.append(15)
-
-        saml_sign_path = _migration_root() / "0015_org_saml_signing.sql"
-        saml_sign_source = saml_sign_path.read_text(encoding="utf-8")
-        saml_sign_checksum = _checksum(saml_sign_source)
-        if 16 in applied:
-            if applied[16] != saml_sign_checksum:
-                raise RuntimeError("PostgreSQL migration 16 checksum mismatch")
-        else:
-            for statement in _statements(_postgresize(saml_sign_source)):
-                conn.exec_driver_sql(statement)
-            conn.execute(
-                text(
-                    """
-                    INSERT INTO schema_migrations(version, name, checksum, applied_at)
-                    VALUES (16, :name, :checksum, :applied_at)
-                    """
-                ),
-                {
-                    "name": saml_sign_path.name,
-                    "checksum": saml_sign_checksum,
-                    "applied_at": datetime.now(timezone.utc).isoformat(),
-                },
-            )
-            applied_now.append(16)
-
-        saml_slo_path = _migration_root() / "0016_org_saml_slo.sql"
-        saml_slo_source = saml_slo_path.read_text(encoding="utf-8")
-        saml_slo_checksum = _checksum(saml_slo_source)
-        if 17 in applied:
-            if applied[17] != saml_slo_checksum:
-                raise RuntimeError("PostgreSQL migration 17 checksum mismatch")
-        else:
-            for statement in _statements(_postgresize(saml_slo_source)):
-                conn.exec_driver_sql(statement)
-            conn.execute(
-                text(
-                    """
-                    INSERT INTO schema_migrations(version, name, checksum, applied_at)
-                    VALUES (17, :name, :checksum, :applied_at)
-                    """
-                ),
-                {
-                    "name": saml_slo_path.name,
-                    "checksum": saml_slo_checksum,
-                    "applied_at": datetime.now(timezone.utc).isoformat(),
-                },
-            )
-            applied_now.append(17)
+        ensure_organization_backfill_postgres(conn)
 
     repair_kb_organization_id_column(engine)
-    return applied_now
+    return [1]

@@ -46,9 +46,9 @@ def classify_surface(path: str) -> Surface:
         )
     ):
         return "platform"
-    if path == "/api/v1/kbs":
+    if path == "/api/v1/workspaces":
         return "platform"
-    if path.startswith("/api/v1/kbs/{kb_id}"):
+    if path.startswith("/api/v1/workspaces/{workspace_id}"):
         for suffix in _KB_SESSION_ONLY_SUFFIXES:
             if path.endswith(suffix) or f"{suffix}/" in path:
                 return "platform"
@@ -87,7 +87,7 @@ def _annotate_surfaces(paths: dict) -> None:
             if surface == "platform":
                 op.setdefault("x-basis-auth", "session")
             elif surface == "knowledge-base":
-                op.setdefault("x-basis-auth", "session-or-kb-api-token")
+                op.setdefault("x-basis-auth", "session-or-workspace-api-token")
             else:
                 op.setdefault("x-basis-auth", "public-or-session")
 
@@ -99,12 +99,12 @@ def _security_components() -> dict:
             "scheme": "bearer",
             "description": "User session JWT from POST /api/v1/auth/login (console / platform admin).",
         },
-        "kbApiTokenAuth": {
+        "workspaceApiTokenAuth": {
             "type": "http",
             "scheme": "bearer",
             "description": (
-                "KB-scoped API token (read or write). Token must include this kb_id. "
-                "Same tokens as MCP (Authorization: Bearer). Created under KB settings (session only)."
+                "Workspace-scoped API token (read or write). Token must include this workspace_id. "
+                "Same tokens as MCP (Authorization: Bearer). Created under workspace settings → Integration (session only)."
             ),
         },
     }
@@ -135,11 +135,11 @@ def export_openapi_v1_document(
             "Normative HTTP contract for Basis. Paths use /api/v1 prefix.\n\n"
             "**Two surfaces** (see x-basis-surface on each operation):\n"
             "- `platform` — console & system/org admin; **session JWT** (`sessionAuth`).\n"
-            "- `knowledge-base` — KB data & integration (MCP parity); **session or KB API token** "
-            "(`kbApiTokenAuth`).\n\n"
-            "Split specs: `/openapi/v1/platform.json`, `/openapi/v1/kb.json` (KB **integration** contract). "
-            "Console-only routes may appear here but are omitted from the KB integration slice "
-            "(see x-basis-audience: console). MCP: POST /api/v1/kbs/{kb_id}/mcp. "
+            "- `knowledge-base` — workspace data & integration (MCP parity); **session or workspace API token** "
+            "(`workspaceApiTokenAuth`, scoped by `workspace_id`).\n\n"
+            "Split specs: `/openapi/v1/platform.json`, `/openapi/v1/kb.json` (workspace **integration** contract). "
+            "Console-only routes may appear here but are omitted from the workspace integration slice "
+            "(see x-basis-audience: console). MCP: POST /api/v1/workspaces/{workspace_id}/mcp. "
             "Docs: docs/architecture/openapi-v1.md."
         ),
     }
@@ -156,12 +156,12 @@ def export_openapi_v1_document(
             "openapi": "/openapi/v1/platform.json",
         },
         "knowledge-base": {
-            "description": "KB-scoped APIs; same access model as MCP (KB API token or user session with KB role).",
-            "auth": "sessionAuth or kbApiTokenAuth",
+            "description": "Workspace-scoped APIs (`/api/v1/workspaces/{workspace_id}`); same access model as MCP (workspace API token or user session with workspace role).",
+            "auth": "sessionAuth or workspaceApiTokenAuth",
             "openapi": "/openapi/v1/kb.json",
         },
         "console": {
-            "description": "Web console application HTTP (not integration/core); excluded from KB integration slice.",
+            "description": "Web console application HTTP (not integration/core); excluded from workspace integration slice.",
             "auth": "sessionAuth",
             "openapi": "/openapi/v1.json",
         },

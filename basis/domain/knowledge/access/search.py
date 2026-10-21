@@ -1,4 +1,4 @@
-"""KB search config, keyword search, and embedding records — KnowledgeStore API."""
+"""Workspace search config, keyword search, and embedding records — KnowledgeStore API."""
 
 from __future__ import annotations
 
@@ -26,11 +26,11 @@ class SearchAccess:
     def __init__(self, store: KnowledgeStore) -> None:
         self._store = store
 
-    def get_search_config(self, kb_id: str) -> SearchConfig:
+    def get_search_config(self, workspace_id: str) -> SearchConfig:
         with self._store._lock:
-            self._store._assert_kb_exists(kb_id)
+            self._store._assert_workspace_exists(workspace_id)
             conn = self._store._conn
-            row = sc_persist.fetch_search_config_row(conn, kb_id)
+            row = sc_persist.fetch_search_config_row(conn, workspace_id)
             if row is None:
                 now = _now()
                 chunk_backend = (
@@ -43,7 +43,7 @@ class SearchAccess:
                 )
                 sc_persist.insert_default_search_config(
                     conn,
-                    kb_id,
+                    workspace_id,
                     chunk_backend=chunk_backend,
                     vector_backend=vector_backend,
                     created_at=now,
@@ -51,7 +51,7 @@ class SearchAccess:
                 )
                 conn.commit()
                 return SearchConfig(
-                    kb_id=kb_id,
+                    workspace_id=workspace_id,
                     chunk_backend=chunk_backend,
                     vector_backend=vector_backend,
                 )
@@ -59,7 +59,7 @@ class SearchAccess:
 
     def update_search_config(
         self,
-        kb_id: str,
+        workspace_id: str,
         *,
         embedding_model_id: str | None,
         keyword_enabled: bool,
@@ -70,7 +70,7 @@ class SearchAccess:
         vector_backend: str = "sqlite_vec",
     ) -> SearchConfig:
         config = SearchConfig(
-            kb_id=kb_id,
+            workspace_id=workspace_id,
             chunk_backend=chunk_backend,
             vector_backend=vector_backend,
             embedding_model_id=embedding_model_id or None,
@@ -90,69 +90,69 @@ class SearchAccess:
                 "Chunk 存储必须与当前部署的 canonical 数据库一致",
             )
         with self._store._lock:
-            self._store._assert_kb_exists(kb_id)
+            self._store._assert_workspace_exists(workspace_id)
             now = _now()
             sc_persist.upsert_search_config(self._store._conn, config, now=now)
             self._store._conn.commit()
         return config
 
     def search_chunks_keyword(
-        self, kb_id: str, *, query: str, limit: int = 10
+        self, workspace_id: str, *, query: str, limit: int = 10
     ) -> list[dict[str, Any]]:
         query = query.strip()
         if not query:
             return []
         limit = min(max(1, limit), 50)
         if self._store._db.backend == "postgres":
-            return self._search_postgres(kb_id, query=query, limit=limit)
+            return self._search_postgres(workspace_id, query=query, limit=limit)
         if len(query) >= 3:
             try:
-                return self._search_fts(kb_id, query=query, limit=limit)
+                return self._search_fts(workspace_id, query=query, limit=limit)
             except sqlite3.OperationalError:
                 pass
-        return self._search_like(kb_id, query=query, limit=limit)
+        return self._search_like(workspace_id, query=query, limit=limit)
 
-    def _search_postgres(self, kb_id: str, *, query: str, limit: int) -> list[dict[str, Any]]:
+    def _search_postgres(self, workspace_id: str, *, query: str, limit: int) -> list[dict[str, Any]]:
         with self._store._lock:
-            self._store._assert_kb_exists(kb_id)
+            self._store._assert_workspace_exists(workspace_id)
             rows = kw_persist.search_chunks_postgres(
-                self._store._conn, kb_id, query=query, limit=limit
+                self._store._conn, workspace_id, query=query, limit=limit
             )
         return [kw_persist.chunk_hit_from_row(row) for row in rows]
 
-    def _search_fts(self, kb_id: str, *, query: str, limit: int) -> list[dict[str, Any]]:
+    def _search_fts(self, workspace_id: str, *, query: str, limit: int) -> list[dict[str, Any]]:
         with self._store._lock:
-            self._store._assert_kb_exists(kb_id)
+            self._store._assert_workspace_exists(workspace_id)
             rows = kw_persist.search_chunks_fts(
-                self._store._conn, kb_id, query=query, limit=limit
+                self._store._conn, workspace_id, query=query, limit=limit
             )
         return [kw_persist.chunk_hit_from_row(row) for row in rows]
 
-    def _search_like(self, kb_id: str, *, query: str, limit: int) -> list[dict[str, Any]]:
+    def _search_like(self, workspace_id: str, *, query: str, limit: int) -> list[dict[str, Any]]:
         with self._store._lock:
-            self._store._assert_kb_exists(kb_id)
+            self._store._assert_workspace_exists(workspace_id)
             rows = kw_persist.search_chunks_like(
-                self._store._conn, kb_id, query=query, limit=limit
+                self._store._conn, workspace_id, query=query, limit=limit
             )
         return [kw_persist.chunk_hit_from_row(row) for row in rows]
 
-    def search_chunks(self, kb_id: str, *, query: str, limit: int = 10) -> list[dict[str, Any]]:
-        return self.search_chunks_keyword(kb_id, query=query, limit=limit)
+    def search_chunks(self, workspace_id: str, *, query: str, limit: int = 10) -> list[dict[str, Any]]:
+        return self.search_chunks_keyword(workspace_id, query=query, limit=limit)
 
-    def get_chunks_by_ids(self, kb_id: str, chunk_ids: list[str]) -> list[dict[str, Any]]:
+    def get_chunks_by_ids(self, workspace_id: str, chunk_ids: list[str]) -> list[dict[str, Any]]:
         if not chunk_ids:
             return []
         with self._store._lock:
-            rows = kw_persist.fetch_chunks_by_ids(self._store._conn, kb_id, chunk_ids)
+            rows = kw_persist.fetch_chunks_by_ids(self._store._conn, workspace_id, chunk_ids)
         return [kw_persist.chunk_hit_from_row(row) for row in rows]
 
     def list_chunks_for_indexing(
-        self, kb_id: str, chunk_ids: list[str] | None = None
+        self, workspace_id: str, chunk_ids: list[str] | None = None
     ) -> list[dict[str, Any]]:
         with self._store._lock:
-            self._store._assert_kb_exists(kb_id)
+            self._store._assert_workspace_exists(workspace_id)
             rows = idx_persist.list_chunks_for_indexing_rows(
-                self._store._conn, kb_id, chunk_ids
+                self._store._conn, workspace_id, chunk_ids
             )
         return [
             {
@@ -167,7 +167,7 @@ class SearchAccess:
 
     def chunk_ids_matching_filters(
         self,
-        kb_id: str,
+        workspace_id: str,
         *,
         document_id: str | None = None,
         entity_id: str | None = None,
@@ -177,7 +177,7 @@ class SearchAccess:
         with self._store._lock:
             return idx_persist.chunk_ids_matching_filters(
                 self._store._conn,
-                kb_id,
+                workspace_id,
                 document_id=document_id,
                 entity_id=entity_id,
                 created_after=created_after,
@@ -185,11 +185,11 @@ class SearchAccess:
             )
 
     def get_embedding_record(
-        self, kb_id: str, chunk_id: str, model_ref: str
+        self, workspace_id: str, chunk_id: str, model_ref: str
     ) -> dict[str, Any] | None:
         with self._store._lock:
             row = emb_persist.fetch_embedding_record(
-                self._store._conn, kb_id, chunk_id, model_ref
+                self._store._conn, workspace_id, chunk_id, model_ref
             )
         if row is None:
             return None
@@ -197,7 +197,7 @@ class SearchAccess:
 
     def upsert_embedding_record(
         self,
-        kb_id: str,
+        workspace_id: str,
         *,
         chunk_id: str,
         model_ref: str,
@@ -211,7 +211,7 @@ class SearchAccess:
             emb_persist.upsert_embedding_record(
                 self._store._conn,
                 record_id=record_id,
-                kb_id=kb_id,
+                workspace_id=workspace_id,
                 chunk_id=chunk_id,
                 model_ref=model_ref,
                 dimension=dimension,
@@ -221,8 +221,8 @@ class SearchAccess:
             )
             self._store._conn.commit()
 
-    def delete_all_embedding_records(self, kb_id: str) -> int:
+    def delete_all_embedding_records(self, workspace_id: str) -> int:
         with self._store._lock:
-            n = emb_persist.delete_all_embedding_records(self._store._conn, kb_id)
+            n = emb_persist.delete_all_embedding_records(self._store._conn, workspace_id)
             self._store._conn.commit()
             return n

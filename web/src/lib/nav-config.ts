@@ -1,18 +1,18 @@
-export type PlatformNavKey = 'kbs' | 'users' | 'models' | 'connectors' | 'audit' | 'system';
+export type PlatformNavKey = 'workspaces' | 'users' | 'models' | 'connectors' | 'audit' | 'system';
 
 export type NavItem = {
   to: string;
   labelKey: PlatformNavKey;
   icon: string;
   adminOnly?: boolean;
-  /** 仅匹配精确路径（用于 /kbs） */
+  /** 仅匹配精确路径（用于 /workspaces） */
   exact?: boolean;
 };
 
 export const PLATFORM_ADMIN_PREFIX = '/admin';
 
 export const PLATFORM_NAV: NavItem[] = [
-  { to: '/admin/kbs', labelKey: 'kbs', icon: 'folder-down-01', exact: true },
+  { to: '/admin/workspaces', labelKey: 'workspaces', icon: 'folder-down-01', exact: true },
   { to: '/admin/users', labelKey: 'users', icon: 'users-profiles-01', adminOnly: true },
   { to: '/admin/models', labelKey: 'models', icon: 'atom', adminOnly: true },
   { to: '/admin/connectors', labelKey: 'connectors', icon: 'plug-01', adminOnly: true },
@@ -45,7 +45,7 @@ export function visiblePlatformNavItems(
     ) {
       return false;
     }
-    if (item.labelKey === 'kbs') return isAdmin;
+    if (item.labelKey === 'workspaces') return isAdmin;
     if (item.adminOnly) return isAdmin;
     if (item.labelKey === 'system') return canSettings;
     return false;
@@ -58,11 +58,11 @@ export function platformAdminEntryPath(
   desktopProduct = false,
 ): string {
   const items = visiblePlatformNavItems(isAdmin, canSettings, desktopProduct);
-  return items[0]?.to ?? '/kbs';
+  return items[0]?.to ?? '/workspaces';
 }
 
 /**
- * KB navigation zones ordered by user mental model & task frequency:
+ * Workspace navigation zones ordered by user mental model & task frequency:
  * 1. explore (high-frequency consumption: Graph, Search)
  * 2. knowledge (sources, processing, entity ledger)
  * 3. connectors (BOCP catalog, connections, stream mappings, sync)
@@ -70,7 +70,7 @@ export function platformAdminEntryPath(
  * 5. govern (review, resolution, decisions, lineage, graph diff)
  * 6. system (integration, settings); alerts via account menu only
  */
-export type KbWorkspaceZone =
+export type WorkspaceZone =
   | 'explore'
   | 'knowledge'
   | 'connectors'
@@ -78,7 +78,7 @@ export type KbWorkspaceZone =
   | 'govern'
   | 'system';
 
-export const KB_WORKSPACE_ZONES: KbWorkspaceZone[] = [
+export const WORKSPACE_ZONES: WorkspaceZone[] = [
   'explore',
   'knowledge',
   'connectors',
@@ -87,14 +87,14 @@ export const KB_WORKSPACE_ZONES: KbWorkspaceZone[] = [
   'system',
 ];
 
-export type KbNavItem = {
+export type WorkspaceNavItem = {
   segment: string;
   labelKey: string;
   icon: string;
 };
 
-/** KB primary navigation grouped by mental model, with unique icons per item. */
-export const KB_NAV_BY_ZONE = {
+/** Workspace primary navigation grouped by mental model, with unique icons per item. */
+export const WORKSPACE_NAV_BY_ZONE = {
   explore: [
     { segment: 'graph', labelKey: 'graph', icon: 'graph' },
     { segment: 'search', labelKey: 'search', icon: 'search-01' },
@@ -128,17 +128,17 @@ export const KB_NAV_BY_ZONE = {
     { segment: 'integration', labelKey: 'integration', icon: 'plug-01' },
     { segment: 'settings', labelKey: 'settings', icon: 'settings' },
   ],
-} as const satisfies Record<KbWorkspaceZone, readonly KbNavItem[]>;
+} as const satisfies Record<WorkspaceZone, readonly WorkspaceNavItem[]>;
 
 /** Sidebar `labelKey` values — single source with `menu.kb` i18n keys. */
-export type KbSidebarNavKey = {
-  [Z in KbWorkspaceZone]: (typeof KB_NAV_BY_ZONE)[Z][number]['labelKey'];
-}[KbWorkspaceZone];
+export type SidebarNavKey = {
+  [Z in WorkspaceZone]: (typeof WORKSPACE_NAV_BY_ZONE)[Z][number]['labelKey'];
+}[WorkspaceZone];
 
-export type KbSidebarMenuKey = KbSidebarNavKey | 'alerts';
+export type SidebarMenuKey = SidebarNavKey | 'alerts';
 
 /** Hub tab / legacy route segments (not in `menu.kb`). */
-export type KbHubCapabilityNavKey =
+export type HubCapabilityNavKey =
   | 'ontologyVersions'
   | 'shacl'
   | 'alignments'
@@ -146,18 +146,18 @@ export type KbHubCapabilityNavKey =
   | 'reasoning';
 
 /** Routable segments and capability switches (includes legacy `processing`). */
-export type KbNavKey = KbSidebarMenuKey | KbHubCapabilityNavKey | 'processing';
+export type WorkspaceNavKey = SidebarMenuKey | HubCapabilityNavKey | 'processing';
 
-export type KbSidebarNavItem = KbNavItem & { labelKey: KbSidebarMenuKey };
+export type SidebarNavItem = WorkspaceNavItem & { labelKey: SidebarMenuKey };
 
-/** KB alerts route (account menu only; not in sidebar zones). */
-export const KB_ALERTS_NAV_ITEM: KbSidebarNavItem = {
+/** Workspace alerts route (account menu only; not in sidebar zones). */
+export const ALERTS_NAV_ITEM: SidebarNavItem = {
   segment: 'alerts',
   labelKey: 'alerts',
   icon: 'bell-01',
 };
 
-export const KB_SETTINGS_NAV_ITEM: KbSidebarNavItem = KB_NAV_BY_ZONE.system[1];
+export const SETTINGS_NAV_ITEM: SidebarNavItem = WORKSPACE_NAV_BY_ZONE.system[1];
 
 /** Former sidebar routes kept for deep links and redirects. */
 export const KB_HUB_LEGACY_SEGMENTS = [
@@ -168,47 +168,47 @@ export const KB_HUB_LEGACY_SEGMENTS = [
   'reasoning',
 ] as const;
 
-function buildKbNav(): KbSidebarNavItem[] {
-  const items: KbSidebarNavItem[] = [];
-  for (const zone of KB_WORKSPACE_ZONES) {
-    for (const item of KB_NAV_BY_ZONE[zone]) {
-      items.push(item as KbSidebarNavItem);
+function buildWorkspaceNav(): SidebarNavItem[] {
+  const items: SidebarNavItem[] = [];
+  for (const zone of WORKSPACE_ZONES) {
+    for (const item of WORKSPACE_NAV_BY_ZONE[zone]) {
+      items.push(item as SidebarNavItem);
     }
   }
-  items.push(KB_ALERTS_NAV_ITEM);
+  items.push(ALERTS_NAV_ITEM);
   return items;
 }
 
-export const KB_NAV = buildKbNav();
+export const WORKSPACE_NAV = buildWorkspaceNav();
 
-export function kbPath(kbId: string, segment: string): string {
-  return `/kbs/${kbId}/${segment}`;
+export function workspacePath(workspaceId: string, segment: string): string {
+  return `/workspaces/${workspaceId}/${segment}`;
 }
 
 /** BOCP workspace panels (sidebar routes under `/connectors/…`). */
 export type ConnectorPanel = 'catalog' | 'mappings' | 'policy' | 'runs';
 
-export function kbConnectorPanelPath(kbId: string, panel: ConnectorPanel): string {
-  return kbPath(kbId, `connectors/${panel}`);
+export function workspaceConnectorPanelPath(workspaceId: string, panel: ConnectorPanel): string {
+  return workspacePath(workspaceId, `connectors/${panel}`);
 }
 
 /** Deep-link to OWL versions workspace + proposal review modal (F-ONT-05). */
-export function kbOntologyProposalPath(kbId: string, proposalId: string): string {
+export function workspaceOntologyProposalPath(workspaceId: string, proposalId: string): string {
   const params = new URLSearchParams({
     tab: 'versions',
     ontologyProposal: proposalId,
   });
-  return `${kbPath(kbId, 'ontology')}?${params.toString()}`;
+  return `${workspacePath(workspaceId, 'ontology')}?${params.toString()}`;
 }
 
 /** OWL ontology versions & proposals (separate from ledger review queue). */
-export function kbOntologyVersionsPath(kbId: string): string {
-  return `${kbPath(kbId, 'ontology')}?tab=versions`;
+export function workspaceOntologyVersionsPath(workspaceId: string): string {
+  return `${workspacePath(workspaceId, 'ontology')}?tab=versions`;
 }
 
 /** Graph projection diff between two ISO instants (F-DIFF-01). */
-export function kbGraphDiffPath(kbId: string, from?: string, to?: string): string {
-  const base = kbPath(kbId, 'graph-diff');
+export function workspaceGraphDiffPath(workspaceId: string, from?: string, to?: string): string {
+  const base = workspacePath(workspaceId, 'graph-diff');
   if (!from && !to) return base;
   const params = new URLSearchParams();
   if (from) params.set('from', from);
@@ -217,8 +217,8 @@ export function kbGraphDiffPath(kbId: string, from?: string, to?: string): strin
   return q ? `${base}?${q}` : base;
 }
 
-export function parseKbIdFromPath(pathname: string): string | null {
-  const match = /^\/kbs\/([^/]+)(?:\/|$)/.exec(pathname);
+export function parseWorkspaceIdFromPath(pathname: string): string | null {
+  const match = /^\/workspaces\/([^/]+)(?:\/|$)/.exec(pathname);
   if (!match) return null;
   const id = match[1];
   if (!id || id === 'undefined') return null;
@@ -227,39 +227,39 @@ export function parseKbIdFromPath(pathname: string): string | null {
 
 /** Sidebar glyph for the page the pathname opens. */
 export function menuIconForPath(pathname: string): string | undefined {
-  const segment = /^\/kbs\/[^/]+\/([^/]+)/.exec(pathname)?.[1];
+  const segment = /^\/workspaces\/[^/]+\/([^/]+)/.exec(pathname)?.[1];
   if (segment) {
     if (segment === 'ontology-versions' || segment === 'shacl' || segment === 'alignments') {
-      return KB_NAV_BY_ZONE.schema.find((item) => item.segment === 'ontology')?.icon;
+      return WORKSPACE_NAV_BY_ZONE.schema.find((item) => item.segment === 'ontology')?.icon;
     }
     if (segment === 'sparql' || segment === 'reasoning') {
-      return KB_NAV_BY_ZONE.schema.find((item) => item.segment === 'analyze')?.icon;
+      return WORKSPACE_NAV_BY_ZONE.schema.find((item) => item.segment === 'analyze')?.icon;
     }
     if (segment === 'connectors') {
-      const panel = /^\/kbs\/[^/]+\/connectors\/([^/]+)/.exec(pathname)?.[1];
+      const panel = /^\/workspaces\/[^/]+\/connectors\/([^/]+)/.exec(pathname)?.[1];
       const navSegment =
         panel === 'mappings' || panel === 'policy' || panel === 'runs'
           ? `connectors/${panel}`
           : 'connectors/catalog';
-      return KB_NAV.find((item) => item.segment === navSegment)?.icon;
+      return WORKSPACE_NAV.find((item) => item.segment === navSegment)?.icon;
     }
-    return KB_NAV.find((item) => item.segment === segment)?.icon;
+    return WORKSPACE_NAV.find((item) => item.segment === segment)?.icon;
   }
   return PLATFORM_NAV.find((item) =>
     item.exact ? pathname === item.to : pathname === item.to || pathname.startsWith(`${item.to}/`),
   )?.icon;
 }
 
-export function isKbScopedPath(pathname: string): boolean {
-  const id = parseKbIdFromPath(pathname);
+export function isWorkspaceScopedPath(pathname: string): boolean {
+  const id = parseWorkspaceIdFromPath(pathname);
   if (!id) return false;
-  const rest = pathname.slice(`/kbs/${id}`.length);
+  const rest = pathname.slice(`/workspaces/${id}`.length);
   if (!rest || rest === '/') return false;
   const segment = rest.replace(/^\//, '').split('/')[0];
   if (segment === 'connectors') {
     return true;
   }
-  if (KB_NAV.some((item) => item.segment === segment)) {
+  if (WORKSPACE_NAV.some((item) => item.segment === segment)) {
     return true;
   }
   return (KB_HUB_LEGACY_SEGMENTS as readonly string[]).includes(segment);

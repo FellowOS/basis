@@ -15,11 +15,11 @@ def _predicate_uri(predicate: str) -> str:
     return f"urn:basis:pred:{clean}"
 
 
-def _resolve_rule_id(knowledge: KnowledgeStore, kb_id: str, rule_text: str) -> str | None:
+def _resolve_rule_id(knowledge: KnowledgeStore, workspace_id: str, rule_text: str) -> str | None:
     body = (rule_text or "").strip()
     if not body:
         return None
-    for row in knowledge.list_reasoning_rules(kb_id, limit=500):
+    for row in knowledge.list_reasoning_rules(workspace_id, limit=500):
         if (row.get("body") or "").strip() == body:
             return row["id"]
     return None
@@ -27,7 +27,7 @@ def _resolve_rule_id(knowledge: KnowledgeStore, kb_id: str, rule_text: str) -> s
 
 def persist_reasoning_derived(
     knowledge: KnowledgeStore,
-    kb_id: str,
+    workspace_id: str,
     proof_chains: list[dict[str, Any]],
 ) -> dict[str, Any]:
     """Record derived facts for each proof chain conclusion (binary facts only)."""
@@ -43,13 +43,13 @@ def persist_reasoning_derived(
         if len(args) != 2:
             skipped += 1
             continue
-        subject_id = knowledge.get_or_create_entity_by_label(kb_id, args[0])
-        object_entity_id = knowledge.get_or_create_entity_by_label(kb_id, args[1])
-        rule_id = _resolve_rule_id(knowledge, kb_id, str(chain.get("rule") or ""))
+        subject_id = knowledge.get_or_create_entity_by_label(workspace_id, args[0])
+        object_entity_id = knowledge.get_or_create_entity_by_label(workspace_id, args[1])
+        rule_id = _resolve_rule_id(knowledge, workspace_id, str(chain.get("rule") or ""))
         premises = [str(p).strip() for p in (chain.get("premises") or []) if str(p).strip()]
         derivations = [("ground_fact", p[:240]) for p in premises]
         fact_id = knowledge.insert_derived_fact(
-            kb_id,
+            workspace_id,
             subject_id=subject_id,
             predicate_uri=_predicate_uri(predicate),
             object_entity_id=object_entity_id,

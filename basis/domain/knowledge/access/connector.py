@@ -37,35 +37,35 @@ class ConnectorKbAccess:
 
     def list_source_table_mapping_ids(
         self,
-        kb_id: str,
+        workspace_id: str,
         *,
         limit: int | None = None,
     ) -> list[str]:
-        return self.connector_sync_persistence().list_mapping_ids(kb_id, limit=limit)
+        return self.connector_sync_persistence().list_mapping_ids(workspace_id, limit=limit)
 
     def list_entity_sync_outbox_ids(
         self,
-        kb_id: str,
+        workspace_id: str,
         *,
         status: str | None = None,
         limit: int = 50,
     ) -> list[str]:
         return self.connector_sync_persistence().list_outbox_ids(
-            kb_id, status=status, limit=limit
+            workspace_id, status=status, limit=limit
         )
 
-    def reject_entity_sync_outbox(self, kb_id: str, outbox_id: str) -> None:
-        self.connector_sync_persistence().reject_outbox(kb_id, outbox_id)
+    def reject_entity_sync_outbox(self, workspace_id: str, outbox_id: str) -> None:
+        self.connector_sync_persistence().reject_outbox(workspace_id, outbox_id)
 
-    def list_kb_connector_runs(
+    def list_connector_runs(
         self,
-        kb_id: str,
+        workspace_id: str,
         *,
         service: str | None = None,
         limit: int = 50,
     ) -> list[dict[str, Any]]:
         return self.connector_vault_persistence().list_connector_runs(
-            kb_id, service=service, limit=limit
+            workspace_id, service=service, limit=limit
         )
 
     def list_active_connector_table_mappings_global(self) -> list[tuple[str, str]]:

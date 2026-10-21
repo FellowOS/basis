@@ -15,14 +15,14 @@ def test_governance_config_get_put(tmp_path: Path) -> None:
         json={"email": "gc@example.com", "password": "password1", "display_name": "GC"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
 
-    get0 = client.get(f"/api/v1/kbs/{kb_id}/governance/config", headers=headers)
+    get0 = client.get(f"/api/v1/workspaces/{workspace_id}/governance/config", headers=headers)
     assert get0.status_code == 200
     assert get0.json()["config"]["governor_enabled"] is False
 
     put = client.put(
-        f"/api/v1/kbs/{kb_id}/governance/config",
+        f"/api/v1/workspaces/{workspace_id}/governance/config",
         headers=headers,
         json={
             "governor_enabled": True,

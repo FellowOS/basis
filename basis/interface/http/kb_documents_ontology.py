@@ -1,4 +1,4 @@
-"""Legacy graph-session ontology create (``POST /{kb_id}/ontology``)."""
+"""Legacy graph-session ontology create (``POST /{workspace_id}/ontology``)."""
 
 from __future__ import annotations
 
@@ -27,23 +27,23 @@ router = APIRouter(tags=["knowledge-bases"])
 _ontology = LegacyGraphOntologyService()
 
 
-@router.post("/{kb_id}/ontology")
+@router.post("/{workspace_id}/ontology")
 async def create_ontology(
-    kb_id: str,
+    workspace_id: str,
     body: CreateOntologyRequest,
     request: Request,
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> dict[str, Any]:
     """
-Create Ontology. Ontology hub (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Create Ontology. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
-    store.get_kb_for(user, kb_id, "admin")
+    store.get_workspace_for(user, workspace_id, "admin")
     if kb_graph_runtime_available():
-        runtime = kb_graph_runtime_for(request, kb_id)
+        runtime = kb_graph_runtime_for(request, workspace_id)
         session = require_kb_graph_session(runtime)
-        with KbOntologyState(request, kb_id):
-            registry = request.app.state.kb_ontology_registries[kb_id]
+        with KbOntologyState(request, workspace_id):
+            registry = request.app.state.kb_ontology_registries[workspace_id]
             result = await asyncio.to_thread(
                 create_ontology_domain,
                 session,
@@ -55,16 +55,16 @@ Create Ontology. Ontology hub (SKOS, alignments) via Explorer. Requires KB membe
             )
     else:
         result = _ontology.create(
-            graph_for(request, kb_id),
+            graph_for(request, workspace_id),
             namespace=body.namespace,
             name=body.name,
             description=body.description,
         )
-    save_graph(request, kb_id)
+    save_graph(request, workspace_id)
     audit_kb_graph(
         store,
         user,
-        kb_id,
+        workspace_id,
         "kb.graph.ontology_create",
         extra={"uri": result["uri"], "name": body.name, "namespace": body.namespace},
     )

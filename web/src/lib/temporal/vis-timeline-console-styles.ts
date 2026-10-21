@@ -1,4 +1,4 @@
-/** Shared vis-timeline skin for KB console surfaces (light/dark via CSS variables). */
+/** Shared vis-timeline skin for workspace console surfaces (light/dark via CSS variables). */
 export function buildVisTimelineConsoleStyles(config: {
   wrapClass: string;
   markers: Array<{ id: string; line: string; marker: string }>;

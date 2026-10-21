@@ -1,35 +1,35 @@
-import { kbPath } from '@/lib/nav-config.js';
+import { workspacePath } from '@/lib/nav-config.js';
 
 /** Legacy URL tab values (still parsed). */
-export type KbSearchTab = 'chunks' | 'graph' | 'entities';
+export type SearchTab = 'chunks' | 'graph' | 'entities';
 
 /** Active search target (documents, graph, or entities). */
-export type KbSearchScope = KbSearchTab;
+export type SearchScope = SearchTab;
 
 const TAB_PARAM = 'tab';
 const SCOPE_PARAM = 'scope';
 
-export function parseKbSearchTab(raw: string | null | undefined): KbSearchTab | undefined {
+export function parseSearchTab(raw: string | null | undefined): SearchTab | undefined {
   if (raw === 'chunks' || raw === 'graph' || raw === 'entities') return raw;
   return undefined;
 }
 
 /** Map URL scope/tab to a single search target (`all` legacy → documents). */
-export function resolveKbSearchScope(
+export function resolveSearchScope(
   scopeRaw: string | null | undefined,
   tabRaw: string | null | undefined,
-  defaultScope: KbSearchScope = 'chunks',
-): KbSearchScope {
+  defaultScope: SearchScope = 'chunks',
+): SearchScope {
   const scope = scopeRaw?.trim();
   if (scope === 'chunks' || scope === 'graph' || scope === 'entities') return scope;
   if (scope === 'all') return 'chunks';
-  return parseKbSearchTab(tabRaw) ?? defaultScope;
+  return parseSearchTab(tabRaw) ?? defaultScope;
 }
 
-export type KbSearchUrlParams = {
+export type SearchUrlParams = {
   /** Legacy — also sets scope when `scope` omitted. */
-  tab?: KbSearchTab;
-  scope?: KbSearchScope;
+  tab?: SearchTab;
+  scope?: SearchScope;
   q?: string;
   /** Chunk search point-in-time (ISO). */
   asOf?: string;
@@ -44,8 +44,8 @@ function setOptionalIso(sp: URLSearchParams, key: string, value: string | undefi
   if (trimmed) sp.set(key, trimmed);
 }
 
-/** Build `/kbs/:id/search` with shareable query params (F-SRCH-03). */
-export function kbSearchPath(kbId: string, params: KbSearchUrlParams): string {
+/** Build `/workspaces/:id/search` with shareable query params (F-SRCH-03). */
+export function searchPath(workspaceId: string, params: SearchUrlParams): string {
   const sp = new URLSearchParams();
   const scope = params.scope ?? params.tab;
   if (scope) sp.set(SCOPE_PARAM, scope);
@@ -56,15 +56,15 @@ export function kbSearchPath(kbId: string, params: KbSearchUrlParams): string {
   setOptionalIso(sp, 'created_before', params.createdBefore);
   setOptionalIso(sp, 'at', params.at);
   const qs = sp.toString();
-  return qs ? `${kbPath(kbId, 'search')}?${qs}` : kbPath(kbId, 'search');
+  return qs ? `${workspacePath(workspaceId, 'search')}?${qs}` : workspacePath(workspaceId, 'search');
 }
 
-export function parseKbSearchUrlState(search: string): KbSearchUrlParams & {
-  scope: KbSearchScope;
+export function parseSearchUrlState(search: string): SearchUrlParams & {
+  scope: SearchScope;
 } {
   const params = new URLSearchParams(search);
-  const tab = parseKbSearchTab(params.get(TAB_PARAM));
-  const scope = resolveKbSearchScope(params.get(SCOPE_PARAM), params.get(TAB_PARAM));
+  const tab = parseSearchTab(params.get(TAB_PARAM));
+  const scope = resolveSearchScope(params.get(SCOPE_PARAM), params.get(TAB_PARAM));
   return {
     tab,
     scope,

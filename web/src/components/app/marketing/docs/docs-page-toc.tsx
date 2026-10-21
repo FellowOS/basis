@@ -71,9 +71,9 @@ export function DocsPageToc({ className }: DocsPageTocProps) {
   if (items.length < 2) return null;
 
   return (
-    <nav aria-label={t.docs.tocAria} className={cn('text-sm', className)}>
+    <nav aria-label={t.docs.page.toc_aria} className={cn('text-sm', className)}>
       <p className="mb-3 text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
-        {t.docs.tocTitle}
+        {t.docs.page.toc_title}
       </p>
       <ul className="space-y-1.5 border-l border-border pl-3">
         {items.map((item) => (

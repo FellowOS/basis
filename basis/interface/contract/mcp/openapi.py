@@ -8,53 +8,53 @@ from typing import Any
 
 from basis.interface.contract.openapi.v1_export import cached_openapi_v1_kb
 
-_SKIP_PARAMS = frozenset({"kb_id", "authorization"})
+_SKIP_PARAMS = frozenset({"workspace_id", "authorization"})
 
-# MCP tool name → (HTTP method, OpenAPI path) in KB OpenAPI slice
+# MCP tool name → (HTTP method, OpenAPI path) in workspace OpenAPI slice (basis-v1-kb.json)
 MCP_TOOL_OPERATIONS: dict[str, tuple[str, str]] = {
-    "describe_kb": ("get", "/api/v1/kbs/{kb_id}"),
-    "search_chunks": ("get", "/api/v1/kbs/{kb_id}/search"),
-    "get_chunk": ("get", "/api/v1/kbs/{kb_id}/ledger/chunks/{chunk_id}"),
-    "find_entities": ("get", "/api/v1/kbs/{kb_id}/entities/find"),
-    "neighbors": ("get", "/api/v1/kbs/{kb_id}/graph/nodes/{node_id}/neighbors"),
-    "paths": ("get", "/api/v1/kbs/{kb_id}/graph/path"),
-    "entity_facts": ("get", "/api/v1/kbs/{kb_id}/ledger/entities/{entity_id}/facts"),
-    "propose_remember": ("post", "/api/v1/kbs/{kb_id}/remember/proposals"),
-    "graph_search": ("post", "/api/v1/kbs/{kb_id}/graph/search"),
-    "list_review_items": ("get", "/api/v1/kbs/{kb_id}/review/items"),
-    "get_review_item": ("get", "/api/v1/kbs/{kb_id}/review/items/{item_id}"),
+    "describe_workspace": ("get", "/api/v1/workspaces/{workspace_id}"),
+    "search_chunks": ("get", "/api/v1/workspaces/{workspace_id}/search"),
+    "get_chunk": ("get", "/api/v1/workspaces/{workspace_id}/ledger/chunks/{chunk_id}"),
+    "find_entities": ("get", "/api/v1/workspaces/{workspace_id}/entities/find"),
+    "neighbors": ("get", "/api/v1/workspaces/{workspace_id}/graph/nodes/{node_id}/neighbors"),
+    "paths": ("get", "/api/v1/workspaces/{workspace_id}/graph/path"),
+    "entity_facts": ("get", "/api/v1/workspaces/{workspace_id}/ledger/entities/{entity_id}/facts"),
+    "propose_remember": ("post", "/api/v1/workspaces/{workspace_id}/remember/proposals"),
+    "graph_search": ("post", "/api/v1/workspaces/{workspace_id}/graph/search"),
+    "list_review_items": ("get", "/api/v1/workspaces/{workspace_id}/review/items"),
+    "get_review_item": ("get", "/api/v1/workspaces/{workspace_id}/review/items/{item_id}"),
     "approve_statement_remember_review": (
         "post",
-        "/api/v1/kbs/{kb_id}/review/items/{item_id}/approve",
+        "/api/v1/workspaces/{workspace_id}/review/items/{item_id}/approve",
     ),
     "reject_statement_remember_review": (
         "post",
-        "/api/v1/kbs/{kb_id}/review/items/{item_id}/reject",
+        "/api/v1/workspaces/{workspace_id}/review/items/{item_id}/reject",
     ),
     "approve_review_item": (
         "post",
-        "/api/v1/kbs/{kb_id}/review/items/{item_id}/approve",
+        "/api/v1/workspaces/{workspace_id}/review/items/{item_id}/approve",
     ),
     "reject_review_item": (
         "post",
-        "/api/v1/kbs/{kb_id}/review/items/{item_id}/reject",
+        "/api/v1/workspaces/{workspace_id}/review/items/{item_id}/reject",
     ),
-    "list_connector_catalog": ("get", "/api/v1/kbs/{kb_id}/connectors/catalog"),
+    "list_connector_catalog": ("get", "/api/v1/workspaces/{workspace_id}/connectors/catalog"),
     "describe_connector_service": (
         "get",
-        "/api/v1/kbs/{kb_id}/connectors/catalog/{service}",
+        "/api/v1/workspaces/{workspace_id}/connectors/catalog/{service}",
     ),
-    "list_connector_connections": ("get", "/api/v1/kbs/{kb_id}/connectors/connections"),
+    "list_connector_connections": ("get", "/api/v1/workspaces/{workspace_id}/connectors/connections"),
     "list_connector_table_mappings": (
         "get",
-        "/api/v1/kbs/{kb_id}/connectors/table-mappings",
+        "/api/v1/workspaces/{workspace_id}/connectors/table-mappings",
     ),
     "sync_connector_table_mapping": (
         "post",
-        "/api/v1/kbs/{kb_id}/connectors/table-mappings/{mapping_id}/sync",
+        "/api/v1/workspaces/{workspace_id}/connectors/table-mappings/{mapping_id}/sync",
     ),
-    "propose_entity_writeback": ("post", "/api/v1/kbs/{kb_id}/connectors/outbox/propose"),
-    "execute_connector_tool": ("post", "/api/v1/kbs/{kb_id}/connectors/tools/execute"),
+    "propose_entity_writeback": ("post", "/api/v1/workspaces/{workspace_id}/connectors/outbox/propose"),
+    "execute_connector_tool": ("post", "/api/v1/workspaces/{workspace_id}/connectors/tools/execute"),
 }
 
 # Back-compat alias for tests/docs

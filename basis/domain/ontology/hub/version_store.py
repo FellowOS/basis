@@ -1,4 +1,4 @@
-"""Ontology version list and compare (explicit per-KB store)."""
+"""Ontology version list and compare (explicit per-workspace store)."""
 
 from __future__ import annotations
 

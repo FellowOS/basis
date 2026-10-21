@@ -1,4 +1,4 @@
-import type { LocaleMessages } from './locales/en/index.js';
+import type { LocaleMessages } from './en.js';
 
 export const LOCALES = ['en', 'zh'] as const;
 export type Locale = (typeof LOCALES)[number];
@@ -9,9 +9,9 @@ export const LOCALE_HTML_LANG: Record<Locale, string> = {
 };
 
 const LOCALE_LABEL_KEYS = {
-  en: 'localeEnglish',
-  zh: 'localeChinese',
-} as const satisfies Record<Locale, 'localeEnglish' | 'localeChinese'>;
+  en: 'locale_english',
+  zh: 'locale_chinese',
+} as const satisfies Record<Locale, 'locale_english' | 'locale_chinese'>;
 
 export function isLocale(value: string): value is Locale {
   return (LOCALES as readonly string[]).includes(value);
@@ -21,6 +21,6 @@ export function localeFromBrowser(lang: string): Locale {
   return lang.toLowerCase().startsWith('zh') ? 'zh' : 'en';
 }
 
-export function localeLabel(locale: Locale, sidebar: LocaleMessages['sidebar']): string {
+export function localeLabel(locale: Locale, sidebar: LocaleMessages['core']['shell']['sidebar']): string {
   return sidebar[LOCALE_LABEL_KEYS[locale]];
 }

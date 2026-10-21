@@ -1,5 +1,5 @@
-import { en } from './locales/en/index.js';
-import { zh } from './locales/zh/index.js';
+import { en } from './en.js';
+import { zh } from './zh.js';
 import type { Locale } from './locale.js';
 
 export type AnyLocaleMessages = typeof en | typeof zh;

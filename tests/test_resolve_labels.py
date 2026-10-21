@@ -21,16 +21,16 @@ def test_resolve_labels_ledger_and_graph(tmp_path: Path) -> None:
         json={"email": "lab@example.com", "password": "password1", "display_name": "Lab"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
 
     knowledge: KnowledgeStore = app.state.knowledge_store
-    alice = knowledge.create_entity(kb_id, canonical_label="Alice Ledger")
-    session = rebuild_graph_from_ledger(knowledge, kb_id)
-    revision = knowledge.bump_projection_revision(kb_id)
-    app.state.graph_persistence.save(kb_id, session, projection_revision=revision)
+    alice = knowledge.create_entity(workspace_id, canonical_label="Alice Ledger")
+    session = rebuild_graph_from_ledger(knowledge, workspace_id)
+    revision = knowledge.bump_projection_revision(workspace_id)
+    app.state.graph_persistence.save(workspace_id, session, projection_revision=revision)
 
     resp = client.post(
-        f"/api/v1/kbs/{kb_id}/graph/resolve-labels",
+        f"/api/v1/workspaces/{workspace_id}/graph/resolve-labels",
         headers=headers,
         json={"ids": [alice, "missing-node"]},
     )

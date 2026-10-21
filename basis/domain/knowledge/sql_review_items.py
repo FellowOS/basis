@@ -38,7 +38,7 @@ def insert_review_item(
     conn: Any,
     *,
     item_id: str,
-    kb_id: str,
+    workspace_id: str,
     kind: str,
     subject_type: str,
     subject_id: str,
@@ -49,13 +49,13 @@ def insert_review_item(
     conn.execute(
         """
         INSERT INTO review_items (
-            id, kb_id, kind, subject_type, subject_id, status,
+            id, workspace_id, kind, subject_type, subject_id, status,
             priority, payload_json, version, created_at
         ) VALUES (?, ?, ?, ?, ?, 'open', ?, ?, 1, ?)
         """,
         (
             item_id,
-            kb_id,
+            workspace_id,
             kind,
             subject_type,
             subject_id,
@@ -66,20 +66,20 @@ def insert_review_item(
     )
 
 
-def fetch_review_item(conn: Any, kb_id: str, item_id: str) -> Any:
+def fetch_review_item(conn: Any, workspace_id: str, item_id: str) -> Any:
     return conn.execute(
         f"""
         {_REVIEW_SELECT}
         FROM review_items
-        WHERE kb_id = ? AND id = ?
+        WHERE workspace_id = ? AND id = ?
         """,
-        (kb_id, item_id),
+        (workspace_id, item_id),
     ).fetchone()
 
 
 def fetch_open_review_item(
     conn: Any,
-    kb_id: str,
+    workspace_id: str,
     *,
     kind: str,
     subject_type: str,
@@ -89,24 +89,24 @@ def fetch_open_review_item(
         f"""
         {_REVIEW_SELECT}
         FROM review_items
-        WHERE kb_id = ? AND kind = ? AND subject_type = ? AND subject_id = ?
+        WHERE workspace_id = ? AND kind = ? AND subject_type = ? AND subject_id = ?
           AND status = 'open'
         LIMIT 1
         """,
-        (kb_id, kind, subject_type, subject_id),
+        (workspace_id, kind, subject_type, subject_id),
     ).fetchone()
 
 
 def list_review_item_rows(
     conn: Any,
-    kb_id: str,
+    workspace_id: str,
     *,
     status: str | None,
     kind: str | None,
     limit: int,
 ) -> list[Any]:
-    clauses = ["kb_id = ?"]
-    params: list[Any] = [kb_id]
+    clauses = ["workspace_id = ?"]
+    params: list[Any] = [workspace_id]
     if status:
         clauses.append("status = ?")
         params.append(status)
@@ -124,16 +124,16 @@ def list_review_item_rows(
     return conn.execute(sql, tuple(params)).fetchall()
 
 
-def fetch_review_item_status(conn: Any, kb_id: str, item_id: str) -> Any:
+def fetch_review_item_status(conn: Any, workspace_id: str, item_id: str) -> Any:
     return conn.execute(
-        "SELECT status FROM review_items WHERE kb_id = ? AND id = ?",
-        (kb_id, item_id),
+        "SELECT status FROM review_items WHERE workspace_id = ? AND id = ?",
+        (workspace_id, item_id),
     ).fetchone()
 
 
 def resolve_review_item_row(
     conn: Any,
-    kb_id: str,
+    workspace_id: str,
     item_id: str,
     *,
     status: str,
@@ -145,7 +145,7 @@ def resolve_review_item_row(
         """
         UPDATE review_items
         SET status = ?, resolved_at = ?, resolved_by = ?, rationale = ?
-        WHERE kb_id = ? AND id = ?
+        WHERE workspace_id = ? AND id = ?
         """,
-        (status, resolved_at, resolved_by, rationale, kb_id, item_id),
+        (status, resolved_at, resolved_by, rationale, workspace_id, item_id),
     )

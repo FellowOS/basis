@@ -37,7 +37,7 @@ def should_emit_governance_tripped_on_review_approve(code: str) -> bool:
 
 
 def maybe_emit_governance_tripped_for_admin_error(
-    kb_id: str,
+    workspace_id: str,
     knowledge: KnowledgeStore,
     exc: AdminError,
     *,
@@ -51,7 +51,7 @@ def maybe_emit_governance_tripped_for_admin_error(
         return
     payload = {"code": exc.code, **(detail or {})}
     emit_governance_tripped_for_kb(
-        kb_id,
+        workspace_id,
         knowledge,
         message=exc.message,
         detail=payload,
@@ -62,7 +62,7 @@ def maybe_emit_governance_tripped_for_admin_error(
 
 
 def maybe_emit_governance_tripped_on_review_approve(
-    kb_id: str,
+    workspace_id: str,
     knowledge: KnowledgeStore,
     *,
     code: str,
@@ -77,7 +77,7 @@ def maybe_emit_governance_tripped_on_review_approve(
         return
     payload = {"code": code, **(detail or {})}
     emit_governance_tripped_for_kb(
-        kb_id,
+        workspace_id,
         knowledge,
         message=message,
         detail=payload,
@@ -88,7 +88,7 @@ def maybe_emit_governance_tripped_on_review_approve(
 
 
 def _try_record_governance_decision(
-    kb_id: str,
+    workspace_id: str,
     *,
     message: str,
     detail: dict[str, Any],
@@ -114,7 +114,7 @@ def _try_record_governance_decision(
             decision_maker=actor_id,
             metadata={"alert_kind": "governance.tripped", **detail},
         )
-        persist_graph(kb_id)
+        persist_graph(workspace_id)
         return str(decision_id)
     except Exception:
         logger.debug("governance decision record skipped", exc_info=True)
@@ -122,7 +122,7 @@ def _try_record_governance_decision(
 
 
 def record_governance_decision_for_kb(
-    kb_id: str,
+    workspace_id: str,
     *,
     message: str,
     detail: dict[str, Any] | None = None,
@@ -133,7 +133,7 @@ def record_governance_decision_for_kb(
 ) -> str | None:
     """Persist an Explorer graph decision (e.g. review approve). Returns id or None."""
     return _try_record_governance_decision(
-        kb_id,
+        workspace_id,
         message=message,
         detail=dict(detail or {}),
         actor_id=actor_id,
@@ -144,7 +144,7 @@ def record_governance_decision_for_kb(
 
 
 def emit_governance_tripped_for_kb(
-    kb_id: str,
+    workspace_id: str,
     knowledge: KnowledgeStore,
     *,
     message: str,
@@ -155,7 +155,7 @@ def emit_governance_tripped_for_kb(
 ) -> str | None:
     payload = dict(detail or {})
     decision_id = _try_record_governance_decision(
-        kb_id,
+        workspace_id,
         message=message,
         detail=payload,
         actor_id=actor_id,
@@ -164,5 +164,5 @@ def emit_governance_tripped_for_kb(
     )
     if decision_id:
         payload["decision_id"] = decision_id
-    emit_governance_tripped_alert(knowledge, kb_id, message=message, detail=payload)
+    emit_governance_tripped_alert(knowledge, workspace_id, message=message, detail=payload)
     return decision_id

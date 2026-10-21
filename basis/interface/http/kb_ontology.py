@@ -1,4 +1,4 @@
-"""KB-scoped vocabulary and ontology-hub — aggregates sub-routers."""
+"""Workspace-scoped vocabulary and ontology-hub — aggregates sub-routers."""
 
 from __future__ import annotations
 

@@ -1,0 +1,31 @@
+export default {
+  wizard: {
+    title: "Data & ontology setup",
+    subtitle: "Connect external systems, accept suggested connector mappings, and run a first sync into the ledger (no OWL publish step).",
+    steps: {
+      connections: "Connections",
+      suggest: "Suggested mappings",
+      done: "First sync",
+    },
+    connections_title: "Configured connections",
+    connections_subtitle: "Add connections in the catalog if this list is empty.",
+    loading_connections: "Loading connections…",
+    no_connections: "No connections yet. Connect a database or SaaS source first.",
+    open_catalog: "Open connector catalog",
+    sql_tables_label: "SQL tables (optional)",
+    sql_tables_placeholder: "accounts\ncustomers\npostgres:orders",
+    sql_tables_hint: "One table per line. Prefix with service name for multiple SQL connections (e.g. postgres:public.users).",
+    continue_to_suggest: "Suggest mappings",
+    suggest_title: "Cross-stream mapping suggestions",
+    suggest_subtitle: "Review drafts grouped by entity type, then save and sync.",
+    suggest_hint: "Open the suggestion panel to preview drafts from DISCOVER on your connections.",
+    reopen_suggest: "Open suggestions",
+    done_title: "Mappings saved",
+    done_subtitle: "{count} connector mapping(s) created with an initial sync.",
+    view_mappings: "View connector mappings",
+    view_entities: "View entities",
+  },
+  menu: {
+    data_ontology_wizard: "Data & ontology setup",
+  },
+} as const;

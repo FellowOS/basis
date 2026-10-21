@@ -1,4 +1,4 @@
-"""Shared helpers for KB ingest source routes."""
+"""Shared helpers for workspace ingest source routes."""
 
 from __future__ import annotations
 
@@ -23,10 +23,9 @@ def doc_id_from_external_key(external_key: str | None, title: str) -> str:
     return stem or f"ingest-{uuid.uuid4().hex[:12]}"
 
 
-def webhook_path(kb_id: str, source_id: str) -> str:
-    return f"/api/kbs/{kb_id}/sources/{source_id}/webhook"
+def webhook_path(workspace_id: str, source_id: str) -> str:
+    return f"/api/workspaces/{workspace_id}/sources/{source_id}/webhook"
 
 
 def now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
-

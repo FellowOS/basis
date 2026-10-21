@@ -1,4 +1,4 @@
-"""KB action_policy governance for BOCP primitives."""
+"""Workspace action_policy governance for BOCP primitives."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ import pytest
 from basis.domain.integration import ConnectorAuthVault, ConnectorPolicy
 def test_resolve_primitive_execution_mode_entities_map() -> None:
     pol = ConnectorPolicy(
-        kb_id="kb1",
+        workspace_id="kb1",
         action_policy={
             "entities": {
                 "github:issues.list": "disabled",
@@ -50,7 +50,7 @@ def test_primitive_disabled_blocks_invoke(tmp_path: Path) -> None:
     )
     conn.execute(
         """
-        INSERT INTO knowledge_bases (id, name, description, visibility, created_by, created_at)
+        INSERT INTO workspaces (id, name, description, visibility, created_by, created_at)
         VALUES ('kb1', 'KB 1', '', 'private', 'u1', '2026-01-01T00:00:00Z')
         """
     )

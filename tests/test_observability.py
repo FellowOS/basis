@@ -17,10 +17,10 @@ from basis.infra.runtime.observability.request_context import (
 def test_correlation_log_extra_includes_bound_request_id() -> None:
     token = set_request_id("ctx-abc")
     try:
-        extra = correlation_log_extra(job_id="job-1", kb_id="kb-1", projection_revision=3)
+        extra = correlation_log_extra(job_id="job-1", workspace_id="kb-1", projection_revision=3)
         assert extra["request_id"] == "ctx-abc"
         assert extra["job_id"] == "job-1"
-        assert extra["kb_id"] == "kb-1"
+        assert extra["workspace_id"] == "kb-1"
         assert extra["projection_revision"] == 3
     finally:
         reset_request_id(token)
@@ -36,7 +36,7 @@ def test_redact_string_masks_bearer_and_sk_tokens() -> None:
 
 
 def test_redact_string_masks_sensitive_query_params() -> None:
-    out = redact_string("/api/v1/kbs?token=secret-value&page=1")
+    out = redact_string("/api/v1/workspaces?token=secret-value&page=1")
     assert "secret-value" not in out
     assert "page=1" in out
 
@@ -62,7 +62,7 @@ def test_uvicorn_access_json_formatter_structures_request() -> None:
         pathname=__file__,
         lineno=1,
         msg='%s - "%s %s HTTP/%s" %d',
-        args=("127.0.0.1:12345", "GET", "/api/v1/kbs?token=secret", "1.1", 200),
+        args=("127.0.0.1:12345", "GET", "/api/v1/workspaces?token=secret", "1.1", 200),
         exc_info=None,
     )
     record.request_id = "trace-access"
@@ -80,7 +80,7 @@ def test_json_log_formatter_emits_parseable_line_with_extras() -> None:
         level=logging.INFO,
         pathname=__file__,
         lineno=1,
-        msg="ingest done kb_id=%s",
+        msg="ingest done workspace_id=%s",
         args=("kb-1",),
         exc_info=None,
     )

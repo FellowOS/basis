@@ -1,4 +1,4 @@
-"""Canonical KB SQL façade types (see also `sql_<topic>` modules)."""
+"""Canonical workspace SQL façade types (see also `sql_<topic>` modules)."""
 
 from basis.domain.knowledge.sql_connector_sync import (
     ConnectorSyncPersistence,

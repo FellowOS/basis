@@ -1,4 +1,4 @@
-"""KB Explorer temporal scrubber routes."""
+"""Explorer temporal scrubber routes."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ from basis.domain.tenancy.admin.store import AdminStore, User
 from basis.interface.http.deps import (
     get_current_user,
     kb_graph_runtime_for,
-    get_kb_for_viewer,
+    get_workspace_for_viewer,
     get_knowledge_store,
     get_store,
 )
@@ -20,26 +20,26 @@ from basis.domain.graph.session.guard import require_kb_graph_session
 router = APIRouter(tags=["knowledge-bases"])
 
 
-@router.get("/{kb_id}/temporal/bounds")
+@router.get("/{workspace_id}/temporal/bounds")
 async def kb_temporal_bounds(
-    kb_id: str,
+    workspace_id: str,
     request: Request,
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> Any:
-    """Temporal scrubber bounds for the KB graph (F-TIM-03 / F-TIM-04).
+    """Temporal scrubber bounds for the workspace graph (F-TIM-03 / F-TIM-04).
 
     Returns `{min, max}` ISO instants. When the Explorer projection lacks node `valid_from`,
     `min` / `max` fall back to ledger timestamps (statements, facts, current document version).
     """
-    get_kb_for_viewer(request, user, kb_id, store)
-    runtime = kb_graph_runtime_for(request, kb_id)
+    get_workspace_for_viewer(request, user, workspace_id, store)
+    runtime = kb_graph_runtime_for(request, workspace_id)
     session = require_kb_graph_session(runtime)
     from basis.domain.graph.temporal.read import get_temporal_bounds
 
     base_bounds = await asyncio.to_thread(get_temporal_bounds, session)
     if isinstance(base_bounds, dict):
-        ledger = get_knowledge_store(request).get_ledger_temporal_bounds(kb_id)
+        ledger = get_knowledge_store(request).get_ledger_temporal_bounds(workspace_id)
         merged = dict(base_bounds)
         if not merged.get("min") and ledger.get("min"):
             merged["min"] = ledger["min"]
@@ -49,9 +49,9 @@ async def kb_temporal_bounds(
     return payload
 
 
-@router.get("/{kb_id}/temporal/snapshot")
+@router.get("/{workspace_id}/temporal/snapshot")
 async def kb_temporal_snapshot(
-    kb_id: str,
+    workspace_id: str,
     request: Request,
     at: str | None = None,
     user: User = Depends(get_current_user),
@@ -62,8 +62,8 @@ async def kb_temporal_snapshot(
     Primary path: Explorer `temporal_snapshot`. When that returns no nodes but the Basis
     projector supports `state_at`, falls back to the same snapshot used by `GET .../graph/diff`.
     """
-    get_kb_for_viewer(request, user, kb_id, store)
-    runtime = kb_graph_runtime_for(request, kb_id)
+    get_workspace_for_viewer(request, user, workspace_id, store)
+    runtime = kb_graph_runtime_for(request, workspace_id)
     session = require_kb_graph_session(runtime)
     from basis.domain.graph.reads.diff import parse_query_dt
     from basis.domain.graph.temporal.read import get_temporal_snapshot
@@ -74,7 +74,7 @@ async def kb_temporal_snapshot(
         try:
             instant = parse_query_dt(at)
             temporal_session = build_temporal_graph_from_ledger(
-                get_knowledge_store(request), kb_id, preserve_from=session
+                get_knowledge_store(request), workspace_id, preserve_from=session
             )
             state = temporal_session.graph.state_at(instant)
         except ValueError:
@@ -100,9 +100,9 @@ async def kb_temporal_snapshot(
     return payload
 
 
-@router.get("/{kb_id}/temporal/diff")
+@router.get("/{workspace_id}/temporal/diff")
 async def kb_temporal_diff(
-    kb_id: str,
+    workspace_id: str,
     request: Request,
     from_time: str = Query(..., alias="from"),
     to_time: str = Query(..., alias="to"),
@@ -110,16 +110,16 @@ async def kb_temporal_diff(
     store: AdminStore = Depends(get_store),
 ) -> Any:
     """
-Kb Temporal Diff. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Temporal Diff. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
-    get_kb_for_viewer(request, user, kb_id, store)
-    runtime = kb_graph_runtime_for(request, kb_id)
+    get_workspace_for_viewer(request, user, workspace_id, store)
+    runtime = kb_graph_runtime_for(request, workspace_id)
     session = require_kb_graph_session(runtime)
     from basis.domain.graph.reads.diff import diff_session_at
     from basis.domain.graph.projection.projector import build_temporal_graph_from_ledger
 
     temporal_session = build_temporal_graph_from_ledger(
-        get_knowledge_store(request), kb_id, preserve_from=session
+        get_knowledge_store(request), workspace_id, preserve_from=session
     )
     diff = diff_session_at(temporal_session, from_time, to_time)
     return {
@@ -128,5 +128,4 @@ Kb Temporal Diff. Requires KB membership (session) or KB API token with read/wri
         "added_nodes": diff["added_nodes"],
         "removed_nodes": diff["removed_nodes"],
     }
-
 

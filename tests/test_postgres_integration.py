@@ -19,14 +19,14 @@ def test_postgres_ledger_fts_pgvector_and_mcp(
     )
     assert registered.status_code == 200
     headers = {"Authorization": f"Bearer {registered.json()['token']}"}
-    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
 
-    config = client.get(f"/api/v1/kbs/{kb_id}/search/config", headers=headers).json()
+    config = client.get(f"/api/v1/workspaces/{workspace_id}/search/config", headers=headers).json()
     assert config["config"]["chunk_backend"] == "postgres_ledger"
     assert config["config"]["vector_backend"] == "pgvector"
 
     uploaded = client.post(
-        f"/api/v1/kbs/{kb_id}/documents/upload",
+        f"/api/v1/workspaces/{workspace_id}/documents/upload",
         headers=headers,
         files={
             "file": (
@@ -41,7 +41,7 @@ def test_postgres_ledger_fts_pgvector_and_mcp(
     assert uploaded.json()["embed_indexed"] == 1
 
     searched = client.get(
-        f"/api/v1/kbs/{kb_id}/search",
+        f"/api/v1/workspaces/{workspace_id}/search",
         headers=headers,
         params={"q": "hybrid retrieval"},
     )
@@ -62,7 +62,7 @@ def test_postgres_ledger_fts_pgvector_and_mcp(
         responses = list(
             pool.map(
                 lambda _: client.post(
-                    f"/api/v1/kbs/{kb_id}/mcp", headers=headers, json=payload
+                    f"/api/v1/workspaces/{workspace_id}/mcp", headers=headers, json=payload
                 ),
                 range(16),
             )
@@ -81,9 +81,9 @@ def test_postgres_kb_graph_audit_list(tmp_path: Path, postgres_url: str) -> None
     )
     assert registered.status_code == 200
     headers = {"Authorization": f"Bearer {registered.json()['token']}"}
-    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
     audit = client.get(
-        f"/api/v1/kbs/{kb_id}/audit/graph-mutations",
+        f"/api/v1/workspaces/{workspace_id}/audit/graph-mutations",
         headers=headers,
     )
     assert audit.status_code == 200

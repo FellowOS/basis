@@ -23,18 +23,18 @@ def _kb_id(tmp_path: Path) -> str:
 
     admin = AdminStore(tmp_path / "basis.db")
     user, _ = admin.register("ingest@example.com", "password1", "U")
-    kb = admin.create_kb(user, "KB", None, "restricted")
+    kb = admin.create_workspace(user, "KB", None, "restricted")
     admin.close()
     return kb.id
 
 
 def test_run_version_ingest_chunks_and_marks_ready(tmp_path: Path) -> None:
-    kb_id = _kb_id(tmp_path)
+    workspace_id = _kb_id(tmp_path)
     blobs = BlobStore(tmp_path)
     knowledge = KnowledgeStore(tmp_path / "basis.db", blobs)
     text = b"Line one.\nLine two about contracts."
     _, version_id, job_id, _ = knowledge.store_upload_bytes(
-        kb_id,
+        workspace_id,
         title="clause.txt",
         mime_type="text/plain",
         data=text,
@@ -45,7 +45,7 @@ def test_run_version_ingest_chunks_and_marks_ready(tmp_path: Path) -> None:
     result = run_version_ingest(
         knowledge,
         graph,
-        kb_id,
+        workspace_id,
         version_id,
         job_id,
         filename="clause.txt",
@@ -54,18 +54,18 @@ def test_run_version_ingest_chunks_and_marks_ready(tmp_path: Path) -> None:
     )
     assert result["ledger_status"] == "ready"
     assert result["chunk_count"] >= 1
-    assert knowledge.get_version(kb_id, version_id).status == "ready"
-    assert knowledge.get_job(kb_id, job_id).status == "succeeded"
+    assert knowledge.get_version(workspace_id, version_id).status == "ready"
+    assert knowledge.get_job(workspace_id, job_id).status == "succeeded"
     assert graph.stats()["node_count"] >= 1
     knowledge.close()
 
 
 def test_ingest_failure_before_rebuild_marks_projection_dirty(tmp_path: Path) -> None:
-    kb_id = _kb_id(tmp_path)
+    workspace_id = _kb_id(tmp_path)
     blobs = BlobStore(tmp_path)
     knowledge = KnowledgeStore(tmp_path / "basis.db", blobs)
     _, version_id, job_id, _ = knowledge.store_upload_bytes(
-        kb_id,
+        workspace_id,
         title="dirty.txt",
         mime_type="text/plain",
         data=b"Alice knows Bob.",
@@ -73,7 +73,7 @@ def test_ingest_failure_before_rebuild_marks_projection_dirty(tmp_path: Path) ->
         external_key="dirty-doc",
     )
     graph = GraphSession()
-    knowledge.set_projection_status(kb_id, "clean")
+    knowledge.set_projection_status(workspace_id, "clean")
 
     with patch(
         "basis.domain.knowledge.pipeline.version_ingest.apply_rebuild_to_session",
@@ -83,7 +83,7 @@ def test_ingest_failure_before_rebuild_marks_projection_dirty(tmp_path: Path) ->
             run_version_ingest(
                 knowledge,
                 graph,
-                kb_id,
+                workspace_id,
                 version_id,
                 job_id,
                 filename="dirty.txt",
@@ -91,10 +91,10 @@ def test_ingest_failure_before_rebuild_marks_projection_dirty(tmp_path: Path) ->
                 options=TextIngestOptions(extract=False, chunk=True),
             )
 
-    assert knowledge.get_version(kb_id, version_id).status == "failed"
-    assert knowledge.get_job(kb_id, job_id).status == "failed"
-    assert knowledge.get_projection_state(kb_id)["status"] == "dirty"
-    assert knowledge.get_projection_state(kb_id)["last_error_code"] == "ingest_incomplete"
+    assert knowledge.get_version(workspace_id, version_id).status == "failed"
+    assert knowledge.get_job(workspace_id, job_id).status == "failed"
+    assert knowledge.get_projection_state(workspace_id)["status"] == "dirty"
+    assert knowledge.get_projection_state(workspace_id)["last_error_code"] == "ingest_incomplete"
     knowledge.close()
 
 
@@ -105,11 +105,11 @@ def test_upload_api_async_accept_and_polls_succeeded(tmp_path: Path) -> None:
         json={"email": "async@example.com", "password": "password1", "display_name": "U"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
 
     files = {"file": ("async.txt", BytesIO(b"async ingest body"), "text/plain")}
     uploaded = client.post(
-        f"/api/v1/kbs/{kb_id}/documents/upload",
+        f"/api/v1/workspaces/{workspace_id}/documents/upload",
         headers=headers,
         files=files,
         data={"extract": "false", "wait": "false"},
@@ -121,7 +121,7 @@ def test_upload_api_async_accept_and_polls_succeeded(tmp_path: Path) -> None:
 
     for _ in range(60):
         job = client.get(
-            f"/api/v1/kbs/{kb_id}/ingest/jobs/{body['job_id']}",
+            f"/api/v1/workspaces/{workspace_id}/ingest/jobs/{body['job_id']}",
             headers=headers,
         )
         assert job.status_code == 200
@@ -141,11 +141,11 @@ def test_upload_api_returns_job_and_polls_succeeded(tmp_path: Path) -> None:
         json={"email": "up@example.com", "password": "password1", "display_name": "U"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
 
     files = {"file": ("demo.txt", BytesIO(b"payment terms and delivery"), "text/plain")}
     uploaded = client.post(
-        f"/api/v1/kbs/{kb_id}/documents/upload",
+        f"/api/v1/workspaces/{workspace_id}/documents/upload",
         headers=headers,
         files=files,
         data={"extract": "false"},
@@ -156,7 +156,7 @@ def test_upload_api_returns_job_and_polls_succeeded(tmp_path: Path) -> None:
     assert body.get("ledger_status") == "ready"
 
     job = client.get(
-        f"/api/v1/kbs/{kb_id}/ingest/jobs/{body['job_id']}",
+        f"/api/v1/workspaces/{workspace_id}/ingest/jobs/{body['job_id']}",
         headers=headers,
     )
     assert job.status_code == 200

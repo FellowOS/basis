@@ -1,12 +1,12 @@
 import { expect, test } from '@playwright/test';
 
-import { defaultKbId, registerFreshUser, runReasoningApplyViaApi } from './helpers';
+import { defaultWorkspaceId, registerFreshUser, runReasoningApplyViaApi } from './helpers';
 
 test('reasoning apply_to_graph shows derived facts on entities page', async ({ page }) => {
   test.setTimeout(120_000);
 
   await registerFreshUser(page);
-  const kbId = await defaultKbId(page);
+  const workspaceId = await defaultWorkspaceId(page);
   const stamp = `E2eDeriv${Date.now()}`;
   const entityA = `${stamp}A`;
   const entityB = `${stamp}B`;
@@ -14,7 +14,7 @@ test('reasoning apply_to_graph shows derived facts on entities page', async ({ p
   try {
     const out = await runReasoningApplyViaApi(
       page,
-      kbId,
+      workspaceId,
       [`parent(${entityA}, ${entityB})`],
       [`IF parent(${entityA}, ${entityB}) THEN ancestor(${entityA}, ${entityB})`],
     );
@@ -26,7 +26,7 @@ test('reasoning apply_to_graph shows derived facts on entities page', async ({ p
     throw err;
   }
 
-  await page.goto(`/kbs/${kbId}/entities`);
+  await page.goto(`/workspaces/${workspaceId}/entities`);
   await expect(
     page.getByRole('heading', { name: /Recent reasoning|最近推理/i }),
   ).toBeVisible({ timeout: 30_000 });

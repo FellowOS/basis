@@ -90,25 +90,25 @@ def fetch_git_sync_text(repo_url: str, branch: str, paths: list[str]) -> str:
 
 def record_ingest_source_event(
     knowledge: KnowledgeStore,
-    kb_id: str,
+    workspace_id: str,
     source_id: str,
     event: dict[str, Any],
     *,
     max_events: int = 30,
 ) -> None:
-    source = knowledge.get_ingest_source(kb_id, source_id)
+    source = knowledge.get_ingest_source(workspace_id, source_id)
     config = dict(source.get("config") or {})
     events = list(config.get("sync_events") or [])
     events.insert(0, event)
     config["sync_events"] = events[:max_events]
     config["last_sync_at"] = event.get("at")
     config["last_sync_status"] = event.get("status")
-    knowledge.update_ingest_source(kb_id, source_id, config=config)
+    knowledge.update_ingest_source(workspace_id, source_id, config=config)
     if event.get("status") == "failed":
         mode = str(event.get("mode") or source.get("kind") or "source")
         err = str(event.get("error") or "")[:400]
-        knowledge.create_kb_alert(
-            kb_id,
+        knowledge.create_workspace_alert(
+            workspace_id,
             kind="sync_failed",
             message=f"Connector sync failed ({mode})",
             severity="warning",
@@ -145,7 +145,7 @@ def fetch_http_poll_text(url: str) -> str:
 def enqueue_text_from_source(
     app: FastAPI,
     knowledge: KnowledgeStore,
-    kb_id: str,
+    workspace_id: str,
     source_id: str,
     *,
     title: str,
@@ -158,7 +158,7 @@ def enqueue_text_from_source(
 
     filename = f"{doc_id}.txt"
     outcome = knowledge.store_document_bytes(
-        kb_id,
+        workspace_id,
         title=title,
         mime_type="text/plain",
         data=text.encode("utf-8"),
@@ -177,13 +177,13 @@ def enqueue_text_from_source(
         }
     options = TextIngestOptions(**_DEFAULT_PROCESSING_OPTIONS)
     job, _ = knowledge.create_processing_job(
-        kb_id,
+        workspace_id,
         version_id=outcome.version_id,
         options=_DEFAULT_PROCESSING_OPTIONS,
     )
     enqueue_version_ingest(
         app,
-        kb_id,
+        workspace_id,
         outcome.version_id,
         job["id"],
         filename=filename,
@@ -202,12 +202,12 @@ def enqueue_text_from_source(
 def execute_http_poll_sync(
     app: FastAPI,
     knowledge: KnowledgeStore,
-    kb_id: str,
+    workspace_id: str,
     source_id: str,
     *,
     auto_process: bool,
 ) -> dict[str, Any]:
-    source = knowledge.get_ingest_source(kb_id, source_id)
+    source = knowledge.get_ingest_source(workspace_id, source_id)
     if source["kind"] != "http_poll" or not source["enabled"]:
         raise AdminError(403, "forbidden", "来源未启用")
     url = str(source["config"].get("url") or "").strip()
@@ -219,7 +219,7 @@ def execute_http_poll_sync(
     except AdminError:
         record_ingest_source_event(
             knowledge,
-            kb_id,
+            workspace_id,
             source_id,
             {"at": at, "status": "failed", "mode": "http_poll", "url": url},
         )
@@ -227,7 +227,7 @@ def execute_http_poll_sync(
     except Exception as exc:
         record_ingest_source_event(
             knowledge,
-            kb_id,
+            workspace_id,
             source_id,
             {
                 "at": at,
@@ -245,7 +245,7 @@ def execute_http_poll_sync(
     result = enqueue_text_from_source(
         app,
         knowledge,
-        kb_id,
+        workspace_id,
         source_id,
         title=title,
         text=text,
@@ -254,7 +254,7 @@ def execute_http_poll_sync(
     )
     record_ingest_source_event(
         knowledge,
-        kb_id,
+        workspace_id,
         source_id,
         {
             "at": at,
@@ -271,12 +271,12 @@ def execute_http_poll_sync(
 def execute_git_sync(
     app: FastAPI,
     knowledge: KnowledgeStore,
-    kb_id: str,
+    workspace_id: str,
     source_id: str,
     *,
     auto_process: bool,
 ) -> dict[str, Any]:
-    source = knowledge.get_ingest_source(kb_id, source_id)
+    source = knowledge.get_ingest_source(workspace_id, source_id)
     if source["kind"] != "git" or not source["enabled"]:
         raise AdminError(403, "forbidden", "来源未启用")
     config = source.get("config") or {}
@@ -291,7 +291,7 @@ def execute_git_sync(
     except AdminError:
         record_ingest_source_event(
             knowledge,
-            kb_id,
+            workspace_id,
             source_id,
             {"at": at, "status": "failed", "mode": "git", "repo_url": repo_url},
         )
@@ -299,7 +299,7 @@ def execute_git_sync(
     except Exception as exc:
         record_ingest_source_event(
             knowledge,
-            kb_id,
+            workspace_id,
             source_id,
             {
                 "at": at,
@@ -317,7 +317,7 @@ def execute_git_sync(
     result = enqueue_text_from_source(
         app,
         knowledge,
-        kb_id,
+        workspace_id,
         source_id,
         title=title,
         text=text,
@@ -326,7 +326,7 @@ def execute_git_sync(
     )
     record_ingest_source_event(
         knowledge,
-        kb_id,
+        workspace_id,
         source_id,
         {
             "at": at,
@@ -343,15 +343,15 @@ def execute_git_sync(
 def execute_ingest_source_sync(
     app: FastAPI,
     knowledge: KnowledgeStore,
-    kb_id: str,
+    workspace_id: str,
     source_id: str,
     *,
     auto_process: bool,
 ) -> dict[str, Any]:
-    source = knowledge.get_ingest_source(kb_id, source_id)
+    source = knowledge.get_ingest_source(workspace_id, source_id)
     kind = source["kind"]
     if kind == "http_poll":
-        return execute_http_poll_sync(app, knowledge, kb_id, source_id, auto_process=auto_process)
+        return execute_http_poll_sync(app, knowledge, workspace_id, source_id, auto_process=auto_process)
     if kind == "git":
-        return execute_git_sync(app, knowledge, kb_id, source_id, auto_process=auto_process)
+        return execute_git_sync(app, knowledge, workspace_id, source_id, auto_process=auto_process)
     raise AdminError(422, "not_syncable", "该来源类型不支持手动同步")

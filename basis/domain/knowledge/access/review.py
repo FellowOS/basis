@@ -32,7 +32,7 @@ class ReviewAccess:
 
     def create_review_item(
         self,
-        kb_id: str,
+        workspace_id: str,
         *,
         kind: str,
         subject_type: str,
@@ -43,12 +43,12 @@ class ReviewAccess:
         item_id = str(uuid.uuid4())
         now = _now()
         with self._store._lock:
-            self._store._assert_kb_exists(kb_id)
+            self._store._assert_workspace_exists(workspace_id)
             try:
                 review_persist.insert_review_item(
                     self._store._conn,
                     item_id=item_id,
-                    kb_id=kb_id,
+                    workspace_id=workspace_id,
                     kind=kind,
                     subject_type=subject_type,
                     subject_id=subject_id,
@@ -63,11 +63,11 @@ class ReviewAccess:
                     "review_exists",
                     "已有未处理的同类审核项",
                 ) from exc
-        return self.get_review_item(kb_id, item_id)
+        return self.get_review_item(workspace_id, item_id)
 
     def list_review_items(
         self,
-        kb_id: str,
+        workspace_id: str,
         *,
         status: str | None = "open",
         kind: str | None = None,
@@ -75,10 +75,10 @@ class ReviewAccess:
     ) -> list[dict[str, Any]]:
         limit = min(max(1, limit), 200)
         with self._store._lock:
-            self._store._assert_kb_exists(kb_id)
+            self._store._assert_workspace_exists(workspace_id)
             rows = review_persist.list_review_item_rows(
                 self._store._conn,
-                kb_id,
+                workspace_id,
                 status=status,
                 kind=kind,
                 limit=limit,
@@ -87,17 +87,17 @@ class ReviewAccess:
 
     def find_open_review_item(
         self,
-        kb_id: str,
+        workspace_id: str,
         *,
         kind: str,
         subject_type: str,
         subject_id: str,
     ) -> dict[str, Any] | None:
         with self._store._lock:
-            self._store._assert_kb_exists(kb_id)
+            self._store._assert_workspace_exists(workspace_id)
             row = review_persist.fetch_open_review_item(
                 self._store._conn,
-                kb_id,
+                workspace_id,
                 kind=kind,
                 subject_type=subject_type,
                 subject_id=subject_id,
@@ -106,17 +106,17 @@ class ReviewAccess:
             return None
         return review_persist.review_row_to_dict(row)
 
-    def get_review_item(self, kb_id: str, item_id: str) -> dict[str, Any]:
+    def get_review_item(self, workspace_id: str, item_id: str) -> dict[str, Any]:
         with self._store._lock:
-            self._store._assert_kb_exists(kb_id)
-            row = review_persist.fetch_review_item(self._store._conn, kb_id, item_id)
+            self._store._assert_workspace_exists(workspace_id)
+            row = review_persist.fetch_review_item(self._store._conn, workspace_id, item_id)
         if row is None:
             raise AdminError(404, "not_found", "审核项不存在")
         return review_persist.review_row_to_dict(row)
 
     def resolve_review_item(
         self,
-        kb_id: str,
+        workspace_id: str,
         item_id: str,
         *,
         status: str,
@@ -127,9 +127,9 @@ class ReviewAccess:
             raise AdminError(422, "bad_status", "无效的审核状态")
         now = _now()
         with self._store._lock:
-            self._store._assert_kb_exists(kb_id)
+            self._store._assert_workspace_exists(workspace_id)
             row = review_persist.fetch_review_item_status(
-                self._store._conn, kb_id, item_id
+                self._store._conn, workspace_id, item_id
             )
             if row is None:
                 raise AdminError(404, "not_found", "审核项不存在")
@@ -137,7 +137,7 @@ class ReviewAccess:
                 raise AdminError(409, "review_closed", "审核项已处理")
             review_persist.resolve_review_item_row(
                 self._store._conn,
-                kb_id,
+                workspace_id,
                 item_id,
                 status=status,
                 resolved_at=now,
@@ -145,4 +145,4 @@ class ReviewAccess:
                 rationale=rationale,
             )
             self._store._conn.commit()
-        return self.get_review_item(kb_id, item_id)
+        return self.get_review_item(workspace_id, item_id)

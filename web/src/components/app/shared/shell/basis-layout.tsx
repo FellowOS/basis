@@ -1,15 +1,15 @@
 import type { CSSProperties } from 'react';
 import { useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
-import { isSetupKbId, writeActiveKbId } from '@/lib/kb-active-id.js';
-import { parseKbIdFromPath } from '@/lib/nav-config.js';
+import { isSetupWorkspaceId, writeActiveWorkspaceId } from '@/lib/workspace/active-id.js';
+import { parseWorkspaceIdFromPath } from '@/lib/nav-config.js';
 import { BasisSidebar } from '@/components/app/shared/shell/basis-sidebar.js';
 import {
   BasisDesktopAppTitlebar,
   DESKTOP_TITLEBAR_HEIGHT,
 } from '@/components/app/shared/shell/basis-desktop-titlebar.js';
-import { KbProvider } from '@/lib/kb-context.js';
-import { KbCapabilitiesProvider } from '@/lib/kb-capabilities.js';
+import { WorkspaceCatalogProvider } from '@/lib/workspace/context.js';
+import { WorkspaceCapabilitiesProvider } from '@/lib/workspace/capabilities.js';
 import { appIsDesktopProduct } from '@/lib/app-runtime.js';
 import { isMacDesktop } from '@/lib/desktop-bridge.js';
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar.js';
@@ -18,15 +18,15 @@ import { TooltipProvider } from '@/components/ui/tooltip.js';
 import { useI18n } from '@/i18n/context.js';
 import { cn } from '@/lib/utils.js';
 
-/** Graph canvas only — other KB workspaces use normal console page padding. */
-function isKbGraphFullBleedPath(pathname: string): boolean {
-  return /^\/kbs\/[^/]+\/graph\/?$/.test(pathname);
+/** Graph canvas only — other workspace routes use normal console page padding. */
+function isWorkspaceGraphFullBleedPath(pathname: string): boolean {
+  return /^\/workspaces\/[^/]+\/graph\/?$/.test(pathname);
 }
 
 export function BasisLayout({ onLogout }: { onLogout: () => void }) {
   const { t } = useI18n();
   const { pathname } = useLocation();
-  const graphCanvas = isKbGraphFullBleedPath(pathname);
+  const graphCanvas = isWorkspaceGraphFullBleedPath(pathname);
   const isDesktop = appIsDesktopProduct();
   const isMac = isDesktop && isMacDesktop();
   const shellStyle =
@@ -35,14 +35,14 @@ export function BasisLayout({ onLogout }: { onLogout: () => void }) {
       : undefined;
 
   useEffect(() => {
-    const kbId = parseKbIdFromPath(pathname);
-    if (kbId && !isSetupKbId(kbId)) writeActiveKbId(kbId);
+    const workspaceId = parseWorkspaceIdFromPath(pathname);
+    if (workspaceId && !isSetupWorkspaceId(workspaceId)) writeActiveWorkspaceId(workspaceId);
   }, [pathname]);
 
   return (
     <TooltipProvider delayDuration={0}>
-      <KbProvider>
-      <KbCapabilitiesProvider>
+      <WorkspaceCatalogProvider>
+      <WorkspaceCapabilitiesProvider>
       <div
         className="flex h-svh max-h-svh min-h-0 flex-col overflow-hidden"
         style={shellStyle}
@@ -74,7 +74,7 @@ export function BasisLayout({ onLogout }: { onLogout: () => void }) {
               >
                 <div className="pointer-events-none absolute inset-x-0 top-0 z-50 flex items-center gap-2 p-3 md:hidden">
                   <SidebarTrigger
-                    aria-label={t.sidebar.openSidebar}
+                    aria-label={t.core.shell.sidebar.open_sidebar}
                     className={cn(
                       'pointer-events-auto size-auto h-auto w-auto rounded-md border border-border bg-background/90 p-1.5 text-muted-foreground shadow-sm backdrop-blur hover:bg-accent hover:opacity-100 [&_svg]:size-[18px]',
                       isDesktop && '[-webkit-app-region:no-drag]',
@@ -95,8 +95,8 @@ export function BasisLayout({ onLogout }: { onLogout: () => void }) {
           </div>
         </SidebarProvider>
       </div>
-      </KbCapabilitiesProvider>
-      </KbProvider>
+      </WorkspaceCapabilitiesProvider>
+      </WorkspaceCatalogProvider>
       <Toaster position="bottom-right" richColors closeButton />
     </TooltipProvider>
   );

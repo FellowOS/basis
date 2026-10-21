@@ -17,7 +17,7 @@ export function pickCountForm<T extends string>(
 }
 
 export function requestFailedStatusMessage(locale: Locale, status: number): string {
-  return fmt(messagesForLocale(locale).common.requestFailedStatus, { status });
+  return fmt(messagesForLocale(locale).core.common.requestFailedStatus, { status });
 }
 
 export function formatLocaleNumber(locale: Locale, value: number | null | undefined): string {
@@ -64,7 +64,7 @@ export function formatBadgeCount(locale: Locale, count: number, maxBeforeOverflo
     return formatLocaleNumber(locale, count);
   }
   const cap = formatLocaleNumber(locale, maxBeforeOverflow);
-  return fmt(messagesForLocale(locale).common.badgeOverflow, { cap });
+  return fmt(messagesForLocale(locale).core.common.badgeOverflow, { cap });
 }
 
 export function compareLocaleStrings(locale: Locale, a: string, b: string): number {

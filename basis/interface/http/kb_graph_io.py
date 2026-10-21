@@ -1,4 +1,4 @@
-"""KB Explorer graph import/export routes."""
+"""Explorer graph import/export routes."""
 
 from __future__ import annotations
 
@@ -13,8 +13,8 @@ from basis.domain.tenancy.admin.store import AdminStore, User
 from basis.interface.http.deps import (
     kb_graph_runtime_for,
     get_current_user,
-    get_kb_for_editor,
-    get_kb_for_viewer,
+    get_workspace_for_editor,
+    get_workspace_for_viewer,
     get_store,
 )
 from basis.domain.graph.session.guard import require_kb_graph_session
@@ -22,17 +22,17 @@ from basis.domain.knowledge.services.graph_audit import audit_kb_graph
 
 router = APIRouter(tags=["knowledge-bases"])
 
-@router.post("/{kb_id}/import")
+@router.post("/{workspace_id}/import")
 async def kb_import_graph(
-    kb_id: str,
+    workspace_id: str,
     request: Request,
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> Any:
     """
-Kb Import Graph. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Import Graph. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
-    get_kb_for_editor(request, user, kb_id, store)
+    get_workspace_for_editor(request, user, workspace_id, store)
     raise AdminError(
         409,
         "import_requires_review",
@@ -40,18 +40,18 @@ Kb Import Graph. Requires KB membership (session) or KB API token with read/writ
     )
 
 
-@router.post("/{kb_id}/export")
+@router.post("/{workspace_id}/export")
 async def kb_export_graph(
-    kb_id: str,
+    workspace_id: str,
     request: Request,
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> Response:
     """
-Kb Export Graph. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Export Graph. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
-    get_kb_for_viewer(request, user, kb_id, store)
-    runtime = kb_graph_runtime_for(request, kb_id)
+    get_workspace_for_viewer(request, user, workspace_id, store)
+    runtime = kb_graph_runtime_for(request, workspace_id)
     session = require_kb_graph_session(runtime)
     from basis.domain.graph.reads.export_read import export_graph
 
@@ -69,7 +69,7 @@ Kb Export Graph. Requires KB membership (session) or KB API token with read/writ
     audit_kb_graph(
         store,
         user,
-        kb_id,
+        workspace_id,
         "kb.graph.export",
         extra={"format": str(fmt)},
     )

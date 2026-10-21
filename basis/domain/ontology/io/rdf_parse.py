@@ -1,4 +1,4 @@
-"""RDF / SKOS parsing for KB Explorer HTTP."""
+"""RDF / SKOS parsing for workspace Explorer HTTP."""
 
 from __future__ import annotations
 

@@ -98,7 +98,7 @@ class ProposeEntityWritebackInput(_ExtraAllowed):
 
 
 class DescribeKbResponse(_ExtraAllowed):
-    kb_id: str
+    workspace_id: str
     name: str
 
 
@@ -161,7 +161,7 @@ class ApproveReviewItemResponse(_ExtraAllowed):
 
 
 OPERATION_INPUT_MODELS: dict[str, type[BaseModel]] = {
-    "describe_kb": DescribeKbInput,
+    "describe_workspace": DescribeKbInput,
     "search_chunks": SearchChunksInput,
     "get_chunk": GetChunkInput,
     "find_entities": FindEntitiesInput,
@@ -194,14 +194,14 @@ def coerce_operation_args(name: str, arguments: dict[str, Any] | None) -> dict[s
     raw = arguments or {}
     if model_cls is None:
         return raw
-    if name == "describe_kb" and not raw:
+    if name == "describe_workspace" and not raw:
         return {}
     validated = model_cls.model_validate(raw)
     return validated.model_dump(exclude_none=True)
 
 
 OPERATION_RESPONSE_MODELS: dict[str, type[BaseModel]] = {
-    "describe_kb": DescribeKbResponse,
+    "describe_workspace": DescribeKbResponse,
     "search_chunks": SearchChunksResponse,
     "get_chunk": GetChunkResponse,
     "find_entities": FindEntitiesResponse,

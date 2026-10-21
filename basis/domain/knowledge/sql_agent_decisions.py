@@ -9,7 +9,7 @@ def insert_agent_decision(
     conn: Any,
     *,
     decision_id: str,
-    kb_id: str,
+    workspace_id: str,
     review_item_id: str | None,
     action: str,
     status: str,
@@ -22,13 +22,13 @@ def insert_agent_decision(
     conn.execute(
         """
         INSERT INTO agent_decisions (
-            id, kb_id, review_item_id, action, status, confidence,
+            id, workspace_id, review_item_id, action, status, confidence,
             rationale, trace_json, created_at, applied_at
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             decision_id,
-            kb_id,
+            workspace_id,
             review_item_id,
             action,
             status,

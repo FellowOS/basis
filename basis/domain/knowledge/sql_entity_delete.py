@@ -15,21 +15,21 @@ def _in_clause(ids: list[str]) -> str:
     return ",".join("?" * len(ids))
 
 
-def _load_entity(conn: Any, kb_id: str, entity_id: str) -> Any:
+def _load_entity(conn: Any, workspace_id: str, entity_id: str) -> Any:
     row = conn.execute(
         """
         SELECT id, canonical_label
         FROM entities
-        WHERE kb_id = ? AND id = ?
+        WHERE workspace_id = ? AND id = ?
         """,
-        (kb_id, entity_id),
+        (workspace_id, entity_id),
     ).fetchone()
     if row is None:
         raise AdminError(404, "not_found", "实体不存在")
     return row
 
 
-def _statement_rows(conn: Any, kb_id: str, entity_id: str) -> list[Any]:
+def _statement_rows(conn: Any, workspace_id: str, entity_id: str) -> list[Any]:
     return conn.execute(
         """
         SELECT
@@ -44,18 +44,18 @@ def _statement_rows(conn: Any, kb_id: str, entity_id: str) -> list[Any]:
             (
                 SELECT e.quote
                 FROM statement_evidence e
-                WHERE e.statement_id = s.id AND e.kb_id = ?
+                WHERE e.statement_id = s.id AND e.workspace_id = ?
                 ORDER BY e.created_at
                 LIMIT 1
             ) AS evidence_quote
         FROM statements s
         INNER JOIN entities subj ON subj.id = s.subject_id
         LEFT JOIN entities obj ON obj.id = s.object_entity_id
-        WHERE s.kb_id = ?
+        WHERE s.workspace_id = ?
           AND (s.subject_id = ? OR s.object_entity_id = ?)
         ORDER BY s.recorded_at DESC
         """,
-        (kb_id, kb_id, entity_id, entity_id),
+        (workspace_id, workspace_id, entity_id, entity_id),
     ).fetchall()
 
 
@@ -89,15 +89,15 @@ def _count(conn: Any, sql: str, params: tuple[Any, ...]) -> int:
 
 def _related_counts(
     conn: Any,
-    kb_id: str,
+    workspace_id: str,
     entity_id: str,
     statement_ids: list[str],
 ) -> dict[str, int]:
     typed_sql = """
         SELECT COUNT(*) AS n FROM typed_facts
-        WHERE kb_id = ? AND (subject_id = ? OR object_entity_id = ?
+        WHERE workspace_id = ? AND (subject_id = ? OR object_entity_id = ?
     """
-    typed_params: list[Any] = [kb_id, entity_id, entity_id]
+    typed_params: list[Any] = [workspace_id, entity_id, entity_id]
     if statement_ids:
         typed_sql += f" OR from_statement_id IN ({_in_clause(statement_ids)})"
         typed_params.extend(statement_ids)
@@ -108,17 +108,17 @@ def _related_counts(
             conn,
             """
             SELECT COUNT(*) AS n FROM derived_facts
-            WHERE kb_id = ? AND (subject_id = ? OR object_entity_id = ?)
+            WHERE workspace_id = ? AND (subject_id = ? OR object_entity_id = ?)
             """,
-            (kb_id, entity_id, entity_id),
+            (workspace_id, entity_id, entity_id),
         ),
         "merge_count": _count(
             conn,
             """
             SELECT COUNT(*) AS n FROM entity_merges
-            WHERE kb_id = ? AND (source_entity_id = ? OR target_entity_id = ?)
+            WHERE workspace_id = ? AND (source_entity_id = ? OR target_entity_id = ?)
             """,
-            (kb_id, entity_id, entity_id),
+            (workspace_id, entity_id, entity_id),
         ),
     }
 
@@ -132,22 +132,22 @@ def _null_fk(conn: Any, table: str, column: str, ids: list[str]) -> None:
     )
 
 
-def _delete_kb_ids(conn: Any, table: str, kb_id: str, column: str, ids: list[str]) -> None:
+def _delete_kb_ids(conn: Any, table: str, workspace_id: str, column: str, ids: list[str]) -> None:
     if not ids:
         return
     conn.execute(
-        f"DELETE FROM {table} WHERE kb_id = ? AND {column} IN ({_in_clause(ids)})",
-        (kb_id, *ids),
+        f"DELETE FROM {table} WHERE workspace_id = ? AND {column} IN ({_in_clause(ids)})",
+        (workspace_id, *ids),
     )
 
 
-def preview_entity_deletion(conn: Any, kb_id: str, entity_id: str) -> dict[str, Any]:
-    entity = _load_entity(conn, kb_id, entity_id)
-    rows = _statement_rows(conn, kb_id, entity_id)
+def preview_entity_deletion(conn: Any, workspace_id: str, entity_id: str) -> dict[str, Any]:
+    entity = _load_entity(conn, workspace_id, entity_id)
+    rows = _statement_rows(conn, workspace_id, entity_id)
     statements = [_statement_payload(row, entity_id) for row in rows]
     counts = _related_counts(
         conn,
-        kb_id,
+        workspace_id,
         entity_id,
         [row["id"] for row in rows],
     )
@@ -162,15 +162,15 @@ def preview_entity_deletion(conn: Any, kb_id: str, entity_id: str) -> dict[str, 
     }
 
 
-def execute_delete_entity(conn: Any, kb_id: str, entity_id: str) -> dict[str, Any]:
-    entity = _load_entity(conn, kb_id, entity_id)
-    statement_ids = [row["id"] for row in _statement_rows(conn, kb_id, entity_id)]
+def execute_delete_entity(conn: Any, workspace_id: str, entity_id: str) -> dict[str, Any]:
+    entity = _load_entity(conn, workspace_id, entity_id)
+    statement_ids = [row["id"] for row in _statement_rows(conn, workspace_id, entity_id)]
 
     typed_sql = """
         SELECT id FROM typed_facts
-        WHERE kb_id = ? AND (subject_id = ? OR object_entity_id = ?
+        WHERE workspace_id = ? AND (subject_id = ? OR object_entity_id = ?
     """
-    typed_params: list[Any] = [kb_id, entity_id, entity_id]
+    typed_params: list[Any] = [workspace_id, entity_id, entity_id]
     if statement_ids:
         typed_sql += f" OR from_statement_id IN ({_in_clause(statement_ids)})"
         typed_params.extend(statement_ids)
@@ -182,9 +182,9 @@ def execute_delete_entity(conn: Any, kb_id: str, entity_id: str) -> dict[str, An
         for row in conn.execute(
             """
             SELECT id FROM derived_facts
-            WHERE kb_id = ? AND (subject_id = ? OR object_entity_id = ?)
+            WHERE workspace_id = ? AND (subject_id = ? OR object_entity_id = ?)
             """,
-            (kb_id, entity_id, entity_id),
+            (workspace_id, entity_id, entity_id),
         ).fetchall()
     ]
 
@@ -205,46 +205,46 @@ def execute_delete_entity(conn: Any, kb_id: str, entity_id: str) -> dict[str, An
             """,
             tuple(statement_ids),
         )
-    _delete_kb_ids(conn, "derived_facts", kb_id, "id", derived_ids)
+    _delete_kb_ids(conn, "derived_facts", workspace_id, "id", derived_ids)
 
     _null_fk(conn, "statements", "supersedes_id", statement_ids)
     _null_fk(conn, "typed_facts", "supersedes_id", typed_ids)
-    _delete_kb_ids(conn, "statement_evidence", kb_id, "statement_id", statement_ids)
-    _delete_kb_ids(conn, "statement_qualifiers", kb_id, "statement_id", statement_ids)
-    _delete_kb_ids(conn, "time_mentions", kb_id, "statement_id", statement_ids)
-    _delete_kb_ids(conn, "typed_facts", kb_id, "id", typed_ids)
+    _delete_kb_ids(conn, "statement_evidence", workspace_id, "statement_id", statement_ids)
+    _delete_kb_ids(conn, "statement_qualifiers", workspace_id, "statement_id", statement_ids)
+    _delete_kb_ids(conn, "time_mentions", workspace_id, "statement_id", statement_ids)
+    _delete_kb_ids(conn, "typed_facts", workspace_id, "id", typed_ids)
     for subject_type in _STATEMENT_REVIEW_SUBJECT_TYPES:
         if not statement_ids:
             break
         conn.execute(
             f"""
             DELETE FROM review_items
-            WHERE kb_id = ? AND subject_type = ?
+            WHERE workspace_id = ? AND subject_type = ?
               AND subject_id IN ({_in_clause(statement_ids)})
             """,
-            (kb_id, subject_type, *statement_ids),
+            (workspace_id, subject_type, *statement_ids),
         )
-    _delete_kb_ids(conn, "statements", kb_id, "id", statement_ids)
+    _delete_kb_ids(conn, "statements", workspace_id, "id", statement_ids)
 
     conn.execute(
-        "DELETE FROM statement_qualifiers WHERE kb_id = ? AND entity_id = ?",
-        (kb_id, entity_id),
+        "DELETE FROM statement_qualifiers WHERE workspace_id = ? AND entity_id = ?",
+        (workspace_id, entity_id),
     )
-    purge_entity_connector_sync_data(conn, kb_id, entity_id)
+    purge_entity_connector_sync_data(conn, workspace_id, entity_id)
     conn.execute(
-        "DELETE FROM entity_names WHERE kb_id = ? AND entity_id = ?",
-        (kb_id, entity_id),
+        "DELETE FROM entity_names WHERE workspace_id = ? AND entity_id = ?",
+        (workspace_id, entity_id),
     )
     conn.execute(
         """
         DELETE FROM entity_merges
-        WHERE kb_id = ? AND (source_entity_id = ? OR target_entity_id = ?)
+        WHERE workspace_id = ? AND (source_entity_id = ? OR target_entity_id = ?)
         """,
-        (kb_id, entity_id, entity_id),
+        (workspace_id, entity_id, entity_id),
     )
     conn.execute(
-        "DELETE FROM entities WHERE kb_id = ? AND id = ?",
-        (kb_id, entity_id),
+        "DELETE FROM entities WHERE workspace_id = ? AND id = ?",
+        (workspace_id, entity_id),
     )
     conn.commit()
 

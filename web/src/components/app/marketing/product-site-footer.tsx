@@ -48,7 +48,7 @@ type ProductSiteFooterProps = {
 
 export function ProductSiteFooter({ className }: ProductSiteFooterProps) {
   const { t } = useI18n();
-  const m = t.marketing;
+  const m = t.home.marketing;
   const f = m.footer;
   const year = String(new Date().getFullYear());
 
@@ -66,16 +66,16 @@ export function ProductSiteFooter({ className }: ProductSiteFooterProps) {
         </div>
 
         <FooterColumn
-          title={f.productTitle}
+          title={f.product_title}
           links={[
             { label: f.product.product, to: '/#product' },
-            { label: f.product.howItWorks, to: '/#how-it-works' },
+            { label: f.product.how_it_works, to: '/#how-it-works' },
             { label: f.product.capabilities, to: '/#capabilities' },
-            { label: f.product.selfHost, to: '/#self-host' },
+            { label: f.product.self_host, to: '/#self-host' },
           ]}
         />
         <FooterColumn
-          title={f.developersTitle}
+          title={f.developers_title}
           links={[
             { label: f.developers.docs, to: '/docs' },
             { label: f.developers.api, to: '/swagger' },
@@ -88,7 +88,7 @@ export function ProductSiteFooter({ className }: ProductSiteFooterProps) {
           ]}
         />
         <FooterColumn
-          title={f.resourcesTitle}
+          title={f.resources_title}
           links={[
             { label: f.resources.deployment, to: '/docs/deployment' },
             { label: f.resources.quickstart, to: '/docs/quickstart' },
@@ -107,8 +107,8 @@ export function ProductSiteFooter({ className }: ProductSiteFooterProps) {
       </div>
 
       <div className="mt-10 flex flex-col gap-1 border-t border-border/50 pt-4 text-[11px] text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-        <p>{fmt(m.footerCopyright, { year })}</p>
-        <p>{m.footerTagline}</p>
+        <p>{fmt(m.footer_copyright, { year })}</p>
+        <p>{m.footer_tagline}</p>
       </div>
     </footer>
   );

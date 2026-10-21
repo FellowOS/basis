@@ -24,8 +24,8 @@ def _object_key(row: dict[str, Any]) -> str:
     return f"value:{row.get('object_value')}"
 
 
-def find_statement_conflict_groups(knowledge: KnowledgeStore, kb_id: str) -> list[dict[str, Any]]:
-    rows = knowledge.list_active_statements(kb_id)
+def find_statement_conflict_groups(knowledge: KnowledgeStore, workspace_id: str) -> list[dict[str, Any]]:
+    rows = knowledge.list_active_statements(workspace_id)
     buckets: dict[tuple[str, str], list[dict[str, Any]]] = defaultdict(list)
     for row in rows:
         key = (row["subject_id"], _normalize_surface(row["surface_phrase"]))
@@ -57,17 +57,17 @@ def find_statement_conflict_groups(knowledge: KnowledgeStore, kb_id: str) -> lis
     return groups
 
 
-def scan_statement_conflicts(knowledge: KnowledgeStore, kb_id: str) -> dict[str, Any]:
+def scan_statement_conflicts(knowledge: KnowledgeStore, workspace_id: str) -> dict[str, Any]:
     """Enqueue open review items for each conflicting statement group."""
     created: list[str] = []
     skipped = 0
-    for group in find_statement_conflict_groups(knowledge, kb_id):
+    for group in find_statement_conflict_groups(knowledge, workspace_id):
         subject_id = hashlib.sha256(
             ":".join(group["statement_ids"]).encode()
         ).hexdigest()[:32]
         try:
             item = knowledge.create_review_item(
-                kb_id,
+                workspace_id,
                 kind=STATEMENT_CONFLICT_KIND,
                 subject_type=STATEMENT_CONFLICT_SUBJECT_TYPE,
                 subject_id=subject_id,
@@ -77,7 +77,7 @@ def scan_statement_conflicts(knowledge: KnowledgeStore, kb_id: str) -> dict[str,
             created.append(item["id"])
             emit_statement_conflict_alert(
                 knowledge,
-                kb_id,
+                workspace_id,
                 review_item_id=item["id"],
                 surface_phrase=str(group.get("surface_phrase") or ""),
                 statement_ids=list(group.get("statement_ids") or []),
@@ -92,7 +92,7 @@ def scan_statement_conflicts(knowledge: KnowledgeStore, kb_id: str) -> dict[str,
 
 def resolve_statement_conflict_group(
     knowledge: KnowledgeStore,
-    kb_id: str,
+    workspace_id: str,
     statement_ids: list[str],
     keeper_statement_id: str,
 ) -> dict[str, Any]:
@@ -105,7 +105,7 @@ def resolve_statement_conflict_group(
     for statement_id in statement_ids:
         if statement_id == keeper_statement_id:
             continue
-        knowledge.invalidate_statement(kb_id, statement_id)
+        knowledge.invalidate_statement(workspace_id, statement_id)
         invalidated.append(statement_id)
     return {
         "keeper_statement_id": keeper_statement_id,

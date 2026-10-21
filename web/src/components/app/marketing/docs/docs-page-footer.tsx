@@ -49,14 +49,14 @@ export function DocsPageFooter({ neighbours }: DocsPageFooterProps) {
 
   return (
     <footer className="mt-10 w-full border-t border-border pt-6">
-      <nav className="grid gap-3 sm:grid-cols-2" aria-label={t.docs.pagerAria}>
+      <nav className="grid gap-3 sm:grid-cols-2" aria-label={t.docs.page.pager_aria}>
         {neighbours.previous ? (
-          <PagerCard direction="previous" page={neighbours.previous} label={t.docs.previousPage} />
+          <PagerCard direction="previous" page={neighbours.previous} label={t.docs.page.previous_page} />
         ) : (
           <div className="hidden sm:block" aria-hidden />
         )}
         {neighbours.next ? (
-          <PagerCard direction="next" page={neighbours.next} label={t.docs.nextPage} />
+          <PagerCard direction="next" page={neighbours.next} label={t.docs.page.next_page} />
         ) : null}
       </nav>
     </footer>

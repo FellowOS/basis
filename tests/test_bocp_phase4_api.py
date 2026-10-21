@@ -1,4 +1,4 @@
-"""End-to-end HTTP integration tests for BOCP Phase 4A: /api/v1/kbs/{kb_id}/connectors/* and Review writeback approval."""
+"""End-to-end HTTP integration tests for BOCP Phase 4A: /api/v1/workspaces/{workspace_id}/connectors/* and Review writeback approval."""
 
 from __future__ import annotations
 
@@ -50,11 +50,11 @@ def test_connectors_http_endpoints_and_review_writeback_flow(tmp_path: Path) -> 
     )
     assert reg.status_code == 200
     headers = {"Authorization": f"Bearer {reg.json()['token']}"}
-    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
 
     # 3. Query Connector Catalog
     cat_resp = client.get(
-        f"/api/v1/kbs/{kb_id}/connectors/catalog",
+        f"/api/v1/workspaces/{workspace_id}/connectors/catalog",
         headers=headers,
         params={"has_streams_only": True},
     )
@@ -74,7 +74,7 @@ def test_connectors_http_endpoints_and_review_writeback_flow(tmp_path: Path) -> 
 
     # 4. Create Connection & Run CHECK + DISCOVER
     put_conn = client.put(
-        f"/api/v1/kbs/{kb_id}/connectors/connections/postgres/erp_main",
+        f"/api/v1/workspaces/{workspace_id}/connectors/connections/postgres/erp_main",
         headers=headers,
         json={
             "auth_type": "database_dsn",
@@ -86,14 +86,14 @@ def test_connectors_http_endpoints_and_review_writeback_flow(tmp_path: Path) -> 
     assert put_conn.json()["connection"]["has_credentials"] is True
 
     chk_resp = client.post(
-        f"/api/v1/kbs/{kb_id}/connectors/connections/postgres/erp_main/check",
+        f"/api/v1/workspaces/{workspace_id}/connectors/connections/postgres/erp_main/check",
         headers=headers,
     )
     assert chk_resp.status_code == 200
     assert chk_resp.json()["ok"] is True
 
     disc_resp = client.get(
-        f"/api/v1/kbs/{kb_id}/connectors/connections/postgres/erp_main/discover",
+        f"/api/v1/workspaces/{workspace_id}/connectors/connections/postgres/erp_main/discover",
         headers=headers,
         params={"external_table": "accounts"},
     )
@@ -109,7 +109,7 @@ def test_connectors_http_endpoints_and_review_writeback_flow(tmp_path: Path) -> 
 
     # 5. Create Table Mapping & Execute Inbound Sync
     map_resp = client.post(
-        f"/api/v1/kbs/{kb_id}/connectors/table-mappings",
+        f"/api/v1/workspaces/{workspace_id}/connectors/table-mappings",
         headers=headers,
         json={
             "provider": "postgres",
@@ -136,7 +136,7 @@ def test_connectors_http_endpoints_and_review_writeback_flow(tmp_path: Path) -> 
     mapping_id = map_resp.json()["mapping"]["id"]
 
     sync_resp = client.post(
-        f"/api/v1/kbs/{kb_id}/connectors/table-mappings/{mapping_id}/sync",
+        f"/api/v1/workspaces/{workspace_id}/connectors/table-mappings/{mapping_id}/sync",
         headers=headers,
     )
     assert sync_resp.status_code == 200
@@ -144,7 +144,7 @@ def test_connectors_http_endpoints_and_review_writeback_flow(tmp_path: Path) -> 
 
     # Verify graph projection was automatically rebuilt after connector sync
     graph_nodes_resp = client.get(
-        f"/api/v1/kbs/{kb_id}/graph/nodes",
+        f"/api/v1/workspaces/{workspace_id}/graph/nodes",
         headers=headers,
     )
     assert graph_nodes_resp.status_code == 200
@@ -156,7 +156,7 @@ def test_connectors_http_endpoints_and_review_writeback_flow(tmp_path: Path) -> 
 
     # Find synced entity & verify entity facts endpoint returns external_sync context
     find_resp = client.get(
-        f"/api/v1/kbs/{kb_id}/entities/find",
+        f"/api/v1/workspaces/{workspace_id}/entities/find",
         headers=headers,
         params={"q": "Globex"},
     )
@@ -164,7 +164,7 @@ def test_connectors_http_endpoints_and_review_writeback_flow(tmp_path: Path) -> 
     entity_id = find_resp.json()["ledger_entities"][0]["id"]
 
     facts_resp = client.get(
-        f"/api/v1/kbs/{kb_id}/ledger/entities/{entity_id}/facts",
+        f"/api/v1/workspaces/{workspace_id}/ledger/entities/{entity_id}/facts",
         headers=headers,
     )
     assert facts_resp.status_code == 200
@@ -178,7 +178,7 @@ def test_connectors_http_endpoints_and_review_writeback_flow(tmp_path: Path) -> 
 
     # 6. Propose Entity Writeback -> Creates Outbox + Open Review Item
     prop_resp = client.post(
-        f"/api/v1/kbs/{kb_id}/connectors/outbox/propose",
+        f"/api/v1/workspaces/{workspace_id}/connectors/outbox/propose",
         headers=headers,
         json={
             "entity_id": entity_id,
@@ -191,9 +191,9 @@ def test_connectors_http_endpoints_and_review_writeback_flow(tmp_path: Path) -> 
     review_item_id = outbox["review_item_id"]
     assert review_item_id is not None
 
-    # 7. Approve via Standard KB Review Endpoint -> Executes Remote Writeback!
+    # 7. Approve via Standard workspace review endpoint -> Executes Remote Writeback!
     app_resp = client.post(
-        f"/api/v1/kbs/{kb_id}/review/items/{review_item_id}/approve",
+        f"/api/v1/workspaces/{workspace_id}/review/items/{review_item_id}/approve",
         headers=headers,
         json={"rationale": "Approved enterprise upgrade"},
     )
@@ -214,7 +214,7 @@ def test_connectors_http_endpoints_and_review_writeback_flow(tmp_path: Path) -> 
 
     # Verify connector runs log endpoint
     runs_resp = client.get(
-        f"/api/v1/kbs/{kb_id}/connectors/runs",
+        f"/api/v1/workspaces/{workspace_id}/connectors/runs",
         headers=headers,
     )
     assert runs_resp.status_code == 200
@@ -232,10 +232,10 @@ def test_table_mapping_get_update_and_delete(tmp_path: Path) -> None:
     )
     assert reg.status_code == 200
     headers = {"Authorization": f"Bearer {reg.json()['token']}"}
-    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
 
     client.put(
-        f"/api/v1/kbs/{kb_id}/connectors/connections/postgres/default",
+        f"/api/v1/workspaces/{workspace_id}/connectors/connections/postgres/default",
         headers=headers,
         json={
             "auth_type": "database_dsn",
@@ -245,7 +245,7 @@ def test_table_mapping_get_update_and_delete(tmp_path: Path) -> None:
     )
 
     create_resp = client.post(
-        f"/api/v1/kbs/{kb_id}/connectors/table-mappings",
+        f"/api/v1/workspaces/{workspace_id}/connectors/table-mappings",
         headers=headers,
         json={
             "provider": "postgres",
@@ -264,7 +264,7 @@ def test_table_mapping_get_update_and_delete(tmp_path: Path) -> None:
     mapping_id = create_resp.json()["mapping"]["id"]
 
     get_resp = client.get(
-        f"/api/v1/kbs/{kb_id}/connectors/table-mappings/{mapping_id}",
+        f"/api/v1/workspaces/{workspace_id}/connectors/table-mappings/{mapping_id}",
         headers=headers,
     )
     assert get_resp.status_code == 200
@@ -272,7 +272,7 @@ def test_table_mapping_get_update_and_delete(tmp_path: Path) -> None:
     assert get_resp.json()["mapping"]["external_table"] == "demo_items"
 
     update_resp = client.put(
-        f"/api/v1/kbs/{kb_id}/connectors/table-mappings/{mapping_id}",
+        f"/api/v1/workspaces/{workspace_id}/connectors/table-mappings/{mapping_id}",
         headers=headers,
         json={
             "provider": "postgres",
@@ -292,15 +292,14 @@ def test_table_mapping_get_update_and_delete(tmp_path: Path) -> None:
     assert update_resp.json()["mapping"]["label_column"] == "title"
 
     delete_resp = client.delete(
-        f"/api/v1/kbs/{kb_id}/connectors/table-mappings/{mapping_id}",
+        f"/api/v1/workspaces/{workspace_id}/connectors/table-mappings/{mapping_id}",
         headers=headers,
     )
     assert delete_resp.status_code == 200
     assert delete_resp.json()["deleted"] is True
 
     missing_resp = client.get(
-        f"/api/v1/kbs/{kb_id}/connectors/table-mappings/{mapping_id}",
+        f"/api/v1/workspaces/{workspace_id}/connectors/table-mappings/{mapping_id}",
         headers=headers,
     )
     assert missing_resp.status_code == 404
-

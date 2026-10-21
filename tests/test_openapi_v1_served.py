@@ -18,7 +18,7 @@ def test_openapi_v1_json_endpoint_matches_app_export(tmp_path) -> None:
     assert response.status_code == 200
     served = response.json()
     assert served["openapi"] == "3.1.0"
-    assert "/api/v1/kbs/{kb_id}/mcp" in served["paths"]
+    assert "/api/v1/workspaces/{workspace_id}/mcp" in served["paths"]
     expected = export_openapi_v1_document(app)
     assert served == expected
 
@@ -32,8 +32,8 @@ def test_openapi_kb_and_platform_slices(tmp_path) -> None:
     assert kb == export_openapi_v1_kb(app)
     assert platform == export_openapi_v1_platform(app)
     assert len(kb["paths"]) < len(full["paths"])
-    assert "/api/v1/kbs/{kb_id}/mcp" in kb["paths"]
-    assert "/api/v1/kbs" in platform["paths"]
+    assert "/api/v1/workspaces/{workspace_id}/mcp" in kb["paths"]
+    assert "/api/v1/workspaces" in platform["paths"]
 
 
 def test_api_v1_mcp_info_and_legacy_path_gone(tmp_path) -> None:
@@ -43,12 +43,12 @@ def test_api_v1_mcp_info_and_legacy_path_gone(tmp_path) -> None:
         json={"email": "v1@example.com", "password": "password1", "display_name": "V"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
 
-    v1 = client.get(f"/api/v1/kbs/{kb_id}/mcp", headers=headers)
+    v1 = client.get(f"/api/v1/workspaces/{workspace_id}/mcp", headers=headers)
     assert v1.status_code == 200
     assert v1.headers.get("deprecation") is None
-    assert v1.json()["mcp_url"].endswith(f"/api/v1/kbs/{kb_id}/mcp")
+    assert v1.json()["mcp_url"].endswith(f"/api/v1/workspaces/{workspace_id}/mcp")
 
-    legacy = client.get(f"/api/kbs/{kb_id}/mcp", headers=headers)
+    legacy = client.get(f"/api/workspaces/{workspace_id}/mcp", headers=headers)
     assert legacy.status_code == 410

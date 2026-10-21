@@ -1,4 +1,4 @@
-"""Per-KB agent governor policy (F-GOV-04)."""
+"""Per-workspace agent governor policy (F-GOV-04)."""
 
 from __future__ import annotations
 
@@ -13,7 +13,7 @@ DEFAULT_GOVERNOR_INTERVAL_MINUTES = 1440
 
 @dataclass(frozen=True)
 class GovernanceConfig:
-    kb_id: str
+    workspace_id: str
     schema_version: int = 1
     governor_enabled: bool = False
     governor_interval_minutes: int = DEFAULT_GOVERNOR_INTERVAL_MINUTES

@@ -18,7 +18,7 @@ _LEGACY_PROPOSED_BY = "legacy_import"
 
 @dataclass
 class MigrationReport:
-    kb_id: str
+    workspace_id: str
     graph_path: str
     dry_run: bool
     documents_seen: int = 0
@@ -32,7 +32,7 @@ class MigrationReport:
 
     def to_dict(self) -> dict[str, Any]:
         return {
-            "kb_id": self.kb_id,
+            "workspace_id": self.workspace_id,
             "graph_path": self.graph_path,
             "dry_run": self.dry_run,
             "documents_seen": self.documents_seen,
@@ -68,14 +68,14 @@ def _collect_edges(session: GraphSession) -> list[Any]:
 def migrate_legacy_graph(
     knowledge: KnowledgeStore,
     persistence: GraphPersistence,
-    kb_id: str,
+    workspace_id: str,
     *,
     dry_run: bool = True,
     rebuild_projection: bool = False,
 ) -> MigrationReport:
-    path = persistence.graph_path(kb_id)
+    path = persistence.graph_path(workspace_id)
     report = MigrationReport(
-        kb_id=kb_id,
+        workspace_id=workspace_id,
         graph_path=str(path),
         dry_run=dry_run,
     )
@@ -83,7 +83,7 @@ def migrate_legacy_graph(
         report.unmappable.append({"code": "no_graph_file", "detail": "snapshot missing"})
         return report
 
-    session, _meta = persistence.load_snapshot(kb_id)
+    session, _meta = persistence.load_snapshot(workspace_id)
     document_chunks: dict[str, str] = {}
     entity_map: dict[str, str] = {}
     document_ids: set[str] = set()
@@ -98,7 +98,7 @@ def migrate_legacy_graph(
             text = _node_text(node)
             if not dry_run:
                 _doc_row, chunk_id, created = knowledge.ensure_legacy_document(
-                    kb_id,
+                    workspace_id,
                     external_key=node_id,
                     title=node_id,
                     text=text,
@@ -121,7 +121,7 @@ def migrate_legacy_graph(
         label = _node_text(node)
         if dry_run:
             continue
-        entity_map[node.node_id] = knowledge.get_or_create_entity_by_label(kb_id, label)
+        entity_map[node.node_id] = knowledge.get_or_create_entity_by_label(workspace_id, label)
         report.entities_mapped += 1
 
     default_chunk_id: str | None = next(iter(document_chunks.values()), None)
@@ -183,7 +183,7 @@ def migrate_legacy_graph(
             continue
 
         if knowledge.has_statement_on_chunk(
-            kb_id,
+            workspace_id,
             chunk_id,
             subject,
             edge_type,
@@ -193,7 +193,7 @@ def migrate_legacy_graph(
             continue
 
         knowledge.add_open_statement(
-            kb_id,
+            workspace_id,
             subject_id=subject,
             surface_phrase=edge_type,
             object_entity_id=target_entity,
@@ -206,10 +206,10 @@ def migrate_legacy_graph(
         report.statements_created += 1
 
     if not dry_run and rebuild_projection:
-        apply_rebuild_to_session(knowledge, kb_id, session)
-        ledger = knowledge.get_projection_state(kb_id)
+        apply_rebuild_to_session(knowledge, workspace_id, session)
+        ledger = knowledge.get_projection_state(workspace_id)
         persistence.save(
-            kb_id,
+            workspace_id,
             session,
             projection_revision=ledger["revision"],
             schema_version=ledger["schema_version"],
@@ -230,11 +230,11 @@ def migrate_all_legacy_graphs(
         migrate_legacy_graph(
             knowledge,
             persistence,
-            kb_id,
+            workspace_id,
             dry_run=dry_run,
             rebuild_projection=rebuild_projection,
         ).to_dict()
-        for kb_id in kb_ids
+        for workspace_id in kb_ids
     ]
 
 

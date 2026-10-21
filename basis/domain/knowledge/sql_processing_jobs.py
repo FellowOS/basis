@@ -10,7 +10,7 @@ from basis.domain.errors import AdminError
 from basis.domain.knowledge.ledger_rows import JobRow
 
 _JOB_SELECT = """
-    SELECT id, kb_id, kind, subject_type, subject_id, status, attempt,
+    SELECT id, workspace_id, kind, subject_type, subject_id, status, attempt,
            progress, error_code, error_detail_json, options_json, result_json,
            created_at, started_at, finished_at
 """
@@ -19,7 +19,7 @@ _JOB_SELECT = """
 def processing_job_from_db_row(row: sqlite3.Row) -> dict[str, Any]:
     return {
         "id": row["id"],
-        "kb_id": row["kb_id"],
+        "workspace_id": row["workspace_id"],
         "kind": row["kind"],
         "subject_type": row["subject_type"],
         "subject_id": row["subject_id"],
@@ -41,7 +41,7 @@ def processing_job_from_db_row(row: sqlite3.Row) -> dict[str, Any]:
 def job_row_from_db(row: sqlite3.Row) -> JobRow:
     return JobRow(
         id=row["id"],
-        kb_id=row["kb_id"],
+        workspace_id=row["workspace_id"],
         kind=row["kind"],
         subject_type=row["subject_type"],
         subject_id=row["subject_id"],
@@ -59,43 +59,43 @@ def job_row_from_db(row: sqlite3.Row) -> JobRow:
 
 
 def find_job_by_idempotency_key(
-    conn: Any, kb_id: str, idempotency_key: str
+    conn: Any, workspace_id: str, idempotency_key: str
 ) -> dict[str, Any] | None:
     row = conn.execute(
         f"""
         {_JOB_SELECT}
         FROM jobs
-        WHERE kb_id = ? AND kind = 'ingest' AND idempotency_key = ?
+        WHERE workspace_id = ? AND kind = 'ingest' AND idempotency_key = ?
         LIMIT 1
         """,
-        (kb_id, idempotency_key),
+        (workspace_id, idempotency_key),
     ).fetchone()
     if row is None:
         return None
     return processing_job_from_db_row(row)
 
 
-def fetch_active_ingest_job_for_version(conn: Any, kb_id: str, version_id: str) -> Any:
+def fetch_active_ingest_job_for_version(conn: Any, workspace_id: str, version_id: str) -> Any:
     return conn.execute(
         """
         SELECT id FROM jobs
-        WHERE kb_id = ? AND kind = 'ingest'
+        WHERE workspace_id = ? AND kind = 'ingest'
           AND subject_type = 'document_version' AND subject_id = ?
           AND status IN ('queued', 'running')
         LIMIT 1
         """,
-        (kb_id, version_id),
+        (workspace_id, version_id),
     ).fetchone()
 
 
-def next_ingest_attempt(conn: Any, kb_id: str, version_id: str) -> int:
+def next_ingest_attempt(conn: Any, workspace_id: str, version_id: str) -> int:
     attempt_row = conn.execute(
         """
         SELECT COALESCE(MAX(attempt), 0) AS value FROM jobs
-        WHERE kb_id = ? AND kind = 'ingest'
+        WHERE workspace_id = ? AND kind = 'ingest'
           AND subject_type = 'document_version' AND subject_id = ?
         """,
-        (kb_id, version_id),
+        (workspace_id, version_id),
     ).fetchone()
     return int(attempt_row["value"] or 0) + 1
 
@@ -104,7 +104,7 @@ def insert_ingest_job(
     conn: Any,
     *,
     job_id: str,
-    kb_id: str,
+    workspace_id: str,
     version_id: str,
     attempt: int,
     normalized_key: str | None,
@@ -114,7 +114,7 @@ def insert_ingest_job(
     conn.execute(
         """
         INSERT INTO jobs(
-            id, kb_id, kind, subject_type, subject_id, status, attempt,
+            id, workspace_id, kind, subject_type, subject_id, status, attempt,
             progress, error_code, error_detail_json, idempotency_key,
             created_at, started_at, finished_at, options_json, result_json
         ) VALUES (?, ?, 'ingest', 'document_version', ?, 'queued', ?,
@@ -122,7 +122,7 @@ def insert_ingest_job(
         """,
         (
             job_id,
-            kb_id,
+            workspace_id,
             version_id,
             attempt,
             normalized_key,
@@ -133,50 +133,50 @@ def insert_ingest_job(
 
 
 def fetch_job_by_idempotency_after_conflict(
-    conn: Any, kb_id: str, normalized_key: str
+    conn: Any, workspace_id: str, normalized_key: str
 ) -> dict[str, Any] | None:
     row = conn.execute(
         f"""
         {_JOB_SELECT}
         FROM jobs
-        WHERE kb_id = ? AND kind = 'ingest' AND idempotency_key = ?
+        WHERE workspace_id = ? AND kind = 'ingest' AND idempotency_key = ?
         LIMIT 1
         """,
-        (kb_id, normalized_key),
+        (workspace_id, normalized_key),
     ).fetchone()
     if row is None:
         return None
     return processing_job_from_db_row(row)
 
 
-def fetch_job_row(conn: Any, kb_id: str, job_id: str) -> JobRow:
+def fetch_job_row(conn: Any, workspace_id: str, job_id: str) -> JobRow:
     row = conn.execute(
         f"""
         {_JOB_SELECT}
-        FROM jobs WHERE id = ? AND kb_id = ?
+        FROM jobs WHERE id = ? AND workspace_id = ?
         """,
-        (job_id, kb_id),
+        (job_id, workspace_id),
     ).fetchone()
     if row is None:
         raise AdminError(404, "not_found", "任务不存在")
     return job_row_from_db(row)
 
 
-def job_exists(conn: Any, kb_id: str, job_id: str) -> bool:
+def job_exists(conn: Any, workspace_id: str, job_id: str) -> bool:
     row = conn.execute(
-        "SELECT id FROM jobs WHERE id = ? AND kb_id = ?", (job_id, kb_id)
+        "SELECT id FROM jobs WHERE id = ? AND workspace_id = ?", (job_id, workspace_id)
     ).fetchone()
     return row is not None
 
 
 def list_ingest_jobs(
     conn: Any,
-    kb_id: str,
+    workspace_id: str,
     *,
     status: str | None,
     limit: int,
 ) -> list[Any]:
-    params: list[Any] = [kb_id]
+    params: list[Any] = [workspace_id]
     status_clause = ""
     if status:
         status_clause = " AND j.status = ?"
@@ -191,10 +191,10 @@ def list_ingest_jobs(
                d.title AS document_title, dv.status AS version_status
         FROM jobs j
         LEFT JOIN document_versions dv
-          ON dv.id = j.subject_id AND dv.kb_id = j.kb_id
+          ON dv.id = j.subject_id AND dv.workspace_id = j.workspace_id
         LEFT JOIN documents d
-          ON d.id = dv.document_id AND d.kb_id = j.kb_id
-        WHERE j.kb_id = ? AND j.kind = 'ingest'{status_clause}
+          ON d.id = dv.document_id AND d.workspace_id = j.workspace_id
+        WHERE j.workspace_id = ? AND j.kind = 'ingest'{status_clause}
         ORDER BY j.created_at DESC
         LIMIT ?
         """,
@@ -202,16 +202,16 @@ def list_ingest_jobs(
     ).fetchall()
 
 
-def update_job_result(conn: Any, kb_id: str, job_id: str, result_json: str) -> None:
+def update_job_result(conn: Any, workspace_id: str, job_id: str, result_json: str) -> None:
     conn.execute(
-        "UPDATE jobs SET result_json = ?, progress = 1 WHERE id = ? AND kb_id = ?",
-        (result_json, job_id, kb_id),
+        "UPDATE jobs SET result_json = ?, progress = 1 WHERE id = ? AND workspace_id = ?",
+        (result_json, job_id, workspace_id),
     )
 
 
 def update_job_status(
     conn: Any,
-    kb_id: str,
+    workspace_id: str,
     job_id: str,
     status: str,
     *,
@@ -222,25 +222,25 @@ def update_job_status(
         conn.execute(
             """
             UPDATE jobs SET status = ?, started_at = COALESCE(started_at, ?)
-            WHERE id = ? AND kb_id = ?
+            WHERE id = ? AND workspace_id = ?
             """,
-            (status, started_at, job_id, kb_id),
+            (status, started_at, job_id, workspace_id),
         )
     elif finished_at:
         conn.execute(
-            "UPDATE jobs SET status = ?, finished_at = ? WHERE id = ? AND kb_id = ?",
-            (status, finished_at, job_id, kb_id),
+            "UPDATE jobs SET status = ?, finished_at = ? WHERE id = ? AND workspace_id = ?",
+            (status, finished_at, job_id, workspace_id),
         )
     else:
         conn.execute(
-            "UPDATE jobs SET status = ? WHERE id = ? AND kb_id = ?",
-            (status, job_id, kb_id),
+            "UPDATE jobs SET status = ? WHERE id = ? AND workspace_id = ?",
+            (status, job_id, workspace_id),
         )
 
 
 def fail_job_row(
     conn: Any,
-    kb_id: str,
+    workspace_id: str,
     job_id: str,
     code: str,
     error_detail_json: str,
@@ -250,7 +250,7 @@ def fail_job_row(
         """
         UPDATE jobs
         SET status = 'failed', error_code = ?, error_detail_json = ?, finished_at = ?
-        WHERE id = ? AND kb_id = ?
+        WHERE id = ? AND workspace_id = ?
         """,
-        (code, error_detail_json, finished_at, job_id, kb_id),
+        (code, error_detail_json, finished_at, job_id, workspace_id),
     )

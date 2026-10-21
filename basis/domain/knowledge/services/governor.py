@@ -16,7 +16,7 @@ LOW_CONFIDENCE_SUBJECT_TYPE = "statement"
 
 def scan_low_confidence_statements(
     knowledge: KnowledgeStore,
-    kb_id: str,
+    workspace_id: str,
     *,
     confidence_min: float,
 ) -> dict[str, Any]:
@@ -25,11 +25,11 @@ def scan_low_confidence_statements(
         raise AdminError(422, "bad_confidence_min", "confidence_min 须在 0–1 之间")
     created: list[str] = []
     skipped = 0
-    for row in knowledge.list_active_statements_below_confidence(kb_id, confidence_min):
+    for row in knowledge.list_active_statements_below_confidence(workspace_id, confidence_min):
         statement_id = str(row["statement_id"])
         try:
             item = knowledge.create_review_item(
-                kb_id,
+                workspace_id,
                 kind=LOW_CONFIDENCE_KIND,
                 subject_type=LOW_CONFIDENCE_SUBJECT_TYPE,
                 subject_id=statement_id,
@@ -54,22 +54,22 @@ def scan_low_confidence_statements(
 
 def run_governor_pass(
     knowledge: KnowledgeStore,
-    kb_id: str,
+    workspace_id: str,
     *,
     confidence_min: float | None = None,
 ) -> dict[str, Any]:
     """Run conflict scan + low-confidence enqueue (on-demand governor)."""
     if confidence_min is None:
-        threshold = knowledge.get_governance_config(kb_id).governor_confidence_min
+        threshold = knowledge.get_governance_config(workspace_id).governor_confidence_min
     else:
         threshold = confidence_min
-    conflicts = scan_statement_conflicts(knowledge, kb_id)
+    conflicts = scan_statement_conflicts(knowledge, workspace_id)
     low_confidence = scan_low_confidence_statements(
         knowledge,
-        kb_id,
+        workspace_id,
         confidence_min=threshold,
     )
-    entity_clusters = scan_entity_label_clusters(knowledge, kb_id)
+    entity_clusters = scan_entity_label_clusters(knowledge, workspace_id)
     return {
         "confidence_min": threshold,
         "conflicts": {
@@ -89,23 +89,23 @@ def run_governor_pass(
 
 def resolve_low_confidence_approve(
     knowledge: KnowledgeStore,
-    kb_id: str,
+    workspace_id: str,
     statement_id: str,
 ) -> dict[str, Any]:
     """Accept a low-confidence statement (confirm if still pending)."""
-    row = knowledge.get_statement_browse(kb_id, statement_id=statement_id)
+    row = knowledge.get_statement_browse(workspace_id, statement_id=statement_id)
     if row is None:
         raise AdminError(404, "not_found", "陈述不存在或已失效")
     if row.get("status") == "pending":
-        knowledge.set_statement_status(kb_id, statement_id, "confirmed")
+        knowledge.set_statement_status(workspace_id, statement_id, "confirmed")
     return {"statement_id": statement_id, "action": "confirmed"}
 
 
 def resolve_low_confidence_reject(
     knowledge: KnowledgeStore,
-    kb_id: str,
+    workspace_id: str,
     statement_id: str,
 ) -> dict[str, Any]:
     """Reject a low-confidence statement."""
-    knowledge.invalidate_statement(kb_id, statement_id)
+    knowledge.invalidate_statement(workspace_id, statement_id)
     return {"statement_id": statement_id, "action": "invalidated"}

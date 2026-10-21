@@ -10,7 +10,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const webRoot = join(__dirname, "..");
 const srcRoot = join(webRoot, "src");
 
-const enUrl = pathToFileURL(join(srcRoot, "i18n/locales/en/index.ts")).href;
+const enUrl = pathToFileURL(join(srcRoot, "i18n/en.ts")).href;
 const { en } = await import(enUrl);
 
 function flatten(obj, prefix = "") {
@@ -35,30 +35,32 @@ function walkDir(dir, files = []) {
 
 function loadCorpus() {
   const files = walkDir(srcRoot).filter(
-    (p) => !p.includes("/i18n/locales/"),
+    (p) => !p.endsWith("/i18n/module-locales.ts"),
   );
   return files.map((p) => readFileSync(p, "utf8")).join("\n");
 }
 
 /** Keys resolved dynamically (Record lookup, merged audit maps, API-driven ids). */
 const WHOLE_BLOCK_PREFIXES = [
-  "apiErrorCodes.",
-  "dev.",
-  "kbGraphAudit.actions.",
-  "platformAuditActions.",
-  "kbDecisions.outcomeLabels.",
-  "kbDecisions.stepTypeLabels.",
-  "kbDecisions.relationshipLabels.",
-  "kbDecisions.categoryLabels.",
-  "kbOntology.editor.owlTypeLabels.",
-  "models.providers.",
-  "kbGraphProjection.projectionStatusLabels.",
-  "kbLedger.statementStatusLabels.",
-  "kbGraphWorkspace.entityShapeLabels.",
-  "kbGraphWorkspace.nodeKindLabels.",
-  "kbGraphWorkspace.effectReasons.",
-  "kbGraphWorkspace.plugins.",
-  "kbGraphWorkspace.registryLog.",
+  "core.api_error_codes.",
+  "core.dev.",
+  "graph.audit.actions.",
+  "admin_audit.platform_audit_actions.",
+  "decisions.page.outcome_labels.",
+  "decisions.page.step_type_labels.",
+  "decisions.page.relationship_labels.",
+  "decisions.page.category_labels.",
+  "ontology.hub.editor.owl_type_labels.",
+  "admin_models.page.providers.",
+  "graph.projection.projection_status_labels.",
+  "entities.ledger.statement_status_labels.",
+  "graph.canvas.entity_shape_labels.",
+  "graph.canvas.node_kind_labels.",
+  "graph.canvas.effect_reasons.",
+  "graph.canvas.plugins.",
+  "graph.canvas.registry_log.",
+  "home.marketing.",
+  "alerts.page.kind_labels.",
 ];
 
 function isUsed(path, corpus) {

@@ -1,4 +1,4 @@
-"""KB review reject route."""
+"""Workspace review reject route."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ from basis.interface.http.deps import (
     get_blob_store,
     get_current_user,
     graph_projection_bindings,
-    get_kb_for_editor,
+    get_workspace_for_editor,
     get_knowledge_store,
     get_store,
 )
@@ -22,9 +22,9 @@ from basis.interface.http.kb_review_models import ResolveReviewRequest
 router = APIRouter(tags=["knowledge-bases"])
 
 
-@router.post("/{kb_id}/review/items/{item_id}/reject")
+@router.post("/{workspace_id}/review/items/{item_id}/reject")
 async def reject_review_item(
-    kb_id: str,
+    workspace_id: str,
     item_id: str,
     request: Request,
     body: ResolveReviewRequest,
@@ -33,14 +33,14 @@ async def reject_review_item(
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> dict[str, Any]:
     """
-Reject Review Item. Human review queue for merges, imports, and conflicts. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Reject Review Item. Human review queue for merges, imports, and conflicts. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
-    get_kb_for_editor(request, user, kb_id, store)
+    get_workspace_for_editor(request, user, workspace_id, store)
     return reject_review_item_domain(
         knowledge=knowledge,
         store=store,
         user=user,
-        kb_id=kb_id,
+        workspace_id=workspace_id,
         item_id=item_id,
         rationale=body.rationale,
         blob_store=get_blob_store(request),

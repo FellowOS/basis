@@ -43,12 +43,12 @@ class ApiTokensAccess:
         if scope not in {"read", "write"}:
             raise AdminError(422, "bad_scope", "scope 必须是 read 或 write")
         if not kb_ids:
-            raise AdminError(422, "bad_kb_ids", "至少选择一个知识库")
+            raise AdminError(422, "bad_kb_ids", "至少选择一个工作区")
         cleaned: list[str] = []
-        for kb_id in kb_ids:
-            self._store._knowledge_bases.get_kb_for(actor, kb_id, "viewer")
-            if kb_id not in cleaned:
-                cleaned.append(kb_id)
+        for workspace_id in kb_ids:
+            self._store._workspaces.get_workspace_for(actor, workspace_id, "viewer")
+            if workspace_id not in cleaned:
+                cleaned.append(workspace_id)
         token_id = str(uuid.uuid4())
         plaintext = secrets_token()
         now = utc_now_iso()
@@ -62,7 +62,7 @@ class ApiTokensAccess:
                 user_id=actor.id,
                 name=name,
                 scope=scope,
-                kb_ids_json=json.dumps(cleaned, ensure_ascii=False),
+                workspace_ids_json=json.dumps(cleaned, ensure_ascii=False),
                 created_at=now,
                 expires_at=expires_at,
             )
@@ -155,5 +155,5 @@ class ApiTokensAccess:
         record = api_token_from_row(row)
         return user, record
 
-    def api_token_allows_kb(self, record: ApiTokenRecord, kb_id: str) -> bool:
-        return kb_id in record.kb_ids
+    def api_token_allows_kb(self, record: ApiTokenRecord, workspace_id: str) -> bool:
+        return workspace_id in record.kb_ids

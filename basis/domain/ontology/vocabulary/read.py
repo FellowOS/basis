@@ -1,4 +1,4 @@
-"""SKOS vocabulary reads for KB Explorer HTTP."""
+"""SKOS vocabulary reads for workspace Explorer HTTP."""
 
 from __future__ import annotations
 

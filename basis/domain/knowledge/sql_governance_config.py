@@ -1,4 +1,4 @@
-"""KB governance / governor scheduler config — canonical DB SQL (caller holds lock)."""
+"""Workspace governance / governor scheduler config — canonical DB SQL (caller holds lock)."""
 
 from __future__ import annotations
 
@@ -11,25 +11,25 @@ from basis.domain.knowledge.governance_config import (
 )
 
 
-def fetch_governance_config_row(conn: Any, kb_id: str) -> Any:
+def fetch_governance_config_row(conn: Any, workspace_id: str) -> Any:
     return conn.execute(
-        "SELECT * FROM kb_governance_configs WHERE kb_id = ?", (kb_id,)
+        "SELECT * FROM governance_configs WHERE workspace_id = ?", (workspace_id,)
     ).fetchone()
 
 
 def insert_default_governance_config(
-    conn: Any, kb_id: str, *, created_at: str, updated_at: str
+    conn: Any, workspace_id: str, *, created_at: str, updated_at: str
 ) -> None:
     conn.execute(
         """
-        INSERT INTO kb_governance_configs (
-            kb_id, schema_version, governor_enabled,
+        INSERT INTO governance_configs (
+            workspace_id, schema_version, governor_enabled,
             governor_interval_minutes, governor_confidence_min,
             governor_last_run_at, created_at, updated_at
         ) VALUES (?, 1, 0, ?, ?, NULL, ?, ?)
         """,
         (
-            kb_id,
+            workspace_id,
             DEFAULT_GOVERNOR_INTERVAL_MINUTES,
             DEFAULT_GOVERNOR_CONFIDENCE_MIN,
             created_at,
@@ -40,7 +40,7 @@ def insert_default_governance_config(
 
 def governance_config_from_row(row: Any) -> GovernanceConfig:
     return GovernanceConfig(
-        kb_id=row["kb_id"],
+        workspace_id=row["workspace_id"],
         schema_version=int(row["schema_version"]),
         governor_enabled=bool(row["governor_enabled"]),
         governor_interval_minutes=int(row["governor_interval_minutes"]),
@@ -58,19 +58,19 @@ def upsert_governance_config(
 ) -> None:
     conn.execute(
         """
-        INSERT INTO kb_governance_configs (
-            kb_id, schema_version, governor_enabled,
+        INSERT INTO governance_configs (
+            workspace_id, schema_version, governor_enabled,
             governor_interval_minutes, governor_confidence_min,
             governor_last_run_at, created_at, updated_at
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        ON CONFLICT(kb_id) DO UPDATE SET
+        ON CONFLICT(workspace_id) DO UPDATE SET
             governor_enabled = excluded.governor_enabled,
             governor_interval_minutes = excluded.governor_interval_minutes,
             governor_confidence_min = excluded.governor_confidence_min,
             updated_at = excluded.updated_at
         """,
         (
-            config.kb_id,
+            config.workspace_id,
             config.schema_version,
             int(config.governor_enabled),
             config.governor_interval_minutes,
@@ -82,23 +82,23 @@ def upsert_governance_config(
     )
 
 
-def touch_governor_last_run(conn: Any, kb_id: str, run_at: str, updated_at: str) -> None:
+def touch_governor_last_run(conn: Any, workspace_id: str, run_at: str, updated_at: str) -> None:
     conn.execute(
         """
-        UPDATE kb_governance_configs
+        UPDATE governance_configs
         SET governor_last_run_at = ?, updated_at = ?
-        WHERE kb_id = ?
+        WHERE workspace_id = ?
         """,
-        (run_at, updated_at, kb_id),
+        (run_at, updated_at, workspace_id),
     )
 
 
-def list_governor_enabled_kb_ids(conn: Any) -> list[str]:
+def list_governor_enabled_workspace_ids(conn: Any) -> list[str]:
     rows = conn.execute(
         """
-        SELECT kb_id FROM kb_governance_configs
+        SELECT workspace_id FROM governance_configs
         WHERE governor_enabled = 1
-        ORDER BY kb_id ASC
+        ORDER BY workspace_id ASC
         """
     ).fetchall()
-    return [str(row["kb_id"]) for row in rows]
+    return [str(row["workspace_id"]) for row in rows]

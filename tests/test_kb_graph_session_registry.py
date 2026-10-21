@@ -39,7 +39,7 @@ def test_evict_idle_drops_stale_runtimes() -> None:
     registry = KbGraphSessionRegistry(idle_seconds=1)
     session = GraphSession()
     registry._cache["kb-stale"] = KbGraphRuntime(
-        kb_id="kb-stale",
+        workspace_id="kb-stale",
         projection_revision=1,
         basis=session,
         adapter=None,

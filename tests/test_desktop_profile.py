@@ -16,7 +16,7 @@ def test_desktop_allows_kbs_without_bearer(tmp_path: Path) -> None:
         port=8090,
     )
     client = TestClient(create_app(settings))
-    res = client.get("/api/v1/kbs")
+    res = client.get("/api/v1/workspaces")
     assert res.status_code == 200
     body = res.json()
     assert "kbs" in body
@@ -39,7 +39,7 @@ def test_desktop_session_issues_token(tmp_path: Path) -> None:
 
 def test_server_profile_still_requires_auth(tmp_path: Path) -> None:
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
-    assert client.get("/api/v1/kbs").status_code == 401
+    assert client.get("/api/v1/workspaces").status_code == 401
 
 
 def test_desktop_rejects_non_loopback(tmp_path: Path) -> None:

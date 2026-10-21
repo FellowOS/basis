@@ -9,7 +9,7 @@ from typing import Any
 def entity_merge_row_to_dict(row: sqlite3.Row) -> dict[str, Any]:
     return {
         "id": row["id"],
-        "kb_id": row["kb_id"],
+        "workspace_id": row["workspace_id"],
         "source_entity_id": row["source_entity_id"],
         "target_entity_id": row["target_entity_id"],
         "decision_id": row["decision_id"],
@@ -25,7 +25,7 @@ def insert_entity_merge(
     conn: Any,
     *,
     merge_id: str,
-    kb_id: str,
+    workspace_id: str,
     source_entity_id: str,
     target_entity_id: str,
     decision_id: str | None,
@@ -36,13 +36,13 @@ def insert_entity_merge(
     conn.execute(
         """
         INSERT INTO entity_merges(
-            id, kb_id, source_entity_id, target_entity_id,
+            id, workspace_id, source_entity_id, target_entity_id,
             decision_id, actor_id, why, created_at, reverted_at, reverted_by
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL, NULL)
         """,
         (
             merge_id,
-            kb_id,
+            workspace_id,
             source_entity_id,
             target_entity_id,
             decision_id,
@@ -57,17 +57,17 @@ def fetch_entity_merge_by_id(conn: Any, merge_id: str) -> Any:
     return conn.execute("SELECT * FROM entity_merges WHERE id = ?", (merge_id,)).fetchone()
 
 
-def fetch_entity_merge_for_kb(conn: Any, merge_id: str, kb_id: str) -> Any:
+def fetch_entity_merge_for_kb(conn: Any, merge_id: str, workspace_id: str) -> Any:
     return conn.execute(
-        "SELECT * FROM entity_merges WHERE id = ? AND kb_id = ?",
-        (merge_id, kb_id),
+        "SELECT * FROM entity_merges WHERE id = ? AND workspace_id = ?",
+        (merge_id, workspace_id),
     ).fetchone()
 
 
 def revert_entity_merge_row(
     conn: Any,
     merge_id: str,
-    kb_id: str,
+    workspace_id: str,
     *,
     reverted_at: str,
     reverted_by: str,
@@ -76,22 +76,22 @@ def revert_entity_merge_row(
         """
         UPDATE entity_merges
         SET reverted_at = ?, reverted_by = ?
-        WHERE id = ? AND kb_id = ?
+        WHERE id = ? AND workspace_id = ?
         """,
-        (reverted_at, reverted_by, merge_id, kb_id),
+        (reverted_at, reverted_by, merge_id, workspace_id),
     )
 
 
 def list_entity_merge_rows(
-    conn: Any, kb_id: str, *, active_only: bool, limit: int
+    conn: Any, workspace_id: str, *, active_only: bool, limit: int
 ) -> list[Any]:
     clause = "AND reverted_at IS NULL" if active_only else ""
     return conn.execute(
         f"""
         SELECT * FROM entity_merges
-        WHERE kb_id = ? {clause}
+        WHERE workspace_id = ? {clause}
         ORDER BY created_at DESC
         LIMIT ?
         """,
-        (kb_id, limit),
+        (workspace_id, limit),
     ).fetchall()

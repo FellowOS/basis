@@ -12,7 +12,7 @@ def test_mcp_tools_have_openapi_backed_schemas() -> None:
 
 
 def test_describe_kb_schema_from_get_kb_route() -> None:
-    schema = input_schema_for_tool("describe_kb")
+    schema = input_schema_for_tool("describe_workspace")
     assert schema is not None
     assert schema.get("type") == "object"
     assert not (schema.get("properties") or {})
@@ -49,7 +49,7 @@ def test_approve_review_openapi_response_includes_decision_id() -> None:
     from basis.interface.contract.openapi.v1_export import export_openapi_v1_kb
 
     spec = export_openapi_v1_kb(_spec_app())
-    op = spec["paths"]["/api/v1/kbs/{kb_id}/review/items/{item_id}/approve"]["post"]
+    op = spec["paths"]["/api/v1/workspaces/{workspace_id}/review/items/{item_id}/approve"]["post"]
     schema = op["responses"]["200"]["content"]["application/json"]["schema"]
     components = spec.get("components") or {}
     if "$ref" in schema:

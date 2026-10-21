@@ -43,7 +43,7 @@ export function PlatformConnectorManifestDialog({
   onPlatformEnabledChange,
 }: ManifestDialogProps) {
   const { t } = useI18n();
-  const ps = t.platformSettings.connectors;
+  const ps = t.admin_settings.page.connectors;
   const formatApiError = useApiErrorMessage();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -137,11 +137,11 @@ export function PlatformConnectorManifestDialog({
           <div className="flex flex-wrap items-center gap-2">
             <DialogTitle className="text-left">{displayName}</DialogTitle>
             <Badge variant={platformEnabled ? 'secondary' : 'outline'}>
-              {platformEnabled ? ps.detailEnabledBadge : ps.detailDisabledBadge}
+              {platformEnabled ? ps.detail_enabled_badge : ps.detail_disabled_badge}
             </Badge>
           </div>
           <DialogDescription className="font-mono text-xs">
-            {service ? fmt(ps.detailServiceKey, { service }) : ''}
+            {service ? fmt(ps.detail_service_key, { service }) : ''}
           </DialogDescription>
           {service && !loading && !error ? (
             <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
@@ -154,11 +154,11 @@ export function PlatformConnectorManifestDialog({
                   data-testid="manifest-platform-enabled-switch"
                 />
                 <Label htmlFor="manifest-platform-enabled" className="text-sm font-normal">
-                  {ps.detailPlatformEnableLabel}
+                  {ps.detail_platform_enable_label}
                 </Label>
               </div>
               {allowAll && platformEnabled ? (
-                <p className="text-xs text-muted-foreground">{ps.detailAllowAllHint}</p>
+                <p className="text-xs text-muted-foreground">{ps.detail_allow_all_hint}</p>
               ) : null}
             </div>
           ) : null}
@@ -167,7 +167,7 @@ export function PlatformConnectorManifestDialog({
           {loading ? (
             <div className="flex items-center justify-center gap-2 py-12 text-sm text-muted-foreground">
               <Spinner className="size-4" />
-              {ps.detailLoading}
+              {ps.detail_loading}
             </div>
           ) : error ? (
             <p className="text-sm text-destructive">{error}</p>
@@ -177,7 +177,7 @@ export function PlatformConnectorManifestDialog({
                 <div className="grid gap-3 sm:grid-cols-2">
                   {streamSummaries.length > 0 ? (
                     <div className="rounded-md border border-border bg-muted/20 p-3">
-                      <p className="text-xs font-medium text-foreground">{ps.detailStreamsTitle}</p>
+                      <p className="text-xs font-medium text-foreground">{ps.detail_streams_title}</p>
                       <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
                         {streamSummaries.map((s) => (
                           <li key={s.name} className="font-mono">
@@ -190,7 +190,7 @@ export function PlatformConnectorManifestDialog({
                   ) : null}
                   {toolSummaries.length > 0 ? (
                     <div className="rounded-md border border-border bg-muted/20 p-3">
-                      <p className="text-xs font-medium text-foreground">{ps.detailToolsTitle}</p>
+                      <p className="text-xs font-medium text-foreground">{ps.detail_tools_title}</p>
                       <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
                         {toolSummaries.map((tool) => (
                           <li key={tool.id} className="font-mono">
@@ -219,10 +219,10 @@ export function PlatformConnectorManifestDialog({
             disabled={!payload}
             onClick={() => downloadManifestJson()}
           >
-            {ps.downloadManifestJson}
+            {ps.download_manifest_json}
           </Button>
           <Button type="button" size="sm" variant="secondary" onClick={() => onOpenChange(false)}>
-            {ps.detailClose}
+            {ps.detail_close}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -19,7 +19,7 @@ def test_sync_graph_to_ledger_keeps_imported_edge_across_rebuild(tmp_path: Path)
         json={"email": "sync@example.com", "password": "password1", "display_name": "Sync"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
     knowledge: KnowledgeStore = client.app.state.knowledge_store
 
     session = GraphSession()
@@ -30,16 +30,16 @@ def test_sync_graph_to_ledger_keeps_imported_edge_across_rebuild(tmp_path: Path)
     session.add_edge("n-alice", "n-bob", "knows")
     session.add_edge("n-alice", "doc-1", "mentioned_in")
 
-    first = sync_graph_to_ledger(knowledge, kb_id, session)
+    first = sync_graph_to_ledger(knowledge, workspace_id, session)
     assert first["entities_created"] == 2
     assert first["statements_created"] == 1
 
-    again = sync_graph_to_ledger(knowledge, kb_id, session)
+    again = sync_graph_to_ledger(knowledge, workspace_id, session)
     assert again["statements_created"] == 0
 
     labels = {
         row["canonical_label"]
-        for row in client.get(f"/api/v1/kbs/{kb_id}/ledger/entities?limit=20", headers=headers).json()[
+        for row in client.get(f"/api/v1/workspaces/{workspace_id}/ledger/entities?limit=20", headers=headers).json()[
             "entities"
         ]
     }
@@ -47,7 +47,7 @@ def test_sync_graph_to_ledger_keeps_imported_edge_across_rebuild(tmp_path: Path)
     assert "Imported Bob" in labels
     assert "Person" not in labels
 
-    apply_rebuild_to_session(knowledge, kb_id, session)
+    apply_rebuild_to_session(knowledge, workspace_id, session)
     rebuilt_labels = {
         (node.content or "")
         for node in session.graph.nodes.values()
@@ -59,5 +59,5 @@ def test_sync_graph_to_ledger_keeps_imported_edge_across_rebuild(tmp_path: Path)
     edge_values = edges.values() if isinstance(edges, dict) else edges
     assert any(edge.edge_type == "knows" for edge in edge_values)
 
-    third = sync_graph_to_ledger(knowledge, kb_id, session)
+    third = sync_graph_to_ledger(knowledge, workspace_id, session)
     assert third == {"entities_created": 0, "statements_created": 0}

@@ -1,4 +1,4 @@
-"""Shared Pydantic models and helpers for KB review routes."""
+"""Shared Pydantic models and helpers for workspace review routes."""
 
 from __future__ import annotations
 

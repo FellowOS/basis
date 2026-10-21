@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Seed a dedicated KB with deterministic chunk-search benchmark data."""
+"""Seed a dedicated workspace with deterministic chunk-search benchmark data."""
 
 from __future__ import annotations
 
@@ -70,27 +70,27 @@ def main() -> None:
         kb = next(
             (
                 item
-                for item in admin.list_visible_kbs(owner)
+                for item in admin.list_visible_workspaces(owner)
                 if item.name == KB_NAME or item.name in LEGACY_KB_NAMES
             ),
             None,
         )
         if kb is None:
-            kb = admin.create_kb(
+            kb = admin.create_workspace(
                 owner,
                 KB_NAME,
                 "Deterministic synthetic data for retrieval performance tests.",
                 "restricted",
             )
         elif kb.name != KB_NAME:
-            kb = admin.update_kb(owner, kb.id, name=KB_NAME)
+            kb = admin.update_workspace(owner, kb.id, name=KB_NAME)
 
         stats = knowledge.kb_mcp_stats(kb.id)
         target = args.documents * args.chunks_per_document
         existing = stats["chunk_count"]
         if existing >= target:
             print(f"{KB_NAME}: already has {existing:,} chunks; nothing to add")
-            print(f"kb_id={kb.id}")
+            print(f"workspace_id={kb.id}")
             return
 
         docs_to_add = math.ceil((target - existing) / args.chunks_per_document)
@@ -117,7 +117,7 @@ def main() -> None:
             knowledge.set_job_status(kb.id, job_id, "succeeded")
 
         # Keep this dataset cheap to seed: keyword search is enabled, vector
-        # indexing can be turned on later from KB settings when benchmarking it.
+        # indexing can be turned on later from workspace settings when benchmarking it.
         knowledge.update_search_config(
             kb.id,
             embedding_model_id=None,
@@ -131,7 +131,7 @@ def main() -> None:
             f"{KB_NAME}: {final['document_count']:,} documents, "
             f"{final['chunk_count']:,} chunks"
         )
-        print(f"kb_id={kb.id}")
+        print(f"workspace_id={kb.id}")
     finally:
         knowledge.close()
         admin.close()

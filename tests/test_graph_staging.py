@@ -61,21 +61,21 @@ def test_graph_staging_route_after_ingest(tmp_path: Path) -> None:
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
 
-    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
     client.post(
-        f"/api/v1/kbs/{kb_id}/documents",
+        f"/api/v1/workspaces/{workspace_id}/documents",
         headers=headers,
         json={"doc_id": "s1", "text": "Ivy knows Jake.", "wait": True, "extract": True},
     )
 
     staging = client.get(
-        f"/api/v1/kbs/{kb_id}/graph/staging",
+        f"/api/v1/workspaces/{workspace_id}/graph/staging",
         headers=headers,
         params={"from": "2020-01-01T00:00:00", "to": "2030-01-01T00:00:00"},
     )
     assert staging.status_code == 200
     body = staging.json()
-    assert body.get("kb_id") == kb_id
+    assert body.get("workspace_id") == workspace_id
     assert "manifest" in body and "diff" in body
     assert body["manifest"].get("session_key")
     assert body["manifest"]["governance"]["entity_merge_proposal_relpath"] == (
@@ -84,7 +84,7 @@ def test_graph_staging_route_after_ingest(tmp_path: Path) -> None:
     skey = body["manifest"]["session_key"]
 
     put_draft = client.put(
-        f"/api/v1/kbs/{kb_id}/graph/staging/{skey}/draft",
+        f"/api/v1/workspaces/{workspace_id}/graph/staging/{skey}/draft",
         headers=headers,
         json={
             "from_time": "2020-01-01T00:00:00",
@@ -97,7 +97,7 @@ def test_graph_staging_route_after_ingest(tmp_path: Path) -> None:
     assert put_draft.json()["draft"] == {"primary": "ent_primary", "duplicate": "ent_dup"}
 
     staging_again = client.get(
-        f"/api/v1/kbs/{kb_id}/graph/staging",
+        f"/api/v1/workspaces/{workspace_id}/graph/staging",
         headers=headers,
         params={"from": "2020-01-01T00:00:00", "to": "2030-01-01T00:00:00"},
     )
@@ -106,4 +106,3 @@ def test_graph_staging_route_after_ingest(tmp_path: Path) -> None:
         "primary": "ent_primary",
         "duplicate": "ent_dup",
     }
-

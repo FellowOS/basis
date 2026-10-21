@@ -4,7 +4,7 @@ from __future__ import annotations
 
 
 def kb_graph_runtime_available() -> bool:
-    """KB graph session HTTP stack (``BasisKbGraphSession``) is always available."""
+    """Workspace graph session HTTP stack (``BasisKbGraphSession``) is always available."""
     return True
 
 
@@ -21,8 +21,8 @@ def _role_can_write(role: str) -> bool:
     return ROLE_RANK.get(role, 0) >= ROLE_RANK["editor"]
 
 
-def kb_capabilities(role: str) -> dict[str, bool | str | None]:
-    """Per-KB Explorer feature flags for authorized callers (design §12)."""
+def workspace_capabilities(role: str) -> dict[str, bool | str | None]:
+    """Per-workspace Explorer feature flags for authorized callers (design §12)."""
     can_write = _role_can_write(role)
     return {
         "graph": True,

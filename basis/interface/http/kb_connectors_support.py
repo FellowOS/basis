@@ -21,11 +21,11 @@ def sync_service_for(knowledge: KnowledgeStore) -> ConnectorLedgerSyncService:
     return knowledge.connector_sync_service()
 
 
-def connector_policy_response(vault: Any, kb_id: str, pol: Any) -> dict[str, Any]:
+def connector_policy_response(vault: Any, workspace_id: str, pol: Any) -> dict[str, Any]:
     platform_allowed = vault.get_platform_allowed_providers()
     effective = effective_allowed_providers(platform_allowed, pol.allowed_providers)
     return {
-        "kb_id": kb_id,
+        "workspace_id": workspace_id,
         "platform_allowed_providers": platform_allowed,
         "allowed_providers": pol.allowed_providers,
         "effective_allowed_providers": effective,
@@ -35,12 +35,12 @@ def connector_policy_response(vault: Any, kb_id: str, pol: Any) -> dict[str, Any
 
 
 def table_mapping_api_dict(
-    svc: ConnectorLedgerSyncService, kb_id: str, rec: SourceTableMappingRecord
+    svc: ConnectorLedgerSyncService, workspace_id: str, rec: SourceTableMappingRecord
 ) -> dict[str, Any]:
-    binding = svc.get_mapping_connection_binding(kb_id, rec.source_id)
+    binding = svc.get_mapping_connection_binding(workspace_id, rec.source_id)
     return {
         "id": rec.id,
-        "kb_id": rec.kb_id,
+        "workspace_id": rec.workspace_id,
         "source_id": rec.source_id,
         "provider": binding.provider,
         "connection_name": binding.connection_name,
@@ -63,4 +63,3 @@ def table_mapping_api_dict(
         "created_at": rec.created_at,
         "updated_at": rec.updated_at,
     }
-

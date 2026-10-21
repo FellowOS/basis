@@ -52,12 +52,12 @@ def get_kb_graph_session_registry(request: Request):
 def graph_projection_bindings(request: Request) -> GraphProjectionBindings:
     from basis.domain.ontology.hub.hub_persistence import persist_kb_ontology_hub
 
-    def _broadcast(kb_id: str, revision: int) -> None:
+    def _broadcast(workspace_id: str, revision: int) -> None:
         request.app.state.ws_hub.try_broadcast(
-            kb_id,
+            workspace_id,
             {
                 "type": "projection_updated",
-                "kb_id": kb_id,
+                "workspace_id": workspace_id,
                 "projection_revision": revision,
             },
         )
@@ -67,15 +67,15 @@ def graph_projection_bindings(request: Request) -> GraphProjectionBindings:
         persistence=get_graph_persistence(request),
         knowledge=get_knowledge_store(request),
         kb_graph_session_registry=get_kb_graph_session_registry(request),
-        persist_ontology_hub=lambda kb_id: persist_kb_ontology_hub(request, kb_id),
+        persist_ontology_hub=lambda workspace_id: persist_kb_ontology_hub(request, workspace_id),
         broadcast_projection=_broadcast,
     )
 
 
-def kb_graph_runtime_for(request: Request, kb_id: str) -> KbGraphRuntime:
+def kb_graph_runtime_for(request: Request, workspace_id: str) -> KbGraphRuntime:
     bindings = graph_projection_bindings(request)
     return get_kb_graph_session_registry(request).get(
-        kb_id,
+        workspace_id,
         knowledge=bindings.knowledge,
         basis_for_kb=lambda kid: graph_session_for_kb(bindings, kid),
     )
@@ -146,17 +146,17 @@ def get_api_token_record(request: Request) -> ApiTokenRecord | None:
 def _check_api_token_kb_access(
     request: Request,
     store: AdminStore,
-    kb_id: str,
+    workspace_id: str,
     *,
     write: bool = False,
 ) -> None:
     api_record = get_api_token_record(request)
     if api_record is None:
         return
-    if not store.api_token_allows_kb(api_record, kb_id):
+    if not store.api_token_allows_kb(api_record, workspace_id):
         raise HTTPException(
             status_code=403,
-            detail={"code": "forbidden", "message": "令牌未授权此知识库"},
+            detail={"code": "forbidden", "message": "令牌未授权此工作区"},
         )
     if write and api_record.scope != "write":
         raise HTTPException(
@@ -165,60 +165,60 @@ def _check_api_token_kb_access(
         )
 
 
-def get_kb_for_viewer(
+def get_workspace_for_viewer(
     request: Request,
     user: User,
-    kb_id: str,
+    workspace_id: str,
     store: AdminStore,
 ):
-    _check_api_token_kb_access(request, store, kb_id)
-    return store.get_kb_for(user, kb_id, "viewer")
+    _check_api_token_kb_access(request, store, workspace_id)
+    return store.get_workspace_for(user, workspace_id, "viewer")
 
 
-def get_kb_for_editor(
+def get_workspace_for_editor(
     request: Request,
     user: User,
-    kb_id: str,
+    workspace_id: str,
     store: AdminStore,
 ):
-    _check_api_token_kb_access(request, store, kb_id, write=True)
-    return store.get_kb_for(user, kb_id, "editor")
+    _check_api_token_kb_access(request, store, workspace_id, write=True)
+    return store.get_workspace_for(user, workspace_id, "editor")
 
 
 def get_kb_for_role(
     request: Request,
     user: User,
-    kb_id: str,
+    workspace_id: str,
     store: AdminStore,
     role: str,
 ):
     if role == "editor":
-        return get_kb_for_editor(request, user, kb_id, store)
-    return get_kb_for_viewer(request, user, kb_id, store)
+        return get_workspace_for_editor(request, user, workspace_id, store)
+    return get_workspace_for_viewer(request, user, workspace_id, store)
 
 
 def ensure_kb_viewer(
     request: Request,
     user: User,
-    kb_id: str,
+    workspace_id: str,
     store: AdminStore,
 ) -> None:
-    get_kb_for_viewer(request, user, kb_id, store)
+    get_workspace_for_viewer(request, user, workspace_id, store)
 
 
-def get_kb_for_admin(
+def get_workspace_for_admin(
     request: Request,
     user: User,
-    kb_id: str,
+    workspace_id: str,
     store: AdminStore,
 ):
-    """KB admin routes (token management, etc.) — session auth only."""
+    """Workspace admin routes (token management, etc.) — session auth only."""
     if get_api_token_record(request) is not None:
         raise HTTPException(
             status_code=403,
             detail={"code": "forbidden", "message": "请使用登录会话管理访问令牌"},
         )
-    return store.get_kb_for(user, kb_id, "admin")
+    return store.get_workspace_for(user, workspace_id, "admin")
 
 
 def require_system_admin(user: User) -> User:
@@ -227,28 +227,28 @@ def require_system_admin(user: User) -> User:
     return user
 
 
-def graph_for(request: Request, kb_id: str) -> GraphSession:
-    return graph_session_for_kb(graph_projection_bindings(request), kb_id)
+def graph_for(request: Request, workspace_id: str) -> GraphSession:
+    return graph_session_for_kb(graph_projection_bindings(request), workspace_id)
 
 
-def rebuild_kb_projection(request: Request, kb_id: str) -> dict:
+def rebuild_kb_projection(request: Request, workspace_id: str) -> dict:
     """Rebuild in-memory graph from ledger (including typed_facts) and persist."""
-    return rebuild_kb_projection_bindings(graph_projection_bindings(request), kb_id)
+    return rebuild_kb_projection_bindings(graph_projection_bindings(request), workspace_id)
 
 
-def save_graph(request: Request, kb_id: str, *, sync_ledger: bool = True) -> None:
-    save_graph_bindings(graph_projection_bindings(request), kb_id, sync_ledger=sync_ledger)
+def save_graph(request: Request, workspace_id: str, *, sync_ledger: bool = True) -> None:
+    save_graph_bindings(graph_projection_bindings(request), workspace_id, sync_ledger=sync_ledger)
 
 
-def drop_graph(request: Request, kb_id: str) -> None:
-    request.app.state.graphs.pop(kb_id, None)
+def drop_graph(request: Request, workspace_id: str) -> None:
+    request.app.state.graphs.pop(workspace_id, None)
     persistence = get_graph_persistence(request)
-    persistence.delete(kb_id)
+    persistence.delete(workspace_id)
     from basis.domain.ontology.hub.hub_persistence import delete_kb_ontology_hub
 
-    delete_kb_ontology_hub(persistence, kb_id)
+    delete_kb_ontology_hub(persistence, workspace_id)
     loaded: set[str] = getattr(request.app.state, "_kb_ontology_hub_loaded", set())
-    loaded.discard(kb_id)
+    loaded.discard(workspace_id)
     for attr in (
         "kb_ontology_registries",
         "kb_ontology_alignments",
@@ -258,4 +258,4 @@ def drop_graph(request: Request, kb_id: str) -> None:
     ):
         store = getattr(request.app.state, attr, None)
         if isinstance(store, dict):
-            store.pop(kb_id, None)
+            store.pop(workspace_id, None)

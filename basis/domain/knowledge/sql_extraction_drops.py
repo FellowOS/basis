@@ -10,7 +10,7 @@ def insert_extraction_drop(
     conn: Any,
     *,
     drop_id: str,
-    kb_id: str,
+    workspace_id: str,
     version_id: str,
     chunk_id: str | None,
     code: str,
@@ -21,8 +21,8 @@ def insert_extraction_drop(
     conn.execute(
         """
         INSERT INTO extraction_drops(
-            id, kb_id, version_id, chunk_id, code, severity, detail_json, created_at
+            id, workspace_id, version_id, chunk_id, code, severity, detail_json, created_at
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """,
-        (drop_id, kb_id, version_id, chunk_id, code, severity, detail_json, created_at),
+        (drop_id, workspace_id, version_id, chunk_id, code, severity, detail_json, created_at),
     )

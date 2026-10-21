@@ -52,7 +52,7 @@ export function TablePagination({
           <PaginationLink
             size="default"
             href="#"
-            aria-label={t.common.paginationPreviousAria}
+            aria-label={t.core.common.paginationPreviousAria}
             className={cn('gap-1 px-2.5 sm:pl-2.5', page <= 1 && 'pointer-events-none opacity-50')}
             onClick={(event) => {
               event.preventDefault();
@@ -60,7 +60,7 @@ export function TablePagination({
             }}
           >
             <PublicIcon name="chevron-left" size={16} />
-            <span className="hidden sm:block">{t.common.paginationPrevious}</span>
+            <span className="hidden sm:block">{t.core.common.paginationPrevious}</span>
           </PaginationLink>
         </PaginationItem>
         {visiblePages.map((item, index) =>
@@ -87,7 +87,7 @@ export function TablePagination({
           <PaginationLink
             size="default"
             href="#"
-            aria-label={t.common.paginationNextAria}
+            aria-label={t.core.common.paginationNextAria}
             className={cn(
               'gap-1 px-2.5 sm:pr-2.5',
               page >= totalPages && 'pointer-events-none opacity-50',
@@ -97,7 +97,7 @@ export function TablePagination({
               if (page < totalPages) onPageChange(Math.min(totalPages, page + 1));
             }}
           >
-            <span className="hidden sm:block">{t.common.paginationNext}</span>
+            <span className="hidden sm:block">{t.core.common.paginationNext}</span>
             <PublicIcon name="chevron-right" size={16} />
           </PaginationLink>
         </PaginationItem>

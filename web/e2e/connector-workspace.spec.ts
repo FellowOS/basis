@@ -6,20 +6,20 @@ import {
   putE2ePostgresSqliteConnection,
   seedE2eSqliteCustomersDb,
 } from './connector-mapping-suggest-fixture.js';
-import { defaultKbId, registerFreshUser } from './helpers.js';
+import { defaultWorkspaceId, registerFreshUser } from './helpers.js';
 
 test('connector runs panel lists run after connection check', async ({ page }) => {
   test.setTimeout(120_000);
 
   await registerFreshUser(page);
-  const kbId = await defaultKbId(page);
+  const workspaceId = await defaultWorkspaceId(page);
   const connectionName = 'e2e_runs';
   const dbPath = seedE2eSqliteCustomersDb();
 
-  await putE2ePostgresSqliteConnection(page, kbId, connectionName, dbPath);
-  await postE2eConnectionCheck(page, kbId, 'postgres', connectionName);
+  await putE2ePostgresSqliteConnection(page, workspaceId, connectionName, dbPath);
+  await postE2eConnectionCheck(page, workspaceId, 'postgres', connectionName);
 
-  await page.goto(`/kbs/${kbId}/connectors/runs`);
+  await page.goto(`/workspaces/${workspaceId}/connectors/runs`);
   await expect(page.getByTestId('connectors-panel-runs')).toBeVisible({ timeout: 30_000 });
   await expect(page.getByText('postgres', { exact: true }).first()).toBeVisible();
   await expect(page.getByText('check', { exact: true }).first()).toBeVisible();
@@ -30,20 +30,20 @@ test('connector mapping edit saves label column and returns to list', async ({ p
   test.setTimeout(120_000);
 
   await registerFreshUser(page);
-  const kbId = await defaultKbId(page);
+  const workspaceId = await defaultWorkspaceId(page);
   const connectionName = 'e2e_edit';
   const dbPath = seedE2eSqliteCustomersDb();
 
-  await putE2ePostgresSqliteConnection(page, kbId, connectionName, dbPath);
-  const mappingId = await createCustomersTableMappingViaApi(page, kbId, connectionName);
+  await putE2ePostgresSqliteConnection(page, workspaceId, connectionName, dbPath);
+  const mappingId = await createCustomersTableMappingViaApi(page, workspaceId, connectionName);
 
-  await page.goto(`/kbs/${kbId}/connectors/mappings/${mappingId}/edit`);
+  await page.goto(`/workspaces/${workspaceId}/connectors/mappings/${mappingId}/edit`);
   await expect(page.getByTestId('mapping-label-input')).toBeVisible({ timeout: 30_000 });
   await page.getByTestId('mapping-label-input').fill('customer_name');
   await page.getByTestId('mapping-target-class-input').fill('urn:basis:class:E2eCustomer');
   await page.getByTestId('submit-table-mapping-btn').click();
 
-  await expect(page).toHaveURL(new RegExp(`/kbs/${kbId}/connectors/mappings$`), {
+  await expect(page).toHaveURL(new RegExp(`/workspaces/${workspaceId}/connectors/mappings$`), {
     timeout: 30_000,
   });
   await expect(page.getByTestId('connectors-panel-mappings')).toBeVisible();
@@ -54,14 +54,14 @@ test('connector mappings list sync now runs inbound sync', async ({ page }) => {
   test.setTimeout(120_000);
 
   await registerFreshUser(page);
-  const kbId = await defaultKbId(page);
+  const workspaceId = await defaultWorkspaceId(page);
   const connectionName = 'e2e_sync_ui';
   const dbPath = seedE2eSqliteCustomersDb();
 
-  await putE2ePostgresSqliteConnection(page, kbId, connectionName, dbPath);
-  const mappingId = await createCustomersTableMappingViaApi(page, kbId, connectionName);
+  await putE2ePostgresSqliteConnection(page, workspaceId, connectionName, dbPath);
+  const mappingId = await createCustomersTableMappingViaApi(page, workspaceId, connectionName);
 
-  await page.goto(`/kbs/${kbId}/connectors/mappings`);
+  await page.goto(`/workspaces/${workspaceId}/connectors/mappings`);
   const syncBtn = page.getByTestId(`sync-mapping-btn-${mappingId}`);
   await expect(syncBtn).toBeVisible({ timeout: 30_000 });
   await syncBtn.click();
@@ -73,18 +73,18 @@ test('connector oauth callback exchanges code and returns to catalog', async ({ 
   test.setTimeout(90_000);
 
   await registerFreshUser(page);
-  const kbId = await defaultKbId(page);
+  const workspaceId = await defaultWorkspaceId(page);
   const state = 'e2e-oauth-state-ok';
   const connectionName = 'e2e_oauth_ok';
 
-  await page.goto(`/kbs/${kbId}/connectors/catalog`);
+  await page.goto(`/workspaces/${workspaceId}/connectors/catalog`);
   await page.evaluate(
-    ({ kbId: kid, state: oauthState, connectionName: connName }) => {
-      const redirectUri = `${window.location.origin}/kbs/${kid}/connectors/oauth/callback`;
+    ({ workspaceId: kid, state: oauthState, connectionName: connName }) => {
+      const redirectUri = `${window.location.origin}/workspaces/${kid}/connectors/oauth/callback`;
       sessionStorage.setItem(
         'basis_bocp_oauth_pending',
         JSON.stringify({
-          kbId: kid,
+          workspaceId: kid,
           service: 'github',
           connectionName: connName,
           connectionConfig: {},
@@ -93,10 +93,10 @@ test('connector oauth callback exchanges code and returns to catalog', async ({ 
         }),
       );
     },
-    { kbId, state, connectionName },
+    { workspaceId, state, connectionName },
   );
 
-  await page.route(`**/api/v1/kbs/${kbId}/connectors/oauth/github/exchange`, async (route) => {
+  await page.route(`**/api/v1/workspaces/${workspaceId}/connectors/oauth/github/exchange`, async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -113,13 +113,13 @@ test('connector oauth callback exchanges code and returns to catalog', async ({ 
   const exchangeRequest = page.waitForRequest(
     (req) =>
       req.method() === 'POST' &&
-      req.url().includes(`/kbs/${kbId}/connectors/oauth/github/exchange`),
+      req.url().includes(`/workspaces/${workspaceId}/connectors/oauth/github/exchange`),
   );
-  await page.goto(`/kbs/${kbId}/connectors/oauth/callback?code=e2e-fake-code&state=${state}`);
+  await page.goto(`/workspaces/${workspaceId}/connectors/oauth/callback?code=e2e-fake-code&state=${state}`);
   const exchangeBody = (await exchangeRequest).postDataJSON() as Record<string, unknown>;
   expect(exchangeBody.code).toBe('e2e-fake-code');
   expect(exchangeBody.connection_name).toBe(connectionName);
-  await expect(page).toHaveURL(new RegExp(`/kbs/${kbId}/connectors/catalog`), {
+  await expect(page).toHaveURL(new RegExp(`/workspaces/${workspaceId}/connectors/catalog`), {
     timeout: 30_000,
   });
   await expect(page.getByTestId('connectors-panel-catalog')).toBeVisible({ timeout: 30_000 });
@@ -129,9 +129,9 @@ test('connector oauth callback without session shows error', async ({ page }) =>
   test.setTimeout(60_000);
 
   await registerFreshUser(page);
-  const kbId = await defaultKbId(page);
+  const workspaceId = await defaultWorkspaceId(page);
 
-  await page.goto(`/kbs/${kbId}/connectors/oauth/callback`);
+  await page.goto(`/workspaces/${workspaceId}/connectors/oauth/callback`);
   await expect(page.getByTestId('connector-oauth-callback')).toBeVisible({ timeout: 30_000 });
   await expect(
     page.getByText(/Missing authorization|缺少授权|session|会话/i).first(),

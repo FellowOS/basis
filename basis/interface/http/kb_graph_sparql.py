@@ -1,4 +1,4 @@
-"""KB Explorer SPARQL execution."""
+"""Explorer SPARQL execution."""
 
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ from basis.domain.tenancy.admin.store import AdminStore, User
 from basis.interface.http.deps import (
     kb_graph_runtime_for,
     get_current_user,
-    get_kb_for_viewer,
+    get_workspace_for_viewer,
     get_store,
 )
 from basis.domain.graph.session.guard import require_kb_graph_session
@@ -28,18 +28,18 @@ from basis.domain.graph.sparql.read import (
 
 router = APIRouter(tags=["knowledge-bases"])
 
-@router.post("/{kb_id}/sparql")
+@router.post("/{workspace_id}/sparql")
 async def kb_sparql_execute(
-    kb_id: str,
+    workspace_id: str,
     request: Request,
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> Any:
     """
-Kb Sparql Execute. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+SPARQL Execute. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
-    get_kb_for_viewer(request, user, kb_id, store)
-    runtime = kb_graph_runtime_for(request, kb_id)
+    get_workspace_for_viewer(request, user, workspace_id, store)
+    runtime = kb_graph_runtime_for(request, workspace_id)
     session = require_kb_graph_session(runtime)
     raw = await request.json()
     query = raw.get("query", "") if isinstance(raw, dict) else ""
@@ -63,4 +63,3 @@ Kb Sparql Execute. Requires KB membership (session) or KB API token with read/wr
             )
         except asyncio.TimeoutError:
             return sparql_timeout_response()
-

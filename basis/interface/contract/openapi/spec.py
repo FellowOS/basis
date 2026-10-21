@@ -19,8 +19,9 @@ def _spec_app():
     from basis.interface.http.app import create_app
     from basis.infra.runtime.config import Settings
     import tempfile
+    import uuid
 
-    data_dir = Path(tempfile.gettempdir()) / "basis-openapi-spec"
+    data_dir = Path(tempfile.gettempdir()) / f"basis-openapi-spec-{uuid.uuid4().hex}"
     data_dir.mkdir(parents=True, exist_ok=True)
     return create_app(Settings(data_dir=data_dir))
 

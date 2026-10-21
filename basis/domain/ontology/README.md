@@ -1,6 +1,6 @@
 # `basis.domain.ontology`
 
-Business-semantics **model layer** for a KB: Ontology Hub (registry, drafts, proposals), SHACL, browse/preview, RDF I/O, and shared RDF parse helpers (`io/`).
+Business-semantics **model layer** for a workspace (`workspace_id`): Ontology Hub (registry, drafts, proposals), SHACL, browse/preview, RDF I/O, and shared RDF parse helpers (`io/`).
 
 Graph **projection** and interactive reads live in `basis.domain.graph` (`projection/`, `session/`, `reads/`, …). Canonical facts remain in `basis.domain.knowledge`.
 

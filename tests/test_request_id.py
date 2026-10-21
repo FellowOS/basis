@@ -34,16 +34,16 @@ def test_graph_rebuild_audit_includes_request_id(tmp_path) -> None:
         json={"email": "aud@example.com", "password": "password1", "display_name": "U"},
     ).json()
     headers = _auth(admin["token"])
-    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
     trace = "rebuild-audit-trace"
 
     client.post(
-        f"/api/v1/kbs/{kb_id}/graph/rebuild",
+        f"/api/v1/workspaces/{workspace_id}/graph/rebuild",
         headers={**headers, "X-Request-ID": trace},
     )
 
     audit = client.get(
-        f"/api/v1/kbs/{kb_id}/audit/graph-mutations?action_prefix=kb.graph.",
+        f"/api/v1/workspaces/{workspace_id}/audit/graph-mutations?action_prefix=kb.graph.",
         headers=headers,
     )
     assert audit.status_code == 200
@@ -57,7 +57,7 @@ def test_graph_rebuild_audit_includes_request_id(tmp_path) -> None:
 def test_unauthorized_includes_request_id_in_detail(tmp_path) -> None:
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
     response = client.get(
-        "/api/v1/kbs",
+        "/api/v1/workspaces",
         headers={"X-Request-ID": "auth-fail-1"},
     )
     assert response.status_code == 401

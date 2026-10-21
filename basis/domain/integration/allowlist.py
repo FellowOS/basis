@@ -1,4 +1,4 @@
-"""Platform + KB dual-layer BOCP provider allowlists."""
+"""Platform + workspace dual-layer BOCP provider allowlists."""
 
 from __future__ import annotations
 
@@ -35,9 +35,9 @@ def effective_allowed_providers(
     kb: AllowedProviders,
 ) -> AllowedProviders:
     """
-    Intersect platform ceiling with KB selection.
+    Intersect platform ceiling with workspace selection.
 
-    KB `*` means «all providers allowed by the platform» (not the full catalog).
+    Workspace `*` means «all providers allowed by the platform» (not the full catalog).
     """
     platform_norm = normalize_allowed_providers(platform)
     kb_norm = normalize_allowed_providers(kb)
@@ -110,7 +110,7 @@ def assert_kb_allowlist_within_platform(
     kb: AllowedProviders,
     platform: AllowedProviders,
 ) -> None:
-    """Raise ValueError when KB allowlist exceeds the platform ceiling."""
+    """Raise ValueError when workspace allowlist exceeds the platform ceiling."""
     platform_norm = normalize_allowed_providers(platform)
     kb_norm = normalize_allowed_providers(kb)
     if platform_norm == "*" or kb_norm == "*":
@@ -121,7 +121,7 @@ def assert_kb_allowlist_within_platform(
     if extra:
         joined = ", ".join(sorted(extra))
         raise ValueError(
-            f"KB allowlist includes providers not enabled at platform level: {joined}"
+            f"Workspace allowlist includes providers not enabled at platform level: {joined}"
         )
 
 

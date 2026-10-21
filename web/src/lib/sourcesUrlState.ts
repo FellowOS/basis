@@ -1,4 +1,4 @@
-import { kbPath } from '@/lib/nav-config.js';
+import { workspacePath } from '@/lib/nav-config.js';
 
 const DOC_PARAM = 'doc';
 const VERSION_PARAM = 'version';
@@ -20,16 +20,16 @@ export function parseSourcesUrlState(search: string): {
 }
 
 /** Highlight a document row on the sources library (F-SRC-08). */
-export function kbSourcesDocumentPath(kbId: string, docId: string): string {
+export function sourcesDocumentPath(workspaceId: string, docId: string): string {
   const params = new URLSearchParams({ [DOC_PARAM]: docId });
-  return `${kbPath(kbId, 'sources')}?${params.toString()}`;
+  return `${workspacePath(workspaceId, 'sources')}?${params.toString()}`;
 }
 
 /** Open the process dialog for a version (chunk/extract). */
-export function kbSourcesProcessPath(kbId: string, versionId: string): string {
+export function sourcesProcessPath(workspaceId: string, versionId: string): string {
   const params = new URLSearchParams({
     [VERSION_PARAM]: versionId,
     [PROCESS_PARAM]: '1',
   });
-  return `${kbPath(kbId, 'sources')}?${params.toString()}`;
+  return `${workspacePath(workspaceId, 'sources')}?${params.toString()}`;
 }

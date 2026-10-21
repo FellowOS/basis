@@ -31,8 +31,8 @@ users = Table(
 )
 Index("users_email_active", users.c.email, unique=True, postgresql_where=users.c.deactivated_at.is_(None))
 
-knowledge_bases = Table(
-    "knowledge_bases",
+workspaces = Table(
+    "workspaces",
     metadata,
     Column("id", Text, primary_key=True),
     Column("name", Text, nullable=False),
@@ -46,7 +46,7 @@ documents = Table(
     "documents",
     metadata,
     Column("id", Text, primary_key=True),
-    Column("kb_id", Text, ForeignKey("knowledge_bases.id"), nullable=False),
+    Column("workspace_id", Text, ForeignKey("workspaces.id"), nullable=False),
     Column("source_id", Text),
     Column("external_key", Text),
     Column("title", Text, nullable=False),
@@ -61,7 +61,7 @@ document_versions = Table(
     "document_versions",
     metadata,
     Column("id", Text, primary_key=True),
-    Column("kb_id", Text, ForeignKey("knowledge_bases.id"), nullable=False),
+    Column("workspace_id", Text, ForeignKey("workspaces.id"), nullable=False),
     Column("document_id", Text, ForeignKey("documents.id"), nullable=False),
     Column("version_no", Integer, nullable=False),
     Column("sha256", Text, nullable=False),
@@ -81,7 +81,7 @@ chunks = Table(
     "chunks",
     metadata,
     Column("id", Text, primary_key=True),
-    Column("kb_id", Text, ForeignKey("knowledge_bases.id"), nullable=False),
+    Column("workspace_id", Text, ForeignKey("workspaces.id"), nullable=False),
     Column("version_id", Text, ForeignKey("document_versions.id"), nullable=False),
     Column("ordinal", Integer, nullable=False),
     Column("text", Text, nullable=False),
@@ -95,13 +95,13 @@ chunks = Table(
     Column("created_at", Text, nullable=False),
     UniqueConstraint("version_id", "ordinal"),
 )
-Index("chunks_kb_created", chunks.c.kb_id, chunks.c.created_at)
+Index("chunks_workspace_created", chunks.c.workspace_id, chunks.c.created_at)
 
 embedding_records = Table(
     "embedding_records",
     metadata,
     Column("id", Text, primary_key=True),
-    Column("kb_id", Text, ForeignKey("knowledge_bases.id"), nullable=False),
+    Column("workspace_id", Text, ForeignKey("workspaces.id"), nullable=False),
     Column("chunk_id", Text, ForeignKey("chunks.id"), nullable=False),
     Column("model_ref", Text, nullable=False),
     Column("dimension", Integer, nullable=False),
@@ -111,10 +111,10 @@ embedding_records = Table(
     UniqueConstraint("chunk_id", "model_ref"),
 )
 
-kb_search_configs = Table(
-    "kb_search_configs",
+search_configs = Table(
+    "search_configs",
     metadata,
-    Column("kb_id", Text, ForeignKey("knowledge_bases.id"), primary_key=True),
+    Column("workspace_id", Text, ForeignKey("workspaces.id"), primary_key=True),
     Column("schema_version", Integer, nullable=False, server_default="1"),
     Column("chunk_backend", Text, nullable=False),
     Column("vector_backend", Text, nullable=False),

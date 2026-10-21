@@ -94,16 +94,16 @@ def test_mcp_invoke_connector_primitive_sql_list(
             },
         ).json()
         headers = {"Authorization": f"Bearer {reg['token']}"}
-        kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+        workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
 
         client.put(
-            f"/api/v1/kbs/{kb_id}/connectors/connections/postgres/prim",
+            f"/api/v1/workspaces/{workspace_id}/connectors/connections/postgres/prim",
             headers=headers,
             json=postgres_connection_payload(postgres_sql_target_url),
         )
 
         mcp_resp = client.post(
-            f"/api/v1/kbs/{kb_id}/mcp",
+            f"/api/v1/workspaces/{workspace_id}/mcp",
             headers=headers,
             json={
                 "jsonrpc": "2.0",
@@ -211,14 +211,14 @@ def test_http_invoke_primitive_list(tmp_path: Path, postgres_sql_target_url: str
             },
         ).json()
         headers = {"Authorization": f"Bearer {reg['token']}"}
-        kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+        workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
         client.put(
-            f"/api/v1/kbs/{kb_id}/connectors/connections/postgres/h",
+            f"/api/v1/workspaces/{workspace_id}/connectors/connections/postgres/h",
             headers=headers,
             json=postgres_connection_payload(postgres_sql_target_url),
         )
         resp = client.post(
-            f"/api/v1/kbs/{kb_id}/connectors/connections/postgres/h/invoke-primitive",
+            f"/api/v1/workspaces/{workspace_id}/connectors/connections/postgres/h/invoke-primitive",
             headers=headers,
             json={
                 "action_id": "table_records",

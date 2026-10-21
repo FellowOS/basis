@@ -25,22 +25,22 @@ class EntityMergesAccess:
         self._store = store
 
     def entity_labels_by_ids(
-        self, kb_id: str, entity_ids: list[str]
+        self, workspace_id: str, entity_ids: list[str]
     ) -> dict[str, str | None]:
         with self._store._lock:
             return entity_persist.entity_labels_by_ids(
-                self._store._conn, kb_id, entity_ids
+                self._store._conn, workspace_id, entity_ids
             )
 
-    def ledger_entity_exists(self, kb_id: str, entity_id: str) -> bool:
+    def ledger_entity_exists(self, workspace_id: str, entity_id: str) -> bool:
         with self._store._lock:
             return entity_persist.active_entity_exists(
-                self._store._conn, kb_id, entity_id
+                self._store._conn, workspace_id, entity_id
             )
 
     def record_agent_decision(
         self,
-        kb_id: str,
+        workspace_id: str,
         *,
         action: str,
         review_item_id: str | None = None,
@@ -56,7 +56,7 @@ class EntityMergesAccess:
             decision_persist.insert_agent_decision(
                 self._store._conn,
                 decision_id=resolved_id,
-                kb_id=kb_id,
+                workspace_id=workspace_id,
                 review_item_id=review_item_id,
                 action=action,
                 status=status,
@@ -71,7 +71,7 @@ class EntityMergesAccess:
 
     def record_entity_merge(
         self,
-        kb_id: str,
+        workspace_id: str,
         *,
         source_entity_id: str,
         target_entity_id: str,
@@ -82,14 +82,14 @@ class EntityMergesAccess:
         if source_entity_id == target_entity_id:
             raise AdminError(422, "same_entity", "不能合并同一实体")
         with self._store._lock:
-            self._store._assert_row_in_kb("entities", source_entity_id, kb_id)
-            self._store._assert_row_in_kb("entities", target_entity_id, kb_id)
+            self._store._assert_row_in_workspace("entities", source_entity_id, workspace_id)
+            self._store._assert_row_in_workspace("entities", target_entity_id, workspace_id)
             merge_id = str(uuid.uuid4())
             now = _now()
             merge_persist.insert_entity_merge(
                 self._store._conn,
                 merge_id=merge_id,
-                kb_id=kb_id,
+                workspace_id=workspace_id,
                 source_entity_id=source_entity_id,
                 target_entity_id=target_entity_id,
                 decision_id=decision_id,
@@ -101,9 +101,9 @@ class EntityMergesAccess:
             row = merge_persist.fetch_entity_merge_by_id(self._store._conn, merge_id)
         return merge_persist.entity_merge_row_to_dict(row)
 
-    def entity_merge_redirect(self, kb_id: str) -> dict[str, str]:
+    def entity_merge_redirect(self, workspace_id: str) -> dict[str, str]:
         direct: dict[str, str] = {}
-        for row in self.list_entity_merges(kb_id, active_only=True, limit=10_000):
+        for row in self.list_entity_merges(workspace_id, active_only=True, limit=10_000):
             direct[row["source_entity_id"]] = row["target_entity_id"]
         redirect: dict[str, str] = {}
         for source in direct:
@@ -117,14 +117,14 @@ class EntityMergesAccess:
 
     def revert_entity_merge(
         self,
-        kb_id: str,
+        workspace_id: str,
         merge_id: str,
         *,
         reverted_by: str,
     ) -> dict[str, Any]:
         with self._store._lock:
             row = merge_persist.fetch_entity_merge_for_kb(
-                self._store._conn, merge_id, kb_id
+                self._store._conn, merge_id, workspace_id
             )
             if row is None:
                 raise AdminError(404, "not_found", "合并记录不存在")
@@ -134,7 +134,7 @@ class EntityMergesAccess:
             merge_persist.revert_entity_merge_row(
                 self._store._conn,
                 merge_id,
-                kb_id,
+                workspace_id,
                 reverted_at=now,
                 reverted_by=reverted_by,
             )
@@ -146,16 +146,16 @@ class EntityMergesAccess:
 
     def list_entity_merges(
         self,
-        kb_id: str,
+        workspace_id: str,
         *,
         limit: int = 100,
         active_only: bool = True,
     ) -> list[dict[str, Any]]:
         with self._store._lock:
-            self._store._assert_kb_exists(kb_id)
+            self._store._assert_workspace_exists(workspace_id)
             rows = merge_persist.list_entity_merge_rows(
                 self._store._conn,
-                kb_id,
+                workspace_id,
                 active_only=active_only,
                 limit=limit,
             )

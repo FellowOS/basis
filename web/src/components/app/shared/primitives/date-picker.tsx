@@ -47,7 +47,7 @@ export function DatePicker({
   const { locale, t } = useI18n();
   const loc = locale as Locale;
   const [open, setOpen] = React.useState(false);
-  const emptyLabel = placeholder ?? t.kbGraphDiff.pickDate;
+  const emptyLabel = placeholder ?? t.graph.diff.pick_date;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>

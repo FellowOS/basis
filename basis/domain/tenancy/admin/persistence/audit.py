@@ -67,19 +67,19 @@ def list_audit(
 
 def list_audit_for_kb(
     conn: Any,
-    kb_id: str,
+    workspace_id: str,
     limit: int,
     *,
     action_prefix: str | None = None,
     backend: str = "sqlite",
 ) -> list[Any]:
     kb_detail_expr = (
-        "(detail::jsonb ->> 'kb_id') = ?"
+        "(detail::jsonb ->> 'workspace_id') = ?"
         if backend == "postgres"
-        else "json_extract(detail, '$.kb_id') = ?"
+        else "json_extract(detail, '$.workspace_id') = ?"
     )
     clauses = [kb_detail_expr]
-    params: list[Any] = [kb_id]
+    params: list[Any] = [workspace_id]
     if action_prefix:
         clauses.append("action LIKE ?")
         params.append(f"{action_prefix}%")

@@ -30,7 +30,7 @@ class MappingsAccess:
 
     def list_mappings(
         self,
-        kb_id: str,
+        workspace_id: str,
         *,
         status: str | None = None,
         include_invalidated: bool = False,
@@ -40,10 +40,10 @@ class MappingsAccess:
         if status and status not in MAPPING_STATUSES:
             raise AdminError(422, "bad_status", "无效的映射状态")
         with self._store._lock:
-            self._store._assert_kb_exists(kb_id)
+            self._store._assert_workspace_exists(workspace_id)
             rows = mapping_persist.list_mapping_rows(
                 self._store._conn,
-                kb_id,
+                workspace_id,
                 include_invalidated=include_invalidated,
                 status=status,
                 limit=limit,
@@ -52,7 +52,7 @@ class MappingsAccess:
 
     def create_mapping(
         self,
-        kb_id: str,
+        workspace_id: str,
         actor_id: str,
         *,
         signature: str,
@@ -74,12 +74,12 @@ class MappingsAccess:
         mapping_id = str(uuid.uuid4())
         now = _now()
         with self._store._lock:
-            self._store._assert_kb_exists(kb_id)
+            self._store._assert_workspace_exists(workspace_id)
             try:
                 mapping_persist.insert_mapping(
                     self._store._conn,
                     mapping_id=mapping_id,
-                    kb_id=kb_id,
+                    workspace_id=workspace_id,
                     signature=signature,
                     target_uri=target_uri,
                     target_kind=target_kind,
@@ -96,13 +96,13 @@ class MappingsAccess:
                     "mapping_exists",
                     "已存在相同签名的已确认映射",
                 ) from exc
-        return self.get_mapping(kb_id, mapping_id)
+        return self.get_mapping(workspace_id, mapping_id)
 
-    def get_mapping(self, kb_id: str, mapping_id: str) -> dict[str, Any]:
+    def get_mapping(self, workspace_id: str, mapping_id: str) -> dict[str, Any]:
         with self._store._lock:
-            self._store._assert_kb_exists(kb_id)
+            self._store._assert_workspace_exists(workspace_id)
             row = mapping_persist.fetch_mapping(
-                self._store._conn, kb_id, mapping_id
+                self._store._conn, workspace_id, mapping_id
             )
         if row is None:
             raise AdminError(404, "not_found", "映射不存在")
@@ -110,7 +110,7 @@ class MappingsAccess:
 
     def update_mapping_status(
         self,
-        kb_id: str,
+        workspace_id: str,
         mapping_id: str,
         actor_id: str,
         *,
@@ -121,9 +121,9 @@ class MappingsAccess:
             raise AdminError(422, "bad_status", "status 无效")
         now = _now()
         with self._store._lock:
-            self._store._assert_kb_exists(kb_id)
+            self._store._assert_workspace_exists(workspace_id)
             row = mapping_persist.fetch_mapping_status_row(
-                self._store._conn, kb_id, mapping_id
+                self._store._conn, workspace_id, mapping_id
             )
             if row is None:
                 raise AdminError(404, "not_found", "映射不存在")
@@ -132,7 +132,7 @@ class MappingsAccess:
             try:
                 mapping_persist.update_mapping_status_row(
                     self._store._conn,
-                    kb_id,
+                    workspace_id,
                     mapping_id,
                     status=status,
                     why=why,
@@ -140,25 +140,25 @@ class MappingsAccess:
                 )
                 if status in {"rejected", "superseded"}:
                     mapping_persist.invalidate_mapping_row(
-                        self._store._conn, kb_id, mapping_id, now
+                        self._store._conn, workspace_id, mapping_id, now
                     )
                 self._store._conn.commit()
             except (sqlite3.IntegrityError, SQLAlchemyIntegrityError) as exc:
                 raise AdminError(
                     409, "mapping_exists", "已存在相同签名的已确认映射"
                 ) from exc
-        return self.get_mapping(kb_id, mapping_id)
+        return self.get_mapping(workspace_id, mapping_id)
 
-    def list_distinct_surface_phrases(self, kb_id: str, *, limit: int = 100) -> list[str]:
+    def list_distinct_surface_phrases(self, workspace_id: str, *, limit: int = 100) -> list[str]:
         limit = min(max(1, limit), 200)
         with self._store._lock:
-            self._store._assert_kb_exists(kb_id)
+            self._store._assert_workspace_exists(workspace_id)
             return mapping_persist.list_distinct_surface_phrases(
-                self._store._conn, kb_id, limit
+                self._store._conn, workspace_id, limit
             )
 
-    def materialize_mapping_facts(self, kb_id: str, mapping_id: str) -> dict[str, Any]:
-        mapping = self.get_mapping(kb_id, mapping_id)
+    def materialize_mapping_facts(self, workspace_id: str, mapping_id: str) -> dict[str, Any]:
+        mapping = self.get_mapping(workspace_id, mapping_id)
         if mapping["status"] != "confirmed":
             return {"created": 0, "reason": "mapping_not_confirmed"}
         if mapping["target_kind"] != "property":
@@ -172,7 +172,7 @@ class MappingsAccess:
         with self._store._lock:
             conn = self._store._conn
             rows = mapping_persist.statements_for_mapping_materialization(
-                conn, kb_id, signature
+                conn, workspace_id, signature
             )
             for row in rows:
                 object_entity_id = row["object_entity_id"]
@@ -182,14 +182,14 @@ class MappingsAccess:
                 if not object_entity_id and not object_value:
                     continue
                 if mapping_persist.typed_fact_exists_for_statement_mapping(
-                    conn, kb_id, row["id"], mapping_id
+                    conn, workspace_id, row["id"], mapping_id
                 ):
                     continue
                 fact_id = str(uuid.uuid4())
                 mapping_persist.insert_typed_fact_from_statement(
                     conn,
                     fact_id=fact_id,
-                    kb_id=kb_id,
+                    workspace_id=workspace_id,
                     subject_id=row["subject_id"],
                     predicate_uri=predicate_uri,
                     object_entity_id=object_entity_id,

@@ -76,8 +76,8 @@ def _require_postgres_sql_connector_writable(database_url: str) -> None:
             "PostgreSQL is not writable for BOCP SQL connector tests "
             f"({exc}). Start Basis Postgres: "
             "docker compose -f compose.postgres.yml up -d, then "
-            f"export BASIS_TEST_POSTGRES_URL=postgresql://basis:basis@{host}:5433/basis "
-            f"(compose maps host port 5433; you used port {port}). "
+            f"export BASIS_TEST_POSTGRES_URL=postgresql://basis:basis@{host}:5432/basis "
+            f"(compose maps host port 5432; you used port {port}). "
             "Or set BASIS_TEST_POSTGRES_EXTERNAL_URL to any database you can CREATE TABLE in."
         )
     finally:

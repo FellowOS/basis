@@ -57,14 +57,14 @@ def _setup_kb_and_external_db(
     )
     conn.execute(
         """
-        INSERT INTO knowledge_bases (id, name, description, visibility, created_by, created_at)
+        INSERT INTO workspaces (id, name, description, visibility, created_by, created_at)
         VALUES ('kb1', 'KB 1', '', 'private', 'u1', '2026-01-01T00:00:00Z')
         """
     )
     conn.execute(
         """
         INSERT INTO ingest_sources (
-            id, kb_id, kind, name, config_json, enabled, created_by, created_at, updated_at
+            id, workspace_id, kind, name, config_json, enabled, created_by, created_at, updated_at
         ) VALUES (
             'src_crm', 'kb1', 'connector', 'CRM Postgres',
             '{"provider":"postgres","connection_name":"crm_db"}',
@@ -131,13 +131,13 @@ def test_inbound_4_way_diff_and_outbound_review_writeback_closed_loop(
 
         # Verify entities and typed_facts in ledger
         entities = conn.execute(
-            "SELECT id, canonical_label FROM entities WHERE kb_id = 'kb1' AND invalidated_at IS NULL ORDER BY canonical_label"
+            "SELECT id, canonical_label FROM entities WHERE workspace_id = 'kb1' AND invalidated_at IS NULL ORDER BY canonical_label"
         ).fetchall()
         assert [(e[1]) for e in entities] == ["Alpha Corp", "Beta Inc"]
         alpha_entity_id = entities[0][0]
 
         active_facts = conn.execute(
-            "SELECT predicate_uri, object_value FROM typed_facts WHERE kb_id = 'kb1' AND subject_id = ? AND invalidated_at IS NULL",
+            "SELECT predicate_uri, object_value FROM typed_facts WHERE workspace_id = 'kb1' AND subject_id = ? AND invalidated_at IS NULL",
             (alpha_entity_id,),
         ).fetchall()
         assert dict(active_facts) == {
@@ -173,7 +173,7 @@ def test_inbound_4_way_diff_and_outbound_review_writeback_closed_loop(
 
         # Verify c1's old tier fact was superseded and new tier fact is 'gold'
         tier_facts = conn.execute(
-            "SELECT object_value, invalidated_at FROM typed_facts WHERE kb_id = 'kb1' AND subject_id = ? AND predicate_uri = 'urn:basis:prop:tier' ORDER BY recorded_at ASC",
+            "SELECT object_value, invalidated_at FROM typed_facts WHERE workspace_id = 'kb1' AND subject_id = ? AND predicate_uri = 'urn:basis:prop:tier' ORDER BY recorded_at ASC",
             (alpha_entity_id,),
         ).fetchall()
         assert len(tier_facts) == 2

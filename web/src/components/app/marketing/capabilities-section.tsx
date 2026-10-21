@@ -1,10 +1,11 @@
 import { Link } from 'react-router-dom';
 
 import { useI18n } from '@/i18n/context.js';
+import { i18nIndexedList } from '@/i18n/indexed-list.js';
 
 export function CapabilitiesSection() {
   const { t } = useI18n();
-  const m = t.marketing;
+  const m = t.home.marketing;
 
   return (
     <section
@@ -13,17 +14,17 @@ export function CapabilitiesSection() {
     >
       <div className="w-full">
         <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-          {m.capabilitiesEyebrow}
+          {m.capabilities_eyebrow}
         </p>
         <h2 className="mt-4 max-w-2xl font-display text-3xl font-semibold tracking-tight text-foreground sm:max-w-none sm:text-4xl sm:whitespace-nowrap">
-          {m.capabilitiesTitle}
+          {m.capabilities_title}
         </h2>
         <p className="mt-4 max-w-2xl text-base leading-relaxed text-muted-foreground">
-          {m.capabilitiesSubhead}
+          {m.capabilities_subhead}
         </p>
 
         <div className="mt-10 grid gap-5 sm:grid-cols-2 2xl:grid-cols-4">
-          {m.highlights.map((item) => (
+          {i18nIndexedList(m.highlights).map((item) => (
             <article
               key={item.index}
               className="flex flex-col rounded-xl border border-border/70 bg-card/50 p-5"
@@ -46,10 +47,10 @@ export function CapabilitiesSection() {
               </code>
               <Link
                 to={item.href}
-                aria-label={`${item.title} — ${m.learnMore}`}
+                aria-label={`${item.title} — ${m.learn_more}`}
                 className="mt-auto inline-flex items-center gap-1 pt-4 text-xs font-medium text-foreground underline-offset-4 hover:underline"
               >
-                {m.learnMore}
+                {m.learn_more}
                 <span aria-hidden>→</span>
               </Link>
             </article>

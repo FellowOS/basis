@@ -1,0 +1,1191 @@
+import { useCallback, useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
+import { PublicIcon } from '@/components/app/shared/primitives/public-icon.js';
+import { EntityMergePropertyDiff } from '@/modules/entity-resolution/components/entity-merge-property-diff.js';
+import { ReviewDecisionNarrative } from './review-decision-narrative.js';
+import { buildWorkspaceApiPath, workspaceFetch } from '@/lib/explorer/ws-http.js';
+import { useI18n } from '@/i18n/context.js';
+import { fmt, formatLocaleDateTime, formatLocaleNumber } from '@/i18n/format.js';
+import type { LocaleMessages } from '@/i18n/en.js';
+import type { Locale } from '@/i18n/locale.js';
+import { useWorkspaceCapabilities } from '@/lib/workspace/capabilities.js';
+import { throwIfApiNotOk } from '@/lib/api-error.js';
+import {
+  formatUserFacingApiError,
+  isGovernanceGateErrorCode,
+  readApiErrorCode,
+} from '@/lib/api-error-message.js';
+import {
+  formatGraphAuditAction,
+  proposalIdFromGraphAuditDetail,
+  reviewItemIdFromGraphAuditDetail,
+} from '@/lib/workspace/graph-audit.js';
+import { formatNodeRef, formatNodeRefDetail } from '@/lib/format-node-ref.js';
+import { fetchWorkspaceNodeLabels } from '@/lib/workspace/node-labels.js';
+import { workspaceAlertsPath, reviewAlertEpisodeKey } from '@/lib/workspace/alerts-url.js';
+import { workspaceOntologyProposalPath, workspaceOntologyVersionsPath, workspacePath } from '@/lib/nav-config.js';
+import {
+  auditEventMatchesReviewItem,
+  decisionIdFromApproveResponse,
+  decisionIdFromDetail,
+  reviewDecisionPath,
+  reviewItemPath,
+} from '@/lib/reviewUrlState.js';
+import { Button } from '@/components/ui/button.js';
+import { cn } from '@/lib/utils.js';
+import { toast } from 'sonner';
+
+type ReviewItem = {
+  id: string;
+  kind: string;
+  status: string;
+  payload: {
+    primary_id?: string;
+    duplicate_ids?: string[];
+    filename?: string;
+    byte_size?: number;
+    mapping_id?: string;
+    signature?: string;
+    target_uri?: string | null;
+    target_kind?: string;
+    direction?: string;
+    content?: string;
+    statement_id?: string;
+    surface_phrase?: string;
+    confidence?: number;
+    confidence_min?: number;
+    objects?: Array<{
+      statement_id?: string;
+      object_entity_id?: string | null;
+      object_value?: string | null;
+    }>;
+    outbox_id?: string;
+    entity_id?: string;
+    entity_ids?: string[];
+    suggested_primary_id?: string;
+    canonical_label?: string;
+    provider?: string;
+    external_table?: string;
+    external_pk?: string;
+    changes?: Record<string, { old?: unknown; new?: unknown }>;
+  };
+  created_at: string;
+};
+
+type AuditEvent = {
+  id: number;
+  action: string;
+  created_at: string;
+  detail?: Record<string, unknown>;
+};
+
+type EntityMergeRow = {
+  id: string;
+  source_entity_id: string;
+  target_entity_id: string;
+  why: string | null;
+  created_at: string;
+  reverted_at: string | null;
+  decision_id?: string | null;
+};
+
+type TimelineEntry =
+  | { kind: 'audit'; id: string; at: string; event: AuditEvent }
+  | { kind: 'ledger_merge'; id: string; at: string; merge: EntityMergeRow };
+
+function auditDetailLine(
+  locale: Locale,
+  event: AuditEvent,
+  r: LocaleMessages['review']['queue'],
+  audit: LocaleMessages['graph']['audit'],
+  labels: Record<string, string | null>,
+): string | null {
+  const d = event.detail ?? {};
+  if (event.action.includes('merge')) {
+    const primary = d.primary_id as string | undefined;
+    const dupes = d.duplicate_ids as string[] | undefined;
+    if (primary && dupes?.length) {
+      return `${formatNodeRef(primary, labels)} ← ${dupes.map((id) => formatNodeRef(id, labels)).join(', ')}`;
+    }
+    const payload = d.payload as { primary_id?: string; duplicate_ids?: string[] } | undefined;
+    if (payload?.primary_id) {
+      const dupList = payload.duplicate_ids ?? [];
+      return `${formatNodeRef(payload.primary_id, labels)} ← ${dupList.map((id) => formatNodeRef(id, labels)).join(', ')}`;
+    }
+  }
+  if (event.action === 'kb.graph.import' || event.action === 'kb.graph.import_proposed') {
+    const nodes = d.nodes_imported;
+    const edges = d.edges_imported;
+    const file = d.filename;
+    return [
+      file,
+      nodes != null ? fmt(r.import_nodes, { count: formatLocaleNumber(locale, Number(nodes)) }) : null,
+      edges != null ? fmt(r.import_edges, { count: formatLocaleNumber(locale, Number(edges)) }) : null,
+    ]
+      .filter(Boolean)
+      .join(' · ');
+  }
+  if (event.action === 'kb.graph.export') {
+    const fmt = d.format;
+    return fmt ? String(fmt) : null;
+  }
+  if (event.action === 'kb.graph.projection_rebuild') {
+    const parts: string[] = [];
+    if (d.projection_revision != null) {
+      parts.push(
+        fmt(audit.projection_revision, {
+          revision: formatLocaleNumber(locale, Number(d.projection_revision)),
+        }),
+      );
+    }
+    if (d.node_count != null && d.edge_count != null) {
+      parts.push(`${d.node_count}/${d.edge_count}`);
+    }
+    return parts.length ? parts.join(' · ') : null;
+  }
+  const mergePayload = d.merge as { ledger_notice?: string; ledger_skipped_ids?: string[] } | undefined;
+  const ledgerNotice = (d.ledger_notice as string | undefined) ?? mergePayload?.ledger_notice;
+  const ledgerSkipped =
+    (d.ledger_skipped_ids as string[] | undefined) ?? mergePayload?.ledger_skipped_ids;
+  if (event.action === 'kb.graph.merge_approved' && ledgerNotice === 'graph_only_merge') {
+    return r.graph_only_merge_approved;
+  }
+  if (event.action === 'kb.graph.merge_approved' && ledgerNotice === 'partial_ledger') {
+    const skipped = ledgerSkipped?.join(', ');
+    return fmt(r.partial_ledger_skipped, { skipped: skipped ?? '' });
+  }
+  if (event.action === 'kb.graph.merge_approved') {
+    const ledger = d.ledger_merges as { source_entity_id?: string; target_entity_id?: string }[] | undefined;
+    if (ledger?.length) {
+      return ledger
+        .map(
+          (row) =>
+            `${formatNodeRef(row.source_entity_id ?? '', labels)} → ${formatNodeRef(row.target_entity_id ?? '', labels)}`,
+        )
+        .join('; ');
+    }
+    const merge = d.merge as { ledger_merges?: { source_entity_id: string; target_entity_id: string }[] } | undefined;
+    if (merge?.ledger_merges?.length) {
+      return merge.ledger_merges
+        .map(
+          (row) =>
+            `${formatNodeRef(row.source_entity_id, labels)} → ${formatNodeRef(row.target_entity_id, labels)}`,
+        )
+        .join('; ');
+    }
+  }
+  return null;
+}
+
+function collectAuditLabelIds(events: AuditEvent[]): string[] {
+  const ids: string[] = [];
+  for (const event of events) {
+    const d = event.detail ?? {};
+    const primary = d.primary_id as string | undefined;
+    if (primary) ids.push(primary);
+    const dupes = d.duplicate_ids as string[] | undefined;
+    if (dupes?.length) ids.push(...dupes);
+    const payload = d.payload as { primary_id?: string; duplicate_ids?: string[] } | undefined;
+    if (payload?.primary_id) ids.push(payload.primary_id);
+    if (payload?.duplicate_ids?.length) ids.push(...payload.duplicate_ids);
+    const ledger = d.ledger_merges as { source_entity_id?: string; target_entity_id?: string }[] | undefined;
+    for (const row of ledger ?? []) {
+      if (row.source_entity_id) ids.push(row.source_entity_id);
+      if (row.target_entity_id) ids.push(row.target_entity_id);
+    }
+    const merge = d.merge as { ledger_merges?: { source_entity_id: string; target_entity_id: string }[] } | undefined;
+    for (const row of merge?.ledger_merges ?? []) {
+      ids.push(row.source_entity_id, row.target_entity_id);
+    }
+  }
+  return ids;
+}
+
+function mergeTimeline(
+  events: AuditEvent[],
+  merges: EntityMergeRow[],
+): TimelineEntry[] {
+  const rows: TimelineEntry[] = events.map((event) => ({
+    kind: 'audit',
+    id: `audit-${event.id}`,
+    at: event.created_at,
+    event,
+  }));
+  for (const merge of merges) {
+    rows.push({
+      kind: 'ledger_merge',
+      id: `merge-${merge.id}`,
+      at: merge.created_at,
+      merge,
+    });
+  }
+  return rows.sort((a, b) => (a.at < b.at ? 1 : a.at > b.at ? -1 : 0));
+}
+
+function decisionIdsForReviewItem(events: AuditEvent[], itemId: string): string[] {
+  const seen = new Set<string>();
+  const ids: string[] = [];
+  for (const event of events) {
+    if (!auditEventMatchesReviewItem(event.detail, itemId)) continue;
+    const decisionId = decisionIdFromDetail(event.detail);
+    if (!decisionId || seen.has(decisionId)) continue;
+    seen.add(decisionId);
+    ids.push(decisionId);
+  }
+  return ids;
+}
+
+function filterTimelineForReviewItem(entries: TimelineEntry[], itemId: string): TimelineEntry[] {
+  return entries.filter((entry) => {
+    if (entry.kind !== 'audit') return false;
+    return auditEventMatchesReviewItem(entry.event.detail, itemId);
+  });
+}
+
+export function ReviewQueuePanel({
+  workspaceId,
+  focusItemId,
+}: {
+  workspaceId: string;
+  focusItemId?: string;
+}) {
+  const { t, locale } = useI18n();
+  const emptyCell = t.core.common.emptyCell;
+  const r = t.review.queue;
+  const auditMessages = t.graph.audit;
+  const apiError = useCallback(
+    (err: unknown) => formatUserFacingApiError(err, locale as Locale),
+    [locale],
+  );
+  const { caps } = useWorkspaceCapabilities();
+  const queryClient = useQueryClient();
+  const [items, setItems] = useState<ReviewItem[]>([]);
+  const [events, setEvents] = useState<AuditEvent[]>([]);
+  const [merges, setMerges] = useState<EntityMergeRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [gateErrorCode, setGateErrorCode] = useState<string | null>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [busyMergeId, setBusyMergeId] = useState<string | null>(null);
+  const [labels, setLabels] = useState<Record<string, string | null>>({});
+  const [diffExpandedId, setDiffExpandedId] = useState<string | null>(null);
+  const [highlightItemId, setHighlightItemId] = useState<string | null>(null);
+  const [approvedDecisionId, setApprovedDecisionId] = useState<string | null>(null);
+  const [focusedResolvedItem, setFocusedResolvedItem] = useState<ReviewItem | null>(null);
+  const [scanBusy, setScanBusy] = useState(false);
+  const [governorBusy, setGovernorBusy] = useState(false);
+  const [conflictKeeper, setConflictKeeper] = useState<Record<string, string>>({});
+  const [clusterPrimary, setClusterPrimary] = useState<Record<string, string>>({});
+  const canRevertMerge = Boolean(caps?.graph_write);
+  const canScanConflicts = Boolean(caps?.graph_write);
+
+  useEffect(() => {
+    setConflictKeeper((prev) => {
+      const next = { ...prev };
+      for (const item of items) {
+        if (item.kind !== 'statement_conflict') continue;
+        if (next[item.id]) continue;
+        const firstId = item.payload.objects?.[0]?.statement_id;
+        if (firstId) next[item.id] = firstId;
+      }
+      return next;
+    });
+    setClusterPrimary((prev) => {
+      const next = { ...prev };
+      for (const item of items) {
+        if (item.kind !== 'entity_cluster') continue;
+        if (next[item.id]) continue;
+        const suggested =
+          item.payload.suggested_primary_id ?? item.payload.entity_ids?.[0];
+        if (suggested) next[item.id] = suggested;
+      }
+      return next;
+    });
+  }, [items]);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [queueRes, auditRes, mergesRes] = await Promise.all([
+        workspaceFetch(buildWorkspaceApiPath('review/items', workspaceId)),
+        workspaceFetch(
+          `${buildWorkspaceApiPath('audit/graph-mutations', workspaceId)}?action_prefix=${encodeURIComponent('kb.')}&limit=50`,
+        ),
+        workspaceFetch(`${buildWorkspaceApiPath('ledger/entity-merges', workspaceId)}?active_only=false`),
+      ]);
+      await throwIfApiNotOk(queueRes);
+      const queueData = (await queueRes.json()) as { items?: ReviewItem[] };
+      setItems(queueData.items ?? []);
+
+      let loadedEvents: AuditEvent[] = [];
+      if (auditRes.ok) {
+        const auditData = (await auditRes.json()) as { events?: AuditEvent[] };
+        loadedEvents = auditData.events ?? [];
+        setEvents(loadedEvents);
+      } else {
+        setEvents([]);
+      }
+
+      let loadedMerges: EntityMergeRow[] = [];
+      if (mergesRes.ok) {
+        const mergeData = (await mergesRes.json()) as { merges?: EntityMergeRow[] };
+        loadedMerges = mergeData.merges ?? [];
+        setMerges(loadedMerges);
+      } else {
+        setMerges([]);
+      }
+
+      const labelIds: string[] = [];
+      for (const item of queueData.items ?? []) {
+        if (item.kind === 'entity_merge' && item.payload) {
+          if (item.payload.primary_id) labelIds.push(item.payload.primary_id);
+          labelIds.push(...(item.payload.duplicate_ids ?? []));
+        }
+      }
+      for (const row of loadedMerges) {
+        labelIds.push(row.source_entity_id, row.target_entity_id);
+      }
+      labelIds.push(...collectAuditLabelIds(loadedEvents));
+      void fetchWorkspaceNodeLabels(workspaceId, labelIds)
+        .then((next) => setLabels((prev) => ({ ...prev, ...next })))
+        .catch(() => {});
+    } catch (err) {
+      setError(apiError(err));
+      setItems([]);
+      setEvents([]);
+      setMerges([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [apiError, workspaceId]);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  useEffect(() => {
+    if (!focusItemId || loading) {
+      setFocusedResolvedItem(null);
+      return;
+    }
+    if (items.some((row) => row.id === focusItemId)) {
+      setFocusedResolvedItem(null);
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      try {
+        const res = await workspaceFetch(
+          buildWorkspaceApiPath(`review/items/${encodeURIComponent(focusItemId)}`, workspaceId),
+        );
+        if (!res.ok) {
+          if (!cancelled) setFocusedResolvedItem(null);
+          return;
+        }
+        const data = (await res.json()) as { item?: ReviewItem };
+        const item = data.item;
+        if (!cancelled && item?.id) {
+          setFocusedResolvedItem(item);
+        }
+      } catch {
+        if (!cancelled) setFocusedResolvedItem(null);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [focusItemId, items, workspaceId, loading]);
+
+  useEffect(() => {
+    if (!focusItemId || loading) return;
+    const item = items.find((row) => row.id === focusItemId);
+    if (!item) return;
+    if (item.kind === 'entity_merge') {
+      setDiffExpandedId(focusItemId);
+    }
+    setHighlightItemId(focusItemId);
+    const timer = window.setTimeout(() => {
+      document.getElementById(`review-item-${focusItemId}`)?.scrollIntoView({
+        block: 'nearest',
+        behavior: 'smooth',
+      });
+    }, 0);
+    if (!focusItemId) {
+      const clearHighlight = window.setTimeout(() => setHighlightItemId(null), 4000);
+      return () => {
+        window.clearTimeout(timer);
+        window.clearTimeout(clearHighlight);
+      };
+    }
+    return () => window.clearTimeout(timer);
+  }, [focusItemId, items, loading]);
+
+  async function revertLedgerMerge(mergeId: string) {
+    if (!canRevertMerge) return;
+    setBusyMergeId(mergeId);
+    setError(null);
+    try {
+      const res = await workspaceFetch(
+        buildWorkspaceApiPath(`ledger/entity-merges/${encodeURIComponent(mergeId)}/revert`, workspaceId),
+        { method: 'POST' },
+      );
+      await throwIfApiNotOk(res);
+      void queryClient.invalidateQueries({ queryKey: ['graph', 'full-load', workspaceId] });
+      void load();
+    } catch (err) {
+      setError(apiError(err));
+    } finally {
+      setBusyMergeId(null);
+    }
+  }
+
+  async function runGovernorPass() {
+    setGovernorBusy(true);
+    setError(null);
+    try {
+      const res = await workspaceFetch(
+        buildWorkspaceApiPath('governance/governor/run', workspaceId),
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({}),
+        },
+      );
+      await throwIfApiNotOk(res);
+      const body = (await res.json()) as {
+        conflicts?: { created?: number; skipped?: number };
+        low_confidence?: { created?: number; skipped?: number };
+        entity_clusters?: { created?: number; skipped?: number };
+        graph_dedup_clusters?: { created?: number; skipped?: number };
+      };
+      toast.success(
+        fmt(r.run_governor_success, {
+          conflictsCreated: formatLocaleNumber(locale as Locale, body.conflicts?.created ?? 0),
+          conflictsSkipped: formatLocaleNumber(locale as Locale, body.conflicts?.skipped ?? 0),
+          lowCreated: formatLocaleNumber(locale as Locale, body.low_confidence?.created ?? 0),
+          lowSkipped: formatLocaleNumber(locale as Locale, body.low_confidence?.skipped ?? 0),
+          clusterCreated: formatLocaleNumber(locale as Locale, body.entity_clusters?.created ?? 0),
+          clusterSkipped: formatLocaleNumber(locale as Locale, body.entity_clusters?.skipped ?? 0),
+          graphDedupCreated: formatLocaleNumber(
+            locale as Locale,
+            body.graph_dedup_clusters?.created ?? 0,
+          ),
+          graphDedupSkipped: formatLocaleNumber(
+            locale as Locale,
+            body.graph_dedup_clusters?.skipped ?? 0,
+          ),
+        }),
+      );
+      void load();
+    } catch (err) {
+      setError(apiError(err));
+      toast.error(apiError(err));
+    } finally {
+      setGovernorBusy(false);
+    }
+  }
+
+  async function scanStatementConflicts() {
+    setScanBusy(true);
+    setError(null);
+    try {
+      const res = await workspaceFetch(
+        buildWorkspaceApiPath('review/scan-statement-conflicts', workspaceId),
+        { method: 'POST' },
+      );
+      await throwIfApiNotOk(res);
+      const body = (await res.json()) as { created?: number; skipped?: number };
+      toast.success(
+        fmt(r.scan_conflicts_success, {
+          created: formatLocaleNumber(locale as Locale, body.created ?? 0),
+          skipped: formatLocaleNumber(locale as Locale, body.skipped ?? 0),
+        }),
+      );
+      void load();
+    } catch (err) {
+      setError(apiError(err));
+      toast.error(apiError(err));
+    } finally {
+      setScanBusy(false);
+    }
+  }
+
+  async function resolve(itemId: string, action: 'approve' | 'reject') {
+    setBusyId(itemId);
+    setError(null);
+    setGateErrorCode(null);
+    const item = items.find((row) => row.id === itemId);
+    const payload: { rationale?: string; keeper_statement_id?: string; primary_id?: string } = {};
+    if (
+      action === 'approve' &&
+      item?.kind === 'statement_conflict' &&
+      conflictKeeper[itemId]
+    ) {
+      payload.keeper_statement_id = conflictKeeper[itemId];
+    }
+    if (
+      action === 'approve' &&
+      item?.kind === 'entity_cluster' &&
+      clusterPrimary[itemId]
+    ) {
+      payload.primary_id = clusterPrimary[itemId];
+    }
+    try {
+      const res = await workspaceFetch(
+        buildWorkspaceApiPath(`review/items/${encodeURIComponent(itemId)}/${action}`, workspaceId),
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        },
+      );
+      await throwIfApiNotOk(res);
+      const body = (await res.json()) as unknown;
+      setItems((prev) => prev.filter((row) => row.id !== itemId));
+      if (action === 'approve') {
+        const decisionId = decisionIdFromApproveResponse(body);
+        setApprovedDecisionId(decisionId);
+        void queryClient.invalidateQueries({ queryKey: ['graph', 'full-load', workspaceId] });
+      }
+      void load();
+    } catch (err) {
+      setGateErrorCode(readApiErrorCode(err) ?? null);
+      setError(apiError(err));
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  const timeline = mergeTimeline(events, merges);
+  const scopedTimeline = focusItemId
+    ? filterTimelineForReviewItem(timeline, focusItemId)
+    : timeline;
+  const narrativeDecisionId =
+    approvedDecisionId ??
+    (focusItemId ? decisionIdsForReviewItem(events, focusItemId).at(-1) : undefined);
+  function renderDecisionLinks(decisionIds: string[], testIdPrefix: string) {
+    if (decisionIds.length === 0) return null;
+    return (
+      <div className="mt-2 flex flex-col gap-1">
+        <span className="text-[10px] text-muted-foreground">{r.related_decisions}</span>
+        <div className="flex flex-wrap gap-x-2 gap-y-0.5">
+          {decisionIds.map((decisionId) => (
+            <Link
+              key={decisionId}
+              to={reviewDecisionPath(workspaceId, decisionId)}
+              className="text-[11px] text-foreground underline-offset-2 hover:underline"
+              data-testid={`${testIdPrefix}-${decisionId}`}
+            >
+              {r.open_decision}
+            </Link>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  function renderNodeRef(id: string) {
+    const { title, subtitle } = formatNodeRefDetail(id, labels);
+    return (
+      <span className="inline-block">
+        <span>{title}</span>
+        {subtitle ? (
+          <span className="mt-0.5 block font-mono text-[10px] font-normal text-muted-foreground">{subtitle}</span>
+        ) : null}
+      </span>
+    );
+  }
+
+  function kindLabel(kind: string) {
+    if (kind === 'graph_import') return r.kind_import;
+    if (kind === 'ontology_mapping') return r.kind_mapping;
+    if (kind === 'statement_remember') return r.kind_remember;
+    if (kind === 'statement_conflict') return r.kind_conflict;
+    if (kind === 'low_confidence') return r.kind_low_confidence;
+    if (kind === 'entity_cluster') return r.kind_entity_cluster;
+    if (kind === 'connector_writeback') return r.kind_writeback;
+    if (kind === 'entity_merge') return r.kind_merge;
+    return kind;
+  }
+
+  return (
+    <div className="flex min-h-0 flex-1 overflow-hidden max-[900px]:flex-col">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden border-r border-border max-[900px]:max-h-[min(52vh,480px)] max-[900px]:border-r-0 max-[900px]:border-b">
+        <div className="flex h-12 shrink-0 items-center gap-2 border-b border-border px-4">
+          <PublicIcon name="check-square-contained" size={13} className="shrink-0 text-muted-foreground" />
+          <span className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">{r.queue_title}</span>
+          {!loading ? (
+            <span className="font-mono text-[11px] tabular-nums text-muted-foreground">{items.length}</span>
+          ) : null}
+          {canScanConflicts ? (
+            <div className="ml-auto flex shrink-0 items-center gap-1.5">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-7 text-[11px]"
+                disabled={governorBusy || scanBusy || loading}
+                data-testid="review-run-governor"
+                onClick={() => void runGovernorPass()}
+              >
+                {r.run_governor}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-7 text-[11px]"
+                disabled={scanBusy || governorBusy || loading}
+                data-testid="review-scan-statement-conflicts"
+                onClick={() => void scanStatementConflicts()}
+              >
+                {r.scan_conflicts}
+              </Button>
+            </div>
+          ) : null}
+        </div>
+        <div className="min-h-0 flex-1 overflow-auto">
+          {approvedDecisionId ? (
+            <div className="border-b border-border px-4 py-3">
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-foreground">
+                <span>{r.approve_decision_recorded}</span>
+                <Link
+                  to={reviewDecisionPath(workspaceId, approvedDecisionId)}
+                  className="font-medium underline-offset-2 hover:underline"
+                  data-testid="review-approve-decision-link"
+                >
+                  {r.open_decision}
+                </Link>
+              </div>
+              <ReviewDecisionNarrative
+                workspaceId={workspaceId}
+                decisionId={approvedDecisionId}
+                variant="embedded"
+              />
+            </div>
+          ) : null}
+          {focusedResolvedItem ? (
+            <div
+              className="border-b border-border px-4 py-3 text-sm"
+              data-testid="review-resolved-item-banner"
+            >
+              <p className="text-[11px] text-muted-foreground">
+                {fmt(r.resolved_review_item_hint, { status: focusedResolvedItem.status })}
+              </p>
+              {renderDecisionLinks(
+                decisionIdsForReviewItem(events, focusedResolvedItem.id),
+                'review-resolved-decision',
+              )}
+              {narrativeDecisionId ? (
+                <ReviewDecisionNarrative
+                  workspaceId={workspaceId}
+                  decisionId={narrativeDecisionId}
+                  variant="embedded"
+                />
+              ) : null}
+            </div>
+          ) : null}
+          {loading ? (
+            <div className="flex items-center gap-2 px-4 py-3 text-sm text-muted-foreground">
+              <PublicIcon name="loader-01" size={16} className="animate-spin" />
+              {t.core.common.loading}
+            </div>
+          ) : error ? (
+            <div className="space-y-2 px-4 py-3">
+              <p className="text-sm text-destructive">{error}</p>
+              {gateErrorCode && isGovernanceGateErrorCode(gateErrorCode) ? (
+                <p className="text-xs text-muted-foreground">
+                  {r.governance_gate_alerts_hint}{' '}
+                  <Link
+                    to={workspaceAlertsPath(workspaceId, {
+                      episodeKey: focusItemId
+                        ? reviewAlertEpisodeKey(focusItemId)
+                        : undefined,
+                    })}
+                    className="font-medium text-primary hover:underline"
+                    data-testid="review-governance-alerts-link"
+                  >
+                    {r.view_governance_alerts}
+                  </Link>
+                </p>
+              ) : null}
+            </div>
+          ) : items.length === 0 ? (
+            <div className="flex h-full min-h-32 flex-col items-center justify-center px-6 text-center">
+              <PublicIcon name="check-square-contained" size={18} className="mb-2 text-muted-foreground" />
+              <p className="text-sm font-medium text-foreground">{r.empty_queue}</p>
+              <p className="mt-1 max-w-sm text-[11px] leading-snug text-muted-foreground">
+                {r.empty_queue_prefix}
+                <Link to={workspaceOntologyVersionsPath(workspaceId)} className="text-foreground underline-offset-2 hover:underline">
+                  {r.empty_queue_link}
+                </Link>
+                {r.empty_queue_suffix}
+              </p>
+            </div>
+          ) : (
+            <ul>
+              {items.map((item) => {
+                const isImport = item.kind === 'graph_import';
+                const isMapping = item.kind === 'ontology_mapping';
+                const isRemember = item.kind === 'statement_remember';
+                const isConflict = item.kind === 'statement_conflict';
+                const isLowConfidence = item.kind === 'low_confidence';
+                const isEntityCluster = item.kind === 'entity_cluster';
+                const isWriteback = item.kind === 'connector_writeback';
+                const isEntityMerge = item.kind === 'entity_merge';
+                const primaryId = item.payload.primary_id ?? emptyCell;
+                const duplicateIds = item.payload.duplicate_ids ?? [];
+                const firstDuplicate = duplicateIds[0];
+                const showDiff = diffExpandedId === item.id;
+                const approveLabelForItem = isImport
+                  ? r.approve_import
+                  : isMapping
+                    ? r.approve_mapping
+                    : isRemember
+                      ? r.approve_fact
+                      : isConflict
+                        ? r.keep_selected_value
+                        : isLowConfidence
+                          ? r.confirm_low_confidence
+                          : isEntityCluster
+                            ? r.promote_entity_cluster
+                            : isWriteback
+                            ? r.approve_writeback
+                            : r.approve_merge;
+                const itemDecisionIds = decisionIdsForReviewItem(events, item.id);
+                return (
+                  <li
+                    key={item.id}
+                    id={`review-item-${item.id}`}
+                    className={cn(
+                      'border-b border-border px-4 py-2.5 text-sm',
+                      (focusItemId === item.id || highlightItemId === item.id) &&
+                        'bg-muted ring-2 ring-primary ring-offset-2 ring-offset-background',
+                    )}
+                  >
+                    <div className="text-[11px] text-muted-foreground">{kindLabel(item.kind)}</div>
+                    <div className="mt-1 text-[13px] leading-snug">
+                      {isImport
+                        ? `${item.payload.filename ?? r.import_default_filename} (${fmt(r.import_byte_size, {
+                            size:
+                              item.payload.byte_size != null
+                                ? formatLocaleNumber(locale as Locale, item.payload.byte_size)
+                                : '?',
+                          })})`
+                        : isMapping
+                          ? (
+                            <span className="flex flex-col gap-1 font-mono text-xs">
+                              <span>{item.payload.signature ?? emptyCell}</span>
+                              <span className="text-muted-foreground">
+                                → {item.payload.target_uri ?? emptyCell} (
+                                {item.payload.target_kind ?? r.mapping_kind_unknown})
+                              </span>
+                            </span>
+                          )
+                          : isRemember
+                            ? (
+                              <span className="whitespace-pre-wrap">
+                                {String(item.payload.content ?? item.payload.statement_id ?? emptyCell)}
+                              </span>
+                            )
+                          : isLowConfidence
+                            ? (
+                              <span className="text-xs text-muted-foreground">
+                                {fmt(r.low_confidence_line, {
+                                  confidence: String(item.payload.confidence ?? emptyCell),
+                                  threshold: String(item.payload.confidence_min ?? emptyCell),
+                                  predicate: String(item.payload.surface_phrase ?? emptyCell),
+                                })}
+                              </span>
+                            )
+                          : isEntityCluster
+                            ? (
+                              <span className="flex flex-col gap-1">
+                                <span className="font-mono text-xs text-muted-foreground">
+                                  {String(
+                                    (item.payload as Record<string, unknown>).source ?? '',
+                                  ) === 'graph_semantic_dedup'
+                                    ? fmt(r.entity_cluster_semantic_line, {
+                                        similarity: String(
+                                          (item.payload as Record<string, unknown>).similarity ??
+                                            emptyCell,
+                                        ),
+                                        count: formatLocaleNumber(
+                                          locale as Locale,
+                                          item.payload.entity_ids?.length ?? 0,
+                                        ),
+                                      })
+                                    : fmt(r.entity_cluster_line, {
+                                        label: String(item.payload.canonical_label ?? emptyCell),
+                                        count: formatLocaleNumber(
+                                          locale as Locale,
+                                          item.payload.entity_ids?.length ?? 0,
+                                        ),
+                                      })}
+                                </span>
+                                <p className="text-[10px] text-muted-foreground">{r.entity_cluster_pick_hint}</p>
+                                <ul
+                                  className="mt-1 flex flex-col gap-1.5 text-xs text-muted-foreground"
+                                  data-testid={`review-cluster-pick-${item.id}`}
+                                >
+                                  {(item.payload.entity_ids ?? []).map((entityId) => {
+                                    const inputId = `cluster-primary-${item.id}-${entityId}`;
+                                    return (
+                                      <li key={entityId}>
+                                        <label
+                                          htmlFor={inputId}
+                                          className="flex cursor-pointer items-start gap-2 rounded-md border border-border px-2 py-1.5 has-[:checked]:border-primary has-[:checked]:bg-muted/50"
+                                        >
+                                          <input
+                                            id={inputId}
+                                            type="radio"
+                                            name={`cluster-primary-${item.id}`}
+                                            className="mt-0.5"
+                                            checked={clusterPrimary[item.id] === entityId}
+                                            onChange={() =>
+                                              setClusterPrimary((prev) => ({
+                                                ...prev,
+                                                [item.id]: entityId,
+                                              }))
+                                            }
+                                          />
+                                          <span>{renderNodeRef(entityId)}</span>
+                                        </label>
+                                      </li>
+                                    );
+                                  })}
+                                </ul>
+                              </span>
+                            )
+                          : isConflict
+                            ? (
+                              <span className="flex flex-col gap-1">
+                                <span>
+                                  {r.conflict_predicate}
+                                  <span className="font-mono text-xs">
+                                    {String(item.payload.surface_phrase ?? emptyCell)}
+                                  </span>
+                                </span>
+                                <p className="text-[10px] text-muted-foreground">{r.conflict_pick_hint}</p>
+                                <ul
+                                  className="mt-1 flex flex-col gap-1.5 text-xs text-muted-foreground"
+                                  data-testid={`review-conflict-pick-${item.id}`}
+                                >
+                                  {item.payload.objects?.map((obj) => {
+                                    const sid = obj.statement_id ?? '';
+                                    const inputId = `conflict-keeper-${item.id}-${sid}`;
+                                    return (
+                                      <li key={sid}>
+                                        <label
+                                          htmlFor={inputId}
+                                          className="flex cursor-pointer items-start gap-2 rounded-md border border-border px-2 py-1.5 has-[:checked]:border-primary has-[:checked]:bg-muted/50"
+                                        >
+                                          <input
+                                            id={inputId}
+                                            type="radio"
+                                            name={`conflict-keeper-${item.id}`}
+                                            className="mt-0.5"
+                                            checked={conflictKeeper[item.id] === sid}
+                                            onChange={() =>
+                                              setConflictKeeper((prev) => ({ ...prev, [item.id]: sid }))
+                                            }
+                                          />
+                                          <span>
+                                            {obj.object_entity_id
+                                              ? renderNodeRef(obj.object_entity_id)
+                                              : String(obj.object_value ?? emptyCell)}
+                                          </span>
+                                        </label>
+                                      </li>
+                                    );
+                                  })}
+                                </ul>
+                              </span>
+                            )
+                          : isWriteback
+                            ? (
+                              <span className="flex flex-col gap-1.5" data-testid={`review-writeback-diff-${item.id}`}>
+                                <span className="font-mono text-xs text-muted-foreground">
+                                  {item.payload.provider ?? emptyCell} · {item.payload.external_table ?? emptyCell} (
+                                  {item.payload.external_pk ?? emptyCell})
+                                </span>
+                                {item.payload.changes ? (
+                                  <span className="flex flex-col gap-1 rounded-md border border-border bg-muted/40 p-2 font-mono text-xs">
+                                    {Object.entries(item.payload.changes).map(([col, chg]) => (
+                                      <span key={col} className="flex flex-wrap items-center gap-1.5">
+                                        <span className="font-semibold text-foreground">{col}:</span>
+                                        <span className="line-through text-muted-foreground">
+                                          {String(chg?.old ?? emptyCell)}
+                                        </span>
+                                        <span className="text-muted-foreground">→</span>
+                                        <span className="font-medium text-primary">
+                                          {String(chg?.new ?? emptyCell)}
+                                        </span>
+                                      </span>
+                                    ))}
+                                  </span>
+                                ) : null}
+                              </span>
+                            )
+                          : (
+                          <span className="flex flex-col gap-1">
+                            <span className="text-muted-foreground text-xs font-normal">
+                              {r.primary}
+                            </span>
+                            {primaryId !== emptyCell ? renderNodeRef(primaryId) : emptyCell}
+                            {duplicateIds.length ? (
+                              <>
+                                <span className="text-muted-foreground text-xs font-normal pt-1">
+                                  {r.duplicates}
+                                </span>
+                                <span className="flex flex-col gap-1">
+                                  {duplicateIds.map((dup) => (
+                                    <span key={dup}>{renderNodeRef(dup)}</span>
+                                  ))}
+                                </span>
+                              </>
+                            ) : null}
+                          </span>
+                        )}
+                    </div>
+                    {!isImport && !isMapping && !isRemember && !isConflict && !isWriteback ? (
+                      <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">{r.graph_only_merge_hint}</p>
+                    ) : null}
+                    {isEntityMerge && primaryId !== emptyCell && firstDuplicate ? (
+                      <>
+                        <Button
+                          type="button"
+                          variant="link"
+                          className="mt-2 h-auto gap-1 p-0 text-[11px] text-foreground"
+                          onClick={() =>
+                            setDiffExpandedId(showDiff ? null : item.id)
+                          }
+                        >
+                          {showDiff ? (
+                            <PublicIcon name="chevron-down" size={12} />
+                          ) : (
+                            <PublicIcon name="chevron-right" size={12} />
+                          )}
+                          {r.property_diff}
+                        </Button>
+                        {showDiff ? (
+                          <EntityMergePropertyDiff
+                            workspaceId={workspaceId}
+                            primaryId={primaryId}
+                            duplicateId={firstDuplicate}
+                            variant="compact"
+                          />
+                        ) : null}
+                      </>
+                    ) : null}
+                    {isMapping ? (
+                      <div className="mt-2">
+                        <Link
+                          to={workspacePath(workspaceId, 'mappings')}
+                          className="text-[11px] text-foreground underline-offset-2 hover:underline"
+                        >
+                          {r.open_mappings}
+                        </Link>
+                      </div>
+                    ) : null}
+                    <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">
+                      {r.governance_approve_hint}{' '}
+                      <Link
+                        to={workspacePath(workspaceId, 'decisions')}
+                        className="text-foreground underline-offset-2 hover:underline"
+                      >
+                        {r.open_decisions_workspace}
+                      </Link>
+                    </p>
+                    {isConflict ? (
+                      <p className="mt-2 text-[10px]">
+                        <Link
+                          to={workspaceAlertsPath(workspaceId, {
+                            episodeKey: reviewAlertEpisodeKey(item.id),
+                          })}
+                          className="font-medium text-primary hover:underline"
+                          data-testid={`review-item-alerts-${item.id}`}
+                        >
+                          {r.view_related_alerts}
+                        </Link>
+                      </p>
+                    ) : null}
+                    {renderDecisionLinks(itemDecisionIds, 'review-item-decision')}
+                    {(focusItemId === item.id || highlightItemId === item.id) &&
+                    itemDecisionIds.length > 0 ? (
+                      <ReviewDecisionNarrative
+                        workspaceId={workspaceId}
+                        decisionId={itemDecisionIds.at(-1)!}
+                        variant="embedded"
+                      />
+                    ) : null}
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <Button
+                        type="button"
+                        size="sm"
+                        className="h-8"
+                        disabled={busyId === item.id}
+                        onClick={() => void resolve(item.id, 'approve')}
+                      >
+                        {busyId === item.id ? (
+                          <PublicIcon name="loader-01" size={12} className="animate-spin" />
+                        ) : (
+                          <PublicIcon name="check-01" size={12} />
+                        )}
+                        {approveLabelForItem}
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        className="h-8"
+                        disabled={busyId === item.id}
+                        onClick={() => void resolve(item.id, 'reject')}
+                      >
+                        <PublicIcon name="x-02" size={12} />
+                        {r.reject}
+                      </Button>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+      </div>
+
+      <aside
+        className="flex w-[min(360px,34vw)] min-w-[260px] shrink-0 flex-col overflow-hidden max-[900px]:max-h-[min(40vh,360px)] max-[900px]:w-full max-[900px]:min-w-0"
+        data-testid={focusItemId ? 'review-item-timeline' : undefined}
+      >
+        <div className="flex h-12 shrink-0 items-center gap-2 border-b border-border px-4">
+          <PublicIcon name="clock-01" size={13} className="shrink-0 text-muted-foreground" />
+          <span className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
+            {focusItemId ? r.item_timeline_title : r.timeline_title}
+          </span>
+          {!loading ? (
+            <span className="font-mono text-[11px] tabular-nums text-muted-foreground">
+              {scopedTimeline.length}
+            </span>
+          ) : null}
+        </div>
+        {narrativeDecisionId ? (
+          <ReviewDecisionNarrative workspaceId={workspaceId} decisionId={narrativeDecisionId} />
+        ) : null}
+        <div className="min-h-0 flex-1 overflow-auto px-4 py-3">
+          {!loading && scopedTimeline.length === 0 ? (
+            <div className="flex h-full min-h-32 flex-col items-center justify-center px-4 text-center">
+              <PublicIcon name="clock-01" size={18} className="mb-2 text-muted-foreground" />
+              <p className="text-sm font-medium text-foreground">
+                {focusItemId ? r.item_timeline_empty : r.empty_log}
+              </p>
+            </div>
+          ) : (
+            <ol className="relative border-l border-border pl-4">
+              {scopedTimeline.map((entry) => {
+                if (entry.kind === 'ledger_merge') {
+                  const row = entry.merge;
+                  return (
+                    <li key={entry.id} className="mb-4 last:mb-0">
+                      <span
+                        className="absolute -left-1.5 mt-1.5 size-2 rounded-full bg-primary"
+                        aria-hidden
+                      />
+                      <div className="text-xs font-semibold text-foreground">
+                        {r.ledger_merge_label}
+                        {row.reverted_at ? r.ledger_merge_reverted : ''}
+                      </div>
+                      <div className="mt-0.5 text-[10px] text-muted-foreground">
+                        {formatNodeRef(row.source_entity_id, labels)} →{' '}
+                        {formatNodeRef(row.target_entity_id, labels)}
+                      </div>
+                      {row.why ? (
+                        <div className="mt-0.5 text-[10px] text-muted-foreground">{row.why}</div>
+                      ) : null}
+                      {row.decision_id ? (
+                        <Link
+                          to={reviewDecisionPath(workspaceId, row.decision_id)}
+                          className="mt-1 inline-block text-[11px] text-foreground underline-offset-2 hover:underline"
+                        >
+                          {r.open_decision}
+                        </Link>
+                      ) : null}
+                      {canRevertMerge && !row.reverted_at ? (
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          className="mt-2 h-8"
+                          disabled={busyMergeId === row.id}
+                          onClick={() => void revertLedgerMerge(row.id)}
+                        >
+                          {busyMergeId === row.id ? (
+                            <PublicIcon name="loader-01" size={12} className="animate-spin" />
+                          ) : null}
+                          {r.revert_merge}
+                        </Button>
+                      ) : null}
+                      <time className="mt-1 block text-[10px] text-muted-foreground">
+                        {formatLocaleDateTime(locale, entry.at)}
+                      </time>
+                    </li>
+                  );
+                }
+                const event = entry.event;
+                const detail = auditDetailLine(locale, event, r, auditMessages, labels);
+                const proposalId = proposalIdFromGraphAuditDetail(event.detail);
+                const decisionId = decisionIdFromDetail(event.detail);
+                const linkedReviewItemId = reviewItemIdFromGraphAuditDetail(event.detail);
+                return (
+                  <li key={entry.id} className="mb-4 last:mb-0">
+                    <span
+                      className="absolute -left-1.5 mt-1.5 size-2 rounded-full bg-muted-foreground"
+                      aria-hidden
+                    />
+                    <div className="text-xs font-semibold text-foreground">
+                      {formatGraphAuditAction(event.action, locale as Locale)}
+                    </div>
+                    {detail ? (
+                      <div className="mt-0.5 text-[10px] text-muted-foreground">{detail}</div>
+                    ) : null}
+                    {linkedReviewItemId ? (
+                      <Link
+                        to={reviewItemPath(workspaceId, linkedReviewItemId)}
+                        className="mt-1 inline-block text-[11px] text-foreground underline-offset-2 hover:underline"
+                        data-testid={`review-timeline-review-${linkedReviewItemId}`}
+                      >
+                        {t.review.queue.open_review_item}
+                      </Link>
+                    ) : null}
+                    {proposalId ? (
+                      <Link
+                        to={workspaceOntologyProposalPath(workspaceId, proposalId)}
+                        className="mt-1 inline-block text-[11px] text-foreground underline-offset-2 hover:underline"
+                      >
+                        {r.open_ontology_proposal}
+                      </Link>
+                    ) : null}
+                    {decisionId ? (
+                      <Link
+                        to={reviewDecisionPath(workspaceId, decisionId)}
+                        className="mt-1 inline-block text-[11px] text-foreground underline-offset-2 hover:underline"
+                        data-testid={`review-timeline-decision-${decisionId}`}
+                      >
+                        {r.open_decision}
+                      </Link>
+                    ) : null}
+                    <time className="mt-1 block text-[10px] text-muted-foreground">
+                      {formatLocaleDateTime(locale, entry.at)}
+                    </time>
+                  </li>
+                );
+              })}
+            </ol>
+          )}
+        </div>
+      </aside>
+    </div>
+  );
+}

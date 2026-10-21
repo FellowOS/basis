@@ -1,4 +1,4 @@
-"""Per-KB ontology hub sidecar (registry, alignments, drafts, proposals, versions)."""
+"""Per-workspace ontology hub sidecar (registry, alignments, drafts, proposals, versions)."""
 
 from __future__ import annotations
 
@@ -13,8 +13,8 @@ from basis.domain.graph.projection.snapshot_store import GraphPersistence, _atom
 _HUB_SCHEMA_VERSION = 1
 
 
-def _hub_path(persistence: GraphPersistence, kb_id: str) -> Path:
-    return persistence.graph_path(kb_id).with_suffix(".ontology-hub.json")
+def _hub_path(persistence: GraphPersistence, workspace_id: str) -> Path:
+    return persistence.graph_path(workspace_id).with_suffix(".ontology-hub.json")
 
 
 def _serialize_store(store: dict[str, Any]) -> dict[str, Any]:
@@ -55,15 +55,15 @@ def _rehydrate_versions(model: Any, raw: dict[str, Any]) -> dict[str, list[Any]]
     return hydrated
 
 
-def ensure_kb_ontology_hub_loaded(request: Any, kb_id: str) -> None:
+def ensure_kb_ontology_hub_loaded(request: Any, workspace_id: str) -> None:
     """Load sidecar into app.state once per process (if present on disk)."""
     app_state = request.app.state
     loaded: set[str] = getattr(app_state, "_kb_ontology_hub_loaded", set())
-    if kb_id in loaded:
+    if workspace_id in loaded:
         return
 
     persistence: GraphPersistence = app_state.graph_persistence
-    path = _hub_path(persistence, kb_id)
+    path = _hub_path(persistence, workspace_id)
     if path.is_file():
         try:
             payload = json.loads(path.read_text(encoding="utf-8"))
@@ -76,46 +76,46 @@ def ensure_kb_ontology_hub_loaded(request: Any, kb_id: str) -> None:
                 VersionEntry,
             )
 
-            app_state.kb_ontology_registries[kb_id] = dict(payload.get("registry") or {})
-            app_state.kb_ontology_alignments[kb_id] = dict(payload.get("alignments") or {})
-            app_state.kb_ontology_drafts[kb_id] = _rehydrate_drafts(DraftResponse, payload.get("drafts") or {})
-            app_state.kb_ontology_proposals[kb_id] = _rehydrate_proposals(
+            app_state.kb_ontology_registries[workspace_id] = dict(payload.get("registry") or {})
+            app_state.kb_ontology_alignments[workspace_id] = dict(payload.get("alignments") or {})
+            app_state.kb_ontology_drafts[workspace_id] = _rehydrate_drafts(DraftResponse, payload.get("drafts") or {})
+            app_state.kb_ontology_proposals[workspace_id] = _rehydrate_proposals(
                 ProposalResponse, payload.get("proposals") or {}
             )
-            app_state.kb_ontology_versions[kb_id] = _rehydrate_versions(
+            app_state.kb_ontology_versions[workspace_id] = _rehydrate_versions(
                 VersionEntry, payload.get("versions") or {}
             )
 
-    loaded.add(kb_id)
+    loaded.add(workspace_id)
     app_state._kb_ontology_hub_loaded = loaded
 
 
-def persist_kb_ontology_hub(request: Any, kb_id: str) -> None:
+def persist_kb_ontology_hub(request: Any, workspace_id: str) -> None:
     """Write in-memory hub stores to the sidecar (no-op if never initialized)."""
     app_state = request.app.state
     loaded: set[str] = getattr(app_state, "_kb_ontology_hub_loaded", set())
-    if kb_id not in loaded:
+    if workspace_id not in loaded:
         return
 
     persistence: GraphPersistence = app_state.graph_persistence
-    path = _hub_path(persistence, kb_id)
+    path = _hub_path(persistence, workspace_id)
     tmp = path.with_name(f"{path.name}.{uuid.uuid4().hex}.tmp")
     payload = {
         "schema_version": _HUB_SCHEMA_VERSION,
-        "registry": dict(app_state.kb_ontology_registries.get(kb_id) or {}),
-        "alignments": _serialize_store(app_state.kb_ontology_alignments.get(kb_id) or {}),
-        "drafts": _serialize_store(app_state.kb_ontology_drafts.get(kb_id) or {}),
-        "proposals": _serialize_store(app_state.kb_ontology_proposals.get(kb_id) or {}),
-        "versions": _serialize_versions(app_state.kb_ontology_versions.get(kb_id) or {}),
+        "registry": dict(app_state.kb_ontology_registries.get(workspace_id) or {}),
+        "alignments": _serialize_store(app_state.kb_ontology_alignments.get(workspace_id) or {}),
+        "drafts": _serialize_store(app_state.kb_ontology_drafts.get(workspace_id) or {}),
+        "proposals": _serialize_store(app_state.kb_ontology_proposals.get(workspace_id) or {}),
+        "versions": _serialize_versions(app_state.kb_ontology_versions.get(workspace_id) or {}),
     }
-    with _kb_write_lock(kb_id):
+    with _kb_write_lock(workspace_id):
         tmp.parent.mkdir(parents=True, exist_ok=True)
         tmp.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
         _atomic_replace(tmp, path)
 
 
-def delete_kb_ontology_hub(persistence: GraphPersistence, kb_id: str) -> None:
-    path = _hub_path(persistence, kb_id)
-    with _kb_write_lock(kb_id):
+def delete_kb_ontology_hub(persistence: GraphPersistence, workspace_id: str) -> None:
+    path = _hub_path(persistence, workspace_id)
+    with _kb_write_lock(workspace_id):
         if path.is_file():
             path.unlink()

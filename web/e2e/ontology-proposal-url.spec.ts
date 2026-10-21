@@ -1,18 +1,18 @@
 import { expect, test } from '@playwright/test';
 
-import { defaultKbId, registerFreshUser, seedOntologyProposalViaApi, skipUnlessKbGraphWrite } from './helpers';
+import { defaultWorkspaceId, registerFreshUser, seedOntologyProposalViaApi, skipUnlessWorkspaceGraphWrite } from './helpers';
 
 test('ontology versions deep link highlights proposal from URL', async ({ page }) => {
   test.setTimeout(120_000);
 
   await registerFreshUser(page);
-  const kbId = await defaultKbId(page);
-  await skipUnlessKbGraphWrite(page, kbId);
+  const workspaceId = await defaultWorkspaceId(page);
+  await skipUnlessWorkspaceGraphWrite(page, workspaceId);
 
   let proposalId: string;
   let summary: string;
   try {
-    ({ proposalId, summary } = await seedOntologyProposalViaApi(page, kbId));
+    ({ proposalId, summary } = await seedOntologyProposalViaApi(page, workspaceId));
   } catch (err) {
     if (err instanceof Error && err.message === 'e2e_ontology_proposal_unavailable') {
       test.skip(true, 'ontology proposal e2e helper requires data-e2e server');
@@ -21,7 +21,7 @@ test('ontology versions deep link highlights proposal from URL', async ({ page }
   }
 
   await page.goto(
-    `/kbs/${kbId}/ontology?tab=versions&ontologyProposal=${encodeURIComponent(proposalId)}`,
+    `/workspaces/${workspaceId}/ontology?tab=versions&ontologyProposal=${encodeURIComponent(proposalId)}`,
   );
 
   const unavailable = page.getByRole('heading', {

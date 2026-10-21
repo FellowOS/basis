@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { kbEntitiesStatementPath, parseEntitiesUrlState } from '@/lib/entitiesUrlState.js';
+import { entitiesStatementPath, parseEntitiesUrlState } from '@/lib/entitiesUrlState.js';
 
 describe('entitiesUrlState', () => {
   it('parses statement deep link', () => {
@@ -8,6 +8,6 @@ describe('entitiesUrlState', () => {
   });
 
   it('builds entities statement path', () => {
-    expect(kbEntitiesStatementPath('kb-1', 'stmt-9')).toBe('/kbs/kb-1/entities?statement=stmt-9');
+    expect(entitiesStatementPath('kb-1', 'stmt-9')).toBe('/workspaces/kb-1/entities?statement=stmt-9');
   });
 });

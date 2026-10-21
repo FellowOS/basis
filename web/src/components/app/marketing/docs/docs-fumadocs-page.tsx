@@ -28,7 +28,7 @@ export function DocsFumadocsPage({ slug, className }: DocsFumadocsPageProps) {
     <div className={cn('min-w-0 w-full', className)}>
       <header className="mb-8 border-b border-border pb-6">
         <h1 className="text-3xl font-semibold tracking-tight text-foreground">
-          {pageMeta?.title ?? t.common.ellipsis}
+          {pageMeta?.title ?? t.core.common.ellipsis}
         </h1>
         {pageMeta?.description ? (
           <p className="mt-3 text-base leading-relaxed text-muted-foreground">{pageMeta.description}</p>
@@ -40,7 +40,7 @@ export function DocsFumadocsPage({ slug, className }: DocsFumadocsPageProps) {
         </div>
         <div className="min-w-0 flex-1">
           <article data-doc-article className="min-w-0 w-full text-sm">
-            <Suspense fallback={<p className="text-muted-foreground">{t.common.ellipsis}</p>}>
+            <Suspense fallback={<p className="text-muted-foreground">{t.core.common.ellipsis}</p>}>
               <DocsMdxBody path={path} />
             </Suspense>
           </article>

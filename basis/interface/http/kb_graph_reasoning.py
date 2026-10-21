@@ -1,4 +1,4 @@
-"""KB Explorer reasoning run route."""
+"""Explorer reasoning run route."""
 
 from __future__ import annotations
 
@@ -23,16 +23,16 @@ from basis.domain.knowledge.store import KnowledgeStore
 
 router = APIRouter(tags=["knowledge-bases"])
 
-@router.post("/{kb_id}/reasoning/run")
+@router.post("/{workspace_id}/reasoning/run")
 async def kb_reasoning_run(
-    kb_id: str,
+    workspace_id: str,
     request: Request,
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> Any:
     """
-Kb Reasoning Run. KB-local reasoning rules and runs. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Reasoning Run. Workspace-local reasoning rules and runs. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
     from basis.domain.graph.reasoning.forward import proof_chains_for_run
     from basis.domain.graph.reasoning.run import run_reasoning
@@ -46,8 +46,8 @@ Kb Reasoning Run. KB-local reasoning rules and runs. Requires KB membership (ses
         raise AdminError(422, "validation_error", "facts 与 rules 须为字符串数组")
     apply_to_graph = bool(raw.get("apply_to_graph", False))
     role = "editor" if apply_to_graph else "viewer"
-    store.get_kb_for(user, kb_id, role)
-    runtime = kb_graph_runtime_for(request, kb_id)
+    store.get_workspace_for(user, workspace_id, role)
+    runtime = kb_graph_runtime_for(request, workspace_id)
     session = require_kb_graph_session(runtime)
     summary = await asyncio.to_thread(
         run_reasoning,
@@ -68,18 +68,18 @@ Kb Reasoning Run. KB-local reasoning rules and runs. Requires KB membership (ses
 
         summary["derived_facts_persisted"] = persist_reasoning_derived(
             knowledge,
-            kb_id,
+            workspace_id,
             list(summary.get("proof_chains") or []),
         )
         created = int(summary["derived_facts_persisted"].get("created") or 0)
         if created > 0:
-            summary["projection"] = rebuild_kb_projection(request, kb_id)
+            summary["projection"] = rebuild_kb_projection(request, workspace_id)
         else:
-            save_graph(request, kb_id)
+            save_graph(request, workspace_id)
         audit_kb_graph(
             store,
             user,
-            kb_id,
+            workspace_id,
             "kb.graph.reasoning_apply",
             extra={
                 "added_edges": summary.get("added_edges"),
@@ -93,4 +93,3 @@ Kb Reasoning Run. KB-local reasoning rules and runs. Requires KB membership (ses
             },
         )
     return summary
-

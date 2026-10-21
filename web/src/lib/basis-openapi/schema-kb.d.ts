@@ -35,7 +35,7 @@ export interface paths {
         put?: never;
         /**
          * Login
-         * @description Authenticate with email and password. Returns a session Bearer token for platform and KB routes.
+         * @description Authenticate with email and password. Returns a session Bearer token for platform and workspace routes.
          */
         post: operations["login_api_v1_auth_login_post"];
         delete?: never;
@@ -448,7 +448,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}": {
+    "/api/v1/workspaces/{workspace_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -457,26 +457,26 @@ export interface paths {
         };
         /**
          * Get Kb
-         * @description Fetch KB metadata, membership role, and high-level ledger counts.
+         * @description Fetch workspace metadata, membership role, and high-level ledger counts.
          */
-        get: operations["get_kb_api_v1_kbs__kb_id__get"];
+        get: operations["get_kb_api_v1_workspaces__workspace_id__get"];
         put?: never;
         post?: never;
         /**
-         * Delete Kb
-         * @description Delete Kb. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * Delete Workspace
+         * @description Delete workspace. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        delete: operations["delete_kb_api_v1_kbs__kb_id__delete"];
+        delete: operations["delete_workspace_api_v1_workspaces__workspace_id__delete"];
         options?: never;
         head?: never;
         /**
-         * Update Kb
-         * @description Update Kb. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * Update Workspace
+         * @description Update workspace metadata. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        patch: operations["update_kb_api_v1_kbs__kb_id__patch"];
+        patch: operations["update_workspace_api_v1_workspaces__workspace_id__patch"];
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/alerts": {
+    "/api/v1/workspaces/{workspace_id}/alerts": {
         parameters: {
             query?: never;
             header?: never;
@@ -484,8 +484,8 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * List Kb Alerts
-         * @description List KB alert episodes with unread count (viewer+).
+         * List Alerts
+         * @description List workspace alert episodes with unread count (viewer+).
          *
          *     Each alert includes a `detail` object (JSON). Common keys by `kind`:
          *
@@ -498,7 +498,7 @@ export interface paths {
          *
          *     `episode_key` correlates multiple rows in the UI (F-ALT).
          */
-        get: operations["list_kb_alerts_api_v1_kbs__kb_id__alerts_get"];
+        get: operations["list_alerts_api_v1_workspaces__workspace_id__alerts_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -507,7 +507,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/alerts/dismiss-all": {
+    "/api/v1/workspaces/{workspace_id}/alerts/dismiss-all": {
         parameters: {
             query?: never;
             header?: never;
@@ -517,17 +517,17 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Dismiss All Kb Alerts
-         * @description Dismiss all active alert episodes for this KB (editor+).
+         * Dismiss All Alerts
+         * @description Dismiss all active alert episodes for this workspace (editor+).
          */
-        post: operations["dismiss_all_kb_alerts_api_v1_kbs__kb_id__alerts_dismiss_all_post"];
+        post: operations["dismiss_all_alerts_api_v1_workspaces__workspace_id__alerts_dismiss_all_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/alerts/mark-all-read": {
+    "/api/v1/workspaces/{workspace_id}/alerts/mark-all-read": {
         parameters: {
             query?: never;
             header?: never;
@@ -537,17 +537,17 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Mark All Kb Alerts Read
+         * Mark All Alerts Read
          * @description Mark all active alerts as read without dismissing (viewer+).
          */
-        post: operations["mark_all_kb_alerts_read_api_v1_kbs__kb_id__alerts_mark_all_read_post"];
+        post: operations["mark_all_alerts_read_api_v1_workspaces__workspace_id__alerts_mark_all_read_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/alerts/stream": {
+    "/api/v1/workspaces/{workspace_id}/alerts/stream": {
         parameters: {
             query?: never;
             header?: never;
@@ -555,10 +555,10 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Stream Kb Alerts
+         * Stream Alerts
          * @description Stream new alert episodes via SSE (viewer+).
          */
-        get: operations["stream_kb_alerts_api_v1_kbs__kb_id__alerts_stream_get"];
+        get: operations["stream_alerts_api_v1_workspaces__workspace_id__alerts_stream_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -567,7 +567,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/alerts/{alert_id}/dismiss": {
+    "/api/v1/workspaces/{workspace_id}/alerts/{alert_id}/dismiss": {
         parameters: {
             query?: never;
             header?: never;
@@ -580,14 +580,14 @@ export interface paths {
          * Dismiss Kb Alert
          * @description Dismiss a single alert episode (editor+).
          */
-        post: operations["dismiss_kb_alert_api_v1_kbs__kb_id__alerts__alert_id__dismiss_post"];
+        post: operations["dismiss_kb_alert_api_v1_workspaces__workspace_id__alerts__alert_id__dismiss_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/audit/graph-mutations": {
+    "/api/v1/workspaces/{workspace_id}/audit/graph-mutations": {
         parameters: {
             query?: never;
             header?: never;
@@ -596,9 +596,9 @@ export interface paths {
         };
         /**
          * List Kb Graph Audit
-         * @description List Kb Graph Audit. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description List Graph Audit. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        get: operations["list_kb_graph_audit_api_v1_kbs__kb_id__audit_graph_mutations_get"];
+        get: operations["list_kb_graph_audit_api_v1_workspaces__workspace_id__audit_graph_mutations_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -607,7 +607,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/capabilities": {
+    "/api/v1/workspaces/{workspace_id}/capabilities": {
         parameters: {
             query?: never;
             header?: never;
@@ -616,9 +616,9 @@ export interface paths {
         };
         /**
          * Get Kb Capabilities
-         * @description Feature flags for Explorer, ingest, mappings, and diagnostics for this KB and role.
+         * @description Feature flags for Explorer, ingest, mappings, and diagnostics for this workspace and role.
          */
-        get: operations["get_kb_capabilities_api_v1_kbs__kb_id__capabilities_get"];
+        get: operations["get_kb_capabilities_api_v1_workspaces__workspace_id__capabilities_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -627,7 +627,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/connectors/catalog": {
+    "/api/v1/workspaces/{workspace_id}/connectors/catalog": {
         parameters: {
             query?: never;
             header?: never;
@@ -638,7 +638,7 @@ export interface paths {
          * List Connector Catalog
          * @description List BOCP connector manifests available in the platform catalog.
          */
-        get: operations["list_connector_catalog_api_v1_kbs__kb_id__connectors_catalog_get"];
+        get: operations["list_connector_catalog_api_v1_workspaces__workspace_id__connectors_catalog_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -647,7 +647,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/connectors/catalog/{service}": {
+    "/api/v1/workspaces/{workspace_id}/connectors/catalog/{service}": {
         parameters: {
             query?: never;
             header?: never;
@@ -658,7 +658,7 @@ export interface paths {
          * Get Connector Manifest Route
          * @description Fetch one BOCP connector manifest by service key.
          */
-        get: operations["get_connector_manifest_route_api_v1_kbs__kb_id__connectors_catalog__service__get"];
+        get: operations["get_connector_manifest_route_api_v1_workspaces__workspace_id__connectors_catalog__service__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -667,7 +667,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/connectors/connections": {
+    "/api/v1/workspaces/{workspace_id}/connectors/connections": {
         parameters: {
             query?: never;
             header?: never;
@@ -676,9 +676,9 @@ export interface paths {
         };
         /**
          * List Kb Connector Connections
-         * @description List configured BOCP connections for this KB (credentials redacted).
+         * @description List configured BOCP connections for this workspace (credentials redacted).
          */
-        get: operations["list_kb_connector_connections_api_v1_kbs__kb_id__connectors_connections_get"];
+        get: operations["list_kb_connector_connections_api_v1_workspaces__workspace_id__connectors_connections_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -687,7 +687,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/connectors/connections/{service}/{connection_name}": {
+    "/api/v1/workspaces/{workspace_id}/connectors/connections/{service}/{connection_name}": {
         parameters: {
             query?: never;
             header?: never;
@@ -697,21 +697,21 @@ export interface paths {
         get?: never;
         /**
          * Upsert Kb Connector Connection
-         * @description Create or update an encrypted BOCP connection for this KB.
+         * @description Create or update an encrypted BOCP connection for this workspace.
          */
-        put: operations["upsert_kb_connector_connection_api_v1_kbs__kb_id__connectors_connections__service___connection_name__put"];
+        put: operations["upsert_kb_connector_connection_api_v1_workspaces__workspace_id__connectors_connections__service___connection_name__put"];
         post?: never;
         /**
          * Delete Kb Connector Connection
-         * @description Delete a configured BOCP connection from this KB.
+         * @description Delete a configured BOCP connection from this workspace.
          */
-        delete: operations["delete_kb_connector_connection_api_v1_kbs__kb_id__connectors_connections__service___connection_name__delete"];
+        delete: operations["delete_kb_connector_connection_api_v1_workspaces__workspace_id__connectors_connections__service___connection_name__delete"];
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/connectors/connections/{service}/{connection_name}/check": {
+    "/api/v1/workspaces/{workspace_id}/connectors/connections/{service}/{connection_name}/check": {
         parameters: {
             query?: never;
             header?: never;
@@ -724,14 +724,14 @@ export interface paths {
          * Check Kb Connector Connection
          * @description Run the BOCP `CHECK` health check against an upstream connection.
          */
-        post: operations["check_kb_connector_connection_api_v1_kbs__kb_id__connectors_connections__service___connection_name__check_post"];
+        post: operations["check_kb_connector_connection_api_v1_workspaces__workspace_id__connectors_connections__service___connection_name__check_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/connectors/connections/{service}/{connection_name}/discover": {
+    "/api/v1/workspaces/{workspace_id}/connectors/connections/{service}/{connection_name}/discover": {
         parameters: {
             query?: never;
             header?: never;
@@ -742,7 +742,7 @@ export interface paths {
          * Discover Kb Connector Schema
          * @description Run the BOCP `DISCOVER` schema introspection for a SQL table or REST stream.
          */
-        get: operations["discover_kb_connector_schema_api_v1_kbs__kb_id__connectors_connections__service___connection_name__discover_get"];
+        get: operations["discover_kb_connector_schema_api_v1_workspaces__workspace_id__connectors_connections__service___connection_name__discover_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -751,7 +751,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/connectors/connections/{service}/{connection_name}/invoke-primitive": {
+    "/api/v1/workspaces/{workspace_id}/connectors/connections/{service}/{connection_name}/invoke-primitive": {
         parameters: {
             query?: never;
             header?: never;
@@ -764,14 +764,14 @@ export interface paths {
          * Invoke Kb Connector Primitive
          * @description Run a BOCP Section 10 primitive (discover, list, mutate, invoke) without a table mapping.
          */
-        post: operations["invoke_kb_connector_primitive_api_v1_kbs__kb_id__connectors_connections__service___connection_name__invoke_primitive_post"];
+        post: operations["invoke_kb_connector_primitive_api_v1_workspaces__workspace_id__connectors_connections__service___connection_name__invoke_primitive_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/connectors/oauth-configs/{service}": {
+    "/api/v1/workspaces/{workspace_id}/connectors/oauth-configs/{service}": {
         parameters: {
             query?: never;
             header?: never;
@@ -783,7 +783,7 @@ export interface paths {
          * Upsert Kb Connector Oauth Config
          * @description Store encrypted OAuth2 client credentials (`client_id`, `client_secret`) for a connector service.
          */
-        put: operations["upsert_kb_connector_oauth_config_api_v1_kbs__kb_id__connectors_oauth_configs__service__put"];
+        put: operations["upsert_kb_connector_oauth_config_api_v1_workspaces__workspace_id__connectors_oauth_configs__service__put"];
         post?: never;
         delete?: never;
         options?: never;
@@ -791,7 +791,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/connectors/oauth/{service}/authorize-url": {
+    "/api/v1/workspaces/{workspace_id}/connectors/oauth/{service}/authorize-url": {
         parameters: {
             query?: never;
             header?: never;
@@ -804,14 +804,14 @@ export interface paths {
          * Build Kb Connector Oauth Authorize Url
          * @description Build an OAuth2 authorization URL (with optional PKCE S256) for a connector service.
          */
-        post: operations["build_kb_connector_oauth_authorize_url_api_v1_kbs__kb_id__connectors_oauth__service__authorize_url_post"];
+        post: operations["build_kb_connector_oauth_authorize_url_api_v1_workspaces__workspace_id__connectors_oauth__service__authorize_url_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/connectors/oauth/{service}/exchange": {
+    "/api/v1/workspaces/{workspace_id}/connectors/oauth/{service}/exchange": {
         parameters: {
             query?: never;
             header?: never;
@@ -824,14 +824,14 @@ export interface paths {
          * Exchange Kb Connector Oauth Code
          * @description Exchange an OAuth2 authorization code for tokens and save the encrypted BOCP connection.
          */
-        post: operations["exchange_kb_connector_oauth_code_api_v1_kbs__kb_id__connectors_oauth__service__exchange_post"];
+        post: operations["exchange_kb_connector_oauth_code_api_v1_workspaces__workspace_id__connectors_oauth__service__exchange_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/connectors/outbox": {
+    "/api/v1/workspaces/{workspace_id}/connectors/outbox": {
         parameters: {
             query?: never;
             header?: never;
@@ -842,7 +842,7 @@ export interface paths {
          * List Kb Sync Outbox
          * @description List outbound entity writeback items in `entity_sync_outbox`.
          */
-        get: operations["list_kb_sync_outbox_api_v1_kbs__kb_id__connectors_outbox_get"];
+        get: operations["list_kb_sync_outbox_api_v1_workspaces__workspace_id__connectors_outbox_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -851,7 +851,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/connectors/outbox/propose": {
+    "/api/v1/workspaces/{workspace_id}/connectors/outbox/propose": {
         parameters: {
             query?: never;
             header?: never;
@@ -864,14 +864,14 @@ export interface paths {
          * Propose Kb Entity Writeback
          * @description Propose an outbound writeback of ledger entity attributes to its external connector stream.
          */
-        post: operations["propose_kb_entity_writeback_api_v1_kbs__kb_id__connectors_outbox_propose_post"];
+        post: operations["propose_kb_entity_writeback_api_v1_workspaces__workspace_id__connectors_outbox_propose_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/connectors/policy": {
+    "/api/v1/workspaces/{workspace_id}/connectors/policy": {
         parameters: {
             query?: never;
             header?: never;
@@ -880,14 +880,14 @@ export interface paths {
         };
         /**
          * Get Kb Connector Policy
-         * @description Get KB-scoped connector allowlist and action governance policy.
+         * @description Get workspace-scoped connector allowlist and action governance policy.
          */
-        get: operations["get_kb_connector_policy_api_v1_kbs__kb_id__connectors_policy_get"];
+        get: operations["get_kb_connector_policy_api_v1_workspaces__workspace_id__connectors_policy_get"];
         /**
          * Put Kb Connector Policy
-         * @description Update KB-scoped connector allowlist and action governance policy.
+         * @description Update workspace-scoped connector allowlist and action governance policy.
          */
-        put: operations["put_kb_connector_policy_api_v1_kbs__kb_id__connectors_policy_put"];
+        put: operations["put_kb_connector_policy_api_v1_workspaces__workspace_id__connectors_policy_put"];
         post?: never;
         delete?: never;
         options?: never;
@@ -895,7 +895,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/connectors/runs": {
+    "/api/v1/workspaces/{workspace_id}/connectors/runs": {
         parameters: {
             query?: never;
             header?: never;
@@ -903,10 +903,10 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * List Kb Connector Runs
-         * @description List recent BOCP connector execution audit logs (`kb_connector_runs`).
+         * List Connector Runs
+         * @description List recent BOCP connector execution audit logs (`connector_runs`).
          */
-        get: operations["list_kb_connector_runs_api_v1_kbs__kb_id__connectors_runs_get"];
+        get: operations["list_connector_runs_api_v1_workspaces__workspace_id__connectors_runs_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -915,7 +915,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/connectors/table-mappings": {
+    "/api/v1/workspaces/{workspace_id}/connectors/table-mappings": {
         parameters: {
             query?: never;
             header?: never;
@@ -924,22 +924,22 @@ export interface paths {
         };
         /**
          * List Kb Table Mappings
-         * @description List structured stream-to-ontology table mappings configured in this KB.
+         * @description List structured stream-to-ontology table mappings configured in this workspace.
          */
-        get: operations["list_kb_table_mappings_api_v1_kbs__kb_id__connectors_table_mappings_get"];
+        get: operations["list_kb_table_mappings_api_v1_workspaces__workspace_id__connectors_table_mappings_get"];
         put?: never;
         /**
          * Create Kb Table Mapping
          * @description Create a stream-to-ontology table mapping (auto-creating a `connector` ingest_source if omitted).
          */
-        post: operations["create_kb_table_mapping_api_v1_kbs__kb_id__connectors_table_mappings_post"];
+        post: operations["create_kb_table_mapping_api_v1_workspaces__workspace_id__connectors_table_mappings_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/connectors/table-mappings/batch-create": {
+    "/api/v1/workspaces/{workspace_id}/connectors/table-mappings/batch-create": {
         parameters: {
             query?: never;
             header?: never;
@@ -952,14 +952,14 @@ export interface paths {
          * Batch Create Kb Table Mappings
          * @description Create multiple stream-to-ontology table mappings and optionally run first inbound sync.
          */
-        post: operations["batch_create_kb_table_mappings_api_v1_kbs__kb_id__connectors_table_mappings_batch_create_post"];
+        post: operations["batch_create_kb_table_mappings_api_v1_workspaces__workspace_id__connectors_table_mappings_batch_create_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/connectors/table-mappings/suggest": {
+    "/api/v1/workspaces/{workspace_id}/connectors/table-mappings/suggest": {
         parameters: {
             query?: never;
             header?: never;
@@ -972,14 +972,14 @@ export interface paths {
          * Suggest Kb Table Mappings
          * @description Propose cross-stream connector mapping drafts grouped by inferred entity type (discover-backed).
          */
-        post: operations["suggest_kb_table_mappings_api_v1_kbs__kb_id__connectors_table_mappings_suggest_post"];
+        post: operations["suggest_kb_table_mappings_api_v1_workspaces__workspace_id__connectors_table_mappings_suggest_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/connectors/table-mappings/{mapping_id}": {
+    "/api/v1/workspaces/{workspace_id}/connectors/table-mappings/{mapping_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -990,24 +990,24 @@ export interface paths {
          * Get Kb Table Mapping
          * @description Fetch one stream-to-ontology table mapping with connector connection binding.
          */
-        get: operations["get_kb_table_mapping_api_v1_kbs__kb_id__connectors_table_mappings__mapping_id__get"];
+        get: operations["get_kb_table_mapping_api_v1_workspaces__workspace_id__connectors_table_mappings__mapping_id__get"];
         /**
          * Update Kb Table Mapping
          * @description Update a stream-to-ontology table mapping and optional connector connection binding.
          */
-        put: operations["update_kb_table_mapping_api_v1_kbs__kb_id__connectors_table_mappings__mapping_id__put"];
+        put: operations["update_kb_table_mapping_api_v1_workspaces__workspace_id__connectors_table_mappings__mapping_id__put"];
         post?: never;
         /**
          * Delete Kb Table Mapping
          * @description Delete a stream-to-ontology table mapping (cascades `entity_external_refs`).
          */
-        delete: operations["delete_kb_table_mapping_api_v1_kbs__kb_id__connectors_table_mappings__mapping_id__delete"];
+        delete: operations["delete_kb_table_mapping_api_v1_workspaces__workspace_id__connectors_table_mappings__mapping_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/connectors/table-mappings/{mapping_id}/sync": {
+    "/api/v1/workspaces/{workspace_id}/connectors/table-mappings/{mapping_id}/sync": {
         parameters: {
             query?: never;
             header?: never;
@@ -1020,14 +1020,14 @@ export interface paths {
          * Sync Kb Table Mapping
          * @description Execute inbound 4-way sync from the BOCP stream into the Evidence Ledger.
          */
-        post: operations["sync_kb_table_mapping_api_v1_kbs__kb_id__connectors_table_mappings__mapping_id__sync_post"];
+        post: operations["sync_kb_table_mapping_api_v1_workspaces__workspace_id__connectors_table_mappings__mapping_id__sync_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/connectors/tools/execute": {
+    "/api/v1/workspaces/{workspace_id}/connectors/tools/execute": {
         parameters: {
             query?: never;
             header?: never;
@@ -1038,16 +1038,16 @@ export interface paths {
         put?: never;
         /**
          * Execute Kb Connector Tool
-         * @description Execute a standalone BOCP connector tool (`ToolSpec`) with KB policy enforcement.
+         * @description Execute a standalone BOCP connector tool (`ToolSpec`) with workspace policy enforcement.
          */
-        post: operations["execute_kb_connector_tool_api_v1_kbs__kb_id__connectors_tools_execute_post"];
+        post: operations["execute_kb_connector_tool_api_v1_workspaces__workspace_id__connectors_tools_execute_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/decisions": {
+    "/api/v1/workspaces/{workspace_id}/decisions": {
         parameters: {
             query?: never;
             header?: never;
@@ -1056,9 +1056,9 @@ export interface paths {
         };
         /**
          * Kb List Decisions
-         * @description Kb List Decisions. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description List Decisions. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        get: operations["kb_list_decisions_api_v1_kbs__kb_id__decisions_get"];
+        get: operations["kb_list_decisions_api_v1_workspaces__workspace_id__decisions_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1067,7 +1067,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/decisions/{decision_id}/chain": {
+    "/api/v1/workspaces/{workspace_id}/decisions/{decision_id}/chain": {
         parameters: {
             query?: never;
             header?: never;
@@ -1076,9 +1076,9 @@ export interface paths {
         };
         /**
          * Kb Decision Chain
-         * @description Kb Decision Chain. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Decision chain. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        get: operations["kb_decision_chain_api_v1_kbs__kb_id__decisions__decision_id__chain_get"];
+        get: operations["kb_decision_chain_api_v1_workspaces__workspace_id__decisions__decision_id__chain_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1087,7 +1087,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/documents": {
+    "/api/v1/workspaces/{workspace_id}/documents": {
         parameters: {
             query?: never;
             header?: never;
@@ -1096,22 +1096,22 @@ export interface paths {
         };
         /**
          * List Kb Documents
-         * @description List Kb Documents. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description List Documents. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        get: operations["list_kb_documents_api_v1_kbs__kb_id__documents_get"];
+        get: operations["list_kb_documents_api_v1_workspaces__workspace_id__documents_get"];
         put?: never;
         /**
          * Ingest Document
-         * @description Ingest Document. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Ingest Document. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        post: operations["ingest_document_api_v1_kbs__kb_id__documents_post"];
+        post: operations["ingest_document_api_v1_workspaces__workspace_id__documents_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/documents/upload": {
+    "/api/v1/workspaces/{workspace_id}/documents/upload": {
         parameters: {
             query?: never;
             header?: never;
@@ -1122,16 +1122,16 @@ export interface paths {
         put?: never;
         /**
          * Upload Document
-         * @description Upload Document. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Upload Document. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        post: operations["upload_document_api_v1_kbs__kb_id__documents_upload_post"];
+        post: operations["upload_document_api_v1_workspaces__workspace_id__documents_upload_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/documents/{document_id}": {
+    "/api/v1/workspaces/{workspace_id}/documents/{document_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1143,15 +1143,15 @@ export interface paths {
         post?: never;
         /**
          * Delete Kb Document
-         * @description Delete Kb Document. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Delete Document. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        delete: operations["delete_kb_document_api_v1_kbs__kb_id__documents__document_id__delete"];
+        delete: operations["delete_kb_document_api_v1_workspaces__workspace_id__documents__document_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/documents/{document_id}/timeline": {
+    "/api/v1/workspaces/{workspace_id}/documents/{document_id}/timeline": {
         parameters: {
             query?: never;
             header?: never;
@@ -1167,7 +1167,7 @@ export interface paths {
          *     `created_at` / `recorded_at` / job `finished_at` — align with graph scrubber
          *     via `GET .../temporal/*`, not chunk search `as_of` alone.
          */
-        get: operations["get_kb_document_timeline_api_v1_kbs__kb_id__documents__document_id__timeline_get"];
+        get: operations["get_kb_document_timeline_api_v1_workspaces__workspace_id__documents__document_id__timeline_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1176,7 +1176,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/documents/{document_id}/versions": {
+    "/api/v1/workspaces/{workspace_id}/documents/{document_id}/versions": {
         parameters: {
             query?: never;
             header?: never;
@@ -1187,16 +1187,16 @@ export interface paths {
         put?: never;
         /**
          * Append Document Version Text
-         * @description Append Document Version Text. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Append Document Version Text. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        post: operations["append_document_version_text_api_v1_kbs__kb_id__documents__document_id__versions_post"];
+        post: operations["append_document_version_text_api_v1_workspaces__workspace_id__documents__document_id__versions_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/documents/{document_id}/versions/upload": {
+    "/api/v1/workspaces/{workspace_id}/documents/{document_id}/versions/upload": {
         parameters: {
             query?: never;
             header?: never;
@@ -1207,16 +1207,16 @@ export interface paths {
         put?: never;
         /**
          * Append Document Version Upload
-         * @description Append Document Version Upload. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Append Document Version Upload. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        post: operations["append_document_version_upload_api_v1_kbs__kb_id__documents__document_id__versions_upload_post"];
+        post: operations["append_document_version_upload_api_v1_workspaces__workspace_id__documents__document_id__versions_upload_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/enrich/dedup": {
+    "/api/v1/workspaces/{workspace_id}/enrich/dedup": {
         parameters: {
             query?: never;
             header?: never;
@@ -1227,16 +1227,16 @@ export interface paths {
         put?: never;
         /**
          * Kb Enrich Dedup
-         * @description Kb Enrich Dedup. Graph enrichment and governance proposals. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Enrich Dedup. Graph enrichment and governance proposals. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        post: operations["kb_enrich_dedup_api_v1_kbs__kb_id__enrich_dedup_post"];
+        post: operations["kb_enrich_dedup_api_v1_workspaces__workspace_id__enrich_dedup_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/enrich/links": {
+    "/api/v1/workspaces/{workspace_id}/enrich/links": {
         parameters: {
             query?: never;
             header?: never;
@@ -1247,16 +1247,16 @@ export interface paths {
         put?: never;
         /**
          * Kb Enrich Links
-         * @description Kb Enrich Links. Graph enrichment and governance proposals. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Enrich Links. Graph enrichment and governance proposals. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        post: operations["kb_enrich_links_api_v1_kbs__kb_id__enrich_links_post"];
+        post: operations["kb_enrich_links_api_v1_workspaces__workspace_id__enrich_links_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/enrich/merge": {
+    "/api/v1/workspaces/{workspace_id}/enrich/merge": {
         parameters: {
             query?: never;
             header?: never;
@@ -1269,14 +1269,14 @@ export interface paths {
          * Kb Enrich Merge
          * @description Direct graph merge is disabled; use the review queue (Gate D).
          */
-        post: operations["kb_enrich_merge_api_v1_kbs__kb_id__enrich_merge_post"];
+        post: operations["kb_enrich_merge_api_v1_workspaces__workspace_id__enrich_merge_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/entities/find": {
+    "/api/v1/workspaces/{workspace_id}/entities/find": {
         parameters: {
             query?: never;
             header?: never;
@@ -1285,9 +1285,9 @@ export interface paths {
         };
         /**
          * Find Entities Route
-         * @description Find Entities Route. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Find Entities Route. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        get: operations["find_entities_route_api_v1_kbs__kb_id__entities_find_get"];
+        get: operations["find_entities_route_api_v1_workspaces__workspace_id__entities_find_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1296,7 +1296,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/export": {
+    "/api/v1/workspaces/{workspace_id}/export": {
         parameters: {
             query?: never;
             header?: never;
@@ -1307,16 +1307,16 @@ export interface paths {
         put?: never;
         /**
          * Kb Export Graph
-         * @description Kb Export Graph. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Export Graph. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        post: operations["kb_export_graph_api_v1_kbs__kb_id__export_post"];
+        post: operations["kb_export_graph_api_v1_workspaces__workspace_id__export_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/governance/config": {
+    "/api/v1/workspaces/{workspace_id}/governance/config": {
         parameters: {
             query?: never;
             header?: never;
@@ -1325,14 +1325,14 @@ export interface paths {
         };
         /**
          * Get Kb Governance Config
-         * @description Kb Governance Config. Per-KB governor schedule and confidence threshold (F-GOV-04). Requires KB viewer+.
+         * @description Governance Config. Per-workspace governor schedule and confidence threshold (F-GOV-04). Requires workspace viewer+.
          */
-        get: operations["get_kb_governance_config_api_v1_kbs__kb_id__governance_config_get"];
+        get: operations["get_kb_governance_config_api_v1_workspaces__workspace_id__governance_config_get"];
         /**
          * Update Kb Governance Config
-         * @description Kb Governance Config Update. Enable scheduled governor passes (requires BASIS_GOVERNOR_TICK_SECONDS). Requires KB admin.
+         * @description Governance Config Update. Enable scheduled governor passes (requires BASIS_GOVERNOR_TICK_SECONDS). Requires workspace admin.
          */
-        put: operations["update_kb_governance_config_api_v1_kbs__kb_id__governance_config_put"];
+        put: operations["update_kb_governance_config_api_v1_workspaces__workspace_id__governance_config_put"];
         post?: never;
         delete?: never;
         options?: never;
@@ -1340,7 +1340,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/governance/governor/run": {
+    "/api/v1/workspaces/{workspace_id}/governance/governor/run": {
         parameters: {
             query?: never;
             header?: never;
@@ -1351,16 +1351,16 @@ export interface paths {
         put?: never;
         /**
          * Kb Governance Governor Run
-         * @description Kb Governance Governor Run. Batch conflict scan and low-confidence review enqueue (F-GOV-04). Requires KB editor+.
+         * @description Governance Governor Run. Batch conflict scan and low-confidence review enqueue (F-GOV-04). Requires workspace editor+.
          */
-        post: operations["kb_governance_governor_run_api_v1_kbs__kb_id__governance_governor_run_post"];
+        post: operations["kb_governance_governor_run_api_v1_workspaces__workspace_id__governance_governor_run_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/graph/diff": {
+    "/api/v1/workspaces/{workspace_id}/graph/diff": {
         parameters: {
             query?: never;
             header?: never;
@@ -1377,7 +1377,7 @@ export interface paths {
          *     `valid_from` and `invalidated_at` → projected `valid_until` (F-TIM-01). Console graph preview dims unchanged elements and highlights
          *     added/modified nodes and added edges at the end instant.
          */
-        get: operations["kb_graph_diff_api_v1_kbs__kb_id__graph_diff_get"];
+        get: operations["kb_graph_diff_api_v1_workspaces__workspace_id__graph_diff_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1386,7 +1386,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/graph/distance-matrix": {
+    "/api/v1/workspaces/{workspace_id}/graph/distance-matrix": {
         parameters: {
             query?: never;
             header?: never;
@@ -1397,16 +1397,16 @@ export interface paths {
         put?: never;
         /**
          * Kb Graph Distance Matrix
-         * @description Kb Graph Distance Matrix. Projected graph read API (Explorer runtime). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Graph Distance Matrix. Projected graph read API (Explorer runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        post: operations["kb_graph_distance_matrix_api_v1_kbs__kb_id__graph_distance_matrix_post"];
+        post: operations["kb_graph_distance_matrix_api_v1_workspaces__workspace_id__graph_distance_matrix_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/graph/edges": {
+    "/api/v1/workspaces/{workspace_id}/graph/edges": {
         parameters: {
             query?: never;
             header?: never;
@@ -1415,9 +1415,9 @@ export interface paths {
         };
         /**
          * Graph Edges Route
-         * @description Graph Edges Route. Projected graph read API (Explorer runtime). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Graph Edges Route. Projected graph read API (Explorer runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        get: operations["graph_edges_route_api_v1_kbs__kb_id__graph_edges_get"];
+        get: operations["graph_edges_route_api_v1_workspaces__workspace_id__graph_edges_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1426,7 +1426,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/graph/nodes": {
+    "/api/v1/workspaces/{workspace_id}/graph/nodes": {
         parameters: {
             query?: never;
             header?: never;
@@ -1435,9 +1435,9 @@ export interface paths {
         };
         /**
          * Graph Nodes Route
-         * @description Graph Nodes Route. Projected graph read API (Explorer runtime). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Graph Nodes Route. Projected graph read API (Explorer runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        get: operations["graph_nodes_route_api_v1_kbs__kb_id__graph_nodes_get"];
+        get: operations["graph_nodes_route_api_v1_workspaces__workspace_id__graph_nodes_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1446,7 +1446,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/graph/nodes/{node_id}": {
+    "/api/v1/workspaces/{workspace_id}/graph/nodes/{node_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1455,9 +1455,9 @@ export interface paths {
         };
         /**
          * Graph Node Route
-         * @description Graph Node Route. Projected graph read API (Explorer runtime). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Graph Node Route. Projected graph read API (Explorer runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        get: operations["graph_node_route_api_v1_kbs__kb_id__graph_nodes__node_id__get"];
+        get: operations["graph_node_route_api_v1_workspaces__workspace_id__graph_nodes__node_id__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1466,7 +1466,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/graph/nodes/{node_id}/neighbors": {
+    "/api/v1/workspaces/{workspace_id}/graph/nodes/{node_id}/neighbors": {
         parameters: {
             query?: never;
             header?: never;
@@ -1475,9 +1475,9 @@ export interface paths {
         };
         /**
          * Graph Neighbors Route
-         * @description Graph Neighbors Route. Projected graph read API (Explorer runtime). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Graph Neighbors Route. Projected graph read API (Explorer runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        get: operations["graph_neighbors_route_api_v1_kbs__kb_id__graph_nodes__node_id__neighbors_get"];
+        get: operations["graph_neighbors_route_api_v1_workspaces__workspace_id__graph_nodes__node_id__neighbors_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1486,7 +1486,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/graph/path": {
+    "/api/v1/workspaces/{workspace_id}/graph/path": {
         parameters: {
             query?: never;
             header?: never;
@@ -1495,9 +1495,9 @@ export interface paths {
         };
         /**
          * Graph Path Route
-         * @description Graph Path Route. Projected graph read API (Explorer runtime). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Graph Path Route. Projected graph read API (Explorer runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        get: operations["graph_path_route_api_v1_kbs__kb_id__graph_path_get"];
+        get: operations["graph_path_route_api_v1_workspaces__workspace_id__graph_path_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1506,7 +1506,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/graph/projection": {
+    "/api/v1/workspaces/{workspace_id}/graph/projection": {
         parameters: {
             query?: never;
             header?: never;
@@ -1515,9 +1515,9 @@ export interface paths {
         };
         /**
          * Graph Projection Status
-         * @description Graph Projection Status. Projected graph read API (Explorer runtime). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Graph Projection Status. Projected graph read API (Explorer runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        get: operations["graph_projection_status_api_v1_kbs__kb_id__graph_projection_get"];
+        get: operations["graph_projection_status_api_v1_workspaces__workspace_id__graph_projection_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1526,7 +1526,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/graph/rebuild": {
+    "/api/v1/workspaces/{workspace_id}/graph/rebuild": {
         parameters: {
             query?: never;
             header?: never;
@@ -1537,16 +1537,16 @@ export interface paths {
         put?: never;
         /**
          * Rebuild Graph
-         * @description Rebuild Graph. Projected graph read API (Explorer runtime). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Rebuild Graph. Projected graph read API (Explorer runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        post: operations["rebuild_graph_api_v1_kbs__kb_id__graph_rebuild_post"];
+        post: operations["rebuild_graph_api_v1_workspaces__workspace_id__graph_rebuild_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/graph/resolve-labels": {
+    "/api/v1/workspaces/{workspace_id}/graph/resolve-labels": {
         parameters: {
             query?: never;
             header?: never;
@@ -1557,16 +1557,16 @@ export interface paths {
         put?: never;
         /**
          * Resolve Graph Node Labels
-         * @description Resolve Graph Node Labels. Projected graph read API (Explorer runtime). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Resolve Graph Node Labels. Projected graph read API (Explorer runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        post: operations["resolve_graph_node_labels_api_v1_kbs__kb_id__graph_resolve_labels_post"];
+        post: operations["resolve_graph_node_labels_api_v1_workspaces__workspace_id__graph_resolve_labels_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/graph/search": {
+    "/api/v1/workspaces/{workspace_id}/graph/search": {
         parameters: {
             query?: never;
             header?: never;
@@ -1577,16 +1577,16 @@ export interface paths {
         put?: never;
         /**
          * Graph Search Route
-         * @description Graph Search Route. Projected graph read API (Explorer runtime). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Graph Search Route. Projected graph read API (Explorer runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        post: operations["graph_search_route_api_v1_kbs__kb_id__graph_search_post"];
+        post: operations["graph_search_route_api_v1_workspaces__workspace_id__graph_search_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/graph/semantic-neighborhood": {
+    "/api/v1/workspaces/{workspace_id}/graph/semantic-neighborhood": {
         parameters: {
             query?: never;
             header?: never;
@@ -1595,9 +1595,9 @@ export interface paths {
         };
         /**
          * Kb Graph Semantic Neighborhood
-         * @description Kb Graph Semantic Neighborhood. Projected graph read API (Explorer runtime). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Graph Semantic Neighborhood. Projected graph read API (Explorer runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        get: operations["kb_graph_semantic_neighborhood_api_v1_kbs__kb_id__graph_semantic_neighborhood_get"];
+        get: operations["kb_graph_semantic_neighborhood_api_v1_workspaces__workspace_id__graph_semantic_neighborhood_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1606,7 +1606,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/graph/snapshot": {
+    "/api/v1/workspaces/{workspace_id}/graph/snapshot": {
         parameters: {
             query?: never;
             header?: never;
@@ -1615,9 +1615,9 @@ export interface paths {
         };
         /**
          * Graph Snapshot Route
-         * @description Graph Snapshot Route. Projected graph read API (Explorer runtime). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Graph Snapshot Route. Projected graph read API (Explorer runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        get: operations["graph_snapshot_route_api_v1_kbs__kb_id__graph_snapshot_get"];
+        get: operations["graph_snapshot_route_api_v1_workspaces__workspace_id__graph_snapshot_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1626,7 +1626,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/graph/staging": {
+    "/api/v1/workspaces/{workspace_id}/graph/staging": {
         parameters: {
             query?: never;
             header?: never;
@@ -1642,7 +1642,7 @@ export interface paths {
          *     graph import), and `change_total`. The nested `diff` matches `GET .../graph/diff` for the
          *     same instants.
          */
-        get: operations["kb_graph_staging_api_v1_kbs__kb_id__graph_staging_get"];
+        get: operations["kb_graph_staging_api_v1_workspaces__workspace_id__graph_staging_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1651,7 +1651,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/graph/staging/entity-merge": {
+    "/api/v1/workspaces/{workspace_id}/graph/staging/entity-merge": {
         parameters: {
             query?: never;
             header?: never;
@@ -1667,14 +1667,14 @@ export interface paths {
          *     JSON body: `{primary_id, duplicate_ids[]}`. Creates a review-queue item (`entity_merge`);
          *     identical semantics to `POST .../review/items/entity-merge`.
          */
-        post: operations["kb_graph_staging_entity_merge_api_v1_kbs__kb_id__graph_staging_entity_merge_post"];
+        post: operations["kb_graph_staging_entity_merge_api_v1_workspaces__workspace_id__graph_staging_entity_merge_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/graph/staging/{session_key}/draft": {
+    "/api/v1/workspaces/{workspace_id}/graph/staging/{session_key}/draft": {
         parameters: {
             query?: never;
             header?: never;
@@ -1686,7 +1686,7 @@ export interface paths {
          * Kb Put Graph Staging Draft
          * @description Persist server-side staging studio merge draft for a compare session (F-DIFF-01).
          */
-        put: operations["kb_put_graph_staging_draft_api_v1_kbs__kb_id__graph_staging__session_key__draft_put"];
+        put: operations["kb_put_graph_staging_draft_api_v1_workspaces__workspace_id__graph_staging__session_key__draft_put"];
         post?: never;
         delete?: never;
         options?: never;
@@ -1694,7 +1694,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/graph/stats": {
+    "/api/v1/workspaces/{workspace_id}/graph/stats": {
         parameters: {
             query?: never;
             header?: never;
@@ -1703,9 +1703,9 @@ export interface paths {
         };
         /**
          * Graph Stats
-         * @description Graph Stats. Projected graph read API (Explorer runtime). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Graph Stats. Projected graph read API (Explorer runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        get: operations["graph_stats_api_v1_kbs__kb_id__graph_stats_get"];
+        get: operations["graph_stats_api_v1_workspaces__workspace_id__graph_stats_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1714,7 +1714,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/import": {
+    "/api/v1/workspaces/{workspace_id}/import": {
         parameters: {
             query?: never;
             header?: never;
@@ -1725,16 +1725,16 @@ export interface paths {
         put?: never;
         /**
          * Kb Import Graph
-         * @description Kb Import Graph. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Import Graph. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        post: operations["kb_import_graph_api_v1_kbs__kb_id__import_post"];
+        post: operations["kb_import_graph_api_v1_workspaces__workspace_id__import_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/ingest/jobs": {
+    "/api/v1/workspaces/{workspace_id}/ingest/jobs": {
         parameters: {
             query?: never;
             header?: never;
@@ -1745,7 +1745,7 @@ export interface paths {
          * List Ingest Jobs
          * @description F-SRC-08: document ingest jobs (alias of ``GET .../processing/jobs``).
          */
-        get: operations["list_ingest_jobs_api_v1_kbs__kb_id__ingest_jobs_get"];
+        get: operations["list_ingest_jobs_api_v1_workspaces__workspace_id__ingest_jobs_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1754,7 +1754,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/ingest/jobs/{job_id}": {
+    "/api/v1/workspaces/{workspace_id}/ingest/jobs/{job_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1763,9 +1763,9 @@ export interface paths {
         };
         /**
          * Get Ingest Job
-         * @description Get Ingest Job. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Get Ingest Job. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        get: operations["get_ingest_job_api_v1_kbs__kb_id__ingest_jobs__job_id__get"];
+        get: operations["get_ingest_job_api_v1_workspaces__workspace_id__ingest_jobs__job_id__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1774,7 +1774,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/ledger/chunks/{chunk_id}": {
+    "/api/v1/workspaces/{workspace_id}/ledger/chunks/{chunk_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1783,9 +1783,9 @@ export interface paths {
         };
         /**
          * Get Ledger Chunk Route
-         * @description Get Ledger Chunk Route. Evidence ledger: documents, chunks, statements, entities. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Get Ledger Chunk Route. Evidence ledger: documents, chunks, statements, entities. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        get: operations["get_ledger_chunk_route_api_v1_kbs__kb_id__ledger_chunks__chunk_id__get"];
+        get: operations["get_ledger_chunk_route_api_v1_workspaces__workspace_id__ledger_chunks__chunk_id__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1794,7 +1794,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/ledger/derived-facts": {
+    "/api/v1/workspaces/{workspace_id}/ledger/derived-facts": {
         parameters: {
             query?: never;
             header?: never;
@@ -1803,9 +1803,9 @@ export interface paths {
         };
         /**
          * List Derived Facts Route
-         * @description List Derived Facts Route. Evidence ledger: documents, chunks, statements, entities. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description List Derived Facts Route. Evidence ledger: documents, chunks, statements, entities. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        get: operations["list_derived_facts_route_api_v1_kbs__kb_id__ledger_derived_facts_get"];
+        get: operations["list_derived_facts_route_api_v1_workspaces__workspace_id__ledger_derived_facts_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1814,7 +1814,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/ledger/documents/{doc_ref}": {
+    "/api/v1/workspaces/{workspace_id}/ledger/documents/{doc_ref}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1823,9 +1823,9 @@ export interface paths {
         };
         /**
          * Get Ledger Document Route
-         * @description Get Ledger Document Route. Evidence ledger: documents, chunks, statements, entities. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Get Ledger Document Route. Evidence ledger: documents, chunks, statements, entities. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        get: operations["get_ledger_document_route_api_v1_kbs__kb_id__ledger_documents__doc_ref__get"];
+        get: operations["get_ledger_document_route_api_v1_workspaces__workspace_id__ledger_documents__doc_ref__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1834,7 +1834,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/ledger/documents/{doc_ref}/chunks": {
+    "/api/v1/workspaces/{workspace_id}/ledger/documents/{doc_ref}/chunks": {
         parameters: {
             query?: never;
             header?: never;
@@ -1843,9 +1843,9 @@ export interface paths {
         };
         /**
          * List Document Chunks Route
-         * @description List Document Chunks Route. Evidence ledger: documents, chunks, statements, entities. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description List Document Chunks Route. Evidence ledger: documents, chunks, statements, entities. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        get: operations["list_document_chunks_route_api_v1_kbs__kb_id__ledger_documents__doc_ref__chunks_get"];
+        get: operations["list_document_chunks_route_api_v1_workspaces__workspace_id__ledger_documents__doc_ref__chunks_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1854,7 +1854,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/ledger/entities": {
+    "/api/v1/workspaces/{workspace_id}/ledger/entities": {
         parameters: {
             query?: never;
             header?: never;
@@ -1863,9 +1863,9 @@ export interface paths {
         };
         /**
          * Search Ledger Entities
-         * @description Search Ledger Entities. Evidence ledger: documents, chunks, statements, entities. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Search Ledger Entities. Evidence ledger: documents, chunks, statements, entities. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        get: operations["search_ledger_entities_api_v1_kbs__kb_id__ledger_entities_get"];
+        get: operations["search_ledger_entities_api_v1_workspaces__workspace_id__ledger_entities_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1874,7 +1874,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/ledger/entities/{entity_id}": {
+    "/api/v1/workspaces/{workspace_id}/ledger/entities/{entity_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1886,15 +1886,15 @@ export interface paths {
         post?: never;
         /**
          * Delete Ledger Entity
-         * @description Delete Ledger Entity. Evidence ledger: documents, chunks, statements, entities. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Delete Ledger Entity. Evidence ledger: documents, chunks, statements, entities. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        delete: operations["delete_ledger_entity_api_v1_kbs__kb_id__ledger_entities__entity_id__delete"];
+        delete: operations["delete_ledger_entity_api_v1_workspaces__workspace_id__ledger_entities__entity_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/ledger/entities/{entity_id}/delete-preview": {
+    "/api/v1/workspaces/{workspace_id}/ledger/entities/{entity_id}/delete-preview": {
         parameters: {
             query?: never;
             header?: never;
@@ -1903,9 +1903,9 @@ export interface paths {
         };
         /**
          * Preview Delete Ledger Entity
-         * @description Preview Delete Ledger Entity. Evidence ledger: documents, chunks, statements, entities. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Preview Delete Ledger Entity. Evidence ledger: documents, chunks, statements, entities. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        get: operations["preview_delete_ledger_entity_api_v1_kbs__kb_id__ledger_entities__entity_id__delete_preview_get"];
+        get: operations["preview_delete_ledger_entity_api_v1_workspaces__workspace_id__ledger_entities__entity_id__delete_preview_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1914,7 +1914,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/ledger/entities/{entity_id}/facts": {
+    "/api/v1/workspaces/{workspace_id}/ledger/entities/{entity_id}/facts": {
         parameters: {
             query?: never;
             header?: never;
@@ -1923,9 +1923,9 @@ export interface paths {
         };
         /**
          * List Entity Facts Route
-         * @description List Entity Facts Route. Evidence ledger: documents, chunks, statements, entities. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description List Entity Facts Route. Evidence ledger: documents, chunks, statements, entities. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        get: operations["list_entity_facts_route_api_v1_kbs__kb_id__ledger_entities__entity_id__facts_get"];
+        get: operations["list_entity_facts_route_api_v1_workspaces__workspace_id__ledger_entities__entity_id__facts_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1934,7 +1934,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/ledger/entity-merges": {
+    "/api/v1/workspaces/{workspace_id}/ledger/entity-merges": {
         parameters: {
             query?: never;
             header?: never;
@@ -1943,9 +1943,9 @@ export interface paths {
         };
         /**
          * List Entity Merges Route
-         * @description List Entity Merges Route. Evidence ledger: documents, chunks, statements, entities. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description List Entity Merges Route. Evidence ledger: documents, chunks, statements, entities. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        get: operations["list_entity_merges_route_api_v1_kbs__kb_id__ledger_entity_merges_get"];
+        get: operations["list_entity_merges_route_api_v1_workspaces__workspace_id__ledger_entity_merges_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1954,7 +1954,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/ledger/entity-merges/{merge_id}/revert": {
+    "/api/v1/workspaces/{workspace_id}/ledger/entity-merges/{merge_id}/revert": {
         parameters: {
             query?: never;
             header?: never;
@@ -1965,16 +1965,16 @@ export interface paths {
         put?: never;
         /**
          * Revert Entity Merge Route
-         * @description Revert Entity Merge Route. Evidence ledger: documents, chunks, statements, entities. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Revert Entity Merge Route. Evidence ledger: documents, chunks, statements, entities. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        post: operations["revert_entity_merge_route_api_v1_kbs__kb_id__ledger_entity_merges__merge_id__revert_post"];
+        post: operations["revert_entity_merge_route_api_v1_workspaces__workspace_id__ledger_entity_merges__merge_id__revert_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/ledger/statements/{statement_id}": {
+    "/api/v1/workspaces/{workspace_id}/ledger/statements/{statement_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1983,9 +1983,9 @@ export interface paths {
         };
         /**
          * Get Ledger Statement Route
-         * @description Get Ledger Statement. Resolve a statement id to its subject entity for console deep links (F-RUL-03). Requires KB membership (session) or KB API token with read scope. All paths are scoped to `{kb_id}`.
+         * @description Get Ledger Statement. Resolve a statement id to its subject entity for console deep links (F-RUL-03). Requires workspace membership (session) or workspace API token with read scope. All paths are scoped to `{workspace_id}`.
          */
-        get: operations["get_ledger_statement_route_api_v1_kbs__kb_id__ledger_statements__statement_id__get"];
+        get: operations["get_ledger_statement_route_api_v1_workspaces__workspace_id__ledger_statements__statement_id__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1994,7 +1994,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/ledger/surface-phrases": {
+    "/api/v1/workspaces/{workspace_id}/ledger/surface-phrases": {
         parameters: {
             query?: never;
             header?: never;
@@ -2003,9 +2003,9 @@ export interface paths {
         };
         /**
          * List Surface Phrases
-         * @description List Surface Phrases. Evidence ledger: documents, chunks, statements, entities. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description List Surface Phrases. Evidence ledger: documents, chunks, statements, entities. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        get: operations["list_surface_phrases_api_v1_kbs__kb_id__ledger_surface_phrases_get"];
+        get: operations["list_surface_phrases_api_v1_workspaces__workspace_id__ledger_surface_phrases_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2014,7 +2014,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/ledger/typed-facts": {
+    "/api/v1/workspaces/{workspace_id}/ledger/typed-facts": {
         parameters: {
             query?: never;
             header?: never;
@@ -2023,9 +2023,9 @@ export interface paths {
         };
         /**
          * List Typed Facts Route
-         * @description List Typed Facts Route. Evidence ledger: documents, chunks, statements, entities. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description List Typed Facts Route. Evidence ledger: documents, chunks, statements, entities. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        get: operations["list_typed_facts_route_api_v1_kbs__kb_id__ledger_typed_facts_get"];
+        get: operations["list_typed_facts_route_api_v1_workspaces__workspace_id__ledger_typed_facts_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2034,7 +2034,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/mappings": {
+    "/api/v1/workspaces/{workspace_id}/mappings": {
         parameters: {
             query?: never;
             header?: never;
@@ -2043,22 +2043,22 @@ export interface paths {
         };
         /**
          * List Kb Mappings
-         * @description List Kb Mappings. Statement-to-entity mapping proposals and status. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description List Mappings. Statement-to-entity mapping proposals and status. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        get: operations["list_kb_mappings_api_v1_kbs__kb_id__mappings_get"];
+        get: operations["list_kb_mappings_api_v1_workspaces__workspace_id__mappings_get"];
         put?: never;
         /**
          * Create Kb Mapping
-         * @description Create Kb Mapping. Statement-to-entity mapping proposals and status. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Create Mapping. Statement-to-entity mapping proposals and status. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        post: operations["create_kb_mapping_api_v1_kbs__kb_id__mappings_post"];
+        post: operations["create_kb_mapping_api_v1_workspaces__workspace_id__mappings_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/mappings/{mapping_id}/status": {
+    "/api/v1/workspaces/{workspace_id}/mappings/{mapping_id}/status": {
         parameters: {
             query?: never;
             header?: never;
@@ -2069,16 +2069,16 @@ export interface paths {
         put?: never;
         /**
          * Update Kb Mapping Status
-         * @description Update Kb Mapping Status. Statement-to-entity mapping proposals and status. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Update Mapping Status. Statement-to-entity mapping proposals and status. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        post: operations["update_kb_mapping_status_api_v1_kbs__kb_id__mappings__mapping_id__status_post"];
+        post: operations["update_kb_mapping_status_api_v1_workspaces__workspace_id__mappings__mapping_id__status_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/mcp": {
+    "/api/v1/workspaces/{workspace_id}/mcp": {
         parameters: {
             query?: never;
             header?: never;
@@ -2087,22 +2087,22 @@ export interface paths {
         };
         /**
          * Mcp Integration Info
-         * @description Mcp Integration Info. MCP JSON-RPC transport for agent integrations. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Mcp Integration Info. MCP JSON-RPC transport for agent integrations. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        get: operations["mcp_integration_info_api_v1_kbs__kb_id__mcp_get"];
+        get: operations["mcp_integration_info_api_v1_workspaces__workspace_id__mcp_get"];
         put?: never;
         /**
          * Mcp Jsonrpc
          * @description MCP JSON-RPC over HTTP; tools match integration core operations (search, graph read, remember).
          */
-        post: operations["mcp_jsonrpc_api_v1_kbs__kb_id__mcp_post"];
+        post: operations["mcp_jsonrpc_api_v1_workspaces__workspace_id__mcp_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/ontology": {
+    "/api/v1/workspaces/{workspace_id}/ontology": {
         parameters: {
             query?: never;
             header?: never;
@@ -2113,16 +2113,16 @@ export interface paths {
         put?: never;
         /**
          * Create Ontology
-         * @description Create Ontology. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Create Ontology. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        post: operations["create_ontology_api_v1_kbs__kb_id__ontology_post"];
+        post: operations["create_ontology_api_v1_workspaces__workspace_id__ontology_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/ontology/alignments": {
+    "/api/v1/workspaces/{workspace_id}/ontology/alignments": {
         parameters: {
             query?: never;
             header?: never;
@@ -2131,26 +2131,26 @@ export interface paths {
         };
         /**
          * Kb List Alignments
-         * @description Kb List Alignments. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description List Alignments. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        get: operations["kb_list_alignments_api_v1_kbs__kb_id__ontology_alignments_get"];
+        get: operations["kb_list_alignments_api_v1_workspaces__workspace_id__ontology_alignments_get"];
         put?: never;
         /**
          * Kb Upsert Alignment
-         * @description Kb Upsert Alignment. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Upsert Alignment. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        post: operations["kb_upsert_alignment_api_v1_kbs__kb_id__ontology_alignments_post"];
+        post: operations["kb_upsert_alignment_api_v1_workspaces__workspace_id__ontology_alignments_post"];
         /**
          * Kb Delete Alignment
-         * @description Kb Delete Alignment. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Delete alignment. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        delete: operations["kb_delete_alignment_api_v1_kbs__kb_id__ontology_alignments_delete"];
+        delete: operations["kb_delete_alignment_api_v1_workspaces__workspace_id__ontology_alignments_delete"];
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/ontology/create": {
+    "/api/v1/workspaces/{workspace_id}/ontology/create": {
         parameters: {
             query?: never;
             header?: never;
@@ -2161,16 +2161,16 @@ export interface paths {
         put?: never;
         /**
          * Kb Ont 3 Create Ontology
-         * @description Kb Ont 3 Create Ontology. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Create Ontology. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        post: operations["_kb_ont_3_create_ontology_api_v1_kbs__kb_id__ontology_create_post"];
+        post: operations["_kb_ont_3_create_ontology_api_v1_workspaces__workspace_id__ontology_create_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/ontology/draft": {
+    "/api/v1/workspaces/{workspace_id}/ontology/draft": {
         parameters: {
             query?: never;
             header?: never;
@@ -2185,12 +2185,12 @@ export interface paths {
         head?: never;
         /**
          * Kb Ont 17 Save Draft
-         * @description Kb Ont 17 Save Draft. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Save Draft. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        patch: operations["_kb_ont_17_save_draft_api_v1_kbs__kb_id__ontology_draft_patch"];
+        patch: operations["_kb_ont_17_save_draft_api_v1_workspaces__workspace_id__ontology_draft_patch"];
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/ontology/draft/{draft_id}": {
+    "/api/v1/workspaces/{workspace_id}/ontology/draft/{draft_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -2199,9 +2199,9 @@ export interface paths {
         };
         /**
          * Kb Ont 19 Get Draft
-         * @description Kb Ont 19 Get Draft. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Get Draft. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        get: operations["_kb_ont_19_get_draft_api_v1_kbs__kb_id__ontology_draft__draft_id__get"];
+        get: operations["_kb_ont_19_get_draft_api_v1_workspaces__workspace_id__ontology_draft__draft_id__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2210,7 +2210,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/ontology/drafts/{ontology_uri}": {
+    "/api/v1/workspaces/{workspace_id}/ontology/drafts/{ontology_uri}": {
         parameters: {
             query?: never;
             header?: never;
@@ -2219,9 +2219,9 @@ export interface paths {
         };
         /**
          * Kb Ont 18 List Drafts
-         * @description Kb Ont 18 List Drafts. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description List Drafts. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        get: operations["_kb_ont_18_list_drafts_api_v1_kbs__kb_id__ontology_drafts__ontology_uri__get"];
+        get: operations["_kb_ont_18_list_drafts_api_v1_workspaces__workspace_id__ontology_drafts__ontology_uri__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2230,7 +2230,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/ontology/entity/{entity_uri}": {
+    "/api/v1/workspaces/{workspace_id}/ontology/entity/{entity_uri}": {
         parameters: {
             query?: never;
             header?: never;
@@ -2239,9 +2239,9 @@ export interface paths {
         };
         /**
          * Kb Ont 6 Get Entity Detail
-         * @description Kb Ont 6 Get Entity Detail. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Get Entity Detail. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        get: operations["_kb_ont_6_get_entity_detail_api_v1_kbs__kb_id__ontology_entity__entity_uri__get"];
+        get: operations["_kb_ont_6_get_entity_detail_api_v1_workspaces__workspace_id__ontology_entity__entity_uri__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2250,7 +2250,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/ontology/graph": {
+    "/api/v1/workspaces/{workspace_id}/ontology/graph": {
         parameters: {
             query?: never;
             header?: never;
@@ -2259,9 +2259,9 @@ export interface paths {
         };
         /**
          * Kb Ont 5 Get Ontology Graph
-         * @description Kb Ont 5 Get Ontology Graph. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Get Ontology Graph. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        get: operations["_kb_ont_5_get_ontology_graph_api_v1_kbs__kb_id__ontology_graph_get"];
+        get: operations["_kb_ont_5_get_ontology_graph_api_v1_workspaces__workspace_id__ontology_graph_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2270,7 +2270,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/ontology/health": {
+    "/api/v1/workspaces/{workspace_id}/ontology/health": {
         parameters: {
             query?: never;
             header?: never;
@@ -2279,9 +2279,9 @@ export interface paths {
         };
         /**
          * Kb Ont 10 Ontology Health
-         * @description Kb Ont 10 Ontology Health. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Ontology Health. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        get: operations["_kb_ont_10_ontology_health_api_v1_kbs__kb_id__ontology_health_get"];
+        get: operations["_kb_ont_10_ontology_health_api_v1_workspaces__workspace_id__ontology_health_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2290,7 +2290,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/ontology/load": {
+    "/api/v1/workspaces/{workspace_id}/ontology/load": {
         parameters: {
             query?: never;
             header?: never;
@@ -2301,16 +2301,16 @@ export interface paths {
         put?: never;
         /**
          * Kb Ont 2 Load Ontology
-         * @description Kb Ont 2 Load Ontology. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Load Ontology. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        post: operations["_kb_ont_2_load_ontology_api_v1_kbs__kb_id__ontology_load_post"];
+        post: operations["_kb_ont_2_load_ontology_api_v1_workspaces__workspace_id__ontology_load_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/ontology/preview": {
+    "/api/v1/workspaces/{workspace_id}/ontology/preview": {
         parameters: {
             query?: never;
             header?: never;
@@ -2321,16 +2321,16 @@ export interface paths {
         put?: never;
         /**
          * Kb Ont 1 Preview Ontology
-         * @description Kb Ont 1 Preview Ontology. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Preview Ontology. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        post: operations["_kb_ont_1_preview_ontology_api_v1_kbs__kb_id__ontology_preview_post"];
+        post: operations["_kb_ont_1_preview_ontology_api_v1_workspaces__workspace_id__ontology_preview_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/ontology/proposals": {
+    "/api/v1/workspaces/{workspace_id}/ontology/proposals": {
         parameters: {
             query?: never;
             header?: never;
@@ -2339,9 +2339,9 @@ export interface paths {
         };
         /**
          * Kb Ont 21 List Proposals
-         * @description Kb Ont 21 List Proposals. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description List Proposals. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        get: operations["_kb_ont_21_list_proposals_api_v1_kbs__kb_id__ontology_proposals_get"];
+        get: operations["_kb_ont_21_list_proposals_api_v1_workspaces__workspace_id__ontology_proposals_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2350,7 +2350,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/ontology/proposals/{proposal_id}": {
+    "/api/v1/workspaces/{workspace_id}/ontology/proposals/{proposal_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -2359,9 +2359,9 @@ export interface paths {
         };
         /**
          * Kb Ont 22 Get Proposal
-         * @description Kb Ont 22 Get Proposal. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Get Proposal. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        get: operations["_kb_ont_22_get_proposal_api_v1_kbs__kb_id__ontology_proposals__proposal_id__get"];
+        get: operations["_kb_ont_22_get_proposal_api_v1_workspaces__workspace_id__ontology_proposals__proposal_id__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2370,7 +2370,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/ontology/proposals/{proposal_id}/approve": {
+    "/api/v1/workspaces/{workspace_id}/ontology/proposals/{proposal_id}/approve": {
         parameters: {
             query?: never;
             header?: never;
@@ -2381,16 +2381,16 @@ export interface paths {
         put?: never;
         /**
          * Kb Ont 23 Approve Proposal
-         * @description Kb Ont 23 Approve Proposal. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Approve Proposal. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        post: operations["_kb_ont_23_approve_proposal_api_v1_kbs__kb_id__ontology_proposals__proposal_id__approve_post"];
+        post: operations["_kb_ont_23_approve_proposal_api_v1_workspaces__workspace_id__ontology_proposals__proposal_id__approve_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/ontology/proposals/{proposal_id}/comment": {
+    "/api/v1/workspaces/{workspace_id}/ontology/proposals/{proposal_id}/comment": {
         parameters: {
             query?: never;
             header?: never;
@@ -2401,16 +2401,16 @@ export interface paths {
         put?: never;
         /**
          * Kb Ont 26 Add Comment
-         * @description Kb Ont 26 Add Comment. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Add Comment. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        post: operations["_kb_ont_26_add_comment_api_v1_kbs__kb_id__ontology_proposals__proposal_id__comment_post"];
+        post: operations["_kb_ont_26_add_comment_api_v1_workspaces__workspace_id__ontology_proposals__proposal_id__comment_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/ontology/proposals/{proposal_id}/publish": {
+    "/api/v1/workspaces/{workspace_id}/ontology/proposals/{proposal_id}/publish": {
         parameters: {
             query?: never;
             header?: never;
@@ -2421,16 +2421,16 @@ export interface paths {
         put?: never;
         /**
          * Kb Ont 25 Publish Proposal
-         * @description Kb Ont 25 Publish Proposal. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Publish Proposal. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        post: operations["_kb_ont_25_publish_proposal_api_v1_kbs__kb_id__ontology_proposals__proposal_id__publish_post"];
+        post: operations["_kb_ont_25_publish_proposal_api_v1_workspaces__workspace_id__ontology_proposals__proposal_id__publish_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/ontology/proposals/{proposal_id}/reject": {
+    "/api/v1/workspaces/{workspace_id}/ontology/proposals/{proposal_id}/reject": {
         parameters: {
             query?: never;
             header?: never;
@@ -2441,16 +2441,16 @@ export interface paths {
         put?: never;
         /**
          * Kb Ont 24 Reject Proposal
-         * @description Kb Ont 24 Reject Proposal. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Reject Proposal. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        post: operations["_kb_ont_24_reject_proposal_api_v1_kbs__kb_id__ontology_proposals__proposal_id__reject_post"];
+        post: operations["_kb_ont_24_reject_proposal_api_v1_workspaces__workspace_id__ontology_proposals__proposal_id__reject_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/ontology/propose": {
+    "/api/v1/workspaces/{workspace_id}/ontology/propose": {
         parameters: {
             query?: never;
             header?: never;
@@ -2461,16 +2461,16 @@ export interface paths {
         put?: never;
         /**
          * Kb Ont 20 Submit Proposal
-         * @description Kb Ont 20 Submit Proposal. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Submit Proposal. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        post: operations["_kb_ont_20_submit_proposal_api_v1_kbs__kb_id__ontology_propose_post"];
+        post: operations["_kb_ont_20_submit_proposal_api_v1_workspaces__workspace_id__ontology_propose_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/ontology/registry": {
+    "/api/v1/workspaces/{workspace_id}/ontology/registry": {
         parameters: {
             query?: never;
             header?: never;
@@ -2479,9 +2479,9 @@ export interface paths {
         };
         /**
          * Kb Ontology Registry
-         * @description Kb Ontology Registry. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Ontology Registry. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        get: operations["kb_ontology_registry_api_v1_kbs__kb_id__ontology_registry_get"];
+        get: operations["kb_ontology_registry_api_v1_workspaces__workspace_id__ontology_registry_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2490,7 +2490,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/ontology/search": {
+    "/api/v1/workspaces/{workspace_id}/ontology/search": {
         parameters: {
             query?: never;
             header?: never;
@@ -2499,9 +2499,9 @@ export interface paths {
         };
         /**
          * Kb Ont 4 Search Entities
-         * @description Kb Ont 4 Search Entities. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Search Entities. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        get: operations["_kb_ont_4_search_entities_api_v1_kbs__kb_id__ontology_search_get"];
+        get: operations["_kb_ont_4_search_entities_api_v1_workspaces__workspace_id__ontology_search_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2510,7 +2510,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/ontology/shacl/generate": {
+    "/api/v1/workspaces/{workspace_id}/ontology/shacl/generate": {
         parameters: {
             query?: never;
             header?: never;
@@ -2521,16 +2521,16 @@ export interface paths {
         put?: never;
         /**
          * Kb Ont 11 Generate Shacl
-         * @description Kb Ont 11 Generate Shacl. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Generate Shacl. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        post: operations["_kb_ont_11_generate_shacl_api_v1_kbs__kb_id__ontology_shacl_generate_post"];
+        post: operations["_kb_ont_11_generate_shacl_api_v1_workspaces__workspace_id__ontology_shacl_generate_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/ontology/shacl/shapes": {
+    "/api/v1/workspaces/{workspace_id}/ontology/shacl/shapes": {
         parameters: {
             query?: never;
             header?: never;
@@ -2539,9 +2539,9 @@ export interface paths {
         };
         /**
          * Kb Ont 12 List Shacl Shapes
-         * @description Kb Ont 12 List Shacl Shapes. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description List Shacl Shapes. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        get: operations["_kb_ont_12_list_shacl_shapes_api_v1_kbs__kb_id__ontology_shacl_shapes_get"];
+        get: operations["_kb_ont_12_list_shacl_shapes_api_v1_workspaces__workspace_id__ontology_shacl_shapes_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2550,7 +2550,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/ontology/shacl/validate": {
+    "/api/v1/workspaces/{workspace_id}/ontology/shacl/validate": {
         parameters: {
             query?: never;
             header?: never;
@@ -2561,16 +2561,16 @@ export interface paths {
         put?: never;
         /**
          * Kb Ont 13 Validate Shacl
-         * @description Kb Ont 13 Validate Shacl. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Validate Shacl. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        post: operations["_kb_ont_13_validate_shacl_api_v1_kbs__kb_id__ontology_shacl_validate_post"];
+        post: operations["_kb_ont_13_validate_shacl_api_v1_workspaces__workspace_id__ontology_shacl_validate_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/ontology/skos/concept/{concept_uri}": {
+    "/api/v1/workspaces/{workspace_id}/ontology/skos/concept/{concept_uri}": {
         parameters: {
             query?: never;
             header?: never;
@@ -2579,9 +2579,9 @@ export interface paths {
         };
         /**
          * Kb Ont 9 Get Skos Concept
-         * @description Kb Ont 9 Get Skos Concept. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Get Skos Concept. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        get: operations["_kb_ont_9_get_skos_concept_api_v1_kbs__kb_id__ontology_skos_concept__concept_uri__get"];
+        get: operations["_kb_ont_9_get_skos_concept_api_v1_workspaces__workspace_id__ontology_skos_concept__concept_uri__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2590,7 +2590,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/ontology/skos/schemes": {
+    "/api/v1/workspaces/{workspace_id}/ontology/skos/schemes": {
         parameters: {
             query?: never;
             header?: never;
@@ -2599,9 +2599,9 @@ export interface paths {
         };
         /**
          * Kb Ont 7 List Skos Schemes
-         * @description Kb Ont 7 List Skos Schemes. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description List Skos Schemes. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        get: operations["_kb_ont_7_list_skos_schemes_api_v1_kbs__kb_id__ontology_skos_schemes_get"];
+        get: operations["_kb_ont_7_list_skos_schemes_api_v1_workspaces__workspace_id__ontology_skos_schemes_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2610,7 +2610,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/ontology/skos/search": {
+    "/api/v1/workspaces/{workspace_id}/ontology/skos/search": {
         parameters: {
             query?: never;
             header?: never;
@@ -2621,16 +2621,16 @@ export interface paths {
         put?: never;
         /**
          * Kb Ont 8 Search Skos Concepts
-         * @description Kb Ont 8 Search Skos Concepts. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Search Skos Concepts. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        post: operations["_kb_ont_8_search_skos_concepts_api_v1_kbs__kb_id__ontology_skos_search_post"];
+        post: operations["_kb_ont_8_search_skos_concepts_api_v1_workspaces__workspace_id__ontology_skos_search_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/ontology/suggest-alignments": {
+    "/api/v1/workspaces/{workspace_id}/ontology/suggest-alignments": {
         parameters: {
             query?: never;
             header?: never;
@@ -2641,16 +2641,16 @@ export interface paths {
         put?: never;
         /**
          * Kb Suggest Alignments
-         * @description Kb Suggest Alignments. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Suggest Alignments. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        post: operations["kb_suggest_alignments_api_v1_kbs__kb_id__ontology_suggest_alignments_post"];
+        post: operations["kb_suggest_alignments_api_v1_workspaces__workspace_id__ontology_suggest_alignments_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/ontology/versions/{ontology_uri}": {
+    "/api/v1/workspaces/{workspace_id}/ontology/versions/{ontology_uri}": {
         parameters: {
             query?: never;
             header?: never;
@@ -2659,9 +2659,9 @@ export interface paths {
         };
         /**
          * Kb Ont 27 List Versions
-         * @description Kb Ont 27 List Versions. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description List Versions. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        get: operations["_kb_ont_27_list_versions_api_v1_kbs__kb_id__ontology_versions__ontology_uri__get"];
+        get: operations["_kb_ont_27_list_versions_api_v1_workspaces__workspace_id__ontology_versions__ontology_uri__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2670,7 +2670,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/ontology/versions/{ontology_uri}/compare": {
+    "/api/v1/workspaces/{workspace_id}/ontology/versions/{ontology_uri}/compare": {
         parameters: {
             query?: never;
             header?: never;
@@ -2681,16 +2681,16 @@ export interface paths {
         put?: never;
         /**
          * Kb Ont 28 Compare Versions
-         * @description Kb Ont 28 Compare Versions. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Compare Versions. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        post: operations["_kb_ont_28_compare_versions_api_v1_kbs__kb_id__ontology_versions__ontology_uri__compare_post"];
+        post: operations["_kb_ont_28_compare_versions_api_v1_workspaces__workspace_id__ontology_versions__ontology_uri__compare_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/ontology/{ontology_uri}": {
+    "/api/v1/workspaces/{workspace_id}/ontology/{ontology_uri}": {
         parameters: {
             query?: never;
             header?: never;
@@ -2702,15 +2702,15 @@ export interface paths {
         post?: never;
         /**
          * Kb Ont 14 Remove Ontology
-         * @description Kb Ont 14 Remove Ontology. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Remove Ontology. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        delete: operations["_kb_ont_14_remove_ontology_api_v1_kbs__kb_id__ontology__ontology_uri__delete"];
+        delete: operations["_kb_ont_14_remove_ontology_api_v1_workspaces__workspace_id__ontology__ontology_uri__delete"];
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/ontology/{ontology_uri}/refresh": {
+    "/api/v1/workspaces/{workspace_id}/ontology/{ontology_uri}/refresh": {
         parameters: {
             query?: never;
             header?: never;
@@ -2721,16 +2721,16 @@ export interface paths {
         put?: never;
         /**
          * Kb Ont 16 Refresh Ontology
-         * @description Kb Ont 16 Refresh Ontology. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Refresh Ontology. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        post: operations["_kb_ont_16_refresh_ontology_api_v1_kbs__kb_id__ontology__ontology_uri__refresh_post"];
+        post: operations["_kb_ont_16_refresh_ontology_api_v1_workspaces__workspace_id__ontology__ontology_uri__refresh_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/ontology/{ontology_uri}/toggle": {
+    "/api/v1/workspaces/{workspace_id}/ontology/{ontology_uri}/toggle": {
         parameters: {
             query?: never;
             header?: never;
@@ -2745,12 +2745,12 @@ export interface paths {
         head?: never;
         /**
          * Kb Ont 15 Toggle Ontology
-         * @description Kb Ont 15 Toggle Ontology. Ontology workspace (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Toggle Ontology. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        patch: operations["_kb_ont_15_toggle_ontology_api_v1_kbs__kb_id__ontology__ontology_uri__toggle_patch"];
+        patch: operations["_kb_ont_15_toggle_ontology_api_v1_workspaces__workspace_id__ontology__ontology_uri__toggle_patch"];
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/processing/jobs": {
+    "/api/v1/workspaces/{workspace_id}/processing/jobs": {
         parameters: {
             query?: never;
             header?: never;
@@ -2759,22 +2759,22 @@ export interface paths {
         };
         /**
          * List Processing Jobs
-         * @description List Processing Jobs. Document processing jobs (extract, chunk, project). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description List Processing Jobs. Document processing jobs (extract, chunk, project). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        get: operations["list_processing_jobs_api_v1_kbs__kb_id__processing_jobs_get"];
+        get: operations["list_processing_jobs_api_v1_workspaces__workspace_id__processing_jobs_get"];
         put?: never;
         /**
          * Start Processing Job
-         * @description Start Processing Job. Document processing jobs (extract, chunk, project). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Start Processing Job. Document processing jobs (extract, chunk, project). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        post: operations["start_processing_job_api_v1_kbs__kb_id__processing_jobs_post"];
+        post: operations["start_processing_job_api_v1_workspaces__workspace_id__processing_jobs_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/processing/jobs/{job_id}": {
+    "/api/v1/workspaces/{workspace_id}/processing/jobs/{job_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -2783,9 +2783,9 @@ export interface paths {
         };
         /**
          * Get Processing Job
-         * @description Get Processing Job. Document processing jobs (extract, chunk, project). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Get Processing Job. Document processing jobs (extract, chunk, project). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        get: operations["get_processing_job_api_v1_kbs__kb_id__processing_jobs__job_id__get"];
+        get: operations["get_processing_job_api_v1_workspaces__workspace_id__processing_jobs__job_id__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2794,7 +2794,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/processing/jobs/{job_id}/retry": {
+    "/api/v1/workspaces/{workspace_id}/processing/jobs/{job_id}/retry": {
         parameters: {
             query?: never;
             header?: never;
@@ -2805,16 +2805,16 @@ export interface paths {
         put?: never;
         /**
          * Retry Processing Job
-         * @description Retry Processing Job. Document processing jobs (extract, chunk, project). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Retry Processing Job. Document processing jobs (extract, chunk, project). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        post: operations["retry_processing_job_api_v1_kbs__kb_id__processing_jobs__job_id__retry_post"];
+        post: operations["retry_processing_job_api_v1_workspaces__workspace_id__processing_jobs__job_id__retry_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/provenance": {
+    "/api/v1/workspaces/{workspace_id}/provenance": {
         parameters: {
             query?: never;
             header?: never;
@@ -2823,9 +2823,9 @@ export interface paths {
         };
         /**
          * Kb Provenance Lineage
-         * @description Kb Provenance Lineage. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Provenance Lineage. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        get: operations["kb_provenance_lineage_api_v1_kbs__kb_id__provenance_get"];
+        get: operations["kb_provenance_lineage_api_v1_workspaces__workspace_id__provenance_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2834,7 +2834,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/provenance/report": {
+    "/api/v1/workspaces/{workspace_id}/provenance/report": {
         parameters: {
             query?: never;
             header?: never;
@@ -2843,9 +2843,9 @@ export interface paths {
         };
         /**
          * Kb Provenance Report
-         * @description Kb Provenance Report. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Provenance Report. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        get: operations["kb_provenance_report_api_v1_kbs__kb_id__provenance_report_get"];
+        get: operations["kb_provenance_report_api_v1_workspaces__workspace_id__provenance_report_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2854,7 +2854,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/realtime-ticket": {
+    "/api/v1/workspaces/{workspace_id}/realtime-ticket": {
         parameters: {
             query?: never;
             header?: never;
@@ -2865,16 +2865,16 @@ export interface paths {
         put?: never;
         /**
          * Create Realtime Ticket
-         * @description Create Realtime Ticket. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Create Realtime Ticket. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        post: operations["create_realtime_ticket_api_v1_kbs__kb_id__realtime_ticket_post"];
+        post: operations["create_realtime_ticket_api_v1_workspaces__workspace_id__realtime_ticket_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/reasoning/run": {
+    "/api/v1/workspaces/{workspace_id}/reasoning/run": {
         parameters: {
             query?: never;
             header?: never;
@@ -2885,16 +2885,16 @@ export interface paths {
         put?: never;
         /**
          * Kb Reasoning Run
-         * @description Kb Reasoning Run. KB-local reasoning rules and runs. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Reasoning Run. Workspace-local reasoning rules and runs. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        post: operations["kb_reasoning_run_api_v1_kbs__kb_id__reasoning_run_post"];
+        post: operations["kb_reasoning_run_api_v1_workspaces__workspace_id__reasoning_run_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/remember/proposals": {
+    "/api/v1/workspaces/{workspace_id}/remember/proposals": {
         parameters: {
             query?: never;
             header?: never;
@@ -2907,14 +2907,14 @@ export interface paths {
          * Create Remember Proposal
          * @description Propose a canonical fact for human review (integration core `propose_remember`).
          */
-        post: operations["create_remember_proposal_api_v1_kbs__kb_id__remember_proposals_post"];
+        post: operations["create_remember_proposal_api_v1_workspaces__workspace_id__remember_proposals_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/review/items": {
+    "/api/v1/workspaces/{workspace_id}/review/items": {
         parameters: {
             query?: never;
             header?: never;
@@ -2923,9 +2923,9 @@ export interface paths {
         };
         /**
          * List Review Items
-         * @description List Review Items. Human review queue for merges, imports, and conflicts. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description List Review Items. Human review queue for merges, imports, and conflicts. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        get: operations["list_review_items_api_v1_kbs__kb_id__review_items_get"];
+        get: operations["list_review_items_api_v1_workspaces__workspace_id__review_items_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2934,7 +2934,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/review/items/entity-merge": {
+    "/api/v1/workspaces/{workspace_id}/review/items/entity-merge": {
         parameters: {
             query?: never;
             header?: never;
@@ -2945,16 +2945,16 @@ export interface paths {
         put?: never;
         /**
          * Propose Entity Merge
-         * @description Propose Entity Merge. Human review queue for merges, imports, and conflicts. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Propose Entity Merge. Human review queue for merges, imports, and conflicts. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        post: operations["propose_entity_merge_api_v1_kbs__kb_id__review_items_entity_merge_post"];
+        post: operations["propose_entity_merge_api_v1_workspaces__workspace_id__review_items_entity_merge_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/review/items/graph-import": {
+    "/api/v1/workspaces/{workspace_id}/review/items/graph-import": {
         parameters: {
             query?: never;
             header?: never;
@@ -2965,16 +2965,16 @@ export interface paths {
         put?: never;
         /**
          * Propose Graph Import
-         * @description Propose Graph Import. Human review queue for merges, imports, and conflicts. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Propose Graph Import. Human review queue for merges, imports, and conflicts. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        post: operations["propose_graph_import_api_v1_kbs__kb_id__review_items_graph_import_post"];
+        post: operations["propose_graph_import_api_v1_workspaces__workspace_id__review_items_graph_import_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/review/items/{item_id}": {
+    "/api/v1/workspaces/{workspace_id}/review/items/{item_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -2983,9 +2983,9 @@ export interface paths {
         };
         /**
          * Get Review Item Route
-         * @description Get Review Item. Human review queue for merges, imports, and conflicts. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Get Review Item. Human review queue for merges, imports, and conflicts. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        get: operations["get_review_item_route_api_v1_kbs__kb_id__review_items__item_id__get"];
+        get: operations["get_review_item_route_api_v1_workspaces__workspace_id__review_items__item_id__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2994,7 +2994,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/review/items/{item_id}/approve": {
+    "/api/v1/workspaces/{workspace_id}/review/items/{item_id}/approve": {
         parameters: {
             query?: never;
             header?: never;
@@ -3005,16 +3005,16 @@ export interface paths {
         put?: never;
         /**
          * Approve Review Item
-         * @description Approve Review Item. Human review queue for merges, imports, and conflicts. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Approve Review Item. Human review queue for merges, imports, and conflicts. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        post: operations["approve_review_item_api_v1_kbs__kb_id__review_items__item_id__approve_post"];
+        post: operations["approve_review_item_api_v1_workspaces__workspace_id__review_items__item_id__approve_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/review/items/{item_id}/reject": {
+    "/api/v1/workspaces/{workspace_id}/review/items/{item_id}/reject": {
         parameters: {
             query?: never;
             header?: never;
@@ -3025,16 +3025,16 @@ export interface paths {
         put?: never;
         /**
          * Reject Review Item
-         * @description Reject Review Item. Human review queue for merges, imports, and conflicts. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Reject Review Item. Human review queue for merges, imports, and conflicts. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        post: operations["reject_review_item_api_v1_kbs__kb_id__review_items__item_id__reject_post"];
+        post: operations["reject_review_item_api_v1_workspaces__workspace_id__review_items__item_id__reject_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/review/scan-statement-conflicts": {
+    "/api/v1/workspaces/{workspace_id}/review/scan-statement-conflicts": {
         parameters: {
             query?: never;
             header?: never;
@@ -3047,14 +3047,14 @@ export interface paths {
          * Scan Statement Conflicts Route
          * @description Re-scan ledger statements and enqueue `statement_conflict` review items (F-RUL-04).
          */
-        post: operations["scan_statement_conflicts_route_api_v1_kbs__kb_id__review_scan_statement_conflicts_post"];
+        post: operations["scan_statement_conflicts_route_api_v1_workspaces__workspace_id__review_scan_statement_conflicts_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/rules": {
+    "/api/v1/workspaces/{workspace_id}/rules": {
         parameters: {
             query?: never;
             header?: never;
@@ -3062,23 +3062,23 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * List Kb Reasoning Rules
-         * @description List Kb Reasoning Rules. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * List Reasoning Rules
+         * @description List Reasoning Rules. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        get: operations["list_kb_reasoning_rules_api_v1_kbs__kb_id__rules_get"];
+        get: operations["list_reasoning_rules_api_v1_workspaces__workspace_id__rules_get"];
         put?: never;
         /**
          * Create Kb Reasoning Rule
-         * @description Create Kb Reasoning Rule. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Create Reasoning Rule. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        post: operations["create_kb_reasoning_rule_api_v1_kbs__kb_id__rules_post"];
+        post: operations["create_kb_reasoning_rule_api_v1_workspaces__workspace_id__rules_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/rules/{rule_id}": {
+    "/api/v1/workspaces/{workspace_id}/rules/{rule_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -3090,19 +3090,19 @@ export interface paths {
         post?: never;
         /**
          * Delete Kb Reasoning Rule
-         * @description Delete Kb Reasoning Rule. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Delete Reasoning Rule. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        delete: operations["delete_kb_reasoning_rule_api_v1_kbs__kb_id__rules__rule_id__delete"];
+        delete: operations["delete_kb_reasoning_rule_api_v1_workspaces__workspace_id__rules__rule_id__delete"];
         options?: never;
         head?: never;
         /**
          * Update Kb Reasoning Rule
-         * @description Update Kb Reasoning Rule. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Update Reasoning Rule. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        patch: operations["update_kb_reasoning_rule_api_v1_kbs__kb_id__rules__rule_id__patch"];
+        patch: operations["update_kb_reasoning_rule_api_v1_workspaces__workspace_id__rules__rule_id__patch"];
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/search": {
+    "/api/v1/workspaces/{workspace_id}/search": {
         parameters: {
             query?: never;
             header?: never;
@@ -3111,9 +3111,9 @@ export interface paths {
         };
         /**
          * Chunk Search Route
-         * @description Chunk Search Route. Chunk retrieval (keyword, semantic, or hybrid per KB config). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Chunk Search Route. Chunk retrieval (keyword, semantic, or hybrid per workspace config). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        get: operations["chunk_search_route_api_v1_kbs__kb_id__search_get"];
+        get: operations["chunk_search_route_api_v1_workspaces__workspace_id__search_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3122,7 +3122,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/search/config": {
+    "/api/v1/workspaces/{workspace_id}/search/config": {
         parameters: {
             query?: never;
             header?: never;
@@ -3131,14 +3131,14 @@ export interface paths {
         };
         /**
          * Get Chunk Search Config Route
-         * @description Get Chunk Search Config Route. Chunk retrieval (keyword, semantic, or hybrid per KB config). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Get Chunk Search Config Route. Chunk retrieval (keyword, semantic, or hybrid per workspace config). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        get: operations["get_chunk_search_config_route_api_v1_kbs__kb_id__search_config_get"];
+        get: operations["get_chunk_search_config_route_api_v1_workspaces__workspace_id__search_config_get"];
         /**
          * Update Chunk Search Config Route
-         * @description Update Chunk Search Config Route. Chunk retrieval (keyword, semantic, or hybrid per KB config). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Update Chunk Search Config Route. Chunk retrieval (keyword, semantic, or hybrid per workspace config). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        put: operations["update_chunk_search_config_route_api_v1_kbs__kb_id__search_config_put"];
+        put: operations["update_chunk_search_config_route_api_v1_workspaces__workspace_id__search_config_put"];
         post?: never;
         delete?: never;
         options?: never;
@@ -3146,7 +3146,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/search/reindex": {
+    "/api/v1/workspaces/{workspace_id}/search/reindex": {
         parameters: {
             query?: never;
             header?: never;
@@ -3157,16 +3157,16 @@ export interface paths {
         put?: never;
         /**
          * Chunk Search Reindex Route
-         * @description Chunk Search Reindex Route. Chunk retrieval (keyword, semantic, or hybrid per KB config). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Chunk Search Reindex Route. Chunk retrieval (keyword, semantic, or hybrid per workspace config). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        post: operations["chunk_search_reindex_route_api_v1_kbs__kb_id__search_reindex_post"];
+        post: operations["chunk_search_reindex_route_api_v1_workspaces__workspace_id__search_reindex_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/sources": {
+    "/api/v1/workspaces/{workspace_id}/sources": {
         parameters: {
             query?: never;
             header?: never;
@@ -3175,22 +3175,22 @@ export interface paths {
         };
         /**
          * List Ingest Sources
-         * @description List Ingest Sources. Ingest sources (HTTP poll, webhook, manual sync). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description List Ingest Sources. Ingest sources (HTTP poll, webhook, manual sync). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        get: operations["list_ingest_sources_api_v1_kbs__kb_id__sources_get"];
+        get: operations["list_ingest_sources_api_v1_workspaces__workspace_id__sources_get"];
         put?: never;
         /**
          * Create Ingest Source
-         * @description Create Ingest Source. Ingest sources (HTTP poll, webhook, manual sync). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Create Ingest Source. Ingest sources (HTTP poll, webhook, manual sync). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        post: operations["create_ingest_source_api_v1_kbs__kb_id__sources_post"];
+        post: operations["create_ingest_source_api_v1_workspaces__workspace_id__sources_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/sources/{source_id}": {
+    "/api/v1/workspaces/{workspace_id}/sources/{source_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -3199,26 +3199,26 @@ export interface paths {
         };
         /**
          * Get Ingest Source
-         * @description Get Ingest Source. Ingest sources (HTTP poll, webhook, manual sync). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Get Ingest Source. Ingest sources (HTTP poll, webhook, manual sync). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        get: operations["get_ingest_source_api_v1_kbs__kb_id__sources__source_id__get"];
+        get: operations["get_ingest_source_api_v1_workspaces__workspace_id__sources__source_id__get"];
         put?: never;
         post?: never;
         /**
          * Delete Ingest Source
-         * @description Delete Ingest Source. Ingest sources (HTTP poll, webhook, manual sync). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Delete Ingest Source. Ingest sources (HTTP poll, webhook, manual sync). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        delete: operations["delete_ingest_source_api_v1_kbs__kb_id__sources__source_id__delete"];
+        delete: operations["delete_ingest_source_api_v1_workspaces__workspace_id__sources__source_id__delete"];
         options?: never;
         head?: never;
         /**
          * Update Ingest Source
-         * @description Update Ingest Source. Ingest sources (HTTP poll, webhook, manual sync). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Update Ingest Source. Ingest sources (HTTP poll, webhook, manual sync). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        patch: operations["update_ingest_source_api_v1_kbs__kb_id__sources__source_id__patch"];
+        patch: operations["update_ingest_source_api_v1_workspaces__workspace_id__sources__source_id__patch"];
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/sources/{source_id}/rotate-token": {
+    "/api/v1/workspaces/{workspace_id}/sources/{source_id}/rotate-token": {
         parameters: {
             query?: never;
             header?: never;
@@ -3229,16 +3229,16 @@ export interface paths {
         put?: never;
         /**
          * Rotate Ingest Source Token
-         * @description Rotate Ingest Source Token. Ingest sources (HTTP poll, webhook, manual sync). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Rotate Ingest Source Token. Ingest sources (HTTP poll, webhook, manual sync). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        post: operations["rotate_ingest_source_token_api_v1_kbs__kb_id__sources__source_id__rotate_token_post"];
+        post: operations["rotate_ingest_source_token_api_v1_workspaces__workspace_id__sources__source_id__rotate_token_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/sources/{source_id}/sync": {
+    "/api/v1/workspaces/{workspace_id}/sources/{source_id}/sync": {
         parameters: {
             query?: never;
             header?: never;
@@ -3249,16 +3249,16 @@ export interface paths {
         put?: never;
         /**
          * Sync Ingest Source
-         * @description Sync Ingest Source. Ingest sources (HTTP poll, webhook, manual sync). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Sync Ingest Source. Ingest sources (HTTP poll, webhook, manual sync). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        post: operations["sync_ingest_source_api_v1_kbs__kb_id__sources__source_id__sync_post"];
+        post: operations["sync_ingest_source_api_v1_workspaces__workspace_id__sources__source_id__sync_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/sources/{source_id}/sync-history": {
+    "/api/v1/workspaces/{workspace_id}/sources/{source_id}/sync-history": {
         parameters: {
             query?: never;
             header?: never;
@@ -3269,7 +3269,7 @@ export interface paths {
          * List Ingest Source Sync History
          * @description Recent sync runs stored on the source config (`sync_events`, newest first).
          */
-        get: operations["list_ingest_source_sync_history_api_v1_kbs__kb_id__sources__source_id__sync_history_get"];
+        get: operations["list_ingest_source_sync_history_api_v1_workspaces__workspace_id__sources__source_id__sync_history_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3278,7 +3278,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/sources/{source_id}/webhook": {
+    "/api/v1/workspaces/{workspace_id}/sources/{source_id}/webhook": {
         parameters: {
             query?: never;
             header?: never;
@@ -3289,16 +3289,16 @@ export interface paths {
         put?: never;
         /**
          * Ingest Via Webhook
-         * @description Ingest Via Webhook. Ingest sources (HTTP poll, webhook, manual sync). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Ingest Via Webhook. Ingest sources (HTTP poll, webhook, manual sync). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        post: operations["ingest_via_webhook_api_v1_kbs__kb_id__sources__source_id__webhook_post"];
+        post: operations["ingest_via_webhook_api_v1_workspaces__workspace_id__sources__source_id__webhook_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/sparql": {
+    "/api/v1/workspaces/{workspace_id}/sparql": {
         parameters: {
             query?: never;
             header?: never;
@@ -3309,16 +3309,16 @@ export interface paths {
         put?: never;
         /**
          * Kb Sparql Execute
-         * @description Kb Sparql Execute. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description SPARQL Execute. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        post: operations["kb_sparql_execute_api_v1_kbs__kb_id__sparql_post"];
+        post: operations["kb_sparql_execute_api_v1_workspaces__workspace_id__sparql_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/temporal/bounds": {
+    "/api/v1/workspaces/{workspace_id}/temporal/bounds": {
         parameters: {
             query?: never;
             header?: never;
@@ -3327,12 +3327,12 @@ export interface paths {
         };
         /**
          * Kb Temporal Bounds
-         * @description Temporal scrubber bounds for the KB graph (F-TIM-03 / F-TIM-04).
+         * @description Temporal scrubber bounds for the workspace graph (F-TIM-03 / F-TIM-04).
          *
          *     Returns `{min, max}` ISO instants. When the Explorer projection lacks node `valid_from`,
          *     `min` / `max` fall back to ledger timestamps (statements, facts, current document version).
          */
-        get: operations["kb_temporal_bounds_api_v1_kbs__kb_id__temporal_bounds_get"];
+        get: operations["kb_temporal_bounds_api_v1_workspaces__workspace_id__temporal_bounds_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3341,7 +3341,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/temporal/diff": {
+    "/api/v1/workspaces/{workspace_id}/temporal/diff": {
         parameters: {
             query?: never;
             header?: never;
@@ -3350,9 +3350,9 @@ export interface paths {
         };
         /**
          * Kb Temporal Diff
-         * @description Kb Temporal Diff. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Temporal Diff. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        get: operations["kb_temporal_diff_api_v1_kbs__kb_id__temporal_diff_get"];
+        get: operations["kb_temporal_diff_api_v1_workspaces__workspace_id__temporal_diff_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3361,7 +3361,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/temporal/snapshot": {
+    "/api/v1/workspaces/{workspace_id}/temporal/snapshot": {
         parameters: {
             query?: never;
             header?: never;
@@ -3375,7 +3375,7 @@ export interface paths {
          *     Primary path: Explorer `temporal_snapshot`. When that returns no nodes but the Basis
          *     projector supports `state_at`, falls back to the same snapshot used by `GET .../graph/diff`.
          */
-        get: operations["kb_temporal_snapshot_api_v1_kbs__kb_id__temporal_snapshot_get"];
+        get: operations["kb_temporal_snapshot_api_v1_workspaces__workspace_id__temporal_snapshot_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3384,7 +3384,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/vocabulary/concepts": {
+    "/api/v1/workspaces/{workspace_id}/vocabulary/concepts": {
         parameters: {
             query?: never;
             header?: never;
@@ -3393,9 +3393,9 @@ export interface paths {
         };
         /**
          * Kb Vocabulary Concepts
-         * @description Kb Vocabulary Concepts. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Vocabulary Concepts. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        get: operations["kb_vocabulary_concepts_api_v1_kbs__kb_id__vocabulary_concepts_get"];
+        get: operations["kb_vocabulary_concepts_api_v1_workspaces__workspace_id__vocabulary_concepts_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3404,7 +3404,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/vocabulary/hierarchy": {
+    "/api/v1/workspaces/{workspace_id}/vocabulary/hierarchy": {
         parameters: {
             query?: never;
             header?: never;
@@ -3413,9 +3413,9 @@ export interface paths {
         };
         /**
          * Kb Vocabulary Hierarchy
-         * @description Kb Vocabulary Hierarchy. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Vocabulary Hierarchy. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        get: operations["kb_vocabulary_hierarchy_api_v1_kbs__kb_id__vocabulary_hierarchy_get"];
+        get: operations["kb_vocabulary_hierarchy_api_v1_workspaces__workspace_id__vocabulary_hierarchy_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3424,7 +3424,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/vocabulary/import": {
+    "/api/v1/workspaces/{workspace_id}/vocabulary/import": {
         parameters: {
             query?: never;
             header?: never;
@@ -3435,16 +3435,16 @@ export interface paths {
         put?: never;
         /**
          * Kb Vocabulary Import
-         * @description Kb Vocabulary Import. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Vocabulary Import. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        post: operations["kb_vocabulary_import_api_v1_kbs__kb_id__vocabulary_import_post"];
+        post: operations["kb_vocabulary_import_api_v1_workspaces__workspace_id__vocabulary_import_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/kbs/{kb_id}/vocabulary/schemes": {
+    "/api/v1/workspaces/{workspace_id}/vocabulary/schemes": {
         parameters: {
             query?: never;
             header?: never;
@@ -3453,9 +3453,9 @@ export interface paths {
         };
         /**
          * Kb Vocabulary Schemes
-         * @description Kb Vocabulary Schemes. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+         * @description Vocabulary Schemes. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
-        get: operations["kb_vocabulary_schemes_api_v1_kbs__kb_id__vocabulary_schemes_get"];
+        get: operations["kb_vocabulary_schemes_api_v1_workspaces__workspace_id__vocabulary_schemes_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3519,13 +3519,13 @@ export interface components {
              */
             run_sync: boolean;
         };
-        /** Body_append_document_version_upload_api_v1_kbs__kb_id__documents__document_id__versions_upload_post */
-        Body_append_document_version_upload_api_v1_kbs__kb_id__documents__document_id__versions_upload_post: {
+        /** Body_append_document_version_upload_api_v1_workspaces__workspace_id__documents__document_id__versions_upload_post */
+        Body_append_document_version_upload_api_v1_workspaces__workspace_id__documents__document_id__versions_upload_post: {
             /** File */
             file: string;
         };
-        /** Body_kb_vocabulary_import_api_v1_kbs__kb_id__vocabulary_import_post */
-        Body_kb_vocabulary_import_api_v1_kbs__kb_id__vocabulary_import_post: {
+        /** Body_kb_vocabulary_import_api_v1_workspaces__workspace_id__vocabulary_import_post */
+        Body_kb_vocabulary_import_api_v1_workspaces__workspace_id__vocabulary_import_post: {
             /** File */
             file?: string | null;
             /** Text */
@@ -3561,13 +3561,13 @@ export interface components {
              */
             SAMLRequest: string;
         };
-        /** Body_propose_graph_import_api_v1_kbs__kb_id__review_items_graph_import_post */
-        Body_propose_graph_import_api_v1_kbs__kb_id__review_items_graph_import_post: {
+        /** Body_propose_graph_import_api_v1_workspaces__workspace_id__review_items_graph_import_post */
+        Body_propose_graph_import_api_v1_workspaces__workspace_id__review_items_graph_import_post: {
             /** File */
             file: string;
         };
-        /** Body_upload_document_api_v1_kbs__kb_id__documents_upload_post */
-        Body_upload_document_api_v1_kbs__kb_id__documents_upload_post: {
+        /** Body_upload_document_api_v1_workspaces__workspace_id__documents_upload_post */
+        Body_upload_document_api_v1_workspaces__workspace_id__documents_upload_post: {
             /** File */
             file: string;
             /** Doc Id */
@@ -5411,14 +5411,14 @@ export interface operations {
             };
         };
     };
-    get_kb_api_v1_kbs__kb_id__get: {
+    get_kb_api_v1_workspaces__workspace_id__get: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -5446,14 +5446,14 @@ export interface operations {
             };
         };
     };
-    delete_kb_api_v1_kbs__kb_id__delete: {
+    delete_workspace_api_v1_workspaces__workspace_id__delete: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -5481,14 +5481,14 @@ export interface operations {
             };
         };
     };
-    update_kb_api_v1_kbs__kb_id__patch: {
+    update_workspace_api_v1_workspaces__workspace_id__patch: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -5520,7 +5520,7 @@ export interface operations {
             };
         };
     };
-    list_kb_alerts_api_v1_kbs__kb_id__alerts_get: {
+    list_alerts_api_v1_workspaces__workspace_id__alerts_get: {
         parameters: {
             query?: {
                 limit?: number;
@@ -5529,7 +5529,7 @@ export interface operations {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -5557,14 +5557,14 @@ export interface operations {
             };
         };
     };
-    dismiss_all_kb_alerts_api_v1_kbs__kb_id__alerts_dismiss_all_post: {
+    dismiss_all_alerts_api_v1_workspaces__workspace_id__alerts_dismiss_all_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -5592,14 +5592,14 @@ export interface operations {
             };
         };
     };
-    mark_all_kb_alerts_read_api_v1_kbs__kb_id__alerts_mark_all_read_post: {
+    mark_all_alerts_read_api_v1_workspaces__workspace_id__alerts_mark_all_read_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -5627,7 +5627,7 @@ export interface operations {
             };
         };
     };
-    stream_kb_alerts_api_v1_kbs__kb_id__alerts_stream_get: {
+    stream_alerts_api_v1_workspaces__workspace_id__alerts_stream_get: {
         parameters: {
             query?: {
                 /** @description Only emit alerts with created_at strictly after this ISO timestamp. */
@@ -5637,7 +5637,7 @@ export interface operations {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -5663,14 +5663,14 @@ export interface operations {
             };
         };
     };
-    dismiss_kb_alert_api_v1_kbs__kb_id__alerts__alert_id__dismiss_post: {
+    dismiss_kb_alert_api_v1_workspaces__workspace_id__alerts__alert_id__dismiss_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
                 alert_id: string;
             };
             cookie?: never;
@@ -5699,7 +5699,7 @@ export interface operations {
             };
         };
     };
-    list_kb_graph_audit_api_v1_kbs__kb_id__audit_graph_mutations_get: {
+    list_kb_graph_audit_api_v1_workspaces__workspace_id__audit_graph_mutations_get: {
         parameters: {
             query?: {
                 limit?: number;
@@ -5709,7 +5709,7 @@ export interface operations {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -5737,14 +5737,14 @@ export interface operations {
             };
         };
     };
-    get_kb_capabilities_api_v1_kbs__kb_id__capabilities_get: {
+    get_kb_capabilities_api_v1_workspaces__workspace_id__capabilities_get: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -5772,7 +5772,7 @@ export interface operations {
             };
         };
     };
-    list_connector_catalog_api_v1_kbs__kb_id__connectors_catalog_get: {
+    list_connector_catalog_api_v1_workspaces__workspace_id__connectors_catalog_get: {
         parameters: {
             query?: {
                 category?: string | null;
@@ -5785,7 +5785,7 @@ export interface operations {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -5813,14 +5813,14 @@ export interface operations {
             };
         };
     };
-    get_connector_manifest_route_api_v1_kbs__kb_id__connectors_catalog__service__get: {
+    get_connector_manifest_route_api_v1_workspaces__workspace_id__connectors_catalog__service__get: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
                 service: string;
             };
             cookie?: never;
@@ -5849,7 +5849,7 @@ export interface operations {
             };
         };
     };
-    list_kb_connector_connections_api_v1_kbs__kb_id__connectors_connections_get: {
+    list_kb_connector_connections_api_v1_workspaces__workspace_id__connectors_connections_get: {
         parameters: {
             query?: {
                 service?: string | null;
@@ -5858,7 +5858,7 @@ export interface operations {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -5886,14 +5886,14 @@ export interface operations {
             };
         };
     };
-    upsert_kb_connector_connection_api_v1_kbs__kb_id__connectors_connections__service___connection_name__put: {
+    upsert_kb_connector_connection_api_v1_workspaces__workspace_id__connectors_connections__service___connection_name__put: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
                 service: string;
                 connection_name: string;
             };
@@ -5927,14 +5927,14 @@ export interface operations {
             };
         };
     };
-    delete_kb_connector_connection_api_v1_kbs__kb_id__connectors_connections__service___connection_name__delete: {
+    delete_kb_connector_connection_api_v1_workspaces__workspace_id__connectors_connections__service___connection_name__delete: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
                 service: string;
                 connection_name: string;
             };
@@ -5964,14 +5964,14 @@ export interface operations {
             };
         };
     };
-    check_kb_connector_connection_api_v1_kbs__kb_id__connectors_connections__service___connection_name__check_post: {
+    check_kb_connector_connection_api_v1_workspaces__workspace_id__connectors_connections__service___connection_name__check_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
                 service: string;
                 connection_name: string;
             };
@@ -6001,7 +6001,7 @@ export interface operations {
             };
         };
     };
-    discover_kb_connector_schema_api_v1_kbs__kb_id__connectors_connections__service___connection_name__discover_get: {
+    discover_kb_connector_schema_api_v1_workspaces__workspace_id__connectors_connections__service___connection_name__discover_get: {
         parameters: {
             query?: {
                 stream_name?: string | null;
@@ -6011,7 +6011,7 @@ export interface operations {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
                 service: string;
                 connection_name: string;
             };
@@ -6041,14 +6041,14 @@ export interface operations {
             };
         };
     };
-    invoke_kb_connector_primitive_api_v1_kbs__kb_id__connectors_connections__service___connection_name__invoke_primitive_post: {
+    invoke_kb_connector_primitive_api_v1_workspaces__workspace_id__connectors_connections__service___connection_name__invoke_primitive_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
                 service: string;
                 connection_name: string;
             };
@@ -6082,14 +6082,14 @@ export interface operations {
             };
         };
     };
-    upsert_kb_connector_oauth_config_api_v1_kbs__kb_id__connectors_oauth_configs__service__put: {
+    upsert_kb_connector_oauth_config_api_v1_workspaces__workspace_id__connectors_oauth_configs__service__put: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
                 service: string;
             };
             cookie?: never;
@@ -6122,14 +6122,14 @@ export interface operations {
             };
         };
     };
-    build_kb_connector_oauth_authorize_url_api_v1_kbs__kb_id__connectors_oauth__service__authorize_url_post: {
+    build_kb_connector_oauth_authorize_url_api_v1_workspaces__workspace_id__connectors_oauth__service__authorize_url_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
                 service: string;
             };
             cookie?: never;
@@ -6162,14 +6162,14 @@ export interface operations {
             };
         };
     };
-    exchange_kb_connector_oauth_code_api_v1_kbs__kb_id__connectors_oauth__service__exchange_post: {
+    exchange_kb_connector_oauth_code_api_v1_workspaces__workspace_id__connectors_oauth__service__exchange_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
                 service: string;
             };
             cookie?: never;
@@ -6202,7 +6202,7 @@ export interface operations {
             };
         };
     };
-    list_kb_sync_outbox_api_v1_kbs__kb_id__connectors_outbox_get: {
+    list_kb_sync_outbox_api_v1_workspaces__workspace_id__connectors_outbox_get: {
         parameters: {
             query?: {
                 status?: string | null;
@@ -6212,7 +6212,7 @@ export interface operations {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -6240,14 +6240,14 @@ export interface operations {
             };
         };
     };
-    propose_kb_entity_writeback_api_v1_kbs__kb_id__connectors_outbox_propose_post: {
+    propose_kb_entity_writeback_api_v1_workspaces__workspace_id__connectors_outbox_propose_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -6279,14 +6279,14 @@ export interface operations {
             };
         };
     };
-    get_kb_connector_policy_api_v1_kbs__kb_id__connectors_policy_get: {
+    get_kb_connector_policy_api_v1_workspaces__workspace_id__connectors_policy_get: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -6314,14 +6314,14 @@ export interface operations {
             };
         };
     };
-    put_kb_connector_policy_api_v1_kbs__kb_id__connectors_policy_put: {
+    put_kb_connector_policy_api_v1_workspaces__workspace_id__connectors_policy_put: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -6353,7 +6353,7 @@ export interface operations {
             };
         };
     };
-    list_kb_connector_runs_api_v1_kbs__kb_id__connectors_runs_get: {
+    list_connector_runs_api_v1_workspaces__workspace_id__connectors_runs_get: {
         parameters: {
             query?: {
                 service?: string | null;
@@ -6363,7 +6363,7 @@ export interface operations {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -6391,14 +6391,14 @@ export interface operations {
             };
         };
     };
-    list_kb_table_mappings_api_v1_kbs__kb_id__connectors_table_mappings_get: {
+    list_kb_table_mappings_api_v1_workspaces__workspace_id__connectors_table_mappings_get: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -6426,14 +6426,14 @@ export interface operations {
             };
         };
     };
-    create_kb_table_mapping_api_v1_kbs__kb_id__connectors_table_mappings_post: {
+    create_kb_table_mapping_api_v1_workspaces__workspace_id__connectors_table_mappings_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -6465,14 +6465,14 @@ export interface operations {
             };
         };
     };
-    batch_create_kb_table_mappings_api_v1_kbs__kb_id__connectors_table_mappings_batch_create_post: {
+    batch_create_kb_table_mappings_api_v1_workspaces__workspace_id__connectors_table_mappings_batch_create_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -6504,14 +6504,14 @@ export interface operations {
             };
         };
     };
-    suggest_kb_table_mappings_api_v1_kbs__kb_id__connectors_table_mappings_suggest_post: {
+    suggest_kb_table_mappings_api_v1_workspaces__workspace_id__connectors_table_mappings_suggest_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -6543,14 +6543,14 @@ export interface operations {
             };
         };
     };
-    get_kb_table_mapping_api_v1_kbs__kb_id__connectors_table_mappings__mapping_id__get: {
+    get_kb_table_mapping_api_v1_workspaces__workspace_id__connectors_table_mappings__mapping_id__get: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
                 mapping_id: string;
             };
             cookie?: never;
@@ -6579,14 +6579,14 @@ export interface operations {
             };
         };
     };
-    update_kb_table_mapping_api_v1_kbs__kb_id__connectors_table_mappings__mapping_id__put: {
+    update_kb_table_mapping_api_v1_workspaces__workspace_id__connectors_table_mappings__mapping_id__put: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
                 mapping_id: string;
             };
             cookie?: never;
@@ -6619,14 +6619,14 @@ export interface operations {
             };
         };
     };
-    delete_kb_table_mapping_api_v1_kbs__kb_id__connectors_table_mappings__mapping_id__delete: {
+    delete_kb_table_mapping_api_v1_workspaces__workspace_id__connectors_table_mappings__mapping_id__delete: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
                 mapping_id: string;
             };
             cookie?: never;
@@ -6655,14 +6655,14 @@ export interface operations {
             };
         };
     };
-    sync_kb_table_mapping_api_v1_kbs__kb_id__connectors_table_mappings__mapping_id__sync_post: {
+    sync_kb_table_mapping_api_v1_workspaces__workspace_id__connectors_table_mappings__mapping_id__sync_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
                 mapping_id: string;
             };
             cookie?: never;
@@ -6691,14 +6691,14 @@ export interface operations {
             };
         };
     };
-    execute_kb_connector_tool_api_v1_kbs__kb_id__connectors_tools_execute_post: {
+    execute_kb_connector_tool_api_v1_workspaces__workspace_id__connectors_tools_execute_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -6730,7 +6730,7 @@ export interface operations {
             };
         };
     };
-    kb_list_decisions_api_v1_kbs__kb_id__decisions_get: {
+    kb_list_decisions_api_v1_workspaces__workspace_id__decisions_get: {
         parameters: {
             query?: {
                 category?: string | null;
@@ -6741,7 +6741,7 @@ export interface operations {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -6767,14 +6767,14 @@ export interface operations {
             };
         };
     };
-    kb_decision_chain_api_v1_kbs__kb_id__decisions__decision_id__chain_get: {
+    kb_decision_chain_api_v1_workspaces__workspace_id__decisions__decision_id__chain_get: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
                 decision_id: string;
             };
             cookie?: never;
@@ -6801,14 +6801,14 @@ export interface operations {
             };
         };
     };
-    list_kb_documents_api_v1_kbs__kb_id__documents_get: {
+    list_kb_documents_api_v1_workspaces__workspace_id__documents_get: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -6836,14 +6836,14 @@ export interface operations {
             };
         };
     };
-    ingest_document_api_v1_kbs__kb_id__documents_post: {
+    ingest_document_api_v1_workspaces__workspace_id__documents_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -6873,20 +6873,20 @@ export interface operations {
             };
         };
     };
-    upload_document_api_v1_kbs__kb_id__documents_upload_post: {
+    upload_document_api_v1_workspaces__workspace_id__documents_upload_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
         requestBody: {
             content: {
-                "multipart/form-data": components["schemas"]["Body_upload_document_api_v1_kbs__kb_id__documents_upload_post"];
+                "multipart/form-data": components["schemas"]["Body_upload_document_api_v1_workspaces__workspace_id__documents_upload_post"];
             };
         };
         responses: {
@@ -6910,14 +6910,14 @@ export interface operations {
             };
         };
     };
-    delete_kb_document_api_v1_kbs__kb_id__documents__document_id__delete: {
+    delete_kb_document_api_v1_workspaces__workspace_id__documents__document_id__delete: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
                 document_id: string;
             };
             cookie?: never;
@@ -6946,7 +6946,7 @@ export interface operations {
             };
         };
     };
-    get_kb_document_timeline_api_v1_kbs__kb_id__documents__document_id__timeline_get: {
+    get_kb_document_timeline_api_v1_workspaces__workspace_id__documents__document_id__timeline_get: {
         parameters: {
             query?: {
                 limit?: number;
@@ -6955,7 +6955,7 @@ export interface operations {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
                 document_id: string;
             };
             cookie?: never;
@@ -6984,14 +6984,14 @@ export interface operations {
             };
         };
     };
-    append_document_version_text_api_v1_kbs__kb_id__documents__document_id__versions_post: {
+    append_document_version_text_api_v1_workspaces__workspace_id__documents__document_id__versions_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
                 document_id: string;
             };
             cookie?: never;
@@ -7022,21 +7022,21 @@ export interface operations {
             };
         };
     };
-    append_document_version_upload_api_v1_kbs__kb_id__documents__document_id__versions_upload_post: {
+    append_document_version_upload_api_v1_workspaces__workspace_id__documents__document_id__versions_upload_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
                 document_id: string;
             };
             cookie?: never;
         };
         requestBody: {
             content: {
-                "multipart/form-data": components["schemas"]["Body_append_document_version_upload_api_v1_kbs__kb_id__documents__document_id__versions_upload_post"];
+                "multipart/form-data": components["schemas"]["Body_append_document_version_upload_api_v1_workspaces__workspace_id__documents__document_id__versions_upload_post"];
             };
         };
         responses: {
@@ -7060,14 +7060,14 @@ export interface operations {
             };
         };
     };
-    kb_enrich_dedup_api_v1_kbs__kb_id__enrich_dedup_post: {
+    kb_enrich_dedup_api_v1_workspaces__workspace_id__enrich_dedup_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -7093,14 +7093,14 @@ export interface operations {
             };
         };
     };
-    kb_enrich_links_api_v1_kbs__kb_id__enrich_links_post: {
+    kb_enrich_links_api_v1_workspaces__workspace_id__enrich_links_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -7126,14 +7126,14 @@ export interface operations {
             };
         };
     };
-    kb_enrich_merge_api_v1_kbs__kb_id__enrich_merge_post: {
+    kb_enrich_merge_api_v1_workspaces__workspace_id__enrich_merge_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -7159,7 +7159,7 @@ export interface operations {
             };
         };
     };
-    find_entities_route_api_v1_kbs__kb_id__entities_find_get: {
+    find_entities_route_api_v1_workspaces__workspace_id__entities_find_get: {
         parameters: {
             query: {
                 q: string;
@@ -7169,7 +7169,7 @@ export interface operations {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -7197,14 +7197,14 @@ export interface operations {
             };
         };
     };
-    kb_export_graph_api_v1_kbs__kb_id__export_post: {
+    kb_export_graph_api_v1_workspaces__workspace_id__export_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -7230,14 +7230,14 @@ export interface operations {
             };
         };
     };
-    get_kb_governance_config_api_v1_kbs__kb_id__governance_config_get: {
+    get_kb_governance_config_api_v1_workspaces__workspace_id__governance_config_get: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -7265,14 +7265,14 @@ export interface operations {
             };
         };
     };
-    update_kb_governance_config_api_v1_kbs__kb_id__governance_config_put: {
+    update_kb_governance_config_api_v1_workspaces__workspace_id__governance_config_put: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -7304,14 +7304,14 @@ export interface operations {
             };
         };
     };
-    kb_governance_governor_run_api_v1_kbs__kb_id__governance_governor_run_post: {
+    kb_governance_governor_run_api_v1_workspaces__workspace_id__governance_governor_run_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -7343,7 +7343,7 @@ export interface operations {
             };
         };
     };
-    kb_graph_diff_api_v1_kbs__kb_id__graph_diff_get: {
+    kb_graph_diff_api_v1_workspaces__workspace_id__graph_diff_get: {
         parameters: {
             query: {
                 from: string;
@@ -7353,7 +7353,7 @@ export interface operations {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -7379,14 +7379,14 @@ export interface operations {
             };
         };
     };
-    kb_graph_distance_matrix_api_v1_kbs__kb_id__graph_distance_matrix_post: {
+    kb_graph_distance_matrix_api_v1_workspaces__workspace_id__graph_distance_matrix_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -7412,7 +7412,7 @@ export interface operations {
             };
         };
     };
-    graph_edges_route_api_v1_kbs__kb_id__graph_edges_get: {
+    graph_edges_route_api_v1_workspaces__workspace_id__graph_edges_get: {
         parameters: {
             query?: {
                 type?: string | null;
@@ -7425,7 +7425,7 @@ export interface operations {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -7453,7 +7453,7 @@ export interface operations {
             };
         };
     };
-    graph_nodes_route_api_v1_kbs__kb_id__graph_nodes_get: {
+    graph_nodes_route_api_v1_workspaces__workspace_id__graph_nodes_get: {
         parameters: {
             query?: {
                 node_type?: string | null;
@@ -7465,7 +7465,7 @@ export interface operations {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -7493,14 +7493,14 @@ export interface operations {
             };
         };
     };
-    graph_node_route_api_v1_kbs__kb_id__graph_nodes__node_id__get: {
+    graph_node_route_api_v1_workspaces__workspace_id__graph_nodes__node_id__get: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
                 node_id: string;
             };
             cookie?: never;
@@ -7529,7 +7529,7 @@ export interface operations {
             };
         };
     };
-    graph_neighbors_route_api_v1_kbs__kb_id__graph_nodes__node_id__neighbors_get: {
+    graph_neighbors_route_api_v1_workspaces__workspace_id__graph_nodes__node_id__neighbors_get: {
         parameters: {
             query?: {
                 depth?: number;
@@ -7538,7 +7538,7 @@ export interface operations {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
                 node_id: string;
             };
             cookie?: never;
@@ -7567,7 +7567,7 @@ export interface operations {
             };
         };
     };
-    graph_path_route_api_v1_kbs__kb_id__graph_path_get: {
+    graph_path_route_api_v1_workspaces__workspace_id__graph_path_get: {
         parameters: {
             query: {
                 source: string;
@@ -7579,7 +7579,7 @@ export interface operations {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -7607,14 +7607,14 @@ export interface operations {
             };
         };
     };
-    graph_projection_status_api_v1_kbs__kb_id__graph_projection_get: {
+    graph_projection_status_api_v1_workspaces__workspace_id__graph_projection_get: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -7642,14 +7642,14 @@ export interface operations {
             };
         };
     };
-    rebuild_graph_api_v1_kbs__kb_id__graph_rebuild_post: {
+    rebuild_graph_api_v1_workspaces__workspace_id__graph_rebuild_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -7677,14 +7677,14 @@ export interface operations {
             };
         };
     };
-    resolve_graph_node_labels_api_v1_kbs__kb_id__graph_resolve_labels_post: {
+    resolve_graph_node_labels_api_v1_workspaces__workspace_id__graph_resolve_labels_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -7716,14 +7716,14 @@ export interface operations {
             };
         };
     };
-    graph_search_route_api_v1_kbs__kb_id__graph_search_post: {
+    graph_search_route_api_v1_workspaces__workspace_id__graph_search_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -7755,7 +7755,7 @@ export interface operations {
             };
         };
     };
-    kb_graph_semantic_neighborhood_api_v1_kbs__kb_id__graph_semantic_neighborhood_get: {
+    kb_graph_semantic_neighborhood_api_v1_workspaces__workspace_id__graph_semantic_neighborhood_get: {
         parameters: {
             query: {
                 node_id: string;
@@ -7766,7 +7766,7 @@ export interface operations {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -7792,7 +7792,7 @@ export interface operations {
             };
         };
     };
-    graph_snapshot_route_api_v1_kbs__kb_id__graph_snapshot_get: {
+    graph_snapshot_route_api_v1_workspaces__workspace_id__graph_snapshot_get: {
         parameters: {
             query?: {
                 limit_nodes?: number;
@@ -7802,7 +7802,7 @@ export interface operations {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -7830,7 +7830,7 @@ export interface operations {
             };
         };
     };
-    kb_graph_staging_api_v1_kbs__kb_id__graph_staging_get: {
+    kb_graph_staging_api_v1_workspaces__workspace_id__graph_staging_get: {
         parameters: {
             query: {
                 from: string;
@@ -7840,7 +7840,7 @@ export interface operations {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -7866,14 +7866,14 @@ export interface operations {
             };
         };
     };
-    kb_graph_staging_entity_merge_api_v1_kbs__kb_id__graph_staging_entity_merge_post: {
+    kb_graph_staging_entity_merge_api_v1_workspaces__workspace_id__graph_staging_entity_merge_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -7903,14 +7903,14 @@ export interface operations {
             };
         };
     };
-    kb_put_graph_staging_draft_api_v1_kbs__kb_id__graph_staging__session_key__draft_put: {
+    kb_put_graph_staging_draft_api_v1_workspaces__workspace_id__graph_staging__session_key__draft_put: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
                 session_key: string;
             };
             cookie?: never;
@@ -7943,14 +7943,14 @@ export interface operations {
             };
         };
     };
-    graph_stats_api_v1_kbs__kb_id__graph_stats_get: {
+    graph_stats_api_v1_workspaces__workspace_id__graph_stats_get: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -7978,14 +7978,14 @@ export interface operations {
             };
         };
     };
-    kb_import_graph_api_v1_kbs__kb_id__import_post: {
+    kb_import_graph_api_v1_workspaces__workspace_id__import_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -8011,7 +8011,7 @@ export interface operations {
             };
         };
     };
-    list_ingest_jobs_api_v1_kbs__kb_id__ingest_jobs_get: {
+    list_ingest_jobs_api_v1_workspaces__workspace_id__ingest_jobs_get: {
         parameters: {
             query?: {
                 status?: string | null;
@@ -8021,7 +8021,7 @@ export interface operations {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -8049,14 +8049,14 @@ export interface operations {
             };
         };
     };
-    get_ingest_job_api_v1_kbs__kb_id__ingest_jobs__job_id__get: {
+    get_ingest_job_api_v1_workspaces__workspace_id__ingest_jobs__job_id__get: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
                 job_id: string;
             };
             cookie?: never;
@@ -8085,14 +8085,14 @@ export interface operations {
             };
         };
     };
-    get_ledger_chunk_route_api_v1_kbs__kb_id__ledger_chunks__chunk_id__get: {
+    get_ledger_chunk_route_api_v1_workspaces__workspace_id__ledger_chunks__chunk_id__get: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
                 chunk_id: string;
             };
             cookie?: never;
@@ -8121,7 +8121,7 @@ export interface operations {
             };
         };
     };
-    list_derived_facts_route_api_v1_kbs__kb_id__ledger_derived_facts_get: {
+    list_derived_facts_route_api_v1_workspaces__workspace_id__ledger_derived_facts_get: {
         parameters: {
             query?: {
                 limit?: number;
@@ -8131,7 +8131,7 @@ export interface operations {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -8159,14 +8159,14 @@ export interface operations {
             };
         };
     };
-    get_ledger_document_route_api_v1_kbs__kb_id__ledger_documents__doc_ref__get: {
+    get_ledger_document_route_api_v1_workspaces__workspace_id__ledger_documents__doc_ref__get: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
                 doc_ref: string;
             };
             cookie?: never;
@@ -8195,14 +8195,14 @@ export interface operations {
             };
         };
     };
-    list_document_chunks_route_api_v1_kbs__kb_id__ledger_documents__doc_ref__chunks_get: {
+    list_document_chunks_route_api_v1_workspaces__workspace_id__ledger_documents__doc_ref__chunks_get: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
                 doc_ref: string;
             };
             cookie?: never;
@@ -8231,7 +8231,7 @@ export interface operations {
             };
         };
     };
-    search_ledger_entities_api_v1_kbs__kb_id__ledger_entities_get: {
+    search_ledger_entities_api_v1_workspaces__workspace_id__ledger_entities_get: {
         parameters: {
             query?: {
                 query?: string;
@@ -8242,7 +8242,7 @@ export interface operations {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -8270,14 +8270,14 @@ export interface operations {
             };
         };
     };
-    delete_ledger_entity_api_v1_kbs__kb_id__ledger_entities__entity_id__delete: {
+    delete_ledger_entity_api_v1_workspaces__workspace_id__ledger_entities__entity_id__delete: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
                 entity_id: string;
             };
             cookie?: never;
@@ -8306,14 +8306,14 @@ export interface operations {
             };
         };
     };
-    preview_delete_ledger_entity_api_v1_kbs__kb_id__ledger_entities__entity_id__delete_preview_get: {
+    preview_delete_ledger_entity_api_v1_workspaces__workspace_id__ledger_entities__entity_id__delete_preview_get: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
                 entity_id: string;
             };
             cookie?: never;
@@ -8342,7 +8342,7 @@ export interface operations {
             };
         };
     };
-    list_entity_facts_route_api_v1_kbs__kb_id__ledger_entities__entity_id__facts_get: {
+    list_entity_facts_route_api_v1_workspaces__workspace_id__ledger_entities__entity_id__facts_get: {
         parameters: {
             query?: {
                 limit?: number;
@@ -8351,7 +8351,7 @@ export interface operations {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
                 entity_id: string;
             };
             cookie?: never;
@@ -8380,7 +8380,7 @@ export interface operations {
             };
         };
     };
-    list_entity_merges_route_api_v1_kbs__kb_id__ledger_entity_merges_get: {
+    list_entity_merges_route_api_v1_workspaces__workspace_id__ledger_entity_merges_get: {
         parameters: {
             query?: {
                 limit?: number;
@@ -8390,7 +8390,7 @@ export interface operations {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -8418,14 +8418,14 @@ export interface operations {
             };
         };
     };
-    revert_entity_merge_route_api_v1_kbs__kb_id__ledger_entity_merges__merge_id__revert_post: {
+    revert_entity_merge_route_api_v1_workspaces__workspace_id__ledger_entity_merges__merge_id__revert_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
                 merge_id: string;
             };
             cookie?: never;
@@ -8454,14 +8454,14 @@ export interface operations {
             };
         };
     };
-    get_ledger_statement_route_api_v1_kbs__kb_id__ledger_statements__statement_id__get: {
+    get_ledger_statement_route_api_v1_workspaces__workspace_id__ledger_statements__statement_id__get: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
                 statement_id: string;
             };
             cookie?: never;
@@ -8490,7 +8490,7 @@ export interface operations {
             };
         };
     };
-    list_surface_phrases_api_v1_kbs__kb_id__ledger_surface_phrases_get: {
+    list_surface_phrases_api_v1_workspaces__workspace_id__ledger_surface_phrases_get: {
         parameters: {
             query?: {
                 limit?: number;
@@ -8499,7 +8499,7 @@ export interface operations {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -8527,7 +8527,7 @@ export interface operations {
             };
         };
     };
-    list_typed_facts_route_api_v1_kbs__kb_id__ledger_typed_facts_get: {
+    list_typed_facts_route_api_v1_workspaces__workspace_id__ledger_typed_facts_get: {
         parameters: {
             query?: {
                 limit?: number;
@@ -8536,7 +8536,7 @@ export interface operations {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -8564,7 +8564,7 @@ export interface operations {
             };
         };
     };
-    list_kb_mappings_api_v1_kbs__kb_id__mappings_get: {
+    list_kb_mappings_api_v1_workspaces__workspace_id__mappings_get: {
         parameters: {
             query?: {
                 status?: string | null;
@@ -8574,7 +8574,7 @@ export interface operations {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -8602,14 +8602,14 @@ export interface operations {
             };
         };
     };
-    create_kb_mapping_api_v1_kbs__kb_id__mappings_post: {
+    create_kb_mapping_api_v1_workspaces__workspace_id__mappings_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -8641,14 +8641,14 @@ export interface operations {
             };
         };
     };
-    update_kb_mapping_status_api_v1_kbs__kb_id__mappings__mapping_id__status_post: {
+    update_kb_mapping_status_api_v1_workspaces__workspace_id__mappings__mapping_id__status_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
                 mapping_id: string;
             };
             cookie?: never;
@@ -8681,14 +8681,14 @@ export interface operations {
             };
         };
     };
-    mcp_integration_info_api_v1_kbs__kb_id__mcp_get: {
+    mcp_integration_info_api_v1_workspaces__workspace_id__mcp_get: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -8716,14 +8716,14 @@ export interface operations {
             };
         };
     };
-    mcp_jsonrpc_api_v1_kbs__kb_id__mcp_post: {
+    mcp_jsonrpc_api_v1_workspaces__workspace_id__mcp_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -8749,14 +8749,14 @@ export interface operations {
             };
         };
     };
-    create_ontology_api_v1_kbs__kb_id__ontology_post: {
+    create_ontology_api_v1_workspaces__workspace_id__ontology_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -8788,7 +8788,7 @@ export interface operations {
             };
         };
     };
-    kb_list_alignments_api_v1_kbs__kb_id__ontology_alignments_get: {
+    kb_list_alignments_api_v1_workspaces__workspace_id__ontology_alignments_get: {
         parameters: {
             query?: {
                 uri?: string | null;
@@ -8797,7 +8797,7 @@ export interface operations {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -8823,14 +8823,14 @@ export interface operations {
             };
         };
     };
-    kb_upsert_alignment_api_v1_kbs__kb_id__ontology_alignments_post: {
+    kb_upsert_alignment_api_v1_workspaces__workspace_id__ontology_alignments_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -8856,7 +8856,7 @@ export interface operations {
             };
         };
     };
-    kb_delete_alignment_api_v1_kbs__kb_id__ontology_alignments_delete: {
+    kb_delete_alignment_api_v1_workspaces__workspace_id__ontology_alignments_delete: {
         parameters: {
             query: {
                 id: string;
@@ -8865,7 +8865,7 @@ export interface operations {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -8891,14 +8891,14 @@ export interface operations {
             };
         };
     };
-    _kb_ont_3_create_ontology_api_v1_kbs__kb_id__ontology_create_post: {
+    _kb_ont_3_create_ontology_api_v1_workspaces__workspace_id__ontology_create_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -8928,14 +8928,14 @@ export interface operations {
             };
         };
     };
-    _kb_ont_17_save_draft_api_v1_kbs__kb_id__ontology_draft_patch: {
+    _kb_ont_17_save_draft_api_v1_workspaces__workspace_id__ontology_draft_patch: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -8965,14 +8965,14 @@ export interface operations {
             };
         };
     };
-    _kb_ont_19_get_draft_api_v1_kbs__kb_id__ontology_draft__draft_id__get: {
+    _kb_ont_19_get_draft_api_v1_workspaces__workspace_id__ontology_draft__draft_id__get: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
                 draft_id: string;
             };
             cookie?: never;
@@ -8999,14 +8999,14 @@ export interface operations {
             };
         };
     };
-    _kb_ont_18_list_drafts_api_v1_kbs__kb_id__ontology_drafts__ontology_uri__get: {
+    _kb_ont_18_list_drafts_api_v1_workspaces__workspace_id__ontology_drafts__ontology_uri__get: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
                 ontology_uri: string;
             };
             cookie?: never;
@@ -9033,14 +9033,14 @@ export interface operations {
             };
         };
     };
-    _kb_ont_6_get_entity_detail_api_v1_kbs__kb_id__ontology_entity__entity_uri__get: {
+    _kb_ont_6_get_entity_detail_api_v1_workspaces__workspace_id__ontology_entity__entity_uri__get: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
                 entity_uri: string;
             };
             cookie?: never;
@@ -9067,7 +9067,7 @@ export interface operations {
             };
         };
     };
-    _kb_ont_5_get_ontology_graph_api_v1_kbs__kb_id__ontology_graph_get: {
+    _kb_ont_5_get_ontology_graph_api_v1_workspaces__workspace_id__ontology_graph_get: {
         parameters: {
             query: {
                 uri: string;
@@ -9076,7 +9076,7 @@ export interface operations {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -9102,7 +9102,7 @@ export interface operations {
             };
         };
     };
-    _kb_ont_10_ontology_health_api_v1_kbs__kb_id__ontology_health_get: {
+    _kb_ont_10_ontology_health_api_v1_workspaces__workspace_id__ontology_health_get: {
         parameters: {
             query: {
                 uri: string;
@@ -9111,7 +9111,7 @@ export interface operations {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -9137,14 +9137,14 @@ export interface operations {
             };
         };
     };
-    _kb_ont_2_load_ontology_api_v1_kbs__kb_id__ontology_load_post: {
+    _kb_ont_2_load_ontology_api_v1_workspaces__workspace_id__ontology_load_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -9174,14 +9174,14 @@ export interface operations {
             };
         };
     };
-    _kb_ont_1_preview_ontology_api_v1_kbs__kb_id__ontology_preview_post: {
+    _kb_ont_1_preview_ontology_api_v1_workspaces__workspace_id__ontology_preview_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -9211,7 +9211,7 @@ export interface operations {
             };
         };
     };
-    _kb_ont_21_list_proposals_api_v1_kbs__kb_id__ontology_proposals_get: {
+    _kb_ont_21_list_proposals_api_v1_workspaces__workspace_id__ontology_proposals_get: {
         parameters: {
             query?: {
                 ontology_uri?: string | null;
@@ -9221,7 +9221,7 @@ export interface operations {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -9247,14 +9247,14 @@ export interface operations {
             };
         };
     };
-    _kb_ont_22_get_proposal_api_v1_kbs__kb_id__ontology_proposals__proposal_id__get: {
+    _kb_ont_22_get_proposal_api_v1_workspaces__workspace_id__ontology_proposals__proposal_id__get: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
                 proposal_id: string;
             };
             cookie?: never;
@@ -9281,14 +9281,14 @@ export interface operations {
             };
         };
     };
-    _kb_ont_23_approve_proposal_api_v1_kbs__kb_id__ontology_proposals__proposal_id__approve_post: {
+    _kb_ont_23_approve_proposal_api_v1_workspaces__workspace_id__ontology_proposals__proposal_id__approve_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
                 proposal_id: string;
             };
             cookie?: never;
@@ -9315,14 +9315,14 @@ export interface operations {
             };
         };
     };
-    _kb_ont_26_add_comment_api_v1_kbs__kb_id__ontology_proposals__proposal_id__comment_post: {
+    _kb_ont_26_add_comment_api_v1_workspaces__workspace_id__ontology_proposals__proposal_id__comment_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
                 proposal_id: string;
             };
             cookie?: never;
@@ -9353,14 +9353,14 @@ export interface operations {
             };
         };
     };
-    _kb_ont_25_publish_proposal_api_v1_kbs__kb_id__ontology_proposals__proposal_id__publish_post: {
+    _kb_ont_25_publish_proposal_api_v1_workspaces__workspace_id__ontology_proposals__proposal_id__publish_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
                 proposal_id: string;
             };
             cookie?: never;
@@ -9387,14 +9387,14 @@ export interface operations {
             };
         };
     };
-    _kb_ont_24_reject_proposal_api_v1_kbs__kb_id__ontology_proposals__proposal_id__reject_post: {
+    _kb_ont_24_reject_proposal_api_v1_workspaces__workspace_id__ontology_proposals__proposal_id__reject_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
                 proposal_id: string;
             };
             cookie?: never;
@@ -9421,14 +9421,14 @@ export interface operations {
             };
         };
     };
-    _kb_ont_20_submit_proposal_api_v1_kbs__kb_id__ontology_propose_post: {
+    _kb_ont_20_submit_proposal_api_v1_workspaces__workspace_id__ontology_propose_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -9458,7 +9458,7 @@ export interface operations {
             };
         };
     };
-    kb_ontology_registry_api_v1_kbs__kb_id__ontology_registry_get: {
+    kb_ontology_registry_api_v1_workspaces__workspace_id__ontology_registry_get: {
         parameters: {
             query?: {
                 q?: string | null;
@@ -9469,7 +9469,7 @@ export interface operations {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -9495,7 +9495,7 @@ export interface operations {
             };
         };
     };
-    _kb_ont_4_search_entities_api_v1_kbs__kb_id__ontology_search_get: {
+    _kb_ont_4_search_entities_api_v1_workspaces__workspace_id__ontology_search_get: {
         parameters: {
             query: {
                 q: string;
@@ -9506,7 +9506,7 @@ export interface operations {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -9532,14 +9532,14 @@ export interface operations {
             };
         };
     };
-    _kb_ont_11_generate_shacl_api_v1_kbs__kb_id__ontology_shacl_generate_post: {
+    _kb_ont_11_generate_shacl_api_v1_workspaces__workspace_id__ontology_shacl_generate_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -9569,7 +9569,7 @@ export interface operations {
             };
         };
     };
-    _kb_ont_12_list_shacl_shapes_api_v1_kbs__kb_id__ontology_shacl_shapes_get: {
+    _kb_ont_12_list_shacl_shapes_api_v1_workspaces__workspace_id__ontology_shacl_shapes_get: {
         parameters: {
             query: {
                 uri: string;
@@ -9578,7 +9578,7 @@ export interface operations {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -9604,14 +9604,14 @@ export interface operations {
             };
         };
     };
-    _kb_ont_13_validate_shacl_api_v1_kbs__kb_id__ontology_shacl_validate_post: {
+    _kb_ont_13_validate_shacl_api_v1_workspaces__workspace_id__ontology_shacl_validate_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -9641,14 +9641,14 @@ export interface operations {
             };
         };
     };
-    _kb_ont_9_get_skos_concept_api_v1_kbs__kb_id__ontology_skos_concept__concept_uri__get: {
+    _kb_ont_9_get_skos_concept_api_v1_workspaces__workspace_id__ontology_skos_concept__concept_uri__get: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
                 concept_uri: string;
             };
             cookie?: never;
@@ -9675,14 +9675,14 @@ export interface operations {
             };
         };
     };
-    _kb_ont_7_list_skos_schemes_api_v1_kbs__kb_id__ontology_skos_schemes_get: {
+    _kb_ont_7_list_skos_schemes_api_v1_workspaces__workspace_id__ontology_skos_schemes_get: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -9708,14 +9708,14 @@ export interface operations {
             };
         };
     };
-    _kb_ont_8_search_skos_concepts_api_v1_kbs__kb_id__ontology_skos_search_post: {
+    _kb_ont_8_search_skos_concepts_api_v1_workspaces__workspace_id__ontology_skos_search_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -9745,14 +9745,14 @@ export interface operations {
             };
         };
     };
-    kb_suggest_alignments_api_v1_kbs__kb_id__ontology_suggest_alignments_post: {
+    kb_suggest_alignments_api_v1_workspaces__workspace_id__ontology_suggest_alignments_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -9778,14 +9778,14 @@ export interface operations {
             };
         };
     };
-    _kb_ont_27_list_versions_api_v1_kbs__kb_id__ontology_versions__ontology_uri__get: {
+    _kb_ont_27_list_versions_api_v1_workspaces__workspace_id__ontology_versions__ontology_uri__get: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
                 ontology_uri: string;
             };
             cookie?: never;
@@ -9812,14 +9812,14 @@ export interface operations {
             };
         };
     };
-    _kb_ont_28_compare_versions_api_v1_kbs__kb_id__ontology_versions__ontology_uri__compare_post: {
+    _kb_ont_28_compare_versions_api_v1_workspaces__workspace_id__ontology_versions__ontology_uri__compare_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
                 ontology_uri: string;
             };
             cookie?: never;
@@ -9850,14 +9850,14 @@ export interface operations {
             };
         };
     };
-    _kb_ont_14_remove_ontology_api_v1_kbs__kb_id__ontology__ontology_uri__delete: {
+    _kb_ont_14_remove_ontology_api_v1_workspaces__workspace_id__ontology__ontology_uri__delete: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
                 ontology_uri: string;
             };
             cookie?: never;
@@ -9884,14 +9884,14 @@ export interface operations {
             };
         };
     };
-    _kb_ont_16_refresh_ontology_api_v1_kbs__kb_id__ontology__ontology_uri__refresh_post: {
+    _kb_ont_16_refresh_ontology_api_v1_workspaces__workspace_id__ontology__ontology_uri__refresh_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
                 ontology_uri: string;
             };
             cookie?: never;
@@ -9918,14 +9918,14 @@ export interface operations {
             };
         };
     };
-    _kb_ont_15_toggle_ontology_api_v1_kbs__kb_id__ontology__ontology_uri__toggle_patch: {
+    _kb_ont_15_toggle_ontology_api_v1_workspaces__workspace_id__ontology__ontology_uri__toggle_patch: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
                 ontology_uri: string;
             };
             cookie?: never;
@@ -9952,7 +9952,7 @@ export interface operations {
             };
         };
     };
-    list_processing_jobs_api_v1_kbs__kb_id__processing_jobs_get: {
+    list_processing_jobs_api_v1_workspaces__workspace_id__processing_jobs_get: {
         parameters: {
             query?: {
                 status?: string | null;
@@ -9962,7 +9962,7 @@ export interface operations {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -9990,14 +9990,14 @@ export interface operations {
             };
         };
     };
-    start_processing_job_api_v1_kbs__kb_id__processing_jobs_post: {
+    start_processing_job_api_v1_workspaces__workspace_id__processing_jobs_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -10027,14 +10027,14 @@ export interface operations {
             };
         };
     };
-    get_processing_job_api_v1_kbs__kb_id__processing_jobs__job_id__get: {
+    get_processing_job_api_v1_workspaces__workspace_id__processing_jobs__job_id__get: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
                 job_id: string;
             };
             cookie?: never;
@@ -10063,14 +10063,14 @@ export interface operations {
             };
         };
     };
-    retry_processing_job_api_v1_kbs__kb_id__processing_jobs__job_id__retry_post: {
+    retry_processing_job_api_v1_workspaces__workspace_id__processing_jobs__job_id__retry_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
                 job_id: string;
             };
             cookie?: never;
@@ -10101,7 +10101,7 @@ export interface operations {
             };
         };
     };
-    kb_provenance_lineage_api_v1_kbs__kb_id__provenance_get: {
+    kb_provenance_lineage_api_v1_workspaces__workspace_id__provenance_get: {
         parameters: {
             query?: {
                 node_id?: string | null;
@@ -10110,7 +10110,7 @@ export interface operations {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -10136,7 +10136,7 @@ export interface operations {
             };
         };
     };
-    kb_provenance_report_api_v1_kbs__kb_id__provenance_report_get: {
+    kb_provenance_report_api_v1_workspaces__workspace_id__provenance_report_get: {
         parameters: {
             query: {
                 node_id: string;
@@ -10146,7 +10146,7 @@ export interface operations {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -10172,14 +10172,14 @@ export interface operations {
             };
         };
     };
-    create_realtime_ticket_api_v1_kbs__kb_id__realtime_ticket_post: {
+    create_realtime_ticket_api_v1_workspaces__workspace_id__realtime_ticket_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -10207,14 +10207,14 @@ export interface operations {
             };
         };
     };
-    kb_reasoning_run_api_v1_kbs__kb_id__reasoning_run_post: {
+    kb_reasoning_run_api_v1_workspaces__workspace_id__reasoning_run_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -10240,14 +10240,14 @@ export interface operations {
             };
         };
     };
-    create_remember_proposal_api_v1_kbs__kb_id__remember_proposals_post: {
+    create_remember_proposal_api_v1_workspaces__workspace_id__remember_proposals_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -10279,7 +10279,7 @@ export interface operations {
             };
         };
     };
-    list_review_items_api_v1_kbs__kb_id__review_items_get: {
+    list_review_items_api_v1_workspaces__workspace_id__review_items_get: {
         parameters: {
             query?: {
                 status?: string | null;
@@ -10290,7 +10290,7 @@ export interface operations {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -10318,14 +10318,14 @@ export interface operations {
             };
         };
     };
-    propose_entity_merge_api_v1_kbs__kb_id__review_items_entity_merge_post: {
+    propose_entity_merge_api_v1_workspaces__workspace_id__review_items_entity_merge_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -10357,20 +10357,20 @@ export interface operations {
             };
         };
     };
-    propose_graph_import_api_v1_kbs__kb_id__review_items_graph_import_post: {
+    propose_graph_import_api_v1_workspaces__workspace_id__review_items_graph_import_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
         requestBody: {
             content: {
-                "multipart/form-data": components["schemas"]["Body_propose_graph_import_api_v1_kbs__kb_id__review_items_graph_import_post"];
+                "multipart/form-data": components["schemas"]["Body_propose_graph_import_api_v1_workspaces__workspace_id__review_items_graph_import_post"];
             };
         };
         responses: {
@@ -10396,14 +10396,14 @@ export interface operations {
             };
         };
     };
-    get_review_item_route_api_v1_kbs__kb_id__review_items__item_id__get: {
+    get_review_item_route_api_v1_workspaces__workspace_id__review_items__item_id__get: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
                 item_id: string;
             };
             cookie?: never;
@@ -10432,14 +10432,14 @@ export interface operations {
             };
         };
     };
-    approve_review_item_api_v1_kbs__kb_id__review_items__item_id__approve_post: {
+    approve_review_item_api_v1_workspaces__workspace_id__review_items__item_id__approve_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
                 item_id: string;
             };
             cookie?: never;
@@ -10470,14 +10470,14 @@ export interface operations {
             };
         };
     };
-    reject_review_item_api_v1_kbs__kb_id__review_items__item_id__reject_post: {
+    reject_review_item_api_v1_workspaces__workspace_id__review_items__item_id__reject_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
                 item_id: string;
             };
             cookie?: never;
@@ -10510,14 +10510,14 @@ export interface operations {
             };
         };
     };
-    scan_statement_conflicts_route_api_v1_kbs__kb_id__review_scan_statement_conflicts_post: {
+    scan_statement_conflicts_route_api_v1_workspaces__workspace_id__review_scan_statement_conflicts_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -10545,7 +10545,7 @@ export interface operations {
             };
         };
     };
-    list_kb_reasoning_rules_api_v1_kbs__kb_id__rules_get: {
+    list_reasoning_rules_api_v1_workspaces__workspace_id__rules_get: {
         parameters: {
             query?: {
                 limit?: number;
@@ -10554,7 +10554,7 @@ export interface operations {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -10582,14 +10582,14 @@ export interface operations {
             };
         };
     };
-    create_kb_reasoning_rule_api_v1_kbs__kb_id__rules_post: {
+    create_kb_reasoning_rule_api_v1_workspaces__workspace_id__rules_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -10621,14 +10621,14 @@ export interface operations {
             };
         };
     };
-    delete_kb_reasoning_rule_api_v1_kbs__kb_id__rules__rule_id__delete: {
+    delete_kb_reasoning_rule_api_v1_workspaces__workspace_id__rules__rule_id__delete: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
                 rule_id: string;
             };
             cookie?: never;
@@ -10657,14 +10657,14 @@ export interface operations {
             };
         };
     };
-    update_kb_reasoning_rule_api_v1_kbs__kb_id__rules__rule_id__patch: {
+    update_kb_reasoning_rule_api_v1_workspaces__workspace_id__rules__rule_id__patch: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
                 rule_id: string;
             };
             cookie?: never;
@@ -10697,7 +10697,7 @@ export interface operations {
             };
         };
     };
-    chunk_search_route_api_v1_kbs__kb_id__search_get: {
+    chunk_search_route_api_v1_workspaces__workspace_id__search_get: {
         parameters: {
             query: {
                 q: string;
@@ -10714,7 +10714,7 @@ export interface operations {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -10742,14 +10742,14 @@ export interface operations {
             };
         };
     };
-    get_chunk_search_config_route_api_v1_kbs__kb_id__search_config_get: {
+    get_chunk_search_config_route_api_v1_workspaces__workspace_id__search_config_get: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -10777,14 +10777,14 @@ export interface operations {
             };
         };
     };
-    update_chunk_search_config_route_api_v1_kbs__kb_id__search_config_put: {
+    update_chunk_search_config_route_api_v1_workspaces__workspace_id__search_config_put: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -10816,14 +10816,14 @@ export interface operations {
             };
         };
     };
-    chunk_search_reindex_route_api_v1_kbs__kb_id__search_reindex_post: {
+    chunk_search_reindex_route_api_v1_workspaces__workspace_id__search_reindex_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -10855,14 +10855,14 @@ export interface operations {
             };
         };
     };
-    list_ingest_sources_api_v1_kbs__kb_id__sources_get: {
+    list_ingest_sources_api_v1_workspaces__workspace_id__sources_get: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -10890,14 +10890,14 @@ export interface operations {
             };
         };
     };
-    create_ingest_source_api_v1_kbs__kb_id__sources_post: {
+    create_ingest_source_api_v1_workspaces__workspace_id__sources_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -10929,14 +10929,14 @@ export interface operations {
             };
         };
     };
-    get_ingest_source_api_v1_kbs__kb_id__sources__source_id__get: {
+    get_ingest_source_api_v1_workspaces__workspace_id__sources__source_id__get: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
                 source_id: string;
             };
             cookie?: never;
@@ -10965,14 +10965,14 @@ export interface operations {
             };
         };
     };
-    delete_ingest_source_api_v1_kbs__kb_id__sources__source_id__delete: {
+    delete_ingest_source_api_v1_workspaces__workspace_id__sources__source_id__delete: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
                 source_id: string;
             };
             cookie?: never;
@@ -11001,14 +11001,14 @@ export interface operations {
             };
         };
     };
-    update_ingest_source_api_v1_kbs__kb_id__sources__source_id__patch: {
+    update_ingest_source_api_v1_workspaces__workspace_id__sources__source_id__patch: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
                 source_id: string;
             };
             cookie?: never;
@@ -11041,14 +11041,14 @@ export interface operations {
             };
         };
     };
-    rotate_ingest_source_token_api_v1_kbs__kb_id__sources__source_id__rotate_token_post: {
+    rotate_ingest_source_token_api_v1_workspaces__workspace_id__sources__source_id__rotate_token_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
                 source_id: string;
             };
             cookie?: never;
@@ -11077,14 +11077,14 @@ export interface operations {
             };
         };
     };
-    sync_ingest_source_api_v1_kbs__kb_id__sources__source_id__sync_post: {
+    sync_ingest_source_api_v1_workspaces__workspace_id__sources__source_id__sync_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
                 source_id: string;
             };
             cookie?: never;
@@ -11117,7 +11117,7 @@ export interface operations {
             };
         };
     };
-    list_ingest_source_sync_history_api_v1_kbs__kb_id__sources__source_id__sync_history_get: {
+    list_ingest_source_sync_history_api_v1_workspaces__workspace_id__sources__source_id__sync_history_get: {
         parameters: {
             query?: {
                 limit?: number;
@@ -11126,7 +11126,7 @@ export interface operations {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
                 source_id: string;
             };
             cookie?: never;
@@ -11155,14 +11155,14 @@ export interface operations {
             };
         };
     };
-    ingest_via_webhook_api_v1_kbs__kb_id__sources__source_id__webhook_post: {
+    ingest_via_webhook_api_v1_workspaces__workspace_id__sources__source_id__webhook_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
                 source_id: string;
             };
             cookie?: never;
@@ -11195,14 +11195,14 @@ export interface operations {
             };
         };
     };
-    kb_sparql_execute_api_v1_kbs__kb_id__sparql_post: {
+    kb_sparql_execute_api_v1_workspaces__workspace_id__sparql_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -11228,14 +11228,14 @@ export interface operations {
             };
         };
     };
-    kb_temporal_bounds_api_v1_kbs__kb_id__temporal_bounds_get: {
+    kb_temporal_bounds_api_v1_workspaces__workspace_id__temporal_bounds_get: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -11261,7 +11261,7 @@ export interface operations {
             };
         };
     };
-    kb_temporal_diff_api_v1_kbs__kb_id__temporal_diff_get: {
+    kb_temporal_diff_api_v1_workspaces__workspace_id__temporal_diff_get: {
         parameters: {
             query: {
                 from: string;
@@ -11271,7 +11271,7 @@ export interface operations {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -11297,7 +11297,7 @@ export interface operations {
             };
         };
     };
-    kb_temporal_snapshot_api_v1_kbs__kb_id__temporal_snapshot_get: {
+    kb_temporal_snapshot_api_v1_workspaces__workspace_id__temporal_snapshot_get: {
         parameters: {
             query?: {
                 at?: string | null;
@@ -11306,7 +11306,7 @@ export interface operations {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -11332,7 +11332,7 @@ export interface operations {
             };
         };
     };
-    kb_vocabulary_concepts_api_v1_kbs__kb_id__vocabulary_concepts_get: {
+    kb_vocabulary_concepts_api_v1_workspaces__workspace_id__vocabulary_concepts_get: {
         parameters: {
             query: {
                 scheme: string;
@@ -11342,7 +11342,7 @@ export interface operations {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -11368,7 +11368,7 @@ export interface operations {
             };
         };
     };
-    kb_vocabulary_hierarchy_api_v1_kbs__kb_id__vocabulary_hierarchy_get: {
+    kb_vocabulary_hierarchy_api_v1_workspaces__workspace_id__vocabulary_hierarchy_get: {
         parameters: {
             query: {
                 scheme: string;
@@ -11377,7 +11377,7 @@ export interface operations {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
@@ -11403,20 +11403,20 @@ export interface operations {
             };
         };
     };
-    kb_vocabulary_import_api_v1_kbs__kb_id__vocabulary_import_post: {
+    kb_vocabulary_import_api_v1_workspaces__workspace_id__vocabulary_import_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };
         requestBody?: {
             content: {
-                "multipart/form-data": components["schemas"]["Body_kb_vocabulary_import_api_v1_kbs__kb_id__vocabulary_import_post"];
+                "multipart/form-data": components["schemas"]["Body_kb_vocabulary_import_api_v1_workspaces__workspace_id__vocabulary_import_post"];
             };
         };
         responses: {
@@ -11440,14 +11440,14 @@ export interface operations {
             };
         };
     };
-    kb_vocabulary_schemes_api_v1_kbs__kb_id__vocabulary_schemes_get: {
+    kb_vocabulary_schemes_api_v1_workspaces__workspace_id__vocabulary_schemes_get: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
             path: {
-                kb_id: string;
+                workspace_id: string;
             };
             cookie?: never;
         };

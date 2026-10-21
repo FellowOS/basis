@@ -2,12 +2,13 @@ import { Link } from 'react-router-dom';
 
 import { Button } from '@/components/ui/button.js';
 import { useI18n } from '@/i18n/context.js';
+import { i18nIndexedList } from '@/i18n/indexed-list.js';
 
 import { ProductPreview } from './product-preview.js';
 
 export function HowItWorksSection() {
   const { t } = useI18n();
-  const h = t.marketing.howItWorks;
+  const h = t.home.marketing.how_it_works;
 
   return (
     <section
@@ -25,7 +26,7 @@ export function HowItWorksSection() {
           <p className="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground">{h.subhead}</p>
 
           <div className="mt-8 space-y-8">
-            {h.steps.map((step) => (
+            {i18nIndexedList(h.steps).map((step) => (
               <div key={step.index} className="relative flex gap-4">
                 <span className="relative z-10 flex size-9 shrink-0 items-center justify-center rounded-full border border-border bg-background font-mono text-[11px] text-muted-foreground">
                   {step.index}

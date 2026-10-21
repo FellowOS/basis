@@ -48,7 +48,7 @@ def parse_uploaded_bytes(filename: str, data: bytes) -> ParsedDocument:
 def run_version_ingest(
     knowledge: KnowledgeStore,
     graph: GraphSession,
-    kb_id: str,
+    workspace_id: str,
     version_id: str,
     job_id: str,
     *,
@@ -63,17 +63,17 @@ def run_version_ingest(
 ) -> dict[str, Any]:
     """Run the ingest pipeline for one version. Updates job/version status in the ledger."""
     options = options or TextIngestOptions(chunk=True)
-    knowledge.set_job_status(kb_id, job_id, "running")
-    knowledge.set_version_status(kb_id, version_id, "parsing")
+    knowledge.set_job_status(workspace_id, job_id, "running")
+    knowledge.set_version_status(workspace_id, version_id, "parsing")
 
     try:
-        raw = knowledge.read_version_bytes(kb_id, version_id)
+        raw = knowledge.read_version_bytes(workspace_id, version_id)
         parsed = parse_uploaded_bytes(filename, raw)
         if max_extract_chars is not None and max_extract_chars > 0:
             char_count = len(parsed.full_text)
             if char_count > max_extract_chars:
                 raise ExtractTextTooLargeError(char_count, max_extract_chars)
-        knowledge.set_version_status(kb_id, version_id, "chunking")
+        knowledge.set_version_status(workspace_id, version_id, "chunking")
 
         chunk_payloads = prepare_chunks(parsed.full_text, options)
         chunk_texts = [
@@ -84,7 +84,7 @@ def run_version_ingest(
         if max_chunks is not None and max_chunks > 0 and len(chunk_texts) > max_chunks:
             raise TooManyChunksError(len(chunk_texts), max_chunks)
 
-        existing_chunks = knowledge.list_chunks_for_version(kb_id, version_id)
+        existing_chunks = knowledge.list_chunks_for_version(workspace_id, version_id)
         if existing_chunks:
             existing_texts = [row["text"] for row in existing_chunks]
             if existing_texts != chunk_texts:
@@ -92,21 +92,21 @@ def run_version_ingest(
                     "version_already_chunked: create a new document version to change chunk options"
                 )
         else:
-            knowledge.create_chunks(kb_id, version_id, chunk_payloads)
+            knowledge.create_chunks(workspace_id, version_id, chunk_payloads)
 
         embed_stats: dict[str, int] = {"indexed": 0, "skipped": 0}
-        search_config = knowledge.get_search_config(kb_id)
+        search_config = knowledge.get_search_config(workspace_id)
         if (
             chunk_search is not None
             and chunk_texts
             and search_config.semantic_enabled
             and search_config.auto_index
         ):
-            knowledge.set_version_status(kb_id, version_id, "embedding")
-            embed_stats = chunk_search.index_version(kb_id, version_id)
+            knowledge.set_version_status(workspace_id, version_id, "embedding")
+            embed_stats = chunk_search.index_version(workspace_id, version_id)
 
-        knowledge.set_version_status(kb_id, version_id, "extracting")
-        chunk_rows = knowledge.list_chunks_for_version(kb_id, version_id)
+        knowledge.set_version_status(workspace_id, version_id, "extracting")
+        chunk_rows = knowledge.list_chunks_for_version(workspace_id, version_id)
         normalized = _normalize_text(parsed.full_text)
         ledger_stats = {
             "ledger_entities_written": 0,
@@ -131,7 +131,7 @@ def run_version_ingest(
                 )
                 part_stats = apply_kg_to_ledger(
                     knowledge,
-                    kb_id,
+                    workspace_id,
                     version_id,
                     row["id"],
                     row["text"],
@@ -146,12 +146,12 @@ def run_version_ingest(
         if ledger_stats["ledger_statements_written"] > 0:
             from basis.domain.knowledge.services.conflict_review import scan_statement_conflicts
 
-            conflict_scan = scan_statement_conflicts(knowledge, kb_id)
+            conflict_scan = scan_statement_conflicts(knowledge, workspace_id)
 
         projection_meta = apply_rebuild_to_session(
-            knowledge, kb_id, graph, include_version_ids=(version_id,)
+            knowledge, workspace_id, graph, include_version_ids=(version_id,)
         )
-        knowledge.set_version_status(kb_id, version_id, "ready")
+        knowledge.set_version_status(workspace_id, version_id, "ready")
 
         graph_result: dict[str, Any] = {
             **projection_meta,
@@ -171,32 +171,32 @@ def run_version_ingest(
             "embed_indexed": embed_stats.get("indexed", 0),
             "embed_skipped": embed_stats.get("skipped", 0),
             "ledger_status": "ready",
-            "ledger_statement_count": knowledge.count_statements_for_version(kb_id, version_id),
+            "ledger_statement_count": knowledge.count_statements_for_version(workspace_id, version_id),
         }
-        knowledge.set_job_result(kb_id, job_id, result)
-        knowledge.set_job_status(kb_id, job_id, "succeeded")
+        knowledge.set_job_result(workspace_id, job_id, result)
+        knowledge.set_job_status(workspace_id, job_id, "succeeded")
         return result
     except FileParseError as exc:
-        knowledge.fail_version(kb_id, version_id, "parse_failed", exc.message)
-        knowledge.fail_job(kb_id, job_id, "parse_failed", exc.message)
+        knowledge.fail_version(workspace_id, version_id, "parse_failed", exc.message)
+        knowledge.fail_job(workspace_id, job_id, "parse_failed", exc.message)
         raise
     except ExtractTextTooLargeError as exc:
-        knowledge.fail_version(kb_id, version_id, "extract_text_too_large", exc.message)
-        knowledge.fail_job(kb_id, job_id, "extract_text_too_large", exc.message)
+        knowledge.fail_version(workspace_id, version_id, "extract_text_too_large", exc.message)
+        knowledge.fail_job(workspace_id, job_id, "extract_text_too_large", exc.message)
         raise
     except TooManyChunksError as exc:
-        knowledge.fail_version(kb_id, version_id, "too_many_chunks", exc.message)
-        knowledge.fail_job(kb_id, job_id, "too_many_chunks", exc.message)
+        knowledge.fail_version(workspace_id, version_id, "too_many_chunks", exc.message)
+        knowledge.fail_job(workspace_id, job_id, "too_many_chunks", exc.message)
         raise
     except ExtractionTimeoutError as exc:
-        knowledge.fail_version(kb_id, version_id, "extract_timeout", exc.message)
-        knowledge.fail_job(kb_id, job_id, "extract_timeout", exc.message)
+        knowledge.fail_version(workspace_id, version_id, "extract_timeout", exc.message)
+        knowledge.fail_job(workspace_id, job_id, "extract_timeout", exc.message)
         raise
     except Exception as exc:
         message = str(exc) or "ingest_failed"
-        knowledge.fail_version(kb_id, version_id, "ingest_failed", message)
-        knowledge.fail_job(kb_id, job_id, "ingest_failed", message)
-        projection = knowledge.get_projection_state(kb_id)
+        knowledge.fail_version(workspace_id, version_id, "ingest_failed", message)
+        knowledge.fail_job(workspace_id, job_id, "ingest_failed", message)
+        projection = knowledge.get_projection_state(workspace_id)
         if projection["status"] != "failed":
-            knowledge.set_projection_status(kb_id, "dirty", error_code="ingest_incomplete")
+            knowledge.set_projection_status(workspace_id, "dirty", error_code="ingest_incomplete")
         raise

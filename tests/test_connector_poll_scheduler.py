@@ -12,7 +12,7 @@ from basis.domain.knowledge.services.connector_sync import SourceTableMappingRec
 def _mapping(**overrides: object) -> SourceTableMappingRecord:
     base = {
         "id": "stm_test",
-        "kb_id": "kb1",
+        "workspace_id": "kb1",
         "source_id": "src1",
         "stream_name": "records",
         "external_table": "t",

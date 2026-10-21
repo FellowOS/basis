@@ -14,7 +14,7 @@ def test_legacy_kbs_mount_when_enabled(tmp_path) -> None:
     )
     assert reg.status_code == 200
     headers = {"Authorization": f"Bearer {reg.json()['token']}"}
-    assert client.get("/api/v1/kbs", headers=headers).status_code == 200
-    legacy = client.get("/api/kbs", headers=headers)
+    assert client.get("/api/v1/workspaces", headers=headers).status_code == 200
+    legacy = client.get("/api/workspaces", headers=headers)
     assert legacy.status_code == 200
     assert legacy.headers.get("deprecation") == "true"

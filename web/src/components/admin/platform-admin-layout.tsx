@@ -18,7 +18,7 @@ export function PlatformAdminLayout() {
     return (
       <div className="flex flex-1 items-center justify-center gap-2 text-sm text-muted-foreground">
         <Spinner className="size-4" />
-        {t.common.loading}
+        {t.core.common.loading}
       </div>
     );
   }

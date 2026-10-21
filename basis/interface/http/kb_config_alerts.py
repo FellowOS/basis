@@ -1,4 +1,4 @@
-"""KB alert episodes (F-ALT MVP)."""
+"""Workspace alert episodes (F-ALT MVP)."""
 
 from __future__ import annotations
 
@@ -10,22 +10,22 @@ from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import StreamingResponse
 
 from basis.domain.tenancy.admin.store import AdminStore, User
-from basis.interface.http.deps import get_current_user, get_kb_for_editor, get_kb_for_viewer, get_knowledge_store, get_store
+from basis.interface.http.deps import get_current_user, get_workspace_for_editor, get_workspace_for_viewer, get_knowledge_store, get_store
 from basis.domain.knowledge.store import KnowledgeStore
 
 router = APIRouter(tags=["knowledge-bases"])
 
 
-@router.get("/{kb_id}/alerts")
-async def list_kb_alerts(
-    kb_id: str,
+@router.get("/{workspace_id}/alerts")
+async def list_alerts(
+    workspace_id: str,
     request: Request,
     limit: int = Query(30, ge=1, le=100),
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> dict[str, Any]:
-    """List KB alert episodes with unread count (viewer+).
+    """List workspace alert episodes with unread count (viewer+).
 
     Each alert includes a `detail` object (JSON). Common keys by `kind`:
 
@@ -38,45 +38,45 @@ async def list_kb_alerts(
 
     `episode_key` correlates multiple rows in the UI (F-ALT).
     """
-    get_kb_for_viewer(request, user, kb_id, store)
-    alerts = knowledge.list_kb_alerts(kb_id, limit=limit)
-    unread = knowledge.count_kb_unread_alerts(kb_id)
+    get_workspace_for_viewer(request, user, workspace_id, store)
+    alerts = knowledge.list_alerts(workspace_id, limit=limit)
+    unread = knowledge.count_workspace_unread_alerts(workspace_id)
     return {"alerts": alerts, "unread_count": unread}
 
 
-@router.post("/{kb_id}/alerts/mark-all-read")
-async def mark_all_kb_alerts_read(
-    kb_id: str,
+@router.post("/{workspace_id}/alerts/mark-all-read")
+async def mark_all_alerts_read(
+    workspace_id: str,
     request: Request,
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> dict[str, Any]:
     """Mark all active alerts as read without dismissing (viewer+)."""
-    get_kb_for_viewer(request, user, kb_id, store)
-    marked_read_count = knowledge.mark_all_kb_alerts_read(kb_id)
-    unread_count = knowledge.count_kb_unread_alerts(kb_id)
+    get_workspace_for_viewer(request, user, workspace_id, store)
+    marked_read_count = knowledge.mark_all_alerts_read(workspace_id)
+    unread_count = knowledge.count_workspace_unread_alerts(workspace_id)
     return {"marked_read_count": marked_read_count, "unread_count": unread_count}
 
 
-@router.post("/{kb_id}/alerts/dismiss-all")
-async def dismiss_all_kb_alerts(
-    kb_id: str,
+@router.post("/{workspace_id}/alerts/dismiss-all")
+async def dismiss_all_alerts(
+    workspace_id: str,
     request: Request,
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> dict[str, Any]:
-    """Dismiss all active alert episodes for this KB (editor+)."""
-    get_kb_for_editor(request, user, kb_id, store)
-    dismissed_count = knowledge.dismiss_all_kb_alerts(kb_id)
-    unread_count = knowledge.count_kb_unread_alerts(kb_id)
+    """Dismiss all active alert episodes for this workspace (editor+)."""
+    get_workspace_for_editor(request, user, workspace_id, store)
+    dismissed_count = knowledge.dismiss_all_alerts(workspace_id)
+    unread_count = knowledge.count_workspace_unread_alerts(workspace_id)
     return {"dismissed_count": dismissed_count, "unread_count": unread_count}
 
 
-@router.post("/{kb_id}/alerts/{alert_id}/dismiss")
+@router.post("/{workspace_id}/alerts/{alert_id}/dismiss")
 async def dismiss_kb_alert(
-    kb_id: str,
+    workspace_id: str,
     alert_id: str,
     request: Request,
     user: User = Depends(get_current_user),
@@ -84,14 +84,14 @@ async def dismiss_kb_alert(
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> dict[str, Any]:
     """Dismiss a single alert episode (editor+)."""
-    get_kb_for_editor(request, user, kb_id, store)
-    alert = knowledge.dismiss_kb_alert(kb_id, alert_id)
+    get_workspace_for_editor(request, user, workspace_id, store)
+    alert = knowledge.dismiss_kb_alert(workspace_id, alert_id)
     return {"alert": alert}
 
 
-@router.get("/{kb_id}/alerts/stream")
-async def stream_kb_alerts(
-    kb_id: str,
+@router.get("/{workspace_id}/alerts/stream")
+async def stream_alerts(
+    workspace_id: str,
     request: Request,
     since: str | None = Query(
         None,
@@ -102,17 +102,17 @@ async def stream_kb_alerts(
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> StreamingResponse:
     """Stream new alert episodes via SSE (viewer+)."""
-    get_kb_for_viewer(request, user, kb_id, store)
+    get_workspace_for_viewer(request, user, workspace_id, store)
 
     async def event_stream():
         cursor: str | None = since
-        yield f"data: {json.dumps({'type': 'ready', 'kb_id': kb_id})}\n\n"
+        yield f"data: {json.dumps({'type': 'ready', 'workspace_id': workspace_id})}\n\n"
         while True:
             if await request.is_disconnected():
                 break
             alerts = await asyncio.to_thread(
-                knowledge.list_kb_alerts_since,
-                kb_id,
+                knowledge.list_alerts_since,
+                workspace_id,
                 since_created_at=cursor,
                 limit=20,
             )

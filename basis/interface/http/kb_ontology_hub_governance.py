@@ -51,81 +51,81 @@ from basis.interface.http.kb_ontology_hub_support import (
 
 def register_kb_ontology_hub_governance_routes(router: APIRouter) -> None:
     async def _kb_ont_17_save_draft(
-        kb_id: str,
+        workspace_id: str,
         payload: DraftRequest,
         request: Request,
         user: User = Depends(get_current_user),
         store: AdminStore = Depends(get_store),
     ) -> Any:
         """
-Kb Ont 17 Save Draft. Ontology hub (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Save Draft. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
         """
-        get_kb_for_role(request, user, kb_id, store, min_role("PATCH"))
-        ontology_session(request, kb_id)
-        with KbOntologyState(request, kb_id):
-            drafts = request.app.state.kb_ontology_drafts[kb_id]
+        get_kb_for_role(request, user, workspace_id, store, min_role("PATCH"))
+        ontology_session(request, workspace_id)
+        with KbOntologyState(request, workspace_id):
+            drafts = request.app.state.kb_ontology_drafts[workspace_id]
             result = await save_draft(drafts, payload)
-            save_graph(request, kb_id, sync_ledger=False)
+            save_graph(request, workspace_id, sync_ledger=False)
             return result
 
-    router.add_api_route("/{kb_id}/ontology/draft", _kb_ont_17_save_draft, methods=["PATCH"], name="_kb_ont_17_save_draft")
+    router.add_api_route("/{workspace_id}/ontology/draft", _kb_ont_17_save_draft, methods=["PATCH"], name="_kb_ont_17_save_draft")
 
     async def _kb_ont_18_list_drafts(
-        kb_id: str,
+        workspace_id: str,
         request: Request,
         ontology_uri: str,
         user: User = Depends(get_current_user),
         store: AdminStore = Depends(get_store),
     ) -> Any:
         """
-Kb Ont 18 List Drafts. Ontology hub (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+List Drafts. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
         """
-        get_kb_for_role(request, user, kb_id, store, min_role("GET"))
-        ontology_session(request, kb_id)
-        with KbOntologyState(request, kb_id):
-            drafts = request.app.state.kb_ontology_drafts[kb_id]
+        get_kb_for_role(request, user, workspace_id, store, min_role("GET"))
+        ontology_session(request, workspace_id)
+        with KbOntologyState(request, workspace_id):
+            drafts = request.app.state.kb_ontology_drafts[workspace_id]
             result = await list_drafts(drafts, ontology_uri)
             return result
 
-    router.add_api_route("/{kb_id}/ontology/drafts/{ontology_uri:path}", _kb_ont_18_list_drafts, methods=["GET"], name="_kb_ont_18_list_drafts")
+    router.add_api_route("/{workspace_id}/ontology/drafts/{ontology_uri:path}", _kb_ont_18_list_drafts, methods=["GET"], name="_kb_ont_18_list_drafts")
 
     async def _kb_ont_19_get_draft(
-        kb_id: str,
+        workspace_id: str,
         request: Request,
         draft_id: str,
         user: User = Depends(get_current_user),
         store: AdminStore = Depends(get_store),
     ) -> Any:
         """
-Kb Ont 19 Get Draft. Ontology hub (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Get Draft. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
         """
-        get_kb_for_role(request, user, kb_id, store, min_role("GET"))
-        ontology_session(request, kb_id)
-        with KbOntologyState(request, kb_id):
-            drafts = request.app.state.kb_ontology_drafts[kb_id]
+        get_kb_for_role(request, user, workspace_id, store, min_role("GET"))
+        ontology_session(request, workspace_id)
+        with KbOntologyState(request, workspace_id):
+            drafts = request.app.state.kb_ontology_drafts[workspace_id]
             result = await get_draft(drafts, draft_id)
             return result
 
-    router.add_api_route("/{kb_id}/ontology/draft/{draft_id}", _kb_ont_19_get_draft, methods=["GET"], name="_kb_ont_19_get_draft")
+    router.add_api_route("/{workspace_id}/ontology/draft/{draft_id}", _kb_ont_19_get_draft, methods=["GET"], name="_kb_ont_19_get_draft")
 
     async def _kb_ont_20_submit_proposal(
-        kb_id: str,
+        workspace_id: str,
         request: Request,
         body: ProposalRequest,
         user: User = Depends(get_current_user),
         store: AdminStore = Depends(get_store),
     ) -> Any:
         """
-Kb Ont 20 Submit Proposal. Ontology hub (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Submit Proposal. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
         """
-        get_kb_for_role(request, user, kb_id, store, min_role("POST"))
-        session = ontology_session(request, kb_id)
+        get_kb_for_role(request, user, workspace_id, store, min_role("POST"))
+        session = ontology_session(request, workspace_id)
         knowledge = get_knowledge_store(request)
-        with KbOntologyState(request, kb_id):
-            drafts = request.app.state.kb_ontology_drafts[kb_id]
-            proposals = request.app.state.kb_ontology_proposals[kb_id]
+        with KbOntologyState(request, workspace_id):
+            drafts = request.app.state.kb_ontology_drafts[workspace_id]
+            proposals = request.app.state.kb_ontology_proposals[workspace_id]
             result = await submit_proposal(session, drafts, proposals, body)
-            save_graph(request, kb_id, sync_ledger=False)
+            save_graph(request, workspace_id, sync_ledger=False)
             if hasattr(result, "model_dump"):
                 data: Any = result.model_dump()
             elif isinstance(result, dict):
@@ -137,7 +137,7 @@ Kb Ont 20 Submit Proposal. Ontology hub (SKOS, alignments) via Explorer. Require
                 summary = str(data.get("summary") or "").strip()
                 emit_governance_proposal_proposed_alert(
                     knowledge,
-                    kb_id,
+                    workspace_id,
                     proposal_id=proposal_id,
                     message=summary or f"Ontology proposal {proposal_id} awaiting review",
                     detail={
@@ -148,10 +148,10 @@ Kb Ont 20 Submit Proposal. Ontology hub (SKOS, alignments) via Explorer. Require
                 )
             return result
 
-    router.add_api_route("/{kb_id}/ontology/propose", _kb_ont_20_submit_proposal, methods=["POST"], name="_kb_ont_20_submit_proposal")
+    router.add_api_route("/{workspace_id}/ontology/propose", _kb_ont_20_submit_proposal, methods=["POST"], name="_kb_ont_20_submit_proposal")
 
     async def _kb_ont_21_list_proposals(
-        kb_id: str,
+        workspace_id: str,
         request: Request,
         ontology_uri: Optional[str] = Query(None),
         state: Optional[str] = Query(None),
@@ -159,68 +159,68 @@ Kb Ont 20 Submit Proposal. Ontology hub (SKOS, alignments) via Explorer. Require
         store: AdminStore = Depends(get_store),
     ) -> Any:
         """
-Kb Ont 21 List Proposals. Ontology hub (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+List Proposals. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
         """
-        get_kb_for_role(request, user, kb_id, store, min_role("GET"))
-        ontology_session(request, kb_id)
-        with KbOntologyState(request, kb_id):
-            proposals = request.app.state.kb_ontology_proposals[kb_id]
+        get_kb_for_role(request, user, workspace_id, store, min_role("GET"))
+        ontology_session(request, workspace_id)
+        with KbOntologyState(request, workspace_id):
+            proposals = request.app.state.kb_ontology_proposals[workspace_id]
             result = await list_proposals(proposals, ontology_uri=ontology_uri, state=state)
             return result
 
-    router.add_api_route("/{kb_id}/ontology/proposals", _kb_ont_21_list_proposals, methods=["GET"], name="_kb_ont_21_list_proposals")
+    router.add_api_route("/{workspace_id}/ontology/proposals", _kb_ont_21_list_proposals, methods=["GET"], name="_kb_ont_21_list_proposals")
 
     async def _kb_ont_22_get_proposal(
-        kb_id: str,
+        workspace_id: str,
         request: Request,
         proposal_id: str,
         user: User = Depends(get_current_user),
         store: AdminStore = Depends(get_store),
     ) -> Any:
         """
-Kb Ont 22 Get Proposal. Ontology hub (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Get Proposal. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
         """
-        get_kb_for_role(request, user, kb_id, store, min_role("GET"))
-        ontology_session(request, kb_id)
-        with KbOntologyState(request, kb_id):
-            proposals = request.app.state.kb_ontology_proposals[kb_id]
+        get_kb_for_role(request, user, workspace_id, store, min_role("GET"))
+        ontology_session(request, workspace_id)
+        with KbOntologyState(request, workspace_id):
+            proposals = request.app.state.kb_ontology_proposals[workspace_id]
             result = await get_proposal(proposals, proposal_id)
             return result
 
-    router.add_api_route("/{kb_id}/ontology/proposals/{proposal_id}", _kb_ont_22_get_proposal, methods=["GET"], name="_kb_ont_22_get_proposal")
+    router.add_api_route("/{workspace_id}/ontology/proposals/{proposal_id}", _kb_ont_22_get_proposal, methods=["GET"], name="_kb_ont_22_get_proposal")
 
     async def _kb_ont_23_approve_proposal(
-        kb_id: str,
+        workspace_id: str,
         request: Request,
         proposal_id: str,
         user: User = Depends(get_current_user),
         store: AdminStore = Depends(get_store),
     ) -> Any:
         """
-Kb Ont 23 Approve Proposal. Ontology hub (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Approve Proposal. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
         """
-        get_kb_for_role(request, user, kb_id, store, min_role("POST"))
-        ontology_session(request, kb_id)
+        get_kb_for_role(request, user, workspace_id, store, min_role("POST"))
+        ontology_session(request, workspace_id)
         knowledge = get_knowledge_store(request)
-        with KbOntologyState(request, kb_id):
+        with KbOntologyState(request, workspace_id):
             try:
-                proposals = request.app.state.kb_ontology_proposals[kb_id]
+                proposals = request.app.state.kb_ontology_proposals[workspace_id]
                 result = await approve_proposal(proposals, proposal_id)
             except AdminError as exc:
                 maybe_emit_governance_tripped_for_admin_error(
-                    kb_id,
+                    workspace_id,
                     knowledge,
                     exc,
                     detail={"proposal_id": proposal_id, "source": "ontology_approve"},
                     actor_id=user.id,
-                    runtime_loader=lambda: kb_graph_runtime_for(request, kb_id),
+                    runtime_loader=lambda: kb_graph_runtime_for(request, workspace_id),
                     persist_graph=lambda kid: save_graph(request, kid),
                 )
                 raise
-            save_graph(request, kb_id, sync_ledger=False)
+            save_graph(request, workspace_id, sync_ledger=False)
             governance_alert_from_proposal_result(
                 request,
-                kb_id,
+                workspace_id,
                 knowledge,
                 proposal_id,
                 result,
@@ -228,62 +228,62 @@ Kb Ont 23 Approve Proposal. Ontology hub (SKOS, alignments) via Explorer. Requir
             )
             return result
 
-    router.add_api_route("/{kb_id}/ontology/proposals/{proposal_id}/approve", _kb_ont_23_approve_proposal, methods=["POST"], name="_kb_ont_23_approve_proposal")
+    router.add_api_route("/{workspace_id}/ontology/proposals/{proposal_id}/approve", _kb_ont_23_approve_proposal, methods=["POST"], name="_kb_ont_23_approve_proposal")
 
     async def _kb_ont_24_reject_proposal(
-        kb_id: str,
+        workspace_id: str,
         request: Request,
         proposal_id: str,
         user: User = Depends(get_current_user),
         store: AdminStore = Depends(get_store),
     ) -> Any:
         """
-Kb Ont 24 Reject Proposal. Ontology hub (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Reject Proposal. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
         """
-        get_kb_for_role(request, user, kb_id, store, min_role("POST"))
-        ontology_session(request, kb_id)
-        with KbOntologyState(request, kb_id):
-            proposals = request.app.state.kb_ontology_proposals[kb_id]
+        get_kb_for_role(request, user, workspace_id, store, min_role("POST"))
+        ontology_session(request, workspace_id)
+        with KbOntologyState(request, workspace_id):
+            proposals = request.app.state.kb_ontology_proposals[workspace_id]
             result = await reject_proposal(proposals, proposal_id)
-            save_graph(request, kb_id, sync_ledger=False)
+            save_graph(request, workspace_id, sync_ledger=False)
             return result
 
-    router.add_api_route("/{kb_id}/ontology/proposals/{proposal_id}/reject", _kb_ont_24_reject_proposal, methods=["POST"], name="_kb_ont_24_reject_proposal")
+    router.add_api_route("/{workspace_id}/ontology/proposals/{proposal_id}/reject", _kb_ont_24_reject_proposal, methods=["POST"], name="_kb_ont_24_reject_proposal")
 
     async def _kb_ont_25_publish_proposal(
-        kb_id: str,
+        workspace_id: str,
         request: Request,
         proposal_id: str,
         user: User = Depends(get_current_user),
         store: AdminStore = Depends(get_store),
     ) -> Any:
         """
-Kb Ont 25 Publish Proposal. Ontology hub (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Publish Proposal. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
         """
-        get_kb_for_role(request, user, kb_id, store, min_role("POST"))
-        session = ontology_session(request, kb_id)
+        get_kb_for_role(request, user, workspace_id, store, min_role("POST"))
+        session = ontology_session(request, workspace_id)
         knowledge = get_knowledge_store(request)
-        with KbOntologyState(request, kb_id):
+        with KbOntologyState(request, workspace_id):
             try:
-                proposals = request.app.state.kb_ontology_proposals[kb_id]
-                drafts = request.app.state.kb_ontology_drafts[kb_id]
-                versions = request.app.state.kb_ontology_versions[kb_id]
+                proposals = request.app.state.kb_ontology_proposals[workspace_id]
+                drafts = request.app.state.kb_ontology_drafts[workspace_id]
+                versions = request.app.state.kb_ontology_versions[workspace_id]
                 result = await publish_proposal(session, proposals, drafts, versions, proposal_id)
             except AdminError as exc:
                 maybe_emit_governance_tripped_for_admin_error(
-                    kb_id,
+                    workspace_id,
                     knowledge,
                     exc,
                     detail={"proposal_id": proposal_id, "source": "ontology_publish"},
                     actor_id=user.id,
-                    runtime_loader=lambda: kb_graph_runtime_for(request, kb_id),
+                    runtime_loader=lambda: kb_graph_runtime_for(request, workspace_id),
                     persist_graph=lambda kid: save_graph(request, kid),
                 )
                 raise
-            save_graph(request, kb_id, sync_ledger=False)
+            save_graph(request, workspace_id, sync_ledger=False)
             governance_alert_from_proposal_result(
                 request,
-                kb_id,
+                workspace_id,
                 knowledge,
                 proposal_id,
                 result,
@@ -292,16 +292,16 @@ Kb Ont 25 Publish Proposal. Ontology hub (SKOS, alignments) via Explorer. Requir
             audit_ontology_graph_write(
                 store,
                 user,
-                kb_id,
+                workspace_id,
                 "kb.graph.ontology_publish",
                 {"proposal_id": proposal_id, **(result.model_dump() if hasattr(result, "model_dump") else {})},
             )
             return result
 
-    router.add_api_route("/{kb_id}/ontology/proposals/{proposal_id}/publish", _kb_ont_25_publish_proposal, methods=["POST"], name="_kb_ont_25_publish_proposal")
+    router.add_api_route("/{workspace_id}/ontology/proposals/{proposal_id}/publish", _kb_ont_25_publish_proposal, methods=["POST"], name="_kb_ont_25_publish_proposal")
 
     async def _kb_ont_26_add_comment(
-        kb_id: str,
+        workspace_id: str,
         request: Request,
         proposal_id: str,
         body: CommentRequest,
@@ -309,39 +309,39 @@ Kb Ont 25 Publish Proposal. Ontology hub (SKOS, alignments) via Explorer. Requir
         store: AdminStore = Depends(get_store),
     ) -> Any:
         """
-Kb Ont 26 Add Comment. Ontology hub (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Add Comment. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
         """
-        get_kb_for_role(request, user, kb_id, store, min_role("POST"))
-        ontology_session(request, kb_id)
-        with KbOntologyState(request, kb_id):
-            proposals = request.app.state.kb_ontology_proposals[kb_id]
+        get_kb_for_role(request, user, workspace_id, store, min_role("POST"))
+        ontology_session(request, workspace_id)
+        with KbOntologyState(request, workspace_id):
+            proposals = request.app.state.kb_ontology_proposals[workspace_id]
             result = await add_proposal_comment(proposals, proposal_id, body)
-            save_graph(request, kb_id, sync_ledger=False)
+            save_graph(request, workspace_id, sync_ledger=False)
             return result
 
-    router.add_api_route("/{kb_id}/ontology/proposals/{proposal_id}/comment", _kb_ont_26_add_comment, methods=["POST"], name="_kb_ont_26_add_comment")
+    router.add_api_route("/{workspace_id}/ontology/proposals/{proposal_id}/comment", _kb_ont_26_add_comment, methods=["POST"], name="_kb_ont_26_add_comment")
 
     async def _kb_ont_27_list_versions(
-        kb_id: str,
+        workspace_id: str,
         request: Request,
         ontology_uri: str,
         user: User = Depends(get_current_user),
         store: AdminStore = Depends(get_store),
     ) -> Any:
         """
-Kb Ont 27 List Versions. Ontology hub (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+List Versions. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
         """
-        get_kb_for_role(request, user, kb_id, store, min_role("GET"))
-        ontology_session(request, kb_id)
-        with KbOntologyState(request, kb_id):
-            versions = request.app.state.kb_ontology_versions[kb_id]
+        get_kb_for_role(request, user, workspace_id, store, min_role("GET"))
+        ontology_session(request, workspace_id)
+        with KbOntologyState(request, workspace_id):
+            versions = request.app.state.kb_ontology_versions[workspace_id]
             result = await list_versions(versions, ontology_uri)
             return result
 
-    router.add_api_route("/{kb_id}/ontology/versions/{ontology_uri:path}", _kb_ont_27_list_versions, methods=["GET"], name="_kb_ont_27_list_versions")
+    router.add_api_route("/{workspace_id}/ontology/versions/{ontology_uri:path}", _kb_ont_27_list_versions, methods=["GET"], name="_kb_ont_27_list_versions")
 
     async def _kb_ont_28_compare_versions(
-        kb_id: str,
+        workspace_id: str,
         request: Request,
         ontology_uri: str,
         body: VersionCompareRequest,
@@ -349,15 +349,14 @@ Kb Ont 27 List Versions. Ontology hub (SKOS, alignments) via Explorer. Requires 
         store: AdminStore = Depends(get_store),
     ) -> Any:
         """
-Kb Ont 28 Compare Versions. Ontology hub (SKOS, alignments) via Explorer. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Compare Versions. Ontology hub (SKOS, alignments) via Explorer. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
         """
-        get_kb_for_role(request, user, kb_id, store, min_role("POST"))
-        session = ontology_session(request, kb_id)
-        with KbOntologyState(request, kb_id):
-            versions = request.app.state.kb_ontology_versions[kb_id]
+        get_kb_for_role(request, user, workspace_id, store, min_role("POST"))
+        session = ontology_session(request, workspace_id)
+        with KbOntologyState(request, workspace_id):
+            versions = request.app.state.kb_ontology_versions[workspace_id]
             result = await compare_versions(session, versions, ontology_uri, body)
-            save_graph(request, kb_id, sync_ledger=False)
+            save_graph(request, workspace_id, sync_ledger=False)
             return result
 
-    router.add_api_route("/{kb_id}/ontology/versions/{ontology_uri:path}/compare", _kb_ont_28_compare_versions, methods=["POST"], name="_kb_ont_28_compare_versions")
-
+    router.add_api_route("/{workspace_id}/ontology/versions/{ontology_uri:path}/compare", _kb_ont_28_compare_versions, methods=["POST"], name="_kb_ont_28_compare_versions")

@@ -29,14 +29,14 @@ def mapping_row_to_dict(row: sqlite3.Row) -> dict[str, Any]:
 
 def list_mapping_rows(
     conn: Any,
-    kb_id: str,
+    workspace_id: str,
     *,
     include_invalidated: bool,
     status: str | None,
     limit: int,
 ) -> list[Any]:
-    clauses = ["kb_id = ?"]
-    params: list[Any] = [kb_id]
+    clauses = ["workspace_id = ?"]
+    params: list[Any] = [workspace_id]
     if not include_invalidated:
         clauses.append("invalidated_at IS NULL")
     if status:
@@ -57,7 +57,7 @@ def insert_mapping(
     conn: Any,
     *,
     mapping_id: str,
-    kb_id: str,
+    workspace_id: str,
     signature: str,
     target_uri: str | None,
     target_kind: str,
@@ -70,13 +70,13 @@ def insert_mapping(
     conn.execute(
         """
         INSERT INTO mappings (
-            id, kb_id, signature, target_uri, target_kind, direction,
+            id, workspace_id, signature, target_uri, target_kind, direction,
             status, actor_id, why, created_at
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             mapping_id,
-            kb_id,
+            workspace_id,
             signature,
             target_uri,
             target_kind,
@@ -89,27 +89,27 @@ def insert_mapping(
     )
 
 
-def fetch_mapping(conn: Any, kb_id: str, mapping_id: str) -> Any:
+def fetch_mapping(conn: Any, workspace_id: str, mapping_id: str) -> Any:
     return conn.execute(
         f"""
         {_MAPPING_SELECT}
         FROM mappings
-        WHERE kb_id = ? AND id = ?
+        WHERE workspace_id = ? AND id = ?
         """,
-        (kb_id, mapping_id),
+        (workspace_id, mapping_id),
     ).fetchone()
 
 
-def fetch_mapping_status_row(conn: Any, kb_id: str, mapping_id: str) -> Any:
+def fetch_mapping_status_row(conn: Any, workspace_id: str, mapping_id: str) -> Any:
     return conn.execute(
-        "SELECT status, invalidated_at FROM mappings WHERE kb_id = ? AND id = ?",
-        (kb_id, mapping_id),
+        "SELECT status, invalidated_at FROM mappings WHERE workspace_id = ? AND id = ?",
+        (workspace_id, mapping_id),
     ).fetchone()
 
 
 def update_mapping_status_row(
     conn: Any,
-    kb_id: str,
+    workspace_id: str,
     mapping_id: str,
     *,
     status: str,
@@ -120,67 +120,67 @@ def update_mapping_status_row(
         """
         UPDATE mappings
         SET status = ?, why = COALESCE(?, why), actor_id = ?
-        WHERE kb_id = ? AND id = ?
+        WHERE workspace_id = ? AND id = ?
         """,
-        (status, why, actor_id, kb_id, mapping_id),
+        (status, why, actor_id, workspace_id, mapping_id),
     )
 
 
 def invalidate_mapping_row(
-    conn: Any, kb_id: str, mapping_id: str, invalidated_at: str
+    conn: Any, workspace_id: str, mapping_id: str, invalidated_at: str
 ) -> None:
     conn.execute(
         """
         UPDATE mappings SET invalidated_at = ?
-        WHERE kb_id = ? AND id = ?
+        WHERE workspace_id = ? AND id = ?
         """,
-        (invalidated_at, kb_id, mapping_id),
+        (invalidated_at, workspace_id, mapping_id),
     )
 
 
-def list_distinct_surface_phrases(conn: Any, kb_id: str, limit: int) -> list[str]:
+def list_distinct_surface_phrases(conn: Any, workspace_id: str, limit: int) -> list[str]:
     rows = conn.execute(
         """
         SELECT DISTINCT surface_phrase
         FROM statements
-        WHERE kb_id = ?
+        WHERE workspace_id = ?
           AND invalidated_at IS NULL
           AND TRIM(surface_phrase) != ''
         ORDER BY surface_phrase
         LIMIT ?
         """,
-        (kb_id, limit),
+        (workspace_id, limit),
     ).fetchall()
     return [row["surface_phrase"] for row in rows]
 
 
 def statements_for_mapping_materialization(
-    conn: Any, kb_id: str, signature: str
+    conn: Any, workspace_id: str, signature: str
 ) -> list[Any]:
     return conn.execute(
         """
         SELECT id, subject_id, object_entity_id, object_value, confidence
         FROM statements
-        WHERE kb_id = ?
+        WHERE workspace_id = ?
           AND invalidated_at IS NULL
           AND surface_phrase = ?
           AND status IN ('pending', 'confirmed')
         """,
-        (kb_id, signature),
+        (workspace_id, signature),
     ).fetchall()
 
 
 def typed_fact_exists_for_statement_mapping(
-    conn: Any, kb_id: str, statement_id: str, mapping_id: str
+    conn: Any, workspace_id: str, statement_id: str, mapping_id: str
 ) -> bool:
     row = conn.execute(
         """
         SELECT 1 FROM typed_facts
-        WHERE kb_id = ? AND from_statement_id = ? AND mapping_id = ?
+        WHERE workspace_id = ? AND from_statement_id = ? AND mapping_id = ?
           AND invalidated_at IS NULL
         LIMIT 1
         """,
-        (kb_id, statement_id, mapping_id),
+        (workspace_id, statement_id, mapping_id),
     ).fetchone()
     return row is not None
 
@@ -189,7 +189,7 @@ def insert_typed_fact_from_statement(
     conn: Any,
     *,
     fact_id: str,
-    kb_id: str,
+    workspace_id: str,
     subject_id: str,
     predicate_uri: str,
     object_entity_id: str | None,
@@ -202,14 +202,14 @@ def insert_typed_fact_from_statement(
     conn.execute(
         """
         INSERT INTO typed_facts (
-            id, kb_id, subject_id, predicate_uri,
+            id, workspace_id, subject_id, predicate_uri,
             object_entity_id, object_value, from_statement_id,
             mapping_id, confidence, recorded_at
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             fact_id,
-            kb_id,
+            workspace_id,
             subject_id,
             predicate_uri,
             object_entity_id,

@@ -61,18 +61,18 @@ class ConnectorRuntime:
         self._http_client = http_client
 
     def _require_manifest_and_connection(
-        self, kb_id: str, service: str, connection_name: str = "default"
+        self, workspace_id: str, service: str, connection_name: str = "default"
     ) -> tuple[ConnectorManifest, StoredConnection]:
-        self.vault.assert_service_allowed(kb_id, service)
+        self.vault.assert_service_allowed(workspace_id, service)
         manifest = self.catalog.get(service)
         if not manifest:
             raise ValueError(f"Unknown BOCP connector service: {service}")
         connection = self.vault.get_connection(
-            kb_id, service, connection_name=connection_name
+            workspace_id, service, connection_name=connection_name
         )
         if not connection:
             raise LookupError(
-                f"Connection '{connection_name}' not found for service '{service}' in KB '{kb_id}'"
+                f"Connection '{connection_name}' not found for service '{service}' in workspace '{workspace_id}'"
             )
         return manifest, connection
 
@@ -81,12 +81,12 @@ class ConnectorRuntime:
         return stream.retriever.adapter == "sql_alchemy"
 
     def check_connection(
-        self, kb_id: str, service: str, *, connection_name: str = "default"
+        self, workspace_id: str, service: str, *, connection_name: str = "default"
     ) -> dict[str, Any]:
         """Run `CHECK` primitive, update connection account_profile, and log run."""
         started_at = _now_iso()
         manifest, connection = self._require_manifest_and_connection(
-            kb_id, service, connection_name
+            workspace_id, service, connection_name
         )
         try:
             if manifest.streams and self._is_sql_stream(manifest.streams[0]):
@@ -105,14 +105,14 @@ class ConnectorRuntime:
                     rest_adapter.close()
 
             self.vault.upsert_connection(
-                kb_id,
+                workspace_id,
                 service,
                 connection_name=connection_name,
                 auth_type=connection.auth_type,
                 account_profile=profile,
             )
             self.vault.record_run(
-                kb_id,
+                workspace_id,
                 service=service,
                 operation_kind="check",
                 target_id=connection_name,
@@ -124,7 +124,7 @@ class ConnectorRuntime:
             return profile
         except Exception as exc:
             self.vault.record_run(
-                kb_id,
+                workspace_id,
                 service=service,
                 operation_kind="check",
                 target_id=connection_name,
@@ -137,7 +137,7 @@ class ConnectorRuntime:
 
     def discover_schema(
         self,
-        kb_id: str,
+        workspace_id: str,
         service: str,
         *,
         connection_name: str = "default",
@@ -147,7 +147,7 @@ class ConnectorRuntime:
     ) -> DiscoveredStreamInfo:
         """Run `DISCOVER` primitive for a SQL table or REST stream."""
         manifest, connection = self._require_manifest_and_connection(
-            kb_id, service, connection_name
+            workspace_id, service, connection_name
         )
         stream = self._find_stream(manifest, stream_name)
         if self._is_sql_stream(stream):
@@ -192,7 +192,7 @@ class ConnectorRuntime:
 
     def read_stream(
         self,
-        kb_id: str,
+        workspace_id: str,
         service: str,
         *,
         connection_name: str = "default",
@@ -207,7 +207,7 @@ class ConnectorRuntime:
         """Run `READ` primitive across SQL or REST streams."""
         started_at = _now_iso()
         manifest, connection = self._require_manifest_and_connection(
-            kb_id, service, connection_name
+            workspace_id, service, connection_name
         )
         stream = self._find_stream(manifest, stream_name)
         target_label = external_table or stream.name
@@ -254,7 +254,7 @@ class ConnectorRuntime:
                     rest_adapter.close()
 
             self.vault.record_run(
-                kb_id,
+                workspace_id,
                 service=service,
                 operation_kind="read_stream",
                 target_id=target_label,
@@ -266,7 +266,7 @@ class ConnectorRuntime:
             return res
         except Exception as exc:
             self.vault.record_run(
-                kb_id,
+                workspace_id,
                 service=service,
                 operation_kind="read_stream",
                 target_id=target_label,
@@ -279,7 +279,7 @@ class ConnectorRuntime:
 
     def mutate_stream(
         self,
-        kb_id: str,
+        workspace_id: str,
         service: str,
         *,
         connection_name: str = "default",
@@ -294,7 +294,7 @@ class ConnectorRuntime:
         """Run `MUTATE` primitive across SQL or REST streams and record audit log."""
         started_at = _now_iso()
         manifest, connection = self._require_manifest_and_connection(
-            kb_id, service, connection_name
+            workspace_id, service, connection_name
         )
         stream = self._find_stream(manifest, stream_name)
         target_label = f"{external_table or stream.name}:{external_pk}"
@@ -332,7 +332,7 @@ class ConnectorRuntime:
                     rest_adapter.close()
 
             self.vault.record_run(
-                kb_id,
+                workspace_id,
                 service=service,
                 operation_kind=f"mutate_{operation}",
                 target_id=target_label,
@@ -344,7 +344,7 @@ class ConnectorRuntime:
             return out
         except Exception as exc:
             self.vault.record_run(
-                kb_id,
+                workspace_id,
                 service=service,
                 operation_kind=f"mutate_{operation}",
                 target_id=target_label,
@@ -381,24 +381,24 @@ class ConnectorRuntime:
 
     def execute_tool(
         self,
-        kb_id: str,
+        workspace_id: str,
         service: str,
         tool_id: str,
         *,
         connection_name: str = "default",
         arguments: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
-        """Run `TOOL` primitive with KB action policy enforcement and audit logging."""
+        """Run `TOOL` primitive with workspace action policy enforcement and audit logging."""
         started_at = _now_iso()
         manifest, connection = self._require_manifest_and_connection(
-            kb_id, service, connection_name
+            workspace_id, service, connection_name
         )
         tool = self._find_tool(manifest, tool_id)
-        policy = self.vault.get_policy(kb_id)
+        policy = self.vault.get_policy(workspace_id)
         mode = policy.resolve_tool_execution_mode(service, tool)
         if mode == "disabled":
             raise PermissionError(
-                f"Tool '{tool.id}' on service '{service}' is disabled by KB action policy"
+                f"Tool '{tool.id}' on service '{service}' is disabled by workspace action policy"
             )
 
         try:
@@ -416,7 +416,7 @@ class ConnectorRuntime:
                 rest_adapter.close()
 
             self.vault.record_run(
-                kb_id,
+                workspace_id,
                 service=service,
                 operation_kind="tool",
                 target_id=tool.id,
@@ -428,7 +428,7 @@ class ConnectorRuntime:
             return {"tool_id": tool.id, "mode": mode, "result": out}
         except Exception as exc:
             self.vault.record_run(
-                kb_id,
+                workspace_id,
                 service=service,
                 operation_kind="tool",
                 target_id=tool.id,

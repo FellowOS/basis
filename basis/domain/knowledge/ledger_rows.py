@@ -11,7 +11,7 @@ from basis.domain.knowledge.blob_store import BlobRef
 @dataclass(frozen=True)
 class JobRow:
     id: str
-    kb_id: str
+    workspace_id: str
     kind: str
     subject_type: str
     subject_id: str
@@ -31,7 +31,7 @@ class JobRow:
 class DocumentVersionRow:
     id: str
     document_id: str
-    kb_id: str
+    workspace_id: str
     version_no: int
     sha256: str
     blob_key: str

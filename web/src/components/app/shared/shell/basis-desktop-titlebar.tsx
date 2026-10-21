@@ -64,7 +64,7 @@ function BasisDesktopAppTitlebarInner({ className }: { className?: string }) {
               e.stopPropagation();
               toggleSidebar();
             }}
-            title={t.sidebar.brand}
+            title={t.core.shell.sidebar.brand}
           >
             <AppLogo size={20} className="pointer-events-none" />
           </button>

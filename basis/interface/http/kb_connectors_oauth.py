@@ -12,7 +12,7 @@ from basis.domain.errors import AdminError
 from basis.domain.tenancy.admin.store import AdminStore, User
 from basis.interface.http.deps import (
     get_current_user,
-    get_kb_for_editor,
+    get_workspace_for_editor,
     get_knowledge_store,
     get_store,
 )
@@ -26,9 +26,9 @@ from basis.interface.http.kb_connectors_support import runtime_for
 
 router = APIRouter(tags=["knowledge-bases"])
 
-@router.put("/{kb_id}/connectors/oauth-configs/{service}")
+@router.put("/{workspace_id}/connectors/oauth-configs/{service}")
 async def upsert_kb_connector_oauth_config(
-    kb_id: str,
+    workspace_id: str,
     service: str,
     body: UpsertOAuthConfigRequest,
     request: Request,
@@ -37,12 +37,12 @@ async def upsert_kb_connector_oauth_config(
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> dict[str, Any]:
     """Store encrypted OAuth2 client credentials (`client_id`, `client_secret`) for a connector service."""
-    get_kb_for_editor(request, user, kb_id, store)
+    get_workspace_for_editor(request, user, workspace_id, store)
     if not get_connector_catalog().get(service):
         raise AdminError(404, "connector_not_found", f"未知的连接器服务: {service}")
     rt = runtime_for(knowledge)
     saved = rt.vault.upsert_oauth_config(
-        kb_id,
+        workspace_id,
         service,
         client_id=body.client_id,
         client_secret=body.client_secret,
@@ -52,9 +52,9 @@ async def upsert_kb_connector_oauth_config(
     return {"oauth_config": saved}
 
 
-@router.post("/{kb_id}/connectors/oauth/{service}/authorize-url")
+@router.post("/{workspace_id}/connectors/oauth/{service}/authorize-url")
 async def build_kb_connector_oauth_authorize_url(
-    kb_id: str,
+    workspace_id: str,
     service: str,
     body: BuildOAuthAuthorizeUrlRequest,
     request: Request,
@@ -63,12 +63,12 @@ async def build_kb_connector_oauth_authorize_url(
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> dict[str, Any]:
     """Build an OAuth2 authorization URL (with optional PKCE S256) for a connector service."""
-    get_kb_for_editor(request, user, kb_id, store)
+    get_workspace_for_editor(request, user, workspace_id, store)
     rt = runtime_for(knowledge)
     state = body.state or f"bocp_{uuid.uuid4().hex[:16]}"
     try:
         url = rt.vault.build_oauth2_authorize_url(
-            kb_id,
+            workspace_id,
             service,
             state=state,
             redirect_uri=body.redirect_uri,
@@ -80,9 +80,9 @@ async def build_kb_connector_oauth_authorize_url(
         raise AdminError(422, "oauth_authorize_url_failed", str(exc)) from exc
 
 
-@router.post("/{kb_id}/connectors/oauth/{service}/exchange")
+@router.post("/{workspace_id}/connectors/oauth/{service}/exchange")
 async def exchange_kb_connector_oauth_code(
-    kb_id: str,
+    workspace_id: str,
     service: str,
     body: ExchangeOAuthCodeRequest,
     request: Request,
@@ -91,11 +91,11 @@ async def exchange_kb_connector_oauth_code(
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> dict[str, Any]:
     """Exchange an OAuth2 authorization code for tokens and save the encrypted BOCP connection."""
-    get_kb_for_editor(request, user, kb_id, store)
+    get_workspace_for_editor(request, user, workspace_id, store)
     rt = runtime_for(knowledge)
     try:
         stored = rt.vault.exchange_oauth2_code(
-            kb_id,
+            workspace_id,
             service,
             code=body.code,
             redirect_uri=body.redirect_uri,
@@ -106,4 +106,3 @@ async def exchange_kb_connector_oauth_code(
         return {"connection": stored.to_public_dict()}
     except Exception as exc:
         raise AdminError(422, "oauth_exchange_failed", str(exc)) from exc
-

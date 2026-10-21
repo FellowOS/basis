@@ -17,10 +17,10 @@ def _normalize_label(label: str | None) -> str:
     return " ".join((label or "").strip().lower().split())
 
 
-def find_entity_label_clusters(knowledge: KnowledgeStore, kb_id: str) -> list[dict[str, Any]]:
+def find_entity_label_clusters(knowledge: KnowledgeStore, workspace_id: str) -> list[dict[str, Any]]:
     """Groups of active entities sharing the same normalized canonical label."""
     buckets: dict[str, list[dict[str, str]]] = defaultdict(list)
-    for row in knowledge.list_active_entity_id_labels(kb_id):
+    for row in knowledge.list_active_entity_id_labels(workspace_id):
         norm = _normalize_label(row["canonical_label"])
         if not norm:
             continue
@@ -41,15 +41,15 @@ def find_entity_label_clusters(knowledge: KnowledgeStore, kb_id: str) -> list[di
     return clusters
 
 
-def scan_entity_label_clusters(knowledge: KnowledgeStore, kb_id: str) -> dict[str, Any]:
+def scan_entity_label_clusters(knowledge: KnowledgeStore, workspace_id: str) -> dict[str, Any]:
     """Enqueue open review items for duplicate-label entity groups."""
     created: list[str] = []
     skipped = 0
-    for cluster in find_entity_label_clusters(knowledge, kb_id):
+    for cluster in find_entity_label_clusters(knowledge, workspace_id):
         subject_id = hashlib.sha256(":".join(cluster["entity_ids"]).encode()).hexdigest()[:32]
         try:
             item = knowledge.create_review_item(
-                kb_id,
+                workspace_id,
                 kind=ENTITY_CLUSTER_KIND,
                 subject_type=ENTITY_CLUSTER_SUBJECT_TYPE,
                 subject_id=subject_id,

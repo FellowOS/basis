@@ -1,4 +1,4 @@
-"""Create ontology in graph session + KB registry (no Explorer route handlers)."""
+"""Create ontology in graph session + workspace registry (no Explorer route handlers)."""
 
 from __future__ import annotations
 

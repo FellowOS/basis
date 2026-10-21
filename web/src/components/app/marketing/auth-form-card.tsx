@@ -169,10 +169,10 @@ export function AuthFormCard({ providers }: AuthFormCardProps) {
       await publicOpenApiPOST('/api/v1/auth/magic-link/request', {
         body: { email: address },
       });
-      setMagicNotice(t.login.magicLinkSent);
+      setMagicNotice(t.login.page.magic_link_sent);
     } catch (err) {
       const message = formatUserFacingApiError(err, locale as Locale);
-      setError(message || t.login.magicLinkFailed);
+      setError(message || t.login.page.magic_link_failed);
     } finally {
       setMagicBusy(false);
     }
@@ -186,7 +186,7 @@ export function AuthFormCard({ providers }: AuthFormCardProps) {
       else await register(values.email, values.password, values.displayName?.trim() ?? '');
     } catch (err) {
       const message = formatUserFacingApiError(err, locale as Locale);
-      setError(message || t.login.loginFailed);
+      setError(message || t.login.page.login_failed);
     } finally {
       setBusy(false);
     }
@@ -229,17 +229,17 @@ export function AuthFormCard({ providers }: AuthFormCardProps) {
       <div className="pt-5 pr-12 pb-0 pl-6">
         <h2 className="text-xl font-semibold tracking-[-0.03em] text-foreground">
           {isMagicPanel
-            ? t.login.magicLinkTitle
+            ? t.login.page.magic_link_title
             : isRegister
-              ? t.login.registerTitle
-              : t.login.title}
+              ? t.login.page.register_title
+              : t.login.page.title}
         </h2>
         <p className="mt-1.5 text-sm leading-snug text-muted-foreground">
           {isMagicPanel
-            ? t.login.magicLinkSubtitle
+            ? t.login.page.magic_link_subtitle
             : isRegister
-              ? t.login.registerSubtitle
-              : t.login.subtitle}
+              ? t.login.page.register_subtitle
+              : t.login.page.subtitle}
         </p>
       </div>
 
@@ -268,11 +268,11 @@ export function AuthFormCard({ providers }: AuthFormCardProps) {
                   name="displayName"
                   render={({ field }) => (
                     <FormItem className="space-y-1.5 pb-3">
-                      <FormLabel className={fieldLabel}>{t.login.displayNameLabel}</FormLabel>
+                      <FormLabel className={fieldLabel}>{t.login.page.display_name_label}</FormLabel>
                       <FormControl>
                         <Input
                           autoComplete="name"
-                          placeholder={t.login.displayNamePlaceholder}
+                          placeholder={t.login.page.display_name_placeholder}
                           className={fieldInput}
                           tabIndex={isRegister ? 0 : -1}
                           aria-hidden={!isRegister}
@@ -289,12 +289,12 @@ export function AuthFormCard({ providers }: AuthFormCardProps) {
               name="email"
               render={({ field }) => (
                 <FormItem className="space-y-1.5">
-                  <FormLabel className={fieldLabel}>{t.login.emailLabel}</FormLabel>
+                  <FormLabel className={fieldLabel}>{t.login.page.email_label}</FormLabel>
                   <FormControl>
                     <Input
                       type="email"
                       autoComplete="email"
-                      placeholder={t.login.emailPlaceholder}
+                      placeholder={t.login.page.email_placeholder}
                       className={fieldInput}
                       {...field}
                     />
@@ -304,7 +304,7 @@ export function AuthFormCard({ providers }: AuthFormCardProps) {
             />
             {ssoRequired ? (
               <p className="rounded-md bg-muted px-3 py-2 text-sm text-muted-foreground">
-                {t.login.ssoRequiredHint}
+                {t.login.page.sso_required_hint}
               </p>
             ) : null}
             <div
@@ -319,13 +319,13 @@ export function AuthFormCard({ providers }: AuthFormCardProps) {
                   name="password"
                   render={({ field }) => (
                     <FormItem className="space-y-1.5">
-                      <FormLabel className={fieldLabel}>{t.login.passwordLabel}</FormLabel>
+                      <FormLabel className={fieldLabel}>{t.login.page.password_label}</FormLabel>
                       <div className="relative">
                         <FormControl>
                           <Input
                             type={showPassword ? 'text' : 'password'}
                             autoComplete={isRegister ? 'new-password' : 'current-password'}
-                            placeholder={t.login.passwordPlaceholder}
+                            placeholder={t.login.page.password_placeholder}
                             className={`${fieldInput} pr-10`}
                             tabIndex={isMagicPanel ? -1 : 0}
                             aria-hidden={isMagicPanel}
@@ -337,7 +337,7 @@ export function AuthFormCard({ providers }: AuthFormCardProps) {
                           variant="ghost"
                           size="icon-sm"
                           className="absolute top-1/2 right-1 -translate-y-1/2 text-muted-foreground"
-                          aria-label={showPassword ? t.login.hidePassword : t.login.showPassword}
+                          aria-label={showPassword ? t.login.page.hide_password : t.login.page.show_password}
                           aria-pressed={showPassword}
                           tabIndex={isMagicPanel ? -1 : 0}
                           onClick={() => setShowPassword((visible) => !visible)}
@@ -365,7 +365,7 @@ export function AuthFormCard({ providers }: AuthFormCardProps) {
                 className="w-full bg-[#152033] text-[#f6f4ef] hover:bg-[#152033] hover:brightness-110 dark:bg-[#f3ead7] dark:text-[#152033] dark:hover:bg-[#f3ead7]"
                 onClick={() => void onMagicLink()}
               >
-                {magicBusy ? t.login.submitting : t.login.magicLinkSend}
+                {magicBusy ? t.login.page.submitting : t.login.page.magic_link_send}
               </Button>
             ) : showPasswordLogin ? (
               <Button
@@ -374,7 +374,7 @@ export function AuthFormCard({ providers }: AuthFormCardProps) {
                 disabled={busy}
                 className="w-full bg-[#152033] text-[#f6f4ef] hover:bg-[#152033] hover:brightness-110 dark:bg-[#f3ead7] dark:text-[#152033] dark:hover:bg-[#f3ead7]"
               >
-                {busy ? t.login.submitting : isRegister ? t.login.registerSubmit : t.login.submit}
+                {busy ? t.login.page.submitting : isRegister ? t.login.page.register_submit : t.login.page.submit}
               </Button>
             ) : null}
             <div
@@ -384,7 +384,7 @@ export function AuthFormCard({ providers }: AuthFormCardProps) {
               )}
             >
               <div className="min-h-0 space-y-2 overflow-hidden">
-                <p className="text-center text-xs text-muted-foreground">{t.login.or}</p>
+                <p className="text-center text-xs text-muted-foreground">{t.login.page.or}</p>
                 <Button
                   type="button"
                   variant="outline"
@@ -392,7 +392,7 @@ export function AuthFormCard({ providers }: AuthFormCardProps) {
                   className="w-full"
                   onClick={openMagicPanel}
                 >
-                  {t.login.magicLinkEntry}
+                  {t.login.page.magic_link_entry}
                 </Button>
               </div>
             </div>
@@ -411,7 +411,7 @@ export function AuthFormCard({ providers }: AuthFormCardProps) {
       >
         <div className="min-h-0 overflow-hidden">
           <div className="mx-6 mt-1 space-y-2 pb-2">
-          <p className="text-center text-xs text-muted-foreground">{t.login.orContinueWith}</p>
+          <p className="text-center text-xs text-muted-foreground">{t.login.page.or_continue_with}</p>
           <div className="grid grid-cols-1 gap-2">
             {showOrgSso
               ? (orgSsoOptions.length > 0
@@ -437,7 +437,7 @@ export function AuthFormCard({ providers }: AuthFormCardProps) {
                     data-testid="login-org-sso"
                   >
                     <a href={opt.login_url}>
-                      {fmt(t.login.continueOrgSso, {
+                      {fmt(t.login.page.continue_org_sso, {
                         org: opt.org_name || opt.org_slug || 'Organization',
                       })}
                     </a>
@@ -451,12 +451,12 @@ export function AuthFormCard({ providers }: AuthFormCardProps) {
             >
               {showGithub ? (
                 <Button type="button" variant="outline" size="sm" asChild>
-                  <a href={authV1Path('oauth/github/start')}>{t.login.continueGithub}</a>
+                  <a href={authV1Path('oauth/github/start')}>{t.login.page.continue_github}</a>
                 </Button>
               ) : null}
               {showGoogle ? (
                 <Button type="button" variant="outline" size="sm" asChild>
-                  <a href={authV1Path('oauth/google/start')}>{t.login.continueGoogle}</a>
+                  <a href={authV1Path('oauth/google/start')}>{t.login.page.continue_google}</a>
                 </Button>
               ) : null}
             </div>
@@ -473,18 +473,18 @@ export function AuthFormCard({ providers }: AuthFormCardProps) {
             className="h-auto p-0 font-medium text-foreground"
             onClick={backToPasswordPanel}
           >
-            {t.login.backToPasswordLogin}
+            {t.login.page.back_to_password_login}
           </Button>
         ) : (
           <>
-            {isRegister ? t.login.hasAccount : t.login.noAccount}{' '}
+            {isRegister ? t.login.page.has_account : t.login.page.no_account}{' '}
             <Button
               type="button"
               variant="link"
               className="h-auto p-0 font-medium text-foreground"
               onClick={() => switchMode(isRegister ? 'login' : 'register')}
             >
-              {isRegister ? t.login.switchToLogin : t.login.switchToRegister}
+              {isRegister ? t.login.page.switch_to_login : t.login.page.switch_to_register}
             </Button>
           </>
         )}

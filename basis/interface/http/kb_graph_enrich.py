@@ -1,4 +1,4 @@
-"""KB Explorer enrich, provenance, and decisions routes."""
+"""Explorer enrich, provenance, and decisions routes."""
 
 from __future__ import annotations
 
@@ -13,8 +13,8 @@ from basis.domain.tenancy.admin.store import AdminStore, User
 from basis.interface.http.deps import (
     get_current_user,
     kb_graph_runtime_for,
-    get_kb_for_editor,
-    get_kb_for_viewer,
+    get_workspace_for_editor,
+    get_workspace_for_viewer,
     get_runtime_limits,
     get_store,
 )
@@ -24,18 +24,18 @@ from basis.interface.http.kb_graph_shared import link_prediction_semaphore
 
 router = APIRouter(tags=["knowledge-bases"])
 
-@router.post("/{kb_id}/enrich/links")
+@router.post("/{workspace_id}/enrich/links")
 async def kb_enrich_links(
-    kb_id: str,
+    workspace_id: str,
     request: Request,
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> Any:
     """
-Kb Enrich Links. Graph enrichment and governance proposals. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Enrich Links. Graph enrichment and governance proposals. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
-    get_kb_for_viewer(request, user, kb_id, store)
-    runtime = kb_graph_runtime_for(request, kb_id)
+    get_workspace_for_viewer(request, user, workspace_id, store)
+    runtime = kb_graph_runtime_for(request, workspace_id)
     session = require_kb_graph_session(runtime)
     from basis.domain.graph.governance.enrich_read import predict_links
 
@@ -59,18 +59,18 @@ Kb Enrich Links. Graph enrichment and governance proposals. Requires KB membersh
         )
 
 
-@router.post("/{kb_id}/enrich/dedup")
+@router.post("/{workspace_id}/enrich/dedup")
 async def kb_enrich_dedup(
-    kb_id: str,
+    workspace_id: str,
     request: Request,
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> Any:
     """
-Kb Enrich Dedup. Graph enrichment and governance proposals. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Enrich Dedup. Graph enrichment and governance proposals. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
-    get_kb_for_viewer(request, user, kb_id, store)
-    runtime = kb_graph_runtime_for(request, kb_id)
+    get_workspace_for_viewer(request, user, workspace_id, store)
+    runtime = kb_graph_runtime_for(request, workspace_id)
     session = require_kb_graph_session(runtime)
     from basis.domain.graph.governance.enrich_read import detect_duplicates
 
@@ -79,15 +79,15 @@ Kb Enrich Dedup. Graph enrichment and governance proposals. Requires KB membersh
     return await asyncio.to_thread(detect_duplicates, session, threshold=threshold)
 
 
-@router.post("/{kb_id}/enrich/merge")
+@router.post("/{workspace_id}/enrich/merge")
 async def kb_enrich_merge(
-    kb_id: str,
+    workspace_id: str,
     request: Request,
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> Any:
     """Direct graph merge is disabled; use the review queue (Gate D)."""
-    get_kb_for_editor(request, user, kb_id, store)
+    get_workspace_for_editor(request, user, workspace_id, store)
     raise AdminError(
         409,
         "merge_requires_review",
@@ -95,28 +95,28 @@ async def kb_enrich_merge(
     )
 
 
-@router.get("/{kb_id}/provenance")
+@router.get("/{workspace_id}/provenance")
 async def kb_provenance_lineage(
-    kb_id: str,
+    workspace_id: str,
     request: Request,
     node_id: Optional[str] = Query(None),
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> Any:
     """
-Kb Provenance Lineage. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Provenance Lineage. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
-    get_kb_for_viewer(request, user, kb_id, store)
-    runtime = kb_graph_runtime_for(request, kb_id)
+    get_workspace_for_viewer(request, user, workspace_id, store)
+    runtime = kb_graph_runtime_for(request, workspace_id)
     session = require_kb_graph_session(runtime)
     from basis.domain.graph.governance.provenance_read import get_provenance_lineage
 
     return await asyncio.to_thread(get_provenance_lineage, session, node_id)
 
 
-@router.get("/{kb_id}/provenance/report")
+@router.get("/{workspace_id}/provenance/report")
 async def kb_provenance_report(
-    kb_id: str,
+    workspace_id: str,
     request: Request,
     node_id: str = Query(...),
     format: str = Query("json"),
@@ -124,10 +124,10 @@ async def kb_provenance_report(
     store: AdminStore = Depends(get_store),
 ) -> Response:
     """
-Kb Provenance Report. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Provenance Report. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
-    get_kb_for_viewer(request, user, kb_id, store)
-    runtime = kb_graph_runtime_for(request, kb_id)
+    get_workspace_for_viewer(request, user, workspace_id, store)
+    runtime = kb_graph_runtime_for(request, workspace_id)
     session = require_kb_graph_session(runtime)
     from basis.domain.graph.governance.provenance_read import export_provenance_report
 
@@ -148,5 +148,4 @@ Kb Provenance Report. Requires KB membership (session) or KB API token with read
         media_type=media_type,
         headers={"Content-Disposition": disposition},
     )
-
 

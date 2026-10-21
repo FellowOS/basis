@@ -1,4 +1,4 @@
-"""Forward-chaining reasoner with proof chains (F-RUL-03) for KB reasoning/run."""
+"""Forward-chaining reasoner with proof chains (F-RUL-03) for workspace reasoning/run."""
 
 from __future__ import annotations
 

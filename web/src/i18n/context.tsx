@@ -9,8 +9,8 @@ import {
 } from 'react';
 import { getStoredLocale, setStoredLocale } from '@/lib/preferences.js';
 import { LOCALE_HTML_LANG, type Locale } from './locale.js';
-import { en, type LocaleMessages } from './locales/en/index.js';
-import { zh } from './locales/zh/index.js';
+import { en, type LocaleMessages } from './en.js';
+import { zh } from './zh.js';
 
 export type { Locale };
 

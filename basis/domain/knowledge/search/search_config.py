@@ -1,4 +1,4 @@
-"""Versioned per-KB retrieval configuration."""
+"""Versioned per-workspace retrieval configuration."""
 
 from __future__ import annotations
 
@@ -16,7 +16,7 @@ SUPPORTED_SEARCH_MODES = ("keyword", "semantic", "hybrid")
 
 @dataclass(frozen=True)
 class SearchConfig:
-    kb_id: str
+    workspace_id: str
     schema_version: int = 1
     chunk_backend: str = "sqlite_ledger"
     vector_backend: str = "sqlite_vec"

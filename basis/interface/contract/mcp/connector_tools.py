@@ -1,4 +1,4 @@
-"""Dynamic MCP tools derived from BOCP manifest ``actions[]`` (per-KB tools/list)."""
+"""Dynamic MCP tools derived from BOCP manifest ``actions[]`` (per-workspace tools/list)."""
 
 from __future__ import annotations
 
@@ -308,7 +308,7 @@ def connector_tool_definitions_for_manifest(
 
 def _filter_manifests_for_kb(ctx: KbCoreContext, manifests: list[ConnectorManifest]) -> list[ConnectorManifest]:
     runtime = ctx.knowledge.connector_runtime()
-    effective = runtime.vault.effective_allowed_providers(ctx.kb.id)
+    effective = runtime.vault.effective_allowed_providers(ctx.workspace.id)
     if effective == "*":
         return manifests
     allowed = set(effective) if isinstance(effective, list) else set()
@@ -316,9 +316,9 @@ def _filter_manifests_for_kb(ctx: KbCoreContext, manifests: list[ConnectorManife
 
 
 def connector_tool_definitions_for_kb(ctx: KbCoreContext) -> list[dict[str, Any]]:
-    """Manifest-derived MCP tools for one KB (allowlist + action_policy.entities)."""
+    """Manifest-derived MCP tools for one workspace (allowlist + action_policy.entities)."""
     runtime = ctx.knowledge.connector_runtime()
-    policy = runtime.vault.get_policy(ctx.kb.id)
+    policy = runtime.vault.get_policy(ctx.workspace.id)
     catalog = get_connector_catalog()
     manifests = _filter_manifests_for_kb(ctx, catalog.list_manifests())
     out: list[dict[str, Any]] = []

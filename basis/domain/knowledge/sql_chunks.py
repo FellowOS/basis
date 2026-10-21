@@ -8,26 +8,26 @@ from typing import Any
 from basis.domain.errors import AdminError
 
 
-def first_chunk_id(conn: Any, kb_id: str, version_id: str) -> str | None:
+def first_chunk_id(conn: Any, workspace_id: str, version_id: str) -> str | None:
     row = conn.execute(
         """
         SELECT id FROM chunks
-        WHERE kb_id = ? AND version_id = ?
+        WHERE workspace_id = ? AND version_id = ?
         ORDER BY ordinal LIMIT 1
         """,
-        (kb_id, version_id),
+        (workspace_id, version_id),
     ).fetchone()
     return row["id"] if row else None
 
 
-def first_chunk_text(conn: Any, kb_id: str, version_id: str) -> Any:
+def first_chunk_text(conn: Any, workspace_id: str, version_id: str) -> Any:
     return conn.execute(
         """
         SELECT text FROM chunks
-        WHERE version_id = ? AND kb_id = ?
+        WHERE version_id = ? AND workspace_id = ?
         ORDER BY ordinal LIMIT 1
         """,
-        (version_id, kb_id),
+        (version_id, workspace_id),
     ).fetchone()
 
 
@@ -75,7 +75,7 @@ def insert_chunk(
     conn: Any,
     *,
     chunk_id: str,
-    kb_id: str,
+    workspace_id: str,
     version_id: str,
     ordinal: int,
     text: str,
@@ -91,13 +91,13 @@ def insert_chunk(
     conn.execute(
         """
         INSERT INTO chunks(
-            id, kb_id, version_id, ordinal, text, heading,
+            id, workspace_id, version_id, ordinal, text, heading,
             char_start, char_end, token_count, language, origin, anchor_json, created_at
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             chunk_id,
-            kb_id,
+            workspace_id,
             version_id,
             ordinal,
             text,
@@ -117,7 +117,7 @@ def insert_chunks_many(conn: Any, rows: list[tuple[Any, ...]]) -> None:
     conn.executemany(
         """
         INSERT INTO chunks(
-            id, kb_id, version_id, ordinal, text, heading,
+            id, workspace_id, version_id, ordinal, text, heading,
             char_start, char_end, token_count, language, origin,
             anchor_json, created_at
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -144,7 +144,7 @@ def chunk_payload_from_item(item: str | dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def fetch_chunk_with_document(conn: Any, kb_id: str, chunk_id: str) -> Any:
+def fetch_chunk_with_document(conn: Any, workspace_id: str, chunk_id: str) -> Any:
     return conn.execute(
         """
         SELECT c.id, c.text, c.ordinal, c.heading, c.char_start, c.char_end,
@@ -153,20 +153,20 @@ def fetch_chunk_with_document(conn: Any, kb_id: str, chunk_id: str) -> Any:
         FROM chunks c
         INNER JOIN document_versions dv ON dv.id = c.version_id
         INNER JOIN documents d ON d.id = dv.document_id
-        WHERE c.id = ? AND c.kb_id = ?
+        WHERE c.id = ? AND c.workspace_id = ?
         """,
-        (chunk_id, kb_id),
+        (chunk_id, workspace_id),
     ).fetchone()
 
 
-def list_chunk_rows(conn: Any, kb_id: str, version_id: str) -> list[Any]:
+def list_chunk_rows(conn: Any, workspace_id: str, version_id: str) -> list[Any]:
     return conn.execute(
         """
         SELECT id, ordinal, text, heading, char_start, char_end,
                token_count, language, origin, anchor_json, created_at
         FROM chunks
-        WHERE kb_id = ? AND version_id = ?
+        WHERE workspace_id = ? AND version_id = ?
         ORDER BY ordinal
         """,
-        (kb_id, version_id),
+        (workspace_id, version_id),
     ).fetchall()

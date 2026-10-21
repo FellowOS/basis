@@ -24,11 +24,11 @@ Basis 是基于 [Semantica](https://github.com/semantica-agi/semantica) Python S
 
 - **业务语义** — 实体、类型化事实、映射与本体；语义单元不是「又一坨切片」。
 - **证据账本** — 陈述、溯源；图与向量为可重建投影。
-- **知识库** — 文库 ingest、混合检索、处理任务、审核队列。
+- **工作区** — 文库 ingest、混合检索、处理任务、审核队列。
 - **图谱与本体** — Explorer 图工作区、词表、SHACL、SPARQL、Ontology Hub。
 - **连接器（BOCP）** — 内置 provider（如 postgres、mysql、github、slack）；入向同步与受控写回。
-- **智能体接口** — 库级 **OpenAPI v1** 与 **MCP**（检索、图、连接器、审核等工具）。
-- **平台** — 用户、组织 SSO（可选 OIDC/SAML）、KB 角色、API 令牌、审计。
+- **智能体接口** — 工作区级 **OpenAPI v1** 与 **MCP**（检索、图、连接器、审核等工具）。
+- **平台** — 用户、组织 SSO（可选 OIDC/SAML）、工作区角色、API 令牌、审计。
 
 ---
 
@@ -49,7 +49,7 @@ flowchart LR
   end
 ```
 
-集成方应调用 **Basis**（`/api/v1/...` 与 KB MCP），而非直接依赖 Semantica。
+集成方应调用 **Basis**（`/api/v1/...` 与工作区 MCP），而非直接依赖 Semantica。
 
 ---
 
@@ -87,9 +87,9 @@ cd web && npm install && npm run dev
 
 ### 3. 冒烟验证
 
-1. 创建知识库  
+1. 创建工作区  
 2. **Sources** 粘贴或上传短文，等待处理完成  
-3. 打开该库的 **Graph** 或 **Search**
+3. 打开该工作区的 **Graph** 或 **Search**
 
 ### 桌面版（可选、免登录）
 
@@ -99,7 +99,7 @@ cd web && npm install && npm run dev
 
 ## 智能体集成（MCP）
 
-在 KB 设置中创建 **API 令牌**。MCP 端点：
+在工作区设置中创建 **API 令牌**。MCP 端点：
 
 `POST /api/v1/kbs/{kb_id}/mcp`，请求头 `Authorization: Bearer <token>`。
 
@@ -138,7 +138,7 @@ curl -sS "http://127.0.0.1:8090/api/v1/kbs/YOUR_KB_ID/mcp" \
 详见 [.env.example](.env.example)。
 
 **PostgreSQL：** `docker compose -f compose.postgres.yml up -d`，  
-`BASIS_DATABASE_URL=postgresql://basis:basis@127.0.0.1:5433/basis`（宿主机端口 **5433**）。
+`BASIS_DATABASE_URL=postgresql://basis:basis@127.0.0.1:5432/basis`（宿主机端口 **5432**）。
 
 **备份：** `./scripts/backup_basis_data.sh`（SQLite）或 `./scripts/backup_basis_postgres.sh`（Postgres）。
 

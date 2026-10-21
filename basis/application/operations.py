@@ -1,4 +1,4 @@
-"""KB integration operations (shared by MCP and OpenAPI handlers)."""
+"""Workspace integration operations (shared by MCP and OpenAPI handlers)."""
 
 from __future__ import annotations
 
@@ -31,7 +31,7 @@ def _require_kb_editor(ctx: KbCoreContext) -> None:
         if ctx.assert_kb_editor is not None:
             ctx.assert_kb_editor()
         else:
-            ctx.store.get_kb_for(ctx.user, ctx.kb.id, "editor")
+            ctx.store.get_workspace_for(ctx.user, ctx.workspace.id, "editor")
     except AdminError as exc:
         raise CoreError(
             {"code": exc.code, "message": exc.message},
@@ -43,11 +43,11 @@ def _require_kb_editor(ctx: KbCoreContext) -> None:
 
 
 def op_describe_kb(ctx: KbCoreContext, _args: dict[str, Any]) -> dict[str, Any]:
-    stats = ctx.knowledge.kb_mcp_stats(ctx.kb.id)
+    stats = ctx.knowledge.kb_mcp_stats(ctx.workspace.id)
     return {
-        "kb_id": ctx.kb.id,
-        "name": ctx.kb.name,
-        "description": ctx.kb.description,
+        "workspace_id": ctx.workspace.id,
+        "name": ctx.workspace.name,
+        "description": ctx.workspace.description,
         **stats,
     }
 
@@ -68,7 +68,7 @@ def op_search_chunks(ctx: KbCoreContext, args: dict[str, Any]) -> dict[str, Any]
         created_before = as_of
     if ctx.chunk_search is not None:
         return ctx.chunk_search.search(
-            ctx.kb.id,
+            ctx.workspace.id,
             query=query,
             limit=limit,
             document_id=document_id,
@@ -78,7 +78,7 @@ def op_search_chunks(ctx: KbCoreContext, args: dict[str, Any]) -> dict[str, Any]
             as_of=as_of,
             mode=mode,
         )
-    hits = ctx.knowledge.search_chunks(ctx.kb.id, query=query, limit=limit)
+    hits = ctx.knowledge.search_chunks(ctx.workspace.id, query=query, limit=limit)
     return {"query": query, "mode": "keyword", "chunks": hits}
 
 
@@ -86,7 +86,7 @@ def op_get_chunk(ctx: KbCoreContext, args: dict[str, Any]) -> dict[str, Any]:
     chunk_id = str(args.get("chunk_id", "")).strip()
     if not chunk_id:
         return {"error": "chunk_id is required"}
-    row = ctx.knowledge.get_chunk(ctx.kb.id, chunk_id)
+    row = ctx.knowledge.get_chunk(ctx.workspace.id, chunk_id)
     if row is None:
         return {"error": "chunk not found"}
     return {"chunk": row}
@@ -120,7 +120,7 @@ def op_find_entities(ctx: KbCoreContext, args: dict[str, Any]) -> dict[str, Any]
     if not query:
         return {"error": "query is required"}
     limit = int(args.get("limit", 20))
-    entities = ctx.knowledge.find_entities(ctx.kb.id, query=query, limit=limit)
+    entities = ctx.knowledge.find_entities(ctx.workspace.id, query=query, limit=limit)
     graph_hits = search_nodes(ctx.graph_runtime(), query=query, limit=limit)
     return {
         "query": query,
@@ -168,7 +168,7 @@ def op_propose_remember(ctx: KbCoreContext, args: dict[str, Any]) -> dict[str, A
     source = str(args.get("source") or "mcp")
     payload = propose_remember(
         ctx.knowledge,
-        ctx.kb.id,
+        ctx.workspace.id,
         ctx.user.id,
         content,
         source=source,
@@ -184,7 +184,7 @@ def op_entity_facts(ctx: KbCoreContext, args: dict[str, Any]) -> dict[str, Any]:
     if not entity_id:
         return {"error": "entity_id is required"}
     limit = int(args.get("limit", 50))
-    facts = ctx.knowledge.list_entity_facts(ctx.kb.id, entity_id=entity_id, limit=limit)
+    facts = ctx.knowledge.list_entity_facts(ctx.workspace.id, entity_id=entity_id, limit=limit)
     return {"entity_id": entity_id, "facts": facts}
 
 
@@ -193,7 +193,7 @@ def op_list_review_items(ctx: KbCoreContext, args: dict[str, Any]) -> dict[str, 
     kind = str(args.get("kind") or "").strip() or None
     limit = min(max(1, int(args.get("limit", 50))), 200)
     items = ctx.knowledge.list_review_items(
-        ctx.kb.id,
+        ctx.workspace.id,
         status=status,
         kind=kind,
         limit=limit,
@@ -206,7 +206,7 @@ def op_get_review_item(ctx: KbCoreContext, args: dict[str, Any]) -> dict[str, An
     if not item_id:
         return {"error": "item_id is required"}
     try:
-        item = ctx.knowledge.get_review_item(ctx.kb.id, item_id)
+        item = ctx.knowledge.get_review_item(ctx.workspace.id, item_id)
     except AdminError as exc:
         if exc.code == "not_found":
             return {"error": "review item not found"}
@@ -219,7 +219,7 @@ def op_list_processing_jobs(ctx: KbCoreContext, args: dict[str, Any]) -> dict[st
     if status and status not in {"queued", "running", "succeeded", "failed", "cancelled"}:
         return {"error": "invalid status"}
     limit = min(max(1, int(args.get("limit", 100))), 200)
-    jobs = ctx.knowledge.list_processing_jobs(ctx.kb.id, status=status, limit=limit)
+    jobs = ctx.knowledge.list_processing_jobs(ctx.workspace.id, status=status, limit=limit)
     return {"jobs": jobs}
 
 
@@ -243,7 +243,7 @@ def op_approve_statement_remember_review(
         knowledge=ctx.knowledge,
         store=ctx.store,
         user=ctx.user,
-        kb_id=ctx.kb.id,
+        workspace_id=ctx.workspace.id,
         item_id=item_id,
         rationale=rationale,
         rebuild_projection=rebuild,
@@ -265,7 +265,7 @@ def op_reject_statement_remember_review(
         knowledge=ctx.knowledge,
         store=ctx.store,
         user=ctx.user,
-        kb_id=ctx.kb.id,
+        workspace_id=ctx.workspace.id,
         item_id=item_id,
         rationale=rationale,
     )
@@ -286,7 +286,7 @@ def op_approve_review_item(ctx: KbCoreContext, args: dict[str, Any]) -> dict[str
                 knowledge=ctx.knowledge,
                 store=ctx.store,
                 user=ctx.user,
-                kb_id=ctx.kb.id,
+                workspace_id=ctx.workspace.id,
                 item_id=item_id,
                 rationale=rationale,
                 keeper_statement_id=keeper,
@@ -309,7 +309,7 @@ def op_reject_review_item(ctx: KbCoreContext, args: dict[str, Any]) -> dict[str,
         knowledge=ctx.knowledge,
         store=ctx.store,
         user=ctx.user,
-        kb_id=ctx.kb.id,
+        workspace_id=ctx.workspace.id,
         item_id=item_id,
         rationale=rationale,
         blob_store=ctx.blob_store,

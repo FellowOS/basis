@@ -1,4 +1,4 @@
-"""Ontology editor drafts (explicit per-KB store, no Explorer routes)."""
+"""Ontology editor drafts (explicit per-workspace store, no Explorer routes)."""
 
 from __future__ import annotations
 

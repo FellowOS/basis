@@ -1,4 +1,4 @@
-"""Background poll ticks and schedule predicates for KB."""
+"""Background poll ticks and schedule predicates for workspaces."""
 
 from basis.domain.knowledge.schedulers.connector_mapping_poll_due import (
     is_connector_mapping_poll_due,

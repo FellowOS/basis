@@ -15,7 +15,7 @@ _EXCLUDED_PREFIXES = ("chunks_fts", "sqlite_", "alembic_")
 _EXCLUDED_TABLES = {
     "schema_migrations",
     "chunk_vectors",
-    "kb_vector_manifests",
+    "vector_manifests",
 }
 
 
@@ -94,7 +94,7 @@ def migrate_sqlite_to_postgres(
                     counts[name] = total
             dest.exec_driver_sql(
                 """
-                UPDATE kb_search_configs
+                UPDATE search_configs
                 SET chunk_backend = 'postgres_ledger',
                     vector_backend = 'pgvector',
                     updated_at = CURRENT_TIMESTAMP::text

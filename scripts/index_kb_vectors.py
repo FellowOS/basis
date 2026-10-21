@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Batch-index chunk embeddings for a knowledge base (memory-safe for large KBs)."""
+"""Batch-index chunk embeddings for a workspace (memory-safe for large workspaces)."""
 
 from __future__ import annotations
 
@@ -16,18 +16,18 @@ from basis.domain.knowledge.search import ChunkSearchService
 from basis.domain.knowledge.store import KnowledgeStore
 
 
-def _pending_chunk_ids(database, kb_id: str, limit: int) -> list[str]:
+def _pending_chunk_ids(database, workspace_id: str, limit: int) -> list[str]:
     rows = database.conn.execute(
         """
         SELECT c.id AS chunk_id
         FROM chunks c
         LEFT JOIN embedding_records e
-          ON e.kb_id = c.kb_id AND e.chunk_id = c.id
-        WHERE c.kb_id = ? AND e.chunk_id IS NULL
+          ON e.workspace_id = c.workspace_id AND e.chunk_id = c.id
+        WHERE c.workspace_id = ? AND e.chunk_id IS NULL
         ORDER BY c.id
         LIMIT ?
         """,
-        (kb_id, limit),
+        (workspace_id, limit),
     ).fetchall()
     return [row["chunk_id"] for row in rows]
 
@@ -47,20 +47,20 @@ def main() -> None:
     admin = AdminStore(database)
     search = ChunkSearchService(knowledge, admin, Path(settings.data_dir))
     try:
-        if args.kb_id:
-            kb_id = args.kb_id
+        if args.workspace_id:
+            workspace_id = args.workspace_id
         else:
             row = database.conn.execute(
-                "SELECT id FROM knowledge_bases WHERE name = ?", (args.kb_name,)
+                "SELECT id FROM workspaces WHERE name = ?", (args.kb_name,)
             ).fetchone()
             if row is None:
-                raise SystemExit(f"Knowledge base not found: {args.kb_name}")
-            kb_id = row["id"]
+                raise SystemExit(f"Workspace not found: {args.kb_name}")
+            workspace_id = row["id"]
 
-        config = knowledge.get_search_config(kb_id)
+        config = knowledge.get_search_config(workspace_id)
         if args.enable_semantic and not config.semantic_enabled:
             knowledge.update_search_config(
-                kb_id,
+                workspace_id,
                 embedding_model_id=config.embedding_model_id,
                 keyword_enabled=config.keyword_enabled,
                 semantic_enabled=True,
@@ -75,12 +75,12 @@ def main() -> None:
         started = time.perf_counter()
         batch_no = 0
         while True:
-            chunk_ids = _pending_chunk_ids(database, kb_id, args.batch_size)
+            chunk_ids = _pending_chunk_ids(database, workspace_id, args.batch_size)
             if not chunk_ids:
                 break
             batch_no += 1
             t0 = time.perf_counter()
-            result = search.index_chunks(kb_id, chunk_ids)
+            result = search.index_chunks(workspace_id, chunk_ids)
             indexed = int(result.get("indexed", 0))
             skipped = int(result.get("skipped", 0))
             total_indexed += indexed
@@ -98,7 +98,7 @@ def main() -> None:
 
         print(
             {
-                "kb_id": kb_id,
+                "workspace_id": workspace_id,
                 "indexed": total_indexed,
                 "skipped": total_skipped,
                 "elapsed_sec": round(time.perf_counter() - started, 1),

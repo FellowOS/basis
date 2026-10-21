@@ -15,11 +15,11 @@ End-to-end tests exercise **real browser + API** (`BASIS_DATA_DIR=data/e2e`, `/_
 | **P** | Partial: one primary flow, deep link, or redirect |
 | **D** | Deeper: multi-step UI and/or API seed + UI assertion |
 
-Many KB Explorer routes **skip** when `explorer_runtime` is missing (`skipUnlessKbGraphWrite`, “Workspace unavailable”).
+Many workspace graph Explorer routes **skip** when `explorer_runtime` is missing (`skipUnlessWorkspaceGraphWrite`, capabilities unavailable UI).
 
 ## Route ↔ E2E matrix
 
-Routes follow `web/src/app.tsx` and KB sidebar [`nav-config.ts`](../src/lib/nav-config.ts).
+Routes follow [`web/src/routes/index.tsx`](../src/routes/index.tsx) (`AppRoutes`) and workspace sidebar [`nav-config.ts`](../src/lib/nav-config.ts).
 
 ### Marketing & auth
 
@@ -41,32 +41,32 @@ Routes follow `web/src/app.tsx` and KB sidebar [`nav-config.ts`](../src/lib/nav-
 | Route | E2E | Spec(s) | Notes |
 |-------|-----|---------|-------|
 | `/admin/connectors` | S | `admin-connectors.spec.ts` | Catalog search + nav |
-| `/admin/kbs` | S | `platform-admin.spec.ts` | KB table + create |
+| `/admin/workspaces` | S | `platform-admin.spec.ts` | Workspace table + create |
 | `/admin/users` | S | `platform-admin.spec.ts` | Lists first platform admin (`data/e2e/playwright-admin.json`) |
 | `/admin/models` | S | `platform-admin.spec.ts` | LLM tab + add model |
-| `/admin/audit` | S | `platform-admin.spec.ts` | KB filter + refresh |
+| `/admin/audit` | S | `platform-admin.spec.ts` | Workspace filter + refresh |
 | `/admin/settings` | S | `platform-admin.spec.ts`, `desktop-product.spec.ts` | Login + org SSO (server); desktop redirects away |
 
-### KB — Explore
+### Workspace — Explore
 
 | Route | E2E | Spec(s) | Notes |
 |-------|-----|---------|-------|
-| `/kbs/:id/graph` | P | `graph-at.spec.ts`, `graph-diff-cross-link.spec.ts`, `onboarding.spec.ts` | `?at=` URL; workspace after ingest |
-| `/kbs/:id/search` | P | `search-temporal-url.spec.ts`, `search-graph-at.spec.ts`, `governance.spec.ts` | `as_of`, graph tab, scope |
+| `/workspaces/:id/graph` | P | `graph-at.spec.ts`, `graph-diff-cross-link.spec.ts`, `onboarding.spec.ts` | `?at=` URL; workspace after ingest |
+| `/workspaces/:id/search` | P | `search-temporal-url.spec.ts`, `search-graph-at.spec.ts`, `governance.spec.ts` | `as_of`, graph tab, scope |
 
-### KB — Knowledge
-
-| Route | E2E | Spec(s) | Notes |
-|-------|-----|---------|-------|
-| `/kbs/:id/sources` | D | `onboarding.spec.ts`, `processing-job.spec.ts`, `governance.spec.ts` | Paste ingest, library chrome |
-| `/kbs/:id/processing` | P | `processing-job.spec.ts`, `governance.spec.ts` | `?job=`, failed filter |
-| `/kbs/:id/entities` | P | `reasoning-derived.spec.ts` | Derived facts + search (API seed) |
-
-### KB — Connectors
+### Workspace — Content
 
 | Route | E2E | Spec(s) | Notes |
 |-------|-----|---------|-------|
-| `/kbs/:id/onboarding/data` | D | `connector-mapping-suggest.spec.ts` | SQL hint → suggest → sync |
+| `/workspaces/:id/sources` | D | `onboarding.spec.ts`, `processing-job.spec.ts`, `governance.spec.ts` | Paste ingest, library chrome |
+| `/workspaces/:id/processing` | P | `processing-job.spec.ts`, `governance.spec.ts` | `?job=`, failed filter |
+| `/workspaces/:id/entities` | P | `reasoning-derived.spec.ts` | Derived facts + search (API seed) |
+
+### Workspace — Connectors
+
+| Route | E2E | Spec(s) | Notes |
+|-------|-----|---------|-------|
+| `/workspaces/:id/onboarding/data` | D | `connector-mapping-suggest.spec.ts` | SQL hint → suggest → sync |
 | `…/connectors/catalog` | S | `connectors.spec.ts` | Cards, connection → new mapping |
 | `…/connectors/policy` | S | `connectors.spec.ts` | Save allowlist |
 | `…/connectors/mappings` | P | `connectors.spec.ts`, `connector-mapping-suggest.spec.ts` | List; REST suggest (mock); cross-stream dialog |
@@ -77,36 +77,36 @@ Routes follow `web/src/app.tsx` and KB sidebar [`nav-config.ts`](../src/lib/nav-
 | Review writeback diff (connector) | P | `connectors.spec.ts` | From review queue UI |
 | Mapping **Sync now** (list) | P | `connector-workspace.spec.ts` | Inbound sync toast |
 
-### KB — Schema
+### Workspace — Schema
 
 | Route | E2E | Spec(s) | Notes |
 |-------|-----|---------|-------|
-| `/kbs/:id/ontology` | P | `governance.spec.ts`, `ontology-proposal-url.spec.ts` | Versions tab; proposal deep link |
-| `/kbs/:id/analyze` | P | `analyze-hub.spec.ts` | Tabs; legacy `/sparql`, `/reasoning` redirects |
-| `/kbs/:id/vocabulary` | S | `schema-surfaces.spec.ts` | Hub loads |
-| `/kbs/:id/mappings` (statement / extraction) | S | `schema-surfaces.spec.ts` | Title/subtitle vs connector mappings |
-| `/kbs/:id/ontology-versions` | P | `analyze-hub.spec.ts` | Via redirect/hub |
-| `/kbs/:id/shacl` | S | `schema-surfaces.spec.ts` | Legacy route → ontology `?tab=shacl` |
-| `/kbs/:id/alignments` | S | `schema-surfaces.spec.ts` | Legacy route → ontology `?tab=alignments` |
+| `/workspaces/:id/ontology` | P | `governance.spec.ts`, `ontology-proposal-url.spec.ts` | Versions tab; proposal deep link |
+| `/workspaces/:id/analyze` | P | `analyze-hub.spec.ts` | Tabs; legacy `/sparql`, `/reasoning` redirects |
+| `/workspaces/:id/vocabulary` | S | `schema-surfaces.spec.ts` | Hub loads |
+| `/workspaces/:id/mappings` (statement / extraction) | S | `schema-surfaces.spec.ts` | Title/subtitle vs connector mappings |
+| `/workspaces/:id/ontology-versions` | P | `analyze-hub.spec.ts` | Via redirect/hub |
+| `/workspaces/:id/shacl` | S | `schema-surfaces.spec.ts` | Legacy route → ontology `?tab=shacl` |
+| `/workspaces/:id/alignments` | S | `schema-surfaces.spec.ts` | Legacy route → ontology `?tab=alignments` |
 
-### KB — Govern
-
-| Route | E2E | Spec(s) | Notes |
-|-------|-----|---------|-------|
-| `/kbs/:id/review` | D | `governance.spec.ts`, `connectors.spec.ts` | Conflicts, approve narrative, writeback |
-| `/kbs/:id/entity-resolution` | S | `schema-surfaces.spec.ts` | Dedup scan action |
-| `/kbs/:id/decisions` | P | `decisions-deep-link.spec.ts`, `governance.spec.ts` | List + `?decision=` |
-| `/kbs/:id/lineage` | P | `lineage.spec.ts` | `?node=` deep link |
-| `/kbs/:id/graph-diff` | P | `graph-diff.spec.ts` | `from` / `to` query |
-
-### KB — System & account
+### Workspace — Govern
 
 | Route | E2E | Spec(s) | Notes |
 |-------|-----|---------|-------|
-| `/kbs/:id/alerts` | D | `governance.spec.ts` | Dismiss, deep links to sources/processing/review/decisions |
-| `/kbs/:id/integration` | S | `mcp-integration.spec.ts` | Tab visible |
-| `/kbs/:id/settings` | P | `settings-graph-audit.spec.ts`, `kb-settings-tabs.spec.ts` | Graph audit; general/members/search tabs |
-| `/kbs/:id/mcp`, `/chat` (legacy) | S | `mcp-integration.spec.ts` | Redirects to integration |
+| `/workspaces/:id/review` | D | `governance.spec.ts`, `connectors.spec.ts` | Conflicts, approve narrative, writeback |
+| `/workspaces/:id/entity-resolution` | S | `schema-surfaces.spec.ts` | Dedup scan action |
+| `/workspaces/:id/decisions` | P | `decisions-deep-link.spec.ts`, `governance.spec.ts` | List + `?decision=` |
+| `/workspaces/:id/lineage` | P | `lineage.spec.ts` | `?node=` deep link |
+| `/workspaces/:id/graph-diff` | P | `graph-diff.spec.ts` | `from` / `to` query |
+
+### Workspace — System & account
+
+| Route | E2E | Spec(s) | Notes |
+|-------|-----|---------|-------|
+| `/workspaces/:id/alerts` | D | `governance.spec.ts` | Dismiss, deep links to sources/processing/review/decisions |
+| `/workspaces/:id/integration` | S | `mcp-integration.spec.ts` | Tab visible |
+| `/workspaces/:id/settings` | P | `settings-graph-audit.spec.ts`, `settings-tabs.spec.ts` | Graph audit; general/members/search tabs |
+| `/workspaces/:id/mcp`, `/chat` (legacy) | S | `mcp-integration.spec.ts` | Redirects to integration |
 
 ### Desktop product
 
@@ -128,9 +128,9 @@ Routes follow `web/src/app.tsx` and KB sidebar [`nav-config.ts`](../src/lib/nav-
 | `analyze-hub.spec.ts` | Query & reasoning hub + legacy routes |
 | `connector-mapping-suggest.spec.ts` | Onboarding wizard; SQL/REST suggest API; auto-expand; mappings dialog |
 | `connector-workspace.spec.ts` | Runs, mapping edit, sync now, OAuth callback (mock exchange + error) |
-| `kb-settings-tabs.spec.ts` | KB settings general/members/search tabs |
-| `platform-admin.spec.ts` | `/admin/kbs`, `/admin/users`, `/admin/models`, `/admin/audit`, `/admin/settings` |
-| `connectors.spec.ts` | KB connectors zones (catalog/policy/mappings) |
+| `settings-tabs.spec.ts` | Workspace settings general/members/search tabs |
+| `platform-admin.spec.ts` | `/admin/workspaces`, `/admin/users`, `/admin/models`, `/admin/audit`, `/admin/settings` |
+| `connectors.spec.ts` | Workspace connectors zones (catalog/policy/mappings) |
 | `decisions-deep-link.spec.ts` | Decisions list URL state |
 | `desktop-product.spec.ts` | Desktop profile routing |
 | `docs.spec.ts` | In-app product docs |
@@ -150,7 +150,7 @@ Routes follow `web/src/app.tsx` and KB sidebar [`nav-config.ts`](../src/lib/nav-
 | `schema-surfaces.spec.ts` | Statement mappings, entity resolution, vocabulary, SHACL/alignments redirects |
 | `search-graph-at.spec.ts` | Search graph tab URL |
 | `search-temporal-url.spec.ts` | Search chunk `as_of` URL |
-| `settings-graph-audit.spec.ts` | KB settings graph audit tab |
+| `settings-graph-audit.spec.ts` | Workspace settings graph audit tab |
 | `shell.spec.ts` | Login form |
 
 ## Optional env (live connector)

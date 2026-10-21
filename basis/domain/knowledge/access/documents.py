@@ -43,7 +43,7 @@ class DocumentsAccess:
 
     def store_upload_bytes(
         self,
-        kb_id: str,
+        workspace_id: str,
         *,
         title: str,
         mime_type: str,
@@ -53,7 +53,7 @@ class DocumentsAccess:
         external_key: str | None = None,
     ) -> tuple[str, str, str, Any]:
         outcome = self.store_document_bytes(
-            kb_id,
+            workspace_id,
             title=title,
             mime_type=mime_type,
             data=data,
@@ -62,13 +62,13 @@ class DocumentsAccess:
             external_key=external_key,
         )
         job, _ = self._store.create_processing_job(
-            kb_id, version_id=outcome.version_id, options={}
+            workspace_id, version_id=outcome.version_id, options={}
         )
         return outcome.document_id, outcome.version_id, job["id"], outcome.blob
 
     def store_document_bytes(
         self,
-        kb_id: str,
+        workspace_id: str,
         *,
         title: str,
         mime_type: str,
@@ -85,13 +85,13 @@ class DocumentsAccess:
 
         target_document_id = document_id
         if target_document_id is None and external_key:
-            existing = self.find_document_by_external_key(kb_id, external_key)
+            existing = self.find_document_by_external_key(workspace_id, external_key)
             if existing is not None:
                 target_document_id = existing["document_id"]
 
         if target_document_id is not None:
             return self.append_document_version(
-                kb_id,
+                workspace_id,
                 target_document_id,
                 title=title,
                 mime_type=mime_type,
@@ -99,18 +99,18 @@ class DocumentsAccess:
                 created_by=created_by,
             )
 
-        blob = self._store._blob_store.put(kb_id, data)
+        blob = self._store._blob_store.put(workspace_id, data)
         new_document_id = str(uuid.uuid4())
         version_id = str(uuid.uuid4())
         now = _now()
 
         with self._store._lock:
-            self._store._assert_kb_exists(kb_id)
+            self._store._assert_workspace_exists(workspace_id)
             conn = self._store._conn
             doc_persist.insert_document(
                 conn,
                 document_id=new_document_id,
-                kb_id=kb_id,
+                workspace_id=workspace_id,
                 source_id=source_id,
                 external_key=external_key,
                 title=title,
@@ -121,7 +121,7 @@ class DocumentsAccess:
             doc_persist.insert_document_version(
                 conn,
                 version_id=version_id,
-                kb_id=kb_id,
+                workspace_id=workspace_id,
                 document_id=new_document_id,
                 version_no=1,
                 sha256=blob.sha256,
@@ -129,7 +129,7 @@ class DocumentsAccess:
                 byte_size=blob.byte_size,
                 created_at=now,
             )
-            doc_persist.set_document_current_version(conn, version_id, new_document_id, kb_id)
+            doc_persist.set_document_current_version(conn, version_id, new_document_id, workspace_id)
             conn.commit()
         return StoreDocumentOutcome(
             document_id=new_document_id,
@@ -142,7 +142,7 @@ class DocumentsAccess:
 
     def append_document_version(
         self,
-        kb_id: str,
+        workspace_id: str,
         document_id: str,
         *,
         title: str,
@@ -150,22 +150,22 @@ class DocumentsAccess:
         data: bytes,
         created_by: str | None,
     ) -> StoreDocumentOutcome:
-        blob = self._store._blob_store.put(kb_id, data)
+        blob = self._store._blob_store.put(workspace_id, data)
         now = _now()
         with self._store._lock:
-            self._store._assert_kb_exists(kb_id)
+            self._store._assert_workspace_exists(workspace_id)
             conn = self._store._conn
-            doc = doc_persist.fetch_document_for_append(conn, document_id, kb_id)
+            doc = doc_persist.fetch_document_for_append(conn, document_id, workspace_id)
             if doc is None:
                 raise AdminError(404, "not_found", "文档不存在")
             current_version_id = doc["current_version_id"]
             if not current_version_id:
                 raise AdminError(409, "no_current_version", "文档没有当前版本")
-            if self._store._processing.has_active_ingest_job(kb_id, current_version_id):
+            if self._store._processing.has_active_ingest_job(workspace_id, current_version_id):
                 raise AdminError(409, "processing_active", "当前版本正在处理，请稍后再更新")
 
             current = doc_persist.fetch_version_for_append(
-                conn, current_version_id, kb_id, document_id
+                conn, current_version_id, workspace_id, document_id
             )
             if current is None:
                 raise AdminError(409, "no_current_version", "文档没有当前版本")
@@ -181,13 +181,13 @@ class DocumentsAccess:
                     new_version=False,
                 )
 
-            version_no = doc_persist.next_version_no(conn, kb_id, document_id)
+            version_no = doc_persist.next_version_no(conn, workspace_id, document_id)
             version_id = str(uuid.uuid4())
-            self._store._processing.supersede_version(kb_id, current_version_id)
+            self._store._processing.supersede_version(workspace_id, current_version_id)
             doc_persist.insert_document_version(
                 conn,
                 version_id=version_id,
-                kb_id=kb_id,
+                workspace_id=workspace_id,
                 document_id=document_id,
                 version_no=version_no,
                 sha256=blob.sha256,
@@ -201,7 +201,7 @@ class DocumentsAccess:
                 title=title,
                 mime_type=mime_type,
                 document_id=document_id,
-                kb_id=kb_id,
+                workspace_id=workspace_id,
             )
             conn.commit()
         return StoreDocumentOutcome(
@@ -213,13 +213,13 @@ class DocumentsAccess:
             new_version=True,
         )
 
-    def get_document_summary(self, kb_id: str, doc_ref: str) -> dict[str, Any] | None:
-        doc = self.resolve_document_ref(kb_id, doc_ref)
+    def get_document_summary(self, workspace_id: str, doc_ref: str) -> dict[str, Any] | None:
+        doc = self.resolve_document_ref(workspace_id, doc_ref)
         if doc is None:
             return None
         with self._store._lock:
             row = doc_persist.fetch_document_summary_row(
-                self._store._conn, kb_id, doc["document_id"]
+                self._store._conn, workspace_id, doc["document_id"]
             )
         if row is None:
             return None
@@ -231,50 +231,50 @@ class DocumentsAccess:
             "version_status": row["version_status"],
         }
 
-    def resolve_document_ref(self, kb_id: str, doc_ref: str) -> dict[str, Any] | None:
+    def resolve_document_ref(self, workspace_id: str, doc_ref: str) -> dict[str, Any] | None:
         doc_ref = doc_ref.strip()
         if not doc_ref:
             return None
-        by_key = self.find_document_by_external_key(kb_id, doc_ref)
+        by_key = self.find_document_by_external_key(workspace_id, doc_ref)
         if by_key is not None:
             return by_key
         with self._store._lock:
-            row = doc_persist.find_document_ref_by_id(self._store._conn, kb_id, doc_ref)
+            row = doc_persist.find_document_ref_by_id(self._store._conn, workspace_id, doc_ref)
         if row is None:
             return None
         return document_ref_from_row(row)
 
     def find_document_by_external_key(
-        self, kb_id: str, external_key: str
+        self, workspace_id: str, external_key: str
     ) -> dict[str, Any] | None:
         with self._store._lock:
             row = doc_persist.find_document_ref_by_external_key(
-                self._store._conn, kb_id, external_key
+                self._store._conn, workspace_id, external_key
             )
         if row is None:
             return None
         return document_ref_from_row(row)
 
-    def first_chunk_id_for_version(self, kb_id: str, version_id: str) -> str | None:
+    def first_chunk_id_for_version(self, workspace_id: str, version_id: str) -> str | None:
         with self._store._lock:
-            return chunk_persist.first_chunk_id(self._store._conn, kb_id, version_id)
+            return chunk_persist.first_chunk_id(self._store._conn, workspace_id, version_id)
 
     def ensure_legacy_document(
         self,
-        kb_id: str,
+        workspace_id: str,
         *,
         external_key: str,
         title: str,
         text: str,
     ) -> tuple[dict[str, Any], str, bool]:
-        existing = self.find_document_by_external_key(kb_id, external_key)
+        existing = self.find_document_by_external_key(workspace_id, external_key)
         if existing and existing["version_id"]:
-            chunk_id = self.first_chunk_id_for_version(kb_id, existing["version_id"])
+            chunk_id = self.first_chunk_id_for_version(workspace_id, existing["version_id"])
             if chunk_id:
                 return existing, chunk_id, False
 
         document_id, version_id, job_id, _blob = self.store_upload_bytes(
-            kb_id,
+            workspace_id,
             title=title,
             mime_type="text/plain",
             data=text.encode("utf-8"),
@@ -282,9 +282,9 @@ class DocumentsAccess:
             original_filename=title,
             external_key=external_key,
         )
-        self._store.set_version_status(kb_id, version_id, "ready")
-        self._store.set_job_status(kb_id, job_id, "succeeded")
-        chunk_id = self._store.create_chunk(kb_id, version_id, ordinal=0, text=text)
+        self._store.set_version_status(workspace_id, version_id, "ready")
+        self._store.set_job_status(workspace_id, job_id, "succeeded")
+        chunk_id = self._store.create_chunk(workspace_id, version_id, ordinal=0, text=text)
         row = {
             "document_id": document_id,
             "external_key": external_key,
@@ -292,9 +292,9 @@ class DocumentsAccess:
         }
         return row, chunk_id, True
 
-    def list_documents(self, kb_id: str) -> list[dict[str, Any]]:
+    def list_documents(self, workspace_id: str) -> list[dict[str, Any]]:
         with self._store._lock:
-            rows = doc_persist.list_document_rows(self._store._conn, kb_id)
+            rows = doc_persist.list_document_rows(self._store._conn, workspace_id)
             items: list[dict[str, Any]] = []
             conn = self._store._conn
             for row in rows:
@@ -302,7 +302,7 @@ class DocumentsAccess:
                 preview = ""
                 char_count = 0
                 if row["version_id"]:
-                    chunk = chunk_persist.first_chunk_text(conn, kb_id, row["version_id"])
+                    chunk = chunk_persist.first_chunk_text(conn, workspace_id, row["version_id"])
                     if chunk:
                         preview = (chunk["text"] or "")[:200]
                         char_count = len(chunk["text"] or "")
@@ -322,12 +322,12 @@ class DocumentsAccess:
                 )
         return items
 
-    def read_version_bytes(self, kb_id: str, version_id: str) -> bytes:
-        version = self._store.get_version(kb_id, version_id)
-        return self._store._blob_store.read(version.kb_id, version.blob_key)
+    def read_version_bytes(self, workspace_id: str, version_id: str) -> bytes:
+        version = self._store.get_version(workspace_id, version_id)
+        return self._store._blob_store.read(version.workspace_id, version.blob_key)
 
-    def list_chunks_for_version(self, kb_id: str, version_id: str) -> list[dict[str, Any]]:
+    def list_chunks_for_version(self, workspace_id: str, version_id: str) -> list[dict[str, Any]]:
         with self._store._lock:
-            self._store._assert_row_in_kb("document_versions", version_id, kb_id)
-            rows = chunk_persist.list_chunk_rows(self._store._conn, kb_id, version_id)
+            self._store._assert_row_in_workspace("document_versions", version_id, workspace_id)
+            rows = chunk_persist.list_chunk_rows(self._store._conn, workspace_id, version_id)
         return [chunk_persist.chunk_api_row(r) for r in rows]

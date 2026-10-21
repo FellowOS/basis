@@ -1,4 +1,4 @@
-"""One org per existing KB; attach KB owners as org owners."""
+"""One org per existing workspace; attach workspace owners as org owners."""
 
 from __future__ import annotations
 
@@ -15,24 +15,24 @@ def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
-def _slug_for_kb(kb_id: str, name: str) -> str:
+def _slug_for_kb(workspace_id: str, name: str) -> str:
     base = "".join(ch if ch.isalnum() else "-" for ch in name.lower()).strip("-")
     base = base[:48] or "kb"
-    return f"{base}-{kb_id[:8]}"
+    return f"{base}-{workspace_id[:8]}"
 
 
 def _backfill_pending_kbs(conn: Any, *, commit: bool) -> int:
     pending = conn.execute(
         """
-        SELECT id, name, created_by FROM knowledge_bases
+        SELECT id, name, created_by FROM workspaces
         WHERE organization_id IS NULL OR TRIM(organization_id) = ''
         """
     ).fetchall()
     count = 0
     for kb in pending:
-        kb_id = kb["id"]
+        workspace_id = kb["id"]
         org_id = str(uuid.uuid4())
-        slug = _slug_for_kb(kb_id, kb["name"] or "org")
+        slug = _slug_for_kb(workspace_id, kb["name"] or "org")
         while conn.execute("SELECT 1 FROM organizations WHERE slug = ?", (slug,)).fetchone():
             slug = f"{slug}-{org_id[:6]}"
         conn.execute(
@@ -45,10 +45,10 @@ def _backfill_pending_kbs(conn: Any, *, commit: bool) -> int:
         owner_id = kb["created_by"]
         owners = conn.execute(
             """
-            SELECT user_id FROM kb_members
-            WHERE kb_id = ? AND role = 'owner'
+            SELECT user_id FROM members
+            WHERE workspace_id = ? AND role = 'owner'
             """,
-            (kb_id,),
+            (workspace_id,),
         ).fetchall()
         member_ids = {owner_id}
         for o in owners:
@@ -64,8 +64,8 @@ def _backfill_pending_kbs(conn: Any, *, commit: bool) -> int:
                 (org_id, uid, _now()),
             )
         conn.execute(
-            "UPDATE knowledge_bases SET organization_id = ? WHERE id = ?",
-            (org_id, kb_id),
+            "UPDATE workspaces SET organization_id = ? WHERE id = ?",
+            (org_id, workspace_id),
         )
         count += 1
     if count and commit:
@@ -80,7 +80,7 @@ def ensure_organization_backfill(conn: sqlite3.Connection) -> int:
     ).fetchone()
     if row is None:
         return 0
-    kb_cols = {r[1] for r in conn.execute("PRAGMA table_info(knowledge_bases)").fetchall()}
+    kb_cols = {r[1] for r in conn.execute("PRAGMA table_info(workspaces)").fetchall()}
     if "organization_id" not in kb_cols:
         return 0
     return _backfill_pending_kbs(conn, commit=True)
@@ -108,7 +108,7 @@ def ensure_organization_backfill_postgres(conn: Any) -> int:
             SELECT EXISTS (
                 SELECT 1 FROM information_schema.columns
                 WHERE table_schema = 'public'
-                  AND table_name = 'knowledge_bases'
+                  AND table_name = 'workspaces'
                   AND column_name = 'organization_id'
             )
             """

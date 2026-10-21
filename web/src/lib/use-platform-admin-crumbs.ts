@@ -15,11 +15,11 @@ export function usePlatformAdminCrumbs(sectionLabel: string): Crumb[] {
   return useMemo(
     () => [
       {
-        label: t.sidebar.management,
+        label: t.core.shell.sidebar.management,
         to: platformAdminEntryPath(isAdmin, canSettings === true, basisIsDesktopProduct()),
       },
       { label: sectionLabel },
     ],
-    [canSettings, isAdmin, sectionLabel, t.sidebar.management],
+    [canSettings, isAdmin, sectionLabel, t.core.shell.sidebar.management],
   );
 }

@@ -18,13 +18,13 @@ class OperationSpec(TypedDict):
 
 
 OPERATIONS: dict[str, OperationSpec] = {
-    "describe_kb": {
-        "description": "Summary of this knowledge base (name, document/chunk/entity counts).",
+    "describe_workspace": {
+        "description": "Summary of this workspace (name, document/chunk/entity counts).",
         "input_schema": {"type": "object", "properties": {}},
         "handler": ops.op_describe_kb,
     },
     "search_chunks": {
-        "description": "Search document chunks using this KB's configured retrieval policy (RAG citations).",
+        "description": "Search document chunks using this workspace's configured retrieval policy (RAG citations).",
         "input_schema": {
             "type": "object",
             "properties": {
@@ -235,7 +235,7 @@ OPERATIONS: dict[str, OperationSpec] = {
         "handler": ops.op_reject_review_item,
     },
     "list_connector_catalog": {
-        "description": "List BOCP connector services allowed for this KB (catalog summary).",
+        "description": "List BOCP connector services allowed for this workspace (catalog summary).",
         "input_schema": {
             "type": "object",
             "properties": {
@@ -261,7 +261,7 @@ OPERATIONS: dict[str, OperationSpec] = {
         "handler": conn_ops.op_describe_connector_service,
     },
     "list_connector_connections": {
-        "description": "List saved BOCP connections for this KB (no credential secrets).",
+        "description": "List saved BOCP connections for this workspace (no credential secrets).",
         "input_schema": {
             "type": "object",
             "properties": {
@@ -348,7 +348,7 @@ OPERATIONS: dict[str, OperationSpec] = {
     },
     "execute_connector_tool": {
         "description": (
-            "Execute a standalone BOCP ToolSpec RPC for an allowed provider (subject to KB action_policy_json)."
+            "Execute a standalone BOCP ToolSpec RPC for an allowed provider (subject to workspace action_policy_json)."
         ),
         "input_schema": {
             "type": "object",

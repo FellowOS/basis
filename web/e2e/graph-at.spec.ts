@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 import {
-  defaultKbId,
+  defaultWorkspaceId,
   expectUrlAtMatchesInstant,
   fetchTemporalBounds,
   ingestDocumentViaApi,
@@ -13,13 +13,13 @@ test('graph at query opens temporal context', async ({ page }) => {
   test.setTimeout(120_000);
 
   await registerFreshUser(page);
-  const kbId = await defaultKbId(page);
-  await ingestDocumentViaApi(page, kbId, 'Graph temporal deep link smoke.');
+  const workspaceId = await defaultWorkspaceId(page);
+  await ingestDocumentViaApi(page, workspaceId, 'Graph temporal deep link smoke.');
 
-  const bounds = await fetchTemporalBounds(page, kbId);
+  const bounds = await fetchTemporalBounds(page, workspaceId);
   const at = bounds.max ?? bounds.min ?? '2030-01-01T00:00:00Z';
 
-  await page.goto(`/kbs/${kbId}/graph?at=${encodeURIComponent(at)}`);
+  await page.goto(`/workspaces/${workspaceId}/graph?at=${encodeURIComponent(at)}`);
 
   const unavailable = page.getByRole('heading', {
     name: /工作区不可用|Workspace unavailable/i,
@@ -28,7 +28,7 @@ test('graph at query opens temporal context', async ({ page }) => {
     test.skip(true, 'graph workspace requires explorer_runtime');
   }
 
-  await expect(page.locator('[data-testid="kb-graph-workspace"]')).toBeVisible({
+  await expect(page.locator('[data-testid="workspace-graph-canvas"]')).toBeVisible({
     timeout: 60_000,
   });
   await expect(page.getByText('Temporal', { exact: false }).first()).toBeVisible({
@@ -41,13 +41,13 @@ test('graph timeline entry deep link opens playback footer', async ({ page }) =>
   test.setTimeout(120_000);
 
   await registerFreshUser(page);
-  const kbId = await defaultKbId(page);
-  await ingestDocumentViaApi(page, kbId, 'Graph timeline URL sync smoke.');
+  const workspaceId = await defaultWorkspaceId(page);
+  await ingestDocumentViaApi(page, workspaceId, 'Graph timeline URL sync smoke.');
 
-  const bounds = await fetchTemporalBounds(page, kbId);
+  const bounds = await fetchTemporalBounds(page, workspaceId);
   const at = bounds.max ?? bounds.min ?? '2030-01-01T00:00:00Z';
 
-  await page.goto(`/kbs/${kbId}/graph?at=${encodeURIComponent(at)}`);
+  await page.goto(`/workspaces/${workspaceId}/graph?at=${encodeURIComponent(at)}`);
 
   const unavailable = page.getByRole('heading', {
     name: /工作区不可用|Workspace unavailable/i,
@@ -56,10 +56,10 @@ test('graph timeline entry deep link opens playback footer', async ({ page }) =>
     test.skip(true, 'graph workspace requires explorer_runtime');
   }
 
-  await expect(page.locator('[data-testid="kb-graph-workspace"]')).toBeVisible({
+  await expect(page.locator('[data-testid="workspace-graph-canvas"]')).toBeVisible({
     timeout: 60_000,
   });
-  await page.getByTestId('kb-graph-open-timeline').click();
+  await page.getByTestId('workspace-graph-open-timeline').click();
   await expect(page).toHaveURL(/timeline=1/);
   await expectUrlAtMatchesInstant(page, at);
   await expect(page.locator('.explore-shell[data-timeline="true"]')).toBeVisible({
@@ -71,13 +71,13 @@ test('search open in graph focuses node', async ({ page }) => {
   test.setTimeout(120_000);
 
   await registerFreshUser(page);
-  const kbId = await defaultKbId(page);
-  await ingestDocumentViaApi(page, kbId, 'Search to graph link smoke node.');
+  const workspaceId = await defaultWorkspaceId(page);
+  await ingestDocumentViaApi(page, workspaceId, 'Search to graph link smoke node.');
 
-  const bounds = await fetchTemporalBounds(page, kbId);
+  const bounds = await fetchTemporalBounds(page, workspaceId);
   const at = bounds.max ?? bounds.min ?? '2030-01-01T00:00:00Z';
   await page.goto(
-    `/kbs/${kbId}/search?tab=graph&q=smoke&at=${encodeURIComponent(at)}`,
+    `/workspaces/${workspaceId}/search?tab=graph&q=smoke&at=${encodeURIComponent(at)}`,
   );
 
   const unavailable = page.getByRole('heading', {
@@ -88,9 +88,9 @@ test('search open in graph focuses node', async ({ page }) => {
   }
 
   await expect
-    .poll(async () => (await searchGraphNodes(page, kbId, 'smoke')).length, { timeout: 60_000 })
+    .poll(async () => (await searchGraphNodes(page, workspaceId, 'smoke')).length, { timeout: 60_000 })
     .toBeGreaterThan(0);
-  const hits = await searchGraphNodes(page, kbId, 'smoke');
+  const hits = await searchGraphNodes(page, workspaceId, 'smoke');
   const focusId = hits[0]?.node.id;
   expect(focusId).toBeTruthy();
 
@@ -100,10 +100,10 @@ test('search open in graph focuses node', async ({ page }) => {
     await graphDeepLink.click();
   } else {
     await page.goto(
-      `/kbs/${kbId}/graph?focus=${encodeURIComponent(focusId!)}&at=${encodeURIComponent(at)}`,
+      `/workspaces/${workspaceId}/graph?focus=${encodeURIComponent(focusId!)}&at=${encodeURIComponent(at)}`,
     );
   }
-  await expect(page.locator('[data-testid="kb-graph-workspace"]')).toBeVisible({
+  await expect(page.locator('[data-testid="workspace-graph-canvas"]')).toBeVisible({
     timeout: 60_000,
   });
   await expectUrlAtMatchesInstant(page, at);
@@ -113,13 +113,13 @@ test('search graph scope opens timeline playback deep link', async ({ page }) =>
   test.setTimeout(120_000);
 
   await registerFreshUser(page);
-  const kbId = await defaultKbId(page);
-  await ingestDocumentViaApi(page, kbId, 'Search timeline link smoke.');
+  const workspaceId = await defaultWorkspaceId(page);
+  await ingestDocumentViaApi(page, workspaceId, 'Search timeline link smoke.');
 
-  const bounds = await fetchTemporalBounds(page, kbId);
+  const bounds = await fetchTemporalBounds(page, workspaceId);
   const at = bounds.max ?? bounds.min ?? '2030-01-01T00:00:00Z';
   await page.goto(
-    `/kbs/${kbId}/search?tab=graph&q=smoke&at=${encodeURIComponent(at)}`,
+    `/workspaces/${workspaceId}/search?tab=graph&q=smoke&at=${encodeURIComponent(at)}`,
   );
 
   const unavailable = page.getByRole('heading', {
@@ -129,7 +129,7 @@ test('search graph scope opens timeline playback deep link', async ({ page }) =>
     test.skip(true, 'graph search requires explorer_runtime');
   }
 
-  await page.getByTestId('kb-search-open-graph-timeline').click();
+  await page.getByTestId('workspace-search-open-graph-timeline').click();
   await expect(page).toHaveURL(/timeline=1/);
   await expect(page.locator('.explore-shell[data-timeline="true"]')).toBeVisible({
     timeout: 60_000,

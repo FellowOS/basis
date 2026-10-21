@@ -1,49 +1,49 @@
 import { expect, test } from '@playwright/test';
 
-import { defaultKbId, registerFreshUser } from './helpers';
+import { defaultWorkspaceId, registerFreshUser } from './helpers';
 
-test('KB integration page loads (MCP, OpenAPI, access tokens); legacy URLs redirect', async ({ page }) => {
+test('workspace integration page loads (MCP, OpenAPI, access tokens); legacy URLs redirect', async ({ page }) => {
   test.setTimeout(90_000);
 
   await registerFreshUser(page);
-  const kbId = await defaultKbId(page);
+  const workspaceId = await defaultWorkspaceId(page);
 
-  await page.goto(`/kbs/${kbId}/integration`);
-  await expect(page).toHaveURL(new RegExp(`/kbs/${kbId}/integration(\\?tab=mcp)?$`), {
+  await page.goto(`/workspaces/${workspaceId}/integration`);
+  await expect(page).toHaveURL(new RegExp(`/workspaces/${workspaceId}/integration(\\?tab=mcp)?$`), {
     timeout: 60_000,
   });
   await expect(page.getByLabel(/MCP endpoint URL|MCP 端点 URL/i)).toBeVisible({ timeout: 60_000 });
   await expect(page.getByText(/Connect an agent|连接智能体/i)).toBeVisible();
 
   await page.getByRole('tab', { name: /^OpenAPI$/i }).click();
-  await expect(page).toHaveURL(new RegExp(`/kbs/${kbId}/integration\\?tab=openapi`), {
+  await expect(page).toHaveURL(new RegExp(`/workspaces/${workspaceId}/integration\\?tab=openapi`), {
     timeout: 30_000,
   });
-  await expect(page.getByTestId('kb-integration-export-ui-hint')).toBeVisible({
+  await expect(page.getByTestId('workspace-integration-export-ui-hint')).toBeVisible({
     timeout: 30_000,
   });
-  await expect(page.getByTestId('kb-integration-alerts-api-hint')).toBeVisible();
+  await expect(page.getByTestId('workspace-integration-alerts-api-hint')).toBeVisible();
 
   await page.getByRole('tab', { name: /Access tokens|访问令牌/i }).click();
-  await expect(page).toHaveURL(new RegExp(`/kbs/${kbId}/integration\\?tab=tokens`), {
+  await expect(page).toHaveURL(new RegExp(`/workspaces/${workspaceId}/integration\\?tab=tokens`), {
     timeout: 30_000,
   });
   await expect(page.getByText(/Shared by MCP and OpenAPI|MCP 与 OpenAPI 共用/i)).toBeVisible();
 
   await page.getByRole('tab', { name: /^(Access tokens|访问令牌)$/i }).click();
-  await expect(page).toHaveURL(new RegExp(`/kbs/${kbId}/integration\\?tab=tokens`), {
+  await expect(page).toHaveURL(new RegExp(`/workspaces/${workspaceId}/integration\\?tab=tokens`), {
     timeout: 30_000,
   });
   await expect(page.getByText(/Shared by MCP and OpenAPI|MCP 与 OpenAPI 共用/i)).toBeVisible({
     timeout: 30_000,
   });
 
-  await page.goto(`/kbs/${kbId}/mcp`);
-  await expect(page).toHaveURL(new RegExp(`/kbs/${kbId}/integration\\?tab=mcp`), { timeout: 30_000 });
+  await page.goto(`/workspaces/${workspaceId}/mcp`);
+  await expect(page).toHaveURL(new RegExp(`/workspaces/${workspaceId}/integration\\?tab=mcp`), { timeout: 30_000 });
 
-  await page.goto(`/kbs/${kbId}/chat?tab=connect`);
-  await expect(page).toHaveURL(new RegExp(`/kbs/${kbId}/integration\\?tab=mcp`), { timeout: 30_000 });
+  await page.goto(`/workspaces/${workspaceId}/chat?tab=connect`);
+  await expect(page).toHaveURL(new RegExp(`/workspaces/${workspaceId}/integration\\?tab=mcp`), { timeout: 30_000 });
 
-  await page.goto(`/kbs/${kbId}/chat`);
-  await expect(page).toHaveURL(new RegExp(`/kbs/${kbId}/search$`), { timeout: 30_000 });
+  await page.goto(`/workspaces/${workspaceId}/chat`);
+  await expect(page).toHaveURL(new RegExp(`/workspaces/${workspaceId}/search$`), { timeout: 30_000 });
 });

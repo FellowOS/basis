@@ -16,7 +16,7 @@ export function LocaleMenuItems({ onSelect }: { onSelect?: () => void }) {
             onSelect?.();
           }}
         >
-          {localeLabel(value, t.sidebar)}
+          {localeLabel(value, t.core.shell.sidebar)}
           {locale === value ? <PublicIcon name="check-01" size={16} className="ml-auto" /> : null}
         </DropdownMenuItem>
       ))}

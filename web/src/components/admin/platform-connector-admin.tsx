@@ -80,7 +80,7 @@ function allowlistFromDraft(allowAll: boolean, enabled: Set<string>): string[] |
 
 export function PlatformConnectorAdmin() {
   const { t, locale } = useI18n();
-  const ps = t.platformSettings.connectors;
+  const ps = t.admin_settings.page.connectors;
   const formatApiError = useApiErrorMessage();
 
   const [loading, setLoading] = useState(true);
@@ -234,21 +234,21 @@ export function PlatformConnectorAdmin() {
       schema: 'basis.platform.connector_allowlist/v1',
       exported_at: new Date().toISOString(),
       allowed_providers: allowlistFromDraft(allowAll, enabledServices),
-      note: dirty ? ps.exportDraftNote : undefined,
+      note: dirty ? ps.export_draft_note : undefined,
     };
     downloadTextBlob(
       'basis-platform-connector-allowlist.json',
       JSON.stringify(doc, null, 2),
       'application/json;charset=utf-8',
     );
-    toast.success(ps.exportedToast);
+    toast.success(ps.exported_toast);
   }
 
   async function applyImportedAllowlist(allowed: string[] | '*') {
     if (allowed === '*') {
       setAllowAll(true);
       setEnabledServices(new Set());
-      toast.success(ps.importAppliedToast);
+      toast.success(ps.import_applied_toast);
       return;
     }
     const validation = await openApiPOST<{ ok: boolean; unknown_providers: string[] }>(
@@ -257,7 +257,7 @@ export function PlatformConnectorAdmin() {
     );
     if (!validation.ok) {
       toast.error(
-        fmt(ps.importUnknownProviders, {
+        fmt(ps.import_unknown_providers, {
           list: validation.unknown_providers.join(', '),
         }),
       );
@@ -265,7 +265,7 @@ export function PlatformConnectorAdmin() {
     }
     setAllowAll(false);
     setEnabledServices(new Set(allowed));
-    toast.success(ps.importAppliedToast);
+    toast.success(ps.import_applied_toast);
   }
 
   function downloadImportTemplate() {
@@ -285,12 +285,12 @@ export function PlatformConnectorAdmin() {
           const text = String(reader.result ?? '');
           const parsed = parsePlatformAllowlistFile(text, file.name);
           if (parsed === null) {
-            toast.error(ps.importInvalidError);
+            toast.error(ps.import_invalid_error);
             return;
           }
           await applyImportedAllowlist(parsed);
         } catch {
-          toast.error(ps.importInvalidError);
+          toast.error(ps.import_invalid_error);
         }
       })();
     };
@@ -314,9 +314,9 @@ export function PlatformConnectorAdmin() {
       );
       downloadTextBlob('basis-platform-connectors-catalog.csv', csv, 'text/csv;charset=utf-8');
       if (body.stats.providers > body.connectors.length) {
-        toast.message(ps.exportCsvTruncated);
+        toast.message(ps.export_csv_truncated);
       } else {
-        toast.success(ps.exportedCsvToast);
+        toast.success(ps.exported_csv_toast);
       }
     } catch (err) {
       toast.error(formatApiError(err));
@@ -355,7 +355,7 @@ export function PlatformConnectorAdmin() {
 
   async function handleSave() {
     if (!allowAll && enabledServices.size === 0) {
-      toast.error(ps.emptySelectionError);
+      toast.error(ps.empty_selection_error);
       return;
     }
     setSaving(true);
@@ -363,7 +363,7 @@ export function PlatformConnectorAdmin() {
       await openApiPUT('/api/v1/settings/connectors', {
         body: { allowed_providers: allowlistFromDraft(allowAll, enabledServices) },
       });
-      toast.success(ps.savedToast);
+      toast.success(ps.saved_toast);
       await loadSummary();
       await loadCategoryStats();
       await loadCatalog();
@@ -378,7 +378,7 @@ export function PlatformConnectorAdmin() {
     () => [
       {
         key: 'enabled',
-        header: ps.colEnabled,
+        header: ps.col_enabled,
         width: '2.5rem',
         render: (row) => (
           <div
@@ -390,7 +390,7 @@ export function PlatformConnectorAdmin() {
               checked={isRowEnabled(row.service)}
               disabled={allowAll}
               onCheckedChange={(checked) => toggleRow(row.service, checked === true)}
-              aria-label={fmt(ps.toggleProviderAria, { service: row.service })}
+              aria-label={fmt(ps.toggle_provider_aria, { service: row.service })}
               data-testid={`platform-connector-enable-${row.service}`}
             />
           </div>
@@ -398,14 +398,14 @@ export function PlatformConnectorAdmin() {
       },
       {
         key: 'service',
-        header: ps.colService,
+        header: ps.col_service,
         render: (row) => (
           <span className="font-mono text-xs font-medium text-foreground">{row.service}</span>
         ),
       },
       {
         key: 'name',
-        header: ps.colName,
+        header: ps.col_name,
         render: (row) => (
           <div className="min-w-0">
             <p className="truncate text-sm font-medium text-foreground">{row.display_name}</p>
@@ -417,7 +417,7 @@ export function PlatformConnectorAdmin() {
       },
       {
         key: 'categories',
-        header: ps.colCategories,
+        header: ps.col_categories,
         hideBelow: 'md',
         render: (row) => (
           <div className="flex max-w-[14rem] flex-wrap gap-1">
@@ -431,7 +431,7 @@ export function PlatformConnectorAdmin() {
       },
       {
         key: 'auth',
-        header: ps.colAuth,
+        header: ps.col_auth,
         hideBelow: 'lg',
         render: (row) => (
           <span className="font-mono text-[11px] text-muted-foreground">
@@ -441,13 +441,13 @@ export function PlatformConnectorAdmin() {
       },
       {
         key: 'streams',
-        header: ps.colStreams,
+        header: ps.col_streams,
         align: 'right',
         render: (row) => formatLocaleNumber(locale, row.stream_count),
       },
       {
         key: 'tools',
-        header: ps.colTools,
+        header: ps.col_tools,
         align: 'right',
         hideBelow: 'md',
         render: (row) => formatLocaleNumber(locale, row.tool_count),
@@ -470,7 +470,7 @@ export function PlatformConnectorAdmin() {
             }}
             data-testid={`platform-connector-view-${row.service}`}
           >
-            {ps.viewManifest}
+            {ps.view_manifest}
           </Button>
         ),
       },
@@ -490,21 +490,21 @@ export function PlatformConnectorAdmin() {
   const pageEnd = offset + rows.length;
   const totalPages = Math.max(1, Math.ceil(totalMatched / PAGE_SIZE));
   const currentPage = Math.floor(offset / PAGE_SIZE) + 1;
-  const countLabel = `${fmt(ps.pageSummary, {
+  const countLabel = `${fmt(ps.page_summary, {
     from: totalMatched === 0 ? 0 : offset + 1,
     to: pageEnd,
     total: totalMatched,
-  })}${dirty ? ` · ${ps.unsavedChanges}` : ''}`;
+  })}${dirty ? ` · ${ps.unsaved_changes}` : ''}`;
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-4">
       {stats ? (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {[
-            { label: ps.statProviders, value: stats.providers },
-            { label: ps.statEnabled, value: enabledCount },
-            { label: ps.statWithStreams, value: stats.providers_with_streams },
-            { label: ps.statTools, value: stats.total_tools },
+            { label: ps.stat_providers, value: stats.providers },
+            { label: ps.stat_enabled, value: enabledCount },
+            { label: ps.stat_with_streams, value: stats.providers_with_streams },
+            { label: ps.stat_tools, value: stats.total_tools },
           ].map((item) => (
             <div key={item.label} className={cn(resourceCardSurfaceClass, 'px-4 py-3')}>
               <p className="text-xs text-muted-foreground">{item.label}</p>
@@ -524,8 +524,8 @@ export function PlatformConnectorAdmin() {
 
       <DataPanel>
         <DataPanelHeader
-          title={ps.catalogTitle}
-          subtitle={ps.catalogSubtitle}
+          title={ps.catalog_title}
+          subtitle={ps.catalog_subtitle}
           actions={
             <div className="flex flex-wrap items-center gap-2">
               <Button
@@ -535,7 +535,7 @@ export function PlatformConnectorAdmin() {
                 disabled={allowAll}
                 onClick={() => selectAllVisible()}
               >
-                {ps.selectVisible}
+                {ps.select_visible}
               </Button>
               <Button
                 type="button"
@@ -544,7 +544,7 @@ export function PlatformConnectorAdmin() {
                 disabled={allowAll}
                 onClick={() => clearAllVisible()}
               >
-                {ps.clearVisible}
+                {ps.clear_visible}
               </Button>
               <Button
                 type="button"
@@ -552,10 +552,10 @@ export function PlatformConnectorAdmin() {
                 variant="secondary"
                 onClick={() => void enableAllWithStreams()}
               >
-                {ps.enableStreamProviders}
+                {ps.enable_stream_providers}
               </Button>
               <Button type="button" size="sm" variant="outline" onClick={() => exportAllowlist()}>
-                {ps.exportAllowlist}
+                {ps.export_allowlist}
               </Button>
               <Button
                 type="button"
@@ -563,7 +563,7 @@ export function PlatformConnectorAdmin() {
                 variant="outline"
                 onClick={() => void exportCatalogCsv()}
               >
-                {ps.exportCatalogCsv}
+                {ps.export_catalog_csv}
               </Button>
               <Button
                 type="button"
@@ -571,7 +571,7 @@ export function PlatformConnectorAdmin() {
                 variant="outline"
                 onClick={() => downloadImportTemplate()}
               >
-                {ps.importTemplate}
+                {ps.import_template}
               </Button>
               <Button
                 type="button"
@@ -579,7 +579,7 @@ export function PlatformConnectorAdmin() {
                 variant="outline"
                 onClick={() => importInputRef.current?.click()}
               >
-                {ps.importAllowlist}
+                {ps.import_allowlist}
               </Button>
               <input
                 ref={importInputRef}
@@ -599,7 +599,7 @@ export function PlatformConnectorAdmin() {
                 onClick={() => void handleSave()}
                 data-testid="save-platform-connector-allowlist-btn"
               >
-                {saving ? ps.saving : ps.saveButton}
+                {saving ? ps.saving : ps.save_button}
               </Button>
             </div>
           }
@@ -617,25 +617,25 @@ export function PlatformConnectorAdmin() {
                   }}
                 />
                 <Label htmlFor="platform-connector-allow-all" className="text-sm">
-                  {ps.allowFullCatalog}
+                  {ps.allow_full_catalog}
                 </Label>
               </div>
-              <p className="text-xs text-muted-foreground">{ps.allowFullCatalogHint}</p>
+              <p className="text-xs text-muted-foreground">{ps.allow_full_catalog_hint}</p>
             </div>
             <div className="flex flex-wrap items-center gap-3">
               <ToolbarSearch
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={ps.searchPlaceholder}
+                placeholder={ps.search_placeholder}
                 className="max-w-sm flex-1"
                 data-testid="platform-connectors-catalog-search"
               />
               <Select value={category} onValueChange={setCategory}>
                 <SelectTrigger className="w-[11rem]" size="sm">
-                  <SelectValue placeholder={ps.categoryAll} />
+                  <SelectValue placeholder={ps.category_all} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="__all__">{ps.categoryAll}</SelectItem>
+                  <SelectItem value="__all__">{ps.category_all}</SelectItem>
                   {categories.map((cat) => (
                     <SelectItem key={cat} value={cat}>
                       {cat}
@@ -650,7 +650,7 @@ export function PlatformConnectorAdmin() {
                   onCheckedChange={setStreamsOnly}
                 />
                 <Label htmlFor="platform-streams-only" className="text-xs whitespace-nowrap">
-                  {ps.streamsOnlyFilter}
+                  {ps.streams_only_filter}
                 </Label>
               </div>
             </div>

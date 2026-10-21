@@ -1,4 +1,4 @@
-"""Revoke realtime graph subscriptions when KB membership changes."""
+"""Revoke realtime graph subscriptions when workspace membership changes."""
 
 from __future__ import annotations
 
@@ -8,9 +8,9 @@ if TYPE_CHECKING:
     from fastapi import Request
 
 
-def revoke_kb_member_realtime(request: Request, kb_id: str, user_id: str) -> None:
-    """Close open graph-update sockets for a user on a KB."""
-    request.app.state.ws_hub.try_disconnect_user_from_kb(kb_id, user_id)
+def revoke_workspace_member_realtime(request: Request, workspace_id: str, user_id: str) -> None:
+    """Close open graph-update sockets for a user on a workspace."""
+    request.app.state.ws_hub.try_disconnect_user_from_workspace(workspace_id, user_id)
 
 
 def revoke_user_realtime(request: Request, user_id: str) -> None:

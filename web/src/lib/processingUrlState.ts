@@ -1,4 +1,4 @@
-import { kbPath } from '@/lib/nav-config.js';
+import { workspacePath } from '@/lib/nav-config.js';
 
 const JOB_PARAM = 'job';
 const FILTER_PARAM = 'filter';
@@ -26,8 +26,8 @@ export function parseProcessingUrlState(search: string): {
   return { jobId: jobId || undefined, filter };
 }
 
-export function kbProcessingPath(
-  kbId: string,
+export function processingPath(
+  workspaceId: string,
   opts?: { jobId?: string; filter?: ProcessingUrlFilter },
 ): string {
   const params = new URLSearchParams();
@@ -38,10 +38,10 @@ export function kbProcessingPath(
     params.set(JOB_PARAM, opts.jobId.trim());
   }
   const q = params.toString();
-  return q ? `${kbPath(kbId, 'processing')}?${q}` : kbPath(kbId, 'processing');
+  return q ? `${workspacePath(workspaceId, 'processing')}?${q}` : workspacePath(workspaceId, 'processing');
 }
 
 /** Deep-link to processing jobs with a specific job expanded (F-SRC-08). */
-export function kbProcessingJobPath(kbId: string, jobId: string): string {
-  return kbProcessingPath(kbId, { jobId });
+export function processingJobPath(workspaceId: string, jobId: string): string {
+  return processingPath(workspaceId, { jobId });
 }

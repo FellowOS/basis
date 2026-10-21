@@ -15,17 +15,17 @@ def diff_session_at(session: Any, from_time: str, to_time: str) -> dict[str, Any
 
 
 def build_graph_staging_payload(
-    kb_id: str, diff: dict[str, Any], *, draft: dict[str, Any] | None = None
+    workspace_id: str, diff: dict[str, Any], *, draft: dict[str, Any] | None = None
 ) -> dict[str, Any]:
     from basis.domain.graph.reads.staging import build_graph_staging_payload as _impl
 
-    return _impl(kb_id, diff, draft=draft)
+    return _impl(workspace_id, diff, draft=draft)
 
 
-def staging_session_key(kb_id: str, from_time: str, to_time: str) -> str:
+def staging_session_key(workspace_id: str, from_time: str, to_time: str) -> str:
     from basis.domain.graph.reads.staging import staging_session_key as _impl
 
-    return _impl(kb_id, from_time, to_time)
+    return _impl(workspace_id, from_time, to_time)
 
 
 def require_kb_graph_session(runtime: KbGraphRuntime) -> Any:

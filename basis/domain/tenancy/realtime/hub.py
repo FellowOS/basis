@@ -1,4 +1,4 @@
-"""Per-KB WebSocket fan-out for graph projection events."""
+"""Per-workspace WebSocket fan-out for graph projection events."""
 
 from __future__ import annotations
 
@@ -18,20 +18,20 @@ class GraphWsHub:
         self._socket_users: dict[WebSocket, tuple[str, str]] = {}
         self._lock = asyncio.Lock()
 
-    async def connect(self, kb_id: str, websocket: WebSocket, user_id: str) -> None:
+    async def connect(self, workspace_id: str, websocket: WebSocket, user_id: str) -> None:
         await websocket.accept()
         async with self._lock:
-            self._rooms[kb_id].add(websocket)
-            self._socket_users[websocket] = (kb_id, user_id)
+            self._rooms[workspace_id].add(websocket)
+            self._socket_users[websocket] = (workspace_id, user_id)
 
-    async def disconnect(self, kb_id: str, websocket: WebSocket) -> None:
+    async def disconnect(self, workspace_id: str, websocket: WebSocket) -> None:
         async with self._lock:
             self._socket_users.pop(websocket, None)
-            room = self._rooms.get(kb_id)
+            room = self._rooms.get(workspace_id)
             if room and websocket in room:
                 room.discard(websocket)
             if room is not None and not room:
-                self._rooms.pop(kb_id, None)
+                self._rooms.pop(workspace_id, None)
 
     async def _revoke_sockets(
         self,
@@ -39,23 +39,23 @@ class GraphWsHub:
         message: dict[str, Any],
     ) -> int:
         closed = 0
-        for socket, kb_id in targets:
+        for socket, kid in targets:
             try:
                 await socket.send_json(message)
                 await socket.close(code=4403)
             except Exception:
                 logger.debug("ws revoke close failed", exc_info=True)
-            await self.disconnect(kb_id, socket)
+            await self.disconnect(kid, socket)
             closed += 1
         return closed
 
-    async def disconnect_user_from_kb(self, kb_id: str, user_id: str) -> int:
-        message = {"type": "access_revoked", "kb_id": kb_id}
+    async def disconnect_user_from_workspace(self, workspace_id: str, user_id: str) -> int:
+        message = {"type": "access_revoked", "workspace_id": workspace_id}
         async with self._lock:
             targets = [
                 (socket, kid)
                 for socket, (kid, uid) in self._socket_users.items()
-                if kid == kb_id and uid == user_id
+                if kid == workspace_id and uid == user_id
             ]
         return await self._revoke_sockets(targets, message)
 
@@ -69,12 +69,12 @@ class GraphWsHub:
             ]
         return await self._revoke_sockets(targets, message)
 
-    def try_disconnect_user_from_kb(self, kb_id: str, user_id: str) -> None:
+    def try_disconnect_user_from_workspace(self, workspace_id: str, user_id: str) -> None:
         try:
             loop = asyncio.get_running_loop()
         except RuntimeError:
             return
-        loop.create_task(self.disconnect_user_from_kb(kb_id, user_id))
+        loop.create_task(self.disconnect_user_from_workspace(workspace_id, user_id))
 
     def try_disconnect_user(self, user_id: str, *, reason: str = "user_deactivated") -> None:
         try:
@@ -83,19 +83,19 @@ class GraphWsHub:
             return
         loop.create_task(self.disconnect_user(user_id, reason=reason))
 
-    async def broadcast(self, kb_id: str, message: dict[str, Any]) -> None:
+    async def broadcast(self, workspace_id: str, message: dict[str, Any]) -> None:
         async with self._lock:
-            sockets = list(self._rooms.get(kb_id, set()))
+            sockets = list(self._rooms.get(workspace_id, set()))
         for socket in sockets:
             try:
                 await socket.send_json(message)
             except Exception:
                 logger.debug("ws send failed", exc_info=True)
-                await self.disconnect(kb_id, socket)
+                await self.disconnect(workspace_id, socket)
 
-    def try_broadcast(self, kb_id: str, message: dict[str, Any]) -> None:
+    def try_broadcast(self, workspace_id: str, message: dict[str, Any]) -> None:
         try:
             loop = asyncio.get_running_loop()
         except RuntimeError:
             return
-        loop.create_task(self.broadcast(kb_id, message))
+        loop.create_task(self.broadcast(workspace_id, message))

@@ -24,7 +24,7 @@ export function PlatformConnectorCategoryBreakdown({
   selectedCategory,
 }: Props) {
   const { t, locale } = useI18n();
-  const ps = t.platformSettings.connectors;
+  const ps = t.admin_settings.page.connectors;
 
   const top = useMemo(() => {
     return [...rows].sort((a, b) => b.total - a.total).slice(0, maxBars);
@@ -36,7 +36,7 @@ export function PlatformConnectorCategoryBreakdown({
 
   return (
     <DataPanel>
-      <DataPanelHeader title={ps.categoryBreakdownTitle} subtitle={ps.categoryBreakdownSubtitle} />
+      <DataPanelHeader title={ps.category_breakdown_title} subtitle={ps.category_breakdown_subtitle} />
       <DataPanelBody className="space-y-3">
         {top.map((row) => {
           const widthPct = Math.max(4, Math.round((row.total / maxTotal) * 100));
@@ -57,7 +57,7 @@ export function PlatformConnectorCategoryBreakdown({
               <div className="mb-1 flex items-center justify-between gap-2 text-xs">
                 <span className="font-medium capitalize text-foreground">{row.category}</span>
                 <span className="tabular-nums text-muted-foreground">
-                  {fmt(ps.categoryBreakdownCounts, {
+                  {fmt(ps.category_breakdown_counts, {
                     enabled: formatLocaleNumber(locale, row.enabled),
                     total: formatLocaleNumber(locale, row.total),
                   })}

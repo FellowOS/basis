@@ -1,1 +1,1 @@
-"""Multi-step KB domain workflows (non-store orchestration)."""
+"""Multi-step workspace domain workflows (non-store orchestration)."""

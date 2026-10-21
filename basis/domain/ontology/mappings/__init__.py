@@ -1,4 +1,4 @@
-"""Statement surface → ontology URI mappings (ledger tables, KB-scoped)."""
+"""Statement surface → ontology URI mappings (ledger tables, workspace-scoped)."""
 
 from basis.domain.ontology.mappings.access import (
     MAPPING_DIRECTIONS,

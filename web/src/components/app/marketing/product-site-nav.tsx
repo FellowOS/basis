@@ -18,6 +18,7 @@ import {
   type ProductNavKey,
 } from '@/lib/product-nav.js';
 import { cn } from '@/lib/utils.js';
+import { productDeveloperLinkLabels, productNavLabel } from '@/lib/product-nav-i18n.js';
 
 type ProductSiteNavProps = {
   activeKey?: ProductNavKey;
@@ -27,13 +28,6 @@ type ProductSiteNavProps = {
   onNavigate?: () => void;
 };
 
-function navLabel(
-  nav: (typeof import('@/i18n/locales/en/marketing.js'))['marketing']['nav'],
-  key: ProductNavKey,
-): string {
-  return nav[key];
-}
-
 export function ProductSiteNav({
   activeKey,
   layout = 'horizontal',
@@ -41,7 +35,7 @@ export function ProductSiteNav({
   onNavigate,
 }: ProductSiteNavProps) {
   const { t } = useI18n();
-  const nav = t.marketing.nav;
+  const nav = t.home.marketing.nav;
   const { pathname, hash } = useLocation();
   const developersActive = isDevelopersNavActive(pathname, activeKey);
   const isVertical = layout === 'vertical';
@@ -97,7 +91,7 @@ export function ProductSiteNav({
 
   return (
     <nav
-      aria-label={nav.ariaMain}
+      aria-label={nav.aria_main}
       className={cn(
         isVertical ? 'flex flex-col gap-0.5' : 'hidden items-center gap-0.5 lg:flex',
         className,
@@ -105,7 +99,7 @@ export function ProductSiteNav({
     >
       {PRODUCT_NAV.map((item) => {
         const active = isProductNavActive(item, pathname, effectiveHash, activeKey);
-        const label = navLabel(nav, item.key);
+        const label = productNavLabel(nav, item.key);
         return itemWrap(
           <Link
             key={item.key}
@@ -138,10 +132,7 @@ export function ProductSiteNav({
             className="min-w-[15rem]"
           >
             {PRODUCT_DEVELOPER_LINKS.map((link) => {
-              const menu = nav.developersMenu;
-              const title = menu[link.key];
-              const descKey = `${link.key}Desc` as keyof typeof menu;
-              const desc = menu[descKey];
+              const { title, desc } = productDeveloperLinkLabels(nav.developers_menu, link.key);
               if (link.external) {
                 return (
                   <DropdownMenuItem key={link.key} asChild>

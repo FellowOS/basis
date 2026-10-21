@@ -1,4 +1,4 @@
-"""Shared helpers for KB ontology hub HTTP route modules."""
+"""Shared helpers for workspace ontology hub HTTP route modules."""
 
 from __future__ import annotations
 
@@ -16,8 +16,8 @@ from basis.domain.knowledge.store import KnowledgeStore
 WRITE_METHODS = frozenset({"POST", "PUT", "PATCH", "DELETE"})
 
 
-def ontology_session(request: Request, kb_id: str):
-    runtime = kb_graph_runtime_for(request, kb_id)
+def ontology_session(request: Request, workspace_id: str):
+    runtime = kb_graph_runtime_for(request, workspace_id)
     return require_kb_graph_session(runtime)
 
 
@@ -27,7 +27,7 @@ def min_role(method: str) -> str:
 
 def governance_alert_from_proposal_result(
     request: Request,
-    kb_id: str,
+    workspace_id: str,
     knowledge: KnowledgeStore,
     proposal_id: str,
     result: Any,
@@ -44,7 +44,7 @@ def governance_alert_from_proposal_result(
     if isinstance(shacl, dict) and shacl.get("conforms") is False:
         emit_governance_tripped_for_kb(
             request,
-            kb_id,
+            workspace_id,
             knowledge,
             message=f"SHACL gate failed for proposal {proposal_id}",
             detail={
@@ -58,7 +58,7 @@ def governance_alert_from_proposal_result(
 def audit_ontology_graph_write(
     store: AdminStore,
     user: User,
-    kb_id: str,
+    workspace_id: str,
     action: str,
     result: Any,
 ) -> None:
@@ -73,4 +73,4 @@ def audit_ontology_graph_write(
         value = data.get(key)
         if value:
             extra[key] = value
-    audit_kb_graph(store, user, kb_id, action, extra=extra or None)
+    audit_kb_graph(store, user, workspace_id, action, extra=extra or None)

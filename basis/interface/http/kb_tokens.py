@@ -1,4 +1,4 @@
-"""API tokens scoped to one knowledge base."""
+"""API tokens scoped to one workspace (`workspace_id`)."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field
 
 from basis.domain.errors import AdminError
 from basis.domain.tenancy.admin.store import AdminStore, User
-from basis.interface.http.deps import get_current_user, get_kb_for_admin, get_store
+from basis.interface.http.deps import get_current_user, get_workspace_for_admin, get_store
 
 router = APIRouter(tags=["knowledge-bases"])
 
@@ -20,61 +20,61 @@ class CreateKbApiTokenRequest(BaseModel):
     expires_at: str | None = None
 
 
-def _tokens_for_kb(store: AdminStore, user: User, kb_id: str) -> list:
-    return [t for t in store.list_api_tokens(user) if kb_id in t.kb_ids]
+def _tokens_for_kb(store: AdminStore, user: User, workspace_id: str) -> list:
+    return [t for t in store.list_api_tokens(user) if workspace_id in t.kb_ids]
 
 
-@router.get("/{kb_id}/tokens")
+@router.get("/{workspace_id}/tokens")
 async def list_kb_tokens(
-    kb_id: str,
+    workspace_id: str,
     request: Request,
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> dict[str, Any]:
     """
-List Kb Tokens. Manage KB API tokens (session + KB admin only). Requires session JWT (`sessionAuth`).
+List workspace API tokens. Manage workspace API tokens (session + workspace admin only). Requires session JWT (`sessionAuth`).
     """
-    get_kb_for_admin(request, user, kb_id, store)
-    tokens = _tokens_for_kb(store, user, kb_id)
+    get_workspace_for_admin(request, user, workspace_id, store)
+    tokens = _tokens_for_kb(store, user, workspace_id)
     return {"tokens": [t.public() for t in tokens]}
 
 
-@router.post("/{kb_id}/tokens")
+@router.post("/{workspace_id}/tokens")
 async def create_kb_token(
-    kb_id: str,
+    workspace_id: str,
     body: CreateKbApiTokenRequest,
     request: Request,
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> dict[str, Any]:
     """
-Create Kb Token. Manage KB API tokens (session + KB admin only). Requires session JWT (`sessionAuth`).
+Create workspace API token. Manage workspace API tokens (session + workspace admin only). Requires session JWT (`sessionAuth`).
     """
-    get_kb_for_admin(request, user, kb_id, store)
+    get_workspace_for_admin(request, user, workspace_id, store)
     record, plaintext = store.create_api_token(
         user,
         name=body.name,
         scope=body.scope,
-        kb_ids=[kb_id],
+        kb_ids=[workspace_id],
         expires_at=body.expires_at,
     )
     return {"token": record.public(), "secret": plaintext}
 
 
-@router.delete("/{kb_id}/tokens/{token_id}")
+@router.delete("/{workspace_id}/tokens/{token_id}")
 async def delete_kb_token(
-    kb_id: str,
+    workspace_id: str,
     token_id: str,
     request: Request,
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> dict[str, str]:
     """
-Delete Kb Token. Manage KB API tokens (session + KB admin only). Requires session JWT (`sessionAuth`).
+Delete Token. Manage workspace API tokens (session + workspace admin only). Requires session JWT (`sessionAuth`).
     """
-    get_kb_for_admin(request, user, kb_id, store)
-    matches = [t for t in _tokens_for_kb(store, user, kb_id) if t.id == token_id]
+    get_workspace_for_admin(request, user, workspace_id, store)
+    matches = [t for t in _tokens_for_kb(store, user, workspace_id) if t.id == token_id]
     if not matches:
-        raise AdminError(404, "not_found", "令牌不存在或不属于此知识库")
+        raise AdminError(404, "not_found", "令牌不存在或不属于此工作区")
     store.delete_api_token(user, token_id)
     return {"status": "deleted"}

@@ -1,29 +1,29 @@
 import { expect, test } from '@playwright/test';
 
-import { defaultKbId, registerFreshUser } from './helpers';
+import { defaultWorkspaceId, registerFreshUser } from './helpers';
 
 test('analyze hub tabs and legacy SPARQL/reasoning routes redirect', async ({ page }) => {
   test.setTimeout(90_000);
 
   await registerFreshUser(page);
-  const kbId = await defaultKbId(page);
+  const workspaceId = await defaultWorkspaceId(page);
 
-  await page.goto(`/kbs/${kbId}/analyze`);
+  await page.goto(`/workspaces/${workspaceId}/analyze`);
   await expect(page.getByRole('tab', { name: /^SPARQL$/i })).toHaveAttribute('data-state', 'active');
   await expect(page.getByText(/SPARQL and reasoning HTTP|SPARQL 与规则推理 HTTP/i)).toBeVisible({
     timeout: 60_000,
   });
 
-  await page.goto(`/kbs/${kbId}/sparql`);
-  await expect(page).toHaveURL(new RegExp(`/kbs/${kbId}/analyze$`), { timeout: 30_000 });
+  await page.goto(`/workspaces/${workspaceId}/sparql`);
+  await expect(page).toHaveURL(new RegExp(`/workspaces/${workspaceId}/analyze$`), { timeout: 30_000 });
 
-  await page.goto(`/kbs/${kbId}/reasoning`);
-  await expect(page).toHaveURL(new RegExp(`/kbs/${kbId}/analyze\\?tab=reasoning`), {
+  await page.goto(`/workspaces/${workspaceId}/reasoning`);
+  await expect(page).toHaveURL(new RegExp(`/workspaces/${workspaceId}/analyze\\?tab=reasoning`), {
     timeout: 30_000,
   });
 
   await page.getByRole('tab', { name: /Reasoning|规则推理/i }).click();
-  await expect(page).toHaveURL(new RegExp(`/kbs/${kbId}/analyze\\?tab=reasoning`), {
+  await expect(page).toHaveURL(new RegExp(`/workspaces/${workspaceId}/analyze\\?tab=reasoning`), {
     timeout: 30_000,
   });
 

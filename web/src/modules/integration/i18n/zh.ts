@@ -1,0 +1,67 @@
+export default {
+  menu: {
+    integration: "集成"
+  },
+  tabs: {
+    openapi: "OpenAPI",
+    mcp: "MCP",
+    tokens: "访问令牌"
+  },
+  tokens: {
+    hint: "MCP 与 OpenAPI 共用 — 在集成请求中使用 Authorization: Bearer <令牌>。"
+  },
+  openapi: {
+    hint: "本工作区的 REST 集成 — 与 MCP 工具对应同一套操作。",
+    download_json: "下载工作区 OpenAPI JSON",
+    open_swagger: "打开完整 Swagger UI",
+    api_base_label: "本工作区 API 根路径：",
+    workspace_id_try_it_out:
+      "Try it out 时将 workspace_id 设为当前工作区 id；Bearer 使用控制台登录会话令牌。",
+    export_ui_hint: "控制台引导导出（JSON/CSV）：",
+    export_ui_link: "设置 → 图谱 → 导出图谱",
+    alerts_api_hint:
+      "工作区告警 REST：列表 GET /alerts、SSE /alerts/stream、全部已读与全部忽略 — 在下方规范中搜索 alerts。"
+  },
+  mcp: {
+    title: "MCP",
+    connection_title: "连接智能体",
+    hint: "通过 HTTP MCP 让 Cursor 等客户端访问本工作区。",
+    step_create_token: "在「访问令牌」标签页创建访问令牌",
+    step_copy_url: "复制 MCP URL，在客户端填入服务地址",
+    step_paste_config: "将下方配置粘贴到 mcp.json，并把 Bearer 换成你的令牌",
+    url: "MCP 端点 URL",
+    api_base_note: "客户端需直连 Basis API（如 http://127.0.0.1:8090），不要走前端开发代理端口。",
+    tools: "可用工具",
+    copy: "复制 URL",
+    copy_config: "复制配置",
+    cursor_config: "Cursor / mcp.json 示例",
+    bearer_hint: "请求头：Authorization: Bearer <访问令牌>",
+    name_placeholder: "例如 cursor-agent",
+    empty_tokens: "暂无访问令牌",
+    empty_tokens_hint: "创建后可在列表中随时复制密钥",
+    tokens_title: "访问令牌",
+    name_label: "名称",
+    create_button: "创建",
+    secret_once: "新令牌密钥（请保存；也可在下方列表中复制）",
+    secret_dismiss: "关闭",
+    scope_label: "权限",
+    scope_labels: {
+      read: "只读",
+      write: "读写",
+      admin: "管理员"
+    },
+    token_meta: "{scope} · {lastUsed}",
+    last_used: "最近使用",
+    last_used_never: "从未使用",
+    revoke: "撤销",
+    revoked: "已撤销",
+    delete: "删除",
+    delete_title: "删除访问令牌",
+    delete_confirm: "删除后无法恢复，该密钥将立即失效。",
+    admin_only: "仅工作区管理员可创建或删除令牌。",
+    copy_token: "复制令牌",
+    copy_token_unavailable: "无可用密钥（已撤销或迁移前创建的旧令牌请重新创建）",
+    copy_failed: "复制失败，请手动选中密钥复制",
+    actions: "操作"
+  }
+} as const;

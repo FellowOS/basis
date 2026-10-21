@@ -1,4 +1,4 @@
-"""KB projected graph read and rebuild routes."""
+"""Workspace projected graph read and rebuild routes."""
 
 from __future__ import annotations
 
@@ -12,15 +12,15 @@ from basis.domain.tenancy.admin.store import AdminStore, User
 from basis.interface.http.deps import (
     kb_graph_runtime_for,
     get_current_user,
-    get_kb_for_editor,
-    get_kb_for_viewer,
+    get_workspace_for_editor,
+    get_workspace_for_viewer,
     get_knowledge_store,
     get_runtime_limits,
     get_store,
     graph_for,
     save_graph,
 )
-from basis.interface.http.kb_core_context import build_kb_core_context
+from basis.interface.http.kb_core_context import build_workspace_core_context
 from basis.application.operation_http import http_response_from_payload
 from basis.application.registry import run
 from basis.infra.runtime.limits import RuntimeLimits
@@ -37,29 +37,29 @@ from basis.interface.http.kb_graph_models import (
 router = APIRouter(tags=["knowledge-bases"])
 
 
-@router.post("/{kb_id}/graph/rebuild")
+@router.post("/{workspace_id}/graph/rebuild")
 async def rebuild_graph(
-    kb_id: str,
+    workspace_id: str,
     request: Request,
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> dict[str, Any]:
     """
-Rebuild Graph. Projected graph read API (Explorer runtime). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Rebuild Graph. Projected graph read API (Explorer runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
-    get_kb_for_editor(request, user, kb_id, store)
-    session = graph_for(request, kb_id)
+    get_workspace_for_editor(request, user, workspace_id, store)
+    session = graph_for(request, workspace_id)
     meta = await asyncio.to_thread(
         apply_rebuild_to_session,
         get_knowledge_store(request),
-        kb_id,
+        workspace_id,
         session,
     )
-    save_graph(request, kb_id)
+    save_graph(request, workspace_id)
     audit_kb_graph(
         store,
         user,
-        kb_id,
+        workspace_id,
         "kb.graph.projection_rebuild",
         extra={
             "projection_revision": meta.get("projection_revision"),
@@ -71,20 +71,20 @@ Rebuild Graph. Projected graph read API (Explorer runtime). Requires KB membersh
     return meta
 
 
-@router.get("/{kb_id}/graph/projection")
+@router.get("/{workspace_id}/graph/projection")
 async def graph_projection_status(
-    kb_id: str,
+    workspace_id: str,
     request: Request,
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> dict[str, Any]:
     """
-Graph Projection Status. Projected graph read API (Explorer runtime). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Graph Projection Status. Projected graph read API (Explorer runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
-    get_kb_for_viewer(request, user, kb_id, store)
+    get_workspace_for_viewer(request, user, workspace_id, store)
     knowledge = get_knowledge_store(request)
-    projection = knowledge.get_projection_state(kb_id)
-    session = graph_for(request, kb_id)
+    projection = knowledge.get_projection_state(workspace_id)
+    session = graph_for(request, workspace_id)
     live = session.stats()
     return {
         **projection,
@@ -93,23 +93,23 @@ Graph Projection Status. Projected graph read API (Explorer runtime). Requires K
     }
 
 
-@router.get("/{kb_id}/graph/stats")
+@router.get("/{workspace_id}/graph/stats")
 async def graph_stats(
-    kb_id: str,
+    workspace_id: str,
     request: Request,
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> dict[str, int]:
     """
-Graph Stats. Projected graph read API (Explorer runtime). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Graph Stats. Projected graph read API (Explorer runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
-    get_kb_for_viewer(request, user, kb_id, store)
-    return graph_for(request, kb_id).stats()
+    get_workspace_for_viewer(request, user, workspace_id, store)
+    return graph_for(request, workspace_id).stats()
 
 
-@router.get("/{kb_id}/graph/nodes")
+@router.get("/{workspace_id}/graph/nodes")
 async def graph_nodes_route(
-    kb_id: str,
+    workspace_id: str,
     request: Request,
     node_type: str | None = None,
     search: str | None = None,
@@ -120,10 +120,10 @@ async def graph_nodes_route(
     limits: RuntimeLimits = Depends(get_runtime_limits),
 ) -> dict[str, Any]:
     """
-Graph Nodes Route. Projected graph read API (Explorer runtime). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Graph Nodes Route. Projected graph read API (Explorer runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
-    get_kb_for_viewer(request, user, kb_id, store)
-    runtime = kb_graph_runtime_for(request, kb_id)
+    get_workspace_for_viewer(request, user, workspace_id, store)
+    runtime = kb_graph_runtime_for(request, workspace_id)
     page_limit = min(max(1, limit), limits.graph_page_max_nodes)
     if runtime.adapter is not None:
         nodes, total, next_cursor = runtime.adapter.paginate_nodes(
@@ -146,9 +146,9 @@ Graph Nodes Route. Projected graph read API (Explorer runtime). Requires KB memb
     return {"nodes": nodes, "total": len(nodes), "next_cursor": None, "engine": "snapshot"}
 
 
-@router.post("/{kb_id}/graph/resolve-labels")
+@router.post("/{workspace_id}/graph/resolve-labels")
 async def resolve_graph_node_labels(
-    kb_id: str,
+    workspace_id: str,
     body: ResolveNodeLabelsRequest,
     request: Request,
     user: User = Depends(get_current_user),
@@ -156,12 +156,12 @@ async def resolve_graph_node_labels(
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> dict[str, Any]:
     """
-Resolve Graph Node Labels. Projected graph read API (Explorer runtime). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Resolve Graph Node Labels. Projected graph read API (Explorer runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
-    get_kb_for_viewer(request, user, kb_id, store)
+    get_workspace_for_viewer(request, user, workspace_id, store)
     ids = [str(i).strip() for i in body.ids if str(i).strip()]
-    labels = knowledge.entity_labels_by_ids(kb_id, ids)
-    runtime = kb_graph_runtime_for(request, kb_id)
+    labels = knowledge.entity_labels_by_ids(workspace_id, ids)
+    runtime = kb_graph_runtime_for(request, workspace_id)
     for node_id in ids:
         if labels.get(node_id):
             continue
@@ -175,28 +175,28 @@ Resolve Graph Node Labels. Projected graph read API (Explorer runtime). Requires
     return {"labels": labels}
 
 
-@router.get("/{kb_id}/graph/nodes/{node_id}")
+@router.get("/{workspace_id}/graph/nodes/{node_id}")
 async def graph_node_route(
-    kb_id: str,
+    workspace_id: str,
     node_id: str,
     request: Request,
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> dict[str, Any]:
     """
-Graph Node Route. Projected graph read API (Explorer runtime). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Graph Node Route. Projected graph read API (Explorer runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
-    get_kb_for_viewer(request, user, kb_id, store)
-    runtime = kb_graph_runtime_for(request, kb_id)
+    get_workspace_for_viewer(request, user, workspace_id, store)
+    runtime = kb_graph_runtime_for(request, workspace_id)
     node = await asyncio.to_thread(get_node, runtime, node_id)
     if node is None:
         raise AdminError(404, "not_found", "节点不存在")
     return {"node": node}
 
 
-@router.get("/{kb_id}/graph/nodes/{node_id}/neighbors")
+@router.get("/{workspace_id}/graph/nodes/{node_id}/neighbors")
 async def graph_neighbors_route(
-    kb_id: str,
+    workspace_id: str,
     node_id: str,
     request: Request,
     depth: int = 1,
@@ -204,9 +204,9 @@ async def graph_neighbors_route(
     store: AdminStore = Depends(get_store),
 ) -> dict[str, Any]:
     """
-Graph Neighbors Route. Projected graph read API (Explorer runtime). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Graph Neighbors Route. Projected graph read API (Explorer runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
-    ctx = build_kb_core_context(request, kb_id=kb_id, user=user, store=store)
+    ctx = build_workspace_core_context(request, workspace_id=workspace_id, user=user, store=store)
     payload = await asyncio.to_thread(
         run,
         ctx,
@@ -216,9 +216,9 @@ Graph Neighbors Route. Projected graph read API (Explorer runtime). Requires KB 
     return http_response_from_payload(payload)
 
 
-@router.get("/{kb_id}/graph/path")
+@router.get("/{workspace_id}/graph/path")
 async def graph_path_route(
-    kb_id: str,
+    workspace_id: str,
     request: Request,
     source: str,
     target: str,
@@ -228,11 +228,11 @@ async def graph_path_route(
     store: AdminStore = Depends(get_store),
 ) -> dict[str, Any]:
     """
-Graph Path Route. Projected graph read API (Explorer runtime). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Graph Path Route. Projected graph read API (Explorer runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
     if algorithm not in {"bfs", "dijkstra"}:
         raise AdminError(422, "bad_algorithm", "algorithm 须为 bfs 或 dijkstra")
-    ctx = build_kb_core_context(request, kb_id=kb_id, user=user, store=store)
+    ctx = build_workspace_core_context(request, workspace_id=workspace_id, user=user, store=store)
     payload = await asyncio.to_thread(
         run,
         ctx,
@@ -247,9 +247,9 @@ Graph Path Route. Projected graph read API (Explorer runtime). Requires KB membe
     return http_response_from_payload(payload)
 
 
-@router.get("/{kb_id}/graph/edges")
+@router.get("/{workspace_id}/graph/edges")
 async def graph_edges_route(
-    kb_id: str,
+    workspace_id: str,
     request: Request,
     type: str | None = None,
     source: str | None = None,
@@ -261,10 +261,10 @@ async def graph_edges_route(
     limits: RuntimeLimits = Depends(get_runtime_limits),
 ) -> dict[str, Any]:
     """
-Graph Edges Route. Projected graph read API (Explorer runtime). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Graph Edges Route. Projected graph read API (Explorer runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
-    get_kb_for_viewer(request, user, kb_id, store)
-    runtime = kb_graph_runtime_for(request, kb_id)
+    get_workspace_for_viewer(request, user, workspace_id, store)
+    runtime = kb_graph_runtime_for(request, workspace_id)
     return await asyncio.to_thread(
         paginate_edges,
         runtime,
@@ -277,9 +277,9 @@ Graph Edges Route. Projected graph read API (Explorer runtime). Requires KB memb
     )
 
 
-@router.post("/{kb_id}/graph/search")
+@router.post("/{workspace_id}/graph/search")
 async def graph_search_route(
-    kb_id: str,
+    workspace_id: str,
     body: GraphSearchRequest,
     request: Request,
     user: User = Depends(get_current_user),
@@ -287,9 +287,9 @@ async def graph_search_route(
     limits: RuntimeLimits = Depends(get_runtime_limits),
 ) -> dict[str, Any]:
     """
-Graph Search Route. Projected graph read API (Explorer runtime). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Graph Search Route. Projected graph read API (Explorer runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
-    ctx = build_kb_core_context(request, kb_id=kb_id, user=user, store=store)
+    ctx = build_workspace_core_context(request, workspace_id=workspace_id, user=user, store=store)
     payload = await asyncio.to_thread(
         run,
         ctx,
@@ -304,9 +304,9 @@ Graph Search Route. Projected graph read API (Explorer runtime). Requires KB mem
     return http_response_from_payload(payload)
 
 
-@router.get("/{kb_id}/graph/snapshot")
+@router.get("/{workspace_id}/graph/snapshot")
 async def graph_snapshot_route(
-    kb_id: str,
+    workspace_id: str,
     request: Request,
     limit_nodes: int = 200,
     limit_edges: int = 400,
@@ -315,10 +315,10 @@ async def graph_snapshot_route(
     limits: RuntimeLimits = Depends(get_runtime_limits),
 ) -> dict[str, Any]:
     """
-Graph Snapshot Route. Projected graph read API (Explorer runtime). Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Graph Snapshot Route. Projected graph read API (Explorer runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
-    get_kb_for_viewer(request, user, kb_id, store)
-    session = graph_for(request, kb_id)
+    get_workspace_for_viewer(request, user, workspace_id, store)
+    session = graph_for(request, workspace_id)
     capped_nodes = min(max(1, limit_nodes), limits.graph_page_max_nodes)
     capped_edges = min(max(1, limit_edges), limits.graph_page_max_edges)
     return graph_snapshot(session, limit_nodes=capped_nodes, limit_edges=capped_edges)

@@ -79,9 +79,9 @@ export function createBasisSessionClient(options: BasisSessionClientOptions) {
     return `/api/v1/${segment}`;
   }
 
-  function kbPath(kbId: string, subpath: string): string {
+  function workspacePath(workspaceId: string, subpath: string): string {
     const segment = subpath.replace(/^\//, "");
-    const root = `/api/v1/kbs/${encodeURIComponent(kbId)}`;
+    const root = `/api/v1/workspaces/${encodeURIComponent(workspaceId)}`;
     return segment ? `${root}/${segment}` : root;
   }
 
@@ -99,14 +99,14 @@ export function createBasisSessionClient(options: BasisSessionClientOptions) {
     sessionFetch,
     authPath,
     platformPath,
-    kbPath,
+    workspacePath,
     openapi: openapiClient,
-    kb(kbId: string) {
+    kb(workspaceId: string) {
       const token = options.getAccessToken();
       if (!token) {
         throw new Error("not authenticated");
       }
-      return createBasisClient({ baseUrl: base, accessToken: token }).kb(kbId);
+      return createBasisClient({ baseUrl: base, accessToken: token }).kb(workspaceId);
     },
   };
 }
@@ -194,8 +194,8 @@ export function createBasisClient(options: BasisClientOptions) {
 
   return {
     openapi: openapi,
-    kb(kbId: string) {
-      const prefix = `/api/v1/kbs/${encodeURIComponent(kbId)}`;
+    kb(workspaceId: string) {
+      const prefix = `/api/v1/workspaces/${encodeURIComponent(workspaceId)}`;
       return {
         mcpInfo: () => request<McpIntegrationInfoResponse>(`${prefix}/mcp`),
         searchChunks: (

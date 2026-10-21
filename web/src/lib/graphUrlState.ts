@@ -1,6 +1,6 @@
-import { kbPath } from '@/lib/nav-config.js';
+import { workspacePath } from '@/lib/nav-config.js';
 
-export type KbGraphUrlParams = {
+export type GraphUrlParams = {
   focus?: string;
   /** ISO instant for temporal scrubber (F-TIM / F-SRCH-03). */
   at?: string;
@@ -8,14 +8,14 @@ export type KbGraphUrlParams = {
   timeline?: boolean;
 };
 
-export type KbGraphDiffPreviewParams = {
+export type GraphDiffPreviewParams = {
   diffFrom: string;
   diffTo: string;
 };
 
-export function kbGraphPath(kbId: string, params?: KbGraphUrlParams): string {
+export function graphPath(workspaceId: string, params?: GraphUrlParams): string {
   if (!params?.focus && !params?.at?.trim() && !params?.timeline) {
-    return kbPath(kbId, 'graph');
+    return workspacePath(workspaceId, 'graph');
   }
   const sp = new URLSearchParams();
   const focus = params.focus?.trim();
@@ -23,18 +23,18 @@ export function kbGraphPath(kbId: string, params?: KbGraphUrlParams): string {
   const at = params.at?.trim();
   if (at) sp.set('at', at);
   if (params.timeline) sp.set('timeline', '1');
-  return `${kbPath(kbId, 'graph')}?${sp.toString()}`;
+  return `${workspacePath(workspaceId, 'graph')}?${sp.toString()}`;
 }
 
-export function kbGraphImportDialogPath(kbId: string): string {
-  return `${kbPath(kbId, 'graph')}?import=1`;
+export function graphImportDialogPath(workspaceId: string): string {
+  return `${workspacePath(workspaceId, 'graph')}?import=1`;
 }
 
-export function kbGraphExportDialogPath(kbId: string): string {
-  return `${kbPath(kbId, 'graph')}?export=1`;
+export function graphExportDialogPath(workspaceId: string): string {
+  return `${workspacePath(workspaceId, 'graph')}?export=1`;
 }
 
-export function parseKbGraphUrlState(search: string): KbGraphUrlParams {
+export function parseGraphUrlState(search: string): GraphUrlParams {
   const params = new URLSearchParams(search);
   return {
     focus: params.get('focus') ?? undefined,
@@ -43,7 +43,7 @@ export function parseKbGraphUrlState(search: string): KbGraphUrlParams {
   };
 }
 
-export function parseKbGraphDiffPreviewParams(search: string): KbGraphDiffPreviewParams | null {
+export function parseGraphDiffPreviewParams(search: string): GraphDiffPreviewParams | null {
   const params = new URLSearchParams(search);
   const diffFrom = params.get('diff_from')?.trim();
   const diffTo = params.get('diff_to')?.trim();
@@ -52,8 +52,8 @@ export function parseKbGraphDiffPreviewParams(search: string): KbGraphDiffPrevie
 }
 
 /** Graph canvas with diff overlay (`?at=` + `diff_from` / `diff_to`, F-DIFF-01 preview). */
-export function kbGraphDiffPreviewPath(
-  kbId: string,
+export function graphDiffPreviewPath(
+  workspaceId: string,
   diffFrom: string,
   diffTo: string,
   focusNodeId?: string,
@@ -64,17 +64,17 @@ export function kbGraphDiffPreviewPath(
   sp.set('diff_to', diffTo.trim());
   const focus = focusNodeId?.trim();
   if (focus) sp.set('focus', focus);
-  return `${kbPath(kbId, 'graph')}?${sp.toString()}`;
+  return `${workspacePath(workspaceId, 'graph')}?${sp.toString()}`;
 }
 
-export function clearKbGraphDiffPreviewParams(search: string): URLSearchParams {
+export function clearGraphDiffPreviewParams(search: string): URLSearchParams {
   const params = new URLSearchParams(search);
   params.delete('diff_from');
   params.delete('diff_to');
   return params;
 }
 
-export function mergeKbGraphDiffFocusParam(
+export function mergeGraphDiffFocusParam(
   search: string,
   nodeId: string | null | undefined,
 ): URLSearchParams {
@@ -89,7 +89,7 @@ export function mergeKbGraphDiffFocusParam(
 }
 
 /** Sync graph route query while preserving other params (e.g. `focus`). */
-export function mergeKbGraphAtParam(
+export function mergeGraphAtParam(
   search: string,
   atIso: string | null | undefined,
 ): URLSearchParams {

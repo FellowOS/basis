@@ -47,7 +47,7 @@ def _cmd_migrate_legacy_graphs(settings: Settings, args: argparse.Namespace) -> 
 
     admin = AdminStore(settings.db_path)
     try:
-        kb_ids = list(args.kb_id) if args.kb_id else admin.list_kb_ids()
+        kb_ids = list(args.workspace_id) if args.workspace_id else admin.list_workspace_ids()
     finally:
         admin.close()
 
@@ -67,6 +67,28 @@ def _cmd_migrate_legacy_graphs(settings: Settings, args: argparse.Namespace) -> 
     print_reports(reports)
     if any(report.get("unmappable") for report in reports):
         sys.exit(2 if args.dry_run else 1)
+
+
+def _cmd_postgres_reset_schema(settings: Settings) -> None:
+    from sqlalchemy import create_engine
+
+    from basis.infra.tooling.db.postgres_migrations import (
+        reset_postgres_public_schema,
+        run_postgres_migrations,
+    )
+
+    url = settings.database_url
+    if not url or not url.startswith("postgres"):
+        print("BASIS_DATABASE_URL must be a PostgreSQL URL", file=sys.stderr)
+        sys.exit(1)
+    sqlalchemy_url = url.replace("postgresql://", "postgresql+psycopg://", 1)
+    engine = create_engine(sqlalchemy_url)
+    try:
+        reset_postgres_public_schema(engine)
+        applied = run_postgres_migrations(engine)
+    finally:
+        engine.dispose()
+    print(f"PostgreSQL schema rebuilt; newly applied versions: {applied or 'none (already current)'}")
 
 
 def _cmd_migrate_postgres(settings: Settings, args: argparse.Namespace) -> None:
@@ -114,7 +136,7 @@ def main(argv: list[str] | None = None) -> None:
         "--kb-id",
         action="append",
         default=[],
-        help="Limit to one or more knowledge base IDs (repeatable)",
+        help="Limit to one or more workspace IDs (workspace_id; repeatable)",
     )
     migrate.set_defaults(command="migrate-legacy-graphs")
 
@@ -127,6 +149,12 @@ def main(argv: list[str] | None = None) -> None:
     migrate_pg.add_argument("--replace", action="store_true")
     migrate_pg.set_defaults(command="migrate-postgres")
 
+    reset_pg = sub.add_parser(
+        "postgres-reset-schema",
+        help="Drop public schema and re-apply PostgreSQL migrations (destroys all PG data)",
+    )
+    reset_pg.set_defaults(command="postgres-reset-schema")
+
     if not argv:
         settings = Settings.from_env()
         _cmd_serve(settings)
@@ -136,6 +164,7 @@ def main(argv: list[str] | None = None) -> None:
         "serve",
         "migrate-legacy-graphs",
         "migrate-postgres",
+        "postgres-reset-schema",
         "-h",
         "--help",
     }:
@@ -149,6 +178,9 @@ def main(argv: list[str] | None = None) -> None:
         return
     if args.command == "migrate-postgres":
         _cmd_migrate_postgres(settings, args)
+        return
+    if args.command == "postgres-reset-schema":
+        _cmd_postgres_reset_schema(settings)
         return
 
     _cmd_serve(settings)

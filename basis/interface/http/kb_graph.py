@@ -1,4 +1,4 @@
-"""KB projected graph read API and chunk search — aggregates sub-routers."""
+"""Workspace projected graph read API and chunk search — aggregates sub-routers."""
 
 from __future__ import annotations
 

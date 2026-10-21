@@ -1,4 +1,4 @@
-"""Structural types for platform services injected into KB domain code."""
+"""Structural types for platform services injected into workspace domain code."""
 
 from __future__ import annotations
 

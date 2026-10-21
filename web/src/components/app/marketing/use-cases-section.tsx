@@ -1,9 +1,10 @@
 import { PublicIcon } from '@/components/app/shared/primitives/public-icon.js';
 import { useI18n } from '@/i18n/context.js';
+import { i18nIndexedList } from '@/i18n/indexed-list.js';
 
 export function UseCasesSection() {
   const { t } = useI18n();
-  const u = t.marketing.useCases;
+  const u = t.home.marketing.use_cases;
 
   return (
     <section
@@ -19,7 +20,7 @@ export function UseCasesSection() {
         </h2>
 
         <div className="mt-10 grid gap-5 sm:grid-cols-3">
-          {u.items.map((item) => (
+          {i18nIndexedList(u.items).map((item) => (
             <article
               key={item.title}
               className="flex flex-col rounded-xl border border-border/70 bg-card/50 p-5"

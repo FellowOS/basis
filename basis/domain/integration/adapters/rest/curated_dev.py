@@ -284,4 +284,3 @@ def curated_rest_manifests() -> dict[str, ConnectorManifest]:
     jira = jira_manifest()
 
     return {m.service: m for m in [airtable, hubspot, notion, jira]}
-

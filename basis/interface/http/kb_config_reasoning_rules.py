@@ -1,4 +1,4 @@
-"""KB-scoped forward-chaining rule library (F-RUL-01)."""
+"""Workspace-scoped forward-chaining rule library (F-RUL-01)."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, Query, Request
 from pydantic import BaseModel, Field
 
 from basis.domain.tenancy.admin.store import AdminStore, User
-from basis.interface.http.deps import get_current_user, get_kb_for_editor, get_kb_for_viewer, get_knowledge_store, get_store
+from basis.interface.http.deps import get_current_user, get_workspace_for_editor, get_workspace_for_viewer, get_knowledge_store, get_store
 from basis.domain.knowledge.store import KnowledgeStore
 
 router = APIRouter(tags=["knowledge-bases"])
@@ -26,9 +26,9 @@ class UpdateReasoningRuleRequest(BaseModel):
     enabled: bool | None = None
 
 
-@router.get("/{kb_id}/rules")
-async def list_kb_reasoning_rules(
-    kb_id: str,
+@router.get("/{workspace_id}/rules")
+async def list_reasoning_rules(
+    workspace_id: str,
     request: Request,
     limit: int = Query(100, ge=1, le=200),
     user: User = Depends(get_current_user),
@@ -36,16 +36,16 @@ async def list_kb_reasoning_rules(
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> dict[str, Any]:
     """
-List Kb Reasoning Rules. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+List Reasoning Rules. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
-    get_kb_for_viewer(request, user, kb_id, store)
-    rules = knowledge.list_reasoning_rules(kb_id, limit=limit)
+    get_workspace_for_viewer(request, user, workspace_id, store)
+    rules = knowledge.list_reasoning_rules(workspace_id, limit=limit)
     return {"rules": rules}
 
 
-@router.post("/{kb_id}/rules")
+@router.post("/{workspace_id}/rules")
 async def create_kb_reasoning_rule(
-    kb_id: str,
+    workspace_id: str,
     body: CreateReasoningRuleRequest,
     request: Request,
     user: User = Depends(get_current_user),
@@ -53,11 +53,11 @@ async def create_kb_reasoning_rule(
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> dict[str, Any]:
     """
-Create Kb Reasoning Rule. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Create Reasoning Rule. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
-    get_kb_for_editor(request, user, kb_id, store)
+    get_workspace_for_editor(request, user, workspace_id, store)
     rule = knowledge.create_reasoning_rule(
-        kb_id,
+        workspace_id,
         name=body.name.strip(),
         body=body.body.strip(),
         actor_id=user.id,
@@ -66,9 +66,9 @@ Create Kb Reasoning Rule. Requires KB membership (session) or KB API token with 
     return {"rule": rule}
 
 
-@router.patch("/{kb_id}/rules/{rule_id}")
+@router.patch("/{workspace_id}/rules/{rule_id}")
 async def update_kb_reasoning_rule(
-    kb_id: str,
+    workspace_id: str,
     rule_id: str,
     body: UpdateReasoningRuleRequest,
     request: Request,
@@ -77,11 +77,11 @@ async def update_kb_reasoning_rule(
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> dict[str, Any]:
     """
-Update Kb Reasoning Rule. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Update Reasoning Rule. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
-    get_kb_for_editor(request, user, kb_id, store)
+    get_workspace_for_editor(request, user, workspace_id, store)
     rule = knowledge.update_reasoning_rule(
-        kb_id,
+        workspace_id,
         rule_id,
         name=body.name.strip() if body.name is not None else None,
         body=body.body.strip() if body.body is not None else None,
@@ -90,9 +90,9 @@ Update Kb Reasoning Rule. Requires KB membership (session) or KB API token with 
     return {"rule": rule}
 
 
-@router.delete("/{kb_id}/rules/{rule_id}")
+@router.delete("/{workspace_id}/rules/{rule_id}")
 async def delete_kb_reasoning_rule(
-    kb_id: str,
+    workspace_id: str,
     rule_id: str,
     request: Request,
     user: User = Depends(get_current_user),
@@ -100,8 +100,8 @@ async def delete_kb_reasoning_rule(
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> dict[str, Any]:
     """
-Delete Kb Reasoning Rule. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Delete Reasoning Rule. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
-    get_kb_for_editor(request, user, kb_id, store)
-    knowledge.delete_reasoning_rule(kb_id, rule_id)
+    get_workspace_for_editor(request, user, workspace_id, store)
+    knowledge.delete_reasoning_rule(workspace_id, rule_id)
     return {"ok": True}

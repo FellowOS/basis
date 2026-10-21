@@ -65,8 +65,8 @@ type EndpointFormValues = {
 export function ModelEndpointForm({ kind, onCreated, onCancel }: Props) {
   const { t } = useI18n();
   const apiError = useApiErrorMessage();
-  const m = t.models;
-  const emptyCell = t.common.emptyCell;
+  const m = t.admin_models.page;
+  const emptyCell = t.core.common.emptyCell;
   const [providers, setProviders] = useState<ProviderInfo[]>([]);
   const [remoteModels, setRemoteModels] = useState<RemoteModel[]>([]);
   const [fetching, setFetching] = useState(false);
@@ -89,13 +89,13 @@ export function ModelEndpointForm({ kind, onCreated, onCancel }: Props) {
               ? data.modelId.trim()
               : data.modelSelect.trim() || data.modelId.trim();
           if (!resolved) {
-            ctx.addIssue({ code: 'custom', message: m.modelRequired, path: ['modelSelect'] });
+            ctx.addIssue({ code: 'custom', message: m.model_required, path: ['modelSelect'] });
           }
           if (data.providerId === 'custom' && !data.apiBase.trim()) {
-            ctx.addIssue({ code: 'custom', message: m.apiBaseRequired, path: ['apiBase'] });
+            ctx.addIssue({ code: 'custom', message: m.api_base_required, path: ['apiBase'] });
           }
         }),
-    [m.apiBaseRequired, m.modelRequired],
+    [m.api_base_required, m.model_required],
   );
 
   const form = useForm<EndpointFormValues>({
@@ -189,11 +189,11 @@ export function ModelEndpointForm({ kind, onCreated, onCancel }: Props) {
         },
       });
       if (!data.ok) {
-        setLoadError(data.error ?? m.probeFailed);
+        setLoadError(data.error ?? m.probe_failed);
         return;
       }
       setRemoteModels(data.models ?? []);
-      toast.success(m.probeSuccess);
+      toast.success(m.probe_success);
     } catch (err) {
       setLoadError(apiError(err));
     } finally {
@@ -220,7 +220,7 @@ export function ModelEndpointForm({ kind, onCreated, onCancel }: Props) {
           api_key: apiKey,
         },
       });
-      toast.success(m.addedToast);
+      toast.success(m.added_toast);
       onCreated();
     } catch (err) {
       const message = apiError(err);
@@ -268,7 +268,7 @@ export function ModelEndpointForm({ kind, onCreated, onCancel }: Props) {
           render={({ field }) => (
             <FormItem>
               <div className="flex items-center justify-between gap-2">
-                <FormLabel htmlFor={`${kind}-add-api-key`}>{m.fieldApiKey}</FormLabel>
+                <FormLabel htmlFor={`${kind}-add-api-key`}>{m.field_api_key}</FormLabel>
                 {selected?.api_key_url ? (
                   <a
                     href={selected.api_key_url}
@@ -276,7 +276,7 @@ export function ModelEndpointForm({ kind, onCreated, onCancel }: Props) {
                     rel="noopener noreferrer"
                     className="text-[12px] text-muted-foreground underline underline-offset-2 hover:text-foreground"
                   >
-                    {m.getApiKey}
+                    {m.get_api_key}
                   </a>
                 ) : null}
               </div>
@@ -285,7 +285,7 @@ export function ModelEndpointForm({ kind, onCreated, onCancel }: Props) {
                   id={`${kind}-add-api-key`}
                   type="password"
                   autoComplete="new-password"
-                  placeholder={m.apiKeyPlaceholder}
+                  placeholder={m.api_key_placeholder}
                   {...field}
                 />
               </FormControl>
@@ -300,23 +300,23 @@ export function ModelEndpointForm({ kind, onCreated, onCancel }: Props) {
             name="apiBase"
             render={({ field }) => (
               <FormItem>
-                <FormLabel htmlFor={`${kind}-add-api-base`}>{m.fieldBaseUrl}</FormLabel>
+                <FormLabel htmlFor={`${kind}-add-api-base`}>{m.field_base_url}</FormLabel>
                 <FormControl>
                   <Input
                     id={`${kind}-add-api-base`}
-                    placeholder={m.apiBasePlaceholder}
+                    placeholder={m.api_base_placeholder}
                     autoComplete="off"
                     {...field}
                   />
                 </FormControl>
-                <p className="text-[12px] text-muted-foreground">{m.apiBaseHint}</p>
+                <p className="text-[12px] text-muted-foreground">{m.api_base_hint}</p>
                 <FormMessage />
               </FormItem>
             )}
           />
         ) : (
           <p className="text-[12px] text-muted-foreground">
-            {m.fieldBaseUrl}:{' '}
+            {m.field_base_url}:{' '}
             <span className="font-mono text-foreground">
               {apiBase || selected?.default_api_base || emptyCell}
             </span>
@@ -329,7 +329,7 @@ export function ModelEndpointForm({ kind, onCreated, onCancel }: Props) {
             name="modelSelect"
             render={({ field }) => (
               <FormItem className="min-w-[min(100%,14rem)] flex-1">
-                <FormLabel>{m.fieldModel}</FormLabel>
+                <FormLabel>{m.field_model}</FormLabel>
                 <Select
                   value={field.value || undefined}
                   onValueChange={(value) => {
@@ -340,7 +340,7 @@ export function ModelEndpointForm({ kind, onCreated, onCancel }: Props) {
                 >
                   <FormControl>
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder={m.modelPlaceholder} />
+                      <SelectValue placeholder={m.model_placeholder} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -349,7 +349,7 @@ export function ModelEndpointForm({ kind, onCreated, onCancel }: Props) {
                         {opt.label}
                       </SelectItem>
                     ))}
-                    <SelectItem value={CUSTOM_MODEL_VALUE}>{m.customModel}</SelectItem>
+                    <SelectItem value={CUSTOM_MODEL_VALUE}>{m.custom_model}</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -357,7 +357,7 @@ export function ModelEndpointForm({ kind, onCreated, onCancel }: Props) {
             )}
           />
           <Button type="button" variant="outline" disabled={fetching} onClick={() => void probeModels()}>
-            {fetching ? m.fetchingModels : m.fetchModels}
+            {fetching ? m.fetching_models : m.fetch_models}
           </Button>
         </div>
 
@@ -367,16 +367,16 @@ export function ModelEndpointForm({ kind, onCreated, onCancel }: Props) {
             name="modelId"
             render={({ field }) => (
               <FormItem>
-                <FormLabel htmlFor={`${kind}-add-model-custom`}>{m.customModel}</FormLabel>
+                <FormLabel htmlFor={`${kind}-add-model-custom`}>{m.custom_model}</FormLabel>
                 <FormControl>
                   <Input
                     id={`${kind}-add-model-custom`}
-                    placeholder={m.manualModelPlaceholder}
+                    placeholder={m.manual_model_placeholder}
                     autoComplete="off"
                     {...field}
                   />
                 </FormControl>
-                <p className="text-[12px] text-muted-foreground">{m.manualModelHint}</p>
+                <p className="text-[12px] text-muted-foreground">{m.manual_model_hint}</p>
                 <FormMessage />
               </FormItem>
             )}
@@ -388,11 +388,11 @@ export function ModelEndpointForm({ kind, onCreated, onCancel }: Props) {
         <div className="flex justify-end gap-2 pt-2">
           {onCancel ? (
             <Button type="button" variant="ghost" onClick={onCancel}>
-              {t.common.cancel}
+              {t.core.common.cancel}
             </Button>
           ) : null}
           <Button type="submit" disabled={saving}>
-            {m.addModelConfirm}
+            {m.add_model_confirm}
           </Button>
         </div>
       </form>

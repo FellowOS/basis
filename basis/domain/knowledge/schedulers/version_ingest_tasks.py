@@ -1,4 +1,4 @@
-"""Background version ingest with per-KB graph locking."""
+"""Background version ingest with per-workspace graph locking."""
 
 from __future__ import annotations
 
@@ -24,7 +24,7 @@ from basis.domain.knowledge.pipeline.version_ingest import (
     run_version_ingest,
 )
 
-_kb_locks: dict[str, threading.Lock] = {}
+_workspace_locks: dict[str, threading.Lock] = {}
 _lock_guard = threading.Lock()
 
 _INGEST_OVERLOADED_MESSAGE = "处理队列已满，请稍后重试"
@@ -32,29 +32,29 @@ _INGEST_OVERLOADED_MESSAGE = "处理队列已满，请稍后重试"
 
 def _fail_ingest_overloaded(
     app: FastAPI,
-    kb_id: str,
+    workspace_id: str,
     version_id: str,
     job_id: str,
 ) -> None:
     knowledge: KnowledgeStore = app.state.knowledge_store
     knowledge.fail_version(
-        kb_id, version_id, "ingest_overloaded", _INGEST_OVERLOADED_MESSAGE
+        workspace_id, version_id, "ingest_overloaded", _INGEST_OVERLOADED_MESSAGE
     )
-    knowledge.fail_job(kb_id, job_id, "ingest_overloaded", _INGEST_OVERLOADED_MESSAGE)
+    knowledge.fail_job(workspace_id, job_id, "ingest_overloaded", _INGEST_OVERLOADED_MESSAGE)
 
 
-def _kb_lock(kb_id: str) -> threading.Lock:
+def _workspace_lock(workspace_id: str) -> threading.Lock:
     with _lock_guard:
-        lock = _kb_locks.get(kb_id)
+        lock = _workspace_locks.get(workspace_id)
         if lock is None:
             lock = threading.Lock()
-            _kb_locks[kb_id] = lock
+            _workspace_locks[workspace_id] = lock
         return lock
 
 
 def run_version_ingest_for_app(
     app: FastAPI,
-    kb_id: str,
+    workspace_id: str,
     version_id: str,
     job_id: str,
     *,
@@ -70,7 +70,7 @@ def run_version_ingest_for_app(
     try:
         return _run_version_ingest_for_app(
             app,
-            kb_id,
+            workspace_id,
             version_id,
             job_id,
             filename=filename,
@@ -84,7 +84,7 @@ def run_version_ingest_for_app(
 
 def _run_version_ingest_for_app(
     app: FastAPI,
-    kb_id: str,
+    workspace_id: str,
     version_id: str,
     job_id: str,
     *,
@@ -97,18 +97,18 @@ def _run_version_ingest_for_app(
     persistence: GraphPersistence = app.state.graph_persistence
     graphs: dict[str, Any] = app.state.graphs
 
-    with _kb_lock(kb_id):
-        session = graphs.get(kb_id)
+    with _workspace_lock(workspace_id):
+        session = graphs.get(workspace_id)
         if session is None:
-            session = persistence.load(kb_id)
-            graphs[kb_id] = session
+            session = persistence.load(workspace_id)
+            graphs[workspace_id] = session
         try:
             limits = app.state.limits
             chat_llm = app.state.store.get_chat_llm_settings()
             result = run_version_ingest(
                 knowledge,
                 session,
-                kb_id,
+                workspace_id,
                 version_id,
                 job_id,
                 filename=filename,
@@ -126,13 +126,13 @@ def _run_version_ingest_for_app(
             raise
         except ExtractionTimeoutError as exc:
             logger.warning(
-                "version ingest extract timeout kb_id=%s version_id=%s job_id=%s timeout_sec=%s",
-                kb_id,
+                "version ingest extract timeout workspace_id=%s version_id=%s job_id=%s timeout_sec=%s",
+                workspace_id,
                 version_id,
                 job_id,
                 exc.timeout_seconds,
                 extra=correlation_log_extra(
-                    kb_id=kb_id,
+                    workspace_id=workspace_id,
                     version_id=version_id,
                     job_id=job_id,
                 ),
@@ -140,43 +140,43 @@ def _run_version_ingest_for_app(
             raise
         except Exception:
             logger.exception(
-                "version ingest failed kb_id=%s version_id=%s job_id=%s",
-                kb_id,
+                "version ingest failed workspace_id=%s version_id=%s job_id=%s",
+                workspace_id,
                 version_id,
                 job_id,
                 extra=correlation_log_extra(
-                    kb_id=kb_id,
+                    workspace_id=workspace_id,
                     version_id=version_id,
                     job_id=job_id,
                 ),
             )
             return None
-        ledger = knowledge.get_projection_state(kb_id)
+        ledger = knowledge.get_projection_state(workspace_id)
         logger.info(
-            "version ingest completed kb_id=%s version_id=%s job_id=%s projection_revision=%s",
-            kb_id,
+            "version ingest completed workspace_id=%s version_id=%s job_id=%s projection_revision=%s",
+            workspace_id,
             version_id,
             job_id,
             ledger["revision"],
             extra=correlation_log_extra(
-                kb_id=kb_id,
+                workspace_id=workspace_id,
                 version_id=version_id,
                 job_id=job_id,
                 projection_revision=ledger["revision"],
             ),
         )
         persistence.save(
-            kb_id,
+            workspace_id,
             session,
             projection_revision=ledger["revision"],
             schema_version=ledger["schema_version"],
         )
-        app.state.kb_graph_session_registry.invalidate(kb_id)
+        app.state.kb_graph_session_registry.invalidate(workspace_id)
         app.state.ws_hub.try_broadcast(
-            kb_id,
+            workspace_id,
             {
                 "type": "projection_updated",
-                "kb_id": kb_id,
+                "workspace_id": workspace_id,
                 "projection_revision": ledger["revision"],
             },
         )
@@ -185,7 +185,7 @@ def _run_version_ingest_for_app(
 
 def enqueue_version_ingest(
     app: FastAPI,
-    kb_id: str,
+    workspace_id: str,
     version_id: str,
     job_id: str,
     *,
@@ -198,14 +198,14 @@ def enqueue_version_ingest(
 
     pending_slot = getattr(app.state, "ingest_pending_slot", None)
     if pending_slot is not None and not pending_slot.acquire(blocking=False):
-        _fail_ingest_overloaded(app, kb_id, version_id, job_id)
+        _fail_ingest_overloaded(app, workspace_id, version_id, job_id)
         return
 
     def _work() -> None:
         try:
             run_version_ingest_for_app(
                 app,
-                kb_id,
+                workspace_id,
                 version_id,
                 job_id,
                 filename=filename,

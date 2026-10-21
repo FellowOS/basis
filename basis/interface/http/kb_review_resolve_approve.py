@@ -1,4 +1,4 @@
-"""KB review approve route."""
+"""Workspace review approve route."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ from basis.interface.http.deps import (
     get_blob_store,
     get_current_user,
     graph_projection_bindings,
-    get_kb_for_editor,
+    get_workspace_for_editor,
     get_knowledge_store,
     get_store,
     rebuild_kb_projection,
@@ -32,9 +32,9 @@ from basis.interface.http.kb_review_models import (
 router = APIRouter(tags=["knowledge-bases"])
 
 
-@router.post("/{kb_id}/review/items/{item_id}/approve")
+@router.post("/{workspace_id}/review/items/{item_id}/approve")
 async def approve_review_item(
-    kb_id: str,
+    workspace_id: str,
     item_id: str,
     request: Request,
     body: ResolveReviewRequest,
@@ -43,23 +43,23 @@ async def approve_review_item(
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> ApproveReviewItemResponse:
     """
-Approve Review Item. Human review queue for merges, imports, and conflicts. Requires KB membership (session) or KB API token with read/write scope. All paths are scoped to `{kb_id}`.
+Approve Review Item. Human review queue for merges, imports, and conflicts. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
-    get_kb_for_editor(request, user, kb_id, store)
-    review_kind = knowledge.get_review_item(kb_id, item_id).get("kind")
+    get_workspace_for_editor(request, user, workspace_id, store)
+    review_kind = knowledge.get_review_item(workspace_id, item_id).get("kind")
     deps = ReviewApproveDeps(
         projection_bindings=graph_projection_bindings(request),
         blob_store=get_blob_store(request),
-        runtime_loader=lambda: kb_graph_runtime_for(request, kb_id),
+        runtime_loader=lambda: kb_graph_runtime_for(request, workspace_id),
         persist_graph=lambda kid: save_graph(request, kid),
-        rebuild_projection=lambda: rebuild_kb_projection(request, kb_id),
+        rebuild_projection=lambda: rebuild_kb_projection(request, workspace_id),
     )
     try:
         return await approve_review_item_domain(
             knowledge=knowledge,
             store=store,
             user=user,
-            kb_id=kb_id,
+            workspace_id=workspace_id,
             item_id=item_id,
             rationale=body.rationale,
             keeper_statement_id=body.keeper_statement_id,
@@ -69,7 +69,7 @@ Approve Review Item. Human review queue for merges, imports, and conflicts. Requ
     except HTTPException as exc:
         mapped = admin_error_from_kb_graph_http(exc, context="enrich")
         maybe_emit_governance_tripped_on_review_approve(
-            kb_id,
+            workspace_id,
             knowledge,
             code=mapped.code,
             message=mapped.message,
@@ -79,13 +79,13 @@ Approve Review Item. Human review queue for merges, imports, and conflicts. Requ
                 "source": "review_approve",
             },
             actor_id=user.id,
-            runtime_loader=lambda: kb_graph_runtime_for(request, kb_id),
+            runtime_loader=lambda: kb_graph_runtime_for(request, workspace_id),
             persist_graph=lambda kid: save_graph(request, kid),
         )
         raise mapped
     except AdminError as exc:
         maybe_emit_governance_tripped_on_review_approve(
-            kb_id,
+            workspace_id,
             knowledge,
             code=exc.code,
             message=exc.message,
@@ -95,7 +95,7 @@ Approve Review Item. Human review queue for merges, imports, and conflicts. Requ
                 "source": "review_approve",
             },
             actor_id=user.id,
-            runtime_loader=lambda: kb_graph_runtime_for(request, kb_id),
+            runtime_loader=lambda: kb_graph_runtime_for(request, workspace_id),
             persist_graph=lambda kid: save_graph(request, kid),
         )
         raise

@@ -66,43 +66,43 @@ def _edge_already_ledgered(edge: Any) -> bool:
 
 def resolve_ledger_entity_id(
     knowledge: KnowledgeStore,
-    kb_id: str,
+    workspace_id: str,
     session: GraphSession,
     node_id: str,
 ) -> str | None:
     """Return the ledger entity for a graph node, creating one when the node is new."""
-    if knowledge.ledger_entity_exists(kb_id, node_id):
+    if knowledge.ledger_entity_exists(workspace_id, node_id):
         return node_id
     node = session.graph.nodes.get(node_id)
     if node is None or _skip_node(node):
         return None
     meta = _props(node)
     ledger_id = meta.get("ledger_entity_id")
-    if isinstance(ledger_id, str) and knowledge.ledger_entity_exists(kb_id, ledger_id):
+    if isinstance(ledger_id, str) and knowledge.ledger_entity_exists(workspace_id, ledger_id):
         return ledger_id
     label = _label(node)
     if not label or label == "unknown":
         return None
-    return knowledge.get_or_create_entity_by_label(kb_id, label)
+    return knowledge.get_or_create_entity_by_label(workspace_id, label)
 
 
-def _sync_chunk(knowledge: KnowledgeStore, kb_id: str) -> str:
+def _sync_chunk(knowledge: KnowledgeStore, workspace_id: str) -> str:
     doc = next(
-        (row for row in knowledge.list_documents(kb_id) if row.get("doc_id") == GRAPH_SYNC_DOC_ID),
+        (row for row in knowledge.list_documents(workspace_id) if row.get("doc_id") == GRAPH_SYNC_DOC_ID),
         None,
     )
     if doc is None:
         outcome = knowledge.store_document_bytes(
-            kb_id,
+            workspace_id,
             title="Graph edits",
             mime_type="text/plain",
             data=b"(synthetic anchor for facts written from the graph projection)\n",
             created_by=None,
             external_key=GRAPH_SYNC_DOC_ID,
         )
-        knowledge.set_version_status(kb_id, outcome.version_id, "ready")
+        knowledge.set_version_status(workspace_id, outcome.version_id, "ready")
         return knowledge.create_chunk(
-            kb_id,
+            workspace_id,
             outcome.version_id,
             ordinal=0,
             text="Facts added from the graph projection are anchored here.",
@@ -111,12 +111,12 @@ def _sync_chunk(knowledge: KnowledgeStore, kb_id: str) -> str:
     if not version_id:
         raise RuntimeError("graph sync anchor document has no version")
     if doc.get("version_status") != "ready":
-        knowledge.set_version_status(kb_id, version_id, "ready")
-    chunks = knowledge.list_chunks_for_version(kb_id, version_id)
+        knowledge.set_version_status(workspace_id, version_id, "ready")
+    chunks = knowledge.list_chunks_for_version(workspace_id, version_id)
     if chunks:
         return chunks[0]["id"]
     return knowledge.create_chunk(
-        kb_id,
+        workspace_id,
         version_id,
         ordinal=0,
         text="Facts added from the graph projection are anchored here.",
@@ -125,7 +125,7 @@ def _sync_chunk(knowledge: KnowledgeStore, kb_id: str) -> str:
 
 def sync_graph_to_ledger(
     knowledge: KnowledgeStore,
-    kb_id: str,
+    workspace_id: str,
     session: GraphSession,
 ) -> dict[str, int]:
     """Insert ledger entities and pending statements for graph rows that have none."""
@@ -133,7 +133,7 @@ def sync_graph_to_ledger(
     for node in session.graph.nodes.values():
         if _skip_node(node):
             continue
-        entity_id = resolve_ledger_entity_id(knowledge, kb_id, session, node.node_id)
+        entity_id = resolve_ledger_entity_id(knowledge, workspace_id, session, node.node_id)
         if entity_id is None:
             continue
         entity_ids[node.node_id] = entity_id
@@ -143,11 +143,11 @@ def sync_graph_to_ledger(
         if node.node_id not in entity_ids:
             continue
         linked = _props(node).get("ledger_entity_id")
-        if knowledge.ledger_entity_exists(kb_id, node.node_id):
+        if knowledge.ledger_entity_exists(workspace_id, node.node_id):
             continue
         if isinstance(linked, str) and linked == entity_ids[node.node_id]:
             continue
-        if isinstance(linked, str) and knowledge.ledger_entity_exists(kb_id, linked):
+        if isinstance(linked, str) and knowledge.ledger_entity_exists(workspace_id, linked):
             continue
         entities_created += 1
 
@@ -176,7 +176,7 @@ def sync_graph_to_ledger(
             if not object_value:
                 continue
         if knowledge.has_equivalent_statement(
-            kb_id,
+            workspace_id,
             subject,
             surface,
             object_entity_id=object_entity_id,
@@ -184,9 +184,9 @@ def sync_graph_to_ledger(
         ):
             continue
         if chunk_id is None:
-            chunk_id = _sync_chunk(knowledge, kb_id)
+            chunk_id = _sync_chunk(knowledge, workspace_id)
         knowledge.add_open_statement(
-            kb_id,
+            workspace_id,
             subject_id=subject,
             surface_phrase=surface,
             object_entity_id=object_entity_id,

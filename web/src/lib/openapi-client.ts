@@ -74,58 +74,58 @@ export async function publicOpenApiPOST<T>(path: string, init?: OpenApiInit): Pr
   ) as T;
 }
 
-function kbOpenApiPath(suffix: string): string {
+function workspaceOpenApiPath(suffix: string): string {
   const segment = suffix.replace(/^\//, '');
-  return segment ? `/api/v1/kbs/{kb_id}/${segment}` : `/api/v1/kbs/{kb_id}`;
+  return segment ? `/api/v1/workspaces/{workspace_id}/${segment}` : `/api/v1/workspaces/{workspace_id}`;
 }
 
-function kbOpenApiInit(kbId: string, suffix: string, init?: OpenApiInit): OpenApiInit {
+function workspaceOpenApiInit(workspaceId: string, suffix: string, init?: OpenApiInit): OpenApiInit {
   return {
     ...init,
     params: {
       ...init?.params,
-      path: { kb_id: kbId, ...(init?.params?.path ?? {}) },
+      path: { workspace_id: workspaceId, ...(init?.params?.path ?? {}) },
     },
   };
 }
 
-/** KB sub-route: `/api/v1/kbs/{kb_id}/<suffix>` with path param binding. */
-export async function kbOpenApiGET<T>(
-  kbId: string,
+/** Workspace sub-route: `/api/v1/workspaces/{workspace_id}/<suffix>` with path param binding. */
+export async function workspaceOpenApiGET<T>(
+  workspaceId: string,
   suffix: string,
   init?: OpenApiInit,
 ): Promise<T> {
-  return openApiGET<T>(kbOpenApiPath(suffix), kbOpenApiInit(kbId, suffix, init));
+  return openApiGET<T>(workspaceOpenApiPath(suffix), workspaceOpenApiInit(workspaceId, suffix, init));
 }
 
-export async function kbOpenApiPOST<T>(
-  kbId: string,
+export async function workspaceOpenApiPOST<T>(
+  workspaceId: string,
   suffix: string,
   init?: OpenApiInit,
 ): Promise<T> {
-  return openApiPOST<T>(kbOpenApiPath(suffix), kbOpenApiInit(kbId, suffix, init));
+  return openApiPOST<T>(workspaceOpenApiPath(suffix), workspaceOpenApiInit(workspaceId, suffix, init));
 }
 
-export async function kbOpenApiPUT<T>(
-  kbId: string,
+export async function workspaceOpenApiPUT<T>(
+  workspaceId: string,
   suffix: string,
   init?: OpenApiInit,
 ): Promise<T> {
-  return openApiPUT<T>(kbOpenApiPath(suffix), kbOpenApiInit(kbId, suffix, init));
+  return openApiPUT<T>(workspaceOpenApiPath(suffix), workspaceOpenApiInit(workspaceId, suffix, init));
 }
 
-export async function kbOpenApiPATCH<T>(
-  kbId: string,
+export async function workspaceOpenApiPATCH<T>(
+  workspaceId: string,
   suffix: string,
   init?: OpenApiInit,
 ): Promise<T> {
-  return openApiPATCH<T>(kbOpenApiPath(suffix), kbOpenApiInit(kbId, suffix, init));
+  return openApiPATCH<T>(workspaceOpenApiPath(suffix), workspaceOpenApiInit(workspaceId, suffix, init));
 }
 
-export async function kbOpenApiDELETE(
-  kbId: string,
+export async function workspaceOpenApiDELETE(
+  workspaceId: string,
   suffix: string,
   init?: OpenApiInit,
 ): Promise<void> {
-  return openApiDELETE(kbOpenApiPath(suffix), kbOpenApiInit(kbId, suffix, init));
+  return openApiDELETE(workspaceOpenApiPath(suffix), workspaceOpenApiInit(workspaceId, suffix, init));
 }

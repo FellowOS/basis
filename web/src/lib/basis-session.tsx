@@ -17,7 +17,7 @@ import {
   type BasisUser,
 } from '@/lib/api.js';
 
-export const BASIS_HOME_PATH = '/kbs';
+export const BASIS_HOME_PATH = '/workspaces';
 
 type BasisSessionContextValue = {
   ready: boolean;

@@ -268,14 +268,14 @@ def test_0011_tables_foreign_keys_and_unique_constraints(tmp_path: Path) -> None
         )
         conn.execute(
             """
-            INSERT INTO knowledge_bases (id, name, description, visibility, created_by, created_at)
+            INSERT INTO workspaces (id, name, description, visibility, created_by, created_at)
             VALUES ('kb1', 'KB 1', '', 'private', 'u1', '2026-01-01T00:00:00Z')
             """
         )
         conn.execute(
             """
-            INSERT INTO kb_connections (
-                kb_id, service, connection_name, auth_type,
+            INSERT INTO connector_connections (
+                workspace_id, service, connection_name, auth_type,
                 connection_config_json, value_encrypted, account_profile_json, revision, updated_at
             ) VALUES (
                 'kb1', 'postgres', 'default', 'database_dsn',
@@ -286,7 +286,7 @@ def test_0011_tables_foreign_keys_and_unique_constraints(tmp_path: Path) -> None
         conn.execute(
             """
             INSERT INTO ingest_sources (
-                id, kb_id, kind, name, config_json, enabled, created_by, created_at, updated_at
+                id, workspace_id, kind, name, config_json, enabled, created_by, created_at, updated_at
             ) VALUES (
                 'src1', 'kb1', 'connector', 'Customers DB',
                 '{"provider":"postgres","connection_name":"default"}',
@@ -297,7 +297,7 @@ def test_0011_tables_foreign_keys_and_unique_constraints(tmp_path: Path) -> None
         conn.execute(
             """
             INSERT INTO source_table_mappings (
-                id, kb_id, source_id, stream_name, external_table,
+                id, workspace_id, source_id, stream_name, external_table,
                 primary_key_column, label_column, target_class_uri,
                 column_mappings_json, created_at, updated_at
             ) VALUES (
@@ -309,14 +309,14 @@ def test_0011_tables_foreign_keys_and_unique_constraints(tmp_path: Path) -> None
         )
         conn.execute(
             """
-            INSERT INTO entities (id, kb_id, canonical_label, entity_kind, created_at)
+            INSERT INTO entities (id, workspace_id, canonical_label, entity_kind, created_at)
             VALUES ('ent1', 'kb1', 'Acme Corp', 'named', '2026-01-01T00:00:00Z')
             """
         )
         conn.execute(
             """
             INSERT INTO entity_external_refs (
-                id, kb_id, entity_id, source_id, mapping_id,
+                id, workspace_id, entity_id, source_id, mapping_id,
                 external_table, external_pk, row_hash, last_synced_at
             ) VALUES (
                 'ref1', 'kb1', 'ent1', 'src1', 'map1',
@@ -327,7 +327,7 @@ def test_0011_tables_foreign_keys_and_unique_constraints(tmp_path: Path) -> None
         conn.execute(
             """
             INSERT INTO agent_decisions (
-                id, kb_id, action, status, confidence, rationale, trace_json, created_at
+                id, workspace_id, action, status, confidence, rationale, trace_json, created_at
             ) VALUES (
                 'dec1', 'kb1', 'entity_writeback', 'proposed', 0.95,
                 'Tier upgraded in contract', '{}', '2026-01-01T00:00:00Z'
@@ -337,7 +337,7 @@ def test_0011_tables_foreign_keys_and_unique_constraints(tmp_path: Path) -> None
         conn.execute(
             """
             INSERT INTO entity_sync_outbox (
-                id, kb_id, entity_id, external_ref_id, action_kind, patch_json,
+                id, workspace_id, entity_id, external_ref_id, action_kind, patch_json,
                 status, decision_id, created_by, created_at
             ) VALUES (
                 'out1', 'kb1', 'ent1', 'ref1', 'update_fields',

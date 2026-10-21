@@ -22,7 +22,7 @@ description: BOCP v2.0 规范性说明 + 零基础读者指南（Manifest、原�
 
 Manifest 声明 **`auth`** 与 **`actions`**。每条动作为 **entity**（DISCOVER、LIST、可选 MUTATE）或 **procedure**（INVOKE）。到达上游仅通过 **`rest` / `sql` 执行器** 内的 **`operations` 映射**（HTTP method、path、body 等）由宿主编译执行。v2 仅定义 `rest` 与 `sql` 的执行语义；`graphql` / `grpc` 只是附件提示，不是可执行执行器。
 
-运行时原语：**CHECK**、**DISCOVER**、**LIST**、**MUTATE**、**INVOKE**。连接、策略、调度与知识库投影为 **宿主绑定**，**禁止** 写入 `connector.yaml`。
+运行时原语：**CHECK**、**DISCOVER**、**LIST**、**MUTATE**、**INVOKE**。连接、策略、调度与工作区投影为 **宿主绑定**，**禁止** 写入 `connector.yaml`。
 
 线上 `version` **必须** 为 `"2.0"`；其他版本不接受。
 
@@ -243,7 +243,7 @@ BOCP **不** 规定 HTTP 路径名或 MCP 工具 id。宿主 **应当** 在面�
 | 消费者 | 典型宿主绑定 | 原语用途 |
 |--------|--------------|----------|
 | **本体 / 账本** | 流→实体 mapping、定时入向 sync、outbox 写回 | 同步与审批出向时的 LIST / MUTATE |
-| **智能体（MCP、对话工具）** | KB MCP / OpenAPI 上的原语 API | DISCOVER、LIST、MUTATE、INVOKE — **无需** mapping 行 |
+| **智能体（MCP、对话工具）** | 工作区 MCP / OpenAPI 上的原语 API | DISCOVER、LIST、MUTATE、INVOKE — **无需** mapping 行 |
 
 任一绑定 **不得** 要求第二份 Manifest 或重复 operation 定义。智能体侧 LIST **必须** 在无账本配置时仍有效（§10.4）。
 
@@ -902,7 +902,7 @@ spec:
 |------|------|
 | Connector 作者 | 编写 `providers/github.yaml`（附录 C） |
 | 宿主运维 | 加载目录、平台允许列表 |
-| 终端用户 | 在 KB/工作区创建 **Connection** |
+| 终端用户 | 在工作区创建 **Connection** |
 | 消费者 | UI、批任务、智能体，调用 **原语** |
 
 ### D.2 Manifest 概念（GitHub `issues`）
@@ -964,7 +964,7 @@ Basis 提供 **通用** MCP 工具，并按 manifest `actions[]` **展开**为�
 | 通用 | `invoke_connector_primitive` | 显式传 `service`、`action_id`、`primitive` 等 |
 | 展开 | `connector_{service}__{action_id}__{suffix}` | `suffix` 为 `list`、`discover`、`invoke` 或 `mutate_{create\|update\|upsert\|delete}` |
 
-`tools/list` 按 KB 过滤：受 provider 允许列表与 `action_policy.entities` 约束；某原语为 `disabled`（如 `github:issues.list`）时对应展开工具不会出现在列表中。
+`tools/list` 按工作区过滤：受 provider 允许列表与 `action_policy.entities` 约束；某原语为 `disabled`（如 `github:issues.list`）时对应展开工具不会出现在列表中。
 
 通用示例：
 
@@ -995,7 +995,7 @@ Basis 提供 **通用** MCP 工具，并按 manifest `actions[]` **展开**为�
 }
 ```
 
-HTTP 等价：`POST /api/v1/kbs/{kb_id}/connectors/connections/github/default/invoke-primitive`，JSON body 字段与上表一致。
+HTTP 等价：`POST /api/v1/workspaces/{workspace_id}/connectors/connections/github/default/invoke-primitive`，JSON body 字段与上表一致。
 
 ### D.8 账本路径
 

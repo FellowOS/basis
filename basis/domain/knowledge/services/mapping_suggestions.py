@@ -153,12 +153,12 @@ class TableMappingSuggestResult:
 
 def expand_auto_targets(
     runtime: ConnectorRuntime,
-    kb_id: str,
+    workspace_id: str,
     *,
     max_streams_per_connection: int = 8,
 ) -> list[SuggestStreamTarget]:
     targets: list[SuggestStreamTarget] = []
-    connections = runtime.vault.list_connections(kb_id)
+    connections = runtime.vault.list_connections(workspace_id)
     for conn in connections:
         manifest = runtime.catalog.get(conn.service)
         if not manifest or not manifest.streams:
@@ -189,7 +189,7 @@ def _mapping_fingerprint(
 
 def suggest_table_mapping_drafts(
     runtime: ConnectorRuntime,
-    kb_id: str,
+    workspace_id: str,
     targets: list[SuggestStreamTarget],
     *,
     existing_fingerprints: set[tuple[str, str, str, str]] | None = None,
@@ -260,7 +260,7 @@ def suggest_table_mapping_drafts(
 
         try:
             info = runtime.discover_schema(
-                kb_id,
+                workspace_id,
                 target.provider,
                 connection_name=target.connection_name,
                 stream_name=stream_name,

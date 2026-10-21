@@ -35,7 +35,7 @@ export function errorFromApiResponse(
   const defaultMessage =
     fallbackMessage
     || (status === 401 || status === 403
-      ? messagesForLocale(resolvedLocale).common.signInRequired
+      ? messagesForLocale(resolvedLocale).core.common.signInRequired
       : requestFailedStatusMessage(resolvedLocale, status));
   // When the API sends a stable code, UI should map via the registry — not show raw server text.
   const err = new Error(

@@ -25,12 +25,12 @@ def mapping_review_payload(mapping: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def ensure_mapping_review_item(knowledge: KnowledgeStore, kb_id: str, mapping: dict[str, Any]) -> None:
+def ensure_mapping_review_item(knowledge: KnowledgeStore, workspace_id: str, mapping: dict[str, Any]) -> None:
     if mapping.get("status") != "proposed":
         return
     try:
         knowledge.create_review_item(
-            kb_id,
+            workspace_id,
             kind=MAPPING_REVIEW_KIND,
             subject_type=MAPPING_REVIEW_SUBJECT_TYPE,
             subject_id=mapping["id"],
@@ -43,7 +43,7 @@ def ensure_mapping_review_item(knowledge: KnowledgeStore, kb_id: str, mapping: d
 
 def close_mapping_review_if_open(
     knowledge: KnowledgeStore,
-    kb_id: str,
+    workspace_id: str,
     mapping_id: str,
     *,
     resolved_by: str,
@@ -51,7 +51,7 @@ def close_mapping_review_if_open(
     rationale: str | None = None,
 ) -> None:
     item = knowledge.find_open_review_item(
-        kb_id,
+        workspace_id,
         kind=MAPPING_REVIEW_KIND,
         subject_type=MAPPING_REVIEW_SUBJECT_TYPE,
         subject_id=mapping_id,
@@ -59,7 +59,7 @@ def close_mapping_review_if_open(
     if item is None:
         return
     knowledge.resolve_review_item(
-        kb_id,
+        workspace_id,
         item["id"],
         status=review_status,
         resolved_by=resolved_by,
@@ -68,7 +68,7 @@ def close_mapping_review_if_open(
 
 
 def apply_mapping_status_change(
-    kb_id: str,
+    workspace_id: str,
     mapping_id: str,
     actor: KbAuditActor,
     store: KbAuditStore,
@@ -80,7 +80,7 @@ def apply_mapping_status_change(
     projection_bindings: GraphProjectionBindings | None = None,
 ) -> dict[str, Any]:
     mapping = knowledge.update_mapping_status(
-        kb_id,
+        workspace_id,
         mapping_id,
         actor.id,
         status=status,
@@ -89,13 +89,13 @@ def apply_mapping_status_change(
     materialized: dict[str, Any] | None = None
     projection: dict[str, Any] | None = None
     if status == "confirmed":
-        materialized = knowledge.materialize_mapping_facts(kb_id, mapping_id)
+        materialized = knowledge.materialize_mapping_facts(workspace_id, mapping_id)
         if materialized.get("created", 0) > 0 and projection_bindings is not None:
-            projection = rebuild_kb_projection(projection_bindings, kb_id)
+            projection = rebuild_kb_projection(projection_bindings, workspace_id)
     if sync_review and status in {"confirmed", "rejected"}:
         close_mapping_review_if_open(
             knowledge,
-            kb_id,
+            workspace_id,
             mapping_id,
             resolved_by=actor.id,
             review_status="approved" if status == "confirmed" else "rejected",
@@ -104,7 +104,7 @@ def apply_mapping_status_change(
     audit_kb_graph(
         store,
         actor,
-        kb_id,
+        workspace_id,
         "kb.mapping.status",
         extra={
             "mapping_id": mapping_id,

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
-  kbOntologyProposalPath,
+  workspaceOntologyProposalPath,
   platformAdminEntryPath,
   visiblePlatformNavItems,
 } from '@/lib/nav-config.js';
@@ -17,14 +17,14 @@ describe('visiblePlatformNavItems', () => {
   });
 
   it('desktop admin entry skips hidden system settings', () => {
-    expect(platformAdminEntryPath(true, true, true)).toBe('/admin/kbs');
+    expect(platformAdminEntryPath(true, true, true)).toBe('/admin/workspaces');
   });
 });
 
-describe('kbOntologyProposalPath', () => {
+describe('workspaceOntologyProposalPath', () => {
   it('opens ontology versions tab with proposal query', () => {
-    expect(kbOntologyProposalPath('kb-1', 'prop-42')).toBe(
-      '/kbs/kb-1/ontology?tab=versions&ontologyProposal=prop-42',
+    expect(workspaceOntologyProposalPath('kb-1', 'prop-42')).toBe(
+      '/workspaces/kb-1/ontology?tab=versions&ontologyProposal=prop-42',
     );
   });
 });

@@ -27,11 +27,11 @@ export function DocsShell({ activeSlug, children }: DocsShellProps) {
 
   useEffect(() => {
     const previous = document.title;
-    document.title = `${t.docs.sidebarAria} — Basis`;
+    document.title = `${t.docs.page.sidebar_aria} — Basis`;
     return () => {
       document.title = previous;
     };
-  }, [t.docs.sidebarAria]);
+  }, [t.docs.page.sidebar_aria]);
 
   return (
     <div className="flex h-dvh max-h-dvh flex-col overflow-hidden bg-background text-foreground">
@@ -53,7 +53,7 @@ export function DocsShell({ activeSlug, children }: DocsShellProps) {
               onValueChange={(url) => navigate(url)}
             >
               <SelectTrigger className="w-full" size="sm">
-                <SelectValue placeholder={t.docs.selectPage} />
+                <SelectValue placeholder={t.docs.page.select_page} />
               </SelectTrigger>
               <SelectContent>
                 {flatPages.map((page) => (

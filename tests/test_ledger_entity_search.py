@@ -18,23 +18,23 @@ def test_find_entities_and_facts(tmp_path: Path) -> None:
         json={"email": "ent@example.com", "password": "password1", "display_name": "Ent"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
 
     store = KnowledgeStore(tmp_path / "basis.db", BlobStore(tmp_path))
     _, version_id, _, _ = store.store_upload_bytes(
-        kb_id,
+        workspace_id,
         title="d.txt",
         mime_type="text/plain",
         data=b"x",
         created_by=None,
         external_key="d1",
     )
-    chunk_id = store.create_chunk(kb_id, version_id, ordinal=0, text="Alice knows Bob.")
-    store.set_version_status(kb_id, version_id, "ready")
-    alice = store.create_entity(kb_id, canonical_label="Alice Search")
-    bob = store.create_entity(kb_id, canonical_label="Bob")
+    chunk_id = store.create_chunk(workspace_id, version_id, ordinal=0, text="Alice knows Bob.")
+    store.set_version_status(workspace_id, version_id, "ready")
+    alice = store.create_entity(workspace_id, canonical_label="Alice Search")
+    bob = store.create_entity(workspace_id, canonical_label="Bob")
     statement_id = store.add_open_statement(
-        kb_id,
+        workspace_id,
         subject_id=alice,
         surface_phrase="knows",
         object_entity_id=bob,
@@ -47,7 +47,7 @@ def test_find_entities_and_facts(tmp_path: Path) -> None:
     store.close()
 
     found = client.get(
-        f"/api/v1/kbs/{kb_id}/ledger/entities?query=Alice",
+        f"/api/v1/workspaces/{workspace_id}/ledger/entities?query=Alice",
         headers=headers,
     )
     assert found.status_code == 200
@@ -57,7 +57,7 @@ def test_find_entities_and_facts(tmp_path: Path) -> None:
     assert entities[0]["entity_id"] == alice
 
     facts = client.get(
-        f"/api/v1/kbs/{kb_id}/ledger/entities/{alice}/facts",
+        f"/api/v1/workspaces/{workspace_id}/ledger/entities/{alice}/facts",
         headers=headers,
     )
     assert facts.status_code == 200
@@ -69,14 +69,14 @@ def test_find_entities_and_facts(tmp_path: Path) -> None:
     assert body["facts"][0]["evidence_quote"] == "knows Bob"
 
     stmt = client.get(
-        f"/api/v1/kbs/{kb_id}/ledger/statements/{statement_id}",
+        f"/api/v1/workspaces/{workspace_id}/ledger/statements/{statement_id}",
         headers=headers,
     )
     assert stmt.status_code == 200
     assert stmt.json()["statement"]["subject_id"] == alice
     assert stmt.json()["statement"]["statement_id"] == statement_id
 
-    recent = client.get(f"/api/v1/kbs/{kb_id}/ledger/entities?limit=10", headers=headers)
+    recent = client.get(f"/api/v1/workspaces/{workspace_id}/ledger/entities?limit=10", headers=headers)
     assert recent.status_code == 200
     recent_body = recent.json()
     assert recent_body["total"] >= 2
@@ -85,7 +85,7 @@ def test_find_entities_and_facts(tmp_path: Path) -> None:
     assert bob in recent_ids
 
     page2 = client.get(
-        f"/api/v1/kbs/{kb_id}/ledger/entities?limit=1&offset=1",
+        f"/api/v1/workspaces/{workspace_id}/ledger/entities?limit=1&offset=1",
         headers=headers,
     )
     assert page2.status_code == 200

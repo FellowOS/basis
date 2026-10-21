@@ -1,4 +1,4 @@
-"""Audit helpers for KB-scoped graph mutations."""
+"""Audit helpers for workspace-scoped graph mutations."""
 
 from __future__ import annotations
 
@@ -10,13 +10,13 @@ from basis.domain.knowledge.ports.platform import KbAuditActor, KbAuditStore
 def audit_kb_graph(
     store: KbAuditStore,
     actor: KbAuditActor,
-    kb_id: str,
+    workspace_id: str,
     action: str,
     *,
     review_item_id: str | None = None,
     extra: dict[str, Any] | None = None,
 ) -> None:
-    detail: dict[str, Any] = {"kb_id": kb_id}
+    detail: dict[str, Any] = {"workspace_id": workspace_id}
     if review_item_id:
         detail["review_item_id"] = review_item_id
     if extra:
@@ -24,7 +24,7 @@ def audit_kb_graph(
     store.record_audit(
         actor.id,
         action,
-        "knowledge_base",
-        kb_id,
+        "workspace",
+        workspace_id,
         detail,
     )

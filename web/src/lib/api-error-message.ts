@@ -3,7 +3,7 @@ import type { Locale } from '@/i18n/locale.js';
 import { messagesForLocale } from '@/i18n/pick-locale.js';
 
 function lookupApiErrorCode(locale: Locale, code: string): string | undefined {
-  const messages = messagesForLocale(locale).apiErrorCodes as Record<string, string>;
+  const messages = messagesForLocale(locale).core.api_error_codes as Record<string, string>;
   return messages[code];
 }
 
@@ -22,7 +22,7 @@ function withRequestIdSuffix(
   if (!id) {
     return text;
   }
-  const suffix = messagesForLocale(locale).common.apiReferenceIdSuffix;
+  const suffix = messagesForLocale(locale).core.common.apiReferenceIdSuffix;
   return `${text}${fmt(suffix, { id })}`;
 }
 
@@ -37,7 +37,7 @@ export function messageForApiErrorCode(
   if (mapped) {
     return mapped;
   }
-  return fmt(messagesForLocale(locale).common.apiErrorCode, { code: code.trim() });
+  return fmt(messagesForLocale(locale).core.common.apiErrorCode, { code: code.trim() });
 }
 
 export function readApiErrorCode(err: unknown): string | undefined {
@@ -62,7 +62,7 @@ export function formatUserFacingApiError(
   err: unknown,
   locale: Locale,
 ): string {
-  const fallback = messagesForLocale(locale).common.apiTryAgain;
+  const fallback = messagesForLocale(locale).core.common.apiTryAgain;
   if (!(err instanceof Error)) {
     return fallback;
   }

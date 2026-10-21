@@ -29,18 +29,18 @@ def main() -> None:
     knowledge = KnowledgeStore(database, BlobStore(settings.data_dir))
     try:
         row = database.conn.execute(
-            "SELECT id FROM knowledge_bases WHERE name = ?", (args.kb_name,)
+            "SELECT id FROM workspaces WHERE name = ?", (args.kb_name,)
         ).fetchone()
         if row is None:
-            raise SystemExit(f"Knowledge base not found: {args.kb_name}")
-        kb_id = row["id"]
+            raise SystemExit(f"Workspace not found: {args.kb_name}")
+        workspace_id = row["id"]
 
         for _ in range(5):
-            knowledge.search_chunks_keyword(kb_id, query=args.query, limit=30)
+            knowledge.search_chunks_keyword(workspace_id, query=args.query, limit=30)
 
         def once(_: int) -> float:
             started = time.perf_counter()
-            knowledge.search_chunks_keyword(kb_id, query=args.query, limit=30)
+            knowledge.search_chunks_keyword(workspace_id, query=args.query, limit=30)
             return (time.perf_counter() - started) * 1000
 
         started = time.perf_counter()

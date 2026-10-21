@@ -36,7 +36,7 @@ def _setup_kb_db(tmp_path: Path) -> sqlite3.Connection:
     )
     conn.execute(
         """
-        INSERT INTO knowledge_bases (id, name, description, visibility, created_by, created_at)
+        INSERT INTO workspaces (id, name, description, visibility, created_by, created_at)
         VALUES ('kb1', 'KB 1', '', 'private', 'u1', '2026-01-01T00:00:00Z')
         """
     )

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Seed demo ledger + graph data for KB 108dd8a0 (local dev)."""
+"""Seed demo ledger + graph data for workspace 108dd8a0 (local dev)."""
 
 from __future__ import annotations
 
@@ -54,7 +54,7 @@ def _seed_manual_statements(knowledge, actor_id: str) -> None:
     """Pattern NER misses Chinese; add ledger rows for demo timeline."""
     conn = knowledge._conn
     if conn.execute(
-        "SELECT 1 FROM entities WHERE kb_id = ? AND canonical_label = ? LIMIT 1",
+        "SELECT 1 FROM entities WHERE workspace_id = ? AND canonical_label = ? LIMIT 1",
         (KB_ID, "陈磊"),
     ).fetchone():
         print("manual statements already present (陈磊 exists)")
@@ -73,7 +73,7 @@ def _seed_manual_statements(knowledge, actor_id: str) -> None:
             SELECT c.id FROM chunks c
             JOIN document_versions v ON v.id = c.version_id
             JOIN documents d ON d.id = v.document_id
-            WHERE c.kb_id = ? AND d.external_key = ?
+            WHERE c.workspace_id = ? AND d.external_key = ?
             LIMIT 1
             """,
             (KB_ID, external_key),
@@ -118,16 +118,16 @@ def main() -> int:
     persistence: GraphPersistence = app.state.graph_persistence
 
     conn = knowledge._conn
-    if conn.execute("SELECT id FROM knowledge_bases WHERE id = ?", (KB_ID,)).fetchone() is None:
-        print(f"KB not found: {KB_ID}", file=sys.stderr)
+    if conn.execute("SELECT id FROM workspaces WHERE id = ?", (KB_ID,)).fetchone() is None:
+        print(f"Workspace not found: {KB_ID}", file=sys.stderr)
         return 1
 
     owner_row = conn.execute(
-        "SELECT user_id FROM kb_members WHERE kb_id = ? AND role = 'owner' LIMIT 1",
+        "SELECT user_id FROM members WHERE workspace_id = ? AND role = 'owner' LIMIT 1",
         (KB_ID,),
     ).fetchone()
     if owner_row is None:
-        print("No KB owner", file=sys.stderr)
+        print("No workspace owner", file=sys.stderr)
         return 1
     actor_id = owner_row[0]
 
@@ -181,7 +181,7 @@ def main() -> int:
                 """
                 SELECT c.id FROM chunks c
                 JOIN document_versions v ON v.id = c.version_id
-                WHERE c.kb_id = ? AND c.version_id = ?
+                WHERE c.workspace_id = ? AND c.version_id = ?
                 """,
                 (KB_ID, version_id),
             ).fetchall()
@@ -193,9 +193,9 @@ def main() -> int:
                 f"""
                 UPDATE statements
                 SET recorded_at = ?
-                WHERE kb_id = ? AND id IN (
+                WHERE workspace_id = ? AND id IN (
                   SELECT statement_id FROM statement_evidence
-                  WHERE kb_id = ? AND chunk_id IN ({placeholders})
+                  WHERE workspace_id = ? AND chunk_id IN ({placeholders})
                 )
                 """,
                 (recorded_at, KB_ID, KB_ID, *chunk_ids),
@@ -203,7 +203,7 @@ def main() -> int:
             conn.execute(
                 """
                 UPDATE documents SET created_at = ?
-                WHERE kb_id = ? AND external_key = ?
+                WHERE workspace_id = ? AND external_key = ?
                 """,
                 (recorded_at, KB_ID, external_key),
             )

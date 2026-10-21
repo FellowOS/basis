@@ -9,8 +9,8 @@ from basis.interface.http.deps import (
     kb_graph_runtime_for,
     get_blob_store,
     get_chunk_search,
-    get_kb_for_editor,
-    get_kb_for_viewer,
+    get_workspace_for_editor,
+    get_workspace_for_viewer,
     get_knowledge_store,
     get_store,
     graph_projection_bindings,
@@ -20,28 +20,28 @@ from basis.interface.http.deps import (
 from basis.application.context import KbCoreContext
 
 
-def build_kb_core_context(
+def build_workspace_core_context(
     request: Request,
     *,
-    kb_id: str,
+    workspace_id: str,
     user: User,
     store: AdminStore | None = None,
     require_editor: bool = False,
 ) -> KbCoreContext:
     store = store or get_store(request)
     if require_editor:
-        kb, _role = get_kb_for_editor(request, user, kb_id, store)
+        workspace, _role = get_workspace_for_editor(request, user, workspace_id, store)
     else:
-        kb, _role = get_kb_for_viewer(request, user, kb_id, store)
+        workspace, _role = get_workspace_for_viewer(request, user, workspace_id, store)
     return KbCoreContext(
-        kb=kb,
+        workspace=workspace,
         user=user,
         knowledge=get_knowledge_store(request),
         store=store,
         chunk_search=get_chunk_search(request),
-        runtime_loader=lambda: kb_graph_runtime_for(request, kb_id),
-        assert_kb_editor=lambda: get_kb_for_editor(request, user, kb_id, store),
-        rebuild_projection=lambda: rebuild_kb_projection(request, kb_id),
+        runtime_loader=lambda: kb_graph_runtime_for(request, workspace_id),
+        assert_kb_editor=lambda: get_workspace_for_editor(request, user, workspace_id, store),
+        rebuild_projection=lambda: rebuild_kb_projection(request, workspace_id),
         persist_graph=lambda kid: save_graph(request, kid),
         blob_store=get_blob_store(request),
         projection_bindings=graph_projection_bindings(request),

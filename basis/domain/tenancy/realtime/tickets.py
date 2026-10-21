@@ -15,7 +15,7 @@ _TICKET_TTL_SECONDS = 60
 
 @dataclass
 class _TicketRecord:
-    kb_id: str
+    workspace_id: str
     user_id: str
     expires_at: float
     used: bool = False
@@ -27,19 +27,19 @@ class RealtimeTicketStore:
         self._lock = threading.Lock()
         self._by_digest: dict[str, _TicketRecord] = {}
 
-    def issue(self, kb_id: str, user_id: str) -> tuple[str, str]:
+    def issue(self, workspace_id: str, user_id: str) -> tuple[str, str]:
         token = secrets.token_urlsafe(32)
         digest = hashlib.sha256(token.encode("utf-8")).hexdigest()
         expires_at = time.time() + self._ttl
         with self._lock:
             self._by_digest[digest] = _TicketRecord(
-                kb_id=kb_id,
+                workspace_id=workspace_id,
                 user_id=user_id,
                 expires_at=expires_at,
             )
         return token, time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(expires_at))
 
-    def consume(self, kb_id: str, token: str) -> str:
+    def consume(self, workspace_id: str, token: str) -> str:
         digest = hashlib.sha256(token.encode("utf-8")).hexdigest()
         with self._lock:
             record = self._by_digest.get(digest)
@@ -47,8 +47,8 @@ class RealtimeTicketStore:
                 raise AdminError(401, "invalid_ticket", "票据无效")
             if record.used:
                 raise AdminError(401, "ticket_used", "票据已使用")
-            if record.kb_id != kb_id:
-                raise AdminError(403, "wrong_kb", "票据与知识库不匹配")
+            if record.workspace_id != workspace_id:
+                raise AdminError(403, "wrong_kb", "票据与工作区不匹配")
             if time.time() > record.expires_at:
                 raise AdminError(401, "ticket_expired", "票据已过期")
             record.used = True

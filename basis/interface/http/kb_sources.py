@@ -1,4 +1,4 @@
-"""KB ingest source connectors — aggregates sub-routers."""
+"""Workspace ingest source connectors — aggregates sub-routers."""
 
 from __future__ import annotations
 

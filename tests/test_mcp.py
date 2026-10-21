@@ -1,4 +1,4 @@
-"""KB MCP HTTP and API tokens."""
+"""Workspace MCP HTTP and API tokens."""
 
 import json
 import time
@@ -16,7 +16,7 @@ _LOOP_MARKER = "MCP_GRAPH_LOOP_UNIQUE_2010"
 
 def _mcp_tool_json(
     client: TestClient,
-    kb_id: str,
+    workspace_id: str,
     headers: dict[str, str],
     name: str,
     arguments: dict,
@@ -24,7 +24,7 @@ def _mcp_tool_json(
     rpc_id: int,
 ) -> dict:
     resp = client.post(
-        f"/api/v1/kbs/{kb_id}/mcp",
+        f"/api/v1/workspaces/{workspace_id}/mcp",
         headers=headers,
         json={
             "jsonrpc": "2.0",
@@ -47,9 +47,9 @@ def test_mcp_basic_graph_closed_loop(tmp_path) -> None:
         json={"email": "loop@example.com", "password": "password1", "display_name": "Loop"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
     client.post(
-        f"/api/v1/kbs/{kb_id}/documents",
+        f"/api/v1/workspaces/{workspace_id}/documents",
         headers=headers,
         json={
             "doc_id": "loop-doc",
@@ -61,13 +61,13 @@ def test_mcp_basic_graph_closed_loop(tmp_path) -> None:
     )
 
     search = _mcp_tool_json(
-        client, kb_id, headers, "search_chunks", {"query": "Paris"}, rpc_id=1
+        client, workspace_id, headers, "search_chunks", {"query": "Paris"}, rpc_id=1
     )
     assert any("Paris" in (c.get("text") or "") for c in search.get("chunks", []))
 
     proposed = _mcp_tool_json(
         client,
-        kb_id,
+        workspace_id,
         headers,
         "propose_remember",
         {"content": f"Acme Corp {_LOOP_MARKER}."},
@@ -77,7 +77,7 @@ def test_mcp_basic_graph_closed_loop(tmp_path) -> None:
 
     item = _mcp_tool_json(
         client,
-        kb_id,
+        workspace_id,
         headers,
         "get_review_item",
         {"item_id": review_item_id},
@@ -87,7 +87,7 @@ def test_mcp_basic_graph_closed_loop(tmp_path) -> None:
 
     approved = _mcp_tool_json(
         client,
-        kb_id,
+        workspace_id,
         headers,
         "approve_statement_remember_review",
         {"item_id": review_item_id},
@@ -97,7 +97,7 @@ def test_mcp_basic_graph_closed_loop(tmp_path) -> None:
 
     entities = _mcp_tool_json(
         client,
-        kb_id,
+        workspace_id,
         headers,
         "find_entities",
         {"query": "Agent memory"},
@@ -109,7 +109,7 @@ def test_mcp_basic_graph_closed_loop(tmp_path) -> None:
 
     facts = _mcp_tool_json(
         client,
-        kb_id,
+        workspace_id,
         headers,
         "entity_facts",
         {"entity_id": entity_id},
@@ -125,9 +125,9 @@ def test_mcp_tools_with_api_token(tmp_path) -> None:
         json={"email": "mcp@example.com", "password": "password1", "display_name": "M"},
     ).json()
     session_headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_id = client.get("/api/v1/kbs", headers=session_headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=session_headers).json()["kbs"][0]["id"]
     client.post(
-        f"/api/v1/kbs/{kb_id}/documents",
+        f"/api/v1/workspaces/{workspace_id}/documents",
         headers=session_headers,
         json={
             "doc_id": "mcp-doc",
@@ -139,22 +139,22 @@ def test_mcp_tools_with_api_token(tmp_path) -> None:
     )
 
     created = client.post(
-        f"/api/v1/kbs/{kb_id}/tokens",
+        f"/api/v1/workspaces/{workspace_id}/tokens",
         headers=session_headers,
         json={"name": "agent", "scope": "read"},
     )
     assert created.status_code == 200
     secret = created.json()["secret"]
-    listed = client.get(f"/api/v1/kbs/{kb_id}/tokens", headers=session_headers).json()
+    listed = client.get(f"/api/v1/workspaces/{workspace_id}/tokens", headers=session_headers).json()
     assert listed["tokens"][0].get("secret") == secret
     api_headers = {"Authorization": f"Bearer {secret}"}
 
-    info = client.get(f"/api/v1/kbs/{kb_id}/mcp", headers=api_headers)
+    info = client.get(f"/api/v1/workspaces/{workspace_id}/mcp", headers=api_headers)
     assert info.status_code == 200
-    assert info.json()["mcp_url"].endswith(f"/api/v1/kbs/{kb_id}/mcp")
+    assert info.json()["mcp_url"].endswith(f"/api/v1/workspaces/{workspace_id}/mcp")
 
     init = client.post(
-        f"/api/v1/kbs/{kb_id}/mcp",
+        f"/api/v1/workspaces/{workspace_id}/mcp",
         headers=api_headers,
         json={"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {}},
     )
@@ -162,7 +162,7 @@ def test_mcp_tools_with_api_token(tmp_path) -> None:
     assert init.json()["result"]["serverInfo"]["name"] == "basis-kb-mcp"
 
     tools = client.post(
-        f"/api/v1/kbs/{kb_id}/mcp",
+        f"/api/v1/workspaces/{workspace_id}/mcp",
         headers=api_headers,
         json={"jsonrpc": "2.0", "id": 2, "method": "tools/list", "params": {}},
     ).json()
@@ -177,7 +177,7 @@ def test_mcp_tools_with_api_token(tmp_path) -> None:
     assert "list_processing_jobs" not in names
 
     search = client.post(
-        f"/api/v1/kbs/{kb_id}/mcp",
+        f"/api/v1/workspaces/{workspace_id}/mcp",
         headers=api_headers,
         json={
             "jsonrpc": "2.0",
@@ -190,14 +190,14 @@ def test_mcp_tools_with_api_token(tmp_path) -> None:
     assert "Paris" in search["result"]["content"][0]["text"]
 
     wrong_kb = client.post(
-        "/api/v1/kbs/00000000-0000-0000-0000-000000000000/mcp",
+        "/api/v1/workspaces/00000000-0000-0000-0000-000000000000/mcp",
         headers=api_headers,
         json={"jsonrpc": "2.0", "id": 4, "method": "ping", "params": {}},
     )
     assert wrong_kb.status_code == 403
 
     remember = client.post(
-        f"/api/v1/kbs/{kb_id}/mcp",
+        f"/api/v1/workspaces/{workspace_id}/mcp",
         headers=session_headers,
         json={
             "jsonrpc": "2.0",
@@ -215,7 +215,7 @@ def test_mcp_tools_with_api_token(tmp_path) -> None:
     assert review_item_id
 
     listed = client.post(
-        f"/api/v1/kbs/{kb_id}/mcp",
+        f"/api/v1/workspaces/{workspace_id}/mcp",
         headers=session_headers,
         json={
             "jsonrpc": "2.0",
@@ -231,7 +231,7 @@ def test_mcp_tools_with_api_token(tmp_path) -> None:
     assert any(i["id"] == review_item_id for i in list_payload["items"])
 
     approved = client.post(
-        f"/api/v1/kbs/{kb_id}/mcp",
+        f"/api/v1/workspaces/{workspace_id}/mcp",
         headers=session_headers,
         json={
             "jsonrpc": "2.0",
@@ -260,10 +260,10 @@ def test_mcp_reject_review_item_entity_merge(tmp_path) -> None:
         json={"email": "mcp-rej@example.com", "password": "password1", "display_name": "McpRej"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
 
     proposed = client.post(
-        f"/api/v1/kbs/{kb_id}/review/items/entity-merge",
+        f"/api/v1/workspaces/{workspace_id}/review/items/entity-merge",
         headers=headers,
         json={"primary_id": "node-a", "duplicate_ids": ["node-b"]},
     )
@@ -272,7 +272,7 @@ def test_mcp_reject_review_item_entity_merge(tmp_path) -> None:
 
     rejected = _mcp_tool_json(
         client,
-        kb_id,
+        workspace_id,
         headers,
         "reject_review_item",
         {"item_id": item_id, "rationale": "not duplicates"},
@@ -288,10 +288,10 @@ def test_mcp_busy_when_semaphore_saturated(tmp_path) -> None:
         json={"email": "busy@example.com", "password": "password1", "display_name": "Busy"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
 
     resp = client.post(
-        f"/api/v1/kbs/{kb_id}/mcp",
+        f"/api/v1/workspaces/{workspace_id}/mcp",
         headers=headers,
         json={"jsonrpc": "2.0", "id": 1, "method": "ping", "params": {}},
     )
@@ -306,7 +306,7 @@ def test_mcp_timeout(tmp_path) -> None:
         json={"email": "to@example.com", "password": "password1", "display_name": "To"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    kb_id = client.get("/api/v1/kbs", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
 
     def slow_batch(*_args, **_kwargs):
         time.sleep(2)
@@ -314,7 +314,7 @@ def test_mcp_timeout(tmp_path) -> None:
 
     with patch("basis.interface.http.platform_mcp.handle_batch", side_effect=slow_batch):
         resp = client.post(
-            f"/api/v1/kbs/{kb_id}/mcp",
+            f"/api/v1/workspaces/{workspace_id}/mcp",
             headers=headers,
             json={"jsonrpc": "2.0", "id": 1, "method": "ping", "params": {}},
         )
