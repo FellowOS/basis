@@ -34,7 +34,7 @@ Basis is an open-source stack built on the [Semantica](https://github.com/semant
   - [2. Run Web](#2-run-web)
   - [3. Smoke-test in the UI](#3-smoke-test-in-the-ui)
 - [Configuration (essentials)](#configuration-essentials)
-- [Agent integration (OpenAPI and MCP)](#agent-integration-openapi-and-mcp)
+- [Integration](#integration)
   - [Access tokens](#access-tokens)
   - [OpenAPI (REST)](#openapi-rest)
   - [MCP (JSON-RPC)](#mcp-json-rpc)
@@ -125,7 +125,7 @@ Full list: [.env.example](.env.example).
 
 **Backups:** `./scripts/backup_basis_data.sh` (SQLite) or `./scripts/backup_basis_postgres.sh` (Postgres).
 
-## Agent integration (OpenAPI and MCP)
+## Integration
 
 Basis exposes two integration surfaces for agents and automation. **OpenAPI v1** is REST over HTTP. **MCP** is JSON-RPC over HTTP to the same workspace operations. They share one **operation catalog** and the same **workspace access tokens**.
 
@@ -164,21 +164,7 @@ Generate clients from `workspaces.json` or call paths by `operationId`. Snapshot
 
 ### MCP (JSON-RPC)
 
-**Discovery (GET):** returns `mcp_url`, `tools`, and a `cursor_example` block.
-
-```bash
-curl -sS "http://127.0.0.1:8090/api/v1/workspaces/YOUR_WORKSPACE_ID/mcp" \
-  -H "Authorization: Bearer YOUR_WORKSPACE_TOKEN"
-```
-
-**Transport (POST):** same URL, JSON-RPC 2.0 body. Typical flow is `initialize`, then `tools/list`, then `tools/call`.
-
-```bash
-curl -sS "http://127.0.0.1:8090/api/v1/workspaces/YOUR_WORKSPACE_ID/mcp" \
-  -H "Authorization: Bearer YOUR_WORKSPACE_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"describe_workspace","arguments":{}}}'
-```
+Use **Integration → MCP** in the studio for the endpoint URL, tool list, and copy-paste client config. The transport is JSON-RPC 2.0 over `POST /api/v1/workspaces/{workspace_id}/mcp`.
 
 **Cursor / `mcp.json`** (replace workspace id and token):
 

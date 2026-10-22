@@ -34,7 +34,7 @@ Basis 是基于 [Semantica](https://github.com/semantica-agi/semantica) Python S
   - [2. 启动 Web](#2-启动-web)
   - [3. 冒烟验证](#3-冒烟验证)
 - [配置（常用）](#配置常用)
-- [智能体集成（OpenAPI 与 MCP）](#智能体集成openapi-与-mcp)
+- [集成](#集成)
   - [访问令牌](#访问令牌)
   - [OpenAPI（REST）](#openapirest)
   - [MCP（JSON-RPC）](#mcpjson-rpc)
@@ -125,7 +125,7 @@ cd web && npm install && npm run dev
 
 **备份：** `./scripts/backup_basis_data.sh`（SQLite）或 `./scripts/backup_basis_postgres.sh`（Postgres）。
 
-## 智能体集成（OpenAPI 与 MCP）
+## 集成
 
 Basis 为智能体与自动化提供两种集成方式。**OpenAPI v1** 是 HTTP REST。**MCP** 是对同一套工作区操作的 HTTP JSON-RPC。二者共用**操作目录**与**工作区访问令牌**。
 
@@ -164,21 +164,7 @@ curl -sS "http://127.0.0.1:8090/api/v1/workspaces/YOUR_WORKSPACE_ID" \
 
 ### MCP（JSON-RPC）
 
-**发现（GET）：** 返回 `mcp_url`、`tools` 与 `cursor_example`。
-
-```bash
-curl -sS "http://127.0.0.1:8090/api/v1/workspaces/YOUR_WORKSPACE_ID/mcp" \
-  -H "Authorization: Bearer YOUR_WORKSPACE_TOKEN"
-```
-
-**传输（POST）：** 同一 URL，JSON-RPC 2.0 请求体。常见顺序为 `initialize`，再 `tools/list`，再 `tools/call`。
-
-```bash
-curl -sS "http://127.0.0.1:8090/api/v1/workspaces/YOUR_WORKSPACE_ID/mcp" \
-  -H "Authorization: Bearer YOUR_WORKSPACE_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"describe_workspace","arguments":{}}}'
-```
+在工作台 **Integration → MCP** 查看端点 URL、工具列表并复制客户端配置。传输方式为 JSON-RPC 2.0，请求 `POST /api/v1/workspaces/{workspace_id}/mcp`。
 
 **Cursor / `mcp.json`**（替换工作区 id 与令牌）：
 
