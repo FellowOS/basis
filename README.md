@@ -1,15 +1,11 @@
 # Basis — Let agents understand real business
 
-<div align="center">
-
-[English](./README.md) · [简体中文](./README.zh-CN.md)
+**English** · [简体中文](./README.zh-CN.md)
 
 [![CI](https://github.com/FellowOS/basis/actions/workflows/ci.yml/badge.svg)](https://github.com/FellowOS/basis/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10--3.13-blue.svg)](pyproject.toml)
 [![Node](https://img.shields.io/badge/node-%3E%3D22-green.svg)](web/package.json)
-
-</div>
 
 **Ontology-driven enterprise business semantics layer.**
 
@@ -41,9 +37,6 @@ Basis is an open-source stack on the [Semantica](https://github.com/semantica-ag
   <img src="assets/graph.png" alt="Basis graph workspace — force-directed ledger projection, ontology navigation, temporal scrubber" width="900" style="border-radius: 12px;" />
 </p>
 <p align="center"><sub>Graph workspace in the Basis studio.</sub></p>
-
----
-
 ## Features
 
 - **Business semantics** — entities, typed facts, mappings, and ontologies; the unit of meaning is not “another chunk.”
@@ -53,9 +46,6 @@ Basis is an open-source stack on the [Semantica](https://github.com/semantica-ag
 - **Connectors (BOCP)** — shipped providers (e.g. postgres, mysql, github, slack); inbound sync and governed writeback.
 - **Agent APIs** — workspace-scoped **OpenAPI v1** and **MCP** (`search_chunks`, `find_entities`, connector tools, review ops).
 - **Platform** — users, org SSO (OIDC/SAML optional), workspace roles, API tokens, audit.
-
----
-
 ## Architecture
 
 ```mermaid
@@ -74,9 +64,6 @@ flowchart LR
 ```
 
 Integrations should call **Basis** (`/api/v1/...` and workspace MCP), not Semantica directly.
-
----
-
 ## Quick start
 
 ### Prerequisites
@@ -118,9 +105,6 @@ In-app product docs: **`http://127.0.0.1:5173/docs`** · API explorer: **`http:/
 ### Desktop (optional, no login)
 
 See [desktop/README.md](desktop/README.md): `BASIS_DEPLOYMENT_PROFILE=desktop`, `npm run dev:desktop`, or Electron via `cd desktop && npm run dev`.
-
----
-
 ## Agent integration (MCP)
 
 Create a **workspace API token** (workspace settings → Tokens). MCP endpoint:
@@ -137,9 +121,6 @@ curl -sS "http://127.0.0.1:8090/api/v1/workspaces/YOUR_WORKSPACE_ID/mcp" \
 ```
 
 Tool names and HTTP paths share the same operation catalog; see live **`/openapi/v1/workspaces.json`** when the API is running.
-
----
-
 ## Why Basis
 
 | | Typical “RAG + raw tools” | **Basis** |
@@ -149,9 +130,6 @@ Tool names and HTTP paths share the same operation catalog; see live **`/openapi
 | **Business semantics** | Prompt labels | Shared entities & types, mappings, ontologies, rules, SHACL, SPARQL |
 | **Connectivity** | Per-system glue | BOCP manifests, OpenAPI v1, MCP |
 | **Ops** | Many services | API + Web; SQLite dev, PostgreSQL for production |
-
----
-
 ## Configuration (essentials)
 
 | Variable | Default | Purpose |
@@ -167,9 +145,6 @@ Full list: [.env.example](.env.example).
 `BASIS_DATABASE_URL=postgresql://basis:basis@127.0.0.1:5432/basis` (host port **5432**).
 
 **Backups:** `./scripts/backup_basis_data.sh` (SQLite) or `./scripts/backup_basis_postgres.sh` (Postgres).
-
----
-
 ## Semantica dependency
 
 `semantica` resolves from **PyPI** (see `uv.lock`). `uv sync` installs Basis runtime extras (document parse, embeddings, SHACL, OpenAI-compatible LLM, etc.). Optional groups: `dev`, `heavy`, `explorer`, `saml` — see [pyproject.toml](pyproject.toml).
@@ -183,9 +158,6 @@ uv run python -m spacy download en_core_web_sm
 ```
 
 Chat/embeddings in the console need provider API keys only when you use LLM-backed features.
-
----
-
 ## Development
 
 ```bash
@@ -196,17 +168,11 @@ cd web && CI=1 npm run test:e2e   # optional; Playwright + API
 ```
 
 Layout for contributors: `basis/interface`, `application`, `domain`, `infra` — see [AGENTS.md](AGENTS.md).
-
----
-
 ## Community
 
 - **Bug reports & features:** [GitHub Issues](https://github.com/FellowOS/basis/issues)
 - **Security vulnerabilities:** [SECURITY.md](SECURITY.md) (please do not file public issues)
 - **Contributing:** [CONTRIBUTING.md](CONTRIBUTING.md) · [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
-
----
-
 ## License
 
 [Apache License 2.0](LICENSE).

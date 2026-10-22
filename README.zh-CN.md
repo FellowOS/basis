@@ -1,15 +1,11 @@
 # Basis — 让智能体读懂真实业务
 
-<div align="center">
-
-[English](./README.md) · [简体中文](./README.zh-CN.md)
+[English](./README.md) · **简体中文**
 
 [![CI](https://github.com/FellowOS/basis/actions/workflows/ci.yml/badge.svg)](https://github.com/FellowOS/basis/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10--3.13-blue.svg)](pyproject.toml)
 [![Node](https://img.shields.io/badge/node-%3E%3D22-green.svg)](web/package.json)
-
-</div>
 
 **本体驱动的企业业务语义层。**
 
@@ -41,9 +37,6 @@ Basis 是基于 [Semantica](https://github.com/semantica-agi/semantica) Python S
   <img src="assets/graph.png" alt="Basis 图谱工作区 — 力导向图、本体导航、时间轴回放" width="900" style="border-radius: 12px;" />
 </p>
 <p align="center"><sub>Basis 工作台中的图谱工作区。</sub></p>
-
----
-
 ## 能力概览
 
 - **业务语义** — 实体、类型化事实、映射与本体；语义单元不是「又一坨切片」。
@@ -53,9 +46,6 @@ Basis 是基于 [Semantica](https://github.com/semantica-agi/semantica) Python S
 - **连接器（BOCP）** — 内置 provider（如 postgres、mysql、github、slack）；入向同步与受控写回。
 - **智能体接口** — 工作区级 **OpenAPI v1** 与 **MCP**（检索、图、连接器、审核等工具）。
 - **平台** — 用户、组织 SSO（可选 OIDC/SAML）、工作区角色、API 令牌、审计。
-
----
-
 ## 架构
 
 ```mermaid
@@ -74,9 +64,6 @@ flowchart LR
 ```
 
 集成方应调用 **Basis**（`/api/v1/...` 与工作区 MCP），而非直接依赖 Semantica。
-
----
-
 ## 快速开始
 
 ### 环境
@@ -118,9 +105,6 @@ cd web && npm install && npm run dev
 ### 桌面版（可选、免登录）
 
 见 [desktop/README.md](desktop/README.md)。
-
----
-
 ## 智能体集成（MCP）
 
 在工作区设置中创建 **API 令牌**。MCP 端点：
@@ -135,9 +119,6 @@ curl -sS "http://127.0.0.1:8090/api/v1/workspaces/YOUR_WORKSPACE_ID/mcp" \
 ```
 
 工具名与 HTTP 操作共享同一注册表；API 运行时可查看 **`/openapi/v1/workspaces.json`**。
-
----
-
 ## 产品定位
 
 | | 常见「RAG + 裸调 API」 | **Basis** |
@@ -147,9 +128,6 @@ curl -sS "http://127.0.0.1:8090/api/v1/workspaces/YOUR_WORKSPACE_ID/mcp" \
 | **业务语义** | 提示词标签 | 共享实体与类型、映射、本体、规则、SHACL、SPARQL |
 | **连接** | 手写胶水 | BOCP、OpenAPI v1、MCP |
 | **运维** | 多组件 | API + Web；开发 SQLite，生产 PostgreSQL |
-
----
-
 ## 配置（常用）
 
 | 变量 | 默认 | 说明 |
@@ -165,9 +143,6 @@ curl -sS "http://127.0.0.1:8090/api/v1/workspaces/YOUR_WORKSPACE_ID/mcp" \
 `BASIS_DATABASE_URL=postgresql://basis:basis@127.0.0.1:5432/basis`（宿主机端口 **5432**）。
 
 **备份：** `./scripts/backup_basis_data.sh`（SQLite）或 `./scripts/backup_basis_postgres.sh`（Postgres）。
-
----
-
 ## Semantica 依赖
 
 `semantica` 从 **PyPI** 解析（见 `uv.lock`）。`uv sync` 安装运行时推荐 extras。可选：`dev`、`heavy`、`explorer`、`saml`（见 [pyproject.toml](pyproject.toml)）。
@@ -182,9 +157,6 @@ uv run python -m spacy download zh_core_web_sm   # 中文可选
 ```
 
 控制台 **Chat / Embed** 仅在启用 LLM 能力时需要配置密钥。
-
----
-
 ## 开发
 
 ```bash
@@ -195,17 +167,11 @@ cd web && CI=1 npm run test:e2e   # 可选
 ```
 
 包结构：`interface` / `application` / `domain` / `infra` — 见 [AGENTS.md](AGENTS.md)。
-
----
-
 ## 社区
 
 - **缺陷与功能：** [GitHub Issues](https://github.com/FellowOS/basis/issues)
 - **安全漏洞：** [SECURITY.md](SECURITY.md)（请勿公开 issue）
 - **贡献：** [CONTRIBUTING.md](CONTRIBUTING.md) · [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
-
----
-
 ## 许可证
 
 [Apache License 2.0](LICENSE).
