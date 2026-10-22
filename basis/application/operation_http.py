@@ -19,6 +19,17 @@ _ERROR_MAP: dict[str, tuple[int, str]] = {
     "content is required": (422, "validation_error"),
     "item_id is required": (422, "validation_error"),
     "review item not found": (404, "not_found"),
+    "statement not found": (404, "statement_not_found"),
+    "statement_id is required": (422, "validation_error"),
+    "facts is required (non-empty array of fact strings)": (422, "validation_error"),
+    "facts must be an array of strings when provided": (422, "validation_error"),
+    "no ground facts: pass facts[] or materialize typed_facts in the workspace": (
+        422,
+        "validation_error",
+    ),
+    "rules is required (non-empty array of rule strings)": (422, "validation_error"),
+    "rule_id is required": (422, "validation_error"),
+    "rule not found": (404, "not_found"),
 }
 
 

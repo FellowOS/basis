@@ -17,5 +17,8 @@ export default {
     name_placeholder: "Name",
     creating: "Creating…",
     create: "Create",
+    import_demo_label: "Import demo data",
+    import_demo_hint:
+      "Seeds the renewal-signatory scenario: sample docs, ontology mappings, and derived facts.",
   },
 } as const;

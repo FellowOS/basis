@@ -29,7 +29,19 @@ OPERATIONS: dict[str, OperationSpec] = {
             "type": "object",
             "properties": {
                 "query": {"type": "string", "description": "Search text"},
-                "limit": {"type": "integer", "description": "Max chunks (default 10, max 30)"},
+                "limit": {
+                    "type": "integer",
+                    "description": "Max chunks (default 10; capped by chunk_search_max_limit from get_capabilities)",
+                },
+                "limit_max": {
+                    "type": "integer",
+                    "description": "Optional override of server chunk search cap (HTTP passes this automatically)",
+                },
+                "mode": {
+                    "type": "string",
+                    "enum": ["keyword", "semantic", "hybrid"],
+                    "description": "Retrieval mode when workspace search supports it",
+                },
                 "document_id": {"type": "string", "description": "Limit to one document id"},
                 "entity_id": {"type": "string", "description": "Limit to chunks linked to entity id"},
                 "as_of": {
@@ -91,7 +103,10 @@ OPERATIONS: dict[str, OperationSpec] = {
         "handler": ops.op_paths,
     },
     "entity_facts": {
-        "description": "Statements/facts about a ledger entity id.",
+        "description": (
+            "Open statements and inference-derived facts for a ledger entity id "
+            "(derived_facts include proof-chain premises)."
+        ),
         "input_schema": {
             "type": "object",
             "properties": {
@@ -101,6 +116,146 @@ OPERATIONS: dict[str, OperationSpec] = {
             "required": ["entity_id"],
         },
         "handler": ops.op_entity_facts,
+    },
+    "list_derived_facts": {
+        "description": (
+            "List reasoning-derived facts in the ledger (optionally scoped to one entity). "
+            "Use after rules/inference to read conclusions not present in source documents."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "entity_id": {
+                    "type": "string",
+                    "description": "Optional ledger entity id (e.g. from find_entities)",
+                },
+                "limit": {"type": "integer", "description": "Max rows (default 100, max 200)"},
+            },
+        },
+        "handler": ops.op_list_derived_facts,
+    },
+    "list_typed_facts": {
+        "description": (
+            "List ontology-typed facts materialized from confirmed mappings "
+            "(predicate URIs such as commercialContact, not raw document text)."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "limit": {"type": "integer", "description": "Max rows (default 100, max 200)"},
+            },
+        },
+        "handler": ops.op_list_typed_facts,
+    },
+    "list_reasoning_ground_facts": {
+        "description": (
+            "Derive forward-chaining fact strings from ontology typed_facts "
+            "(use as the facts array for run_reasoning)."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "limit": {"type": "integer", "description": "Max typed_facts rows to scan (default 200, max 500)"},
+            },
+        },
+        "handler": ops.op_list_reasoning_ground_facts,
+    },
+    "list_rules": {
+        "description": (
+            "List forward-chaining reasoning rules in the workspace rule library "
+            "(name, body, enabled)."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "limit": {"type": "integer", "description": "Max rows (default 100, max 200)"},
+            },
+        },
+        "handler": ops.op_list_rules,
+    },
+    "get_rule": {
+        "description": "Fetch one reasoning rule by id (from list_rules).",
+        "input_schema": {
+            "type": "object",
+            "properties": {"rule_id": {"type": "string"}},
+            "required": ["rule_id"],
+        },
+        "handler": ops.op_get_rule,
+    },
+    "list_mappings": {
+        "description": (
+            "List statement-to-ontology mapping proposals (signature, target_uri, status)."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "type": "string",
+                    "description": "Optional filter: proposed, confirmed, rejected, superseded",
+                },
+                "limit": {"type": "integer", "description": "Max rows (default 100, max 200)"},
+            },
+        },
+        "handler": ops.op_list_mappings,
+    },
+    "get_statement": {
+        "description": (
+            "Resolve a ledger statement id to subject/object, predicate, and evidence "
+            "(for tracing premises behind derived facts)."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "statement_id": {"type": "string"},
+            },
+            "required": ["statement_id"],
+        },
+        "handler": ops.op_get_statement,
+    },
+    "get_capabilities": {
+        "description": (
+            "Workspace feature flags for this caller's role plus static MCP tool names "
+            "available on this deployment."
+        ),
+        "input_schema": {"type": "object", "properties": {}},
+        "handler": ops.op_get_capabilities,
+    },
+    "run_reasoning": {
+        "description": (
+            "Run forward-chaining reasoning. Omit facts to use ontology typed_facts "
+            "(same as list_reasoning_ground_facts). Set apply_to_graph true (editor) to "
+            "persist derived facts; false for dry-run inferred_facts and proof_chains."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "facts": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Optional ground facts; omitted → derived from typed_facts",
+                },
+                "facts_limit": {
+                    "type": "integer",
+                    "description": "When facts omitted, max typed_facts rows to scan (default 200)",
+                },
+                "rules": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Rule bodies in the workspace rule language",
+                },
+                "apply_to_graph": {
+                    "type": "boolean",
+                    "description": "Persist derived facts and graph edges when true",
+                },
+                "mode": {"type": "string", "description": "Reasoning mode (default forward)"},
+                "inferred_edge_type": {
+                    "type": "string",
+                    "description": "Optional graph edge label for inferred relations",
+                },
+            },
+            "required": ["rules"],
+        },
+        "handler": ops.op_run_reasoning,
     },
     "propose_remember": {
         "description": (
@@ -126,6 +281,10 @@ OPERATIONS: dict[str, OperationSpec] = {
             "properties": {
                 "query": {"type": "string"},
                 "limit": {"type": "integer"},
+                "max_limit": {
+                    "type": "integer",
+                    "description": "Server cap (defaults to graph_node_search_max_limit from get_capabilities)",
+                },
                 "at": {"type": "string", "description": "Optional ISO instant for temporal filter"},
             },
             "required": ["query"],

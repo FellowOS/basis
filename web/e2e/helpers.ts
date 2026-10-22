@@ -205,30 +205,77 @@ export async function fetchTemporalBounds(
   return (await response.json()) as { min?: string; max?: string };
 }
 
+export type ReasoningRunResult = {
+  facts_source?: string;
+  inferred_facts?: string[];
+  derived_facts_persisted?: { created?: number };
+};
+
+export async function runReasoningViaApi(
+  page: Page,
+  workspaceId: string,
+  options: {
+    rules: string[];
+    facts?: string[];
+    applyToGraph?: boolean;
+  },
+): Promise<ReasoningRunResult> {
+  const token = await bearerToken(page);
+  const data: Record<string, unknown> = {
+    rules: options.rules,
+    mode: 'forward',
+    apply_to_graph: options.applyToGraph ?? false,
+  };
+  if (options.facts !== undefined) {
+    data.facts = options.facts;
+  }
+  const response = await page.request.post(e2eWorkspaceApiPath(workspaceId, 'reasoning/run'), {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    data,
+  });
+  if (response.status() === 503) {
+    throw new Error('graph_runtime_unavailable');
+  }
+  expect(response.ok()).toBeTruthy();
+  return (await response.json()) as ReasoningRunResult;
+}
+
 export async function runReasoningApplyViaApi(
   page: Page,
   workspaceId: string,
   facts: string[],
   rules: string[],
 ): Promise<{ derived_facts_persisted?: { created?: number } }> {
+  return runReasoningViaApi(page, workspaceId, { facts, rules, applyToGraph: true });
+}
+
+export async function createWorkspaceWithDemoImport(page: Page): Promise<string> {
   const token = await bearerToken(page);
-  const response = await page.request.post(e2eWorkspaceApiPath(workspaceId, 'reasoning/run'), {
+  const stamp = Date.now();
+  const created = await page.request.post(`${e2eApiBaseUrl()}${E2E_WORKSPACES_COLLECTION}`, {
     headers: {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
     },
     data: {
-      facts,
-      rules,
-      mode: 'forward',
-      apply_to_graph: true,
+      name: `E2E demo ${stamp}`,
+      description: 'Playwright demo pack',
+      visibility: 'restricted',
+      import_demo_data: true,
     },
   });
-  if (response.status() === 503) {
-    throw new Error('graph_runtime_unavailable');
+  if (created.status() === 403) {
+    throw new Error('demo_workspace_import_disabled');
   }
-  expect(response.ok()).toBeTruthy();
-  return (await response.json()) as { derived_facts_persisted?: { created?: number } };
+  expect(created.ok()).toBeTruthy();
+  const workspace = (await created.json()) as { id: string };
+  if (!workspace.id) {
+    throw new Error('POST /api/v1/workspaces did not return id');
+  }
+  return workspace.id;
 }
 
 /** Seed governance.tripped + graph decision (Playwright data-e2e API only). */

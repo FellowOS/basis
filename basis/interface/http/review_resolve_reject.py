@@ -2,21 +2,16 @@
 
 from __future__ import annotations
 
+import asyncio
 from typing import Any
 
 from fastapi import APIRouter, Depends, Request
 
 from basis.domain.tenancy.admin.store import AdminStore, User
-from basis.interface.http.deps import (
-    get_blob_store,
-    get_current_user,
-    graph_projection_bindings,
-    get_workspace_for_editor,
-    get_knowledge_store,
-    get_store,
-)
-from basis.domain.knowledge.services.review_resolve import reject_review_item as reject_review_item_domain
-from basis.domain.knowledge.store import KnowledgeStore
+from basis.interface.http.deps import get_current_user, get_store
+from basis.interface.http.core_context import build_workspace_core_context
+from basis.application.operation_http import http_response_from_payload
+from basis.application.registry import run
 from basis.interface.http.review_models import ResolveReviewRequest
 
 router = APIRouter(tags=["workspaces"])
@@ -30,19 +25,21 @@ async def reject_review_item(
     body: ResolveReviewRequest,
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
-    knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> dict[str, Any]:
     """
 Reject Review Item. Human review queue for merges, imports, and conflicts. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
-    get_workspace_for_editor(request, user, workspace_id, store)
-    return reject_review_item_domain(
-        knowledge=knowledge,
-        store=store,
-        user=user,
+    ctx = build_workspace_core_context(
+        request,
         workspace_id=workspace_id,
-        item_id=item_id,
-        rationale=body.rationale,
-        blob_store=get_blob_store(request),
-        projection_bindings=graph_projection_bindings(request),
+        user=user,
+        store=store,
+        require_editor=True,
     )
+    payload = await asyncio.to_thread(
+        run,
+        ctx,
+        "reject_review_item",
+        {"item_id": item_id, "rationale": body.rationale},
+    )
+    return http_response_from_payload(payload)

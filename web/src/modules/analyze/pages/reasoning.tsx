@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useI18n } from "@/i18n/context.js";
 import { fmt, formatLocaleNumber, requestFailedStatusMessage } from "@/i18n/format.js";
@@ -43,6 +43,12 @@ causes(mTOR, Neurodegeneration)
 treats(Metformin, Diabetes)`;
 
 const SAMPLE_RULE = `IF inhibits(Metformin, mTOR) AND causes(mTOR, Neurodegeneration) THEN candidate(Metformin, Alzheimer's)`;
+
+const DEMO_PACK_MARKER = "demo_pack_id:";
+
+function isDefaultReasoningSample(factsText: string, rulesText: string): boolean {
+  return factsText === SAMPLE_FACTS && rulesText === SAMPLE_RULE;
+}
 
 const TEMPLATES = {
   drug: {
@@ -103,6 +109,8 @@ export function ReasoningScreen({
   const [manageRulesOpen, setManageRulesOpen] = useState(false);
   const [runIncludedIds, setRunIncludedIds] = useState<Set<string>>(() => new Set());
   const [saveIncludeInRun, setSaveIncludeInRun] = useState(false);
+  const [loadingTypedFacts, setLoadingTypedFacts] = useState(false);
+  const demoAutoLoadDoneRef = useRef<string | null>(null);
 
   const loadSavedRules = useCallback(async () => {
     if (!workspaceId) return;
@@ -267,6 +275,51 @@ export function ReasoningScreen({
     setPendingReplace(null);
   }, []);
 
+  useEffect(() => {
+    if (!workspaceId) return;
+    if (demoAutoLoadDoneRef.current === workspaceId) return;
+    if (!isDefaultReasoningSample(facts, rules)) return;
+
+    let cancelled = false;
+    void (async () => {
+      try {
+        const ws = await workspaceOpenApiGET<{ description?: string | null }>(workspaceId, "");
+        if (cancelled) return;
+        const description = (ws.description ?? "").trim();
+        if (!description.includes(DEMO_PACK_MARKER)) return;
+        demoAutoLoadDoneRef.current = workspaceId;
+        if (!isDefaultReasoningSample(facts, rules)) return;
+
+        const [ground, rulesPayload] = await Promise.all([
+          workspaceOpenApiGET<{ facts: string[] }>(workspaceId, "reasoning/ground-facts"),
+          workspaceOpenApiGET<{ rules: SavedRule[] }>(workspaceId, "rules"),
+        ]);
+        if (cancelled) return;
+        if (!isDefaultReasoningSample(facts, rules)) return;
+
+        const factsText = (ground.facts ?? []).join("\n");
+        if (!factsText.trim()) return;
+
+        const demoRule = rulesPayload.rules?.find((r) => r.body.includes("renewalOrderSignatory"));
+        applyReplace({
+          facts: factsText,
+          rules: demoRule?.body ?? rules,
+          clearLibrary: false,
+        });
+        if (demoRule?.id) {
+          setRunIncludedIds(new Set([demoRule.id]));
+        }
+        await loadSavedRules();
+      } catch {
+        // User can load manually; avoid blocking the screen on auto-import.
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [applyReplace, facts, loadSavedRules, rules, workspaceId]);
+
   const requestReplace = useCallback((next: { facts: string; rules: string; clearLibrary: boolean }) => {
     const unchanged = facts === next.facts
       && rules === next.rules
@@ -285,6 +338,28 @@ export function ReasoningScreen({
     const template = TEMPLATES[key];
     requestReplace({ facts: template.facts, rules: template.rule, clearLibrary: false });
   }, [requestReplace]);
+
+  const loadTypedGroundFacts = useCallback(async () => {
+    if (!workspaceId) return;
+    setLoadingTypedFacts(true);
+    setError("");
+    try {
+      const data = await workspaceOpenApiGET<{ facts: string[] }>(
+        workspaceId,
+        "reasoning/ground-facts",
+      );
+      const text = (data.facts ?? []).join("\n");
+      if (!text.trim()) {
+        setError(copy.load_typed_facts_empty);
+        return;
+      }
+      requestReplace({ facts: text, rules, clearLibrary: false });
+    } catch (e) {
+      setError(apiError(e));
+    } finally {
+      setLoadingTypedFacts(false);
+    }
+  }, [apiError, copy.load_typed_facts_empty, requestReplace, rules, workspaceId]);
 
   const handleReset = useCallback(() => {
     requestReplace({ facts: SAMPLE_FACTS, rules: SAMPLE_RULE, clearLibrary: true });
@@ -336,6 +411,8 @@ export function ReasoningScreen({
             requestReplace({ facts, rules: body, clearLibrary: false });
           }}
           onLoadTemplate={loadTemplate}
+          onLoadTypedFacts={() => void loadTypedGroundFacts()}
+          loadingTypedFacts={loadingTypedFacts}
           templateButtons={templateButtons}
           canRun={canRun}
           isRunning={isRunning}

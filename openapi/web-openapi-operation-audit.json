@@ -1059,6 +1059,12 @@
     {
       "file": "web/src/lib/openapi/schema-workspaces.d.ts",
       "kind": "literal",
+      "path": "/api/v1/workspaces/{workspace_id}/reasoning/ground-facts",
+      "operationId": "list_reasoning_ground_facts_route_api_v1_workspaces__workspace_id__reasoning_ground_facts_get"
+    },
+    {
+      "file": "web/src/lib/openapi/schema-workspaces.d.ts",
+      "kind": "literal",
       "path": "/api/v1/workspaces/{workspace_id}/reasoning/run",
       "operationId": "reasoning_run_api_v1_workspaces__workspace_id__reasoning_run_post"
     },
@@ -1120,7 +1126,7 @@
       "file": "web/src/lib/openapi/schema-workspaces.d.ts",
       "kind": "dynamic",
       "path": "/api/v1/workspaces/{workspace_id}/rules/{rule_id}",
-      "operationId": "update_reasoning_rule_api_v1_workspaces__workspace_id__rules__rule_id__patch"
+      "operationId": "get_reasoning_rule_api_v1_workspaces__workspace_id__rules__rule_id__get"
     },
     {
       "file": "web/src/lib/openapi/schema-workspaces.d.ts",
@@ -2223,6 +2229,12 @@
     {
       "file": "web/src/lib/openapi/schema.d.ts",
       "kind": "literal",
+      "path": "/api/v1/workspaces/{workspace_id}/reasoning/ground-facts",
+      "operationId": "list_reasoning_ground_facts_route_api_v1_workspaces__workspace_id__reasoning_ground_facts_get"
+    },
+    {
+      "file": "web/src/lib/openapi/schema.d.ts",
+      "kind": "literal",
       "path": "/api/v1/workspaces/{workspace_id}/reasoning/run",
       "operationId": "reasoning_run_api_v1_workspaces__workspace_id__reasoning_run_post"
     },
@@ -2284,7 +2296,7 @@
       "file": "web/src/lib/openapi/schema.d.ts",
       "kind": "dynamic",
       "path": "/api/v1/workspaces/{workspace_id}/rules/{rule_id}",
-      "operationId": "update_reasoning_rule_api_v1_workspaces__workspace_id__rules__rule_id__patch"
+      "operationId": "get_reasoning_rule_api_v1_workspaces__workspace_id__rules__rule_id__get"
     },
     {
       "file": "web/src/lib/openapi/schema.d.ts",

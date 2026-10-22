@@ -173,6 +173,15 @@ def test_mcp_tools_with_api_token(tmp_path) -> None:
     assert "propose_remember" in names
     assert "graph_search" in names
     assert "list_review_items" in names
+    assert "list_derived_facts" in names
+    assert "list_typed_facts" in names
+    assert "list_rules" in names
+    assert "get_rule" in names
+    assert "list_reasoning_ground_facts" in names
+    assert "list_mappings" in names
+    assert "get_statement" in names
+    assert "get_capabilities" in names
+    assert "run_reasoning" in names
     assert "approve_statement_remember_review" in names
     assert "approve_review_item" in names
     assert "reject_review_item" in names

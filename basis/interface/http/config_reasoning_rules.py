@@ -7,8 +7,13 @@ from typing import Any
 from fastapi import APIRouter, Depends, Query, Request
 from pydantic import BaseModel, Field
 
+import asyncio
+
 from basis.domain.tenancy.admin.store import AdminStore, User
 from basis.interface.http.deps import get_current_user, get_workspace_for_editor, get_workspace_for_viewer, get_knowledge_store, get_store
+from basis.interface.http.core_context import build_workspace_core_context
+from basis.application.operation_http import http_response_from_payload
+from basis.application.registry import run
 from basis.domain.knowledge.store import KnowledgeStore
 
 router = APIRouter(tags=["workspaces"])
@@ -38,9 +43,24 @@ async def list_reasoning_rules(
     """
 List Reasoning Rules. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
-    get_workspace_for_viewer(request, user, workspace_id, store)
-    rules = knowledge.list_reasoning_rules(workspace_id, limit=limit)
-    return {"rules": rules}
+    ctx = build_workspace_core_context(request, workspace_id=workspace_id, user=user, store=store)
+    return await asyncio.to_thread(run, ctx, "list_rules", {"limit": limit})
+
+
+@router.get("/{workspace_id}/rules/{rule_id}")
+async def get_reasoning_rule(
+    workspace_id: str,
+    rule_id: str,
+    request: Request,
+    user: User = Depends(get_current_user),
+    store: AdminStore = Depends(get_store),
+) -> dict[str, Any]:
+    """
+Get Reasoning Rule. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+    """
+    ctx = build_workspace_core_context(request, workspace_id=workspace_id, user=user, store=store)
+    payload = await asyncio.to_thread(run, ctx, "get_rule", {"rule_id": rule_id})
+    return http_response_from_payload(payload)
 
 
 @router.post("/{workspace_id}/rules")

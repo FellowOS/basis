@@ -13,6 +13,8 @@ export default {
     tab_inferences: "Inferences",
     tab_proofs: "Proofs",
     facts_title: "Facts",
+    load_typed_facts: "Load from ontology",
+    load_typed_facts_empty: "No typed facts in this workspace yet.",
     facts_placeholder: "One predicate(subject, object) per line",
     rules_title: "Rules",
     rules_placeholder: "One IF … THEN … rule per line",

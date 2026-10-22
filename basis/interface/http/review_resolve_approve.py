@@ -2,28 +2,26 @@
 
 from __future__ import annotations
 
+import asyncio
+
 from fastapi import APIRouter, Depends, HTTPException, Request
 
 from basis.domain.errors import AdminError
 from basis.domain.tenancy.admin.store import AdminStore, User
 from basis.interface.http.deps import (
     graph_runtime_for,
-    get_blob_store,
     get_current_user,
-    graph_projection_bindings,
-    get_workspace_for_editor,
     get_knowledge_store,
     get_store,
-    rebuild_graph_projection,
     save_graph,
 )
+from basis.interface.http.core_context import build_workspace_core_context
 from basis.interface.http.graph_route_errors import admin_error_from_graph_http
 from basis.domain.graph.governance.decision import maybe_emit_governance_tripped_on_review_approve
 from basis.domain.knowledge.store import KnowledgeStore
-from basis.domain.knowledge.services.review_resolve_approve import (
-    ReviewApproveDeps,
-    approve_review_item as approve_review_item_domain,
-)
+from basis.application.errors import CoreError
+from basis.application.operation_http import http_exception_from_core, http_response_from_payload
+from basis.application.registry import run
 from basis.interface.http.review_models import (
     ApproveReviewItemResponse,
     ResolveReviewRequest,
@@ -45,27 +43,41 @@ async def approve_review_item(
     """
 Approve Review Item. Human review queue for merges, imports, and conflicts. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
-    get_workspace_for_editor(request, user, workspace_id, store)
     review_kind = knowledge.get_review_item(workspace_id, item_id).get("kind")
-    deps = ReviewApproveDeps(
-        projection_bindings=graph_projection_bindings(request),
-        blob_store=get_blob_store(request),
-        runtime_loader=lambda: graph_runtime_for(request, workspace_id),
-        persist_graph=lambda kid: save_graph(request, kid),
-        rebuild_projection=lambda: rebuild_graph_projection(request, workspace_id),
+    ctx = build_workspace_core_context(
+        request,
+        workspace_id=workspace_id,
+        user=user,
+        store=store,
+        require_editor=True,
     )
+    args = {
+        "item_id": item_id,
+        "rationale": body.rationale,
+        "keeper_statement_id": body.keeper_statement_id,
+        "primary_id": body.primary_id,
+    }
     try:
-        return await approve_review_item_domain(
-            knowledge=knowledge,
-            store=store,
-            user=user,
-            workspace_id=workspace_id,
-            item_id=item_id,
-            rationale=body.rationale,
-            keeper_statement_id=body.keeper_statement_id,
-            primary_id_override=body.primary_id,
-            deps=deps,
+        payload = await asyncio.to_thread(run, ctx, "approve_review_item", args)
+        return http_response_from_payload(payload)
+    except CoreError as exc:
+        http_exc = http_exception_from_core(exc)
+        mapped = admin_error_from_graph_http(http_exc, context="enrich")
+        maybe_emit_governance_tripped_on_review_approve(
+            workspace_id,
+            knowledge,
+            code=mapped.code,
+            message=mapped.message,
+            detail={
+                "item_id": item_id,
+                "kind": review_kind,
+                "source": "review_approve",
+            },
+            actor_id=user.id,
+            runtime_loader=lambda: graph_runtime_for(request, workspace_id),
+            persist_graph=lambda kid: save_graph(request, kid),
         )
+        raise mapped
     except HTTPException as exc:
         mapped = admin_error_from_graph_http(exc, context="enrich")
         maybe_emit_governance_tripped_on_review_approve(

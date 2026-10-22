@@ -213,6 +213,7 @@ jobs:
         env:
           BASIS_E2E_API_PORT: 8091
           BASIS_E2E_WEB_PORT: 5174
+          BASIS_DEMO_WORKSPACE: "1"
 
   e2e-desktop:
     runs-on: ubuntu-latest

@@ -26,6 +26,22 @@ from basis.domain.errors import AdminError
 OperationHandler = Callable[[WorkspaceCoreContext, dict[str, Any]], dict[str, Any]]
 
 
+def _chunk_search_limit_max(ctx: WorkspaceCoreContext, args: dict[str, Any]) -> int:
+    if args.get("limit_max") is not None:
+        return max(1, int(args["limit_max"]))
+    if ctx.runtime_limits is not None:
+        return ctx.runtime_limits.chunk_search_max_limit
+    return 30
+
+
+def _graph_search_max_limit(ctx: WorkspaceCoreContext, args: dict[str, Any], limit: int) -> int:
+    if args.get("max_limit") is not None:
+        return max(limit, int(args["max_limit"]))
+    if ctx.runtime_limits is not None:
+        return max(limit, ctx.runtime_limits.graph_node_search_max_limit)
+    return limit
+
+
 def _require_workspace_editor(ctx: WorkspaceCoreContext) -> None:
     try:
         if ctx.assert_workspace_editor is not None:
@@ -56,7 +72,7 @@ def op_search_chunks(ctx: WorkspaceCoreContext, args: dict[str, Any]) -> dict[st
     query = str(args.get("query", "")).strip()
     if not query:
         return {"error": "query is required"}
-    limit_max = max(1, int(args.get("limit_max", 30)))
+    limit_max = _chunk_search_limit_max(ctx, args)
     limit = min(max(1, int(args.get("limit", 10))), limit_max)
     document_id = str(args.get("document_id") or "").strip() or None
     entity_id = str(args.get("entity_id") or "").strip() or None
@@ -97,7 +113,7 @@ def op_graph_search(ctx: WorkspaceCoreContext, args: dict[str, Any]) -> dict[str
     if not query:
         return {"error": "query is required"}
     limit = int(args.get("limit", 20))
-    max_limit = max(limit, int(args.get("max_limit", limit)))
+    max_limit = _graph_search_max_limit(ctx, args, limit)
     at = str(args.get("at") or "").strip() or None
     runtime = ctx.graph_runtime()
     results = search_nodes(
@@ -184,8 +200,190 @@ def op_entity_facts(ctx: WorkspaceCoreContext, args: dict[str, Any]) -> dict[str
     if not entity_id:
         return {"error": "entity_id is required"}
     limit = int(args.get("limit", 50))
-    facts = ctx.knowledge.list_entity_facts(ctx.workspace.id, entity_id=entity_id, limit=limit)
-    return {"entity_id": entity_id, "facts": facts}
+    wid = ctx.workspace.id
+    facts = ctx.knowledge.list_entity_facts(wid, entity_id=entity_id, limit=limit)
+    derived_facts = ctx.knowledge.list_derived_facts_for_entity(wid, entity_id, limit=limit)
+    return {"entity_id": entity_id, "facts": facts, "derived_facts": derived_facts}
+
+
+def op_list_derived_facts(ctx: WorkspaceCoreContext, args: dict[str, Any]) -> dict[str, Any]:
+    entity_id = str(args.get("entity_id") or "").strip() or None
+    limit = min(max(1, int(args.get("limit", 100))), 200)
+    wid = ctx.workspace.id
+    if entity_id:
+        derived_facts = ctx.knowledge.list_derived_facts_for_entity(wid, entity_id, limit=limit)
+    else:
+        derived_facts = ctx.knowledge.list_derived_facts(wid, limit=limit)
+    return {"entity_id": entity_id, "derived_facts": derived_facts}
+
+
+def op_list_reasoning_ground_facts(ctx: WorkspaceCoreContext, args: dict[str, Any]) -> dict[str, Any]:
+    from basis.domain.knowledge.reasoning_ground_facts import ground_fact_strings_from_typed_facts
+
+    limit = min(max(1, int(args.get("limit", 200))), 500)
+    facts = ground_fact_strings_from_typed_facts(ctx.knowledge, ctx.workspace.id, limit=limit)
+    return {"facts": facts}
+
+
+def op_list_typed_facts(ctx: WorkspaceCoreContext, args: dict[str, Any]) -> dict[str, Any]:
+    limit = min(max(1, int(args.get("limit", 100))), 200)
+    facts = ctx.knowledge.list_typed_facts(ctx.workspace.id, limit=limit)
+    return {"facts": facts}
+
+
+def op_list_rules(ctx: WorkspaceCoreContext, args: dict[str, Any]) -> dict[str, Any]:
+    limit = min(max(1, int(args.get("limit", 100))), 200)
+    rules = ctx.knowledge.list_reasoning_rules(ctx.workspace.id, limit=limit)
+    return {"rules": rules}
+
+
+def op_get_rule(ctx: WorkspaceCoreContext, args: dict[str, Any]) -> dict[str, Any]:
+    rule_id = str(args.get("rule_id", "")).strip()
+    if not rule_id:
+        return {"error": "rule_id is required"}
+    try:
+        rule = ctx.knowledge.get_reasoning_rule(ctx.workspace.id, rule_id)
+    except AdminError as exc:
+        if exc.code == "not_found":
+            return {"error": "rule not found"}
+        raise
+    return {"rule": rule}
+
+
+def op_list_mappings(ctx: WorkspaceCoreContext, args: dict[str, Any]) -> dict[str, Any]:
+    status = str(args.get("status") or "").strip() or None
+    limit = min(max(1, int(args.get("limit", 100))), 200)
+    mappings = ctx.knowledge.list_mappings(ctx.workspace.id, status=status, limit=limit)
+    return {"mappings": mappings}
+
+
+def op_get_statement(ctx: WorkspaceCoreContext, args: dict[str, Any]) -> dict[str, Any]:
+    statement_id = str(args.get("statement_id", "")).strip()
+    if not statement_id:
+        return {"error": "statement_id is required"}
+    summary = ctx.knowledge.get_statement_browse(ctx.workspace.id, statement_id=statement_id)
+    if summary is None:
+        return {"error": "statement not found"}
+    return {"statement": summary}
+
+
+def op_get_capabilities(ctx: WorkspaceCoreContext, _args: dict[str, Any]) -> dict[str, Any]:
+    from basis.application.registry import TOOL_NAMES
+    from basis.infra.runtime.capabilities import workspace_capabilities
+
+    _, role = ctx.store.get_workspace_for(ctx.user, ctx.workspace.id, "viewer")
+    payload: dict[str, Any] = {
+        "workspace_id": ctx.workspace.id,
+        "role": role,
+        **workspace_capabilities(role),
+        "mcp_tools": list(TOOL_NAMES),
+    }
+    limits = ctx.runtime_limits
+    if limits is not None:
+        payload.update(
+            {
+                "graph_page_max_nodes": limits.graph_page_max_nodes,
+                "graph_page_max_edges": limits.graph_page_max_edges,
+                "chunk_search_max_limit": limits.chunk_search_max_limit,
+                "graph_node_search_max_limit": limits.graph_node_search_max_limit,
+                "upload_max_bytes": limits.upload_max_bytes,
+                "import_max_bytes": limits.import_max_bytes,
+                "ingest_max_inflight": limits.ingest_max_inflight,
+                "ingest_max_pending": limits.ingest_max_pending,
+                "processing_job_timeout_seconds": limits.processing_job_timeout_seconds,
+                "ingest_max_extract_chars": limits.ingest_max_extract_chars,
+            }
+        )
+    return payload
+
+
+def op_run_reasoning(ctx: WorkspaceCoreContext, args: dict[str, Any]) -> dict[str, Any]:
+    from basis.domain.graph.reasoning.forward import proof_chains_for_run
+    from basis.domain.graph.reasoning.run import run_reasoning
+    from basis.domain.graph.session.guard import require_graph_session
+    from basis.domain.knowledge.services.derived_facts_service import persist_reasoning_derived
+    from basis.domain.knowledge.services.graph_audit import audit_graph
+
+    from basis.domain.knowledge.reasoning_ground_facts import ground_fact_strings_from_typed_facts
+
+    facts = args.get("facts")
+    rules = args.get("rules")
+    if not isinstance(rules, list) or not rules:
+        return {"error": "rules is required (non-empty array of rule strings)"}
+    rules_s = [str(r) for r in rules]
+    facts_limit = min(max(1, int(args.get("facts_limit", 200))), 500)
+    facts_source = "request"
+    if facts is None or (isinstance(facts, list) and len(facts) == 0):
+        facts_s = ground_fact_strings_from_typed_facts(
+            ctx.knowledge,
+            ctx.workspace.id,
+            limit=facts_limit,
+        )
+        facts_source = "typed_facts"
+    elif isinstance(facts, list):
+        facts_s = [str(f) for f in facts]
+    else:
+        return {"error": "facts must be an array of strings when provided"}
+    if not facts_s:
+        return {
+            "error": "no ground facts: pass facts[] or materialize typed_facts in the workspace",
+        }
+    apply_to_graph = bool(args.get("apply_to_graph", False))
+    mode = str(args.get("mode") or "forward")
+    inferred_edge_type = args.get("inferred_edge_type")
+
+    if apply_to_graph:
+        _require_workspace_editor(ctx)
+    else:
+        ctx.store.get_workspace_for(ctx.user, ctx.workspace.id, "viewer")
+
+    runtime = ctx.graph_runtime()
+    session = require_graph_session(runtime)
+    summary = run_reasoning(
+        session,
+        facts=facts_s,
+        rules=rules_s,
+        mode=mode,
+        apply_to_graph=apply_to_graph,
+        inferred_edge_type=inferred_edge_type,
+    )
+    summary["proof_chains"] = proof_chains_for_run(
+        facts_s,
+        rules_s,
+        list(summary.get("inferred_facts") or []),
+    )
+    summary["facts_source"] = facts_source
+    summary["ground_facts"] = facts_s
+    if apply_to_graph and summary.get("mutated"):
+        summary["derived_facts_persisted"] = persist_reasoning_derived(
+            ctx.knowledge,
+            ctx.workspace.id,
+            list(summary.get("proof_chains") or []),
+        )
+        created = int(summary["derived_facts_persisted"].get("created") or 0)
+        if created > 0:
+            if ctx.rebuild_projection is None:
+                return {"error": "graph projection rebuild is unavailable"}
+            summary["projection"] = ctx.rebuild_projection()
+        elif ctx.persist_graph is not None:
+            ctx.persist_graph(ctx.workspace.id)
+        audit_graph(
+            ctx.store,
+            ctx.user,
+            ctx.workspace.id,
+            "workspace.graph.reasoning_apply",
+            extra={
+                "added_edges": summary.get("added_edges"),
+                "rules_fired": summary.get("rules_fired"),
+                "derived_facts_created": created,
+                **(
+                    {"projection_revision": summary["projection"].get("projection_revision")}
+                    if isinstance(summary.get("projection"), dict)
+                    else {}
+                ),
+            },
+        )
+    return summary
 
 
 def op_list_review_items(ctx: WorkspaceCoreContext, args: dict[str, Any]) -> dict[str, Any]:

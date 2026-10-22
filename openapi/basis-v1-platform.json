@@ -4589,6 +4589,12 @@
             "type": "string",
             "title": "Visibility",
             "default": "restricted"
+          },
+          "import_demo_data": {
+            "type": "boolean",
+            "title": "Import Demo Data",
+            "description": "When true, seed the workspace with the built-in demo pack (documents, mappings, reasoning).",
+            "default": false
           }
         },
         "type": "object",
@@ -5692,6 +5698,71 @@
           "facts"
         ],
         "title": "ReasonRequest"
+      },
+      "ReasoningRunRequest": {
+        "properties": {
+          "rules": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Rules",
+            "description": "Non-empty list of forward-chaining rule strings (IF … THEN …)."
+          },
+          "facts": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Facts",
+            "description": "Ground facts as predicate(Subject, Object) strings. Omit or pass an empty array to derive from materialized typed_facts (up to facts_limit)."
+          },
+          "facts_limit": {
+            "type": "integer",
+            "maximum": 500.0,
+            "minimum": 1.0,
+            "title": "Facts Limit",
+            "description": "Max typed_facts rows when facts is omitted or empty.",
+            "default": 200
+          },
+          "apply_to_graph": {
+            "type": "boolean",
+            "title": "Apply To Graph",
+            "description": "When true, persist inferred edges and derived facts (requires editor role).",
+            "default": false
+          },
+          "mode": {
+            "type": "string",
+            "title": "Mode",
+            "description": "Reasoning mode (forward chaining).",
+            "default": "forward"
+          },
+          "inferred_edge_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Inferred Edge Type",
+            "description": "Optional edge type label when apply_to_graph is true."
+          }
+        },
+        "type": "object",
+        "required": [
+          "rules"
+        ],
+        "title": "ReasoningRunRequest"
       },
       "RegisterRequest": {
         "properties": {

@@ -12,6 +12,7 @@ from basis.domain.graph.projection.projection_lifecycle import GraphProjectionBi
 from basis.domain.knowledge.blob_store import BlobStore
 from basis.domain.knowledge.search import ChunkSearchService
 from basis.domain.knowledge.store import KnowledgeStore
+from basis.infra.runtime.limits import RuntimeLimits
 
 
 @dataclass(frozen=True)
@@ -28,6 +29,7 @@ class WorkspaceCoreContext:
     persist_graph: Callable[[str], None] | None = None
     blob_store: BlobStore | None = None
     projection_bindings: GraphProjectionBindings | None = None
+    runtime_limits: RuntimeLimits | None = None
 
     def graph_runtime(self) -> GraphRuntime:
         if self.runtime is not None:

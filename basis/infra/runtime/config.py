@@ -49,6 +49,7 @@ class Settings:
     ingest_max_chunks: int = 2_000
     ingest_extract_timeout_seconds: int = 300
     deployment_profile: str = "server"
+    demo_workspace_enabled: bool = True
 
     @property
     def is_desktop(self) -> bool:
@@ -78,6 +79,9 @@ class Settings:
         from basis.infra.runtime.deployment_profile import bootstrap_profile_from_env
 
         bootstrap_profile_from_env(profile_spec)
+        profile = os.environ.get("BASIS_DEPLOYMENT_PROFILE", "server").strip().lower() or "server"
+        demo_default = "0" if profile == "desktop" else "1"
+        demo_raw = os.environ.get("BASIS_DEMO_WORKSPACE", demo_default)
         return cls(
             host=os.environ.get("BASIS_HOST", "127.0.0.1"),
             port=int(os.environ.get("BASIS_PORT", "8090")),
@@ -152,8 +156,8 @@ class Settings:
                 lo=0,
                 hi=7200,
             ),
-            deployment_profile=os.environ.get("BASIS_DEPLOYMENT_PROFILE", "server").strip().lower()
-            or "server",
+            deployment_profile=profile,
+            demo_workspace_enabled=str(demo_raw).lower() in ("1", "true", "yes"),
         )
 
     def validate_for_startup(self) -> None:

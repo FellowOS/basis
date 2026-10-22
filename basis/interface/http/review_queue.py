@@ -56,9 +56,14 @@ async def list_review_items(
     """
 List Review Items. Human review queue for merges, imports, and conflicts. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
-    get_workspace_for_viewer(request, user, workspace_id, store)
-    items = knowledge.list_review_items(workspace_id, status=status, kind=kind, limit=limit)
-    return {"items": items}
+    ctx = build_workspace_core_context(request, workspace_id=workspace_id, user=user, store=store)
+    args: dict[str, Any] = {"limit": limit}
+    if status is not None:
+        args["status"] = status
+    if kind is not None:
+        args["kind"] = kind
+    payload = await asyncio.to_thread(run, ctx, "list_review_items", args)
+    return http_response_from_payload(payload)
 
 
 @router.get("/{workspace_id}/review/items/{item_id}")

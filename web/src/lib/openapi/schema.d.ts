@@ -3454,6 +3454,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/workspaces/{workspace_id}/reasoning/ground-facts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Reasoning Ground Facts Route
+         * @description List Reasoning Ground Facts. Derive predicate(subject, object) strings from typed_facts for reasoning/run. Requires workspace membership (session) or workspace API token with read scope. All paths are scoped to `{workspace_id}`.
+         */
+        get: operations["list_reasoning_ground_facts_route_api_v1_workspaces__workspace_id__reasoning_ground_facts_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/workspaces/{workspace_id}/reasoning/run": {
         parameters: {
             query?: never;
@@ -3665,7 +3685,11 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * Get Reasoning Rule
+         * @description Get Reasoning Rule. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+         */
+        get: operations["get_reasoning_rule_api_v1_workspaces__workspace_id__rules__rule_id__get"];
         put?: never;
         post?: never;
         /**
@@ -4533,6 +4557,12 @@ export interface components {
              * @default restricted
              */
             visibility: string;
+            /**
+             * Import Demo Data
+             * @description When true, seed the workspace with the built-in demo pack (documents, mappings, reasoning).
+             * @default false
+             */
+            import_demo_data: boolean;
         };
         /** DraftDiff */
         DraftDiff: {
@@ -4974,6 +5004,42 @@ export interface components {
             facts: string[];
             /** Rules */
             rules?: string[];
+        };
+        /** ReasoningRunRequest */
+        ReasoningRunRequest: {
+            /**
+             * Rules
+             * @description Non-empty list of forward-chaining rule strings (IF … THEN …).
+             */
+            rules: string[];
+            /**
+             * Facts
+             * @description Ground facts as predicate(Subject, Object) strings. Omit or pass an empty array to derive from materialized typed_facts (up to facts_limit).
+             */
+            facts?: string[] | null;
+            /**
+             * Facts Limit
+             * @description Max typed_facts rows when facts is omitted or empty.
+             * @default 200
+             */
+            facts_limit: number;
+            /**
+             * Apply To Graph
+             * @description When true, persist inferred edges and derived facts (requires editor role).
+             * @default false
+             */
+            apply_to_graph: boolean;
+            /**
+             * Mode
+             * @description Reasoning mode (forward chaining).
+             * @default forward
+             */
+            mode: string;
+            /**
+             * Inferred Edge Type
+             * @description Optional edge type label when apply_to_graph is true.
+             */
+            inferred_edge_type?: string | null;
         };
         /** RegisterRequest */
         RegisterRequest: {
@@ -12200,6 +12266,43 @@ export interface operations {
             };
         };
     };
+    list_reasoning_ground_facts_route_api_v1_workspaces__workspace_id__reasoning_ground_facts_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     reasoning_run_api_v1_workspaces__workspace_id__reasoning_run_post: {
         parameters: {
             query?: never;
@@ -12211,7 +12314,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReasoningRunRequest"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {
@@ -12591,6 +12698,42 @@ export interface operations {
                 "application/json": components["schemas"]["CreateReasoningRuleRequest"];
             };
         };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_reasoning_rule_api_v1_workspaces__workspace_id__rules__rule_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                workspace_id: string;
+                rule_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
         responses: {
             /** @description Successful Response */
             200: {

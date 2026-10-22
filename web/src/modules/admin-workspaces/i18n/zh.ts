@@ -17,5 +17,8 @@ export default {
     name_placeholder: "名称",
     creating: "创建中…",
     create: "创建",
+    import_demo_label: "导入演示数据",
+    import_demo_hint:
+      "预置云盾续费场景：文档检索、本体映射与推理示例（约数秒，需联网时仅影响可选向量索引）。",
   },
 } as const;

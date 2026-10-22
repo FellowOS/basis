@@ -17,6 +17,7 @@ function e2eApiEnv(): Record<string, string> {
   env.BASIS_HOST = '127.0.0.1';
   env.BASIS_PORT = String(apiPort);
   env.BASIS_INGEST_INLINE = '1';
+  env.BASIS_DEMO_WORKSPACE = '1';
   if (desktopE2e) {
     env.BASIS_DEPLOYMENT_PROFILE = 'desktop';
     env.BASIS_PROFILE = 'desktop';

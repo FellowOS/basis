@@ -12,6 +12,7 @@ from basis.interface.http.deps import (
     get_workspace_for_editor,
     get_workspace_for_viewer,
     get_knowledge_store,
+    get_runtime_limits,
     get_store,
     graph_projection_bindings,
     rebuild_graph_projection,
@@ -45,4 +46,5 @@ def build_workspace_core_context(
         persist_graph=lambda kid: save_graph(request, kid),
         blob_store=get_blob_store(request),
         projection_bindings=graph_projection_bindings(request),
+        runtime_limits=get_runtime_limits(request),
     )

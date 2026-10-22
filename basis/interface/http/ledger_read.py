@@ -48,19 +48,17 @@ async def list_derived_facts_route(
     entity_id: str | None = Query(None, max_length=128),
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
-    knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> dict[str, Any]:
     """
 List Derived Facts Route. Evidence ledger: documents, chunks, statements, entities. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
-    get_workspace_for_viewer(request, user, workspace_id, store)
+    ctx = build_workspace_core_context(request, workspace_id=workspace_id, user=user, store=store)
+    args: dict[str, Any] = {"limit": limit}
     if entity_id and entity_id.strip():
-        facts = knowledge.list_derived_facts_for_entity(
-            workspace_id, entity_id.strip(), limit=limit
-        )
-    else:
-        facts = knowledge.list_derived_facts(workspace_id, limit=limit)
-    return {"derived_facts": facts}
+        args["entity_id"] = entity_id.strip()
+    payload = await asyncio.to_thread(run, ctx, "list_derived_facts", args)
+    data = http_response_from_payload(payload)
+    return {"derived_facts": data.get("derived_facts") or []}
 
 
 @router.get("/{workspace_id}/ledger/entities")
@@ -166,16 +164,15 @@ async def get_ledger_statement_route(
     statement_id: str,
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
-    knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> dict[str, Any]:
     """
 Get Ledger Statement. Resolve a statement id to its subject entity for console deep links (F-RUL-03). Requires workspace membership (session) or workspace API token with read scope. All paths are scoped to `{workspace_id}`.
     """
-    get_workspace_for_viewer(request, user, workspace_id, store)
-    summary = knowledge.get_statement_browse(workspace_id, statement_id=statement_id)
-    if summary is None:
-        raise AdminError(404, "statement_not_found", "陈述不存在")
-    return {"statement": summary}
+    ctx = build_workspace_core_context(request, workspace_id=workspace_id, user=user, store=store)
+    payload = await asyncio.to_thread(
+        run, ctx, "get_statement", {"statement_id": statement_id}
+    )
+    return http_response_from_payload(payload)
 
 
 @router.get("/{workspace_id}/ledger/entities/{entity_id}/facts")
@@ -199,10 +196,9 @@ List Entity Facts Route. Evidence ledger: documents, chunks, statements, entitie
         {"entity_id": entity_id, "limit": limit},
     )
     data = http_response_from_payload(payload)
-    derived_facts = knowledge.list_derived_facts_for_entity(workspace_id, entity_id, limit=limit)
     sync_svc = knowledge.connector_sync_service()
     external_sync = sync_svc.get_entity_external_sync_context(workspace_id, entity_id)
-    return {**data, "derived_facts": derived_facts, "external_sync": external_sync}
+    return {**data, "external_sync": external_sync}
 
 
 @router.get("/{workspace_id}/ledger/entities/{entity_id}/delete-preview")
@@ -228,14 +224,13 @@ async def list_typed_facts_route(
     limit: int = Query(100, ge=1, le=200),
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
-    knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> dict[str, Any]:
     """
 List Typed Facts Route. Evidence ledger: documents, chunks, statements, entities. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
-    get_workspace_for_viewer(request, user, workspace_id, store)
-    facts = knowledge.list_typed_facts(workspace_id, limit=limit)
-    return {"facts": facts}
+    ctx = build_workspace_core_context(request, workspace_id=workspace_id, user=user, store=store)
+    payload = await asyncio.to_thread(run, ctx, "list_typed_facts", {"limit": limit})
+    return http_response_from_payload(payload)
 
 
 @router.get("/{workspace_id}/ledger/entity-merges")

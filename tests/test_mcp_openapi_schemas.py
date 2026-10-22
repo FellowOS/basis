@@ -18,6 +18,17 @@ def test_describe_workspace_schema_from_get_workspace_route() -> None:
     assert not (schema.get("properties") or {})
 
 
+def test_run_reasoning_schema_requires_rules_optional_facts() -> None:
+    schema = input_schema_for_tool("run_reasoning")
+    assert schema is not None
+    props = schema.get("properties") or {}
+    assert "rules" in props
+    assert "facts" in props
+    assert "facts_limit" in props
+    assert "rules" in (schema.get("required") or [])
+    assert "facts" not in (schema.get("required") or [])
+
+
 def test_search_chunks_schema_uses_query_alias() -> None:
     schema = input_schema_for_tool("search_chunks")
     assert schema is not None

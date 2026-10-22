@@ -13,6 +13,8 @@ export default {
     tab_inferences: "推断",
     tab_proofs: "证明链",
     facts_title: "事实",
+    load_typed_facts: "从本体事实加载",
+    load_typed_facts_empty: "当前工作区尚无 typed facts。",
     facts_placeholder: "每行一条 predicate(主体, 客体)",
     rules_title: "规则",
     rules_placeholder: "IF … AND … THEN …，一行一条",

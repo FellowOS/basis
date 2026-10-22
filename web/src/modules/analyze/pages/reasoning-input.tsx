@@ -75,6 +75,8 @@ export function ReasoningInputPanel({
   canWriteGraph,
   onLoadDraftFromLibrary,
   onLoadTemplate,
+  onLoadTypedFacts,
+  loadingTypedFacts,
   templateButtons,
   canRun,
   isRunning,
@@ -102,6 +104,8 @@ export function ReasoningInputPanel({
   canWriteGraph: boolean;
   onLoadDraftFromLibrary: (body: string) => void;
   onLoadTemplate: (key: TemplateKey) => void;
+  onLoadTypedFacts: () => void;
+  loadingTypedFacts: boolean;
   templateButtons: { key: TemplateKey; label: string }[];
   canRun: boolean;
   isRunning: boolean;
@@ -136,13 +140,25 @@ export function ReasoningInputPanel({
 
       <div className={cn(exWsPaddedCol, "min-h-0 flex-1 gap-6 py-4")}>
         <section className="flex flex-col gap-2" aria-labelledby="reasoning-input-facts">
-          <SectionLabel
-            locale={locale}
-            id="reasoning-input-facts"
-            icon="file-01"
-            title={copy.facts_title}
-            count={factCount}
-          />
+          <div className="flex items-center justify-between gap-2">
+            <SectionLabel
+              locale={locale}
+              id="reasoning-input-facts"
+              icon="file-01"
+              title={copy.facts_title}
+              count={factCount}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-7 shrink-0 text-[11px]"
+              disabled={loadingTypedFacts}
+              onClick={onLoadTypedFacts}
+            >
+              {copy.load_typed_facts}
+            </Button>
+          </div>
           <Textarea
             className={cn(wsTextarea, "min-h-[8.5rem] text-xs leading-relaxed")}
             value={facts}

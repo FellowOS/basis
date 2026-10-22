@@ -8,6 +8,8 @@ from fastapi import APIRouter, Depends, Query, Request
 from pydantic import BaseModel, Field
 
 from basis.domain.tenancy.admin.store import AdminStore, User
+import asyncio
+
 from basis.interface.http.deps import (
     get_current_user,
     get_workspace_for_editor,
@@ -17,6 +19,8 @@ from basis.interface.http.deps import (
     graph_projection_bindings,
     rebuild_graph_projection,
 )
+from basis.interface.http.core_context import build_workspace_core_context
+from basis.application.registry import run
 from basis.domain.knowledge.services.graph_audit import audit_graph
 from basis.domain.ontology.mappings.service import (
     apply_mapping_status_change,
@@ -54,9 +58,11 @@ async def list_mappings(
     """
 List Mappings. Statement-to-entity mapping proposals and status. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
-    get_workspace_for_viewer(request, user, workspace_id, store)
-    mappings = knowledge.list_mappings(workspace_id, status=status, limit=limit)
-    return {"mappings": mappings}
+    ctx = build_workspace_core_context(request, workspace_id=workspace_id, user=user, store=store)
+    args: dict[str, Any] = {"limit": limit}
+    if status:
+        args["status"] = status
+    return await asyncio.to_thread(run, ctx, "list_mappings", args)
 
 
 @router.post("/{workspace_id}/mappings")

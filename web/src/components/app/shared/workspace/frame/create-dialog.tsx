@@ -19,6 +19,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form.js';
+import { Checkbox } from '@/components/ui/checkbox.js';
 import { Input } from '@/components/ui/input.js';
 import { useI18n } from '@/i18n/context.js';
 import { basisSessionClient } from '@/lib/session/basis-session-client.js';
@@ -47,18 +48,23 @@ export function WorkspaceCreateDialog({ open, onOpenChange, onCreated }: Workspa
     resolver: zodResolver(
       z.object({
         name: z.string().trim().min(1),
+        import_demo_data: z.boolean(),
       }),
     ),
-    defaultValues: { name: '' },
+    defaultValues: { name: '', import_demo_data: false },
   });
 
-  async function onSubmit(values: { name: string }) {
+  async function onSubmit(values: { name: string; import_demo_data: boolean }) {
     setCreating(true);
     setError(null);
     try {
       const workspace = unwrapOpenApi(
         await basisSessionClient().openapi().POST('/api/v1/workspaces', {
-          body: { name: values.name.trim(), visibility: 'restricted' },
+          body: {
+            name: values.name.trim(),
+            visibility: 'restricted',
+            import_demo_data: values.import_demo_data,
+          },
         }),
       ) as CreatedWorkspace;
       form.reset();
@@ -97,6 +103,24 @@ export function WorkspaceCreateDialog({ open, onOpenChange, onCreated }: Workspa
                       <Input id="workspace-create-name" placeholder={p.name_placeholder} {...field} />
                     </FormControl>
                     <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="import_demo_data"
+                render={({ field }) => (
+                  <FormItem className="mt-4 flex flex-row items-start gap-3 space-y-0">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={(checked) => field.onChange(checked === true)}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel className="font-normal">{p.import_demo_label}</FormLabel>
+                      <p className="text-muted-foreground text-sm">{p.import_demo_hint}</p>
+                    </div>
                   </FormItem>
                 )}
               />

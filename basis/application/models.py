@@ -50,7 +50,50 @@ class PathsInput(_ExtraAllowed):
 
 class EntityFactsInput(_ExtraAllowed):
     entity_id: str = Field(min_length=1)
-    limit: int = Field(default=50, ge=1)
+    limit: int = Field(default=50, ge=1, le=100)
+
+
+class ListDerivedFactsInput(_ExtraAllowed):
+    entity_id: str | None = None
+    limit: int = Field(default=100, ge=1, le=200)
+
+
+class ListTypedFactsInput(_ExtraAllowed):
+    limit: int = Field(default=100, ge=1, le=200)
+
+
+class ListReasoningGroundFactsInput(_ExtraAllowed):
+    limit: int = Field(default=200, ge=1, le=500)
+
+
+class ListRulesInput(_ExtraAllowed):
+    limit: int = Field(default=100, ge=1, le=200)
+
+
+class GetRuleInput(_ExtraAllowed):
+    rule_id: str = Field(min_length=1)
+
+
+class ListMappingsInput(_ExtraAllowed):
+    status: str | None = None
+    limit: int = Field(default=100, ge=1, le=200)
+
+
+class GetStatementInput(_ExtraAllowed):
+    statement_id: str = Field(min_length=1)
+
+
+class GetCapabilitiesInput(_ExtraAllowed):
+    pass
+
+
+class RunReasoningInput(_ExtraAllowed):
+    facts: list[str] | None = None
+    rules: list[str] = Field(min_length=1)
+    facts_limit: int = Field(default=200, ge=1, le=500)
+    apply_to_graph: bool = False
+    mode: str = "forward"
+    inferred_edge_type: str | None = None
 
 
 class ProposeRememberInput(_ExtraAllowed):
@@ -131,6 +174,36 @@ class PathsResponse(_ExtraAllowed):
 class EntityFactsResponse(_ExtraAllowed):
     entity_id: str
     facts: list[Any] = Field(default_factory=list)
+    derived_facts: list[Any] = Field(default_factory=list)
+
+
+class ListDerivedFactsResponse(_ExtraAllowed):
+    entity_id: str | None = None
+    derived_facts: list[Any] = Field(default_factory=list)
+
+
+class ListTypedFactsResponse(_ExtraAllowed):
+    facts: list[Any] = Field(default_factory=list)
+
+
+class ListReasoningGroundFactsResponse(_ExtraAllowed):
+    facts: list[str] = Field(default_factory=list)
+
+
+class ListRulesResponse(_ExtraAllowed):
+    rules: list[Any] = Field(default_factory=list)
+
+
+class GetRuleResponse(_ExtraAllowed):
+    rule: dict[str, Any]
+
+
+class ListMappingsResponse(_ExtraAllowed):
+    mappings: list[Any] = Field(default_factory=list)
+
+
+class GetStatementResponse(_ExtraAllowed):
+    statement: dict[str, Any]
 
 
 class GraphSearchResponse(_ExtraAllowed):
@@ -168,6 +241,15 @@ OPERATION_INPUT_MODELS: dict[str, type[BaseModel]] = {
     "neighbors": NeighborsInput,
     "paths": PathsInput,
     "entity_facts": EntityFactsInput,
+    "list_derived_facts": ListDerivedFactsInput,
+    "list_typed_facts": ListTypedFactsInput,
+    "list_reasoning_ground_facts": ListReasoningGroundFactsInput,
+    "list_rules": ListRulesInput,
+    "get_rule": GetRuleInput,
+    "list_mappings": ListMappingsInput,
+    "get_statement": GetStatementInput,
+    "get_capabilities": GetCapabilitiesInput,
+    "run_reasoning": RunReasoningInput,
     "propose_remember": ProposeRememberInput,
     "graph_search": GraphSearchInput,
     "list_review_items": ListReviewItemsInput,
@@ -208,6 +290,13 @@ OPERATION_RESPONSE_MODELS: dict[str, type[BaseModel]] = {
     "neighbors": NeighborsResponse,
     "paths": PathsResponse,
     "entity_facts": EntityFactsResponse,
+    "list_derived_facts": ListDerivedFactsResponse,
+    "list_typed_facts": ListTypedFactsResponse,
+    "list_reasoning_ground_facts": ListReasoningGroundFactsResponse,
+    "list_rules": ListRulesResponse,
+    "get_rule": GetRuleResponse,
+    "list_mappings": ListMappingsResponse,
+    "get_statement": GetStatementResponse,
     "graph_search": GraphSearchResponse,
     "list_review_items": ListReviewItemsResponse,
     "get_review_item": GetReviewItemResponse,
