@@ -3,14 +3,16 @@
 from __future__ import annotations
 
 import asyncio
-from typing import Any
-
 from fastapi import APIRouter, Depends, Query, Request
 
 from basis.domain.tenancy.admin.store import AdminStore, User
 from basis.interface.http.deps import get_current_user, get_store
 from basis.interface.http.core_context import build_workspace_core_context
-from basis.interface.http.graph_models import ReasoningRunRequest
+from basis.interface.http.graph_models import (
+    ReasoningGroundFactsResponse,
+    ReasoningRunRequest,
+    ReasoningRunResponse,
+)
 from basis.application.registry import run
 from basis.application.operation_http import http_response_from_payload
 
@@ -24,7 +26,7 @@ async def list_reasoning_ground_facts_route(
     limit: int = Query(200, ge=1, le=500),
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
-) -> dict[str, Any]:
+) -> ReasoningGroundFactsResponse:
     """
 List Reasoning Ground Facts. Derive predicate(subject, object) strings from typed_facts for reasoning/run. Requires workspace membership (session) or workspace API token with read scope. All paths are scoped to `{workspace_id}`.
     """
@@ -32,7 +34,8 @@ List Reasoning Ground Facts. Derive predicate(subject, object) strings from type
     payload = await asyncio.to_thread(
         run, ctx, "list_reasoning_ground_facts", {"limit": limit}
     )
-    return http_response_from_payload(payload)
+    data = http_response_from_payload(payload)
+    return ReasoningGroundFactsResponse.model_validate(data)
 
 
 @router.post("/{workspace_id}/reasoning/run")
@@ -42,7 +45,7 @@ async def reasoning_run(
     request: Request,
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
-) -> Any:
+) -> ReasoningRunResponse:
     """
 Reasoning Run. Workspace-local reasoning rules and runs. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
@@ -58,4 +61,5 @@ Reasoning Run. Workspace-local reasoning rules and runs. Requires workspace memb
         require_editor=apply_to_graph,
     )
     payload = await asyncio.to_thread(run, ctx, "run_reasoning", raw)
-    return http_response_from_payload(payload)
+    data = http_response_from_payload(payload)
+    return ReasoningRunResponse.model_validate(data)

@@ -4321,6 +4321,27 @@ export interface components {
             /** Rules */
             rules?: string[];
         };
+        /** ReasoningDerivedPersistedSummary */
+        ReasoningDerivedPersistedSummary: {
+            /** Created */
+            created?: number | null;
+            /** Skipped */
+            skipped?: number | null;
+        };
+        /** ReasoningGroundFactsResponse */
+        ReasoningGroundFactsResponse: {
+            /** Facts */
+            facts?: string[];
+        };
+        /** ReasoningProofChain */
+        ReasoningProofChain: {
+            /** Conclusion */
+            conclusion: string;
+            /** Rule */
+            rule: string;
+            /** Premises */
+            premises?: string[];
+        };
         /** ReasoningRunRequest */
         ReasoningRunRequest: {
             /**
@@ -4356,6 +4377,30 @@ export interface components {
              * @description Optional edge type label when apply_to_graph is true.
              */
             inferred_edge_type?: string | null;
+        };
+        /** ReasoningRunResponse */
+        ReasoningRunResponse: {
+            /** Inferred Facts */
+            inferred_facts?: string[];
+            /** Rules Fired */
+            rules_fired?: number | null;
+            /** Added Edges */
+            added_edges?: number | null;
+            /** Mutated */
+            mutated?: boolean | null;
+            /** Proof Chains */
+            proof_chains?: components["schemas"]["ReasoningProofChain"][];
+            /** Facts Source */
+            facts_source?: ("typed_facts" | "request") | null;
+            /** Ground Facts */
+            ground_facts?: string[];
+            derived_facts_persisted?: components["schemas"]["ReasoningDerivedPersistedSummary"] | null;
+            /** Projection */
+            projection?: {
+                [key: string]: unknown;
+            } | null;
+        } & {
+            [key: string]: unknown;
         };
         /** RegisterRequest */
         RegisterRequest: {
@@ -10294,9 +10339,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["ReasoningGroundFactsResponse"];
                 };
             };
             /** @description Validation Error */
@@ -10333,7 +10376,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["ReasoningRunResponse"];
                 };
             };
             /** @description Validation Error */

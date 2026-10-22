@@ -185,7 +185,7 @@ def test_mcp_tools_with_api_token(tmp_path) -> None:
     assert "approve_statement_remember_review" in names
     assert "approve_review_item" in names
     assert "reject_review_item" in names
-    assert "list_processing_jobs" not in names
+    assert "list_processing_jobs" in names
 
     search = client.post(
         f"/api/v1/workspaces/{workspace_id}/mcp",

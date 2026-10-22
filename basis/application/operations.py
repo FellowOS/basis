@@ -9,6 +9,7 @@ from fastapi import HTTPException
 
 from basis.application.context import WorkspaceCoreContext
 from basis.application.errors import CoreError
+from basis.domain.graph.reads.derived_neighbors import merge_derived_fact_neighbors
 from basis.domain.graph.reads.read import find_path, list_neighbors, search_nodes
 from basis.application.governance_hooks import record_governance_decision_from_context
 from basis.domain.knowledge.services.remember_service import propose_remember
@@ -151,6 +152,12 @@ def op_neighbors(ctx: WorkspaceCoreContext, args: dict[str, Any]) -> dict[str, A
         return {"error": "node_id is required"}
     depth = int(args.get("depth", 1))
     neighbors = list_neighbors(ctx.graph_runtime(), node_id, depth=depth)
+    neighbors = merge_derived_fact_neighbors(
+        ctx.knowledge,
+        ctx.workspace.id,
+        node_id,
+        neighbors,
+    )
     return {
         "node_id": node_id,
         "depth": min(max(1, depth), 5),

@@ -4,12 +4,13 @@ from basis.application.registry import TOOL_NAMES, execute
 
 
 def test_tool_names_match_registry() -> None:
-    assert len(TOOL_NAMES) == 32
+    assert len(TOOL_NAMES) == 33
     assert "search_chunks" in TOOL_NAMES
     assert "list_connector_catalog" in TOOL_NAMES
     assert "list_typed_facts" in TOOL_NAMES
     assert "run_reasoning" in TOOL_NAMES
     assert "get_capabilities" in TOOL_NAMES
+    assert "list_processing_jobs" in TOOL_NAMES
 
 
 def test_execute_unknown_operation() -> None:

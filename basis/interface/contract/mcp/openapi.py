@@ -31,6 +31,7 @@ MCP_TOOL_OPERATIONS: dict[str, tuple[str, str]] = {
         "/api/v1/workspaces/{workspace_id}/reasoning/ground-facts",
     ),
     "run_reasoning": ("post", "/api/v1/workspaces/{workspace_id}/reasoning/run"),
+    "list_processing_jobs": ("get", "/api/v1/workspaces/{workspace_id}/processing/jobs"),
     "propose_remember": ("post", "/api/v1/workspaces/{workspace_id}/remember/proposals"),
     "graph_search": ("post", "/api/v1/workspaces/{workspace_id}/graph/search"),
     "list_review_items": ("get", "/api/v1/workspaces/{workspace_id}/review/items"),

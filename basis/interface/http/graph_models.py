@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from typing import Literal
+from typing import Any, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class GraphSearchRequest(BaseModel):
@@ -62,3 +62,32 @@ class ReasoningRunRequest(BaseModel):
         default=None,
         description="Optional edge type label when apply_to_graph is true.",
     )
+
+
+class ReasoningGroundFactsResponse(BaseModel):
+    facts: list[str] = Field(default_factory=list)
+
+
+class ReasoningProofChain(BaseModel):
+    conclusion: str
+    rule: str
+    premises: list[str] = Field(default_factory=list)
+
+
+class ReasoningDerivedPersistedSummary(BaseModel):
+    created: int | None = None
+    skipped: int | None = None
+
+
+class ReasoningRunResponse(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    inferred_facts: list[str] = Field(default_factory=list)
+    rules_fired: int | None = None
+    added_edges: int | None = None
+    mutated: bool | None = None
+    proof_chains: list[ReasoningProofChain] = Field(default_factory=list)
+    facts_source: Literal["typed_facts", "request"] | None = None
+    ground_facts: list[str] = Field(default_factory=list)
+    derived_facts_persisted: ReasoningDerivedPersistedSummary | None = None
+    projection: dict[str, Any] | None = None

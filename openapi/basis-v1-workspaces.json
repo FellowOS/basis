@@ -11028,9 +11028,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "additionalProperties": true,
-                  "title": "Response List Reasoning Ground Facts Route Api V1 Workspaces  Workspace Id  Reasoning Ground Facts Get"
+                  "$ref": "#/components/schemas/ReasoningGroundFactsResponse"
                 }
               }
             }
@@ -11102,7 +11100,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response Reasoning Run Api V1 Workspaces  Workspace Id  Reasoning Run Post"
+                  "$ref": "#/components/schemas/ReasoningRunResponse"
                 }
               }
             }
@@ -15841,6 +15839,72 @@
         ],
         "title": "ReasonRequest"
       },
+      "ReasoningDerivedPersistedSummary": {
+        "properties": {
+          "created": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created"
+          },
+          "skipped": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Skipped"
+          }
+        },
+        "type": "object",
+        "title": "ReasoningDerivedPersistedSummary"
+      },
+      "ReasoningGroundFactsResponse": {
+        "properties": {
+          "facts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Facts"
+          }
+        },
+        "type": "object",
+        "title": "ReasoningGroundFactsResponse"
+      },
+      "ReasoningProofChain": {
+        "properties": {
+          "conclusion": {
+            "type": "string",
+            "title": "Conclusion"
+          },
+          "rule": {
+            "type": "string",
+            "title": "Rule"
+          },
+          "premises": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Premises"
+          }
+        },
+        "type": "object",
+        "required": [
+          "conclusion",
+          "rule"
+        ],
+        "title": "ReasoningProofChain"
+      },
       "ReasoningRunRequest": {
         "properties": {
           "rules": {
@@ -15905,6 +15969,104 @@
           "rules"
         ],
         "title": "ReasoningRunRequest"
+      },
+      "ReasoningRunResponse": {
+        "properties": {
+          "inferred_facts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Inferred Facts"
+          },
+          "rules_fired": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rules Fired"
+          },
+          "added_edges": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Added Edges"
+          },
+          "mutated": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mutated"
+          },
+          "proof_chains": {
+            "items": {
+              "$ref": "#/components/schemas/ReasoningProofChain"
+            },
+            "type": "array",
+            "title": "Proof Chains"
+          },
+          "facts_source": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "typed_facts",
+                  "request"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Facts Source"
+          },
+          "ground_facts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Ground Facts"
+          },
+          "derived_facts_persisted": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReasoningDerivedPersistedSummary"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "projection": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Projection"
+          }
+        },
+        "additionalProperties": true,
+        "type": "object",
+        "title": "ReasoningRunResponse"
       },
       "RegisterRequest": {
         "properties": {

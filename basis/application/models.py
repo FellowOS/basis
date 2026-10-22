@@ -190,6 +190,16 @@ class ListReasoningGroundFactsResponse(_ExtraAllowed):
     facts: list[str] = Field(default_factory=list)
 
 
+class RunReasoningResponse(_ExtraAllowed):
+    inferred_facts: list[str] = Field(default_factory=list)
+    rules_fired: int | None = None
+    added_edges: int | None = None
+    mutated: bool | None = None
+    proof_chains: list[Any] = Field(default_factory=list)
+    facts_source: str | None = None
+    ground_facts: list[str] = Field(default_factory=list)
+
+
 class ListRulesResponse(_ExtraAllowed):
     rules: list[Any] = Field(default_factory=list)
 
@@ -250,11 +260,11 @@ OPERATION_INPUT_MODELS: dict[str, type[BaseModel]] = {
     "get_statement": GetStatementInput,
     "get_capabilities": GetCapabilitiesInput,
     "run_reasoning": RunReasoningInput,
+    "list_processing_jobs": ListProcessingJobsInput,
     "propose_remember": ProposeRememberInput,
     "graph_search": GraphSearchInput,
     "list_review_items": ListReviewItemsInput,
     "get_review_item": GetReviewItemInput,
-    "list_processing_jobs": ListProcessingJobsInput,
     "approve_statement_remember_review": ResolveStatementRememberReviewInput,
     "reject_statement_remember_review": ResolveStatementRememberReviewInput,
     "approve_review_item": ResolveReviewItemInput,
@@ -293,6 +303,7 @@ OPERATION_RESPONSE_MODELS: dict[str, type[BaseModel]] = {
     "list_derived_facts": ListDerivedFactsResponse,
     "list_typed_facts": ListTypedFactsResponse,
     "list_reasoning_ground_facts": ListReasoningGroundFactsResponse,
+    "run_reasoning": RunReasoningResponse,
     "list_rules": ListRulesResponse,
     "get_rule": GetRuleResponse,
     "list_mappings": ListMappingsResponse,

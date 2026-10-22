@@ -18,6 +18,9 @@ from basis.interface.http.deps import (
     graph_for,
     save_graph,
 )
+from basis.interface.http.core_context import build_workspace_core_context
+from basis.application.registry import run
+from basis.application.operation_http import http_response_from_payload
 from basis.domain.knowledge.store import KnowledgeStore
 from basis.interface.http.ingest_helpers import respond_ingest
 from basis.domain.knowledge.pipeline.file_ingest import FileParseError
@@ -44,21 +47,24 @@ async def list_processing_jobs(
     limit: int = 100,
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
-    knowledge: KnowledgeStore = Depends(get_knowledge_store),
 ) -> dict[str, Any]:
     """
 List Processing Jobs. Document processing jobs (extract, chunk, project). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
     get_workspace_for_viewer(request, user, workspace_id, store)
-    if status and status not in {"queued", "running", "succeeded", "failed", "cancelled"}:
-        raise AdminError(422, "bad_status", "任务状态无效")
-    return {
-        "jobs": knowledge.list_processing_jobs(
-            workspace_id,
-            status=status,
-            limit=min(max(1, limit), 200),
-        )
-    }
+    ctx = build_workspace_core_context(request, workspace_id=workspace_id, user=user, store=store)
+    payload = await asyncio.to_thread(
+        run,
+        ctx,
+        "list_processing_jobs",
+        {"status": status, "limit": limit},
+    )
+    data = http_response_from_payload(payload)
+    if "error" in data:
+        if data.get("error") == "invalid status":
+            raise AdminError(422, "bad_status", "任务状态无效")
+        raise AdminError(422, "validation_error", str(data["error"]))
+    return data
 
 
 @router.post("/{workspace_id}/processing/jobs", response_model=None)

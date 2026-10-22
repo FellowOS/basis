@@ -104,6 +104,7 @@ def test_demo_keyword_vs_ontology_contrast(tmp_path) -> None:
         )
     )
     assert "commercialContact" in tang_rels or "续费报价联系" in tang_rels
+    assert "renewalOrderSignatory" in tang_rels
     cheng = next(
         e
         for e in _mcp(

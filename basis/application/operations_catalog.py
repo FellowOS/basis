@@ -328,7 +328,6 @@ OPERATIONS: dict[str, OperationSpec] = {
             },
         },
         "handler": ops.op_list_processing_jobs,
-        "mcp": False,
     },
     "approve_statement_remember_review": {
         "description": (

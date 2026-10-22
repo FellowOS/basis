@@ -18,6 +18,31 @@ def test_describe_workspace_schema_from_get_workspace_route() -> None:
     assert not (schema.get("properties") or {})
 
 
+def test_list_processing_jobs_schema_from_get_jobs_route() -> None:
+    schema = input_schema_for_tool("list_processing_jobs")
+    assert schema is not None
+    props = schema.get("properties") or {}
+    assert "status" in props
+    assert "limit" in props
+
+
+def test_reasoning_run_openapi_response_includes_facts_source() -> None:
+    from basis.interface.contract.openapi.spec import _spec_app
+    from basis.interface.contract.openapi.v1_export import export_openapi_v1_workspaces
+
+    spec = export_openapi_v1_workspaces(_spec_app())
+    op = spec["paths"]["/api/v1/workspaces/{workspace_id}/reasoning/run"]["post"]
+    schema = op["responses"]["200"]["content"]["application/json"]["schema"]
+    components = spec.get("components") or {}
+    if "$ref" in schema:
+        name = schema["$ref"].split("/")[-1]
+        schema = components["schemas"][name]
+    props = schema.get("properties") or {}
+    assert "inferred_facts" in props
+    assert "facts_source" in props
+    assert "ground_facts" in props
+
+
 def test_run_reasoning_schema_requires_rules_optional_facts() -> None:
     schema = input_schema_for_tool("run_reasoning")
     assert schema is not None
