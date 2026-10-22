@@ -182,10 +182,10 @@ export default {
     workspace_zones: {
       explore: "Explore",
       knowledge: "Content & entities",
-      connectors: "System connections",
+      connectors: "Connections",
       schema: "Ontology & semantics",
       govern: "Governance",
-      system: "System",
+      system: "Integration & settings",
       sources: "Sources",
       processing: "Processing",
       governance: "Governance",

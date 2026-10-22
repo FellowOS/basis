@@ -182,10 +182,10 @@ export default {
     workspace_zones: {
       explore: "探索",
       knowledge: "内容与实体",
-      connectors: "系统接入",
+      connectors: "数据接入",
       schema: "业务语义",
       govern: "治理",
-      system: "系统",
+      system: "集成与设置",
       sources: "资料",
       processing: "处理",
       governance: "治理",

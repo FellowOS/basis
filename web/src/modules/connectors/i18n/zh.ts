@@ -3,7 +3,7 @@ export default {
     title: "连接器",
     tabs: {
       catalog: "连接目录",
-      mappings: "连接器同步映射",
+      mappings: "连接器表映射",
       policy: "动作策略与写回门禁",
       runs: "运行日志",
     },
@@ -45,8 +45,8 @@ export default {
       oauth_back_to_catalog: "返回连接器目录",
     },
     mappings: {
-      title: "连接器同步映射",
-      subtitle: "将外部行（SQL 表或 SaaS 流）映射到账本实体；与「模式 → 抽取映射」（文中陈述 → 谓词）不同。",
+      title: "连接器表映射",
+      subtitle: "将外部行（SQL 表或 SaaS 流）映射到账本实体；与「业务语义 → 本体抽取映射」（文中陈述 → 谓词）不同。",
       create_button: "新建连接器映射",
       wizard_link: "数据与本体向导",
       suggest_button: "跨 stream 实体建议",
@@ -160,7 +160,7 @@ export default {
   menu: {
     connectors: "连接器",
     connector_catalog: "目录与连接",
-    connector_stream_mappings: "连接器同步映射",
+    connector_stream_mappings: "连接器表映射",
     connector_action_policy: "动作策略",
     connector_run_logs: "运行日志",
   },

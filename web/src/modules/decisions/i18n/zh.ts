@@ -51,6 +51,6 @@ export default {
     loading: "加载决策记录…"
   },
   menu: {
-    decisions: "决策记录"
+    decisions: "图决策记录"
   }
 } as const;

@@ -110,6 +110,6 @@ export default {
     subtitle: "在本库上执行 SPARQL 查询与规则推理试跑。"
   },
   menu: {
-    analyze: "查询推理"
+    analyze: "查询与推理"
   }
 } as const;

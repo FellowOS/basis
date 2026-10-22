@@ -10,10 +10,10 @@ test('statement mappings page shows extraction-focused chrome', async ({ page })
 
   await page.goto(`/workspaces/${workspaceId}/mappings`);
   await expect(
-    page.getByText(/Statement mappings|抽取映射/i).first(),
+    page.getByText(/Ontology statement mappings|本体抽取映射/i).first(),
   ).toBeVisible({ timeout: 30_000 });
   await expect(
-    page.getByText(/connector sync mappings|连接器同步映射/i).first(),
+    page.getByText(/Connector table mappings|连接器表映射/i).first(),
   ).toBeVisible();
   await expect(page.getByRole('button', { name: /New mapping|新建映射/i })).toBeVisible();
 });

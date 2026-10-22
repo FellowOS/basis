@@ -3,7 +3,7 @@ export default {
     title: "Connectors",
     tabs: {
       catalog: "Catalog & Connections",
-      mappings: "Connector sync mappings",
+      mappings: "Connector table mappings",
       policy: "Action Policy",
       runs: "Run Logs",
     },
@@ -45,8 +45,8 @@ export default {
       oauth_back_to_catalog: "Back to connector catalog",
     },
     mappings: {
-      title: "Connector sync mappings",
-      subtitle: "Map external rows (SQL tables or SaaS streams) into ledger entities — distinct from Schema → Statement mappings (text → predicates).",
+      title: "Connector table mappings",
+      subtitle: "Map external rows (SQL tables or SaaS streams) into ledger entities — distinct from Ontology & semantics → Ontology statement mappings (text → predicates).",
       create_button: "New connector mapping",
       wizard_link: "Data & ontology wizard",
       suggest_button: "Suggest cross-stream mappings",
@@ -161,7 +161,7 @@ export default {
   menu: {
     connectors: "Connectors",
     connector_catalog: "Catalog & connections",
-    connector_stream_mappings: "Connector sync mappings",
+    connector_stream_mappings: "Connector table mappings",
     connector_action_policy: "Action policy",
     connector_run_logs: "Run logs",
   },
