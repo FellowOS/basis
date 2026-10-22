@@ -2,12 +2,12 @@
 
 <div align="center">
 
+**Ontology-driven enterprise business semantics layer.**
+
 [![CI](https://github.com/FellowOS/basis/actions/workflows/ci.yml/badge.svg)](https://github.com/FellowOS/basis/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10--3.13-blue.svg)](pyproject.toml)
 [![Node](https://img.shields.io/badge/node-%3E%3D22-green.svg)](web/package.json)
-
-**Ontology-driven enterprise business semantics layer.**
 
 **English** · [简体中文](./README.zh-CN.md)
 
