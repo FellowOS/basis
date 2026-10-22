@@ -189,10 +189,20 @@ test('viewing alerts clears unread badge but keeps episodes', async ({ page }) =
 
   await page.goto(`/workspaces/${workspaceId}/alerts`);
   await expect(page.locator('ul li').first()).toBeVisible({ timeout: 30_000 });
+  await page.waitForResponse(
+    (res) => res.url().includes('/alerts/mark-all-read') && res.ok(),
+    { timeout: 30_000 },
+  );
 
   await page.goto(`/workspaces/${workspaceId}/sources`);
-  await page.getByTestId('basis-account-menu-trigger').click();
-  await expect(page.getByTestId('workspace-account-alerts-badge')).toHaveCount(0);
+  await expect
+    .poll(async () => {
+      await page.getByTestId('basis-account-menu-trigger').click();
+      const count = await page.getByTestId('workspace-account-alerts-badge').count();
+      await page.keyboard.press('Escape');
+      return count;
+    }, { timeout: 30_000 })
+    .toBe(0);
 });
 
 test('dismiss all clears alerts list', async ({ page }) => {

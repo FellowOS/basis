@@ -35,7 +35,7 @@ import { useI18n } from '@/i18n/context.js';
 import { fmt, formatLocaleDateTime } from '@/i18n/format.js';
 import type { Locale } from '@/i18n/locale.js';
 import { formatUserFacingApiError } from '@/lib/errors/api-error-message.js';
-import { ConnectorMappingSuggestDialog } from '@/modules/connectors/components/connector-mapping-suggest-dialog.js';
+import { ConnectorMappingCreateDialog } from '@/modules/connectors/components/connector-mapping-create-dialog.js';
 import {
   workspaceConnectorMappingEditPath,
   workspaceConnectorMappingNewPath,
@@ -145,6 +145,7 @@ export function ConnectorsPage() {
   const [catalogStats, setCatalogStats] = useState({ providers: 0, providers_with_streams: 0 });
   const [connectors, setConnectors] = useState<CatalogConnector[]>([]);
   const [connections, setConnections] = useState<StoredConnection[]>([]);
+  const [connectionsLoading, setConnectionsLoading] = useState(true);
   const [mappings, setMappings] = useState<TableMappingDto[]>([]);
   const [outboxItems, setOutboxItems] = useState<OutboxItemDto[]>([]);
   const [runs, setRuns] = useState<ConnectorRunDto[]>([]);
@@ -186,10 +187,12 @@ export function ConnectorsPage() {
   const [syncingId, setSyncingId] = useState<string | null>(null);
   const [deleteMappingId, setDeleteMappingId] = useState<string | null>(null);
   const [deletingMappingId, setDeletingMappingId] = useState<string | null>(null);
-  const [suggestMappingsOpen, setSuggestMappingsOpen] = useState(false);
+  const [createMappingOpen, setCreateMappingOpen] = useState(false);
+  const [createMappingInitialTab, setCreateMappingInitialTab] = useState<'auto' | 'manual'>('auto');
 
   const loadCatalogAndConnections = useCallback(async () => {
     if (!workspaceId) return;
+    setConnectionsLoading(true);
     try {
       const [catRes, connRes] = await Promise.all([
         workspaceOpenApiGET<{
@@ -211,6 +214,8 @@ export function ConnectorsPage() {
       setConnections(connRes.connections ?? []);
     } catch (err) {
       toast.error(formatUserFacingApiError(err, locale as Locale));
+    } finally {
+      setConnectionsLoading(false);
     }
   }, [workspaceId, streamsOnly, searchQuery, locale]);
 
@@ -274,11 +279,17 @@ export function ConnectorsPage() {
     if (panel !== 'mappings' || searchParams.get('suggest') !== '1') {
       return;
     }
-    setSuggestMappingsOpen(true);
+    setCreateMappingInitialTab('auto');
+    setCreateMappingOpen(true);
     const next = new URLSearchParams(searchParams);
     next.delete('suggest');
     setSearchParams(next, { replace: true });
   }, [panel, searchParams, setSearchParams]);
+
+  function openCreateMapping(tab: 'auto' | 'manual' = 'auto') {
+    setCreateMappingInitialTab(tab);
+    setCreateMappingOpen(true);
+  }
 
   function goToNewMapping(prefill?: StoredConnection) {
     if (!workspaceId) return;
@@ -690,24 +701,14 @@ export function ConnectorsPage() {
               title={c.mappings.title}
               subtitle={c.mappings.subtitle}
               actions={
-                <div className="flex flex-wrap items-center gap-2">
-                  <Button
-                    size="sm"
-                    onClick={() => setSuggestMappingsOpen(true)}
-                    data-testid="suggest-table-mappings-btn"
-                  >
-                    {c.mappings.suggest_button}
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => goToNewMapping()}
-                    data-testid="create-table-mapping-btn"
-                  >
-                    <PublicIcon name="plus-01" size={14} className="mr-1" />
-                    {c.mappings.create_button}
-                  </Button>
-                </div>
+                <Button
+                  size="sm"
+                  onClick={() => openCreateMapping('auto')}
+                  data-testid="create-table-mapping-btn"
+                >
+                  <PublicIcon name="plus-01" size={14} className="mr-1" />
+                  {c.mappings.create_button}
+                </Button>
               }
             />
             <DataPanelBody padded={false}>
@@ -718,12 +719,10 @@ export function ConnectorsPage() {
                   <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
                     <Button
                       size="sm"
-                      onClick={() => setSuggestMappingsOpen(true)}
-                      data-testid="suggest-table-mappings-empty-btn"
+                      onClick={() => openCreateMapping('auto')}
+                      data-testid="create-table-mapping-empty-btn"
                     >
-                      {c.mappings.suggest_button}
-                    </Button>
-                    <Button size="sm" variant="outline" onClick={() => goToNewMapping()}>
+                      <PublicIcon name="plus-01" size={14} className="mr-1" />
                       {c.mappings.create_button}
                     </Button>
                     {connections.length === 0 ? (
@@ -1055,11 +1054,14 @@ export function ConnectorsPage() {
       </Dialog>
 
       {workspaceId ? (
-        <ConnectorMappingSuggestDialog
+        <ConnectorMappingCreateDialog
           workspaceId={workspaceId}
-          open={suggestMappingsOpen}
-          onOpenChange={setSuggestMappingsOpen}
+          open={createMappingOpen}
+          onOpenChange={setCreateMappingOpen}
+          initialTab={createMappingInitialTab}
           connections={connections}
+          connectionsLoading={connectionsLoading}
+          onManualContinue={(conn) => goToNewMapping(conn ?? undefined)}
           onApplied={() => void loadMappings()}
         />
       ) : null}

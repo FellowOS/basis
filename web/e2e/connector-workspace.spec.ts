@@ -2,7 +2,9 @@ import { expect, test } from '@playwright/test';
 
 import {
   createCustomersTableMappingViaApi,
+  PLAYWRIGHT_E2E_OAUTH_CODE,
   postE2eConnectionCheck,
+  putE2eGithubOAuthConfig,
   putE2ePostgresSqliteConnection,
   seedE2eSqliteCustomersDb,
 } from './connector-mapping-suggest-fixture.js';
@@ -118,6 +120,54 @@ test('connector oauth callback exchanges code and returns to catalog', async ({ 
   await page.goto(`/workspaces/${workspaceId}/connectors/oauth/callback?code=e2e-fake-code&state=${state}`);
   const exchangeBody = (await exchangeRequest).postDataJSON() as Record<string, unknown>;
   expect(exchangeBody.code).toBe('e2e-fake-code');
+  expect(exchangeBody.connection_name).toBe(connectionName);
+  await expect(page).toHaveURL(new RegExp(`/workspaces/${workspaceId}/connectors/catalog`), {
+    timeout: 30_000,
+  });
+  await expect(page.getByTestId('connectors-panel-catalog')).toBeVisible({ timeout: 30_000 });
+});
+
+test('connector oauth callback exchanges via API playwright stub', async ({ page }) => {
+  test.setTimeout(90_000);
+
+  await registerFreshUser(page);
+  const workspaceId = await defaultWorkspaceId(page);
+  const state = 'e2e-oauth-state-stub';
+  const connectionName = 'e2e_oauth_api_stub';
+
+  await page.goto(`/workspaces/${workspaceId}/connectors/catalog`);
+  const redirectUri = await page.evaluate(
+    (wid) => `${window.location.origin}/workspaces/${wid}/connectors/oauth/callback`,
+    workspaceId,
+  );
+  await putE2eGithubOAuthConfig(page, workspaceId, redirectUri);
+  await page.evaluate(
+    ({ workspaceId: wid, state: oauthState, connectionName: connName, redirectUri: redir }) => {
+      sessionStorage.setItem(
+        'basis_bocp_oauth_pending',
+        JSON.stringify({
+          workspaceId: wid,
+          service: 'github',
+          connectionName: connName,
+          connectionConfig: {},
+          state: oauthState,
+          redirectUri: redir,
+        }),
+      );
+    },
+    { workspaceId, state, connectionName, redirectUri },
+  );
+
+  const exchangeRequest = page.waitForRequest(
+    (req) =>
+      req.method() === 'POST' &&
+      req.url().includes(`/workspaces/${workspaceId}/connectors/oauth/github/exchange`),
+  );
+  await page.goto(
+    `/workspaces/${workspaceId}/connectors/oauth/callback?code=${PLAYWRIGHT_E2E_OAUTH_CODE}&state=${state}`,
+  );
+  const exchangeBody = (await exchangeRequest).postDataJSON() as Record<string, unknown>;
+  expect(exchangeBody.code).toBe(PLAYWRIGHT_E2E_OAUTH_CODE);
   expect(exchangeBody.connection_name).toBe(connectionName);
   await expect(page).toHaveURL(new RegExp(`/workspaces/${workspaceId}/connectors/catalog`), {
     timeout: 30_000,

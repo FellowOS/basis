@@ -188,6 +188,9 @@ export function ConnectorMappingNewPage() {
       actions={
         <div className="flex flex-wrap items-center gap-2">
           <Button variant="outline" size="sm" asChild>
+            <Link to={`${mappingsListPath}?suggest=1`}>{c.mappings.use_suggest_instead}</Link>
+          </Button>
+          <Button variant="outline" size="sm" asChild>
             <Link to={mappingsListPath}>{c.mappings.cancel_button}</Link>
           </Button>
           <Button

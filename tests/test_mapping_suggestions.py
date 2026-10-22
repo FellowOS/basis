@@ -150,3 +150,58 @@ def test_suggest_http_auto_lists_sql_tables_without_sql_tables_body(tmp_path: Pa
     assert data["groups"], data
     draft = data["groups"][0]["drafts"][0]["draft"]
     assert draft["external_table"] == "customers"
+
+
+def test_suggest_http_auto_expand_scoped_to_connection(tmp_path: Path) -> None:
+    ext_db_path = tmp_path / "erp_scoped.db"
+    ext_engine = create_engine(f"sqlite:///{ext_db_path}")
+    with ext_engine.begin() as ext_conn:
+        ext_conn.execute(
+            text(
+                """
+                CREATE TABLE customers (
+                    customer_id TEXT PRIMARY KEY,
+                    customer_name TEXT NOT NULL
+                )
+                """
+            )
+        )
+    ext_engine.dispose()
+
+    client = TestClient(create_app(Settings(data_dir=tmp_path / "basis_data_scoped")))
+    reg = client.post(
+        "/api/v1/auth/register",
+        json={
+            "email": "scoped@basis.local",
+            "password": "password123",
+            "display_name": "Admin",
+        },
+    )
+    headers = {"Authorization": f"Bearer {reg.json()['token']}"}
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
+
+    client.put(
+        f"/api/v1/workspaces/{workspace_id}/connectors/connections/postgres/erp",
+        headers=headers,
+        json={
+            "auth_type": "database_dsn",
+            "connection_config": {"dsn": f"sqlite:///{ext_db_path}"},
+            "credentials": {"username": "u", "password": "p"},
+        },
+    )
+
+    scoped = client.post(
+        f"/api/v1/workspaces/{workspace_id}/connectors/table-mappings/suggest",
+        headers=headers,
+        json={"connections": [{"provider": "postgres", "connection_name": "erp"}]},
+    )
+    assert scoped.status_code == 200
+    assert scoped.json()["groups"]
+
+    missing = client.post(
+        f"/api/v1/workspaces/{workspace_id}/connectors/table-mappings/suggest",
+        headers=headers,
+        json={"connections": [{"provider": "postgres", "connection_name": "other"}]},
+    )
+    assert missing.status_code == 200
+    assert missing.json()["groups"] == []

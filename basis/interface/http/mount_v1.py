@@ -12,6 +12,7 @@ from basis.interface.http.config_reasoning_rules import router as reasoning_rule
 from basis.interface.http.connectors import router as workspace_connectors_router
 from basis.interface.http.documents import router as workspace_documents_router
 from basis.interface.http.e2e_helpers import router as workspace_e2e_helpers_router
+from basis.interface.http.e2e_platform_helpers import router as platform_e2e_helpers_router
 from basis.interface.http.graph_session_routes import router as workspace_graph_session_query_router
 from basis.interface.http.graph_enrich import router as workspace_graph_enrich_router
 from basis.interface.http.graph_staging import router as workspace_graph_staging_router
@@ -82,4 +83,5 @@ def register_v1_api_routers(
 
     if include_e2e_helpers:
         for root in roots:
+            app.include_router(platform_e2e_helpers_router, prefix=root)
             app.include_router(workspace_e2e_helpers_router, prefix=f"{root}/workspaces")

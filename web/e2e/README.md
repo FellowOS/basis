@@ -73,7 +73,7 @@ Routes follow [`web/src/routes/index.tsx`](../src/routes/index.tsx) (`AppRoutes`
 | `…/connectors/mappings/new` | S | `connectors.spec.ts` | Prefill from connection |
 | `…/connectors/mappings/:id/edit` | P | `connector-workspace.spec.ts` | Save target class + return to list |
 | `…/connectors/runs` | S | `connector-workspace.spec.ts` | After `check`, run row visible |
-| `…/connectors/oauth/callback` | P | `connector-workspace.spec.ts` | Mock exchange success; missing code/state error |
+| `…/connectors/oauth/callback` | D | `connector-workspace.spec.ts` | Browser mock exchange; API stub exchange (`e2e_playwright_oauth_*`); missing code/state error |
 | Review writeback diff (connector) | P | `connectors.spec.ts` | From review queue UI |
 | Mapping **Sync now** (list) | P | `connector-workspace.spec.ts` | Inbound sync toast |
 
@@ -158,11 +158,11 @@ Routes follow [`web/src/routes/index.tsx`](../src/routes/index.tsx) (`AppRoutes`
 | Variable | Spec | Purpose |
 |----------|------|---------|
 | `BASIS_E2E_GITHUB_TOKEN` | `connector-mapping-suggest.spec.ts` | Live GitHub PAT: auto-suggest, batch-create, mappings dialog (skipped when unset) |
+| `BASIS_E2E_GITHUB_RUN_SYNC` | `connector-mapping-suggest.spec.ts` | With token set to `1`, runs live inbound sync via batch-create (`run_sync: true`) |
 
 ## What to add next (suggested)
 
-- Connector OAuth **exchange** against a real provider (or recorded HTTP fixture on the API process)
+- Connector OAuth **exchange** against a real GitHub OAuth app (API stub covers `data/e2e` via `e2e_playwright_oauth_*` codes)
 - Org SSO **full browser login** loop (see `scripts/enterprise_sso_smoke.py` for manual/CI smoke)
-- Live GitHub suggest with `run_sync: true` in a gated job (network + rate limits)
 
 When adding specs, extend this table and link the F-* row in `docs/progress.md` if it closes a §3.1 gap.

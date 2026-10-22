@@ -1,23 +1,12 @@
 import { expect, test, type Page } from '@playwright/test';
 
-import { loginPlatformAdmin, waitForPlatformAdminSession } from './e2e-admin-session.js';
-import { registerFreshUser } from './helpers.js';
-
-async function ensurePlatformAdminSession(page: Page): Promise<{ email: string }> {
-  try {
-    return await loginPlatformAdmin(page);
-  } catch {
-    await registerFreshUser(page);
-    return await loginPlatformAdmin(page);
-  }
-}
+import { ensurePlatformAdminSession, gotoPlatformAdminPath } from './e2e-admin-session.js';
 
 test('platform users page lists the registering admin', async ({ page }) => {
   test.setTimeout(90_000);
 
   const { email } = await ensurePlatformAdminSession(page);
-  await page.goto('/admin/users');
-  await waitForPlatformAdminSession(page);
+  await gotoPlatformAdminPath(page, '/admin/users');
 
   await expect(page.getByRole('button', { name: /Create user|创建用户/i })).toBeVisible({
     timeout: 30_000,
@@ -30,8 +19,7 @@ test('platform workspaces page shows catalog table and create action', async ({ 
   test.setTimeout(90_000);
 
   await ensurePlatformAdminSession(page);
-  await page.goto('/admin/workspaces', { waitUntil: 'networkidle' });
-  await waitForPlatformAdminSession(page);
+  await gotoPlatformAdminPath(page, '/admin/workspaces');
 
   await expect(page).toHaveURL(/\/admin\/workspaces/);
   await expect(page.getByRole('columnheader', { name: /Name|名称/i })).toBeVisible({
@@ -46,9 +34,7 @@ test('platform models page shows LLM tab and add model action', async ({ page })
   test.setTimeout(90_000);
 
   await ensurePlatformAdminSession(page);
-  await page.goto('/admin/models');
-
-  await expect(page).toHaveURL(/\/admin\/models/);
+  await gotoPlatformAdminPath(page, '/admin/models');
   await expect(page.getByRole('tab', { name: /^LLM$/ })).toBeVisible({ timeout: 30_000 });
   await expect(page.getByRole('button', { name: /Add model|添加模型/i }).first()).toBeVisible();
 });
@@ -57,9 +43,7 @@ test('platform settings page shows access and org SSO sections', async ({ page }
   test.setTimeout(90_000);
 
   await ensurePlatformAdminSession(page);
-  await page.goto('/admin/settings');
-
-  await expect(page).toHaveURL(/\/admin\/settings/);
+  await gotoPlatformAdminPath(page, '/admin/settings');
   await expect(page.getByRole('heading', { name: /^Login$|^登录$/ })).toBeVisible({
     timeout: 30_000,
   });
@@ -72,9 +56,7 @@ test('platform audit page shows filters and refresh', async ({ page }) => {
   test.setTimeout(90_000);
 
   await ensurePlatformAdminSession(page);
-  await page.goto('/admin/audit');
-
-  await expect(page).toHaveURL(/\/admin\/audit/);
+  await gotoPlatformAdminPath(page, '/admin/audit');
   await expect(page.getByPlaceholder(/Filter by workspace ID|按工作区 ID 筛选/i)).toBeVisible({
     timeout: 30_000,
   });

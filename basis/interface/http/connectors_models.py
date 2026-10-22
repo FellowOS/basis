@@ -51,6 +51,11 @@ class SuggestStreamTargetRequest(BaseModel):
     external_table: str | None = None
 
 
+class SuggestConnectionScope(BaseModel):
+    provider: str = Field(min_length=1)
+    connection_name: str = Field(default="default", min_length=1)
+
+
 class SuggestTableMappingsRequest(BaseModel):
     """Optional explicit streams; when empty, auto-expand REST entity streams on saved connections."""
 
@@ -59,6 +64,10 @@ class SuggestTableMappingsRequest(BaseModel):
     sql_tables: list[SuggestStreamTargetRequest] = Field(
         default_factory=list,
         description="SQL targets with external_table set (merged after auto REST expansion).",
+    )
+    connections: list[SuggestConnectionScope] = Field(
+        default_factory=list,
+        description="When auto-expanding, limit to these saved connections (all workspace connections if empty).",
     )
 
 

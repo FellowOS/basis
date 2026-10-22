@@ -1,13 +1,12 @@
 import { expect, test } from '@playwright/test';
 
-import { registerFreshUser } from './helpers.js';
+import { ensurePlatformAdminSession, gotoPlatformAdminPath } from './e2e-admin-session.js';
 
 test('platform admin connectors page shows catalog and sidebar navigation', async ({ page }) => {
   test.setTimeout(120_000);
 
-  await registerFreshUser(page);
-
-  await page.goto('/admin/connectors');
+  await ensurePlatformAdminSession(page);
+  await gotoPlatformAdminPath(page, '/admin/connectors');
   await expect(page.getByTestId('platform-connectors-catalog-search')).toBeVisible({
     timeout: 60_000,
   });

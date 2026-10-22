@@ -8,11 +8,20 @@ import { useSettingsAccess } from '@/lib/shell/use-settings-access.js';
 
 export function PlatformAdminLayout() {
   const { t } = useI18n();
-  const { isAdmin, homePath } = useBasisSession();
+  const { ready, user, isAdmin, homePath } = useBasisSession();
   const canSettings = useSettingsAccess();
   const settingsReady = isAdmin || canSettings !== null;
   const desktopProduct = basisIsDesktopProduct();
   const items = visiblePlatformNavItems(isAdmin, canSettings === true, desktopProduct);
+
+  if (!ready || !user) {
+    return (
+      <div className="flex flex-1 items-center justify-center gap-2 text-sm text-muted-foreground">
+        <Spinner className="size-4" />
+        {t.core.common.loading}
+      </div>
+    );
+  }
 
   if (!settingsReady) {
     return (

@@ -1,9 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 
-import {
-  persistPlatformAdminIfApplicable,
-  waitForPlatformAdminSession,
-} from './e2e-admin-session.js';
+import { persistPlatformAdminIfApplicable, syncBrowserAuthToken } from './e2e-admin-session.js';
 import { E2E_WORKSPACES_COLLECTION, e2eApiBaseUrl, e2eWorkspaceApiPath } from './api-v1-path.js';
 
 export async function bearerToken(page: Page): Promise<string> {
@@ -31,14 +28,25 @@ export async function registerFreshUser(page: Page): Promise<{ email: string; pa
   });
   expect(reg.ok(), `register failed: ${reg.status()} ${await reg.text()}`).toBeTruthy();
   const body = (await reg.json()) as { token: string };
-  await page.evaluate((token) => localStorage.setItem('basis_token', token), body.token);
   await persistPlatformAdminIfApplicable(page, { email, password }, body.token);
+  await syncBrowserAuthToken(page, body.token);
   await page.goto('/workspaces');
-  await expect(page).toHaveURL(/\/workspaces/, { timeout: 60_000 });
-  await waitForPlatformAdminSession(page);
+  await expect(page).toHaveURL(/\/workspaces\//, { timeout: 60_000 });
   await expect
-    .poll(async () => page.evaluate(() => localStorage.getItem('basis_token')), { timeout: 30_000 })
-    .toBeTruthy();
+    .poll(
+      async () => {
+        const token = await page.evaluate(() => localStorage.getItem('basis_token'));
+        if (!token) {
+          return false;
+        }
+        const meRes = await page.request.get(`${e2eApiBaseUrl()}/api/v1/auth/me`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        return meRes.ok();
+      },
+      { timeout: 30_000 },
+    )
+    .toBe(true);
 
   return { email, password };
 }

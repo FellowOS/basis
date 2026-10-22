@@ -16534,6 +16534,26 @@
         ],
         "title": "StartProcessingRequest"
       },
+      "SuggestConnectionScope": {
+        "properties": {
+          "provider": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Provider"
+          },
+          "connection_name": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Connection Name",
+            "default": "default"
+          }
+        },
+        "type": "object",
+        "required": [
+          "provider"
+        ],
+        "title": "SuggestConnectionScope"
+      },
       "SuggestStreamTargetRequest": {
         "properties": {
           "provider": {
@@ -16599,6 +16619,14 @@
             "type": "array",
             "title": "Sql Tables",
             "description": "SQL targets with external_table set (merged after auto REST expansion)."
+          },
+          "connections": {
+            "items": {
+              "$ref": "#/components/schemas/SuggestConnectionScope"
+            },
+            "type": "array",
+            "title": "Connections",
+            "description": "When auto-expanding, limit to these saved connections (all workspace connections if empty)."
           }
         },
         "type": "object",

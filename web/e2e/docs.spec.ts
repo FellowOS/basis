@@ -1,6 +1,9 @@
 import { expect, test } from '@playwright/test';
 
-test.use({ locale: 'en-US' });
+test.use({
+  locale: 'en-US',
+  viewport: { width: 1536, height: 960 },
+});
 
 const SIDEBAR_PAGES = [
   'Overview',
@@ -18,14 +21,13 @@ const SIDEBAR_PAGES = [
 test('docs sidebar lists every page and routes the connector runtime page', async ({ page }) => {
   await page.goto('/docs');
 
-  const sidebar = page.getByTestId('docs-sidebar');
-  await expect(sidebar).toBeVisible();
+  const sidebar = page.locator('aside').getByTestId('docs-sidebar');
+  await expect(sidebar).toBeVisible({ timeout: 30_000 });
   await expect(sidebar.getByRole('link')).toHaveText(SIDEBAR_PAGES);
   await expect(sidebar.getByRole('link', { name: 'Overview' })).toHaveAttribute(
     'aria-current',
     'page',
   );
-
   await sidebar.getByRole('link', { name: 'Connectors (Basis)' }).click();
 
   await expect(page).toHaveURL(/\/docs\/connectors-basis$/);

@@ -81,6 +81,31 @@ export async function suggestAutoTableMappings(
   return { groups: body.groups ?? [], skipped: body.skipped ?? [] };
 }
 
+export const PLAYWRIGHT_E2E_OAUTH_CODE = 'e2e_playwright_oauth_stub';
+
+export async function putE2eGithubOAuthConfig(
+  page: Page,
+  workspaceId: string,
+  redirectUri: string,
+): Promise<void> {
+  const token = await bearerToken(page);
+  const response = await page.request.put(
+    e2eWorkspaceApiPath(workspaceId, 'connectors/oauth-configs/github'),
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      data: {
+        client_id: 'e2e_github_oauth_client',
+        client_secret: 'e2e_github_oauth_secret',
+        redirect_uri: redirectUri,
+      },
+    },
+  );
+  expect(response.ok(), `oauth-config put failed: ${response.status()} ${await response.text()}`).toBeTruthy();
+}
+
 export async function putE2eGithubApiKeyConnection(
   page: Page,
   workspaceId: string,
@@ -108,12 +133,20 @@ export async function putE2eGithubApiKeyConnection(
 export type ConnectorMappingDraftPayload = SuggestApiGroup['drafts'][number]['draft'] &
   Record<string, unknown>;
 
+export type BatchCreateSyncResult = {
+  mapping_id?: string;
+  fetched_rows?: number;
+  added?: number;
+  updated?: number;
+  error?: string;
+};
+
 export async function batchCreateTableMappings(
   page: Page,
   workspaceId: string,
   mappings: ConnectorMappingDraftPayload[],
   opts?: { runSync?: boolean },
-): Promise<Array<{ id: string }>> {
+): Promise<{ mappings: Array<{ id: string }>; syncResults: BatchCreateSyncResult[] }> {
   const token = await bearerToken(page);
   const response = await page.request.post(e2eWorkspaceApiPath(workspaceId, 'connectors/table-mappings/batch-create'), {
     headers: {
@@ -124,8 +157,11 @@ export async function batchCreateTableMappings(
   });
   const text = await response.text();
   expect(response.ok(), `batch-create failed: ${response.status()} ${text}`).toBeTruthy();
-  const body = JSON.parse(text) as { mappings?: Array<{ id: string }> };
-  return body.mappings ?? [];
+  const body = JSON.parse(text) as {
+    mappings?: Array<{ id: string }>;
+    sync_results?: BatchCreateSyncResult[];
+  };
+  return { mappings: body.mappings ?? [], syncResults: body.sync_results ?? [] };
 }
 
 export async function suggestSqlTableMappings(

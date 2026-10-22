@@ -182,10 +182,16 @@ async def suggest_table_mappings(
             )
         )
     if not targets:
+        scopes = (
+            [(item.provider, item.connection_name) for item in body.connections]
+            if body.connections
+            else None
+        )
         targets = expand_auto_targets(
             rt,
             workspace_id,
             max_streams_per_connection=body.max_streams_per_connection,
+            connection_scopes=scopes,
         )
 
     result = suggest_table_mapping_drafts(rt, workspace_id, targets, existing_fingerprints=existing)

@@ -12,9 +12,7 @@ test('statement mappings page shows extraction-focused chrome', async ({ page })
   await expect(
     page.getByText(/Ontology statement mappings|本体抽取映射/i).first(),
   ).toBeVisible({ timeout: 30_000 });
-  await expect(
-    page.getByText(/Connector table mappings|连接器表映射/i).first(),
-  ).toBeVisible();
+  await expect(page.getByText(/Connections → Table sync|连接.*表同步/i).first()).toBeVisible();
   await expect(page.getByRole('button', { name: /New mapping|新建映射/i })).toBeVisible();
 });
 
@@ -25,11 +23,9 @@ test('entity resolution workspace loads', async ({ page }) => {
   const workspaceId = await defaultWorkspaceId(page);
 
   await page.goto(`/workspaces/${workspaceId}/entity-resolution`);
+  await expect(page.getByText(/Resolution|实体解析/i).first()).toBeVisible({ timeout: 30_000 });
   await expect(
-    page.getByText(/Entity resolution|实体解析/i).first(),
-  ).toBeVisible({ timeout: 30_000 });
-  await expect(
-    page.getByRole('button', { name: /[Dd]edup|去重|重复/i }).first(),
+    page.getByRole('button', { name: /Dedup scan|去重扫描/i }).first(),
   ).toBeVisible({ timeout: 60_000 });
 });
 

@@ -22,6 +22,9 @@ from basis.interface.http.connectors_models import (
     ExchangeOAuthCodeRequest,
     UpsertOAuthConfigRequest,
 )
+from basis.infra.runtime.config import Settings
+from basis.infra.tooling.test_support.playwright_e2e import is_playwright_e2e_data_dir
+from basis.infra.tooling.test_support.playwright_oauth_stub import playwright_e2e_oauth_http_client
 from basis.interface.http.connectors_support import runtime_for
 
 router = APIRouter(tags=["workspaces"])
@@ -93,6 +96,10 @@ async def exchange_connector_oauth_code(
     """Exchange an OAuth2 authorization code for tokens and save the encrypted BOCP connection."""
     get_workspace_for_editor(request, user, workspace_id, store)
     rt = runtime_for(knowledge)
+    settings: Settings = request.app.state.settings
+    http_client = None
+    if is_playwright_e2e_data_dir(settings.data_dir):
+        http_client = playwright_e2e_oauth_http_client(body.code)
     try:
         stored = rt.vault.exchange_oauth2_code(
             workspace_id,
@@ -102,6 +109,7 @@ async def exchange_connector_oauth_code(
             code_verifier=body.code_verifier,
             connection_name=body.connection_name,
             connection_config=body.connection_config,
+            http_client=http_client,
         )
         return {"connection": stored.to_public_dict()}
     except Exception as exc:

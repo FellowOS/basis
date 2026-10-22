@@ -37,7 +37,7 @@ export function DocsShell({ activeSlug, children }: DocsShellProps) {
     <div className="flex h-dvh max-h-dvh flex-col overflow-hidden bg-background text-foreground">
       <ProductSiteHeader />
       <div className="flex min-h-0 flex-1 border-t border-border">
-        <aside className="hidden w-60 shrink-0 border-r border-border lg:block">
+        <aside className="w-60 shrink-0 border-r border-border max-lg:hidden">
           <ScrollShadow
             hideScrollBar
             className="h-full py-6 pl-5 pr-3 sm:pl-8 sm:pr-4"

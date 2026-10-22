@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 
+import { applyWorkspaceSessionLogin } from './e2e-admin-session.js';
 import { e2eApiBaseUrl } from './api-v1-path.js';
 import { ensureUserOrganization, registerFreshUser } from './helpers';
 
@@ -13,7 +14,7 @@ TestsOnlyNotValid==
 test('settings shows SAML panel after API configure', async ({ page }) => {
   test.setTimeout(120_000);
 
-  const { email } = await registerFreshUser(page);
+  const { email, password } = await registerFreshUser(page);
   const domain = email.split('@')[1];
   expect(domain).toBeTruthy();
   const token = await page.evaluate(() => localStorage.getItem('basis_token'));
@@ -52,8 +53,29 @@ test('settings shows SAML panel after API configure', async ({ page }) => {
   );
   expect(samlOpts?.length).toBeGreaterThan(0);
 
-  await page.goto('/settings');
-  await expect(page.getByTestId('org-oidc-panel')).toBeVisible({ timeout: 60_000 });
+  await expect
+    .poll(
+      async () => {
+        const res = await page.request.get(`${api}/api/v1/orgs`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok()) {
+          return false;
+        }
+        const body = (await res.json()) as {
+          organizations?: Array<{ my_org_role?: string | null }>;
+        };
+        return (body.organizations ?? []).some(
+          (o) => o.my_org_role === 'owner' || o.my_org_role === 'admin',
+        );
+      },
+      { timeout: 60_000 },
+    )
+    .toBe(true);
+
+  await applyWorkspaceSessionLogin(page, { email, password });
+  await page.goto('/admin/settings', { waitUntil: 'domcontentloaded' });
+  await expect(page.getByTestId('org-oidc-panel')).toBeVisible({ timeout: 120_000 });
   await expect(page.getByTestId('org-saml-panel')).toBeVisible();
   await expect(page.getByTestId('org-saml-panel')).toContainText(/SAML|saml/i);
   await expect(page.getByTestId('org-saml-panel')).toContainText(/saml\/slo/i);

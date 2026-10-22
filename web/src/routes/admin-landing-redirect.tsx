@@ -8,10 +8,10 @@ import { useSettingsAccess } from '@/lib/shell/use-settings-access.js';
 
 export function AdminLandingRedirect() {
   const { t } = useI18n();
-  const { isAdmin, homePath } = useBasisSession();
+  const { ready, user, isAdmin, homePath } = useBasisSession();
   const canSettings = useSettingsAccess();
 
-  if (!isAdmin && canSettings === null) {
+  if (!ready || !user || (!isAdmin && canSettings === null)) {
     return (
       <div className="flex flex-1 items-center justify-center gap-2 text-sm text-muted-foreground">
         <Spinner className="size-4" />

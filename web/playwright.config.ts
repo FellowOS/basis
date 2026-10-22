@@ -56,8 +56,17 @@ export default defineConfig({
   use: {
     baseURL,
     trace: 'on-first-retry',
+    viewport: { width: 1536, height: 960 },
   },
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
+  projects: [
+    {
+      name: 'chromium',
+      use: {
+        ...devices['Desktop Chrome'],
+        viewport: { width: 1536, height: 960 },
+      },
+    },
+  ],
   webServer: process.env.BASIS_E2E_SKIP_SERVERS
     ? undefined
     : [

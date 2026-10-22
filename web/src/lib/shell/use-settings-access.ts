@@ -11,7 +11,7 @@ export function useSettingsAccess(): boolean | null {
 
   useEffect(() => {
     if (!user) {
-      setAllowed(false);
+      setAllowed(null);
       return;
     }
     if (isAdmin) {

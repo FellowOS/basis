@@ -157,10 +157,16 @@ def expand_auto_targets(
     workspace_id: str,
     *,
     max_streams_per_connection: int = 8,
+    connection_scopes: list[tuple[str, str]] | None = None,
 ) -> list[SuggestStreamTarget]:
     targets: list[SuggestStreamTarget] = []
     connections = runtime.vault.list_connections(workspace_id)
+    scope_set: set[tuple[str, str]] | None = None
+    if connection_scopes:
+        scope_set = {(provider, name) for provider, name in connection_scopes}
     for conn in connections:
+        if scope_set is not None and (conn.service, conn.connection_name) not in scope_set:
+            continue
         manifest = runtime.catalog.get(conn.service)
         if not manifest or not manifest.streams:
             continue
