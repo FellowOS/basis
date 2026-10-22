@@ -24,7 +24,6 @@ from basis.application.knowledge.operations import (
     op_list_derived_facts,
     op_list_typed_facts,
 )
-from basis.interface.contract.mcp.annotations import mcp_tool_openapi
 from basis.interface.http.operation_http import http_response_from_payload
 from basis.domain.knowledge.store import KnowledgeStore
 
@@ -49,7 +48,6 @@ List Surface Phrases. Evidence ledger: documents, chunks, statements, entities. 
 
 @router.get(
     "/{workspace_id}/ledger/derived-facts",
-    openapi_extra=mcp_tool_openapi("list_derived_facts"),
 )
 async def list_derived_facts_route(
     workspace_id: str,
@@ -150,7 +148,6 @@ List Document Chunks Route. Evidence ledger: documents, chunks, statements, enti
 
 @router.get(
     "/{workspace_id}/ledger/chunks/{chunk_id}",
-    openapi_extra=mcp_tool_openapi("get_chunk"),
 )
 async def get_ledger_chunk_route(
     workspace_id: str,
@@ -172,7 +169,6 @@ Get Ledger Chunk Route. Evidence ledger: documents, chunks, statements, entities
 
 @router.get(
     "/{workspace_id}/ledger/statements/{statement_id}",
-    openapi_extra=mcp_tool_openapi("get_statement"),
 )
 async def get_ledger_statement_route(
     workspace_id: str,
@@ -193,7 +189,6 @@ Get Ledger Statement. Resolve a statement id to its subject entity for console d
 
 @router.get(
     "/{workspace_id}/ledger/entities/{entity_id}/facts",
-    openapi_extra=mcp_tool_openapi("entity_facts"),
 )
 async def list_entity_facts_route(
     workspace_id: str,
@@ -237,7 +232,6 @@ Preview Delete Ledger Entity. Evidence ledger: documents, chunks, statements, en
 
 @router.get(
     "/{workspace_id}/ledger/typed-facts",
-    openapi_extra=mcp_tool_openapi("list_typed_facts"),
 )
 async def list_typed_facts_route(
     workspace_id: str,

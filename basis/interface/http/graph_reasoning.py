@@ -14,7 +14,6 @@ from basis.interface.http.graph_models import (
     ReasoningRunResponse,
 )
 from basis.interface.http.operation_http import http_response_from_payload
-from basis.interface.contract.mcp.annotations import mcp_tool_openapi
 from basis.application.reasoning.operations import (
     op_list_reasoning_ground_facts,
     op_run_reasoning,
@@ -25,7 +24,6 @@ router = APIRouter(tags=["workspaces"])
 
 @router.get(
     "/{workspace_id}/reasoning/ground-facts",
-    openapi_extra=mcp_tool_openapi("list_reasoning_ground_facts"),
 )
 async def list_reasoning_ground_facts_route(
     workspace_id: str,
@@ -45,7 +43,7 @@ List Reasoning Ground Facts. Derive predicate(subject, object) strings from type
     return ReasoningGroundFactsResponse.model_validate(data)
 
 
-@router.post("/{workspace_id}/reasoning/run", openapi_extra=mcp_tool_openapi("run_reasoning"))
+@router.post("/{workspace_id}/reasoning/run")
 async def reasoning_run(
     workspace_id: str,
     body: ReasoningRunRequest,

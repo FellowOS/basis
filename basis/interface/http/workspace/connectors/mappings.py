@@ -18,7 +18,6 @@ from basis.interface.http.workspace.connectors.models import (
     UpdateTableMappingRequest,
 )
 from basis.interface.http.core_context import build_workspace_core_context
-from basis.interface.contract.mcp.annotations import mcp_tool_openapi
 from basis.interface.http.deps import get_current_user, get_store
 
 router = APIRouter(tags=["workspaces"])
@@ -43,7 +42,6 @@ def _ctx(
 
 @router.get(
     "/{workspace_id}/connectors/table-mappings",
-    openapi_extra=mcp_tool_openapi("list_connector_table_mappings"),
 )
 async def list_table_mappings(
     workspace_id: str,
@@ -187,7 +185,6 @@ async def create_table_mapping(
 
 @router.post(
     "/{workspace_id}/connectors/table-mappings/{mapping_id}/sync",
-    openapi_extra=mcp_tool_openapi("sync_connector_table_mapping"),
 )
 async def sync_table_mapping(
     workspace_id: str,

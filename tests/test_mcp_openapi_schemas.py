@@ -1,40 +1,35 @@
-"""MCP tool inputSchema is derived from OpenAPI (R3)."""
+"""MCP tool list metadata (catalog-owned schemas and descriptions)."""
 
 from basis.application.tool_catalog import TOOL_NAMES
 from basis.application.tool_catalog.catalog import OPERATIONS
-from basis.interface.contract.mcp.openapi import (
-    MCP_TOOL_OPERATIONS,
-    description_for_tool,
-    input_schema_for_tool,
-    mcp_tool_operations,
-)
+from basis.application.tool_catalog.mcp_list import description_for_tool, input_schema_for_tool
 from basis.interface.mcp.dispatch import TOOL_DEFINITIONS
 
 
-def test_static_catalog_matches_mcp_openapi_tool_names() -> None:
+def test_static_catalog_has_mcp_metadata_for_every_tool() -> None:
     catalog_names = set(OPERATIONS)
-    openapi_names = set(mcp_tool_operations())
-    assert catalog_names == openapi_names
-    assert set(MCP_TOOL_OPERATIONS) == catalog_names
     assert len(TOOL_NAMES) == len(catalog_names)
     assert set(TOOL_NAMES) == catalog_names
+    for name in catalog_names:
+        assert input_schema_for_tool(name) is not None, name
+        assert description_for_tool(name), name
 
 
-def test_mcp_tools_have_openapi_backed_schemas() -> None:
-    for name in MCP_TOOL_OPERATIONS:
+def test_mcp_tools_have_object_schemas() -> None:
+    for name in OPERATIONS:
         schema = input_schema_for_tool(name)
         assert schema is not None, name
         assert schema.get("type") == "object"
 
 
-def test_describe_workspace_schema_from_get_workspace_route() -> None:
+def test_describe_workspace_schema_empty_object() -> None:
     schema = input_schema_for_tool("describe_workspace")
     assert schema is not None
     assert schema.get("type") == "object"
     assert not (schema.get("properties") or {})
 
 
-def test_list_processing_jobs_schema_from_get_jobs_route() -> None:
+def test_list_processing_jobs_schema_has_filters() -> None:
     schema = input_schema_for_tool("list_processing_jobs")
     assert schema is not None
     props = schema.get("properties") or {}
@@ -70,7 +65,7 @@ def test_run_reasoning_schema_requires_rules_optional_facts() -> None:
     assert "facts" not in (schema.get("required") or [])
 
 
-def test_search_chunks_schema_uses_query_alias() -> None:
+def test_search_chunks_schema_uses_query_not_q() -> None:
     schema = input_schema_for_tool("search_chunks")
     assert schema is not None
     props = schema.get("properties") or {}
@@ -114,12 +109,12 @@ def test_approve_review_openapi_response_includes_decision_id() -> None:
 
 def test_tool_definitions_match_registry() -> None:
     by_name = {t["name"]: t for t in TOOL_DEFINITIONS}
-    for name in MCP_TOOL_OPERATIONS:
+    for name in OPERATIONS:
         assert name in by_name
         assert by_name[name]["inputSchema"]["type"] == "object"
 
 
-def test_invoke_connector_primitive_schema_from_openapi() -> None:
+def test_invoke_connector_primitive_schema() -> None:
     schema = input_schema_for_tool("invoke_connector_primitive")
     assert schema is not None
     props = schema.get("properties") or {}
@@ -129,7 +124,7 @@ def test_invoke_connector_primitive_schema_from_openapi() -> None:
     assert "primitive" in props
 
 
-def test_mcp_descriptions_from_openapi() -> None:
+def test_mcp_descriptions_from_catalog() -> None:
     for name in ("search_chunks", "describe_workspace"):
         desc = description_for_tool(name)
         assert desc

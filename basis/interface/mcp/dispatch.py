@@ -23,7 +23,7 @@ from basis.interface.contract.mcp.connector_tools import (
     parse_connector_mcp_tool_name,
 )
 from basis.interface.contract.mcp.format import mcp_text_result
-from basis.interface.contract.mcp.openapi import description_for_tool, input_schema_for_tool
+from basis.application.tool_catalog.mcp_list import description_for_tool, input_schema_for_tool
 
 __all__ = [
     "TOOL_DEFINITIONS",

@@ -15,7 +15,6 @@ from basis.interface.http.workspace.connectors.models import (
     UpsertConnectorConnectionRequest,
 )
 from basis.interface.http.core_context import build_workspace_core_context
-from basis.interface.contract.mcp.annotations import mcp_tool_openapi
 from basis.interface.http.deps import get_current_user, get_store
 
 router = APIRouter(tags=["workspaces"])
@@ -23,7 +22,6 @@ router = APIRouter(tags=["workspaces"])
 
 @router.get(
     "/{workspace_id}/connectors/connections",
-    openapi_extra=mcp_tool_openapi("list_connector_connections"),
 )
 async def list_connector_connections(
     workspace_id: str,
@@ -173,7 +171,6 @@ async def discover_connector_schema(
 
 @router.post(
     "/{workspace_id}/connectors/connections/{service}/{connection_name}/invoke-primitive",
-    openapi_extra=mcp_tool_openapi("invoke_connector_primitive"),
 )
 async def invoke_connector_primitive(
     workspace_id: str,

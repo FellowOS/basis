@@ -12,7 +12,6 @@ from basis.interface.http.operation_http import http_exception_from_core
 from basis.domain.tenancy.admin.store import AdminStore, User
 from basis.interface.http.workspace.connectors.models import ProposeEntityWritebackRequest
 from basis.interface.http.core_context import build_workspace_core_context
-from basis.interface.contract.mcp.annotations import mcp_tool_openapi
 from basis.interface.http.deps import get_current_user, get_store
 
 router = APIRouter(tags=["workspaces"])
@@ -39,7 +38,6 @@ async def list_sync_outbox(
 
 @router.post(
     "/{workspace_id}/connectors/outbox/propose",
-    openapi_extra=mcp_tool_openapi("propose_entity_writeback"),
 )
 async def propose_entity_writeback(
     workspace_id: str,

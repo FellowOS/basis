@@ -21,7 +21,6 @@ from basis.interface.http.deps import (
 )
 from basis.interface.http.core_context import build_workspace_core_context
 from basis.application.knowledge.operations import op_list_mappings
-from basis.interface.contract.mcp.annotations import mcp_tool_openapi
 from basis.domain.knowledge.services.graph_audit import audit_graph
 from basis.domain.ontology.mappings.service import (
     apply_mapping_status_change,
@@ -46,7 +45,7 @@ class UpdateMappingStatusRequest(BaseModel):
     why: str | None = Field(default=None, max_length=2000)
 
 
-@router.get("/{workspace_id}/mappings", openapi_extra=mcp_tool_openapi("list_mappings"))
+@router.get("/{workspace_id}/mappings")
 async def list_mappings(
     workspace_id: str,
     request: Request,

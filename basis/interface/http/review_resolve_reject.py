@@ -12,7 +12,6 @@ from basis.interface.http.deps import get_current_user, get_store
 from basis.interface.http.core_context import build_workspace_core_context
 from basis.interface.http.operation_http import http_response_from_payload
 from basis.application.review.operations import op_reject_review_item
-from basis.interface.contract.mcp.annotations import mcp_tool_openapi
 from basis.interface.http.review_models import ResolveReviewRequest
 
 router = APIRouter(tags=["workspaces"])
@@ -20,10 +19,6 @@ router = APIRouter(tags=["workspaces"])
 
 @router.post(
     "/{workspace_id}/review/items/{item_id}/reject",
-    openapi_extra=mcp_tool_openapi(
-        "reject_review_item",
-        "reject_statement_remember_review",
-    ),
 )
 async def reject_review_item(
     workspace_id: str,

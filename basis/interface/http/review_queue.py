@@ -24,7 +24,6 @@ from basis.domain.knowledge.services.import_review import stage_import_blob
 from basis.domain.knowledge.store import KnowledgeStore
 from basis.interface.http.operation_http import http_response_from_payload
 from basis.application.review.operations import op_get_review_item, op_list_review_items
-from basis.interface.contract.mcp.annotations import mcp_tool_openapi
 from basis.interface.http.core_context import build_workspace_core_context
 from basis.interface.http.review_models import CreateEntityMergeReviewRequest
 
@@ -45,7 +44,6 @@ async def scan_statement_conflicts_route(
 
 @router.get(
     "/{workspace_id}/review/items",
-    openapi_extra=mcp_tool_openapi("list_review_items"),
 )
 async def list_review_items(
     workspace_id: str,
@@ -72,7 +70,6 @@ List Review Items. Human review queue for merges, imports, and conflicts. Requir
 
 @router.get(
     "/{workspace_id}/review/items/{item_id}",
-    openapi_extra=mcp_tool_openapi("get_review_item"),
 )
 async def get_review_item_route(
     workspace_id: str,

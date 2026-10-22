@@ -15,7 +15,6 @@ from basis.interface.http.deps import (
 )
 from basis.interface.http.core_context import build_workspace_core_context
 from basis.application.workspace.operations import op_describe_workspace, op_get_capabilities
-from basis.interface.contract.mcp.annotations import mcp_tool_openapi
 from basis.domain.tenancy.realtime.access import revoke_workspace_member_realtime
 
 router = APIRouter(tags=["workspaces"])
@@ -82,7 +81,7 @@ async def create_workspace(
     return item
 
 
-@router.get("/{workspace_id}", openapi_extra=mcp_tool_openapi("describe_workspace"))
+@router.get("/{workspace_id}")
 async def get_workspace(
     workspace_id: str,
     request: Request,
@@ -106,7 +105,7 @@ async def get_workspace(
     return item
 
 
-@router.get("/{workspace_id}/capabilities", openapi_extra=mcp_tool_openapi("get_capabilities"))
+@router.get("/{workspace_id}/capabilities")
 async def get_capabilities(
     workspace_id: str,
     request: Request,

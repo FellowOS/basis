@@ -29,7 +29,6 @@ from basis.domain.graph.reads.read import get_node, paginate_edges
 from basis.domain.graph.projection.export import graph_snapshot
 from basis.domain.graph.projection.projector import apply_rebuild_to_session
 from basis.domain.knowledge.services.graph_audit import audit_graph
-from basis.interface.contract.mcp.annotations import mcp_tool_openapi
 from basis.interface.http.graph_models import (
     GraphSearchRequest,
     ResolveNodeLabelsRequest,
@@ -197,7 +196,6 @@ Graph Node Route. Projected graph read API (graph runtime). Requires workspace m
 
 @router.get(
     "/{workspace_id}/graph/nodes/{node_id}/neighbors",
-    openapi_extra=mcp_tool_openapi("neighbors"),
 )
 async def graph_neighbors_route(
     workspace_id: str,
@@ -219,7 +217,7 @@ Graph Neighbors Route. Projected graph read API (graph runtime). Requires worksp
     return http_response_from_payload(payload)
 
 
-@router.get("/{workspace_id}/graph/path", openapi_extra=mcp_tool_openapi("paths"))
+@router.get("/{workspace_id}/graph/path")
 async def graph_path_route(
     workspace_id: str,
     request: Request,
@@ -279,7 +277,7 @@ Graph Edges Route. Projected graph read API (graph runtime). Requires workspace 
     )
 
 
-@router.post("/{workspace_id}/graph/search", openapi_extra=mcp_tool_openapi("graph_search"))
+@router.post("/{workspace_id}/graph/search")
 async def graph_search_route(
     workspace_id: str,
     body: GraphSearchRequest,

@@ -17,10 +17,6 @@ from basis.infra.tooling.test_support.postgres import (
 
 def pytest_configure() -> None:
     load_integration_test_env()
-    from basis.interface.contract.mcp.openapi import bind_openapi_app
-    from basis.interface.contract.openapi.spec import _spec_app
-
-    bind_openapi_app(_spec_app())
 
 
 @pytest.fixture(autouse=True)

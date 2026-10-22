@@ -1027,7 +1027,6 @@
             }
           }
         },
-        "x-basis-mcp-tool": "describe_workspace",
         "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       },
@@ -1659,7 +1658,6 @@
             }
           }
         },
-        "x-basis-mcp-tool": "get_capabilities",
         "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
@@ -1794,7 +1792,6 @@
             }
           }
         },
-        "x-basis-mcp-tool": "list_connector_catalog",
         "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
@@ -1868,7 +1865,6 @@
             }
           }
         },
-        "x-basis-mcp-tool": "describe_connector_service",
         "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
@@ -1981,7 +1977,6 @@
             }
           }
         },
-        "x-basis-mcp-tool": "list_connector_connections",
         "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
@@ -2494,7 +2489,6 @@
             }
           }
         },
-        "x-basis-mcp-tool": "invoke_connector_primitive",
         "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
@@ -3570,7 +3564,6 @@
             }
           }
         },
-        "x-basis-mcp-tool": "propose_entity_writeback",
         "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
@@ -3863,7 +3856,6 @@
             }
           }
         },
-        "x-basis-mcp-tool": "list_connector_table_mappings",
         "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       },
@@ -4382,7 +4374,6 @@
             }
           }
         },
-        "x-basis-mcp-tool": "sync_connector_table_mapping",
         "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
@@ -4457,7 +4448,6 @@
             }
           }
         },
-        "x-basis-mcp-tool": "execute_connector_tool",
         "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
@@ -5413,12 +5403,6 @@
             }
           }
         },
-        "x-basis-mcp-tool": "find_entities",
-        "x-basis-mcp-param-aliases": {
-          "find_entities": {
-            "q": "query"
-          }
-        },
         "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
@@ -6250,7 +6234,6 @@
             }
           }
         },
-        "x-basis-mcp-tool": "neighbors",
         "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
@@ -6353,7 +6336,6 @@
             }
           }
         },
-        "x-basis-mcp-tool": "paths",
         "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
@@ -6630,7 +6612,6 @@
             }
           }
         },
-        "x-basis-mcp-tool": "graph_search",
         "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
@@ -7406,7 +7387,6 @@
             }
           }
         },
-        "x-basis-mcp-tool": "get_chunk",
         "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
@@ -7500,7 +7480,6 @@
             }
           }
         },
-        "x-basis-mcp-tool": "list_derived_facts",
         "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
@@ -7976,7 +7955,6 @@
             }
           }
         },
-        "x-basis-mcp-tool": "entity_facts",
         "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
@@ -8209,7 +8187,6 @@
             }
           }
         },
-        "x-basis-mcp-tool": "get_statement",
         "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
@@ -8362,7 +8339,6 @@
             }
           }
         },
-        "x-basis-mcp-tool": "list_typed_facts",
         "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
@@ -8454,7 +8430,6 @@
             }
           }
         },
-        "x-basis-mcp-tool": "list_mappings",
         "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       },
@@ -11301,7 +11276,6 @@
             }
           }
         },
-        "x-basis-mcp-tool": "list_processing_jobs",
         "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       },
@@ -11814,7 +11788,6 @@
             }
           }
         },
-        "x-basis-mcp-tool": "list_reasoning_ground_facts",
         "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
@@ -11887,7 +11860,6 @@
             }
           }
         },
-        "x-basis-mcp-tool": "run_reasoning",
         "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
@@ -11962,7 +11934,6 @@
             }
           }
         },
-        "x-basis-mcp-tool": "propose_remember",
         "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
@@ -12072,7 +12043,6 @@
             }
           }
         },
-        "x-basis-mcp-tool": "list_review_items",
         "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
@@ -12294,7 +12264,6 @@
             }
           }
         },
-        "x-basis-mcp-tool": "get_review_item",
         "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
@@ -12377,10 +12346,6 @@
             }
           }
         },
-        "x-basis-mcp-tool": [
-          "approve_review_item",
-          "approve_statement_remember_review"
-        ],
         "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
@@ -12465,10 +12430,6 @@
             }
           }
         },
-        "x-basis-mcp-tool": [
-          "reject_review_item",
-          "reject_statement_remember_review"
-        ],
         "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
@@ -12608,7 +12569,6 @@
             }
           }
         },
-        "x-basis-mcp-tool": "list_rules",
         "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       },
@@ -12752,7 +12712,6 @@
             }
           }
         },
-        "x-basis-mcp-tool": "get_rule",
         "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       },
@@ -13087,12 +13046,6 @@
                 }
               }
             }
-          }
-        },
-        "x-basis-mcp-tool": "search_chunks",
-        "x-basis-mcp-param-aliases": {
-          "search_chunks": {
-            "q": "query"
           }
         },
         "x-basis-surface": "workspaces",
