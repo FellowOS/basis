@@ -7,11 +7,10 @@ from collections.abc import Mapping
 from functools import lru_cache
 from typing import Any
 
-from basis.interface.contract.mcp.stamp_openapi import (
+from basis.interface.contract.mcp.annotations import (
     MCP_PARAM_ALIASES_EXTENSION,
     MCP_TOOL_EXTENSION,
 )
-from basis.interface.contract.mcp.tool_bindings import MCP_TOOL_BINDINGS
 from basis.interface.contract.openapi.v1_export import cached_openapi_v1_workspaces
 
 _SKIP_PARAMS = frozenset({"workspace_id", "authorization"})
@@ -223,7 +222,3 @@ def all_mcp_input_schemas() -> dict[str, dict[str, Any]]:
             out[name] = schema
     return out
 
-
-def binding_tool_names() -> frozenset[str]:
-    """Static binding table tool names (for catalog alignment tests)."""
-    return frozenset(b.name for b in MCP_TOOL_BINDINGS)

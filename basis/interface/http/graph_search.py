@@ -24,6 +24,7 @@ from basis.interface.http.operation_http import http_response_from_payload
 from basis.domain.knowledge.search import ChunkSearchService
 from basis.infra.runtime.limits import RuntimeLimits
 from basis.domain.knowledge.store import KnowledgeStore
+from basis.interface.contract.mcp.annotations import mcp_tool_openapi
 from basis.interface.http.graph_models import (
     SearchConfigRequest,
     SearchReindexRequest,
@@ -32,7 +33,10 @@ from basis.interface.http.graph_models import (
 router = APIRouter(tags=["workspaces"])
 
 
-@router.get("/{workspace_id}/search")
+@router.get(
+    "/{workspace_id}/search",
+    openapi_extra=mcp_tool_openapi("search_chunks", param_aliases={"q": "query"}),
+)
 async def chunk_search_route(
     workspace_id: str,
     q: str,
@@ -170,7 +174,10 @@ Chunk Search Reindex Route. Chunk retrieval (keyword, semantic, or hybrid per wo
     return await asyncio.to_thread(_reindex)
 
 
-@router.get("/{workspace_id}/entities/find")
+@router.get(
+    "/{workspace_id}/entities/find",
+    openapi_extra=mcp_tool_openapi("find_entities", param_aliases={"q": "query"}),
+)
 async def find_entities_route(
     workspace_id: str,
     request: Request,

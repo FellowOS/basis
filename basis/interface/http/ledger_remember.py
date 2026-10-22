@@ -12,11 +12,15 @@ from basis.interface.http.deps import get_current_user, get_store
 from basis.interface.http.core_context import build_workspace_core_context
 from basis.application.knowledge.operations import op_propose_remember
 from basis.interface.http.operation_http import http_response_from_payload
+from basis.interface.contract.mcp.annotations import mcp_tool_openapi
 from basis.interface.http.ledger_models import RememberProposalRequest
 
 router = APIRouter(tags=["workspaces"])
 
-@router.post("/{workspace_id}/remember/proposals")
+@router.post(
+    "/{workspace_id}/remember/proposals",
+    openapi_extra=mcp_tool_openapi("propose_remember"),
+)
 async def create_remember_proposal(
     workspace_id: str,
     body: RememberProposalRequest,

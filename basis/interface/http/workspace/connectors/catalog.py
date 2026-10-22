@@ -12,12 +12,16 @@ from basis.interface.http.operation_http import http_exception_from_core
 from basis.domain.tenancy.admin.store import AdminStore, User
 from basis.interface.http.workspace.connectors.models import UpsertConnectorPolicyRequest
 from basis.interface.http.core_context import build_workspace_core_context
+from basis.interface.contract.mcp.annotations import mcp_tool_openapi
 from basis.interface.http.deps import get_current_user, get_store
 
 router = APIRouter(tags=["workspaces"])
 
 
-@router.get("/{workspace_id}/connectors/catalog")
+@router.get(
+    "/{workspace_id}/connectors/catalog",
+    openapi_extra=mcp_tool_openapi("list_connector_catalog"),
+)
 async def list_connector_catalog(
     workspace_id: str,
     request: Request,
@@ -46,7 +50,10 @@ async def list_connector_catalog(
         raise http_exception_from_core(exc) from exc
 
 
-@router.get("/{workspace_id}/connectors/catalog/{service}")
+@router.get(
+    "/{workspace_id}/connectors/catalog/{service}",
+    openapi_extra=mcp_tool_openapi("describe_connector_service"),
+)
 async def get_connector_manifest_route(
     workspace_id: str,
     service: str,

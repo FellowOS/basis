@@ -14,6 +14,7 @@ from basis.interface.http.deps import get_current_user, get_workspace_for_editor
 from basis.interface.http.core_context import build_workspace_core_context
 from basis.interface.http.operation_http import http_response_from_payload
 from basis.application.reasoning.operations import op_get_rule, op_list_rules
+from basis.interface.contract.mcp.annotations import mcp_tool_openapi
 from basis.domain.knowledge.store import KnowledgeStore
 
 router = APIRouter(tags=["workspaces"])
@@ -31,7 +32,7 @@ class UpdateReasoningRuleRequest(BaseModel):
     enabled: bool | None = None
 
 
-@router.get("/{workspace_id}/rules")
+@router.get("/{workspace_id}/rules", openapi_extra=mcp_tool_openapi("list_rules"))
 async def list_reasoning_rules(
     workspace_id: str,
     request: Request,
@@ -47,7 +48,7 @@ List Reasoning Rules. Requires workspace membership (session) or workspace API t
     return await asyncio.to_thread(op_list_rules, ctx, {"limit": limit})
 
 
-@router.get("/{workspace_id}/rules/{rule_id}")
+@router.get("/{workspace_id}/rules/{rule_id}", openapi_extra=mcp_tool_openapi("get_rule"))
 async def get_reasoning_rule(
     workspace_id: str,
     rule_id: str,

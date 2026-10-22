@@ -4,7 +4,6 @@ from basis.application.tool_catalog import TOOL_NAMES
 from basis.application.tool_catalog.catalog import OPERATIONS
 from basis.interface.contract.mcp.openapi import (
     MCP_TOOL_OPERATIONS,
-    binding_tool_names,
     description_for_tool,
     input_schema_for_tool,
     mcp_tool_operations,
@@ -14,9 +13,7 @@ from basis.interface.mcp.dispatch import TOOL_DEFINITIONS
 
 def test_static_catalog_matches_mcp_openapi_tool_names() -> None:
     catalog_names = set(OPERATIONS)
-    binding_names = set(binding_tool_names())
     openapi_names = set(mcp_tool_operations())
-    assert catalog_names == binding_names
     assert catalog_names == openapi_names
     assert set(MCP_TOOL_OPERATIONS) == catalog_names
     assert len(TOOL_NAMES) == len(catalog_names)

@@ -124,9 +124,6 @@ def export_openapi_v1_document(
             continue
         paths[mapped] = item
     _annotate_surfaces(paths)
-    from basis.interface.contract.mcp.stamp_openapi import stamp_mcp_tools_on_paths
-
-    stamp_mcp_tools_on_paths(paths)
     if assert_descriptions:
         assert_operation_descriptions(paths)
     schema["paths"] = dict(sorted(paths.items()))

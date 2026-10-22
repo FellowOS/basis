@@ -22,6 +22,7 @@ from basis.domain.knowledge.store import KnowledgeStore
 from basis.application.kernel import CoreError
 from basis.interface.http.operation_http import http_exception_from_core, http_response_from_payload
 from basis.application.review.operations import op_approve_review_item
+from basis.interface.contract.mcp.annotations import mcp_tool_openapi
 from basis.interface.http.review_models import (
     ApproveReviewItemResponse,
     ResolveReviewRequest,
@@ -30,7 +31,13 @@ from basis.interface.http.review_models import (
 router = APIRouter(tags=["workspaces"])
 
 
-@router.post("/{workspace_id}/review/items/{item_id}/approve")
+@router.post(
+    "/{workspace_id}/review/items/{item_id}/approve",
+    openapi_extra=mcp_tool_openapi(
+        "approve_review_item",
+        "approve_statement_remember_review",
+    ),
+)
 async def approve_review_item(
     workspace_id: str,
     item_id: str,
