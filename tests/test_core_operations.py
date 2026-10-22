@@ -1,6 +1,6 @@
 """Core operation dispatch (R1)."""
 
-from basis.application.operation_registry import TOOL_NAMES
+from basis.application.tool_catalog import TOOL_NAMES
 from basis.interface.mcp.dispatch import execute
 
 

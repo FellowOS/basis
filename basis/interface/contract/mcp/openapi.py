@@ -66,6 +66,10 @@ MCP_TOOL_OPERATIONS: dict[str, tuple[str, str]] = {
         "post",
         "/api/v1/workspaces/{workspace_id}/connectors/table-mappings/{mapping_id}/sync",
     ),
+    "invoke_connector_primitive": (
+        "post",
+        "/api/v1/workspaces/{workspace_id}/connectors/connections/{service}/{connection_name}/invoke-primitive",
+    ),
     "propose_entity_writeback": ("post", "/api/v1/workspaces/{workspace_id}/connectors/outbox/propose"),
     "execute_connector_tool": ("post", "/api/v1/workspaces/{workspace_id}/connectors/tools/execute"),
 }
@@ -179,15 +183,28 @@ def _workspaces_openapi_spec() -> dict[str, Any]:
     return cached_openapi_v1_workspaces(app)
 
 
-def input_schema_for_tool(tool_name: str) -> dict[str, Any] | None:
+def _openapi_operation_for_tool(tool_name: str) -> dict[str, Any] | None:
     route = MCP_TOOL_OPERATIONS.get(tool_name)
     if route is None:
         return None
     method, path = route
     spec = _workspaces_openapi_spec()
-    op = _operation_by_path(spec, path, method)
+    return _operation_by_path(spec, path, method)
+
+
+def description_for_tool(tool_name: str) -> str | None:
+    op = _openapi_operation_for_tool(tool_name)
     if op is None:
         return None
+    text = str(op.get("description") or op.get("summary") or "").strip()
+    return text or None
+
+
+def input_schema_for_tool(tool_name: str) -> dict[str, Any] | None:
+    op = _openapi_operation_for_tool(tool_name)
+    if op is None:
+        return None
+    spec = _workspaces_openapi_spec()
     components = spec.get("components") or {}
     aliases = _PARAM_ALIASES.get(tool_name, {})
     param_schema: dict[str, Any] = {"type": "object", "properties": {}}

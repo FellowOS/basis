@@ -10,7 +10,7 @@ from fastapi import APIRouter, Header, HTTPException, Request
 from basis.interface.http.deps import get_store, resolve_bearer
 from basis.interface.http.core_context import build_workspace_core_context
 from basis.interface.mcp.protocol import handle_batch
-from basis.application.operation_registry import TOOL_NAMES
+from basis.application.tool_catalog import TOOL_NAMES
 from basis.interface.mcp.dispatch import get_tool_definitions
 from basis.interface.mcp.tools import PROTOCOL_VERSION
 

@@ -1,7 +1,21 @@
 """MCP tool inputSchema is derived from OpenAPI (R3)."""
 
-from basis.interface.contract.mcp.openapi import MCP_TOOL_OPERATIONS, input_schema_for_tool
+from basis.application.tool_catalog import TOOL_NAMES
+from basis.application.tool_catalog.catalog import OPERATIONS
+from basis.interface.contract.mcp.openapi import (
+    MCP_TOOL_OPERATIONS,
+    description_for_tool,
+    input_schema_for_tool,
+)
 from basis.interface.mcp.dispatch import TOOL_DEFINITIONS
+
+
+def test_static_catalog_matches_mcp_openapi_tool_names() -> None:
+    catalog_names = set(OPERATIONS)
+    openapi_names = set(MCP_TOOL_OPERATIONS)
+    assert catalog_names == openapi_names
+    assert len(TOOL_NAMES) == len(catalog_names)
+    assert set(TOOL_NAMES) == catalog_names
 
 
 def test_mcp_tools_have_openapi_backed_schemas() -> None:
@@ -101,3 +115,21 @@ def test_tool_definitions_match_registry() -> None:
     for name in MCP_TOOL_OPERATIONS:
         assert name in by_name
         assert by_name[name]["inputSchema"]["type"] == "object"
+
+
+def test_invoke_connector_primitive_schema_from_openapi() -> None:
+    schema = input_schema_for_tool("invoke_connector_primitive")
+    assert schema is not None
+    props = schema.get("properties") or {}
+    assert "service" in props
+    assert "connection_name" in props
+    assert "action_id" in props
+    assert "primitive" in props
+
+
+def test_mcp_descriptions_from_openapi() -> None:
+    for name in ("search_chunks", "describe_workspace"):
+        desc = description_for_tool(name)
+        assert desc
+        by_name = {t["name"]: t for t in TOOL_DEFINITIONS}
+        assert by_name[name]["description"] == desc

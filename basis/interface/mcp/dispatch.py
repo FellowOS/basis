@@ -1,4 +1,4 @@
-"""MCP tools/list and tools/call dispatch (wraps :mod:`basis.application.operation_registry`)."""
+"""MCP tools/list and tools/call dispatch (wraps :mod:`basis.application.tool_catalog`)."""
 
 from __future__ import annotations
 
@@ -8,22 +8,22 @@ from typing import Any
 from pydantic import ValidationError
 
 from basis.application.kernel import CoreError, WorkspaceCoreContext
-from basis.application.operation_registry import (
+from basis.application.connectors import primitives as connector_primitives
+from basis.application.tool_catalog import (
     OPERATIONS,
     TOOL_NAMES,
     coerce_operation_args,
-    op_invoke_connector_primitive,
     validation_error_payload,
     validate_operation_response,
 )
-from basis.application.operation_registry import run as run_static_operation
+from basis.application.tool_catalog import run as run_static_operation
 from basis.domain.errors import AdminError
 from basis.interface.contract.mcp.connector_tools import (
     connector_tool_definitions_for_workspace,
     parse_connector_mcp_tool_name,
 )
 from basis.interface.contract.mcp.format import mcp_text_result
-from basis.interface.contract.mcp.openapi import input_schema_for_tool
+from basis.interface.contract.mcp.openapi import description_for_tool, input_schema_for_tool
 
 __all__ = [
     "TOOL_DEFINITIONS",
@@ -39,9 +39,24 @@ def _mcp_exposed(name: str) -> bool:
     return OPERATIONS[name].get("mcp", True)
 
 
-def _mcp_input_schema(name: str, fallback: dict[str, Any]) -> dict[str, Any]:
+def _mcp_tool_description(name: str, spec: dict[str, Any]) -> str:
+    derived = description_for_tool(name)
+    if derived:
+        return derived
+    fallback = spec.get("description")
+    if isinstance(fallback, str) and fallback.strip():
+        return fallback.strip()
+    return name
+
+
+def _mcp_input_schema(name: str, spec: dict[str, Any]) -> dict[str, Any]:
     derived = input_schema_for_tool(name)
-    return derived if derived else fallback
+    if derived is not None:
+        return derived
+    fallback = spec.get("input_schema")
+    if isinstance(fallback, dict):
+        return fallback
+    return {"type": "object", "properties": {}}
 
 
 @lru_cache(maxsize=1)
@@ -49,8 +64,8 @@ def get_static_tool_definitions() -> list[dict[str, Any]]:
     return [
         {
             "name": name,
-            "description": spec["description"],
-            "inputSchema": _mcp_input_schema(name, spec["input_schema"]),
+            "description": _mcp_tool_description(name, spec),
+            "inputSchema": _mcp_input_schema(name, spec),
         }
         for name, spec in OPERATIONS.items()
         if _mcp_exposed(name)
@@ -86,7 +101,7 @@ def run(ctx: WorkspaceCoreContext, name: str, arguments: dict[str, Any] | None) 
         except ValidationError as exc:
             return validation_error_payload(exc)
         args = {**binding, **args}
-        result = op_invoke_connector_primitive(ctx, args)
+        result = connector_primitives.invoke(ctx, args)
         if isinstance(result, dict) and "error" not in result:
             return validate_operation_response(name, result)
         return result
