@@ -13,9 +13,9 @@
 
 </div>
 
-将文档、库表与 SaaS 对齐为**实体、类型与可治理事实**，在源系统之上形成可复用的共享语义，而不是另一套碎片索引。支持桌面、自托管与云端部署，通过 **OpenAPI v1** 与 **MCP** 对外集成；写回业务状态须经审核，而非裸调 API。
+将文档、数据库与 SaaS 对齐为**实体、类型与可治理事实**——源系统之上的共享语义层。支持桌面、自托管与云端部署，通过 **OpenAPI v1** 与 **MCP** 对外集成；状态变更须经审核，而非静默 API 调用。
 
-Basis 是基于 [Semantica](https://github.com/semantica-agi/semantica) Python SDK 的开源底座。**业务语义**（映射、本体、规则、SHACL）落在**证据账本**之上；图与搜索为**可重建投影**。
+Basis 是基于 [Semantica](https://github.com/semantica-agi/semantica) Python SDK 的开源技术栈。**业务语义**——映射、本体、规则、SHACL——落在**规范证据账本**之上；图与搜索为**可重建投影**。
 
 > **状态：** 仍在积极开发，接口可能变动；生产环境请固定发布版本。
 
@@ -27,12 +27,8 @@ Basis 是基于 [Semantica](https://github.com/semantica-agi/semantica) Python S
 ## 目录
 
 - [能力概览](#能力概览)
-- [产品定位](#产品定位)
+- [为什么选择 Basis](#为什么选择-basis)
 - [架构](#架构)
-- [部署方式](#部署方式)
-  - [桌面客户端](#桌面客户端)
-  - [自托管](#自托管)
-  - [托管云（SaaS）](#托管云saas)
 - [快速开始](#快速开始)
   - [环境](#环境)
   - [1. 克隆并启动 API](#1-克隆并启动-api)
@@ -42,6 +38,10 @@ Basis 是基于 [Semantica](https://github.com/semantica-agi/semantica) Python S
 - [智能体集成（MCP）](#智能体集成mcp)
 - [Semantica 依赖](#semantica-依赖)
 - [开发](#开发)
+- [部署方式](#部署方式)
+  - [桌面客户端](#桌面客户端)
+  - [自托管](#自托管)
+  - [托管云（SaaS）](#托管云saas)
 - [社区](#社区)
 - [许可证](#许可证)
 
@@ -49,33 +49,33 @@ Basis 是基于 [Semantica](https://github.com/semantica-agi/semantica) Python S
 
 - **业务语义** — 实体、类型化事实、映射与本体；语义单元不是「又一坨切片」。
 - **证据账本** — 陈述、溯源；图与向量为可重建投影。
-- **工作区** — 文库 ingest、混合检索、处理任务、审核队列。
-- **图谱与本体** — Explorer 图工作区、词表、SHACL、SPARQL、Ontology Hub。
+- **工作区** — 文档入库、切片检索（词法 + 向量）、处理任务、审核队列。
+- **图谱与本体** — Explorer 风格图工作区、词表、SHACL、SPARQL、Ontology Hub 工作流。
 - **连接器（BOCP）** — 内置 provider（如 postgres、mysql、github、slack）；入向同步与受控写回。
-- **智能体接口** — 工作区级 **OpenAPI v1** 与 **MCP**（检索、图、连接器、审核等工具）。
+- **智能体接口** — 工作区级 **OpenAPI v1** 与 **MCP**（`search_chunks`、`find_entities`、连接器工具、审核操作等）。
 - **平台** — 用户、组织 SSO（可选 OIDC/SAML）、工作区角色、API 令牌、审计。
 
-## 产品定位
+## 为什么选择 Basis
 
-| | 常见「RAG + 裸调 API」 | **Basis** |
+| | 典型「RAG + 裸工具」 | **Basis** |
 | --- | --- | --- |
-| **读取** | 碎片向量 / 裸 SQL | 账本与实体；图/搜索由账本重建 |
-| **写入** | 无治理写库 | `remember`、连接器写回等审核闸口 |
+| **读取路径** | 未校验切片 / 临时 SQL | 账本与实体；图与搜索由账本重建 |
+| **写入路径** | 无治理的 API 调用 | 审核闸口（`remember`、连接器写回、冲突处理） |
 | **业务语义** | 提示词标签 | 共享实体与类型、映射、本体、规则、SHACL、SPARQL |
-| **连接** | 手写胶水 | BOCP、OpenAPI v1、MCP |
-| **运维** | 多组件 | API + Web；开发 SQLite，生产 PostgreSQL |
+| **连接** | 各系统手写胶水 | BOCP manifest、OpenAPI v1、MCP |
+| **运维** | 多组件拼凑 | API + Web；开发 SQLite，生产 PostgreSQL |
 
 ## 架构
 
 ```mermaid
 flowchart LR
   WEB["Basis Web<br/>:5173"]
-  WEB -->|/api| INT
+  WEB -->|proxy /api| INT
 
   subgraph API["Basis API :8090 · FastAPI"]
     direction TB
-    INT["interface/<br/>HTTP + MCP"]
-    APP["application/<br/>共用操作层"]
+    INT["interface/<br/>HTTP + MCP 协议"]
+    APP["application/<br/>共用智能体操作"]
     DOM["domain/<br/>账本、图、连接器、租户"]
     SDK["semantica SDK<br/>解析、图、LLM、向量…"]
     INT --> APP --> DOM --> SDK
@@ -83,32 +83,6 @@ flowchart LR
 ```
 
 集成方应调用 **Basis**（`/api/v1/...` 与工作区 MCP），而非直接依赖 Semantica。
-
-## 部署方式
-
-同一套产品（API + 工作台），区别在**运行位置**；**OpenAPI v1** 与 **MCP** 契约在各模式下一致。
-
-### 桌面客户端
-
-**本机 Electron 应用**：内嵌 API + 工作台，数据目录 `~/.basis`；桌面配置可**免登录**，适合个人单机使用。
-
-- **开发：** `cd desktop && npm install && npm run dev`，打包与 macOS/Windows 说明见 [desktop/README.md](desktop/README.md)。
-- **配置：** `BASIS_DEPLOYMENT_PROFILE=desktop`（见 `profiles/profile.desktop.yaml`）。
-
-勿与已安装的桌面版同时跑开发 API——二者共用 `~/.basis/basis.db`。
-
-### 自托管
-
-由**你方运维**（内网、专有云或隔离环境均可）：平台账号、组织 SSO、工作区与备份策略自控。
-
-- **本地试用：** 下文 [快速开始](#快速开始)（`uv run basis` + `npm run dev`，SQLite）。
-- **生产：** PostgreSQL（`compose.postgres.yml`）、配置 `BASIS_DATABASE_URL`、反向代理 TLS、固定发布版本 — 见 [配置（常用）](#配置常用)。
-
-### 托管云（SaaS）
-
-**FellowOS 托管的多租户服务**：注册、运维与升级由我方负责；智能体仍通过工作区 **HTTP/MCP** 与令牌集成。
-
-托管能力逐步开放；如需试用或试点，请在 [GitHub Issues](https://github.com/FellowOS/basis/issues) 说明场景与我们联系。
 
 ## 快速开始
 
@@ -168,9 +142,11 @@ cd web && npm install && npm run dev
 
 ## 智能体集成（MCP）
 
-在工作区设置中创建 **API 令牌**。MCP 端点：
+在工作区设置中创建 **工作区 API 令牌**（设置 → 令牌）。MCP 端点：
 
 `POST /api/v1/workspaces/{workspace_id}/mcp`，请求头 `Authorization: Bearer <token>`。
+
+示例 `tools/call`（先执行 `tools/list`）：
 
 ```bash
 curl -sS "http://127.0.0.1:8090/api/v1/workspaces/YOUR_WORKSPACE_ID/mcp" \
@@ -179,13 +155,13 @@ curl -sS "http://127.0.0.1:8090/api/v1/workspaces/YOUR_WORKSPACE_ID/mcp" \
   -d '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"describe_workspace","arguments":{}}}'
 ```
 
-工具名与 HTTP 操作共享同一注册表；API 运行时可查看 **`/openapi/v1/workspaces.json`**。
+工具名与 HTTP 路径共用同一操作目录；API 运行时可查看 **`/openapi/v1/workspaces.json`**。
 
 ## Semantica 依赖
 
-`semantica` 从 **PyPI** 解析（见 `uv.lock`）。`uv sync` 安装运行时推荐 extras。可选：`dev`、`heavy`、`explorer`、`saml`（见 [pyproject.toml](pyproject.toml)）。
+`semantica` 从 **PyPI** 解析（见 `uv.lock`）。`uv sync` 会安装 Basis 运行时 extras（文档解析、向量、SHACL、兼容 OpenAI 的 LLM 等）。可选分组：`dev`、`heavy`、`explorer`、`saml` — 见 [pyproject.toml](pyproject.toml)。
 
-请勿为 `semantica` 配置本地 `[tool.uv.sources]`（未提交的 `uv.toml` 会覆盖默认源）。
+请勿为 `semantica` 配置本地 `[tool.uv.sources]`（未提交的 `uv.toml` 仍会优先于默认源 — 保持未设置以使用 PyPI）。
 
 处理任务使用 ML NER 时可安装：
 
@@ -194,7 +170,7 @@ uv run python -m spacy download en_core_web_sm
 uv run python -m spacy download zh_core_web_sm   # 中文可选
 ```
 
-控制台 **Chat / Embed** 仅在启用 LLM 能力时需要配置密钥。
+控制台中的对话与嵌入仅在启用 LLM 相关能力时需要配置服务商 API 密钥。
 
 ## 开发
 
@@ -202,15 +178,41 @@ uv run python -m spacy download zh_core_web_sm   # 中文可选
 uv run pytest -q
 uv run lint-imports --config importlinter.ini
 cd web && npm run typecheck && npm test
-cd web && CI=1 npm run test:e2e   # 可选
+cd web && CI=1 npm run test:e2e   # 可选；Playwright + API
 ```
 
-包结构：`interface` / `application` / `domain` / `infra` — 见 [AGENTS.md](AGENTS.md)。
+贡献者包结构：`basis/interface`、`application`、`domain`、`infra` — 见 [AGENTS.md](AGENTS.md)。
+
+## 部署方式
+
+同一套产品栈（API + 工作台）。选择**运行位置**——各模式下 **OpenAPI v1** 与 **MCP** 契约一致。
+
+### 桌面客户端
+
+**本机 Electron 应用**：内嵌 API + 工作台，数据目录 `~/.basis`；桌面配置可**免登录**，适合个人单机使用。
+
+- **开发：** `cd desktop && npm install && npm run dev`，打包与 macOS/Windows 说明见 [desktop/README.md](desktop/README.md)。
+- **配置：** `BASIS_DEPLOYMENT_PROFILE=desktop`（见 `profiles/profile.desktop.yaml`）。
+
+勿与已安装的桌面版同时跑开发 API——二者共用 `~/.basis/basis.db`。
+
+### 自托管
+
+由**你方运维**（内网、专有云或隔离环境均可）：平台账号、组织 SSO、工作区与备份策略自控。
+
+- **本地试用：** [快速开始](#快速开始)（`uv run basis` + `npm run dev`，SQLite）。
+- **生产：** PostgreSQL（`compose.postgres.yml`）、配置 `BASIS_DATABASE_URL`、反向代理 TLS、固定发布版本 — 见 [配置（常用）](#配置常用)。
+
+### 托管云（SaaS）
+
+**FellowOS 托管的多租户服务**：注册、运维与升级由我方负责；智能体仍通过工作区 **HTTP/MCP** 与令牌集成。
+
+托管服务逐步开放；如需访问或试点，请提交 [GitHub Issue](https://github.com/FellowOS/basis/issues) 并说明使用场景。
 
 ## 社区
 
-- **缺陷与功能：** [GitHub Issues](https://github.com/FellowOS/basis/issues)
-- **安全漏洞：** [SECURITY.md](SECURITY.md)（请勿公开 issue）
+- **缺陷与功能请求：** [GitHub Issues](https://github.com/FellowOS/basis/issues)
+- **安全漏洞：** [SECURITY.md](SECURITY.md)（请勿公开提交 issue）
 - **贡献：** [CONTRIBUTING.md](CONTRIBUTING.md) · [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
 
 ## 许可证

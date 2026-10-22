@@ -29,10 +29,6 @@ Basis is an open-source stack on the [Semantica](https://github.com/semantica-ag
 - [Features](#features)
 - [Why Basis](#why-basis)
 - [Architecture](#architecture)
-- [Deployment](#deployment)
-  - [Desktop app](#desktop-app)
-  - [Self-hosted](#self-hosted)
-  - [Managed cloud](#managed-cloud)
 - [Quick start](#quick-start)
   - [Prerequisites](#prerequisites)
   - [1. Clone and configure API](#1-clone-and-configure-api)
@@ -42,6 +38,10 @@ Basis is an open-source stack on the [Semantica](https://github.com/semantica-ag
 - [Agent integration (MCP)](#agent-integration-mcp)
 - [Semantica dependency](#semantica-dependency)
 - [Development](#development)
+- [Deployment](#deployment)
+  - [Desktop app](#desktop-app)
+  - [Self-hosted](#self-hosted)
+  - [Managed cloud](#managed-cloud)
 - [Community](#community)
 - [License](#license)
 
@@ -83,32 +83,6 @@ flowchart LR
 ```
 
 Integrations should call **Basis** (`/api/v1/...` and workspace MCP), not Semantica directly.
-
-## Deployment
-
-One product stack (API + studio). Pick **where** it runs—the **OpenAPI v1** and **MCP** contracts are the same across modes.
-
-### Desktop app
-
-**Local client** (Electron) for a single machine: API sidecar + studio, data under `~/.basis`, optional **no-login** desktop profile for personal use.
-
-- **Develop:** `cd desktop && npm install && npm run dev` — see [desktop/README.md](desktop/README.md) (packaging, macOS/Windows builds).
-- **Profile:** `BASIS_DEPLOYMENT_PROFILE=desktop` (see `profiles/profile.desktop.yaml`).
-
-Do not run a dev API and an installed desktop app at once—they share `~/.basis/basis.db`.
-
-### Self-hosted
-
-**You operate** the stack on your network or cloud VM (air-gapped OK): platform login, org SSO, workspaces, backups under your policies.
-
-- **Try locally:** [Quick start](#quick-start) below (`uv run basis` + `npm run dev`, SQLite).
-- **Production:** PostgreSQL (`compose.postgres.yml`), set `BASIS_DATABASE_URL`, TLS in front of API/Web, pin a release — [Configuration (essentials)](#configuration-essentials).
-
-### Managed cloud
-
-**FellowOS-hosted SaaS** — multi-tenant signup, operations, and upgrades on our side; integrate agents against the same workspace **HTTP/MCP** endpoints with your issued tokens.
-
-Hosted availability is rolling out; for access or pilots, open a [GitHub Issue](https://github.com/FellowOS/basis/issues) and describe your use case.
 
 ## Quick start
 
@@ -207,6 +181,32 @@ cd web && CI=1 npm run test:e2e   # optional; Playwright + API
 ```
 
 Layout for contributors: `basis/interface`, `application`, `domain`, `infra` — see [AGENTS.md](AGENTS.md).
+
+## Deployment
+
+One product stack (API + studio). Pick **where** it runs—the **OpenAPI v1** and **MCP** contracts are the same across modes.
+
+### Desktop app
+
+**Local client** (Electron) for a single machine: API sidecar + studio, data under `~/.basis`, optional **no-login** desktop profile for personal use.
+
+- **Develop:** `cd desktop && npm install && npm run dev` — see [desktop/README.md](desktop/README.md) (packaging, macOS/Windows builds).
+- **Profile:** `BASIS_DEPLOYMENT_PROFILE=desktop` (see `profiles/profile.desktop.yaml`).
+
+Do not run a dev API and an installed desktop app at once—they share `~/.basis/basis.db`.
+
+### Self-hosted
+
+**You operate** the stack on your network or cloud VM (air-gapped OK): platform login, org SSO, workspaces, backups under your policies.
+
+- **Try locally:** [Quick start](#quick-start) (`uv run basis` + `npm run dev`, SQLite).
+- **Production:** PostgreSQL (`compose.postgres.yml`), set `BASIS_DATABASE_URL`, TLS in front of API/Web, pin a release — [Configuration (essentials)](#configuration-essentials).
+
+### Managed cloud
+
+**FellowOS-hosted SaaS** — multi-tenant signup, operations, and upgrades on our side; integrate agents against the same workspace **HTTP/MCP** endpoints with your issued tokens.
+
+Hosted availability is rolling out; for access or pilots, open a [GitHub Issue](https://github.com/FellowOS/basis/issues) and describe your use case.
 
 ## Community
 
