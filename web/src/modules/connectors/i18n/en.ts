@@ -48,10 +48,11 @@ export default {
       title: "Connector table mappings",
       subtitle: "Map external rows (SQL tables or SaaS streams) into ledger entities — distinct from Semantics → Statement mappings (text → predicates).",
       create_button: "New connector mapping",
-      wizard_link: "Data & ontology wizard",
-      suggest_button: "Suggest cross-stream mappings",
+      suggest_button: "Suggest mappings",
       empty_title: "No connector mappings yet",
-      empty_description: "Create a mapping or run the wizard to sync external data into the ledger.",
+      empty_description:
+        "Suggest mappings from your connections (SQL tables auto-listed), or create one manually.",
+      empty_open_catalog: "Open connections",
       sync_button: "Sync now",
       syncing: "Syncing…",
       sync_result_summary: "Fetched {fetched}: +{added} added, ~{updated} updated, ={unchanged} unchanged, -{deleted} deleted",
@@ -130,6 +131,11 @@ export default {
       apply_button: "Save & sync ({count})",
       applying: "Saving…",
       applied_toast: "{count} connector mapping(s) saved and synced",
+      sql_tables_label: "SQL tables (optional)",
+      sql_tables_placeholder: "accounts\ncustomers\npostgres:orders",
+      sql_tables_hint:
+        "Optional. Leave empty to auto-list tables from SQL connections (up to 8), or one table per line.",
+      regenerate_button: "Refresh suggestions",
     },
     policy: {
       title: "Connector & Writeback Governance Policy",

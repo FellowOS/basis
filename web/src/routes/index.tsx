@@ -14,7 +14,7 @@ import {
   ConnectorOAuthCallbackPage,
   ConnectorsPage,
   ConnectorsRedirect,
-  DataOnboardingPage,
+  DataOnboardingRedirect,
   DecisionsPage,
   EntitiesPage,
   EntityResolutionPage,
@@ -193,7 +193,7 @@ export function AppRoutes() {
         <Route path="/workspaces/:id/chat" element={<LegacyChatRedirect />} />
         <Route path="/workspaces/:id/library" element={<LegacyLibraryRedirect />} />
         <Route path="/workspaces/:id/sources" element={<Lazy><LibraryPage /></Lazy>} />
-        <Route path="/workspaces/:id/onboarding/data" element={<Lazy><DataOnboardingPage /></Lazy>} />
+        <Route path="/workspaces/:id/onboarding/data" element={<Lazy><DataOnboardingRedirect /></Lazy>} />
         <Route
           path="/workspaces/:id/connectors/mappings/new"
           element={<Lazy><ConnectorMappingNewPage /></Lazy>}

@@ -51,9 +51,9 @@ export const ConnectorMappingEditPage = lazy(() =>
     default: m.ConnectorMappingEditPage,
   })),
 );
-export const DataOnboardingPage = lazy(() =>
+export const DataOnboardingRedirect = lazy(() =>
   import('@/modules/data-onboarding/index.js').then((m) => ({
-    default: m.DataOnboardingPage,
+    default: m.DataOnboardingRedirect,
   })),
 );
 export const DecisionsPage = lazy(() =>

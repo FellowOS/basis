@@ -105,7 +105,6 @@ export const WORKSPACE_NAV_BY_ZONE = {
     { segment: 'entities', labelKey: 'entities', icon: 'atom' },
   ],
   connectors: [
-    { segment: 'onboarding/data', labelKey: 'dataOntologyWizard', icon: 'route' },
     { segment: 'connectors/catalog', labelKey: 'connectorCatalog', icon: 'database' },
     { segment: 'connectors/mappings', labelKey: 'connectorStreamMappings', icon: 'arrows-left-right' },
     { segment: 'connectors/policy', labelKey: 'connectorActionPolicy', icon: 'scales' },
@@ -166,6 +165,7 @@ export const KB_HUB_LEGACY_SEGMENTS = [
   'alignments',
   'sparql',
   'reasoning',
+  'onboarding',
 ] as const;
 
 function buildWorkspaceNav(): SidebarNavItem[] {

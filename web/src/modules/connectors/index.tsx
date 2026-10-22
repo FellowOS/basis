@@ -133,6 +133,7 @@ export function ConnectorsRedirect() {
 export function ConnectorsPage() {
   const { id: workspaceId, panel: panelParam } = useParams<{ id: string; panel: string }>();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { t, locale } = useI18n();
   const c = t.connectors.page;
   const { getWorkspace } = useWorkspaceCatalog();
@@ -268,6 +269,16 @@ export function ConnectorsPage() {
     if (panel === 'policy') void loadPolicyAndOutbox();
     if (panel === 'runs') void loadRuns();
   }, [panel, loadMappings, loadPolicyAndOutbox, loadRuns]);
+
+  useEffect(() => {
+    if (panel !== 'mappings' || searchParams.get('suggest') !== '1') {
+      return;
+    }
+    setSuggestMappingsOpen(true);
+    const next = new URLSearchParams(searchParams);
+    next.delete('suggest');
+    setSearchParams(next, { replace: true });
+  }, [panel, searchParams, setSearchParams]);
 
   function goToNewMapping(prefill?: StoredConnection) {
     if (!workspaceId) return;
@@ -682,16 +693,6 @@ export function ConnectorsPage() {
                 <div className="flex flex-wrap items-center gap-2">
                   <Button
                     size="sm"
-                    variant="outline"
-                    asChild
-                  >
-                    <Link to={workspacePath(workspaceId, 'onboarding/data')}>
-                      {c.mappings.wizard_link}
-                    </Link>
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
                     onClick={() => setSuggestMappingsOpen(true)}
                     data-testid="suggest-table-mappings-btn"
                   >
@@ -699,6 +700,7 @@ export function ConnectorsPage() {
                   </Button>
                   <Button
                     size="sm"
+                    variant="outline"
                     onClick={() => goToNewMapping()}
                     data-testid="create-table-mapping-btn"
                   >
@@ -710,9 +712,28 @@ export function ConnectorsPage() {
             />
             <DataPanelBody padded={false}>
               {mappings.length === 0 ? (
-                <div className="px-4 py-8 text-center">
+                <div className="flex flex-col items-center gap-3 px-4 py-8 text-center">
                   <p className="text-sm font-medium text-foreground">{c.mappings.empty_title}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">{c.mappings.empty_description}</p>
+                  <p className="max-w-md text-xs text-muted-foreground">{c.mappings.empty_description}</p>
+                  <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
+                    <Button
+                      size="sm"
+                      onClick={() => setSuggestMappingsOpen(true)}
+                      data-testid="suggest-table-mappings-empty-btn"
+                    >
+                      {c.mappings.suggest_button}
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => goToNewMapping()}>
+                      {c.mappings.create_button}
+                    </Button>
+                    {connections.length === 0 ? (
+                      <Button size="sm" variant="outline" asChild>
+                        <Link to={workspaceConnectorPanelPath(workspaceId, 'catalog')}>
+                          {c.mappings.empty_open_catalog}
+                        </Link>
+                      </Button>
+                    ) : null}
+                  </div>
                 </div>
               ) : (
                 <div className="divide-y divide-border">
@@ -1038,6 +1059,7 @@ export function ConnectorsPage() {
           workspaceId={workspaceId}
           open={suggestMappingsOpen}
           onOpenChange={setSuggestMappingsOpen}
+          connections={connections}
           onApplied={() => void loadMappings()}
         />
       ) : null}

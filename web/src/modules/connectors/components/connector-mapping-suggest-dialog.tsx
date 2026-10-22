@@ -12,11 +12,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog.js';
+import { Label } from '@/components/ui/label.js';
+import { Textarea } from '@/components/ui/textarea.js';
 import { useI18n } from '@/i18n/context.js';
 import { fmt } from '@/i18n/format.js';
 import type { Locale } from '@/i18n/locale.js';
 import { formatUserFacingApiError } from '@/lib/errors/api-error-message.js';
 import { workspaceOpenApiPOST } from '@/lib/openapi/client.js';
+import type { StoredConnection } from '@/modules/connectors/lib/connector-connections.js';
+import { buildSqlSuggestTargets } from '@/modules/connectors/lib/sql-suggest-targets.js';
 
 export type ConnectorMappingDraft = {
   provider: string;
@@ -72,12 +76,7 @@ type Props = {
   workspaceId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  sqlTables?: Array<{
-    provider: string;
-    connection_name: string;
-    external_table: string;
-    stream_name?: string;
-  }>;
+  connections: StoredConnection[];
   onApplied?: (createdCount: number) => void;
 };
 
@@ -85,7 +84,7 @@ export function ConnectorMappingSuggestDialog({
   workspaceId,
   open,
   onOpenChange,
-  sqlTables,
+  connections,
   onApplied,
 }: Props) {
   const { t, locale } = useI18n();
@@ -95,12 +94,14 @@ export function ConnectorMappingSuggestDialog({
   const [rows, setRows] = useState<SuggestDraftRow[]>([]);
   const [selected, setSelected] = useState<Record<string, boolean>>({});
   const [skippedCount, setSkippedCount] = useState(0);
+  const [sqlTableInput, setSqlTableInput] = useState('');
 
-  const loadSuggestions = useCallback(async () => {
+  const fetchSuggestions = useCallback(async (sqlInput: string) => {
     setLoading(true);
     try {
+      const sqlTables = buildSqlSuggestTargets(connections, sqlInput);
       const body: Record<string, unknown> = {};
-      if (sqlTables?.length) {
+      if (sqlTables.length) {
         body.sql_tables = sqlTables.map((row) => ({
           provider: row.provider,
           connection_name: row.connection_name,
@@ -138,13 +139,13 @@ export function ConnectorMappingSuggestDialog({
     } finally {
       setLoading(false);
     }
-  }, [workspaceId, sqlTables, locale]);
+  }, [workspaceId, connections, locale]);
 
   useEffect(() => {
     if (open) {
-      void loadSuggestions();
+      void fetchSuggestions(sqlTableInput);
     }
-  }, [open, loadSuggestions]);
+  }, [open, fetchSuggestions]);
 
   const selectedDrafts = useMemo(
     () => rows.filter((r) => selected[r.key]).map((r) => r.draft),
@@ -177,6 +178,29 @@ export function ConnectorMappingSuggestDialog({
           <DialogTitle>{s.dialog_title}</DialogTitle>
           <DialogDescription>{s.dialog_description}</DialogDescription>
         </DialogHeader>
+        {connections.length > 0 ? (
+          <div className="space-y-2 border-b border-border pb-4">
+            <Label htmlFor="connector-suggest-sql-tables">{s.sql_tables_label}</Label>
+            <Textarea
+              id="connector-suggest-sql-tables"
+              className="min-h-[4.5rem] font-mono text-xs"
+              value={sqlTableInput}
+              onChange={(e) => setSqlTableInput(e.target.value)}
+              placeholder={s.sql_tables_placeholder}
+              spellCheck={false}
+            />
+            <p className="text-xs text-muted-foreground">{s.sql_tables_hint}</p>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              disabled={loading}
+              onClick={() => void fetchSuggestions(sqlTableInput)}
+            >
+              {s.regenerate_button}
+            </Button>
+          </div>
+        ) : null}
         {loading ? (
           <p className="text-sm text-muted-foreground">{s.loading}</p>
         ) : rows.length === 0 ? (

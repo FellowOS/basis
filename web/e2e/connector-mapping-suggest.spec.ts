@@ -54,7 +54,7 @@ test('connector table-mapping suggest and batch-create API (SQL discover)', asyn
   expect(mappings.mappings.some((m) => m.external_table === 'customers')).toBeTruthy();
 });
 
-test('data onboarding wizard: SQL table input → suggest dialog → save and sync', async ({ page }) => {
+test('connector mappings suggest: SQL table input → save and sync', async ({ page }) => {
   test.setTimeout(120_000);
 
   await registerFreshUser(page);
@@ -64,21 +64,15 @@ test('data onboarding wizard: SQL table input → suggest dialog → save and sy
 
   await putE2ePostgresSqliteConnection(page, workspaceId, connectionName, dbPath);
 
-  await page.goto(`/workspaces/${workspaceId}/onboarding/data`);
-  await expect(page.getByLabel(/SQL tables|SQL 表/i)).toBeVisible({ timeout: 30_000 });
-  await page.getByLabel(/SQL tables|SQL 表/i).fill('customers');
-  await page.getByRole('button', { name: /Suggest mappings|生成映射建议/i }).click();
-
+  await page.goto(`/workspaces/${workspaceId}/connectors/mappings?suggest=1`);
   const dialog = page.getByRole('dialog');
   await expect(dialog).toBeVisible({ timeout: 30_000 });
+  await expect(dialog.getByLabel(/SQL tables|SQL 表/i)).toBeVisible({ timeout: 30_000 });
+  await dialog.getByLabel(/SQL tables|SQL 表/i).fill('customers');
+  await dialog.getByRole('button', { name: /Refresh suggestions|重新生成建议/i }).click();
   await expect(dialog.getByText('customers', { exact: true })).toBeVisible({ timeout: 30_000 });
   await dialog.getByRole('button', { name: /Save & sync|保存并同步/i }).click();
   await expect(dialog).toBeHidden({ timeout: 60_000 });
-  await expect(page.getByRole('link', { name: /View connector mappings|查看连接器映射/i })).toBeVisible({
-    timeout: 30_000,
-  });
-
-  await page.getByRole('link', { name: /View connector mappings|查看连接器映射/i }).click();
   await expect(page).toHaveURL(new RegExp(`/workspaces/${workspaceId}/connectors/mappings`));
   await expect(page.getByTestId('connectors-panel-mappings')).toBeVisible();
   await expect(
