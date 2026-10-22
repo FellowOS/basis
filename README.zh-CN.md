@@ -1,4 +1,6 @@
-# Basis — 让智能体读懂真实业务
+<h1 align="center">Basis — 让智能体读懂真实业务</h1>
+
+<div align="center">
 
 [English](./README.md) · **简体中文**
 
@@ -8,6 +10,8 @@
 [![Node](https://img.shields.io/badge/node-%3E%3D22-green.svg)](web/package.json)
 
 **本体驱动的企业业务语义层。**
+
+</div>
 
 将文档、库表与 SaaS 对齐为**实体、类型与可治理事实**，在源系统之上形成可复用的共享语义，而不是另一套碎片索引。支持桌面、自托管与云端部署，通过 **OpenAPI v1** 与 **MCP** 对外集成；写回业务状态须经审核，而非裸调 API。
 

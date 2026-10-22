@@ -1,4 +1,6 @@
-# Basis — Let agents understand real business
+<h1 align="center">Basis — Let agents understand real business</h1>
+
+<div align="center">
 
 **English** · [简体中文](./README.zh-CN.md)
 
@@ -8,6 +10,8 @@
 [![Node](https://img.shields.io/badge/node-%3E%3D22-green.svg)](web/package.json)
 
 **Ontology-driven enterprise business semantics layer.**
+
+</div>
 
 Map documents, databases, and SaaS to **entities, types, and governed facts**—the shared meaning layer above raw systems. Expose **OpenAPI v1** and **MCP** on desktop, self-hosted, or cloud; state changes go through review, not silent API calls.
 
