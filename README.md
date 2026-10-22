@@ -1,4 +1,4 @@
-<h1 align="center">Basis — Let agents understand real business</h1>
+<h1 align="center">Basis: Let agents understand real business</h1>
 
 <div align="center">
 
@@ -13,14 +13,14 @@
 
 </div>
 
-Map documents, databases, and SaaS to **entities, types, and governed facts**—the shared meaning layer above raw systems. Run on desktop, self-hosted, or cloud with **OpenAPI v1** and **MCP**. State changes go through review, not silent API calls.
+Map documents, databases, and SaaS to **entities, types, and governed facts**. That is the shared meaning layer above raw systems. Run on desktop, self-hosted, or cloud with **OpenAPI v1** and **MCP**. State changes go through review, not silent API calls.
 
-Basis is an open-source stack built on the [Semantica](https://github.com/semantica-agi/semantica) Python SDK. **Business semantics**—mappings, ontologies, rules, and SHACL—sit on a canonical **evidence ledger**; graph and search are **rebuildable projections**.
+Basis is an open-source stack built on the [Semantica](https://github.com/semantica-agi/semantica) Python SDK. **Business semantics** include mappings, ontologies, rules, and SHACL. They sit on a canonical **evidence ledger**. Graph and search are **rebuildable projections**.
 
-> **Status:** Under active development. APIs may change—use a pinned release in production.
+> **Status:** Under active development. APIs may change. Use a pinned release in production.
 
 <p align="center">
-  <img src="assets/graph.png" alt="Basis graph workspace — force-directed ledger projection, ontology navigation, temporal scrubber" width="900" style="border-radius: 12px;" />
+  <img src="assets/graph.png" alt="Basis graph workspace: force-directed ledger projection, ontology navigation, temporal scrubber" width="900" style="border-radius: 12px;" />
 </p>
 <p align="center"><sub>Graph workspace in the Basis studio.</sub></p>
 
@@ -46,23 +46,23 @@ Basis is an open-source stack built on the [Semantica](https://github.com/semant
 
 ## Features
 
-- **Business semantics** — entities, typed facts, mappings, and ontologies; the unit of meaning is not “another chunk.”
-- **Evidence ledger** — canonical statements, provenance; graph and vectors are projections you can rebuild.
-- **Workspaces** — document ingest, chunk search (lexical + embeddings), processing jobs, review queue.
-- **Graph & ontology** — Explorer-style graph UI, vocabulary, SHACL, SPARQL, ontology hub workflows.
-- **Connectors (BOCP)** — shipped providers (e.g. postgres, mysql, github, slack); inbound sync and governed writeback.
-- **Agent APIs** — workspace-scoped **OpenAPI v1** and **MCP** (`search_chunks`, `find_entities`, connector tools, review ops).
-- **Platform** — users, org SSO (OIDC/SAML optional), workspace roles, API tokens, audit.
+- **Business semantics:** Entities, typed facts, mappings, and ontologies. The unit of meaning is not “another chunk.”
+- **Evidence ledger:** Canonical statements and provenance. Graph and vectors are projections you can rebuild.
+- **Workspaces:** Document ingest, chunk search (lexical + embeddings), processing jobs, and a review queue.
+- **Graph & ontology:** Explorer-style graph UI, vocabulary, SHACL, SPARQL, and ontology hub workflows.
+- **Connectors (BOCP):** Shipped providers (e.g. postgres, mysql, github, slack) with inbound sync and governed writeback.
+- **Agent APIs:** Workspace-scoped **OpenAPI v1** and **MCP** (`search_chunks`, `find_entities`, connector tools, review ops).
+- **Platform:** Users, org SSO (OIDC/SAML optional), workspace roles, API tokens, and audit.
 
 ## Why Basis
 
 | | Typical “RAG + raw tools” | **Basis** |
 | --- | --- | --- |
-| **Read path** | Unverified chunks / ad hoc SQL | Ledger + entities; graph/search rebuilt from ledger |
+| **Read path** | Unverified chunks / ad hoc SQL | Ledger and entities. Graph and search rebuild from the ledger. |
 | **Write path** | Ungoverned API calls | Review gates (`remember`, connector writeback, conflicts) |
 | **Business semantics** | Prompt labels | Shared entities & types, mappings, ontologies, rules, SHACL, SPARQL |
 | **Connectivity** | Per-system glue | BOCP manifests, OpenAPI v1, MCP |
-| **Ops** | Many services | API + Web; SQLite dev, PostgreSQL for production |
+| **Ops** | Many services | API and Web. SQLite for dev, PostgreSQL for production. |
 
 ## Quick start
 
@@ -92,14 +92,14 @@ cp web/.env.example web/.env
 cd web && npm install && npm run dev
 ```
 
-Open `http://127.0.0.1:5173` · register — the **first user** becomes platform admin.
+Open `http://127.0.0.1:5173` and register. The **first user** becomes platform admin.
 
 In-app product docs: **`http://127.0.0.1:5173/docs`** · API explorer: **`http://127.0.0.1:8090/swagger`** · live spec: **`http://127.0.0.1:8090/openapi/v1.json`**.
 
 ### 3. Smoke-test in the UI
 
 1. Create a workspace.
-2. **Sources** — paste or upload a short text file; wait for processing.
+2. In **Sources**, paste or upload a short text file and wait for processing.
 3. Open **Graph** or **Search** for that workspace.
 
 This path is **self-hosted** dev. For the **desktop app** or **managed cloud**, see [Deployment](#deployment).
@@ -135,13 +135,13 @@ curl -sS "http://127.0.0.1:8090/api/v1/workspaces/YOUR_WORKSPACE_ID/mcp" \
   -d '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"describe_workspace","arguments":{}}}'
 ```
 
-Tool names and HTTP paths share the same operation catalog; see live **`/openapi/v1/workspaces.json`** when the API is running.
+Tool names and HTTP paths share the same operation catalog. See live **`/openapi/v1/workspaces.json`** when the API is running.
 
 ## Semantica dependency
 
-`semantica` resolves from **PyPI** (see `uv.lock`). `uv sync` installs Basis runtime extras (document parse, embeddings, SHACL, OpenAI-compatible LLM, etc.). Optional groups: `dev`, `heavy`, `explorer`, `saml` — see [pyproject.toml](pyproject.toml).
+`semantica` resolves from **PyPI** (see `uv.lock`). `uv sync` installs Basis runtime extras (document parse, embeddings, SHACL, OpenAI-compatible LLM, etc.). Optional groups are `dev`, `heavy`, `explorer`, and `saml`. See [pyproject.toml](pyproject.toml).
 
-Do not add a local `[tool.uv.sources]` override for `semantica` (a gitignored `uv.toml` would still take precedence over defaults — leave it unset for PyPI).
+Do not add a local `[tool.uv.sources]` override for `semantica`. A gitignored `uv.toml` would still take precedence over defaults. Leave it unset to use PyPI.
 
 For ML NER in processing jobs:
 
@@ -157,36 +157,36 @@ Chat/embeddings in the console need provider API keys only when you use LLM-back
 uv run pytest -q
 uv run lint-imports --config importlinter.ini
 cd web && npm run typecheck && npm test
-cd web && CI=1 npm run test:e2e   # optional; Playwright + API
+cd web && CI=1 npm run test:e2e   # optional, Playwright + API
 ```
 
-Layout for contributors: `basis/interface`, `application`, `domain`, `infra` — see [AGENTS.md](AGENTS.md).
+Layout for contributors is `basis/interface`, `application`, `domain`, and `infra`. See [AGENTS.md](AGENTS.md).
 
 ## Deployment
 
-One product stack (API + studio). Pick **where** it runs—the **OpenAPI v1** and **MCP** contracts are the same across modes.
+One product stack (API + studio). Pick **where** it runs. The **OpenAPI v1** and **MCP** contracts are the same across modes.
 
 ### Desktop app
 
 **Local client** (Electron) for a single machine: API sidecar + studio, data under `~/.basis`, optional **no-login** desktop profile for personal use.
 
-- **Develop:** `cd desktop && npm install && npm run dev` — see [desktop/README.md](desktop/README.md) (packaging, macOS/Windows builds).
+- **Develop:** `cd desktop && npm install && npm run dev`. See [desktop/README.md](desktop/README.md) for packaging and macOS/Windows builds.
 - **Profile:** `BASIS_DEPLOYMENT_PROFILE=desktop` (see `profiles/profile.desktop.yaml`).
 
-Do not run a dev API and an installed desktop app at once—they share `~/.basis/basis.db`.
+Do not run a dev API and an installed desktop app at once. They share `~/.basis/basis.db`.
 
 ### Self-hosted
 
-**You operate** the stack on your network or cloud VM (air-gapped OK): platform login, org SSO, workspaces, backups under your policies.
+**You operate** the stack on your network or cloud VM (air-gapped OK). You control platform login, org SSO, workspaces, and backups under your policies.
 
 - **Try locally:** [Quick start](#quick-start) (`uv run basis` + `npm run dev`, SQLite).
-- **Production:** PostgreSQL (`compose.postgres.yml`), set `BASIS_DATABASE_URL`, TLS in front of API/Web, pin a release — [Configuration (essentials)](#configuration-essentials).
+- **Production:** PostgreSQL (`compose.postgres.yml`), set `BASIS_DATABASE_URL`, TLS in front of API/Web, and pin a release. See [Configuration (essentials)](#configuration-essentials).
 
 ### Managed cloud
 
-**FellowOS-hosted SaaS** — multi-tenant signup, operations, and upgrades on our side; integrate agents against the same workspace **HTTP/MCP** endpoints with your issued tokens.
+**FellowOS-hosted SaaS** provides multi-tenant signup with operations and upgrades on our side. Integrate agents against the same workspace **HTTP/MCP** endpoints with your issued tokens.
 
-Hosted availability is rolling out; for access or pilots, open a [GitHub Issue](https://github.com/FellowOS/basis/issues) and describe your use case.
+Hosted availability is rolling out. For access or pilots, open a [GitHub Issue](https://github.com/FellowOS/basis/issues) and describe your use case.
 
 ## Community
 
