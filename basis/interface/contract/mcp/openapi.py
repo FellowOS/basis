@@ -3,87 +3,40 @@
 from __future__ import annotations
 
 import weakref
+from collections.abc import Mapping
 from functools import lru_cache
 from typing import Any
 
+from basis.interface.contract.mcp.stamp_openapi import (
+    MCP_PARAM_ALIASES_EXTENSION,
+    MCP_TOOL_EXTENSION,
+)
+from basis.interface.contract.mcp.tool_bindings import MCP_TOOL_BINDINGS
 from basis.interface.contract.openapi.v1_export import cached_openapi_v1_workspaces
 
 _SKIP_PARAMS = frozenset({"workspace_id", "authorization"})
 
-# MCP tool name → (HTTP method, OpenAPI path) in workspace OpenAPI slice (basis-v1-workspaces.json)
-MCP_TOOL_OPERATIONS: dict[str, tuple[str, str]] = {
-    "describe_workspace": ("get", "/api/v1/workspaces/{workspace_id}"),
-    "search_chunks": ("get", "/api/v1/workspaces/{workspace_id}/search"),
-    "get_chunk": ("get", "/api/v1/workspaces/{workspace_id}/ledger/chunks/{chunk_id}"),
-    "find_entities": ("get", "/api/v1/workspaces/{workspace_id}/entities/find"),
-    "neighbors": ("get", "/api/v1/workspaces/{workspace_id}/graph/nodes/{node_id}/neighbors"),
-    "paths": ("get", "/api/v1/workspaces/{workspace_id}/graph/path"),
-    "entity_facts": ("get", "/api/v1/workspaces/{workspace_id}/ledger/entities/{entity_id}/facts"),
-    "list_derived_facts": ("get", "/api/v1/workspaces/{workspace_id}/ledger/derived-facts"),
-    "list_typed_facts": ("get", "/api/v1/workspaces/{workspace_id}/ledger/typed-facts"),
-    "list_rules": ("get", "/api/v1/workspaces/{workspace_id}/rules"),
-    "get_rule": ("get", "/api/v1/workspaces/{workspace_id}/rules/{rule_id}"),
-    "list_mappings": ("get", "/api/v1/workspaces/{workspace_id}/mappings"),
-    "get_statement": ("get", "/api/v1/workspaces/{workspace_id}/ledger/statements/{statement_id}"),
-    "get_capabilities": ("get", "/api/v1/workspaces/{workspace_id}/capabilities"),
-    "list_reasoning_ground_facts": (
-        "get",
-        "/api/v1/workspaces/{workspace_id}/reasoning/ground-facts",
-    ),
-    "run_reasoning": ("post", "/api/v1/workspaces/{workspace_id}/reasoning/run"),
-    "list_processing_jobs": ("get", "/api/v1/workspaces/{workspace_id}/processing/jobs"),
-    "propose_remember": ("post", "/api/v1/workspaces/{workspace_id}/remember/proposals"),
-    "graph_search": ("post", "/api/v1/workspaces/{workspace_id}/graph/search"),
-    "list_review_items": ("get", "/api/v1/workspaces/{workspace_id}/review/items"),
-    "get_review_item": ("get", "/api/v1/workspaces/{workspace_id}/review/items/{item_id}"),
-    "approve_statement_remember_review": (
-        "post",
-        "/api/v1/workspaces/{workspace_id}/review/items/{item_id}/approve",
-    ),
-    "reject_statement_remember_review": (
-        "post",
-        "/api/v1/workspaces/{workspace_id}/review/items/{item_id}/reject",
-    ),
-    "approve_review_item": (
-        "post",
-        "/api/v1/workspaces/{workspace_id}/review/items/{item_id}/approve",
-    ),
-    "reject_review_item": (
-        "post",
-        "/api/v1/workspaces/{workspace_id}/review/items/{item_id}/reject",
-    ),
-    "list_connector_catalog": ("get", "/api/v1/workspaces/{workspace_id}/connectors/catalog"),
-    "describe_connector_service": (
-        "get",
-        "/api/v1/workspaces/{workspace_id}/connectors/catalog/{service}",
-    ),
-    "list_connector_connections": ("get", "/api/v1/workspaces/{workspace_id}/connectors/connections"),
-    "list_connector_table_mappings": (
-        "get",
-        "/api/v1/workspaces/{workspace_id}/connectors/table-mappings",
-    ),
-    "sync_connector_table_mapping": (
-        "post",
-        "/api/v1/workspaces/{workspace_id}/connectors/table-mappings/{mapping_id}/sync",
-    ),
-    "invoke_connector_primitive": (
-        "post",
-        "/api/v1/workspaces/{workspace_id}/connectors/connections/{service}/{connection_name}/invoke-primitive",
-    ),
-    "propose_entity_writeback": ("post", "/api/v1/workspaces/{workspace_id}/connectors/outbox/propose"),
-    "execute_connector_tool": ("post", "/api/v1/workspaces/{workspace_id}/connectors/tools/execute"),
-}
-
-# Back-compat alias for tests/docs
-MCP_TOOL_OPERATION_IDS = MCP_TOOL_OPERATIONS
-
-# OpenAPI query/path param name → MCP argument name
-_PARAM_ALIASES: dict[str, dict[str, str]] = {
-    "search_chunks": {"q": "query"},
-    "find_entities": {"q": "query"},
-}
-
 _openapi_app_ref: weakref.ref | None = None
+
+
+class _McpToolOperationsView(Mapping[str, tuple[str, str]]):
+    """Lazy view of tool name → (method, path) from stamped workspace OpenAPI."""
+
+    def __getitem__(self, key: str) -> tuple[str, str]:
+        return mcp_tool_operations()[key]
+
+    def __iter__(self):
+        return iter(mcp_tool_operations())
+
+    def __len__(self) -> int:
+        return len(mcp_tool_operations())
+
+    def get(self, key: str, default: Any = None) -> Any:
+        return mcp_tool_operations().get(key, default)
+
+
+MCP_TOOL_OPERATIONS: Mapping[str, tuple[str, str]] = _McpToolOperationsView()
+MCP_TOOL_OPERATION_IDS = MCP_TOOL_OPERATIONS
 
 
 def bind_openapi_app(app: Any) -> None:
@@ -91,6 +44,8 @@ def bind_openapi_app(app: Any) -> None:
     global _openapi_app_ref
     _openapi_app_ref = weakref.ref(app)
     _workspaces_openapi_spec.cache_clear()
+    mcp_tool_operations.cache_clear()
+    all_mcp_input_schemas.cache_clear()
 
 
 def _resolve_ref(components: dict[str, Any], node: Any) -> Any:
@@ -183,8 +138,35 @@ def _workspaces_openapi_spec() -> dict[str, Any]:
     return cached_openapi_v1_workspaces(app)
 
 
+@lru_cache(maxsize=1)
+def mcp_tool_operations() -> dict[str, tuple[str, str]]:
+    """Build tool → (method, path) from ``x-basis-mcp-tool`` on workspace OpenAPI."""
+    spec = _workspaces_openapi_spec()
+    out: dict[str, tuple[str, str]] = {}
+    for path, path_item in (spec.get("paths") or {}).items():
+        if not isinstance(path_item, dict):
+            continue
+        for method, op in path_item.items():
+            if method.startswith("x-") or not isinstance(op, dict):
+                continue
+            raw_tools = op.get(MCP_TOOL_EXTENSION)
+            if not raw_tools:
+                continue
+            names = raw_tools if isinstance(raw_tools, list) else [raw_tools]
+            for name in names:
+                out[str(name)] = (method.lower(), path)
+    return out
+
+
+def _param_aliases_for_tool(tool_name: str, op: dict[str, Any]) -> dict[str, str]:
+    raw = op.get(MCP_PARAM_ALIASES_EXTENSION)
+    if isinstance(raw, dict) and tool_name in raw and isinstance(raw[tool_name], dict):
+        return {str(k): str(v) for k, v in raw[tool_name].items()}
+    return {}
+
+
 def _openapi_operation_for_tool(tool_name: str) -> dict[str, Any] | None:
-    route = MCP_TOOL_OPERATIONS.get(tool_name)
+    route = mcp_tool_operations().get(tool_name)
     if route is None:
         return None
     method, path = route
@@ -206,7 +188,7 @@ def input_schema_for_tool(tool_name: str) -> dict[str, Any] | None:
         return None
     spec = _workspaces_openapi_spec()
     components = spec.get("components") or {}
-    aliases = _PARAM_ALIASES.get(tool_name, {})
+    aliases = _param_aliases_for_tool(tool_name, op)
     param_schema: dict[str, Any] = {"type": "object", "properties": {}}
     params = op.get("parameters")
     if isinstance(params, list):
@@ -235,8 +217,13 @@ def input_schema_for_tool(tool_name: str) -> dict[str, Any] | None:
 @lru_cache(maxsize=1)
 def all_mcp_input_schemas() -> dict[str, dict[str, Any]]:
     out: dict[str, dict[str, Any]] = {}
-    for name in MCP_TOOL_OPERATIONS:
+    for name in mcp_tool_operations():
         schema = input_schema_for_tool(name)
         if schema:
             out[name] = schema
     return out
+
+
+def binding_tool_names() -> frozenset[str]:
+    """Static binding table tool names (for catalog alignment tests)."""
+    return frozenset(b.name for b in MCP_TOOL_BINDINGS)
