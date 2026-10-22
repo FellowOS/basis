@@ -6,7 +6,7 @@ import uuid
 from typing import Any
 
 from basis.application.connectors import authz
-from basis.application.context import WorkspaceCoreContext
+from basis.application.kernel import WorkspaceCoreContext
 from basis.domain.connector.connection_scope import (
     DEFAULT_END_USER_CONNECTION_NAME,
     SCOPE_END_USER,

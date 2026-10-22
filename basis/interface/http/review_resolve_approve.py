@@ -19,9 +19,9 @@ from basis.interface.http.core_context import build_workspace_core_context
 from basis.interface.http.graph_route_errors import admin_error_from_graph_http
 from basis.domain.graph.governance.decision import maybe_emit_governance_tripped_on_review_approve
 from basis.domain.knowledge.store import KnowledgeStore
-from basis.application.errors import CoreError
+from basis.application.kernel import CoreError
 from basis.application.operation_http import http_exception_from_core, http_response_from_payload
-from basis.application.registry import run
+from basis.application.review.operations import op_approve_review_item
 from basis.interface.http.review_models import (
     ApproveReviewItemResponse,
     ResolveReviewRequest,
@@ -58,7 +58,7 @@ Approve Review Item. Human review queue for merges, imports, and conflicts. Requ
         "primary_id": body.primary_id,
     }
     try:
-        payload = await asyncio.to_thread(run, ctx, "approve_review_item", args)
+        payload = await asyncio.to_thread(op_approve_review_item, ctx, args)
         return http_response_from_payload(payload)
     except CoreError as exc:
         http_exc = http_exception_from_core(exc)

@@ -1,15 +1,383 @@
-"""Static MCP / core operation catalog (handlers in ``operations`` / ``operations_connectors``)."""
+"""MCP tool catalog, argument models, and dispatch."""
 
 from __future__ import annotations
 
-from typing import Any, NotRequired, TypedDict
+from functools import lru_cache
+from typing import Any, Callable, Literal, NotRequired, TypedDict
 
-import basis.application.operations as ops
-import basis.application.operations_connectors as conn_ops
+from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
-OperationHandler = ops.OperationHandler
+from basis.application.graph import operations as graph_ops
+from basis.application.knowledge import operations as knowledge_ops
+from basis.application.reasoning import operations as reasoning_ops
+from basis.application.review import operations as review_ops
+from basis.application.workspace import operations as workspace_ops
+from basis.application.connectors import catalog as connector_catalog
+from basis.application.connectors import connections as connector_connections
+from basis.application.connectors import mappings as connector_mappings
+from basis.application.connectors import primitives as connector_primitives
+from basis.application.connectors import tools as connector_tools
+from basis.application.connectors import writeback as connector_writeback
+from basis.application.kernel import CoreError, WorkspaceCoreContext
+from basis.domain.errors import AdminError
+from basis.interface.contract.mcp.format import mcp_text_result
+
+OperationHandler = Callable[[WorkspaceCoreContext, dict[str, Any]], dict[str, Any]]
+
+def op_list_connector_catalog(ctx: WorkspaceCoreContext, args: dict[str, Any]) -> dict[str, Any]:
+    return connector_catalog.list_catalog(ctx, args)
 
 
+def op_describe_connector_service(ctx: WorkspaceCoreContext, args: dict[str, Any]) -> dict[str, Any]:
+    return connector_catalog.describe_service(ctx, args)
+
+
+def op_list_connector_connections(ctx: WorkspaceCoreContext, args: dict[str, Any]) -> dict[str, Any]:
+    return connector_connections.list_connections(ctx, args)
+
+
+def op_list_connector_table_mappings(ctx: WorkspaceCoreContext, args: dict[str, Any]) -> dict[str, Any]:
+    return connector_mappings.list_table_mappings(ctx, args)
+
+
+def op_sync_connector_table_mapping(ctx: WorkspaceCoreContext, args: dict[str, Any]) -> dict[str, Any]:
+    return connector_mappings.sync_table_mapping(ctx, args)
+
+
+def op_invoke_connector_primitive(ctx: WorkspaceCoreContext, args: dict[str, Any]) -> dict[str, Any]:
+    return connector_primitives.invoke(ctx, args)
+
+
+def op_execute_connector_tool(ctx: WorkspaceCoreContext, args: dict[str, Any]) -> dict[str, Any]:
+    return connector_tools.execute_tool(ctx, args)
+
+
+def op_propose_entity_writeback(ctx: WorkspaceCoreContext, args: dict[str, Any]) -> dict[str, Any]:
+    return connector_writeback.propose_entity_writeback(ctx, args)
+
+
+
+class _ExtraAllowed(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+
+class DescribeWorkspaceInput(_ExtraAllowed):
+    pass
+
+
+class SearchChunksInput(_ExtraAllowed):
+    query: str = Field(min_length=1)
+    limit: int = Field(default=10, ge=1)
+    document_id: str | None = None
+    entity_id: str | None = None
+    as_of: str | None = None
+    created_after: str | None = None
+    created_before: str | None = None
+    mode: Literal["keyword", "semantic", "hybrid"] | None = None
+    limit_max: int | None = Field(default=None, ge=1)
+
+
+class GetChunkInput(_ExtraAllowed):
+    chunk_id: str = Field(min_length=1)
+
+
+class FindEntitiesInput(_ExtraAllowed):
+    query: str = Field(min_length=1)
+    limit: int = Field(default=20, ge=1)
+
+
+class NeighborsInput(_ExtraAllowed):
+    node_id: str = Field(min_length=1)
+    depth: int = Field(default=1, ge=1, le=5)
+
+
+class PathsInput(_ExtraAllowed):
+    source: str = Field(min_length=1)
+    target: str = Field(min_length=1)
+    algorithm: Literal["bfs", "dijkstra"] = "bfs"
+    directed: bool = True
+
+
+class EntityFactsInput(_ExtraAllowed):
+    entity_id: str = Field(min_length=1)
+    limit: int = Field(default=50, ge=1, le=100)
+
+
+class ListDerivedFactsInput(_ExtraAllowed):
+    entity_id: str | None = None
+    limit: int = Field(default=100, ge=1, le=200)
+
+
+class ListTypedFactsInput(_ExtraAllowed):
+    limit: int = Field(default=100, ge=1, le=200)
+
+
+class ListReasoningGroundFactsInput(_ExtraAllowed):
+    limit: int = Field(default=200, ge=1, le=500)
+
+
+class ListRulesInput(_ExtraAllowed):
+    limit: int = Field(default=100, ge=1, le=200)
+
+
+class GetRuleInput(_ExtraAllowed):
+    rule_id: str = Field(min_length=1)
+
+
+class ListMappingsInput(_ExtraAllowed):
+    status: str | None = None
+    limit: int = Field(default=100, ge=1, le=200)
+
+
+class GetStatementInput(_ExtraAllowed):
+    statement_id: str = Field(min_length=1)
+
+
+class GetCapabilitiesInput(_ExtraAllowed):
+    pass
+
+
+class RunReasoningInput(_ExtraAllowed):
+    facts: list[str] | None = None
+    rules: list[str] = Field(min_length=1)
+    facts_limit: int = Field(default=200, ge=1, le=500)
+    apply_to_graph: bool = False
+    mode: str = "forward"
+    inferred_edge_type: str | None = None
+
+
+class ProposeRememberInput(_ExtraAllowed):
+    content: str = Field(min_length=1)
+    source: str | None = None
+
+
+class GraphSearchInput(_ExtraAllowed):
+    query: str = Field(min_length=1)
+    limit: int = Field(default=20, ge=1)
+    max_limit: int | None = Field(default=None, ge=1)
+    at: str | None = None
+
+
+class ListReviewItemsInput(_ExtraAllowed):
+    status: str | None = None
+    kind: str | None = None
+    limit: int = Field(default=50, ge=1, le=200)
+
+
+class GetReviewItemInput(_ExtraAllowed):
+    item_id: str = Field(min_length=1)
+
+
+class ListProcessingJobsInput(_ExtraAllowed):
+    status: Literal["queued", "running", "succeeded", "failed", "cancelled"] | None = None
+    limit: int = Field(default=100, ge=1, le=200)
+
+
+class ResolveStatementRememberReviewInput(_ExtraAllowed):
+    item_id: str = Field(min_length=1)
+    rationale: str | None = None
+
+
+class ResolveReviewItemInput(_ExtraAllowed):
+    item_id: str = Field(min_length=1)
+    rationale: str | None = None
+    keeper_statement_id: str | None = None
+    primary_id: str | None = None
+
+
+class ProposeEntityWritebackInput(_ExtraAllowed):
+    entity_id: str = Field(min_length=1)
+    field_updates: dict[str, Any] = Field(min_length=1)
+
+
+class DescribeWorkspaceResponse(_ExtraAllowed):
+    workspace_id: str
+    name: str
+
+
+class SearchChunksResponse(_ExtraAllowed):
+    query: str | None = None
+    mode: str | None = None
+    chunks: list[Any] = Field(default_factory=list)
+
+
+class GetChunkResponse(_ExtraAllowed):
+    chunk: dict[str, Any]
+
+
+class FindEntitiesResponse(_ExtraAllowed):
+    query: str
+    ledger_entities: list[Any] = Field(default_factory=list)
+    graph_nodes: list[Any] = Field(default_factory=list)
+
+
+class NeighborsResponse(_ExtraAllowed):
+    node_id: str
+    depth: int
+    neighbors: list[Any] = Field(default_factory=list)
+
+
+class PathsResponse(_ExtraAllowed):
+    pass
+
+
+class EntityFactsResponse(_ExtraAllowed):
+    entity_id: str
+    facts: list[Any] = Field(default_factory=list)
+    derived_facts: list[Any] = Field(default_factory=list)
+
+
+class ListDerivedFactsResponse(_ExtraAllowed):
+    entity_id: str | None = None
+    derived_facts: list[Any] = Field(default_factory=list)
+
+
+class ListTypedFactsResponse(_ExtraAllowed):
+    facts: list[Any] = Field(default_factory=list)
+
+
+class ListReasoningGroundFactsResponse(_ExtraAllowed):
+    facts: list[str] = Field(default_factory=list)
+
+
+class RunReasoningResponse(_ExtraAllowed):
+    inferred_facts: list[str] = Field(default_factory=list)
+    rules_fired: int | None = None
+    added_edges: int | None = None
+    mutated: bool | None = None
+    proof_chains: list[Any] = Field(default_factory=list)
+    facts_source: str | None = None
+    ground_facts: list[str] = Field(default_factory=list)
+
+
+class ListRulesResponse(_ExtraAllowed):
+    rules: list[Any] = Field(default_factory=list)
+
+
+class GetRuleResponse(_ExtraAllowed):
+    rule: dict[str, Any]
+
+
+class ListMappingsResponse(_ExtraAllowed):
+    mappings: list[Any] = Field(default_factory=list)
+
+
+class GetStatementResponse(_ExtraAllowed):
+    statement: dict[str, Any]
+
+
+class GraphSearchResponse(_ExtraAllowed):
+    results: list[Any] = Field(default_factory=list)
+    engine: str | None = None
+
+
+class ListReviewItemsResponse(_ExtraAllowed):
+    items: list[Any] = Field(default_factory=list)
+
+
+class GetReviewItemResponse(_ExtraAllowed):
+    item: dict[str, Any]
+
+
+class ListProcessingJobsResponse(_ExtraAllowed):
+    jobs: list[Any] = Field(default_factory=list)
+
+
+class ResolveStatementRememberReviewResponse(_ExtraAllowed):
+    item: dict[str, Any]
+    decision_id: str | None = None
+
+
+class ApproveReviewItemResponse(_ExtraAllowed):
+    item: dict[str, Any]
+    decision_id: str | None = None
+
+
+OPERATION_INPUT_MODELS: dict[str, type[BaseModel]] = {
+    "describe_workspace": DescribeWorkspaceInput,
+    "search_chunks": SearchChunksInput,
+    "get_chunk": GetChunkInput,
+    "find_entities": FindEntitiesInput,
+    "neighbors": NeighborsInput,
+    "paths": PathsInput,
+    "entity_facts": EntityFactsInput,
+    "list_derived_facts": ListDerivedFactsInput,
+    "list_typed_facts": ListTypedFactsInput,
+    "list_reasoning_ground_facts": ListReasoningGroundFactsInput,
+    "list_rules": ListRulesInput,
+    "get_rule": GetRuleInput,
+    "list_mappings": ListMappingsInput,
+    "get_statement": GetStatementInput,
+    "get_capabilities": GetCapabilitiesInput,
+    "run_reasoning": RunReasoningInput,
+    "list_processing_jobs": ListProcessingJobsInput,
+    "propose_remember": ProposeRememberInput,
+    "graph_search": GraphSearchInput,
+    "list_review_items": ListReviewItemsInput,
+    "get_review_item": GetReviewItemInput,
+    "approve_statement_remember_review": ResolveStatementRememberReviewInput,
+    "reject_statement_remember_review": ResolveStatementRememberReviewInput,
+    "approve_review_item": ResolveReviewItemInput,
+    "reject_review_item": ResolveStatementRememberReviewInput,
+    "propose_entity_writeback": ProposeEntityWritebackInput,
+}
+
+
+def validation_error_payload(exc: ValidationError) -> dict[str, Any]:
+    first = exc.errors()[0] if exc.errors() else {}
+    loc = first.get("loc", ())
+    field = str(loc[0]) if loc else "arguments"
+    return {"error": f"invalid {field}: {first.get('msg', 'validation failed')}"}
+
+
+def coerce_operation_args(name: str, arguments: dict[str, Any] | None) -> dict[str, Any]:
+    """Validate and normalize args; raises ValidationError on failure."""
+    model_cls = OPERATION_INPUT_MODELS.get(name)
+    raw = arguments or {}
+    if model_cls is None:
+        return raw
+    if name == "describe_workspace" and not raw:
+        return {}
+    validated = model_cls.model_validate(raw)
+    return validated.model_dump(exclude_none=True)
+
+
+OPERATION_RESPONSE_MODELS: dict[str, type[BaseModel]] = {
+    "describe_workspace": DescribeWorkspaceResponse,
+    "search_chunks": SearchChunksResponse,
+    "get_chunk": GetChunkResponse,
+    "find_entities": FindEntitiesResponse,
+    "neighbors": NeighborsResponse,
+    "paths": PathsResponse,
+    "entity_facts": EntityFactsResponse,
+    "list_derived_facts": ListDerivedFactsResponse,
+    "list_typed_facts": ListTypedFactsResponse,
+    "list_reasoning_ground_facts": ListReasoningGroundFactsResponse,
+    "run_reasoning": RunReasoningResponse,
+    "list_rules": ListRulesResponse,
+    "get_rule": GetRuleResponse,
+    "list_mappings": ListMappingsResponse,
+    "get_statement": GetStatementResponse,
+    "graph_search": GraphSearchResponse,
+    "list_review_items": ListReviewItemsResponse,
+    "get_review_item": GetReviewItemResponse,
+    "list_processing_jobs": ListProcessingJobsResponse,
+    "approve_statement_remember_review": ResolveStatementRememberReviewResponse,
+    "reject_statement_remember_review": ResolveStatementRememberReviewResponse,
+    "approve_review_item": ApproveReviewItemResponse,
+    "reject_review_item": ResolveStatementRememberReviewResponse,
+}
+
+
+def validate_operation_response(name: str, payload: dict[str, Any]) -> dict[str, Any]:
+    """Best-effort response shape check (extra fields allowed)."""
+    model_cls = OPERATION_RESPONSE_MODELS.get(name)
+    if model_cls is None:
+        return payload
+    try:
+        return model_cls.model_validate(payload).model_dump()
+    except ValidationError:
+        return payload
 class OperationSpec(TypedDict):
     description: str
     input_schema: dict[str, Any]
@@ -21,7 +389,7 @@ OPERATIONS: dict[str, OperationSpec] = {
     "describe_workspace": {
         "description": "Summary of this workspace (name, document/chunk/entity counts).",
         "input_schema": {"type": "object", "properties": {}},
-        "handler": ops.op_describe_workspace,
+        "handler": workspace_ops.op_describe_workspace,
     },
     "search_chunks": {
         "description": "Search document chunks using this workspace's configured retrieval policy (RAG citations).",
@@ -53,7 +421,7 @@ OPERATIONS: dict[str, OperationSpec] = {
             },
             "required": ["query"],
         },
-        "handler": ops.op_search_chunks,
+        "handler": knowledge_ops.op_search_chunks,
     },
     "get_chunk": {
         "description": "Fetch one chunk by id (from search_chunks results).",
@@ -62,7 +430,7 @@ OPERATIONS: dict[str, OperationSpec] = {
             "properties": {"chunk_id": {"type": "string"}},
             "required": ["chunk_id"],
         },
-        "handler": ops.op_get_chunk,
+        "handler": knowledge_ops.op_get_chunk,
     },
     "find_entities": {
         "description": "Find ledger entities and graph nodes by name or keyword.",
@@ -74,7 +442,7 @@ OPERATIONS: dict[str, OperationSpec] = {
             },
             "required": ["query"],
         },
-        "handler": ops.op_find_entities,
+        "handler": graph_ops.op_find_entities,
     },
     "neighbors": {
         "description": "Graph neighbors around a node id (1–5 hops).",
@@ -86,7 +454,7 @@ OPERATIONS: dict[str, OperationSpec] = {
             },
             "required": ["node_id"],
         },
-        "handler": ops.op_neighbors,
+        "handler": graph_ops.op_neighbors,
     },
     "paths": {
         "description": "Shortest path between two graph node ids.",
@@ -100,7 +468,7 @@ OPERATIONS: dict[str, OperationSpec] = {
             },
             "required": ["source", "target"],
         },
-        "handler": ops.op_paths,
+        "handler": graph_ops.op_paths,
     },
     "entity_facts": {
         "description": (
@@ -115,7 +483,7 @@ OPERATIONS: dict[str, OperationSpec] = {
             },
             "required": ["entity_id"],
         },
-        "handler": ops.op_entity_facts,
+        "handler": knowledge_ops.op_entity_facts,
     },
     "list_derived_facts": {
         "description": (
@@ -132,7 +500,7 @@ OPERATIONS: dict[str, OperationSpec] = {
                 "limit": {"type": "integer", "description": "Max rows (default 100, max 200)"},
             },
         },
-        "handler": ops.op_list_derived_facts,
+        "handler": knowledge_ops.op_list_derived_facts,
     },
     "list_typed_facts": {
         "description": (
@@ -145,7 +513,7 @@ OPERATIONS: dict[str, OperationSpec] = {
                 "limit": {"type": "integer", "description": "Max rows (default 100, max 200)"},
             },
         },
-        "handler": ops.op_list_typed_facts,
+        "handler": knowledge_ops.op_list_typed_facts,
     },
     "list_reasoning_ground_facts": {
         "description": (
@@ -158,7 +526,7 @@ OPERATIONS: dict[str, OperationSpec] = {
                 "limit": {"type": "integer", "description": "Max typed_facts rows to scan (default 200, max 500)"},
             },
         },
-        "handler": ops.op_list_reasoning_ground_facts,
+        "handler": reasoning_ops.op_list_reasoning_ground_facts,
     },
     "list_rules": {
         "description": (
@@ -171,7 +539,7 @@ OPERATIONS: dict[str, OperationSpec] = {
                 "limit": {"type": "integer", "description": "Max rows (default 100, max 200)"},
             },
         },
-        "handler": ops.op_list_rules,
+        "handler": reasoning_ops.op_list_rules,
     },
     "get_rule": {
         "description": "Fetch one reasoning rule by id (from list_rules).",
@@ -180,7 +548,7 @@ OPERATIONS: dict[str, OperationSpec] = {
             "properties": {"rule_id": {"type": "string"}},
             "required": ["rule_id"],
         },
-        "handler": ops.op_get_rule,
+        "handler": reasoning_ops.op_get_rule,
     },
     "list_mappings": {
         "description": (
@@ -196,7 +564,7 @@ OPERATIONS: dict[str, OperationSpec] = {
                 "limit": {"type": "integer", "description": "Max rows (default 100, max 200)"},
             },
         },
-        "handler": ops.op_list_mappings,
+        "handler": knowledge_ops.op_list_mappings,
     },
     "get_statement": {
         "description": (
@@ -210,7 +578,7 @@ OPERATIONS: dict[str, OperationSpec] = {
             },
             "required": ["statement_id"],
         },
-        "handler": ops.op_get_statement,
+        "handler": knowledge_ops.op_get_statement,
     },
     "get_capabilities": {
         "description": (
@@ -218,7 +586,7 @@ OPERATIONS: dict[str, OperationSpec] = {
             "available on this deployment."
         ),
         "input_schema": {"type": "object", "properties": {}},
-        "handler": ops.op_get_capabilities,
+        "handler": workspace_ops.op_get_capabilities,
     },
     "run_reasoning": {
         "description": (
@@ -255,7 +623,7 @@ OPERATIONS: dict[str, OperationSpec] = {
             },
             "required": ["rules"],
         },
-        "handler": ops.op_run_reasoning,
+        "handler": reasoning_ops.op_run_reasoning,
     },
     "propose_remember": {
         "description": (
@@ -272,7 +640,7 @@ OPERATIONS: dict[str, OperationSpec] = {
             },
             "required": ["content"],
         },
-        "handler": ops.op_propose_remember,
+        "handler": knowledge_ops.op_propose_remember,
     },
     "graph_search": {
         "description": "Search graph nodes by keyword (Explorer or snapshot projection).",
@@ -289,7 +657,7 @@ OPERATIONS: dict[str, OperationSpec] = {
             },
             "required": ["query"],
         },
-        "handler": ops.op_graph_search,
+        "handler": graph_ops.op_graph_search,
     },
     "list_review_items": {
         "description": "List human review queue items (merges, imports, remember proposals, conflicts).",
@@ -304,7 +672,7 @@ OPERATIONS: dict[str, OperationSpec] = {
                 "limit": {"type": "integer", "description": "Max items (default 50, max 200)"},
             },
         },
-        "handler": ops.op_list_review_items,
+        "handler": review_ops.op_list_review_items,
     },
     "get_review_item": {
         "description": "Fetch one review queue item by id.",
@@ -313,7 +681,7 @@ OPERATIONS: dict[str, OperationSpec] = {
             "properties": {"item_id": {"type": "string"}},
             "required": ["item_id"],
         },
-        "handler": ops.op_get_review_item,
+        "handler": review_ops.op_get_review_item,
     },
     "list_processing_jobs": {
         "description": "List document processing jobs (extract, chunk, project).",
@@ -327,7 +695,7 @@ OPERATIONS: dict[str, OperationSpec] = {
                 "limit": {"type": "integer", "description": "Max jobs (default 100, max 200)"},
             },
         },
-        "handler": ops.op_list_processing_jobs,
+        "handler": workspace_ops.op_list_processing_jobs,
     },
     "approve_statement_remember_review": {
         "description": (
@@ -341,7 +709,7 @@ OPERATIONS: dict[str, OperationSpec] = {
             },
             "required": ["item_id"],
         },
-        "handler": ops.op_approve_statement_remember_review,
+        "handler": review_ops.op_approve_statement_remember_review,
     },
     "reject_statement_remember_review": {
         "description": "Reject an open statement_remember review item.",
@@ -353,7 +721,7 @@ OPERATIONS: dict[str, OperationSpec] = {
             },
             "required": ["item_id"],
         },
-        "handler": ops.op_reject_statement_remember_review,
+        "handler": review_ops.op_reject_statement_remember_review,
     },
     "approve_review_item": {
         "description": (
@@ -376,7 +744,7 @@ OPERATIONS: dict[str, OperationSpec] = {
             },
             "required": ["item_id"],
         },
-        "handler": ops.op_approve_review_item,
+        "handler": review_ops.op_approve_review_item,
     },
     "reject_review_item": {
         "description": (
@@ -390,7 +758,7 @@ OPERATIONS: dict[str, OperationSpec] = {
             },
             "required": ["item_id"],
         },
-        "handler": ops.op_reject_review_item,
+        "handler": review_ops.op_reject_review_item,
     },
     "list_connector_catalog": {
         "description": "List BOCP connector services allowed for this workspace (catalog summary).",
@@ -405,7 +773,7 @@ OPERATIONS: dict[str, OperationSpec] = {
                 },
             },
         },
-        "handler": conn_ops.op_list_connector_catalog,
+        "handler": op_list_connector_catalog,
     },
     "describe_connector_service": {
         "description": "Describe one BOCP connector manifest (entities and procedures summary).",
@@ -416,7 +784,7 @@ OPERATIONS: dict[str, OperationSpec] = {
             },
             "required": ["service"],
         },
-        "handler": conn_ops.op_describe_connector_service,
+        "handler": op_describe_connector_service,
     },
     "list_connector_connections": {
         "description": "List saved BOCP connections for this workspace (no credential secrets).",
@@ -428,7 +796,7 @@ OPERATIONS: dict[str, OperationSpec] = {
                 "subject_id": {"type": "string"},
             },
         },
-        "handler": conn_ops.op_list_connector_connections,
+        "handler": op_list_connector_connections,
     },
     "list_connector_table_mappings": {
         "description": "List stream-to-ontology table mappings configured for connector sync.",
@@ -438,7 +806,7 @@ OPERATIONS: dict[str, OperationSpec] = {
                 "limit": {"type": "integer", "description": "Max mappings (default 50, max 200)"},
             },
         },
-        "handler": conn_ops.op_list_connector_table_mappings,
+        "handler": op_list_connector_table_mappings,
     },
     "sync_connector_table_mapping": {
         "description": (
@@ -451,7 +819,7 @@ OPERATIONS: dict[str, OperationSpec] = {
             },
             "required": ["mapping_id"],
         },
-        "handler": conn_ops.op_sync_connector_table_mapping,
+        "handler": op_sync_connector_table_mapping,
     },
     "invoke_connector_primitive": {
         "description": (
@@ -512,7 +880,7 @@ OPERATIONS: dict[str, OperationSpec] = {
             },
             "required": ["service", "action_id", "primitive"],
         },
-        "handler": conn_ops.op_invoke_connector_primitive,
+        "handler": op_invoke_connector_primitive,
     },
     "execute_connector_tool": {
         "description": (
@@ -539,7 +907,7 @@ OPERATIONS: dict[str, OperationSpec] = {
             },
             "required": ["service", "tool_id"],
         },
-        "handler": conn_ops.op_execute_connector_tool,
+        "handler": op_execute_connector_tool,
     },
     "propose_entity_writeback": {
         "description": (
@@ -557,6 +925,104 @@ OPERATIONS: dict[str, OperationSpec] = {
             },
             "required": ["entity_id", "field_updates"],
         },
-        "handler": conn_ops.op_propose_entity_writeback,
+        "handler": op_propose_entity_writeback,
     },
 }
+
+
+def _mcp_exposed(name: str) -> bool:
+    return OPERATIONS[name].get("mcp", True)
+
+
+TOOL_NAMES: tuple[str, ...] = tuple(name for name in OPERATIONS if _mcp_exposed(name))
+
+def _mcp_input_schema(name: str, fallback: dict[str, Any]) -> dict[str, Any]:
+    from basis.interface.contract.mcp.openapi import input_schema_for_tool
+
+    derived = input_schema_for_tool(name)
+    return derived if derived else fallback
+
+
+@lru_cache(maxsize=1)
+def get_static_tool_definitions() -> list[dict[str, Any]]:
+    return [
+        {
+            "name": name,
+            "description": spec["description"],
+            "inputSchema": _mcp_input_schema(name, spec["input_schema"]),
+        }
+        for name, spec in OPERATIONS.items()
+        if _mcp_exposed(name)
+    ]
+
+
+def get_tool_definitions(ctx: WorkspaceCoreContext | None = None) -> list[dict[str, Any]]:
+    """MCP tools/list payload; includes manifest-derived connector tools when ``ctx`` is set."""
+    tools = list(get_static_tool_definitions())
+    if ctx is not None:
+        from basis.interface.contract.mcp.connector_tools import connector_tool_definitions_for_workspace
+
+        tools.extend(connector_tool_definitions_for_workspace(ctx))
+    return tools
+
+
+def __getattr__(name: str) -> Any:
+    if name == "TOOL_DEFINITIONS":
+        return get_tool_definitions()
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
+_MCP_TOOL_NAMES = frozenset(TOOL_NAMES)
+
+_HANDLERS: dict[str, OperationHandler] = {
+    name: spec["handler"] for name, spec in OPERATIONS.items()
+}
+
+
+def _resolve_mcp_tool_handler(name: str) -> OperationHandler | None:
+    if name in _HANDLERS:
+        return _HANDLERS[name]
+    from basis.interface.contract.mcp.connector_tools import parse_connector_mcp_tool_name
+
+    if parse_connector_mcp_tool_name(name) is not None:
+        return op_invoke_connector_primitive
+    return None
+
+
+def _is_known_mcp_tool(name: str) -> bool:
+    return _resolve_mcp_tool_handler(name) is not None
+
+
+def run(ctx: WorkspaceCoreContext, name: str, arguments: dict[str, Any] | None) -> dict[str, Any]:
+    """Run a registered operation; returns a plain JSON-serializable dict."""
+    handler = _resolve_mcp_tool_handler(name)
+    if handler is None:
+        return {"error": f"unknown tool: {name}"}
+    binding: dict[str, Any] | None = None
+    if name not in _HANDLERS:
+        from basis.interface.contract.mcp.connector_tools import parse_connector_mcp_tool_name
+
+        binding = parse_connector_mcp_tool_name(name)
+    try:
+        args = coerce_operation_args(name, arguments)
+    except ValidationError as exc:
+        return validation_error_payload(exc)
+    if binding:
+        args = {**binding, **args}
+    result = handler(ctx, args)
+    if isinstance(result, dict) and "error" not in result:
+        return validate_operation_response(name, result)
+    return result
+
+
+def execute(ctx: WorkspaceCoreContext, name: str, arguments: dict[str, Any] | None) -> dict[str, Any]:
+    """MCP tools/call envelope."""
+    if not _is_known_mcp_tool(name):
+        return mcp_text_result({"error": f"unknown tool: {name}"}, is_error=True)
+    try:
+        payload = run(ctx, name, arguments)
+    except CoreError as exc:
+        return mcp_text_result(exc.detail, is_error=True)
+    except AdminError as exc:
+        return mcp_text_result({"code": exc.code, "message": exc.message}, is_error=True)
+    return mcp_text_result(payload)

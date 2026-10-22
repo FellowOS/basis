@@ -18,8 +18,9 @@ from basis.interface.http.deps import (
     get_store,
 )
 from basis.interface.http.core_context import build_workspace_core_context
+from basis.application.graph.operations import op_find_entities
+from basis.application.knowledge.operations import op_search_chunks
 from basis.application.operation_http import http_response_from_payload
-from basis.application.registry import run
 from basis.domain.knowledge.search import ChunkSearchService
 from basis.infra.runtime.limits import RuntimeLimits
 from basis.domain.knowledge.store import KnowledgeStore
@@ -63,9 +64,8 @@ Chunk Search Route. Chunk retrieval (keyword, semantic, or hybrid per workspace 
             resolved_document_id = doc["document_id"]
     ctx = build_workspace_core_context(request, workspace_id=workspace_id, user=user, store=store)
     payload = await asyncio.to_thread(
-        run,
+        op_search_chunks,
         ctx,
-        "search_chunks",
         {
             "query": q,
             "limit": capped_limit,
@@ -184,9 +184,8 @@ Find Entities Route. Requires workspace membership (session) or workspace API to
     """
     ctx = build_workspace_core_context(request, workspace_id=workspace_id, user=user, store=store)
     payload = await asyncio.to_thread(
-        run,
+        op_find_entities,
         ctx,
-        "find_entities",
         {"query": q, "limit": limit},
     )
     return http_response_from_payload(payload)

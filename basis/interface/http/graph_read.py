@@ -21,8 +21,8 @@ from basis.interface.http.deps import (
     save_graph,
 )
 from basis.interface.http.core_context import build_workspace_core_context
+from basis.application.graph.operations import op_graph_search, op_neighbors, op_paths
 from basis.application.operation_http import http_response_from_payload
-from basis.application.registry import run
 from basis.infra.runtime.limits import RuntimeLimits
 from basis.domain.knowledge.store import KnowledgeStore
 from basis.domain.graph.reads.read import get_node, paginate_edges
@@ -208,9 +208,8 @@ Graph Neighbors Route. Projected graph read API (graph runtime). Requires worksp
     """
     ctx = build_workspace_core_context(request, workspace_id=workspace_id, user=user, store=store)
     payload = await asyncio.to_thread(
-        run,
+        op_neighbors,
         ctx,
-        "neighbors",
         {"node_id": node_id, "depth": depth},
     )
     return http_response_from_payload(payload)
@@ -234,9 +233,8 @@ Graph Path Route. Projected graph read API (graph runtime). Requires workspace m
         raise AdminError(422, "bad_algorithm", "algorithm 须为 bfs 或 dijkstra")
     ctx = build_workspace_core_context(request, workspace_id=workspace_id, user=user, store=store)
     payload = await asyncio.to_thread(
-        run,
+        op_paths,
         ctx,
-        "paths",
         {
             "source": source,
             "target": target,
@@ -291,9 +289,8 @@ Graph Search Route. Projected graph read API (graph runtime). Requires workspace
     """
     ctx = build_workspace_core_context(request, workspace_id=workspace_id, user=user, store=store)
     payload = await asyncio.to_thread(
-        run,
+        op_graph_search,
         ctx,
-        "graph_search",
         {
             "query": body.query,
             "limit": body.limit,

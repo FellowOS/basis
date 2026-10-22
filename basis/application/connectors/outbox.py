@@ -6,7 +6,7 @@ from typing import Any
 
 from basis.application.connectors import authz
 from basis.application.connectors._helpers import connector_sync_service
-from basis.application.context import WorkspaceCoreContext
+from basis.application.kernel import WorkspaceCoreContext
 
 
 def list_outbox(

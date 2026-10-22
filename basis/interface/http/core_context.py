@@ -18,7 +18,7 @@ from basis.interface.http.deps import (
     rebuild_graph_projection,
     save_graph,
 )
-from basis.application.context import WorkspaceCoreContext
+from basis.application.kernel import WorkspaceCoreContext
 
 
 def build_workspace_core_context(

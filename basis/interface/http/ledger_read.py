@@ -17,8 +17,14 @@ from basis.interface.http.deps import (
     get_store,
 )
 from basis.interface.http.core_context import build_workspace_core_context
+from basis.application.knowledge.operations import (
+    op_entity_facts,
+    op_get_chunk,
+    op_get_statement,
+    op_list_derived_facts,
+    op_list_typed_facts,
+)
 from basis.application.operation_http import http_response_from_payload
-from basis.application.registry import run
 from basis.domain.knowledge.store import KnowledgeStore
 
 router = APIRouter(tags=["workspaces"])
@@ -56,7 +62,7 @@ List Derived Facts Route. Evidence ledger: documents, chunks, statements, entiti
     args: dict[str, Any] = {"limit": limit}
     if entity_id and entity_id.strip():
         args["entity_id"] = entity_id.strip()
-    payload = await asyncio.to_thread(run, ctx, "list_derived_facts", args)
+    payload = await asyncio.to_thread(op_list_derived_facts, ctx, args)
     data = http_response_from_payload(payload)
     return {"derived_facts": data.get("derived_facts") or []}
 
@@ -151,7 +157,7 @@ async def get_ledger_chunk_route(
 Get Ledger Chunk Route. Evidence ledger: documents, chunks, statements, entities. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
     ctx = build_workspace_core_context(request, workspace_id=workspace_id, user=user, store=store)
-    payload = await asyncio.to_thread(run, ctx, "get_chunk", {"chunk_id": chunk_id})
+    payload = await asyncio.to_thread(op_get_chunk, ctx, {"chunk_id": chunk_id})
     data = http_response_from_payload(payload)
     statements = knowledge.list_statements_for_chunk(workspace_id, chunk_id)
     return {"chunk": data["chunk"], "statements": statements}
@@ -170,7 +176,7 @@ Get Ledger Statement. Resolve a statement id to its subject entity for console d
     """
     ctx = build_workspace_core_context(request, workspace_id=workspace_id, user=user, store=store)
     payload = await asyncio.to_thread(
-        run, ctx, "get_statement", {"statement_id": statement_id}
+        op_get_statement, ctx, {"statement_id": statement_id}
     )
     return http_response_from_payload(payload)
 
@@ -190,9 +196,8 @@ List Entity Facts Route. Evidence ledger: documents, chunks, statements, entitie
     """
     ctx = build_workspace_core_context(request, workspace_id=workspace_id, user=user, store=store)
     payload = await asyncio.to_thread(
-        run,
+        op_entity_facts,
         ctx,
-        "entity_facts",
         {"entity_id": entity_id, "limit": limit},
     )
     data = http_response_from_payload(payload)
@@ -229,7 +234,7 @@ async def list_typed_facts_route(
 List Typed Facts Route. Evidence ledger: documents, chunks, statements, entities. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
     ctx = build_workspace_core_context(request, workspace_id=workspace_id, user=user, store=store)
-    payload = await asyncio.to_thread(run, ctx, "list_typed_facts", {"limit": limit})
+    payload = await asyncio.to_thread(op_list_typed_facts, ctx, {"limit": limit})
     return http_response_from_payload(payload)
 
 

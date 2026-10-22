@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from fastapi import HTTPException
 
-from basis.application.context import WorkspaceCoreContext
-from basis.application.errors import CoreError
+from basis.application.kernel import WorkspaceCoreContext
+from basis.application.kernel import CoreError
 
 
 def require_workspace_editor(ctx: WorkspaceCoreContext) -> None:

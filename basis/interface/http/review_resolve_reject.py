@@ -11,7 +11,7 @@ from basis.domain.tenancy.admin.store import AdminStore, User
 from basis.interface.http.deps import get_current_user, get_store
 from basis.interface.http.core_context import build_workspace_core_context
 from basis.application.operation_http import http_response_from_payload
-from basis.application.registry import run
+from basis.application.review.operations import op_reject_review_item
 from basis.interface.http.review_models import ResolveReviewRequest
 
 router = APIRouter(tags=["workspaces"])
@@ -37,9 +37,8 @@ Reject Review Item. Human review queue for merges, imports, and conflicts. Requi
         require_editor=True,
     )
     payload = await asyncio.to_thread(
-        run,
+        op_reject_review_item,
         ctx,
-        "reject_review_item",
         {"item_id": item_id, "rationale": body.rationale},
     )
     return http_response_from_payload(payload)

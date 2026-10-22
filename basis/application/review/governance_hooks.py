@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from basis.domain.graph.governance.decision import record_governance_decision_for_workspace
-from basis.application.context import WorkspaceCoreContext
+from basis.application.kernel import WorkspaceCoreContext
 
 
 def record_governance_decision_from_context(

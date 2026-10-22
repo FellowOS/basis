@@ -14,7 +14,7 @@ from basis.interface.http.deps import (
     get_store,
 )
 from basis.interface.http.core_context import build_workspace_core_context
-from basis.application.registry import run
+from basis.application.workspace.operations import op_describe_workspace, op_get_capabilities
 from basis.domain.tenancy.realtime.access import revoke_workspace_member_realtime
 
 router = APIRouter(tags=["workspaces"])
@@ -93,7 +93,7 @@ async def get_workspace(
     item = workspace.public()
     item["my_role"] = role
     ctx = build_workspace_core_context(request, workspace_id=workspace_id, user=user, store=store)
-    describe = await asyncio.to_thread(run, ctx, "describe_workspace", {})
+    describe = await asyncio.to_thread(op_describe_workspace, ctx, {})
     for key in (
         "document_count",
         "chunk_count",
@@ -115,7 +115,7 @@ async def get_capabilities(
     """Feature flags for graph runtime, ingest, mappings, and diagnostics for this workspace and role."""
     get_workspace_for_viewer(request, user, workspace_id, store)
     ctx = build_workspace_core_context(request, workspace_id=workspace_id, user=user, store=store)
-    return await asyncio.to_thread(run, ctx, "get_capabilities", {})
+    return await asyncio.to_thread(op_get_capabilities, ctx, {})
 
 
 @router.patch("/{workspace_id}")

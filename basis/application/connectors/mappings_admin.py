@@ -10,7 +10,7 @@ from basis.application.connectors.mappings import (
     sync_table_mapping,
     table_mapping_api_dict,
 )
-from basis.application.context import WorkspaceCoreContext
+from basis.application.kernel import WorkspaceCoreContext
 from basis.domain.errors import AdminError
 from basis.domain.knowledge.structured_models import ColumnMappingSpec, ConnectorSourceConfig
 

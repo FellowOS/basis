@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import date, datetime
 from typing import Any
 
-from basis.application.context import WorkspaceCoreContext
+from basis.application.kernel import WorkspaceCoreContext
 from basis.domain.connector.auth_vault import StoredConnection
 from basis.domain.connector.connection_scope import SCOPE_WORKSPACE
 from basis.domain.knowledge.services.connector_sync import ConnectorLedgerSyncService

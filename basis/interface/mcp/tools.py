@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from basis.application.context import WorkspaceCoreContext, WorkspaceToolContext
+from basis.application.kernel import WorkspaceCoreContext, WorkspaceToolContext
 from basis.application.registry import TOOL_NAMES, execute as call_tool, get_tool_definitions
 
 SERVER_INFO = {"name": "basis-workspace-mcp", "version": "0.1.0"}

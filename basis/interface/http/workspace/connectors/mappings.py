@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, Request
 
 from basis.application.connectors import mappings as mapping_uc
 from basis.application.connectors import mappings_admin as mapping_admin_uc
-from basis.application.errors import CoreError
+from basis.application.kernel import CoreError
 from basis.application.operation_http import http_exception_from_core
 from basis.domain.tenancy.admin.store import AdminStore, User
 from basis.interface.http.workspace.connectors.models import (

@@ -13,8 +13,11 @@ from basis.interface.http.graph_models import (
     ReasoningRunRequest,
     ReasoningRunResponse,
 )
-from basis.application.registry import run
 from basis.application.operation_http import http_response_from_payload
+from basis.application.reasoning.operations import (
+    op_list_reasoning_ground_facts,
+    op_run_reasoning,
+)
 
 router = APIRouter(tags=["workspaces"])
 
@@ -32,7 +35,7 @@ List Reasoning Ground Facts. Derive predicate(subject, object) strings from type
     """
     ctx = build_workspace_core_context(request, workspace_id=workspace_id, user=user, store=store)
     payload = await asyncio.to_thread(
-        run, ctx, "list_reasoning_ground_facts", {"limit": limit}
+        op_list_reasoning_ground_facts, ctx, {"limit": limit}
     )
     data = http_response_from_payload(payload)
     return ReasoningGroundFactsResponse.model_validate(data)
@@ -60,6 +63,6 @@ Reasoning Run. Workspace-local reasoning rules and runs. Requires workspace memb
         store=store,
         require_editor=apply_to_graph,
     )
-    payload = await asyncio.to_thread(run, ctx, "run_reasoning", raw)
+    payload = await asyncio.to_thread(op_run_reasoning, ctx, raw)
     data = http_response_from_payload(payload)
     return ReasoningRunResponse.model_validate(data)

@@ -6,7 +6,7 @@ from typing import Any
 
 from basis.application.connectors import authz
 from basis.application.connectors._helpers import connector_summary, filter_manifests_for_workspace
-from basis.application.context import WorkspaceCoreContext
+from basis.application.kernel import WorkspaceCoreContext
 from basis.domain.connector import get_connector_catalog
 from basis.domain.errors import AdminError
 

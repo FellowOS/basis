@@ -12,7 +12,7 @@ from basis.domain.connector.manifest_schema import (
     EntityActionSpec,
     ProcedureActionSpec,
 )
-from basis.application.context import WorkspaceCoreContext
+from basis.application.kernel import WorkspaceCoreContext
 
 CONNECTOR_TOOL_PREFIX = "connector_"
 _SEGMENT_RE = re.compile(r"[^a-z0-9_]+")

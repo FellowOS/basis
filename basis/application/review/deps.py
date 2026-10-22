@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 from basis.domain.knowledge.services.review_resolve_approve import ReviewApproveDeps
-from basis.application.context import WorkspaceCoreContext
-from basis.application.errors import CoreError
+from basis.application.kernel import WorkspaceCoreContext
+from basis.application.kernel import CoreError
 
 
 def review_approve_deps(ctx: WorkspaceCoreContext) -> ReviewApproveDeps:

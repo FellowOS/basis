@@ -7,7 +7,7 @@ from typing import Any
 from fastapi import APIRouter, Depends, Query, Request
 
 from basis.application.connectors import connections, primitives
-from basis.application.errors import CoreError
+from basis.application.kernel import CoreError
 from basis.application.operation_http import http_exception_from_core
 from basis.domain.tenancy.admin.store import AdminStore, User
 from basis.interface.http.workspace.connectors.models import (

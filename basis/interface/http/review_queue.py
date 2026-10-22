@@ -23,7 +23,7 @@ from basis.domain.knowledge.services.conflict_review import scan_statement_confl
 from basis.domain.knowledge.services.import_review import stage_import_blob
 from basis.domain.knowledge.store import KnowledgeStore
 from basis.application.operation_http import http_response_from_payload
-from basis.application.registry import run
+from basis.application.review.operations import op_get_review_item, op_list_review_items
 from basis.interface.http.core_context import build_workspace_core_context
 from basis.interface.http.review_models import CreateEntityMergeReviewRequest
 
@@ -62,7 +62,7 @@ List Review Items. Human review queue for merges, imports, and conflicts. Requir
         args["status"] = status
     if kind is not None:
         args["kind"] = kind
-    payload = await asyncio.to_thread(run, ctx, "list_review_items", args)
+    payload = await asyncio.to_thread(op_list_review_items, ctx, args)
     return http_response_from_payload(payload)
 
 
@@ -78,7 +78,7 @@ async def get_review_item_route(
 Get Review Item. Human review queue for merges, imports, and conflicts. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
     """
     ctx = build_workspace_core_context(request, workspace_id=workspace_id, user=user, store=store)
-    payload = await asyncio.to_thread(run, ctx, "get_review_item", {"item_id": item_id})
+    payload = await asyncio.to_thread(op_get_review_item, ctx, {"item_id": item_id})
     return http_response_from_payload(payload)
 
 

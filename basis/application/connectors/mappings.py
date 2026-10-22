@@ -6,7 +6,7 @@ from typing import Any
 
 from basis.application.connectors import authz
 from basis.application.connectors._helpers import connector_sync_service, json_safe_cursor_watermark
-from basis.application.context import WorkspaceCoreContext
+from basis.application.kernel import WorkspaceCoreContext
 from basis.domain.errors import AdminError
 from basis.domain.knowledge.schedulers.connector_mapping_poll_due import poll_interval_minutes_for_mapping
 from basis.domain.knowledge.services.connector_sync import (

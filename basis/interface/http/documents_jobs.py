@@ -19,8 +19,8 @@ from basis.interface.http.deps import (
     save_graph,
 )
 from basis.interface.http.core_context import build_workspace_core_context
-from basis.application.registry import run
 from basis.application.operation_http import http_response_from_payload
+from basis.application.workspace.operations import op_list_processing_jobs
 from basis.domain.knowledge.store import KnowledgeStore
 from basis.interface.http.ingest_helpers import respond_ingest
 from basis.domain.knowledge.pipeline.file_ingest import FileParseError
@@ -54,9 +54,8 @@ List Processing Jobs. Document processing jobs (extract, chunk, project). Requir
     get_workspace_for_viewer(request, user, workspace_id, store)
     ctx = build_workspace_core_context(request, workspace_id=workspace_id, user=user, store=store)
     payload = await asyncio.to_thread(
-        run,
+        op_list_processing_jobs,
         ctx,
-        "list_processing_jobs",
         {"status": status, "limit": limit},
     )
     data = http_response_from_payload(payload)

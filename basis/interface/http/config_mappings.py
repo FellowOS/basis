@@ -20,7 +20,7 @@ from basis.interface.http.deps import (
     rebuild_graph_projection,
 )
 from basis.interface.http.core_context import build_workspace_core_context
-from basis.application.registry import run
+from basis.application.knowledge.operations import op_list_mappings
 from basis.domain.knowledge.services.graph_audit import audit_graph
 from basis.domain.ontology.mappings.service import (
     apply_mapping_status_change,
@@ -62,7 +62,7 @@ List Mappings. Statement-to-entity mapping proposals and status. Requires worksp
     args: dict[str, Any] = {"limit": limit}
     if status:
         args["status"] = status
-    return await asyncio.to_thread(run, ctx, "list_mappings", args)
+    return await asyncio.to_thread(op_list_mappings, ctx, args)
 
 
 @router.post("/{workspace_id}/mappings")

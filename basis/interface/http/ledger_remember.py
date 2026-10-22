@@ -10,8 +10,8 @@ from fastapi import APIRouter, Depends, Request
 from basis.domain.tenancy.admin.store import AdminStore, User
 from basis.interface.http.deps import get_current_user, get_store
 from basis.interface.http.core_context import build_workspace_core_context
+from basis.application.knowledge.operations import op_propose_remember
 from basis.application.operation_http import http_response_from_payload
-from basis.application.registry import run
 from basis.interface.http.ledger_models import RememberProposalRequest
 
 router = APIRouter(tags=["workspaces"])
@@ -33,9 +33,8 @@ async def create_remember_proposal(
         require_editor=True,
     )
     payload = await asyncio.to_thread(
-        run,
+        op_propose_remember,
         ctx,
-        "propose_remember",
         {"content": body.content, "source": "api"},
     )
     return http_response_from_payload(payload)

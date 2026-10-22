@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from basis.application.connectors import authz
-from basis.application.context import WorkspaceCoreContext
+from basis.application.kernel import WorkspaceCoreContext
 from basis.domain.errors import AdminError
 
 
