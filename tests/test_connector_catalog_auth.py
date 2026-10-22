@@ -1,4 +1,4 @@
-from basis.domain.integration.synthesis.connector_catalog_auth import (
+from basis.domain.connector.synthesis.connector_catalog_auth import (
     auth_specs_from_connector_app,
 )
 
@@ -29,7 +29,7 @@ def test_github_catalog_oauth2_and_pat() -> None:
 
 
 def test_connector_catalog_dir_prefers_open_connector(monkeypatch, tmp_path) -> None:
-    from basis.domain.integration.synthesis.paths import connector_catalog_dir
+    from basis.domain.connector.synthesis.paths import connector_catalog_dir
 
     oc_apps = tmp_path / "open-connector" / "catalog" / "apps"
     oc_apps.mkdir(parents=True)

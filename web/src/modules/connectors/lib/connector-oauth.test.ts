@@ -4,7 +4,7 @@ import {
   connectorAuthNeedsPkce,
   resolveOAuthCallbackPending,
   savePendingConnectorOAuth,
-  tryParseIntegrationOAuthState,
+  tryParseConnectorOAuthState,
 } from '@/modules/connectors/lib/connector-oauth.js';
 
 const PACKED_GITHUB_STATE =
@@ -52,9 +52,9 @@ describe('connectorAuthNeedsPkce', () => {
   });
 });
 
-describe('tryParseIntegrationOAuthState', () => {
+describe('tryParseConnectorOAuthState', () => {
   it('parses packed v1 state from the API', () => {
-    expect(tryParseIntegrationOAuthState(PACKED_GITHUB_STATE)).toEqual({
+    expect(tryParseConnectorOAuthState(PACKED_GITHUB_STATE)).toEqual({
       service: 'github',
       subject_id: 'user-1',
     });

@@ -8,8 +8,8 @@ import httpx
 
 import pytest
 
-from basis.domain.integration import ConnectorAuthVault, ConnectorRuntime, get_connector_catalog
-from basis.domain.integration.primitive_invoke import execute_connector_primitive
+from basis.domain.connector import ConnectorAuthVault, ConnectorRuntime, get_connector_catalog
+from basis.domain.connector.primitive_invoke import execute_connector_primitive
 from basis.infra.tooling.db.sqlite_migrations import run_migrations
 
 

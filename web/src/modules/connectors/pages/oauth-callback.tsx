@@ -64,7 +64,7 @@ export function ConnectorOAuthCallbackPage() {
         if (pending.endUserSubjectId) {
           await workspaceOpenApiPOST(
             workspaceId,
-            `integration/oauth/${pending.service}/exchange`,
+            `connectors/embed/oauth/${pending.service}/exchange`,
             {
               body: {
                 code,

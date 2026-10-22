@@ -8,8 +8,8 @@ from pathlib import Path
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, text
 
-from basis.domain.integration.auth_vault import ConnectorPolicy
-from basis.domain.integration import get_connector_catalog
+from basis.domain.connector.auth_vault import ConnectorPolicy
+from basis.domain.connector import get_connector_catalog
 from basis.infra.runtime.config import Settings
 from basis.interface.contract.mcp.connector_tools import (
     connector_mcp_tool_name,

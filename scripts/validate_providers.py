@@ -11,8 +11,8 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from basis.domain.integration.catalog import ConnectorCatalog, default_providers_dir
-from basis.domain.integration.provider_bundle import load_provider_bundle, provider_manifest_path
+from basis.domain.connector.catalog import ConnectorCatalog, default_providers_dir
+from basis.domain.connector.provider_bundle import load_provider_bundle, provider_manifest_path
 
 
 def main() -> None:
@@ -27,7 +27,7 @@ def main() -> None:
 
     services: list[str] | None = None
     if args.batch is not None:
-        from basis.domain.integration.synthesis.batches import load_batch
+        from basis.domain.connector.synthesis.batches import load_batch
 
         services = load_batch(args.batch).services
 

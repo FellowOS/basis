@@ -16,7 +16,7 @@ class SettingsAccess:
         self._store = store
 
     def get_platform_allowed_providers(self) -> list[str] | str:
-        from basis.domain.integration.platform_policy import PlatformConnectorPolicy
+        from basis.domain.connector.platform_policy import PlatformConnectorPolicy
 
         with self._store._lock:
             return PlatformConnectorPolicy(self._store._conn).get_allowed_providers()
@@ -25,7 +25,7 @@ class SettingsAccess:
         self,
         allowed_providers: list[str] | str,
     ) -> tuple[list[str] | str, str]:
-        from basis.domain.integration.platform_policy import PlatformConnectorPolicy
+        from basis.domain.connector.platform_policy import PlatformConnectorPolicy
 
         with self._store._lock:
             return PlatformConnectorPolicy(self._store._conn).upsert_allowed_providers(

@@ -7,8 +7,8 @@ from pathlib import Path
 
 import pytest
 
-from basis.domain.integration import ConnectorAuthVault
-from basis.domain.integration.connection_scope import SCOPE_END_USER, SCOPE_WORKSPACE
+from basis.domain.connector import ConnectorAuthVault
+from basis.domain.connector.connection_scope import SCOPE_END_USER, SCOPE_WORKSPACE
 from basis.infra.tooling.db.sqlite_migrations import run_migrations
 
 

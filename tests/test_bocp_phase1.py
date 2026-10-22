@@ -9,10 +9,10 @@ import sqlite3
 
 import yaml
 
-from basis.domain.integration import get_connector_catalog
-from basis.domain.integration.catalog import ConnectorCatalog
-from basis.domain.integration.manifest_actions import entity_action_from_stream
-from basis.domain.integration.manifest_schema import (
+from basis.domain.connector import get_connector_catalog
+from basis.domain.connector.catalog import ConnectorCatalog
+from basis.domain.connector.manifest_actions import entity_action_from_stream
+from basis.domain.connector.manifest_schema import (
     AuthSpec,
     ConfigFieldSpec,
     ConnectorManifest,
@@ -20,8 +20,8 @@ from basis.domain.integration.manifest_schema import (
     RetrieverSpec,
     StreamSpec,
 )
-from basis.domain.integration.catalog import default_providers_dir
-from basis.domain.integration.provider_bundle import (
+from basis.domain.connector.catalog import default_providers_dir
+from basis.domain.connector.provider_bundle import (
     load_connector_manifest,
     load_provider_bundle,
     manifest_wire_payload,

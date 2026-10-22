@@ -4,13 +4,13 @@ from __future__ import annotations
 
 import pytest
 
-from basis.domain.integration.synthesis.auth_mode_reference import (
+from basis.domain.connector.synthesis.auth_mode_reference import (
     ALL_AUTH_MODES,
     REGISTRY_CANONICAL_BY_AUTH_MODE,
     REGISTRY_MODES_WITHOUT_BOCP_ENUM,
 )
-from basis.domain.integration.synthesis.paths import providers_registry_yaml
-from basis.domain.integration.synthesis.providers_registry_auth import (
+from basis.domain.connector.synthesis.paths import providers_registry_yaml
+from basis.domain.connector.synthesis.providers_registry_auth import (
     auth_specs_from_providers_registry,
     auth_specs_from_registry_block,
     load_provider_registry_block,

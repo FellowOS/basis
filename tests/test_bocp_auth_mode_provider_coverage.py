@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from basis.domain.integration.catalog import ConnectorCatalog
+from basis.domain.connector.catalog import ConnectorCatalog
 
 
 _REAL_AUTH_MODE_COVERAGE: dict[str, frozenset[str]] = {

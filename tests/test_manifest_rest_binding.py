@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from basis.domain.integration.manifest_schema import (
+from basis.domain.connector.manifest_schema import (
     EntityActionSpec,
     RestEntityExecutorSpec,
     RestIncrementalSpec,

@@ -4,11 +4,11 @@ from __future__ import annotations
 
 import json
 
-from basis.domain.integration.adapters.rest.providers.github import github_manifest
-from basis.domain.integration.manifest_schema import ConnectorManifest
-from basis.domain.integration.provider_bundle import manifest_wire_payload
-from basis.domain.integration.synthesis.batches import load_batch
-from basis.domain.integration.synthesis.merge import merge_service
+from basis.domain.connector.adapters.rest.providers.github import github_manifest
+from basis.domain.connector.manifest_schema import ConnectorManifest
+from basis.domain.connector.provider_bundle import manifest_wire_payload
+from basis.domain.connector.synthesis.batches import load_batch
+from basis.domain.connector.synthesis.merge import merge_service
 
 
 def _canonical_manifest(m: ConnectorManifest) -> dict:
@@ -19,7 +19,7 @@ def _canonical_manifest(m: ConnectorManifest) -> dict:
 
 
 def test_merge_registry_auth_reference_service() -> None:
-    from basis.domain.integration.synthesis.paths import providers_registry_yaml
+    from basis.domain.connector.synthesis.paths import providers_registry_yaml
 
     if providers_registry_yaml() is None:
         import pytest
@@ -73,7 +73,7 @@ def test_merge_slack_generator_baseline() -> None:
 
 
 def test_merge_slack_from_anyconnect_catalog() -> None:
-    from basis.domain.integration.synthesis.paths import anyconnect_catalog_dir
+    from basis.domain.connector.synthesis.paths import anyconnect_catalog_dir
 
     if anyconnect_catalog_dir() is None:
         import pytest
@@ -112,7 +112,7 @@ def test_merge_notion_entity_and_dynamic_loader() -> None:
 
 
 def test_executor_index_slack_paths() -> None:
-    from basis.domain.integration.synthesis.executor_index import invoke_wire_for_action
+    from basis.domain.connector.synthesis.executor_index import invoke_wire_for_action
 
     wire = invoke_wire_for_action("slack", "slack.post_message")
     assert wire is not None
@@ -120,7 +120,7 @@ def test_executor_index_slack_paths() -> None:
 
 
 def test_executor_index_gitlab_jira_paths() -> None:
-    from basis.domain.integration.synthesis.executor_index import invoke_wire_for_action
+    from basis.domain.connector.synthesis.executor_index import invoke_wire_for_action
 
     gl = invoke_wire_for_action("gitlab", "gitlab.list_projects")
     assert gl == {"method": "GET", "path": "/api/v4/projects"}
@@ -130,7 +130,7 @@ def test_executor_index_gitlab_jira_paths() -> None:
 
 
 def test_merge_gitlab_jira_entities_and_catalog_procedures() -> None:
-    from basis.domain.integration.synthesis.paths import anyconnect_catalog_dir
+    from basis.domain.connector.synthesis.paths import anyconnect_catalog_dir
 
     if anyconnect_catalog_dir() is None:
         import pytest

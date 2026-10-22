@@ -6,7 +6,7 @@ import json
 import uuid
 from typing import Any
 
-from basis.domain.integration.canonical_db import LockedCanonicalConn
+from basis.domain.connector.canonical_db import LockedCanonicalConn
 from basis.domain.knowledge.structured_models import StructuredImportProvenance
 
 

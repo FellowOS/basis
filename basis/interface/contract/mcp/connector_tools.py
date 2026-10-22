@@ -5,9 +5,9 @@ from __future__ import annotations
 import re
 from typing import Any, Literal
 
-from basis.domain.integration import get_connector_catalog
-from basis.domain.integration.auth_vault import ConnectorPolicy
-from basis.domain.integration.manifest_schema import (
+from basis.domain.connector import get_connector_catalog
+from basis.domain.connector.auth_vault import ConnectorPolicy
+from basis.domain.connector.manifest_schema import (
     ConnectorManifest,
     EntityActionSpec,
     ProcedureActionSpec,

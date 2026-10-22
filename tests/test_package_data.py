@@ -8,7 +8,7 @@ import pytest
 
 
 def test_connector_provider_yaml_in_package_data() -> None:
-    root = pkg_resources.files("basis.domain.integration") / "providers"
+    root = pkg_resources.files("basis.domain.connector") / "providers"
     names = {p.name for p in root.iterdir() if p.is_file()}
     assert "github.yaml" in names
     assert "postgres.yaml" in names
@@ -16,7 +16,7 @@ def test_connector_provider_yaml_in_package_data() -> None:
 
 
 def test_qq_mail_provider_bundle_loads_with_mail_protocol() -> None:
-    from basis.domain.integration.catalog import ConnectorCatalog
+    from basis.domain.connector.catalog import ConnectorCatalog
 
     catalog = ConnectorCatalog.load_from_directory()
     manifest = catalog.get("qq_mail")
@@ -27,13 +27,13 @@ def test_qq_mail_provider_bundle_loads_with_mail_protocol() -> None:
 
 
 def test_synthesis_batch_yaml_in_package_data() -> None:
-    batches = pkg_resources.files("basis.domain.integration.synthesis") / "batches"
+    batches = pkg_resources.files("basis.domain.connector.synthesis") / "batches"
     names = {p.name for p in batches.iterdir() if p.is_file()}
     assert "batch_0.yaml" in names
 
 
 def test_synthesis_executor_index_in_package_data() -> None:
-    index = pkg_resources.files("basis.domain.integration.synthesis") / "executors-index.json"
+    index = pkg_resources.files("basis.domain.connector.synthesis") / "executors-index.json"
     assert index.is_file()
 
 

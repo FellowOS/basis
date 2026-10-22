@@ -771,6 +771,130 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/workspaces/{workspace_id}/connectors/embed/connections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Embed List Connections
+         * @description List end_user connections for one embed subject (credentials redacted).
+         */
+        get: operations["embed_list_connections_api_v1_workspaces__workspace_id__connectors_embed_connections_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workspaces/{workspace_id}/connectors/embed/connections/{service}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Embed Upsert Connection
+         * @description Create or update an end_user connection for an embed subject.
+         */
+        put: operations["embed_upsert_connection_api_v1_workspaces__workspace_id__connectors_embed_connections__service__put"];
+        post?: never;
+        /**
+         * Embed Delete Connection
+         * @description Delete an end_user connection for one embed subject.
+         */
+        delete: operations["embed_delete_connection_api_v1_workspaces__workspace_id__connectors_embed_connections__service__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workspaces/{workspace_id}/connectors/embed/connections/{service}/check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Embed Check Connection
+         * @description Run BOCP CHECK for an end_user connection.
+         */
+        post: operations["embed_check_connection_api_v1_workspaces__workspace_id__connectors_embed_connections__service__check_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workspaces/{workspace_id}/connectors/embed/oauth/{service}/authorize-url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Embed Oauth Authorize Url
+         * @description Build OAuth2 authorize URL; state binds service + end_user subject_id.
+         */
+        post: operations["embed_oauth_authorize_url_api_v1_workspaces__workspace_id__connectors_embed_oauth__service__authorize_url_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workspaces/{workspace_id}/connectors/embed/oauth/{service}/exchange": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Embed Oauth Exchange
+         * @description Exchange OAuth code; defaults to end_user scope when subject_id is set.
+         */
+        post: operations["embed_oauth_exchange_api_v1_workspaces__workspace_id__connectors_embed_oauth__service__exchange_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workspaces/{workspace_id}/connectors/embed/providers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Embed List Providers
+         * @description List connector manifests for embed clients (includes auth[] definitions).
+         */
+        get: operations["embed_list_providers_api_v1_workspaces__workspace_id__connectors_embed_providers_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/workspaces/{workspace_id}/connectors/oauth-configs/{service}": {
         parameters: {
             query?: never;
@@ -1770,130 +1894,6 @@ export interface paths {
          * @description Get Ingest Job. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
          */
         get: operations["get_ingest_job_api_v1_workspaces__workspace_id__ingest_jobs__job_id__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workspaces/{workspace_id}/integration/connections": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Integration List Connections
-         * @description List end_user connections for one embed subject (credentials redacted).
-         */
-        get: operations["integration_list_connections_api_v1_workspaces__workspace_id__integration_connections_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workspaces/{workspace_id}/integration/connections/{service}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /**
-         * Integration Upsert Connection
-         * @description Create or update an end_user connection for an embed subject.
-         */
-        put: operations["integration_upsert_connection_api_v1_workspaces__workspace_id__integration_connections__service__put"];
-        post?: never;
-        /**
-         * Integration Delete Connection
-         * @description Delete an end_user connection for one embed subject.
-         */
-        delete: operations["integration_delete_connection_api_v1_workspaces__workspace_id__integration_connections__service__delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workspaces/{workspace_id}/integration/connections/{service}/check": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Integration Check Connection
-         * @description Run BOCP CHECK for an end_user connection.
-         */
-        post: operations["integration_check_connection_api_v1_workspaces__workspace_id__integration_connections__service__check_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workspaces/{workspace_id}/integration/oauth/{service}/authorize-url": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Integration Oauth Authorize Url
-         * @description Build OAuth2 authorize URL; state binds service + end_user subject_id.
-         */
-        post: operations["integration_oauth_authorize_url_api_v1_workspaces__workspace_id__integration_oauth__service__authorize_url_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workspaces/{workspace_id}/integration/oauth/{service}/exchange": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Integration Oauth Exchange
-         * @description Exchange OAuth code; defaults to end_user scope when subject_id is set.
-         */
-        post: operations["integration_oauth_exchange_api_v1_workspaces__workspace_id__integration_oauth__service__exchange_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workspaces/{workspace_id}/integration/providers": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Integration List Providers
-         * @description List connector manifests for embed/integration clients (includes auth[] definitions).
-         */
-        get: operations["integration_list_providers_api_v1_workspaces__workspace_id__integration_providers_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -4082,6 +4082,39 @@ export interface components {
             /** Password */
             password?: string | null;
         };
+        /** EmbedOAuthAuthorizeRequest */
+        EmbedOAuthAuthorizeRequest: {
+            /** Subject Id */
+            subject_id: string;
+            /** State */
+            state?: string | null;
+            /** Redirect Uri */
+            redirect_uri?: string | null;
+            /** Connection Config */
+            connection_config?: {
+                [key: string]: unknown;
+            };
+            /** Code Challenge */
+            code_challenge?: string | null;
+        };
+        /**
+         * EmbedUpsertConnectionRequest
+         * @description End-user connection upsert for ``/connectors/embed/connections``.
+         */
+        EmbedUpsertConnectionRequest: {
+            /** Subject Id */
+            subject_id: string;
+            /** Auth Type */
+            auth_type: string;
+            /** Connection Config */
+            connection_config?: {
+                [key: string]: unknown;
+            };
+            /** Credentials */
+            credentials?: {
+                [key: string]: unknown;
+            };
+        };
         /** ExchangeOAuthCodeRequest */
         ExchangeOAuthCodeRequest: {
             /** Code */
@@ -4201,39 +4234,6 @@ export interface components {
             relation_method?: string | null;
             /** Extract Relations */
             extract_relations?: boolean | null;
-        };
-        /** IntegrationOAuthAuthorizeRequest */
-        IntegrationOAuthAuthorizeRequest: {
-            /** Subject Id */
-            subject_id: string;
-            /** State */
-            state?: string | null;
-            /** Redirect Uri */
-            redirect_uri?: string | null;
-            /** Connection Config */
-            connection_config?: {
-                [key: string]: unknown;
-            };
-            /** Code Challenge */
-            code_challenge?: string | null;
-        };
-        /**
-         * IntegrationUpsertConnectionRequest
-         * @description End-user connection upsert for ``/integration/connections``.
-         */
-        IntegrationUpsertConnectionRequest: {
-            /** Subject Id */
-            subject_id: string;
-            /** Auth Type */
-            auth_type: string;
-            /** Connection Config */
-            connection_config?: {
-                [key: string]: unknown;
-            };
-            /** Credentials */
-            credentials?: {
-                [key: string]: unknown;
-            };
         };
         /** InvokeConnectorPrimitiveRequest */
         InvokeConnectorPrimitiveRequest: {
@@ -6403,6 +6403,278 @@ export interface operations {
             };
         };
     };
+    embed_list_connections_api_v1_workspaces__workspace_id__connectors_embed_connections_get: {
+        parameters: {
+            query: {
+                subject_id: string;
+                service?: string | null;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    embed_upsert_connection_api_v1_workspaces__workspace_id__connectors_embed_connections__service__put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                workspace_id: string;
+                service: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EmbedUpsertConnectionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    embed_delete_connection_api_v1_workspaces__workspace_id__connectors_embed_connections__service__delete: {
+        parameters: {
+            query: {
+                subject_id: string;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                workspace_id: string;
+                service: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    embed_check_connection_api_v1_workspaces__workspace_id__connectors_embed_connections__service__check_post: {
+        parameters: {
+            query: {
+                subject_id: string;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                workspace_id: string;
+                service: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    embed_oauth_authorize_url_api_v1_workspaces__workspace_id__connectors_embed_oauth__service__authorize_url_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                workspace_id: string;
+                service: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EmbedOAuthAuthorizeRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    embed_oauth_exchange_api_v1_workspaces__workspace_id__connectors_embed_oauth__service__exchange_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                workspace_id: string;
+                service: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExchangeOAuthCodeRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    embed_list_providers_api_v1_workspaces__workspace_id__connectors_embed_providers_get: {
+        parameters: {
+            query?: {
+                has_streams_only?: boolean;
+                limit?: number;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_connector_oauth_config_api_v1_workspaces__workspace_id__connectors_oauth_configs__service__get: {
         parameters: {
             query?: never;
@@ -8415,278 +8687,6 @@ export interface operations {
             path: {
                 workspace_id: string;
                 job_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    integration_list_connections_api_v1_workspaces__workspace_id__integration_connections_get: {
-        parameters: {
-            query: {
-                subject_id: string;
-                service?: string | null;
-            };
-            header?: {
-                authorization?: string | null;
-            };
-            path: {
-                workspace_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    integration_upsert_connection_api_v1_workspaces__workspace_id__integration_connections__service__put: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string | null;
-            };
-            path: {
-                workspace_id: string;
-                service: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["IntegrationUpsertConnectionRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    integration_delete_connection_api_v1_workspaces__workspace_id__integration_connections__service__delete: {
-        parameters: {
-            query: {
-                subject_id: string;
-            };
-            header?: {
-                authorization?: string | null;
-            };
-            path: {
-                workspace_id: string;
-                service: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    integration_check_connection_api_v1_workspaces__workspace_id__integration_connections__service__check_post: {
-        parameters: {
-            query: {
-                subject_id: string;
-            };
-            header?: {
-                authorization?: string | null;
-            };
-            path: {
-                workspace_id: string;
-                service: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    integration_oauth_authorize_url_api_v1_workspaces__workspace_id__integration_oauth__service__authorize_url_post: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string | null;
-            };
-            path: {
-                workspace_id: string;
-                service: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["IntegrationOAuthAuthorizeRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    integration_oauth_exchange_api_v1_workspaces__workspace_id__integration_oauth__service__exchange_post: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string | null;
-            };
-            path: {
-                workspace_id: string;
-                service: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ExchangeOAuthCodeRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    integration_list_providers_api_v1_workspaces__workspace_id__integration_providers_get: {
-        parameters: {
-            query?: {
-                has_streams_only?: boolean;
-                limit?: number;
-            };
-            header?: {
-                authorization?: string | null;
-            };
-            path: {
-                workspace_id: string;
             };
             cookie?: never;
         };

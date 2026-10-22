@@ -4676,6 +4676,595 @@
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
+    "/api/v1/workspaces/{workspace_id}/connectors/embed/connections": {
+      "get": {
+        "tags": [
+          "workspaces",
+          "workspaces"
+        ],
+        "summary": "Embed List Connections",
+        "description": "List end_user connections for one embed subject (credentials redacted).",
+        "operationId": "embed_list_connections_api_v1_workspaces__workspace_id__connectors_embed_connections_get",
+        "parameters": [
+          {
+            "name": "workspace_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Workspace Id"
+            }
+          },
+          {
+            "name": "subject_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "title": "Subject Id"
+            }
+          },
+          {
+            "name": "service",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Service"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Embed List Connections Api V1 Workspaces  Workspace Id  Connectors Embed Connections Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-basis-surface": "workspaces",
+        "x-basis-auth": "session-or-workspace-api-token"
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/connectors/embed/connections/{service}": {
+      "put": {
+        "tags": [
+          "workspaces",
+          "workspaces"
+        ],
+        "summary": "Embed Upsert Connection",
+        "description": "Create or update an end_user connection for an embed subject.",
+        "operationId": "embed_upsert_connection_api_v1_workspaces__workspace_id__connectors_embed_connections__service__put",
+        "parameters": [
+          {
+            "name": "workspace_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Workspace Id"
+            }
+          },
+          {
+            "name": "service",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Service"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmbedUpsertConnectionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Embed Upsert Connection Api V1 Workspaces  Workspace Id  Connectors Embed Connections  Service  Put"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-basis-surface": "workspaces",
+        "x-basis-auth": "session-or-workspace-api-token"
+      },
+      "delete": {
+        "tags": [
+          "workspaces",
+          "workspaces"
+        ],
+        "summary": "Embed Delete Connection",
+        "description": "Delete an end_user connection for one embed subject.",
+        "operationId": "embed_delete_connection_api_v1_workspaces__workspace_id__connectors_embed_connections__service__delete",
+        "parameters": [
+          {
+            "name": "workspace_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Workspace Id"
+            }
+          },
+          {
+            "name": "service",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Service"
+            }
+          },
+          {
+            "name": "subject_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "title": "Subject Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Embed Delete Connection Api V1 Workspaces  Workspace Id  Connectors Embed Connections  Service  Delete"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-basis-surface": "workspaces",
+        "x-basis-auth": "session-or-workspace-api-token"
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/connectors/embed/connections/{service}/check": {
+      "post": {
+        "tags": [
+          "workspaces",
+          "workspaces"
+        ],
+        "summary": "Embed Check Connection",
+        "description": "Run BOCP CHECK for an end_user connection.",
+        "operationId": "embed_check_connection_api_v1_workspaces__workspace_id__connectors_embed_connections__service__check_post",
+        "parameters": [
+          {
+            "name": "workspace_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Workspace Id"
+            }
+          },
+          {
+            "name": "service",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Service"
+            }
+          },
+          {
+            "name": "subject_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "title": "Subject Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Embed Check Connection Api V1 Workspaces  Workspace Id  Connectors Embed Connections  Service  Check Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-basis-surface": "workspaces",
+        "x-basis-auth": "session-or-workspace-api-token"
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/connectors/embed/oauth/{service}/authorize-url": {
+      "post": {
+        "tags": [
+          "workspaces",
+          "workspaces"
+        ],
+        "summary": "Embed Oauth Authorize Url",
+        "description": "Build OAuth2 authorize URL; state binds service + end_user subject_id.",
+        "operationId": "embed_oauth_authorize_url_api_v1_workspaces__workspace_id__connectors_embed_oauth__service__authorize_url_post",
+        "parameters": [
+          {
+            "name": "workspace_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Workspace Id"
+            }
+          },
+          {
+            "name": "service",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Service"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmbedOAuthAuthorizeRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Embed Oauth Authorize Url Api V1 Workspaces  Workspace Id  Connectors Embed Oauth  Service  Authorize Url Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-basis-surface": "workspaces",
+        "x-basis-auth": "session-or-workspace-api-token"
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/connectors/embed/oauth/{service}/exchange": {
+      "post": {
+        "tags": [
+          "workspaces",
+          "workspaces"
+        ],
+        "summary": "Embed Oauth Exchange",
+        "description": "Exchange OAuth code; defaults to end_user scope when subject_id is set.",
+        "operationId": "embed_oauth_exchange_api_v1_workspaces__workspace_id__connectors_embed_oauth__service__exchange_post",
+        "parameters": [
+          {
+            "name": "workspace_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Workspace Id"
+            }
+          },
+          {
+            "name": "service",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Service"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExchangeOAuthCodeRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Embed Oauth Exchange Api V1 Workspaces  Workspace Id  Connectors Embed Oauth  Service  Exchange Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-basis-surface": "workspaces",
+        "x-basis-auth": "session-or-workspace-api-token"
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/connectors/embed/providers": {
+      "get": {
+        "tags": [
+          "workspaces",
+          "workspaces"
+        ],
+        "summary": "Embed List Providers",
+        "description": "List connector manifests for embed clients (includes auth[] definitions).",
+        "operationId": "embed_list_providers_api_v1_workspaces__workspace_id__connectors_embed_providers_get",
+        "parameters": [
+          {
+            "name": "workspace_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Workspace Id"
+            }
+          },
+          {
+            "name": "has_streams_only",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Has Streams Only"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 500,
+              "minimum": 1,
+              "default": 100,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Embed List Providers Api V1 Workspaces  Workspace Id  Connectors Embed Providers Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-basis-surface": "workspaces",
+        "x-basis-auth": "session-or-workspace-api-token"
+      }
+    },
     "/api/v1/workspaces/{workspace_id}/connectors/oauth-configs/{service}": {
       "get": {
         "tags": [
@@ -8893,595 +9482,6 @@
                   "type": "object",
                   "additionalProperties": true,
                   "title": "Response Get Ingest Job Api V1 Workspaces  Workspace Id  Ingest Jobs  Job Id  Get"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        },
-        "x-basis-surface": "workspaces",
-        "x-basis-auth": "session-or-workspace-api-token"
-      }
-    },
-    "/api/v1/workspaces/{workspace_id}/integration/connections": {
-      "get": {
-        "tags": [
-          "workspaces",
-          "workspaces"
-        ],
-        "summary": "Integration List Connections",
-        "description": "List end_user connections for one embed subject (credentials redacted).",
-        "operationId": "integration_list_connections_api_v1_workspaces__workspace_id__integration_connections_get",
-        "parameters": [
-          {
-            "name": "workspace_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Workspace Id"
-            }
-          },
-          {
-            "name": "subject_id",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "minLength": 1,
-              "title": "Subject Id"
-            }
-          },
-          {
-            "name": "service",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Service"
-            }
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "additionalProperties": true,
-                  "title": "Response Integration List Connections Api V1 Workspaces  Workspace Id  Integration Connections Get"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        },
-        "x-basis-surface": "workspaces",
-        "x-basis-auth": "session-or-workspace-api-token"
-      }
-    },
-    "/api/v1/workspaces/{workspace_id}/integration/connections/{service}": {
-      "put": {
-        "tags": [
-          "workspaces",
-          "workspaces"
-        ],
-        "summary": "Integration Upsert Connection",
-        "description": "Create or update an end_user connection for an embed subject.",
-        "operationId": "integration_upsert_connection_api_v1_workspaces__workspace_id__integration_connections__service__put",
-        "parameters": [
-          {
-            "name": "workspace_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Workspace Id"
-            }
-          },
-          {
-            "name": "service",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Service"
-            }
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/IntegrationUpsertConnectionRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "additionalProperties": true,
-                  "title": "Response Integration Upsert Connection Api V1 Workspaces  Workspace Id  Integration Connections  Service  Put"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        },
-        "x-basis-surface": "workspaces",
-        "x-basis-auth": "session-or-workspace-api-token"
-      },
-      "delete": {
-        "tags": [
-          "workspaces",
-          "workspaces"
-        ],
-        "summary": "Integration Delete Connection",
-        "description": "Delete an end_user connection for one embed subject.",
-        "operationId": "integration_delete_connection_api_v1_workspaces__workspace_id__integration_connections__service__delete",
-        "parameters": [
-          {
-            "name": "workspace_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Workspace Id"
-            }
-          },
-          {
-            "name": "service",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Service"
-            }
-          },
-          {
-            "name": "subject_id",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "minLength": 1,
-              "title": "Subject Id"
-            }
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "additionalProperties": true,
-                  "title": "Response Integration Delete Connection Api V1 Workspaces  Workspace Id  Integration Connections  Service  Delete"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        },
-        "x-basis-surface": "workspaces",
-        "x-basis-auth": "session-or-workspace-api-token"
-      }
-    },
-    "/api/v1/workspaces/{workspace_id}/integration/connections/{service}/check": {
-      "post": {
-        "tags": [
-          "workspaces",
-          "workspaces"
-        ],
-        "summary": "Integration Check Connection",
-        "description": "Run BOCP CHECK for an end_user connection.",
-        "operationId": "integration_check_connection_api_v1_workspaces__workspace_id__integration_connections__service__check_post",
-        "parameters": [
-          {
-            "name": "workspace_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Workspace Id"
-            }
-          },
-          {
-            "name": "service",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Service"
-            }
-          },
-          {
-            "name": "subject_id",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "minLength": 1,
-              "title": "Subject Id"
-            }
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "additionalProperties": true,
-                  "title": "Response Integration Check Connection Api V1 Workspaces  Workspace Id  Integration Connections  Service  Check Post"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        },
-        "x-basis-surface": "workspaces",
-        "x-basis-auth": "session-or-workspace-api-token"
-      }
-    },
-    "/api/v1/workspaces/{workspace_id}/integration/oauth/{service}/authorize-url": {
-      "post": {
-        "tags": [
-          "workspaces",
-          "workspaces"
-        ],
-        "summary": "Integration Oauth Authorize Url",
-        "description": "Build OAuth2 authorize URL; state binds service + end_user subject_id.",
-        "operationId": "integration_oauth_authorize_url_api_v1_workspaces__workspace_id__integration_oauth__service__authorize_url_post",
-        "parameters": [
-          {
-            "name": "workspace_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Workspace Id"
-            }
-          },
-          {
-            "name": "service",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Service"
-            }
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/IntegrationOAuthAuthorizeRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "additionalProperties": true,
-                  "title": "Response Integration Oauth Authorize Url Api V1 Workspaces  Workspace Id  Integration Oauth  Service  Authorize Url Post"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        },
-        "x-basis-surface": "workspaces",
-        "x-basis-auth": "session-or-workspace-api-token"
-      }
-    },
-    "/api/v1/workspaces/{workspace_id}/integration/oauth/{service}/exchange": {
-      "post": {
-        "tags": [
-          "workspaces",
-          "workspaces"
-        ],
-        "summary": "Integration Oauth Exchange",
-        "description": "Exchange OAuth code; defaults to end_user scope when subject_id is set.",
-        "operationId": "integration_oauth_exchange_api_v1_workspaces__workspace_id__integration_oauth__service__exchange_post",
-        "parameters": [
-          {
-            "name": "workspace_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Workspace Id"
-            }
-          },
-          {
-            "name": "service",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Service"
-            }
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ExchangeOAuthCodeRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "additionalProperties": true,
-                  "title": "Response Integration Oauth Exchange Api V1 Workspaces  Workspace Id  Integration Oauth  Service  Exchange Post"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        },
-        "x-basis-surface": "workspaces",
-        "x-basis-auth": "session-or-workspace-api-token"
-      }
-    },
-    "/api/v1/workspaces/{workspace_id}/integration/providers": {
-      "get": {
-        "tags": [
-          "workspaces",
-          "workspaces"
-        ],
-        "summary": "Integration List Providers",
-        "description": "List connector manifests for embed/integration clients (includes auth[] definitions).",
-        "operationId": "integration_list_providers_api_v1_workspaces__workspace_id__integration_providers_get",
-        "parameters": [
-          {
-            "name": "workspace_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Workspace Id"
-            }
-          },
-          {
-            "name": "has_streams_only",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "boolean",
-              "default": false,
-              "title": "Has Streams Only"
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "maximum": 500,
-              "minimum": 1,
-              "default": 100,
-              "title": "Limit"
-            }
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "additionalProperties": true,
-                  "title": "Response Integration List Providers Api V1 Workspaces  Workspace Id  Integration Providers Get"
                 }
               }
             }
@@ -18376,6 +18376,89 @@
         "type": "object",
         "title": "EmailCreds"
       },
+      "EmbedOAuthAuthorizeRequest": {
+        "properties": {
+          "subject_id": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Subject Id"
+          },
+          "state": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "State"
+          },
+          "redirect_uri": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Redirect Uri"
+          },
+          "connection_config": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Connection Config"
+          },
+          "code_challenge": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Code Challenge"
+          }
+        },
+        "type": "object",
+        "required": [
+          "subject_id"
+        ],
+        "title": "EmbedOAuthAuthorizeRequest"
+      },
+      "EmbedUpsertConnectionRequest": {
+        "properties": {
+          "subject_id": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Subject Id"
+          },
+          "auth_type": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Auth Type"
+          },
+          "connection_config": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Connection Config"
+          },
+          "credentials": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Credentials"
+          }
+        },
+        "type": "object",
+        "required": [
+          "subject_id",
+          "auth_type"
+        ],
+        "title": "EmbedUpsertConnectionRequest",
+        "description": "End-user connection upsert for ``/connectors/embed/connections``."
+      },
       "ExchangeOAuthCodeRequest": {
         "properties": {
           "code": {
@@ -18717,89 +18800,6 @@
           "doc_id"
         ],
         "title": "IngestTextRequest"
-      },
-      "IntegrationOAuthAuthorizeRequest": {
-        "properties": {
-          "subject_id": {
-            "type": "string",
-            "minLength": 1,
-            "title": "Subject Id"
-          },
-          "state": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "State"
-          },
-          "redirect_uri": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Redirect Uri"
-          },
-          "connection_config": {
-            "additionalProperties": true,
-            "type": "object",
-            "title": "Connection Config"
-          },
-          "code_challenge": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Code Challenge"
-          }
-        },
-        "type": "object",
-        "required": [
-          "subject_id"
-        ],
-        "title": "IntegrationOAuthAuthorizeRequest"
-      },
-      "IntegrationUpsertConnectionRequest": {
-        "properties": {
-          "subject_id": {
-            "type": "string",
-            "minLength": 1,
-            "title": "Subject Id"
-          },
-          "auth_type": {
-            "type": "string",
-            "minLength": 1,
-            "title": "Auth Type"
-          },
-          "connection_config": {
-            "additionalProperties": true,
-            "type": "object",
-            "title": "Connection Config"
-          },
-          "credentials": {
-            "additionalProperties": true,
-            "type": "object",
-            "title": "Credentials"
-          }
-        },
-        "type": "object",
-        "required": [
-          "subject_id",
-          "auth_type"
-        ],
-        "title": "IntegrationUpsertConnectionRequest",
-        "description": "End-user connection upsert for ``/integration/connections``."
       },
       "InvokeConnectorPrimitiveRequest": {
         "properties": {

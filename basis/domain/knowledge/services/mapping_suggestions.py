@@ -6,8 +6,7 @@ import re
 from dataclasses import dataclass, field
 from typing import Any, Literal
 
-from basis.domain.integration.adapters.sql import SqlAlchemyStreamAdapter
-from basis.domain.integration.runtime import ConnectorRuntime
+from basis.domain.knowledge.connector_port import ConnectorRuntime, SqlAlchemyStreamAdapter
 from basis.domain.knowledge.structured_models import ColumnMappingSpec
 
 Confidence = Literal["high", "medium", "low"]

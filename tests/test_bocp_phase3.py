@@ -8,7 +8,7 @@ import sqlite3
 import pytest
 from sqlalchemy import create_engine, text
 
-from basis.domain.integration import ConnectorRuntime
+from basis.domain.connector import ConnectorRuntime
 from basis.domain.knowledge.services.connector_sync import ConnectorLedgerSyncService
 from basis.domain.knowledge.structured_models import ColumnMappingSpec
 from basis.infra.tooling.db.sqlite_migrations import run_migrations

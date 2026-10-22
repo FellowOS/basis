@@ -19,7 +19,7 @@ import pytest
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import make_url
 
-from basis.domain.integration import ConnectorRuntime
+from basis.domain.connector import ConnectorRuntime
 from basis.infra.tooling.db.sqlite_migrations import run_migrations
 
 

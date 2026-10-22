@@ -56,8 +56,8 @@ include = ["basis*"]
 
 [tool.setuptools.package-data]
 "basis.infra.tooling.db" = ["migrations/*.sql"]
-"basis.domain.integration" = ["providers/*.yaml", "providers/*.yml"]
-"basis.domain.integration.synthesis" = ["batches/*.yaml", "executors-index.json"]
+"basis.domain.connector" = ["providers/*.yaml", "providers/*.yml"]
+"basis.domain.connector.synthesis" = ["batches/*.yaml", "executors-index.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

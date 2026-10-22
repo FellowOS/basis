@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 import json
 from typing import Any
 
-from basis.domain.integration.canonical_db import LockedCanonicalConn
+from basis.domain.connector.canonical_db import LockedCanonicalConn
 
 
 def _staging_now_iso() -> str:

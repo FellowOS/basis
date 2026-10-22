@@ -68,7 +68,7 @@ test('integration connectors playground lists providers and saves end_user conne
   });
 
   const put = await page.request.put(
-    e2eWorkspaceApiPath(workspaceId, 'integration/connections/qq_mail'),
+    e2eWorkspaceApiPath(workspaceId, 'connectors/embed/connections/qq_mail'),
     {
       headers: {
         Authorization: `Bearer ${token}`,

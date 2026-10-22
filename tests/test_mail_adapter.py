@@ -2,11 +2,11 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock
 
-from basis.domain.integration.adapters.mail.actions import execute_mail_action
-from basis.domain.integration.adapters.mail.credentials import read_qq_mail_credential
-from basis.domain.integration.adapters.mail.protocol import ImapSmtpProtocol
-from basis.domain.integration.manifest_schema import MailProcedureExecutorSpec
-from basis.domain.integration.synthesis.merge import merge_service
+from basis.domain.connector.adapters.mail.actions import execute_mail_action
+from basis.domain.connector.adapters.mail.credentials import read_qq_mail_credential
+from basis.domain.connector.adapters.mail.protocol import ImapSmtpProtocol
+from basis.domain.connector.manifest_schema import MailProcedureExecutorSpec
+from basis.domain.connector.synthesis.merge import merge_service
 
 
 def test_read_qq_mail_credential_validates() -> None:

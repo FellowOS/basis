@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from basis.domain.integration import ConnectorAuthVault, ConnectorPolicy
+from basis.domain.connector import ConnectorAuthVault, ConnectorPolicy
 def test_resolve_primitive_execution_mode_entities_map() -> None:
     pol = ConnectorPolicy(
         workspace_id="kb1",
@@ -34,8 +34,8 @@ def test_resolve_primitive_execution_mode_entities_map() -> None:
 
 
 def test_primitive_disabled_blocks_invoke(tmp_path: Path) -> None:
-    from basis.domain.integration.primitive_invoke import execute_connector_primitive
-    from basis.domain.integration.runtime import ConnectorRuntime
+    from basis.domain.connector.primitive_invoke import execute_connector_primitive
+    from basis.domain.connector.runtime import ConnectorRuntime
     from basis.infra.tooling.db.sqlite_migrations import run_migrations
     import sqlite3
 

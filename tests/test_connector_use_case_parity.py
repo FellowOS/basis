@@ -1,0 +1,208 @@
+"""HTTP connector routes share application use cases with MCP operations."""
+
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+from fastapi.testclient import TestClient
+
+from basis.infra.runtime.config import Settings
+from basis.interface.http.app import create_app
+
+
+def _mcp_call(
+    client: TestClient,
+    workspace_id: str,
+    headers: dict[str, str],
+    name: str,
+    arguments: dict,
+) -> dict:
+    resp = client.post(
+        f"/api/v1/workspaces/{workspace_id}/mcp",
+        headers=headers,
+        json={
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "tools/call",
+            "params": {"name": name, "arguments": arguments},
+        },
+    )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["result"]["isError"] is False, body["result"].get("content")
+    return json.loads(body["result"]["content"][0]["text"])
+
+
+def _auth_client(tmp_path: Path) -> tuple[TestClient, str, dict[str, str]]:
+    client = TestClient(create_app(Settings(data_dir=tmp_path / "parity")))
+    reg = client.post(
+        "/api/v1/auth/register",
+        json={"email": "parity@basis.local", "password": "password123", "display_name": "P"},
+    )
+    assert reg.status_code == 200
+    headers = {"Authorization": f"Bearer {reg.json()['token']}"}
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
+    return client, workspace_id, headers
+
+
+def test_list_connections_http_matches_mcp_op(tmp_path: Path) -> None:
+    client, workspace_id, headers = _auth_client(tmp_path)
+    put = client.put(
+        f"/api/v1/workspaces/{workspace_id}/connectors/connections/postgres/default",
+        headers=headers,
+        json={
+            "connection_scope": "workspace",
+            "auth_type": "custom",
+            "connection_config": {"host": "localhost", "database": "db"},
+            "credentials": {"password": "secret"},
+        },
+    )
+    assert put.status_code == 200
+
+    mcp_list = _mcp_call(
+        client, workspace_id, headers, "list_connector_connections", {}
+    )
+    http_list = client.get(
+        f"/api/v1/workspaces/{workspace_id}/connectors/connections",
+        headers=headers,
+    )
+    assert http_list.status_code == 200
+
+    mcp_keys = {(c["service"], c["connection_name"]) for c in mcp_list["connections"]}
+    http_keys = {
+        (c["service"], c["connection_name"]) for c in http_list.json()["connections"]
+    }
+    assert mcp_keys == http_keys
+    assert ("postgres", "default") in mcp_keys
+
+
+def test_list_catalog_services_http_matches_mcp(tmp_path: Path) -> None:
+    client, workspace_id, headers = _auth_client(tmp_path)
+    params = {"has_streams_only": True, "limit": 25}
+    mcp_list = _mcp_call(
+        client,
+        workspace_id,
+        headers,
+        "list_connector_catalog",
+        params,
+    )
+    http_list = client.get(
+        f"/api/v1/workspaces/{workspace_id}/connectors/catalog",
+        headers=headers,
+        params=params,
+    )
+    assert http_list.status_code == 200
+    mcp_services = {c["service"] for c in mcp_list["connectors"]}
+    http_services = {c["service"] for c in http_list.json()["connectors"]}
+    assert mcp_services == http_services
+    assert "postgres" in mcp_services
+
+
+def test_describe_connector_service_http_matches_mcp(tmp_path: Path) -> None:
+    client, workspace_id, headers = _auth_client(tmp_path)
+    service = "postgres"
+    mcp_detail = _mcp_call(
+        client,
+        workspace_id,
+        headers,
+        "describe_connector_service",
+        {"service": service},
+    )
+    http_detail = client.get(
+        f"/api/v1/workspaces/{workspace_id}/connectors/catalog/{service}",
+        headers=headers,
+    )
+    assert http_detail.status_code == 200
+    http_conn = http_detail.json()["connector"]
+    mcp_conn = mcp_detail["connector"]
+    # HTTP returns full BOCP manifest JSON; MCP returns a catalog summary + stream/tool slices.
+    assert mcp_conn["service"] == http_conn["service"]
+    assert mcp_conn["display_name"] == http_conn["display_name"]
+    assert mcp_conn["stream_count"] >= 1
+    assert len(mcp_conn.get("streams") or []) >= 1
+
+
+def _mcp_mapping_slice(row: dict) -> tuple:
+    return (
+        row["id"],
+        row["provider"],
+        row["connection_name"],
+        row["stream_name"],
+        row["external_table"],
+        row["sync_direction"],
+        row["writeback_mode"],
+        row["status"],
+    )
+
+
+def test_list_table_mappings_http_matches_mcp(tmp_path: Path) -> None:
+    client, workspace_id, headers = _auth_client(tmp_path)
+    mcp_empty = _mcp_call(
+        client, workspace_id, headers, "list_connector_table_mappings", {"limit": 50}
+    )
+    http_empty = client.get(
+        f"/api/v1/workspaces/{workspace_id}/connectors/table-mappings",
+        headers=headers,
+    )
+    assert http_empty.status_code == 200
+    assert mcp_empty["mappings"] == []
+    assert http_empty.json()["mappings"] == []
+
+    ext_db = tmp_path / "parity-remote.db"
+    put_conn = client.put(
+        f"/api/v1/workspaces/{workspace_id}/connectors/connections/postgres/parity",
+        headers=headers,
+        json={
+            "auth_type": "database_dsn",
+            "connection_config": {"dsn": f"sqlite:///{ext_db}"},
+            "credentials": {},
+        },
+    )
+    assert put_conn.status_code == 200
+    map_resp = client.post(
+        f"/api/v1/workspaces/{workspace_id}/connectors/table-mappings",
+        headers=headers,
+        json={
+            "provider": "postgres",
+            "connection_name": "parity",
+            "stream_name": "table_records",
+            "external_table": "parity_items",
+            "primary_key_column": "id",
+            "cursor_column": "updated_at",
+            "label_column": "name",
+            "target_class_uri": "urn:basis:class:ParityItem",
+            "column_mappings": [],
+            "sync_direction": "inbound",
+            "writeback_mode": "disabled",
+        },
+    )
+    assert map_resp.status_code == 200
+    mapping_id = map_resp.json()["mapping"]["id"]
+
+    mcp_list = _mcp_call(
+        client, workspace_id, headers, "list_connector_table_mappings", {"limit": 200}
+    )
+    http_list = client.get(
+        f"/api/v1/workspaces/{workspace_id}/connectors/table-mappings",
+        headers=headers,
+    )
+    assert http_list.status_code == 200
+    mcp_by_id = {m["id"]: m for m in mcp_list["mappings"]}
+    http_rows = http_list.json()["mappings"]
+    assert set(mcp_by_id) == {r["id"] for r in http_rows}
+    assert mapping_id in mcp_by_id
+    for row in http_rows:
+        mcp_row = mcp_by_id[row["id"]]
+        assert _mcp_mapping_slice(mcp_row) == _mcp_mapping_slice(
+            {
+                "id": row["id"],
+                "provider": row["provider"],
+                "connection_name": row["connection_name"],
+                "stream_name": row["stream_name"],
+                "external_table": row["external_table"],
+                "sync_direction": row["sync_direction"],
+                "writeback_mode": row["writeback_mode"],
+                "status": row["status"],
+            }
+        )

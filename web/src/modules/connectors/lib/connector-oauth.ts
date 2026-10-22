@@ -98,8 +98,8 @@ export function readPkceVerifierForOAuthState(state: string): string | undefined
   return readOAuthStorageItem(PKCE_KEY_PREFIX + state) ?? undefined;
 }
 
-/** Client-side check for integration packed OAuth state (v1). */
-export function tryParseIntegrationOAuthState(
+/** Client-side check for connector embed packed OAuth state (v1). */
+export function tryParseConnectorOAuthState(
   state: string,
 ): { service: string; subject_id: string } | null {
   try {
@@ -127,7 +127,7 @@ export function resolveOAuthCallbackPending(
       return verifier ? { ...pending, codeVerifier: verifier } : pending;
     }
     if (pending.endUserSubjectId) {
-      const parsed = tryParseIntegrationOAuthState(state);
+      const parsed = tryParseConnectorOAuthState(state);
       if (
         parsed &&
         parsed.service === pending.service &&
@@ -143,7 +143,7 @@ export function resolveOAuthCallbackPending(
     }
   }
 
-  const parsed = tryParseIntegrationOAuthState(state);
+  const parsed = tryParseConnectorOAuthState(state);
   if (!parsed) {
     return null;
   }

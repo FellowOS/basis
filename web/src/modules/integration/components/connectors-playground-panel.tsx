@@ -1,23 +1,23 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { ConnectorConnectAuthFields } from '@/modules/connectors/components/connector-connect-auth-fields.js';
+import { PlaygroundConnectAuthFields } from '@/modules/integration/components/playground-connect-auth-fields.js';
 import {
   authModeDisplayLabel,
   connectorAuthCatalogEntries,
   findAuthCatalogEntry,
-} from '@/modules/connectors/lib/connector-auth-display.js';
+} from '@/modules/integration/lib/playground-auth-display.js';
 import {
   authFieldDefaultValues,
   buildObjectFromAuthFields,
   hasStructuredAuthForm,
-  type ConnectorAuthCatalogEntry,
-} from '@/modules/connectors/lib/connector-auth-fields.js';
+  type PlaygroundAuthCatalogEntry,
+} from '@/modules/integration/lib/playground-auth-fields.js';
 import {
   connectorAuthNeedsPkce,
   generatePkcePair,
-  savePendingConnectorOAuth,
-  workspaceConnectorOAuthRedirectUri,
-} from '@/modules/connectors/lib/connector-oauth.js';
+  savePlaygroundPendingOAuth,
+  workspacePlaygroundOAuthRedirectUri,
+} from '@/modules/integration/lib/playground-oauth.js';
 import {
   DataPanel,
   DataPanelBody,
@@ -80,7 +80,7 @@ type IntegrationProvider = {
   service: string;
   display_name?: string | null;
   description?: string | null;
-  auth?: ConnectorAuthCatalogEntry[];
+  auth?: PlaygroundAuthCatalogEntry[];
   streams?: Array<{ name: string; display_name?: string }>;
   tools?: Array<{ id: string; name?: string }>;
 };
@@ -168,12 +168,12 @@ export function ConnectorsPlaygroundPanel({ workspaceId }: ConnectorsPlaygroundP
       const [provRes, connRes] = await Promise.all([
         workspaceOpenApiGET<{ providers: IntegrationProvider[] }>(
           workspaceId,
-          'integration/providers',
+          'connectors/embed/providers',
           { params: { query: { limit: 100 } } },
         ),
         workspaceOpenApiGET<{ connections: PlaygroundConnection[] }>(
           workspaceId,
-          'integration/connections',
+          'connectors/embed/connections',
           { params: { query: { subject_id: subjectId } } },
         ),
       ]);
@@ -231,7 +231,7 @@ export function ConnectorsPlaygroundPanel({ workspaceId }: ConnectorsPlaygroundP
         : {};
       await workspaceOpenApiPUT<{ connection: PlaygroundConnection }>(
         workspaceId,
-        `integration/connections/${selectedProvider.service}`,
+        `connectors/embed/connections/${selectedProvider.service}`,
         {
           body: {
             subject_id: subjectId,
@@ -257,7 +257,7 @@ export function ConnectorsPlaygroundPanel({ workspaceId }: ConnectorsPlaygroundP
     const cfg = hasStructuredAuthForm(entry)
       ? buildObjectFromAuthFields(entry?.connection_config, configValues)
       : {};
-    const redirectUri = workspaceConnectorOAuthRedirectUri(workspaceId);
+    const redirectUri = workspacePlaygroundOAuthRedirectUri(workspaceId);
     let codeChallenge: string | undefined;
     let codeVerifier: string | undefined;
     if (connectorAuthNeedsPkce(selectedProvider.auth)) {
@@ -268,7 +268,7 @@ export function ConnectorsPlaygroundPanel({ workspaceId }: ConnectorsPlaygroundP
     try {
       const res = await workspaceOpenApiPOST<{ authorize_url: string; state: string }>(
         workspaceId,
-        `integration/oauth/${selectedProvider.service}/authorize-url`,
+        `connectors/embed/oauth/${selectedProvider.service}/authorize-url`,
         {
           body: {
             subject_id: subjectId,
@@ -278,7 +278,7 @@ export function ConnectorsPlaygroundPanel({ workspaceId }: ConnectorsPlaygroundP
           },
         },
       );
-      savePendingConnectorOAuth({
+      savePlaygroundPendingOAuth({
         workspaceId,
         service: selectedProvider.service,
         connectionName: 'default',
@@ -301,7 +301,7 @@ export function ConnectorsPlaygroundPanel({ workspaceId }: ConnectorsPlaygroundP
     try {
       await workspaceOpenApiPOST(
         workspaceId,
-        `integration/connections/${service}/check`,
+        `connectors/embed/connections/${service}/check`,
         { params: { query: { subject_id: subjectId } } },
       );
       toast.success(p.check_success);
@@ -314,7 +314,7 @@ export function ConnectorsPlaygroundPanel({ workspaceId }: ConnectorsPlaygroundP
 
   async function deleteConnection(service: string) {
     try {
-      await workspaceOpenApiDELETE(workspaceId, 'integration/connections/' + service, {
+      await workspaceOpenApiDELETE(workspaceId, 'connectors/embed/connections/' + service, {
         params: { query: { subject_id: subjectId } },
       });
       toast.success(p.delete_success);
@@ -522,7 +522,7 @@ export function ConnectorsPlaygroundPanel({ workspaceId }: ConnectorsPlaygroundP
               {hasStructuredAuthForm(authEntry) ? (
                 <>
                   {authEntry?.connection_config?.length ? (
-                    <ConnectorConnectAuthFields
+                    <PlaygroundConnectAuthFields
                       fields={authEntry.connection_config}
                       values={configValues}
                       onChange={(key, value) =>
@@ -532,7 +532,7 @@ export function ConnectorsPlaygroundPanel({ workspaceId }: ConnectorsPlaygroundP
                     />
                   ) : null}
                   {authEntry?.credentials?.length ? (
-                    <ConnectorConnectAuthFields
+                    <PlaygroundConnectAuthFields
                       fields={authEntry.credentials}
                       values={credValues}
                       onChange={(key, value) =>

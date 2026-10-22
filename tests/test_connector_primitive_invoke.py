@@ -10,8 +10,8 @@ import httpx
 import pytest
 from fastapi.testclient import TestClient
 
-from basis.domain.integration import ConnectorAuthVault, ConnectorRuntime
-from basis.domain.integration.primitive_invoke import execute_connector_primitive
+from basis.domain.connector import ConnectorAuthVault, ConnectorRuntime
+from basis.domain.connector.primitive_invoke import execute_connector_primitive
 from basis.infra.runtime.config import Settings
 from basis.interface.http.app import create_app
 from basis.infra.tooling.test_support.connector_integration import (

@@ -3,8 +3,8 @@ from typing import Any
 from fastapi import APIRouter, Depends, Query, Request
 from pydantic import BaseModel, Field
 
-from basis.domain.integration import get_connector_catalog
-from basis.domain.integration.allowlist import (
+from basis.domain.connector import get_connector_catalog
+from basis.domain.connector.allowlist import (
     assert_allowed_providers_in_catalog,
     count_platform_enabled,
     is_platform_provider_allowed,

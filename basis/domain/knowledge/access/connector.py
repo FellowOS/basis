@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any, TYPE_CHECKING
 
-from basis.domain.integration.canonical_db import LockedCanonicalConn
+from basis.domain.connector.canonical_db import LockedCanonicalConn
 from basis.domain.knowledge.sql_connector_sync import ConnectorSyncPersistence
 from basis.domain.knowledge.sql_connector_vault import ConnectorVaultPersistence
 
@@ -26,7 +26,7 @@ class ConnectorAccess:
         return LockedCanonicalConn(self._store).get_platform_allowed_providers()
 
     def connector_runtime(self):
-        from basis.domain.integration.runtime import ConnectorRuntime
+        from basis.domain.knowledge.connector_port import ConnectorRuntime
 
         return ConnectorRuntime(self._store)
 

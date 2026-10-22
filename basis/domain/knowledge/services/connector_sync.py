@@ -8,8 +8,12 @@ import json
 from typing import Any, Literal
 import uuid
 
-from basis.domain.integration.runtime import ConnectorRuntime, UnifiedReadResult
-from basis.domain.integration.canonical_db import LockedCanonicalConn, is_knowledge_store
+from basis.domain.knowledge.connector_port import (
+    ConnectorRuntime,
+    LockedCanonicalConn,
+    UnifiedReadResult,
+    is_knowledge_store,
+)
 from basis.domain.knowledge.sql_connector_sync import ConnectorSyncPersistence
 from basis.domain.knowledge.structured_models import (
     ColumnMappingSpec,
