@@ -2,7 +2,7 @@
 
 from fastapi.testclient import TestClient
 
-from basis.application.registry import TOOL_NAMES
+from basis.application.operation_registry import TOOL_NAMES
 from basis.interface.http.app import create_app
 from basis.interface.contract.openapi.spec import openapi_v1_full
 from basis.infra.runtime.config import Settings

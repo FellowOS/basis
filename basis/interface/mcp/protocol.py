@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from basis.application import WorkspaceCoreContext, execute
-from basis.application.registry import get_tool_definitions
+from basis.application.kernel import WorkspaceCoreContext
+from basis.interface.mcp.dispatch import execute, get_tool_definitions
 from basis.interface.mcp.tools import CAPABILITIES, PROTOCOL_VERSION, SERVER_INFO
 
 WorkspaceToolContext = WorkspaceCoreContext

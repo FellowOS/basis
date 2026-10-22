@@ -18,7 +18,7 @@ def op_describe_workspace(ctx: WorkspaceCoreContext, _args: dict[str, Any]) -> d
 
 
 def op_get_capabilities(ctx: WorkspaceCoreContext, _args: dict[str, Any]) -> dict[str, Any]:
-    from basis.application.mcp import TOOL_NAMES
+    from basis.application.operation_registry import TOOL_NAMES
     from basis.infra.runtime.capabilities import workspace_capabilities
 
     _, role = ctx.store.get_workspace_for(ctx.user, ctx.workspace.id, "viewer")

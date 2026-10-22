@@ -1,6 +1,7 @@
 """Core operation dispatch (R1)."""
 
-from basis.application.registry import TOOL_NAMES, execute
+from basis.application.operation_registry import TOOL_NAMES
+from basis.interface.mcp.dispatch import execute
 
 
 def test_tool_names_match_registry() -> None:

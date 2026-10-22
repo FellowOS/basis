@@ -1,7 +1,7 @@
 """MCP tool inputSchema is derived from OpenAPI (R3)."""
 
 from basis.interface.contract.mcp.openapi import MCP_TOOL_OPERATIONS, input_schema_for_tool
-from basis.application.registry import TOOL_DEFINITIONS
+from basis.interface.mcp.dispatch import TOOL_DEFINITIONS
 
 
 def test_mcp_tools_have_openapi_backed_schemas() -> None:

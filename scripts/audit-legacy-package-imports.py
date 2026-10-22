@@ -21,6 +21,7 @@ FORBIDDEN_PREFIXES = (
     "basis.interfaces",
     "basis.application.openapi",
     "basis.application.mcp",
+    "basis.application.registry",
     "basis.core",
     "basis.control",
     "basis.runtime",

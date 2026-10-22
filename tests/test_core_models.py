@@ -3,8 +3,8 @@
 import pytest
 from pydantic import ValidationError
 
-from basis.application.models import coerce_operation_args
-from basis.application.registry import run
+from basis.application.operation_registry import coerce_operation_args
+from basis.application.operation_registry import run
 
 
 def test_coerce_search_chunks_requires_query() -> None:
