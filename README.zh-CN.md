@@ -34,7 +34,10 @@ Basis 是基于 [Semantica](https://github.com/semantica-agi/semantica) Python S
   - [2. 启动 Web](#2-启动-web)
   - [3. 冒烟验证](#3-冒烟验证)
 - [配置（常用）](#配置常用)
-- [智能体集成（MCP）](#智能体集成mcp)
+- [智能体集成（OpenAPI 与 MCP）](#智能体集成openapi-与-mcp)
+  - [访问令牌](#访问令牌)
+  - [OpenAPI（REST）](#openapirest)
+  - [MCP（JSON-RPC）](#mcpjson-rpc)
 - [Semantica 依赖](#semantica-依赖)
 - [开发](#开发)
 - [部署方式](#部署方式)
@@ -112,6 +115,8 @@ cd web && npm install && npm run dev
 | `BASIS_DATA_DIR` | `./data` | SQLite、blob、图 JSON |
 | `BASIS_DATABASE_URL` | 空则 SQLite | 生产建议 PostgreSQL |
 | `BASIS_API_URL` | `http://127.0.0.1:8090` | Web 代理（`web/.env`） |
+| `BASIS_MCP_MAX_INFLIGHT` | `32` | MCP JSON-RPC 并发请求上限 |
+| `BASIS_MCP_TIMEOUT_SECONDS` | `60` | 单次 MCP 请求超时（秒） |
 
 详见 [.env.example](.env.example)。
 
@@ -120,13 +125,53 @@ cd web && npm install && npm run dev
 
 **备份：** `./scripts/backup_basis_data.sh`（SQLite）或 `./scripts/backup_basis_postgres.sh`（Postgres）。
 
-## 智能体集成（MCP）
+## 智能体集成（OpenAPI 与 MCP）
 
-在工作区设置中创建 **工作区 API 令牌**（设置 → 令牌）。MCP 端点：
+Basis 为智能体与自动化提供两种集成方式。**OpenAPI v1** 是 HTTP REST。**MCP** 是对同一套工作区操作的 HTTP JSON-RPC。二者共用**操作目录**与**工作区访问令牌**。
 
-`POST /api/v1/workspaces/{workspace_id}/mcp`，请求头 `Authorization: Bearer <token>`。
+在工作台打开 **Integration**（`/workspaces/{workspace_id}/integration`），可查看 MCP 地址、Cursor 配置、工作区 OpenAPI 探索器并管理令牌。
 
-示例 `tools/call`（先执行 `tools/list`）：
+### 访问令牌
+
+1. 进入工作区 **Integration → Access tokens**（需工作区管理员）。
+2. 创建令牌并复制密钥。每次集成请求使用 `Authorization: Bearer <token>`。
+3. 按需要选择 **scope**（`read`、`write` 或 `admin`）。
+
+MCP 与 OpenAPI 使用同一请求头。客户端应指向 **Basis API**（例如 `http://127.0.0.1:8090`），而非 Vite 开发端口（`5173`）。
+
+### OpenAPI（REST）
+
+**在线规范**（在 `uv run basis` 运行时）：
+
+| 文档 | URL |
+| --- | --- |
+| 完整 v1 | `http://127.0.0.1:8090/openapi/v1.json` |
+| 工作区集成（智能体） | `http://127.0.0.1:8090/openapi/v1/workspaces.json` |
+| 平台（登录、组织、设置） | `http://127.0.0.1:8090/openapi/v1/platform.json` |
+
+**Swagger UI：** `http://127.0.0.1:8090/swagger`（全量 API）。Integration 页的 **OpenAPI** 标签可将 Try it out 限定在当前工作区。
+
+**HTTP 前缀：** `http://127.0.0.1:8090/api/v1/workspaces/{workspace_id}/…`，并携带上述 Bearer 令牌。
+
+示例（读取工作区）：
+
+```bash
+curl -sS "http://127.0.0.1:8090/api/v1/workspaces/YOUR_WORKSPACE_ID" \
+  -H "Authorization: Bearer YOUR_WORKSPACE_TOKEN"
+```
+
+可用 `workspaces.json` 生成客户端，或按 `operationId` 调用路径。仓库 `openapi/` 下有供 CI 对照的快照。
+
+### MCP（JSON-RPC）
+
+**发现（GET）：** 返回 `mcp_url`、`tools` 与 `cursor_example`。
+
+```bash
+curl -sS "http://127.0.0.1:8090/api/v1/workspaces/YOUR_WORKSPACE_ID/mcp" \
+  -H "Authorization: Bearer YOUR_WORKSPACE_TOKEN"
+```
+
+**传输（POST）：** 同一 URL，JSON-RPC 2.0 请求体。常见顺序为 `initialize`，再 `tools/list`，再 `tools/call`。
 
 ```bash
 curl -sS "http://127.0.0.1:8090/api/v1/workspaces/YOUR_WORKSPACE_ID/mcp" \
@@ -135,7 +180,22 @@ curl -sS "http://127.0.0.1:8090/api/v1/workspaces/YOUR_WORKSPACE_ID/mcp" \
   -d '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"describe_workspace","arguments":{}}}'
 ```
 
-工具名与 HTTP 路径共用同一操作目录。API 运行时可查看 **`/openapi/v1/workspaces.json`**。
+**Cursor / `mcp.json`**（替换工作区 id 与令牌）：
+
+```json
+{
+  "mcpServers": {
+    "basis-workspace": {
+      "url": "http://127.0.0.1:8090/api/v1/workspaces/YOUR_WORKSPACE_ID/mcp",
+      "headers": {
+        "Authorization": "Bearer <your-api-token>"
+      }
+    }
+  }
+}
+```
+
+服务端并发与超时见 `BASIS_MCP_MAX_INFLIGHT`、`BASIS_MCP_TIMEOUT_SECONDS`（[配置（常用）](#配置常用)）。
 
 ## Semantica 依赖
 

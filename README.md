@@ -34,7 +34,10 @@ Basis is an open-source stack built on the [Semantica](https://github.com/semant
   - [2. Run Web](#2-run-web)
   - [3. Smoke-test in the UI](#3-smoke-test-in-the-ui)
 - [Configuration (essentials)](#configuration-essentials)
-- [Agent integration (MCP)](#agent-integration-mcp)
+- [Agent integration (OpenAPI and MCP)](#agent-integration-openapi-and-mcp)
+  - [Access tokens](#access-tokens)
+  - [OpenAPI (REST)](#openapi-rest)
+  - [MCP (JSON-RPC)](#mcp-json-rpc)
 - [Semantica dependency](#semantica-dependency)
 - [Development](#development)
 - [Deployment](#deployment)
@@ -112,6 +115,8 @@ This path is **self-hosted** dev. For the **desktop app** or **managed cloud**, 
 | `BASIS_DATA_DIR` | `./data` | SQLite, blobs, graph JSON |
 | `BASIS_DATABASE_URL` | *(unset → SQLite)* | PostgreSQL for production |
 | `BASIS_API_URL` | `http://127.0.0.1:8090` | Web dev proxy (`web/.env`) |
+| `BASIS_MCP_MAX_INFLIGHT` | `32` | Concurrent MCP JSON-RPC requests |
+| `BASIS_MCP_TIMEOUT_SECONDS` | `60` | Per-request MCP timeout (seconds) |
 
 Full list: [.env.example](.env.example).
 
@@ -120,13 +125,53 @@ Full list: [.env.example](.env.example).
 
 **Backups:** `./scripts/backup_basis_data.sh` (SQLite) or `./scripts/backup_basis_postgres.sh` (Postgres).
 
-## Agent integration (MCP)
+## Agent integration (OpenAPI and MCP)
 
-Create a **workspace API token** (workspace settings → Tokens). MCP endpoint:
+Basis exposes two integration surfaces for agents and automation. **OpenAPI v1** is REST over HTTP. **MCP** is JSON-RPC over HTTP to the same workspace operations. They share one **operation catalog** and the same **workspace access tokens**.
 
-`POST /api/v1/workspaces/{workspace_id}/mcp` with `Authorization: Bearer <token>`.
+In the studio, open **Integration** (`/workspaces/{workspace_id}/integration`) for MCP URL, Cursor config, workspace OpenAPI explorer, and token management.
 
-Example `tools/call` (after `tools/list`):
+### Access tokens
+
+1. In the workspace, go to **Integration → Access tokens** (workspace admin).
+2. Create a token and copy the secret. Use `Authorization: Bearer <token>` on every integration call.
+3. Choose a **scope** (`read`, `write`, or `admin`) that matches what your agent needs.
+
+MCP and OpenAPI both use this header. Point clients at the **Basis API** (for example `http://127.0.0.1:8090`), not the Vite dev port (`5173`).
+
+### OpenAPI (REST)
+
+**Live specs** (while `uv run basis` is up):
+
+| Document | URL |
+| --- | --- |
+| Full v1 | `http://127.0.0.1:8090/openapi/v1.json` |
+| Workspace integration (agents) | `http://127.0.0.1:8090/openapi/v1/workspaces.json` |
+| Platform (auth, orgs, settings) | `http://127.0.0.1:8090/openapi/v1/platform.json` |
+
+**Swagger UI:** `http://127.0.0.1:8090/swagger` (full API). The Integration **OpenAPI** tab scopes Try it out to the current workspace.
+
+**HTTP base:** `http://127.0.0.1:8090/api/v1/workspaces/{workspace_id}/…` with the bearer token above.
+
+Example workspace read:
+
+```bash
+curl -sS "http://127.0.0.1:8090/api/v1/workspaces/YOUR_WORKSPACE_ID" \
+  -H "Authorization: Bearer YOUR_WORKSPACE_TOKEN"
+```
+
+Generate clients from `workspaces.json` or call paths by `operationId`. Snapshots for CI live under `openapi/` in the repo.
+
+### MCP (JSON-RPC)
+
+**Discovery (GET):** returns `mcp_url`, `tools`, and a `cursor_example` block.
+
+```bash
+curl -sS "http://127.0.0.1:8090/api/v1/workspaces/YOUR_WORKSPACE_ID/mcp" \
+  -H "Authorization: Bearer YOUR_WORKSPACE_TOKEN"
+```
+
+**Transport (POST):** same URL, JSON-RPC 2.0 body. Typical flow is `initialize`, then `tools/list`, then `tools/call`.
 
 ```bash
 curl -sS "http://127.0.0.1:8090/api/v1/workspaces/YOUR_WORKSPACE_ID/mcp" \
@@ -135,7 +180,22 @@ curl -sS "http://127.0.0.1:8090/api/v1/workspaces/YOUR_WORKSPACE_ID/mcp" \
   -d '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"describe_workspace","arguments":{}}}'
 ```
 
-Tool names and HTTP paths share the same operation catalog. See live **`/openapi/v1/workspaces.json`** when the API is running.
+**Cursor / `mcp.json`** (replace workspace id and token):
+
+```json
+{
+  "mcpServers": {
+    "basis-workspace": {
+      "url": "http://127.0.0.1:8090/api/v1/workspaces/YOUR_WORKSPACE_ID/mcp",
+      "headers": {
+        "Authorization": "Bearer <your-api-token>"
+      }
+    }
+  }
+}
+```
+
+Tune server-side limits with `BASIS_MCP_MAX_INFLIGHT` and `BASIS_MCP_TIMEOUT_SECONDS` (see [Configuration (essentials)](#configuration-essentials)).
 
 ## Semantica dependency
 
