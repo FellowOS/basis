@@ -123,7 +123,8 @@ export default {
       dialog_title: "Cross-stream mapping suggestions",
       dialog_description: "Grouped entity drafts from DISCOVER across your connections. Selected rows are saved to connector mappings and synced once.",
       loading: "Generating suggestions…",
-      empty: "No suggestions available. Add REST connections or list SQL tables, then try again.",
+      empty:
+        "No suggestions available. SQL connections auto-list tables when the field is empty; otherwise verify the connection or use a REST connector (e.g. GitHub) with valid credentials.",
       skipped_summary: "{count} target(s) skipped (already mapped or discover failed).",
       cancel_button: "Cancel",
       apply_button: "Save & sync ({count})",

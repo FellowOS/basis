@@ -123,7 +123,8 @@ export default {
       dialog_title: "跨 stream 映射建议",
       dialog_description: "基于各连接的 DISCOVER 按实体类型分组。所选行将写入连接器映射并执行一次同步。",
       loading: "正在生成建议…",
-      empty: "暂无建议。请添加 REST 连接或填写 SQL 表名后重试。",
+      empty:
+        "暂无建议。SQL 连接会尝试自动枚举库表；若仍为空，请检查连接测试是否通过，或为 REST 类连接（如 GitHub）配置有效凭证。",
       skipped_summary: "已跳过 {count} 个目标（已映射或发现失败）。",
       cancel_button: "取消",
       apply_button: "保存并同步（{count}）",

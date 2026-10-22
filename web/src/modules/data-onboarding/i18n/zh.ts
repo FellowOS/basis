@@ -14,7 +14,8 @@ export default {
     open_catalog: "打开连接器目录",
     sql_tables_label: "SQL 表（可选）",
     sql_tables_placeholder: "accounts\ncustomers\npostgres:orders",
-    sql_tables_hint: "每行一张表。多个 SQL 连接时可用服务名前缀（例如 postgres:public.users）。",
+    sql_tables_hint:
+      "可选。留空时将对 SQL 连接自动枚举库表（最多 8 张）生成建议；也可每行指定一张表，多连接时用服务名前缀（例如 postgres:orders）。",
     continue_to_suggest: "生成映射建议",
     suggest_title: "跨 stream 实体建议",
     suggest_subtitle: "按推断实体类型分组审阅草稿，保存并同步。",

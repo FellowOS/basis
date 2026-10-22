@@ -14,7 +14,8 @@ export default {
     open_catalog: "Open connector catalog",
     sql_tables_label: "SQL tables (optional)",
     sql_tables_placeholder: "accounts\ncustomers\npostgres:orders",
-    sql_tables_hint: "One table per line. Prefix with service name for multiple SQL connections (e.g. postgres:public.users).",
+    sql_tables_hint:
+      "Optional. Leave empty to auto-list tables from SQL connections (up to 8), or enter one table per line. Use a service prefix when multiple SQL connections exist (e.g. postgres:orders).",
     continue_to_suggest: "Suggest mappings",
     suggest_title: "Cross-stream mapping suggestions",
     suggest_subtitle: "Review drafts grouped by entity type, then save and sync.",

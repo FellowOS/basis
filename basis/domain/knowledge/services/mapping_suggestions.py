@@ -6,6 +6,7 @@ import re
 from dataclasses import dataclass, field
 from typing import Any, Literal
 
+from basis.domain.integration.adapters.sql import SqlAlchemyStreamAdapter
 from basis.domain.integration.runtime import ConnectorRuntime
 from basis.domain.knowledge.structured_models import ColumnMappingSpec
 
@@ -162,6 +163,34 @@ def expand_auto_targets(
     for conn in connections:
         manifest = runtime.catalog.get(conn.service)
         if not manifest or not manifest.streams:
+            continue
+        sql_stream = next(
+            (s for s in manifest.streams if runtime._is_sql_stream(s)),
+            None,
+        )
+        if sql_stream is not None:
+            try:
+                _, connection = runtime._require_manifest_and_connection(
+                    workspace_id,
+                    conn.service,
+                    conn.connection_name,
+                )
+                adapter = SqlAlchemyStreamAdapter.from_connection(connection)
+                try:
+                    tables = adapter.list_tables()[:max_streams_per_connection]
+                finally:
+                    adapter.close()
+                for table in tables:
+                    targets.append(
+                        SuggestStreamTarget(
+                            provider=conn.service,
+                            connection_name=conn.connection_name,
+                            stream_name=sql_stream.name,
+                            external_table=table,
+                        )
+                    )
+            except Exception:
+                continue
             continue
         streams = manifest.streams[:max_streams_per_connection]
         for stream in streams:

@@ -100,3 +100,53 @@ def test_suggest_http_with_sql_table(tmp_path: Path) -> None:
     assert batch.status_code == 200
     assert len(batch.json()["mappings"]) == 1
     assert batch.json()["sync_results"]
+
+
+def test_suggest_http_auto_lists_sql_tables_without_sql_tables_body(tmp_path: Path) -> None:
+    ext_db_path = tmp_path / "erp_auto.db"
+    ext_engine = create_engine(f"sqlite:///{ext_db_path}")
+    with ext_engine.begin() as ext_conn:
+        ext_conn.execute(
+            text(
+                """
+                CREATE TABLE customers (
+                    customer_id TEXT PRIMARY KEY,
+                    customer_name TEXT NOT NULL
+                )
+                """
+            )
+        )
+    ext_engine.dispose()
+
+    client = TestClient(create_app(Settings(data_dir=tmp_path / "basis_data_auto")))
+    reg = client.post(
+        "/api/v1/auth/register",
+        json={
+            "email": "auto@basis.local",
+            "password": "password123",
+            "display_name": "Admin",
+        },
+    )
+    headers = {"Authorization": f"Bearer {reg.json()['token']}"}
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
+
+    client.put(
+        f"/api/v1/workspaces/{workspace_id}/connectors/connections/postgres/erp",
+        headers=headers,
+        json={
+            "auth_type": "database_dsn",
+            "connection_config": {"dsn": f"sqlite:///{ext_db_path}"},
+            "credentials": {"username": "u", "password": "p"},
+        },
+    )
+
+    suggest = client.post(
+        f"/api/v1/workspaces/{workspace_id}/connectors/table-mappings/suggest",
+        headers=headers,
+        json={},
+    )
+    assert suggest.status_code == 200
+    data = suggest.json()
+    assert data["groups"], data
+    draft = data["groups"][0]["drafts"][0]["draft"]
+    assert draft["external_table"] == "customers"
