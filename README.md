@@ -1,19 +1,41 @@
 # Basis — Let agents understand real business
 
-**Ontology-driven enterprise business semantics layer.**
+<div align="center">
 
-Map documents, databases, and SaaS to **entities, types, and governed facts**—the shared meaning layer above raw systems. Expose **OpenAPI v1** and **MCP** on desktop, self-hosted, or cloud; state changes go through review, not silent API calls.
-
-Basis is an open-source stack on the [Semantica](https://github.com/semantica-agi/semantica) Python SDK: a **FastAPI** backend (`basis`) and a **React studio** (`@basis/web`). **Business semantics**—mappings, ontologies, rules, SHACL—sit on a canonical **evidence ledger**; graph and search are **rebuildable projections**.
-
-[简体中文](./README.zh-CN.md)
+[English](./README.md) · [简体中文](./README.zh-CN.md)
 
 [![CI](https://github.com/FellowOS/basis/actions/workflows/ci.yml/badge.svg)](https://github.com/FellowOS/basis/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10--3.13-blue.svg)](pyproject.toml)
 [![Node](https://img.shields.io/badge/node-%3E%3D22-green.svg)](web/package.json)
 
+</div>
+
+**Ontology-driven enterprise business semantics layer.**
+
+Map documents, databases, and SaaS to **entities, types, and governed facts**—the shared meaning layer above raw systems. Expose **OpenAPI v1** and **MCP** on desktop, self-hosted, or cloud; state changes go through review, not silent API calls.
+
+Basis is an open-source stack on the [Semantica](https://github.com/semantica-agi/semantica) Python SDK: a **FastAPI** backend (`basis`) and a **React studio** (`@basis/web`). **Business semantics**—mappings, ontologies, rules, SHACL—sit on a canonical **evidence ledger**; graph and search are **rebuildable projections**.
+
 > **Status:** Early development (`0.1.x`). HTTP and MCP surfaces are stabilizing; pin releases for production pilots.
+
+## Table of contents
+
+- [Features](#features)
+- [Architecture](#architecture)
+- [Quick start](#quick-start)
+  - [Prerequisites](#prerequisites)
+  - [1. Clone and configure API](#1-clone-and-configure-api)
+  - [2. Run Web](#2-run-web)
+  - [3. Smoke-test in the UI](#3-smoke-test-in-the-ui)
+  - [Desktop (optional, no login)](#desktop-optional-no-login)
+- [Agent integration (MCP)](#agent-integration-mcp)
+- [Why Basis](#why-basis)
+- [Configuration (essentials)](#configuration-essentials)
+- [Semantica dependency](#semantica-dependency)
+- [Development](#development)
+- [Community](#community)
+- [License](#license)
 
 <p align="center">
   <img src="assets/graph.png" alt="Basis graph workspace — force-directed ledger projection, ontology navigation, temporal scrubber" width="900" style="border-radius: 12px;" />

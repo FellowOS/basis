@@ -1,17 +1,41 @@
 # Basis — 让智能体读懂真实业务
 
+<div align="center">
+
+[English](./README.md) · [简体中文](./README.zh-CN.md)
+
+[![CI](https://github.com/FellowOS/basis/actions/workflows/ci.yml/badge.svg)](https://github.com/FellowOS/basis/actions/workflows/ci.yml)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.10--3.13-blue.svg)](pyproject.toml)
+[![Node](https://img.shields.io/badge/node-%3E%3D22-green.svg)](web/package.json)
+
+</div>
+
 **本体驱动的企业业务语义层。**
 
 将文档、库表与 SaaS 对齐为**实体、类型与可治理事实**，在源系统之上形成可复用的共享语义，而不是另一套碎片索引。支持桌面、自托管与云端部署，通过 **OpenAPI v1** 与 **MCP** 对外集成；写回业务状态须经审核，而非裸调 API。
 
 Basis 是基于 [Semantica](https://github.com/semantica-agi/semantica) Python SDK 的开源底座：**FastAPI 后端**（`basis`）+ **React 工作台**（`@basis/web`）。**业务语义**（映射、本体、规则、SHACL）落在**证据账本**之上；图与搜索为**可重建投影**。
 
-[English](./README.md)
-
-[![CI](https://github.com/FellowOS/basis/actions/workflows/ci.yml/badge.svg)](https://github.com/FellowOS/basis/actions/workflows/ci.yml)
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
-
 > **状态：** 早期开发（`0.1.x`）。HTTP / MCP 契约仍在收敛；生产试点请锁定版本。
+
+## 目录
+
+- [能力概览](#能力概览)
+- [架构](#架构)
+- [快速开始](#快速开始)
+  - [环境](#环境)
+  - [1. 克隆并启动 API](#1-克隆并启动-api)
+  - [2. 启动 Web](#2-启动-web)
+  - [3. 冒烟验证](#3-冒烟验证)
+  - [桌面版（可选、免登录）](#桌面版可选免登录)
+- [智能体集成（MCP）](#智能体集成mcp)
+- [产品定位](#产品定位)
+- [配置（常用）](#配置常用)
+- [Semantica 依赖](#semantica-依赖)
+- [开发](#开发)
+- [社区](#社区)
+- [许可证](#许可证)
 
 <p align="center">
   <img src="assets/graph.png" alt="Basis 图谱工作区 — 力导向图、本体导航、时间轴回放" width="900" style="border-radius: 12px;" />
