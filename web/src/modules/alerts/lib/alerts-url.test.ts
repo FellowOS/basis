@@ -5,7 +5,7 @@ import {
   processingAlertEpisodeKey,
 } from '@/modules/alerts/lib/alerts-url.js';
 
-describe('kb-alerts-url', () => {
+describe('workspace-alerts-url', () => {
   it('builds episode deep links', () => {
     expect(processingAlertEpisodeKey('job-1')).toBe('processing:job-1');
     expect(workspaceAlertsPath('kb-1', { episodeKey: 'processing:job-1' })).toBe(

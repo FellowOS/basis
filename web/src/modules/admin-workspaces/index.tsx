@@ -19,7 +19,7 @@ import { usePlatformAdminCrumbs } from '@/lib/admin/use-platform-admin-crumbs.js
 import { workspaceMemberRoleLabel, workspaceVisibilityLabel } from '@/modules/settings/lib/settings-labels.js';
 import { useApiErrorMessage } from '@/lib/errors/use-api-error-message.js';
 
-type Kb = {
+type WorkspaceRow = {
   id: string;
   name: string;
   description: string;
@@ -41,32 +41,32 @@ export function WorkspacesPage() {
     void refresh().catch((err) => setError(apiError(err)));
   }, [refresh, apiError]);
 
-  async function onCreated(kb: { id: string }) {
-    writeActiveWorkspaceId(kb.id);
+  async function onCreated(workspace: { id: string }) {
+    writeActiveWorkspaceId(workspace.id);
     await refresh();
-    navigate(workspacePath(kb.id, 'graph'));
+    navigate(workspacePath(workspace.id, 'graph'));
   }
 
-  const columns = useMemo<DataTableColumn<Kb>[]>(
+  const columns = useMemo<DataTableColumn<WorkspaceRow>[]>(
     () => [
-      { key: 'name', header: p.col_name, render: (kb) => <span className="font-medium">{kb.name}</span> },
+      { key: 'name', header: p.col_name, render: (row) => <span className="font-medium">{row.name}</span> },
       {
         key: 'visibility',
         header: p.col_visibility,
-        render: (kb) => workspaceVisibilityLabel(ks, kb.visibility),
+        render: (row) => workspaceVisibilityLabel(ks, row.visibility),
       },
-      { key: 'role', header: p.col_my_role, render: (kb) => workspaceMemberRoleLabel(ks, kb.my_role) },
+      { key: 'role', header: p.col_my_role, render: (row) => workspaceMemberRoleLabel(ks, row.my_role) },
       {
         key: 'actions',
         header: p.col_actions,
         align: 'right',
-        render: (kb) => (
+        render: (row) => (
           <div className="text-sm">
-            <Link className="text-primary hover:underline" to={`/workspaces/${kb.id}/graph`}>
+            <Link className="text-primary hover:underline" to={`/workspaces/${row.id}/graph`}>
               {p.open}
             </Link>
             {' · '}
-            <Link className="text-primary hover:underline" to={`/workspaces/${kb.id}/settings`}>
+            <Link className="text-primary hover:underline" to={`/workspaces/${row.id}/settings`}>
               {p.settings}
             </Link>
           </div>
@@ -107,7 +107,7 @@ export function WorkspacesPage() {
             />
           ) : (
             <>
-              <DataTable columns={columns} data={workspaces} rowKey={(kb) => kb.id} className="border-0" />
+              <DataTable columns={columns} data={workspaces} rowKey={(row) => row.id} className="border-0" />
               <DataPanelTableFooter
                 countLabel={countLabel}
                 page={1}

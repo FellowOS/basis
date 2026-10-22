@@ -23,7 +23,7 @@ from basis.domain.integration import ConnectorRuntime
 from basis.infra.tooling.db.sqlite_migrations import run_migrations
 
 
-def _setup_kb_db(tmp_path: Path) -> sqlite3.Connection:
+def _setup_workspace_db(tmp_path: Path) -> sqlite3.Connection:
     db = tmp_path / "bocp_sql_integration.db"
     conn = sqlite3.connect(str(db))
     run_migrations(conn)
@@ -132,7 +132,7 @@ def test_sql_connector_postgres_check_discover_read_mutate(
     conn_cfg, creds = _connection_fields_from_url(postgres_sql_target_url)
     conn_cfg["schema"] = "public"
 
-    conn = _setup_kb_db(tmp_path)
+    conn = _setup_workspace_db(tmp_path)
     try:
         runtime = ConnectorRuntime(conn, vault_secret="test-secret")
         runtime.vault.upsert_connection(
@@ -196,7 +196,7 @@ def test_sql_connector_mysql_check_discover_read_mutate(
     _seed_customers_table(mysql_url, table_name=table, dialect="mysql")
     conn_cfg, creds = _connection_fields_from_url(mysql_url)
 
-    conn = _setup_kb_db(tmp_path)
+    conn = _setup_workspace_db(tmp_path)
     try:
         runtime = ConnectorRuntime(conn, vault_secret="test-secret")
         runtime.vault.upsert_connection(

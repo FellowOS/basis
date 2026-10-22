@@ -13,7 +13,7 @@ function desktopApiProxyTarget(): string {
 
 export default defineConfig(({ mode }) => ({
   // Packaged desktop serves SPA over http://127.0.0.1 — use root-relative assets so
-  // deep routes (/kbs/...) still load /assets/* (relative `./` breaks after navigation).
+  // deep routes (/workspaces/...) still load /assets/* (relative `./` breaks after navigation).
   base: '/',
   server:
     mode === 'desktop'

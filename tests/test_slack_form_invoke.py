@@ -11,7 +11,7 @@ from basis.domain.integration.primitive_invoke import execute_connector_primitiv
 from basis.infra.tooling.db.sqlite_migrations import run_migrations
 
 
-def _setup_kb_db(tmp_path: Path):
+def _setup_workspace_db(tmp_path: Path):
     import sqlite3
 
     conn = sqlite3.connect(str(tmp_path / "basis.db"))
@@ -46,7 +46,7 @@ def test_slack_post_message_invoke_uses_form_body(tmp_path: Path) -> None:
         return httpx.Response(404)
 
     mock_client = httpx.Client(transport=httpx.MockTransport(handler))
-    conn = _setup_kb_db(tmp_path)
+    conn = _setup_workspace_db(tmp_path)
     try:
         vault = ConnectorAuthVault(conn, vault_secret="test-secret")
         vault.upsert_connection(

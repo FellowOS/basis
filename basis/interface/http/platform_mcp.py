@@ -8,7 +8,7 @@ from typing import Any
 from fastapi import APIRouter, Header, HTTPException, Request
 
 from basis.interface.http.deps import get_store, resolve_bearer
-from basis.interface.http.kb_core_context import build_workspace_core_context
+from basis.interface.http.core_context import build_workspace_core_context
 from basis.interface.mcp.protocol import handle_batch
 from basis.application.registry import TOOL_NAMES, get_tool_definitions
 from basis.interface.mcp.tools import PROTOCOL_VERSION
@@ -33,7 +33,7 @@ Mcp Integration Info. MCP JSON-RPC transport for agent integrations. Requires wo
     mcp_url = f"{base}/api/v1/workspaces/{workspace_id}/mcp"
     return {
         "workspace_id": workspace_id,
-        "kb_name": ctx.workspace.name,
+        "workspace_name": ctx.workspace.name,
         "mcp_url": mcp_url,
         "transport": "http",
         "protocol_version": PROTOCOL_VERSION,
@@ -42,7 +42,7 @@ Mcp Integration Info. MCP JSON-RPC transport for agent integrations. Requires wo
         "static_tools": list(TOOL_NAMES),
         "cursor_example": {
             "mcpServers": {
-                "basis-kb": {
+                "basis-workspace": {
                     "url": mcp_url,
                     "headers": {"Authorization": "Bearer <your-api-token>"},
                 }

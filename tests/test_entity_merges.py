@@ -10,7 +10,7 @@ from fastapi.testclient import TestClient
 
 from basis.domain.tenancy.admin.store import AdminStore
 from basis.interface.http.app import create_app
-from basis.infra.runtime.capabilities import kb_graph_runtime_available
+from basis.infra.runtime.capabilities import graph_runtime_available
 from basis.infra.runtime.config import Settings
 from basis.domain.graph.projection.projector import rebuild_graph_from_ledger
 from basis.domain.graph.projection.snapshot_store import GraphPersistence
@@ -45,7 +45,7 @@ def test_record_and_list_entity_merges(tmp_path: Path) -> None:
 
 
 def test_approve_entity_merge_records_ledger_rows(tmp_path: Path) -> None:
-    if not kb_graph_runtime_available():
+    if not graph_runtime_available():
         pytest.skip("explorer extra not installed")
 
     settings = Settings(data_dir=tmp_path)
@@ -56,7 +56,7 @@ def test_approve_entity_merge_records_ledger_rows(tmp_path: Path) -> None:
         json={"email": "ap@example.com", "password": "password1", "display_name": "Ap"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
 
     knowledge: KnowledgeStore = app.state.knowledge_store
     primary = knowledge.create_entity(workspace_id, canonical_label="Alice")
@@ -64,7 +64,7 @@ def test_approve_entity_merge_records_ledger_rows(tmp_path: Path) -> None:
     session = rebuild_graph_from_ledger(knowledge, workspace_id)
     revision = knowledge.bump_projection_revision(workspace_id)
     app.state.graph_persistence.save(workspace_id, session, projection_revision=revision)
-    app.state.kb_graph_session_registry.invalidate(workspace_id)
+    app.state.graph_session_registry.invalidate(workspace_id)
 
     proposed = client.post(
         f"/api/v1/workspaces/{workspace_id}/review/items/entity-merge",
@@ -121,7 +121,7 @@ def test_revert_entity_merge(tmp_path: Path) -> None:
 
 
 def test_revert_entity_merge_refreshes_explorer_nodes(tmp_path: Path) -> None:
-    if not kb_graph_runtime_available():
+    if not graph_runtime_available():
         pytest.skip("explorer extra not installed")
 
     settings = Settings(data_dir=tmp_path)
@@ -132,7 +132,7 @@ def test_revert_entity_merge_refreshes_explorer_nodes(tmp_path: Path) -> None:
         json={"email": "revx@example.com", "password": "password1", "display_name": "Rev"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
     knowledge: KnowledgeStore = app.state.knowledge_store
 
     _, version_id, _, _ = knowledge.store_upload_bytes(
@@ -211,7 +211,7 @@ def test_revert_entity_merge_http(tmp_path: Path) -> None:
         json={"email": "http@example.com", "password": "password1", "display_name": "Http"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
     knowledge: KnowledgeStore = app.state.knowledge_store
     source = knowledge.create_entity(workspace_id, canonical_label="S")
     target = knowledge.create_entity(workspace_id, canonical_label="T")

@@ -135,7 +135,7 @@ export function WorkspaceSettingsPage() {
   const { caps } = useWorkspaceCapabilities();
   const tab = searchParams.get('tab') ?? 'general';
 
-  const [kb, setKb] = useState<WorkspaceRecord | null>(null);
+  const [workspace, setWorkspace] = useState<WorkspaceRecord | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
   const [users, setUsers] = useState<UserRow[]>([]);
   const [targetUser, setTargetUser] = useState('');
@@ -161,8 +161,8 @@ export function WorkspaceSettingsPage() {
   const [memberAddOpen, setMemberAddOpen] = useState(false);
   const [addingMember, setAddingMember] = useState(false);
 
-  const catalogKb = id ? getWorkspace(id) : undefined;
-  const name = catalogKb?.name ?? kb?.name ?? id ?? t.core.common.ellipsis;
+  const catalogWorkspace = id ? getWorkspace(id) : undefined;
+  const name = catalogWorkspace?.name ?? workspace?.name ?? id ?? t.core.common.ellipsis;
 
   useEffect(() => {
     if (!id) return;
@@ -172,8 +172,8 @@ export function WorkspaceSettingsPage() {
       openApiGET<{ users: UserRow[] }>('/api/v1/users'),
       workspaceOpenApiGET<SearchConfigResponse>(id, 'search/config'),
     ])
-      .then(([kbBody, membersBody, usersBody, searchBody]) => {
-        setKb(kbBody);
+      .then(([workspaceBody, membersBody, usersBody, searchBody]) => {
+        setWorkspace(workspaceBody);
         setMembers(membersBody.members);
         setUsers(usersBody.users);
         setSearchConfig(searchBody);
@@ -182,14 +182,14 @@ export function WorkspaceSettingsPage() {
   }, [apiError, id]);
 
   useEffect(() => {
-    if (generalEditOpen && kb) {
+    if (generalEditOpen && workspace) {
       generalForm.reset({
-        name: kb.name,
-        description: kb.description,
-        visibility: kb.visibility === 'open' ? 'open' : 'restricted',
+        name: workspace.name,
+        description: workspace.description,
+        visibility: workspace.visibility === 'open' ? 'open' : 'restricted',
       });
     }
-  }, [generalEditOpen, kb, generalForm]);
+  }, [generalEditOpen, workspace, generalForm]);
 
   async function saveGeneral(values: GeneralFormValues) {
     if (!id) return;
@@ -202,7 +202,7 @@ export function WorkspaceSettingsPage() {
           visibility: values.visibility,
         },
       });
-      setKb(body);
+      setWorkspace(body);
       await refreshWorkspaces();
       setGeneralEditOpen(false);
     } catch (err) {
@@ -211,7 +211,7 @@ export function WorkspaceSettingsPage() {
   }
 
   async function addMember() {
-    if (!id || !targetUser || !kb) return;
+    if (!id || !targetUser || !workspace) return;
     setAddingMember(true);
     setError(null);
     try {
@@ -291,12 +291,12 @@ export function WorkspaceSettingsPage() {
     }
   }
 
-  if (!kb) return <p className="text-sm text-muted-foreground">{t.core.common.loading}</p>;
+  if (!workspace) return <p className="text-sm text-muted-foreground">{t.core.common.loading}</p>;
 
-  const canManageMembers = ['owner', 'admin'].includes(kb.my_role);
-  const canEditGeneral = ['owner', 'admin'].includes(kb.my_role);
-  const canEditSearch = ['owner', 'admin'].includes(kb.my_role);
-  const canEditGovernance = ['owner', 'admin'].includes(kb.my_role);
+  const canManageMembers = ['owner', 'admin'].includes(workspace.my_role);
+  const canEditGeneral = ['owner', 'admin'].includes(workspace.my_role);
+  const canEditSearch = ['owner', 'admin'].includes(workspace.my_role);
+  const canEditGovernance = ['owner', 'admin'].includes(workspace.my_role);
   const canRebuildGraph = caps?.graph_write === true;
   const graphEnabled = caps?.graph === true;
 
@@ -308,7 +308,7 @@ export function WorkspaceSettingsPage() {
         { label: t.settings.menu.settings },
       ]}
       subtitle={t.settings.page.subtitle}
-      meta={fmt(ks.my_role_meta, { role: workspaceMemberRoleLabel(ks, kb.my_role) })}
+      meta={fmt(ks.my_role_meta, { role: workspaceMemberRoleLabel(ks, workspace.my_role) })}
     >
       {error && <p className="text-sm text-destructive">{error}</p>}
 
@@ -339,15 +339,15 @@ export function WorkspaceSettingsPage() {
             <CardContent className="space-y-2 text-sm">
               <p>
                 <span className="text-muted-foreground">{ks.fields.name}{ks.label_suffix}</span>
-                {kb.name}
+                {workspace.name}
               </p>
               <p>
                 <span className="text-muted-foreground">{ks.fields.description}{ks.label_suffix}</span>
-                {kb.description || emptyCell}
+                {workspace.description || emptyCell}
               </p>
               <p>
                 <span className="text-muted-foreground">{ks.fields.visibility}{ks.label_suffix}</span>
-                {workspaceVisibilityLabel(ks, kb.visibility)}
+                {workspaceVisibilityLabel(ks, workspace.visibility)}
               </p>
             </CardContent>
           </Card>
@@ -467,7 +467,7 @@ export function WorkspaceSettingsPage() {
               <CardTitle className="text-base">{t.settings.tabs.danger}</CardTitle>
             </CardHeader>
             <CardContent>
-              {(kb.my_role === 'owner' || kb.my_role === 'admin') && (
+              {(workspace.my_role === 'owner' || workspace.my_role === 'admin') && (
                 <ConfirmAlertDialog
                   title={t.settings.tabs.delete_workspace}
                   description={t.settings.tabs.delete_confirm}

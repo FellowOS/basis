@@ -21,8 +21,8 @@ class Settings:
     host: str = "127.0.0.1"
     port: int = 8090
     data_dir: Path = Path("data")
-    kb_graph_session_idle_seconds: int = 1800
-    kb_graph_session_evict_interval_seconds: int = 300
+    graph_session_idle_seconds: int = 1800
+    graph_session_evict_interval_seconds: int = 300
     database_url: str | None = None
     db_pool_size: int = 10
     db_max_overflow: int = 20
@@ -38,7 +38,7 @@ class Settings:
     graph_page_max_nodes: int = 200
     graph_page_max_edges: int = 400
     chunk_search_max_limit: int = 50
-    kb_graph_decisions_max_limit: int = 200
+    graph_decisions_max_limit: int = 200
     graph_node_search_max_limit: int = 50
     import_max_bytes: int = 50 * 1024 * 1024
     upload_max_bytes: int = 50 * 1024 * 1024
@@ -82,11 +82,11 @@ class Settings:
             host=os.environ.get("BASIS_HOST", "127.0.0.1"),
             port=int(os.environ.get("BASIS_PORT", "8090")),
             data_dir=Path(os.environ.get("BASIS_DATA_DIR", "data")),
-            kb_graph_session_idle_seconds=int(
-                os.environ.get("BASIS_KB_GRAPH_SESSION_IDLE_SECONDS", "1800")
+            graph_session_idle_seconds=int(
+                os.environ.get("BASIS_GRAPH_SESSION_IDLE_SECONDS", "1800")
             ),
-            kb_graph_session_evict_interval_seconds=int(
-                os.environ.get("BASIS_KB_GRAPH_SESSION_EVICT_INTERVAL_SECONDS", "300")
+            graph_session_evict_interval_seconds=int(
+                os.environ.get("BASIS_GRAPH_SESSION_EVICT_INTERVAL_SECONDS", "300")
             ),
             database_url=os.environ.get("BASIS_DATABASE_URL") or None,
             db_pool_size=int(os.environ.get("BASIS_DB_POOL_SIZE", "10")),
@@ -110,8 +110,8 @@ class Settings:
             chunk_search_max_limit=_bounded_int(
                 "BASIS_CHUNK_SEARCH_MAX_LIMIT", 50, lo=1, hi=500
             ),
-            kb_graph_decisions_max_limit=_bounded_int(
-                "BASIS_KB_GRAPH_DECISIONS_MAX_LIMIT",
+            graph_decisions_max_limit=_bounded_int(
+                "BASIS_GRAPH_DECISIONS_MAX_LIMIT",
                 200,
                 lo=1,
                 hi=2000,

@@ -21,6 +21,6 @@ Graph **projection** and interactive reads live in `basis.domain.graph` (`projec
 
 ```python
 from basis.domain.ontology.hub.catalog import list_registry
-from basis.domain.ontology.hub.kb_scoped_state import KbOntologyState
+from basis.domain.ontology.hub.scoped_state import OntologyHubState
 from basis.domain.ontology.io.rdf_parse import safe_parse_rdf
 ```

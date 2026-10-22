@@ -10,14 +10,14 @@ from basis.interface.http.app import create_app
 from basis.infra.runtime.config import Settings
 
 
-def test_kb_api_token_reads_scoped_kb_graph(tmp_path) -> None:
+def test_workspace_api_token_reads_scoped_graph(tmp_path) -> None:
     client = TestClient(create_app(Settings(data_dir=tmp_path, ingest_inline=True)))
     admin = client.post(
         "/api/v1/auth/register",
         json={"email": "tok@example.com", "password": "password1", "display_name": "T"},
     ).json()
     session = {"Authorization": f"Bearer {admin['token']}"}
-    workspace_id = client.get("/api/v1/workspaces", headers=session).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=session).json()["workspaces"][0]["id"]
     other = client.post(
         "/api/v1/workspaces",
         headers=session,

@@ -11,11 +11,11 @@ def test_tool_names_match_registry() -> None:
 
 def test_execute_unknown_operation() -> None:
     # Minimal ctx stub — only name dispatch is tested.
-    class _Kb:
-        id = "kb"
+    class _Workspace:
+        id = "ws1"
 
     class _Ctx:
-        kb = _Kb()
+        workspace = _Workspace()
 
     result = execute(_Ctx(), "not_a_tool", {})  # type: ignore[arg-type]
     assert result["isError"] is True

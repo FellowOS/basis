@@ -123,7 +123,7 @@ class EntityMergesAccess:
         reverted_by: str,
     ) -> dict[str, Any]:
         with self._store._lock:
-            row = merge_persist.fetch_entity_merge_for_kb(
+            row = merge_persist.fetch_entity_merge_for_workspace(
                 self._store._conn, merge_id, workspace_id
             )
             if row is None:

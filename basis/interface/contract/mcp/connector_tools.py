@@ -12,7 +12,7 @@ from basis.domain.integration.manifest_schema import (
     EntityActionSpec,
     ProcedureActionSpec,
 )
-from basis.application.context import KbCoreContext
+from basis.application.context import WorkspaceCoreContext
 
 CONNECTOR_TOOL_PREFIX = "connector_"
 _SEGMENT_RE = re.compile(r"[^a-z0-9_]+")
@@ -306,7 +306,7 @@ def connector_tool_definitions_for_manifest(
     return tools
 
 
-def _filter_manifests_for_kb(ctx: KbCoreContext, manifests: list[ConnectorManifest]) -> list[ConnectorManifest]:
+def _filter_manifests_for_workspace(ctx: WorkspaceCoreContext, manifests: list[ConnectorManifest]) -> list[ConnectorManifest]:
     runtime = ctx.knowledge.connector_runtime()
     effective = runtime.vault.effective_allowed_providers(ctx.workspace.id)
     if effective == "*":
@@ -315,12 +315,12 @@ def _filter_manifests_for_kb(ctx: KbCoreContext, manifests: list[ConnectorManife
     return [m for m in manifests if m.service in allowed]
 
 
-def connector_tool_definitions_for_kb(ctx: KbCoreContext) -> list[dict[str, Any]]:
+def connector_tool_definitions_for_workspace(ctx: WorkspaceCoreContext) -> list[dict[str, Any]]:
     """Manifest-derived MCP tools for one workspace (allowlist + action_policy.entities)."""
     runtime = ctx.knowledge.connector_runtime()
     policy = runtime.vault.get_policy(ctx.workspace.id)
     catalog = get_connector_catalog()
-    manifests = _filter_manifests_for_kb(ctx, catalog.list_manifests())
+    manifests = _filter_manifests_for_workspace(ctx, catalog.list_manifests())
     out: list[dict[str, Any]] = []
     for manifest in manifests:
         out.extend(connector_tool_definitions_for_manifest(manifest, policy))
@@ -328,5 +328,5 @@ def connector_tool_definitions_for_kb(ctx: KbCoreContext) -> list[dict[str, Any]
     return out
 
 
-def connector_mcp_tool_names_for_kb(ctx: KbCoreContext) -> list[str]:
-    return [t["name"] for t in connector_tool_definitions_for_kb(ctx)]
+def connector_mcp_tool_names_for_workspace(ctx: WorkspaceCoreContext) -> list[str]:
+    return [t["name"] for t in connector_tool_definitions_for_workspace(ctx)]

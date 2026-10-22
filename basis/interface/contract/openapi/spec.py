@@ -9,7 +9,7 @@ from typing import Any
 
 from basis.interface.contract.openapi.v1_export import (
     export_openapi_v1_document,
-    export_openapi_v1_kb,
+    export_openapi_v1_workspaces,
     export_openapi_v1_platform,
 )
 
@@ -34,8 +34,8 @@ def openapi_v1_platform() -> dict[str, Any]:
     return export_openapi_v1_platform(_spec_app())
 
 
-def openapi_v1_kb() -> dict[str, Any]:
-    return export_openapi_v1_kb(_spec_app())
+def openapi_v1_workspaces() -> dict[str, Any]:
+    return export_openapi_v1_workspaces(_spec_app())
 
 
 def openapi_v1_json(name: str) -> str:
@@ -43,8 +43,11 @@ def openapi_v1_json(name: str) -> str:
         doc = openapi_v1_full()
     elif name in ("basis-v1-platform.json", "basis-v1-platform.yaml"):
         doc = openapi_v1_platform()
-    elif name in ("basis-v1-kb.json", "basis-v1-kb.yaml"):
-        doc = openapi_v1_kb()
+    elif name in (
+        "basis-v1-workspaces.json",
+        "basis-v1-workspaces.yaml",
+    ):
+        doc = openapi_v1_workspaces()
     else:
         path = Path(__file__).resolve().parents[4] / "openapi" / name
         if path.is_file():

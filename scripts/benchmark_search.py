@@ -29,10 +29,10 @@ def main() -> None:
     knowledge = KnowledgeStore(database, BlobStore(settings.data_dir))
     try:
         row = database.conn.execute(
-            "SELECT id FROM workspaces WHERE name = ?", (args.kb_name,)
+            "SELECT id FROM workspaces WHERE name = ?", (args.workspace_name,)
         ).fetchone()
         if row is None:
-            raise SystemExit(f"Workspace not found: {args.kb_name}")
+            raise SystemExit(f"Workspace not found: {args.workspace_name}")
         workspace_id = row["id"]
 
         for _ in range(5):

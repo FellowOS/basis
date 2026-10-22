@@ -182,7 +182,7 @@ def _workspace_registry_table(conn: Any) -> str | None:
     return str(row[0]) if row else None
 
 
-def _kb_table_owner(conn: Any) -> str | None:
+def _workspace_table_owner(conn: Any) -> str | None:
     table = _workspace_registry_table(conn)
     if not table:
         return None
@@ -198,7 +198,7 @@ def _kb_table_owner(conn: Any) -> str | None:
     return str(row[0]) if row else None
 
 
-def _kb_organization_id_column_exists(conn: Any) -> bool:
+def _workspace_organization_id_column_exists(conn: Any) -> bool:
     table = _workspace_registry_table(conn)
     if not table:
         return False
@@ -218,10 +218,10 @@ def _kb_organization_id_column_exists(conn: Any) -> bool:
     return bool(row)
 
 
-def ensure_kb_organization_id_column(conn: Any) -> bool:
+def ensure_workspace_organization_id_column(conn: Any) -> bool:
     if not _organizations_table_exists(conn):
         return True
-    if _kb_organization_id_column_exists(conn):
+    if _workspace_organization_id_column_exists(conn):
         return True
     table = _workspace_registry_table(conn)
     if not table:
@@ -246,17 +246,17 @@ def ensure_kb_organization_id_column(conn: Any) -> bool:
                 conn.exec_driver_sql(statement)
         except ProgrammingError:
             continue
-        if _kb_organization_id_column_exists(conn):
+        if _workspace_organization_id_column_exists(conn):
             return True
-    return _kb_organization_id_column_exists(conn)
+    return _workspace_organization_id_column_exists(conn)
 
 
-def repair_kb_organization_id_column(engine: Engine) -> None:
+def repair_workspace_organization_id_column(engine: Engine) -> None:
     log = logging.getLogger(__name__)
     with engine.connect().execution_options(isolation_level="AUTOCOMMIT") as conn:
-        if ensure_kb_organization_id_column(conn):
+        if ensure_workspace_organization_id_column(conn):
             return
-        owner = _kb_table_owner(conn)
+        owner = _workspace_table_owner(conn)
         log.warning(
             "PostgreSQL schema: workspaces.organization_id is still missing "
             "(table owner=%s, connected as migration user). "
@@ -333,7 +333,7 @@ def run_postgres_migrations(engine: Engine) -> list[int]:
     """Bootstrap PostgreSQL schema once when ledger tables are absent."""
     with engine.connect() as probe:
         if postgres_schema_is_initialized(probe):
-            repair_kb_organization_id_column(engine)
+            repair_workspace_organization_id_column(engine)
             return []
 
     baseline_source = _baseline_path().read_text(encoding="utf-8")
@@ -344,5 +344,5 @@ def run_postgres_migrations(engine: Engine) -> list[int]:
 
         ensure_organization_backfill_postgres(conn)
 
-    repair_kb_organization_id_column(engine)
+    repair_workspace_organization_id_column(engine)
     return [1]

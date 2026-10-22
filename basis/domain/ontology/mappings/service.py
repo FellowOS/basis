@@ -5,9 +5,9 @@ from __future__ import annotations
 from typing import Any, Literal
 
 from basis.domain.errors import AdminError
-from basis.domain.graph.projection.projection_lifecycle import GraphProjectionBindings, rebuild_kb_projection
-from basis.domain.knowledge.ports.platform import KbAuditActor, KbAuditStore
-from basis.domain.knowledge.services.graph_audit import audit_kb_graph
+from basis.domain.graph.projection.projection_lifecycle import GraphProjectionBindings, rebuild_graph_projection
+from basis.domain.knowledge.ports.platform import WorkspaceAuditActor, WorkspaceAuditStore
+from basis.domain.knowledge.services.graph_audit import audit_graph
 from basis.domain.knowledge.store import KnowledgeStore
 
 MAPPING_REVIEW_KIND = "ontology_mapping"
@@ -70,8 +70,8 @@ def close_mapping_review_if_open(
 def apply_mapping_status_change(
     workspace_id: str,
     mapping_id: str,
-    actor: KbAuditActor,
-    store: KbAuditStore,
+    actor: WorkspaceAuditActor,
+    store: WorkspaceAuditStore,
     knowledge: KnowledgeStore,
     *,
     status: Literal["confirmed", "rejected", "superseded"],
@@ -91,7 +91,7 @@ def apply_mapping_status_change(
     if status == "confirmed":
         materialized = knowledge.materialize_mapping_facts(workspace_id, mapping_id)
         if materialized.get("created", 0) > 0 and projection_bindings is not None:
-            projection = rebuild_kb_projection(projection_bindings, workspace_id)
+            projection = rebuild_graph_projection(projection_bindings, workspace_id)
     if sync_review and status in {"confirmed", "rejected"}:
         close_mapping_review_if_open(
             knowledge,
@@ -101,11 +101,11 @@ def apply_mapping_status_change(
             review_status="approved" if status == "confirmed" else "rejected",
             rationale=why,
         )
-    audit_kb_graph(
+    audit_graph(
         store,
         actor,
         workspace_id,
-        "kb.mapping.status",
+        "workspace.mapping.status",
         extra={
             "mapping_id": mapping_id,
             "status": status,

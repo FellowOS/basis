@@ -18,7 +18,7 @@ def _seed(tmp_path: Path) -> tuple[TestClient, dict[str, str], str, KnowledgeSto
         json={"email": "del@example.com", "password": "password1", "display_name": "Del"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
     store = KnowledgeStore(tmp_path / "basis.db", BlobStore(tmp_path))
     return client, headers, workspace_id, store
 

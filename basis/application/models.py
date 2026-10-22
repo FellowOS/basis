@@ -11,7 +11,7 @@ class _ExtraAllowed(BaseModel):
     model_config = ConfigDict(extra="allow")
 
 
-class DescribeKbInput(_ExtraAllowed):
+class DescribeWorkspaceInput(_ExtraAllowed):
     pass
 
 
@@ -97,7 +97,7 @@ class ProposeEntityWritebackInput(_ExtraAllowed):
     field_updates: dict[str, Any] = Field(min_length=1)
 
 
-class DescribeKbResponse(_ExtraAllowed):
+class DescribeWorkspaceResponse(_ExtraAllowed):
     workspace_id: str
     name: str
 
@@ -161,7 +161,7 @@ class ApproveReviewItemResponse(_ExtraAllowed):
 
 
 OPERATION_INPUT_MODELS: dict[str, type[BaseModel]] = {
-    "describe_workspace": DescribeKbInput,
+    "describe_workspace": DescribeWorkspaceInput,
     "search_chunks": SearchChunksInput,
     "get_chunk": GetChunkInput,
     "find_entities": FindEntitiesInput,
@@ -201,7 +201,7 @@ def coerce_operation_args(name: str, arguments: dict[str, Any] | None) -> dict[s
 
 
 OPERATION_RESPONSE_MODELS: dict[str, type[BaseModel]] = {
-    "describe_workspace": DescribeKbResponse,
+    "describe_workspace": DescribeWorkspaceResponse,
     "search_chunks": SearchChunksResponse,
     "get_chunk": GetChunkResponse,
     "find_entities": FindEntitiesResponse,

@@ -7,7 +7,7 @@ from typing import Any, Callable
 
 from fastapi import HTTPException
 
-from basis.application.context import KbCoreContext
+from basis.application.context import WorkspaceCoreContext
 from basis.application.errors import CoreError
 from basis.domain.graph.reads.read import find_path, list_neighbors, search_nodes
 from basis.application.governance_hooks import record_governance_decision_from_context
@@ -23,13 +23,13 @@ from basis.domain.knowledge.services.review_resolve_approve import (
 from basis.application.review_deps import review_approve_deps
 from basis.domain.errors import AdminError
 
-OperationHandler = Callable[[KbCoreContext, dict[str, Any]], dict[str, Any]]
+OperationHandler = Callable[[WorkspaceCoreContext, dict[str, Any]], dict[str, Any]]
 
 
-def _require_kb_editor(ctx: KbCoreContext) -> None:
+def _require_workspace_editor(ctx: WorkspaceCoreContext) -> None:
     try:
-        if ctx.assert_kb_editor is not None:
-            ctx.assert_kb_editor()
+        if ctx.assert_workspace_editor is not None:
+            ctx.assert_workspace_editor()
         else:
             ctx.store.get_workspace_for(ctx.user, ctx.workspace.id, "editor")
     except AdminError as exc:
@@ -42,8 +42,8 @@ def _require_kb_editor(ctx: KbCoreContext) -> None:
         raise CoreError(detail, status_code=exc.status_code) from exc
 
 
-def op_describe_kb(ctx: KbCoreContext, _args: dict[str, Any]) -> dict[str, Any]:
-    stats = ctx.knowledge.kb_mcp_stats(ctx.workspace.id)
+def op_describe_workspace(ctx: WorkspaceCoreContext, _args: dict[str, Any]) -> dict[str, Any]:
+    stats = ctx.knowledge.workspace_mcp_stats(ctx.workspace.id)
     return {
         "workspace_id": ctx.workspace.id,
         "name": ctx.workspace.name,
@@ -52,7 +52,7 @@ def op_describe_kb(ctx: KbCoreContext, _args: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def op_search_chunks(ctx: KbCoreContext, args: dict[str, Any]) -> dict[str, Any]:
+def op_search_chunks(ctx: WorkspaceCoreContext, args: dict[str, Any]) -> dict[str, Any]:
     query = str(args.get("query", "")).strip()
     if not query:
         return {"error": "query is required"}
@@ -82,7 +82,7 @@ def op_search_chunks(ctx: KbCoreContext, args: dict[str, Any]) -> dict[str, Any]
     return {"query": query, "mode": "keyword", "chunks": hits}
 
 
-def op_get_chunk(ctx: KbCoreContext, args: dict[str, Any]) -> dict[str, Any]:
+def op_get_chunk(ctx: WorkspaceCoreContext, args: dict[str, Any]) -> dict[str, Any]:
     chunk_id = str(args.get("chunk_id", "")).strip()
     if not chunk_id:
         return {"error": "chunk_id is required"}
@@ -92,7 +92,7 @@ def op_get_chunk(ctx: KbCoreContext, args: dict[str, Any]) -> dict[str, Any]:
     return {"chunk": row}
 
 
-def op_graph_search(ctx: KbCoreContext, args: dict[str, Any]) -> dict[str, Any]:
+def op_graph_search(ctx: WorkspaceCoreContext, args: dict[str, Any]) -> dict[str, Any]:
     query = str(args.get("query", "")).strip()
     if not query:
         return {"error": "query is required"}
@@ -115,7 +115,7 @@ def op_graph_search(ctx: KbCoreContext, args: dict[str, Any]) -> dict[str, Any]:
     return payload
 
 
-def op_find_entities(ctx: KbCoreContext, args: dict[str, Any]) -> dict[str, Any]:
+def op_find_entities(ctx: WorkspaceCoreContext, args: dict[str, Any]) -> dict[str, Any]:
     query = str(args.get("query", "")).strip()
     if not query:
         return {"error": "query is required"}
@@ -129,7 +129,7 @@ def op_find_entities(ctx: KbCoreContext, args: dict[str, Any]) -> dict[str, Any]
     }
 
 
-def op_neighbors(ctx: KbCoreContext, args: dict[str, Any]) -> dict[str, Any]:
+def op_neighbors(ctx: WorkspaceCoreContext, args: dict[str, Any]) -> dict[str, Any]:
     node_id = str(args.get("node_id", "")).strip()
     if not node_id:
         return {"error": "node_id is required"}
@@ -142,7 +142,7 @@ def op_neighbors(ctx: KbCoreContext, args: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def op_paths(ctx: KbCoreContext, args: dict[str, Any]) -> dict[str, Any]:
+def op_paths(ctx: WorkspaceCoreContext, args: dict[str, Any]) -> dict[str, Any]:
     source = str(args.get("source", "")).strip()
     target = str(args.get("target", "")).strip()
     if not source or not target:
@@ -160,11 +160,11 @@ def op_paths(ctx: KbCoreContext, args: dict[str, Any]) -> dict[str, Any]:
     )
 
 
-def op_propose_remember(ctx: KbCoreContext, args: dict[str, Any]) -> dict[str, Any]:
+def op_propose_remember(ctx: WorkspaceCoreContext, args: dict[str, Any]) -> dict[str, Any]:
     content = str(args.get("content", "")).strip()
     if not content:
         return {"error": "content is required"}
-    _require_kb_editor(ctx)
+    _require_workspace_editor(ctx)
     source = str(args.get("source") or "mcp")
     payload = propose_remember(
         ctx.knowledge,
@@ -179,7 +179,7 @@ def op_propose_remember(ctx: KbCoreContext, args: dict[str, Any]) -> dict[str, A
     }
 
 
-def op_entity_facts(ctx: KbCoreContext, args: dict[str, Any]) -> dict[str, Any]:
+def op_entity_facts(ctx: WorkspaceCoreContext, args: dict[str, Any]) -> dict[str, Any]:
     entity_id = str(args.get("entity_id", "")).strip()
     if not entity_id:
         return {"error": "entity_id is required"}
@@ -188,7 +188,7 @@ def op_entity_facts(ctx: KbCoreContext, args: dict[str, Any]) -> dict[str, Any]:
     return {"entity_id": entity_id, "facts": facts}
 
 
-def op_list_review_items(ctx: KbCoreContext, args: dict[str, Any]) -> dict[str, Any]:
+def op_list_review_items(ctx: WorkspaceCoreContext, args: dict[str, Any]) -> dict[str, Any]:
     status = str(args.get("status") or "open").strip() or None
     kind = str(args.get("kind") or "").strip() or None
     limit = min(max(1, int(args.get("limit", 50))), 200)
@@ -201,7 +201,7 @@ def op_list_review_items(ctx: KbCoreContext, args: dict[str, Any]) -> dict[str, 
     return {"items": items}
 
 
-def op_get_review_item(ctx: KbCoreContext, args: dict[str, Any]) -> dict[str, Any]:
+def op_get_review_item(ctx: WorkspaceCoreContext, args: dict[str, Any]) -> dict[str, Any]:
     item_id = str(args.get("item_id", "")).strip()
     if not item_id:
         return {"error": "item_id is required"}
@@ -214,7 +214,7 @@ def op_get_review_item(ctx: KbCoreContext, args: dict[str, Any]) -> dict[str, An
     return {"item": item}
 
 
-def op_list_processing_jobs(ctx: KbCoreContext, args: dict[str, Any]) -> dict[str, Any]:
+def op_list_processing_jobs(ctx: WorkspaceCoreContext, args: dict[str, Any]) -> dict[str, Any]:
     status = str(args.get("status") or "").strip() or None
     if status and status not in {"queued", "running", "succeeded", "failed", "cancelled"}:
         return {"error": "invalid status"}
@@ -224,13 +224,13 @@ def op_list_processing_jobs(ctx: KbCoreContext, args: dict[str, Any]) -> dict[st
 
 
 def op_approve_statement_remember_review(
-    ctx: KbCoreContext,
+    ctx: WorkspaceCoreContext,
     args: dict[str, Any],
 ) -> dict[str, Any]:
     item_id = str(args.get("item_id", "")).strip()
     if not item_id:
         return {"error": "item_id is required"}
-    _require_kb_editor(ctx)
+    _require_workspace_editor(ctx)
     rationale = str(args.get("rationale") or "").strip() or None
     rebuild = ctx.rebuild_projection
     decision_id = record_governance_decision_from_context(
@@ -253,13 +253,13 @@ def op_approve_statement_remember_review(
 
 
 def op_reject_statement_remember_review(
-    ctx: KbCoreContext,
+    ctx: WorkspaceCoreContext,
     args: dict[str, Any],
 ) -> dict[str, Any]:
     item_id = str(args.get("item_id", "")).strip()
     if not item_id:
         return {"error": "item_id is required"}
-    _require_kb_editor(ctx)
+    _require_workspace_editor(ctx)
     rationale = str(args.get("rationale") or "").strip() or None
     return reject_statement_remember_review(
         knowledge=ctx.knowledge,
@@ -271,11 +271,11 @@ def op_reject_statement_remember_review(
     )
 
 
-def op_approve_review_item(ctx: KbCoreContext, args: dict[str, Any]) -> dict[str, Any]:
+def op_approve_review_item(ctx: WorkspaceCoreContext, args: dict[str, Any]) -> dict[str, Any]:
     item_id = str(args.get("item_id", "")).strip()
     if not item_id:
         return {"error": "item_id is required"}
-    _require_kb_editor(ctx)
+    _require_workspace_editor(ctx)
     rationale = str(args.get("rationale") or "").strip() or None
     keeper = str(args.get("keeper_statement_id") or "").strip() or None
     primary_id = str(args.get("primary_id") or "").strip() or None
@@ -299,11 +299,11 @@ def op_approve_review_item(ctx: KbCoreContext, args: dict[str, Any]) -> dict[str
         raise CoreError(detail, status_code=exc.status_code) from exc
 
 
-def op_reject_review_item(ctx: KbCoreContext, args: dict[str, Any]) -> dict[str, Any]:
+def op_reject_review_item(ctx: WorkspaceCoreContext, args: dict[str, Any]) -> dict[str, Any]:
     item_id = str(args.get("item_id", "")).strip()
     if not item_id:
         return {"error": "item_id is required"}
-    _require_kb_editor(ctx)
+    _require_workspace_editor(ctx)
     rationale = str(args.get("rationale") or "").strip() or None
     return reject_review_item_domain(
         knowledge=ctx.knowledge,

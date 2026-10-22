@@ -114,7 +114,7 @@ function auditDetailLine(
       return `${formatNodeRef(payload.primary_id, labels)} ← ${dupList.map((id) => formatNodeRef(id, labels)).join(', ')}`;
     }
   }
-  if (event.action === 'kb.graph.import' || event.action === 'kb.graph.import_proposed') {
+  if (event.action === 'workspace.graph.import' || event.action === 'workspace.graph.import_proposed') {
     const nodes = d.nodes_imported;
     const edges = d.edges_imported;
     const file = d.filename;
@@ -126,11 +126,11 @@ function auditDetailLine(
       .filter(Boolean)
       .join(' · ');
   }
-  if (event.action === 'kb.graph.export') {
+  if (event.action === 'workspace.graph.export') {
     const fmt = d.format;
     return fmt ? String(fmt) : null;
   }
-  if (event.action === 'kb.graph.projection_rebuild') {
+  if (event.action === 'workspace.graph.projection_rebuild') {
     const parts: string[] = [];
     if (d.projection_revision != null) {
       parts.push(
@@ -148,14 +148,14 @@ function auditDetailLine(
   const ledgerNotice = (d.ledger_notice as string | undefined) ?? mergePayload?.ledger_notice;
   const ledgerSkipped =
     (d.ledger_skipped_ids as string[] | undefined) ?? mergePayload?.ledger_skipped_ids;
-  if (event.action === 'kb.graph.merge_approved' && ledgerNotice === 'graph_only_merge') {
+  if (event.action === 'workspace.graph.merge_approved' && ledgerNotice === 'graph_only_merge') {
     return r.graph_only_merge_approved;
   }
-  if (event.action === 'kb.graph.merge_approved' && ledgerNotice === 'partial_ledger') {
+  if (event.action === 'workspace.graph.merge_approved' && ledgerNotice === 'partial_ledger') {
     const skipped = ledgerSkipped?.join(', ');
     return fmt(r.partial_ledger_skipped, { skipped: skipped ?? '' });
   }
-  if (event.action === 'kb.graph.merge_approved') {
+  if (event.action === 'workspace.graph.merge_approved') {
     const ledger = d.ledger_merges as { source_entity_id?: string; target_entity_id?: string }[] | undefined;
     if (ledger?.length) {
       return ledger
@@ -311,7 +311,7 @@ export function ReviewQueuePanel({
       const [queueRes, auditRes, mergesRes] = await Promise.all([
         workspaceFetch(buildWorkspaceApiPath('review/items', workspaceId)),
         workspaceFetch(
-          `${buildWorkspaceApiPath('audit/graph-mutations', workspaceId)}?action_prefix=${encodeURIComponent('kb.')}&limit=50`,
+          `${buildWorkspaceApiPath('audit/graph-mutations', workspaceId)}?action_prefix=${encodeURIComponent('workspace.')}&limit=50`,
         ),
         workspaceFetch(`${buildWorkspaceApiPath('ledger/entity-merges', workspaceId)}?active_only=false`),
       ]);

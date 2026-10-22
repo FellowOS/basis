@@ -29,7 +29,7 @@ class DesktopAccess:
     def ensure_desktop_principal(self) -> User:
         existing = self._store._users.get_user_by_id(DESKTOP_USER_ID)
         if existing is not None:
-            self._ensure_desktop_default_kb(existing.id)
+            self._ensure_desktop_default_workspace(existing.id)
             return existing
         password = secrets_token()
         with self._store._lock:
@@ -37,7 +37,7 @@ class DesktopAccess:
             row = users_persist.fetch_user(conn, DESKTOP_USER_ID)
             if row is not None:
                 user = user_from_row(row)
-                self._ensure_desktop_default_kb(user.id)
+                self._ensure_desktop_default_workspace(user.id)
                 conn.commit()
                 return user
             created_at = utc_now_iso()
@@ -75,7 +75,7 @@ class DesktopAccess:
         assert user is not None
         return user
 
-    def _ensure_desktop_default_kb(self, user_id: str) -> None:
+    def _ensure_desktop_default_workspace(self, user_id: str) -> None:
         with self._store._lock:
             if workspace_persist.workspace_count(self._store._conn) > 0:
                 return

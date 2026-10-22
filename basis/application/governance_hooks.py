@@ -1,15 +1,15 @@
-"""Wire Explorer governance decisions from :class:`KbCoreContext` (no HTTP imports)."""
+"""Wire Explorer governance decisions from :class:`WorkspaceCoreContext` (no HTTP imports)."""
 
 from __future__ import annotations
 
 from typing import Any
 
-from basis.domain.graph.governance.decision import record_governance_decision_for_kb
-from basis.application.context import KbCoreContext
+from basis.domain.graph.governance.decision import record_governance_decision_for_workspace
+from basis.application.context import WorkspaceCoreContext
 
 
 def record_governance_decision_from_context(
-    ctx: KbCoreContext,
+    ctx: WorkspaceCoreContext,
     *,
     message: str,
     detail: dict[str, Any] | None = None,
@@ -17,7 +17,7 @@ def record_governance_decision_from_context(
 ) -> str | None:
     if ctx.runtime_loader is None or ctx.persist_graph is None:
         return None
-    return record_governance_decision_for_kb(
+    return record_governance_decision_for_workspace(
         ctx.workspace.id,
         message=message,
         detail=detail,

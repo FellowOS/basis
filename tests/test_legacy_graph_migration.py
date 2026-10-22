@@ -12,7 +12,7 @@ from basis.domain.knowledge.store import KnowledgeStore
 from basis.infra.tooling.migration.legacy_graph import migrate_legacy_graph
 
 
-def _kb(tmp_path: Path) -> str:
+def _workspace_store(tmp_path: Path) -> str:
     admin = AdminStore(tmp_path / "basis.db")
     user, _ = admin.register("m@example.com", "password1", "U")
     workspace_id = admin.create_workspace(user, "KB", None, "restricted").id
@@ -30,7 +30,7 @@ def _write_legacy_graph(persistence: GraphPersistence, workspace_id: str) -> Non
 
 
 def test_legacy_migration_dry_run_and_apply_idempotent(tmp_path: Path) -> None:
-    workspace_id = _kb(tmp_path)
+    workspace_id = _workspace_store(tmp_path)
     persistence = GraphPersistence(tmp_path)
     knowledge = KnowledgeStore(tmp_path / "basis.db", BlobStore(tmp_path))
     _write_legacy_graph(persistence, workspace_id)

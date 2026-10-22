@@ -43,8 +43,8 @@ export function WorkspaceCatalogProvider({ children }: { children: ReactNode }) 
     try {
       const body = unwrapOpenApi(
         await basisSessionClient().openapi().GET('/api/v1/workspaces'),
-      ) as { kbs: WorkspaceSummary[] };
-      setWorkspaces(body.kbs);
+      ) as { workspaces: WorkspaceSummary[] };
+      setWorkspaces(body.workspaces);
     } finally {
       setLoading(false);
     }

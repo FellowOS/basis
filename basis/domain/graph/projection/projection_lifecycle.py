@@ -11,7 +11,7 @@ from basis.domain.graph.projection.snapshot_store import GraphPersistence
 from basis.domain.knowledge.store import KnowledgeStore
 
 if TYPE_CHECKING:
-    from basis.domain.graph.session.registry import KbGraphSessionRegistry
+    from basis.domain.graph.session.registry import GraphSessionRegistry
 
 
 @dataclass
@@ -19,12 +19,12 @@ class GraphProjectionBindings:
     graphs: dict[str, GraphSession]
     persistence: GraphPersistence
     knowledge: KnowledgeStore
-    kb_graph_session_registry: KbGraphSessionRegistry
+    graph_session_registry: GraphSessionRegistry
     persist_ontology_hub: Callable[[str], None]
     broadcast_projection: Callable[[str, int], None]
 
 
-def graph_session_for_kb(bindings: GraphProjectionBindings, workspace_id: str) -> GraphSession:
+def graph_session_for_workspace(bindings: GraphProjectionBindings, workspace_id: str) -> GraphSession:
     session = bindings.graphs.get(workspace_id)
     if session is not None:
         return session
@@ -47,7 +47,7 @@ def graph_session_for_kb(bindings: GraphProjectionBindings, workspace_id: str) -
 
 
 def save_graph(bindings: GraphProjectionBindings, workspace_id: str, *, sync_ledger: bool = True) -> None:
-    session = graph_session_for_kb(bindings, workspace_id)
+    session = graph_session_for_workspace(bindings, workspace_id)
     knowledge = bindings.knowledge
     if sync_ledger:
         from basis.domain.knowledge.services.graph_sync import sync_graph_to_ledger
@@ -62,14 +62,14 @@ def save_graph(bindings: GraphProjectionBindings, workspace_id: str, *, sync_led
         projection_revision=ledger["revision"],
         schema_version=ledger["schema_version"],
     )
-    bindings.kb_graph_session_registry.invalidate(workspace_id)
+    bindings.graph_session_registry.invalidate(workspace_id)
     bindings.persist_ontology_hub(workspace_id)
     bindings.broadcast_projection(workspace_id, int(ledger["revision"]))
 
 
-def rebuild_kb_projection(bindings: GraphProjectionBindings, workspace_id: str) -> dict:
-    bindings.kb_graph_session_registry.invalidate(workspace_id)
-    session = graph_session_for_kb(bindings, workspace_id)
+def rebuild_graph_projection(bindings: GraphProjectionBindings, workspace_id: str) -> dict:
+    bindings.graph_session_registry.invalidate(workspace_id)
+    session = graph_session_for_workspace(bindings, workspace_id)
     meta = apply_rebuild_to_session(bindings.knowledge, workspace_id, session)
     save_graph(bindings, workspace_id)
     return meta

@@ -14,9 +14,9 @@ from basis.infra.runtime.observability.log_context import correlation_log_extra
 logger = logging.getLogger(__name__)
 
 
-def _rebuild_kb_projection_for_app(app: FastAPI, workspace_id: str) -> dict:
+def _rebuild_graph_projection_for_app(app: FastAPI, workspace_id: str) -> dict:
     """Rebuild graph projection from ledger after connector sync (no HTTP request)."""
-    app.state.kb_graph_session_registry.invalidate(workspace_id)
+    app.state.graph_session_registry.invalidate(workspace_id)
     knowledge = app.state.knowledge_store
     persistence = app.state.graph_persistence
     graphs = app.state.graphs
@@ -68,7 +68,7 @@ def run_due_connector_syncs(app: FastAPI) -> int:
         try:
             stats = svc.sync_inbound_mapping(workspace_id, mapping_id)
             if stats.added > 0 or stats.updated > 0 or stats.deleted > 0:
-                _rebuild_kb_projection_for_app(app, workspace_id)
+                _rebuild_graph_projection_for_app(app, workspace_id)
             ran += 1
         except Exception:
             logger.exception(

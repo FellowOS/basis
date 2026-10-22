@@ -130,14 +130,14 @@ export const WORKSPACE_NAV_BY_ZONE = {
   ],
 } as const satisfies Record<WorkspaceZone, readonly WorkspaceNavItem[]>;
 
-/** Sidebar `labelKey` values — single source with `menu.kb` i18n keys. */
+/** Sidebar `labelKey` values — aligned with per-module `*.menu.*` i18n keys. */
 export type SidebarNavKey = {
   [Z in WorkspaceZone]: (typeof WORKSPACE_NAV_BY_ZONE)[Z][number]['labelKey'];
 }[WorkspaceZone];
 
 export type SidebarMenuKey = SidebarNavKey | 'alerts';
 
-/** Hub tab / legacy route segments (not in `menu.kb`). */
+/** Hub tab / legacy route segments (not primary sidebar nav keys). */
 export type HubCapabilityNavKey =
   | 'ontologyVersions'
   | 'shacl'

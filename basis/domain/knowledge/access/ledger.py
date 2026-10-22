@@ -7,7 +7,7 @@ from typing import Any, TYPE_CHECKING
 from basis.domain.knowledge import sql_chunks as chunk_persist
 from basis.domain.knowledge import sql_document_timeline as timeline_persist
 from basis.domain.knowledge import sql_entity_browse as entity_persist
-from basis.domain.knowledge import sql_kb_stats as stats_persist
+from basis.domain.knowledge import sql_stats as stats_persist
 from basis.domain.knowledge import sql_statements as stmt_persist
 
 if TYPE_CHECKING:
@@ -121,9 +121,9 @@ class LedgerAccess:
             )
         return [dict(row) for row in rows]
 
-    def kb_mcp_stats(self, workspace_id: str) -> dict[str, int]:
+    def workspace_mcp_stats(self, workspace_id: str) -> dict[str, int]:
         with self._store._lock:
-            return stats_persist.kb_mcp_stats(self._store._conn, workspace_id)
+            return stats_persist.workspace_mcp_stats(self._store._conn, workspace_id)
 
     def list_statements_for_chunk(
         self, workspace_id: str, chunk_id: str, *, limit: int = 50

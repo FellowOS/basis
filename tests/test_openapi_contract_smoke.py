@@ -14,7 +14,7 @@ _INTEGRATION_PATHS = (
     "/api/v1/workspaces/{workspace_id}/graph/search",
     "/api/v1/workspaces/{workspace_id}/ledger/chunks/{chunk_id}",
     "/openapi/v1.json",
-    "/openapi/v1/kb.json",
+    "/openapi/v1/workspaces.json",
 )
 
 
@@ -31,9 +31,10 @@ def test_v1_integration_endpoints_respond(tmp_path) -> None:
         json={"email": "contract@example.com", "password": "password1", "display_name": "C"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
 
-    assert client.get("/openapi/v1/kb.json").status_code == 200
+    assert client.get("/openapi/v1/workspaces.json").status_code == 200
+    assert client.get("/openapi/v1/kb.json").status_code == 404
 
     doc = client.post(
         f"/api/v1/workspaces/{workspace_id}/documents",

@@ -6,7 +6,7 @@ import {
 } from '@/modules/graph/lib/graph-audit.js';
 
 describe('graph audit detail ids', () => {
-  it('resolves kb id from platform audit rows', () => {
+  it('resolves workspace id from platform audit rows', () => {
     expect(
       workspaceIdFromPlatformAuditEvent({
         target_type: 'workspace',

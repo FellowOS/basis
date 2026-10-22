@@ -50,7 +50,7 @@ def test_connectors_http_endpoints_and_review_writeback_flow(tmp_path: Path) -> 
     )
     assert reg.status_code == 200
     headers = {"Authorization": f"Bearer {reg.json()['token']}"}
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
 
     # 3. Query Connector Catalog
     cat_resp = client.get(
@@ -232,7 +232,7 @@ def test_table_mapping_get_update_and_delete(tmp_path: Path) -> None:
     )
     assert reg.status_code == 200
     headers = {"Authorization": f"Bearer {reg.json()['token']}"}
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
 
     client.put(
         f"/api/v1/workspaces/{workspace_id}/connectors/connections/postgres/default",

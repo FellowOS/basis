@@ -1,9 +1,9 @@
 """Workspace domain ports (interface/application adapters implement these at the edges)."""
 
-from basis.domain.knowledge.ports.platform import EmbedSettingsStore, KbAuditActor, KbAuditStore
+from basis.domain.knowledge.ports.platform import EmbedSettingsStore, WorkspaceAuditActor, WorkspaceAuditStore
 
 __all__ = [
     "EmbedSettingsStore",
-    "KbAuditActor",
-    "KbAuditStore",
+    "WorkspaceAuditActor",
+    "WorkspaceAuditStore",
 ]

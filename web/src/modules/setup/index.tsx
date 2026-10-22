@@ -15,10 +15,10 @@ function SetupEmptyView() {
   const { refresh } = useWorkspaceCatalog();
   const [createOpen, setCreateOpen] = useState(false);
 
-  async function onCreated(kb: { id: string }) {
-    writeActiveWorkspaceId(kb.id);
+  async function onCreated(workspace: { id: string }) {
+    writeActiveWorkspaceId(workspace.id);
     await refresh();
-    navigate(workspacePath(kb.id, 'graph'));
+    navigate(workspacePath(workspace.id, 'graph'));
   }
 
   return (

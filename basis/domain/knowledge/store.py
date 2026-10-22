@@ -7,17 +7,17 @@ from typing import Any
 
 from basis.infra.runtime.database import Database, get_sqlite_database
 from basis.domain.knowledge.blob_store import BlobStore
-from basis.domain.knowledge.access.connector import ConnectorKbAccess
+from basis.domain.knowledge.access.connector import ConnectorAccess
 from basis.domain.knowledge.access.governance import GovernanceAccess
 from basis.domain.knowledge.access.document_delete import DocumentDeleteAccess
 from basis.domain.knowledge.access.entity_delete import EntityDeleteAccess
 from basis.domain.knowledge.access.entity_merges import EntityMergesAccess
-from basis.domain.knowledge.access.graph_staging import GraphStagingKbAccess
+from basis.domain.knowledge.access.graph_staging import GraphStagingAccess
 from basis.domain.knowledge.access.documents import DocumentsAccess
 from basis.domain.knowledge.access.ingest_ledger import IngestLedgerAccess
 from basis.domain.knowledge.access.ledger import LedgerAccess
 from basis.domain.knowledge.access.ingest_sources import IngestSourcesAccess
-from basis.domain.knowledge.access.kb_alerts import WorkspaceAlertsAccess
+from basis.domain.knowledge.access.alerts import WorkspaceAlertsAccess
 from basis.domain.ontology.reasoning_rules import ReasoningRulesAccess
 from basis.domain.knowledge.access.processing import ProcessingJobsAccess
 from basis.domain.knowledge.access.facts import FactsAccess
@@ -41,8 +41,8 @@ class KnowledgeStore:
             self._owns_db_ref = True
         self._lock = self._db.lock
         self._conn = self._db.conn
-        self._connector = ConnectorKbAccess(self)
-        self._graph_staging = GraphStagingKbAccess(self)
+        self._connector = ConnectorAccess(self)
+        self._graph_staging = GraphStagingAccess(self)
         self._entity_delete = EntityDeleteAccess(self)
         self._entity_merges = EntityMergesAccess(self)
         self._document_delete = DocumentDeleteAccess(self)
@@ -80,10 +80,10 @@ class KnowledgeStore:
         return merge_review_subject_key(primary_id, duplicate_ids)
 
     def _assert_workspace_exists(self, workspace_id: str) -> None:
-        ledger_guards.assert_kb_exists(self._conn, workspace_id)
+        ledger_guards.assert_workspace_exists(self._conn, workspace_id)
 
     def _assert_row_in_workspace(self, table: str, row_id: str, workspace_id: str) -> None:
-        ledger_guards.assert_row_in_kb(self._conn, table, row_id, workspace_id)
+        ledger_guards.assert_row_in_workspace(self._conn, table, row_id, workspace_id)
 
 def _workspace_access_delegate(access_attr: str, method_name: str):
     def _wrapped(self, *args, **kwargs):
@@ -245,7 +245,7 @@ for _name in (
     "count_alerts",
     "count_workspace_unread_alerts",
     "list_alerts_since",
-    "dismiss_kb_alert",
+    "dismiss_workspace_alert",
     "dismiss_all_alerts",
     "mark_all_alerts_read",
 ):
@@ -278,7 +278,7 @@ for _name in (
     "list_active_statements",
     "list_active_entity_id_labels",
     "list_active_statements_below_confidence",
-    "kb_mcp_stats",
+    "workspace_mcp_stats",
     "list_statements_for_chunk",
     "get_chunk",
     "count_browse_entities",

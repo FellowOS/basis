@@ -33,7 +33,7 @@ Agents **MUST NOT** need a parallel manifest, generated OpenAPI per vendor path,
 |---------|--------|
 | Ledger / projection | **Shipped** — HTTP `/api/v1/workspaces/{workspace_id}/connectors/*`, MCP `sync_connector_table_mapping`, `propose_entity_writeback`, … |
 | Agent primitives | **Shipped** — MCP `invoke_connector_primitive` + per-action `connector_{service}__{action_id}__{suffix}` tools from `tools/list`; HTTP `POST …/invoke-primitive` — same runtime as ledger sync |
-| Console UI | **Shipped** — `/kbs/{workspace_id}/connectors` (`web/src/modules/connectors/`); platform allowlist at `/admin/connectors` |
+| Console UI | **Shipped** — `/workspaces/{workspace_id}/connectors` (`web/src/modules/connectors/`); platform allowlist at `/admin/connectors` |
 
 Policy: `action_policy.entities` keys (e.g. `github:issues.list`, `issues.create`) plus `default_entity_read_mode` / `default_entity_write_mode`. Procedures: `execute_connector_tool` or `primitive: invoke`.
 

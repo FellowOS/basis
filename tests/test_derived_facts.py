@@ -9,7 +9,7 @@ pytest.importorskip("semantica")
 from fastapi.testclient import TestClient
 
 from basis.interface.http.app import create_app
-from basis.infra.runtime.capabilities import kb_graph_runtime_available
+from basis.infra.runtime.capabilities import graph_runtime_available
 from basis.domain.tenancy.admin.store import AdminStore
 from basis.infra.runtime.config import Settings
 from basis.domain.knowledge.blob_store import BlobStore
@@ -17,12 +17,12 @@ from basis.domain.knowledge.services.derived_facts_service import persist_reason
 from basis.domain.knowledge.store import KnowledgeStore
 
 
-def _kb_id(tmp_path: Path) -> str:
+def _workspace_id(tmp_path: Path) -> str:
     admin = AdminStore(tmp_path / "basis.db")
     user, _ = admin.register("df@example.com", "password1", "DF")
-    kb = admin.create_workspace(user, "DF KB", None, "restricted")
+    workspace = admin.create_workspace(user, "DF KB", None, "restricted")
     admin.close()
-    return kb.id
+    return workspace.id
 
 
 def _knowledge(tmp_path: Path) -> KnowledgeStore:
@@ -30,7 +30,7 @@ def _knowledge(tmp_path: Path) -> KnowledgeStore:
 
 
 def test_insert_and_list_derived_facts(tmp_path) -> None:
-    workspace_id = _kb_id(tmp_path)
+    workspace_id = _workspace_id(tmp_path)
     store = _knowledge(tmp_path)
     subj = store.get_or_create_entity_by_label(workspace_id, "Alice")
     obj = store.get_or_create_entity_by_label(workspace_id, "Bob")
@@ -50,7 +50,7 @@ def test_insert_and_list_derived_facts(tmp_path) -> None:
 
 
 def test_persist_reasoning_derived_from_proof_chains(tmp_path) -> None:
-    workspace_id = _kb_id(tmp_path)
+    workspace_id = _workspace_id(tmp_path)
     store = _knowledge(tmp_path)
     chains = [
         {
@@ -71,7 +71,7 @@ def test_ledger_derived_facts_route(tmp_path) -> None:
         json={"email": "df2@example.com", "password": "password1", "display_name": "DF2"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
     store = _knowledge(tmp_path)
     subj = store.get_or_create_entity_by_label(workspace_id, "X")
     obj = store.get_or_create_entity_by_label(workspace_id, "Y")
@@ -110,7 +110,7 @@ def test_ledger_derived_facts_route(tmp_path) -> None:
 
 
 def test_entity_facts_includes_derived_facts(tmp_path) -> None:
-    workspace_id = _kb_id(tmp_path)
+    workspace_id = _workspace_id(tmp_path)
     store = _knowledge(tmp_path)
     subj = store.get_or_create_entity_by_label(workspace_id, "Subj")
     obj = store.get_or_create_entity_by_label(workspace_id, "Obj")
@@ -128,7 +128,7 @@ def test_entity_facts_includes_derived_facts(tmp_path) -> None:
 
 
 def test_list_derived_facts_filtered_by_entity(tmp_path) -> None:
-    workspace_id = _kb_id(tmp_path)
+    workspace_id = _workspace_id(tmp_path)
     store = _knowledge(tmp_path)
     subj = store.get_or_create_entity_by_label(workspace_id, "OnlySubj")
     other = store.get_or_create_entity_by_label(workspace_id, "OtherEnt")
@@ -155,7 +155,7 @@ def test_list_derived_facts_filtered_by_entity(tmp_path) -> None:
 
 
 def test_reasoning_apply_persists_derived_facts(tmp_path) -> None:
-    if not kb_graph_runtime_available():
+    if not graph_runtime_available():
         pytest.skip("explorer extra not installed")
 
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
@@ -164,7 +164,7 @@ def test_reasoning_apply_persists_derived_facts(tmp_path) -> None:
         json={"email": "ra@example.com", "password": "password1", "display_name": "RA"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
 
     run = client.post(
         f"/api/v1/workspaces/{workspace_id}/reasoning/run",
@@ -193,7 +193,7 @@ def test_list_ingest_jobs_alias(tmp_path) -> None:
         json={"email": "ij@example.com", "password": "password1", "display_name": "IJ"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
     listed = client.get(f"/api/v1/workspaces/{workspace_id}/ingest/jobs", headers=headers)
     assert listed.status_code == 200
     assert "jobs" in listed.json()

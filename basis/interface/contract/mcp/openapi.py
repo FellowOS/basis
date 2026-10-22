@@ -6,11 +6,11 @@ import weakref
 from functools import lru_cache
 from typing import Any
 
-from basis.interface.contract.openapi.v1_export import cached_openapi_v1_kb
+from basis.interface.contract.openapi.v1_export import cached_openapi_v1_workspaces
 
 _SKIP_PARAMS = frozenset({"workspace_id", "authorization"})
 
-# MCP tool name → (HTTP method, OpenAPI path) in workspace OpenAPI slice (basis-v1-kb.json)
+# MCP tool name → (HTTP method, OpenAPI path) in workspace OpenAPI slice (basis-v1-workspaces.json)
 MCP_TOOL_OPERATIONS: dict[str, tuple[str, str]] = {
     "describe_workspace": ("get", "/api/v1/workspaces/{workspace_id}"),
     "search_chunks": ("get", "/api/v1/workspaces/{workspace_id}/search"),
@@ -73,7 +73,7 @@ def bind_openapi_app(app: Any) -> None:
     """Called from `create_app` so MCP schemas match the running app's export."""
     global _openapi_app_ref
     _openapi_app_ref = weakref.ref(app)
-    _kb_openapi_spec.cache_clear()
+    _workspaces_openapi_spec.cache_clear()
 
 
 def _resolve_ref(components: dict[str, Any], node: Any) -> Any:
@@ -156,14 +156,14 @@ def _parameters_to_object_schema(
 
 
 @lru_cache(maxsize=1)
-def _kb_openapi_spec() -> dict[str, Any]:
+def _workspaces_openapi_spec() -> dict[str, Any]:
     app = _openapi_app_ref() if _openapi_app_ref is not None else None
     if app is None:
         raise RuntimeError(
             "MCP OpenAPI schemas require bind_openapi_app(app) on the FastAPI app "
             "(tests: bind_openapi_app via basis.interface.contract.openapi.spec._spec_app())."
         )
-    return cached_openapi_v1_kb(app)
+    return cached_openapi_v1_workspaces(app)
 
 
 def input_schema_for_tool(tool_name: str) -> dict[str, Any] | None:
@@ -171,7 +171,7 @@ def input_schema_for_tool(tool_name: str) -> dict[str, Any] | None:
     if route is None:
         return None
     method, path = route
-    spec = _kb_openapi_spec()
+    spec = _workspaces_openapi_spec()
     op = _operation_by_path(spec, path, method)
     if op is None:
         return None

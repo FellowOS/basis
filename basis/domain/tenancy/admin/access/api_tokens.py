@@ -32,7 +32,7 @@ class ApiTokensAccess:
         *,
         name: str,
         scope: str,
-        kb_ids: list[str],
+        workspace_ids: list[str],
         expires_at: str | None = None,
     ) -> tuple[ApiTokenRecord, str]:
         from basis.domain.tenancy.admin.admin_types import secrets_token
@@ -42,10 +42,10 @@ class ApiTokensAccess:
             raise AdminError(422, "bad_name", "令牌名称需要 1 到 64 个字符")
         if scope not in {"read", "write"}:
             raise AdminError(422, "bad_scope", "scope 必须是 read 或 write")
-        if not kb_ids:
-            raise AdminError(422, "bad_kb_ids", "至少选择一个工作区")
+        if not workspace_ids:
+            raise AdminError(422, "bad_workspace_ids", "至少选择一个工作区")
         cleaned: list[str] = []
-        for workspace_id in kb_ids:
+        for workspace_id in workspace_ids:
             self._store._workspaces.get_workspace_for(actor, workspace_id, "viewer")
             if workspace_id not in cleaned:
                 cleaned.append(workspace_id)
@@ -72,7 +72,7 @@ class ApiTokensAccess:
                 action="api_token.created",
                 target_type="api_token",
                 target_id=token_id,
-                detail={"name": name, "scope": scope, "kb_ids": cleaned},
+                detail={"name": name, "scope": scope, "workspace_ids": cleaned},
             )
             conn.commit()
             row = api_token_persist.fetch_api_token(conn, token_id)
@@ -155,5 +155,5 @@ class ApiTokensAccess:
         record = api_token_from_row(row)
         return user, record
 
-    def api_token_allows_kb(self, record: ApiTokenRecord, workspace_id: str) -> bool:
-        return workspace_id in record.kb_ids
+    def api_token_allows_workspace(self, record: ApiTokenRecord, workspace_id: str) -> bool:
+        return workspace_id in record.workspace_ids

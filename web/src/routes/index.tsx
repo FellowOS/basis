@@ -121,7 +121,7 @@ export function AppRoutes() {
         <Route path="/admin" element={<PlatformAdminLayout />}>
           <Route index element={<AdminLandingRedirect />} />
           <Route
-            path="kbs"
+            path="workspaces"
             element={
               <AdminOnly>
                 <Lazy><WorkspacesPage /></Lazy>

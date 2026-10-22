@@ -18,7 +18,7 @@ import httpx
 
 from basis.domain.integration.allowlist import (
     assert_allowed_providers_in_catalog,
-    assert_kb_allowlist_within_platform,
+    assert_workspace_allowlist_within_platform,
     effective_allowed_providers,
     is_provider_allowed,
     provider_blocked_layer,
@@ -302,7 +302,7 @@ class ConnectorAuthVault:
                 allowed_providers,
                 get_connector_catalog().service_ids(),
             )
-            assert_kb_allowlist_within_platform(allowed_providers, platform_allowed)
+            assert_workspace_allowlist_within_platform(allowed_providers, platform_allowed)
         except ValueError as exc:
             raise PermissionError(str(exc)) from exc
         now = _now_iso()
@@ -318,18 +318,18 @@ class ConnectorAuthVault:
 
     def effective_allowed_providers(self, workspace_id: str) -> list[str] | str:
         platform = self.get_platform_allowed_providers()
-        kb_policy = self.get_policy(workspace_id)
-        return effective_allowed_providers(platform, kb_policy.allowed_providers)
+        workspace_policy = self.get_policy(workspace_id)
+        return effective_allowed_providers(platform, workspace_policy.allowed_providers)
 
     def assert_service_allowed(self, workspace_id: str, service: str) -> None:
         platform = self.get_platform_allowed_providers()
-        kb_policy = self.get_policy(workspace_id)
-        layer = provider_blocked_layer(service, platform, kb_policy.allowed_providers)
+        workspace_policy = self.get_policy(workspace_id)
+        layer = provider_blocked_layer(service, platform, workspace_policy.allowed_providers)
         if layer == "platform":
             raise PermissionError(
                 f"Connector service '{service}' is blocked by platform connector policy"
             )
-        if layer == "kb":
+        if layer == "workspace":
             raise PermissionError(
                 f"Connector service '{service}' is blocked by workspace connector policy"
             )

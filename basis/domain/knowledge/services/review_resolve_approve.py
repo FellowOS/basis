@@ -7,16 +7,16 @@ from dataclasses import dataclass
 from typing import Any, Callable
 
 from basis.domain.errors import AdminError
-from basis.domain.bridges.kb_graph_session import (
-    KbGraphRuntime,
+from basis.domain.bridges.graph_session import (
+    GraphRuntime,
     import_graph_file,
     merge_nodes,
-    record_governance_decision_for_kb,
-    require_kb_graph_session,
+    record_governance_decision_for_workspace,
+    require_graph_session,
 )
 from basis.domain.graph.projection.projection_lifecycle import GraphProjectionBindings
 from basis.domain.knowledge.blob_store import BlobStore
-from basis.domain.knowledge.ports.platform import KbAuditActor, KbAuditStore
+from basis.domain.knowledge.ports.platform import WorkspaceAuditActor, WorkspaceAuditStore
 from basis.domain.knowledge.services.conflict_review import (
     STATEMENT_CONFLICT_KIND,
     resolve_statement_conflict_group,
@@ -24,7 +24,7 @@ from basis.domain.knowledge.services.conflict_review import (
 )
 from basis.domain.knowledge.services.governor import LOW_CONFIDENCE_KIND, resolve_low_confidence_approve
 from basis.domain.knowledge.services.governor_cluster import ENTITY_CLUSTER_KIND
-from basis.domain.knowledge.services.graph_audit import audit_kb_graph
+from basis.domain.knowledge.services.graph_audit import audit_graph
 from basis.domain.knowledge.services.import_review import (
     discard_staged_import,
     upload_file_from_staged,
@@ -55,7 +55,7 @@ def ledger_entity_merge_ids(
 class ReviewApproveDeps:
     projection_bindings: GraphProjectionBindings | None
     blob_store: BlobStore | None
-    runtime_loader: Callable[[], KbGraphRuntime]
+    runtime_loader: Callable[[], GraphRuntime]
     persist_graph: Callable[[str], None]
     rebuild_projection: Callable[[], dict[str, Any]]
 
@@ -64,8 +64,8 @@ class ReviewApproveDeps:
 async def approve_review_item(
     *,
     knowledge: KnowledgeStore,
-    store: KbAuditStore,
-    user: KbAuditActor,
+    store: WorkspaceAuditStore,
+    user: WorkspaceAuditActor,
     workspace_id: str,
     item_id: str,
     rationale: str | None,
@@ -81,10 +81,10 @@ async def approve_review_item(
     import_result: dict[str, Any] | None = None
     mapping_result: dict[str, Any] | None = None
     decision_id: str | None = None
-    approve_action = "kb.graph.merge_approved"
+    approve_action = "workspace.graph.merge_approved"
 
     if item["kind"] == MAPPING_REVIEW_KIND:
-        approve_action = "kb.mapping.approved"
+        approve_action = "workspace.mapping.approved"
         payload = item["payload"] or {}
         mapping_id = str(payload.get("mapping_id") or item["subject_id"])
         mapping_result = apply_mapping_status_change(
@@ -106,7 +106,7 @@ async def approve_review_item(
         payload = item["payload"]
         primary_id = str(payload.get("primary_id") or "")
         duplicate_ids = [str(d) for d in payload.get("duplicate_ids") or []]
-        graph_decision_id = record_governance_decision_for_kb(
+        graph_decision_id = record_governance_decision_for_workspace(
             workspace_id,
             message="Review approve: entity_merge",
             detail={
@@ -152,7 +152,7 @@ async def approve_review_item(
             from basis.domain.knowledge.services.graph_sync import resolve_ledger_entity_id
 
             runtime = deps.runtime_loader()
-            session = require_kb_graph_session(runtime)
+            session = require_graph_session(runtime)
             primary_ledger = resolve_ledger_entity_id(
                 knowledge, workspace_id, runtime.basis, primary_id
             )
@@ -198,7 +198,7 @@ async def approve_review_item(
                     "ledger_skipped_ids": partial,
                 }
     elif item["kind"] == STATEMENT_REVIEW_KIND:
-        decision_id = record_governance_decision_for_kb(
+        decision_id = record_governance_decision_for_workspace(
             workspace_id,
             message="Review approve: statement_remember",
             detail={"item_id": item_id},
@@ -243,7 +243,7 @@ async def approve_review_item(
             subject_id=subject_id,
             payload={"primary_id": primary_id, "duplicate_ids": duplicate_ids},
         )
-        approve_action = "kb.entity.cluster_promoted"
+        approve_action = "workspace.entity.cluster_promoted"
         merge_result = {
             "status": "promoted",
             "entity_merge_item_id": merge_item["id"],
@@ -254,7 +254,7 @@ async def approve_review_item(
         statement_id = str(payload.get("statement_id") or item["subject_id"])
         resolution = resolve_low_confidence_approve(knowledge, workspace_id, statement_id)
         deps.rebuild_projection()
-        approve_action = "kb.statement.low_confidence_confirmed"
+        approve_action = "workspace.statement.low_confidence_confirmed"
         merge_result = {"status": "confirmed", "resolution": resolution, "payload": payload}
     elif item["kind"] == STATEMENT_CONFLICT_KIND:
         payload = dict(item.get("payload") or {})
@@ -267,17 +267,17 @@ async def approve_review_item(
                 keeper_statement_id,
             )
             deps.rebuild_projection()
-            approve_action = "kb.statement.conflict_resolved"
+            approve_action = "workspace.statement.conflict_resolved"
             merge_result = {
                 "status": "resolved",
                 "resolution": resolution,
                 "payload": payload,
             }
         else:
-            approve_action = "kb.statement.conflict_acknowledged"
+            approve_action = "workspace.statement.conflict_acknowledged"
             merge_result = {"status": "acknowledged", "payload": payload}
     elif item["kind"] == "connector_writeback":
-        approve_action = "kb.connector.writeback_approved"
+        approve_action = "workspace.connector.writeback_approved"
         outbox_id = str((item.get("payload") or {}).get("outbox_id") or item["subject_id"])
         sync_svc = knowledge.connector_sync_service()
         executed_outbox = sync_svc.approve_and_execute_outbox(
@@ -289,7 +289,7 @@ async def approve_review_item(
         deps.rebuild_projection()
         decision_id = executed_outbox.get("decision_id")
         resolved_item = knowledge.get_review_item(workspace_id, item_id)
-        audit_kb_graph(
+        audit_graph(
             store,
             user,
             workspace_id,
@@ -310,9 +310,9 @@ async def approve_review_item(
             "decision_id": decision_id,
         }
     elif item["kind"] == "graph_import":
-        approve_action = "kb.graph.import"
+        approve_action = "workspace.graph.import"
         runtime = deps.runtime_loader()
-        session = require_kb_graph_session(runtime)
+        session = require_graph_session(runtime)
         if deps.blob_store is None:
             raise AdminError(500, "internal_error", "blob store required for graph import approve")
         upload = upload_file_from_staged(deps.blob_store, workspace_id, item["payload"])
@@ -329,7 +329,7 @@ async def approve_review_item(
         raise AdminError(422, "unsupported_review_kind", f"不支持的审核类型: {item['kind']}")
 
     if decision_id is None:
-        decision_id = record_governance_decision_for_kb(
+        decision_id = record_governance_decision_for_workspace(
             workspace_id,
             message=f"Review approve: {item['kind']}",
             detail={"item_id": item_id, "kind": item.get("kind")},
@@ -360,7 +360,7 @@ async def approve_review_item(
     }
     if decision_id:
         audit_extra["decision_id"] = decision_id
-    audit_kb_graph(
+    audit_graph(
         store,
         user,
         workspace_id,

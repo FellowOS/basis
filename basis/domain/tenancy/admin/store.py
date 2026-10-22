@@ -67,7 +67,7 @@ class AdminStore:
         self._desktop = DesktopAccess(self)
         if getattr(self._db, "backend", "") == "postgres":
             self._organizations.ensure_workspaces_organization_column()
-            self._organizations.ensure_kb_organization_links()
+            self._organizations.ensure_workspace_organization_links()
 
     def close(self) -> None:
         if self._owns_db_ref:
@@ -209,7 +209,7 @@ for _name in (
     "revoke_api_token",
     "delete_api_token",
     "resolve_api_token",
-    "api_token_allows_kb",
+    "api_token_allows_workspace",
 ):
     setattr(AdminStore, _name, _admin_access_delegate("_api_tokens", _name))
 
@@ -246,14 +246,14 @@ for _name in (
 ):
     setattr(AdminStore, _name, _admin_access_delegate("_settings", _name))
 
-for _name in ("list_audit", "list_audit_for_kb", "record_audit"):
+for _name in ("list_audit", "list_audit_for_workspace", "record_audit"):
     setattr(AdminStore, _name, _admin_access_delegate("_audit_access", _name))
 
 for _name in (
     "list_orgs_for_user",
     "list_all_organizations",
     "ensure_workspaces_organization_column",
-    "ensure_kb_organization_links",
+    "ensure_workspace_organization_links",
     "reconcile_organization_memberships",
     "ensure_default_organization",
     "prepare_organization_sso_directory",

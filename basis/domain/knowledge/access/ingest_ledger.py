@@ -276,7 +276,7 @@ class IngestLedgerAccess:
         now = _now()
         with self._store._lock:
             conn = self._store._conn
-            row = stmt_persist.fetch_statement_kb_status(conn, statement_id)
+            row = stmt_persist.fetch_statement_workspace_status(conn, statement_id)
             if row is None:
                 raise AdminError(404, "not_found", "陈述不存在")
             if row["workspace_id"] != workspace_id:
@@ -293,7 +293,7 @@ class IngestLedgerAccess:
         now = _now()
         with self._store._lock:
             conn = self._store._conn
-            row = stmt_persist.fetch_statement_kb(conn, statement_id)
+            row = stmt_persist.fetch_statement_for_workspace(conn, statement_id)
             if row is None:
                 raise AdminError(404, "not_found", "陈述不存在")
             if row["workspace_id"] != workspace_id:

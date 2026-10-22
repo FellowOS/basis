@@ -6,13 +6,13 @@ import pytest
 from fastapi.testclient import TestClient
 
 from basis.domain.knowledge.services.governor_cluster import ENTITY_CLUSTER_KIND
-from basis.infra.runtime.capabilities import kb_graph_runtime_available
+from basis.infra.runtime.capabilities import graph_runtime_available
 from basis.infra.runtime.config import Settings
 from basis.interface.http.app import create_app
 
 
 def test_governor_run_returns_graph_dedup_section(tmp_path: Path) -> None:
-    if not kb_graph_runtime_available():
+    if not graph_runtime_available():
         pytest.skip("explorer extra not installed")
 
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
@@ -21,7 +21,7 @@ def test_governor_run_returns_graph_dedup_section(tmp_path: Path) -> None:
         json={"email": "gd@example.com", "password": "password1", "display_name": "GD"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
 
     client.post(
         f"/api/v1/workspaces/{workspace_id}/documents",

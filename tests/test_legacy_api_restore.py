@@ -6,7 +6,7 @@ from basis.interface.http.app import create_app
 from basis.infra.runtime.config import Settings
 
 
-def test_legacy_kbs_mount_when_enabled(tmp_path) -> None:
+def test_legacy_workspaces_mount_when_enabled(tmp_path) -> None:
     client = TestClient(create_app(Settings(data_dir=tmp_path, legacy_api_enabled=True)))
     reg = client.post(
         "/api/v1/auth/register",

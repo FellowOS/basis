@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 
 import { defaultWorkspaceId, registerFreshUser } from './helpers';
 
-test('workspace integration page loads (MCP, OpenAPI, access tokens); legacy URLs redirect', async ({ page }) => {
+test('workspace integration page loads (MCP, OpenAPI, access tokens); tab deep links redirect', async ({ page }) => {
   test.setTimeout(90_000);
 
   await registerFreshUser(page);

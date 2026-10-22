@@ -101,16 +101,16 @@ cd web && npm install && npm run dev
 
 在工作区设置中创建 **API 令牌**。MCP 端点：
 
-`POST /api/v1/kbs/{kb_id}/mcp`，请求头 `Authorization: Bearer <token>`。
+`POST /api/v1/workspaces/{workspace_id}/mcp`，请求头 `Authorization: Bearer <token>`。
 
 ```bash
-curl -sS "http://127.0.0.1:8090/api/v1/kbs/YOUR_KB_ID/mcp" \
-  -H "Authorization: Bearer YOUR_KB_TOKEN" \
+curl -sS "http://127.0.0.1:8090/api/v1/workspaces/YOUR_WORKSPACE_ID/mcp" \
+  -H "Authorization: Bearer YOUR_WORKSPACE_TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"describe_kb","arguments":{}}}'
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"describe_workspace","arguments":{}}}'
 ```
 
-工具名与 HTTP 操作共享同一注册表；API 运行时可查看 **`/openapi/v1/kb.json`**。
+工具名与 HTTP 操作共享同一注册表；API 运行时可查看 **`/openapi/v1/workspaces.json`**。
 
 ---
 

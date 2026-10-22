@@ -19,7 +19,7 @@ List Audit. Platform audit log (admin). Requires session JWT (`sessionAuth`).
     """
     require_system_admin(user)
     if workspace_id:
-        events = store.list_audit_for_kb(
+        events = store.list_audit_for_workspace(
             workspace_id,
             action_prefix=action_prefix,
             limit=limit,

@@ -58,7 +58,7 @@ describe('startStaticServer', () => {
   });
 
   it('serves index.html for SPA routes', async () => {
-    const res = await fetch(`${staticUrl}/kbs/kb-1/graph`);
+    const res = await fetch(`${staticUrl}/workspaces/ws-1/graph`);
     assert.equal(res.status, 200);
     assert.match(await res.text(), /spa/);
   });

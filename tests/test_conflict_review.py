@@ -16,7 +16,7 @@ from basis.domain.knowledge.services.conflict_review import (
 from basis.domain.knowledge.store import KnowledgeStore
 
 
-def _kb(tmp_path: Path) -> tuple[str, KnowledgeStore]:
+def _workspace_store(tmp_path: Path) -> tuple[str, KnowledgeStore]:
     from basis.domain.tenancy.admin.store import AdminStore
 
     admin = AdminStore(tmp_path / "basis.db")
@@ -42,7 +42,7 @@ def _chunk(store: KnowledgeStore, workspace_id: str) -> str:
 
 
 def test_find_conflicts_same_predicate_different_objects(tmp_path: Path) -> None:
-    workspace_id, store = _kb(tmp_path)
+    workspace_id, store = _workspace_store(tmp_path)
     chunk_id = _chunk(store, workspace_id)
     alice = store.create_entity(workspace_id, canonical_label="Alice")
     bob = store.create_entity(workspace_id, canonical_label="Bob")
@@ -75,7 +75,7 @@ def test_find_conflicts_same_predicate_different_objects(tmp_path: Path) -> None
 
 
 def test_scan_enqueues_review_item(tmp_path: Path) -> None:
-    workspace_id, store = _kb(tmp_path)
+    workspace_id, store = _workspace_store(tmp_path)
     chunk_id = _chunk(store, workspace_id)
     alice = store.create_entity(workspace_id, canonical_label="Alice")
     bob = store.create_entity(workspace_id, canonical_label="Bob")
@@ -118,7 +118,7 @@ def test_scan_statement_conflicts_route(tmp_path: Path) -> None:
         json={"email": "scan@example.com", "password": "password1", "display_name": "Scan"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
     store = KnowledgeStore(tmp_path / "basis.db", BlobStore(tmp_path))
     chunk_id = _chunk(store, workspace_id)
     alice = store.create_entity(workspace_id, canonical_label="Alice")
@@ -151,7 +151,7 @@ def test_acknowledge_conflict_review_item(tmp_path: Path) -> None:
         json={"email": "rc@example.com", "password": "password1", "display_name": "RC"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
     store = KnowledgeStore(tmp_path / "basis.db", BlobStore(tmp_path))
     chunk_id = _chunk(store, workspace_id)
     alice = store.create_entity(workspace_id, canonical_label="Alice")
@@ -192,7 +192,7 @@ def test_acknowledge_conflict_review_item(tmp_path: Path) -> None:
 
 
 def test_resolve_conflict_keeps_one_statement(tmp_path: Path) -> None:
-    workspace_id, store = _kb(tmp_path)
+    workspace_id, store = _workspace_store(tmp_path)
     chunk_id = _chunk(store, workspace_id)
     alice = store.create_entity(workspace_id, canonical_label="Alice")
     bob = store.create_entity(workspace_id, canonical_label="Bob")
@@ -234,7 +234,7 @@ def test_approve_conflict_with_keeper_via_api(tmp_path: Path) -> None:
         json={"email": "keep@example.com", "password": "password1", "display_name": "Keep"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
     store = KnowledgeStore(tmp_path / "basis.db", BlobStore(tmp_path))
     chunk_id = _chunk(store, workspace_id)
     alice = store.create_entity(workspace_id, canonical_label="Alice")

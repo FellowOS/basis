@@ -19,7 +19,7 @@ def test_graph_snapshot_lists_document_after_ingest(tmp_path) -> None:
         json={"email": "g@example.com", "password": "password1", "display_name": "U"},
     ).json()
     headers = _auth(admin["token"])
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
 
     client.post(
         f"/api/v1/workspaces/{workspace_id}/documents",
@@ -42,7 +42,7 @@ def test_graph_projection_and_rebuild_audit(tmp_path) -> None:
         json={"email": "p@example.com", "password": "password1", "display_name": "U"},
     ).json()
     headers = _auth(admin["token"])
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
 
     client.post(
         f"/api/v1/workspaces/{workspace_id}/documents",
@@ -64,25 +64,25 @@ def test_graph_projection_and_rebuild_audit(tmp_path) -> None:
     audit = client.get(f"/api/v1/audit?workspace_id={workspace_id}", headers=headers)
     assert audit.status_code == 200
     actions = [e["action"] for e in audit.json()["events"]]
-    assert "kb.graph.projection_rebuild" in actions
+    assert "workspace.graph.projection_rebuild" in actions
 
-    kb_audit = client.get(
-        f"/api/v1/workspaces/{workspace_id}/audit/graph-mutations?action_prefix=kb.graph.",
+    workspace_audit = client.get(
+        f"/api/v1/workspaces/{workspace_id}/audit/graph-mutations?action_prefix=workspace.graph.",
         headers=headers,
     )
-    assert kb_audit.status_code == 200
-    kb_actions = [e["action"] for e in kb_audit.json()["events"]]
-    assert "kb.graph.projection_rebuild" in kb_actions
+    assert workspace_audit.status_code == 200
+    workspace_actions = [e["action"] for e in workspace_audit.json()["events"]]
+    assert "workspace.graph.projection_rebuild" in workspace_actions
 
 
-def test_kb_graph_audit_visible_to_viewer_not_platform_audit(tmp_path) -> None:
+def test_workspace_graph_audit_visible_to_viewer_not_platform_audit(tmp_path) -> None:
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
     owner = client.post(
         "/api/v1/auth/register",
         json={"email": "own@example.com", "password": "password1", "display_name": "O"},
     ).json()
     owner_headers = _auth(owner["token"])
-    workspace_id = client.get("/api/v1/workspaces", headers=owner_headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=owner_headers).json()["workspaces"][0]["id"]
 
     viewer = client.post(
         "/api/v1/auth/register",

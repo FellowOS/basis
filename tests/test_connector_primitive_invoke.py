@@ -18,7 +18,7 @@ from basis.infra.tooling.test_support.connector_integration import (
     drop_postgres_table,
     postgres_connection_payload,
     seed_postgres_items_table,
-    setup_kb_sqlite,
+    setup_workspace_sqlite,
     unique_pg_table_name,
 )
 
@@ -29,11 +29,11 @@ def test_github_issues_list_and_create_via_primitive(
 ) -> None:
     owner = github_integration["owner"]
     repo = github_integration["repo"]
-    conn = setup_kb_sqlite(tmp_path)
+    conn = setup_workspace_sqlite(tmp_path)
     try:
         vault = ConnectorAuthVault(conn, vault_secret="test-secret")
         vault.upsert_connection(
-            "kb1",
+            "ws1",
             "github",
             connection_name="default",
             auth_type="api_key",
@@ -43,7 +43,7 @@ def test_github_issues_list_and_create_via_primitive(
 
         listed = execute_connector_primitive(
             runtime,
-            "kb1",
+            "ws1",
             "github",
             action_id="issues",
             primitive="list",
@@ -56,7 +56,7 @@ def test_github_issues_list_and_create_via_primitive(
         try:
             created = execute_connector_primitive(
                 runtime,
-                "kb1",
+                "ws1",
                 "github",
                 action_id="issues",
                 primitive="mutate",
@@ -94,7 +94,7 @@ def test_mcp_invoke_connector_primitive_sql_list(
             },
         ).json()
         headers = {"Authorization": f"Bearer {reg['token']}"}
-        workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+        workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
 
         client.put(
             f"/api/v1/workspaces/{workspace_id}/connectors/connections/postgres/prim",
@@ -136,11 +136,11 @@ def test_mcp_invoke_connector_primitive_sql_list(
 def test_github_get_authenticated_user_invoke(
     tmp_path: Path, github_integration: dict[str, str]
 ) -> None:
-    conn = setup_kb_sqlite(tmp_path)
+    conn = setup_workspace_sqlite(tmp_path)
     try:
         vault = ConnectorAuthVault(conn, vault_secret="test-secret")
         vault.upsert_connection(
-            "kb1",
+            "ws1",
             "github",
             connection_name="default",
             auth_type="api_key",
@@ -150,7 +150,7 @@ def test_github_get_authenticated_user_invoke(
 
         out = execute_connector_primitive(
             runtime,
-            "kb1",
+            "ws1",
             "github",
             action_id="get_authenticated_user",
             primitive="invoke",
@@ -167,11 +167,11 @@ def test_github_get_authenticated_user_invoke(
 def test_list_reports_has_more_when_limit_truncates(
     tmp_path: Path, github_integration: dict[str, str]
 ) -> None:
-    conn = setup_kb_sqlite(tmp_path)
+    conn = setup_workspace_sqlite(tmp_path)
     try:
         vault = ConnectorAuthVault(conn, vault_secret="test-secret")
         vault.upsert_connection(
-            "kb1",
+            "ws1",
             "github",
             connection_name="default",
             auth_type="api_key",
@@ -181,7 +181,7 @@ def test_list_reports_has_more_when_limit_truncates(
 
         listed = execute_connector_primitive(
             runtime,
-            "kb1",
+            "ws1",
             "github",
             action_id="repositories",
             primitive="list",
@@ -211,7 +211,7 @@ def test_http_invoke_primitive_list(tmp_path: Path, postgres_sql_target_url: str
             },
         ).json()
         headers = {"Authorization": f"Bearer {reg['token']}"}
-        workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+        workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
         client.put(
             f"/api/v1/workspaces/{workspace_id}/connectors/connections/postgres/h",
             headers=headers,

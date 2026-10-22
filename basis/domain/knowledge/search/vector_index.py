@@ -158,9 +158,9 @@ class SQLiteVectorIndex:
             store = self._stores.pop(workspace_id, None)
         if store is not None:
             store.close()
-        kb_dir = self._workspace_dir(workspace_id)
+        workspace_dir = self._workspace_dir(workspace_id)
         for name in ("vectors.db", "vectors.db-wal", "vectors.db-shm", "manifest.json", "meta.json"):
-            path = kb_dir / name
+            path = workspace_dir / name
             if path.is_file():
                 path.unlink()
 

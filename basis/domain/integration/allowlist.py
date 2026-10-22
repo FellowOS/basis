@@ -32,7 +32,7 @@ def normalize_allowed_providers(raw: Any) -> AllowedProviders:
 
 def effective_allowed_providers(
     platform: AllowedProviders,
-    kb: AllowedProviders,
+    workspace: AllowedProviders,
 ) -> AllowedProviders:
     """
     Intersect platform ceiling with workspace selection.
@@ -40,16 +40,16 @@ def effective_allowed_providers(
     Workspace `*` means «all providers allowed by the platform» (not the full catalog).
     """
     platform_norm = normalize_allowed_providers(platform)
-    kb_norm = normalize_allowed_providers(kb)
+    workspace_norm = normalize_allowed_providers(workspace)
     if platform_norm == "*":
-        return kb_norm
+        return workspace_norm
     if not isinstance(platform_norm, list):
         return []
     platform_set = set(platform_norm)
-    if kb_norm == "*":
+    if workspace_norm == "*":
         return sorted(platform_set)
-    if isinstance(kb_norm, list):
-        return sorted(set(kb_norm) & platform_set)
+    if isinstance(workspace_norm, list):
+        return sorted(set(workspace_norm) & platform_set)
     return []
 
 
@@ -72,9 +72,9 @@ def count_platform_enabled(platform: AllowedProviders, services: list[str]) -> i
 def is_provider_allowed(
     service: str,
     platform: AllowedProviders,
-    kb: AllowedProviders,
+    workspace: AllowedProviders,
 ) -> bool:
-    effective = effective_allowed_providers(platform, kb)
+    effective = effective_allowed_providers(platform, workspace)
     if effective == "*":
         return True
     if isinstance(effective, list):
@@ -106,18 +106,18 @@ def assert_allowed_providers_in_catalog(
         raise ValueError(f"Unknown connector service keys: {joined}")
 
 
-def assert_kb_allowlist_within_platform(
-    kb: AllowedProviders,
+def assert_workspace_allowlist_within_platform(
+    workspace: AllowedProviders,
     platform: AllowedProviders,
 ) -> None:
     """Raise ValueError when workspace allowlist exceeds the platform ceiling."""
     platform_norm = normalize_allowed_providers(platform)
-    kb_norm = normalize_allowed_providers(kb)
-    if platform_norm == "*" or kb_norm == "*":
+    workspace_norm = normalize_allowed_providers(workspace)
+    if platform_norm == "*" or workspace_norm == "*":
         return
-    if not isinstance(platform_norm, list) or not isinstance(kb_norm, list):
+    if not isinstance(platform_norm, list) or not isinstance(workspace_norm, list):
         return
-    extra = set(kb_norm) - set(platform_norm)
+    extra = set(workspace_norm) - set(platform_norm)
     if extra:
         joined = ", ".join(sorted(extra))
         raise ValueError(
@@ -128,17 +128,17 @@ def assert_kb_allowlist_within_platform(
 def provider_blocked_layer(
     service: str,
     platform: AllowedProviders,
-    kb: AllowedProviders,
+    workspace: AllowedProviders,
 ) -> str | None:
-    """Return ``platform``, ``kb``, or ``None`` when the service is allowed."""
+    """Return ``platform``, ``workspace``, or ``None`` when the service is allowed."""
     platform_norm = normalize_allowed_providers(platform)
     if platform_norm != "*":
         platform_set = set(platform_norm) if isinstance(platform_norm, list) else set()
         if "*" not in platform_set and service not in platform_set:
             return "platform"
-    kb_norm = normalize_allowed_providers(kb)
-    if kb_norm != "*":
-        kb_set = set(kb_norm) if isinstance(kb_norm, list) else set()
-        if "*" not in kb_set and service not in kb_set:
-            return "kb"
+    workspace_norm = normalize_allowed_providers(workspace)
+    if workspace_norm != "*":
+        workspace_set = set(workspace_norm) if isinstance(workspace_norm, list) else set()
+        if "*" not in workspace_set and service not in workspace_set:
+            return "workspace"
     return None

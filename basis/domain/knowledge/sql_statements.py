@@ -138,13 +138,13 @@ def insert_statement_with_evidence(
     )
 
 
-def fetch_statement_kb_status(conn: Any, statement_id: str) -> Any:
+def fetch_statement_workspace_status(conn: Any, statement_id: str) -> Any:
     return conn.execute(
         "SELECT workspace_id, status FROM statements WHERE id = ?", (statement_id,)
     ).fetchone()
 
 
-def fetch_statement_kb(conn: Any, statement_id: str) -> Any:
+def fetch_statement_for_workspace(conn: Any, statement_id: str) -> Any:
     return conn.execute("SELECT workspace_id FROM statements WHERE id = ?", (statement_id,)).fetchone()
 
 

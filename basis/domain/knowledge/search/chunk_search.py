@@ -147,7 +147,7 @@ class ChunkSearchService:
         rows = self._knowledge.list_chunks_for_version(workspace_id, version_id)
         return self.index_chunks(workspace_id, [r["id"] for r in rows])
 
-    def reindex_kb(self, workspace_id: str) -> dict[str, Any]:
+    def reindex_workspace(self, workspace_id: str) -> dict[str, Any]:
         self._knowledge.delete_all_embedding_records(workspace_id)
         self._backend(workspace_id).reset(workspace_id)
         return self.index_chunks(workspace_id, chunk_ids=None)

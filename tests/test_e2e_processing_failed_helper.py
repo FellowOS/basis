@@ -17,7 +17,7 @@ def test_e2e_processing_failed_helper(tmp_path: Path) -> None:
         json={"email": "epf@example.com", "password": "password1", "display_name": "EPF"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
 
     seeded = client.post(f"/api/v1/workspaces/{workspace_id}/_e2e/processing-failed", headers=headers)
     assert seeded.status_code == 200
@@ -38,7 +38,7 @@ def test_e2e_processing_failed_helper(tmp_path: Path) -> None:
         json={"email": "no@example.com", "password": "password1", "display_name": "No"},
     ).json()
     kb2 = disabled.get("/api/v1/workspaces", headers={"Authorization": f"Bearer {admin2['token']}"}).json()[
-        "kbs"
+        "workspaces"
     ][0]["id"]
     denied = disabled.post(
         f"/api/v1/workspaces/{kb2}/_e2e/processing-failed",
@@ -56,7 +56,7 @@ def test_e2e_sync_failed_helper(tmp_path: Path) -> None:
         json={"email": "esf@example.com", "password": "password1", "display_name": "ESF"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
 
     seeded = client.post(f"/api/v1/workspaces/{workspace_id}/_e2e/sync-failed", headers=headers)
     assert seeded.status_code == 200

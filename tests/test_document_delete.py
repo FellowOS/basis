@@ -20,7 +20,7 @@ def test_delete_document_removes_chunks_and_graph_node(tmp_path: Path) -> None:
         json={"email": "del@example.com", "password": "password1", "display_name": "Del"},
     ).json()
     headers = _auth(admin["token"])
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
 
     created = client.post(
         f"/api/v1/workspaces/{workspace_id}/documents",
@@ -91,7 +91,7 @@ def test_delete_document_rejects_active_processing(tmp_path: Path) -> None:
         json={"email": "busy@example.com", "password": "password1", "display_name": "Busy"},
     ).json()
     headers = _auth(admin["token"])
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
 
     created = client.post(
         f"/api/v1/workspaces/{workspace_id}/documents",

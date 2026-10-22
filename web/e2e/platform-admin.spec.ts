@@ -26,7 +26,7 @@ test('platform users page lists the registering admin', async ({ page }) => {
   await expect(page.getByText('E2E User').first()).toBeVisible();
 });
 
-test('platform kbs page shows catalog table and create action', async ({ page }) => {
+test('platform workspaces page shows catalog table and create action', async ({ page }) => {
   test.setTimeout(90_000);
 
   await ensurePlatformAdminSession(page);

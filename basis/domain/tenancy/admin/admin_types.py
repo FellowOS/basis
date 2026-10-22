@@ -11,7 +11,7 @@ from typing import Any
 from basis.domain.tenancy.admin.errors import AdminError
 from basis.domain.tenancy.admin import validators as field_validators
 
-from basis.domain.knowledge.roles import KB_ROLES, ROLE_RANK
+from basis.domain.knowledge.roles import WORKSPACE_ROLES, ROLE_RANK
 
 ORG_ROLES = frozenset({"owner", "admin", "member"})
 ORG_ROLE_RANK = {"member": 1, "admin": 2, "owner": 3}
@@ -53,7 +53,7 @@ class ApiTokenRecord:
     user_id: str
     name: str
     scope: str
-    kb_ids: tuple[str, ...]
+    workspace_ids: tuple[str, ...]
     created_at: str
     expires_at: str | None
     last_used_at: str | None
@@ -65,7 +65,7 @@ class ApiTokenRecord:
             "id": self.id,
             "name": self.name,
             "scope": self.scope,
-            "kb_ids": list(self.kb_ids),
+            "workspace_ids": list(self.workspace_ids),
             "created_at": self.created_at,
             "expires_at": self.expires_at,
             "last_used_at": self.last_used_at,
@@ -144,16 +144,16 @@ def workspace_from_row(row: sqlite3.Row | Any) -> Workspace:
 
 
 def api_token_from_row(row: sqlite3.Row | Any) -> ApiTokenRecord:
-    kb_ids = json.loads(row["workspace_ids_json"] or "[]")
-    if not isinstance(kb_ids, list):
-        kb_ids = []
+    workspace_ids = json.loads(row["workspace_ids_json"] or "[]")
+    if not isinstance(workspace_ids, list):
+        workspace_ids = []
     secret = row["token_secret"] if "token_secret" in row.keys() else None
     return ApiTokenRecord(
         id=row["id"],
         user_id=row["user_id"],
         name=row["name"],
         scope=row["scope"],
-        kb_ids=tuple(str(x) for x in kb_ids),
+        workspace_ids=tuple(str(x) for x in workspace_ids),
         created_at=row["created_at"],
         expires_at=row["expires_at"],
         last_used_at=row["last_used_at"],

@@ -12,7 +12,7 @@ from sqlalchemy.engine import make_url
 from basis.infra.tooling.db.sqlite_migrations import run_migrations
 
 
-def setup_kb_sqlite(tmp_path: Path) -> sqlite3.Connection:
+def setup_workspace_sqlite(tmp_path: Path) -> sqlite3.Connection:
     conn = sqlite3.connect(str(tmp_path / "basis.db"))
     run_migrations(conn)
     conn.execute("PRAGMA foreign_keys = ON")
@@ -25,7 +25,7 @@ def setup_kb_sqlite(tmp_path: Path) -> sqlite3.Connection:
     conn.execute(
         """
         INSERT INTO workspaces (id, name, description, visibility, created_by, created_at)
-        VALUES ('kb1', 'KB 1', '', 'private', 'u1', '2026-01-01T00:00:00Z')
+        VALUES ('ws1', 'Workspace 1', '', 'private', 'u1', '2026-01-01T00:00:00Z')
         """
     )
     conn.commit()

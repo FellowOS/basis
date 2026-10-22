@@ -11,7 +11,7 @@ from basis.domain.knowledge.services.governor_cluster import (
 from basis.domain.knowledge.store import KnowledgeStore
 
 
-def _kb(tmp_path: Path) -> tuple[str, KnowledgeStore]:
+def _workspace_store(tmp_path: Path) -> tuple[str, KnowledgeStore]:
     from basis.domain.tenancy.admin.store import AdminStore
 
     admin = AdminStore(tmp_path / "basis.db")
@@ -23,7 +23,7 @@ def _kb(tmp_path: Path) -> tuple[str, KnowledgeStore]:
 
 
 def test_find_clusters_same_label(tmp_path: Path) -> None:
-    workspace_id, store = _kb(tmp_path)
+    workspace_id, store = _workspace_store(tmp_path)
     store.create_entity(workspace_id, canonical_label="Alice")
     store.create_entity(workspace_id, canonical_label="alice")
     store.create_entity(workspace_id, canonical_label="Bob")
@@ -33,7 +33,7 @@ def test_find_clusters_same_label(tmp_path: Path) -> None:
 
 
 def test_scan_enqueues_cluster_review(tmp_path: Path) -> None:
-    workspace_id, store = _kb(tmp_path)
+    workspace_id, store = _workspace_store(tmp_path)
     store.create_entity(workspace_id, canonical_label="Dup")
     store.create_entity(workspace_id, canonical_label="Dup")
     result = scan_entity_label_clusters(store, workspace_id)
@@ -54,7 +54,7 @@ def test_cluster_approve_promotes_entity_merge(tmp_path: Path) -> None:
         json={"email": "ap@example.com", "password": "password1", "display_name": "Ap"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
 
     store = KnowledgeStore(tmp_path / "basis.db", BlobStore(tmp_path))
     primary = store.create_entity(workspace_id, canonical_label="Same")

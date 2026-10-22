@@ -19,7 +19,7 @@ def test_graph_search_finds_document_node(tmp_path) -> None:
         json={"email": "s@example.com", "password": "password1", "display_name": "U"},
     ).json()
     headers = _auth(admin["token"])
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
 
     client.post(
         f"/api/v1/workspaces/{workspace_id}/documents",

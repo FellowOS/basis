@@ -47,7 +47,7 @@ def _cmd_migrate_legacy_graphs(settings: Settings, args: argparse.Namespace) -> 
 
     admin = AdminStore(settings.db_path)
     try:
-        kb_ids = list(args.workspace_id) if args.workspace_id else admin.list_workspace_ids()
+        workspace_ids = list(args.workspace_id) if args.workspace_id else admin.list_workspace_ids()
     finally:
         admin.close()
 
@@ -57,7 +57,7 @@ def _cmd_migrate_legacy_graphs(settings: Settings, args: argparse.Namespace) -> 
         reports = migrate_all_legacy_graphs(
             knowledge,
             persistence,
-            kb_ids,
+            workspace_ids,
             dry_run=args.dry_run,
             rebuild_projection=args.rebuild,
         )

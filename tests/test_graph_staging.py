@@ -12,7 +12,7 @@ from basis.domain.graph.reads.staging import (
     build_graph_staging_payload,
     staging_session_key,
 )
-from basis.infra.runtime.capabilities import kb_graph_runtime_available
+from basis.infra.runtime.capabilities import graph_runtime_available
 from basis.infra.runtime.config import Settings
 from basis.interface.http.app import create_app
 
@@ -32,26 +32,26 @@ def test_build_graph_staging_payload_focus_nodes() -> None:
             "edges_removed": 0,
         },
     }
-    payload = build_graph_staging_payload("kb-1", diff)
+    payload = build_graph_staging_payload("ws-1", diff)
     assert payload["manifest"]["change_total"] == 3
     assert payload["manifest"]["focus_node_ids"] == ["a", "c"]
     assert payload["manifest"]["governance"]["direct_merge_allowed"] is False
     assert payload["manifest"]["session_key"] == staging_session_key(
-        "kb-1", "2020-01-01T00:00:00", "2021-01-01T00:00:00"
+        "ws-1", "2020-01-01T00:00:00", "2021-01-01T00:00:00"
     )
 
 
 def test_staging_session_key_stable() -> None:
-    a = staging_session_key("kb", "2020-01-01", "2021-01-01")
-    b = staging_session_key("kb", "2020-01-01", "2021-01-01")
-    c = staging_session_key("kb", "2020-01-02", "2021-01-01")
+    a = staging_session_key("ws-a", "2020-01-01", "2021-01-01")
+    b = staging_session_key("ws-a", "2020-01-01", "2021-01-01")
+    c = staging_session_key("ws-a", "2020-01-02", "2021-01-01")
     assert a == b
     assert a != c
     assert len(a) == 16
 
 
 def test_graph_staging_route_after_ingest(tmp_path: Path) -> None:
-    if not kb_graph_runtime_available():
+    if not graph_runtime_available():
         pytest.skip("explorer extra not installed")
 
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
@@ -61,7 +61,7 @@ def test_graph_staging_route_after_ingest(tmp_path: Path) -> None:
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
 
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
     client.post(
         f"/api/v1/workspaces/{workspace_id}/documents",
         headers=headers,

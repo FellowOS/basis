@@ -171,7 +171,7 @@ def _run_version_ingest_for_app(
             projection_revision=ledger["revision"],
             schema_version=ledger["schema_version"],
         )
-        app.state.kb_graph_session_registry.invalidate(workspace_id)
+        app.state.graph_session_registry.invalidate(workspace_id)
         app.state.ws_hub.try_broadcast(
             workspace_id,
             {

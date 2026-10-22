@@ -221,7 +221,7 @@ def migrate_legacy_graph(
 def migrate_all_legacy_graphs(
     knowledge: KnowledgeStore,
     persistence: GraphPersistence,
-    kb_ids: list[str],
+    workspace_ids: list[str],
     *,
     dry_run: bool = True,
     rebuild_projection: bool = False,
@@ -234,7 +234,7 @@ def migrate_all_legacy_graphs(
             dry_run=dry_run,
             rebuild_projection=rebuild_projection,
         ).to_dict()
-        for workspace_id in kb_ids
+        for workspace_id in workspace_ids
     ]
 
 

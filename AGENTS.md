@@ -85,7 +85,7 @@ After sync: `npm run typecheck` — fix **primitives**, **shell**, and imports, 
 
 ### Workspace Explorer layering
 
-1. `web/src/routes/index.tsx` — all `/kbs/*`, `/admin/*`, and related URLs; modules export route entry `index.tsx` (lazy via `routes/lazy-pages.ts`).
+1. `web/src/routes/index.tsx` — all `/workspaces/*`, `/admin/*`, and related URLs; modules export route entry `index.tsx` (lazy via `routes/lazy-pages.ts`).
 2. `web/src/modules/<segment>/` — `index.tsx` (route entry), `pages/` (screen + glue), `i18n/`, `components/` (required); optional `hooks/`, `lib/`; workspace frame from `app/shared/workspace/frame/`.
 3. `web/src/lib/workspace/` — shared client (`ws-http`, `graphStore`, …); import `@/lib/workspace/…` ([README](./web/src/lib/workspace/README.md)).
 
@@ -127,11 +127,14 @@ Run relevant checks after substantive edits; say if something was not run.
 - CLI entry: `pyproject.toml` (`basis` → `basis.cli:main`); app factory `basis.interface.http.app:create_app`.
 - Schema SQL: `basis/infra/tooling/db/migrations/`; Alembic `basis/infra/tooling/db/alembic/`.
 - Layer imports: `uv run lint-imports --config importlinter.ini` — domain ↛ `interface`/`application`; `application` ↛ `interface.http`; `interface.contract.mcp.openapi` ↛ `interface.http`.
-- Application core (MCP + OpenAPI ops): `basis/application/` (`KbCoreContext`, `run`). **MCP tools** (23 static core tools; minimal graph loop in [openapi-v1.md §6.1](./docs/architecture/openapi-v1.md)): graph/review + connector ops in `registry.py` / `interface/contract/mcp/`.
-- OpenAPI: served live from `app.openapi()` via `basis.interface.contract.openapi.v1_export` (`/openapi/v1.json`); handler docstrings → `description`. Optional JSON snapshots in `openapi/*.json`: `scripts/generate-openapi-v1.py` (CI drift + `web` typegen; fails if any operation lacks a docstring).
+- **HTTP modules** (`basis/interface/http/`): `platform_*` = platform routes (`/api/v1/auth`, `/orgs`, `/settings`, …); unprefixed files (`graph.py`, `ledger.py`, `resources.py`, …) = workspace routes mounted at `/api/v1/workspaces` in `mount_v1.py`. Do not reintroduce `kb_` or `workspace_` filename prefixes.
+- Application core (MCP + OpenAPI ops): `basis/application/` (`WorkspaceCoreContext`, `run`). **MCP tools** (23 static core tools; minimal graph loop in [openapi-v1.md §6.1](./docs/architecture/openapi-v1.md)): graph/review + connector ops in `registry.py` / `interface/contract/mcp/`.
+- OpenAPI: served live from `app.openapi()` via `basis.interface.contract.openapi.v1_export` (`/openapi/v1.json`, `/openapi/v1/workspaces.json`, `/openapi/v1/platform.json`). Handler docstrings → `description`. Snapshots in `openapi/*.json`: `scripts/generate-openapi-v1.py` (CI drift + `web` typegen).
 - Prefer existing patterns in route handlers and services; follow pytest style in `tests/`.
 
 ## Docs for specific tasks
+
+The **`docs/`** directory is listed in **`.gitignore`** — local working copies only, **not** in the Git repo. Do not `git add` paths under `docs/`. After bulk renames, refresh local docs with `uv run python scripts/apply-docs-workspace-naming.py`. Normative HTTP contract for CI and clients: **`openapi/basis-v1*.json`**, live **`/openapi/v1.json`**, and in-repo READMEs under `basis/`, `web/`, etc.
 
 | Task | Read |
 |------|------|
@@ -150,4 +153,5 @@ Run relevant checks after substantive edits; say if something was not run.
 
 - Mass renames, directory moves, or syncing all shadcn components without a request.
 - Committing drive-by README changes unrelated to the task.
+- Committing anything under **`docs/`** (gitignored by design).
 - Editing generated or vendor trees except through documented sync commands.

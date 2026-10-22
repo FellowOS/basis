@@ -4,12 +4,12 @@ from __future__ import annotations
 
 from typing import Any
 
-from basis.domain.knowledge.ports.platform import KbAuditActor, KbAuditStore
+from basis.domain.knowledge.ports.platform import WorkspaceAuditActor, WorkspaceAuditStore
 
 
-def audit_kb_graph(
-    store: KbAuditStore,
-    actor: KbAuditActor,
+def audit_graph(
+    store: WorkspaceAuditStore,
+    actor: WorkspaceAuditActor,
     workspace_id: str,
     action: str,
     *,

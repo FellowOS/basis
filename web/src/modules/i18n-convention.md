@@ -50,7 +50,7 @@ Logical path examples:
 
 - `review.page.subtitle` — route page chrome
 - `review.queue.approve_label` — widget section inside module
-- `graph.menu.graph_diff` — nav label owned by graph module (replaces scattered `menu.kb.*` over time)
+- `graph.menu.graph_diff` — nav label owned by graph module (alongside per-segment `*.menu.*` keys)
 - `admin_audit.list.col_time` — admin list table
 
 **snake_case** applies to **object keys** (leaves and intermediate groups if multi-word): `empty_graph_title`, not `emptyGraphTitle`.

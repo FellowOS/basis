@@ -33,7 +33,7 @@ Provider bundle（`connector.yaml`）**只写一份**。BOCP 运行时把 `actio
 |------|------|
 | 账本 / 投影 | **已交付** — HTTP `/api/v1/workspaces/{workspace_id}/connectors/*`，MCP `sync_connector_table_mapping`、`propose_entity_writeback` 等 |
 | 智能体原语 | **已交付** — MCP `invoke_connector_primitive` 与 `tools/list` 按 action 展开的 `connector_{service}__{action_id}__{suffix}`；HTTP `POST …/invoke-primitive` |
-| 控制台 UI | **已交付** — `/kbs/{workspace_id}/connectors`（`web/src/modules/connectors/`）；平台 allowlist：`/admin/connectors` |
+| 控制台 UI | **已交付** — `/workspaces/{workspace_id}/connectors`（`web/src/modules/connectors/`）；平台 allowlist：`/admin/connectors` |
 
 策略：`action_policy.entities`（如 `github:issues.list`）及 `default_entity_read_mode` / `default_entity_write_mode`。
 

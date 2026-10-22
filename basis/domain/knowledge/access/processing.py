@@ -259,7 +259,7 @@ class ProcessingJobsAccess:
             )
             self._store._conn.commit()
         try:
-            from basis.domain.knowledge.services.kb_alerts_emit import emit_processing_failed_alert
+            from basis.domain.knowledge.services.alerts_emit import emit_processing_failed_alert
 
             emit_processing_failed_alert(self._store, workspace_id, job_id, code, message)
         except Exception:

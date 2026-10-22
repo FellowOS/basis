@@ -4,7 +4,7 @@ import { messagesForLocale } from '@/i18n/pick-locale.js';
 import { buildIngestLimitsHint, buildIngestOpsQueueHint } from '@/modules/processing/lib/ingest-ops-hints.js';
 import type { ProcessingJob } from '@/modules/processing/lib/processing-job.js';
 
-describe('kb-ingest-ops-hints', () => {
+describe('workspace-ingest-ops-hints', () => {
   const copy = messagesForLocale('en').processing.jobs;
 
   it('buildIngestLimitsHint formats caps', () => {

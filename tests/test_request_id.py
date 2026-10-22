@@ -34,7 +34,7 @@ def test_graph_rebuild_audit_includes_request_id(tmp_path) -> None:
         json={"email": "aud@example.com", "password": "password1", "display_name": "U"},
     ).json()
     headers = _auth(admin["token"])
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
     trace = "rebuild-audit-trace"
 
     client.post(
@@ -43,13 +43,13 @@ def test_graph_rebuild_audit_includes_request_id(tmp_path) -> None:
     )
 
     audit = client.get(
-        f"/api/v1/workspaces/{workspace_id}/audit/graph-mutations?action_prefix=kb.graph.",
+        f"/api/v1/workspaces/{workspace_id}/audit/graph-mutations?action_prefix=workspace.graph.",
         headers=headers,
     )
     assert audit.status_code == 200
     events = audit.json()["events"]
     rebuild = next(
-        e for e in events if e["action"] == "kb.graph.projection_rebuild"
+        e for e in events if e["action"] == "workspace.graph.projection_rebuild"
     )
     assert rebuild["detail"]["request_id"] == trace
 

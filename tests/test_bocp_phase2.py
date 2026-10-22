@@ -48,7 +48,7 @@ def _phase2_catalog_includes_rest_dev_fixtures(monkeypatch: pytest.MonkeyPatch) 
     )
 
 
-def _setup_kb_db(tmp_path: Path) -> sqlite3.Connection:
+def _setup_workspace_db(tmp_path: Path) -> sqlite3.Connection:
     db = tmp_path / "basis_phase2.db"
     conn = sqlite3.connect(str(db))
     run_migrations(conn)
@@ -77,7 +77,7 @@ def test_vault_encryption_and_connection_crud(tmp_path: Path) -> None:
     decrypted = decrypt_vault_payload(ciphertext, secret="test-vault-secret")
     assert decrypted == raw
 
-    conn = _setup_kb_db(tmp_path)
+    conn = _setup_workspace_db(tmp_path)
     try:
         vault = ConnectorAuthVault(conn, vault_secret="test-vault-secret")
         stored = vault.upsert_connection(
@@ -159,7 +159,7 @@ def test_sql_adapter_via_connector_runtime(tmp_path: Path) -> None:
         )
     ext_engine.dispose()
 
-    conn = _setup_kb_db(tmp_path)
+    conn = _setup_workspace_db(tmp_path)
     try:
         runtime = ConnectorRuntime(conn, vault_secret="test-secret")
         runtime.vault.upsert_connection(
@@ -287,7 +287,7 @@ def test_rest_declarative_adapter_airtable_flow(tmp_path: Path) -> None:
         return httpx.Response(404, json={"error": "not_found"})
 
     mock_client = httpx.Client(transport=httpx.MockTransport(handler))
-    conn = _setup_kb_db(tmp_path)
+    conn = _setup_workspace_db(tmp_path)
     try:
         runtime = ConnectorRuntime(
             conn, vault_secret="test-secret", http_client=mock_client
@@ -378,7 +378,7 @@ def test_oauth2_code_exchange_and_tool_execution(tmp_path: Path) -> None:
         return httpx.Response(404)
 
     mock_client = httpx.Client(transport=httpx.MockTransport(handler))
-    conn = _setup_kb_db(tmp_path)
+    conn = _setup_workspace_db(tmp_path)
     try:
         runtime = ConnectorRuntime(
             conn, vault_secret="test-secret", http_client=mock_client

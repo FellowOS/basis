@@ -4,7 +4,6 @@ import { isWorkspaceScopedPath, parseWorkspaceIdFromPath } from '@/lib/nav/nav-c
 export const WORKSPACE_SETUP_ID = 'setup';
 
 const STORAGE_KEY = 'basis_active_workspace_id';
-const LEGACY_STORAGE_KEY = 'basis_active_kb_id';
 
 export function isSetupWorkspaceId(id: string | null | undefined): boolean {
   return id === WORKSPACE_SETUP_ID;
@@ -12,13 +11,7 @@ export function isSetupWorkspaceId(id: string | null | undefined): boolean {
 
 export function readActiveWorkspaceId(): string | null {
   try {
-    const current = localStorage.getItem(STORAGE_KEY);
-    if (current) return current;
-    const legacy = localStorage.getItem(LEGACY_STORAGE_KEY);
-    if (!legacy) return null;
-    localStorage.setItem(STORAGE_KEY, legacy);
-    localStorage.removeItem(LEGACY_STORAGE_KEY);
-    return legacy;
+    return localStorage.getItem(STORAGE_KEY);
   } catch {
     return null;
   }
@@ -28,7 +21,6 @@ export function writeActiveWorkspaceId(id: string): void {
   if (isSetupWorkspaceId(id)) return;
   try {
     localStorage.setItem(STORAGE_KEY, id);
-    localStorage.removeItem(LEGACY_STORAGE_KEY);
   } catch {
     /* ignore */
   }

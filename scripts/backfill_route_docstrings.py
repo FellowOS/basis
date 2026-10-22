@@ -17,8 +17,8 @@ _REPO = Path(__file__).resolve().parents[1]
 _ROUTES_ROOT = _REPO / "basis" / "transport" / "http" / "routes"
 _HTTP = _REPO / "basis" / "transport" / "http"
 _ONTOLOGY_HUB_FILES = (
-    _HTTP / "kb_ontology_hub_catalog.py",
-    _HTTP / "kb_ontology_hub_governance.py",
+    _REPO / "basis" / "interface" / "http" / "ontology_hub_catalog.py",
+    _REPO / "basis" / "interface" / "http" / "ontology_hub_governance.py",
 )
 _OPENAPI = _REPO / "openapi" / "basis-v1.json"
 _BACKFILL_PATHS: tuple[Path, ...] = (_ROUTES_ROOT, *_ONTOLOGY_HUB_FILES)
@@ -61,8 +61,6 @@ def _format_docstring(desc: str, indent: str) -> str:
 
 
 def _should_backfill_handler(node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
-    if node.name.startswith("_kb_ont_"):
-        return True
     return _is_route_handler(node)
 
 

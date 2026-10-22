@@ -19,7 +19,7 @@ def test_settings_override_graph_snapshot_cap(tmp_path: Path) -> None:
         json={"email": "cap@example.com", "password": "password1", "display_name": "Cap"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
 
     res = client.get(
         f"/api/v1/workspaces/{workspace_id}/graph/snapshot?limit_nodes=999&limit_edges=999",
@@ -39,7 +39,7 @@ def test_settings_override_chunk_search_cap(tmp_path: Path) -> None:
         json={"email": "search@example.com", "password": "password1", "display_name": "S"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
 
     store = KnowledgeStore(tmp_path / "basis.db", BlobStore(tmp_path))
     _, version_id, _, _ = store.store_upload_bytes(
@@ -68,7 +68,7 @@ def test_document_upload_rejected_over_byte_cap(tmp_path: Path) -> None:
         json={"email": "up@example.com", "password": "password1", "display_name": "Up"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
 
     over = client.post(
         f"/api/v1/workspaces/{workspace_id}/documents/upload",
@@ -100,7 +100,7 @@ def test_processing_fails_when_extracted_text_exceeds_cap(tmp_path: Path) -> Non
         json={"email": "ext@example.com", "password": "password1", "display_name": "Ext"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
     source = client.post(
         f"/api/v1/workspaces/{workspace_id}/documents",
         headers=headers,
@@ -148,7 +148,7 @@ def test_processing_fails_when_chunk_count_exceeds_cap(tmp_path: Path, monkeypat
         json={"email": "chk@example.com", "password": "password1", "display_name": "Chk"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
     source = client.post(
         f"/api/v1/workspaces/{workspace_id}/documents",
         headers=headers,
@@ -193,7 +193,7 @@ def test_processing_fails_when_extraction_times_out(tmp_path: Path, monkeypatch)
         json={"email": "to@example.com", "password": "password1", "display_name": "To"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
     source = client.post(
         f"/api/v1/workspaces/{workspace_id}/documents",
         headers=headers,
@@ -240,7 +240,7 @@ def test_async_ingest_fails_with_ingest_overloaded_when_pending_full(
         json={"email": "q@example.com", "password": "password1", "display_name": "Q"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
     a = client.post(
         f"/api/v1/workspaces/{workspace_id}/documents",
         headers=headers,

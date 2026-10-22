@@ -4,12 +4,12 @@ from __future__ import annotations
 
 from typing import Any
 
-from basis.application.context import KbCoreContext, KbToolContext
+from basis.application.context import WorkspaceCoreContext, WorkspaceToolContext
 from basis.application.registry import TOOL_NAMES, execute, get_tool_definitions, run
 
 __all__ = [
-    "KbCoreContext",
-    "KbToolContext",
+    "WorkspaceCoreContext",
+    "WorkspaceToolContext",
     "TOOL_DEFINITIONS",
     "TOOL_NAMES",
     "execute",

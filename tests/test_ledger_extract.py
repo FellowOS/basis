@@ -6,7 +6,7 @@ from basis.domain.knowledge.store import KnowledgeStore
 from basis.domain.knowledge.pipeline.ledger_extract import apply_kg_to_ledger
 
 
-def _kb_and_chunk(tmp_path: Path) -> tuple[KnowledgeStore, str, str, str]:
+def _workspace_and_chunk(tmp_path: Path) -> tuple[KnowledgeStore, str, str, str]:
     admin = AdminStore(tmp_path / "basis.db")
     user, _ = admin.register("ledger@example.com", "password1", "U")
     workspace_id = admin.create_workspace(user, "KB", None, "restricted").id
@@ -27,7 +27,7 @@ def _kb_and_chunk(tmp_path: Path) -> tuple[KnowledgeStore, str, str, str]:
 
 
 def test_apply_kg_to_ledger_writes_statement_with_evidence(tmp_path: Path) -> None:
-    store, workspace_id, version_id, chunk_id = _kb_and_chunk(tmp_path)
+    store, workspace_id, version_id, chunk_id = _workspace_and_chunk(tmp_path)
     kg = {
         "entities": [
             {"id": "Alice", "name": "Alice"},
@@ -52,7 +52,7 @@ def test_apply_kg_to_ledger_writes_statement_with_evidence(tmp_path: Path) -> No
 
 
 def test_apply_kg_to_ledger_skips_duplicate_and_records_drop(tmp_path: Path) -> None:
-    store, workspace_id, version_id, chunk_id = _kb_and_chunk(tmp_path)
+    store, workspace_id, version_id, chunk_id = _workspace_and_chunk(tmp_path)
     bad = {"relationships": [{"source": None, "target": "Bob"}]}
     stats = apply_kg_to_ledger(
         store,

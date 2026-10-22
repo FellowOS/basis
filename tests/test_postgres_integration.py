@@ -19,7 +19,7 @@ def test_postgres_ledger_fts_pgvector_and_mcp(
     )
     assert registered.status_code == 200
     headers = {"Authorization": f"Bearer {registered.json()['token']}"}
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
 
     config = client.get(f"/api/v1/workspaces/{workspace_id}/search/config", headers=headers).json()
     assert config["config"]["chunk_backend"] == "postgres_ledger"
@@ -71,7 +71,7 @@ def test_postgres_ledger_fts_pgvector_and_mcp(
     client.close()
 
 
-def test_postgres_kb_graph_audit_list(tmp_path: Path, postgres_url: str) -> None:
+def test_postgres_workspace_graph_audit_list(tmp_path: Path, postgres_url: str) -> None:
     client = TestClient(
         create_app(Settings(data_dir=tmp_path, database_url=postgres_url))
     )
@@ -81,7 +81,7 @@ def test_postgres_kb_graph_audit_list(tmp_path: Path, postgres_url: str) -> None
     )
     assert registered.status_code == 200
     headers = {"Authorization": f"Bearer {registered.json()['token']}"}
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
     audit = client.get(
         f"/api/v1/workspaces/{workspace_id}/audit/graph-mutations",
         headers=headers,

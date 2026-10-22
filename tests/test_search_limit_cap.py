@@ -19,7 +19,7 @@ def test_chunk_search_route_caps_limit(tmp_path: Path) -> None:
         json={"email": "cap@example.com", "password": "password1", "display_name": "Cap"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
 
     store = KnowledgeStore(tmp_path / "basis.db", BlobStore(tmp_path))
     _, version_id, _, _ = store.store_upload_bytes(

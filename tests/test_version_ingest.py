@@ -18,18 +18,18 @@ from basis.domain.knowledge.pipeline.document import TextIngestOptions
 from basis.domain.knowledge.pipeline.version_ingest import run_version_ingest
 
 
-def _kb_id(tmp_path: Path) -> str:
+def _workspace_id(tmp_path: Path) -> str:
     from basis.domain.tenancy.admin.store import AdminStore
 
     admin = AdminStore(tmp_path / "basis.db")
     user, _ = admin.register("ingest@example.com", "password1", "U")
-    kb = admin.create_workspace(user, "KB", None, "restricted")
+    workspace = admin.create_workspace(user, "KB", None, "restricted")
     admin.close()
-    return kb.id
+    return workspace.id
 
 
 def test_run_version_ingest_chunks_and_marks_ready(tmp_path: Path) -> None:
-    workspace_id = _kb_id(tmp_path)
+    workspace_id = _workspace_id(tmp_path)
     blobs = BlobStore(tmp_path)
     knowledge = KnowledgeStore(tmp_path / "basis.db", blobs)
     text = b"Line one.\nLine two about contracts."
@@ -61,7 +61,7 @@ def test_run_version_ingest_chunks_and_marks_ready(tmp_path: Path) -> None:
 
 
 def test_ingest_failure_before_rebuild_marks_projection_dirty(tmp_path: Path) -> None:
-    workspace_id = _kb_id(tmp_path)
+    workspace_id = _workspace_id(tmp_path)
     blobs = BlobStore(tmp_path)
     knowledge = KnowledgeStore(tmp_path / "basis.db", blobs)
     _, version_id, job_id, _ = knowledge.store_upload_bytes(
@@ -105,7 +105,7 @@ def test_upload_api_async_accept_and_polls_succeeded(tmp_path: Path) -> None:
         json={"email": "async@example.com", "password": "password1", "display_name": "U"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
 
     files = {"file": ("async.txt", BytesIO(b"async ingest body"), "text/plain")}
     uploaded = client.post(
@@ -141,7 +141,7 @@ def test_upload_api_returns_job_and_polls_succeeded(tmp_path: Path) -> None:
         json={"email": "up@example.com", "password": "password1", "display_name": "U"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
 
     files = {"file": ("demo.txt", BytesIO(b"payment terms and delivery"), "text/plain")}
     uploaded = client.post(

@@ -48,7 +48,7 @@ class RealtimeTicketStore:
             if record.used:
                 raise AdminError(401, "ticket_used", "票据已使用")
             if record.workspace_id != workspace_id:
-                raise AdminError(403, "wrong_kb", "票据与工作区不匹配")
+                raise AdminError(403, "wrong_workspace", "票据与工作区不匹配")
             if time.time() > record.expires_at:
                 raise AdminError(401, "ticket_expired", "票据已过期")
             record.used = True

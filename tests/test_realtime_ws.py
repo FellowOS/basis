@@ -21,7 +21,7 @@ def test_realtime_ticket_and_websocket_connect(tmp_path) -> None:
         json={"email": "ws@example.com", "password": "password1", "display_name": "U"},
     ).json()
     headers = _auth(admin["token"])
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
 
     ticket_resp = client.post(f"/api/v1/workspaces/{workspace_id}/realtime-ticket", headers=headers)
     assert ticket_resp.status_code == 200
@@ -47,7 +47,7 @@ def test_rebuild_emits_projection_updated_on_websocket(tmp_path) -> None:
         json={"email": "wsb@example.com", "password": "password1", "display_name": "U"},
     ).json()
     headers = _auth(admin["token"])
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
     ticket = client.post(f"/api/v1/workspaces/{workspace_id}/realtime-ticket", headers=headers).json()["ticket"]
 
     with client.websocket_connect(f"/api/v1/workspaces/{workspace_id}/ws/graph-updates?ticket={ticket}") as ws:
@@ -71,7 +71,7 @@ def test_ingest_emits_projection_updated_on_websocket(tmp_path) -> None:
         json={"email": "wsc@example.com", "password": "password1", "display_name": "U"},
     ).json()
     headers = _auth(admin["token"])
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
     ticket = client.post(f"/api/v1/workspaces/{workspace_id}/realtime-ticket", headers=headers).json()["ticket"]
 
     with client.websocket_connect(f"/api/v1/workspaces/{workspace_id}/ws/graph-updates?ticket={ticket}") as ws:
@@ -89,14 +89,14 @@ def test_ingest_emits_projection_updated_on_websocket(tmp_path) -> None:
         assert isinstance(event.get("projection_revision"), int)
 
 
-def test_wrong_kb_ticket_rejected(tmp_path) -> None:
+def test_wrong_workspace_ticket_rejected(tmp_path) -> None:
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
     admin = client.post(
         "/api/v1/auth/register",
         json={"email": "w2@example.com", "password": "password1", "display_name": "U"},
     ).json()
     headers = _auth(admin["token"])
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
     other = client.post(
         "/api/v1/workspaces",
         headers=headers,

@@ -7,7 +7,7 @@ from fastapi.responses import JSONResponse
 
 from basis.interface.contract.openapi.v1_export import (
     cached_openapi_v1_full,
-    cached_openapi_v1_kb,
+    cached_openapi_v1_workspaces,
     cached_openapi_v1_platform,
 )
 
@@ -26,7 +26,7 @@ async def get_openapi_v1_platform(request: Request) -> JSONResponse:
     return JSONResponse(cached_openapi_v1_platform(request.app))
 
 
-@router.get("/openapi/v1/kb.json")
-async def get_openapi_v1_kb(request: Request) -> JSONResponse:
+@router.get("/openapi/v1/workspaces.json")
+async def get_openapi_v1_workspaces(request: Request) -> JSONResponse:
     """Return the live workspace integration OpenAPI slice exported from this app."""
-    return JSONResponse(cached_openapi_v1_kb(request.app))
+    return JSONResponse(cached_openapi_v1_workspaces(request.app))

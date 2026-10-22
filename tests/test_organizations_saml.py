@@ -22,8 +22,8 @@ def _store(tmp_path: Path) -> AdminStore:
 def test_org_saml_upsert_and_domain_resolve(tmp_path: Path) -> None:
     admin = _store(tmp_path)
     user, _ = admin.register("saml@example.com", "password1", "Saml")
-    kb = admin.create_workspace(user, "Saml Co", None, "restricted")
-    org_id = kb.organization_id
+    workspace = admin.create_workspace(user, "Saml Co", None, "restricted")
+    org_id = workspace.organization_id
     assert org_id
     admin.upsert_org_saml_config(
         user,
@@ -45,8 +45,8 @@ def test_org_saml_upsert_and_domain_resolve(tmp_path: Path) -> None:
 def test_org_sso_options_includes_saml(tmp_path: Path) -> None:
     admin = _store(tmp_path)
     user, _ = admin.register("opts2@example.com", "password1", "Opts2")
-    kb = admin.create_workspace(user, "Saml Opts", None, "restricted")
-    org_id = kb.organization_id
+    workspace = admin.create_workspace(user, "Saml Opts", None, "restricted")
+    org_id = workspace.organization_id
     assert org_id
     admin.upsert_org_saml_config(
         user,
@@ -71,8 +71,8 @@ def test_org_sso_options_includes_saml(tmp_path: Path) -> None:
 def test_org_saml_slo_requires_idp_url(tmp_path: Path) -> None:
     admin = _store(tmp_path)
     user, _ = admin.register("slo@example.com", "password1", "Slo")
-    kb = admin.create_workspace(user, "Slo Co", None, "restricted")
-    org_id = kb.organization_id
+    workspace = admin.create_workspace(user, "Slo Co", None, "restricted")
+    org_id = workspace.organization_id
     assert org_id
     from basis.domain.tenancy.admin.errors import AdminError
 
@@ -94,8 +94,8 @@ def test_org_saml_slo_requires_idp_url(tmp_path: Path) -> None:
 def test_org_saml_signing_requires_key_material(tmp_path: Path) -> None:
     admin = _store(tmp_path)
     user, _ = admin.register("sign@example.com", "password1", "Sign")
-    kb = admin.create_workspace(user, "Sign Co", None, "restricted")
-    org_id = kb.organization_id
+    workspace = admin.create_workspace(user, "Sign Co", None, "restricted")
+    org_id = workspace.organization_id
     assert org_id
     from basis.domain.tenancy.admin.errors import AdminError
 
@@ -117,8 +117,8 @@ def test_org_saml_signing_requires_key_material(tmp_path: Path) -> None:
 def test_org_saml_api_get_includes_slo_urls(tmp_path: Path) -> None:
     admin = _store(tmp_path)
     user, token = admin.register("api@example.com", "password1", "Api")
-    kb = admin.create_workspace(user, "Api SAML", None, "restricted")
-    org_id = kb.organization_id
+    workspace = admin.create_workspace(user, "Api SAML", None, "restricted")
+    org_id = workspace.organization_id
     assert org_id
     admin.upsert_org_saml_config(
         user,
@@ -148,8 +148,8 @@ def test_org_saml_api_get_includes_slo_urls(tmp_path: Path) -> None:
 def test_logout_returns_saml_logout_url_for_federated_user(tmp_path: Path) -> None:
     admin = _store(tmp_path)
     user, token = admin.register("fed@example.com", "password1", "Fed")
-    kb = admin.create_workspace(user, "Fed SAML", None, "restricted")
-    org_id = kb.organization_id
+    workspace = admin.create_workspace(user, "Fed SAML", None, "restricted")
+    org_id = workspace.organization_id
     assert org_id
     admin.upsert_org_saml_config(
         user,
@@ -191,8 +191,8 @@ def test_logout_returns_saml_logout_url_for_federated_user(tmp_path: Path) -> No
 def test_org_saml_logout_requires_slo_enabled(tmp_path: Path) -> None:
     admin = _store(tmp_path)
     user, _ = admin.register("logout@example.com", "password1", "Logout")
-    kb = admin.create_workspace(user, "Logout SAML", None, "restricted")
-    org_id = kb.organization_id
+    workspace = admin.create_workspace(user, "Logout SAML", None, "restricted")
+    org_id = workspace.organization_id
     assert org_id
     org = admin.get_org_by_id(org_id)
     admin.upsert_org_saml_config(
@@ -221,8 +221,8 @@ def test_org_saml_logout_requires_slo_enabled(tmp_path: Path) -> None:
 def test_org_saml_start_when_library_missing(tmp_path: Path) -> None:
     admin = _store(tmp_path)
     user, _ = admin.register("start@example.com", "password1", "Start")
-    kb = admin.create_workspace(user, "Start SAML", None, "restricted")
-    org_id = kb.organization_id
+    workspace = admin.create_workspace(user, "Start SAML", None, "restricted")
+    org_id = workspace.organization_id
     assert org_id
     org = admin.get_org_by_id(org_id)
     admin.upsert_org_saml_config(

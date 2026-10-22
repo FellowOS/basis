@@ -5,11 +5,11 @@ from __future__ import annotations
 from typing import Any, Protocol
 
 
-class KbAuditActor(Protocol):
+class WorkspaceAuditActor(Protocol):
     id: str
 
 
-class KbAuditStore(Protocol):
+class WorkspaceAuditStore(Protocol):
     def record_audit(
         self,
         actor_id: str | None,

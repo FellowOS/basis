@@ -37,7 +37,7 @@ export function IntegrationPage() {
   useEffect(() => {
     if (!id) return;
     workspaceOpenApiGET<WorkspaceRecord>(id, '')
-      .then((kb) => setMyRole(kb.my_role))
+      .then((workspace) => setMyRole(workspace.my_role))
       .catch(() => setMyRole(undefined));
   }, [id]);
 

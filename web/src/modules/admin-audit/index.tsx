@@ -51,7 +51,7 @@ type Event = {
   created_at: string;
 };
 
-const ACTION_PRESET_VALUES = ['all', 'kb.graph.', 'kb.', 'settings.'] as const;
+const ACTION_PRESET_VALUES = ['all', 'workspace.graph.', 'workspace.', 'settings.'] as const;
 
 function actionPresetLabel(
   value: (typeof ACTION_PRESET_VALUES)[number],
@@ -63,8 +63,8 @@ function actionPresetLabel(
   },
 ): string {
   if (value === 'all') return p.action_all;
-  if (value === 'kb.graph.') return p.action_graph;
-  if (value === 'kb.') return p.action_workspace;
+  if (value === 'workspace.graph.') return p.action_graph;
+  if (value === 'workspace.') return p.action_workspace;
   return p.action_settings;
 }
 
@@ -78,7 +78,7 @@ function formatDetailSummary(
 ): string {
   const parts: string[] = [];
   if (typeof detail.workspace_id === 'string') {
-    parts.push(fmt(p.detail_kb, { workspaceId: detail.workspace_id }));
+    parts.push(fmt(p.detail_workspace, { workspaceId: detail.workspace_id }));
   }
   if (detail.projection_revision != null) {
     parts.push(
@@ -98,7 +98,7 @@ function formatDetailSummary(
     parts.push(fmt(p.detail_email, { email: detail.email }));
   }
   if (typeof detail.name === 'string') {
-    parts.push(fmt(p.detail_kb_name, { name: detail.name }));
+    parts.push(fmt(p.detail_workspace_name, { name: detail.name }));
   }
   if (typeof detail.user_id === 'string') {
     parts.push(fmt(p.detail_user, { userId: detail.user_id }));
@@ -155,14 +155,14 @@ export function AuditPage() {
 
   const actionPreset = searchParams.get('action_prefix') ?? 'all';
   const kbFilter = searchParams.get('workspace_id') ?? '';
-  const [kbDraft, setKbDraft] = useState(kbFilter);
+  const [workspaceDraft, setWorkspaceDraft] = useState(kbFilter);
 
   useEffect(() => {
-    setKbDraft(kbFilter);
+    setWorkspaceDraft(kbFilter);
   }, [kbFilter]);
 
-  function applyKbFilter() {
-    setFilter('workspace_id', kbDraft.trim());
+  function applyWorkspaceFilter() {
+    setFilter('workspace_id', workspaceDraft.trim());
   }
 
   const load = useCallback(async () => {
@@ -256,12 +256,12 @@ export function AuditPage() {
             <ToolbarSearch
               className="w-full min-w-[12rem] max-w-md sm:w-72"
               placeholder={p.workspace_filter_placeholder}
-              value={kbDraft}
-              onChange={(event) => setKbDraft(event.target.value)}
+              value={workspaceDraft}
+              onChange={(event) => setWorkspaceDraft(event.target.value)}
               onKeyDown={(event) => {
                 if (event.key === 'Enter') {
                   event.preventDefault();
-                  applyKbFilter();
+                  applyWorkspaceFilter();
                 }
               }}
             />
@@ -283,7 +283,7 @@ export function AuditPage() {
                   ))}
                 </SelectContent>
               </Select>
-              <Button type="button" variant="outline" size="sm" onClick={applyKbFilter}>
+              <Button type="button" variant="outline" size="sm" onClick={applyWorkspaceFilter}>
                 {p.apply}
               </Button>
               <Button type="button" variant="outline" size="sm" onClick={() => void load()}>

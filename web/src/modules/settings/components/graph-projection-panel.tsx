@@ -39,7 +39,7 @@ export function GraphProjectionPanel({
   const p = t.graph.projection;
   const emptyCell = t.core.common.emptyCell;
   const { isAdmin } = useBasisSession();
-  const auditGraphUrl = `/admin/audit?workspace_id=${encodeURIComponent(workspaceId)}&action_prefix=${encodeURIComponent('kb.graph.')}`;
+  const auditGraphUrl = `/admin/audit?workspace_id=${encodeURIComponent(workspaceId)}&action_prefix=${encodeURIComponent('workspace.graph.')}`;
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState<GraphProjectionStatus | null>(null);
   const [error, setError] = useState<string | null>(null);

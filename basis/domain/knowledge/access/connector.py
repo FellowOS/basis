@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from basis.domain.knowledge.store import KnowledgeStore
 
 
-class ConnectorKbAccess:
+class ConnectorAccess:
     def __init__(self, store: KnowledgeStore) -> None:
         self._store = store
 

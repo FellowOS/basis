@@ -7,7 +7,7 @@ from typing import Any
 
 from pydantic import ValidationError
 
-from basis.application.context import KbCoreContext
+from basis.application.context import WorkspaceCoreContext
 from basis.application.errors import CoreError
 from basis.domain.errors import AdminError
 from basis.interface.contract.mcp.format import mcp_text_result
@@ -45,13 +45,13 @@ def get_static_tool_definitions() -> list[dict[str, Any]]:
     ]
 
 
-def get_tool_definitions(ctx: KbCoreContext | None = None) -> list[dict[str, Any]]:
+def get_tool_definitions(ctx: WorkspaceCoreContext | None = None) -> list[dict[str, Any]]:
     """MCP tools/list payload; includes manifest-derived connector tools when ``ctx`` is set."""
     tools = list(get_static_tool_definitions())
     if ctx is not None:
-        from basis.interface.contract.mcp.connector_tools import connector_tool_definitions_for_kb
+        from basis.interface.contract.mcp.connector_tools import connector_tool_definitions_for_workspace
 
-        tools.extend(connector_tool_definitions_for_kb(ctx))
+        tools.extend(connector_tool_definitions_for_workspace(ctx))
     return tools
 
 
@@ -82,7 +82,7 @@ def _is_known_mcp_tool(name: str) -> bool:
     return _resolve_mcp_tool_handler(name) is not None
 
 
-def run(ctx: KbCoreContext, name: str, arguments: dict[str, Any] | None) -> dict[str, Any]:
+def run(ctx: WorkspaceCoreContext, name: str, arguments: dict[str, Any] | None) -> dict[str, Any]:
     """Run a registered operation; returns a plain JSON-serializable dict."""
     handler = _resolve_mcp_tool_handler(name)
     if handler is None:
@@ -104,7 +104,7 @@ def run(ctx: KbCoreContext, name: str, arguments: dict[str, Any] | None) -> dict
     return result
 
 
-def execute(ctx: KbCoreContext, name: str, arguments: dict[str, Any] | None) -> dict[str, Any]:
+def execute(ctx: WorkspaceCoreContext, name: str, arguments: dict[str, Any] | None) -> dict[str, Any]:
     """MCP tools/call envelope."""
     if not _is_known_mcp_tool(name):
         return mcp_text_result({"error": f"unknown tool: {name}"}, is_error=True)

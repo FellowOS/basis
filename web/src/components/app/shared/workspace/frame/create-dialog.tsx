@@ -25,7 +25,7 @@ import { basisSessionClient } from '@/lib/session/basis-session-client.js';
 import { unwrapOpenApi } from '@/lib/openapi/response.js';
 import { useApiErrorMessage } from '@/lib/errors/use-api-error-message.js';
 
-export type CreatedKb = {
+export type CreatedWorkspace = {
   id: string;
   name: string;
 };
@@ -33,7 +33,7 @@ export type CreatedKb = {
 type WorkspaceCreateDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onCreated: (kb: CreatedKb) => void | Promise<void>;
+  onCreated: (workspace: CreatedWorkspace) => void | Promise<void>;
 };
 
 export function WorkspaceCreateDialog({ open, onOpenChange, onCreated }: WorkspaceCreateDialogProps) {
@@ -56,14 +56,14 @@ export function WorkspaceCreateDialog({ open, onOpenChange, onCreated }: Workspa
     setCreating(true);
     setError(null);
     try {
-      const kb = unwrapOpenApi(
+      const workspace = unwrapOpenApi(
         await basisSessionClient().openapi().POST('/api/v1/workspaces', {
           body: { name: values.name.trim(), visibility: 'restricted' },
         }),
-      ) as CreatedKb;
+      ) as CreatedWorkspace;
       form.reset();
       onOpenChange(false);
-      await onCreated(kb);
+      await onCreated(workspace);
     } catch (err) {
       setError(apiError(err));
     } finally {

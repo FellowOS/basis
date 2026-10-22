@@ -44,7 +44,7 @@ def test_mcp_list_connector_catalog_and_mappings(tmp_path: Path) -> None:
         },
     ).json()
     headers = {"Authorization": f"Bearer {reg['token']}"}
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
 
     catalog = _mcp_call(
         client,
@@ -118,7 +118,7 @@ def test_mcp_sync_connector_table_mapping_inbound(tmp_path: Path) -> None:
         },
     ).json()
     headers = {"Authorization": f"Bearer {reg['token']}"}
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
 
     put_conn = client.put(
         f"/api/v1/workspaces/{workspace_id}/connectors/connections/postgres/mcp_sync",

@@ -27,16 +27,16 @@ def test_health(tmp_path) -> None:
     assert response.json()["status"] == "ok"
 
 
-def test_first_user_is_admin_and_owns_the_public_kb(tmp_path) -> None:
+def test_first_user_is_admin_and_owns_the_public_workspace(tmp_path) -> None:
     client = _client(tmp_path)
     admin = _register(client, "admin@example.com", "管理员")
     assert admin["user"]["is_admin"] is True
 
-    kbs = client.get("/api/v1/workspaces", headers=_auth(admin["token"])).json()["kbs"]
-    assert len(kbs) == 1
-    assert kbs[0]["name"] == "公共工作区"
-    assert kbs[0]["visibility"] == "open"
-    assert kbs[0]["my_role"] == "owner"
+    workspaces = client.get("/api/v1/workspaces", headers=_auth(admin["token"])).json()["workspaces"]
+    assert len(workspaces) == 1
+    assert workspaces[0]["name"] == "公共工作区"
+    assert workspaces[0]["visibility"] == "open"
+    assert workspaces[0]["my_role"] == "owner"
 
 
 def test_registration_switch_and_admin_provisioning(tmp_path) -> None:
@@ -105,7 +105,7 @@ def test_cannot_deactivate_self_or_the_last_admin(tmp_path) -> None:
     assert last.json()["detail"]["code"] == "last_admin"
 
 
-def test_restricted_kb_is_hidden_and_roles_are_enforced(tmp_path) -> None:
+def test_restricted_workspace_is_hidden_and_roles_are_enforced(tmp_path) -> None:
     client = _client(tmp_path)
     admin = _register(client, "admin@example.com")
     editor = _register(client, "editor@example.com", "编辑")
@@ -121,10 +121,10 @@ def test_restricted_kb_is_hidden_and_roles_are_enforced(tmp_path) -> None:
     assert created.status_code == 200
     workspace_id = created.json()["id"]
 
-    outsider_list = client.get("/api/v1/workspaces", headers=_auth(outsider["token"])).json()["kbs"]
+    outsider_list = client.get("/api/v1/workspaces", headers=_auth(outsider["token"])).json()["workspaces"]
     assert workspace_id not in {item["id"] for item in outsider_list}
 
-    admin_list = client.get("/api/v1/workspaces", headers=admin_headers).json()["kbs"]
+    admin_list = client.get("/api/v1/workspaces", headers=admin_headers).json()["workspaces"]
     assert workspace_id in {item["id"] for item in admin_list}
 
     open_attempt = client.post(

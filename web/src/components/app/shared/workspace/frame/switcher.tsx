@@ -28,10 +28,10 @@ export function WorkspaceSwitcher() {
   const label = emptyCatalog ? createLabel : (current?.name ?? t.core.workspace_nav.workspace_switcher.label);
   const [createOpen, setCreateOpen] = useState(false);
 
-  async function onCreated(kb: { id: string }) {
-    writeActiveWorkspaceId(kb.id);
+  async function onCreated(workspace: { id: string }) {
+    writeActiveWorkspaceId(workspace.id);
     await refresh();
-    navigate(workspacePath(kb.id, 'graph'));
+    navigate(workspacePath(workspace.id, 'graph'));
   }
 
   return (
@@ -67,9 +67,9 @@ export function WorkspaceSwitcher() {
               {createLabel}
             </DropdownMenuItem>
           ) : (
-            workspaces.map((kb) => (
-              <DropdownMenuItem key={kb.id} asChild>
-                <Link to={workspacePath(kb.id, 'graph')}>{kb.name}</Link>
+            workspaces.map((ws) => (
+              <DropdownMenuItem key={ws.id} asChild>
+                <Link to={workspacePath(ws.id, 'graph')}>{ws.name}</Link>
               </DropdownMenuItem>
             ))
           )}

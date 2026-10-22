@@ -8,9 +8,9 @@ from collections.abc import Callable
 from typing import Any
 
 from basis.domain.errors import AdminError
-from basis.domain.graph.session.registry import KbGraphRuntime
-from basis.domain.graph.session.guard import require_kb_graph_session
-from basis.domain.knowledge.services.kb_alerts_emit import emit_governance_tripped_alert
+from basis.domain.graph.session.registry import GraphRuntime
+from basis.domain.graph.session.guard import require_graph_session
+from basis.domain.knowledge.services.alerts_emit import emit_governance_tripped_alert
 from basis.domain.knowledge.store import KnowledgeStore
 
 logger = logging.getLogger(__name__)
@@ -43,14 +43,14 @@ def maybe_emit_governance_tripped_for_admin_error(
     *,
     detail: dict[str, Any] | None = None,
     actor_id: str | None = None,
-    runtime_loader: Callable[[], KbGraphRuntime] | None = None,
+    runtime_loader: Callable[[], GraphRuntime] | None = None,
     persist_graph: Callable[[str], None] | None = None,
 ) -> None:
     """Emit `governance.tripped` when an AdminError reflects a governance gate (F-GOV-05)."""
     if not admin_error_triggers_governance_alert(exc.code):
         return
     payload = {"code": exc.code, **(detail or {})}
-    emit_governance_tripped_for_kb(
+    emit_governance_tripped_for_workspace(
         workspace_id,
         knowledge,
         message=exc.message,
@@ -69,14 +69,14 @@ def maybe_emit_governance_tripped_on_review_approve(
     message: str,
     detail: dict[str, Any] | None = None,
     actor_id: str | None = None,
-    runtime_loader: Callable[[], KbGraphRuntime] | None = None,
+    runtime_loader: Callable[[], GraphRuntime] | None = None,
     persist_graph: Callable[[str], None] | None = None,
 ) -> None:
     """Review approve failure: emit only for governance/impact/SHACL gates (F-GOV-05)."""
     if not should_emit_governance_tripped_on_review_approve(code):
         return
     payload = {"code": code, **(detail or {})}
-    emit_governance_tripped_for_kb(
+    emit_governance_tripped_for_workspace(
         workspace_id,
         knowledge,
         message=message,
@@ -94,14 +94,14 @@ def _try_record_governance_decision(
     detail: dict[str, Any],
     actor_id: str | None,
     outcome: str = "blocked",
-    runtime_loader: Callable[[], KbGraphRuntime] | None = None,
+    runtime_loader: Callable[[], GraphRuntime] | None = None,
     persist_graph: Callable[[str], None] | None = None,
 ) -> str | None:
     if runtime_loader is None or persist_graph is None:
         return None
     try:
         runtime = runtime_loader()
-        session = require_kb_graph_session(runtime)
+        session = require_graph_session(runtime)
         graph = session.graph
         if not hasattr(graph, "record_decision"):
             return None
@@ -121,14 +121,14 @@ def _try_record_governance_decision(
         return None
 
 
-def record_governance_decision_for_kb(
+def record_governance_decision_for_workspace(
     workspace_id: str,
     *,
     message: str,
     detail: dict[str, Any] | None = None,
     actor_id: str | None = None,
     outcome: str = "approved",
-    runtime_loader: Callable[[], KbGraphRuntime] | None = None,
+    runtime_loader: Callable[[], GraphRuntime] | None = None,
     persist_graph: Callable[[str], None] | None = None,
 ) -> str | None:
     """Persist an Explorer graph decision (e.g. review approve). Returns id or None."""
@@ -143,14 +143,14 @@ def record_governance_decision_for_kb(
     )
 
 
-def emit_governance_tripped_for_kb(
+def emit_governance_tripped_for_workspace(
     workspace_id: str,
     knowledge: KnowledgeStore,
     *,
     message: str,
     detail: dict[str, Any] | None = None,
     actor_id: str | None = None,
-    runtime_loader: Callable[[], KbGraphRuntime] | None = None,
+    runtime_loader: Callable[[], GraphRuntime] | None = None,
     persist_graph: Callable[[str], None] | None = None,
 ) -> str | None:
     payload = dict(detail or {})

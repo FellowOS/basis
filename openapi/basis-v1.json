@@ -3,7 +3,7 @@
   "info": {
     "title": "Basis API",
     "version": "1.0.0",
-    "description": "Normative HTTP contract for Basis. Paths use /api/v1 prefix.\n\n**Two surfaces** (see x-basis-surface on each operation):\n- `platform` — console & system/org admin; **session JWT** (`sessionAuth`).\n- `knowledge-base` — workspace data & integration (MCP parity); **session or workspace API token** (`workspaceApiTokenAuth`, scoped by `workspace_id`).\n\nSplit specs: `/openapi/v1/platform.json`, `/openapi/v1/kb.json` (workspace **integration** contract). Console-only routes may appear here but are omitted from the workspace integration slice (see x-basis-audience: console). MCP: POST /api/v1/workspaces/{workspace_id}/mcp. Docs: docs/architecture/openapi-v1.md."
+    "description": "Normative HTTP contract for Basis. Paths use /api/v1 prefix.\n\n**Two surfaces** (see x-basis-surface on each operation):\n- `platform` — console & system/org admin; **session JWT** (`sessionAuth`).\n- `workspaces` — workspace data & integration (MCP parity); **session or workspace API token** (`workspaceApiTokenAuth`, scoped by `workspace_id`).\n\nSplit specs: `/openapi/v1/platform.json`, `/openapi/v1/workspaces.json` (workspace **integration** contract). Console-only routes may appear here but are omitted from the workspace integration slice (see x-basis-audience: console). MCP: POST /api/v1/workspaces/{workspace_id}/mcp. Docs: docs/architecture/openapi-v1.md."
   },
   "paths": {
     "/api/v1/admin/users": {
@@ -3038,7 +3038,7 @@
     "/api/v1/workspaces": {
       "get": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
         "summary": "List Workspaces",
         "description": "List workspaces visible to the current user with role hints.",
@@ -3090,7 +3090,7 @@
       },
       "post": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
         "summary": "Create Workspace",
         "description": "Create a workspace owned by the current user.",
@@ -3118,7 +3118,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateKbRequest"
+                "$ref": "#/components/schemas/CreateWorkspaceRequest"
               }
             }
           }
@@ -3154,11 +3154,11 @@
     "/api/v1/workspaces/{workspace_id}": {
       "get": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
-        "summary": "Get Kb",
+        "summary": "Get Workspace",
         "description": "Fetch workspace metadata, membership role, and high-level ledger counts.",
-        "operationId": "get_kb_api_v1_workspaces__workspace_id__get",
+        "operationId": "get_workspace_api_v1_workspaces__workspace_id__get",
         "parameters": [
           {
             "name": "workspace_id",
@@ -3194,7 +3194,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": true,
-                  "title": "Response Get Kb Api V1 Workspaces  Workspace Id  Get"
+                  "title": "Response Get Workspace Api V1 Workspaces  Workspace Id  Get"
                 }
               }
             }
@@ -3210,12 +3210,12 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       },
       "patch": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
         "summary": "Update Workspace",
         "description": "Update workspace metadata. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
@@ -3252,7 +3252,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateKbRequest"
+                "$ref": "#/components/schemas/UpdateWorkspaceRequest"
               }
             }
           }
@@ -3281,12 +3281,12 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       },
       "delete": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
         "summary": "Delete Workspace",
         "description": "Delete workspace. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
@@ -3342,14 +3342,14 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/alerts": {
       "get": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
         "summary": "List Alerts",
         "description": "List workspace alert episodes with unread count (viewer+).\n\nEach alert includes a `detail` object (JSON). Common keys by `kind`:\n\n- `governance.tripped`: `code`, `decision_id`, `item_id`, `proposal_id`,\n  `shacl_violation_count`, `episode_key`\n- `processing.failed`: `job_id`, `error_code`, `message`, `episode_key`\n- `sync_failed`: `source_id`, `source_name`, `mode`, `error`, `episode_key`\n- `governance.statement_conflict`: `item_id`, `surface_phrase`, `statement_ids`,\n  `episode_key`\n\n`episode_key` correlates multiple rows in the UI (F-ALT).",
@@ -3417,14 +3417,14 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/alerts/dismiss-all": {
       "post": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
         "summary": "Dismiss All Alerts",
         "description": "Dismiss all active alert episodes for this workspace (editor+).",
@@ -3480,14 +3480,14 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/alerts/mark-all-read": {
       "post": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
         "summary": "Mark All Alerts Read",
         "description": "Mark all active alerts as read without dismissing (viewer+).",
@@ -3543,14 +3543,14 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/alerts/stream": {
       "get": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
         "summary": "Stream Alerts",
         "description": "Stream new alert episodes via SSE (viewer+).",
@@ -3620,18 +3620,18 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/alerts/{alert_id}/dismiss": {
       "post": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
-        "summary": "Dismiss Kb Alert",
+        "summary": "Dismiss Alert",
         "description": "Dismiss a single alert episode (editor+).",
-        "operationId": "dismiss_kb_alert_api_v1_workspaces__workspace_id__alerts__alert_id__dismiss_post",
+        "operationId": "dismiss_alert_api_v1_workspaces__workspace_id__alerts__alert_id__dismiss_post",
         "parameters": [
           {
             "name": "workspace_id",
@@ -3676,7 +3676,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": true,
-                  "title": "Response Dismiss Kb Alert Api V1 Workspaces  Workspace Id  Alerts  Alert Id  Dismiss Post"
+                  "title": "Response Dismiss Alert Api V1 Workspaces  Workspace Id  Alerts  Alert Id  Dismiss Post"
                 }
               }
             }
@@ -3692,19 +3692,19 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/audit/graph-mutations": {
       "get": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
-        "summary": "List Kb Graph Audit",
+        "summary": "List Graph Audit",
         "description": "List Graph Audit. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
-        "operationId": "list_kb_graph_audit_api_v1_workspaces__workspace_id__audit_graph_mutations_get",
+        "operationId": "list_graph_audit_api_v1_workspaces__workspace_id__audit_graph_mutations_get",
         "parameters": [
           {
             "name": "workspace_id",
@@ -3733,7 +3733,7 @@
             "required": false,
             "schema": {
               "type": "string",
-              "default": "kb.graph.",
+              "default": "workspace.graph.",
               "title": "Action Prefix"
             }
           },
@@ -3762,7 +3762,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": true,
-                  "title": "Response List Kb Graph Audit Api V1 Workspaces  Workspace Id  Audit Graph Mutations Get"
+                  "title": "Response List Graph Audit Api V1 Workspaces  Workspace Id  Audit Graph Mutations Get"
                 }
               }
             }
@@ -3778,18 +3778,18 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/capabilities": {
       "get": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
-        "summary": "Get Kb Capabilities",
+        "summary": "Get Capabilities",
         "description": "Feature flags for graph runtime, ingest, mappings, and diagnostics for this workspace and role.",
-        "operationId": "get_kb_capabilities_api_v1_workspaces__workspace_id__capabilities_get",
+        "operationId": "get_capabilities_api_v1_workspaces__workspace_id__capabilities_get",
         "parameters": [
           {
             "name": "workspace_id",
@@ -3825,7 +3825,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": true,
-                  "title": "Response Get Kb Capabilities Api V1 Workspaces  Workspace Id  Capabilities Get"
+                  "title": "Response Get Capabilities Api V1 Workspaces  Workspace Id  Capabilities Get"
                 }
               }
             }
@@ -3841,15 +3841,15 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/connectors/catalog": {
       "get": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
         "summary": "List Connector Catalog",
         "description": "List BOCP connector manifests available in the platform catalog.",
@@ -3975,15 +3975,15 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/connectors/catalog/{service}": {
       "get": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
         "summary": "Get Connector Manifest Route",
         "description": "Fetch one BOCP connector manifest by service key.",
@@ -4048,19 +4048,19 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/connectors/connections": {
       "get": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
-        "summary": "List Kb Connector Connections",
+        "summary": "List Connector Connections",
         "description": "List configured BOCP connections for this workspace (credentials redacted).",
-        "operationId": "list_kb_connector_connections_api_v1_workspaces__workspace_id__connectors_connections_get",
+        "operationId": "list_connector_connections_api_v1_workspaces__workspace_id__connectors_connections_get",
         "parameters": [
           {
             "name": "workspace_id",
@@ -4112,7 +4112,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": true,
-                  "title": "Response List Kb Connector Connections Api V1 Workspaces  Workspace Id  Connectors Connections Get"
+                  "title": "Response List Connector Connections Api V1 Workspaces  Workspace Id  Connectors Connections Get"
                 }
               }
             }
@@ -4128,19 +4128,19 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/connectors/connections/{service}/{connection_name}": {
       "put": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
-        "summary": "Upsert Kb Connector Connection",
+        "summary": "Upsert Connector Connection",
         "description": "Create or update an encrypted BOCP connection for this workspace.",
-        "operationId": "upsert_kb_connector_connection_api_v1_workspaces__workspace_id__connectors_connections__service___connection_name__put",
+        "operationId": "upsert_connector_connection_api_v1_workspaces__workspace_id__connectors_connections__service___connection_name__put",
         "parameters": [
           {
             "name": "workspace_id",
@@ -4204,7 +4204,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": true,
-                  "title": "Response Upsert Kb Connector Connection Api V1 Workspaces  Workspace Id  Connectors Connections  Service   Connection Name  Put"
+                  "title": "Response Upsert Connector Connection Api V1 Workspaces  Workspace Id  Connectors Connections  Service   Connection Name  Put"
                 }
               }
             }
@@ -4220,17 +4220,17 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       },
       "delete": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
-        "summary": "Delete Kb Connector Connection",
+        "summary": "Delete Connector Connection",
         "description": "Delete a configured BOCP connection from this workspace.",
-        "operationId": "delete_kb_connector_connection_api_v1_workspaces__workspace_id__connectors_connections__service___connection_name__delete",
+        "operationId": "delete_connector_connection_api_v1_workspaces__workspace_id__connectors_connections__service___connection_name__delete",
         "parameters": [
           {
             "name": "workspace_id",
@@ -4284,7 +4284,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": true,
-                  "title": "Response Delete Kb Connector Connection Api V1 Workspaces  Workspace Id  Connectors Connections  Service   Connection Name  Delete"
+                  "title": "Response Delete Connector Connection Api V1 Workspaces  Workspace Id  Connectors Connections  Service   Connection Name  Delete"
                 }
               }
             }
@@ -4300,19 +4300,19 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/connectors/connections/{service}/{connection_name}/check": {
       "post": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
-        "summary": "Check Kb Connector Connection",
+        "summary": "Check Connector Connection",
         "description": "Run the BOCP `CHECK` health check against an upstream connection.",
-        "operationId": "check_kb_connector_connection_api_v1_workspaces__workspace_id__connectors_connections__service___connection_name__check_post",
+        "operationId": "check_connector_connection_api_v1_workspaces__workspace_id__connectors_connections__service___connection_name__check_post",
         "parameters": [
           {
             "name": "workspace_id",
@@ -4366,7 +4366,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": true,
-                  "title": "Response Check Kb Connector Connection Api V1 Workspaces  Workspace Id  Connectors Connections  Service   Connection Name  Check Post"
+                  "title": "Response Check Connector Connection Api V1 Workspaces  Workspace Id  Connectors Connections  Service   Connection Name  Check Post"
                 }
               }
             }
@@ -4382,19 +4382,19 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/connectors/connections/{service}/{connection_name}/discover": {
       "get": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
-        "summary": "Discover Kb Connector Schema",
+        "summary": "Discover Connector Schema",
         "description": "Run the BOCP `DISCOVER` schema introspection for a SQL table or REST stream.",
-        "operationId": "discover_kb_connector_schema_api_v1_workspaces__workspace_id__connectors_connections__service___connection_name__discover_get",
+        "operationId": "discover_connector_schema_api_v1_workspaces__workspace_id__connectors_connections__service___connection_name__discover_get",
         "parameters": [
           {
             "name": "workspace_id",
@@ -4480,7 +4480,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": true,
-                  "title": "Response Discover Kb Connector Schema Api V1 Workspaces  Workspace Id  Connectors Connections  Service   Connection Name  Discover Get"
+                  "title": "Response Discover Connector Schema Api V1 Workspaces  Workspace Id  Connectors Connections  Service   Connection Name  Discover Get"
                 }
               }
             }
@@ -4496,19 +4496,19 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/connectors/connections/{service}/{connection_name}/invoke-primitive": {
       "post": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
-        "summary": "Invoke Kb Connector Primitive",
+        "summary": "Invoke Connector Primitive",
         "description": "Run a BOCP Section 10 primitive (discover, list, mutate, invoke) without a table mapping.",
-        "operationId": "invoke_kb_connector_primitive_api_v1_workspaces__workspace_id__connectors_connections__service___connection_name__invoke_primitive_post",
+        "operationId": "invoke_connector_primitive_api_v1_workspaces__workspace_id__connectors_connections__service___connection_name__invoke_primitive_post",
         "parameters": [
           {
             "name": "workspace_id",
@@ -4572,7 +4572,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": true,
-                  "title": "Response Invoke Kb Connector Primitive Api V1 Workspaces  Workspace Id  Connectors Connections  Service   Connection Name  Invoke Primitive Post"
+                  "title": "Response Invoke Connector Primitive Api V1 Workspaces  Workspace Id  Connectors Connections  Service   Connection Name  Invoke Primitive Post"
                 }
               }
             }
@@ -4588,19 +4588,19 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/connectors/oauth-configs/{service}": {
       "put": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
-        "summary": "Upsert Kb Connector Oauth Config",
+        "summary": "Upsert Connector Oauth Config",
         "description": "Store encrypted OAuth2 client credentials (`client_id`, `client_secret`) for a connector service.",
-        "operationId": "upsert_kb_connector_oauth_config_api_v1_workspaces__workspace_id__connectors_oauth_configs__service__put",
+        "operationId": "upsert_connector_oauth_config_api_v1_workspaces__workspace_id__connectors_oauth_configs__service__put",
         "parameters": [
           {
             "name": "workspace_id",
@@ -4655,7 +4655,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": true,
-                  "title": "Response Upsert Kb Connector Oauth Config Api V1 Workspaces  Workspace Id  Connectors Oauth Configs  Service  Put"
+                  "title": "Response Upsert Connector Oauth Config Api V1 Workspaces  Workspace Id  Connectors Oauth Configs  Service  Put"
                 }
               }
             }
@@ -4671,19 +4671,19 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/connectors/oauth/{service}/authorize-url": {
       "post": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
-        "summary": "Build Kb Connector Oauth Authorize Url",
+        "summary": "Build Connector Oauth Authorize Url",
         "description": "Build an OAuth2 authorization URL (with optional PKCE S256) for a connector service.",
-        "operationId": "build_kb_connector_oauth_authorize_url_api_v1_workspaces__workspace_id__connectors_oauth__service__authorize_url_post",
+        "operationId": "build_connector_oauth_authorize_url_api_v1_workspaces__workspace_id__connectors_oauth__service__authorize_url_post",
         "parameters": [
           {
             "name": "workspace_id",
@@ -4738,7 +4738,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": true,
-                  "title": "Response Build Kb Connector Oauth Authorize Url Api V1 Workspaces  Workspace Id  Connectors Oauth  Service  Authorize Url Post"
+                  "title": "Response Build Connector Oauth Authorize Url Api V1 Workspaces  Workspace Id  Connectors Oauth  Service  Authorize Url Post"
                 }
               }
             }
@@ -4754,19 +4754,19 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/connectors/oauth/{service}/exchange": {
       "post": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
-        "summary": "Exchange Kb Connector Oauth Code",
+        "summary": "Exchange Connector Oauth Code",
         "description": "Exchange an OAuth2 authorization code for tokens and save the encrypted BOCP connection.",
-        "operationId": "exchange_kb_connector_oauth_code_api_v1_workspaces__workspace_id__connectors_oauth__service__exchange_post",
+        "operationId": "exchange_connector_oauth_code_api_v1_workspaces__workspace_id__connectors_oauth__service__exchange_post",
         "parameters": [
           {
             "name": "workspace_id",
@@ -4821,7 +4821,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": true,
-                  "title": "Response Exchange Kb Connector Oauth Code Api V1 Workspaces  Workspace Id  Connectors Oauth  Service  Exchange Post"
+                  "title": "Response Exchange Connector Oauth Code Api V1 Workspaces  Workspace Id  Connectors Oauth  Service  Exchange Post"
                 }
               }
             }
@@ -4837,19 +4837,19 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/connectors/outbox": {
       "get": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
-        "summary": "List Kb Sync Outbox",
+        "summary": "List Sync Outbox",
         "description": "List outbound entity writeback items in `entity_sync_outbox`.",
-        "operationId": "list_kb_sync_outbox_api_v1_workspaces__workspace_id__connectors_outbox_get",
+        "operationId": "list_sync_outbox_api_v1_workspaces__workspace_id__connectors_outbox_get",
         "parameters": [
           {
             "name": "workspace_id",
@@ -4913,7 +4913,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": true,
-                  "title": "Response List Kb Sync Outbox Api V1 Workspaces  Workspace Id  Connectors Outbox Get"
+                  "title": "Response List Sync Outbox Api V1 Workspaces  Workspace Id  Connectors Outbox Get"
                 }
               }
             }
@@ -4929,19 +4929,19 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/connectors/outbox/propose": {
       "post": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
-        "summary": "Propose Kb Entity Writeback",
+        "summary": "Propose Entity Writeback",
         "description": "Propose an outbound writeback of ledger entity attributes to its external connector stream.",
-        "operationId": "propose_kb_entity_writeback_api_v1_workspaces__workspace_id__connectors_outbox_propose_post",
+        "operationId": "propose_entity_writeback_api_v1_workspaces__workspace_id__connectors_outbox_propose_post",
         "parameters": [
           {
             "name": "workspace_id",
@@ -4987,7 +4987,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": true,
-                  "title": "Response Propose Kb Entity Writeback Api V1 Workspaces  Workspace Id  Connectors Outbox Propose Post"
+                  "title": "Response Propose Entity Writeback Api V1 Workspaces  Workspace Id  Connectors Outbox Propose Post"
                 }
               }
             }
@@ -5003,19 +5003,19 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/connectors/policy": {
       "get": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
-        "summary": "Get Kb Connector Policy",
+        "summary": "Get Connector Policy",
         "description": "Get workspace-scoped connector allowlist and action governance policy.",
-        "operationId": "get_kb_connector_policy_api_v1_workspaces__workspace_id__connectors_policy_get",
+        "operationId": "get_connector_policy_api_v1_workspaces__workspace_id__connectors_policy_get",
         "parameters": [
           {
             "name": "workspace_id",
@@ -5051,7 +5051,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": true,
-                  "title": "Response Get Kb Connector Policy Api V1 Workspaces  Workspace Id  Connectors Policy Get"
+                  "title": "Response Get Connector Policy Api V1 Workspaces  Workspace Id  Connectors Policy Get"
                 }
               }
             }
@@ -5067,17 +5067,17 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       },
       "put": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
-        "summary": "Put Kb Connector Policy",
+        "summary": "Put Connector Policy",
         "description": "Update workspace-scoped connector allowlist and action governance policy.",
-        "operationId": "put_kb_connector_policy_api_v1_workspaces__workspace_id__connectors_policy_put",
+        "operationId": "put_connector_policy_api_v1_workspaces__workspace_id__connectors_policy_put",
         "parameters": [
           {
             "name": "workspace_id",
@@ -5123,7 +5123,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": true,
-                  "title": "Response Put Kb Connector Policy Api V1 Workspaces  Workspace Id  Connectors Policy Put"
+                  "title": "Response Put Connector Policy Api V1 Workspaces  Workspace Id  Connectors Policy Put"
                 }
               }
             }
@@ -5139,15 +5139,15 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/connectors/runs": {
       "get": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
         "summary": "List Connector Runs",
         "description": "List recent BOCP connector execution audit logs (`connector_runs`).",
@@ -5231,19 +5231,19 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/connectors/table-mappings": {
       "get": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
-        "summary": "List Kb Table Mappings",
+        "summary": "List Table Mappings",
         "description": "List structured stream-to-ontology table mappings configured in this workspace.",
-        "operationId": "list_kb_table_mappings_api_v1_workspaces__workspace_id__connectors_table_mappings_get",
+        "operationId": "list_table_mappings_api_v1_workspaces__workspace_id__connectors_table_mappings_get",
         "parameters": [
           {
             "name": "workspace_id",
@@ -5279,7 +5279,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": true,
-                  "title": "Response List Kb Table Mappings Api V1 Workspaces  Workspace Id  Connectors Table Mappings Get"
+                  "title": "Response List Table Mappings Api V1 Workspaces  Workspace Id  Connectors Table Mappings Get"
                 }
               }
             }
@@ -5295,17 +5295,17 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       },
       "post": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
-        "summary": "Create Kb Table Mapping",
+        "summary": "Create Table Mapping",
         "description": "Create a stream-to-ontology table mapping (auto-creating a `connector` ingest_source if omitted).",
-        "operationId": "create_kb_table_mapping_api_v1_workspaces__workspace_id__connectors_table_mappings_post",
+        "operationId": "create_table_mapping_api_v1_workspaces__workspace_id__connectors_table_mappings_post",
         "parameters": [
           {
             "name": "workspace_id",
@@ -5351,7 +5351,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": true,
-                  "title": "Response Create Kb Table Mapping Api V1 Workspaces  Workspace Id  Connectors Table Mappings Post"
+                  "title": "Response Create Table Mapping Api V1 Workspaces  Workspace Id  Connectors Table Mappings Post"
                 }
               }
             }
@@ -5367,19 +5367,19 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/connectors/table-mappings/batch-create": {
       "post": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
-        "summary": "Batch Create Kb Table Mappings",
+        "summary": "Batch Create Table Mappings",
         "description": "Create multiple stream-to-ontology table mappings and optionally run first inbound sync.",
-        "operationId": "batch_create_kb_table_mappings_api_v1_workspaces__workspace_id__connectors_table_mappings_batch_create_post",
+        "operationId": "batch_create_table_mappings_api_v1_workspaces__workspace_id__connectors_table_mappings_batch_create_post",
         "parameters": [
           {
             "name": "workspace_id",
@@ -5425,7 +5425,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": true,
-                  "title": "Response Batch Create Kb Table Mappings Api V1 Workspaces  Workspace Id  Connectors Table Mappings Batch Create Post"
+                  "title": "Response Batch Create Table Mappings Api V1 Workspaces  Workspace Id  Connectors Table Mappings Batch Create Post"
                 }
               }
             }
@@ -5441,19 +5441,19 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/connectors/table-mappings/suggest": {
       "post": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
-        "summary": "Suggest Kb Table Mappings",
+        "summary": "Suggest Table Mappings",
         "description": "Propose cross-stream connector mapping drafts grouped by inferred entity type (discover-backed).",
-        "operationId": "suggest_kb_table_mappings_api_v1_workspaces__workspace_id__connectors_table_mappings_suggest_post",
+        "operationId": "suggest_table_mappings_api_v1_workspaces__workspace_id__connectors_table_mappings_suggest_post",
         "parameters": [
           {
             "name": "workspace_id",
@@ -5499,7 +5499,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": true,
-                  "title": "Response Suggest Kb Table Mappings Api V1 Workspaces  Workspace Id  Connectors Table Mappings Suggest Post"
+                  "title": "Response Suggest Table Mappings Api V1 Workspaces  Workspace Id  Connectors Table Mappings Suggest Post"
                 }
               }
             }
@@ -5515,19 +5515,19 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/connectors/table-mappings/{mapping_id}": {
       "get": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
-        "summary": "Get Kb Table Mapping",
+        "summary": "Get Table Mapping",
         "description": "Fetch one stream-to-ontology table mapping with connector connection binding.",
-        "operationId": "get_kb_table_mapping_api_v1_workspaces__workspace_id__connectors_table_mappings__mapping_id__get",
+        "operationId": "get_table_mapping_api_v1_workspaces__workspace_id__connectors_table_mappings__mapping_id__get",
         "parameters": [
           {
             "name": "workspace_id",
@@ -5572,7 +5572,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": true,
-                  "title": "Response Get Kb Table Mapping Api V1 Workspaces  Workspace Id  Connectors Table Mappings  Mapping Id  Get"
+                  "title": "Response Get Table Mapping Api V1 Workspaces  Workspace Id  Connectors Table Mappings  Mapping Id  Get"
                 }
               }
             }
@@ -5588,17 +5588,17 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       },
       "put": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
-        "summary": "Update Kb Table Mapping",
+        "summary": "Update Table Mapping",
         "description": "Update a stream-to-ontology table mapping and optional connector connection binding.",
-        "operationId": "update_kb_table_mapping_api_v1_workspaces__workspace_id__connectors_table_mappings__mapping_id__put",
+        "operationId": "update_table_mapping_api_v1_workspaces__workspace_id__connectors_table_mappings__mapping_id__put",
         "parameters": [
           {
             "name": "workspace_id",
@@ -5653,7 +5653,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": true,
-                  "title": "Response Update Kb Table Mapping Api V1 Workspaces  Workspace Id  Connectors Table Mappings  Mapping Id  Put"
+                  "title": "Response Update Table Mapping Api V1 Workspaces  Workspace Id  Connectors Table Mappings  Mapping Id  Put"
                 }
               }
             }
@@ -5669,17 +5669,17 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       },
       "delete": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
-        "summary": "Delete Kb Table Mapping",
+        "summary": "Delete Table Mapping",
         "description": "Delete a stream-to-ontology table mapping (cascades `entity_external_refs`).",
-        "operationId": "delete_kb_table_mapping_api_v1_workspaces__workspace_id__connectors_table_mappings__mapping_id__delete",
+        "operationId": "delete_table_mapping_api_v1_workspaces__workspace_id__connectors_table_mappings__mapping_id__delete",
         "parameters": [
           {
             "name": "workspace_id",
@@ -5724,7 +5724,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": true,
-                  "title": "Response Delete Kb Table Mapping Api V1 Workspaces  Workspace Id  Connectors Table Mappings  Mapping Id  Delete"
+                  "title": "Response Delete Table Mapping Api V1 Workspaces  Workspace Id  Connectors Table Mappings  Mapping Id  Delete"
                 }
               }
             }
@@ -5740,19 +5740,19 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/connectors/table-mappings/{mapping_id}/sync": {
       "post": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
-        "summary": "Sync Kb Table Mapping",
+        "summary": "Sync Table Mapping",
         "description": "Execute inbound 4-way sync from the BOCP stream into the Evidence Ledger.",
-        "operationId": "sync_kb_table_mapping_api_v1_workspaces__workspace_id__connectors_table_mappings__mapping_id__sync_post",
+        "operationId": "sync_table_mapping_api_v1_workspaces__workspace_id__connectors_table_mappings__mapping_id__sync_post",
         "parameters": [
           {
             "name": "workspace_id",
@@ -5797,7 +5797,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": true,
-                  "title": "Response Sync Kb Table Mapping Api V1 Workspaces  Workspace Id  Connectors Table Mappings  Mapping Id  Sync Post"
+                  "title": "Response Sync Table Mapping Api V1 Workspaces  Workspace Id  Connectors Table Mappings  Mapping Id  Sync Post"
                 }
               }
             }
@@ -5813,19 +5813,19 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/connectors/tools/execute": {
       "post": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
-        "summary": "Execute Kb Connector Tool",
+        "summary": "Execute Connector Tool",
         "description": "Execute a standalone BOCP connector tool (`ToolSpec`) with workspace policy enforcement.",
-        "operationId": "execute_kb_connector_tool_api_v1_workspaces__workspace_id__connectors_tools_execute_post",
+        "operationId": "execute_connector_tool_api_v1_workspaces__workspace_id__connectors_tools_execute_post",
         "parameters": [
           {
             "name": "workspace_id",
@@ -5871,7 +5871,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": true,
-                  "title": "Response Execute Kb Connector Tool Api V1 Workspaces  Workspace Id  Connectors Tools Execute Post"
+                  "title": "Response Execute Connector Tool Api V1 Workspaces  Workspace Id  Connectors Tools Execute Post"
                 }
               }
             }
@@ -5887,19 +5887,19 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/decisions": {
       "get": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
-        "summary": "Kb List Decisions",
+        "summary": "List Decisions",
         "description": "List Decisions. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
-        "operationId": "kb_list_decisions_api_v1_workspaces__workspace_id__decisions_get",
+        "operationId": "list_decisions_api_v1_workspaces__workspace_id__decisions_get",
         "parameters": [
           {
             "name": "workspace_id",
@@ -5971,7 +5971,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response Kb List Decisions Api V1 Workspaces  Workspace Id  Decisions Get"
+                  "title": "Response List Decisions Api V1 Workspaces  Workspace Id  Decisions Get"
                 }
               }
             }
@@ -5987,19 +5987,19 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/decisions/{decision_id}/chain": {
       "get": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
-        "summary": "Kb Decision Chain",
+        "summary": "Decision Chain",
         "description": "Decision chain. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
-        "operationId": "kb_decision_chain_api_v1_workspaces__workspace_id__decisions__decision_id__chain_get",
+        "operationId": "decision_chain_api_v1_workspaces__workspace_id__decisions__decision_id__chain_get",
         "parameters": [
           {
             "name": "workspace_id",
@@ -6042,7 +6042,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response Kb Decision Chain Api V1 Workspaces  Workspace Id  Decisions  Decision Id  Chain Get"
+                  "title": "Response Decision Chain Api V1 Workspaces  Workspace Id  Decisions  Decision Id  Chain Get"
                 }
               }
             }
@@ -6058,15 +6058,15 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/documents": {
       "post": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
         "summary": "Ingest Document",
         "description": "Ingest Document. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
@@ -6128,17 +6128,17 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       },
       "get": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
-        "summary": "List Kb Documents",
+        "summary": "List Workspace Documents",
         "description": "List Documents. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
-        "operationId": "list_kb_documents_api_v1_workspaces__workspace_id__documents_get",
+        "operationId": "list_workspace_documents_api_v1_workspaces__workspace_id__documents_get",
         "parameters": [
           {
             "name": "workspace_id",
@@ -6174,7 +6174,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": true,
-                  "title": "Response List Kb Documents Api V1 Workspaces  Workspace Id  Documents Get"
+                  "title": "Response List Workspace Documents Api V1 Workspaces  Workspace Id  Documents Get"
                 }
               }
             }
@@ -6190,15 +6190,15 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/documents/upload": {
       "post": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
         "summary": "Upload Document",
         "description": "Upload Document. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
@@ -6260,19 +6260,19 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/documents/{document_id}": {
       "delete": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
-        "summary": "Delete Kb Document",
+        "summary": "Delete Document",
         "description": "Delete Document. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
-        "operationId": "delete_kb_document_api_v1_workspaces__workspace_id__documents__document_id__delete",
+        "operationId": "delete_document_api_v1_workspaces__workspace_id__documents__document_id__delete",
         "parameters": [
           {
             "name": "workspace_id",
@@ -6317,7 +6317,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": true,
-                  "title": "Response Delete Kb Document Api V1 Workspaces  Workspace Id  Documents  Document Id  Delete"
+                  "title": "Response Delete Document Api V1 Workspaces  Workspace Id  Documents  Document Id  Delete"
                 }
               }
             }
@@ -6333,19 +6333,19 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/documents/{document_id}/timeline": {
       "get": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
-        "summary": "Get Kb Document Timeline",
+        "summary": "Get Document Timeline",
         "description": "Document-level ledger timeline (F-TIM-02).\n\nOrdered events for one document: `version_created`, `processing_job`,\n`statement_recorded`, and `time_mention` (when present). Instants use ledger\n`created_at` / `recorded_at` / job `finished_at` — align with graph scrubber\nvia `GET .../temporal/*`, not chunk search `as_of` alone.",
-        "operationId": "get_kb_document_timeline_api_v1_workspaces__workspace_id__documents__document_id__timeline_get",
+        "operationId": "get_document_timeline_api_v1_workspaces__workspace_id__documents__document_id__timeline_get",
         "parameters": [
           {
             "name": "workspace_id",
@@ -6402,7 +6402,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": true,
-                  "title": "Response Get Kb Document Timeline Api V1 Workspaces  Workspace Id  Documents  Document Id  Timeline Get"
+                  "title": "Response Get Document Timeline Api V1 Workspaces  Workspace Id  Documents  Document Id  Timeline Get"
                 }
               }
             }
@@ -6418,15 +6418,15 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/documents/{document_id}/versions": {
       "post": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
         "summary": "Append Document Version Text",
         "description": "Append Document Version Text. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
@@ -6497,15 +6497,15 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/documents/{document_id}/versions/upload": {
       "post": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
         "summary": "Append Document Version Upload",
         "description": "Append Document Version Upload. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
@@ -6576,18 +6576,18 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/enrich/dedup": {
       "post": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
-        "summary": "Kb Enrich Dedup",
+        "summary": "Enrich Dedup",
         "description": "Enrich Dedup. Graph enrichment and governance proposals. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
-        "operationId": "kb_enrich_dedup_api_v1_workspaces__workspace_id__enrich_dedup_post",
+        "operationId": "enrich_dedup_api_v1_workspaces__workspace_id__enrich_dedup_post",
         "parameters": [
           {
             "name": "workspace_id",
@@ -6621,7 +6621,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response Kb Enrich Dedup Api V1 Workspaces  Workspace Id  Enrich Dedup Post"
+                  "title": "Response Enrich Dedup Api V1 Workspaces  Workspace Id  Enrich Dedup Post"
                 }
               }
             }
@@ -6637,18 +6637,18 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/enrich/links": {
       "post": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
-        "summary": "Kb Enrich Links",
+        "summary": "Enrich Links",
         "description": "Enrich Links. Graph enrichment and governance proposals. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
-        "operationId": "kb_enrich_links_api_v1_workspaces__workspace_id__enrich_links_post",
+        "operationId": "enrich_links_api_v1_workspaces__workspace_id__enrich_links_post",
         "parameters": [
           {
             "name": "workspace_id",
@@ -6682,7 +6682,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response Kb Enrich Links Api V1 Workspaces  Workspace Id  Enrich Links Post"
+                  "title": "Response Enrich Links Api V1 Workspaces  Workspace Id  Enrich Links Post"
                 }
               }
             }
@@ -6698,18 +6698,18 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/enrich/merge": {
       "post": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
-        "summary": "Kb Enrich Merge",
+        "summary": "Enrich Merge",
         "description": "Direct graph merge is disabled; use the review queue (Gate D).",
-        "operationId": "kb_enrich_merge_api_v1_workspaces__workspace_id__enrich_merge_post",
+        "operationId": "enrich_merge_api_v1_workspaces__workspace_id__enrich_merge_post",
         "parameters": [
           {
             "name": "workspace_id",
@@ -6743,7 +6743,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response Kb Enrich Merge Api V1 Workspaces  Workspace Id  Enrich Merge Post"
+                  "title": "Response Enrich Merge Api V1 Workspaces  Workspace Id  Enrich Merge Post"
                 }
               }
             }
@@ -6759,15 +6759,15 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/entities/find": {
       "get": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
         "summary": "Find Entities Route",
         "description": "Find Entities Route. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
@@ -6842,19 +6842,19 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/export": {
       "post": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
-        "summary": "Kb Export Graph",
+        "summary": "Export Graph",
         "description": "Export Graph. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
-        "operationId": "kb_export_graph_api_v1_workspaces__workspace_id__export_post",
+        "operationId": "export_graph_api_v1_workspaces__workspace_id__export_post",
         "parameters": [
           {
             "name": "workspace_id",
@@ -6902,18 +6902,18 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/governance/config": {
       "get": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
-        "summary": "Get Kb Governance Config",
+        "summary": "Get Governance Config",
         "description": "Governance Config. Per-workspace governor schedule and confidence threshold (F-GOV-04). Requires workspace viewer+.",
-        "operationId": "get_kb_governance_config_api_v1_workspaces__workspace_id__governance_config_get",
+        "operationId": "get_governance_config_api_v1_workspaces__workspace_id__governance_config_get",
         "parameters": [
           {
             "name": "workspace_id",
@@ -6949,7 +6949,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": true,
-                  "title": "Response Get Kb Governance Config Api V1 Workspaces  Workspace Id  Governance Config Get"
+                  "title": "Response Get Governance Config Api V1 Workspaces  Workspace Id  Governance Config Get"
                 }
               }
             }
@@ -6965,16 +6965,16 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       },
       "put": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
-        "summary": "Update Kb Governance Config",
+        "summary": "Update Governance Config",
         "description": "Governance Config Update. Enable scheduled governor passes (requires BASIS_GOVERNOR_TICK_SECONDS). Requires workspace admin.",
-        "operationId": "update_kb_governance_config_api_v1_workspaces__workspace_id__governance_config_put",
+        "operationId": "update_governance_config_api_v1_workspaces__workspace_id__governance_config_put",
         "parameters": [
           {
             "name": "workspace_id",
@@ -7020,7 +7020,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": true,
-                  "title": "Response Update Kb Governance Config Api V1 Workspaces  Workspace Id  Governance Config Put"
+                  "title": "Response Update Governance Config Api V1 Workspaces  Workspace Id  Governance Config Put"
                 }
               }
             }
@@ -7036,18 +7036,18 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/governance/governor/run": {
       "post": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
-        "summary": "Kb Governance Governor Run",
+        "summary": "Governance Governor Run",
         "description": "Governance Governor Run. Batch conflict scan and low-confidence review enqueue (F-GOV-04). Requires workspace editor+.",
-        "operationId": "kb_governance_governor_run_api_v1_workspaces__workspace_id__governance_governor_run_post",
+        "operationId": "governance_governor_run_api_v1_workspaces__workspace_id__governance_governor_run_post",
         "parameters": [
           {
             "name": "workspace_id",
@@ -7100,7 +7100,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": true,
-                  "title": "Response Kb Governance Governor Run Api V1 Workspaces  Workspace Id  Governance Governor Run Post"
+                  "title": "Response Governance Governor Run Api V1 Workspaces  Workspace Id  Governance Governor Run Post"
                 }
               }
             }
@@ -7116,18 +7116,18 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/graph/diff": {
       "get": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
-        "summary": "Kb Graph Diff",
+        "summary": "Graph Diff",
         "description": "Whole-graph diff between two instants (F-DIFF-01).\n\nCompares graph projection snapshots at `from` and `to` (ISO instants). Response includes\n`added_nodes`, `removed_nodes`, `modified_nodes`, `added_edges`, `removed_edges`, `summary`,\nand echo `from_time` / `to_time`. Node/edge membership follows ledger `recorded_at` → projected\n`valid_from` and `invalidated_at` → projected `valid_until` (F-TIM-01). Console graph preview dims unchanged elements and highlights\nadded/modified nodes and added edges at the end instant.",
-        "operationId": "kb_graph_diff_api_v1_workspaces__workspace_id__graph_diff_get",
+        "operationId": "graph_diff_api_v1_workspaces__workspace_id__graph_diff_get",
         "parameters": [
           {
             "name": "workspace_id",
@@ -7179,7 +7179,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response Kb Graph Diff Api V1 Workspaces  Workspace Id  Graph Diff Get"
+                  "title": "Response Graph Diff Api V1 Workspaces  Workspace Id  Graph Diff Get"
                 }
               }
             }
@@ -7195,19 +7195,19 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/graph/distance-matrix": {
       "post": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
-        "summary": "Kb Graph Distance Matrix",
+        "summary": "Graph Distance Matrix",
         "description": "Graph Distance Matrix. Projected graph read API (graph runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
-        "operationId": "kb_graph_distance_matrix_api_v1_workspaces__workspace_id__graph_distance_matrix_post",
+        "operationId": "graph_distance_matrix_api_v1_workspaces__workspace_id__graph_distance_matrix_post",
         "parameters": [
           {
             "name": "workspace_id",
@@ -7241,7 +7241,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response Kb Graph Distance Matrix Api V1 Workspaces  Workspace Id  Graph Distance Matrix Post"
+                  "title": "Response Graph Distance Matrix Api V1 Workspaces  Workspace Id  Graph Distance Matrix Post"
                 }
               }
             }
@@ -7257,15 +7257,15 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/graph/edges": {
       "get": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
         "summary": "Graph Edges Route",
         "description": "Graph Edges Route. Projected graph read API (graph runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
@@ -7395,15 +7395,15 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/graph/nodes": {
       "get": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
         "summary": "Graph Nodes Route",
         "description": "Graph Nodes Route. Projected graph read API (graph runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
@@ -7517,15 +7517,15 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/graph/nodes/{node_id}": {
       "get": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
         "summary": "Graph Node Route",
         "description": "Graph Node Route. Projected graph read API (graph runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
@@ -7590,15 +7590,15 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/graph/nodes/{node_id}/neighbors": {
       "get": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
         "summary": "Graph Neighbors Route",
         "description": "Graph Neighbors Route. Projected graph read API (graph runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
@@ -7673,15 +7673,15 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/graph/path": {
       "get": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
         "summary": "Graph Path Route",
         "description": "Graph Path Route. Projected graph read API (graph runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
@@ -7775,15 +7775,15 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/graph/projection": {
       "get": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
         "summary": "Graph Projection Status",
         "description": "Graph Projection Status. Projected graph read API (graph runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
@@ -7839,15 +7839,15 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/graph/rebuild": {
       "post": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
         "summary": "Rebuild Graph",
         "description": "Rebuild Graph. Projected graph read API (graph runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
@@ -7903,15 +7903,15 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/graph/resolve-labels": {
       "post": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
         "summary": "Resolve Graph Node Labels",
         "description": "Resolve Graph Node Labels. Projected graph read API (graph runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
@@ -7977,15 +7977,15 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/graph/search": {
       "post": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
         "summary": "Graph Search Route",
         "description": "Graph Search Route. Projected graph read API (graph runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
@@ -8051,19 +8051,19 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/graph/semantic-neighborhood": {
       "get": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
-        "summary": "Kb Graph Semantic Neighborhood",
+        "summary": "Graph Semantic Neighborhood",
         "description": "Graph Semantic Neighborhood. Projected graph read API (graph runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
-        "operationId": "kb_graph_semantic_neighborhood_api_v1_workspaces__workspace_id__graph_semantic_neighborhood_get",
+        "operationId": "graph_semantic_neighborhood_api_v1_workspaces__workspace_id__graph_semantic_neighborhood_get",
         "parameters": [
           {
             "name": "workspace_id",
@@ -8130,7 +8130,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response Kb Graph Semantic Neighborhood Api V1 Workspaces  Workspace Id  Graph Semantic Neighborhood Get"
+                  "title": "Response Graph Semantic Neighborhood Api V1 Workspaces  Workspace Id  Graph Semantic Neighborhood Get"
                 }
               }
             }
@@ -8146,15 +8146,15 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/graph/snapshot": {
       "get": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
         "summary": "Graph Snapshot Route",
         "description": "Graph Snapshot Route. Projected graph read API (graph runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
@@ -8230,18 +8230,18 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/graph/staging": {
       "get": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
-        "summary": "Kb Graph Staging",
+        "summary": "Graph Staging",
         "description": "Diff + staging manifest for publish/review workflows (F-DIFF-01).\n\nReturns `{manifest, diff}` where `manifest` includes `session_key` (stable id for the\nfrom/to range), `focus_node_ids`, governance relpaths (`review`, `graph/staging/entity-merge`,\ngraph import), and `change_total`. The nested `diff` matches `GET .../graph/diff` for the\nsame instants.",
-        "operationId": "kb_graph_staging_api_v1_workspaces__workspace_id__graph_staging_get",
+        "operationId": "graph_staging_api_v1_workspaces__workspace_id__graph_staging_get",
         "parameters": [
           {
             "name": "workspace_id",
@@ -8293,7 +8293,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response Kb Graph Staging Api V1 Workspaces  Workspace Id  Graph Staging Get"
+                  "title": "Response Graph Staging Api V1 Workspaces  Workspace Id  Graph Staging Get"
                 }
               }
             }
@@ -8309,18 +8309,18 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/graph/staging/entity-merge": {
       "post": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
-        "summary": "Kb Graph Staging Entity Merge",
+        "summary": "Graph Staging Entity Merge",
         "description": "Propose entity merge from diff/staging studio (Gate D; F-DIFF-01).\n\nJSON body: `{primary_id, duplicate_ids[]}`. Creates a review-queue item (`entity_merge`);\nidentical semantics to `POST .../review/items/entity-merge`.",
-        "operationId": "kb_graph_staging_entity_merge_api_v1_workspaces__workspace_id__graph_staging_entity_merge_post",
+        "operationId": "graph_staging_entity_merge_api_v1_workspaces__workspace_id__graph_staging_entity_merge_post",
         "parameters": [
           {
             "name": "workspace_id",
@@ -8364,7 +8364,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response Kb Graph Staging Entity Merge Api V1 Workspaces  Workspace Id  Graph Staging Entity Merge Post"
+                  "title": "Response Graph Staging Entity Merge Api V1 Workspaces  Workspace Id  Graph Staging Entity Merge Post"
                 }
               }
             }
@@ -8380,18 +8380,18 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/graph/staging/{session_key}/draft": {
       "put": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
-        "summary": "Kb Put Graph Staging Draft",
+        "summary": "Put Graph Staging Draft",
         "description": "Persist server-side staging studio merge draft for a compare session (F-DIFF-01).",
-        "operationId": "kb_put_graph_staging_draft_api_v1_workspaces__workspace_id__graph_staging__session_key__draft_put",
+        "operationId": "put_graph_staging_draft_api_v1_workspaces__workspace_id__graph_staging__session_key__draft_put",
         "parameters": [
           {
             "name": "workspace_id",
@@ -8446,7 +8446,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": true,
-                  "title": "Response Kb Put Graph Staging Draft Api V1 Workspaces  Workspace Id  Graph Staging  Session Key  Draft Put"
+                  "title": "Response Put Graph Staging Draft Api V1 Workspaces  Workspace Id  Graph Staging  Session Key  Draft Put"
                 }
               }
             }
@@ -8462,15 +8462,15 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/graph/stats": {
       "get": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
         "summary": "Graph Stats",
         "description": "Graph Stats. Projected graph read API (graph runtime). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
@@ -8528,19 +8528,19 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/import": {
       "post": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
-        "summary": "Kb Import Graph",
+        "summary": "Import Graph",
         "description": "Import Graph. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
-        "operationId": "kb_import_graph_api_v1_workspaces__workspace_id__import_post",
+        "operationId": "import_graph_api_v1_workspaces__workspace_id__import_post",
         "parameters": [
           {
             "name": "workspace_id",
@@ -8574,7 +8574,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response Kb Import Graph Api V1 Workspaces  Workspace Id  Import Post"
+                  "title": "Response Import Graph Api V1 Workspaces  Workspace Id  Import Post"
                 }
               }
             }
@@ -8590,15 +8590,15 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/ingest/jobs": {
       "get": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
         "summary": "List Ingest Jobs",
         "description": "F-SRC-08: document ingest jobs (alias of ``GET .../processing/jobs``).",
@@ -8680,15 +8680,15 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/ingest/jobs/{job_id}": {
       "get": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
         "summary": "Get Ingest Job",
         "description": "Get Ingest Job. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
@@ -8753,15 +8753,15 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/ledger/chunks/{chunk_id}": {
       "get": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
         "summary": "Get Ledger Chunk Route",
         "description": "Get Ledger Chunk Route. Evidence ledger: documents, chunks, statements, entities. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
@@ -8826,15 +8826,15 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/ledger/derived-facts": {
       "get": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
         "summary": "List Derived Facts Route",
         "description": "List Derived Facts Route. Evidence ledger: documents, chunks, statements, entities. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
@@ -8919,15 +8919,15 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/ledger/documents/{doc_ref}": {
       "get": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
         "summary": "Get Ledger Document Route",
         "description": "Get Ledger Document Route. Evidence ledger: documents, chunks, statements, entities. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
@@ -8992,15 +8992,15 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/ledger/documents/{doc_ref}/chunks": {
       "get": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
         "summary": "List Document Chunks Route",
         "description": "List Document Chunks Route. Evidence ledger: documents, chunks, statements, entities. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
@@ -9065,15 +9065,15 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/ledger/entities": {
       "get": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
         "summary": "Search Ledger Entities",
         "description": "Search Ledger Entities. Evidence ledger: documents, chunks, statements, entities. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
@@ -9163,15 +9163,15 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/ledger/entities/{entity_id}": {
       "delete": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
         "summary": "Delete Ledger Entity",
         "description": "Delete Ledger Entity. Evidence ledger: documents, chunks, statements, entities. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
@@ -9236,15 +9236,15 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/ledger/entities/{entity_id}/delete-preview": {
       "get": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
         "summary": "Preview Delete Ledger Entity",
         "description": "Preview Delete Ledger Entity. Evidence ledger: documents, chunks, statements, entities. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
@@ -9309,15 +9309,15 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/ledger/entities/{entity_id}/facts": {
       "get": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
         "summary": "List Entity Facts Route",
         "description": "List Entity Facts Route. Evidence ledger: documents, chunks, statements, entities. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
@@ -9394,15 +9394,15 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/ledger/entity-merges": {
       "get": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
         "summary": "List Entity Merges Route",
         "description": "List Entity Merges Route. Evidence ledger: documents, chunks, statements, entities. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
@@ -9480,15 +9480,15 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/ledger/entity-merges/{merge_id}/revert": {
       "post": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
         "summary": "Revert Entity Merge Route",
         "description": "Revert Entity Merge Route. Evidence ledger: documents, chunks, statements, entities. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
@@ -9553,15 +9553,15 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/ledger/statements/{statement_id}": {
       "get": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
         "summary": "Get Ledger Statement Route",
         "description": "Get Ledger Statement. Resolve a statement id to its subject entity for console deep links (F-RUL-03). Requires workspace membership (session) or workspace API token with read scope. All paths are scoped to `{workspace_id}`.",
@@ -9626,15 +9626,15 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/ledger/surface-phrases": {
       "get": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
         "summary": "List Surface Phrases",
         "description": "List Surface Phrases. Evidence ledger: documents, chunks, statements, entities. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
@@ -9702,15 +9702,15 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/ledger/typed-facts": {
       "get": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
         "summary": "List Typed Facts Route",
         "description": "List Typed Facts Route. Evidence ledger: documents, chunks, statements, entities. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
@@ -9778,18 +9778,18 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/mappings": {
       "get": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
-        "summary": "List Kb Mappings",
+        "summary": "List Mappings",
         "description": "List Mappings. Statement-to-entity mapping proposals and status. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
-        "operationId": "list_kb_mappings_api_v1_workspaces__workspace_id__mappings_get",
+        "operationId": "list_mappings_api_v1_workspaces__workspace_id__mappings_get",
         "parameters": [
           {
             "name": "workspace_id",
@@ -9853,7 +9853,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": true,
-                  "title": "Response List Kb Mappings Api V1 Workspaces  Workspace Id  Mappings Get"
+                  "title": "Response List Mappings Api V1 Workspaces  Workspace Id  Mappings Get"
                 }
               }
             }
@@ -9869,16 +9869,16 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       },
       "post": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
-        "summary": "Create Kb Mapping",
+        "summary": "Create Mapping",
         "description": "Create Mapping. Statement-to-entity mapping proposals and status. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
-        "operationId": "create_kb_mapping_api_v1_workspaces__workspace_id__mappings_post",
+        "operationId": "create_mapping_api_v1_workspaces__workspace_id__mappings_post",
         "parameters": [
           {
             "name": "workspace_id",
@@ -9924,7 +9924,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": true,
-                  "title": "Response Create Kb Mapping Api V1 Workspaces  Workspace Id  Mappings Post"
+                  "title": "Response Create Mapping Api V1 Workspaces  Workspace Id  Mappings Post"
                 }
               }
             }
@@ -9940,18 +9940,18 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/mappings/{mapping_id}/status": {
       "post": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
-        "summary": "Update Kb Mapping Status",
+        "summary": "Update Mapping Status",
         "description": "Update Mapping Status. Statement-to-entity mapping proposals and status. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
-        "operationId": "update_kb_mapping_status_api_v1_workspaces__workspace_id__mappings__mapping_id__status_post",
+        "operationId": "update_mapping_status_api_v1_workspaces__workspace_id__mappings__mapping_id__status_post",
         "parameters": [
           {
             "name": "workspace_id",
@@ -10006,7 +10006,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": true,
-                  "title": "Response Update Kb Mapping Status Api V1 Workspaces  Workspace Id  Mappings  Mapping Id  Status Post"
+                  "title": "Response Update Mapping Status Api V1 Workspaces  Workspace Id  Mappings  Mapping Id  Status Post"
                 }
               }
             }
@@ -10022,7 +10022,7 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
@@ -10085,7 +10085,7 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       },
       "post": {
@@ -10144,14 +10144,14 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/members": {
       "get": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
         "summary": "List Members",
         "description": "List members. Workspace membership and roles (session only). Requires session JWT (`sessionAuth`).",
@@ -10214,7 +10214,7 @@
     "/api/v1/workspaces/{workspace_id}/members/{user_id}": {
       "put": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
         "summary": "Set Member Role",
         "description": "Set member role. Workspace membership and roles (session only). Requires session JWT (`sessionAuth`).",
@@ -10294,7 +10294,7 @@
       },
       "delete": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
         "summary": "Remove Member",
         "description": "Remove member. Workspace membership and roles (session only). Requires session JWT (`sessionAuth`).",
@@ -10366,8 +10366,8 @@
     "/api/v1/workspaces/{workspace_id}/ontology": {
       "post": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
         "summary": "Create Ontology",
         "description": "Create Ontology. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
@@ -10404,7 +10404,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/basis__interface__http__kb_documents_models__CreateOntologyRequest"
+                "$ref": "#/components/schemas/basis__interface__http__documents_models__CreateOntologyRequest"
               }
             }
           }
@@ -10433,19 +10433,19 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/ontology/alignments": {
       "get": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
-        "summary": "Kb List Alignments",
+        "summary": "List Alignments",
         "description": "List Alignments. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
-        "operationId": "kb_list_alignments_api_v1_workspaces__workspace_id__ontology_alignments_get",
+        "operationId": "list_alignments_api_v1_workspaces__workspace_id__ontology_alignments_get",
         "parameters": [
           {
             "name": "workspace_id",
@@ -10495,7 +10495,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response Kb List Alignments Api V1 Workspaces  Workspace Id  Ontology Alignments Get"
+                  "title": "Response List Alignments Api V1 Workspaces  Workspace Id  Ontology Alignments Get"
                 }
               }
             }
@@ -10511,17 +10511,17 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       },
       "post": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
-        "summary": "Kb Upsert Alignment",
+        "summary": "Upsert Alignment",
         "description": "Upsert Alignment. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
-        "operationId": "kb_upsert_alignment_api_v1_workspaces__workspace_id__ontology_alignments_post",
+        "operationId": "upsert_alignment_api_v1_workspaces__workspace_id__ontology_alignments_post",
         "parameters": [
           {
             "name": "workspace_id",
@@ -10555,7 +10555,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response Kb Upsert Alignment Api V1 Workspaces  Workspace Id  Ontology Alignments Post"
+                  "title": "Response Upsert Alignment Api V1 Workspaces  Workspace Id  Ontology Alignments Post"
                 }
               }
             }
@@ -10571,17 +10571,17 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       },
       "delete": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
-        "summary": "Kb Delete Alignment",
+        "summary": "Delete Alignment",
         "description": "Delete alignment. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
-        "operationId": "kb_delete_alignment_api_v1_workspaces__workspace_id__ontology_alignments_delete",
+        "operationId": "delete_alignment_api_v1_workspaces__workspace_id__ontology_alignments_delete",
         "parameters": [
           {
             "name": "workspace_id",
@@ -10624,7 +10624,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response Kb Delete Alignment Api V1 Workspaces  Workspace Id  Ontology Alignments Delete"
+                  "title": "Response Delete Alignment Api V1 Workspaces  Workspace Id  Ontology Alignments Delete"
                 }
               }
             }
@@ -10640,18 +10640,18 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/ontology/create": {
       "post": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
-        "summary": " Kb Ont 3 Create Ontology",
+        "summary": " Ont 3 Create Ontology",
         "description": "Create Ontology. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
-        "operationId": "_kb_ont_3_create_ontology_api_v1_workspaces__workspace_id__ontology_create_post",
+        "operationId": "_ont_3_create_ontology_api_v1_workspaces__workspace_id__ontology_create_post",
         "parameters": [
           {
             "name": "workspace_id",
@@ -10695,7 +10695,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response  Kb Ont 3 Create Ontology Api V1 Workspaces  Workspace Id  Ontology Create Post"
+                  "title": "Response  Ont 3 Create Ontology Api V1 Workspaces  Workspace Id  Ontology Create Post"
                 }
               }
             }
@@ -10711,18 +10711,18 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/ontology/draft": {
       "patch": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
-        "summary": " Kb Ont 17 Save Draft",
+        "summary": " Ont 17 Save Draft",
         "description": "Save Draft. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
-        "operationId": "_kb_ont_17_save_draft_api_v1_workspaces__workspace_id__ontology_draft_patch",
+        "operationId": "_ont_17_save_draft_api_v1_workspaces__workspace_id__ontology_draft_patch",
         "parameters": [
           {
             "name": "workspace_id",
@@ -10766,7 +10766,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response  Kb Ont 17 Save Draft Api V1 Workspaces  Workspace Id  Ontology Draft Patch"
+                  "title": "Response  Ont 17 Save Draft Api V1 Workspaces  Workspace Id  Ontology Draft Patch"
                 }
               }
             }
@@ -10782,18 +10782,18 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/ontology/draft/{draft_id}": {
       "get": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
-        "summary": " Kb Ont 19 Get Draft",
+        "summary": " Ont 19 Get Draft",
         "description": "Get Draft. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
-        "operationId": "_kb_ont_19_get_draft_api_v1_workspaces__workspace_id__ontology_draft__draft_id__get",
+        "operationId": "_ont_19_get_draft_api_v1_workspaces__workspace_id__ontology_draft__draft_id__get",
         "parameters": [
           {
             "name": "workspace_id",
@@ -10836,7 +10836,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response  Kb Ont 19 Get Draft Api V1 Workspaces  Workspace Id  Ontology Draft  Draft Id  Get"
+                  "title": "Response  Ont 19 Get Draft Api V1 Workspaces  Workspace Id  Ontology Draft  Draft Id  Get"
                 }
               }
             }
@@ -10852,18 +10852,18 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/ontology/drafts/{ontology_uri}": {
       "get": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
-        "summary": " Kb Ont 18 List Drafts",
+        "summary": " Ont 18 List Drafts",
         "description": "List Drafts. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
-        "operationId": "_kb_ont_18_list_drafts_api_v1_workspaces__workspace_id__ontology_drafts__ontology_uri__get",
+        "operationId": "_ont_18_list_drafts_api_v1_workspaces__workspace_id__ontology_drafts__ontology_uri__get",
         "parameters": [
           {
             "name": "workspace_id",
@@ -10906,7 +10906,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response  Kb Ont 18 List Drafts Api V1 Workspaces  Workspace Id  Ontology Drafts  Ontology Uri  Get"
+                  "title": "Response  Ont 18 List Drafts Api V1 Workspaces  Workspace Id  Ontology Drafts  Ontology Uri  Get"
                 }
               }
             }
@@ -10922,18 +10922,18 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/ontology/entity/{entity_uri}": {
       "get": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
-        "summary": " Kb Ont 6 Get Entity Detail",
+        "summary": " Ont 6 Get Entity Detail",
         "description": "Get Entity Detail. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
-        "operationId": "_kb_ont_6_get_entity_detail_api_v1_workspaces__workspace_id__ontology_entity__entity_uri__get",
+        "operationId": "_ont_6_get_entity_detail_api_v1_workspaces__workspace_id__ontology_entity__entity_uri__get",
         "parameters": [
           {
             "name": "workspace_id",
@@ -10976,7 +10976,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response  Kb Ont 6 Get Entity Detail Api V1 Workspaces  Workspace Id  Ontology Entity  Entity Uri  Get"
+                  "title": "Response  Ont 6 Get Entity Detail Api V1 Workspaces  Workspace Id  Ontology Entity  Entity Uri  Get"
                 }
               }
             }
@@ -10992,18 +10992,18 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/ontology/graph": {
       "get": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
-        "summary": " Kb Ont 5 Get Ontology Graph",
+        "summary": " Ont 5 Get Ontology Graph",
         "description": "Get Ontology Graph. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
-        "operationId": "_kb_ont_5_get_ontology_graph_api_v1_workspaces__workspace_id__ontology_graph_get",
+        "operationId": "_ont_5_get_ontology_graph_api_v1_workspaces__workspace_id__ontology_graph_get",
         "parameters": [
           {
             "name": "workspace_id",
@@ -11046,7 +11046,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response  Kb Ont 5 Get Ontology Graph Api V1 Workspaces  Workspace Id  Ontology Graph Get"
+                  "title": "Response  Ont 5 Get Ontology Graph Api V1 Workspaces  Workspace Id  Ontology Graph Get"
                 }
               }
             }
@@ -11062,18 +11062,18 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/ontology/health": {
       "get": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
-        "summary": " Kb Ont 10 Ontology Health",
+        "summary": " Ont 10 Ontology Health",
         "description": "Ontology Health. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
-        "operationId": "_kb_ont_10_ontology_health_api_v1_workspaces__workspace_id__ontology_health_get",
+        "operationId": "_ont_10_ontology_health_api_v1_workspaces__workspace_id__ontology_health_get",
         "parameters": [
           {
             "name": "workspace_id",
@@ -11116,7 +11116,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response  Kb Ont 10 Ontology Health Api V1 Workspaces  Workspace Id  Ontology Health Get"
+                  "title": "Response  Ont 10 Ontology Health Api V1 Workspaces  Workspace Id  Ontology Health Get"
                 }
               }
             }
@@ -11132,18 +11132,18 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/ontology/load": {
       "post": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
-        "summary": " Kb Ont 2 Load Ontology",
+        "summary": " Ont 2 Load Ontology",
         "description": "Load Ontology. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
-        "operationId": "_kb_ont_2_load_ontology_api_v1_workspaces__workspace_id__ontology_load_post",
+        "operationId": "_ont_2_load_ontology_api_v1_workspaces__workspace_id__ontology_load_post",
         "parameters": [
           {
             "name": "workspace_id",
@@ -11187,7 +11187,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response  Kb Ont 2 Load Ontology Api V1 Workspaces  Workspace Id  Ontology Load Post"
+                  "title": "Response  Ont 2 Load Ontology Api V1 Workspaces  Workspace Id  Ontology Load Post"
                 }
               }
             }
@@ -11203,18 +11203,18 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/ontology/preview": {
       "post": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
-        "summary": " Kb Ont 1 Preview Ontology",
+        "summary": " Ont 1 Preview Ontology",
         "description": "Preview Ontology. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
-        "operationId": "_kb_ont_1_preview_ontology_api_v1_workspaces__workspace_id__ontology_preview_post",
+        "operationId": "_ont_1_preview_ontology_api_v1_workspaces__workspace_id__ontology_preview_post",
         "parameters": [
           {
             "name": "workspace_id",
@@ -11258,7 +11258,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response  Kb Ont 1 Preview Ontology Api V1 Workspaces  Workspace Id  Ontology Preview Post"
+                  "title": "Response  Ont 1 Preview Ontology Api V1 Workspaces  Workspace Id  Ontology Preview Post"
                 }
               }
             }
@@ -11274,18 +11274,18 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/ontology/proposals": {
       "get": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
-        "summary": " Kb Ont 21 List Proposals",
+        "summary": " Ont 21 List Proposals",
         "description": "List Proposals. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
-        "operationId": "_kb_ont_21_list_proposals_api_v1_workspaces__workspace_id__ontology_proposals_get",
+        "operationId": "_ont_21_list_proposals_api_v1_workspaces__workspace_id__ontology_proposals_get",
         "parameters": [
           {
             "name": "workspace_id",
@@ -11351,7 +11351,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response  Kb Ont 21 List Proposals Api V1 Workspaces  Workspace Id  Ontology Proposals Get"
+                  "title": "Response  Ont 21 List Proposals Api V1 Workspaces  Workspace Id  Ontology Proposals Get"
                 }
               }
             }
@@ -11367,18 +11367,18 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/ontology/proposals/{proposal_id}": {
       "get": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
-        "summary": " Kb Ont 22 Get Proposal",
+        "summary": " Ont 22 Get Proposal",
         "description": "Get Proposal. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
-        "operationId": "_kb_ont_22_get_proposal_api_v1_workspaces__workspace_id__ontology_proposals__proposal_id__get",
+        "operationId": "_ont_22_get_proposal_api_v1_workspaces__workspace_id__ontology_proposals__proposal_id__get",
         "parameters": [
           {
             "name": "workspace_id",
@@ -11421,7 +11421,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response  Kb Ont 22 Get Proposal Api V1 Workspaces  Workspace Id  Ontology Proposals  Proposal Id  Get"
+                  "title": "Response  Ont 22 Get Proposal Api V1 Workspaces  Workspace Id  Ontology Proposals  Proposal Id  Get"
                 }
               }
             }
@@ -11437,18 +11437,18 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/ontology/proposals/{proposal_id}/approve": {
       "post": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
-        "summary": " Kb Ont 23 Approve Proposal",
+        "summary": " Ont 23 Approve Proposal",
         "description": "Approve Proposal. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
-        "operationId": "_kb_ont_23_approve_proposal_api_v1_workspaces__workspace_id__ontology_proposals__proposal_id__approve_post",
+        "operationId": "_ont_23_approve_proposal_api_v1_workspaces__workspace_id__ontology_proposals__proposal_id__approve_post",
         "parameters": [
           {
             "name": "workspace_id",
@@ -11491,7 +11491,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response  Kb Ont 23 Approve Proposal Api V1 Workspaces  Workspace Id  Ontology Proposals  Proposal Id  Approve Post"
+                  "title": "Response  Ont 23 Approve Proposal Api V1 Workspaces  Workspace Id  Ontology Proposals  Proposal Id  Approve Post"
                 }
               }
             }
@@ -11507,18 +11507,18 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/ontology/proposals/{proposal_id}/comment": {
       "post": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
-        "summary": " Kb Ont 26 Add Comment",
+        "summary": " Ont 26 Add Comment",
         "description": "Add Comment. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
-        "operationId": "_kb_ont_26_add_comment_api_v1_workspaces__workspace_id__ontology_proposals__proposal_id__comment_post",
+        "operationId": "_ont_26_add_comment_api_v1_workspaces__workspace_id__ontology_proposals__proposal_id__comment_post",
         "parameters": [
           {
             "name": "workspace_id",
@@ -11571,7 +11571,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response  Kb Ont 26 Add Comment Api V1 Workspaces  Workspace Id  Ontology Proposals  Proposal Id  Comment Post"
+                  "title": "Response  Ont 26 Add Comment Api V1 Workspaces  Workspace Id  Ontology Proposals  Proposal Id  Comment Post"
                 }
               }
             }
@@ -11587,18 +11587,18 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/ontology/proposals/{proposal_id}/publish": {
       "post": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
-        "summary": " Kb Ont 25 Publish Proposal",
+        "summary": " Ont 25 Publish Proposal",
         "description": "Publish Proposal. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
-        "operationId": "_kb_ont_25_publish_proposal_api_v1_workspaces__workspace_id__ontology_proposals__proposal_id__publish_post",
+        "operationId": "_ont_25_publish_proposal_api_v1_workspaces__workspace_id__ontology_proposals__proposal_id__publish_post",
         "parameters": [
           {
             "name": "workspace_id",
@@ -11641,7 +11641,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response  Kb Ont 25 Publish Proposal Api V1 Workspaces  Workspace Id  Ontology Proposals  Proposal Id  Publish Post"
+                  "title": "Response  Ont 25 Publish Proposal Api V1 Workspaces  Workspace Id  Ontology Proposals  Proposal Id  Publish Post"
                 }
               }
             }
@@ -11657,18 +11657,18 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/ontology/proposals/{proposal_id}/reject": {
       "post": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
-        "summary": " Kb Ont 24 Reject Proposal",
+        "summary": " Ont 24 Reject Proposal",
         "description": "Reject Proposal. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
-        "operationId": "_kb_ont_24_reject_proposal_api_v1_workspaces__workspace_id__ontology_proposals__proposal_id__reject_post",
+        "operationId": "_ont_24_reject_proposal_api_v1_workspaces__workspace_id__ontology_proposals__proposal_id__reject_post",
         "parameters": [
           {
             "name": "workspace_id",
@@ -11711,7 +11711,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response  Kb Ont 24 Reject Proposal Api V1 Workspaces  Workspace Id  Ontology Proposals  Proposal Id  Reject Post"
+                  "title": "Response  Ont 24 Reject Proposal Api V1 Workspaces  Workspace Id  Ontology Proposals  Proposal Id  Reject Post"
                 }
               }
             }
@@ -11727,18 +11727,18 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/ontology/propose": {
       "post": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
-        "summary": " Kb Ont 20 Submit Proposal",
+        "summary": " Ont 20 Submit Proposal",
         "description": "Submit Proposal. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
-        "operationId": "_kb_ont_20_submit_proposal_api_v1_workspaces__workspace_id__ontology_propose_post",
+        "operationId": "_ont_20_submit_proposal_api_v1_workspaces__workspace_id__ontology_propose_post",
         "parameters": [
           {
             "name": "workspace_id",
@@ -11782,7 +11782,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response  Kb Ont 20 Submit Proposal Api V1 Workspaces  Workspace Id  Ontology Propose Post"
+                  "title": "Response  Ont 20 Submit Proposal Api V1 Workspaces  Workspace Id  Ontology Propose Post"
                 }
               }
             }
@@ -11798,19 +11798,19 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/ontology/registry": {
       "get": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
-        "summary": "Kb Ontology Registry",
+        "summary": "Ontology Registry",
         "description": "Ontology Registry. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
-        "operationId": "kb_ontology_registry_api_v1_workspaces__workspace_id__ontology_registry_get",
+        "operationId": "ontology_registry_api_v1_workspaces__workspace_id__ontology_registry_get",
         "parameters": [
           {
             "name": "workspace_id",
@@ -11892,7 +11892,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response Kb Ontology Registry Api V1 Workspaces  Workspace Id  Ontology Registry Get"
+                  "title": "Response Ontology Registry Api V1 Workspaces  Workspace Id  Ontology Registry Get"
                 }
               }
             }
@@ -11908,18 +11908,18 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/ontology/search": {
       "get": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
-        "summary": " Kb Ont 4 Search Entities",
+        "summary": " Ont 4 Search Entities",
         "description": "Search Entities. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
-        "operationId": "_kb_ont_4_search_entities_api_v1_workspaces__workspace_id__ontology_search_get",
+        "operationId": "_ont_4_search_entities_api_v1_workspaces__workspace_id__ontology_search_get",
         "parameters": [
           {
             "name": "workspace_id",
@@ -11988,7 +11988,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response  Kb Ont 4 Search Entities Api V1 Workspaces  Workspace Id  Ontology Search Get"
+                  "title": "Response  Ont 4 Search Entities Api V1 Workspaces  Workspace Id  Ontology Search Get"
                 }
               }
             }
@@ -12004,18 +12004,18 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/ontology/shacl/generate": {
       "post": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
-        "summary": " Kb Ont 11 Generate Shacl",
+        "summary": " Ont 11 Generate Shacl",
         "description": "Generate Shacl. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
-        "operationId": "_kb_ont_11_generate_shacl_api_v1_workspaces__workspace_id__ontology_shacl_generate_post",
+        "operationId": "_ont_11_generate_shacl_api_v1_workspaces__workspace_id__ontology_shacl_generate_post",
         "parameters": [
           {
             "name": "workspace_id",
@@ -12059,7 +12059,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response  Kb Ont 11 Generate Shacl Api V1 Workspaces  Workspace Id  Ontology Shacl Generate Post"
+                  "title": "Response  Ont 11 Generate Shacl Api V1 Workspaces  Workspace Id  Ontology Shacl Generate Post"
                 }
               }
             }
@@ -12075,18 +12075,18 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/ontology/shacl/shapes": {
       "get": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
-        "summary": " Kb Ont 12 List Shacl Shapes",
+        "summary": " Ont 12 List Shacl Shapes",
         "description": "List Shacl Shapes. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
-        "operationId": "_kb_ont_12_list_shacl_shapes_api_v1_workspaces__workspace_id__ontology_shacl_shapes_get",
+        "operationId": "_ont_12_list_shacl_shapes_api_v1_workspaces__workspace_id__ontology_shacl_shapes_get",
         "parameters": [
           {
             "name": "workspace_id",
@@ -12129,7 +12129,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response  Kb Ont 12 List Shacl Shapes Api V1 Workspaces  Workspace Id  Ontology Shacl Shapes Get"
+                  "title": "Response  Ont 12 List Shacl Shapes Api V1 Workspaces  Workspace Id  Ontology Shacl Shapes Get"
                 }
               }
             }
@@ -12145,18 +12145,18 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/ontology/shacl/validate": {
       "post": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
-        "summary": " Kb Ont 13 Validate Shacl",
+        "summary": " Ont 13 Validate Shacl",
         "description": "Validate Shacl. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
-        "operationId": "_kb_ont_13_validate_shacl_api_v1_workspaces__workspace_id__ontology_shacl_validate_post",
+        "operationId": "_ont_13_validate_shacl_api_v1_workspaces__workspace_id__ontology_shacl_validate_post",
         "parameters": [
           {
             "name": "workspace_id",
@@ -12200,7 +12200,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response  Kb Ont 13 Validate Shacl Api V1 Workspaces  Workspace Id  Ontology Shacl Validate Post"
+                  "title": "Response  Ont 13 Validate Shacl Api V1 Workspaces  Workspace Id  Ontology Shacl Validate Post"
                 }
               }
             }
@@ -12216,18 +12216,18 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/ontology/skos/concept/{concept_uri}": {
       "get": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
-        "summary": " Kb Ont 9 Get Skos Concept",
+        "summary": " Ont 9 Get Skos Concept",
         "description": "Get Skos Concept. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
-        "operationId": "_kb_ont_9_get_skos_concept_api_v1_workspaces__workspace_id__ontology_skos_concept__concept_uri__get",
+        "operationId": "_ont_9_get_skos_concept_api_v1_workspaces__workspace_id__ontology_skos_concept__concept_uri__get",
         "parameters": [
           {
             "name": "workspace_id",
@@ -12270,7 +12270,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response  Kb Ont 9 Get Skos Concept Api V1 Workspaces  Workspace Id  Ontology Skos Concept  Concept Uri  Get"
+                  "title": "Response  Ont 9 Get Skos Concept Api V1 Workspaces  Workspace Id  Ontology Skos Concept  Concept Uri  Get"
                 }
               }
             }
@@ -12286,18 +12286,18 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/ontology/skos/schemes": {
       "get": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
-        "summary": " Kb Ont 7 List Skos Schemes",
+        "summary": " Ont 7 List Skos Schemes",
         "description": "List Skos Schemes. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
-        "operationId": "_kb_ont_7_list_skos_schemes_api_v1_workspaces__workspace_id__ontology_skos_schemes_get",
+        "operationId": "_ont_7_list_skos_schemes_api_v1_workspaces__workspace_id__ontology_skos_schemes_get",
         "parameters": [
           {
             "name": "workspace_id",
@@ -12331,7 +12331,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response  Kb Ont 7 List Skos Schemes Api V1 Workspaces  Workspace Id  Ontology Skos Schemes Get"
+                  "title": "Response  Ont 7 List Skos Schemes Api V1 Workspaces  Workspace Id  Ontology Skos Schemes Get"
                 }
               }
             }
@@ -12347,18 +12347,18 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/ontology/skos/search": {
       "post": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
-        "summary": " Kb Ont 8 Search Skos Concepts",
+        "summary": " Ont 8 Search Skos Concepts",
         "description": "Search Skos Concepts. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
-        "operationId": "_kb_ont_8_search_skos_concepts_api_v1_workspaces__workspace_id__ontology_skos_search_post",
+        "operationId": "_ont_8_search_skos_concepts_api_v1_workspaces__workspace_id__ontology_skos_search_post",
         "parameters": [
           {
             "name": "workspace_id",
@@ -12402,7 +12402,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response  Kb Ont 8 Search Skos Concepts Api V1 Workspaces  Workspace Id  Ontology Skos Search Post"
+                  "title": "Response  Ont 8 Search Skos Concepts Api V1 Workspaces  Workspace Id  Ontology Skos Search Post"
                 }
               }
             }
@@ -12418,19 +12418,19 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/ontology/suggest-alignments": {
       "post": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
-        "summary": "Kb Suggest Alignments",
+        "summary": "Suggest Alignments",
         "description": "Suggest Alignments. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
-        "operationId": "kb_suggest_alignments_api_v1_workspaces__workspace_id__ontology_suggest_alignments_post",
+        "operationId": "suggest_alignments_api_v1_workspaces__workspace_id__ontology_suggest_alignments_post",
         "parameters": [
           {
             "name": "workspace_id",
@@ -12464,7 +12464,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response Kb Suggest Alignments Api V1 Workspaces  Workspace Id  Ontology Suggest Alignments Post"
+                  "title": "Response Suggest Alignments Api V1 Workspaces  Workspace Id  Ontology Suggest Alignments Post"
                 }
               }
             }
@@ -12480,18 +12480,18 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/ontology/versions/{ontology_uri}": {
       "get": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
-        "summary": " Kb Ont 27 List Versions",
+        "summary": " Ont 27 List Versions",
         "description": "List Versions. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
-        "operationId": "_kb_ont_27_list_versions_api_v1_workspaces__workspace_id__ontology_versions__ontology_uri__get",
+        "operationId": "_ont_27_list_versions_api_v1_workspaces__workspace_id__ontology_versions__ontology_uri__get",
         "parameters": [
           {
             "name": "workspace_id",
@@ -12534,7 +12534,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response  Kb Ont 27 List Versions Api V1 Workspaces  Workspace Id  Ontology Versions  Ontology Uri  Get"
+                  "title": "Response  Ont 27 List Versions Api V1 Workspaces  Workspace Id  Ontology Versions  Ontology Uri  Get"
                 }
               }
             }
@@ -12550,18 +12550,18 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/ontology/versions/{ontology_uri}/compare": {
       "post": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
-        "summary": " Kb Ont 28 Compare Versions",
+        "summary": " Ont 28 Compare Versions",
         "description": "Compare Versions. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
-        "operationId": "_kb_ont_28_compare_versions_api_v1_workspaces__workspace_id__ontology_versions__ontology_uri__compare_post",
+        "operationId": "_ont_28_compare_versions_api_v1_workspaces__workspace_id__ontology_versions__ontology_uri__compare_post",
         "parameters": [
           {
             "name": "workspace_id",
@@ -12614,7 +12614,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response  Kb Ont 28 Compare Versions Api V1 Workspaces  Workspace Id  Ontology Versions  Ontology Uri  Compare Post"
+                  "title": "Response  Ont 28 Compare Versions Api V1 Workspaces  Workspace Id  Ontology Versions  Ontology Uri  Compare Post"
                 }
               }
             }
@@ -12630,18 +12630,18 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/ontology/{ontology_uri}": {
       "delete": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
-        "summary": " Kb Ont 14 Remove Ontology",
+        "summary": " Ont 14 Remove Ontology",
         "description": "Remove Ontology. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
-        "operationId": "_kb_ont_14_remove_ontology_api_v1_workspaces__workspace_id__ontology__ontology_uri__delete",
+        "operationId": "_ont_14_remove_ontology_api_v1_workspaces__workspace_id__ontology__ontology_uri__delete",
         "parameters": [
           {
             "name": "workspace_id",
@@ -12684,7 +12684,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response  Kb Ont 14 Remove Ontology Api V1 Workspaces  Workspace Id  Ontology  Ontology Uri  Delete"
+                  "title": "Response  Ont 14 Remove Ontology Api V1 Workspaces  Workspace Id  Ontology  Ontology Uri  Delete"
                 }
               }
             }
@@ -12700,18 +12700,18 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/ontology/{ontology_uri}/refresh": {
       "post": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
-        "summary": " Kb Ont 16 Refresh Ontology",
+        "summary": " Ont 16 Refresh Ontology",
         "description": "Refresh Ontology. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
-        "operationId": "_kb_ont_16_refresh_ontology_api_v1_workspaces__workspace_id__ontology__ontology_uri__refresh_post",
+        "operationId": "_ont_16_refresh_ontology_api_v1_workspaces__workspace_id__ontology__ontology_uri__refresh_post",
         "parameters": [
           {
             "name": "workspace_id",
@@ -12754,7 +12754,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response  Kb Ont 16 Refresh Ontology Api V1 Workspaces  Workspace Id  Ontology  Ontology Uri  Refresh Post"
+                  "title": "Response  Ont 16 Refresh Ontology Api V1 Workspaces  Workspace Id  Ontology  Ontology Uri  Refresh Post"
                 }
               }
             }
@@ -12770,18 +12770,18 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/ontology/{ontology_uri}/toggle": {
       "patch": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
-        "summary": " Kb Ont 15 Toggle Ontology",
+        "summary": " Ont 15 Toggle Ontology",
         "description": "Toggle Ontology. Ontology hub (SKOS, alignments) via workspace graph session. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
-        "operationId": "_kb_ont_15_toggle_ontology_api_v1_workspaces__workspace_id__ontology__ontology_uri__toggle_patch",
+        "operationId": "_ont_15_toggle_ontology_api_v1_workspaces__workspace_id__ontology__ontology_uri__toggle_patch",
         "parameters": [
           {
             "name": "workspace_id",
@@ -12824,7 +12824,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response  Kb Ont 15 Toggle Ontology Api V1 Workspaces  Workspace Id  Ontology  Ontology Uri  Toggle Patch"
+                  "title": "Response  Ont 15 Toggle Ontology Api V1 Workspaces  Workspace Id  Ontology  Ontology Uri  Toggle Patch"
                 }
               }
             }
@@ -12840,15 +12840,15 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/processing/jobs": {
       "get": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
         "summary": "List Processing Jobs",
         "description": "List Processing Jobs. Document processing jobs (extract, chunk, project). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
@@ -12930,13 +12930,13 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       },
       "post": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
         "summary": "Start Processing Job",
         "description": "Start Processing Job. Document processing jobs (extract, chunk, project). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
@@ -12998,15 +12998,15 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/processing/jobs/{job_id}": {
       "get": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
         "summary": "Get Processing Job",
         "description": "Get Processing Job. Document processing jobs (extract, chunk, project). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
@@ -13071,15 +13071,15 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/processing/jobs/{job_id}/retry": {
       "post": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
         "summary": "Retry Processing Job",
         "description": "Retry Processing Job. Document processing jobs (extract, chunk, project). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
@@ -13150,18 +13150,18 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/provenance": {
       "get": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
-        "summary": "Kb Provenance Lineage",
+        "summary": "Provenance Lineage",
         "description": "Provenance Lineage. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
-        "operationId": "kb_provenance_lineage_api_v1_workspaces__workspace_id__provenance_get",
+        "operationId": "provenance_lineage_api_v1_workspaces__workspace_id__provenance_get",
         "parameters": [
           {
             "name": "workspace_id",
@@ -13211,7 +13211,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response Kb Provenance Lineage Api V1 Workspaces  Workspace Id  Provenance Get"
+                  "title": "Response Provenance Lineage Api V1 Workspaces  Workspace Id  Provenance Get"
                 }
               }
             }
@@ -13227,18 +13227,18 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/provenance/report": {
       "get": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
-        "summary": "Kb Provenance Report",
+        "summary": "Provenance Report",
         "description": "Provenance Report. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
-        "operationId": "kb_provenance_report_api_v1_workspaces__workspace_id__provenance_report_get",
+        "operationId": "provenance_report_api_v1_workspaces__workspace_id__provenance_report_get",
         "parameters": [
           {
             "name": "workspace_id",
@@ -13305,7 +13305,7 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
@@ -13368,19 +13368,19 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/reasoning/run": {
       "post": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
-        "summary": "Kb Reasoning Run",
+        "summary": "Reasoning Run",
         "description": "Reasoning Run. Workspace-local reasoning rules and runs. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
-        "operationId": "kb_reasoning_run_api_v1_workspaces__workspace_id__reasoning_run_post",
+        "operationId": "reasoning_run_api_v1_workspaces__workspace_id__reasoning_run_post",
         "parameters": [
           {
             "name": "workspace_id",
@@ -13414,7 +13414,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response Kb Reasoning Run Api V1 Workspaces  Workspace Id  Reasoning Run Post"
+                  "title": "Response Reasoning Run Api V1 Workspaces  Workspace Id  Reasoning Run Post"
                 }
               }
             }
@@ -13430,15 +13430,15 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/remember/proposals": {
       "post": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
         "summary": "Create Remember Proposal",
         "description": "Propose a canonical fact for human review (integration core `propose_remember`).",
@@ -13504,15 +13504,15 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/review/items": {
       "get": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
         "summary": "List Review Items",
         "description": "List Review Items. Human review queue for merges, imports, and conflicts. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
@@ -13613,15 +13613,15 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/review/items/entity-merge": {
       "post": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
         "summary": "Propose Entity Merge",
         "description": "Propose Entity Merge. Human review queue for merges, imports, and conflicts. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
@@ -13687,15 +13687,15 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/review/items/graph-import": {
       "post": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
         "summary": "Propose Graph Import",
         "description": "Propose Graph Import. Human review queue for merges, imports, and conflicts. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
@@ -13761,15 +13761,15 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/review/items/{item_id}": {
       "get": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
         "summary": "Get Review Item Route",
         "description": "Get Review Item. Human review queue for merges, imports, and conflicts. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
@@ -13834,16 +13834,16 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/review/items/{item_id}/approve": {
       "post": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces",
+          "workspaces"
         ],
         "summary": "Approve Review Item",
         "description": "Approve Review Item. Human review queue for merges, imports, and conflicts. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
@@ -13916,16 +13916,16 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/review/items/{item_id}/reject": {
       "post": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces",
+          "workspaces"
         ],
         "summary": "Reject Review Item",
         "description": "Reject Review Item. Human review queue for merges, imports, and conflicts. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
@@ -14000,15 +14000,15 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/review/scan-statement-conflicts": {
       "post": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
         "summary": "Scan Statement Conflicts Route",
         "description": "Re-scan ledger statements and enqueue `statement_conflict` review items (F-RUL-04).",
@@ -14064,14 +14064,14 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/rules": {
       "get": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
         "summary": "List Reasoning Rules",
         "description": "List Reasoning Rules. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
@@ -14139,16 +14139,16 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       },
       "post": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
-        "summary": "Create Kb Reasoning Rule",
+        "summary": "Create Reasoning Rule",
         "description": "Create Reasoning Rule. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
-        "operationId": "create_kb_reasoning_rule_api_v1_workspaces__workspace_id__rules_post",
+        "operationId": "create_reasoning_rule_api_v1_workspaces__workspace_id__rules_post",
         "parameters": [
           {
             "name": "workspace_id",
@@ -14194,7 +14194,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": true,
-                  "title": "Response Create Kb Reasoning Rule Api V1 Workspaces  Workspace Id  Rules Post"
+                  "title": "Response Create Reasoning Rule Api V1 Workspaces  Workspace Id  Rules Post"
                 }
               }
             }
@@ -14210,18 +14210,18 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/rules/{rule_id}": {
       "patch": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
-        "summary": "Update Kb Reasoning Rule",
+        "summary": "Update Reasoning Rule",
         "description": "Update Reasoning Rule. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
-        "operationId": "update_kb_reasoning_rule_api_v1_workspaces__workspace_id__rules__rule_id__patch",
+        "operationId": "update_reasoning_rule_api_v1_workspaces__workspace_id__rules__rule_id__patch",
         "parameters": [
           {
             "name": "workspace_id",
@@ -14276,7 +14276,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": true,
-                  "title": "Response Update Kb Reasoning Rule Api V1 Workspaces  Workspace Id  Rules  Rule Id  Patch"
+                  "title": "Response Update Reasoning Rule Api V1 Workspaces  Workspace Id  Rules  Rule Id  Patch"
                 }
               }
             }
@@ -14292,16 +14292,16 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       },
       "delete": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
-        "summary": "Delete Kb Reasoning Rule",
+        "summary": "Delete Reasoning Rule",
         "description": "Delete Reasoning Rule. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
-        "operationId": "delete_kb_reasoning_rule_api_v1_workspaces__workspace_id__rules__rule_id__delete",
+        "operationId": "delete_reasoning_rule_api_v1_workspaces__workspace_id__rules__rule_id__delete",
         "parameters": [
           {
             "name": "workspace_id",
@@ -14346,7 +14346,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": true,
-                  "title": "Response Delete Kb Reasoning Rule Api V1 Workspaces  Workspace Id  Rules  Rule Id  Delete"
+                  "title": "Response Delete Reasoning Rule Api V1 Workspaces  Workspace Id  Rules  Rule Id  Delete"
                 }
               }
             }
@@ -14362,15 +14362,15 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/search": {
       "get": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
         "summary": "Chunk Search Route",
         "description": "Chunk Search Route. Chunk retrieval (keyword, semantic, or hybrid per workspace config). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
@@ -14548,15 +14548,15 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/search/config": {
       "get": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
         "summary": "Get Chunk Search Config Route",
         "description": "Get Chunk Search Config Route. Chunk retrieval (keyword, semantic, or hybrid per workspace config). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
@@ -14612,13 +14612,13 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       },
       "put": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
         "summary": "Update Chunk Search Config Route",
         "description": "Update Chunk Search Config Route. Chunk retrieval (keyword, semantic, or hybrid per workspace config). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
@@ -14684,15 +14684,15 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/search/reindex": {
       "post": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
         "summary": "Chunk Search Reindex Route",
         "description": "Chunk Search Reindex Route. Chunk retrieval (keyword, semantic, or hybrid per workspace config). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
@@ -14765,15 +14765,15 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/sources": {
       "get": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
         "summary": "List Ingest Sources",
         "description": "List Ingest Sources. Ingest sources (HTTP poll, webhook, manual sync). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
@@ -14829,13 +14829,13 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       },
       "post": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
         "summary": "Create Ingest Source",
         "description": "Create Ingest Source. Ingest sources (HTTP poll, webhook, manual sync). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
@@ -14901,15 +14901,15 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/sources/{source_id}": {
       "get": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
         "summary": "Get Ingest Source",
         "description": "Get Ingest Source. Ingest sources (HTTP poll, webhook, manual sync). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
@@ -14974,13 +14974,13 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       },
       "patch": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
         "summary": "Update Ingest Source",
         "description": "Update Ingest Source. Ingest sources (HTTP poll, webhook, manual sync). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
@@ -15055,13 +15055,13 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       },
       "delete": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
         "summary": "Delete Ingest Source",
         "description": "Delete Ingest Source. Ingest sources (HTTP poll, webhook, manual sync). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
@@ -15126,15 +15126,15 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/sources/{source_id}/rotate-token": {
       "post": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
         "summary": "Rotate Ingest Source Token",
         "description": "Rotate Ingest Source Token. Ingest sources (HTTP poll, webhook, manual sync). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
@@ -15199,15 +15199,15 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/sources/{source_id}/sync": {
       "post": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
         "summary": "Sync Ingest Source",
         "description": "Sync Ingest Source. Ingest sources (HTTP poll, webhook, manual sync). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
@@ -15282,15 +15282,15 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/sources/{source_id}/sync-history": {
       "get": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
         "summary": "List Ingest Source Sync History",
         "description": "Recent sync runs stored on the source config (`sync_events`, newest first).",
@@ -15367,15 +15367,15 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/sources/{source_id}/webhook": {
       "post": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
         "summary": "Ingest Via Webhook",
         "description": "Ingest Via Webhook. Ingest sources (HTTP poll, webhook, manual sync). Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
@@ -15450,19 +15450,19 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/sparql": {
       "post": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
-        "summary": "Kb Sparql Execute",
+        "summary": "Sparql Execute",
         "description": "SPARQL Execute. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
-        "operationId": "kb_sparql_execute_api_v1_workspaces__workspace_id__sparql_post",
+        "operationId": "sparql_execute_api_v1_workspaces__workspace_id__sparql_post",
         "parameters": [
           {
             "name": "workspace_id",
@@ -15496,7 +15496,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response Kb Sparql Execute Api V1 Workspaces  Workspace Id  Sparql Post"
+                  "title": "Response Sparql Execute Api V1 Workspaces  Workspace Id  Sparql Post"
                 }
               }
             }
@@ -15512,18 +15512,18 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/temporal/bounds": {
       "get": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
-        "summary": "Kb Temporal Bounds",
+        "summary": "Temporal Bounds",
         "description": "Temporal scrubber bounds for the workspace graph (F-TIM-03 / F-TIM-04).\n\nReturns `{min, max}` ISO instants. When the graph projection lacks node `valid_from`,\n`min` / `max` fall back to ledger timestamps (statements, facts, current document version).",
-        "operationId": "kb_temporal_bounds_api_v1_workspaces__workspace_id__temporal_bounds_get",
+        "operationId": "temporal_bounds_api_v1_workspaces__workspace_id__temporal_bounds_get",
         "parameters": [
           {
             "name": "workspace_id",
@@ -15557,7 +15557,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response Kb Temporal Bounds Api V1 Workspaces  Workspace Id  Temporal Bounds Get"
+                  "title": "Response Temporal Bounds Api V1 Workspaces  Workspace Id  Temporal Bounds Get"
                 }
               }
             }
@@ -15573,18 +15573,18 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/temporal/diff": {
       "get": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
-        "summary": "Kb Temporal Diff",
+        "summary": "Temporal Diff",
         "description": "Temporal Diff. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
-        "operationId": "kb_temporal_diff_api_v1_workspaces__workspace_id__temporal_diff_get",
+        "operationId": "temporal_diff_api_v1_workspaces__workspace_id__temporal_diff_get",
         "parameters": [
           {
             "name": "workspace_id",
@@ -15636,7 +15636,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response Kb Temporal Diff Api V1 Workspaces  Workspace Id  Temporal Diff Get"
+                  "title": "Response Temporal Diff Api V1 Workspaces  Workspace Id  Temporal Diff Get"
                 }
               }
             }
@@ -15652,18 +15652,18 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/temporal/snapshot": {
       "get": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
-        "summary": "Kb Temporal Snapshot",
+        "summary": "Temporal Snapshot",
         "description": "Graph projection at an instant (F-TIM-03 / scrubber).\n\nPrimary path: `graph `temporal_snapshot`. When that returns no nodes but the Basis\nprojector supports `state_at`, falls back to the same snapshot used by `GET .../graph/diff`.",
-        "operationId": "kb_temporal_snapshot_api_v1_workspaces__workspace_id__temporal_snapshot_get",
+        "operationId": "temporal_snapshot_api_v1_workspaces__workspace_id__temporal_snapshot_get",
         "parameters": [
           {
             "name": "workspace_id",
@@ -15713,7 +15713,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response Kb Temporal Snapshot Api V1 Workspaces  Workspace Id  Temporal Snapshot Get"
+                  "title": "Response Temporal Snapshot Api V1 Workspaces  Workspace Id  Temporal Snapshot Get"
                 }
               }
             }
@@ -15729,18 +15729,18 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/tokens": {
       "get": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
-        "summary": "List Kb Tokens",
+        "summary": "List Tokens",
         "description": "List workspace API tokens. Manage workspace API tokens (session + workspace admin only). Requires session JWT (`sessionAuth`).",
-        "operationId": "list_kb_tokens_api_v1_workspaces__workspace_id__tokens_get",
+        "operationId": "list_tokens_api_v1_workspaces__workspace_id__tokens_get",
         "parameters": [
           {
             "name": "workspace_id",
@@ -15776,7 +15776,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": true,
-                  "title": "Response List Kb Tokens Api V1 Workspaces  Workspace Id  Tokens Get"
+                  "title": "Response List Tokens Api V1 Workspaces  Workspace Id  Tokens Get"
                 }
               }
             }
@@ -15797,11 +15797,11 @@
       },
       "post": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
-        "summary": "Create Kb Token",
+        "summary": "Create Token",
         "description": "Create workspace API token. Manage workspace API tokens (session + workspace admin only). Requires session JWT (`sessionAuth`).",
-        "operationId": "create_kb_token_api_v1_workspaces__workspace_id__tokens_post",
+        "operationId": "create_token_api_v1_workspaces__workspace_id__tokens_post",
         "parameters": [
           {
             "name": "workspace_id",
@@ -15834,7 +15834,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateKbApiTokenRequest"
+                "$ref": "#/components/schemas/CreateWorkspaceApiTokenRequest"
               }
             }
           }
@@ -15847,7 +15847,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": true,
-                  "title": "Response Create Kb Token Api V1 Workspaces  Workspace Id  Tokens Post"
+                  "title": "Response Create Token Api V1 Workspaces  Workspace Id  Tokens Post"
                 }
               }
             }
@@ -15870,11 +15870,11 @@
     "/api/v1/workspaces/{workspace_id}/tokens/{token_id}": {
       "delete": {
         "tags": [
-          "knowledge-bases"
+          "workspaces"
         ],
-        "summary": "Delete Kb Token",
+        "summary": "Delete Token",
         "description": "Delete Token. Manage workspace API tokens (session + workspace admin only). Requires session JWT (`sessionAuth`).",
-        "operationId": "delete_kb_token_api_v1_workspaces__workspace_id__tokens__token_id__delete",
+        "operationId": "delete_token_api_v1_workspaces__workspace_id__tokens__token_id__delete",
         "parameters": [
           {
             "name": "workspace_id",
@@ -15921,7 +15921,7 @@
                   "additionalProperties": {
                     "type": "string"
                   },
-                  "title": "Response Delete Kb Token Api V1 Workspaces  Workspace Id  Tokens  Token Id  Delete"
+                  "title": "Response Delete Token Api V1 Workspaces  Workspace Id  Tokens  Token Id  Delete"
                 }
               }
             }
@@ -15944,12 +15944,12 @@
     "/api/v1/workspaces/{workspace_id}/vocabulary/concepts": {
       "get": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
-        "summary": "Kb Vocabulary Concepts",
+        "summary": "Vocabulary Concepts",
         "description": "Vocabulary Concepts. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
-        "operationId": "kb_vocabulary_concepts_api_v1_workspaces__workspace_id__vocabulary_concepts_get",
+        "operationId": "vocabulary_concepts_api_v1_workspaces__workspace_id__vocabulary_concepts_get",
         "parameters": [
           {
             "name": "workspace_id",
@@ -16008,7 +16008,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response Kb Vocabulary Concepts Api V1 Workspaces  Workspace Id  Vocabulary Concepts Get"
+                  "title": "Response Vocabulary Concepts Api V1 Workspaces  Workspace Id  Vocabulary Concepts Get"
                 }
               }
             }
@@ -16024,19 +16024,19 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/vocabulary/hierarchy": {
       "get": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
-        "summary": "Kb Vocabulary Hierarchy",
+        "summary": "Vocabulary Hierarchy",
         "description": "Vocabulary Hierarchy. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
-        "operationId": "kb_vocabulary_hierarchy_api_v1_workspaces__workspace_id__vocabulary_hierarchy_get",
+        "operationId": "vocabulary_hierarchy_api_v1_workspaces__workspace_id__vocabulary_hierarchy_get",
         "parameters": [
           {
             "name": "workspace_id",
@@ -16079,7 +16079,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response Kb Vocabulary Hierarchy Api V1 Workspaces  Workspace Id  Vocabulary Hierarchy Get"
+                  "title": "Response Vocabulary Hierarchy Api V1 Workspaces  Workspace Id  Vocabulary Hierarchy Get"
                 }
               }
             }
@@ -16095,19 +16095,19 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/vocabulary/import": {
       "post": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
-        "summary": "Kb Vocabulary Import",
+        "summary": "Vocabulary Import",
         "description": "Vocabulary Import. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
-        "operationId": "kb_vocabulary_import_api_v1_workspaces__workspace_id__vocabulary_import_post",
+        "operationId": "vocabulary_import_api_v1_workspaces__workspace_id__vocabulary_import_post",
         "parameters": [
           {
             "name": "workspace_id",
@@ -16139,7 +16139,7 @@
           "content": {
             "multipart/form-data": {
               "schema": {
-                "$ref": "#/components/schemas/Body_kb_vocabulary_import_api_v1_workspaces__workspace_id__vocabulary_import_post"
+                "$ref": "#/components/schemas/Body_vocabulary_import_api_v1_workspaces__workspace_id__vocabulary_import_post"
               }
             }
           }
@@ -16150,7 +16150,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response Kb Vocabulary Import Api V1 Workspaces  Workspace Id  Vocabulary Import Post"
+                  "title": "Response Vocabulary Import Api V1 Workspaces  Workspace Id  Vocabulary Import Post"
                 }
               }
             }
@@ -16166,19 +16166,19 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
     "/api/v1/workspaces/{workspace_id}/vocabulary/schemes": {
       "get": {
         "tags": [
-          "knowledge-bases",
-          "knowledge-bases"
+          "workspaces",
+          "workspaces"
         ],
-        "summary": "Kb Vocabulary Schemes",
+        "summary": "Vocabulary Schemes",
         "description": "Vocabulary Schemes. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.",
-        "operationId": "kb_vocabulary_schemes_api_v1_workspaces__workspace_id__vocabulary_schemes_get",
+        "operationId": "vocabulary_schemes_api_v1_workspaces__workspace_id__vocabulary_schemes_get",
         "parameters": [
           {
             "name": "workspace_id",
@@ -16212,7 +16212,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response Kb Vocabulary Schemes Api V1 Workspaces  Workspace Id  Vocabulary Schemes Get"
+                  "title": "Response Vocabulary Schemes Api V1 Workspaces  Workspace Id  Vocabulary Schemes Get"
                 }
               }
             }
@@ -16228,7 +16228,7 @@
             }
           }
         },
-        "x-basis-surface": "knowledge-base",
+        "x-basis-surface": "workspaces",
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
@@ -16254,14 +16254,14 @@
         "x-basis-auth": "session"
       }
     },
-    "/openapi/v1/kb.json": {
+    "/openapi/v1/platform.json": {
       "get": {
         "tags": [
           "openapi"
         ],
-        "summary": "Get Openapi V1 Kb",
-        "description": "Return the live workspace integration OpenAPI slice exported from this app.",
-        "operationId": "get_openapi_v1_kb_openapi_v1_kb_json_get",
+        "summary": "Get Openapi V1 Platform",
+        "description": "Return the live platform/admin OpenAPI slice exported from this app.",
+        "operationId": "get_openapi_v1_platform_openapi_v1_platform_json_get",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -16276,14 +16276,14 @@
         "x-basis-auth": "session"
       }
     },
-    "/openapi/v1/platform.json": {
+    "/openapi/v1/workspaces.json": {
       "get": {
         "tags": [
           "openapi"
         ],
-        "summary": "Get Openapi V1 Platform",
-        "description": "Return the live platform/admin OpenAPI slice exported from this app.",
-        "operationId": "get_openapi_v1_platform_openapi_v1_platform_json_get",
+        "summary": "Get Openapi V1 Workspaces",
+        "description": "Return the live workspace integration OpenAPI slice exported from this app.",
+        "operationId": "get_openapi_v1_workspaces_openapi_v1_workspaces_json_get",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -16482,46 +16482,6 @@
         ],
         "title": "Body_append_document_version_upload_api_v1_workspaces__workspace_id__documents__document_id__versions_upload_post"
       },
-      "Body_kb_vocabulary_import_api_v1_workspaces__workspace_id__vocabulary_import_post": {
-        "properties": {
-          "file": {
-            "anyOf": [
-              {
-                "type": "string",
-                "contentMediaType": "application/octet-stream"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "File"
-          },
-          "text": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Text"
-          },
-          "format": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Format"
-          }
-        },
-        "type": "object",
-        "title": "Body_kb_vocabulary_import_api_v1_workspaces__workspace_id__vocabulary_import_post"
-      },
       "Body_org_saml_acs_api_v1_auth_saml_acs_post": {
         "properties": {
           "SAMLResponse": {
@@ -16676,6 +16636,46 @@
           "file"
         ],
         "title": "Body_upload_document_api_v1_workspaces__workspace_id__documents_upload_post"
+      },
+      "Body_vocabulary_import_api_v1_workspaces__workspace_id__vocabulary_import_post": {
+        "properties": {
+          "file": {
+            "anyOf": [
+              {
+                "type": "string",
+                "contentMediaType": "application/octet-stream"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "File"
+          },
+          "text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text"
+          },
+          "format": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Format"
+          }
+        },
+        "type": "object",
+        "title": "Body_vocabulary_import_api_v1_workspaces__workspace_id__vocabulary_import_post"
       },
       "BuildOAuthAuthorizeUrlRequest": {
         "properties": {
@@ -16885,66 +16885,6 @@
           "name"
         ],
         "title": "CreateIngestSourceRequest"
-      },
-      "CreateKbApiTokenRequest": {
-        "properties": {
-          "name": {
-            "type": "string",
-            "maxLength": 64,
-            "minLength": 1,
-            "title": "Name"
-          },
-          "scope": {
-            "type": "string",
-            "title": "Scope",
-            "default": "read"
-          },
-          "expires_at": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Expires At"
-          }
-        },
-        "type": "object",
-        "required": [
-          "name"
-        ],
-        "title": "CreateKbApiTokenRequest"
-      },
-      "CreateKbRequest": {
-        "properties": {
-          "name": {
-            "type": "string",
-            "title": "Name"
-          },
-          "description": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Description"
-          },
-          "visibility": {
-            "type": "string",
-            "title": "Visibility",
-            "default": "restricted"
-          }
-        },
-        "type": "object",
-        "required": [
-          "name"
-        ],
-        "title": "CreateKbRequest"
       },
       "CreateMappingRequest": {
         "properties": {
@@ -17254,6 +17194,66 @@
           "display_name"
         ],
         "title": "CreateUserRequest"
+      },
+      "CreateWorkspaceApiTokenRequest": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "scope": {
+            "type": "string",
+            "title": "Scope",
+            "default": "read"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "CreateWorkspaceApiTokenRequest"
+      },
+      "CreateWorkspaceRequest": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "visibility": {
+            "type": "string",
+            "title": "Visibility",
+            "default": "restricted"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "CreateWorkspaceRequest"
       },
       "DraftDiff": {
         "properties": {
@@ -18941,45 +18941,6 @@
         "type": "object",
         "title": "UpdateIngestSourceRequest"
       },
-      "UpdateKbRequest": {
-        "properties": {
-          "name": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Name"
-          },
-          "description": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Description"
-          },
-          "visibility": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Visibility"
-          }
-        },
-        "type": "object",
-        "title": "UpdateKbRequest"
-      },
       "UpdateMappingStatusRequest": {
         "properties": {
           "status": {
@@ -19183,6 +19144,45 @@
           "target_class_uri"
         ],
         "title": "UpdateTableMappingRequest"
+      },
+      "UpdateWorkspaceRequest": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "visibility": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Visibility"
+          }
+        },
+        "type": "object",
+        "title": "UpdateWorkspaceRequest"
       },
       "UpsertConnectorConnectionRequest": {
         "properties": {
@@ -19461,7 +19461,7 @@
         ],
         "title": "CreateOntologyRequest"
       },
-      "basis__interface__http__kb_documents_models__CreateOntologyRequest": {
+      "basis__interface__http__documents_models__CreateOntologyRequest": {
         "properties": {
           "namespace": {
             "type": "string",
@@ -19518,10 +19518,10 @@
       "auth": "sessionAuth",
       "openapi": "/openapi/v1/platform.json"
     },
-    "knowledge-base": {
+    "workspaces": {
       "description": "Workspace-scoped APIs (`/api/v1/workspaces/{workspace_id}`); same access model as MCP (workspace API token or user session with workspace role).",
       "auth": "sessionAuth or workspaceApiTokenAuth",
-      "openapi": "/openapi/v1/kb.json"
+      "openapi": "/openapi/v1/workspaces.json"
     },
     "console": {
       "description": "Web console application HTTP (not integration/core); excluded from workspace integration slice.",

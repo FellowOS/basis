@@ -15,9 +15,9 @@ _SAFE_SEGMENT = re.compile(r"[^a-zA-Z0-9._-]+")
 
 
 def _safe_workspace_segment(workspace_id: str) -> str:
-    safe = _SAFE_SEGMENT.sub("_", workspace_id).strip("._") or "kb"
+    safe = _SAFE_SEGMENT.sub("_", workspace_id).strip("._") or "workspace"
     if safe in {".", ".."}:
-        return "kb"
+        return "workspace"
     return safe
 
 
@@ -44,21 +44,21 @@ class BlobStore:
         return self._workspace_root(workspace_id) / prefix / sha256
 
     def blob_key(self, workspace_id: str, sha256: str) -> str:
-        safe_kb = _safe_workspace_segment(workspace_id)
-        return f"{safe_kb}/{sha256[:2]}/{sha256}"
+        safe_workspace = _safe_workspace_segment(workspace_id)
+        return f"{safe_workspace}/{sha256[:2]}/{sha256}"
 
     def put(self, workspace_id: str, data: bytes) -> BlobRef:
         if not workspace_id.strip():
-            raise AdminError(422, "bad_kb_id", "工作区 ID 无效")
+            raise AdminError(422, "bad_workspace_id", "工作区 ID 无效")
         digest = hashlib.sha256(data).hexdigest()
         target = self._object_path(workspace_id, digest)
         target.parent.mkdir(parents=True, exist_ok=True)
         if target.is_file():
             return BlobRef(workspace_id=workspace_id, sha256=digest, blob_key=self.blob_key(workspace_id, digest), byte_size=len(data))
 
-        kb_dir = self._workspace_root(workspace_id)
-        kb_dir.mkdir(parents=True, exist_ok=True)
-        fd, temp_name = tempfile.mkstemp(prefix=".blob-", dir=kb_dir)
+        workspace_dir = self._workspace_root(workspace_id)
+        workspace_dir.mkdir(parents=True, exist_ok=True)
+        fd, temp_name = tempfile.mkstemp(prefix=".blob-", dir=workspace_dir)
         temp_path = Path(temp_name)
         try:
             with os.fdopen(fd, "wb") as handle:
@@ -91,18 +91,18 @@ class BlobStore:
             path.unlink()
 
     def _resolve_key(self, workspace_id: str, blob_key: str) -> Path:
-        safe_kb = _safe_workspace_segment(workspace_id)
+        safe_workspace = _safe_workspace_segment(workspace_id)
         parts = Path(blob_key).parts
         if len(parts) != 3:
             raise AdminError(422, "bad_blob_key", "blob_key 无效")
-        key_kb, prefix, digest = parts
-        if key_kb != safe_kb:
+        key_workspace, prefix, digest = parts
+        if key_workspace != safe_workspace:
             raise AdminError(403, "forbidden", "无法访问其他工作区的文件")
         if prefix != digest[:2]:
             raise AdminError(422, "bad_blob_key", "blob_key 无效")
         path = self._object_path(workspace_id, digest)
         resolved = path.resolve()
-        kb_resolved = self._workspace_root(workspace_id).resolve()
-        if not str(resolved).startswith(str(kb_resolved) + os.sep) and resolved != kb_resolved:
+        workspace_resolved = self._workspace_root(workspace_id).resolve()
+        if not str(resolved).startswith(str(workspace_resolved) + os.sep) and resolved != workspace_resolved:
             raise AdminError(403, "forbidden", "无法访问其他工作区的文件")
         return path

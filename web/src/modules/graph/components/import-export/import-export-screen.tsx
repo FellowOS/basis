@@ -220,7 +220,7 @@ export function ImportExportScreen({
             body: JSON.stringify(body),
           }),
         getAudit: async () => {
-          const auditPath = `${buildWorkspaceApiPath("audit/graph-mutations", workspaceId)}?limit=100&action_prefix=${encodeURIComponent("kb.graph.")}`;
+          const auditPath = `${buildWorkspaceApiPath("audit/graph-mutations", workspaceId)}?limit=100&action_prefix=${encodeURIComponent("workspace.graph.")}`;
           const res = await workspaceFetch(auditPath);
           const data = await res.json().catch(() => ({}));
           if (!res.ok) {

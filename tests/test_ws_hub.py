@@ -21,7 +21,7 @@ class _FakeWebSocket:
         self.close_code = code
 
 
-def test_disconnect_user_from_kb_closes_matching_sockets() -> None:
+def test_disconnect_user_from_workspace_closes_matching_sockets() -> None:
     async def run() -> None:
         hub = GraphWsHub()
         socket = _FakeWebSocket()
@@ -38,7 +38,7 @@ def test_disconnect_user_from_kb_closes_matching_sockets() -> None:
     asyncio.run(run())
 
 
-def test_disconnect_user_closes_all_kb_sockets() -> None:
+def test_disconnect_user_closes_all_workspace_sockets() -> None:
     async def run() -> None:
         hub = GraphWsHub()
         a = _FakeWebSocket()
@@ -54,7 +54,7 @@ def test_disconnect_user_closes_all_kb_sockets() -> None:
     asyncio.run(run())
 
 
-def test_broadcast_only_reaches_target_kb_room() -> None:
+def test_broadcast_only_reaches_target_workspace_room() -> None:
     async def run() -> None:
         hub = GraphWsHub()
         a = _FakeWebSocket()

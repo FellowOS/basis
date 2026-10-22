@@ -15,7 +15,7 @@ from basis.infra.runtime.config import Settings
 from basis.interface.http.app import create_app
 
 
-def _kb(tmp_path: Path) -> tuple[str, KnowledgeStore]:
+def _workspace_store(tmp_path: Path) -> tuple[str, KnowledgeStore]:
     from basis.domain.tenancy.admin.store import AdminStore
 
     admin = AdminStore(tmp_path / "basis.db")
@@ -41,7 +41,7 @@ def _chunk(store: KnowledgeStore, workspace_id: str) -> str:
 
 
 def test_scan_low_confidence_enqueues_review(tmp_path: Path) -> None:
-    workspace_id, store = _kb(tmp_path)
+    workspace_id, store = _workspace_store(tmp_path)
     chunk_id = _chunk(store, workspace_id)
     alice = store.create_entity(workspace_id, canonical_label="Alice")
     bob = store.create_entity(workspace_id, canonical_label="Bob")
@@ -65,7 +65,7 @@ def test_scan_low_confidence_enqueues_review(tmp_path: Path) -> None:
 
 
 def test_run_governor_pass_returns_both_sections(tmp_path: Path) -> None:
-    workspace_id, store = _kb(tmp_path)
+    workspace_id, store = _workspace_store(tmp_path)
     chunk_id = _chunk(store, workspace_id)
     alice = store.create_entity(workspace_id, canonical_label="Alice")
     bob = store.create_entity(workspace_id, canonical_label="Bob")
@@ -94,7 +94,7 @@ def test_governor_run_http_and_approve_low_confidence(tmp_path: Path) -> None:
         json={"email": "api@example.com", "password": "password1", "display_name": "API"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
 
     store = KnowledgeStore(tmp_path / "basis.db", BlobStore(tmp_path))
     chunk_id = _chunk(store, workspace_id)

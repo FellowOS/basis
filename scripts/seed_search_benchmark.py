@@ -85,7 +85,7 @@ def main() -> None:
         elif kb.name != KB_NAME:
             kb = admin.update_workspace(owner, kb.id, name=KB_NAME)
 
-        stats = knowledge.kb_mcp_stats(kb.id)
+        stats = knowledge.workspace_mcp_stats(kb.id)
         target = args.documents * args.chunks_per_document
         existing = stats["chunk_count"]
         if existing >= target:
@@ -126,7 +126,7 @@ def main() -> None:
             default_mode="keyword",
             auto_index=False,
         )
-        final = knowledge.kb_mcp_stats(kb.id)
+        final = knowledge.workspace_mcp_stats(kb.id)
         print(
             f"{KB_NAME}: {final['document_count']:,} documents, "
             f"{final['chunk_count']:,} chunks"

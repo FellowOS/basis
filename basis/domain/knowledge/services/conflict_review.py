@@ -7,7 +7,7 @@ from collections import defaultdict
 from typing import Any
 
 from basis.domain.errors import AdminError
-from basis.domain.knowledge.services.kb_alerts_emit import emit_statement_conflict_alert
+from basis.domain.knowledge.services.alerts_emit import emit_statement_conflict_alert
 from basis.domain.knowledge.store import KnowledgeStore
 
 STATEMENT_CONFLICT_KIND = "statement_conflict"

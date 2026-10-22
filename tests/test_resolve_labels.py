@@ -21,7 +21,7 @@ def test_resolve_labels_ledger_and_graph(tmp_path: Path) -> None:
         json={"email": "lab@example.com", "password": "password1", "display_name": "Lab"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
 
     knowledge: KnowledgeStore = app.state.knowledge_store
     alice = knowledge.create_entity(workspace_id, canonical_label="Alice Ledger")

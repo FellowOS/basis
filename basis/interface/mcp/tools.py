@@ -4,17 +4,17 @@ from __future__ import annotations
 
 from typing import Any
 
-from basis.application.context import KbCoreContext, KbToolContext
+from basis.application.context import WorkspaceCoreContext, WorkspaceToolContext
 from basis.application.registry import TOOL_NAMES, execute as call_tool, get_tool_definitions
 
-SERVER_INFO = {"name": "basis-kb-mcp", "version": "0.1.0"}
+SERVER_INFO = {"name": "basis-workspace-mcp", "version": "0.1.0"}
 CAPABILITIES = {"tools": {"listChanged": False}}
 PROTOCOL_VERSION = "2024-11-05"
 
 __all__ = [
     "CAPABILITIES",
-    "KbCoreContext",
-    "KbToolContext",
+    "WorkspaceCoreContext",
+    "WorkspaceToolContext",
     "PROTOCOL_VERSION",
     "SERVER_INFO",
     "TOOL_DEFINITIONS",

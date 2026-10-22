@@ -14,7 +14,7 @@ from basis.interface.http.app import create_app
 from basis.domain.integration.allowlist import (
     PLATFORM_CONNECTOR_ALLOWLIST_KEY,
     assert_allowed_providers_in_catalog,
-    assert_kb_allowlist_within_platform,
+    assert_workspace_allowlist_within_platform,
     effective_allowed_providers,
     is_provider_allowed,
     normalize_allowed_providers,
@@ -52,11 +52,11 @@ def test_normalize_and_effective_allowlist() -> None:
     assert provider_blocked_layer("airtable", ["postgres"], "*") == "platform"
 
 
-def test_assert_kb_subset() -> None:
-    assert_kb_allowlist_within_platform("*", ["postgres"])
-    assert_kb_allowlist_within_platform(["postgres"], ["postgres", "github"])
+def test_assert_workspace_subset() -> None:
+    assert_workspace_allowlist_within_platform("*", ["postgres"])
+    assert_workspace_allowlist_within_platform(["postgres"], ["postgres", "github"])
     with pytest.raises(ValueError, match="platform level"):
-        assert_kb_allowlist_within_platform(["airtable"], ["postgres"])
+        assert_workspace_allowlist_within_platform(["airtable"], ["postgres"])
 
 
 def test_platform_settings_round_trip(tmp_path: Path) -> None:

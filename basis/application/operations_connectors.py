@@ -11,7 +11,7 @@ from basis.domain.knowledge.schedulers.connector_mapping_poll_due import poll_in
 from basis.domain.knowledge.services.connector_sync import ConnectorLedgerSyncService
 from fastapi import HTTPException
 
-from basis.application.context import KbCoreContext
+from basis.application.context import WorkspaceCoreContext
 from basis.application.errors import CoreError
 
 
@@ -21,10 +21,10 @@ def _json_safe_cursor_watermark(value: Any) -> Any:
     return value
 
 
-def _require_kb_editor(ctx: KbCoreContext) -> None:
+def _require_workspace_editor(ctx: WorkspaceCoreContext) -> None:
     try:
-        if ctx.assert_kb_editor is not None:
-            ctx.assert_kb_editor()
+        if ctx.assert_workspace_editor is not None:
+            ctx.assert_workspace_editor()
         else:
             ctx.store.get_workspace_for(ctx.user, ctx.workspace.id, "editor")
     except HTTPException as exc:
@@ -32,11 +32,11 @@ def _require_kb_editor(ctx: KbCoreContext) -> None:
         raise CoreError(detail, status_code=exc.status_code) from exc
 
 
-def _connector_service(ctx: KbCoreContext) -> ConnectorLedgerSyncService:
+def _connector_service(ctx: WorkspaceCoreContext) -> ConnectorLedgerSyncService:
     return ctx.knowledge.connector_sync_service()
 
 
-def _require_kb_viewer(ctx: KbCoreContext) -> None:
+def _require_workspace_viewer(ctx: WorkspaceCoreContext) -> None:
     try:
         ctx.store.get_workspace_for(ctx.user, ctx.workspace.id, "viewer")
     except HTTPException as exc:
@@ -44,7 +44,7 @@ def _require_kb_viewer(ctx: KbCoreContext) -> None:
         raise CoreError(detail, status_code=exc.status_code) from exc
 
 
-def _filter_manifests_for_kb(ctx: KbCoreContext, manifests: list[Any]) -> list[Any]:
+def _filter_manifests_for_workspace(ctx: WorkspaceCoreContext, manifests: list[Any]) -> list[Any]:
     runtime = ctx.knowledge.connector_runtime()
     effective = runtime.vault.effective_allowed_providers(ctx.workspace.id)
     if effective == "*":
@@ -66,8 +66,8 @@ def _connector_summary(manifest: Any) -> dict[str, Any]:
     }
 
 
-def op_list_connector_catalog(ctx: KbCoreContext, args: dict[str, Any]) -> dict[str, Any]:
-    _require_kb_viewer(ctx)
+def op_list_connector_catalog(ctx: WorkspaceCoreContext, args: dict[str, Any]) -> dict[str, Any]:
+    _require_workspace_viewer(ctx)
     query = str(args.get("query") or "").strip() or None
     limit = min(max(1, int(args.get("limit") or 25)), 100)
     has_streams_only = bool(args.get("has_streams_only"))
@@ -76,15 +76,15 @@ def op_list_connector_catalog(ctx: KbCoreContext, args: dict[str, Any]) -> dict[
         query=query,
         has_streams_only=has_streams_only,
     )
-    manifests = _filter_manifests_for_kb(ctx, manifests)[:limit]
+    manifests = _filter_manifests_for_workspace(ctx, manifests)[:limit]
     return {
         "total_matched": len(manifests),
         "connectors": [_connector_summary(m) for m in manifests],
     }
 
 
-def op_describe_connector_service(ctx: KbCoreContext, args: dict[str, Any]) -> dict[str, Any]:
-    _require_kb_viewer(ctx)
+def op_describe_connector_service(ctx: WorkspaceCoreContext, args: dict[str, Any]) -> dict[str, Any]:
+    _require_workspace_viewer(ctx)
     service = str(args.get("service") or "").strip()
     if not service:
         return {"error": "service is required"}
@@ -92,7 +92,7 @@ def op_describe_connector_service(ctx: KbCoreContext, args: dict[str, Any]) -> d
     manifest = catalog.get(service)
     if not manifest:
         return {"error": f"unknown connector service: {service}"}
-    filtered = _filter_manifests_for_kb(ctx, [manifest])
+    filtered = _filter_manifests_for_workspace(ctx, [manifest])
     if not filtered:
         return {"error": "connector not allowed by platform or workspace policy"}
     m = filtered[0]
@@ -115,8 +115,8 @@ def op_describe_connector_service(ctx: KbCoreContext, args: dict[str, Any]) -> d
     }
 
 
-def op_list_connector_connections(ctx: KbCoreContext, args: dict[str, Any]) -> dict[str, Any]:
-    _require_kb_viewer(ctx)
+def op_list_connector_connections(ctx: WorkspaceCoreContext, args: dict[str, Any]) -> dict[str, Any]:
+    _require_workspace_viewer(ctx)
     service = str(args.get("service") or "").strip() or None
     runtime = ctx.knowledge.connector_runtime()
     connections = runtime.vault.list_connections(ctx.workspace.id, service=service)
@@ -134,8 +134,8 @@ def op_list_connector_connections(ctx: KbCoreContext, args: dict[str, Any]) -> d
     }
 
 
-def op_list_connector_table_mappings(ctx: KbCoreContext, args: dict[str, Any]) -> dict[str, Any]:
-    _require_kb_viewer(ctx)
+def op_list_connector_table_mappings(ctx: WorkspaceCoreContext, args: dict[str, Any]) -> dict[str, Any]:
+    _require_workspace_viewer(ctx)
     svc = _connector_service(ctx)
     mapping_limit = min(max(1, int(args.get("limit") or 50)), 200)
     items: list[dict[str, Any]] = []
@@ -162,8 +162,8 @@ def op_list_connector_table_mappings(ctx: KbCoreContext, args: dict[str, Any]) -
     return {"mappings": items}
 
 
-def op_sync_connector_table_mapping(ctx: KbCoreContext, args: dict[str, Any]) -> dict[str, Any]:
-    _require_kb_editor(ctx)
+def op_sync_connector_table_mapping(ctx: WorkspaceCoreContext, args: dict[str, Any]) -> dict[str, Any]:
+    _require_workspace_editor(ctx)
     mapping_id = str(args.get("mapping_id") or "").strip()
     if not mapping_id:
         return {"error": "mapping_id is required"}
@@ -191,7 +191,7 @@ def op_sync_connector_table_mapping(ctx: KbCoreContext, args: dict[str, Any]) ->
     }
 
 
-def op_invoke_connector_primitive(ctx: KbCoreContext, args: dict[str, Any]) -> dict[str, Any]:
+def op_invoke_connector_primitive(ctx: WorkspaceCoreContext, args: dict[str, Any]) -> dict[str, Any]:
     service = str(args.get("service") or "").strip()
     action_id = str(args.get("action_id") or "").strip()
     primitive = str(args.get("primitive") or "").strip().lower()
@@ -218,9 +218,9 @@ def op_invoke_connector_primitive(ctx: KbCoreContext, args: dict[str, Any]) -> d
 
     read_primitive = primitive in ("discover", "list")
     if read_primitive:
-        _require_kb_viewer(ctx)
+        _require_workspace_viewer(ctx)
     else:
-        _require_kb_editor(ctx)
+        _require_workspace_editor(ctx)
 
     runtime = ctx.knowledge.connector_runtime()
     try:
@@ -250,7 +250,7 @@ def op_invoke_connector_primitive(ctx: KbCoreContext, args: dict[str, Any]) -> d
         return {"error": str(exc)}
 
 
-def op_execute_connector_tool(ctx: KbCoreContext, args: dict[str, Any]) -> dict[str, Any]:
+def op_execute_connector_tool(ctx: WorkspaceCoreContext, args: dict[str, Any]) -> dict[str, Any]:
     service = str(args.get("service") or "").strip()
     tool_id = str(args.get("tool_id") or "").strip()
     connection_name = str(args.get("connection_name") or "default").strip() or "default"
@@ -259,7 +259,7 @@ def op_execute_connector_tool(ctx: KbCoreContext, args: dict[str, Any]) -> dict[
         return {"error": "service and tool_id are required"}
     if arguments is not None and not isinstance(arguments, dict):
         return {"error": "arguments must be an object"}
-    _require_kb_editor(ctx)
+    _require_workspace_editor(ctx)
     runtime = ctx.knowledge.connector_runtime()
     try:
         return runtime.execute_tool(
@@ -277,12 +277,12 @@ def op_execute_connector_tool(ctx: KbCoreContext, args: dict[str, Any]) -> dict[
         return {"error": str(exc)}
 
 
-def op_propose_entity_writeback(ctx: KbCoreContext, args: dict[str, Any]) -> dict[str, Any]:
+def op_propose_entity_writeback(ctx: WorkspaceCoreContext, args: dict[str, Any]) -> dict[str, Any]:
     entity_id = str(args.get("entity_id") or "").strip()
     field_updates = args.get("field_updates")
     if not entity_id or not isinstance(field_updates, dict) or not field_updates:
         return {"error": "entity_id and non-empty field_updates are required"}
-    _require_kb_editor(ctx)
+    _require_workspace_editor(ctx)
     svc = _connector_service(ctx)
     try:
         outbox = svc.propose_entity_writeback(

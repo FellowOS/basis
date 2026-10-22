@@ -9,7 +9,7 @@ Graph **projection** (`projection/`) and **interactive session** subpackages for
 | Path | Responsibility |
 | --- | --- |
 | `projection/` | Ledger → ContextGraph projection, persistence, lifecycle |
-| `session/` | `KbGraphSessionRegistry`, auth guard, probe, `BasisKbGraphSession` |
+| `session/` | `GraphSessionRegistry`, auth guard, probe, `BasisGraphSession` |
 | `reads/` | Projection reads, diff, staging payloads, import/export, semantic neighborhood |
 | `governance/` | Decisions, enrich, provenance, governance trip side effects |
 | `temporal/` | Temporal bounds and snapshots |
@@ -23,7 +23,7 @@ Ontology Hub, SHACL, and RDF model I/O: **`basis/domain/ontology/`** (see [ontol
 Use **subpackage modules**, for example:
 
 ```python
-from basis.domain.graph.session.registry import KbGraphSessionRegistry
+from basis.domain.graph.session.registry import GraphSessionRegistry
 from basis.domain.graph.reads.read import get_node
 from basis.domain.ontology.hub.catalog import list_ontologies
 ```

@@ -21,7 +21,7 @@ def test_graph_survives_new_api_process(tmp_path) -> None:
         json={"email": "admin@example.com", "password": "password1", "display_name": "管理员"},
     ).json()
     headers = _auth(admin["token"])
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
 
     ingested = client.post(
         f"/api/v1/workspaces/{workspace_id}/documents",

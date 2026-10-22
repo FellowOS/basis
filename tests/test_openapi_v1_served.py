@@ -5,7 +5,7 @@ from fastapi.testclient import TestClient
 from basis.interface.http.app import create_app
 from basis.interface.contract.openapi.v1_export import (
     export_openapi_v1_document,
-    export_openapi_v1_kb,
+    export_openapi_v1_workspaces,
     export_openapi_v1_platform,
 )
 from basis.infra.runtime.config import Settings
@@ -23,16 +23,18 @@ def test_openapi_v1_json_endpoint_matches_app_export(tmp_path) -> None:
     assert served == expected
 
 
-def test_openapi_kb_and_platform_slices(tmp_path) -> None:
+def test_openapi_workspaces_and_platform_slices(tmp_path) -> None:
     app = create_app(Settings(data_dir=tmp_path))
     client = TestClient(app)
-    kb = client.get("/openapi/v1/kb.json").json()
+    workspaces = client.get("/openapi/v1/workspaces.json").json()
     platform = client.get("/openapi/v1/platform.json").json()
     full = export_openapi_v1_document(app)
-    assert kb == export_openapi_v1_kb(app)
+    expected_workspaces = export_openapi_v1_workspaces(app)
+    assert workspaces == expected_workspaces
+    assert client.get("/openapi/v1/kb.json").status_code == 404
     assert platform == export_openapi_v1_platform(app)
-    assert len(kb["paths"]) < len(full["paths"])
-    assert "/api/v1/workspaces/{workspace_id}/mcp" in kb["paths"]
+    assert len(workspaces["paths"]) < len(full["paths"])
+    assert "/api/v1/workspaces/{workspace_id}/mcp" in workspaces["paths"]
     assert "/api/v1/workspaces" in platform["paths"]
 
 
@@ -43,7 +45,7 @@ def test_api_v1_mcp_info_and_legacy_path_gone(tmp_path) -> None:
         json={"email": "v1@example.com", "password": "password1", "display_name": "V"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
 
     v1 = client.get(f"/api/v1/workspaces/{workspace_id}/mcp", headers=headers)
     assert v1.status_code == 200

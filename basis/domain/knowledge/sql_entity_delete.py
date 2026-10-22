@@ -132,7 +132,7 @@ def _null_fk(conn: Any, table: str, column: str, ids: list[str]) -> None:
     )
 
 
-def _delete_kb_ids(conn: Any, table: str, workspace_id: str, column: str, ids: list[str]) -> None:
+def _delete_workspace_scoped_ids(conn: Any, table: str, workspace_id: str, column: str, ids: list[str]) -> None:
     if not ids:
         return
     conn.execute(
@@ -205,14 +205,14 @@ def execute_delete_entity(conn: Any, workspace_id: str, entity_id: str) -> dict[
             """,
             tuple(statement_ids),
         )
-    _delete_kb_ids(conn, "derived_facts", workspace_id, "id", derived_ids)
+    _delete_workspace_scoped_ids(conn, "derived_facts", workspace_id, "id", derived_ids)
 
     _null_fk(conn, "statements", "supersedes_id", statement_ids)
     _null_fk(conn, "typed_facts", "supersedes_id", typed_ids)
-    _delete_kb_ids(conn, "statement_evidence", workspace_id, "statement_id", statement_ids)
-    _delete_kb_ids(conn, "statement_qualifiers", workspace_id, "statement_id", statement_ids)
-    _delete_kb_ids(conn, "time_mentions", workspace_id, "statement_id", statement_ids)
-    _delete_kb_ids(conn, "typed_facts", workspace_id, "id", typed_ids)
+    _delete_workspace_scoped_ids(conn, "statement_evidence", workspace_id, "statement_id", statement_ids)
+    _delete_workspace_scoped_ids(conn, "statement_qualifiers", workspace_id, "statement_id", statement_ids)
+    _delete_workspace_scoped_ids(conn, "time_mentions", workspace_id, "statement_id", statement_ids)
+    _delete_workspace_scoped_ids(conn, "typed_facts", workspace_id, "id", typed_ids)
     for subject_type in _STATEMENT_REVIEW_SUBJECT_TYPES:
         if not statement_ids:
             break
@@ -224,7 +224,7 @@ def execute_delete_entity(conn: Any, workspace_id: str, entity_id: str) -> dict[
             """,
             (workspace_id, subject_type, *statement_ids),
         )
-    _delete_kb_ids(conn, "statements", workspace_id, "id", statement_ids)
+    _delete_workspace_scoped_ids(conn, "statements", workspace_id, "id", statement_ids)
 
     conn.execute(
         "DELETE FROM statement_qualifiers WHERE workspace_id = ? AND entity_id = ?",

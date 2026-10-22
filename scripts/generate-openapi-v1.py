@@ -72,7 +72,7 @@ def main() -> None:
 
     for name, surfaces in (
         ("basis-v1-platform.json", {"public", "platform"}),
-        ("basis-v1-kb.json", {"public", "knowledge-base"}),
+        ("basis-v1-workspaces.json", {"public", "workspaces"}),
     ):
         part = deepcopy(full)
         part["paths"] = filter_openapi_paths(full["paths"], surfaces)

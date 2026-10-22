@@ -60,4 +60,4 @@ if [[ -n "$BLOBS_TAR" ]]; then
   echo "Extracted blobs into $DATA_DIR"
 fi
 
-echo "Done. Start the API and POST /api/kbs/{kb_id}/graph/rebuild per KB if graphs were not restored."
+echo "Done. Start the API and POST /api/v1/workspaces/{workspace_id}/graph/rebuild per workspace if graphs were not restored."

@@ -9,12 +9,12 @@ pytest.importorskip("semantica")
 from fastapi.testclient import TestClient
 
 from basis.interface.http.app import create_app
-from basis.infra.runtime.capabilities import kb_graph_runtime_available
+from basis.infra.runtime.capabilities import graph_runtime_available
 from basis.infra.runtime.config import Settings
 
 
 def test_reject_graph_import_deletes_staged_blob(tmp_path) -> None:
-    if not kb_graph_runtime_available():
+    if not graph_runtime_available():
         pytest.skip("explorer extra not installed")
 
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
@@ -23,7 +23,7 @@ def test_reject_graph_import_deletes_staged_blob(tmp_path) -> None:
         json={"email": "rej@example.com", "password": "password1", "display_name": "Rej"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
 
     payload = {"nodes": [{"id": "n1", "type": "entity", "properties": {"content": "x"}}], "edges": []}
     files = {"file": ("graph.json", json.dumps(payload), "application/json")}
@@ -54,7 +54,7 @@ def test_reject_graph_import_deletes_staged_blob(tmp_path) -> None:
 
 
 def test_approve_graph_import_deletes_staged_blob(tmp_path) -> None:
-    if not kb_graph_runtime_available():
+    if not graph_runtime_available():
         pytest.skip("explorer extra not installed")
 
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
@@ -63,7 +63,7 @@ def test_approve_graph_import_deletes_staged_blob(tmp_path) -> None:
         json={"email": "app@example.com", "password": "password1", "display_name": "App"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
 
     payload = {"nodes": [{"id": "n1", "type": "entity", "properties": {"content": "x"}}], "edges": []}
     files = {"file": ("graph.json", json.dumps(payload), "application/json")}

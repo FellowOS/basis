@@ -28,4 +28,5 @@ desktop/build/icon.iconset/
 .DS_Store
 .cursor/
 uv.toml
+# Product/architecture markdown (local only — not versioned)
 docs/

@@ -7,11 +7,11 @@ from typing import Any, Callable
 from basis.domain.errors import AdminError
 from basis.domain.graph.projection.projection_lifecycle import (
     GraphProjectionBindings,
-    rebuild_kb_projection,
+    rebuild_graph_projection,
 )
 from basis.domain.knowledge.blob_store import BlobStore
-from basis.domain.knowledge.ports.platform import KbAuditActor, KbAuditStore
-from basis.domain.knowledge.services.graph_audit import audit_kb_graph
+from basis.domain.knowledge.ports.platform import WorkspaceAuditActor, WorkspaceAuditStore
+from basis.domain.knowledge.services.graph_audit import audit_graph
 from basis.domain.knowledge.services.conflict_review import STATEMENT_CONFLICT_KIND, scan_statement_conflicts
 from basis.domain.knowledge.services.governor import LOW_CONFIDENCE_KIND, resolve_low_confidence_reject
 from basis.domain.knowledge.services.governor_cluster import ENTITY_CLUSTER_KIND
@@ -27,8 +27,8 @@ from basis.domain.knowledge.store import KnowledgeStore
 def approve_statement_remember_review(
     *,
     knowledge: KnowledgeStore,
-    store: KbAuditStore,
-    user: KbAuditActor,
+    store: WorkspaceAuditStore,
+    user: WorkspaceAuditActor,
     workspace_id: str,
     item_id: str,
     rationale: str | None,
@@ -61,11 +61,11 @@ def approve_statement_remember_review(
     audit_extra_merged: dict[str, Any] = {"merge": merge_result, "rationale": rationale}
     if audit_extra:
         audit_extra_merged.update(audit_extra)
-    audit_kb_graph(
+    audit_graph(
         store,
         user,
         workspace_id,
-        "kb.statement.remember_approved",
+        "workspace.statement.remember_approved",
         review_item_id=item_id,
         extra=audit_extra_merged,
     )
@@ -75,8 +75,8 @@ def approve_statement_remember_review(
 def reject_statement_remember_review(
     *,
     knowledge: KnowledgeStore,
-    store: KbAuditStore,
-    user: KbAuditActor,
+    store: WorkspaceAuditStore,
+    user: WorkspaceAuditActor,
     workspace_id: str,
     item_id: str,
     rationale: str | None,
@@ -97,11 +97,11 @@ def reject_statement_remember_review(
         resolved_by=user.id,
         rationale=rationale,
     )
-    audit_kb_graph(
+    audit_graph(
         store,
         user,
         workspace_id,
-        "kb.statement.remember_rejected",
+        "workspace.statement.remember_rejected",
         review_item_id=item_id,
         extra={"rationale": rationale, "payload": item.get("payload")},
     )
@@ -111,8 +111,8 @@ def reject_statement_remember_review(
 def reject_review_item(
     *,
     knowledge: KnowledgeStore,
-    store: KbAuditStore,
-    user: KbAuditActor,
+    store: WorkspaceAuditStore,
+    user: WorkspaceAuditActor,
     workspace_id: str,
     item_id: str,
     rationale: str | None,
@@ -160,25 +160,25 @@ def reject_review_item(
         rationale=rationale,
     )
     if kind == "graph_import":
-        reject_action = "kb.graph.import_rejected"
+        reject_action = "workspace.graph.import_rejected"
     elif kind == MAPPING_REVIEW_KIND:
-        reject_action = "kb.mapping.rejected"
+        reject_action = "workspace.mapping.rejected"
     elif kind == STATEMENT_REVIEW_KIND:
-        reject_action = "kb.statement.remember_rejected"
+        reject_action = "workspace.statement.remember_rejected"
     elif kind == STATEMENT_CONFLICT_KIND:
-        reject_action = "kb.statement.conflict_dismissed"
+        reject_action = "workspace.statement.conflict_dismissed"
     elif kind == ENTITY_CLUSTER_KIND:
-        reject_action = "kb.entity.cluster_dismissed"
+        reject_action = "workspace.entity.cluster_dismissed"
     elif kind == LOW_CONFIDENCE_KIND:
         payload = dict(item.get("payload") or {})
         statement_id = str(payload.get("statement_id") or item["subject_id"])
         resolve_low_confidence_reject(knowledge, workspace_id, statement_id)
         if projection_bindings is not None:
-            rebuild_kb_projection(projection_bindings, workspace_id)
-        reject_action = "kb.statement.low_confidence_rejected"
+            rebuild_graph_projection(projection_bindings, workspace_id)
+        reject_action = "workspace.statement.low_confidence_rejected"
     else:
-        reject_action = "kb.graph.merge_rejected"
-    audit_kb_graph(
+        reject_action = "workspace.graph.merge_rejected"
+    audit_graph(
         store,
         user,
         workspace_id,

@@ -101,12 +101,12 @@ export function createBasisSessionClient(options: BasisSessionClientOptions) {
     platformPath,
     workspacePath,
     openapi: openapiClient,
-    kb(workspaceId: string) {
+    workspace(workspaceId: string) {
       const token = options.getAccessToken();
       if (!token) {
         throw new Error("not authenticated");
       }
-      return createBasisClient({ baseUrl: base, accessToken: token }).kb(workspaceId);
+      return createBasisClient({ baseUrl: base, accessToken: token }).workspace(workspaceId);
     },
   };
 }
@@ -194,7 +194,7 @@ export function createBasisClient(options: BasisClientOptions) {
 
   return {
     openapi: openapi,
-    kb(workspaceId: string) {
+    workspace(workspaceId: string) {
       const prefix = `/api/v1/workspaces/${encodeURIComponent(workspaceId)}`;
       return {
         mcpInfo: () => request<McpIntegrationInfoResponse>(`${prefix}/mcp`),

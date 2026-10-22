@@ -354,7 +354,7 @@ export function GraphDiff({
           }),
         getAudit: () =>
           workspaceOpenApiGET<{ events: unknown[] }>(workspaceId, 'audit/graph-mutations', {
-            params: { query: { limit: 100, action_prefix: 'kb.graph.' } },
+            params: { query: { limit: 100, action_prefix: 'workspace.graph.' } },
           }),
         getProjection: () => workspaceOpenApiGET(workspaceId, 'graph/projection'),
       });

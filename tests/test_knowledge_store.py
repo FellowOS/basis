@@ -8,16 +8,16 @@ from basis.domain.knowledge.blob_store import BlobStore
 from basis.domain.knowledge.store import KnowledgeStore
 
 
-def _kb_id(tmp_path: Path, *, email: str = "u@example.com", name: str = "Test KB") -> str:
+def _workspace_id(tmp_path: Path, *, email: str = "u@example.com", name: str = "Test KB") -> str:
     admin = AdminStore(tmp_path / "basis.db")
     user, _ = admin.register(email, "password1", "U")
-    kb = admin.create_workspace(user, name, None, "restricted")
+    workspace = admin.create_workspace(user, name, None, "restricted")
     admin.close()
-    return kb.id
+    return workspace.id
 
 
 def test_store_upload_and_read_roundtrip(tmp_path: Path) -> None:
-    workspace_id = _kb_id(tmp_path)
+    workspace_id = _workspace_id(tmp_path)
     blobs = BlobStore(tmp_path)
     store = KnowledgeStore(tmp_path / "basis.db", blobs)
     doc_id, version_id, job_id, blob = store.store_upload_bytes(
@@ -36,7 +36,7 @@ def test_store_upload_and_read_roundtrip(tmp_path: Path) -> None:
 
 
 def test_same_bytes_two_versions_two_documents(tmp_path: Path) -> None:
-    workspace_id = _kb_id(tmp_path)
+    workspace_id = _workspace_id(tmp_path)
     blobs = BlobStore(tmp_path)
     store = KnowledgeStore(tmp_path / "basis.db", blobs)
     d1, v1, _, _ = store.store_upload_bytes(
@@ -50,11 +50,11 @@ def test_same_bytes_two_versions_two_documents(tmp_path: Path) -> None:
     store.close()
 
 
-def test_open_statement_validation_and_kb_guard(tmp_path: Path) -> None:
+def test_open_statement_validation_and_workspace_guard(tmp_path: Path) -> None:
     admin = AdminStore(tmp_path / "basis.db")
     user, _ = admin.register("stmt@example.com", "password1", "U")
     workspace_id = admin.create_workspace(user, "KB A", None, "restricted").id
-    other_kb = admin.create_workspace(user, "KB B", None, "restricted").id
+    other_workspace = admin.create_workspace(user, "KB B", None, "restricted").id
     admin.close()
     blobs = BlobStore(tmp_path)
     store = KnowledgeStore(tmp_path / "basis.db", blobs)
@@ -101,7 +101,7 @@ def test_open_statement_validation_and_kb_guard(tmp_path: Path) -> None:
 
     with pytest.raises(AdminError) as cross:
         store.add_open_statement(
-            other_kb,
+            other_workspace,
             subject_id=e1,
             surface_phrase="knows",
             object_entity_id=e2,

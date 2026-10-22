@@ -91,7 +91,7 @@ export function MappingsPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { getWorkspace } = useWorkspaceCatalog();
-  const kb = id ? getWorkspace(id) : undefined;
+  const workspaceMeta = id ? getWorkspace(id) : undefined;
   const [rows, setRows] = useState<MappingRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -167,7 +167,7 @@ export function MappingsPage() {
     }
   }
 
-  const name = kb?.name ?? id ?? t.core.common.ellipsis;
+  const name = workspaceMeta?.name ?? id ?? t.core.common.ellipsis;
 
   const mappingColumns = useMemo<DataTableColumn<MappingRow>[]>(
     () => [

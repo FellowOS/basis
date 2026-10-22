@@ -20,7 +20,7 @@ from basis.domain.tenancy.admin.admin_types import (
 )
 from basis.domain.tenancy.admin.errors import AdminError
 from basis.domain.tenancy.identity.org_login_policy import ORG_AUTH_POLICIES
-from basis.infra.tooling.db.org_backfill import _slug_for_kb, parse_email_domains
+from basis.infra.tooling.db.org_backfill import _slug_for_workspace, parse_email_domains
 from basis.domain.tenancy.admin.passwords import hash_password, hash_token, new_token
 from basis.domain.tenancy.admin.persistence import settings as settings_persist
 from basis.domain.tenancy.admin.persistence import users as users_persist
@@ -173,7 +173,7 @@ class OrganizationsAccess:
             except Exception:
                 pass
 
-    def ensure_kb_organization_links(self) -> int:
+    def ensure_workspace_organization_links(self) -> int:
         """Create an organization for each workspace missing organization_id (idempotent)."""
         with self._store._lock:
             try:
@@ -192,7 +192,7 @@ class OrganizationsAccess:
             for kb in pending:
                 workspace_id = kb["id"]
                 org_id = str(uuid.uuid4())
-                slug = _slug_for_kb(workspace_id, kb["name"] or "org")
+                slug = _slug_for_workspace(workspace_id, kb["name"] or "org")
                 while self._store._conn.execute(
                     "SELECT 1 FROM organizations WHERE slug = ?", (slug,)
                 ).fetchone():
@@ -239,10 +239,10 @@ class OrganizationsAccess:
             try:
                 rows = self._store._conn.execute(
                     """
-                    SELECT kb.organization_id AS org_id, m.user_id, m.role AS kb_role
+                    SELECT ws.organization_id AS org_id, m.user_id, m.role AS workspace_role
                     FROM members m
-                    INNER JOIN workspaces kb ON kb.id = m.workspace_id
-                    WHERE kb.organization_id IS NOT NULL AND TRIM(kb.organization_id) != ''
+                    INNER JOIN workspaces ws ON ws.id = m.workspace_id
+                    WHERE ws.organization_id IS NOT NULL AND TRIM(ws.organization_id) != ''
                       AND m.role IN ('owner', 'admin')
                     """
                 ).fetchall()
@@ -255,7 +255,7 @@ class OrganizationsAccess:
             for row in rows:
                 org_id = row["org_id"]
                 user_id = row["user_id"]
-                desired = "owner" if row["kb_role"] == "owner" else "admin"
+                desired = "owner" if row["workspace_role"] == "owner" else "admin"
                 role_row = self._store._conn.execute(
                     """
                     SELECT role FROM org_members
@@ -297,7 +297,7 @@ class OrganizationsAccess:
 
     def prepare_organization_sso_directory(self, actor: "User | None" = None) -> None:
         self.ensure_workspaces_organization_column()
-        self.ensure_kb_organization_links()
+        self.ensure_workspace_organization_links()
         self.reconcile_organization_memberships()
         if actor is not None:
             self.ensure_default_organization(actor)

@@ -57,7 +57,7 @@ export function SearchPage() {
   const { getWorkspace } = useWorkspaceCatalog();
   const { caps, loading: capsLoading } = useWorkspaceCapabilities();
   const { bounds: temporalBounds } = useWorkspaceTemporalBounds(id ?? undefined);
-  const kb = id ? getWorkspace(id) : undefined;
+  const workspaceMeta = id ? getWorkspace(id) : undefined;
 
   const [scope, setScope] = useState<SearchScope>(() =>
     resolveSearchScope(searchParams.get('scope'), searchParams.get('tab')),
@@ -130,12 +130,12 @@ export function SearchPage() {
   const fetchEntities = useCallback(
     async (q: string, limit: number) => {
       if (!id) return [] as LedgerEntityHit[];
-      const kb = workspaceApiClient(id);
+      const client = workspaceApiClient(id);
       if (q.trim()) {
-        const data = await kb.findEntities(q, limit);
+        const data = await client.findEntities(q, limit);
         return (data.ledger_entities ?? []) as LedgerEntityHit[];
       }
-      const data = await kb.listLedgerEntities(limit);
+      const data = await client.listLedgerEntities(limit);
       return (data.entities ?? []) as LedgerEntityHit[];
     },
     [id],
@@ -267,7 +267,7 @@ export function SearchPage() {
     }
   }
 
-  const name = kb?.name ?? id ?? t.core.common.ellipsis;
+  const name = workspaceMeta?.name ?? id ?? t.core.common.ellipsis;
 
   if (graphScopeBlocked && id) {
     return <WorkspaceUnavailable workspaceId={id} feature="graph" />;

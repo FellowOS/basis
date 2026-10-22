@@ -50,7 +50,7 @@ def test_postgres_backup_restore_scripts_preserve_ledger(
     )
     assert registered.status_code == 200
     headers = _auth(registered.json()["token"])
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
     uploaded = client.post(
         f"/api/v1/workspaces/{workspace_id}/documents/upload",
         headers=headers,

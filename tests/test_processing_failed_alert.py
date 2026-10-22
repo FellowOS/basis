@@ -15,7 +15,7 @@ def test_fail_job_emits_processing_failed_alert(tmp_path: Path) -> None:
         json={"email": "pf@example.com", "password": "password1", "display_name": "PF"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
     knowledge = client.app.state.knowledge_store
 
     source = client.post(

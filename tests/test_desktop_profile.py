@@ -8,7 +8,7 @@ from basis.infra.runtime.config import Settings
 from basis.interface.http.app import create_app
 
 
-def test_desktop_allows_kbs_without_bearer(tmp_path: Path) -> None:
+def test_desktop_allows_workspaces_without_bearer(tmp_path: Path) -> None:
     settings = Settings(
         data_dir=tmp_path,
         deployment_profile="desktop",
@@ -19,8 +19,8 @@ def test_desktop_allows_kbs_without_bearer(tmp_path: Path) -> None:
     res = client.get("/api/v1/workspaces")
     assert res.status_code == 200
     body = res.json()
-    assert "kbs" in body
-    assert len(body["kbs"]) >= 1
+    assert "workspaces" in body
+    assert len(body["workspaces"]) >= 1
 
 
 def test_desktop_session_issues_token(tmp_path: Path) -> None:

@@ -20,7 +20,7 @@ def test_upload_then_process_with_immutable_options(tmp_path: Path) -> None:
         json={"email": "flow@example.com", "password": "password1", "display_name": "Flow"},
     ).json()
     headers = _auth(admin["token"])
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
 
     uploaded = client.post(
         f"/api/v1/workspaces/{workspace_id}/documents",
@@ -65,7 +65,7 @@ def test_processing_job_persists_request_id_in_options(tmp_path: Path) -> None:
         json={"email": "rid@example.com", "password": "password1", "display_name": "Rid"},
     ).json()
     headers = _auth(admin["token"])
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
     source = client.post(
         f"/api/v1/workspaces/{workspace_id}/documents",
         headers=headers,
@@ -101,7 +101,7 @@ def test_active_job_conflict_and_retry_attempt(tmp_path: Path) -> None:
         json={"email": "retry@example.com", "password": "password1", "display_name": "Retry"},
     ).json()
     headers = _auth(admin["token"])
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
     source = client.post(
         f"/api/v1/workspaces/{workspace_id}/documents",
         headers=headers,
@@ -152,7 +152,7 @@ def test_processing_job_idempotency_key_replay(tmp_path: Path) -> None:
         json={"email": "idem@example.com", "password": "password1", "display_name": "Idem"},
     ).json()
     headers = _auth(admin["token"])
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
     source = client.post(
         f"/api/v1/workspaces/{workspace_id}/documents",
         headers=headers,
@@ -188,7 +188,7 @@ def test_markdown_defaults_to_structural_chunking(tmp_path: Path) -> None:
         json={"email": "md@example.com", "password": "password1", "display_name": "Md"},
     ).json()
     headers = _auth(admin["token"])
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
     uploaded = client.post(
         f"/api/v1/workspaces/{workspace_id}/documents/upload",
         headers=headers,
@@ -215,7 +215,7 @@ def test_rejects_unknown_chunk_method(tmp_path: Path) -> None:
         json={"email": "chunk@example.com", "password": "password1", "display_name": "Chunk"},
     ).json()
     headers = _auth(admin["token"])
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
     source = client.post(
         f"/api/v1/workspaces/{workspace_id}/documents",
         headers=headers,

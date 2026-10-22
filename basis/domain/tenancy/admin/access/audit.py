@@ -27,7 +27,7 @@ class AuditAccess:
             )
         return [audit_persist.audit_row_to_dict(row) for row in rows]
 
-    def list_audit_for_kb(
+    def list_audit_for_workspace(
         self,
         workspace_id: str,
         *,
@@ -36,7 +36,7 @@ class AuditAccess:
     ) -> list[dict[str, Any]]:
         limit = min(max(1, limit), 200)
         with self._store._lock:
-            rows = audit_persist.list_audit_for_kb(
+            rows = audit_persist.list_audit_for_workspace(
                 self._store._conn,
                 workspace_id,
                 limit,

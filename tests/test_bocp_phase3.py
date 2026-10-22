@@ -14,7 +14,7 @@ from basis.domain.knowledge.structured_models import ColumnMappingSpec
 from basis.infra.tooling.db.sqlite_migrations import run_migrations
 
 
-def _setup_kb_and_external_db(
+def _setup_workspace_and_external_db(
     tmp_path: Path,
 ) -> tuple[sqlite3.Connection, Path]:
     ext_db_path = tmp_path / "external_crm.db"
@@ -45,8 +45,8 @@ def _setup_kb_and_external_db(
         )
     ext_engine.dispose()
 
-    kb_db_path = tmp_path / "basis_phase3.db"
-    conn = sqlite3.connect(str(kb_db_path))
+    workspace_db_path = tmp_path / "basis_phase3.db"
+    conn = sqlite3.connect(str(workspace_db_path))
     run_migrations(conn)
     conn.execute("PRAGMA foreign_keys = ON")
     conn.execute(
@@ -79,7 +79,7 @@ def _setup_kb_and_external_db(
 def test_inbound_4_way_diff_and_outbound_review_writeback_closed_loop(
     tmp_path: Path,
 ) -> None:
-    conn, ext_db_path = _setup_kb_and_external_db(tmp_path)
+    conn, ext_db_path = _setup_workspace_and_external_db(tmp_path)
     try:
         runtime = ConnectorRuntime(conn, vault_secret="phase3-secret")
         runtime.vault.upsert_connection(

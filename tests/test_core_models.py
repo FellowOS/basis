@@ -13,11 +13,11 @@ def test_coerce_search_chunks_requires_query() -> None:
 
 
 def test_run_rejects_empty_graph_search_query() -> None:
-    class _Kb:
-        id = "kb"
+    class _Workspace:
+        id = "ws1"
 
     class _Ctx:
-        kb = _Kb()
+        workspace = _Workspace()
 
     payload = run(_Ctx(), "graph_search", {"query": ""})  # type: ignore[arg-type]
     assert "error" in payload

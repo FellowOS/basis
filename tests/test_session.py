@@ -14,14 +14,14 @@ def _auth(token: str) -> dict[str, str]:
     return {"Authorization": f"Bearer {token}"}
 
 
-def test_kb_graph_and_ontology_stay_inside_one_knowledge_base(tmp_path) -> None:
+def test_graph_and_ontology_stay_inside_one_workspace(tmp_path) -> None:
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
     admin = client.post(
         "/api/v1/auth/register",
         json={"email": "admin@example.com", "password": "password1", "display_name": "管理员"},
     ).json()
     headers = _auth(admin["token"])
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
 
     created = client.post(
         f"/api/v1/workspaces/{workspace_id}/ontology",

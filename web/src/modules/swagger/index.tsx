@@ -60,7 +60,7 @@ export function SwaggerPage() {
             <SelectContent>
               <SelectItem value="full">{p.spec_full}</SelectItem>
               <SelectItem value="platform">{p.spec_platform}</SelectItem>
-              <SelectItem value="kb">{p.spec_workspace}</SelectItem>
+              <SelectItem value="workspaces">{p.spec_workspace}</SelectItem>
             </SelectContent>
           </Select>
         </div>

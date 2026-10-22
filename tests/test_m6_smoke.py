@@ -21,7 +21,7 @@ def _headers(client: TestClient, email: str = "m6@example.com") -> dict[str, str
 def test_m6_alerts_rules_sources_smoke(tmp_path) -> None:
     client = _client(tmp_path)
     headers = _headers(client)
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
 
     alerts = client.get(f"/api/v1/workspaces/{workspace_id}/alerts", headers=headers)
     assert alerts.status_code == 200

@@ -4,15 +4,15 @@ from __future__ import annotations
 
 from typing import Any
 
-from basis.application import KbCoreContext, execute
+from basis.application import WorkspaceCoreContext, execute
 from basis.application.registry import get_tool_definitions
 from basis.interface.mcp.tools import CAPABILITIES, PROTOCOL_VERSION, SERVER_INFO
 
-KbToolContext = KbCoreContext
+WorkspaceToolContext = WorkspaceCoreContext
 call_tool = execute
 
 
-def handle_jsonrpc(ctx: KbToolContext, req: dict[str, Any]) -> dict[str, Any] | None:
+def handle_jsonrpc(ctx: WorkspaceToolContext, req: dict[str, Any]) -> dict[str, Any] | None:
     method = req.get("method", "")
     params = req.get("params") or {}
     req_id = req.get("id")
@@ -58,7 +58,7 @@ def handle_jsonrpc(ctx: KbToolContext, req: dict[str, Any]) -> dict[str, Any] | 
     return err(-32601, f"Method not found: {method}")
 
 
-def handle_batch(ctx: KbToolContext, body: Any) -> Any:
+def handle_batch(ctx: WorkspaceToolContext, body: Any) -> Any:
     if isinstance(body, list):
         out: list[dict[str, Any]] = []
         for item in body:

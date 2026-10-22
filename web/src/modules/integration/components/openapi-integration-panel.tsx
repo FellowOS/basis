@@ -16,7 +16,7 @@ type OpenApiIntegrationPanelProps = {
 export function OpenApiIntegrationPanel({ workspaceId }: OpenApiIntegrationPanelProps) {
   const { t } = useI18n();
   const copy = t.integration.openapi;
-  const specUrl = useMemo(() => openapiSpecUrl('kb'), []);
+  const specUrl = useMemo(() => openapiSpecUrl('workspaces'), []);
   const apiBase = useMemo(() => {
     const origin = basisApiBaseUrl().replace(/\/$/, '');
     return `${origin}${workspaceApiRoot(workspaceId)}`;

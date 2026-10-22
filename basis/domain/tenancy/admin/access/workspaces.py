@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Any
 
 from basis.domain.tenancy.admin.admin_types import (
     ROLE_RANK,
-    KB_ROLES,
+    WORKSPACE_ROLES,
     User,
     Workspace,
     clean_name,
@@ -64,7 +64,7 @@ class WorkspacesAccess:
             audit_persist.insert_audit(
                 conn,
                 actor_id=actor.id,
-                action="kb.created",
+                action="workspace.created",
                 target_type="workspace",
                 target_id=workspace_id,
                 detail={"name": name},
@@ -118,7 +118,7 @@ class WorkspacesAccess:
             audit_persist.insert_audit(
                 conn,
                 actor_id=actor.id,
-                action="kb.updated",
+                action="workspace.updated",
                 target_type="workspace",
                 target_id=workspace_id,
                 detail={},
@@ -136,7 +136,7 @@ class WorkspacesAccess:
             audit_persist.insert_audit(
                 conn,
                 actor_id=actor.id,
-                action="kb.deleted",
+                action="workspace.deleted",
                 target_type="workspace",
                 target_id=workspace_id,
                 detail={},
@@ -159,7 +159,7 @@ class WorkspacesAccess:
         ]
 
     def set_member_role(self, actor: User, workspace_id: str, target_id: str, role: str) -> None:
-        if role not in KB_ROLES:
+        if role not in WORKSPACE_ROLES:
             raise AdminError(422, "bad_role", "角色必须是 owner、admin、editor 或 viewer")
         _, caller_role = self.get_workspace_for(actor, workspace_id, "admin")
         with self._store._lock:

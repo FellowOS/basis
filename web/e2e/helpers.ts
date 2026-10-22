@@ -66,10 +66,10 @@ export async function defaultWorkspaceId(page: Page): Promise<string> {
   });
   expect(response.ok()).toBeTruthy();
   const body = (await response.json()) as {
-    kbs?: Array<{ id: string; my_role?: string }>;
+    workspaces?: Array<{ id: string; my_role?: string }>;
   };
-  const kbs = body.kbs ?? [];
-  const editable = workspaces.find((kb) => isEditableRole(kb.my_role));
+  const workspaces = body.workspaces ?? [];
+  const editable = workspaces.find((ws) => isEditableRole(ws.my_role));
   if (editable?.id) {
     return editable.id;
   }
@@ -87,11 +87,11 @@ export async function defaultWorkspaceId(page: Page): Promise<string> {
     },
   });
   expect(created.ok()).toBeTruthy();
-  const kb = (await created.json()) as { id: string };
-  if (!kb.id) {
+  const workspace = (await created.json()) as { id: string };
+  if (!workspace.id) {
     throw new Error('POST /api/v1/workspaces did not return id');
   }
-  return kb.id;
+  return workspace.id;
 }
 
 export async function fetchGraphStats(

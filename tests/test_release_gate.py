@@ -14,7 +14,7 @@ pytest.importorskip("semantica")
 from fastapi.testclient import TestClient
 
 from basis.interface.http.app import create_app
-from basis.infra.runtime.capabilities import kb_graph_runtime_available
+from basis.infra.runtime.capabilities import graph_runtime_available
 from basis.infra.runtime.config import Settings
 
 
@@ -69,7 +69,7 @@ def test_docx_upload_creates_document_chunks_and_statements(tmp_path) -> None:
     docx_bytes = _minimal_docx_bytes()
     client = TestClient(create_app(_settings(tmp_path)))
     headers = _register(client, "docx@example.com")
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
 
     upload = client.post(
         f"/api/v1/workspaces/{workspace_id}/documents/upload",
@@ -113,7 +113,7 @@ def test_extracted_graph_edges_carry_statement_and_evidence_refs(tmp_path) -> No
     docx_bytes = _minimal_docx_bytes()
     client = TestClient(create_app(_settings(tmp_path)))
     headers = _register(client, "refs@example.com")
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
 
     client.post(
         f"/api/v1/workspaces/{workspace_id}/documents/upload",
@@ -140,11 +140,11 @@ def test_extracted_graph_edges_carry_statement_and_evidence_refs(tmp_path) -> No
         assert edge.get("evidence_id")
 
 
-def test_graph_page_api_is_kb_scoped_not_global(tmp_path) -> None:
+def test_graph_page_api_is_workspace_scoped_not_global(tmp_path) -> None:
     """§9.6 — graph HTTP surface is per-workspace (Basis graph page uses injected workspace apiRoot)."""
     client = TestClient(create_app(_settings(tmp_path)))
     headers = _register(client, "scope@example.com")
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
 
     scoped = client.get(f"/api/v1/workspaces/{workspace_id}/graph/stats", headers=headers)
     assert scoped.status_code == 200
@@ -158,7 +158,7 @@ def test_viewer_cannot_upload_or_create_documents(tmp_path) -> None:
     """§9.4 — viewers may browse but cannot mutate workspace content."""
     client = TestClient(create_app(_settings(tmp_path)))
     owner_headers = _register(client, "owner-gate@example.com")
-    workspace_id = client.get("/api/v1/workspaces", headers=owner_headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=owner_headers).json()["workspaces"][0]["id"]
     viewer_headers = _viewer_headers(client, owner_headers, workspace_id)
 
     browse = client.get(f"/api/v1/workspaces/{workspace_id}/documents", headers=viewer_headers)
@@ -187,7 +187,7 @@ def test_viewer_can_read_graph_and_cannot_start_processing(tmp_path) -> None:
     """§9.4 — viewers browse graph APIs; processing start requires editor."""
     client = TestClient(create_app(_settings(tmp_path)))
     owner_headers = _register(client, "owner-vbrowse@example.com")
-    workspace_id = client.get("/api/v1/workspaces", headers=owner_headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=owner_headers).json()["workspaces"][0]["id"]
     uploaded = client.post(
         f"/api/v1/workspaces/{workspace_id}/documents",
         headers=owner_headers,
@@ -222,12 +222,12 @@ def test_viewer_can_read_graph_and_cannot_start_processing(tmp_path) -> None:
 
 def test_viewer_cannot_apply_reasoning_to_graph(tmp_path) -> None:
     """§9.4 — viewers may run dry-run reasoning but not mutate the graph."""
-    if not kb_graph_runtime_available():
+    if not graph_runtime_available():
         pytest.skip("explorer extra not installed")
 
     client = TestClient(create_app(_settings(tmp_path)))
     owner_headers = _register(client, "owner-reason@example.com")
-    workspace_id = client.get("/api/v1/workspaces", headers=owner_headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=owner_headers).json()["workspaces"][0]["id"]
     viewer_headers = _viewer_headers(client, owner_headers, workspace_id)
 
     dry_run = client.post(
@@ -260,7 +260,7 @@ def test_ledger_and_projection_survive_app_restart(tmp_path) -> None:
     settings = _settings(tmp_path)
     client = TestClient(create_app(settings))
     headers = _register(client, "restart@example.com")
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
 
     client.post(
         f"/api/v1/workspaces/{workspace_id}/documents",
@@ -275,8 +275,8 @@ def test_ledger_and_projection_survive_app_restart(tmp_path) -> None:
     client.close()
     client2 = TestClient(create_app(settings))
     headers2 = _register(client2, "restart2@example.com")
-    kb_id2 = client2.get("/api/v1/workspaces", headers=headers2).json()["kbs"][0]["id"]
-    assert kb_id2 == workspace_id
+    workspace_id2 = client2.get("/api/v1/workspaces", headers=headers2).json()["workspaces"][0]["id"]
+    assert workspace_id2 == workspace_id
 
     after = client2.get(f"/api/v1/workspaces/{workspace_id}/graph/projection", headers=headers2).json()
     assert after["revision"] >= rev_before
@@ -287,30 +287,30 @@ def test_ledger_and_projection_survive_app_restart(tmp_path) -> None:
     assert "persist-doc" in node_ids
 
 
-def test_dual_kb_graph_snapshot_isolation(tmp_path) -> None:
+def test_dual_workspace_graph_snapshot_isolation(tmp_path) -> None:
     """§9.5 — graph projection nodes do not leak across KBs (HTTP)."""
     client = TestClient(create_app(_settings(tmp_path)))
     headers = _register(client, "dual@example.com")
-    kb_a = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
-    kb_b = client.post(
+    workspace_a = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
+    workspace_b = client.post(
         "/api/v1/workspaces",
         headers=headers,
         json={"name": "B", "visibility": "restricted"},
     ).json()["id"]
 
     client.post(
-        f"/api/v1/workspaces/{kb_a}/documents",
+        f"/api/v1/workspaces/{workspace_a}/documents",
         headers=headers,
         json={"doc_id": "only-on-a", "text": "A", "extract": False},
     )
     client.post(
-        f"/api/v1/workspaces/{kb_b}/documents",
+        f"/api/v1/workspaces/{workspace_b}/documents",
         headers=headers,
         json={"doc_id": "only-on-b", "text": "B", "extract": False},
     )
 
-    snap_a = client.get(f"/api/v1/workspaces/{kb_a}/graph/snapshot", headers=headers).json()
-    snap_b = client.get(f"/api/v1/workspaces/{kb_b}/graph/snapshot", headers=headers).json()
+    snap_a = client.get(f"/api/v1/workspaces/{workspace_a}/graph/snapshot", headers=headers).json()
+    snap_b = client.get(f"/api/v1/workspaces/{workspace_b}/graph/snapshot", headers=headers).json()
     ids_a = {n["id"] for n in snap_a["nodes"]}
     ids_b = {n["id"] for n in snap_b["nodes"]}
 
@@ -324,7 +324,7 @@ def test_rebuild_is_idempotent_for_empty_ledger_change(tmp_path) -> None:
     """§9.3 — repeated rebuild without ledger changes bumps revision monotonically."""
     client = TestClient(create_app(_settings(tmp_path)))
     headers = _register(client, "rebuild@example.com")
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
     client.post(
         f"/api/v1/workspaces/{workspace_id}/documents",
         headers=headers,
@@ -365,7 +365,7 @@ def test_backup_tar_roundtrip_preserves_ledger(tmp_path) -> None:
     settings = _settings(data_dir)
     client = TestClient(create_app(settings))
     headers = _register(client, "backup@example.com")
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
     client.post(
         f"/api/v1/workspaces/{workspace_id}/documents",
         headers=headers,

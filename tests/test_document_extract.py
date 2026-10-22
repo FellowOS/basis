@@ -36,8 +36,8 @@ def test_version_ingest_writes_entities_to_ledger(tmp_path) -> None:
 
     admin = AdminStore(tmp_path / "basis.db")
     user, _ = admin.register("extract@example.com", "password1", "U")
-    kb = admin.create_workspace(user, "KB", None, "restricted")
-    workspace_id = kb.id
+    workspace = admin.create_workspace(user, "KB", None, "restricted")
+    workspace_id = workspace.id
     admin.close()
 
     blobs = BlobStore(tmp_path)
@@ -74,7 +74,7 @@ def test_documents_api_english_extract(tmp_path) -> None:
         json={"email": "api@example.com", "password": "password1", "display_name": "U"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
 
     body = client.post(
         f"/api/v1/workspaces/{workspace_id}/documents",

@@ -103,18 +103,18 @@ See [desktop/README.md](desktop/README.md): `BASIS_DEPLOYMENT_PROFILE=desktop`, 
 
 Create a **workspace API token** (workspace settings → Tokens). MCP endpoint:
 
-`POST /api/v1/kbs/{kb_id}/mcp` with `Authorization: Bearer <token>`.
+`POST /api/v1/workspaces/{workspace_id}/mcp` with `Authorization: Bearer <token>`.
 
 Example `tools/call` (after `tools/list`):
 
 ```bash
-curl -sS "http://127.0.0.1:8090/api/v1/kbs/YOUR_KB_ID/mcp" \
-  -H "Authorization: Bearer YOUR_KB_TOKEN" \
+curl -sS "http://127.0.0.1:8090/api/v1/workspaces/YOUR_WORKSPACE_ID/mcp" \
+  -H "Authorization: Bearer YOUR_WORKSPACE_TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"describe_kb","arguments":{}}}'
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"describe_workspace","arguments":{}}}'
 ```
 
-Tool names and HTTP paths share the same operation catalog; see live **`/openapi/v1/kb.json`** when the API is running.
+Tool names and HTTP paths share the same operation catalog; see live **`/openapi/v1/workspaces.json`** when the API is running.
 
 ---
 

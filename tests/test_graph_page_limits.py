@@ -17,7 +17,7 @@ def test_graph_nodes_limit_capped(tmp_path: Path) -> None:
         json={"email": "lim@example.com", "password": "password1", "display_name": "Lim"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
 
     res = client.get(
         f"/api/v1/workspaces/{workspace_id}/graph/nodes?limit=9999",
@@ -37,7 +37,7 @@ def test_graph_snapshot_limits_capped(tmp_path: Path) -> None:
         json={"email": "snap@example.com", "password": "password1", "display_name": "Snap"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
 
     res = client.get(
         f"/api/v1/workspaces/{workspace_id}/graph/snapshot?limit_nodes=99999&limit_edges=99999",

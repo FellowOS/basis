@@ -15,10 +15,10 @@ def _load_gen():
     return mod
 
 
-def test_openapi_kb_slice_has_many_paths(tmp_path) -> None:
+def test_openapi_workspaces_slice_has_many_paths(tmp_path) -> None:
     from basis.interface.contract.openapi.v1_export import filter_openapi_paths
 
     gen = _load_gen()
     full = gen.build_openapi_v1(data_dir=tmp_path)
-    kb = filter_openapi_paths(full["paths"], {"public", "knowledge-base"})
-    assert len(kb) >= 100
+    workspace_paths = filter_openapi_paths(full["paths"], {"public", "workspaces"})
+    assert len(workspace_paths) >= 100

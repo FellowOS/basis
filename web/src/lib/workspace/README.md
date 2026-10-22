@@ -12,6 +12,8 @@ Everything scoped to `/workspaces/:id/*` console routes: React frame, HTTP/WS, a
 
 ## HTTP / WebSocket
 
+Typed per-workspace REST helpers: `basisSessionClient().workspace(workspaceId)` in `@/lib/openapi/transport.js` (search/chunks, entities, graph search, MCP info).
+
 | File | Role |
 | --- | --- |
 | `ws-http.tsx` | `WorkspaceHostProvider`, `workspaceFetch`, path builders |

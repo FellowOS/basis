@@ -40,7 +40,7 @@ describe("createBasisClient", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     const client = createBasisClient({ baseUrl: "http://localhost", accessToken: "secret" });
-    await client.kb("k1").mcpInfo();
+    await client.workspace("k1").mcpInfo();
 
     expect(fetchMock).toHaveBeenCalledOnce();
     const [url, init] = fetchMock.mock.calls[0]!;
@@ -56,7 +56,7 @@ describe("createBasisClient", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     const client = createBasisClient({ baseUrl: "", accessToken: "t" });
-    await client.kb("kb-1").findEntities("Paris", 5);
+    await client.workspace("kb-1").findEntities("Paris", 5);
 
     expect(fetchMock.mock.calls[0]![0]).toBe("/api/v1/workspaces/kb-1/entities/find?q=Paris&limit=5");
   });
@@ -67,7 +67,7 @@ describe("createBasisClient", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     const client = createBasisClient({ baseUrl: "http://localhost", accessToken: "t" });
-    await client.kb("k1").searchGraph("node", 10);
+    await client.workspace("k1").searchGraph("node", 10);
 
     const [url, init] = fetchMock.mock.calls[0]!;
     expect(url).toBe("http://localhost/api/v1/workspaces/k1/graph/search");

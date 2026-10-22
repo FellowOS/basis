@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from basis.domain.tenancy.admin.admin_types import utc_now_iso
-from basis.domain.knowledge.sql_kb_delete import purge_workspace_ledger_data
+from basis.domain.knowledge.sql_delete import purge_workspace_ledger_data
 
 
 def list_workspace_ids(conn: Any) -> list[str]:
@@ -24,10 +24,10 @@ def list_all_workspaces(conn: Any) -> list[Any]:
 def list_visible_workspaces_for_user(conn: Any, user_id: str) -> list[Any]:
     return conn.execute(
         """
-        SELECT kb.* FROM workspaces kb
-        LEFT JOIN members m ON m.workspace_id = kb.id AND m.user_id = ?
-        WHERE kb.visibility = 'open' OR m.user_id IS NOT NULL
-        ORDER BY kb.created_at
+        SELECT ws.* FROM workspaces ws
+        LEFT JOIN members m ON m.workspace_id = ws.id AND m.user_id = ?
+        WHERE ws.visibility = 'open' OR m.user_id IS NOT NULL
+        ORDER BY ws.created_at
         """,
         (user_id,),
     ).fetchall()

@@ -18,7 +18,7 @@ import type { Locale } from '@/i18n/locale.js';
 export function GraphAuditRecent({
   workspaceId,
   limit = 15,
-  actionPrefix = 'kb.graph.',
+  actionPrefix = 'workspace.graph.',
   refreshKey = 0,
 }: {
   workspaceId: string;

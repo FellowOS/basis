@@ -11,7 +11,7 @@ def test_mcp_tools_have_openapi_backed_schemas() -> None:
         assert schema.get("type") == "object"
 
 
-def test_describe_kb_schema_from_get_kb_route() -> None:
+def test_describe_workspace_schema_from_get_workspace_route() -> None:
     schema = input_schema_for_tool("describe_workspace")
     assert schema is not None
     assert schema.get("type") == "object"
@@ -46,9 +46,9 @@ def test_reject_remember_review_schema_merges_path_and_body() -> None:
 
 def test_approve_review_openapi_response_includes_decision_id() -> None:
     from basis.interface.contract.openapi.spec import _spec_app
-    from basis.interface.contract.openapi.v1_export import export_openapi_v1_kb
+    from basis.interface.contract.openapi.v1_export import export_openapi_v1_workspaces
 
-    spec = export_openapi_v1_kb(_spec_app())
+    spec = export_openapi_v1_workspaces(_spec_app())
     op = spec["paths"]["/api/v1/workspaces/{workspace_id}/review/items/{item_id}/approve"]["post"]
     schema = op["responses"]["200"]["content"]["application/json"]["schema"]
     components = spec.get("components") or {}

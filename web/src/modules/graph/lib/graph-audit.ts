@@ -24,7 +24,7 @@ export function formatGraphAuditDetail(event: GraphAuditEvent, locale: Locale): 
   const copy = messages.graph.audit;
   const emptyCell = messages.core.common.emptyCell;
   const d = event.detail ?? {};
-  if (event.action === 'kb.graph.projection_rebuild') {
+  if (event.action === 'workspace.graph.projection_rebuild') {
     const parts: string[] = [];
     if (d.projection_revision != null) {
       parts.push(
@@ -43,11 +43,11 @@ export function formatGraphAuditDetail(event: GraphAuditEvent, locale: Locale): 
     }
     return parts.join(' · ') || emptyCell;
   }
-  if (event.action === 'kb.graph.export' && d.format) {
+  if (event.action === 'workspace.graph.export' && d.format) {
     return String(d.format);
   }
   if (
-    (event.action === 'kb.graph.import' || event.action === 'kb.graph.import_proposed') &&
+    (event.action === 'workspace.graph.import' || event.action === 'workspace.graph.import_proposed') &&
     (d.filename != null || d.nodes_imported != null)
   ) {
     return [
@@ -90,8 +90,8 @@ export function proposalIdFromGraphAuditDetail(
 
 export function workspaceIdFromAuditDetail(detail: Record<string, unknown> | undefined): string | null {
   if (!detail) return null;
-  const kb = detail.workspace_id;
-  if (typeof kb === 'string' && kb.trim()) return kb.trim();
+  const workspaceId = detail.workspace_id;
+  if (typeof workspaceId === 'string' && workspaceId.trim()) return workspaceId.trim();
   return null;
 }
 

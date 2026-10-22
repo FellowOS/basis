@@ -15,7 +15,7 @@ def test_governance_config_get_put(tmp_path: Path) -> None:
         json={"email": "gc@example.com", "password": "password1", "display_name": "GC"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
 
     get0 = client.get(f"/api/v1/workspaces/{workspace_id}/governance/config", headers=headers)
     assert get0.status_code == 200

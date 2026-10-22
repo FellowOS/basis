@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { diffGraphNodeFields, graphNodeFieldMap } from '@/modules/entity-resolution/lib/graph-node-detail.js';
 
-describe('kb-graph-node-detail', () => {
+describe('workspace-graph-node-detail', () => {
   it('diffGraphNodeFields marks differing keys', () => {
     const a = graphNodeFieldMap({
       id: 'n1',

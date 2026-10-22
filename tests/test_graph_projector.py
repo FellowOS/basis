@@ -14,7 +14,7 @@ from basis.domain.knowledge.pipeline.ledger_extract import apply_kg_to_ledger
 from basis.domain.knowledge.services.derived_facts_service import persist_reasoning_derived
 
 
-def _kb_store(tmp_path: Path) -> tuple[str, KnowledgeStore]:
+def _workspace_store(tmp_path: Path) -> tuple[str, KnowledgeStore]:
     admin = AdminStore(tmp_path / "basis.db")
     user, _ = admin.register("proj@example.com", "password1", "U")
     workspace_id = admin.create_workspace(user, "KB", None, "restricted").id
@@ -24,7 +24,7 @@ def _kb_store(tmp_path: Path) -> tuple[str, KnowledgeStore]:
 
 
 def test_rebuild_is_idempotent_and_uses_entity_uuids(tmp_path: Path) -> None:
-    workspace_id, store = _kb_store(tmp_path)
+    workspace_id, store = _workspace_store(tmp_path)
     _, version_id, _, _ = store.store_upload_bytes(
         workspace_id,
         title="doc.txt",
@@ -58,7 +58,7 @@ def test_rebuild_is_idempotent_and_uses_entity_uuids(tmp_path: Path) -> None:
 
 
 def test_invalidated_statement_omitted_from_projection(tmp_path: Path) -> None:
-    workspace_id, store = _kb_store(tmp_path)
+    workspace_id, store = _workspace_store(tmp_path)
     _, version_id, _, _ = store.store_upload_bytes(
         workspace_id,
         title="t.txt",
@@ -93,7 +93,7 @@ def test_invalidated_statement_omitted_from_projection(tmp_path: Path) -> None:
 
 
 def test_derived_facts_projected_as_edges(tmp_path: Path) -> None:
-    workspace_id, store = _kb_store(tmp_path)
+    workspace_id, store = _workspace_store(tmp_path)
     subj = store.get_or_create_entity_by_label(workspace_id, "DerSubj")
     obj = store.get_or_create_entity_by_label(workspace_id, "DerObj")
     persist_reasoning_derived(
@@ -117,7 +117,7 @@ def test_derived_facts_projected_as_edges(tmp_path: Path) -> None:
 
 
 def test_projection_valid_from_enables_temporal_node_diff(tmp_path: Path) -> None:
-    workspace_id, store = _kb_store(tmp_path)
+    workspace_id, store = _workspace_store(tmp_path)
     _, version_id, _, _ = store.store_upload_bytes(
         workspace_id,
         title="t.txt",
@@ -165,7 +165,7 @@ def test_projection_valid_from_enables_temporal_node_diff(tmp_path: Path) -> Non
 
 
 def test_temporal_projection_lists_invalidated_statements(tmp_path: Path) -> None:
-    workspace_id, store = _kb_store(tmp_path)
+    workspace_id, store = _workspace_store(tmp_path)
     _, version_id, _, _ = store.store_upload_bytes(
         workspace_id,
         title="inv.txt",
@@ -198,7 +198,7 @@ def test_temporal_projection_lists_invalidated_statements(tmp_path: Path) -> Non
 
 
 def test_ontology_node_preserved_on_rebuild(tmp_path: Path) -> None:
-    workspace_id, store = _kb_store(tmp_path)
+    workspace_id, store = _workspace_store(tmp_path)
     existing = GraphSession()
     existing.add_node(
         "http://example.org/onto#ontology",
@@ -212,7 +212,7 @@ def test_ontology_node_preserved_on_rebuild(tmp_path: Path) -> None:
 
 
 def test_schema_subgraph_preserved_on_rebuild(tmp_path: Path) -> None:
-    workspace_id, store = _kb_store(tmp_path)
+    workspace_id, store = _workspace_store(tmp_path)
     existing = GraphSession()
     existing.add_node("http://example.org/onto#A", "owl:Class", content="ClassA")
     existing.add_node("http://example.org/onto#B", "owl:Class", content="ClassB")
@@ -238,7 +238,7 @@ def test_schema_subgraph_preserved_on_rebuild(tmp_path: Path) -> None:
 def test_temporal_graph_projection_valid_until_filters_invalidated_edges_and_nodes(
     tmp_path: Path,
 ) -> None:
-    workspace_id, store = _kb_store(tmp_path)
+    workspace_id, store = _workspace_store(tmp_path)
     _, version_id, _, _ = store.store_upload_bytes(
         workspace_id,
         title="valid_until.txt",

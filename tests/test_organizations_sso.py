@@ -11,12 +11,12 @@ def _store(tmp_path: Path) -> AdminStore:
     return AdminStore(tmp_path / "basis.db")
 
 
-def test_kb_backfill_creates_organization(tmp_path: Path) -> None:
+def test_workspace_backfill_creates_organization(tmp_path: Path) -> None:
     admin = _store(tmp_path)
     user, _ = admin.register("o@example.com", "password1", "Owner")
-    kb = admin.create_workspace(user, "Demo KB", None, "restricted")
-    assert kb.organization_id
-    org = admin.get_org_by_id(kb.organization_id or "")
+    workspace = admin.create_workspace(user, "Demo KB", None, "restricted")
+    assert workspace.organization_id
+    org = admin.get_org_by_id(workspace.organization_id or "")
     assert org is not None
     assert admin.org_role(org.id, user.id) == "owner"
     admin.close()
@@ -25,8 +25,8 @@ def test_kb_backfill_creates_organization(tmp_path: Path) -> None:
 def test_org_oidc_upsert_and_slug_login_path(tmp_path: Path) -> None:
     admin = _store(tmp_path)
     user, _ = admin.register("admin@example.com", "password1", "Admin")
-    kb = admin.create_workspace(user, "Acme", None, "restricted")
-    org_id = kb.organization_id
+    workspace = admin.create_workspace(user, "Acme", None, "restricted")
+    org_id = workspace.organization_id
     assert org_id
     admin.upsert_org_oidc_config(
         user,
@@ -50,8 +50,8 @@ def test_org_oidc_upsert_and_slug_login_path(tmp_path: Path) -> None:
 def test_org_sso_options_lists_enabled_orgs(tmp_path: Path) -> None:
     admin = _store(tmp_path)
     user, _ = admin.register("opts@example.com", "password1", "Opts")
-    kb = admin.create_workspace(user, "Opts Co", None, "restricted")
-    org_id = kb.organization_id
+    workspace = admin.create_workspace(user, "Opts Co", None, "restricted")
+    org_id = workspace.organization_id
     assert org_id
     admin.upsert_org_oidc_config(
         user,
@@ -90,8 +90,8 @@ def test_build_oidc_authorize_url_encodes_query() -> None:
 def test_org_oidc_start_redirects_to_idp(tmp_path: Path) -> None:
     admin = _store(tmp_path)
     user, _ = admin.register("start@example.com", "password1", "Start")
-    kb = admin.create_workspace(user, "Start Co", None, "restricted")
-    org_id = kb.organization_id
+    workspace = admin.create_workspace(user, "Start Co", None, "restricted")
+    org_id = workspace.organization_id
     assert org_id
     admin.upsert_org_oidc_config(
         user,
@@ -129,8 +129,8 @@ def test_org_oidc_start_redirects_to_idp(tmp_path: Path) -> None:
 def test_org_sso_hint_by_email_domain(tmp_path: Path) -> None:
     admin = _store(tmp_path)
     user, _ = admin.register("hint@example.com", "password1", "Hint")
-    kb = admin.create_workspace(user, "Hint Co", None, "restricted")
-    org_id = kb.organization_id
+    workspace = admin.create_workspace(user, "Hint Co", None, "restricted")
+    org_id = workspace.organization_id
     assert org_id
     admin.upsert_org_oidc_config(
         user,
@@ -158,8 +158,8 @@ def test_org_sso_hint_by_email_domain(tmp_path: Path) -> None:
 def test_sso_required_blocks_password_login(tmp_path: Path) -> None:
     admin = _store(tmp_path)
     user, _ = admin.register("owner@example.com", "password1", "Owner")
-    kb = admin.create_workspace(user, "Strict Co", None, "restricted")
-    org_id = kb.organization_id
+    workspace = admin.create_workspace(user, "Strict Co", None, "restricted")
+    org_id = workspace.organization_id
     assert org_id
     admin.upsert_org_oidc_config(
         user,

@@ -13,7 +13,7 @@ def _session_client(tmp_path) -> tuple[TestClient, str, dict[str, str]]:
         json={"email": "core-http@example.com", "password": "password1", "display_name": "C"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
     client.post(
         f"/api/v1/workspaces/{workspace_id}/documents",
         headers=headers,
@@ -52,11 +52,11 @@ def test_search_and_chunk_via_core(tmp_path) -> None:
     assert mcp["result"]["isError"] is False
 
 
-def test_find_entities_and_describe_kb_via_core(tmp_path) -> None:
+def test_find_entities_and_describe_workspace_via_core(tmp_path) -> None:
     client, workspace_id, headers = _session_client(tmp_path)
-    kb = client.get(f"/api/v1/workspaces/{workspace_id}", headers=headers).json()
-    assert kb.get("document_count", 0) >= 1
-    assert "chunk_count" in kb
+    workspace_detail = client.get(f"/api/v1/workspaces/{workspace_id}", headers=headers).json()
+    assert workspace_detail.get("document_count", 0) >= 1
+    assert "chunk_count" in workspace_detail
 
     found = client.get(
         f"/api/v1/workspaces/{workspace_id}/entities/find",

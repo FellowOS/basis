@@ -16,7 +16,7 @@ def test_put_is_content_addressed_and_atomic(tmp_path: Path) -> None:
     assert store.read("kb-a", first.blob_key) == data
 
 
-def test_kb_isolation_on_read(tmp_path: Path) -> None:
+def test_workspace_isolation_on_read(tmp_path: Path) -> None:
     store = BlobStore(tmp_path)
     ref = store.put("kb-a", b"secret")
     with pytest.raises(AdminError) as exc:

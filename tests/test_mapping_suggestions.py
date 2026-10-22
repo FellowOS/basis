@@ -59,7 +59,7 @@ def test_suggest_http_with_sql_table(tmp_path: Path) -> None:
         },
     )
     headers = {"Authorization": f"Bearer {reg.json()['token']}"}
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
 
     client.put(
         f"/api/v1/workspaces/{workspace_id}/connectors/connections/postgres/erp",

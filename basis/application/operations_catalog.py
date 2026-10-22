@@ -21,7 +21,7 @@ OPERATIONS: dict[str, OperationSpec] = {
     "describe_workspace": {
         "description": "Summary of this workspace (name, document/chunk/entity counts).",
         "input_schema": {"type": "object", "properties": {}},
-        "handler": ops.op_describe_kb,
+        "handler": ops.op_describe_workspace,
     },
     "search_chunks": {
         "description": "Search document chunks using this workspace's configured retrieval policy (RAG citations).",

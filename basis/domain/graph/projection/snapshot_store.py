@@ -1,4 +1,4 @@
-"""Persist per-knowledge-base ContextGraph snapshots on disk (not SQL persistence)."""
+"""Persist per-workspaces ContextGraph snapshots on disk (not SQL persistence)."""
 
 from __future__ import annotations
 
@@ -13,8 +13,8 @@ from pathlib import Path
 
 from basis.domain.graph.projection.session import GraphSession
 
-_SAFE_KB_ID = re.compile(r"[^a-zA-Z0-9._-]+")
-_kb_write_locks: dict[str, threading.Lock] = {}
+_SAFE_WORKSPACE_ID = re.compile(r"[^a-zA-Z0-9._-]+")
+_workspace_write_locks: dict[str, threading.Lock] = {}
 _lock_guard = threading.Lock()
 
 
@@ -26,12 +26,12 @@ class GraphSnapshotMeta:
     workspace_id: str
 
 
-def _kb_write_lock(workspace_id: str) -> threading.Lock:
+def _workspace_write_lock(workspace_id: str) -> threading.Lock:
     with _lock_guard:
-        lock = _kb_write_locks.get(workspace_id)
+        lock = _workspace_write_locks.get(workspace_id)
         if lock is None:
             lock = threading.Lock()
-            _kb_write_locks[workspace_id] = lock
+            _workspace_write_locks[workspace_id] = lock
         return lock
 
 
@@ -53,7 +53,7 @@ class GraphPersistence:
         self._dir.mkdir(parents=True, exist_ok=True)
 
     def graph_path(self, workspace_id: str) -> Path:
-        safe = _SAFE_KB_ID.sub("_", workspace_id).strip("._") or "kb"
+        safe = _SAFE_WORKSPACE_ID.sub("_", workspace_id).strip("._") or "workspace"
         return self._dir / f"{safe}.json"
 
     def meta_path(self, workspace_id: str) -> Path:
@@ -121,7 +121,7 @@ class GraphPersistence:
     ) -> GraphSnapshotMeta:
         path = self._path(workspace_id)
         tmp = path.with_name(f"{path.name}.{uuid.uuid4().hex}.tmp")
-        with _kb_write_lock(workspace_id):
+        with _workspace_write_lock(workspace_id):
             session.graph.save_to_file(tmp)
             _atomic_replace(tmp, path)
             self._write_meta_atomic(
@@ -134,7 +134,7 @@ class GraphPersistence:
         return meta
 
     def delete(self, workspace_id: str) -> None:
-        with _kb_write_lock(workspace_id):
+        with _workspace_write_lock(workspace_id):
             path = self._path(workspace_id)
             if path.is_file():
                 path.unlink()

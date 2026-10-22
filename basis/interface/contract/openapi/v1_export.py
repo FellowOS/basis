@@ -9,9 +9,9 @@ from typing import TYPE_CHECKING, Literal
 if TYPE_CHECKING:
     from fastapi import FastAPI
 
-Surface = Literal["public", "platform", "knowledge-base"]
+Surface = Literal["public", "platform", "workspaces"]
 
-_KB_SESSION_ONLY_SUFFIXES = (
+_WORKSPACE_SESSION_ONLY_SUFFIXES = (
     "/tokens",
     "/members",
 )
@@ -49,10 +49,10 @@ def classify_surface(path: str) -> Surface:
     if path == "/api/v1/workspaces":
         return "platform"
     if path.startswith("/api/v1/workspaces/{workspace_id}"):
-        for suffix in _KB_SESSION_ONLY_SUFFIXES:
+        for suffix in _WORKSPACE_SESSION_ONLY_SUFFIXES:
             if path.endswith(suffix) or f"{suffix}/" in path:
                 return "platform"
-        return "knowledge-base"
+        return "workspaces"
     return "platform"
 
 
@@ -86,7 +86,7 @@ def _annotate_surfaces(paths: dict) -> None:
             op["x-basis-surface"] = surface
             if surface == "platform":
                 op.setdefault("x-basis-auth", "session")
-            elif surface == "knowledge-base":
+            elif surface == "workspaces":
                 op.setdefault("x-basis-auth", "session-or-workspace-api-token")
             else:
                 op.setdefault("x-basis-auth", "public-or-session")
@@ -135,9 +135,9 @@ def export_openapi_v1_document(
             "Normative HTTP contract for Basis. Paths use /api/v1 prefix.\n\n"
             "**Two surfaces** (see x-basis-surface on each operation):\n"
             "- `platform` — console & system/org admin; **session JWT** (`sessionAuth`).\n"
-            "- `knowledge-base` — workspace data & integration (MCP parity); **session or workspace API token** "
+            "- `workspaces` — workspace data & integration (MCP parity); **session or workspace API token** "
             "(`workspaceApiTokenAuth`, scoped by `workspace_id`).\n\n"
-            "Split specs: `/openapi/v1/platform.json`, `/openapi/v1/kb.json` (workspace **integration** contract). "
+            "Split specs: `/openapi/v1/platform.json`, `/openapi/v1/workspaces.json` (workspace **integration** contract). "
             "Console-only routes may appear here but are omitted from the workspace integration slice "
             "(see x-basis-audience: console). MCP: POST /api/v1/workspaces/{workspace_id}/mcp. "
             "Docs: docs/architecture/openapi-v1.md."
@@ -155,10 +155,10 @@ def export_openapi_v1_document(
             "auth": "sessionAuth",
             "openapi": "/openapi/v1/platform.json",
         },
-        "knowledge-base": {
+        "workspaces": {
             "description": "Workspace-scoped APIs (`/api/v1/workspaces/{workspace_id}`); same access model as MCP (workspace API token or user session with workspace role).",
             "auth": "sessionAuth or workspaceApiTokenAuth",
-            "openapi": "/openapi/v1/kb.json",
+            "openapi": "/openapi/v1/workspaces.json",
         },
         "console": {
             "description": "Web console application HTTP (not integration/core); excluded from workspace integration slice.",
@@ -199,12 +199,12 @@ def export_openapi_v1_platform(app: FastAPI) -> dict:
     return part
 
 
-def export_openapi_v1_kb(app: FastAPI) -> dict:
+def export_openapi_v1_workspaces(app: FastAPI) -> dict:
     full = export_openapi_v1_document(app)
     part = deepcopy(full)
-    part["paths"] = filter_openapi_paths(full["paths"], {"public", "knowledge-base"})
+    part["paths"] = filter_openapi_paths(full["paths"], {"public", "workspaces"})
     part["info"] = deepcopy(full["info"])
-    part["info"]["title"] = "Basis API — kb"
+    part["info"]["title"] = "Basis API — workspaces"
     return part
 
 
@@ -224,9 +224,9 @@ def cached_openapi_v1_platform(app: FastAPI) -> dict:
     return cached
 
 
-def cached_openapi_v1_kb(app: FastAPI) -> dict:
-    cached = getattr(app.state, "_basis_openapi_v1_kb", None)
+def cached_openapi_v1_workspaces(app: FastAPI) -> dict:
+    cached = getattr(app.state, "_basis_openapi_v1_workspaces", None)
     if cached is None:
-        cached = export_openapi_v1_kb(app)
-        app.state._basis_openapi_v1_kb = cached
+        cached = export_openapi_v1_workspaces(app)
+        app.state._basis_openapi_v1_workspaces = cached
     return cached

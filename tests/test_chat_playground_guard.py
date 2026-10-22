@@ -13,7 +13,7 @@ def test_mcp_read_token_cannot_propose_remember(tmp_path) -> None:
         json={"email": "rd@example.com", "password": "password1", "display_name": "Rd"},
     ).json()
     session_headers = {"Authorization": f"Bearer {admin['token']}"}
-    workspace_id = client.get("/api/v1/workspaces", headers=session_headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=session_headers).json()["workspaces"][0]["id"]
     created = client.post(
         f"/api/v1/workspaces/{workspace_id}/tokens",
         headers=session_headers,

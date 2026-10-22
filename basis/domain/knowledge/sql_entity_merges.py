@@ -57,7 +57,7 @@ def fetch_entity_merge_by_id(conn: Any, merge_id: str) -> Any:
     return conn.execute("SELECT * FROM entity_merges WHERE id = ?", (merge_id,)).fetchone()
 
 
-def fetch_entity_merge_for_kb(conn: Any, merge_id: str, workspace_id: str) -> Any:
+def fetch_entity_merge_for_workspace(conn: Any, merge_id: str, workspace_id: str) -> Any:
     return conn.execute(
         "SELECT * FROM entity_merges WHERE id = ? AND workspace_id = ?",
         (merge_id, workspace_id),

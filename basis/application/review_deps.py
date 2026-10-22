@@ -1,13 +1,13 @@
-"""Build review resolve dependencies from :class:`KbCoreContext`."""
+"""Build review resolve dependencies from :class:`WorkspaceCoreContext`."""
 
 from __future__ import annotations
 
 from basis.domain.knowledge.services.review_resolve_approve import ReviewApproveDeps
-from basis.application.context import KbCoreContext
+from basis.application.context import WorkspaceCoreContext
 from basis.application.errors import CoreError
 
 
-def review_approve_deps(ctx: KbCoreContext) -> ReviewApproveDeps:
+def review_approve_deps(ctx: WorkspaceCoreContext) -> ReviewApproveDeps:
     if ctx.runtime_loader is None or ctx.rebuild_projection is None or ctx.persist_graph is None:
         raise CoreError(
             {"code": "internal_error", "message": "graph runtime unavailable for review approve"},

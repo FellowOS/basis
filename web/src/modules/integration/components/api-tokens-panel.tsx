@@ -31,7 +31,7 @@ export type ApiTokenRow = {
   id: string;
   name: string;
   scope: string;
-  kb_ids: string[];
+  workspace_ids: string[];
   created_at: string;
   expires_at: string | null;
   last_used_at: string | null;

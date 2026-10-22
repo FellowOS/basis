@@ -11,7 +11,7 @@ from basis.domain.knowledge.schedulers.governor_poll_due import is_governor_due
 from basis.domain.knowledge.store import KnowledgeStore
 
 
-def _kb(tmp_path: Path) -> tuple[str, KnowledgeStore]:
+def _workspace_store(tmp_path: Path) -> tuple[str, KnowledgeStore]:
     from basis.domain.tenancy.admin.store import AdminStore
 
     admin = AdminStore(tmp_path / "basis.db")
@@ -23,7 +23,7 @@ def _kb(tmp_path: Path) -> tuple[str, KnowledgeStore]:
 
 
 def test_is_governor_due_when_enabled_and_never_run(tmp_path: Path) -> None:
-    workspace_id, store = _kb(tmp_path)
+    workspace_id, store = _workspace_store(tmp_path)
     store.update_governance_config(
         workspace_id,
         governor_enabled=True,
@@ -36,7 +36,7 @@ def test_is_governor_due_when_enabled_and_never_run(tmp_path: Path) -> None:
 
 
 def test_run_due_governor_passes_executes(tmp_path: Path) -> None:
-    workspace_id, store = _kb(tmp_path)
+    workspace_id, store = _workspace_store(tmp_path)
     store.update_governance_config(
         workspace_id,
         governor_enabled=True,

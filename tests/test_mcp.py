@@ -8,7 +8,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from basis.interface.http.app import create_app
-from basis.infra.runtime.capabilities import kb_graph_runtime_available
+from basis.infra.runtime.capabilities import graph_runtime_available
 from basis.infra.runtime.config import Settings
 
 _LOOP_MARKER = "MCP_GRAPH_LOOP_UNIQUE_2010"
@@ -47,7 +47,7 @@ def test_mcp_basic_graph_closed_loop(tmp_path) -> None:
         json={"email": "loop@example.com", "password": "password1", "display_name": "Loop"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
     client.post(
         f"/api/v1/workspaces/{workspace_id}/documents",
         headers=headers,
@@ -125,7 +125,7 @@ def test_mcp_tools_with_api_token(tmp_path) -> None:
         json={"email": "mcp@example.com", "password": "password1", "display_name": "M"},
     ).json()
     session_headers = {"Authorization": f"Bearer {admin['token']}"}
-    workspace_id = client.get("/api/v1/workspaces", headers=session_headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=session_headers).json()["workspaces"][0]["id"]
     client.post(
         f"/api/v1/workspaces/{workspace_id}/documents",
         headers=session_headers,
@@ -151,7 +151,9 @@ def test_mcp_tools_with_api_token(tmp_path) -> None:
 
     info = client.get(f"/api/v1/workspaces/{workspace_id}/mcp", headers=api_headers)
     assert info.status_code == 200
-    assert info.json()["mcp_url"].endswith(f"/api/v1/workspaces/{workspace_id}/mcp")
+    info_body = info.json()
+    assert info_body["mcp_url"].endswith(f"/api/v1/workspaces/{workspace_id}/mcp")
+    assert "basis-workspace" in info_body["cursor_example"]["mcpServers"]
 
     init = client.post(
         f"/api/v1/workspaces/{workspace_id}/mcp",
@@ -159,7 +161,7 @@ def test_mcp_tools_with_api_token(tmp_path) -> None:
         json={"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {}},
     )
     assert init.status_code == 200
-    assert init.json()["result"]["serverInfo"]["name"] == "basis-kb-mcp"
+    assert init.json()["result"]["serverInfo"]["name"] == "basis-workspace-mcp"
 
     tools = client.post(
         f"/api/v1/workspaces/{workspace_id}/mcp",
@@ -189,12 +191,12 @@ def test_mcp_tools_with_api_token(tmp_path) -> None:
     assert search["result"]["isError"] is False
     assert "Paris" in search["result"]["content"][0]["text"]
 
-    wrong_kb = client.post(
+    wrong_workspace = client.post(
         "/api/v1/workspaces/00000000-0000-0000-0000-000000000000/mcp",
         headers=api_headers,
         json={"jsonrpc": "2.0", "id": 4, "method": "ping", "params": {}},
     )
-    assert wrong_kb.status_code == 403
+    assert wrong_workspace.status_code == 403
 
     remember = client.post(
         f"/api/v1/workspaces/{workspace_id}/mcp",
@@ -251,7 +253,7 @@ def test_mcp_tools_with_api_token(tmp_path) -> None:
 
 def test_mcp_reject_review_item_entity_merge(tmp_path) -> None:
     """MCP reject_review_item matches HTTP reject for entity_merge proposals."""
-    if not kb_graph_runtime_available():
+    if not graph_runtime_available():
         pytest.skip("explorer extra not installed")
 
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
@@ -260,7 +262,7 @@ def test_mcp_reject_review_item_entity_merge(tmp_path) -> None:
         json={"email": "mcp-rej@example.com", "password": "password1", "display_name": "McpRej"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
 
     proposed = client.post(
         f"/api/v1/workspaces/{workspace_id}/review/items/entity-merge",
@@ -288,7 +290,7 @@ def test_mcp_busy_when_semaphore_saturated(tmp_path) -> None:
         json={"email": "busy@example.com", "password": "password1", "display_name": "Busy"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
 
     resp = client.post(
         f"/api/v1/workspaces/{workspace_id}/mcp",
@@ -306,7 +308,7 @@ def test_mcp_timeout(tmp_path) -> None:
         json={"email": "to@example.com", "password": "password1", "display_name": "To"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
 
     def slow_batch(*_args, **_kwargs):
         time.sleep(2)

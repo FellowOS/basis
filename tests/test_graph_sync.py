@@ -19,7 +19,7 @@ def test_sync_graph_to_ledger_keeps_imported_edge_across_rebuild(tmp_path: Path)
         json={"email": "sync@example.com", "password": "password1", "display_name": "Sync"},
     ).json()
     headers = {"Authorization": f"Bearer {admin['token']}"}
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
     knowledge: KnowledgeStore = client.app.state.knowledge_store
 
     session = GraphSession()

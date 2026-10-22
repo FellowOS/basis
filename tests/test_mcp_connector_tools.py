@@ -86,7 +86,7 @@ def test_mcp_tools_list_includes_dynamic_connector_tools(tmp_path: Path) -> None
         },
     ).json()
     headers = {"Authorization": f"Bearer {reg['token']}"}
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
 
     tools = client.post(
         f"/api/v1/workspaces/{workspace_id}/mcp",
@@ -103,7 +103,7 @@ def test_mcp_tools_list_includes_dynamic_connector_tools(tmp_path: Path) -> None
     assert "search_chunks" in info["tools"]
 
 
-def test_mcp_tools_list_respects_kb_action_policy(tmp_path: Path) -> None:
+def test_mcp_tools_list_respects_workspace_action_policy(tmp_path: Path) -> None:
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
     reg = client.post(
         "/api/v1/auth/register",
@@ -114,7 +114,7 @@ def test_mcp_tools_list_respects_kb_action_policy(tmp_path: Path) -> None:
         },
     ).json()
     headers = {"Authorization": f"Bearer {reg['token']}"}
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
 
     put = client.put(
         f"/api/v1/workspaces/{workspace_id}/connectors/policy",
@@ -169,7 +169,7 @@ def test_mcp_dynamic_connector_tool_call_list(tmp_path: Path) -> None:
         },
     ).json()
     headers = {"Authorization": f"Bearer {reg['token']}"}
-    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["kbs"][0]["id"]
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
 
     client.put(
         f"/api/v1/workspaces/{workspace_id}/connectors/connections/postgres/prim",

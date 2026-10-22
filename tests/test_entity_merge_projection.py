@@ -6,7 +6,7 @@ from basis.domain.knowledge.blob_store import BlobStore
 from basis.domain.knowledge.store import KnowledgeStore
 
 
-def _fixture_kb(store: KnowledgeStore, workspace_id: str, actor_id: str) -> tuple[str, str]:
+def _fixture_merge_entities(store: KnowledgeStore, workspace_id: str, actor_id: str) -> tuple[str, str]:
     _, version_id, _, _ = store.store_upload_bytes(
         workspace_id,
         title="t.txt",
@@ -41,7 +41,7 @@ def test_active_merge_collapses_entity_nodes(tmp_path: Path) -> None:
     admin.close()
 
     store = KnowledgeStore(tmp_path / "basis.db", BlobStore(tmp_path))
-    alice, bob = _fixture_kb(store, workspace_id, actor_id)
+    alice, bob = _fixture_merge_entities(store, workspace_id, actor_id)
 
     before = rebuild_graph_from_ledger(store, workspace_id)
     assert bob in graph_projection_signature(before)["node_ids"]
@@ -69,7 +69,7 @@ def test_revert_merge_restores_distinct_entities(tmp_path: Path) -> None:
     admin.close()
 
     store = KnowledgeStore(tmp_path / "basis.db", BlobStore(tmp_path))
-    alice, bob = _fixture_kb(store, workspace_id, actor_id)
+    alice, bob = _fixture_merge_entities(store, workspace_id, actor_id)
     row = store.record_entity_merge(
         workspace_id,
         source_entity_id=bob,
