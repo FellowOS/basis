@@ -15,7 +15,7 @@
 
 将文档、库表与 SaaS 对齐为**实体、类型与可治理事实**，在源系统之上形成可复用的共享语义，而不是另一套碎片索引。支持桌面、自托管与云端部署，通过 **OpenAPI v1** 与 **MCP** 对外集成；写回业务状态须经审核，而非裸调 API。
 
-Basis 是基于 [Semantica](https://github.com/semantica-agi/semantica) Python SDK 的开源底座：**FastAPI 后端**（`basis`）+ **React 工作台**（`@basis/web`）。**业务语义**（映射、本体、规则、SHACL）落在**证据账本**之上；图与搜索为**可重建投影**。
+Basis 是基于 [Semantica](https://github.com/semantica-agi/semantica) Python SDK 的开源底座。**业务语义**（映射、本体、规则、SHACL）落在**证据账本**之上；图与搜索为**可重建投影**。
 
 > **状态：** 仍在积极开发，接口可能变动；生产环境请固定发布版本。
 
@@ -28,12 +28,15 @@ Basis 是基于 [Semantica](https://github.com/semantica-agi/semantica) Python S
 
 - [能力概览](#能力概览)
 - [架构](#架构)
+- [部署方式](#部署方式)
+  - [桌面客户端](#桌面客户端)
+  - [自托管](#自托管)
+  - [托管云（SaaS）](#托管云saas)
 - [快速开始](#快速开始)
   - [环境](#环境)
   - [1. 克隆并启动 API](#1-克隆并启动-api)
   - [2. 启动 Web](#2-启动-web)
   - [3. 冒烟验证](#3-冒烟验证)
-  - [桌面版（可选、免登录）](#桌面版可选免登录)
 - [智能体集成（MCP）](#智能体集成mcp)
 - [产品定位](#产品定位)
 - [配置（常用）](#配置常用)
@@ -69,6 +72,33 @@ flowchart LR
 ```
 
 集成方应调用 **Basis**（`/api/v1/...` 与工作区 MCP），而非直接依赖 Semantica。
+
+## 部署方式
+
+同一套产品（API + 工作台），区别在**运行位置**；**OpenAPI v1** 与 **MCP** 契约在各模式下一致。
+
+### 桌面客户端
+
+**本机 Electron 应用**：内嵌 API + 工作台，数据目录 `~/.basis`；桌面配置可**免登录**，适合个人单机使用。
+
+- **开发：** `cd desktop && npm install && npm run dev`，打包与 macOS/Windows 说明见 [desktop/README.md](desktop/README.md)。
+- **配置：** `BASIS_DEPLOYMENT_PROFILE=desktop`（见 `profiles/profile.desktop.yaml`）。
+
+勿与已安装的桌面版同时跑开发 API——二者共用 `~/.basis/basis.db`。
+
+### 自托管
+
+由**你方运维**（内网、专有云或隔离环境均可）：平台账号、组织 SSO、工作区与备份策略自控。
+
+- **本地试用：** 下文 [快速开始](#快速开始)（`uv run basis` + `npm run dev`，SQLite）。
+- **生产：** PostgreSQL（`compose.postgres.yml`）、配置 `BASIS_DATABASE_URL`、反向代理 TLS、固定发布版本 — 见 [配置（常用）](#配置常用)。
+
+### 托管云（SaaS）
+
+**FellowOS 托管的多租户服务**：注册、运维与升级由我方负责；智能体仍通过工作区 **HTTP/MCP** 与令牌集成。
+
+托管能力逐步开放；如需试用或试点，请在 [GitHub Issues](https://github.com/FellowOS/basis/issues) 说明场景与我们联系。
+
 ## 快速开始
 
 ### 环境
@@ -107,9 +137,8 @@ cd web && npm install && npm run dev
 2. **Sources** 粘贴或上传短文，等待处理完成  
 3. 打开该工作区的 **Graph** 或 **Search**
 
-### 桌面版（可选、免登录）
+以上属于**自托管**开发路径。**桌面客户端**与**托管云**见 [部署方式](#部署方式)。
 
-见 [desktop/README.md](desktop/README.md)。
 ## 智能体集成（MCP）
 
 在工作区设置中创建 **API 令牌**。MCP 端点：

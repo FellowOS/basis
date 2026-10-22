@@ -15,7 +15,7 @@
 
 Map documents, databases, and SaaS to **entities, types, and governed facts**—the shared meaning layer above raw systems. Expose **OpenAPI v1** and **MCP** on desktop, self-hosted, or cloud; state changes go through review, not silent API calls.
 
-Basis is an open-source stack on the [Semantica](https://github.com/semantica-agi/semantica) Python SDK: a **FastAPI** backend (`basis`) and a **React studio** (`@basis/web`). **Business semantics**—mappings, ontologies, rules, SHACL—sit on a canonical **evidence ledger**; graph and search are **rebuildable projections**.
+Basis is an open-source stack on the [Semantica](https://github.com/semantica-agi/semantica) Python SDK. **Business semantics**—mappings, ontologies, rules, SHACL—sit on a canonical **evidence ledger**; graph and search are **rebuildable projections**.
 
 > **Status:** Under active development. APIs may change—use a pinned release in production.
 
@@ -28,12 +28,15 @@ Basis is an open-source stack on the [Semantica](https://github.com/semantica-ag
 
 - [Features](#features)
 - [Architecture](#architecture)
+- [Deployment](#deployment)
+  - [Desktop app](#desktop-app)
+  - [Self-hosted](#self-hosted)
+  - [Managed cloud](#managed-cloud)
 - [Quick start](#quick-start)
   - [Prerequisites](#prerequisites)
   - [1. Clone and configure API](#1-clone-and-configure-api)
   - [2. Run Web](#2-run-web)
   - [3. Smoke-test in the UI](#3-smoke-test-in-the-ui)
-  - [Desktop (optional, no login)](#desktop-optional-no-login)
 - [Agent integration (MCP)](#agent-integration-mcp)
 - [Why Basis](#why-basis)
 - [Configuration (essentials)](#configuration-essentials)
@@ -69,6 +72,33 @@ flowchart LR
 ```
 
 Integrations should call **Basis** (`/api/v1/...` and workspace MCP), not Semantica directly.
+
+## Deployment
+
+One product stack (API + studio). Pick **where** it runs—the **OpenAPI v1** and **MCP** contracts are the same across modes.
+
+### Desktop app
+
+**Local client** (Electron) for a single machine: API sidecar + studio, data under `~/.basis`, optional **no-login** desktop profile for personal use.
+
+- **Develop:** `cd desktop && npm install && npm run dev` — see [desktop/README.md](desktop/README.md) (packaging, macOS/Windows builds).
+- **Profile:** `BASIS_DEPLOYMENT_PROFILE=desktop` (see `profiles/profile.desktop.yaml`).
+
+Do not run a dev API and an installed desktop app at once—they share `~/.basis/basis.db`.
+
+### Self-hosted
+
+**You operate** the stack on your network or cloud VM (air-gapped OK): platform login, org SSO, workspaces, backups under your policies.
+
+- **Try locally:** [Quick start](#quick-start) below (`uv run basis` + `npm run dev`, SQLite).
+- **Production:** PostgreSQL (`compose.postgres.yml`), set `BASIS_DATABASE_URL`, TLS in front of API/Web, pin a release — [Configuration (essentials)](#configuration-essentials).
+
+### Managed cloud
+
+**FellowOS-hosted SaaS** — multi-tenant signup, operations, and upgrades on our side; integrate agents against the same workspace **HTTP/MCP** endpoints with your issued tokens.
+
+Hosted availability is rolling out; for access or pilots, open a [GitHub Issue](https://github.com/FellowOS/basis/issues) and describe your use case.
+
 ## Quick start
 
 ### Prerequisites
@@ -107,9 +137,8 @@ In-app product docs: **`http://127.0.0.1:5173/docs`** · API explorer: **`http:/
 2. **Sources** — paste or upload a short text file; wait for processing.
 3. Open **Graph** or **Search** for that workspace.
 
-### Desktop (optional, no login)
+This path is **self-hosted** dev. For the **desktop app** or **managed cloud**, see [Deployment](#deployment).
 
-See [desktop/README.md](desktop/README.md): `BASIS_DEPLOYMENT_PROFILE=desktop`, `npm run dev:desktop`, or Electron via `cd desktop && npm run dev`.
 ## Agent integration (MCP)
 
 Create a **workspace API token** (workspace settings → Tokens). MCP endpoint:
