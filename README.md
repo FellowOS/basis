@@ -17,7 +17,7 @@ Map documents, databases, and SaaS to **entities, types, and governed facts**—
 
 Basis is an open-source stack on the [Semantica](https://github.com/semantica-agi/semantica) Python SDK: a **FastAPI** backend (`basis`) and a **React studio** (`@basis/web`). **Business semantics**—mappings, ontologies, rules, SHACL—sit on a canonical **evidence ledger**; graph and search are **rebuildable projections**.
 
-> **Status:** Early development (`0.1.x`). HTTP and MCP surfaces are stabilizing; pin releases for production pilots.
+> **Status:** Under active development. APIs may change—use a pinned release in production.
 
 ## Table of contents
 

@@ -17,7 +17,7 @@
 
 Basis 是基于 [Semantica](https://github.com/semantica-agi/semantica) Python SDK 的开源底座：**FastAPI 后端**（`basis`）+ **React 工作台**（`@basis/web`）。**业务语义**（映射、本体、规则、SHACL）落在**证据账本**之上；图与搜索为**可重建投影**。
 
-> **状态：** 早期开发（`0.1.x`）。HTTP / MCP 契约仍在收敛；生产试点请锁定版本。
+> **状态：** 仍在积极开发，接口可能变动；生产环境请固定发布版本。
 
 ## 目录
 
