@@ -51,6 +51,6 @@ export default {
     loading: "Loading decisions…"
   },
   menu: {
-    decisions: "Graph decisions"
+    decisions: "Decisions"
   }
 } as const;

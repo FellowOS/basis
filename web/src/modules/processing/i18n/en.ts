@@ -35,6 +35,6 @@ export default {
     subtitle: "Extract, chunk, and project jobs; start from source versions and retry failures.",
   },
   menu: {
-    processing: "Processing jobs",
+    processing: "Jobs",
   },
 } as const;

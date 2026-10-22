@@ -26,6 +26,6 @@ export default {
     view_entities: "View entities",
   },
   menu: {
-    data_ontology_wizard: "Data & ontology setup",
+    data_ontology_wizard: "Setup wizard",
   },
 } as const;

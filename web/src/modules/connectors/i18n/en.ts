@@ -46,7 +46,7 @@ export default {
     },
     mappings: {
       title: "Connector table mappings",
-      subtitle: "Map external rows (SQL tables or SaaS streams) into ledger entities — distinct from Ontology & semantics → Ontology statement mappings (text → predicates).",
+      subtitle: "Map external rows (SQL tables or SaaS streams) into ledger entities — distinct from Semantics → Statement mappings (text → predicates).",
       create_button: "New connector mapping",
       wizard_link: "Data & ontology wizard",
       suggest_button: "Suggest cross-stream mappings",
@@ -160,8 +160,8 @@ export default {
   },
   menu: {
     connectors: "Connectors",
-    connector_catalog: "Catalog & connections",
-    connector_stream_mappings: "Connector table mappings",
+    connector_catalog: "Connections",
+    connector_stream_mappings: "Table sync",
     connector_action_policy: "Action policy",
     connector_run_logs: "Run logs",
   },

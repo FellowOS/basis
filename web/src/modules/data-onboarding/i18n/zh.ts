@@ -26,6 +26,6 @@ export default {
     view_entities: "查看实体",
   },
   menu: {
-    data_ontology_wizard: "数据与本体向导",
+    data_ontology_wizard: "接入向导",
   },
 } as const;

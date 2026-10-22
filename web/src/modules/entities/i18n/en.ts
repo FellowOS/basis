@@ -3,7 +3,7 @@ export default {
     subtitle: "Search ledger entities and open a row for statements and derived facts. The rail lists what reasoning wrote back."
   },
   menu: {
-    entities: "Ledger entities"
+    entities: "Ledger"
   },
   ledger: {
     open_evidence: "Evidence",

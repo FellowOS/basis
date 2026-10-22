@@ -33,6 +33,6 @@ export default {
     subtitle: "Scan duplicate entity candidates; merge locally or enqueue for review.",
   },
   menu: {
-    entity_resolution: "Entity resolution",
+    entity_resolution: "Resolution",
   },
 } as const;

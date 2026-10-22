@@ -1,7 +1,7 @@
 export default {
   page: {
     page_title: "本体抽取映射",
-    page_subtitle: "将文本中的表面签名映射到谓词 URI（抽取）。外部行 → 账本请使用「数据接入 → 连接器表映射」。",
+    page_subtitle: "将文本中的表面签名映射到谓词 URI（抽取）。外部行 → 账本请使用「数据接入 → 表同步」。",
     refresh: "刷新",
     new_mapping: "新建映射",
     section_mappings: "本体抽取映射",
@@ -48,6 +48,6 @@ export default {
     status_approved: "已批准",
   },
   menu: {
-    mappings: "本体抽取映射",
+    mappings: "抽取映射",
   },
 } as const;

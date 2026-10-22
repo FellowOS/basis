@@ -110,6 +110,6 @@ export default {
     subtitle: "SPARQL queries and rule reasoning against this workspace."
   },
   menu: {
-    analyze: "Query & reasoning"
+    analyze: "Query & rules"
   }
 } as const;

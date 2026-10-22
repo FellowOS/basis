@@ -1,7 +1,7 @@
 export default {
   page: {
     page_title: "Ontology statement mappings",
-    page_subtitle: "Map surface signatures in text to predicate URIs (extraction). For external rows → ledger, use Connections → Connector table mappings.",
+    page_subtitle: "Map surface signatures in text to predicate URIs (extraction). For external rows → ledger, use Connections → Table sync.",
     refresh: "Refresh",
     new_mapping: "New mapping",
     section_mappings: "Ontology statement mappings",
@@ -48,6 +48,6 @@ export default {
     status_approved: "Approved",
   },
   menu: {
-    mappings: "Ontology statement mappings",
+    mappings: "Statement mappings",
   },
 } as const;
