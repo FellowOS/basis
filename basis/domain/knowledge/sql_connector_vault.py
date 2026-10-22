@@ -74,38 +74,52 @@ class ConnectorVaultPersistence:
         workspace_id: str,
         service: str,
         connection_name: str,
+        *,
+        connection_scope: str = "workspace",
+        subject_id: str = "",
     ) -> Any:
         return self._db.execute(
             """
             SELECT auth_type, connection_config_json, value_encrypted,
-                   account_profile_json, revision, updated_at
+                   account_profile_json, revision, updated_at,
+                   connection_scope, subject_id
             FROM connector_connections
             WHERE workspace_id = ? AND service = ? AND connection_name = ?
+              AND connection_scope = ? AND subject_id = ?
             """,
-            (workspace_id, service, connection_name),
+            (workspace_id, service, connection_name, connection_scope, subject_id),
         ).fetchone()
 
-    def list_connection_rows(self, workspace_id: str, *, service: str | None = None) -> list[Any]:
+    def list_connection_rows(
+        self,
+        workspace_id: str,
+        *,
+        service: str | None = None,
+        connection_scope: str | None = None,
+        subject_id: str | None = None,
+    ) -> list[Any]:
+        clauses = ["workspace_id = ?"]
+        params: list[Any] = [workspace_id]
         if service:
-            return self._db.execute(
-                """
-                SELECT service, connection_name, auth_type, connection_config_json,
-                       value_encrypted, account_profile_json, revision, updated_at
-                FROM connector_connections
-                WHERE workspace_id = ? AND service = ?
-                ORDER BY service, connection_name
-                """,
-                (workspace_id, service),
-            ).fetchall()
+            clauses.append("service = ?")
+            params.append(service)
+        if connection_scope is not None:
+            clauses.append("connection_scope = ?")
+            params.append(connection_scope)
+        if subject_id is not None:
+            clauses.append("subject_id = ?")
+            params.append(subject_id)
+        where = " AND ".join(clauses)
         return self._db.execute(
-            """
+            f"""
             SELECT service, connection_name, auth_type, connection_config_json,
-                   value_encrypted, account_profile_json, revision, updated_at
+                   value_encrypted, account_profile_json, revision, updated_at,
+                   connection_scope, subject_id
             FROM connector_connections
-            WHERE workspace_id = ?
-            ORDER BY service, connection_name
+            WHERE {where}
+            ORDER BY service, connection_name, connection_scope, subject_id
             """,
-            (workspace_id,),
+            tuple(params),
         ).fetchall()
 
     def upsert_connection(
@@ -114,6 +128,8 @@ class ConnectorVaultPersistence:
         workspace_id: str,
         service: str,
         connection_name: str,
+        connection_scope: str,
+        subject_id: str,
         auth_type: str,
         connection_config_json: str,
         value_encrypted: str,
@@ -124,11 +140,13 @@ class ConnectorVaultPersistence:
         self._db.execute(
             """
             INSERT INTO connector_connections (
-                workspace_id, service, connection_name, auth_type,
-                connection_config_json, value_encrypted, account_profile_json,
+                workspace_id, service, connection_name, connection_scope, subject_id,
+                auth_type, connection_config_json, value_encrypted, account_profile_json,
                 revision, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ON CONFLICT(workspace_id, service, connection_name) DO UPDATE SET
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(
+                workspace_id, service, connection_name, connection_scope, subject_id
+            ) DO UPDATE SET
                 auth_type = excluded.auth_type,
                 connection_config_json = excluded.connection_config_json,
                 value_encrypted = excluded.value_encrypted,
@@ -140,6 +158,8 @@ class ConnectorVaultPersistence:
                 workspace_id,
                 service,
                 connection_name,
+                connection_scope,
+                subject_id,
                 auth_type,
                 connection_config_json,
                 value_encrypted,
@@ -150,10 +170,22 @@ class ConnectorVaultPersistence:
         )
         self._db.commit()
 
-    def delete_connection(self, workspace_id: str, service: str, connection_name: str) -> int:
+    def delete_connection(
+        self,
+        workspace_id: str,
+        service: str,
+        connection_name: str,
+        *,
+        connection_scope: str = "workspace",
+        subject_id: str = "",
+    ) -> int:
         cur = self._db.execute(
-            "DELETE FROM connector_connections WHERE workspace_id = ? AND service = ? AND connection_name = ?",
-            (workspace_id, service, connection_name),
+            """
+            DELETE FROM connector_connections
+            WHERE workspace_id = ? AND service = ? AND connection_name = ?
+              AND connection_scope = ? AND subject_id = ?
+            """,
+            (workspace_id, service, connection_name, connection_scope, subject_id),
         )
         self._db.commit()
         return int(cur.rowcount if cur.rowcount is not None and cur.rowcount >= 0 else 0)

@@ -69,15 +69,19 @@ export function formatUserFacingApiError(
   const meta = err as Error & ApiErrorLike;
   const code = meta.code;
   const requestId = meta.requestId;
+  const detailText = err.message.trim();
+  const detailSep = locale === 'zh' ? '：' : ': ';
   if (code) {
     const mapped = lookupApiErrorCode(locale, code);
     if (mapped) {
-      return withRequestIdSuffix(mapped, requestId, locale);
+      const text = detailText ? `${mapped}${detailSep}${detailText}` : mapped;
+      return withRequestIdSuffix(text, requestId, locale);
     }
   }
   if (code?.trim()) {
     const mapped = messageForApiErrorCode(code, locale) ?? fallback;
-    return withRequestIdSuffix(mapped, requestId, locale);
+    const text = detailText ? `${mapped}${detailSep}${detailText}` : mapped;
+    return withRequestIdSuffix(text, requestId, locale);
   }
   if (err.message.trim()) {
     return withRequestIdSuffix(err.message, requestId, locale);

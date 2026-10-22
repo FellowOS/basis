@@ -37,11 +37,10 @@ export function errorFromApiResponse(
     || (status === 401 || status === 403
       ? messagesForLocale(resolvedLocale).core.common.signInRequired
       : requestFailedStatusMessage(resolvedLocale, status));
-  // When the API sends a stable code, UI should map via the registry — not show raw server text.
+  const serverMessage = detail.message?.trim();
+  // When the API sends a stable code, UI maps via the registry; keep server detail for append.
   const err = new Error(
-    detail.code
-      ? ''
-      : (detail.message?.trim() || defaultMessage),
+    detail.code ? (serverMessage || '') : (serverMessage || defaultMessage),
   );
   const meta = err as ApiErrorWithMeta;
   meta.status = status;

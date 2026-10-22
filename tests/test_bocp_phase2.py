@@ -394,6 +394,7 @@ def test_oauth2_code_exchange_and_tool_execution(tmp_path: Path) -> None:
             "kb1",
             "github",
             code="auth_code_abc",
+            code_verifier="pkce_verifier_test",
             connection_name="oauth_conn",
             http_client=mock_client,
         )

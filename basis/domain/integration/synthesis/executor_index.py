@@ -5,6 +5,8 @@ from __future__ import annotations
 import json
 from typing import Any
 
+from basis.domain.integration.adapters.mail.actions import is_mail_action
+from basis.domain.integration.adapters.mail.credentials import MAIL_CREDENTIAL_READERS
 from basis.domain.integration.synthesis.paths import executor_index_path
 
 
@@ -19,8 +21,11 @@ def _load_index() -> dict[str, Any]:
     return data if isinstance(data, dict) else {}
 
 
-def invoke_wire_for_action(service: str, action_id: str) -> dict[str, str] | None:
-    """Return ``{"method": "GET|POST|...", "path": "/..."}`` when known."""
+def invoke_wire_for_action(service: str, action_id: str) -> dict[str, Any] | None:
+    """Return REST wire ``{"method", "path"}`` or mail ``{"adapter": "mail", "action"}``."""
+    mail_wire = _mail_invoke_wire(service, action_id)
+    if mail_wire is not None:
+        return mail_wire
     index = _load_index()
     by_service = index.get(service)
     if isinstance(by_service, dict):
@@ -43,3 +48,12 @@ def invoke_wire_for_action(service: str, action_id: str) -> dict[str, str] | Non
 
         return jira_invoke_wire(action_id)
     return None
+
+
+def _mail_invoke_wire(service: str, action_id: str) -> dict[str, Any] | None:
+    if service not in MAIL_CREDENTIAL_READERS:
+        return None
+    short = action_id.split(".")[-1]
+    if not is_mail_action(short):
+        return None
+    return {"adapter": "mail", "action": short}

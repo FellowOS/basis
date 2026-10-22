@@ -105,8 +105,8 @@ def test_provider_rest_bundle_requires_openapi(tmp_path: Path) -> None:
 def test_connector_catalog_loads_shipped_providers_from_disk() -> None:
     catalog = get_connector_catalog()
     stats = catalog.summary_stats()
-    assert stats["providers"] == 8
-    assert stats["providers_with_streams"] == 7
+    assert stats["providers"] == 4
+    assert stats["providers_with_streams"] == 3
 
     pg = catalog.get("postgres")
     assert pg is not None
@@ -144,7 +144,7 @@ def test_connector_catalog_loads_shipped_providers_from_disk() -> None:
 
 def test_shipped_connector_yaml_matches_manifest_wire_payload() -> None:
     """On-disk ``connector.yaml`` for shipped providers follows ``manifest_wire_payload`` layout."""
-    for name in ("github", "postgres", "mysql", "slack", "notion"):
+    for name in ("github", "postgres", "mysql"):
         providers_root = default_providers_dir()
         manifest_path = provider_manifest_path(providers_root, name)
         loaded = load_provider_bundle(manifest_path)
@@ -160,12 +160,6 @@ def test_shipped_connector_yaml_matches_manifest_wire_payload() -> None:
         if name == "github":
             assert len(loaded.manifest.entity_actions()) == 2
             assert len(loaded.manifest.procedure_actions()) == 1
-        elif name == "slack":
-            assert len(loaded.manifest.procedure_actions()) >= 20
-            assert not loaded.manifest.entity_actions()
-        elif name == "notion":
-            assert len(loaded.manifest.entity_actions()) == 1
-            assert loaded.manifest.entity_actions()[0].id == "database_pages"
         else:
             assert all(a.kind == "entity" for a in loaded.manifest.actions)
 

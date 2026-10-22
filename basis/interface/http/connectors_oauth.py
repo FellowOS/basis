@@ -29,6 +29,27 @@ from basis.interface.http.connectors_support import runtime_for
 
 router = APIRouter(tags=["workspaces"])
 
+
+@router.get("/{workspace_id}/connectors/oauth-configs/{service}")
+async def get_connector_oauth_config(
+    workspace_id: str,
+    service: str,
+    request: Request,
+    user: User = Depends(get_current_user),
+    store: AdminStore = Depends(get_store),
+    knowledge: KnowledgeStore = Depends(get_knowledge_store),
+) -> dict[str, Any]:
+    """Return OAuth2 app metadata for editors (client_secret is never exposed)."""
+    get_workspace_for_editor(request, user, workspace_id, store)
+    if not get_connector_catalog().get(service):
+        raise AdminError(404, "connector_not_found", f"未知的连接器服务: {service}")
+    rt = runtime_for(knowledge)
+    public = rt.vault.get_oauth_config_public(workspace_id, service)
+    if not public:
+        raise AdminError(404, "oauth_config_not_found", f"OAuth2 not configured for {service}")
+    return {"oauth_config": public}
+
+
 @router.put("/{workspace_id}/connectors/oauth-configs/{service}")
 async def upsert_connector_oauth_config(
     workspace_id: str,
@@ -44,11 +65,23 @@ async def upsert_connector_oauth_config(
     if not get_connector_catalog().get(service):
         raise AdminError(404, "connector_not_found", f"未知的连接器服务: {service}")
     rt = runtime_for(knowledge)
+    existing = rt.vault.get_oauth_config(workspace_id, service)
+    secret = (body.client_secret or "").strip()
+    if not secret:
+        prior = str((existing or {}).get("client_secret") or "").strip()
+        if prior:
+            secret = prior
+        else:
+            raise AdminError(
+                422,
+                "oauth_client_secret_required",
+                "OAuth2 client_secret is required when no secret is stored yet",
+            )
     saved = rt.vault.upsert_oauth_config(
         workspace_id,
         service,
         client_id=body.client_id,
-        client_secret=body.client_secret,
+        client_secret=secret,
         redirect_uri=body.redirect_uri,
         extra=body.extra,
     )
@@ -108,6 +141,8 @@ async def exchange_connector_oauth_code(
             redirect_uri=body.redirect_uri,
             code_verifier=body.code_verifier,
             connection_name=body.connection_name,
+            connection_scope=body.connection_scope,
+            subject_id=body.subject_id,
             connection_config=body.connection_config,
             http_client=http_client,
         )

@@ -12,7 +12,26 @@ export type StoredConnection = {
   revision: number;
   updated_at: string;
   has_credentials: boolean;
+  connection_scope?: 'workspace' | 'end_user';
+  subject_id?: string | null;
 };
+
+/** Workspace-scoped connections grouped by connector service (catalog cards). */
+export function workspaceConnectionsByService(
+  connections: StoredConnection[],
+): Map<string, StoredConnection[]> {
+  const map = new Map<string, StoredConnection[]>();
+  for (const conn of connections) {
+    const scope = conn.connection_scope ?? 'workspace';
+    if (scope !== 'workspace') {
+      continue;
+    }
+    const list = map.get(conn.service) ?? [];
+    list.push(conn);
+    map.set(conn.service, list);
+  }
+  return map;
+}
 
 const CONNECTION_KEY_SEP = '\u001f';
 

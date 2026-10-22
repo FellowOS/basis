@@ -18,6 +18,8 @@ class UpsertConnectorConnectionRequest(BaseModel):
     auth_type: str = Field(min_length=1)
     connection_config: dict[str, Any] = Field(default_factory=dict)
     credentials: dict[str, Any] = Field(default_factory=dict)
+    connection_scope: Literal["workspace", "end_user"] = "workspace"
+    subject_id: str | None = None
 
 
 class UpdateTableMappingRequest(BaseModel):
@@ -108,7 +110,7 @@ class ProposeEntityWritebackRequest(BaseModel):
 
 class UpsertOAuthConfigRequest(BaseModel):
     client_id: str = Field(min_length=1)
-    client_secret: str = Field(min_length=1)
+    client_secret: str | None = None
     redirect_uri: str | None = None
     extra: dict[str, Any] = Field(default_factory=dict)
 
@@ -120,11 +122,31 @@ class BuildOAuthAuthorizeUrlRequest(BaseModel):
     code_challenge: str | None = None
 
 
+class IntegrationUpsertConnectionRequest(BaseModel):
+    """End-user connection upsert for ``/integration/connections``."""
+
+    subject_id: str = Field(min_length=1)
+    auth_type: str = Field(min_length=1)
+    connection_config: dict[str, Any] = Field(default_factory=dict)
+    credentials: dict[str, Any] = Field(default_factory=dict)
+
+
+class IntegrationOAuthAuthorizeRequest(BaseModel):
+    subject_id: str = Field(min_length=1)
+    state: str | None = None
+    redirect_uri: str | None = None
+    connection_config: dict[str, Any] = Field(default_factory=dict)
+    code_challenge: str | None = None
+
+
 class ExchangeOAuthCodeRequest(BaseModel):
     code: str = Field(min_length=1)
     redirect_uri: str | None = None
     code_verifier: str | None = None
+    state: str | None = None
     connection_name: str = Field(default="default", min_length=1)
+    connection_scope: Literal["workspace", "end_user"] = "workspace"
+    subject_id: str | None = None
     connection_config: dict[str, Any] = Field(default_factory=dict)
 
 
@@ -137,6 +159,8 @@ class ExecuteConnectorToolRequest(BaseModel):
 
 class InvokeConnectorPrimitiveRequest(BaseModel):
     action_id: str = Field(min_length=1)
+    connection_scope: Literal["workspace", "end_user"] = "workspace"
+    subject_id: str | None = None
     primitive: Literal["discover", "list", "mutate", "invoke"]
     operation: Literal["create", "update", "upsert", "delete"] | None = None
     external_table: str | None = None

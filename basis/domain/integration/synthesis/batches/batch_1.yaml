@@ -4,6 +4,6 @@ ship_tier_default: beta
 services:
   - slack
   - notion
-# Procedures from AnyConnect catalog (+ invoke map); auth from Nango — no slack.py generator.
+# Procedures from AnyConnect catalog (+ invoke map); auth from providers registry — no slack.py generator.
 catalog_procedures_only:
   - slack

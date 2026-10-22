@@ -17,6 +17,7 @@ class ProviderBatch:
     ship_tier_default: str
     services: list[str]
     catalog_procedures_only: frozenset[str] = frozenset()
+    prefer_anyconnect_procedures: bool = True
 
 
 def load_batch(batch_id: int) -> ProviderBatch:
@@ -32,6 +33,9 @@ def load_batch(batch_id: int) -> ProviderBatch:
     catalog_only = raw.get("catalog_procedures_only") or []
     if not isinstance(catalog_only, list):
         catalog_only = []
+    prefer_ac = raw.get("prefer_anyconnect_procedures")
+    if prefer_ac is None:
+        prefer_ac = True
     return ProviderBatch(
         id=int(raw.get("id", batch_id)),
         name=str(raw.get("name") or f"batch_{batch_id}"),
@@ -40,6 +44,7 @@ def load_batch(batch_id: int) -> ProviderBatch:
         catalog_procedures_only=frozenset(
             str(s).strip().lower() for s in catalog_only
         ),
+        prefer_anyconnect_procedures=bool(prefer_ac),
     )
 
 

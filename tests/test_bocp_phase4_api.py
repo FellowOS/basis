@@ -60,17 +60,9 @@ def test_connectors_http_endpoints_and_review_writeback_flow(tmp_path: Path) -> 
     )
     assert cat_resp.status_code == 200
     cat_data = cat_resp.json()
-    assert cat_data["stats"]["providers"] == 8
+    assert cat_data["stats"]["providers"] == 4
     services = {c["service"] for c in cat_data["connectors"]}
-    assert services == {
-        "github",
-        "gitlab",
-        "hubspot",
-        "jira",
-        "mysql",
-        "notion",
-        "postgres",
-    }
+    assert services == {"github", "mysql", "postgres"}
 
     # 4. Create Connection & Run CHECK + DISCOVER
     put_conn = client.put(

@@ -22,30 +22,41 @@ PROVIDERS_OUT_DIR = REPO_ROOT / "basis" / "domain" / "integration" / "providers"
 
 def _services_from_args(
     args: argparse.Namespace,
-) -> tuple[list[tuple[str, str | None]], frozenset[str]]:
-    """Return (service, ship_tier) pairs and catalog-only procedure services."""
+) -> tuple[list[tuple[str, str | None]], frozenset[str], bool]:
+    """Return (service, ship_tier) pairs, catalog-only services, prefer AnyConnect."""
     if args.batch is not None:
         batch = load_batch(args.batch)
         tier = batch.ship_tier_default
-        return [(s, tier) for s in batch.services], batch.catalog_procedures_only
+        return (
+            [(s, tier) for s in batch.services],
+            batch.catalog_procedures_only,
+            batch.prefer_anyconnect_procedures,
+        )
     if args.services:
         tier = args.tier
         pairs = [
             (s.strip().lower(), tier) for s in args.services.split(",") if s.strip()
         ]
-        return pairs, frozenset()
+        return pairs, frozenset(), True
     if args.all_batches:
         pairs: list[tuple[str, str | None]] = []
         catalog_only: set[str] = set()
+        prefer_ac = True
         for path in list_batch_files():
             batch_id = int(path.stem.split("_", 1)[1])
             batch = load_batch(batch_id)
             pairs.extend((s, batch.ship_tier_default) for s in batch.services)
             catalog_only |= set(batch.catalog_procedures_only)
-        return pairs, frozenset(catalog_only)
+            if not batch.prefer_anyconnect_procedures:
+                prefer_ac = False
+        return pairs, frozenset(catalog_only), prefer_ac
     # Default: legacy generators only (batch 0 services).
     batch = load_batch(0)
-    return [(s, batch.ship_tier_default) for s in batch.services], batch.catalog_procedures_only
+    return (
+        [(s, batch.ship_tier_default) for s in batch.services],
+        batch.catalog_procedures_only,
+        batch.prefer_anyconnect_procedures,
+    )
 
 
 def build_manifests(
@@ -53,6 +64,7 @@ def build_manifests(
     *,
     synthesize: bool,
     catalog_procedures_only: frozenset[str] = frozenset(),
+    prefer_anyconnect_procedures: bool = True,
 ) -> list[ConnectorManifest]:
     manifests: list[ConnectorManifest] = []
     for service, tier in service_tiers:
@@ -62,6 +74,7 @@ def build_manifests(
                     service,
                     ship_tier=tier,
                     catalog_procedures_only=service in catalog_procedures_only,
+                    prefer_anyconnect_procedures=prefer_anyconnect_procedures,
                 )
             )
         else:
@@ -102,7 +115,7 @@ def main() -> None:
         "--synthesize",
         action="store_true",
         default=True,
-        help="Merge Nango/AnyConnect overlays (default: on)",
+        help="Merge registry/AnyConnect overlays (default: on)",
     )
     parser.add_argument(
         "--no-synthesize",
@@ -122,11 +135,12 @@ def main() -> None:
             print(name)
         return
 
-    service_tiers, catalog_only = _services_from_args(args)
+    service_tiers, catalog_only, prefer_ac = _services_from_args(args)
     manifests = build_manifests(
         service_tiers,
         synthesize=args.synthesize,
         catalog_procedures_only=catalog_only,
+        prefer_anyconnect_procedures=prefer_ac,
     )
     PROVIDERS_OUT_DIR.mkdir(parents=True, exist_ok=True)
     for manifest in manifests:

@@ -28,7 +28,7 @@ def _bootstrap_sql_files() -> list[Path]:
     if not root.is_dir():
         return []
     files: list[Path] = []
-    for path in root.glob("*.sql"):
+    for path in root.glob("0001_*.sql"):
         if _MIGRATION_NAME.match(path.name):
             files.append(path)
     files.sort(key=lambda p: int(p.name[:4]))

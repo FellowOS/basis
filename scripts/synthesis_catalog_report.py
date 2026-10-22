@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
-"""Report AnyConnect + Nango coverage for provider synthesis (no per-service Python)."""
+"""Report OpenConnector catalog + providers-registry coverage for synthesis."""
 
 from __future__ import annotations
 
-import json
 import sys
 from pathlib import Path
 
@@ -13,25 +12,33 @@ if str(REPO_ROOT) not in sys.path:
 
 from basis.domain.integration.synthesis.anyconnect_catalog import load_anyconnect_procedures
 from basis.domain.integration.synthesis.executor_index import invoke_wire_for_action
-from basis.domain.integration.synthesis.nango_auth import load_nango_provider_raw
-from basis.domain.integration.synthesis.paths import anyconnect_catalog_dir, nango_providers_yaml
+from basis.domain.integration.synthesis.paths import (
+    connector_catalog_dir,
+    open_connector_catalog_dir,
+    providers_registry_yaml,
+)
+from basis.domain.integration.synthesis.providers_registry_auth import (
+    load_provider_registry_block,
+)
 
 
 def main() -> None:
-    ac_dir = anyconnect_catalog_dir()
-    nango = nango_providers_yaml()
-    print(f"anyconnect_catalog={ac_dir or 'missing'}")
-    print(f"nango_providers={nango or 'missing'}")
+    ac_dir = connector_catalog_dir()
+    oc_dir = open_connector_catalog_dir()
+    registry = providers_registry_yaml()
+    print(f"open_connector_catalog={oc_dir or 'missing'}")
+    print(f"connector_catalog_effective={ac_dir or 'missing'}")
+    print(f"providers_registry={registry or 'missing'}")
     if ac_dir is None:
         sys.exit(1)
     services = sorted(p.stem.replace("-", "_") for p in ac_dir.glob("*.json"))
-    nango_hits = 0
+    registry_hits = 0
     invoke_ready = 0
     total_actions = 0
     for service in services:
-        has_nango = load_nango_provider_raw(service) is not None
-        if has_nango:
-            nango_hits += 1
+        has_registry = load_provider_registry_block(service) is not None
+        if has_registry:
+            registry_hits += 1
         loaded = load_anyconnect_procedures(service)
         if not loaded:
             continue
@@ -41,7 +48,7 @@ def main() -> None:
             if invoke_wire_for_action(service, proc.id):
                 invoke_ready += 1
     print(f"catalog_services={len(services)}")
-    print(f"nango_auth_hits={nango_hits}")
+    print(f"registry_auth_hits={registry_hits}")
     print(f"catalog_procedure_actions={total_actions}")
     print(f"invoke_wire_known={invoke_ready}")
 

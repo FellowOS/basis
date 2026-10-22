@@ -7,6 +7,7 @@ from typing import Any
 from fastapi import APIRouter, Depends, Query, Request
 
 from basis.domain.integration import get_connector_catalog
+from basis.domain.integration.connection_scope import SCOPE_END_USER
 from basis.domain.integration.primitive_invoke import execute_connector_primitive
 from basis.domain.errors import AdminError
 from basis.domain.tenancy.admin.store import AdminStore, User
@@ -26,11 +27,14 @@ from basis.interface.http.connectors_support import runtime_for
 
 router = APIRouter(tags=["workspaces"])
 
+
 @router.get("/{workspace_id}/connectors/connections")
 async def list_connector_connections(
     workspace_id: str,
     request: Request,
     service: str | None = Query(default=None),
+    connection_scope: str | None = Query(default=None),
+    subject_id: str | None = Query(default=None),
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
@@ -38,7 +42,12 @@ async def list_connector_connections(
     """List configured BOCP connections for this workspace (credentials redacted)."""
     get_workspace_for_viewer(request, user, workspace_id, store)
     rt = runtime_for(knowledge)
-    conns = rt.vault.list_connections(workspace_id, service=service)
+    conns = rt.vault.list_connections(
+        workspace_id,
+        service=service,
+        connection_scope=connection_scope,
+        subject_id=subject_id,
+    )
     return {"connections": [c.to_public_dict() for c in conns]}
 
 
@@ -57,11 +66,15 @@ async def upsert_connector_connection(
     get_workspace_for_editor(request, user, workspace_id, store)
     if not get_connector_catalog().get(service):
         raise AdminError(404, "connector_not_found", f"未知的连接器服务: {service}")
+    if body.connection_scope == SCOPE_END_USER and not (body.subject_id or "").strip():
+        raise AdminError(422, "subject_id_required", "end_user 连接需要 subject_id")
     rt = runtime_for(knowledge)
     stored = rt.vault.upsert_connection(
         workspace_id,
         service,
         connection_name=connection_name,
+        connection_scope=body.connection_scope,
+        subject_id=body.subject_id,
         auth_type=body.auth_type,
         connection_config=body.connection_config,
         credentials=body.credentials,
@@ -75,6 +88,8 @@ async def delete_connector_connection(
     service: str,
     connection_name: str,
     request: Request,
+    connection_scope: str = Query(default="workspace"),
+    subject_id: str | None = Query(default=None),
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
@@ -82,7 +97,13 @@ async def delete_connector_connection(
     """Delete a configured BOCP connection from this workspace."""
     get_workspace_for_editor(request, user, workspace_id, store)
     rt = runtime_for(knowledge)
-    deleted = rt.vault.delete_connection(workspace_id, service, connection_name=connection_name)
+    deleted = rt.vault.delete_connection(
+        workspace_id,
+        service,
+        connection_name=connection_name,
+        connection_scope=connection_scope,
+        subject_id=subject_id,
+    )
     if not deleted:
         raise AdminError(404, "connection_not_found", "连接不存在")
     return {"deleted": True}
@@ -94,6 +115,8 @@ async def check_connector_connection(
     service: str,
     connection_name: str,
     request: Request,
+    connection_scope: str = Query(default="workspace"),
+    subject_id: str | None = Query(default=None),
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
     knowledge: KnowledgeStore = Depends(get_knowledge_store),
@@ -102,7 +125,13 @@ async def check_connector_connection(
     get_workspace_for_editor(request, user, workspace_id, store)
     rt = runtime_for(knowledge)
     try:
-        profile = rt.check_connection(workspace_id, service, connection_name=connection_name)
+        profile = rt.check_connection(
+            workspace_id,
+            service,
+            connection_name=connection_name,
+            connection_scope=connection_scope,
+            subject_id=subject_id,
+        )
         return {"ok": True, "profile": profile}
     except LookupError as exc:
         raise AdminError(404, "connection_not_found", str(exc)) from exc
@@ -178,6 +207,8 @@ async def invoke_connector_primitive(
             action_id=body.action_id,
             primitive=body.primitive,
             connection_name=connection_name,
+            connection_scope=body.connection_scope,
+            subject_id=body.subject_id,
             operation=body.operation,
             external_table=body.external_table,
             external_id=body.external_id,

@@ -6,7 +6,9 @@ from pathlib import Path
 
 import httpx
 
-from basis.domain.integration import ConnectorAuthVault, ConnectorRuntime
+import pytest
+
+from basis.domain.integration import ConnectorAuthVault, ConnectorRuntime, get_connector_catalog
 from basis.domain.integration.primitive_invoke import execute_connector_primitive
 from basis.infra.tooling.db.sqlite_migrations import run_migrations
 
@@ -34,6 +36,8 @@ def _setup_workspace_db(tmp_path: Path):
 
 
 def test_slack_post_message_invoke_uses_form_body(tmp_path: Path) -> None:
+    if not get_connector_catalog().get("slack"):
+        pytest.skip("slack provider not shipped")
     captured: list[httpx.Request] = []
 
     def handler(request: httpx.Request) -> httpx.Response:

@@ -128,6 +128,11 @@ class AuthSpec(BocpModel):
     """Primitive 1: Authentication mode, connection config fields, and proxy headers."""
 
     auth_mode: AuthModeLiteral
+    display_name: str | None = Field(
+        default=None,
+        min_length=1,
+        description="Human label for this auth option in catalog and connection UI.",
+    )
     base_url: str | None = None
     headers: dict[str, str] = Field(default_factory=dict)
     query_params: dict[str, str] = Field(default_factory=dict)
@@ -155,7 +160,7 @@ class AuthSpec(BocpModel):
 
 
 class PaginatorSpec(BocpModel):
-    """Declarative pagination strategy (synthesizing Airbyte DefaultPaginator & Nango paginate)."""
+    """Declarative pagination strategy (synthesizing Airbyte DefaultPaginator)."""
 
     type: Literal["none", "cursor", "offset", "page", "link"] = "none"
     page_size: int | None = 100
@@ -274,9 +279,13 @@ class ToolSpec(BocpModel):
     http_method: Literal["GET", "POST", "PUT", "PATCH", "DELETE"] | None = None
     path_template: str | None = None
     body_encoding: BodyEncodingLiteral = "json"
+    mail_action: str | None = Field(
+        default=None,
+        description="When set, invoke runs via the mail (IMAP/SMTP) adapter.",
+    )
 
 
-ProviderProtocolLiteral = Literal["rest", "sql", "graphql", "grpc"]
+ProviderProtocolLiteral = Literal["rest", "sql", "graphql", "grpc", "mail"]
 
 
 class ProviderSpecReference(BocpModel):
@@ -325,6 +334,12 @@ class RestEntityExecutorSpec(BocpModel):
     """REST executor configuration: all wire operations in one map."""
 
     operations: dict[str, RestOperationSpec]
+
+
+class MailProcedureExecutorSpec(BocpModel):
+    """IMAP/SMTP mail action name (OpenConnector mail/imap-smtp)."""
+
+    action: str = Field(min_length=1)
 
 
 class SqlEntityExecutorSpec(BocpModel):
@@ -399,19 +414,23 @@ class ProcedureActionSpec(BocpModel):
     input_schema: dict[str, Any] = Field(default_factory=dict)
     output_schema: dict[str, Any] = Field(default_factory=dict)
     rest: RestEntityExecutorSpec | None = None
+    mail: MailProcedureExecutorSpec | None = None
 
     @model_validator(mode="after")
-    def _require_rest(self) -> ProcedureActionSpec:
-        if self.rest is None:
-            raise ValueError(f"Procedure '{self.id}' requires rest.operations")
-        operation_keys = {
-            key for key in self.rest.operations if not key.startswith("x-")
-        }
-        if operation_keys != {INVOKE_OPERATION_NAME}:
+    def _require_executor(self) -> ProcedureActionSpec:
+        if (self.rest is None) == (self.mail is None):
             raise ValueError(
-                f"Procedure '{self.id}' rest.operations must contain exactly "
-                f"'{INVOKE_OPERATION_NAME}'"
+                f"Procedure '{self.id}' requires exactly one of rest or mail executor"
             )
+        if self.rest is not None:
+            operation_keys = {
+                key for key in self.rest.operations if not key.startswith("x-")
+            }
+            if operation_keys != {INVOKE_OPERATION_NAME}:
+                raise ValueError(
+                    f"Procedure '{self.id}' rest.operations must contain exactly "
+                    f"'{INVOKE_OPERATION_NAME}'"
+                )
         return self
 
 
@@ -434,6 +453,17 @@ def entity_to_stream_spec(entity: EntityActionSpec) -> StreamSpec:
 def procedure_to_tool_spec(procedure: ProcedureActionSpec) -> ToolSpec:
     from basis.domain.integration.manifest_executor import INVOKE_OPERATION
 
+    if procedure.mail is not None:
+        return ToolSpec(
+            id=procedure.id,
+            name=procedure.name,
+            description=procedure.description,
+            required_scopes=list(procedure.required_scopes),
+            annotations=procedure.annotations,
+            input_schema=dict(procedure.input_schema),
+            output_schema=dict(procedure.output_schema),
+            mail_action=procedure.mail.action,
+        )
     assert procedure.rest is not None
     ops = procedure.rest.operations
     op = ops.get(INVOKE_OPERATION) or next(iter(ops.values()))

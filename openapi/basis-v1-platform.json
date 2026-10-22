@@ -4849,11 +4849,42 @@
             ],
             "title": "Code Verifier"
           },
+          "state": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "State"
+          },
           "connection_name": {
             "type": "string",
             "minLength": 1,
             "title": "Connection Name",
             "default": "default"
+          },
+          "connection_scope": {
+            "type": "string",
+            "enum": [
+              "workspace",
+              "end_user"
+            ],
+            "title": "Connection Scope",
+            "default": "workspace"
+          },
+          "subject_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subject Id"
           },
           "connection_config": {
             "additionalProperties": true,
@@ -5131,12 +5162,115 @@
         ],
         "title": "IngestTextRequest"
       },
+      "IntegrationOAuthAuthorizeRequest": {
+        "properties": {
+          "subject_id": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Subject Id"
+          },
+          "state": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "State"
+          },
+          "redirect_uri": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Redirect Uri"
+          },
+          "connection_config": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Connection Config"
+          },
+          "code_challenge": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Code Challenge"
+          }
+        },
+        "type": "object",
+        "required": [
+          "subject_id"
+        ],
+        "title": "IntegrationOAuthAuthorizeRequest"
+      },
+      "IntegrationUpsertConnectionRequest": {
+        "properties": {
+          "subject_id": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Subject Id"
+          },
+          "auth_type": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Auth Type"
+          },
+          "connection_config": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Connection Config"
+          },
+          "credentials": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Credentials"
+          }
+        },
+        "type": "object",
+        "required": [
+          "subject_id",
+          "auth_type"
+        ],
+        "title": "IntegrationUpsertConnectionRequest",
+        "description": "End-user connection upsert for ``/integration/connections``."
+      },
       "InvokeConnectorPrimitiveRequest": {
         "properties": {
           "action_id": {
             "type": "string",
             "minLength": 1,
             "title": "Action Id"
+          },
+          "connection_scope": {
+            "type": "string",
+            "enum": [
+              "workspace",
+              "end_user"
+            ],
+            "title": "Connection Scope",
+            "default": "workspace"
+          },
+          "subject_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subject Id"
           },
           "primitive": {
             "type": "string",
@@ -6805,6 +6939,26 @@
             "additionalProperties": true,
             "type": "object",
             "title": "Credentials"
+          },
+          "connection_scope": {
+            "type": "string",
+            "enum": [
+              "workspace",
+              "end_user"
+            ],
+            "title": "Connection Scope",
+            "default": "workspace"
+          },
+          "subject_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subject Id"
           }
         },
         "type": "object",
@@ -6847,8 +7001,14 @@
             "title": "Client Id"
           },
           "client_secret": {
-            "type": "string",
-            "minLength": 1,
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Client Secret"
           },
           "redirect_uri": {
@@ -6870,8 +7030,7 @@
         },
         "type": "object",
         "required": [
-          "client_id",
-          "client_secret"
+          "client_id"
         ],
         "title": "UpsertOAuthConfigRequest"
       },

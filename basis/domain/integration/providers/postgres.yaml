@@ -10,6 +10,7 @@ spec:
   protocol: sql
 auth:
 - auth_mode: database_dsn
+  display_name: Database connection (DSN)
   connection_config:
   - key: host
     label: Host

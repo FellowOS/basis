@@ -143,6 +143,7 @@ The **`docs/`** directory is listed in **`.gitignore`** — local working copies
 | Docs (features / progress / architecture) | [docs/README.md](./docs/README.md) |
 | OpenAPI v1 (platform + workspace surfaces) | [docs/architecture/openapi-v1.md](./docs/architecture/openapi-v1.md), live `/openapi/v1.json`; snapshots `openapi/basis-v1*.json` |
 | Feature list / progress | [docs/features.md](./docs/features.md) (F-* spec), [docs/progress.md](./docs/progress.md) (status: §0.1 done, §0.2 API baseline, §3.1 UX / §3.2 e2e gaps) |
+| Connector roadmap (dual-mode → OC → Airbyte) | [docs/integration/ROADMAP.md](./docs/integration/ROADMAP.md); detail under [docs/integration/README.md](./docs/integration/README.md) |
 | Web OpenAPI transport | `web/src/lib/openapi/` (`transport.ts` + generated `schema.d.ts`); app helpers in `web/src/lib/openapi/client.ts` |
 | Web ↔ operationId audit | [openapi/web-openapi-operation-audit.md](./openapi/web-openapi-operation-audit.md) — `scripts/audit-web-operation-ids.py` |
 | HTTP in web | Typed: `lib/openapi/client.ts` (`openApi*` / `workspaceOpenApi*` / `publicOpenApi*`); stream/multipart: `lib/session/basis-session-fetch.ts`; paths: `lib/workspace/api-path.ts`, `lib/nav/nav-config.ts` (`workspacePath`), `lib/openapi/api-v1-path.ts`; E2E `e2e/api-v1-path.ts` (`e2eWorkspaceApiPath`) |

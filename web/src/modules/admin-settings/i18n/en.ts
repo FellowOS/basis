@@ -15,7 +15,7 @@ export default {
         "Workspaces cannot enable providers outside this list. Workspace policy may further restrict within the ceiling.",
       catalog_title: "Shipped connector catalog",
       catalog_subtitle:
-        "Browse synthesized Nango / Airbyte / built-in manifests. Disable providers to hide them from every workspace.",
+        "Browse synthesized registry / Airbyte / built-in manifests. Disable providers to hide them from every workspace.",
       stat_providers: "Providers in catalog",
       stat_enabled: "Enabled at platform",
       stat_with_streams: "With data streams",

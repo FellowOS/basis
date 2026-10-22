@@ -9,6 +9,12 @@ from typing import Any
 import httpx
 
 from basis.domain.integration.auth_vault import ConnectorAuthVault, StoredConnection
+from basis.domain.integration.connection_scope import (
+    SCOPE_WORKSPACE,
+    ConnectionScope,
+    normalize_connection_scope,
+    normalize_subject_id,
+)
 from basis.domain.integration.catalog import ConnectorCatalog, get_connector_catalog
 from basis.domain.integration.manifest_schema import (
     ConnectorManifest,
@@ -16,6 +22,8 @@ from basis.domain.integration.manifest_schema import (
     StreamSpec,
     ToolSpec,
 )
+from basis.domain.integration.adapters.mail import MailAdapter
+from basis.domain.integration.adapters.mail.credentials import MAIL_CREDENTIAL_READERS
 from basis.domain.integration.adapters.rest import (
     RestBatchResult,
     RestDeclarativeStreamAdapter,
@@ -61,14 +69,28 @@ class ConnectorRuntime:
         self._http_client = http_client
 
     def _require_manifest_and_connection(
-        self, workspace_id: str, service: str, connection_name: str = "default"
+        self,
+        workspace_id: str,
+        service: str,
+        connection_name: str = "default",
+        *,
+        connection_scope: ConnectionScope | str = SCOPE_WORKSPACE,
+        subject_id: str | None = None,
     ) -> tuple[ConnectorManifest, StoredConnection]:
         self.vault.assert_service_allowed(workspace_id, service)
         manifest = self.catalog.get(service)
         if not manifest:
             raise ValueError(f"Unknown BOCP connector service: {service}")
+        scope = normalize_connection_scope(
+            connection_scope if isinstance(connection_scope, str) else connection_scope
+        )
+        sid = normalize_subject_id(subject_id, scope=scope)
         connection = self.vault.get_connection(
-            workspace_id, service, connection_name=connection_name
+            workspace_id,
+            service,
+            connection_name=connection_name,
+            connection_scope=scope,
+            subject_id=sid,
         )
         if not connection:
             raise LookupError(
@@ -80,16 +102,35 @@ class ConnectorRuntime:
     def _is_sql_stream(stream: StreamSpec) -> bool:
         return stream.retriever.adapter == "sql_alchemy"
 
+    @staticmethod
+    def _is_mail_service(manifest: ConnectorManifest) -> bool:
+        if manifest.service in MAIL_CREDENTIAL_READERS:
+            return True
+        return manifest.spec is not None and manifest.spec.protocol == "mail"
+
     def check_connection(
-        self, workspace_id: str, service: str, *, connection_name: str = "default"
+        self,
+        workspace_id: str,
+        service: str,
+        *,
+        connection_name: str = "default",
+        connection_scope: ConnectionScope | str = SCOPE_WORKSPACE,
+        subject_id: str | None = None,
     ) -> dict[str, Any]:
         """Run `CHECK` primitive, update connection account_profile, and log run."""
         started_at = _now_iso()
         manifest, connection = self._require_manifest_and_connection(
-            workspace_id, service, connection_name
+            workspace_id,
+            service,
+            connection_name,
+            connection_scope=connection_scope,
+            subject_id=subject_id,
         )
         try:
-            if manifest.streams and self._is_sql_stream(manifest.streams[0]):
+            if self._is_mail_service(manifest):
+                mail_adapter = MailAdapter()
+                profile = mail_adapter.check_connection(manifest, connection)
+            elif manifest.streams and self._is_sql_stream(manifest.streams[0]):
                 sql_adapter = SqlAlchemyStreamAdapter.from_connection(connection)
                 try:
                     profile = sql_adapter.check_connection()
@@ -108,6 +149,8 @@ class ConnectorRuntime:
                 workspace_id,
                 service,
                 connection_name=connection_name,
+                connection_scope=connection.connection_scope,
+                subject_id=connection.subject_id,
                 auth_type=connection.auth_type,
                 account_profile=profile,
             )
@@ -141,13 +184,19 @@ class ConnectorRuntime:
         service: str,
         *,
         connection_name: str = "default",
+        connection_scope: ConnectionScope | str = SCOPE_WORKSPACE,
+        subject_id: str | None = None,
         stream_name: str | None = None,
         external_table: str | None = None,
         stream_params: dict[str, Any] | None = None,
     ) -> DiscoveredStreamInfo:
         """Run `DISCOVER` primitive for a SQL table or REST stream."""
         manifest, connection = self._require_manifest_and_connection(
-            workspace_id, service, connection_name
+            workspace_id,
+            service,
+            connection_name,
+            connection_scope=connection_scope,
+            subject_id=subject_id,
         )
         stream = self._find_stream(manifest, stream_name)
         if self._is_sql_stream(stream):
@@ -196,6 +245,8 @@ class ConnectorRuntime:
         service: str,
         *,
         connection_name: str = "default",
+        connection_scope: ConnectionScope | str = SCOPE_WORKSPACE,
+        subject_id: str | None = None,
         stream_name: str | None = None,
         external_table: str | None = None,
         primary_key_column: str = "id",
@@ -207,7 +258,11 @@ class ConnectorRuntime:
         """Run `READ` primitive across SQL or REST streams."""
         started_at = _now_iso()
         manifest, connection = self._require_manifest_and_connection(
-            workspace_id, service, connection_name
+            workspace_id,
+            service,
+            connection_name,
+            connection_scope=connection_scope,
+            subject_id=subject_id,
         )
         stream = self._find_stream(manifest, stream_name)
         target_label = external_table or stream.name
@@ -283,6 +338,8 @@ class ConnectorRuntime:
         service: str,
         *,
         connection_name: str = "default",
+        connection_scope: ConnectionScope | str = SCOPE_WORKSPACE,
+        subject_id: str | None = None,
         stream_name: str | None = None,
         external_table: str | None = None,
         operation: str = "update",
@@ -294,7 +351,11 @@ class ConnectorRuntime:
         """Run `MUTATE` primitive across SQL or REST streams and record audit log."""
         started_at = _now_iso()
         manifest, connection = self._require_manifest_and_connection(
-            workspace_id, service, connection_name
+            workspace_id,
+            service,
+            connection_name,
+            connection_scope=connection_scope,
+            subject_id=subject_id,
         )
         stream = self._find_stream(manifest, stream_name)
         target_label = f"{external_table or stream.name}:{external_pk}"
@@ -386,14 +447,21 @@ class ConnectorRuntime:
         tool_id: str,
         *,
         connection_name: str = "default",
+        connection_scope: ConnectionScope | str = SCOPE_WORKSPACE,
+        subject_id: str | None = None,
         arguments: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Run `TOOL` primitive with workspace action policy enforcement and audit logging."""
         started_at = _now_iso()
         manifest, connection = self._require_manifest_and_connection(
-            workspace_id, service, connection_name
+            workspace_id,
+            service,
+            connection_name,
+            connection_scope=connection_scope,
+            subject_id=subject_id,
         )
         tool = self._find_tool(manifest, tool_id)
+        procedure = manifest.get_procedure(tool_id)
         policy = self.vault.get_policy(workspace_id)
         mode = policy.resolve_tool_execution_mode(service, tool)
         if mode == "disabled":
@@ -402,18 +470,27 @@ class ConnectorRuntime:
             )
 
         try:
-            rest_adapter = RestDeclarativeStreamAdapter(
-                self.vault, http_client=self._http_client
-            )
-            try:
-                out = rest_adapter.execute_tool(
+            if procedure.mail is not None:
+                mail_adapter = MailAdapter()
+                out = mail_adapter.execute_procedure(
                     manifest,
                     connection,
-                    tool,
+                    procedure,
                     arguments=arguments,
                 )
-            finally:
-                rest_adapter.close()
+            else:
+                rest_adapter = RestDeclarativeStreamAdapter(
+                    self.vault, http_client=self._http_client
+                )
+                try:
+                    out = rest_adapter.execute_tool(
+                        manifest,
+                        connection,
+                        tool,
+                        arguments=arguments,
+                    )
+                finally:
+                    rest_adapter.close()
 
             self.vault.record_run(
                 workspace_id,

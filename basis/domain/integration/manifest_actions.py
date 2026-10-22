@@ -11,6 +11,7 @@ from basis.domain.integration.manifest_executor import (
 )
 from basis.domain.integration.manifest_schema import (
     EntityActionSpec,
+    MailProcedureExecutorSpec,
     ProcedureActionSpec,
     RestEntityExecutorSpec,
     RestOperationSpec,
@@ -57,6 +58,23 @@ def entity_action_from_stream(stream: StreamSpec) -> EntityActionSpec:
             mode="python"
         )
     return EntityActionSpec.model_validate(payload)
+
+
+def procedure_action_from_mail_tool(
+    tool: ToolSpec, *, mail_action: str
+) -> ProcedureActionSpec:
+    short = tool.name or tool.id.split(".")[-1]
+    return ProcedureActionSpec(
+        id=tool.id,
+        name=short,
+        display_name=tool.name or short,
+        description=tool.description,
+        required_scopes=list(tool.required_scopes),
+        annotations=tool.annotations,
+        input_schema=dict(tool.input_schema),
+        output_schema=dict(tool.output_schema),
+        mail=MailProcedureExecutorSpec(action=mail_action),
+    )
 
 
 def procedure_action_from_tool(tool: ToolSpec) -> ProcedureActionSpec:

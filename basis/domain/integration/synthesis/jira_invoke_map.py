@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-# ``cloudId`` lives in workspace ``connection_config`` (Nango post-connection).
+# ``cloudId`` lives in workspace ``connection_config`` (post-connection setup).
 _JIRA_BY_SUFFIX: dict[str, tuple[str, str]] = {
     "list_projects": ("GET", "/ex/jira/{{config.cloudId}}/rest/api/3/project"),
     "get_project": (

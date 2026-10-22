@@ -1,4 +1,4 @@
-"""Declarative REST stream adapter for BOCP (Airbyte DeclarativeSource & Nango paginate style)."""
+"""Declarative REST stream adapter for BOCP (Airbyte DeclarativeSource style)."""
 
 from __future__ import annotations
 
@@ -154,7 +154,7 @@ class RestDeclarativeStreamAdapter:
         http_client: httpx.Client | None = None,
     ) -> None:
         self._vault = vault
-        self._client = http_client or httpx.Client(timeout=30.0)
+        self._client = http_client or httpx.Client(timeout=30.0, follow_redirects=True)
         self._owns_client = http_client is None
 
     def close(self) -> None:

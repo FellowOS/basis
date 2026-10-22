@@ -1,30 +1,28 @@
-"""AnyConnect ``catalog/apps/{service}.json`` → BOCP procedure actions (P3)."""
+"""OpenConnector / connector ``catalog/apps/{service}.json`` → BOCP procedures (P3)."""
 
 from __future__ import annotations
 
 import json
 from typing import Any
 
-from basis.domain.integration.manifest_actions import procedure_action_from_tool
-from basis.domain.integration.manifest_schema import (
-    ProcedureActionSpec,
-    RestEntityExecutorSpec,
-    RestOperationSpec,
-    ToolAnnotationsSpec,
-    ToolSpec,
+from basis.domain.integration.manifest_actions import (
+    procedure_action_from_mail_tool,
+    procedure_action_from_tool,
 )
+from basis.domain.integration.manifest_schema import ProcedureActionSpec, ToolAnnotationsSpec, ToolSpec
 from basis.domain.integration.synthesis.executor_index import invoke_wire_for_action
-from basis.domain.integration.synthesis.paths import anyconnect_catalog_dir
+from basis.domain.integration.synthesis.paths import connector_catalog_dir
 
 
-def _catalog_file_for_service(service: str) -> Any:
-    root = anyconnect_catalog_dir()
+def load_connector_app(service: str) -> dict[str, Any] | None:
+    root = connector_catalog_dir()
     if root is None:
         return None
     for name in (f"{service}.json", f"{service.replace('_', '-')}.json"):
         path = root / name
         if path.is_file():
-            return json.loads(path.read_text(encoding="utf-8"))
+            data = json.loads(path.read_text(encoding="utf-8"))
+            return data if isinstance(data, dict) else None
     return None
 
 
@@ -47,7 +45,38 @@ def procedures_from_anyconnect_app(
         if not action_id:
             continue
         wire = invoke_wire_for_action(service, action_id)
-        if not wire or not str(wire.get("path") or "").strip():
+        if not wire:
+            continue
+        if wire.get("adapter") == "mail":
+            mail_action = str(wire.get("action") or "").strip()
+            if not mail_action:
+                continue
+            input_schema = item.get("inputSchema") or item.get("input_schema") or {}
+            output_schema = item.get("outputSchema") or item.get("output_schema") or {}
+            if not isinstance(input_schema, dict):
+                input_schema = {}
+            if not isinstance(output_schema, dict):
+                output_schema = {}
+            scopes = item.get("requiredScopes") or item.get("required_scopes") or []
+            if not isinstance(scopes, list):
+                scopes = []
+            name = _short_action_name(action_id)
+            tool = ToolSpec(
+                id=action_id,
+                name=name,
+                description=str(item.get("description") or ""),
+                required_scopes=[str(s) for s in scopes],
+                annotations=ToolAnnotationsSpec(
+                    read_only_hint=name in ("list_folders", "search_emails", "get_email", "get_folder_status"),
+                    destructive_hint=name in ("delete_email",),
+                    idempotent_hint=False,
+                ),
+                input_schema=input_schema,
+                output_schema=output_schema,
+            )
+            procedures.append(procedure_action_from_mail_tool(tool, mail_action=mail_action))
+            continue
+        if not str(wire.get("path") or "").strip():
             continue
         method = str(wire.get("method") or "POST").upper()
         path = str(wire["path"])
@@ -101,9 +130,18 @@ def anyconnect_app_metadata(app: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def load_anyconnect_procedures(service: str) -> tuple[dict[str, Any], list[ProcedureActionSpec]] | None:
-    app = _catalog_file_for_service(service)
+def load_connector_catalog_procedures(
+    service: str,
+) -> tuple[dict[str, Any], list[ProcedureActionSpec]] | None:
+    app = load_connector_app(service)
     if app is None:
         return None
     meta = anyconnect_app_metadata(app)
     return meta, procedures_from_anyconnect_app(app, service=service)
+
+
+def load_anyconnect_procedures(
+    service: str,
+) -> tuple[dict[str, Any], list[ProcedureActionSpec]] | None:
+    """Alias for :func:`load_connector_catalog_procedures`."""
+    return load_connector_catalog_procedures(service)

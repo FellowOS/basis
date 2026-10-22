@@ -77,6 +77,20 @@ def _connection_name_property() -> dict[str, Any]:
     }
 
 
+def _connection_scope_properties() -> dict[str, Any]:
+    return {
+        "connection_scope": {
+            "type": "string",
+            "enum": ["workspace", "end_user"],
+            "description": "Use end_user with subject_id for per-user (embed) vault rows",
+        },
+        "subject_id": {
+            "type": "string",
+            "description": "End-user id when connection_scope is end_user",
+        },
+    }
+
+
 def _action_params_property() -> dict[str, Any]:
     return {
         "type": "object",
@@ -86,6 +100,7 @@ def _action_params_property() -> dict[str, Any]:
 
 def _list_input_schema(*, sql: bool) -> dict[str, Any]:
     props: dict[str, Any] = {
+        **_connection_scope_properties(),
         "connection_name": _connection_name_property(),
         "action_params": _action_params_property(),
         "limit": {
@@ -106,6 +121,7 @@ def _list_input_schema(*, sql: bool) -> dict[str, Any]:
 
 def _discover_input_schema(*, sql: bool) -> dict[str, Any]:
     props: dict[str, Any] = {
+        **_connection_scope_properties(),
         "connection_name": _connection_name_property(),
         "action_params": _action_params_property(),
     }
@@ -123,6 +139,7 @@ def _mutate_input_schema(
     sql: bool,
 ) -> dict[str, Any]:
     props: dict[str, Any] = {
+        **_connection_scope_properties(),
         "connection_name": _connection_name_property(),
         "action_params": _action_params_property(),
         "changes": {
@@ -147,6 +164,7 @@ def _invoke_input_schema(procedure: ProcedureActionSpec) -> dict[str, Any]:
     return {
         "type": "object",
         "properties": {
+            **_connection_scope_properties(),
             "connection_name": _connection_name_property(),
             "arguments": {
                 **arg_schema,
@@ -210,8 +228,8 @@ def _tool_description(
     if detail:
         parts.append(detail.strip())
     parts.append(
-        "Same runtime as invoke_connector_primitive; connection scope via connection_name "
-        "and action_params."
+        "Same runtime as invoke_connector_primitive; use connection_scope end_user + "
+        "subject_id for embed per-user connections, or connection_name for workspace scope."
     )
     return " ".join(parts)
 

@@ -424,6 +424,8 @@ OPERATIONS: dict[str, OperationSpec] = {
             "type": "object",
             "properties": {
                 "service": {"type": "string", "description": "Optional filter by connector service key"},
+                "connection_scope": {"type": "string", "enum": ["workspace", "end_user"]},
+                "subject_id": {"type": "string"},
             },
         },
         "handler": conn_ops.op_list_connector_connections,
@@ -472,6 +474,14 @@ OPERATIONS: dict[str, OperationSpec] = {
                     "type": "string",
                     "description": "Saved connection name (default: default)",
                 },
+                "connection_scope": {
+                    "type": "string",
+                    "enum": ["workspace", "end_user"],
+                },
+                "subject_id": {
+                    "type": "string",
+                    "description": "End-user id when connection_scope is end_user",
+                },
                 "operation": {
                     "type": "string",
                     "description": "For mutate: create, update, upsert, or delete",
@@ -517,6 +527,11 @@ OPERATIONS: dict[str, OperationSpec] = {
                     "type": "string",
                     "description": "Saved connection name (default: default)",
                 },
+                "connection_scope": {
+                    "type": "string",
+                    "enum": ["workspace", "end_user"],
+                },
+                "subject_id": {"type": "string"},
                 "arguments": {
                     "type": "object",
                     "description": "Tool input payload per manifest input_schema",

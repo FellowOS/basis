@@ -10,6 +10,7 @@ docs_url: https://docs.github.com/en/rest
 spec: {}
 auth:
 - auth_mode: oauth2
+  display_name: OAuth 2.0
   base_url: https://api.github.com
   headers:
     Authorization: Bearer ${credentials.access_token}
@@ -18,6 +19,7 @@ auth:
     token_url: https://github.com/login/oauth/access_token
     pkce_s256: true
 - auth_mode: api_key
+  display_name: Personal Access Token
   base_url: https://api.github.com
   headers:
     Authorization: Bearer ${credentials.personal_access_token}

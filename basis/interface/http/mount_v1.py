@@ -34,7 +34,6 @@ from basis.interface.http.platform_platform import router as platform_router
 from basis.interface.http.platform_realtime import router as realtime_router
 from basis.interface.http.platform_reasoning import router as reasoning_router
 from basis.interface.http.platform_settings import router as settings_router
-
 _WORKSPACE_ROUTERS = (
     workspace_resources_router,
     workspace_graph_router,

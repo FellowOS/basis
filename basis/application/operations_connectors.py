@@ -119,12 +119,21 @@ def op_list_connector_connections(ctx: WorkspaceCoreContext, args: dict[str, Any
     _require_workspace_viewer(ctx)
     service = str(args.get("service") or "").strip() or None
     runtime = ctx.knowledge.connector_runtime()
-    connections = runtime.vault.list_connections(ctx.workspace.id, service=service)
+    connection_scope = str(args.get("connection_scope") or "").strip() or None
+    subject_id = str(args.get("subject_id") or "").strip() or None
+    connections = runtime.vault.list_connections(
+        ctx.workspace.id,
+        service=service,
+        connection_scope=connection_scope,
+        subject_id=subject_id,
+    )
     return {
         "connections": [
             {
                 "service": c.service,
                 "connection_name": c.connection_name,
+                "connection_scope": c.connection_scope,
+                "subject_id": c.subject_id if c.connection_scope != "workspace" else None,
                 "auth_type": c.auth_type,
                 "account_profile": c.account_profile,
                 "updated_at": c.updated_at,
@@ -196,6 +205,13 @@ def op_invoke_connector_primitive(ctx: WorkspaceCoreContext, args: dict[str, Any
     action_id = str(args.get("action_id") or "").strip()
     primitive = str(args.get("primitive") or "").strip().lower()
     connection_name = str(args.get("connection_name") or "default").strip() or "default"
+    connection_scope = str(args.get("connection_scope") or "workspace").strip() or "workspace"
+    subject_id_raw = args.get("subject_id")
+    subject_id = (
+        str(subject_id_raw).strip()
+        if subject_id_raw is not None and str(subject_id_raw).strip()
+        else None
+    )
     operation = str(args.get("operation") or "").strip() or None
     external_table = str(args.get("external_table") or "").strip() or None
     external_id = args.get("external_id")
@@ -231,6 +247,8 @@ def op_invoke_connector_primitive(ctx: WorkspaceCoreContext, args: dict[str, Any
             action_id=action_id,
             primitive=primitive,
             connection_name=connection_name,
+            connection_scope=connection_scope,
+            subject_id=subject_id,
             operation=operation,
             external_table=external_table,
             external_id=external_id,
@@ -254,6 +272,13 @@ def op_execute_connector_tool(ctx: WorkspaceCoreContext, args: dict[str, Any]) -
     service = str(args.get("service") or "").strip()
     tool_id = str(args.get("tool_id") or "").strip()
     connection_name = str(args.get("connection_name") or "default").strip() or "default"
+    connection_scope = str(args.get("connection_scope") or "workspace").strip() or "workspace"
+    subject_id_raw = args.get("subject_id")
+    subject_id = (
+        str(subject_id_raw).strip()
+        if subject_id_raw is not None and str(subject_id_raw).strip()
+        else None
+    )
     arguments = args.get("arguments")
     if not service or not tool_id:
         return {"error": "service and tool_id are required"}
@@ -267,6 +292,8 @@ def op_execute_connector_tool(ctx: WorkspaceCoreContext, args: dict[str, Any]) -
             service,
             tool_id,
             connection_name=connection_name,
+            connection_scope=connection_scope,
+            subject_id=subject_id,
             arguments=arguments or {},
         )
     except PermissionError as exc:

@@ -18,12 +18,31 @@ def _canonical_manifest(m: ConnectorManifest) -> dict:
     return payload
 
 
+def test_merge_registry_auth_reference_service() -> None:
+    from basis.domain.integration.synthesis.paths import providers_registry_yaml
+
+    if providers_registry_yaml() is None:
+        import pytest
+
+        pytest.skip("providers registry yaml not on disk")
+    m = merge_service(
+        "amplitude",
+        ship_tier="catalog",
+        catalog_procedures_only=True,
+        prefer_anyconnect_procedures=False,
+    )
+    assert m.service == "amplitude"
+    assert m.auth
+    assert m.auth[0].auth_mode == "basic"
+    assert m.procedure_actions() == []
+
+
 def test_merge_github_matches_generator() -> None:
     expected = github_manifest()
     merged = merge_service(
         "github",
         prefer_anyconnect_procedures=False,
-        overlay_nango_auth=False,
+        overlay_registry_auth=False,
     )
     assert _canonical_manifest(merged) == _canonical_manifest(expected)
 
@@ -40,6 +59,10 @@ def test_batch_0_and_1_definitions() -> None:
     assert b2.catalog_procedures_only == frozenset()
     b3 = load_batch(3)
     assert b3.services == ["hubspot"]
+    b4 = load_batch(4)
+    assert len(b4.services) == 9
+    assert b4.ship_tier_default == "catalog"
+    assert b4.prefer_anyconnect_procedures is False
 
 
 def test_merge_slack_generator_baseline() -> None:
@@ -73,7 +96,7 @@ def test_merge_slack_from_anyconnect_catalog() -> None:
 
 
 def test_merge_hubspot_entity_streams() -> None:
-    m = merge_service("hubspot", ship_tier="beta", overlay_nango_auth=False)
+    m = merge_service("hubspot", ship_tier="beta", overlay_registry_auth=False)
     names = {a.id for a in m.entity_actions()}
     assert names == {"companies", "contacts", "deals"}
     assert m.auth

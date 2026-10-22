@@ -5,7 +5,37 @@ export default {
   tabs: {
     openapi: "OpenAPI",
     mcp: "MCP",
-    tokens: "访问令牌"
+    tokens: "访问令牌",
+    connectors: "连接器"
+  },
+  connectors_playground: {
+    hint:
+      "模拟嵌入客户端：通过 Integration API 按 subject_id 管理 end_user 连接 — 与 MCP 连接器工具使用同一 vault（connection_scope + subject_id）。",
+    subject_panel_title: "模拟终端用户",
+    subject_label: "subject_id",
+    subject_hint: "测试用终端用户标识；更换后会加载另一套连接。",
+    subject_apply: "应用 subject",
+    list_title: "连接器",
+    list_subtitle: "当前模拟 subject 下的全部 provider — 连接、校验或移除。",
+    search_placeholder: "搜索连接器…",
+    status_connected: "已连接",
+    status_not_connected: "未连接",
+    manage: "管理",
+    connect: "连接",
+    reconnect: "管理",
+    connected_badge: "已连接",
+    save: "保存连接",
+    check: "校验",
+    delete: "删除",
+    save_success: "连接已保存。",
+    check_success: "校验通过。",
+    delete_success: "连接已删除。",
+    oauth_workspace_hint:
+      "OAuth 应用凭据在工作区「连接器」中配置（oauth-configs）；此流程为模拟 subject 保存用户令牌。",
+    oauth_same_window_hint:
+      "请在本页点击继续授权（勿复制链接到新标签）。完成 GitHub 登录前不要重复生成授权 URL。",
+    mcp_title: "MCP 示例",
+    mcp_hint: "在工作区 MCP 端点携带访问令牌调用 list_connector_connections："
   },
   tokens: {
     hint: "MCP 与 OpenAPI 共用 — 在集成请求中使用 Authorization: Bearer <令牌>。"

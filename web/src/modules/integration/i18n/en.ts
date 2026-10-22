@@ -5,7 +5,37 @@ export default {
   tabs: {
     openapi: "OpenAPI",
     mcp: "MCP",
-    tokens: "Access tokens"
+    tokens: "Access tokens",
+    connectors: "Connectors"
+  },
+  connectors_playground: {
+    hint:
+      "Simulate an embedded client: per-subject (end_user) connections via the Integration API — same vault as MCP connector tools with connection_scope and subject_id.",
+    subject_panel_title: "Simulated end user",
+    subject_label: "subject_id",
+    subject_hint: "Stable ID for this test user; changing it loads a different connection set.",
+    subject_apply: "Apply subject",
+    list_title: "Connectors",
+    list_subtitle: "All providers for this simulated subject — connect, test, or remove.",
+    search_placeholder: "Search connectors…",
+    status_connected: "Connected",
+    status_not_connected: "Not connected",
+    manage: "Manage",
+    connect: "Connect",
+    reconnect: "Manage",
+    connected_badge: "Connected",
+    save: "Save connection",
+    check: "Check",
+    delete: "Remove",
+    save_success: "Connection saved.",
+    check_success: "Check succeeded.",
+    delete_success: "Connection removed.",
+    oauth_workspace_hint:
+      "OAuth app credentials are configured in Connectors (workspace oauth-configs). This flow stores tokens for the simulated subject.",
+    oauth_same_window_hint:
+      "Continue in this browser tab (do not copy the link). Complete GitHub sign-in without regenerating the URL.",
+    mcp_title: "MCP example",
+    mcp_hint: "Call list_connector_connections on the workspace MCP endpoint with your access token:"
   },
   tokens: {
     hint: "Shared by MCP and OpenAPI — use Authorization: Bearer <token> on integration requests."

@@ -75,6 +75,8 @@ export default {
     import_requires_review: "Graph import must go through the review queue before it is applied.",
     mcp_busy: "Too many MCP requests. Try again in a moment.",
     api_busy: "Too many API requests. Try again in a moment.",
+    oauth_exchange_failed:
+      "OAuth token exchange failed. Check that the GitHub OAuth app callback URL matches this page, the client secret is correct, and regenerate the authorize URL (codes are single-use).",
     legacy_api_removed: "This API path is retired. Use /api/v1 instead.",
     mcp_timeout: "MCP tool execution timed out.",
     no_current_version: "This document has no current version.",

@@ -4,13 +4,15 @@ import { errorFromApiResponse } from './api-error.js';
 import { formatUserFacingApiError } from './api-error-message.js';
 
 describe('errorFromApiResponse', () => {
-  it('attaches detail code without leaking server message', () => {
+  it('attaches detail code and preserves server message for formatted output', () => {
     const err = errorFromApiResponse(409, {
       detail: { code: 'processing_active', message: '该版本已在处理中' },
     });
-    expect(err.message).toBe('');
+    expect(err.message).toBe('该版本已在处理中');
     expect((err as Error & { code?: string }).code).toBe('processing_active');
-    expect(formatUserFacingApiError(err, 'en')).toContain('already being processed');
+    const formatted = formatUserFacingApiError(err, 'en');
+    expect(formatted).toContain('already being processed');
+    expect(formatted).toContain('该版本已在处理中');
   });
 
   it('keeps message when no code is provided', () => {

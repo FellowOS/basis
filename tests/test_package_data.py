@@ -12,6 +12,18 @@ def test_connector_provider_yaml_in_package_data() -> None:
     names = {p.name for p in root.iterdir() if p.is_file()}
     assert "github.yaml" in names
     assert "postgres.yaml" in names
+    assert "qq_mail.yaml" in names
+
+
+def test_qq_mail_provider_bundle_loads_with_mail_protocol() -> None:
+    from basis.domain.integration.catalog import ConnectorCatalog
+
+    catalog = ConnectorCatalog.load_from_directory()
+    manifest = catalog.get("qq_mail")
+    assert manifest is not None
+    assert manifest.spec is not None
+    assert manifest.spec.protocol == "mail"
+    assert len(manifest.procedure_actions()) == 12
 
 
 def test_synthesis_batch_yaml_in_package_data() -> None:

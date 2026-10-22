@@ -149,7 +149,7 @@ def validate_provider_spec_files(
     graphql: Path | None = None
     grpc: Path | None = None
 
-    if spec.protocol == "sql":
+    if spec.protocol in ("sql", "mail"):
         return ProviderBundlePaths(
             bundle_root=bundle_root,
             manifest_path=manifest_path,

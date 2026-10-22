@@ -13,7 +13,7 @@ export default {
       allowed_providers_label: "允许的服务商",
       allowed_providers_hint: "工作区不能启用此列表之外的 provider；可在范围内进一步缩小工作区白名单。",
       catalog_title: "内置连接器目录",
-      catalog_subtitle: "浏览合成的 Nango / Airbyte / 内置 manifest。关闭的 provider 对所有工作区不可见。",
+      catalog_subtitle: "浏览合成的上游 registry / Airbyte / 内置 manifest。关闭的 provider 对所有工作区不可见。",
       stat_providers: "目录服务商数",
       stat_enabled: "平台已启用",
       stat_with_streams: "含数据流",
