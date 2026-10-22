@@ -19,6 +19,11 @@ Basis is an open-source stack on the [Semantica](https://github.com/semantica-ag
 
 > **Status:** Under active development. APIs may change—use a pinned release in production.
 
+<p align="center">
+  <img src="assets/graph.png" alt="Basis graph workspace — force-directed ledger projection, ontology navigation, temporal scrubber" width="900" style="border-radius: 12px;" />
+</p>
+<p align="center"><sub>Graph workspace in the Basis studio.</sub></p>
+
 ## Table of contents
 
 - [Features](#features)
@@ -37,10 +42,6 @@ Basis is an open-source stack on the [Semantica](https://github.com/semantica-ag
 - [Community](#community)
 - [License](#license)
 
-<p align="center">
-  <img src="assets/graph.png" alt="Basis graph workspace — force-directed ledger projection, ontology navigation, temporal scrubber" width="900" style="border-radius: 12px;" />
-</p>
-<p align="center"><sub>Graph workspace in the Basis studio.</sub></p>
 ## Features
 
 - **Business semantics** — entities, typed facts, mappings, and ontologies; the unit of meaning is not “another chunk.”

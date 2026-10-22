@@ -19,6 +19,11 @@ Basis 是基于 [Semantica](https://github.com/semantica-agi/semantica) Python S
 
 > **状态：** 仍在积极开发，接口可能变动；生产环境请固定发布版本。
 
+<p align="center">
+  <img src="assets/graph.png" alt="Basis 图谱工作区 — 力导向图、本体导航、时间轴回放" width="900" style="border-radius: 12px;" />
+</p>
+<p align="center"><sub>Basis 工作台中的图谱工作区。</sub></p>
+
 ## 目录
 
 - [能力概览](#能力概览)
@@ -37,10 +42,6 @@ Basis 是基于 [Semantica](https://github.com/semantica-agi/semantica) Python S
 - [社区](#社区)
 - [许可证](#许可证)
 
-<p align="center">
-  <img src="assets/graph.png" alt="Basis 图谱工作区 — 力导向图、本体导航、时间轴回放" width="900" style="border-radius: 12px;" />
-</p>
-<p align="center"><sub>Basis 工作台中的图谱工作区。</sub></p>
 ## 能力概览
 
 - **业务语义** — 实体、类型化事实、映射与本体；语义单元不是「又一坨切片」。
