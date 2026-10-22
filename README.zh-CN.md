@@ -13,9 +13,9 @@
 
 </div>
 
-将文档、数据库与 SaaS 对齐为**实体、类型与可治理事实**——源系统之上的共享语义层。支持桌面、自托管与云端部署，通过 **OpenAPI v1** 与 **MCP** 对外集成；状态变更须经审核，而非静默 API 调用。
+将文档、数据库与 SaaS 对齐为**实体、类型与可治理事实**——源系统之上的共享语义层。可在桌面、自托管或云端运行，通过 **OpenAPI v1** 与 **MCP** 对外集成。状态变更须经审核，而非静默 API 调用。
 
-Basis 是基于 [Semantica](https://github.com/semantica-agi/semantica) Python SDK 的开源技术栈。**业务语义**——映射、本体、规则、SHACL——落在**规范证据账本**之上；图与搜索为**可重建投影**。
+Basis 是基于 [Semantica](https://github.com/semantica-agi/semantica) Python SDK 构建的开源技术栈。**业务语义**——映射、本体、规则与 SHACL——落在**规范证据账本**之上；图与搜索为**可重建投影**。
 
 > **状态：** 仍在积极开发，接口可能变动；生产环境请固定发布版本。
 
@@ -28,7 +28,6 @@ Basis 是基于 [Semantica](https://github.com/semantica-agi/semantica) Python S
 
 - [能力概览](#能力概览)
 - [为什么选择 Basis](#为什么选择-basis)
-- [架构](#架构)
 - [快速开始](#快速开始)
   - [环境](#环境)
   - [1. 克隆并启动 API](#1-克隆并启动-api)
@@ -64,25 +63,6 @@ Basis 是基于 [Semantica](https://github.com/semantica-agi/semantica) Python S
 | **业务语义** | 提示词标签 | 共享实体与类型、映射、本体、规则、SHACL、SPARQL |
 | **连接** | 各系统手写胶水 | BOCP manifest、OpenAPI v1、MCP |
 | **运维** | 多组件拼凑 | API + Web；开发 SQLite，生产 PostgreSQL |
-
-## 架构
-
-```mermaid
-flowchart LR
-  WEB["Basis Web<br/>:5173"]
-  WEB -->|proxy /api| INT
-
-  subgraph API["Basis API :8090 · FastAPI"]
-    direction TB
-    INT["interface/<br/>HTTP + MCP 协议"]
-    APP["application/<br/>共用智能体操作"]
-    DOM["domain/<br/>账本、图、连接器、租户"]
-    SDK["semantica SDK<br/>解析、图、LLM、向量…"]
-    INT --> APP --> DOM --> SDK
-  end
-```
-
-集成方应调用 **Basis**（`/api/v1/...` 与工作区 MCP），而非直接依赖 Semantica。
 
 ## 快速开始
 

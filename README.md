@@ -13,9 +13,9 @@
 
 </div>
 
-Map documents, databases, and SaaS to **entities, types, and governed facts**—the shared meaning layer above raw systems. Expose **OpenAPI v1** and **MCP** on desktop, self-hosted, or cloud; state changes go through review, not silent API calls.
+Map documents, databases, and SaaS to **entities, types, and governed facts**—the shared meaning layer above raw systems. Run on desktop, self-hosted, or cloud with **OpenAPI v1** and **MCP**. State changes go through review, not silent API calls.
 
-Basis is an open-source stack on the [Semantica](https://github.com/semantica-agi/semantica) Python SDK. **Business semantics**—mappings, ontologies, rules, SHACL—sit on a canonical **evidence ledger**; graph and search are **rebuildable projections**.
+Basis is an open-source stack built on the [Semantica](https://github.com/semantica-agi/semantica) Python SDK. **Business semantics**—mappings, ontologies, rules, and SHACL—sit on a canonical **evidence ledger**; graph and search are **rebuildable projections**.
 
 > **Status:** Under active development. APIs may change—use a pinned release in production.
 
@@ -28,7 +28,6 @@ Basis is an open-source stack on the [Semantica](https://github.com/semantica-ag
 
 - [Features](#features)
 - [Why Basis](#why-basis)
-- [Architecture](#architecture)
 - [Quick start](#quick-start)
   - [Prerequisites](#prerequisites)
   - [1. Clone and configure API](#1-clone-and-configure-api)
@@ -64,25 +63,6 @@ Basis is an open-source stack on the [Semantica](https://github.com/semantica-ag
 | **Business semantics** | Prompt labels | Shared entities & types, mappings, ontologies, rules, SHACL, SPARQL |
 | **Connectivity** | Per-system glue | BOCP manifests, OpenAPI v1, MCP |
 | **Ops** | Many services | API + Web; SQLite dev, PostgreSQL for production |
-
-## Architecture
-
-```mermaid
-flowchart LR
-  WEB["Basis Web<br/>:5173"]
-  WEB -->|proxy /api| INT
-
-  subgraph API["Basis API :8090 · FastAPI"]
-    direction TB
-    INT["interface/<br/>HTTP + MCP wire"]
-    APP["application/<br/>shared agent operations"]
-    DOM["domain/<br/>ledger, graph, connectors, tenancy"]
-    SDK["semantica SDK<br/>parse, graph, LLM, vectors…"]
-    INT --> APP --> DOM --> SDK
-  end
-```
-
-Integrations should call **Basis** (`/api/v1/...` and workspace MCP), not Semantica directly.
 
 ## Quick start
 
