@@ -13,7 +13,7 @@ from basis.interface.http.graph_models import (
     ReasoningRunRequest,
     ReasoningRunResponse,
 )
-from basis.application.operation_http import http_response_from_payload
+from basis.interface.http.operation_http import http_response_from_payload
 from basis.application.reasoning.operations import (
     op_list_reasoning_ground_facts,
     op_run_reasoning,

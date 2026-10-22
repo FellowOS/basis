@@ -20,7 +20,7 @@ from basis.interface.http.graph_route_errors import admin_error_from_graph_http
 from basis.domain.graph.governance.decision import maybe_emit_governance_tripped_on_review_approve
 from basis.domain.knowledge.store import KnowledgeStore
 from basis.application.kernel import CoreError
-from basis.application.operation_http import http_exception_from_core, http_response_from_payload
+from basis.interface.http.operation_http import http_exception_from_core, http_response_from_payload
 from basis.application.review.operations import op_approve_review_item
 from basis.interface.http.review_models import (
     ApproveReviewItemResponse,

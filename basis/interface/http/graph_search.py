@@ -20,7 +20,7 @@ from basis.interface.http.deps import (
 from basis.interface.http.core_context import build_workspace_core_context
 from basis.application.graph.operations import op_find_entities
 from basis.application.knowledge.operations import op_search_chunks
-from basis.application.operation_http import http_response_from_payload
+from basis.interface.http.operation_http import http_response_from_payload
 from basis.domain.knowledge.search import ChunkSearchService
 from basis.infra.runtime.limits import RuntimeLimits
 from basis.domain.knowledge.store import KnowledgeStore

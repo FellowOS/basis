@@ -24,7 +24,7 @@ from basis.application.knowledge.operations import (
     op_list_derived_facts,
     op_list_typed_facts,
 )
-from basis.application.operation_http import http_response_from_payload
+from basis.interface.http.operation_http import http_response_from_payload
 from basis.domain.knowledge.store import KnowledgeStore
 
 router = APIRouter(tags=["workspaces"])

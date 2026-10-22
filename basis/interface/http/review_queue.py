@@ -22,7 +22,7 @@ from basis.domain.knowledge.services.graph_audit import audit_graph
 from basis.domain.knowledge.services.conflict_review import scan_statement_conflicts
 from basis.domain.knowledge.services.import_review import stage_import_blob
 from basis.domain.knowledge.store import KnowledgeStore
-from basis.application.operation_http import http_response_from_payload
+from basis.interface.http.operation_http import http_response_from_payload
 from basis.application.review.operations import op_get_review_item, op_list_review_items
 from basis.interface.http.core_context import build_workspace_core_context
 from basis.interface.http.review_models import CreateEntityMergeReviewRequest

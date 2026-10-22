@@ -19,7 +19,7 @@ from basis.interface.http.deps import (
     save_graph,
 )
 from basis.interface.http.core_context import build_workspace_core_context
-from basis.application.operation_http import http_response_from_payload
+from basis.interface.http.operation_http import http_response_from_payload
 from basis.application.workspace.operations import op_list_processing_jobs
 from basis.domain.knowledge.store import KnowledgeStore
 from basis.interface.http.ingest_helpers import respond_ingest

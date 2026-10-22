@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, Query, Request
 
 from basis.application.connectors import catalog, policy
 from basis.application.kernel import CoreError
-from basis.application.operation_http import http_exception_from_core
+from basis.interface.http.operation_http import http_exception_from_core
 from basis.domain.tenancy.admin.store import AdminStore, User
 from basis.interface.http.workspace.connectors.models import UpsertConnectorPolicyRequest
 from basis.interface.http.core_context import build_workspace_core_context

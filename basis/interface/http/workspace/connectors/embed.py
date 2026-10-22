@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends, Query, Request
 from basis.application.connectors import catalog, connections, oauth
 from basis.domain.connector.connection_scope import SCOPE_END_USER
 from basis.application.kernel import CoreError
-from basis.application.operation_http import http_exception_from_core
+from basis.interface.http.operation_http import http_exception_from_core
 from basis.domain.tenancy.admin.store import AdminStore, User
 from basis.interface.http.workspace.connectors.models import (
     EmbedOAuthAuthorizeRequest,

@@ -1,4 +1,4 @@
-"""Map core operation payloads to HTTP exceptions."""
+"""Map application operation payloads to HTTP exceptions."""
 
 from __future__ import annotations
 
@@ -6,8 +6,8 @@ from typing import Any
 
 from fastapi import HTTPException
 
-from basis.domain.errors import AdminError
 from basis.application.kernel import CoreError
+from basis.domain.errors import AdminError
 
 _ERROR_MAP: dict[str, tuple[int, str]] = {
     "query is required": (422, "validation_error"),

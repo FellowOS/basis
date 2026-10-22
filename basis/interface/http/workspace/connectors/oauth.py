@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, Request
 
 from basis.application.connectors import oauth as oauth_uc
 from basis.application.kernel import CoreError
-from basis.application.operation_http import http_exception_from_core
+from basis.interface.http.operation_http import http_exception_from_core
 from basis.domain.tenancy.admin.store import AdminStore, User
 from basis.infra.runtime.config import Settings
 from basis.infra.tooling.test_support.playwright_e2e import is_playwright_e2e_data_dir

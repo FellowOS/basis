@@ -123,7 +123,7 @@ Run relevant checks after substantive edits; say if something was not run.
 ## Python / API
 
 - Package layout: [package-layout.md](./docs/architecture/package-layout.md) — `interface/`, `application/`, `domain/`, `infra/` (CI: `audit-legacy-package-imports.py`, `lint-imports`).
-- **Application layer (`basis/application/`)**: `kernel.py` (`WorkspaceCoreContext`, `CoreError`, workspace gates); `mcp.py` (tool catalog, dispatch, argument models); domain-aligned packages — `connectors/`, `workspace/`, `graph/`, `knowledge/`, `reasoning/`, `review/` (`operations.py` each). **HTTP** calls BC `operations` directly; **MCP** uses `mcp` + `registry` re-export. HTTP payload mapping: `operation_http.py`.
+- **Application layer (`basis/application/`)**: `kernel.py` (`WorkspaceCoreContext`, `CoreError`, workspace gates); `mcp.py` (tool catalog, dispatch, argument models); domain-aligned packages — `connectors/`, `workspace/`, `graph/`, `knowledge/`, `reasoning/`, `review/` (`operations.py` each). **HTTP** calls BC `operations` directly; **MCP** uses `mcp` + `registry` re-export. Operation `{error}` → HTTP status: `interface/http/operation_http.py`.
 - **Semantica 线 1：** 新后端逻辑放在 `basis/domain/*`（L3）：`knowledge` · `ontology` · `graph`（`projection/` + `session/` / `reads/` / …）· `connector` · `tenancy`。图域见 `basis/domain/graph/README.md`；本体 Hub 见 `basis/domain/ontology/README.md`。分层见 [package-layout.md](./docs/architecture/package-layout.md)。
 - CLI entry: `pyproject.toml` (`basis` → `basis.cli:main`); app factory `basis.interface.http.app:create_app`.
 - Schema SQL: `basis/infra/tooling/db/migrations/`; Alembic `basis/infra/tooling/db/alembic/`.
