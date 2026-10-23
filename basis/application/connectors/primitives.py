@@ -80,7 +80,9 @@ def invoke(ctx: WorkspaceCoreContext, args: dict[str, Any]) -> dict[str, Any]:
 
 def invoke_or_raise_http(ctx: WorkspaceCoreContext, args: dict[str, Any]) -> dict[str, Any]:
     """Map primitive `{error: ...}` payloads to ``AdminError`` for HTTP handlers."""
-    payload = invoke(ctx, args)
+    from basis.application.connectors.operations import op_invoke_connector_primitive
+
+    payload = op_invoke_connector_primitive(ctx, args)
     err = payload.get("error")
     if not err or not isinstance(err, str):
         return payload

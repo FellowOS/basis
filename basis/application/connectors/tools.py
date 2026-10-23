@@ -46,7 +46,9 @@ def execute_tool(ctx: WorkspaceCoreContext, args: dict[str, Any]) -> dict[str, A
 
 
 def execute_tool_or_raise_http(ctx: WorkspaceCoreContext, args: dict[str, Any]) -> dict[str, Any]:
-    payload = execute_tool(ctx, args)
+    from basis.application.connectors.operations import op_execute_connector_tool
+
+    payload = op_execute_connector_tool(ctx, args)
     err = payload.get("error")
     if not err or not isinstance(err, str):
         return payload

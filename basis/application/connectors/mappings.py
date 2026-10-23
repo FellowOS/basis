@@ -117,7 +117,9 @@ def sync_table_mapping(ctx: WorkspaceCoreContext, args: dict[str, Any]) -> dict[
 def sync_table_mapping_or_raise_http(
     ctx: WorkspaceCoreContext, *, mapping_id: str
 ) -> dict[str, Any]:
-    payload = sync_table_mapping(ctx, {"mapping_id": mapping_id})
+    from basis.application.connectors.operations import op_sync_connector_table_mapping
+
+    payload = op_sync_connector_table_mapping(ctx, {"mapping_id": mapping_id})
     err = payload.get("error")
     if not err or not isinstance(err, str):
         return payload

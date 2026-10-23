@@ -35,7 +35,9 @@ def propose_entity_writeback_or_raise_http(
     entity_id: str,
     field_updates: dict[str, Any],
 ) -> dict[str, Any]:
-    payload = propose_entity_writeback(
+    from basis.application.connectors.operations import op_propose_entity_writeback
+
+    payload = op_propose_entity_writeback(
         ctx,
         {"entity_id": entity_id, "field_updates": field_updates},
     )
