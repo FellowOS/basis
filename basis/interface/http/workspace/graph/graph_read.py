@@ -29,7 +29,7 @@ from basis.domain.graph.reads.read import get_node, paginate_edges
 from basis.domain.graph.projection.export import graph_snapshot
 from basis.domain.graph.projection.projector import apply_rebuild_to_session
 from basis.domain.knowledge.services.graph_audit import audit_graph
-from basis.interface.http.graph_models import (
+from basis.interface.http.workspace.graph.graph_models import (
     GraphSearchRequest,
     ResolveNodeLabelsRequest,
 )

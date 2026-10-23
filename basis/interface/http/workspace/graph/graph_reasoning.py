@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, Query, Request
 from basis.domain.tenancy.admin.store import AdminStore, User
 from basis.interface.http.deps import get_current_user, get_store
 from basis.interface.http.core_context import build_workspace_core_context
-from basis.interface.http.graph_models import (
+from basis.interface.http.workspace.graph.graph_models import (
     ReasoningGroundFactsResponse,
     ReasoningRunRequest,
     ReasoningRunResponse,

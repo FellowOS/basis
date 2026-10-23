@@ -24,7 +24,7 @@ from basis.interface.http.operation_http import http_response_from_payload
 from basis.domain.knowledge.search import ChunkSearchService
 from basis.infra.runtime.limits import RuntimeLimits
 from basis.domain.knowledge.store import KnowledgeStore
-from basis.interface.http.graph_models import (
+from basis.interface.http.workspace.graph.graph_models import (
     SearchConfigRequest,
     SearchReindexRequest,
 )

@@ -4,14 +4,14 @@ from __future__ import annotations
 
 from fastapi import APIRouter
 
-from basis.interface.http.graph_models import (
+from basis.interface.http.workspace.graph.graph_models import (
     GraphSearchRequest,
     ResolveNodeLabelsRequest,
     SearchConfigRequest,
     SearchReindexRequest,
 )
-from basis.interface.http.graph_read import router as read_router
-from basis.interface.http.graph_search import router as search_router
+from basis.interface.http.workspace.graph.graph_read import router as read_router
+from basis.interface.http.workspace.graph.graph_search import router as search_router
 
 router = APIRouter(tags=["workspaces"])
 router.include_router(read_router)

@@ -20,7 +20,7 @@ from basis.interface.http.deps import (
 )
 from basis.domain.graph.session.guard import require_graph_session
 from basis.infra.runtime.limits import RuntimeLimits
-from basis.interface.http.graph_shared import link_prediction_semaphore
+from basis.interface.http.workspace.graph.graph_shared import link_prediction_semaphore
 
 router = APIRouter(tags=["workspaces"])
 

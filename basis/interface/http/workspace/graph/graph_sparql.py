@@ -16,7 +16,7 @@ from basis.interface.http.deps import (
     get_store,
 )
 from basis.domain.graph.session.guard import require_graph_session
-from basis.interface.http.graph_shared import sparql_semaphore
+from basis.interface.http.workspace.graph.graph_shared import sparql_semaphore
 from basis.domain.graph.sparql.read import (
     SPARQL_TIMEOUT_S,
     build_sparql_graph,

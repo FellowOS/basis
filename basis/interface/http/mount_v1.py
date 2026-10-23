@@ -14,9 +14,9 @@ from basis.interface.http.documents import router as workspace_documents_router
 from basis.interface.http.e2e_helpers import router as workspace_e2e_helpers_router
 from basis.interface.http.e2e_platform_helpers import router as platform_e2e_helpers_router
 from basis.interface.http.graph_session_routes import router as workspace_graph_session_query_router
-from basis.interface.http.graph_enrich import router as workspace_graph_enrich_router
-from basis.interface.http.graph_staging import router as workspace_graph_staging_router
-from basis.interface.http.graph_temporal import router as workspace_graph_temporal_router
+from basis.interface.http.workspace.graph.graph_enrich import router as workspace_graph_enrich_router
+from basis.interface.http.workspace.graph.graph_staging import router as workspace_graph_staging_router
+from basis.interface.http.workspace.graph.graph_temporal import router as workspace_graph_temporal_router
 from basis.interface.http.graph import router as workspace_graph_router
 from basis.interface.http.ledger import router as workspace_ledger_router
 from basis.interface.http.ontology import router as workspace_ontology_router

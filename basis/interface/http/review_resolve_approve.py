@@ -16,7 +16,7 @@ from basis.interface.http.deps import (
     save_graph,
 )
 from basis.interface.http.core_context import build_workspace_core_context
-from basis.interface.http.graph_route_errors import admin_error_from_graph_http
+from basis.interface.http.workspace.graph.graph_route_errors import admin_error_from_graph_http
 from basis.domain.graph.governance.decision import maybe_emit_governance_tripped_on_review_approve
 from basis.domain.knowledge.store import KnowledgeStore
 from basis.application.kernel import CoreError
