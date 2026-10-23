@@ -1223,7 +1223,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/workspaces/{workspace_id}/connectors/connections/{service}/{connection_name}": {
+    "/api/v1/workspaces/{workspace_id}/connectors/connections/{service}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1235,19 +1235,19 @@ export interface paths {
          * Upsert Connector Connection
          * @description Create or update an encrypted BOCP connection for this workspace.
          */
-        put: operations["upsert_connector_connection_api_v1_workspaces__workspace_id__connectors_connections__service___connection_name__put"];
+        put: operations["upsert_connector_connection_api_v1_workspaces__workspace_id__connectors_connections__service__put"];
         post?: never;
         /**
          * Delete Connector Connection
          * @description Delete a configured BOCP connection from this workspace.
          */
-        delete: operations["delete_connector_connection_api_v1_workspaces__workspace_id__connectors_connections__service___connection_name__delete"];
+        delete: operations["delete_connector_connection_api_v1_workspaces__workspace_id__connectors_connections__service__delete"];
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/workspaces/{workspace_id}/connectors/connections/{service}/{connection_name}/check": {
+    "/api/v1/workspaces/{workspace_id}/connectors/connections/{service}/check": {
         parameters: {
             query?: never;
             header?: never;
@@ -1260,14 +1260,14 @@ export interface paths {
          * Check Connector Connection
          * @description Run the BOCP `CHECK` health check against an upstream connection.
          */
-        post: operations["check_connector_connection_api_v1_workspaces__workspace_id__connectors_connections__service___connection_name__check_post"];
+        post: operations["check_connector_connection_api_v1_workspaces__workspace_id__connectors_connections__service__check_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/workspaces/{workspace_id}/connectors/connections/{service}/{connection_name}/discover": {
+    "/api/v1/workspaces/{workspace_id}/connectors/connections/{service}/discover": {
         parameters: {
             query?: never;
             header?: never;
@@ -1278,7 +1278,7 @@ export interface paths {
          * Discover Connector Schema
          * @description Run the BOCP `DISCOVER` schema introspection for a SQL table or REST stream.
          */
-        get: operations["discover_connector_schema_api_v1_workspaces__workspace_id__connectors_connections__service___connection_name__discover_get"];
+        get: operations["discover_connector_schema_api_v1_workspaces__workspace_id__connectors_connections__service__discover_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1287,7 +1287,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/workspaces/{workspace_id}/connectors/connections/{service}/{connection_name}/invoke-primitive": {
+    "/api/v1/workspaces/{workspace_id}/connectors/connections/{service}/invoke-primitive": {
         parameters: {
             query?: never;
             header?: never;
@@ -1300,7 +1300,7 @@ export interface paths {
          * Invoke Connector Primitive
          * @description Run a BOCP Section 10 primitive (discover, list, mutate, invoke) without a table mapping.
          */
-        post: operations["invoke_connector_primitive_api_v1_workspaces__workspace_id__connectors_connections__service___connection_name__invoke_primitive_post"];
+        post: operations["invoke_connector_primitive_api_v1_workspaces__workspace_id__connectors_connections__service__invoke_primitive_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1553,6 +1553,66 @@ export interface paths {
          */
         put: operations["put_connector_policy_api_v1_workspaces__workspace_id__connectors_policy_put"];
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workspaces/{workspace_id}/connectors/policy/providers/{service}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete Workspace Connector Provider
+         * @description Remove a workspace app (vault config and connections are kept).
+         */
+        delete: operations["delete_workspace_connector_provider_api_v1_workspaces__workspace_id__connectors_policy_providers__service__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workspaces/{workspace_id}/connectors/policy/providers/{service}/disable": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Disable Workspace Connector Provider
+         * @description Disable a BOCP provider on this workspace (remove from workspace allowlist).
+         */
+        post: operations["disable_workspace_connector_provider_api_v1_workspaces__workspace_id__connectors_policy_providers__service__disable_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workspaces/{workspace_id}/connectors/policy/providers/{service}/enable": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Enable Workspace Connector Provider
+         * @description Enable a BOCP provider on this workspace (add to workspace allowlist).
+         */
+        post: operations["enable_workspace_connector_provider_api_v1_workspaces__workspace_id__connectors_policy_providers__service__enable_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -4590,11 +4650,6 @@ export interface components {
             source_id?: string | null;
             /** Provider */
             provider: string;
-            /**
-             * Connection Name
-             * @default default
-             */
-            connection_name: string;
             /** Stream Name */
             stream_name: string;
             /** External Table */
@@ -4673,6 +4728,21 @@ export interface components {
             scope: string;
             /** Expires At */
             expires_at?: string | null;
+            /**
+             * Allowed Operations
+             * @description Deprecated: sets both MCP and OpenAPI grants when the split fields are omitted.
+             */
+            allowed_operations?: string[] | null;
+            /**
+             * Mcp Allowed Operations
+             * @description MCP tool names this token may call; omit for unrestricted MCP.
+             */
+            mcp_allowed_operations?: string[] | null;
+            /**
+             * Http Allowed Operations
+             * @description Workspace REST route grant ids; omit for unrestricted OpenAPI.
+             */
+            http_allowed_operations?: string[] | null;
         };
         /** CreateWorkspaceRequest */
         CreateWorkspaceRequest: {
@@ -4810,11 +4880,6 @@ export interface components {
             /** State */
             state?: string | null;
             /**
-             * Connection Name
-             * @default default
-             */
-            connection_name: string;
-            /**
              * Connection Scope
              * @default workspace
              * @enum {string}
@@ -4834,10 +4899,13 @@ export interface components {
             /** Tool Id */
             tool_id: string;
             /**
-             * Connection Name
-             * @default default
+             * Connection Scope
+             * @default workspace
+             * @enum {string}
              */
-            connection_name: string;
+            connection_scope: "workspace" | "end_user";
+            /** Subject Id */
+            subject_id?: string | null;
             /** Arguments */
             arguments?: {
                 [key: string]: unknown;
@@ -5453,21 +5521,11 @@ export interface components {
         SuggestConnectionScope: {
             /** Provider */
             provider: string;
-            /**
-             * Connection Name
-             * @default default
-             */
-            connection_name: string;
         };
         /** SuggestStreamTargetRequest */
         SuggestStreamTargetRequest: {
             /** Provider */
             provider: string;
-            /**
-             * Connection Name
-             * @default default
-             */
-            connection_name: string;
             /** Stream Name */
             stream_name?: string | null;
             /** External Table */
@@ -5492,7 +5550,7 @@ export interface components {
             sql_tables?: components["schemas"]["SuggestStreamTargetRequest"][];
             /**
              * Connections
-             * @description When auto-expanding, limit to these saved connections (all workspace connections if empty).
+             * @description When auto-expanding, limit to these connector services (all if empty).
              */
             connections?: components["schemas"]["SuggestConnectionScope"][];
         };
@@ -5538,8 +5596,6 @@ export interface components {
         UpdateTableMappingRequest: {
             /** Provider */
             provider?: string | null;
-            /** Connection Name */
-            connection_name?: string | null;
             /** Stream Name */
             stream_name: string;
             /** External Table */
@@ -8083,7 +8139,7 @@ export interface operations {
             };
         };
     };
-    upsert_connector_connection_api_v1_workspaces__workspace_id__connectors_connections__service___connection_name__put: {
+    upsert_connector_connection_api_v1_workspaces__workspace_id__connectors_connections__service__put: {
         parameters: {
             query?: never;
             header?: {
@@ -8092,7 +8148,6 @@ export interface operations {
             path: {
                 workspace_id: string;
                 service: string;
-                connection_name: string;
             };
             cookie?: never;
         };
@@ -8124,7 +8179,7 @@ export interface operations {
             };
         };
     };
-    delete_connector_connection_api_v1_workspaces__workspace_id__connectors_connections__service___connection_name__delete: {
+    delete_connector_connection_api_v1_workspaces__workspace_id__connectors_connections__service__delete: {
         parameters: {
             query?: {
                 connection_scope?: string;
@@ -8136,7 +8191,6 @@ export interface operations {
             path: {
                 workspace_id: string;
                 service: string;
-                connection_name: string;
             };
             cookie?: never;
         };
@@ -8164,7 +8218,7 @@ export interface operations {
             };
         };
     };
-    check_connector_connection_api_v1_workspaces__workspace_id__connectors_connections__service___connection_name__check_post: {
+    check_connector_connection_api_v1_workspaces__workspace_id__connectors_connections__service__check_post: {
         parameters: {
             query?: {
                 connection_scope?: string;
@@ -8176,7 +8230,6 @@ export interface operations {
             path: {
                 workspace_id: string;
                 service: string;
-                connection_name: string;
             };
             cookie?: never;
         };
@@ -8204,11 +8257,13 @@ export interface operations {
             };
         };
     };
-    discover_connector_schema_api_v1_workspaces__workspace_id__connectors_connections__service___connection_name__discover_get: {
+    discover_connector_schema_api_v1_workspaces__workspace_id__connectors_connections__service__discover_get: {
         parameters: {
             query?: {
                 stream_name?: string | null;
                 external_table?: string | null;
+                connection_scope?: string;
+                subject_id?: string | null;
             };
             header?: {
                 authorization?: string | null;
@@ -8216,7 +8271,6 @@ export interface operations {
             path: {
                 workspace_id: string;
                 service: string;
-                connection_name: string;
             };
             cookie?: never;
         };
@@ -8244,7 +8298,7 @@ export interface operations {
             };
         };
     };
-    invoke_connector_primitive_api_v1_workspaces__workspace_id__connectors_connections__service___connection_name__invoke_primitive_post: {
+    invoke_connector_primitive_api_v1_workspaces__workspace_id__connectors_connections__service__invoke_primitive_post: {
         parameters: {
             query?: never;
             header?: {
@@ -8253,7 +8307,6 @@ export interface operations {
             path: {
                 workspace_id: string;
                 service: string;
-                connection_name: string;
             };
             cookie?: never;
         };
@@ -8841,6 +8894,114 @@ export interface operations {
                 "application/json": components["schemas"]["UpsertConnectorPolicyRequest"];
             };
         };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_workspace_connector_provider_api_v1_workspaces__workspace_id__connectors_policy_providers__service__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                workspace_id: string;
+                service: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    disable_workspace_connector_provider_api_v1_workspaces__workspace_id__connectors_policy_providers__service__disable_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                workspace_id: string;
+                service: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    enable_workspace_connector_provider_api_v1_workspaces__workspace_id__connectors_policy_providers__service__enable_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                workspace_id: string;
+                service: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
         responses: {
             /** @description Successful Response */
             200: {

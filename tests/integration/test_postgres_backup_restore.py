@@ -117,7 +117,13 @@ def test_postgres_backup_restore_scripts_preserve_ledger(
         docs = client2.get(
             f"/api/v1/workspaces/{workspace_id}/documents", headers=headers2
         ).json()["documents"]
-        assert any(d.get("filename") == "ledger.txt" for d in docs)
+        # List API omits `filename` when title matches `{external_key}.txt` (ledger upload).
+        assert any(
+            d.get("doc_id") == "ledger"
+            or d.get("filename") == "ledger.txt"
+            or "backup roundtrip" in (d.get("preview") or "")
+            for d in docs
+        )
 
         rebuild = client2.post(f"/api/v1/workspaces/{workspace_id}/graph/rebuild", headers=headers2)
         assert rebuild.status_code == 200

@@ -18324,7 +18324,37 @@
               }
             ],
             "title": "Allowed Operations",
-            "description": "Optional MCP tool / HTTP grant ids; omit for unrestricted access."
+            "description": "Deprecated: sets both MCP and OpenAPI grants when the split fields are omitted."
+          },
+          "mcp_allowed_operations": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mcp Allowed Operations",
+            "description": "MCP tool names this token may call; omit for unrestricted MCP."
+          },
+          "http_allowed_operations": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Http Allowed Operations",
+            "description": "Workspace REST route grant ids; omit for unrestricted OpenAPI."
           }
         },
         "type": "object",

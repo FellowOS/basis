@@ -31,4 +31,4 @@ desktop/build/icon.iconset/
 .cursor/
 uv.toml
 # Product/architecture markdown (local only — not versioned)
-docs/
+/docs/
