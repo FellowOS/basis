@@ -123,6 +123,7 @@ jobs:
           uv run python scripts/audit-compat-shim-imports.py
           uv run python scripts/audit-legacy-package-imports.py
           uv run python scripts/audit-workspace-http-aggregators.py
+          uv run python scripts/audit-mcp-http-decouple.py
 
       - name: Explorer compat session (default BasisGraphSession)
         run: >-

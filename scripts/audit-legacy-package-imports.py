@@ -23,6 +23,8 @@ FORBIDDEN_PREFIXES = (
     "basis.application.mcp",
     "basis.application.registry",
     "basis.application.operation_registry",
+    "basis.interface.contract.mcp.openapi",
+    "basis.interface.contract.mcp.annotations",
     "basis.core",
     "basis.control",
     "basis.runtime",

@@ -16,6 +16,7 @@ from basis.application.tool_catalog import (
     validation_error_payload,
     validate_operation_response,
 )
+from basis.application.tool_catalog.catalog import mcp_exposed
 from basis.application.tool_catalog import run as run_static_operation
 from basis.domain.errors import AdminError
 from basis.interface.contract.mcp.connector_tools import (
@@ -35,40 +36,16 @@ __all__ = [
 ]
 
 
-def _mcp_exposed(name: str) -> bool:
-    return OPERATIONS[name].get("mcp", True)
-
-
-def _mcp_tool_description(name: str, spec: dict[str, Any]) -> str:
-    derived = description_for_tool(name)
-    if derived:
-        return derived
-    fallback = spec.get("description")
-    if isinstance(fallback, str) and fallback.strip():
-        return fallback.strip()
-    return name
-
-
-def _mcp_input_schema(name: str, spec: dict[str, Any]) -> dict[str, Any]:
-    derived = input_schema_for_tool(name)
-    if derived is not None:
-        return derived
-    fallback = spec.get("input_schema")
-    if isinstance(fallback, dict):
-        return fallback
-    return {"type": "object", "properties": {}}
-
-
 @lru_cache(maxsize=1)
 def get_static_tool_definitions() -> list[dict[str, Any]]:
     return [
         {
             "name": name,
-            "description": _mcp_tool_description(name, spec),
-            "inputSchema": _mcp_input_schema(name, spec),
+            "description": description_for_tool(name),
+            "inputSchema": input_schema_for_tool(name),
         }
-        for name, spec in OPERATIONS.items()
-        if _mcp_exposed(name)
+        for name in OPERATIONS
+        if mcp_exposed(name)
     ]
 
 

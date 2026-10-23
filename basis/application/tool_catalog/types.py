@@ -11,6 +11,4 @@ OperationHandler = Callable[[WorkspaceCoreContext, dict[str, Any]], dict[str, An
 
 class OperationSpec(TypedDict):
     handler: OperationHandler
-    description: NotRequired[str]
-    input_schema: NotRequired[dict[str, Any]]
     mcp: NotRequired[bool]

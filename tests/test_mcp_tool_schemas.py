@@ -2,8 +2,19 @@
 
 from basis.application.tool_catalog import TOOL_NAMES
 from basis.application.tool_catalog.catalog import OPERATIONS
+from basis.application.tool_catalog.mcp_metadata import MCP_TOOL_METADATA
 from basis.application.tool_catalog.mcp_list import description_for_tool, input_schema_for_tool
+from basis.application.tool_catalog.validation import OPERATION_INPUT_MODELS
 from basis.interface.mcp.dispatch import TOOL_DEFINITIONS
+
+
+def test_every_static_tool_has_pydantic_input_model() -> None:
+    assert set(OPERATION_INPUT_MODELS) == set(OPERATIONS)
+
+
+def test_mcp_metadata_is_descriptions_only() -> None:
+    for name, meta in MCP_TOOL_METADATA.items():
+        assert set(meta.keys()) == {"description"}, name
 
 
 def test_static_catalog_has_mcp_metadata_for_every_tool() -> None:

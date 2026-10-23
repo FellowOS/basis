@@ -54,3 +54,8 @@ OPERATIONS: dict[str, OperationSpec] = {
     "execute_connector_tool": {"handler": connector_tools.execute_tool},
     "propose_entity_writeback": {"handler": connector_writeback.propose_entity_writeback},
 }
+
+
+def mcp_exposed(tool_name: str) -> bool:
+    """Whether the tool appears on MCP tools/list (default true)."""
+    return OPERATIONS[tool_name].get("mcp", True)
