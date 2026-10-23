@@ -1,1 +1,1 @@
-"""Workspace resource HTTP routes; re-exported from ``interface/http/resources.py``."""
+"""Workspace resource HTTP routes (``resources.py``); root ``interface/http/resources.py`` re-exports ``router``."""

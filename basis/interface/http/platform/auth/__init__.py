@@ -1,1 +1,1 @@
-"""Platform auth HTTP routes; aggregator at ``interface/http/platform_auth.py``."""
+"""Platform auth HTTP routes; mounted via ``platform/auth_mount.py`` (``platform_auth.py`` stub)."""
