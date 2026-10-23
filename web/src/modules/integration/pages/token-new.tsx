@@ -21,7 +21,6 @@ export function IntegrationTokenNewPage() {
   const { t } = useI18n();
   const { getWorkspace } = useWorkspaceCatalog();
   const [myRole, setMyRole] = useState<string | undefined>();
-  const [createdSecret, setCreatedSecret] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   const canManageTokens = ['owner', 'admin'].includes(myRole ?? getWorkspace(workspaceId ?? '')?.my_role ?? '');
@@ -71,11 +70,10 @@ export function IntegrationTokenNewPage() {
     setSubmitting(true);
     try {
       const secret = await integration.createApiToken(values.name, scope, grants);
-      if (secret) {
-        setCreatedSecret(secret);
-      } else {
-        navigate(integrationTokensPath);
-      }
+      navigate(integrationTokensPath, {
+        replace: true,
+        ...(secret ? { state: { createdTokenSecret: secret } } : {}),
+      });
     } finally {
       setSubmitting(false);
     }
@@ -94,49 +92,26 @@ export function IntegrationTokenNewPage() {
           <Button variant="outline" size="sm" asChild>
             <Link to={integrationTokensPath}>{t.core.common.cancel}</Link>
           </Button>
-          {!createdSecret ? (
-            <Button
-              size="sm"
-              type="submit"
-              form={FORM_ID}
-              disabled={submitting}
-              data-testid="api-token-create-submit"
-            >
-              {submitting ? t.core.common.loading : mcp.create_button}
-            </Button>
-          ) : (
-            <Button size="sm" asChild>
-              <Link to={integrationTokensPath}>{tokensCopy.back_to_list}</Link>
-            </Button>
-          )}
+          <Button
+            size="sm"
+            type="submit"
+            form={FORM_ID}
+            disabled={submitting}
+            data-testid="api-token-create-submit"
+          >
+            {submitting ? t.core.common.loading : mcp.create_button}
+          </Button>
         </div>
       }
     >
-      {createdSecret ? (
-        <div className="space-y-3 rounded-lg border border-border bg-muted/30 p-4">
-          <p className="text-sm text-foreground">{mcp.secret_once}</p>
-          <code className="block break-all font-mono text-xs text-foreground">{createdSecret}</code>
-          <div className="flex flex-wrap gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => void integration.copyToClipboard(createdSecret)}
-            >
-              {mcp.copy_token}
-            </Button>
-          </div>
-        </div>
-      ) : (
-        <div className="flex-none pb-6">
-          <ApiTokenCreateForm
-            formId={FORM_ID}
-            mcpTools={mcpTools}
-            httpOperations={httpOperations}
-            onSubmit={handleCreate}
-          />
-        </div>
-      )}
+      <div className="flex-none pb-6">
+        <ApiTokenCreateForm
+          formId={FORM_ID}
+          mcpTools={mcpTools}
+          httpOperations={httpOperations}
+          onSubmit={handleCreate}
+        />
+      </div>
     </ConsolePageLayout>
   );
 }

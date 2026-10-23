@@ -13,7 +13,7 @@ import {
   FormMessage,
 } from '@/components/ui/form.js';
 import { Input } from '@/components/ui/input.js';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs.js';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs.js';
 import {
   DataPanel,
   DataPanelBody,
@@ -28,6 +28,7 @@ export type ApiTokenCreateFormValues = {
 };
 
 export type OperationAccessFilter = 'read' | 'read_write';
+export type GrantChannel = 'mcp' | 'http';
 
 export type HttpOperationEntry = {
   name: string;
@@ -54,6 +55,25 @@ type OperationRow = {
   path?: string;
 };
 
+type TokensCopy = {
+  operations_filter_read: string;
+  operations_filter_read_write: string;
+  operations_filter_empty: string;
+  operations_select_all: string;
+  operations_clear: string;
+  operations_selected_count: string;
+  operations_access_read: string;
+  operations_access_write: string;
+  operations_mcp_section_title: string;
+  operations_http_section_title: string;
+  operations_mcp_section_hint: string;
+  operations_http_section_hint: string;
+  operations_mcp_required: string;
+  operations_http_required: string;
+  create_page_title: string;
+  create_page_subtitle: string;
+};
+
 function rowAccess(row: OperationRow): 'read' | 'write' {
   return row.access === 'write' ? 'write' : 'read';
 }
@@ -73,108 +93,38 @@ function selectedNames(rows: OperationRow[], selected: Record<string, boolean>):
   return rows.filter((row) => selected[row.name]).map((row) => row.name);
 }
 
-function OperationGrantSection({
-  title,
-  hint,
+function OperationList({
   rows,
   selectedOps,
   onSelectedOpsChange,
-  testIdPrefix,
   tokensCopy,
 }: {
-  title: string;
-  hint: string;
   rows: OperationRow[];
   selectedOps: Record<string, boolean>;
   onSelectedOpsChange: (next: Record<string, boolean>) => void;
-  testIdPrefix: string;
-  tokensCopy: {
-    operations_filter_read: string;
-    operations_filter_read_write: string;
-    operations_filter_empty: string;
-    operations_select_all: string;
-    operations_clear: string;
-    operations_selected_count: string;
-    operations_access_read: string;
-    operations_access_write: string;
-  };
+  tokensCopy: TokensCopy;
 }) {
-  const [accessFilter, setAccessFilter] = useState<OperationAccessFilter>('read');
-
-  useEffect(() => {
-    if (rows.length === 0) {
-      onSelectedOpsChange({});
-      return;
-    }
-    onSelectedOpsChange(applyAccessPreset(rows, accessFilter));
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- preset only when catalog or tab changes
-  }, [rows, accessFilter]);
-
-  const selectedCount = rows.filter((row) => selectedOps[row.name]).length;
-
   return (
-    <div className="space-y-4">
-      <div>
-        <h3 className="text-sm font-medium text-foreground">{title}</h3>
-        <p className="mt-1 text-xs text-muted-foreground">{hint}</p>
-      </div>
-
-      <Tabs
-        value={accessFilter}
-        onValueChange={(value) => {
-          const next = value as OperationAccessFilter;
-          setAccessFilter(next);
-          onSelectedOpsChange(applyAccessPreset(rows, next));
-        }}
-      >
-        <TabsList className="grid w-full max-w-md grid-cols-2">
-          <TabsTrigger value="read" data-testid={`${testIdPrefix}-filter-read`}>
-            {tokensCopy.operations_filter_read}
-          </TabsTrigger>
-          <TabsTrigger value="read_write" data-testid={`${testIdPrefix}-filter-read-write`}>
-            {tokensCopy.operations_filter_read_write}
-          </TabsTrigger>
-        </TabsList>
-      </Tabs>
-
-      <div className="flex flex-wrap items-center gap-2">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => onSelectedOpsChange(applyAccessPreset(rows, accessFilter))}
-        >
-          {tokensCopy.operations_select_all}
-        </Button>
-        <Button type="button" variant="outline" size="sm" onClick={() => onSelectedOpsChange({})}>
-          {tokensCopy.operations_clear}
-        </Button>
-        <span className="text-xs text-muted-foreground">
-          {fmt(tokensCopy.operations_selected_count, { count: selectedCount })}
-        </span>
-      </div>
-
-      <div className="divide-y divide-border rounded-md border border-border">
-        {rows.length === 0 ? (
-          <p className="px-3 py-4 text-sm text-muted-foreground">{tokensCopy.operations_filter_empty}</p>
-        ) : (
-          rows.map((row) => (
-            <label
-              key={row.name}
-              className="flex cursor-pointer items-start gap-2 px-3 py-2.5 hover:bg-muted/50"
-            >
-              <Checkbox
-                className="mt-0.5"
-                checked={selectedOps[row.name] ?? false}
-                onCheckedChange={(v) =>
-                  onSelectedOpsChange({ ...selectedOps, [row.name]: v === true })
-                }
-              />
-              <OperationRowContent row={row} tokensCopy={tokensCopy} />
-            </label>
-          ))
-        )}
-      </div>
+    <div className="divide-y divide-border rounded-md border border-border">
+      {rows.length === 0 ? (
+        <p className="px-3 py-4 text-sm text-muted-foreground">{tokensCopy.operations_filter_empty}</p>
+      ) : (
+        rows.map((row) => (
+          <label
+            key={row.name}
+            className="flex cursor-pointer items-start gap-2 px-3 py-2.5 hover:bg-muted/50"
+          >
+            <Checkbox
+              className="mt-0.5"
+              checked={selectedOps[row.name] ?? false}
+              onCheckedChange={(v) =>
+                onSelectedOpsChange({ ...selectedOps, [row.name]: v === true })
+              }
+            />
+            <OperationRowContent row={row} tokensCopy={tokensCopy} />
+          </label>
+        ))
+      )}
     </div>
   );
 }
@@ -182,7 +132,10 @@ function OperationGrantSection({
 export function ApiTokenCreateForm({ formId, mcpTools, httpOperations, onSubmit }: Props) {
   const { t } = useI18n();
   const mcp = t.integration.mcp;
-  const tokensCopy = t.integration.tokens;
+  const tokensCopy = t.integration.tokens as TokensCopy;
+  const [channel, setChannel] = useState<GrantChannel>('mcp');
+  const [mcpAccessFilter, setMcpAccessFilter] = useState<OperationAccessFilter>('read');
+  const [httpAccessFilter, setHttpAccessFilter] = useState<OperationAccessFilter>('read');
   const [mcpSelected, setMcpSelected] = useState<Record<string, boolean>>({});
   const [httpSelected, setHttpSelected] = useState<Record<string, boolean>>({});
 
@@ -195,6 +148,31 @@ export function ApiTokenCreateForm({ formId, mcpTools, httpOperations, onSubmit 
     [httpOperations],
   );
 
+  const activeRows = channel === 'mcp' ? sortedMcp : sortedHttp;
+  const activeAccessFilter = channel === 'mcp' ? mcpAccessFilter : httpAccessFilter;
+  const activeSelected = channel === 'mcp' ? mcpSelected : httpSelected;
+  const setActiveAccessFilter = channel === 'mcp' ? setMcpAccessFilter : setHttpAccessFilter;
+  const setActiveSelected = channel === 'mcp' ? setMcpSelected : setHttpSelected;
+  const activeTestPrefix = channel === 'mcp' ? 'api-token-mcp' : 'api-token-http';
+
+  useEffect(() => {
+    if (sortedMcp.length === 0) {
+      setMcpSelected({});
+      return;
+    }
+    setMcpSelected(applyAccessPreset(sortedMcp, mcpAccessFilter));
+  }, [sortedMcp, mcpAccessFilter]);
+
+  useEffect(() => {
+    if (sortedHttp.length === 0) {
+      setHttpSelected({});
+      return;
+    }
+    setHttpSelected(applyAccessPreset(sortedHttp, httpAccessFilter));
+  }, [sortedHttp, httpAccessFilter]);
+
+  const selectedCount = activeRows.filter((row) => activeSelected[row.name]).length;
+
   const schema = z.object({
     name: z.string().trim().min(1).max(64),
   });
@@ -203,6 +181,16 @@ export function ApiTokenCreateForm({ formId, mcpTools, httpOperations, onSubmit 
     resolver: zodResolver(schema),
     defaultValues: { name: '' },
   });
+
+  function applyActivePreset() {
+    setActiveSelected(applyAccessPreset(activeRows, activeAccessFilter));
+  }
+
+  function onAccessFilterChange(value: string) {
+    const next = value as OperationAccessFilter;
+    setActiveAccessFilter(next);
+    setActiveSelected(applyAccessPreset(activeRows, next));
+  }
 
   async function handleSubmit(values: ApiTokenCreateFormValues) {
     const mcp = selectedNames(sortedMcp, mcpSelected);
@@ -230,7 +218,7 @@ export function ApiTokenCreateForm({ formId, mcpTools, httpOperations, onSubmit 
             title={tokensCopy.create_page_title}
             subtitle={tokensCopy.create_page_subtitle}
           />
-          <DataPanelBody className="space-y-8">
+          <DataPanelBody className="space-y-4">
             <FormField
               control={form.control}
               name="name"
@@ -250,25 +238,80 @@ export function ApiTokenCreateForm({ formId, mcpTools, httpOperations, onSubmit 
               )}
             />
 
-            <OperationGrantSection
-              title={tokensCopy.operations_mcp_section_title}
-              hint={tokensCopy.operations_mcp_section_hint}
-              rows={sortedMcp}
-              selectedOps={mcpSelected}
-              onSelectedOpsChange={setMcpSelected}
-              testIdPrefix="api-token-mcp"
-              tokensCopy={tokensCopy}
-            />
+            <Tabs
+              value={channel}
+              onValueChange={(value) => setChannel(value as GrantChannel)}
+              className="gap-3"
+            >
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                <TabsList>
+                  <TabsTrigger value="mcp" data-testid="api-token-channel-mcp">
+                    {tokensCopy.operations_mcp_section_title}
+                  </TabsTrigger>
+                  <TabsTrigger value="http" data-testid="api-token-channel-http">
+                    {tokensCopy.operations_http_section_title}
+                  </TabsTrigger>
+                </TabsList>
 
-            <OperationGrantSection
-              title={tokensCopy.operations_http_section_title}
-              hint={tokensCopy.operations_http_section_hint}
-              rows={sortedHttp}
-              selectedOps={httpSelected}
-              onSelectedOpsChange={setHttpSelected}
-              testIdPrefix="api-token-http"
-              tokensCopy={tokensCopy}
-            />
+                <div className="flex flex-wrap items-center gap-2 lg:justify-end">
+                  <Tabs value={activeAccessFilter} onValueChange={onAccessFilterChange}>
+                    <TabsList className="h-8">
+                      <TabsTrigger
+                        value="read"
+                        className="px-2.5 text-xs"
+                        data-testid={`${activeTestPrefix}-filter-read`}
+                      >
+                        {tokensCopy.operations_filter_read}
+                      </TabsTrigger>
+                      <TabsTrigger
+                        value="read_write"
+                        className="px-2.5 text-xs"
+                        data-testid={`${activeTestPrefix}-filter-read-write`}
+                      >
+                        {tokensCopy.operations_filter_read_write}
+                      </TabsTrigger>
+                    </TabsList>
+                  </Tabs>
+                  <Button type="button" variant="outline" size="sm" onClick={applyActivePreset}>
+                    {tokensCopy.operations_select_all}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setActiveSelected({})}
+                  >
+                    {tokensCopy.operations_clear}
+                  </Button>
+                  <span className="text-xs text-muted-foreground tabular-nums">
+                    {fmt(tokensCopy.operations_selected_count, { count: selectedCount })}
+                  </span>
+                </div>
+              </div>
+
+              <p className="text-xs text-muted-foreground">
+                {channel === 'mcp'
+                  ? tokensCopy.operations_mcp_section_hint
+                  : tokensCopy.operations_http_section_hint}
+              </p>
+
+              <TabsContent value="mcp" className="mt-0">
+                <OperationList
+                  rows={sortedMcp}
+                  selectedOps={mcpSelected}
+                  onSelectedOpsChange={setMcpSelected}
+                  tokensCopy={tokensCopy}
+                />
+              </TabsContent>
+              <TabsContent value="http" className="mt-0">
+                <OperationList
+                  rows={sortedHttp}
+                  selectedOps={httpSelected}
+                  onSelectedOpsChange={setHttpSelected}
+                  tokensCopy={tokensCopy}
+                />
+              </TabsContent>
+            </Tabs>
           </DataPanelBody>
         </DataPanel>
       </form>
@@ -281,10 +324,7 @@ function OperationRowContent({
   tokensCopy,
 }: {
   row: OperationRow;
-  tokensCopy: {
-    operations_access_read: string;
-    operations_access_write: string;
-  };
+  tokensCopy: Pick<TokensCopy, 'operations_access_read' | 'operations_access_write'>;
 }) {
   const access = rowAccess(row);
   return (

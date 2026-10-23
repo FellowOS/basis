@@ -36,6 +36,32 @@ def _route_access(route: Any) -> str:
     return "write"
 
 
+def _child_routes(route: Any) -> list[Any] | None:
+    if isinstance(route, Mount):
+        return list(route.routes)
+    original = getattr(route, "original_router", None)
+    if original is not None:
+        return list(original.routes)
+    nested = getattr(route, "routes", None)
+    if nested is not None and not isinstance(route, Mount):
+        try:
+            return list(nested)
+        except TypeError:
+            return None
+    return None
+
+
+def _nested_path_prefix(route: Any, path_prefix: str) -> str:
+    if isinstance(route, Mount):
+        return f"{path_prefix.rstrip('/')}/{route.path.lstrip('/')}"
+    ctx = getattr(route, "include_context", None)
+    if ctx is not None:
+        extra = getattr(ctx, "prefix", "") or ""
+        if extra:
+            return f"{path_prefix.rstrip('/')}/{extra.lstrip('/')}".replace("//", "/")
+    return path_prefix
+
+
 def _collect_workspace_http_routes(
     routes: list[Any],
     *,
@@ -43,9 +69,10 @@ def _collect_workspace_http_routes(
     entries: dict[str, dict[str, str]],
 ) -> None:
     for route in routes:
-        if isinstance(route, Mount):
-            child_prefix = f"{path_prefix.rstrip('/')}/{route.path.lstrip('/')}"
-            _collect_workspace_http_routes(list(route.routes), path_prefix=child_prefix, entries=entries)
+        children = _child_routes(route)
+        if children is not None:
+            child_prefix = _nested_path_prefix(route, path_prefix)
+            _collect_workspace_http_routes(children, path_prefix=child_prefix, entries=entries)
             continue
         grant = http_operation_grant_for_route(route)
         if grant is None:

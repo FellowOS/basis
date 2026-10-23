@@ -39,6 +39,9 @@ export default {
   },
   tokens: {
     hint: "One Bearer token — MCP and OpenAPI grants are configured separately when creating a token.",
+    list_title: "Access tokens",
+    list_subtitle: "Bearer credentials for this workspace — copy secrets from the list after creation.",
+    list_empty: "No access tokens yet. Click Create access token.",
     scope_read: "Read",
     scope_write: "Read + write",
     operations_filter_read: "Read-only",

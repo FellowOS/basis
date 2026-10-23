@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { ApiTokensPanel } from './components/api-tokens-panel.js';
 import { McpIntegrationPanel } from './components/mcp-integration-panel.js';
 import { OpenApiIntegrationPanel } from './components/openapi-integration-panel.js';
@@ -27,6 +27,7 @@ export { IntegrationTokenNewPage } from '@/modules/integration/pages/token-new.j
 export function IntegrationPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const { t } = useI18n();
   const { getWorkspace } = useWorkspaceCatalog();
@@ -46,6 +47,13 @@ export function IntegrationPage() {
       .then((workspace) => setMyRole(workspace.my_role))
       .catch(() => setMyRole(undefined));
   }, [id]);
+
+  useEffect(() => {
+    const secret = (location.state as { createdTokenSecret?: string } | null)?.createdTokenSecret;
+    if (!secret) return;
+    integration.revealCreatedSecret(secret);
+    navigate({ pathname: location.pathname, search: location.search }, { replace: true, state: null });
+  }, [integration.revealCreatedSecret, location.pathname, location.search, location.state, navigate]);
 
   useEffect(() => {
     if (!id) return;
@@ -95,7 +103,10 @@ export function IntegrationPage() {
           <OpenApiIntegrationPanel workspaceId={id} />
         </TabsContent>
 
-        <TabsContent value="tokens" className="mt-4 flex min-h-0 flex-1 flex-col data-[state=inactive]:hidden">
+        <TabsContent
+          value="tokens"
+          className="mt-4 flex min-h-0 flex-1 flex-col space-y-4 data-[state=inactive]:hidden"
+        >
           <ApiTokensPanel
             apiTokens={integration.apiTokens}
             canManageTokens={canManageTokens}

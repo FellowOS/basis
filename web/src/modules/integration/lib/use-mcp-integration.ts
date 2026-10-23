@@ -46,6 +46,10 @@ export function useWorkspaceMcpIntegration(workspaceId: string | undefined, canM
     [t],
   );
 
+  const revealCreatedSecret = useCallback((secret: string) => {
+    setCreatedSecret(secret);
+  }, []);
+
   const createApiToken = useCallback(
     async (
       name: string,
@@ -94,6 +98,7 @@ export function useWorkspaceMcpIntegration(workspaceId: string | undefined, canM
     apiTokens,
     createdSecret,
     clearCreatedSecret: () => setCreatedSecret(null),
+    revealCreatedSecret,
     copyToClipboard,
     createApiToken,
     deleteApiToken,

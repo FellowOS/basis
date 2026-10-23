@@ -39,6 +39,9 @@ export default {
   },
   tokens: {
     hint: "同一 Bearer 令牌；创建时可分别配置 MCP 与 OpenAPI 允许的操作。",
+    list_title: "令牌列表",
+    list_subtitle: "本工作区的 Bearer 凭据 — 创建后可在列表中复制密钥。",
+    list_empty: "尚无访问令牌。请点击「创建访问令牌」。",
     scope_read: "只读",
     scope_write: "读写",
     operations_filter_read: "只读",
