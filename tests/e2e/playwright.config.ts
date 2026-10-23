@@ -40,6 +40,8 @@ const webServerEnv: Record<string, string> = desktopE2e
       ...process.env,
       BASIS_E2E: '1',
       VITE_BASIS_API_URL: `http://127.0.0.1:${apiPort}`,
+      VITE_BASIS_AUTH_REQUIRED: 'false',
+      VITE_BASIS_DESKTOP: 'true',
       WEB_HMR_PORT: String(hmrPort),
     }
   : {

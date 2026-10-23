@@ -63,11 +63,15 @@ function runtimeFromPreload(): AppRuntime | null {
 function runtimeFromViteEnv(): AppRuntime {
   const raw = import.meta.env.VITE_BASIS_AUTH_REQUIRED;
   const authRequired = raw !== 'false' && raw !== '0';
+  const desktopFlag = import.meta.env.VITE_BASIS_DESKTOP;
+  const desktop =
+    desktopFlag === 'true' || desktopFlag === '1' || (!authRequired && desktopFlag !== 'false');
   const apiBase =
     (import.meta.env.VITE_BASIS_API_URL as string | undefined)?.trim().replace(/\/$/, '') ?? '';
   return {
     authRequired,
     apiBase,
+    desktop,
     environment: 'local',
     localApiBase: apiBase || undefined,
   };

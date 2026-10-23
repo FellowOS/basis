@@ -5,6 +5,7 @@ import pytest
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import make_url
 
+from basis.domain.knowledge.schedulers.version_ingest_tasks import wait_for_background_ingest
 from basis.infra.runtime.database import reset_sqlite_database_pool
 from tests.support.integration_env import load_integration_test_env
 from tests.support.postgres import (
@@ -16,11 +17,13 @@ from tests.support.postgres import (
 
 def pytest_configure() -> None:
     load_integration_test_env()
+    os.environ.setdefault("BASIS_INGEST_INLINE", "1")
 
 
 @pytest.fixture(autouse=True)
 def _isolate_sqlite_pool() -> None:
     yield
+    wait_for_background_ingest()
     reset_sqlite_database_pool()
 
 

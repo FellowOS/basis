@@ -27,6 +27,32 @@ from basis.domain.knowledge.pipeline.version_ingest import (
 _workspace_locks: dict[str, threading.Lock] = {}
 _lock_guard = threading.Lock()
 
+_ingest_inflight = 0
+_ingest_idle = threading.Event()
+_ingest_idle.set()
+
+
+def wait_for_background_ingest(timeout: float = 120.0) -> None:
+    """Block until fire-and-forget ingest worker threads finish (pytest pool teardown)."""
+    _ingest_idle.wait(timeout=timeout)
+
+
+def _ingest_worker_enter() -> None:
+    global _ingest_inflight
+    with _lock_guard:
+        _ingest_inflight += 1
+        if _ingest_inflight > 0:
+            _ingest_idle.clear()
+
+
+def _ingest_worker_exit() -> None:
+    global _ingest_inflight
+    with _lock_guard:
+        _ingest_inflight -= 1
+        if _ingest_inflight <= 0:
+            _ingest_inflight = 0
+            _ingest_idle.set()
+
 _INGEST_OVERLOADED_MESSAGE = "处理队列已满，请稍后重试"
 
 
@@ -202,6 +228,7 @@ def enqueue_version_ingest(
         return
 
     def _work() -> None:
+        _ingest_worker_enter()
         try:
             run_version_ingest_for_app(
                 app,
@@ -216,6 +243,7 @@ def enqueue_version_ingest(
         finally:
             if pending_slot is not None:
                 pending_slot.release()
+            _ingest_worker_exit()
 
     if getattr(app.state.settings, "ingest_inline", False):
         _work()
