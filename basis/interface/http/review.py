@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from fastapi import APIRouter
 
-from basis.interface.http.review_audit import router as audit_router
-from basis.interface.http.review_queue import (
+from basis.interface.http.workspace.review.review_audit import router as audit_router
+from basis.interface.http.workspace.review.review_queue import (
     CreateEntityMergeReviewRequest,
     propose_entity_merge,
     router as queue_router,

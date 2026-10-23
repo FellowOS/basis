@@ -22,7 +22,7 @@ from basis.domain.knowledge.store import KnowledgeStore
 from basis.application.kernel import CoreError
 from basis.interface.http.operation_http import http_exception_from_core, http_response_from_payload
 from basis.application.review.operations import op_approve_review_item
-from basis.interface.http.review_models import (
+from basis.interface.http.workspace.review.review_models import (
     ApproveReviewItemResponse,
     ResolveReviewRequest,
 )

@@ -1,4 +1,4 @@
-"""Remember proposal route (integration core)."""
+"""Workspace review reject route."""
 
 from __future__ import annotations
 
@@ -10,23 +10,27 @@ from fastapi import APIRouter, Depends, Request
 from basis.domain.tenancy.admin.store import AdminStore, User
 from basis.interface.http.deps import get_current_user, get_store
 from basis.interface.http.core_context import build_workspace_core_context
-from basis.application.knowledge.operations import op_propose_remember
 from basis.interface.http.operation_http import http_response_from_payload
-from basis.interface.http.ledger_models import RememberProposalRequest
+from basis.application.review.operations import op_reject_review_item
+from basis.interface.http.workspace.review.review_models import ResolveReviewRequest
 
 router = APIRouter(tags=["workspaces"])
 
+
 @router.post(
-    "/{workspace_id}/remember/proposals",
+    "/{workspace_id}/review/items/{item_id}/reject",
 )
-async def create_remember_proposal(
+async def reject_review_item(
     workspace_id: str,
-    body: RememberProposalRequest,
+    item_id: str,
     request: Request,
+    body: ResolveReviewRequest,
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> dict[str, Any]:
-    """Propose a canonical fact for human review (integration core `propose_remember`)."""
+    """
+Reject Review Item. Human review queue for merges, imports, and conflicts. Requires workspace membership (session) or workspace API token with read/write scope. All paths are scoped to `{workspace_id}`.
+    """
     ctx = build_workspace_core_context(
         request,
         workspace_id=workspace_id,
@@ -35,8 +39,8 @@ async def create_remember_proposal(
         require_editor=True,
     )
     payload = await asyncio.to_thread(
-        op_propose_remember,
+        op_reject_review_item,
         ctx,
-        {"content": body.content, "source": "api"},
+        {"item_id": item_id, "rationale": body.rationale},
     )
     return http_response_from_payload(payload)

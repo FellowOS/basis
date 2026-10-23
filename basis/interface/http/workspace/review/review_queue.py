@@ -25,7 +25,7 @@ from basis.domain.knowledge.store import KnowledgeStore
 from basis.interface.http.operation_http import http_response_from_payload
 from basis.application.review.operations import op_get_review_item, op_list_review_items
 from basis.interface.http.core_context import build_workspace_core_context
-from basis.interface.http.review_models import CreateEntityMergeReviewRequest
+from basis.interface.http.workspace.review.review_models import CreateEntityMergeReviewRequest
 
 router = APIRouter(tags=["workspaces"])
 
