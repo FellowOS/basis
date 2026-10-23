@@ -38,6 +38,18 @@ def test_openapi_workspaces_and_platform_slices(tmp_path) -> None:
     assert "/api/v1/workspaces" in platform["paths"]
 
 
+def test_openapi_slices_reflect_platform_and_workspace_mounts(tmp_path) -> None:
+    """Guards ``mount_platform`` / ``mount_workspace`` registration (auth, settings, ledger)."""
+    app = create_app(Settings(data_dir=tmp_path))
+    platform = export_openapi_v1_platform(app)["paths"]
+    workspaces = export_openapi_v1_workspaces(app)["paths"]
+    assert "/api/v1/auth/login" in platform
+    assert "/api/v1/settings" in platform
+    assert "/api/v1/reason" in platform
+    assert any(k.startswith("/api/v1/workspaces/{workspace_id}/ledger/") for k in workspaces)
+    assert "/api/v1/workspaces/{workspace_id}/connectors/catalog" in workspaces
+
+
 def test_api_v1_mcp_info_and_legacy_path_gone(tmp_path) -> None:
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
     admin = client.post(

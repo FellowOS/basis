@@ -36,7 +36,6 @@ FORBIDDEN_PREFIXES = (
     "basis.domain.tenancy.auth",
     "basis.domain.tenancy.models",
     "basis.domain.graph.projection.ontology_legacy",
-    "basis.domain.knowledge.persistence",
 )
 
 SKIP_FILES = frozenset({"basis/_legacy_imports.py"})

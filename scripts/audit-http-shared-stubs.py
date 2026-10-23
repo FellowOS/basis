@@ -20,9 +20,20 @@ STUBS = (
     "http_path.py",
     "legacy_api_gate.py",
     "legacy_deprecation.py",
+    "platform_auth.py",
+    "users.py",
+    "resources.py",
+    "tokens.py",
 )
 
 MAX_LINES = 10
+RE_EXPORT_MARKERS = (
+    "interface.http.shared.",
+    "interface.http.platform.auth_mount",
+    "interface.http.platform.users",
+    "interface.http.workspace.resources",
+    "interface.http.workspace.tokens",
+)
 ROUTE_RE = re.compile(r"@router\.")
 
 
@@ -37,8 +48,10 @@ def main() -> int:
         if len(lines) > MAX_LINES:
             errors.append(f"{path.relative_to(ROOT)}: stub exceeds {MAX_LINES} lines")
         text = "\n".join(lines)
-        if "interface.http.shared." not in text:
-            errors.append(f"{path.relative_to(ROOT)}: expected re-export from shared/")
+        if not any(marker in text for marker in RE_EXPORT_MARKERS):
+            errors.append(
+                f"{path.relative_to(ROOT)}: expected re-export from shared/ or platform/auth_mount"
+            )
         if ROUTE_RE.search(text):
             errors.append(f"{path.relative_to(ROOT)}: stubs must not define routes")
     if errors:
