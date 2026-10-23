@@ -30,7 +30,12 @@ MCP_TOOL_METADATA: dict[str, dict[str, Any]] = {
     "reject_statement_remember_review": {"description": "Reject an open statement_remember review item."},
     "approve_review_item": {"description": "Approve any open review queue item (merges, imports, remember, conflicts, writeback, …). Same semantics as HTTP POST .../review/items/{item_id}/approve."},
     "reject_review_item": {"description": "Reject any open review queue item. Same semantics as HTTP POST .../review/items/{item_id}/reject."},
-    "list_connector_catalog": {"description": "List BOCP connector services allowed for this workspace (catalog summary)."},
+    "list_connector_catalog": {
+        "description": (
+            "List BOCP connector services allowed for this workspace (summary rows; same filters as "
+            "HTTP GET …/connectors/catalog for query/limit/has_streams_only — HTTP may return full manifests)."
+        )
+    },
     "describe_connector_service": {"description": "Describe one BOCP connector manifest (entities and procedures summary)."},
     "list_connector_connections": {"description": "List saved BOCP connections for this workspace (no credential secrets)."},
     "list_connector_table_mappings": {"description": "List stream-to-ontology table mappings configured for connector sync."},

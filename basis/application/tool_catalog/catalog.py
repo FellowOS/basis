@@ -2,12 +2,7 @@
 
 from __future__ import annotations
 
-from basis.application.connectors import catalog as connector_catalog
-from basis.application.connectors import connections as connector_connections
-from basis.application.connectors import mappings as connector_mappings
-from basis.application.connectors import primitives as connector_primitives
-from basis.application.connectors import tools as connector_tools
-from basis.application.connectors import writeback as connector_writeback
+from basis.application.connectors import operations as connector_ops
 from basis.application.graph import operations as graph_ops
 from basis.application.knowledge import operations as knowledge_ops
 from basis.application.reasoning import operations as reasoning_ops
@@ -45,14 +40,14 @@ OPERATIONS: dict[str, OperationSpec] = {
     },
     "approve_review_item": {"handler": review_ops.op_approve_review_item},
     "reject_review_item": {"handler": review_ops.op_reject_review_item},
-    "list_connector_catalog": {"handler": connector_catalog.list_catalog},
-    "describe_connector_service": {"handler": connector_catalog.describe_service},
-    "list_connector_connections": {"handler": connector_connections.list_connections},
-    "list_connector_table_mappings": {"handler": connector_mappings.list_table_mappings},
-    "sync_connector_table_mapping": {"handler": connector_mappings.sync_table_mapping},
-    "invoke_connector_primitive": {"handler": connector_primitives.invoke},
-    "execute_connector_tool": {"handler": connector_tools.execute_tool},
-    "propose_entity_writeback": {"handler": connector_writeback.propose_entity_writeback},
+    "list_connector_catalog": {"handler": connector_ops.op_list_connector_catalog},
+    "describe_connector_service": {"handler": connector_ops.op_describe_connector_service},
+    "list_connector_connections": {"handler": connector_ops.op_list_connector_connections},
+    "list_connector_table_mappings": {"handler": connector_ops.op_list_connector_table_mappings},
+    "sync_connector_table_mapping": {"handler": connector_ops.op_sync_connector_table_mapping},
+    "invoke_connector_primitive": {"handler": connector_ops.op_invoke_connector_primitive},
+    "execute_connector_tool": {"handler": connector_ops.op_execute_connector_tool},
+    "propose_entity_writeback": {"handler": connector_ops.op_propose_entity_writeback},
 }
 
 
