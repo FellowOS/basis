@@ -14,7 +14,7 @@ from fastapi.responses import JSONResponse
 from basis import __version__
 from basis.domain.errors import AdminError
 from basis.domain.tenancy.admin.store import AdminStore
-from basis.interface.http import health
+from basis.interface.http.shared.health import router as health_router
 from basis.interface.http.mount_v1 import register_v1_api_routers
 from basis.infra.runtime.config import Settings
 from basis.infra.runtime.limits import RuntimeLimits
@@ -37,7 +37,7 @@ from basis.interface.http.shared.request_id import (
     attach_request_id_to_detail,
 )
 from basis.interface.http.shared.rest_v1_concurrency import RestV1ConcurrencyMiddleware
-from basis.interface.http import openapi_v1 as openapi_v1_routes
+from basis.interface.http.shared.openapi_v1 import router as openapi_v1_router
 from basis.infra.runtime.observability.logging_setup import configure_basis_logging
 
 
@@ -190,12 +190,12 @@ def create_app(app_settings: Settings | None = None) -> FastAPI:
             return JSONResponse(status_code=exc.status_code, content={"detail": payload})
         return JSONResponse(status_code=exc.status_code, content={"detail": detail})
 
-    app.include_router(health.router)
+    app.include_router(health_router)
     register_v1_api_routers(
         app,
         legacy_api_enabled=app_settings.legacy_api_enabled,
         include_e2e_helpers=is_playwright_e2e_data_dir(app_settings.data_dir),
     )
-    app.include_router(openapi_v1_routes.router)
+    app.include_router(openapi_v1_router)
 
     return app

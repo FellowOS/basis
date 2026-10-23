@@ -1,1 +1,1 @@
-"""Cross-cutting HTTP helpers (deps, context, operation mapping, middleware utilities)."""
+"""Cross-cutting HTTP helpers (deps, health, OpenAPI serve, middleware, operation mapping)."""
