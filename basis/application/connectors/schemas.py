@@ -40,6 +40,41 @@ class ListConnectorConnectionsInput(ExtraAllowedModel):
     subject_id: str | None = None
 
 
+class UpsertConnectorConnectionInput(ExtraAllowedModel):
+    service: str = Field(min_length=1, description="Connector service key")
+    connection_name: str = Field(
+        default="default",
+        min_length=1,
+        description="Saved connection name (path segment on HTTP PUT)",
+    )
+    auth_type: str = Field(min_length=1)
+    connection_config: dict[str, Any] = Field(default_factory=dict)
+    credentials: dict[str, Any] = Field(default_factory=dict)
+    connection_scope: Literal["workspace", "end_user"] = "workspace"
+    subject_id: str | None = None
+
+
+class DeleteConnectorConnectionInput(ExtraAllowedModel):
+    service: str = Field(min_length=1)
+    connection_name: str = Field(default="default", min_length=1)
+    connection_scope: Literal["workspace", "end_user"] = "workspace"
+    subject_id: str | None = None
+
+
+class CheckConnectorConnectionInput(ExtraAllowedModel):
+    service: str = Field(min_length=1)
+    connection_name: str = Field(default="default", min_length=1)
+    connection_scope: Literal["workspace", "end_user"] = "workspace"
+    subject_id: str | None = None
+
+
+class DiscoverConnectorSchemaInput(ExtraAllowedModel):
+    service: str = Field(min_length=1)
+    connection_name: str = Field(default="default", min_length=1)
+    stream_name: str | None = None
+    external_table: str | None = None
+
+
 class ListConnectorTableMappingsInput(ExtraAllowedModel):
     limit: int | None = Field(
         default=None,
@@ -130,7 +165,10 @@ class ProposeEntityWritebackInput(ExtraAllowedModel):
 
 
 TOOL_INPUT_MODELS: dict[str, type[ExtraAllowedModel]] = {
+    "check_connector_connection": CheckConnectorConnectionInput,
+    "delete_connector_connection": DeleteConnectorConnectionInput,
     "describe_connector_service": DescribeConnectorServiceInput,
+    "discover_connector_schema": DiscoverConnectorSchemaInput,
     "execute_connector_tool": ExecuteConnectorToolInput,
     "invoke_connector_primitive": InvokeConnectorPrimitiveInput,
     "list_connector_catalog": ListConnectorCatalogInput,
@@ -138,6 +176,7 @@ TOOL_INPUT_MODELS: dict[str, type[ExtraAllowedModel]] = {
     "list_connector_table_mappings": ListConnectorTableMappingsInput,
     "propose_entity_writeback": ProposeEntityWritebackInput,
     "sync_connector_table_mapping": SyncConnectorTableMappingInput,
+    "upsert_connector_connection": UpsertConnectorConnectionInput,
 }
 
 TOOL_RESPONSE_MODELS: dict[str, type[ExtraAllowedModel]] = {}

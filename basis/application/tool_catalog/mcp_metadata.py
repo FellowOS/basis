@@ -48,6 +48,30 @@ MCP_TOOL_METADATA: dict[str, dict[str, Any]] = {
             "the same vault rows with extra console fields such as connection_config and has_credentials)."
         )
     },
+    "upsert_connector_connection": {
+        "description": (
+            "Create or update a saved BOCP connection (encrypted vault). Same semantics as HTTP PUT "
+            "…/connectors/connections/{service}/{connection_name}."
+        )
+    },
+    "delete_connector_connection": {
+        "description": (
+            "Delete a saved BOCP connection. Same semantics as HTTP DELETE "
+            "…/connectors/connections/{service}/{connection_name}."
+        )
+    },
+    "check_connector_connection": {
+        "description": (
+            "Validate credentials and return connector profile metadata. Same semantics as HTTP POST "
+            "…/connectors/connections/{service}/{connection_name}/check."
+        )
+    },
+    "discover_connector_schema": {
+        "description": (
+            "Discover stream or SQL table schema for a saved connection. Same semantics as HTTP GET "
+            "…/connectors/connections/{service}/{connection_name}/discover."
+        )
+    },
     "list_connector_table_mappings": {
         "description": (
             "List stream-to-ontology table mappings (paginated summary; HTTP GET …/table-mappings "

@@ -54,6 +54,89 @@ def _auth_client(tmp_path: Path) -> tuple[TestClient, str, dict[str, str]]:
     return client, workspace_id, headers
 
 
+def test_upsert_and_delete_connection_http_matches_mcp(tmp_path: Path) -> None:
+    client, workspace_id, headers = _auth_client(tmp_path)
+    payload = {
+        "service": "postgres",
+        "connection_name": "mcp-parity",
+        "connection_scope": "workspace",
+        "auth_type": "custom",
+        "connection_config": {"host": "localhost", "database": "db"},
+        "credentials": {"password": "secret"},
+    }
+    http_put = client.put(
+        f"/api/v1/workspaces/{workspace_id}/connectors/connections/postgres/mcp-parity",
+        headers=headers,
+        json={
+            "connection_scope": payload["connection_scope"],
+            "auth_type": payload["auth_type"],
+            "connection_config": payload["connection_config"],
+            "credentials": payload["credentials"],
+        },
+    )
+    assert http_put.status_code == 200
+
+    mcp_put = _mcp_call(client, workspace_id, headers, "upsert_connector_connection", payload)
+    assert mcp_put["connection"]["service"] == "postgres"
+    assert mcp_put["connection"]["connection_name"] == "mcp-parity"
+    assert http_put.json()["connection"]["connection_name"] == mcp_put["connection"]["connection_name"]
+
+    mcp_del = _mcp_call(
+        client,
+        workspace_id,
+        headers,
+        "delete_connector_connection",
+        {
+            "service": "postgres",
+            "connection_name": "mcp-parity",
+            "connection_scope": "workspace",
+        },
+    )
+    assert mcp_del == {"deleted": True}
+    http_del = client.delete(
+        f"/api/v1/workspaces/{workspace_id}/connectors/connections/postgres/mcp-parity",
+        headers=headers,
+    )
+    assert http_del.status_code == 404
+
+
+def test_check_connection_http_matches_mcp(tmp_path: Path) -> None:
+    client, workspace_id, headers = _auth_client(tmp_path)
+    ext_db = tmp_path / "check-remote.db"
+    body = {
+        "connection_scope": "workspace",
+        "auth_type": "database_dsn",
+        "connection_config": {"dsn": f"sqlite:///{ext_db}"},
+        "credentials": {},
+    }
+    assert (
+        client.put(
+            f"/api/v1/workspaces/{workspace_id}/connectors/connections/postgres/check-parity",
+            headers=headers,
+            json=body,
+        ).status_code
+        == 200
+    )
+    mcp_check = _mcp_call(
+        client,
+        workspace_id,
+        headers,
+        "check_connector_connection",
+        {
+            "service": "postgres",
+            "connection_name": "check-parity",
+            "connection_scope": "workspace",
+        },
+    )
+    http_check = client.post(
+        f"/api/v1/workspaces/{workspace_id}/connectors/connections/postgres/check-parity/check",
+        headers=headers,
+    )
+    assert http_check.status_code == 200
+    assert mcp_check["ok"] is True
+    assert mcp_check.get("profile") == http_check.json().get("profile")
+
+
 def test_list_connections_http_matches_mcp_op(tmp_path: Path) -> None:
     client, workspace_id, headers = _auth_client(tmp_path)
     put = client.put(
