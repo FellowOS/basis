@@ -7,12 +7,9 @@ import { defineConfig } from 'vite';
 
 const root = path.dirname(fileURLToPath(import.meta.url));
 
+/** Same as `web/server/config.ts` — API origin for dev-server `/api` proxy (not sent to the browser). */
 function desktopApiProxyTarget(): string {
-  const raw =
-    process.env.BASIS_E2E_API_PROXY ??
-    process.env.VITE_BASIS_API_URL ??
-    'http://127.0.0.1:8090';
-  return raw.replace(/\/$/, '');
+  return (process.env.BASIS_API_URL ?? 'http://127.0.0.1:8090').replace(/\/$/, '');
 }
 
 function hmrFromEnv(): { port: number; clientPort: number } | undefined {

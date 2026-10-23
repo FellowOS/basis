@@ -17,23 +17,47 @@ const hmrPort = Number(
 );
 const baseURL = `http://127.0.0.1:${webPort}`;
 
+/** PATH/Locale/CI only — avoid inheriting repo `.env` / `VITE_*` into E2E child processes. */
+const E2E_INHERIT_ENV_KEYS = [
+  'PATH',
+  'HOME',
+  'USER',
+  'LANG',
+  'LC_ALL',
+  'NODE_OPTIONS',
+  'npm_config_cache',
+  'CI',
+  'FORCE_COLOR',
+  'NO_COLOR',
+  'UV_CACHE_DIR',
+] as const;
+
+function e2eChildEnv(overrides: Record<string, string>): Record<string, string> {
+  const env: Record<string, string> = {};
+  for (const key of E2E_INHERIT_ENV_KEYS) {
+    const value = process.env[key];
+    if (value !== undefined && value !== '') env[key] = value;
+  }
+  return { ...env, ...overrides };
+}
+
 function e2eApiEnv(): Record<string, string> {
-  const env = { ...process.env } as Record<string, string>;
-  // Do not inherit dev API/data dirs from the shell or repo `.env`.
-  env.BASIS_DATABASE_URL = '';
-  env.BASIS_DATA_DIR = e2eProfile.data_dir;
-  env.BASIS_E2E = '1';
-  env.BASIS_HOST = '127.0.0.1';
-  env.BASIS_PORT = String(apiPort);
-  env.BASIS_INGEST_INLINE = '1';
+  const overrides: Record<string, string> = {
+    BASIS_DATABASE_URL: '',
+    BASIS_DATA_DIR: e2eProfile.data_dir,
+    BASIS_E2E: '1',
+    BASIS_HOST: '127.0.0.1',
+    BASIS_PORT: String(apiPort),
+    BASIS_INGEST_INLINE: '1',
+  };
   if (e2eProfile.demo_workspace) {
-    env.BASIS_DEMO_WORKSPACE = '1';
+    overrides.BASIS_DEMO_WORKSPACE = '1';
   }
   if (desktopE2e) {
-    env.BASIS_DEPLOYMENT_PROFILE = 'desktop';
-    env.BASIS_PROFILE = 'desktop';
+    overrides.BASIS_DEPLOYMENT_PROFILE = 'desktop';
+    overrides.BASIS_PROFILE = 'desktop';
   }
-  return env;
+  return e2eChildEnv(overrides);
 }
 
 const apiServerCommand = desktopE2e ? 'uv run basis serve --profile desktop' : 'uv run basis';
@@ -42,27 +66,23 @@ const webServerCommand = desktopE2e
   ? `npx vite --mode desktop --host 127.0.0.1 --port ${webPort} --strictPort`
   : 'node --experimental-strip-types server/dev.ts';
 
-function desktopWebServerEnv(): Record<string, string> {
-  const env = { ...process.env } as Record<string, string>;
-  delete env.VITE_BASIS_API_URL;
-  env.BASIS_E2E = '1';
-  env.BASIS_E2E_API_PROXY = `http://127.0.0.1:${apiPort}`;
-  env.VITE_BASIS_AUTH_REQUIRED = 'false';
-  env.VITE_BASIS_DESKTOP = 'true';
-  env.WEB_HMR_PORT = String(hmrPort);
-  return env;
-}
+const apiOrigin = `http://127.0.0.1:${apiPort}`;
 
 const webServerEnv: Record<string, string> = desktopE2e
-  ? desktopWebServerEnv()
-  : {
-      ...process.env,
+  ? e2eChildEnv({
       BASIS_E2E: '1',
-      BASIS_API_URL: `http://127.0.0.1:${apiPort}`,
+      BASIS_API_URL: apiOrigin,
+      VITE_BASIS_AUTH_REQUIRED: 'false',
+      VITE_BASIS_DESKTOP: 'true',
+      WEB_HMR_PORT: String(hmrPort),
+    })
+  : e2eChildEnv({
+      BASIS_E2E: '1',
+      BASIS_API_URL: apiOrigin,
       WEB_PORT: String(webPort),
       WEB_HOST: '127.0.0.1',
       WEB_HMR_PORT: String(hmrPort),
-    };
+    });
 
 export default defineConfig({
   testDir: path.join(e2eRoot, 'specs'),
