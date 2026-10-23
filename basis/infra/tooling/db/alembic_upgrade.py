@@ -51,10 +51,22 @@ def upgrade_sqlite_file(db_path: Path) -> None:
     upgrade_head(sqlalchemy_url=f"sqlite:///{path}")
 
 
+def alembic_head_revision() -> str:
+    """Current head revision id (for tests and tooling)."""
+    from alembic.script import ScriptDirectory
+
+    cfg = _alembic_config("sqlite:///:memory:")
+    head = ScriptDirectory.from_config(cfg).get_current_head()
+    if not head:
+        raise RuntimeError("Alembic script directory has no head revision")
+    return head
+
+
 def upgrade_postgres_engine(engine: Engine) -> None:
     from basis.infra.tooling.db.postgres_migrations import repair_workspace_organization_id_column
 
     upgrade_head(engine=engine)
+    # Best-effort when migration user is not table owner (see revision 0003).
     repair_workspace_organization_id_column(engine)
 
 

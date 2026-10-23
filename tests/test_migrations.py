@@ -2,7 +2,7 @@ import sqlite3
 from pathlib import Path
 
 from basis.domain.tenancy.admin.store import AdminStore
-from basis.infra.tooling.db.alembic_upgrade import upgrade_sqlite_file
+from basis.infra.tooling.db.alembic_upgrade import alembic_head_revision, upgrade_sqlite_file
 from basis.infra.tooling.db.sqlite_migrations import (
     ensure_sqlite_schema,
     load_migrations,
@@ -88,7 +88,7 @@ def test_alembic_upgrade_creates_parent_dir_and_version(tmp_path: Path) -> None:
     conn = sqlite3.connect(db_path)
     assert conn.execute(
         "SELECT version_num FROM alembic_version LIMIT 1"
-    ).fetchone()[0] == "0002_postgres_storage_extras"
+    ).fetchone()[0] == alembic_head_revision()
     assert sqlite_schema_is_initialized(conn)
     conn.close()
 
@@ -103,7 +103,7 @@ def test_run_migrations_applies_alembic_head(tmp_path: Path) -> None:
         "SELECT version_num FROM alembic_version LIMIT 1"
     ).fetchone()
     assert row is not None
-    assert row[0] == "0002_postgres_storage_extras"
+    assert row[0] == alembic_head_revision()
     verify.close()
 
 

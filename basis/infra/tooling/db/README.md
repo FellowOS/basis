@@ -4,7 +4,7 @@ Storage schema and migration tooling (not domain business logic).
 
 | Path | Role |
 | --- | --- |
-| `migrations/*.sql` | Canonical baseline DDL (Alembic `0001`; Postgres extras in `0002`) |
+| `migrations/*.sql` | Canonical baseline DDL (Alembic `0001`; PG extras `0002`; PG org column `0003`) |
 | `alembic/` | Alembic revisions (`alembic.ini` at repo root) |
 | `alembic_upgrade.py` | Runtime/CLI entry: `alembic upgrade head` |
 | `sqlite_migrations.py` | SQLite bootstrap helpers (revision `0001`) |
