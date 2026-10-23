@@ -10,7 +10,7 @@ export default {
     trust: {
       "0": {
         label: "Apache-2.0",
-        to: "https://github.com/fellowos/basis/blob/main/LICENSE",
+        to: "https://github.com/coldbuffer/basis/blob/main/LICENSE",
         external: {
 
         },

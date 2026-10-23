@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button.js';
 import { useI18n } from '@/i18n/context.js';
 
 const COMMANDS = [
-  'git clone https://github.com/fellowos/basis.git',
+  'git clone https://github.com/coldbuffer/basis.git',
   'cd basis && cp .env.example .env',
   'uv sync --extra dev && uv run basis',
   'cd web && npm install && npm run dev',
@@ -43,7 +43,7 @@ export function SelfHostSection() {
             </Button>
             <Button variant="ghost" asChild>
               <a
-                href="https://github.com/fellowos/basis"
+                href="https://github.com/coldbuffer/basis"
                 target="_blank"
                 rel="noreferrer"
                 data-analytics="cta_github"

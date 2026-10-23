@@ -4,7 +4,7 @@
 
 **本体驱动的企业业务语义层。**
 
-[![CI](https://github.com/FellowOS/basis/actions/workflows/ci.yml/badge.svg)](https://github.com/FellowOS/basis/actions/workflows/ci.yml)
+[![CI](https://github.com/coldbuffer/basis/actions/workflows/ci.yml/badge.svg)](https://github.com/coldbuffer/basis/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10--3.13-blue.svg)](pyproject.toml)
 [![Node](https://img.shields.io/badge/node-%3E%3D22-green.svg)](web/package.json)
@@ -79,7 +79,7 @@ Basis 是基于 [Semantica](https://github.com/semantica-agi/semantica) Python S
 ### 1. 克隆并启动 API
 
 ```bash
-git clone https://github.com/FellowOS/basis.git
+git clone https://github.com/coldbuffer/basis.git
 cd basis
 cp .env.example .env
 uv sync --extra dev
@@ -231,13 +231,13 @@ cd web && CI=1 npm run test:e2e   # 可选，Playwright + API
 
 ### 托管云（SaaS）
 
-**FellowOS 托管的多租户服务**由我方负责注册、运维与升级。智能体仍通过工作区 **HTTP/MCP** 与令牌集成。
+**Basis 托管的多租户服务**由我方负责注册、运维与升级。智能体仍通过工作区 **HTTP/MCP** 与令牌集成。
 
-托管服务逐步开放。如需访问或试点，请提交 [GitHub Issue](https://github.com/FellowOS/basis/issues) 并说明使用场景。
+托管服务逐步开放。如需访问或试点，请提交 [GitHub Issue](https://github.com/coldbuffer/basis/issues) 并说明使用场景。
 
 ## 社区
 
-- **缺陷与功能请求：** [GitHub Issues](https://github.com/FellowOS/basis/issues)
+- **缺陷与功能请求：** [GitHub Issues](https://github.com/coldbuffer/basis/issues)
 - **安全漏洞：** [SECURITY.md](SECURITY.md)（请勿公开提交 issue）
 - **贡献：** [CONTRIBUTING.md](CONTRIBUTING.md) · [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
 

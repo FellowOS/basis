@@ -4,7 +4,7 @@
 
 **Ontology-driven enterprise business semantics layer.**
 
-[![CI](https://github.com/FellowOS/basis/actions/workflows/ci.yml/badge.svg)](https://github.com/FellowOS/basis/actions/workflows/ci.yml)
+[![CI](https://github.com/coldbuffer/basis/actions/workflows/ci.yml/badge.svg)](https://github.com/coldbuffer/basis/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10--3.13-blue.svg)](pyproject.toml)
 [![Node](https://img.shields.io/badge/node-%3E%3D22-green.svg)](web/package.json)
@@ -79,7 +79,7 @@ The **Semantica** SDK installs from **PyPI** when you run `uv sync` (pinned in `
 ### 1. Clone and configure API
 
 ```bash
-git clone https://github.com/FellowOS/basis.git
+git clone https://github.com/coldbuffer/basis.git
 cd basis
 cp .env.example .env
 uv sync --extra dev
@@ -232,13 +232,13 @@ Do not run a dev API and an installed desktop app at once. They share `~/.basis/
 
 ### Managed cloud
 
-**FellowOS-hosted SaaS** provides multi-tenant signup with operations and upgrades on our side. Integrate agents against the same workspace **HTTP/MCP** endpoints with your issued tokens.
+**Basis-hosted SaaS** provides multi-tenant signup with operations and upgrades on our side. Integrate agents against the same workspace **HTTP/MCP** endpoints with your issued tokens.
 
-Hosted availability is rolling out. For access or pilots, open a [GitHub Issue](https://github.com/FellowOS/basis/issues) and describe your use case.
+Hosted availability is rolling out. For access or pilots, open a [GitHub Issue](https://github.com/coldbuffer/basis/issues) and describe your use case.
 
 ## Community
 
-- **Bug reports & features:** [GitHub Issues](https://github.com/FellowOS/basis/issues)
+- **Bug reports & features:** [GitHub Issues](https://github.com/coldbuffer/basis/issues)
 - **Security vulnerabilities:** [SECURITY.md](SECURITY.md) (please do not file public issues)
 - **Contributing:** [CONTRIBUTING.md](CONTRIBUTING.md) · [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
 

@@ -18,7 +18,7 @@ if (fs.existsSync(path.join(apiStage, 'sidecar'))) {
 
 /** @type {import('electron-builder').Configuration} */
 module.exports = {
-  appId: 'dev.fellowos.basis.desktop',
+  appId: 'dev.basis.desktop',
   productName: 'Basis',
   directories: {
     output: 'release',

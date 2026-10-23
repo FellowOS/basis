@@ -2,7 +2,7 @@
   "name": "@basis/desktop",
   "version": "0.1.0",
   "private": true,
-  "author": "FellowOS",
+  "author": "Basis",
   "type": "module",
   "description": "Basis Desktop shell (ADR 0004)",
   "main": "electron/main.mjs",

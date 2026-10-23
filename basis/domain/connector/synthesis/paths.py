@@ -76,7 +76,7 @@ def legacy_anyconnect_catalog_dir() -> Path | None:
     monorepo = repo_root().parent
     candidates = [
         monorepo / "connectors" / "catalog" / "apps",
-        monorepo.parent / "fellowos" / "connectors" / "catalog" / "apps",
+        monorepo.parent / "basis" / "connectors" / "catalog" / "apps",
     ]
     for candidate in candidates:
         if candidate.is_dir():
@@ -85,7 +85,7 @@ def legacy_anyconnect_catalog_dir() -> Path | None:
 
 
 def connector_catalog_dir() -> Path | None:
-    """Primary: OpenConnector ``catalog/apps``; fallback: legacy fellowos connectors export."""
+    """Primary: OpenConnector ``catalog/apps``; fallback: legacy basis connectors export."""
     return open_connector_catalog_dir() or legacy_anyconnect_catalog_dir()
 
 

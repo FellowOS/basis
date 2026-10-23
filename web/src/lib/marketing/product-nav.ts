@@ -35,7 +35,7 @@ export const PRODUCT_NAV: ProductNavItem[] = [
 export const PRODUCT_DEVELOPER_LINKS: ProductDeveloperLink[] = [
   { key: 'apiDocs', to: '/swagger' },
   { key: 'openApiSpec', to: '/openapi/v1.json', external: true },
-  { key: 'github', to: 'https://github.com/fellowos/basis', external: true },
+  { key: 'github', to: 'https://github.com/coldbuffer/basis', external: true },
 ];
 
 export function productNavHref(item: ProductNavItem): string {

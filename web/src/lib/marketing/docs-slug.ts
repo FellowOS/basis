@@ -1,4 +1,4 @@
-/** Heading anchor ids for in-page TOC (aligned with fellowos/website docs). */
+/** Heading anchor ids for in-page TOC (aligned with basis/website docs). */
 export function docsHeadingSlug(text: string): string {
   return text
     .toLowerCase()

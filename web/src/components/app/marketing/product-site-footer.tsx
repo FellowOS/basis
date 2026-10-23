@@ -82,7 +82,7 @@ export function ProductSiteFooter({ className }: ProductSiteFooterProps) {
             { label: f.developers.spec, to: '/openapi/v1.json', external: true },
             {
               label: f.developers.github,
-              to: 'https://github.com/fellowos/basis',
+              to: 'https://github.com/coldbuffer/basis',
               external: true,
             },
           ]}
@@ -94,12 +94,12 @@ export function ProductSiteFooter({ className }: ProductSiteFooterProps) {
             { label: f.resources.quickstart, to: '/docs/quickstart' },
             {
               label: f.resources.license,
-              to: 'https://github.com/fellowos/basis/blob/main/LICENSE',
+              to: 'https://github.com/coldbuffer/basis/blob/main/LICENSE',
               external: true,
             },
             {
               label: f.resources.security,
-              to: 'https://github.com/fellowos/basis/blob/main/SECURITY.md',
+              to: 'https://github.com/coldbuffer/basis/blob/main/SECURITY.md',
               external: true,
             },
           ]}
