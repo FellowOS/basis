@@ -1,4 +1,4 @@
-"""Dispatch a registered static tool by name."""
+"""Dispatch static tools and expose MCP tools/list metadata (description + inputSchema)."""
 
 from __future__ import annotations
 
@@ -8,14 +8,60 @@ from pydantic import ValidationError
 
 from basis.application.kernel import WorkspaceCoreContext
 from basis.application.tool_catalog.catalog import OPERATIONS, mcp_exposed
+from basis.application.tool_catalog.mcp_metadata import MCP_TOOL_METADATA
 from basis.application.tool_catalog.validation import (
+    OPERATION_INPUT_MODELS,
     coerce_operation_args,
     validation_error_payload,
     validate_operation_response,
 )
 
+__all__ = [
+    "TOOL_NAMES",
+    "description_for_tool",
+    "input_schema_for_tool",
+    "run",
+]
+
+
+def _assert_catalog_aligned() -> None:
+    catalog = set(OPERATIONS)
+    meta = set(MCP_TOOL_METADATA)
+    models = set(OPERATION_INPUT_MODELS)
+    if catalog != meta:
+        missing = catalog - meta
+        extra = meta - catalog
+        raise RuntimeError(
+            "MCP_TOOL_METADATA keys must match OPERATIONS: "
+            f"missing={sorted(missing)!r} extra={sorted(extra)!r}"
+        )
+    if catalog != models:
+        missing = catalog - models
+        extra = models - catalog
+        raise RuntimeError(
+            "OPERATION_INPUT_MODELS keys must match OPERATIONS: "
+            f"missing={sorted(missing)!r} extra={sorted(extra)!r}"
+        )
+
+
+_assert_catalog_aligned()
 
 TOOL_NAMES: tuple[str, ...] = tuple(name for name in OPERATIONS if mcp_exposed(name))
+
+
+def description_for_tool(tool_name: str) -> str:
+    meta = MCP_TOOL_METADATA.get(tool_name)
+    if not meta:
+        return tool_name
+    text = meta.get("description")
+    if isinstance(text, str) and text.strip():
+        return text.strip()
+    return tool_name
+
+
+def input_schema_for_tool(tool_name: str) -> dict[str, Any]:
+    model = OPERATION_INPUT_MODELS[tool_name]
+    return model.model_json_schema(mode="serialization")
 
 
 def run(ctx: WorkspaceCoreContext, name: str, arguments: dict[str, Any] | None) -> dict[str, Any]:

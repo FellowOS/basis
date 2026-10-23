@@ -1,4 +1,4 @@
-"""Shared Pydantic base for tool argument/response models."""
+"""Shared Pydantic base for BC tool argument/response models."""
 
 from __future__ import annotations
 

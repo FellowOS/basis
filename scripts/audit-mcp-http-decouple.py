@@ -125,7 +125,7 @@ def main() -> int:
     if schema_hits:
         failed = True
         print(
-            "mcp_metadata.py must not define input_schema (use BC schemas.py + mcp_list):",
+            "mcp_metadata.py must not define input_schema (use BC schemas.py + tool_catalog.run):",
             file=sys.stderr,
         )
         for rel in schema_hits:

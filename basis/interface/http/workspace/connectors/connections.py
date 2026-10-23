@@ -6,7 +6,8 @@ from typing import Any
 
 from fastapi import APIRouter, Depends, Query, Request
 
-from basis.application.connectors import connections, primitives
+from basis.application.connectors import connections
+from basis.application.connectors.primitives import invoke_or_raise_http
 from basis.application.kernel import CoreError
 from basis.interface.http.operation_http import http_exception_from_core
 from basis.domain.tenancy.admin.store import AdminStore, User
@@ -191,7 +192,7 @@ async def invoke_connector_primitive(
             store=store,
             require_editor=require_editor,
         )
-        return primitives.invoke_or_raise_http(
+        return invoke_or_raise_http(
             ctx,
             {
                 "service": service,

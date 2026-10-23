@@ -1,4 +1,4 @@
-"""MCP tools/list descriptions (inputSchema from Pydantic via tool_catalog.mcp_list)."""
+"""MCP tools/list descriptions (inputSchema from BC schemas via tool_catalog.run)."""
 
 from __future__ import annotations
 

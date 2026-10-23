@@ -3,7 +3,7 @@
 from basis.application.tool_catalog import TOOL_NAMES
 from basis.application.tool_catalog.catalog import OPERATIONS
 from basis.application.tool_catalog.mcp_metadata import MCP_TOOL_METADATA
-from basis.application.tool_catalog.mcp_list import description_for_tool, input_schema_for_tool
+from basis.application.tool_catalog.run import description_for_tool, input_schema_for_tool
 from basis.application.tool_catalog.validation import OPERATION_INPUT_MODELS
 from basis.interface.mcp.dispatch import TOOL_DEFINITIONS
 

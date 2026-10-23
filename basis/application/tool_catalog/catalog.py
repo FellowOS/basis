@@ -6,13 +6,23 @@ New MCP tools: BC ``operations.op_*``, entry here, ``mcp_metadata`` description,
 
 from __future__ import annotations
 
+from typing import Any, Callable, NotRequired, TypedDict
+
 from basis.application.connectors import operations as connector_ops
 from basis.application.graph import operations as graph_ops
 from basis.application.knowledge import operations as knowledge_ops
 from basis.application.reasoning import operations as reasoning_ops
 from basis.application.review import operations as review_ops
-from basis.application.tool_catalog.types import OperationSpec
+from basis.application.kernel import WorkspaceCoreContext
 from basis.application.workspace import operations as workspace_ops
+
+OperationHandler = Callable[[WorkspaceCoreContext, dict[str, Any]], dict[str, Any]]
+
+
+class OperationSpec(TypedDict):
+    handler: OperationHandler
+    mcp: NotRequired[bool]
+
 
 OPERATIONS: dict[str, OperationSpec] = {
     "describe_workspace": {"handler": workspace_ops.op_describe_workspace},

@@ -6,7 +6,7 @@ from typing import Any, Literal
 
 from pydantic import Field
 
-from basis.application.tool_catalog.schema_base import ExtraAllowedModel
+from basis.application.schema_base import ExtraAllowedModel
 
 
 class ListConnectorCatalogInput(ExtraAllowedModel):
