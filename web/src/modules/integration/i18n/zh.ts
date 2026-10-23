@@ -38,7 +38,6 @@ export default {
     mcp_hint: "在工作区 MCP 端点携带访问令牌调用 list_connector_connections："
   },
   tokens: {
-    hint: "同一 Bearer 令牌；创建时可分别配置 MCP 与 OpenAPI 允许的操作。",
     list_title: "令牌列表",
     list_subtitle: "本工作区的 Bearer 凭据 — 创建后可在列表中复制密钥。",
     list_empty: "尚无访问令牌。请点击「创建访问令牌」。",
@@ -98,6 +97,7 @@ export default {
     tokens_title: "访问令牌",
     name_label: "名称",
     create_button: "创建",
+    secret_dialog_title: "访问令牌已创建",
     secret_once: "新令牌密钥（请保存；也可在下方列表中复制）",
     secret_dismiss: "关闭",
     scope_label: "权限",

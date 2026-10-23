@@ -7,6 +7,14 @@ import {
 } from '@/components/app/shared/console/index.js';
 import { Badge } from '@/components/ui/badge.js';
 import { Button } from '@/components/ui/button.js';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog.js';
 import { PublicIcon } from '@/components/app/shared/primitives/public-icon.js';
 import { useI18n } from '@/i18n/context.js';
 import { fmt, formatLocaleDateTime } from '@/i18n/format.js';
@@ -52,13 +60,35 @@ export function ApiTokensPanel({
   const activeTokens = apiTokens.filter((row) => !row.revoked_at);
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col space-y-4">
-      <p
-        className="rounded-lg border border-border bg-muted/10 px-4 py-3 text-sm text-muted-foreground"
-        data-testid="integration-tokens-intro"
+    <div className="flex min-h-0 flex-1 flex-col">
+      <Dialog
+        open={Boolean(createdSecret)}
+        onOpenChange={(open) => {
+          if (!open) onDismissCreatedSecret();
+        }}
       >
-        {tokensCopy.hint}
-      </p>
+        <DialogContent className="sm:max-w-lg" data-testid="api-token-secret-dialog">
+          <DialogHeader>
+            <DialogTitle>{mcp.secret_dialog_title}</DialogTitle>
+            <DialogDescription>{mcp.secret_once}</DialogDescription>
+          </DialogHeader>
+          <code className="block break-all rounded-md border border-border bg-muted/40 px-3 py-2.5 font-mono text-xs text-foreground">
+            {createdSecret}
+          </code>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button type="button" variant="outline" onClick={onDismissCreatedSecret}>
+              {mcp.secret_dismiss}
+            </Button>
+            <Button
+              type="button"
+              disabled={!createdSecret}
+              onClick={() => createdSecret && void onCopy(createdSecret)}
+            >
+              {mcp.copy_token}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <DataPanel className="min-h-0 flex-1" data-testid="integration-tokens-panel">
         <DataPanelHeader
@@ -76,21 +106,6 @@ export function ApiTokensPanel({
           }
         />
         <DataPanelBody padded={false} className="min-h-0 overflow-auto">
-          {createdSecret ? (
-            <div className="space-y-2 border-b border-border bg-muted/20 px-4 py-3">
-              <p className="text-sm text-foreground">{mcp.secret_once}</p>
-              <code className="block break-all font-mono text-xs text-foreground">{createdSecret}</code>
-              <div className="flex flex-wrap gap-2">
-                <Button type="button" variant="outline" size="sm" onClick={() => void onCopy(createdSecret)}>
-                  {mcp.copy_token}
-                </Button>
-                <Button type="button" variant="outline" size="sm" onClick={onDismissCreatedSecret}>
-                  {mcp.secret_dismiss}
-                </Button>
-              </div>
-            </div>
-          ) : null}
-
           {!canManageTokens ? (
             <p className="px-4 py-6 text-sm text-muted-foreground">{mcp.admin_only}</p>
           ) : activeTokens.length === 0 ? (

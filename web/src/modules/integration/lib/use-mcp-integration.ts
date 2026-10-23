@@ -69,7 +69,6 @@ export function useWorkspaceMcpIntegration(workspaceId: string | undefined, canM
         });
         setCreatedSecret(body.secret);
         await reloadTokens();
-        toast.success(t.integration.mcp.secret_once);
         return body.secret;
       } catch (err) {
         toast.error(apiError(err));

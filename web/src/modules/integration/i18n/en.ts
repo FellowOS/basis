@@ -38,7 +38,6 @@ export default {
     mcp_hint: "Call list_connector_connections on the workspace MCP endpoint with your access token:"
   },
   tokens: {
-    hint: "One Bearer token — MCP and OpenAPI grants are configured separately when creating a token.",
     list_title: "Access tokens",
     list_subtitle: "Bearer credentials for this workspace — copy secrets from the list after creation.",
     list_empty: "No access tokens yet. Click Create access token.",
@@ -98,6 +97,7 @@ export default {
     tokens_title: "Access tokens",
     name_label: "Name",
     create_button: "Create",
+    secret_dialog_title: "Access token created",
     secret_once: "New token secret — save it; you can also copy from the list below.",
     secret_dismiss: "Dismiss",
     scope_label: "Scope",
