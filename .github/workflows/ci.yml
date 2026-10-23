@@ -128,6 +128,7 @@ jobs:
           uv run python scripts/audit-http-shared-stubs.py
           uv run python scripts/audit-http-mount-v1.py
           uv run python scripts/audit-http-mount-workspace.py
+          uv run python scripts/audit-http-mount-platform.py
           uv run python scripts/audit-mcp-http-decouple.py
           uv run python scripts/audit-connector-http-duplication.py
 
