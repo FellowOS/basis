@@ -88,7 +88,7 @@ def test_alembic_upgrade_creates_parent_dir_and_version(tmp_path: Path) -> None:
     conn = sqlite3.connect(db_path)
     assert conn.execute(
         "SELECT version_num FROM alembic_version LIMIT 1"
-    ).fetchone()[0] == "0001_storage_baseline"
+    ).fetchone()[0] == "0002_postgres_storage_extras"
     assert sqlite_schema_is_initialized(conn)
     conn.close()
 
@@ -103,7 +103,7 @@ def test_run_migrations_applies_alembic_head(tmp_path: Path) -> None:
         "SELECT version_num FROM alembic_version LIMIT 1"
     ).fetchone()
     assert row is not None
-    assert row[0] == "0001_storage_baseline"
+    assert row[0] == "0002_postgres_storage_extras"
     verify.close()
 
 

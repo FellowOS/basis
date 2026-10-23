@@ -310,7 +310,7 @@ def _apply_baseline_sql_to_postgres(conn: Any, source: str) -> None:
         conn.exec_driver_sql(statement)
 
 
-def _apply_postgres_storage_extras(conn: Any) -> None:
+def apply_postgres_storage_extras(conn: Any) -> None:
     _ensure_pg_extension(conn, "pg_trgm")
     _ensure_pg_extension(conn, "vector")
     for statement in _fts_and_vector_sql():
@@ -322,6 +322,15 @@ def _apply_postgres_storage_extras(conn: Any) -> None:
     _exec_sql_best_effort(conn, bootstrap[1], skip_owner_errors=True)
 
 
+def bootstrap_postgres_ledger_baseline(conn: Any) -> None:
+    """Canonical ledger DDL + org backfill (Alembic ``0001``; idempotent skips in SQL)."""
+    baseline_source = _baseline_path().read_text(encoding="utf-8")
+    _apply_baseline_sql_to_postgres(conn, baseline_source)
+    from basis.infra.tooling.db.org_backfill import ensure_organization_backfill_postgres
+
+    ensure_organization_backfill_postgres(conn)
+
+
 def postgres_schema_is_initialized(conn: Any) -> bool:
     row = conn.execute(
         text("SELECT to_regclass('public.documents') IS NOT NULL")
@@ -330,19 +339,8 @@ def postgres_schema_is_initialized(conn: Any) -> bool:
 
 
 def run_postgres_migrations(engine: Engine) -> list[int]:
-    """Bootstrap PostgreSQL schema (used by Alembic revision ``0001_storage_baseline``)."""
-    with engine.connect() as probe:
-        if postgres_schema_is_initialized(probe):
-            repair_workspace_organization_id_column(engine)
-            return []
+    """Deprecated: use ``alembic_upgrade.upgrade_postgres_engine``. Kept for tooling imports."""
+    from basis.infra.tooling.db.alembic_upgrade import upgrade_postgres_engine
 
-    baseline_source = _baseline_path().read_text(encoding="utf-8")
-    with engine.begin() as conn:
-        _apply_baseline_sql_to_postgres(conn, baseline_source)
-        _apply_postgres_storage_extras(conn)
-        from basis.infra.tooling.db.org_backfill import ensure_organization_backfill_postgres
-
-        ensure_organization_backfill_postgres(conn)
-
-    repair_workspace_organization_id_column(engine)
-    return [1]
+    upgrade_postgres_engine(engine)
+    return []
