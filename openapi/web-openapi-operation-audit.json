@@ -423,26 +423,26 @@
     {
       "file": "web/src/lib/openapi/schema-workspaces.d.ts",
       "kind": "dynamic",
-      "path": "/api/v1/workspaces/{workspace_id}/connectors/connections/{service}/{connection_name}",
-      "operationId": null
+      "path": "/api/v1/workspaces/{workspace_id}/connectors/connections/{service}",
+      "operationId": "upsert_connector_connection_api_v1_workspaces__workspace_id__connectors_connections__service__put"
     },
     {
       "file": "web/src/lib/openapi/schema-workspaces.d.ts",
       "kind": "dynamic",
-      "path": "/api/v1/workspaces/{workspace_id}/connectors/connections/{service}/{connection_name}/check",
-      "operationId": null
+      "path": "/api/v1/workspaces/{workspace_id}/connectors/connections/{service}/check",
+      "operationId": "check_connector_connection_api_v1_workspaces__workspace_id__connectors_connections__service__check_post"
     },
     {
       "file": "web/src/lib/openapi/schema-workspaces.d.ts",
       "kind": "dynamic",
-      "path": "/api/v1/workspaces/{workspace_id}/connectors/connections/{service}/{connection_name}/discover",
-      "operationId": null
+      "path": "/api/v1/workspaces/{workspace_id}/connectors/connections/{service}/discover",
+      "operationId": "discover_connector_schema_api_v1_workspaces__workspace_id__connectors_connections__service__discover_get"
     },
     {
       "file": "web/src/lib/openapi/schema-workspaces.d.ts",
       "kind": "dynamic",
-      "path": "/api/v1/workspaces/{workspace_id}/connectors/connections/{service}/{connection_name}/invoke-primitive",
-      "operationId": null
+      "path": "/api/v1/workspaces/{workspace_id}/connectors/connections/{service}/invoke-primitive",
+      "operationId": "invoke_connector_primitive_api_v1_workspaces__workspace_id__connectors_connections__service__invoke_primitive_post"
     },
     {
       "file": "web/src/lib/openapi/schema-workspaces.d.ts",
@@ -515,6 +515,24 @@
       "kind": "literal",
       "path": "/api/v1/workspaces/{workspace_id}/connectors/policy",
       "operationId": "get_connector_policy_api_v1_workspaces__workspace_id__connectors_policy_get"
+    },
+    {
+      "file": "web/src/lib/openapi/schema-workspaces.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/workspaces/{workspace_id}/connectors/policy/providers/{service}",
+      "operationId": "delete_workspace_connector_provider_api_v1_workspaces__workspace_id__connectors_policy_providers__service__delete"
+    },
+    {
+      "file": "web/src/lib/openapi/schema-workspaces.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/workspaces/{workspace_id}/connectors/policy/providers/{service}/disable",
+      "operationId": "disable_workspace_connector_provider_api_v1_workspaces__workspace_id__connectors_policy_providers__service__disable_post"
+    },
+    {
+      "file": "web/src/lib/openapi/schema-workspaces.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/workspaces/{workspace_id}/connectors/policy/providers/{service}/enable",
+      "operationId": "enable_workspace_connector_provider_api_v1_workspaces__workspace_id__connectors_policy_providers__service__enable_post"
     },
     {
       "file": "web/src/lib/openapi/schema-workspaces.d.ts",
@@ -1617,26 +1635,26 @@
     {
       "file": "web/src/lib/openapi/schema.d.ts",
       "kind": "dynamic",
-      "path": "/api/v1/workspaces/{workspace_id}/connectors/connections/{service}/{connection_name}",
-      "operationId": null
+      "path": "/api/v1/workspaces/{workspace_id}/connectors/connections/{service}",
+      "operationId": "upsert_connector_connection_api_v1_workspaces__workspace_id__connectors_connections__service__put"
     },
     {
       "file": "web/src/lib/openapi/schema.d.ts",
       "kind": "dynamic",
-      "path": "/api/v1/workspaces/{workspace_id}/connectors/connections/{service}/{connection_name}/check",
-      "operationId": null
+      "path": "/api/v1/workspaces/{workspace_id}/connectors/connections/{service}/check",
+      "operationId": "check_connector_connection_api_v1_workspaces__workspace_id__connectors_connections__service__check_post"
     },
     {
       "file": "web/src/lib/openapi/schema.d.ts",
       "kind": "dynamic",
-      "path": "/api/v1/workspaces/{workspace_id}/connectors/connections/{service}/{connection_name}/discover",
-      "operationId": null
+      "path": "/api/v1/workspaces/{workspace_id}/connectors/connections/{service}/discover",
+      "operationId": "discover_connector_schema_api_v1_workspaces__workspace_id__connectors_connections__service__discover_get"
     },
     {
       "file": "web/src/lib/openapi/schema.d.ts",
       "kind": "dynamic",
-      "path": "/api/v1/workspaces/{workspace_id}/connectors/connections/{service}/{connection_name}/invoke-primitive",
-      "operationId": null
+      "path": "/api/v1/workspaces/{workspace_id}/connectors/connections/{service}/invoke-primitive",
+      "operationId": "invoke_connector_primitive_api_v1_workspaces__workspace_id__connectors_connections__service__invoke_primitive_post"
     },
     {
       "file": "web/src/lib/openapi/schema.d.ts",
@@ -1709,6 +1727,24 @@
       "kind": "literal",
       "path": "/api/v1/workspaces/{workspace_id}/connectors/policy",
       "operationId": "get_connector_policy_api_v1_workspaces__workspace_id__connectors_policy_get"
+    },
+    {
+      "file": "web/src/lib/openapi/schema.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/workspaces/{workspace_id}/connectors/policy/providers/{service}",
+      "operationId": "delete_workspace_connector_provider_api_v1_workspaces__workspace_id__connectors_policy_providers__service__delete"
+    },
+    {
+      "file": "web/src/lib/openapi/schema.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/workspaces/{workspace_id}/connectors/policy/providers/{service}/disable",
+      "operationId": "disable_workspace_connector_provider_api_v1_workspaces__workspace_id__connectors_policy_providers__service__disable_post"
+    },
+    {
+      "file": "web/src/lib/openapi/schema.d.ts",
+      "kind": "dynamic",
+      "path": "/api/v1/workspaces/{workspace_id}/connectors/policy/providers/{service}/enable",
+      "operationId": "enable_workspace_connector_provider_api_v1_workspaces__workspace_id__connectors_policy_providers__service__enable_post"
     },
     {
       "file": "web/src/lib/openapi/schema.d.ts",
