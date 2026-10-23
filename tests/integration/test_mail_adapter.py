@@ -6,7 +6,6 @@ from basis.domain.connector.adapters.mail.actions import execute_mail_action
 from basis.domain.connector.adapters.mail.credentials import read_qq_mail_credential
 from basis.domain.connector.adapters.mail.protocol import ImapSmtpProtocol
 from basis.domain.connector.manifest_schema import MailProcedureExecutorSpec
-from basis.domain.connector.synthesis.merge import merge_service
 
 
 def test_read_qq_mail_credential_validates() -> None:
@@ -31,8 +30,12 @@ def test_list_folders_via_mail_action_mocked() -> None:
     protocol.list_folders.assert_called_once()
 
 
-def test_merge_qq_mail_includes_mail_procedures() -> None:
-    m = merge_service("qq_mail", ship_tier="beta", prefer_anyconnect_procedures=True)
+def test_qq_mail_shipped_manifest_includes_mail_procedures() -> None:
+    """Shipped ``providers/qq_mail.yaml`` is the CI source of truth (no OpenConnector tree)."""
+    from basis.domain.connector.catalog import ConnectorCatalog
+
+    m = ConnectorCatalog.load_from_directory().get("qq_mail")
+    assert m is not None
     procs = m.procedure_actions()
     assert len(procs) >= 10
     assert all(p.mail is not None for p in procs)
