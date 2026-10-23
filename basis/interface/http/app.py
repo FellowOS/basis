@@ -30,11 +30,11 @@ from basis.infra.runtime.capabilities import graph_runtime_available
 from basis.infra.tooling.test_support.playwright_e2e import is_playwright_e2e_data_dir
 from basis.interface.http.legacy_api_gate import LegacyApiGateMiddleware
 from basis.interface.http.legacy_deprecation import LegacyApiDeprecationMiddleware
-from basis.interface.http.rest_v1_concurrency import RestV1ConcurrencyMiddleware
-from basis.interface.http.request_id import (
+from basis.interface.http.shared.request_id import (
     RequestIdMiddleware,
     attach_request_id_to_detail,
 )
+from basis.interface.http.shared.rest_v1_concurrency import RestV1ConcurrencyMiddleware
 from basis.interface.http import openapi_v1 as openapi_v1_routes
 from basis.infra.runtime.observability.logging_setup import configure_basis_logging
 
