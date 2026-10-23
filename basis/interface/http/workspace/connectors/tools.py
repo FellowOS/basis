@@ -6,9 +6,12 @@ from typing import Any
 
 from fastapi import APIRouter, Depends, Request
 
-from basis.application.connectors import tools
+from basis.application.connectors.operations import op_execute_connector_tool
 from basis.application.kernel import CoreError
-from basis.interface.http.operation_http import http_exception_from_core
+from basis.interface.http.operation_http import (
+    http_exception_from_core,
+    http_response_from_connector_payload,
+)
 from basis.domain.tenancy.admin.store import AdminStore, User
 from basis.interface.http.workspace.connectors.models import ExecuteConnectorToolRequest
 from basis.interface.http.core_context import build_workspace_core_context
@@ -36,7 +39,7 @@ async def execute_connector_tool(
             store=store,
             require_editor=True,
         )
-        return tools.execute_tool_or_raise_http(
+        payload = op_execute_connector_tool(
             ctx,
             {
                 "service": body.service,
@@ -45,5 +48,6 @@ async def execute_connector_tool(
                 "arguments": body.arguments,
             },
         )
+        return http_response_from_connector_payload(payload, kind="tool")
     except CoreError as exc:
         raise http_exception_from_core(exc) from exc

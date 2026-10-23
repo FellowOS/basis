@@ -6,7 +6,6 @@ from typing import Any
 
 from basis.application.connectors import authz
 from basis.application.kernel import WorkspaceCoreContext
-from basis.domain.errors import AdminError
 
 
 def execute_tool(ctx: WorkspaceCoreContext, args: dict[str, Any]) -> dict[str, Any]:
@@ -44,17 +43,3 @@ def execute_tool(ctx: WorkspaceCoreContext, args: dict[str, Any]) -> dict[str, A
     except Exception as exc:
         return {"error": str(exc)}
 
-
-def execute_tool_or_raise_http(ctx: WorkspaceCoreContext, args: dict[str, Any]) -> dict[str, Any]:
-    from basis.application.connectors.operations import op_execute_connector_tool
-
-    payload = op_execute_connector_tool(ctx, args)
-    err = payload.get("error")
-    if not err or not isinstance(err, str):
-        return payload
-    lowered = err.lower()
-    if "not found" in lowered:
-        raise AdminError(404, "connection_not_found", err)
-    if "permission" in lowered or "policy" in lowered or "blocked" in lowered:
-        raise AdminError(403, "connector_policy_blocked", err)
-    raise AdminError(422, "connector_tool_execution_failed", err)

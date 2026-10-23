@@ -7,7 +7,6 @@ from typing import Any
 from basis.application.connectors import authz
 from basis.application.kernel import WorkspaceCoreContext
 from basis.domain.connector.primitive_invoke import execute_connector_primitive
-from basis.domain.errors import AdminError
 
 
 def invoke(ctx: WorkspaceCoreContext, args: dict[str, Any]) -> dict[str, Any]:
@@ -77,20 +76,3 @@ def invoke(ctx: WorkspaceCoreContext, args: dict[str, Any]) -> dict[str, Any]:
     except Exception as exc:
         return {"error": str(exc)}
 
-
-def invoke_or_raise_http(ctx: WorkspaceCoreContext, args: dict[str, Any]) -> dict[str, Any]:
-    """Map primitive `{error: ...}` payloads to ``AdminError`` for HTTP handlers."""
-    from basis.application.connectors.operations import op_invoke_connector_primitive
-
-    payload = op_invoke_connector_primitive(ctx, args)
-    err = payload.get("error")
-    if not err or not isinstance(err, str):
-        return payload
-    lowered = err.lower()
-    if "not found" in lowered:
-        raise AdminError(404, "connection_not_found", err)
-    if "permission" in lowered or "policy" in lowered or "blocked" in lowered:
-        raise AdminError(403, "connector_policy_blocked", err)
-    if "invalid" in lowered or "required" in lowered:
-        raise AdminError(422, "connector_primitive_invalid", err)
-    raise AdminError(422, "connector_primitive_failed", err)

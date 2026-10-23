@@ -8,8 +8,12 @@ from fastapi import APIRouter, Depends, Request
 
 from basis.application.connectors import mappings as mapping_uc
 from basis.application.connectors import mappings_admin as mapping_admin_uc
+from basis.application.connectors.operations import op_sync_connector_table_mapping
 from basis.application.kernel import CoreError
-from basis.interface.http.operation_http import http_exception_from_core
+from basis.interface.http.operation_http import (
+    http_exception_from_core,
+    http_response_from_connector_payload,
+)
 from basis.domain.tenancy.admin.store import AdminStore, User
 from basis.interface.http.workspace.connectors.models import (
     BatchCreateTableMappingsRequest,
@@ -195,9 +199,10 @@ async def sync_table_mapping(
 ) -> dict[str, Any]:
     """Execute inbound 4-way sync from the BOCP stream into the Evidence Ledger."""
     try:
-        return mapping_uc.sync_table_mapping_or_raise_http(
+        payload = op_sync_connector_table_mapping(
             _ctx(request, workspace_id, user, store, require_editor=True),
-            mapping_id=mapping_id,
+            {"mapping_id": mapping_id},
         )
+        return http_response_from_connector_payload(payload, kind="mapping_sync")
     except CoreError as exc:
         raise http_exception_from_core(exc) from exc

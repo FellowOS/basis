@@ -6,9 +6,13 @@ from typing import Any
 
 from fastapi import APIRouter, Depends, Query, Request
 
-from basis.application.connectors import outbox, writeback
+from basis.application.connectors import outbox
+from basis.application.connectors.operations import op_propose_entity_writeback
 from basis.application.kernel import CoreError
-from basis.interface.http.operation_http import http_exception_from_core
+from basis.interface.http.operation_http import (
+    http_exception_from_core,
+    http_response_from_connector_payload,
+)
 from basis.domain.tenancy.admin.store import AdminStore, User
 from basis.interface.http.workspace.connectors.models import ProposeEntityWritebackRequest
 from basis.interface.http.core_context import build_workspace_core_context
@@ -55,11 +59,11 @@ async def propose_entity_writeback(
             store=store,
             require_editor=True,
         )
-        return writeback.propose_entity_writeback_or_raise_http(
+        payload = op_propose_entity_writeback(
             ctx,
-            entity_id=body.entity_id,
-            field_updates=body.field_updates,
+            {"entity_id": body.entity_id, "field_updates": body.field_updates},
         )
+        return http_response_from_connector_payload(payload, kind="writeback")
     except CoreError as exc:
         raise http_exception_from_core(exc) from exc
 

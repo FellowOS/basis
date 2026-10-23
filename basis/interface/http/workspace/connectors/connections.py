@@ -7,9 +7,12 @@ from typing import Any
 from fastapi import APIRouter, Depends, Query, Request
 
 from basis.application.connectors import connections
-from basis.application.connectors.primitives import invoke_or_raise_http
+from basis.application.connectors.operations import op_invoke_connector_primitive
 from basis.application.kernel import CoreError
-from basis.interface.http.operation_http import http_exception_from_core
+from basis.interface.http.operation_http import (
+    http_exception_from_core,
+    http_response_from_connector_payload,
+)
 from basis.domain.tenancy.admin.store import AdminStore, User
 from basis.interface.http.workspace.connectors.models import (
     InvokeConnectorPrimitiveRequest,
@@ -192,7 +195,7 @@ async def invoke_connector_primitive(
             store=store,
             require_editor=require_editor,
         )
-        return invoke_or_raise_http(
+        payload = op_invoke_connector_primitive(
             ctx,
             {
                 "service": service,
@@ -213,5 +216,6 @@ async def invoke_connector_primitive(
                 "cursor_column": body.cursor_column,
             },
         )
+        return http_response_from_connector_payload(payload, kind="primitive")
     except CoreError as exc:
         raise http_exception_from_core(exc) from exc
