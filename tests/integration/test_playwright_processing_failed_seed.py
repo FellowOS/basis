@@ -47,7 +47,7 @@ def test_playwright_processing_failed_seed_route(tmp_path: Path) -> None:
     assert denied.status_code == 404
 
 
-def test_e2e_sync_failed_helper(tmp_path: Path) -> None:
+def test_playwright_sync_failed_seed_route(tmp_path: Path) -> None:
     data_dir = tmp_path / "data" / "e2e"
     data_dir.mkdir(parents=True)
     client = TestClient(create_app(Settings(data_dir=data_dir, ingest_inline=True)))
