@@ -4,13 +4,14 @@ Storage schema and migration tooling (not domain business logic).
 
 | Path | Role |
 | --- | --- |
-| `migrations/*.sql` | Ordered SQLite/PostgreSQL DDL (shipped in the wheel via `pyproject.toml` `package-data`) |
-| `sqlite_migrations.py` | Apply SQL files to a `sqlite3.Connection` |
-| `postgres_migrations.py` | Apply PG equivalents on a SQLAlchemy `Engine` |
-| `org_backfill.py` | Idempotent org rows for legacy KBs (invoked at end of migration runs) |
-| `alembic/` | Optional Alembic entry (`alembic.ini` → `script_location` here) |
-| `schema.py` | SQLAlchemy metadata used by Alembic |
+| `migrations/*.sql` | Canonical baseline DDL (applied inside Alembic `0001`) |
+| `alembic/` | Alembic revisions (`alembic.ini` at repo root) |
+| `alembic_upgrade.py` | Runtime/CLI entry: `alembic upgrade head` |
+| `sqlite_migrations.py` | SQLite bootstrap helpers (revision `0001`) |
+| `postgres_migrations.py` | PostgreSQL bootstrap + extensions (revision `0001`) |
+| `org_backfill.py` | Idempotent org rows for legacy KBs |
+| `schema.py` | SQLAlchemy metadata for Alembic / tooling |
 
-**Imports:** `basis.infra.tooling.db.sqlite_migrations` / `postgres_migrations` only (removed platform re-export shims; CI `audit-compat-shim-imports.py`).
+**Apply schema:** `upgrade_sqlite_file(path)` or `upgrade_postgres_engine(engine)` from `alembic_upgrade.py` (also `uv run alembic -c alembic.ini upgrade head` with `BASIS_DATABASE_URL` or `sqlalchemy.url`).
 
-Runtime pools: `basis.infra.runtime.database` calls into this package when opening SQLite/Postgres databases.
+Runtime pools: `basis.infra.runtime.database` calls `alembic_upgrade` when opening SQLite/Postgres.

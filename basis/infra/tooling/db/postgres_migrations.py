@@ -330,7 +330,7 @@ def postgres_schema_is_initialized(conn: Any) -> bool:
 
 
 def run_postgres_migrations(engine: Engine) -> list[int]:
-    """Bootstrap PostgreSQL schema once when ledger tables are absent."""
+    """Bootstrap PostgreSQL schema (used by Alembic revision ``0001_storage_baseline``)."""
     with engine.connect() as probe:
         if postgres_schema_is_initialized(probe):
             repair_workspace_organization_id_column(engine)

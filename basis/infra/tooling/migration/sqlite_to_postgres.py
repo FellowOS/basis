@@ -9,7 +9,7 @@ from typing import Any
 from sqlalchemy import MetaData, create_engine, func, select, text
 from sqlalchemy.engine import Engine
 
-from basis.infra.tooling.db.postgres_migrations import run_postgres_migrations
+from basis.infra.tooling.db.alembic_upgrade import upgrade_postgres_engine
 
 _EXCLUDED_PREFIXES = ("chunks_fts", "sqlite_", "alembic_")
 _EXCLUDED_TABLES = {
@@ -60,7 +60,7 @@ def migrate_sqlite_to_postgres(
     target_url = postgres_url.replace("postgresql://", "postgresql+psycopg://", 1)
     target = create_engine(target_url, pool_pre_ping=True)
     try:
-        run_postgres_migrations(target)
+        upgrade_postgres_engine(target)
         target_meta, table_names = _canonical_tables(source, target)
         with target.connect() as conn:
             existing = conn.execute(text("SELECT COUNT(*) FROM users")).scalar_one()

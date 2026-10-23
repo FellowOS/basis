@@ -12,8 +12,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 
 from basis.domain.errors import AdminError
-from basis.infra.tooling.db.postgres_migrations import run_postgres_migrations
-from basis.infra.tooling.db.sqlite_migrations import MigrationError, run_migrations
+from basis.infra.tooling.db.alembic_upgrade import upgrade_postgres_engine, upgrade_sqlite_file
+from basis.infra.tooling.db.sqlite_migrations import MigrationError
 from basis.infra.runtime.sqlite_connection import connect_sqlite
 
 _pool: dict[str, Database] = {}
@@ -191,12 +191,13 @@ class SqliteDatabase(Database):
         self.backend = "sqlite"
         self.path = path.resolve()
         self._lock = threading.RLock()
-        self._conn = connect_sqlite(self.path)
         try:
-            run_migrations(self._conn)
+            upgrade_sqlite_file(self.path)
         except MigrationError as exc:
-            self._conn.close()
             raise AdminError(500, "migration_failed", exc.message) from exc
+        except Exception as exc:
+            raise AdminError(500, "migration_failed", str(exc)) from exc
+        self._conn = connect_sqlite(self.path)
         self._refs = 0
 
     @property
@@ -241,7 +242,7 @@ class PostgresDatabase(Database):
             pool_pre_ping=True,
         )
         try:
-            run_postgres_migrations(self.engine)
+            upgrade_postgres_engine(self.engine)
         except Exception as exc:
             self.engine.dispose()
             raise AdminError(500, "migration_failed", str(exc)) from exc

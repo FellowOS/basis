@@ -1,4 +1,4 @@
-"""SQLite schema bootstrap from packaged SQL (greenfield; no version table)."""
+"""SQLite schema bootstrap SQL (invoked from Alembic revision ``0001_storage_baseline``)."""
 
 from __future__ import annotations
 
@@ -74,7 +74,13 @@ def ensure_sqlite_schema(conn: sqlite3.Connection) -> None:
 
 
 def run_migrations(conn: sqlite3.Connection) -> list[int]:
-    """Compatibility shim: bootstrap schema if needed; returns ``[]``."""
+    """Test/tooling helper: Alembic head for file DBs; ``:memory:`` uses ``ensure_sqlite_schema``."""
+    from basis.infra.tooling.db.alembic_upgrade import sqlite_path_from_connection, upgrade_sqlite_file
+
+    db_path = sqlite_path_from_connection(conn)
+    if db_path is not None:
+        upgrade_sqlite_file(db_path)
+        return []
     ensure_sqlite_schema(conn)
     return []
 

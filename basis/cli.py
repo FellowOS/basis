@@ -72,10 +72,8 @@ def _cmd_migrate_legacy_graphs(settings: Settings, args: argparse.Namespace) -> 
 def _cmd_postgres_reset_schema(settings: Settings) -> None:
     from sqlalchemy import create_engine
 
-    from basis.infra.tooling.db.postgres_migrations import (
-        reset_postgres_public_schema,
-        run_postgres_migrations,
-    )
+    from basis.infra.tooling.db.alembic_upgrade import upgrade_postgres_engine
+    from basis.infra.tooling.db.postgres_migrations import reset_postgres_public_schema
 
     url = settings.database_url
     if not url or not url.startswith("postgres"):
@@ -85,10 +83,10 @@ def _cmd_postgres_reset_schema(settings: Settings) -> None:
     engine = create_engine(sqlalchemy_url)
     try:
         reset_postgres_public_schema(engine)
-        applied = run_postgres_migrations(engine)
+        upgrade_postgres_engine(engine)
     finally:
         engine.dispose()
-    print(f"PostgreSQL schema rebuilt; newly applied versions: {applied or 'none (already current)'}")
+    print("PostgreSQL schema rebuilt (alembic upgrade head).")
 
 
 def _cmd_migrate_postgres(settings: Settings, args: argparse.Namespace) -> None:

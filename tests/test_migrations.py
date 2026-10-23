@@ -62,7 +62,7 @@ def test_fresh_database_applies_baseline_schema(tmp_path: Path) -> None:
         )
     }
     conn.close()
-    assert "schema_migrations" not in tables
+    assert "alembic_version" in tables
     assert "documents" in tables
     assert "statements" in tables
     assert "projection_state" in tables
@@ -81,12 +81,18 @@ def test_schema_bootstrap_is_idempotent(tmp_path: Path) -> None:
     assert sqlite_schema_is_initialized(sqlite3.connect(db_path))
 
 
-def test_run_migrations_shim_returns_empty(tmp_path: Path) -> None:
+def test_run_migrations_applies_alembic_head(tmp_path: Path) -> None:
     db_path = tmp_path / "basis.db"
     conn = sqlite3.connect(db_path)
     assert run_migrations(conn) == []
-    assert run_migrations(conn) == []
     conn.close()
+    verify = sqlite3.connect(db_path)
+    row = verify.execute(
+        "SELECT version_num FROM alembic_version LIMIT 1"
+    ).fetchone()
+    assert row is not None
+    assert row[0] == "0001_storage_baseline"
+    verify.close()
 
 
 def test_partial_admin_database_gets_ledger(tmp_path: Path) -> None:

@@ -100,7 +100,10 @@ def test_review_approve_failure_emits_governance_alert(tmp_path) -> None:
 
         raise AdminError(422, "impact_gate", "blocked")
 
-    with patch("basis.domain.graph.governance.enrich_write.merge_nodes", side_effect=fail_merge):
+    with patch(
+        "basis.domain.knowledge.services.review_resolve_approve.merge_nodes",
+        side_effect=fail_merge,
+    ):
         failed = client.post(
             f"/api/v1/workspaces/{workspace_id}/review/items/{proposed['id']}/approve",
             headers=headers,

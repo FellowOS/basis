@@ -6,7 +6,7 @@ Revision ID: 0001_storage_baseline
 from alembic import op
 
 from basis.infra.tooling.db.postgres_migrations import run_postgres_migrations
-from basis.infra.tooling.db.sqlite_migrations import run_migrations
+from basis.infra.tooling.db.sqlite_migrations import ensure_sqlite_schema
 
 revision = "0001_storage_baseline"
 down_revision = None
@@ -18,7 +18,7 @@ def upgrade() -> None:
     bind = op.get_bind()
     if bind.dialect.name == "sqlite":
         raw = bind.connection.driver_connection
-        run_migrations(raw)
+        ensure_sqlite_schema(raw)
     else:
         run_postgres_migrations(bind.engine)
 
