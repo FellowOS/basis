@@ -37,8 +37,18 @@ MCP_TOOL_METADATA: dict[str, dict[str, Any]] = {
         )
     },
     "describe_connector_service": {"description": "Describe one BOCP connector manifest (entities and procedures summary)."},
-    "list_connector_connections": {"description": "List saved BOCP connections for this workspace (no credential secrets)."},
-    "list_connector_table_mappings": {"description": "List stream-to-ontology table mappings configured for connector sync."},
+    "list_connector_connections": {
+        "description": (
+            "List saved BOCP connections (compact rows; HTTP GET …/connectors/connections returns "
+            "the same vault rows with extra console fields such as connection_config and has_credentials)."
+        )
+    },
+    "list_connector_table_mappings": {
+        "description": (
+            "List stream-to-ontology table mappings (paginated summary; HTTP GET …/table-mappings "
+            "returns full mapping records for the workspace console)."
+        )
+    },
     "sync_connector_table_mapping": {"description": "Run inbound BOCP sync for one table mapping (pull external rows into the Evidence Ledger)."},
     "invoke_connector_primitive": {"description": "Invoke a BOCP Section 10 primitive for an entity or procedure action (discover, list, mutate, invoke) using manifest operations — no table mapping required."},
     "execute_connector_tool": {"description": "Execute a standalone BOCP ToolSpec RPC for an allowed provider (subject to workspace action_policy_json)."},

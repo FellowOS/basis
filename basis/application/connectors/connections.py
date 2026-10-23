@@ -19,13 +19,29 @@ def _runtime(ctx: WorkspaceCoreContext):
     return ctx.knowledge.connector_runtime()
 
 
-def list_connections(ctx: WorkspaceCoreContext, args: dict[str, Any]) -> dict[str, Any]:
+def _list_stored_connections(
+    ctx: WorkspaceCoreContext,
+    *,
+    service: str | None = None,
+    connection_scope: str | None = None,
+    subject_id: str | None = None,
+):
     authz.require_workspace_viewer(ctx)
+    return _runtime(ctx).vault.list_connections(
+        ctx.workspace.id,
+        service=service,
+        connection_scope=connection_scope,
+        subject_id=subject_id,
+    )
+
+
+def list_connections(ctx: WorkspaceCoreContext, args: dict[str, Any]) -> dict[str, Any]:
+    """MCP ``list_connector_connections`` (compact rows for agents)."""
     service = str(args.get("service") or "").strip() or None
     connection_scope = str(args.get("connection_scope") or "").strip() or None
     subject_id = str(args.get("subject_id") or "").strip() or None
-    connections = _runtime(ctx).vault.list_connections(
-        ctx.workspace.id,
+    connections = _list_stored_connections(
+        ctx,
         service=service,
         connection_scope=connection_scope,
         subject_id=subject_id,
@@ -40,9 +56,9 @@ def list_connections_public(
     connection_scope: str | None = None,
     subject_id: str | None = None,
 ) -> dict[str, Any]:
-    authz.require_workspace_viewer(ctx)
-    connections = _runtime(ctx).vault.list_connections(
-        ctx.workspace.id,
+    """HTTP ``GET …/connectors/connections`` (console metadata incl. config + has_credentials)."""
+    connections = _list_stored_connections(
+        ctx,
         service=service,
         connection_scope=connection_scope,
         subject_id=subject_id,

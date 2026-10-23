@@ -76,6 +76,15 @@ def test_list_connections_http_matches_mcp_op(tmp_path: Path) -> None:
     assert mcp_keys == http_keys
     assert ("postgres", "default") in mcp_keys
 
+    http_by_key = {
+        (c["service"], c["connection_name"]): c for c in http_list.json()["connections"]
+    }
+    for row in mcp_list["connections"]:
+        http_row = http_by_key[(row["service"], row["connection_name"])]
+        assert set(row.keys()) <= set(http_row.keys())
+        for key, value in row.items():
+            assert http_row[key] == value
+
 
 def test_list_catalog_services_http_matches_mcp(tmp_path: Path) -> None:
     client, workspace_id, headers = _auth_client(tmp_path)

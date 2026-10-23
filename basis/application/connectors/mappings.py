@@ -47,6 +47,7 @@ def table_mapping_api_dict(
 
 
 def list_all_table_mappings(ctx: WorkspaceCoreContext) -> dict[str, Any]:
+    """HTTP ``GET …/connectors/table-mappings`` (full mapping records for the console)."""
     authz.require_workspace_viewer(ctx)
     svc = connector_sync_service(ctx)
     mappings = []
@@ -58,6 +59,7 @@ def list_all_table_mappings(ctx: WorkspaceCoreContext) -> dict[str, Any]:
 
 
 def list_table_mappings(ctx: WorkspaceCoreContext, args: dict[str, Any]) -> dict[str, Any]:
+    """MCP ``list_connector_table_mappings`` (summary rows with optional limit)."""
     authz.require_workspace_viewer(ctx)
     svc = connector_sync_service(ctx)
     mapping_limit = min(max(1, int(args.get("limit") or 50)), 200)
