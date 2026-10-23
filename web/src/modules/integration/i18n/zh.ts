@@ -38,7 +38,17 @@ export default {
     mcp_hint: "在工作区 MCP 端点携带访问令牌调用 list_connector_connections："
   },
   tokens: {
-    hint: "MCP 与 OpenAPI 共用 — 在集成请求中使用 Authorization: Bearer <令牌>。"
+    hint: "MCP 与 OpenAPI 共用 — 在集成请求中使用 Authorization: Bearer <令牌>。",
+    scope_read: "只读（只读类 REST 与 MCP 工具）",
+    scope_write: "读写（变更数据与写类 MCP 工具）",
+    restrict_operations: "限制 MCP 工具 / HTTP 授权项",
+    restrict_operations_hint:
+      "开启后仅允许所选工具名（及对应 REST 路由）。不开启表示本工作区内全部工具。",
+    operations_label: "允许的操作",
+    operations_select_all: "全选",
+    operations_clear: "清空",
+    unrestricted_badge: "全部操作",
+    restricted_badge: "{count} 项操作",
   },
   openapi: {
     hint: "本工作区的 REST 集成 — 与 MCP 工具对应同一套操作。",

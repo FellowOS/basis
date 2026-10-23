@@ -38,7 +38,17 @@ export default {
     mcp_hint: "Call list_connector_connections on the workspace MCP endpoint with your access token:"
   },
   tokens: {
-    hint: "Shared by MCP and OpenAPI — use Authorization: Bearer <token> on integration requests."
+    hint: "Shared by MCP and OpenAPI — use Authorization: Bearer <token> on integration requests.",
+    scope_read: "Read-only (GET-style workspace APIs and read MCP tools)",
+    scope_write: "Read + write (mutations, MCP tools that change data)",
+    restrict_operations: "Limit MCP tools / HTTP grants",
+    restrict_operations_hint:
+      "When enabled, only selected tool names are allowed (plus matching REST routes). Omit to allow all tools in this workspace.",
+    operations_label: "Allowed operations",
+    operations_select_all: "Select all",
+    operations_clear: "Clear",
+    unrestricted_badge: "All operations",
+    restricted_badge: "{count} operations",
   },
   openapi: {
     hint: "REST integration for this workspace — same operations as MCP tools.",

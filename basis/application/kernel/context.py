@@ -10,6 +10,7 @@ from basis.domain.graph.session.registry import GraphRuntime
 from basis.domain.knowledge.blob_store import BlobStore
 from basis.domain.knowledge.search import ChunkSearchService
 from basis.domain.knowledge.store import KnowledgeStore
+from basis.domain.tenancy.admin.admin_types import ApiTokenRecord
 from basis.domain.tenancy.admin.store import AdminStore, User, Workspace
 from basis.infra.runtime.limits import RuntimeLimits
 
@@ -29,6 +30,7 @@ class WorkspaceCoreContext:
     blob_store: BlobStore | None = None
     projection_bindings: GraphProjectionBindings | None = None
     runtime_limits: RuntimeLimits | None = None
+    api_token: ApiTokenRecord | None = None
 
     def graph_runtime(self) -> GraphRuntime:
         if self.runtime is not None:

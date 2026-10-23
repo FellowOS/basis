@@ -412,6 +412,11 @@ CREATE TABLE IF NOT EXISTS api_tokens (
 -- Persist API token plaintext for admin re-copy (auth still uses token_hash).
 ALTER TABLE api_tokens ADD COLUMN token_secret TEXT;
 
+-- >>> 0005_api_token_allowed_operations.sql
+
+-- Optional JSON list of MCP tool / HTTP grant ids; NULL = unrestricted.
+ALTER TABLE api_tokens ADD COLUMN allowed_operations_json TEXT;
+
 -- >>> 0004_kb_search_config.sql
 
 -- Per-workspace retrieval policy. Backends are named explicitly so additional

@@ -33,6 +33,7 @@ def insert_api_token(
     name: str,
     scope: str,
     workspace_ids_json: str,
+    allowed_operations_json: str | None,
     created_at: str,
     expires_at: str | None,
 ) -> None:
@@ -40,8 +41,8 @@ def insert_api_token(
         """
         INSERT INTO api_tokens(
             id, token_hash, token_secret, user_id, name, scope, workspace_ids_json,
-            created_at, expires_at, last_used_at, revoked_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, NULL)
+            allowed_operations_json, created_at, expires_at, last_used_at, revoked_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, NULL)
         """,
         (
             token_id,
@@ -51,6 +52,7 @@ def insert_api_token(
             name,
             scope,
             workspace_ids_json,
+            allowed_operations_json,
             created_at,
             expires_at,
         ),

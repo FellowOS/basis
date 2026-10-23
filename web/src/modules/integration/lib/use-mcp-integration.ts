@@ -47,12 +47,22 @@ export function useWorkspaceMcpIntegration(workspaceId: string | undefined, canM
   );
 
   const createApiToken = useCallback(
-    async (name: string) => {
+    async (
+      name: string,
+      scope: 'read' | 'write',
+      allowedOperations?: string[] | null,
+    ) => {
       const trimmed = name.trim();
       if (!workspaceId || !trimmed) return;
       try {
         const body = await workspaceOpenApiPOST<{ secret: string }>(workspaceId, 'tokens', {
-          body: { name: trimmed, scope: 'read' },
+          body: {
+            name: trimmed,
+            scope,
+            ...(allowedOperations && allowedOperations.length > 0
+              ? { allowed_operations: allowedOperations }
+              : {}),
+          },
         });
         setCreatedSecret(body.secret);
         await reloadTokens();

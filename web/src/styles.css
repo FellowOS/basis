@@ -5,6 +5,9 @@
 
 @source "./";
 @source "./components/ui";
+/* `/docs` route is lazy-loaded; ensure Tailwind scans MDX page chrome in this tree. */
+@source "./components/app/marketing/docs";
+@source "./modules/docs";
 
 /* Match web: manual theme toggle on <html class="dark"> */
 @custom-variant dark (&:is(.dark *));

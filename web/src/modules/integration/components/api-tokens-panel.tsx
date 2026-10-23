@@ -1,9 +1,10 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { ConfirmAlertDialog } from '@/components/app/shared/console/ConfirmAlertDialog.js';
 import { Button } from '@/components/ui/button.js';
+import { Checkbox } from '@/components/ui/checkbox.js';
 import {
   Dialog,
   DialogContent,
@@ -15,12 +16,22 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from '@/components/ui/form.js';
 import { Input } from '@/components/ui/input.js';
+import { Label } from '@/components/ui/label.js';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select.js';
+import { Switch } from '@/components/ui/switch.js';
 import { PublicIcon } from '@/components/app/shared/primitives/public-icon.js';
 import { useI18n } from '@/i18n/context.js';
 import { fmt, formatLocaleDateTime, formatLocaleNumber } from '@/i18n/format.js';
@@ -32,6 +43,7 @@ export type ApiTokenRow = {
   name: string;
   scope: string;
   workspace_ids: string[];
+  allowed_operations?: string[];
   created_at: string;
   expires_at: string | null;
   last_used_at: string | null;
@@ -42,7 +54,12 @@ export type ApiTokenRow = {
 type ApiTokensPanelProps = {
   apiTokens: ApiTokenRow[];
   canManageTokens: boolean;
-  onCreateToken: (name: string) => void | Promise<void>;
+  availableToolNames?: string[];
+  onCreateToken: (
+    name: string,
+    scope: 'read' | 'write',
+    allowedOperations?: string[] | null,
+  ) => void | Promise<void>;
   createdSecret: string | null;
   onDismissCreatedSecret: () => void;
   onCopy: (text: string) => void | Promise<void>;
@@ -52,6 +69,7 @@ type ApiTokensPanelProps = {
 export function ApiTokensPanel({
   apiTokens,
   canManageTokens,
+  availableToolNames = [],
   onCreateToken,
   createdSecret,
   onDismissCreatedSecret,
@@ -62,28 +80,51 @@ export function ApiTokensPanel({
   const mcp = t.integration.mcp;
   const tokensCopy = t.integration.tokens;
   const [createOpen, setCreateOpen] = useState(false);
+  const [restrictOps, setRestrictOps] = useState(false);
+  const [selectedOps, setSelectedOps] = useState<Record<string, boolean>>({});
   const activeTokens = apiTokens.filter((row) => !row.revoked_at);
+
+  const sortedToolNames = useMemo(
+    () => [...availableToolNames].sort((a, b) => a.localeCompare(b)),
+    [availableToolNames],
+  );
 
   const createTokenSchema = z.object({
     name: z.string().trim().min(1).max(64),
+    scope: z.enum(['read', 'write']),
   });
 
   const createTokenForm = useForm<z.infer<typeof createTokenSchema>>({
     resolver: zodResolver(createTokenSchema),
-    defaultValues: { name: '' },
+    defaultValues: { name: '', scope: 'read' },
   });
 
   useEffect(() => {
-    if (!createOpen) createTokenForm.reset({ name: '' });
+    if (!createOpen) {
+      createTokenForm.reset({ name: '', scope: 'read' });
+      setRestrictOps(false);
+      setSelectedOps({});
+    }
   }, [createOpen, createTokenForm]);
 
   async function submitCreateToken(values: z.infer<typeof createTokenSchema>) {
+    const allowed = restrictOps
+      ? sortedToolNames.filter((name) => selectedOps[name])
+      : null;
+    if (restrictOps && (!allowed || allowed.length === 0)) {
+      createTokenForm.setError('name', { message: tokensCopy.operations_label });
+      return;
+    }
     try {
-      await onCreateToken(values.name);
+      await onCreateToken(values.name, values.scope, allowed);
       setCreateOpen(false);
     } catch {
       /* toast handled in hook */
     }
+  }
+
+  function toggleOp(name: string, checked: boolean) {
+    setSelectedOps((prev) => ({ ...prev, [name]: checked }));
   }
 
   return (
@@ -175,6 +216,10 @@ export function ApiTokensPanel({
                     ? formatLocaleDateTime(locale as Locale, row.last_used_at)
                     : mcp.last_used_never,
                 })}
+                {' · '}
+                {row.allowed_operations?.length
+                  ? fmt(tokensCopy.restricted_badge, { count: row.allowed_operations.length })
+                  : tokensCopy.unrestricted_badge}
               </p>
             </div>
           ))
@@ -182,14 +227,17 @@ export function ApiTokensPanel({
       </div>
 
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="flex max-h-[85vh] max-w-lg flex-col overflow-hidden sm:max-w-lg">
           <Form {...createTokenForm}>
-            <form onSubmit={createTokenForm.handleSubmit(submitCreateToken)}>
+            <form
+              className="flex min-h-0 flex-1 flex-col"
+              onSubmit={createTokenForm.handleSubmit(submitCreateToken)}
+            >
               <DialogHeader>
                 <DialogTitle>{mcp.create_button}</DialogTitle>
                 <DialogDescription>{mcp.bearer_hint}</DialogDescription>
               </DialogHeader>
-              <div className="py-4">
+              <div className="min-h-0 flex-1 space-y-4 overflow-y-auto py-4">
                 <FormField
                   control={createTokenForm.control}
                   name="name"
@@ -203,6 +251,88 @@ export function ApiTokensPanel({
                     </FormItem>
                   )}
                 />
+                <FormField
+                  control={createTokenForm.control}
+                  name="scope"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{mcp.scope_label}</FormLabel>
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <FormControl>
+                          <SelectTrigger data-testid="api-token-scope-select">
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="read">{tokensCopy.scope_read}</SelectItem>
+                          <SelectItem value="write">{tokensCopy.scope_write}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="space-y-3 rounded-md border border-border p-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <Label htmlFor="api-token-restrict-ops" className="text-sm">
+                      {tokensCopy.restrict_operations}
+                    </Label>
+                    <Switch
+                      id="api-token-restrict-ops"
+                      checked={restrictOps}
+                      onCheckedChange={setRestrictOps}
+                      data-testid="api-token-restrict-ops"
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">{tokensCopy.restrict_operations_hint}</p>
+                  {restrictOps ? (
+                    <div className="space-y-2">
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const next: Record<string, boolean> = {};
+                            for (const name of sortedToolNames) {
+                              next[name] = true;
+                            }
+                            setSelectedOps(next);
+                          }}
+                        >
+                          {tokensCopy.operations_select_all}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setSelectedOps({})}
+                        >
+                          {tokensCopy.operations_clear}
+                        </Button>
+                      </div>
+                      <p className="text-xs font-medium text-foreground">{tokensCopy.operations_label}</p>
+                      <div className="max-h-48 space-y-1 overflow-y-auto rounded-md border border-border p-2">
+                        {sortedToolNames.length === 0 ? (
+                          <p className="text-xs text-muted-foreground">{mcp.tools}</p>
+                        ) : (
+                          sortedToolNames.map((toolName) => (
+                            <label
+                              key={toolName}
+                              className="flex cursor-pointer items-center gap-2 rounded px-1 py-0.5 hover:bg-muted/50"
+                            >
+                              <Checkbox
+                                checked={selectedOps[toolName] ?? false}
+                                onCheckedChange={(v) => toggleOp(toolName, v === true)}
+                              />
+                              <span className="font-mono text-[11px]">{toolName}</span>
+                            </label>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
               </div>
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => setCreateOpen(false)}>

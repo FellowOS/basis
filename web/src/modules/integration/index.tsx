@@ -97,6 +97,7 @@ export function IntegrationPage() {
           <ApiTokensPanel
             apiTokens={integration.apiTokens}
             canManageTokens={canManageTokens}
+            availableToolNames={integration.mcpInfo?.tools ?? []}
             onCreateToken={integration.createApiToken}
             createdSecret={integration.createdSecret}
             onDismissCreatedSecret={integration.clearCreatedSecret}

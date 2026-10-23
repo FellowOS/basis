@@ -18,6 +18,10 @@ class CreateWorkspaceApiTokenRequest(BaseModel):
     name: str = Field(min_length=1, max_length=64)
     scope: str = "read"
     expires_at: str | None = None
+    allowed_operations: list[str] | None = Field(
+        default=None,
+        description="Optional MCP tool / HTTP grant ids; omit for unrestricted access.",
+    )
 
 
 def _tokens_for_workspace(store: AdminStore, user: User, workspace_id: str) -> list:
@@ -57,6 +61,7 @@ Create workspace API token. Manage workspace API tokens (session + workspace adm
         scope=body.scope,
         workspace_ids=[workspace_id],
         expires_at=body.expires_at,
+        allowed_operations=body.allowed_operations,
     )
     return {"token": record.public(), "secret": plaintext}
 

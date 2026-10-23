@@ -163,6 +163,9 @@ def _check_api_token_workspace_access(
             status_code=403,
             detail={"code": "forbidden", "message": "令牌无写权限"},
         )
+    from basis.domain.tenancy.admin.api_token_grants import assert_api_token_http_operation
+
+    assert_api_token_http_operation(request, api_record)
 
 
 def get_workspace_for_viewer(

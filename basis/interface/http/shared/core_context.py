@@ -6,6 +6,7 @@ from fastapi import Request
 
 from basis.domain.tenancy.admin.store import AdminStore, User
 from basis.interface.http.shared.deps import (
+    get_api_token_record,
     graph_runtime_for,
     get_blob_store,
     get_chunk_search,
@@ -47,4 +48,5 @@ def build_workspace_core_context(
         blob_store=get_blob_store(request),
         projection_bindings=graph_projection_bindings(request),
         runtime_limits=get_runtime_limits(request),
+        api_token=get_api_token_record(request),
     )

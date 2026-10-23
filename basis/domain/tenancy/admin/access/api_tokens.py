@@ -34,6 +34,7 @@ class ApiTokensAccess:
         scope: str,
         workspace_ids: list[str],
         expires_at: str | None = None,
+        allowed_operations: list[str] | None = None,
     ) -> tuple[ApiTokenRecord, str]:
         from basis.domain.tenancy.admin.admin_types import secrets_token
 
@@ -44,6 +45,13 @@ class ApiTokensAccess:
             raise AdminError(422, "bad_scope", "scope 必须是 read 或 write")
         if not workspace_ids:
             raise AdminError(422, "bad_workspace_ids", "至少选择一个工作区")
+        allowed_json: str | None = None
+        if allowed_operations is not None:
+            ops = sorted({str(op).strip() for op in allowed_operations if str(op).strip()})
+            if len(ops) > 256:
+                raise AdminError(422, "bad_allowed_operations", "操作列表过长（最多 256 项）")
+            if ops:
+                allowed_json = json.dumps(ops, ensure_ascii=False)
         cleaned: list[str] = []
         for workspace_id in workspace_ids:
             self._store._workspaces.get_workspace_for(actor, workspace_id, "viewer")
@@ -63,6 +71,7 @@ class ApiTokensAccess:
                 name=name,
                 scope=scope,
                 workspace_ids_json=json.dumps(cleaned, ensure_ascii=False),
+                allowed_operations_json=allowed_json,
                 created_at=now,
                 expires_at=expires_at,
             )
@@ -72,7 +81,12 @@ class ApiTokensAccess:
                 action="api_token.created",
                 target_type="api_token",
                 target_id=token_id,
-                detail={"name": name, "scope": scope, "workspace_ids": cleaned},
+                detail={
+                    "name": name,
+                    "scope": scope,
+                    "workspace_ids": cleaned,
+                    "allowed_operations": json.loads(allowed_json) if allowed_json else None,
+                },
             )
             conn.commit()
             row = api_token_persist.fetch_api_token(conn, token_id)

@@ -4554,6 +4554,21 @@
               }
             ],
             "title": "Expires At"
+          },
+          "allowed_operations": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Allowed Operations",
+            "description": "Optional MCP tool / HTTP grant ids; omit for unrestricted access."
           }
         },
         "type": "object",
