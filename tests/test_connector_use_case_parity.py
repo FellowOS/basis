@@ -125,11 +125,17 @@ def test_describe_connector_service_http_matches_mcp(tmp_path: Path) -> None:
     assert http_detail.status_code == 200
     http_conn = http_detail.json()["connector"]
     mcp_conn = mcp_detail["connector"]
-    # HTTP returns full BOCP manifest JSON; MCP returns a catalog summary + stream/tool slices.
-    assert mcp_conn["service"] == http_conn["service"]
-    assert mcp_conn["display_name"] == http_conn["display_name"]
+    for key in ("service", "display_name", "description", "categories"):
+        assert mcp_conn[key] == http_conn[key]
+    http_auth_modes = [
+        entry["auth_mode"]
+        for entry in (http_conn.get("auth") or [])
+        if isinstance(entry, dict) and entry.get("auth_mode")
+    ]
+    assert mcp_conn["auth_modes"] == http_auth_modes
     assert mcp_conn["stream_count"] >= 1
     assert len(mcp_conn.get("streams") or []) >= 1
+    # Full HTTP manifest may omit or reshape top-level streams[] while MCP exposes slices.
 
 
 def _mcp_mapping_slice(row: dict) -> tuple:
@@ -215,3 +221,6 @@ def test_list_table_mappings_http_matches_mcp(tmp_path: Path) -> None:
                 "status": row["status"],
             }
         )
+        assert set(mcp_row.keys()) <= set(row.keys())
+        for key, value in mcp_row.items():
+            assert row[key] == value

@@ -36,7 +36,12 @@ MCP_TOOL_METADATA: dict[str, dict[str, Any]] = {
             "HTTP GET …/connectors/catalog for query/limit/has_streams_only — HTTP may return full manifests)."
         )
     },
-    "describe_connector_service": {"description": "Describe one BOCP connector manifest (entities and procedures summary)."},
+    "describe_connector_service": {
+        "description": (
+            "Describe one connector service (catalog summary plus stream/tool slices; HTTP GET "
+            "…/connectors/catalog/{service} returns the full manifest document)."
+        )
+    },
     "list_connector_connections": {
         "description": (
             "List saved BOCP connections (compact rows; HTTP GET …/connectors/connections returns "

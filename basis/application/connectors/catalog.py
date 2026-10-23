@@ -30,6 +30,7 @@ def list_catalog(ctx: WorkspaceCoreContext, args: dict[str, Any]) -> dict[str, A
 
 
 def describe_service(ctx: WorkspaceCoreContext, args: dict[str, Any]) -> dict[str, Any]:
+    """MCP ``describe_connector_service`` (summary + stream/tool slices for agents)."""
     authz.require_workspace_viewer(ctx)
     service = str(args.get("service") or "").strip()
     if not service:
@@ -90,6 +91,7 @@ def list_catalog_detailed(
 
 
 def get_manifest(ctx: WorkspaceCoreContext, *, service: str) -> dict[str, Any]:
+    """HTTP ``GET …/connectors/catalog/{service}`` (full BOCP manifest JSON for the console)."""
     authz.require_workspace_viewer(ctx)
     runtime = ctx.knowledge.connector_runtime()
     try:
