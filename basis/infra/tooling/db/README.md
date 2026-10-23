@@ -12,6 +12,20 @@ Storage schema and migration tooling (not domain business logic).
 | `org_backfill.py` | Idempotent org rows for legacy KBs |
 | `schema.py` | SQLAlchemy metadata for Alembic / tooling |
 
-**Apply schema:** `upgrade_sqlite_file(path)` or `upgrade_postgres_engine(engine)` from `alembic_upgrade.py` (also `uv run alembic -c alembic.ini upgrade head` with `BASIS_DATABASE_URL` or `sqlalchemy.url`).
+**Config (single source of truth)**
 
-Runtime pools: `basis.infra.runtime.database` calls `alembic_upgrade` when opening SQLite/Postgres.
+| Priority | Source | SQLite default |
+| --- | --- | --- |
+| 1 | `BASIS_DATABASE_URL` | `sqlite:///…` or `postgresql://…` |
+| 2 | `BASIS_DATA_DIR` + `basis.db` | `./data/basis.db` when env unset |
+
+`alembic.ini` → `sqlalchemy.url` is only the CLI fallback when `BASIS_DATABASE_URL` is unset and you run from repo root with `BASIS_DATA_DIR=data`.
+
+**Apply schema:** `upgrade_sqlite_file(path)` / `upgrade_postgres_engine(engine)` in `alembic_upgrade.py`, or:
+
+```bash
+# load .env first so BASIS_DATABASE_URL is visible to env.py
+uv run alembic -c alembic.ini upgrade head
+```
+
+Runtime: `basis.infra.runtime.database` calls `alembic_upgrade` when opening SQLite/Postgres.
