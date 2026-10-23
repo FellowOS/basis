@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 from typing import Any, TYPE_CHECKING
 
 from basis.domain.errors import AdminError
-from basis.domain.knowledge import sql_ingest_sources as source_persist
+from basis.domain.knowledge.persistence import sql_ingest_sources as source_persist
 
 if TYPE_CHECKING:
     from basis.domain.knowledge.store import KnowledgeStore

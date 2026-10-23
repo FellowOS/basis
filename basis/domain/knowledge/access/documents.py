@@ -8,8 +8,8 @@ from typing import Any, TYPE_CHECKING
 
 from basis.domain.errors import AdminError
 from basis.domain.knowledge.ledger_rows import StoreDocumentOutcome
-from basis.domain.knowledge import sql_chunks as chunk_persist
-from basis.domain.knowledge import sql_documents as doc_persist
+from basis.domain.knowledge.persistence import sql_chunks as chunk_persist
+from basis.domain.knowledge.persistence import sql_documents as doc_persist
 
 if TYPE_CHECKING:
     from basis.domain.knowledge.store import KnowledgeStore

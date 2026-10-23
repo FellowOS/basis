@@ -8,10 +8,10 @@ from datetime import datetime, timezone
 from typing import Any, TYPE_CHECKING
 
 from basis.domain.errors import AdminError
-from basis.domain.knowledge import sql_chunk_indexing as idx_persist
-from basis.domain.knowledge import sql_chunk_keyword_search as kw_persist
-from basis.domain.knowledge import sql_embedding_records as emb_persist
-from basis.domain.knowledge import sql_search_config as sc_persist
+from basis.domain.knowledge.persistence import sql_chunk_indexing as idx_persist
+from basis.domain.knowledge.persistence import sql_chunk_keyword_search as kw_persist
+from basis.domain.knowledge.persistence import sql_embedding_records as emb_persist
+from basis.domain.knowledge.persistence import sql_search_config as sc_persist
 from basis.domain.knowledge.search.search_config import SearchConfig, validate_search_config
 
 if TYPE_CHECKING:

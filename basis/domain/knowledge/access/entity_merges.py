@@ -8,9 +8,9 @@ from datetime import datetime, timezone
 from typing import Any, TYPE_CHECKING
 
 from basis.domain.errors import AdminError
-from basis.domain.knowledge import sql_agent_decisions as decision_persist
-from basis.domain.knowledge import sql_entities as entity_persist
-from basis.domain.knowledge import sql_entity_merges as merge_persist
+from basis.domain.knowledge.persistence import sql_agent_decisions as decision_persist
+from basis.domain.knowledge.persistence import sql_entities as entity_persist
+from basis.domain.knowledge.persistence import sql_entity_merges as merge_persist
 
 if TYPE_CHECKING:
     from basis.domain.knowledge.store import KnowledgeStore

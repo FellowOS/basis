@@ -10,7 +10,7 @@ from basis.domain.bridges.graph_session import (
     diff_session_at,
     staging_session_key,
 )
-from basis.domain.knowledge.sql_graph_staging import GraphStagingPersistence
+from basis.domain.knowledge.persistence.sql_graph_staging import GraphStagingPersistence
 
 if TYPE_CHECKING:
     from basis.domain.knowledge.store import KnowledgeStore

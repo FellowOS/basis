@@ -14,7 +14,7 @@ from basis.domain.knowledge.connector_port import (
     UnifiedReadResult,
     is_knowledge_store,
 )
-from basis.domain.knowledge.sql_connector_sync import ConnectorSyncPersistence
+from basis.domain.knowledge.sql import ConnectorSyncPersistence
 from basis.domain.knowledge.structured_models import (
     ColumnMappingSpec,
     ConnectorSourceConfig,

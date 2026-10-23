@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from basis.domain.knowledge.sql_document_delete import execute_hard_delete_document
+from basis.domain.knowledge.persistence.sql_document_delete import execute_hard_delete_document
 
 if TYPE_CHECKING:
     from basis.domain.knowledge.store import KnowledgeStore

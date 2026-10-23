@@ -25,7 +25,7 @@ from basis.domain.ontology.mappings import MappingsAccess
 from basis.domain.knowledge.access.projection import ProjectionAccess
 from basis.domain.knowledge.access.review import ReviewAccess, merge_review_subject_key
 from basis.domain.knowledge.access.search import SearchAccess
-from basis.domain.knowledge import sql_guards as ledger_guards
+from basis.domain.knowledge.persistence import sql_guards as ledger_guards
 
 
 class KnowledgeStore:

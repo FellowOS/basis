@@ -7,8 +7,8 @@ from datetime import datetime, timezone
 from typing import Any, TYPE_CHECKING
 
 from basis.domain.errors import AdminError
-from basis.domain.knowledge import sql_derived_facts as derived_persist
-from basis.domain.knowledge import sql_typed_facts as typed_persist
+from basis.domain.knowledge.persistence import sql_derived_facts as derived_persist
+from basis.domain.knowledge.persistence import sql_typed_facts as typed_persist
 
 if TYPE_CHECKING:
     from basis.domain.knowledge.store import KnowledgeStore

@@ -33,7 +33,7 @@ from basis.domain.connector.connection_scope import (
 from basis.domain.connector.catalog import get_connector_catalog
 from basis.domain.connector.manifest_schema import AuthSpec, ConnectorManifest, ToolSpec
 from basis.domain.connector.canonical_db import LockedCanonicalConn, is_knowledge_store
-from basis.domain.knowledge.sql_connector_vault import ConnectorVaultPersistence
+from basis.domain.knowledge.sql import ConnectorVaultPersistence
 
 
 def _now_iso() -> str:

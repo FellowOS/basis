@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from basis.domain.knowledge.sql_entity_delete import (
+from basis.domain.knowledge.persistence.sql_entity_delete import (
     execute_delete_entity as _execute_delete_entity,
     preview_entity_deletion as _preview_entity_deletion,
 )

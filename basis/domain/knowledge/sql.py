@@ -1,10 +1,10 @@
-"""Canonical workspace SQL façade types (see also `sql_<topic>` modules)."""
+"""Canonical workspace SQL façade types (connector vault + sync persistence)."""
 
-from basis.domain.knowledge.sql_connector_sync import (
+from basis.domain.knowledge.persistence.sql_connector_sync import (
     ConnectorSyncPersistence,
     purge_entity_connector_sync_data,
 )
-from basis.domain.knowledge.sql_connector_vault import ConnectorVaultPersistence
+from basis.domain.knowledge.persistence.sql_connector_vault import ConnectorVaultPersistence
 
 __all__ = [
     "ConnectorSyncPersistence",

@@ -11,7 +11,7 @@ from typing import Any, TYPE_CHECKING
 from sqlalchemy.exc import IntegrityError as SQLAlchemyIntegrityError
 
 from basis.domain.errors import AdminError
-from basis.domain.knowledge import sql_review_items as review_persist
+from basis.domain.knowledge.persistence import sql_review_items as review_persist
 
 if TYPE_CHECKING:
     from basis.domain.knowledge.store import KnowledgeStore

@@ -6,8 +6,8 @@ from datetime import datetime, timezone
 from typing import Any, TYPE_CHECKING
 
 from basis.domain.errors import AdminError
-from basis.domain.knowledge import sql_projection_reads as proj_read_persist
-from basis.domain.knowledge.sql_projection_state import (
+from basis.domain.knowledge.persistence import sql_projection_reads as proj_read_persist
+from basis.domain.knowledge.persistence.sql_projection_state import (
     bump_projection_revision_row,
     fetch_projection_state_row,
     insert_projection_state_ignore,

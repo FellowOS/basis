@@ -4,11 +4,11 @@ from __future__ import annotations
 
 from typing import Any, TYPE_CHECKING
 
-from basis.domain.knowledge import sql_chunks as chunk_persist
-from basis.domain.knowledge import sql_document_timeline as timeline_persist
-from basis.domain.knowledge import sql_entity_browse as entity_persist
-from basis.domain.knowledge import sql_stats as stats_persist
-from basis.domain.knowledge import sql_statements as stmt_persist
+from basis.domain.knowledge.persistence import sql_chunks as chunk_persist
+from basis.domain.knowledge.persistence import sql_document_timeline as timeline_persist
+from basis.domain.knowledge.persistence import sql_entity_browse as entity_persist
+from basis.domain.knowledge.persistence import sql_stats as stats_persist
+from basis.domain.knowledge.persistence import sql_statements as stmt_persist
 
 if TYPE_CHECKING:
     from basis.domain.knowledge.store import KnowledgeStore

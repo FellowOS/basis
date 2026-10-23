@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from typing import TYPE_CHECKING
 
 from basis.domain.knowledge.governance_config import GovernanceConfig, validate_governance_config
-from basis.domain.knowledge import sql_governance_config as gov_persist
+from basis.domain.knowledge.persistence import sql_governance_config as gov_persist
 
 if TYPE_CHECKING:
     from basis.domain.knowledge.store import KnowledgeStore

@@ -11,8 +11,8 @@ from typing import Any, TYPE_CHECKING
 
 from basis.domain.errors import AdminError
 from basis.domain.knowledge.ledger_rows import DocumentVersionRow, JobRow
-from basis.domain.knowledge import sql_document_versions as dv_persist
-from basis.domain.knowledge import sql_processing_jobs as job_persist
+from basis.domain.knowledge.persistence import sql_document_versions as dv_persist
+from basis.domain.knowledge.persistence import sql_processing_jobs as job_persist
 
 if TYPE_CHECKING:
     from basis.domain.knowledge.store import KnowledgeStore

@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from basis.domain.errors import AdminError
-from basis.domain.knowledge.sql_connector_sync import purge_entity_connector_sync_data
+from basis.domain.knowledge.persistence.sql_connector_sync import purge_entity_connector_sync_data
 
 _STATEMENT_REVIEW_SUBJECT_TYPES = ("statement", "statement_remember")
 _PREVIEW_LIMIT = 500

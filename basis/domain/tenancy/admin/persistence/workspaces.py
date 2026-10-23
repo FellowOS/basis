@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from basis.domain.tenancy.admin.admin_types import utc_now_iso
-from basis.domain.knowledge.sql_delete import purge_workspace_ledger_data
+from basis.domain.knowledge.persistence.sql_delete import purge_workspace_ledger_data
 
 
 def list_workspace_ids(conn: Any) -> list[str]:

@@ -8,10 +8,10 @@ from datetime import datetime, timezone
 from typing import Any, TYPE_CHECKING
 
 from basis.domain.errors import AdminError
-from basis.domain.knowledge import sql_chunks as chunk_persist
-from basis.domain.knowledge import sql_entities as entity_persist
-from basis.domain.knowledge import sql_extraction_drops as drop_persist
-from basis.domain.knowledge import sql_statements as stmt_persist
+from basis.domain.knowledge.persistence import sql_chunks as chunk_persist
+from basis.domain.knowledge.persistence import sql_entities as entity_persist
+from basis.domain.knowledge.persistence import sql_extraction_drops as drop_persist
+from basis.domain.knowledge.persistence import sql_statements as stmt_persist
 
 if TYPE_CHECKING:
     from basis.domain.knowledge.store import KnowledgeStore
