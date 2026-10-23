@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends, Request
 
 from basis.domain.errors import AdminError
 from basis.domain.tenancy.admin.store import AdminStore, User
-from basis.interface.http.deps import (
+from basis.interface.http.shared.deps import (
     get_current_user,
     get_workspace_for_editor,
     get_workspace_for_viewer,
@@ -18,8 +18,8 @@ from basis.interface.http.deps import (
     graph_for,
     save_graph,
 )
-from basis.interface.http.core_context import build_workspace_core_context
-from basis.interface.http.operation_http import http_response_from_payload
+from basis.interface.http.shared.core_context import build_workspace_core_context
+from basis.interface.http.shared.operation_http import http_response_from_payload
 from basis.application.workspace.operations import op_list_processing_jobs
 from basis.domain.knowledge.store import KnowledgeStore
 from basis.interface.http.workspace.documents.ingest_helpers import respond_ingest

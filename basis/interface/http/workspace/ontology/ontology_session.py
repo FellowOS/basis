@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from fastapi import Request
 
-from basis.interface.http.deps import graph_runtime_for
+from basis.interface.http.shared.deps import graph_runtime_for
 from basis.domain.graph.session.guard import require_graph_session
 
 

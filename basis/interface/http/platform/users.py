@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, Query, Request
 from pydantic import BaseModel, Field
 
 from basis.domain.tenancy.admin.store import AdminStore, User
-from basis.interface.http.deps import get_current_user, get_store, require_system_admin
+from basis.interface.http.shared.deps import get_current_user, get_store, require_system_admin
 from basis.domain.tenancy.realtime.access import revoke_user_realtime
 
 router = APIRouter(tags=["users"])

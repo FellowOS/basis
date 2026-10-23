@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, Query, Request
 from pydantic import BaseModel, Field
 
 from basis.domain.tenancy.admin.store import AdminStore, User
-from basis.interface.http.deps import (
+from basis.interface.http.shared.deps import (
     get_current_user,
     graph_runtime_for,
     get_workspace_for_editor,

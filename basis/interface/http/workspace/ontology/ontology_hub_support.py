@@ -7,7 +7,7 @@ from typing import Any
 from fastapi import Request
 
 from basis.domain.tenancy.admin.store import AdminStore, User
-from basis.interface.http.deps import graph_runtime_for
+from basis.interface.http.shared.deps import graph_runtime_for
 from basis.domain.graph.session.guard import require_graph_session
 from basis.domain.knowledge.services.graph_audit import audit_graph
 from basis.domain.graph.governance.decision import emit_governance_tripped_for_workspace

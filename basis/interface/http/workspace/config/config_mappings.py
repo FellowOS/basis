@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 from basis.domain.tenancy.admin.store import AdminStore, User
 import asyncio
 
-from basis.interface.http.deps import (
+from basis.interface.http.shared.deps import (
     get_current_user,
     get_workspace_for_editor,
     get_workspace_for_viewer,
@@ -19,7 +19,7 @@ from basis.interface.http.deps import (
     graph_projection_bindings,
     rebuild_graph_projection,
 )
-from basis.interface.http.core_context import build_workspace_core_context
+from basis.interface.http.shared.core_context import build_workspace_core_context
 from basis.application.knowledge.operations import op_list_mappings
 from basis.domain.knowledge.services.graph_audit import audit_graph
 from basis.domain.ontology.mappings.service import (

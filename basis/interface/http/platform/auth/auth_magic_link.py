@@ -10,7 +10,7 @@ from pydantic import BaseModel, EmailStr
 
 from basis.domain.errors import AdminError
 from basis.domain.tenancy.admin.store import AdminStore
-from basis.interface.http.deps import get_store
+from basis.interface.http.shared.deps import get_store
 from basis.domain.tenancy.identity.magic_link import deliver_magic_link
 from basis.domain.tenancy.identity.org_login_policy import assert_local_login_allowed
 from basis.domain.tenancy.identity.http_paths import auth_v1_path

@@ -10,7 +10,7 @@ from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import StreamingResponse
 
 from basis.domain.tenancy.admin.store import AdminStore, User
-from basis.interface.http.deps import get_current_user, get_workspace_for_editor, get_workspace_for_viewer, get_knowledge_store, get_store
+from basis.interface.http.shared.deps import get_current_user, get_workspace_for_editor, get_workspace_for_viewer, get_knowledge_store, get_store
 from basis.domain.knowledge.store import KnowledgeStore
 
 router = APIRouter(tags=["workspaces"])

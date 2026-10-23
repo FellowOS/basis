@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
 from basis.domain.tenancy.admin.store import AdminStore, User
-from basis.interface.http.deps import get_current_user, get_store, require_system_admin
+from basis.interface.http.shared.deps import get_current_user, get_store, require_system_admin
 from basis.domain.tenancy.catalog.remote_models import fetch_remote_models
 from basis.domain.tenancy.catalog.setup_providers import ModelKind, get_provider, infer_provider_id, provider_payload, providers_for_kind
 

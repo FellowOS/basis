@@ -9,14 +9,14 @@ from fastapi import APIRouter, Depends, Request
 
 from basis.domain.errors import AdminError
 from basis.domain.tenancy.admin.store import AdminStore, User
-from basis.interface.http.deps import get_current_user, get_workspace_for_editor, get_knowledge_store, get_store
+from basis.interface.http.shared.deps import get_current_user, get_workspace_for_editor, get_knowledge_store, get_store
 from basis.infra.runtime.config import Settings
 from basis.domain.graph.governance.decision import emit_governance_tripped_for_workspace
 from basis.domain.ontology.hub.scoped_state import OntologyHubState
 from basis.domain.graph.session.guard import require_graph_session
 from basis.domain.knowledge.services.conflict_review import scan_statement_conflicts
 from basis.domain.knowledge.store import KnowledgeStore
-from basis.interface.http.deps import graph_runtime_for, save_graph
+from basis.interface.http.shared.deps import graph_runtime_for, save_graph
 from basis.domain.ontology.hub.create_write import create_ontology as create_ontology_write
 from basis.domain.ontology.hub.governance import save_draft, submit_proposal
 from basis.domain.ontology.hub.hub_models import DraftDiff, DraftRequest, ProposalRequest

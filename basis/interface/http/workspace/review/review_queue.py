@@ -8,7 +8,7 @@ from typing import Any
 from fastapi import APIRouter, Depends, File, Query, Request, UploadFile
 
 from basis.domain.tenancy.admin.store import AdminStore, User
-from basis.interface.http.deps import (
+from basis.interface.http.shared.deps import (
     get_blob_store,
     get_current_user,
     get_workspace_for_editor,
@@ -22,9 +22,9 @@ from basis.domain.knowledge.services.graph_audit import audit_graph
 from basis.domain.knowledge.services.conflict_review import scan_statement_conflicts
 from basis.domain.knowledge.services.import_review import stage_import_blob
 from basis.domain.knowledge.store import KnowledgeStore
-from basis.interface.http.operation_http import http_response_from_payload
+from basis.interface.http.shared.operation_http import http_response_from_payload
 from basis.application.review.operations import op_get_review_item, op_list_review_items
-from basis.interface.http.core_context import build_workspace_core_context
+from basis.interface.http.shared.core_context import build_workspace_core_context
 from basis.interface.http.workspace.review.review_models import CreateEntityMergeReviewRequest
 
 router = APIRouter(tags=["workspaces"])

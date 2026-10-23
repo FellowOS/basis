@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field
 
 from basis.domain.errors import AdminError
 from basis.domain.tenancy.admin.store import AdminStore, User
-from basis.interface.http.deps import get_current_user, get_store
+from basis.interface.http.shared.deps import get_current_user, get_store
 from basis.domain.tenancy.identity.http_paths import auth_v1_path
 from basis.domain.tenancy.identity.desktop_principal import issue_desktop_session_token
 from basis.domain.tenancy.identity.org_login_policy import assert_local_login_allowed

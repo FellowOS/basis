@@ -8,7 +8,7 @@ from typing import Any
 from fastapi import APIRouter, Depends, Request
 
 from basis.domain.tenancy.admin.store import AdminStore, User
-from basis.interface.http.deps import (
+from basis.interface.http.shared.deps import (
     graph_runtime_for,
     get_current_user,
     get_store,

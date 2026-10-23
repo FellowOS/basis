@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends, Query, Request
 from pydantic_core import PydanticUndefined
 
 from basis.domain.tenancy.admin.store import AdminStore, User
-from basis.interface.http.deps import (
+from basis.interface.http.shared.deps import (
     get_current_user,
     get_workspace_for_role,
     get_store,

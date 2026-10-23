@@ -10,7 +10,7 @@ from fastapi.responses import PlainTextResponse, Response
 
 from basis.domain.errors import AdminError
 from basis.domain.tenancy.admin.store import AdminStore, User
-from basis.interface.http.deps import (
+from basis.interface.http.shared.deps import (
     get_current_user,
     graph_runtime_for,
     get_workspace_for_editor,

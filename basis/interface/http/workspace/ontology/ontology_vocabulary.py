@@ -8,7 +8,7 @@ from typing import Any, Optional
 from fastapi import APIRouter, Depends, File, Form, Query, Request, UploadFile
 
 from basis.domain.tenancy.admin.store import AdminStore, User
-from basis.interface.http.deps import (
+from basis.interface.http.shared.deps import (
     get_current_user,
     get_workspace_for_editor,
     get_workspace_for_viewer,

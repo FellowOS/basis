@@ -18,7 +18,7 @@ from basis.domain.knowledge.services.governor_graph_dedup import (
     scan_graph_semantic_dedup_clusters,
 )
 from basis.domain.knowledge.store import KnowledgeStore
-from basis.interface.http.deps import (
+from basis.interface.http.shared.deps import (
     get_current_user,
     graph_runtime_for,
     get_workspace_for_editor,

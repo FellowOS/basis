@@ -18,9 +18,11 @@ STUBS = (
     "rest_v1_concurrency.py",
     "upload_bounds.py",
     "http_path.py",
+    "legacy_api_gate.py",
+    "legacy_deprecation.py",
 )
 
-MAX_LINES = 8
+MAX_LINES = 10
 ROUTE_RE = re.compile(r"@router\.")
 
 

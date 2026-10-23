@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, Request
 from basis.domain.errors import AdminError
 from basis.domain.tenancy.admin.persistence.workspaces import delete_workspace
 from basis.domain.tenancy.admin.store import AdminStore
-from basis.interface.http.deps import get_store
+from basis.interface.http.shared.deps import get_store
 from basis.infra.runtime.config import Settings
 from basis.infra.tooling.test_support.playwright_e2e import is_playwright_e2e_data_dir
 

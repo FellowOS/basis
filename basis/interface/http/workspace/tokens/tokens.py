@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field
 
 from basis.domain.errors import AdminError
 from basis.domain.tenancy.admin.store import AdminStore, User
-from basis.interface.http.deps import get_current_user, get_workspace_for_admin, get_store
+from basis.interface.http.shared.deps import get_current_user, get_workspace_for_admin, get_store
 
 router = APIRouter(tags=["workspaces"])
 

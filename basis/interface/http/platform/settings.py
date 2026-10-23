@@ -13,7 +13,7 @@ from basis.domain.connector.allowlist import (
 )
 from basis.domain.errors import AdminError
 from basis.domain.tenancy.admin.store import AdminStore, User
-from basis.interface.http.deps import get_current_user, get_store, require_system_admin
+from basis.interface.http.shared.deps import get_current_user, get_store, require_system_admin
 from basis.domain.tenancy.identity.settings import invalidate_app_auth_settings
 
 router = APIRouter(tags=["settings"])

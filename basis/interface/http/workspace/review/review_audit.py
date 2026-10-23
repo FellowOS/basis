@@ -7,7 +7,7 @@ from typing import Any
 from fastapi import APIRouter, Depends, Query, Request
 
 from basis.domain.tenancy.admin.store import AdminStore, User
-from basis.interface.http.deps import get_current_user, get_workspace_for_viewer, get_store
+from basis.interface.http.shared.deps import get_current_user, get_workspace_for_viewer, get_store
 
 router = APIRouter(tags=["workspaces"])
 

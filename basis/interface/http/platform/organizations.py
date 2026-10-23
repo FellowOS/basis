@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field
 
 from basis.domain.tenancy.admin.org_store import Organization
 from basis.domain.tenancy.admin.store import AdminStore, User
-from basis.interface.http.deps import get_current_user, get_store
+from basis.interface.http.shared.deps import get_current_user, get_store
 from basis.domain.tenancy.identity.http_paths import auth_v1_path
 from basis.domain.tenancy.identity.settings import load_auth_settings_from_store
 

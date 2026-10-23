@@ -10,9 +10,9 @@ from pydantic import BaseModel, Field
 import asyncio
 
 from basis.domain.tenancy.admin.store import AdminStore, User
-from basis.interface.http.deps import get_current_user, get_workspace_for_editor, get_workspace_for_viewer, get_knowledge_store, get_store
-from basis.interface.http.core_context import build_workspace_core_context
-from basis.interface.http.operation_http import http_response_from_payload
+from basis.interface.http.shared.deps import get_current_user, get_workspace_for_editor, get_workspace_for_viewer, get_knowledge_store, get_store
+from basis.interface.http.shared.core_context import build_workspace_core_context
+from basis.interface.http.shared.operation_http import http_response_from_payload
 from basis.application.reasoning.operations import op_get_rule, op_list_rules
 from basis.domain.knowledge.store import KnowledgeStore
 

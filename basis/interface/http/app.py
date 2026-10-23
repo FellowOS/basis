@@ -28,8 +28,10 @@ from basis.domain.tenancy.realtime.hub import GraphWsHub
 from basis.domain.tenancy.realtime.tickets import RealtimeTicketStore
 from basis.infra.runtime.capabilities import graph_runtime_available
 from basis.infra.tooling.test_support.playwright_e2e import is_playwright_e2e_data_dir
-from basis.interface.http.legacy_api_gate import LegacyApiGateMiddleware
-from basis.interface.http.legacy_deprecation import LegacyApiDeprecationMiddleware
+from basis.interface.http.shared.middleware.legacy_api_gate import LegacyApiGateMiddleware
+from basis.interface.http.shared.middleware.legacy_deprecation import (
+    LegacyApiDeprecationMiddleware,
+)
 from basis.interface.http.shared.request_id import (
     RequestIdMiddleware,
     attach_request_id_to_detail,

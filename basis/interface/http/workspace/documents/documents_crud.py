@@ -12,7 +12,7 @@ from fastapi import APIRouter, Depends, File, Form, Query, Request, UploadFile
 
 from basis.domain.errors import AdminError
 from basis.domain.tenancy.admin.store import AdminStore, User
-from basis.interface.http.deps import (
+from basis.interface.http.shared.deps import (
     get_chunk_search,
     get_current_user,
     get_workspace_for_editor,
@@ -27,7 +27,7 @@ from basis.domain.knowledge.search import ChunkSearchService
 from basis.infra.runtime.limits import RuntimeLimits
 from basis.domain.knowledge.store import KnowledgeStore
 from basis.domain.graph.projection.documents import list_documents as list_graph_documents
-from basis.interface.http.upload_bounds import ensure_payload_bytes, read_bounded_upload
+from basis.interface.http.shared.upload_bounds import ensure_payload_bytes, read_bounded_upload
 from basis.interface.http.workspace.documents.documents_jobs import start_processing_job
 from basis.interface.http.workspace.documents.documents_models import (
     AppendTextVersionRequest,

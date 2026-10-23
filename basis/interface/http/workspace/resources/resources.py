@@ -7,13 +7,13 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 
 from basis.domain.tenancy.admin.store import AdminStore, User
-from basis.interface.http.deps import (
+from basis.interface.http.shared.deps import (
     drop_graph,
     get_current_user,
     get_workspace_for_viewer,
     get_store,
 )
-from basis.interface.http.core_context import build_workspace_core_context
+from basis.interface.http.shared.core_context import build_workspace_core_context
 from basis.application.workspace.operations import op_describe_workspace, op_get_capabilities
 from basis.domain.tenancy.realtime.access import revoke_workspace_member_realtime
 

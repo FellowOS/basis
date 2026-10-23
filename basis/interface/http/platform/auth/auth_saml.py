@@ -9,7 +9,7 @@ from fastapi.responses import RedirectResponse, Response
 
 from basis.domain.tenancy.admin.store import AdminStore
 from basis.domain.tenancy.identity.settings import AuthSettings
-from basis.interface.http.deps import get_store
+from basis.interface.http.shared.deps import get_store
 from basis.domain.tenancy.identity.http_paths import auth_v1_path
 from basis.domain.tenancy.identity.saml_capabilities import saml_sp_available
 from basis.domain.tenancy.identity.saml_client import (

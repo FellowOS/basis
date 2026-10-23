@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends, Request, WebSocket, WebSocketDisconnect
 
 from basis.domain.errors import AdminError
 from basis.domain.tenancy.admin.store import AdminStore, User
-from basis.interface.http.deps import get_current_user, get_knowledge_store, get_store, get_workspace_for_viewer
+from basis.interface.http.shared.deps import get_current_user, get_knowledge_store, get_store, get_workspace_for_viewer
 
 router = APIRouter(tags=["realtime"])
 

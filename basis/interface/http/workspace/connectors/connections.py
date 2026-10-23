@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends, Query, Request
 from basis.application.connectors import connections
 from basis.application.connectors.operations import op_invoke_connector_primitive
 from basis.application.kernel import CoreError
-from basis.interface.http.operation_http import (
+from basis.interface.http.shared.operation_http import (
     http_exception_from_core,
     http_response_from_connector_payload,
 )
@@ -18,8 +18,8 @@ from basis.interface.http.workspace.connectors.models import (
     InvokeConnectorPrimitiveRequest,
     UpsertConnectorConnectionRequest,
 )
-from basis.interface.http.core_context import build_workspace_core_context
-from basis.interface.http.deps import get_current_user, get_store
+from basis.interface.http.shared.core_context import build_workspace_core_context
+from basis.interface.http.shared.deps import get_current_user, get_store
 
 router = APIRouter(tags=["workspaces"])
 

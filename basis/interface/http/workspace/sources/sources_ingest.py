@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, Header, Request
 
 from basis.domain.errors import AdminError
 from basis.domain.tenancy.admin.store import AdminStore, User
-from basis.interface.http.deps import get_current_user, get_workspace_for_editor, get_knowledge_store, get_store
+from basis.interface.http.shared.deps import get_current_user, get_workspace_for_editor, get_knowledge_store, get_store
 from basis.domain.knowledge.services.graph_audit import audit_graph
 from basis.domain.knowledge.services.ingest_source_service import (
     enqueue_text_from_source,

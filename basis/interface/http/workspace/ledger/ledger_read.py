@@ -9,14 +9,14 @@ from fastapi import APIRouter, Depends, Query, Request
 
 from basis.domain.errors import AdminError
 from basis.domain.tenancy.admin.store import AdminStore, User
-from basis.interface.http.deps import (
+from basis.interface.http.shared.deps import (
     get_current_user,
     get_workspace_for_editor,
     get_workspace_for_viewer,
     get_knowledge_store,
     get_store,
 )
-from basis.interface.http.core_context import build_workspace_core_context
+from basis.interface.http.shared.core_context import build_workspace_core_context
 from basis.application.knowledge.operations import (
     op_entity_facts,
     op_get_chunk,
@@ -24,7 +24,7 @@ from basis.application.knowledge.operations import (
     op_list_derived_facts,
     op_list_typed_facts,
 )
-from basis.interface.http.operation_http import http_response_from_payload
+from basis.interface.http.shared.operation_http import http_response_from_payload
 from basis.domain.knowledge.store import KnowledgeStore
 
 router = APIRouter(tags=["workspaces"])

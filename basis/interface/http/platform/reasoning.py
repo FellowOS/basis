@@ -3,7 +3,7 @@ from pydantic import BaseModel, Field
 
 from basis.domain.errors import AdminError
 from basis.domain.tenancy.admin.store import User
-from basis.interface.http.deps import get_current_user
+from basis.interface.http.shared.deps import get_current_user
 
 router = APIRouter(tags=["reasoning"])
 

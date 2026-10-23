@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import RedirectResponse
 
 from basis.domain.tenancy.admin.store import AdminStore
-from basis.interface.http.deps import get_store
+from basis.interface.http.shared.deps import get_store
 from basis.domain.tenancy.identity.oauth_client import (
     exchange_github_code,
     exchange_google_code,

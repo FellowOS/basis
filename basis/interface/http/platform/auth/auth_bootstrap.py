@@ -7,7 +7,7 @@ from typing import Any
 from fastapi import APIRouter, Depends, Query, Request
 
 from basis.domain.tenancy.admin.store import AdminStore
-from basis.interface.http.deps import get_store
+from basis.interface.http.shared.deps import get_store
 from basis.domain.tenancy.identity.http_paths import auth_v1_path
 from basis.domain.tenancy.identity.saml_capabilities import saml_sp_available
 

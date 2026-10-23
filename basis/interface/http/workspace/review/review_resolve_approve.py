@@ -8,19 +8,19 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 
 from basis.domain.errors import AdminError
 from basis.domain.tenancy.admin.store import AdminStore, User
-from basis.interface.http.deps import (
+from basis.interface.http.shared.deps import (
     graph_runtime_for,
     get_current_user,
     get_knowledge_store,
     get_store,
     save_graph,
 )
-from basis.interface.http.core_context import build_workspace_core_context
+from basis.interface.http.shared.core_context import build_workspace_core_context
 from basis.interface.http.workspace.graph.graph_route_errors import admin_error_from_graph_http
 from basis.domain.graph.governance.decision import maybe_emit_governance_tripped_on_review_approve
 from basis.domain.knowledge.store import KnowledgeStore
 from basis.application.kernel import CoreError
-from basis.interface.http.operation_http import http_exception_from_core, http_response_from_payload
+from basis.interface.http.shared.operation_http import http_exception_from_core, http_response_from_payload
 from basis.application.review.operations import op_approve_review_item
 from basis.interface.http.workspace.review.review_models import (
     ApproveReviewItemResponse,

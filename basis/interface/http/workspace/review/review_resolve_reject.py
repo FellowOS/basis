@@ -8,9 +8,9 @@ from typing import Any
 from fastapi import APIRouter, Depends, Request
 
 from basis.domain.tenancy.admin.store import AdminStore, User
-from basis.interface.http.deps import get_current_user, get_store
-from basis.interface.http.core_context import build_workspace_core_context
-from basis.interface.http.operation_http import http_response_from_payload
+from basis.interface.http.shared.deps import get_current_user, get_store
+from basis.interface.http.shared.core_context import build_workspace_core_context
+from basis.interface.http.shared.operation_http import http_response_from_payload
 from basis.application.review.operations import op_reject_review_item
 from basis.interface.http.workspace.review.review_models import ResolveReviewRequest
 
