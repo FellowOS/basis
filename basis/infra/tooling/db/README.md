@@ -10,7 +10,6 @@ Storage schema and migration tooling (not domain business logic).
 | `sqlite_migrations.py` | SQLite bootstrap helpers (`0001`) |
 | `postgres_migrations.py` | PostgreSQL DDL helpers + PG-only steps (`0002`/`0003`) |
 | `org_backfill.py` | Idempotent org rows for legacy KBs |
-| `schema.py` | SQLAlchemy metadata for tooling / future autogenerate |
 
 ### Revision chain
 

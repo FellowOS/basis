@@ -6,8 +6,6 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
-from basis.infra.tooling.db.schema import metadata
-
 config = context.config
 if config.config_file_name:
     fileConfig(config.config_file_name)
@@ -16,7 +14,8 @@ database_url = os.environ.get("BASIS_DATABASE_URL")
 if database_url:
     config.set_main_option("sqlalchemy.url", database_url.replace("%", "%%"))
 
-target_metadata = metadata
+# Imperative revisions (SQL baseline + PG helpers); no autogenerate metadata.
+target_metadata = None
 
 
 def run_migrations_offline() -> None:
