@@ -208,6 +208,8 @@ cd web && CI=1 npm run test:e2e   # optional, Playwright + API
 
 Layout for contributors is `basis/interface`, `application`, `domain`, and `infra`. See [AGENTS.md](AGENTS.md).
 
+**Schema migrations:** Alembic (`alembic.ini`); runtime and CLI use `BASIS_DATABASE_URL` when set. See [basis/infra/tooling/db/README.md](basis/infra/tooling/db/README.md).
+
 ## Deployment
 
 One product stack (API + studio). Pick **where** it runs. The **OpenAPI v1** and **MCP** contracts are the same across modes.

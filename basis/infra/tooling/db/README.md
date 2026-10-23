@@ -4,13 +4,23 @@ Storage schema and migration tooling (not domain business logic).
 
 | Path | Role |
 | --- | --- |
-| `migrations/*.sql` | Canonical baseline DDL (Alembic `0001`; PG extras `0002`; PG org column `0003`) |
-| `alembic/` | Alembic revisions (`alembic.ini` at repo root) |
-| `alembic_upgrade.py` | Runtime/CLI entry: `alembic upgrade head` |
-| `sqlite_migrations.py` | SQLite bootstrap helpers (revision `0001`) |
-| `postgres_migrations.py` | PostgreSQL bootstrap + extensions (revision `0001`) |
+| `migrations/0001_schema_baseline.sql` | Greenfield baseline DDL (wired into Alembic `0001`) |
+| `alembic/versions/` | Revision chain (`0001` … `head`) |
+| `alembic_upgrade.py` | Runtime entry: `alembic upgrade head` |
+| `sqlite_migrations.py` | SQLite bootstrap helpers (`0001`) |
+| `postgres_migrations.py` | PostgreSQL DDL helpers + PG-only steps (`0002`/`0003`) |
 | `org_backfill.py` | Idempotent org rows for legacy KBs |
-| `schema.py` | SQLAlchemy metadata for Alembic / tooling |
+| `schema.py` | SQLAlchemy metadata for tooling / future autogenerate |
+
+### Revision chain
+
+| Revision | SQLite | PostgreSQL |
+| --- | --- | --- |
+| `0001_storage_baseline` | Full schema from packaged SQL | Baseline SQL + org backfill |
+| `0002_postgres_storage_extras` | no-op | `pg_trgm`, `vector`, search indexes |
+| `0003_postgres_workspace_org_column` | no-op | `workspaces.organization_id` repair |
+
+New changes: add **`0004_*.py`** (and update `down_revision`). Avoid editing `0001_schema_baseline.sql` except for greenfield baseline resets.
 
 **Config (single source of truth)**
 
@@ -21,11 +31,23 @@ Storage schema and migration tooling (not domain business logic).
 
 `alembic.ini` → `sqlalchemy.url` is only the CLI fallback when `BASIS_DATABASE_URL` is unset and you run from repo root with `BASIS_DATA_DIR=data`.
 
-**Apply schema:** `upgrade_sqlite_file(path)` / `upgrade_postgres_engine(engine)` in `alembic_upgrade.py`, or:
+**Apply schema**
+
+Runtime: `basis.infra.runtime.database` calls `upgrade_sqlite_file` / `upgrade_postgres_engine` on open.
+
+Manual (load `.env` so `BASIS_DATABASE_URL` is visible to `alembic/env.py`):
 
 ```bash
-# load .env first so BASIS_DATABASE_URL is visible to env.py
 uv run alembic -c alembic.ini upgrade head
+uv run alembic -c alembic.ini current
 ```
 
-Runtime: `basis.infra.runtime.database` calls `alembic_upgrade` when opening SQLite/Postgres.
+**Add a revision**
+
+```bash
+uv run alembic -c alembic.ini revision -m "short_description"
+# edit basis/infra/tooling/db/alembic/versions/<rev>_short_description.py
+uv run pytest -q tests/test_migrations.py
+```
+
+Postgres-only steps: return early when `op.get_bind().dialect.name != "postgresql"` (see `0002` / `0003`).
