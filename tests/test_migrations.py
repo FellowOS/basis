@@ -127,3 +127,14 @@ def test_bootstrap_sql_files_sorted() -> None:
     assert versions == sorted(versions)
     assert versions and versions[0] == 1
     assert paths[0].name == "0001_schema_baseline.sql"
+
+
+def test_postgres_bootstrap_is_idempotent(postgres_url: str) -> None:
+    from sqlalchemy import create_engine
+
+    from basis.infra.tooling.db.postgres_migrations import bootstrap_postgres_ledger_baseline
+
+    engine = create_engine(postgres_url)
+    with engine.begin() as conn:
+        bootstrap_postgres_ledger_baseline(conn)
+        bootstrap_postgres_ledger_baseline(conn)

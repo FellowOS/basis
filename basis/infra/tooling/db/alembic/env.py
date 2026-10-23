@@ -30,10 +30,13 @@ def run_migrations_offline() -> None:
 
 
 def run_migrations_online() -> None:
+    from basis.infra.tooling.db.alembic_compat import prepare_alembic_connection
+
     injected = config.attributes.get("connection")
     if injected is not None:
         context.configure(connection=injected, target_metadata=target_metadata)
         with context.begin_transaction():
+            prepare_alembic_connection(injected)
             context.run_migrations()
         return
 
@@ -45,6 +48,7 @@ def run_migrations_online() -> None:
     with connectable.connect() as connection:
         context.configure(connection=connection, target_metadata=target_metadata)
         with context.begin_transaction():
+            prepare_alembic_connection(connection)
             context.run_migrations()
 
 

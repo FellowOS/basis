@@ -323,11 +323,19 @@ def apply_postgres_storage_extras(conn: Any) -> None:
 
 
 def bootstrap_postgres_ledger_baseline(conn: Any) -> None:
-    """Canonical ledger DDL + org backfill (Alembic ``0001``; idempotent skips in SQL)."""
-    baseline_source = _baseline_path().read_text(encoding="utf-8")
-    _apply_baseline_sql_to_postgres(conn, baseline_source)
+    """Canonical ledger DDL + org backfill (Alembic ``0001``).
+
+    When ``documents`` already exists (legacy installs predating Alembic), skip replaying
+    baseline SQL — same guard as ``ensure_sqlite_schema``.
+    """
     from basis.infra.tooling.db.org_backfill import ensure_organization_backfill_postgres
 
+    if postgres_schema_is_initialized(conn):
+        ensure_organization_backfill_postgres(conn)
+        return
+
+    baseline_source = _baseline_path().read_text(encoding="utf-8")
+    _apply_baseline_sql_to_postgres(conn, baseline_source)
     ensure_organization_backfill_postgres(conn)
 
 

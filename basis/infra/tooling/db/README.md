@@ -17,9 +17,9 @@ Storage schema and migration tooling (not domain business logic).
 | --- | --- | --- |
 | `0001_storage_baseline` | Full schema from packaged SQL | Baseline SQL + org backfill |
 | `0002_postgres_storage_extras` | no-op | `pg_trgm`, `vector`, search indexes |
-| `0003_postgres_workspace_org_column` | no-op | `workspaces.organization_id` repair |
+| `0003_pg_workspace_org_id` | no-op | `workspaces.organization_id` repair |
 
-New changes: add **`0004_*.py`** (and update `down_revision`). Avoid editing `0001_schema_baseline.sql` except for greenfield baseline resets.
+New changes: add **`0004_*.py`** (and update `down_revision`). Keep each revision id **≤ 32 characters** (Alembic default `alembic_version.version_num` width; Postgres installs widen to 64 on migrate). Avoid editing `0001_schema_baseline.sql` except for greenfield baseline resets.
 
 **Config (single source of truth)**
 
@@ -34,17 +34,17 @@ New changes: add **`0004_*.py`** (and update `down_revision`). Avoid editing `00
 
 Runtime: `basis.infra.runtime.database` calls `upgrade_sqlite_file` / `upgrade_postgres_engine` on open.
 
-Manual (load `.env` so `BASIS_DATABASE_URL` is visible to `alembic/env.py`):
+Manual (load `.env` so `BASIS_DATABASE_URL` is visible to `alembic/env.py`). Use `python -m alembic` — `uv run alembic` does not resolve the venv console script in this project:
 
 ```bash
-uv run alembic -c alembic.ini upgrade head
-uv run alembic -c alembic.ini current
+uv run python -m alembic -c alembic.ini upgrade head
+uv run python -m alembic -c alembic.ini current
 ```
 
 **Add a revision**
 
 ```bash
-uv run alembic -c alembic.ini revision -m "short_description"
+uv run python -m alembic -c alembic.ini revision -m "short_description"
 # edit basis/infra/tooling/db/alembic/versions/<rev>_short_description.py
 uv run pytest -q tests/test_migrations.py
 ```
