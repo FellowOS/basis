@@ -31,7 +31,7 @@ import {
   decisionIdFromDetail,
   reviewDecisionPath,
   reviewItemPath,
-} from '@/modules/review/lib/reviewUrlState.js';
+} from '@/modules/review/lib/review-url-state.js';
 import { Button } from '@/components/ui/button.js';
 import { cn } from '@/lib/utils.js';
 import { toast } from 'sonner';

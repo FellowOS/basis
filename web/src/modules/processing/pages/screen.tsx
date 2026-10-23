@@ -34,7 +34,7 @@ import {
   sortProcessingJobs,
 } from '@/modules/processing/lib/processing-job.js';
 import { workspacePath } from '@/lib/nav/nav-config.js';
-import { processingPath } from '@/modules/processing/lib/processingUrlState.js';
+import { processingPath } from '@/modules/processing/lib/processing-url-state.js';
 
 export function ProcessingScreen({
   workspaceId,

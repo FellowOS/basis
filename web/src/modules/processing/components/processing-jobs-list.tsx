@@ -17,7 +17,7 @@ import {
 import { ProcessingOptionsSnapshot } from '@/modules/processing/components/processing-options-snapshot.js';
 import { workspaceAlertsPath, processingAlertEpisodeKey } from '@/modules/alerts/lib/alerts-url.js';
 import { workspacePath } from '@/lib/nav/nav-config.js';
-import { sourcesDocumentPath } from '@/modules/library/lib/sourcesUrlState.js';
+import { sourcesDocumentPath } from '@/modules/library/lib/sources-url-state.js';
 import { cn } from '@/lib/utils.js';
 
 export type ProcessingJobFilter = 'all' | 'active' | 'failed' | 'succeeded';

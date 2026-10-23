@@ -14,8 +14,8 @@ import {
   type GraphDiffMergePick,
   type GraphDiffMergePickSlot,
 } from '@/modules/graph/lib/graph-diff-merge-pick.js';
-import type { GraphDiffPreviewParams } from '@/modules/graph/lib/graphUrlState.js';
-import { mergeGraphDiffFocusParam } from '@/modules/graph/lib/graphUrlState.js';
+import type { GraphDiffPreviewParams } from '@/modules/graph/lib/graph-url-state.js';
+import { mergeGraphDiffFocusParam } from '@/modules/graph/lib/graph-url-state.js';
 import { useWorkspaceGraphDiff } from '@/modules/graph/lib/use-graph-diff.js';
 import { workspaceOpenApiPOST } from '@/lib/openapi/client.js';
 import { formatUserFacingApiError } from '@/lib/errors/api-error-message.js';
@@ -35,7 +35,7 @@ import { useI18n } from '@/i18n/context.js';
 import type { Locale } from '@/i18n/locale.js';
 import { GraphWsThemeSync } from '@/modules/graph/lib/graph/graph-ws-theme-sync.js';
 import { workspaceGraphDiffPath } from '@/lib/nav/nav-config.js';
-import { searchPath } from '@/modules/search/lib/searchUrlState.js';
+import { searchPath } from '@/modules/search/lib/search-url-state.js';
 const GraphScreen = lazy(() =>
   import('@/modules/graph/pages/screen.js').then((module) => ({
     default: module.GraphScreen,

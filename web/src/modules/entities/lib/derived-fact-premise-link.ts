@@ -1,5 +1,5 @@
-import { entitiesStatementPath } from '@/modules/entities/lib/entitiesUrlState.js';
-import { graphPath } from '@/modules/graph/lib/graphUrlState.js';
+import { entitiesStatementPath } from '@/modules/entities/lib/entities-url-state.js';
+import { graphPath } from '@/modules/graph/lib/graph-url-state.js';
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;

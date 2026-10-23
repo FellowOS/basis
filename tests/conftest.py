@@ -6,9 +6,9 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.engine import make_url
 
 from basis.infra.runtime.database import reset_sqlite_database_pool
-from basis.infra.tooling.test_support.integration_env import load_integration_test_env
-from basis.infra.tooling.test_support.mysql import create_mysql_database, drop_mysql_database
-from basis.infra.tooling.test_support.postgres import (
+from tests.support.integration_env import load_integration_test_env
+from tests.support.mysql import create_mysql_database, drop_mysql_database
+from tests.support.postgres import (
     create_postgres_database,
     drop_postgres_database,
     try_create_postgres_database,

@@ -14,8 +14,8 @@
     "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.server.json",
     "audit:locale": "npx tsx scripts/audit-locale-usage.mjs",
     "test": "vitest run",
-    "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui",
+    "test:e2e": "npm run test --prefix ../tests/e2e",
+    "test:e2e:ui": "npm run test:ui --prefix ../tests/e2e",
     "test:workspace-ws-client": "node src/lib/workspace/ws-client.test.mjs",
     "gen:openapi-types": "openapi-typescript ../openapi/basis-v1.json -o src/lib/openapi/schema.d.ts && openapi-typescript ../openapi/basis-v1-workspaces.json -o src/lib/openapi/schema-workspaces.d.ts",
     "gen:product-docs-mdx": "node scripts/generate-product-docs-mdx.mjs",
@@ -102,7 +102,6 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
-    "@playwright/test": "^1.55.0",
     "@tailwindcss/vite": "^4.0.0",
     "@types/http-proxy": "^1.17.16",
     "@types/node": "^22.10.0",

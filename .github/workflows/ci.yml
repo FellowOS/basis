@@ -40,9 +40,9 @@ jobs:
 
       - name: PostgreSQL integration and backup restore
         run: >-
-          uv run pytest tests/test_postgres_integration.py
-          tests/test_postgres_backup_restore.py
-          tests/test_sql_connector_integration.py::test_sql_connector_postgres_check_discover_read_mutate
+          uv run pytest tests/integration/test_postgres_integration.py
+          tests/integration/test_postgres_backup_restore.py
+          tests/integration/test_sql_connector_integration.py::test_sql_connector_postgres_check_discover_read_mutate
           -q
 
   openapi:
@@ -110,6 +110,9 @@ jobs:
       - name: Sync Python dependencies
         run: uv sync --extra dev
 
+      - name: Test file naming (tests/README.md)
+        run: uv run python scripts/audit-test-naming.py
+
       - name: Layer import contracts (import-linter)
         run: uv run lint-imports --config importlinter.ini
 
@@ -135,10 +138,10 @@ jobs:
       - name: Explorer compat session (default BasisGraphSession)
         run: >-
           uv run pytest -q
-          tests/test_basis_graph_session.py
-          tests/test_graph_session_registry.py
-          tests/test_workspace_ontology.py
-          tests/test_graph_session_routes.py
+          tests/integration/test_basis_graph_session.py
+          tests/integration/test_graph_session_registry.py
+          tests/integration/test_workspace_ontology.py
+          tests/integration/test_graph_session_routes.py
 
       - name: Run tests
         run: uv run pytest -q
@@ -191,9 +194,6 @@ jobs:
 
   e2e:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: web
     steps:
       - uses: actions/checkout@v4
 
@@ -208,17 +208,22 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-          cache-dependency-path: web/package-lock.json
 
-      - name: Install dependencies
+      - name: Install web dependencies (dev server)
+        working-directory: web
+        run: npm ci
+
+      - name: Install E2E dependencies
+        working-directory: tests/e2e
         run: npm ci
 
       - name: Install Playwright Chromium
+        working-directory: tests/e2e
         run: npx playwright install chromium --with-deps
 
       - name: Playwright smoke
-        run: CI=1 npm run test:e2e
+        working-directory: tests/e2e
+        run: CI=1 npm test
         env:
           BASIS_E2E_API_PORT: 8091
           BASIS_E2E_WEB_PORT: 5174
@@ -226,9 +231,6 @@ jobs:
 
   e2e-desktop:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: web
     steps:
       - uses: actions/checkout@v4
 
@@ -243,17 +245,22 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-          cache-dependency-path: web/package-lock.json
 
-      - name: Install dependencies
+      - name: Install web dependencies (dev server)
+        working-directory: web
+        run: npm ci
+
+      - name: Install E2E dependencies
+        working-directory: tests/e2e
         run: npm ci
 
       - name: Install Playwright Chromium
+        working-directory: tests/e2e
         run: npx playwright install chromium --with-deps
 
       - name: Desktop product Playwright
-        run: CI=1 BASIS_E2E_DESKTOP=1 npx playwright test e2e/desktop-product.spec.ts
+        working-directory: tests/e2e
+        run: CI=1 BASIS_E2E_DESKTOP=1 npm test desktop-product.e2e.spec.ts
         env:
           BASIS_E2E_API_PORT: 8092
           BASIS_E2E_WEB_PORT: 5175

@@ -11,7 +11,7 @@ import { fmt, formatLocaleDateTime, formatLocaleNumber, pickCountForm } from '@/
 import type { Locale } from '@/i18n/locale.js';
 import { useWorkspaceNodeLabels } from '@/lib/workspace/node-labels.js';
 import { hrefForDerivedFactPremise } from '@/modules/entities/lib/derived-fact-premise-link.js';
-import { graphPath } from '@/modules/graph/lib/graphUrlState.js';
+import { graphPath } from '@/modules/graph/lib/graph-url-state.js';
 import { workspaceAnalyzeHubPath } from '@/modules/analyze/lib/hub-route.js';
 import { workspaceOpenApiGET } from '@/lib/openapi/client.js';
 

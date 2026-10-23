@@ -10,7 +10,7 @@ import type { Locale } from '@/i18n/locale.js';
 import type { LocaleMessages } from '@/i18n/en.js';
 import { formatNodeRefDetail } from '@/lib/workspace/format-node-ref.js';
 import { workspacePath } from '@/lib/nav/nav-config.js';
-import { graphPath } from '@/modules/graph/lib/graphUrlState.js';
+import { graphPath } from '@/modules/graph/lib/graph-url-state.js';
 import { graphNodeTypeLabel } from '@/modules/graph/i18n/screen-copy.js';
 
 export type GraphSearchHit = {

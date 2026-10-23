@@ -60,7 +60,12 @@ include = ["basis*"]
 "basis.domain.connector.synthesis" = ["batches/*.yaml", "executors-index.json"]
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+pythonpath = ["."]
+testpaths = [
+  "tests/integration",
+  "tests/use_cases",
+  "tests/contract",
+]
 markers = [
   "integration: real database or external service (optional env)",
 ]

@@ -5,7 +5,7 @@ import {
   graphPath,
   mergeGraphAtParam,
   parseGraphDiffPreviewParams,
-} from '@/modules/graph/lib/graphUrlState.js';
+} from '@/modules/graph/lib/graph-url-state.js';
 
 export function GraphPage() {
   const { id } = useParams();

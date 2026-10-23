@@ -12,6 +12,8 @@ web/.env.local
 web/.env.console.local
 data/
 web/test-results/
+tests/e2e/test-results/
+tests/e2e/playwright-report/
 web/playwright-report/
 web/blob-report/
 node_modules/

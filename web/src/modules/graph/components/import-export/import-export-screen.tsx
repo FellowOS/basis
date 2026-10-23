@@ -38,7 +38,7 @@ import {
   GRAPH_EXPORT_FORMATS,
   type GraphExportFormat,
   graphExportExtension,
-} from "./graphExportFormats.js";
+} from "./graph-export-formats.js";
 import {
   formatGraphExportNodeIds,
   parseGraphExportNodeIds,

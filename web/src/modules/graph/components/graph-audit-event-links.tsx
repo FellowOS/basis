@@ -9,7 +9,7 @@ import {
   decisionIdFromDetail,
   reviewDecisionPath,
   reviewItemPath,
-} from '@/modules/review/lib/reviewUrlState.js';
+} from '@/modules/review/lib/review-url-state.js';
 
 const linkClass =
   'inline-block text-[11px] text-foreground underline-offset-2 hover:underline';

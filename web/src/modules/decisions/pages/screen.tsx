@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button.js";
 import { Input } from "@/components/ui/input.js";
 import { buildWorkspaceApiPath, workspaceFetch } from '@/lib/workspace/ws-http';
 import { errorFromApiResponse } from "@/lib/errors/api-error.js";
-import { reviewDecisionPath } from "@/modules/review/lib/reviewUrlState.js";
+import { reviewDecisionPath } from "@/modules/review/lib/review-url-state.js";
 import { useApiErrorMessage } from "@/lib/errors/use-api-error-message.js";
 import { useI18n } from "@/i18n/context.js";
 import { fmt, requestFailedStatusMessage } from "@/i18n/format.js";

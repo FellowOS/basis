@@ -36,14 +36,14 @@ import { useWorkspaceCapabilities } from '@/lib/workspace/capabilities.js';
 import { useWorkspaceTemporalBounds } from '@/modules/search/lib/use-temporal-bounds.js';
 import type { LedgerEntityHit } from '@/modules/entities/components/ledger-entity-browser.js';
 import { useWorkspaceNodeLabels } from '@/lib/workspace/node-labels.js';
-import { graphPath } from '@/modules/graph/lib/graphUrlState.js';
+import { graphPath } from '@/modules/graph/lib/graph-url-state.js';
 import { workspaceGraphDiffPath, workspacePath } from '@/lib/nav/nav-config.js';
 import {
   searchPath,
   parseSearchUrlState,
   resolveSearchScope,
   type SearchScope,
-} from '@/modules/search/lib/searchUrlState.js';
+} from '@/modules/search/lib/search-url-state.js';
 
 const PREVIEW_LIMIT = 8;
 const SEARCH_LIMIT = 30;

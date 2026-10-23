@@ -69,14 +69,14 @@ import {
   processingJobPath,
   processingPath,
   parseProcessingUrlState,
-} from '@/modules/processing/lib/processingUrlState.js';
+} from '@/modules/processing/lib/processing-url-state.js';
 import { ProcessingOptionsSnapshot } from '@/modules/processing/components/processing-options-snapshot.js';
 import {
   buildIngestLimitsHint,
   buildIngestOpsQueueHint,
 } from '@/modules/processing/lib/ingest-ops-hints.js';
 import { type ProcessingJob, jobIsActive, statusIsProcessing } from '@/modules/processing/lib/processing-job.js';
-import { parseSourcesUrlState } from '@/modules/library/lib/sourcesUrlState.js';
+import { parseSourcesUrlState } from '@/modules/library/lib/sources-url-state.js';
 import { formatByteSize } from '@/modules/library/lib/format-byte-size.js';
 import { DocumentTimelinePanel } from '../components/document-timeline-panel.js';
 import { uploadExceedsMaxBytes } from '@/modules/library/lib/ingest-upload-limit.js';

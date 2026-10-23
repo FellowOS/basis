@@ -36,7 +36,7 @@ import {
   workspaceIdFromPlatformAuditEvent,
   type GraphAuditEvent,
 } from '@/modules/graph/lib/graph-audit.js';
-import { decisionIdFromDetail } from '@/modules/review/lib/reviewUrlState.js';
+import { decisionIdFromDetail } from '@/modules/review/lib/review-url-state.js';
 import { usePlatformAdminCrumbs } from '@/lib/admin/use-platform-admin-crumbs.js';
 
 type AuditDetail = Record<string, unknown>;

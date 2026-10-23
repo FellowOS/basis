@@ -15,7 +15,6 @@ Vite + React front end for the Basis platform and per-workspace Explorer screens
 | `source.config.ts` | Fumadocs MDX config; `postinstall` runs `fumadocs-mdx` → `.source/` (gitignored). |
 | `server/` | **Hono web layer** — production static + `/api` reverse proxy (`server/prod.ts`); dev entry `server/dev.ts` (Hono + Vite middleware). Playground LLM config is browser-local. |
 | `src/styles/` | Vendor overrides (e.g. Swagger UI); global chrome in root [`src/styles.css`](src/styles.css). |
-| `e2e/` | Playwright specs. |
 
 ## `src/components/` — three roots
 
@@ -68,4 +67,4 @@ Run these from the `web/` directory (`cd web` after cloning the repo).
 
 ### E2E (Playwright)
 
-`playwright.config.ts` starts **Basis API** with `BASIS_DATA_DIR=data/e2e` (enables `/_e2e/*` helpers) and the **Hono dev server**. Use `CI=1 npm run test:e2e` for a clean run with fixed ports. Specs live under `web/e2e/` — **route coverage matrix:** [e2e/README.md](./e2e/README.md).
+E2E specs live under [`tests/e2e/specs/`](../tests/e2e/specs/). Use `CI=1 npm run test:e2e` from `web/` (delegates to `tests/e2e`). See [tests/e2e/README.md](../tests/e2e/README.md).

@@ -52,7 +52,7 @@ npm run smoke:api
 单测：`npm run test`（`static-server`、release 资源校验、sidebar orb 渲染）。
 
 Web Desktop 产品 e2e（CI `e2e-desktop`）：在 `web/` 下  
-`BASIS_E2E_DESKTOP=1 npx playwright test e2e/desktop-product.spec.ts`
+`cd tests/e2e && npm ci && BASIS_E2E_DESKTOP=1 CI=1 npm test desktop-product.e2e.spec.ts`
 
 ## Profile
 

@@ -1,0 +1,12 @@
+{
+  "name": "@basis/e2e",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node ./global-setup.mjs && playwright test",
+    "test:ui": "node ./global-setup.mjs && playwright test --ui"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.0"
+  }
+}

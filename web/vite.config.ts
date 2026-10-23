@@ -11,6 +11,13 @@ function desktopApiProxyTarget(): string {
   return (process.env.VITE_BASIS_API_URL ?? 'http://127.0.0.1:8090').replace(/\/$/, '');
 }
 
+function hmrFromEnv(): { port: number; clientPort: number } | undefined {
+  const raw = process.env.WEB_HMR_PORT?.trim();
+  if (!raw) return undefined;
+  const port = Number(raw);
+  return { port, clientPort: port };
+}
+
 export default defineConfig(({ mode }) => ({
   // Packaged desktop serves SPA over http://127.0.0.1 — use root-relative assets so
   // deep routes (/workspaces/...) still load /assets/* (relative `./` breaks after navigation).
@@ -22,8 +29,14 @@ export default defineConfig(({ mode }) => ({
             '/api': { target: desktopApiProxyTarget(), changeOrigin: true },
             '/openapi': { target: desktopApiProxyTarget(), changeOrigin: true },
           },
+          ...(() => {
+            const hmr = hmrFromEnv();
+            return hmr ? { hmr } : {};
+          })(),
         }
-      : undefined,
+      : hmrFromEnv()
+        ? { hmr: hmrFromEnv() }
+        : undefined,
   plugins: [fumadocsMdx(), react(), tailwindcss()],
   resolve: {
     dedupe: ['react', 'react-dom'],

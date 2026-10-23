@@ -46,7 +46,7 @@ uv run python -m alembic -c alembic.ini current
 ```bash
 uv run python -m alembic -c alembic.ini revision -m "short_description"
 # edit basis/infra/tooling/db/alembic/versions/<rev>_short_description.py
-uv run pytest -q tests/test_migrations.py
+uv run pytest -q tests/integration/test_migrations.py
 ```
 
 Postgres-only steps: return early when `op.get_bind().dialect.name != "postgresql"` (see `0002` / `0003`).

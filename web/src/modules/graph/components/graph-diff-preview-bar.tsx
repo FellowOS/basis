@@ -15,7 +15,7 @@ import {
   clearGraphDiffPreviewParams,
   mergeGraphDiffFocusParam,
   parseGraphUrlState,
-} from '@/modules/graph/lib/graphUrlState.js';
+} from '@/modules/graph/lib/graph-url-state.js';
 import type { GraphDiffPayload } from '@/modules/graph/lib/use-graph-diff.js';
 import { workspaceGraphDiffPath } from '@/lib/nav/nav-config.js';
 import {
