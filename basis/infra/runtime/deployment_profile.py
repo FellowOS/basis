@@ -78,7 +78,11 @@ def apply_profile_dict(profile: dict[str, Any]) -> None:
 
     port = server.get("port")
     if port is not None and os.environ.get("BASIS_LISTEN_PORT_RESOLVED") != "1":
-        os.environ["BASIS_PORT"] = str(int(port))
+        pinned = os.environ.get("BASIS_PORT", "").strip()
+        if os.environ.get("BASIS_E2E") == "1" and pinned and pinned != "0":
+            pass
+        else:
+            os.environ["BASIS_PORT"] = str(int(port))
 
     home = _basis_home()
     os.environ.setdefault("BASIS_HOME", str(home))

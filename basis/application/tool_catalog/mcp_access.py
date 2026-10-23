@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from basis.interface.contract.mcp.connector_tools import parse_connector_mcp_tool_name
+from basis.application.tool_catalog.connector_mcp_tool_name import parse_connector_mcp_tool_name
 
 # Write = requires workspace editor (mutations, approvals, connector vault writes, sync).
 MCP_TOOL_ACCESS: dict[str, str] = {

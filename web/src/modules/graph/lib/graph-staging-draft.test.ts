@@ -1,12 +1,35 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   clearGraphStagingDraft,
   readGraphStagingDraft,
   writeGraphStagingDraft,
 } from '@/modules/graph/lib/graph-staging-draft.js';
 
+function mockWebStorage(): Storage {
+  const map = new Map<string, string>();
+  return {
+    get length() {
+      return map.size;
+    },
+    clear: () => map.clear(),
+    getItem: (key: string) => map.get(key) ?? null,
+    key: (index: number) => [...map.keys()][index] ?? null,
+    removeItem: (key: string) => {
+      map.delete(key);
+    },
+    setItem: (key: string, value: string) => {
+      map.set(key, value);
+    },
+  };
+}
+
 describe('graph-staging-draft', () => {
+  beforeEach(() => {
+    vi.stubGlobal('sessionStorage', mockWebStorage());
+  });
+
   afterEach(() => {
+    vi.unstubAllGlobals();
     clearGraphStagingDraft('sess-1');
   });
 
