@@ -18,7 +18,10 @@ test.describe('desktop product (ADR 0004)', () => {
   test('redirects cloud-only admin routes to home', async ({ page }) => {
     await page.goto('/workspaces');
     await expect(page).toHaveURL(/\/workspaces/, { timeout: 60_000 });
-    await expect(page.getByRole('navigation').first()).toBeVisible({ timeout: 60_000 });
+    await page.waitForFunction(
+      () => typeof localStorage !== 'undefined' && Boolean(localStorage.getItem('basis_token')),
+      { timeout: 60_000 },
+    );
 
     await page.goto('/admin/users');
     await expect(page).not.toHaveURL(/\/admin\/users/);
