@@ -1,4 +1,4 @@
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
 import { useBasisSession } from '@/lib/session/basis-session.js';
@@ -6,9 +6,21 @@ import { basisIsDesktopProduct } from '@/lib/runtime/basis-runtime.js';
 import { visiblePlatformNavItems } from '@/lib/nav/nav-config.js';
 import { useSettingsAccess } from '@/lib/shell/use-settings-access.js';
 
+function isDesktopBlockedAdminPath(pathname: string): boolean {
+  return (
+    pathname === '/admin/users' ||
+    pathname.startsWith('/admin/users/') ||
+    pathname === '/admin/settings' ||
+    pathname.startsWith('/admin/settings/') ||
+    pathname === '/admin/audit' ||
+    pathname.startsWith('/admin/audit/')
+  );
+}
+
 export function PlatformAdminLayout() {
   const { t } = useI18n();
   const { ready, user, isAdmin, homePath } = useBasisSession();
+  const location = useLocation();
   const canSettings = useSettingsAccess();
   const settingsReady = isAdmin || canSettings !== null;
   const desktopProduct = basisIsDesktopProduct();
@@ -30,6 +42,10 @@ export function PlatformAdminLayout() {
         {t.core.common.loading}
       </div>
     );
+  }
+
+  if (desktopProduct && isDesktopBlockedAdminPath(location.pathname)) {
+    return <Navigate to={homePath} replace />;
   }
 
   if (items.length === 0) {

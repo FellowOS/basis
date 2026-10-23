@@ -1,5 +1,6 @@
 import { type ApiErrorWithMeta } from '@/lib/errors/api-error.js';
 import { basisAuthRequired } from '@/lib/runtime/basis-runtime.js';
+import { markApiDesktopProduct } from '@/lib/runtime/desktop-product-flag.js';
 import { getToken, setToken } from '@/lib/auth/auth-token.js';
 import { basisSessionClient } from '@/lib/session/basis-session-client.js';
 import { publicOpenApiPOST } from '@/lib/openapi/client.js';
@@ -14,12 +15,20 @@ export type BasisUser = {
   is_admin: boolean;
 };
 
+function shouldAttemptDesktopBootstrap(): boolean {
+  if (!basisAuthRequired()) return true;
+  if (import.meta.env.MODE === 'desktop') return true;
+  const flag = import.meta.env.VITE_BASIS_DESKTOP;
+  return flag === 'true' || flag === '1';
+}
+
 export async function bootstrapDesktopSession(): Promise<BasisUser | null> {
   try {
     const body = (await publicOpenApiPOST('/api/v1/auth/desktop-session', {
       body: {},
     })) as { user: BasisUser; token: string };
     setToken(body.token);
+    markApiDesktopProduct();
     return body.user;
   } catch {
     return null;
@@ -27,13 +36,12 @@ export async function bootstrapDesktopSession(): Promise<BasisUser | null> {
 }
 
 export async function fetchSession(): Promise<BasisUser | null> {
-  if (!basisAuthRequired()) {
-    const token = getToken();
-    if (!token) {
-      return await bootstrapDesktopSession();
-    }
+  let token = getToken();
+  if (!token && shouldAttemptDesktopBootstrap()) {
+    const desktopUser = await bootstrapDesktopSession();
+    if (desktopUser) return desktopUser;
+    token = getToken();
   }
-  const token = getToken();
   if (!token) return null;
   try {
     const body = unwrapOpenApi(

@@ -65,7 +65,9 @@ test('connector mappings suggest: SQL table input → save and sync', async ({ p
   await expect(dialog.getByTestId('suggest-connection-select')).toBeVisible({ timeout: 30_000 });
   await dialog.getByLabel(/SQL tables|SQL 表/i).fill('customers');
   await dialog.getByTestId('suggest-generate-btn').click();
-  await expect(dialog.getByText('customers', { exact: true })).toBeVisible({ timeout: 30_000 });
+  await expect(dialog.locator('span.font-mono', { hasText: 'customers' })).toBeVisible({
+    timeout: 30_000,
+  });
   await dialog.getByRole('button', { name: /Save & sync|保存并同步/i }).click();
   await expect(dialog).toBeHidden({ timeout: 60_000 });
   await expect(page).toHaveURL(new RegExp(`/workspaces/${workspaceId}/connectors/mappings`));

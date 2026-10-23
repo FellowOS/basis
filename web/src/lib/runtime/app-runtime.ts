@@ -3,6 +3,8 @@
  * API aligned with Fellow @fellow/app-runtime `getRuntime()` / `FellowRuntime`.
  */
 
+import { isApiDesktopProduct } from '@/lib/runtime/desktop-product-flag.js';
+
 export type BasisEnvironment = 'local' | 'cloud';
 
 export interface AppRuntime {
@@ -96,6 +98,7 @@ export function appAuthRequired(): boolean {
 }
 
 export function appIsDesktopProduct(): boolean {
+  if (isApiDesktopProduct()) return true;
   const rt = getAppRuntime();
   if (rt.desktop === true) return true;
   return !rt.authRequired;
