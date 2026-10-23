@@ -12,6 +12,7 @@ from basis.domain.errors import AdminError
 
 
 def list_catalog(ctx: WorkspaceCoreContext, args: dict[str, Any]) -> dict[str, Any]:
+    """MCP ``list_connector_catalog`` (summary rows; default limit 25, max 100)."""
     authz.require_workspace_viewer(ctx)
     query = str(args.get("query") or "").strip() or None
     limit = min(max(1, int(args.get("limit") or 25)), 100)
@@ -69,6 +70,7 @@ def list_catalog_detailed(
     query: str | None = None,
     limit: int = 100,
 ) -> dict[str, Any]:
+    """HTTP ``GET /connectors/catalog`` (full manifests, stats, category/auth filters)."""
     authz.require_workspace_viewer(ctx)
     catalog = get_connector_catalog()
     manifests = catalog.list_manifests(
