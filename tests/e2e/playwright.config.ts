@@ -2,21 +2,26 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { defineConfig, devices } from '@playwright/test';
 
+import { applyTestConfigEnv } from './load-test-config.ts';
+
 const e2eRoot = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(e2eRoot, '../..');
 const webRoot = path.join(repoRoot, 'web');
-/** Isolated from daily dev (defaults 8090 / 5173 / HMR 24678). */
-const webPort = Number(process.env.BASIS_E2E_WEB_PORT ?? '5174');
-const apiPort = Number(process.env.BASIS_E2E_API_PORT ?? '8091');
-const hmrPort = Number(process.env.BASIS_E2E_HMR_PORT ?? String(webPort + 19505));
-const baseURL = `http://127.0.0.1:${webPort}`;
 const desktopE2e = process.env.BASIS_E2E_DESKTOP === '1';
+const e2eProfile = applyTestConfigEnv(desktopE2e);
+/** Isolated from daily dev (defaults 8090 / 5173 / HMR 24678); ports from tests/test.yaml. */
+const webPort = Number(process.env.BASIS_E2E_WEB_PORT ?? String(e2eProfile.web_port));
+const apiPort = Number(process.env.BASIS_E2E_API_PORT ?? String(e2eProfile.api_port));
+const hmrPort = Number(
+  process.env.BASIS_E2E_HMR_PORT ?? String(e2eProfile.hmr_port ?? webPort + 19505),
+);
+const baseURL = `http://127.0.0.1:${webPort}`;
 
 function e2eApiEnv(): Record<string, string> {
   const env = { ...process.env } as Record<string, string>;
   // Do not inherit dev API/data dirs from the shell or repo `.env`.
   env.BASIS_DATABASE_URL = '';
-  env.BASIS_DATA_DIR = desktopE2e ? 'data/e2e-desktop' : 'data/e2e';
+  env.BASIS_DATA_DIR = e2eProfile.data_dir;
   env.BASIS_E2E = '1';
   env.BASIS_HOST = '127.0.0.1';
   env.BASIS_PORT = String(apiPort);

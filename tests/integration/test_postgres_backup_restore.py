@@ -1,4 +1,4 @@
-"""X-03 — PostgreSQL pg_dump / restore script roundtrip (requires BASIS_TEST_POSTGRES_URL)."""
+"""X-03 — PostgreSQL pg_dump / restore script roundtrip (see tests/test.yaml)."""
 
 from __future__ import annotations
 

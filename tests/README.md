@@ -32,13 +32,15 @@ Pick the **layer** first (not “one OpenAPI operation = one integration file”
 
 Inside `integration/`, a file may use `TestClient`, domain helpers, stores, or MCP — whatever matches the behavior under test. Use `@pytest.mark.integration` when a real external DB or service is required (`uv run pytest -q -m integration`).
 
+**Do not** add pytest that reads sibling monorepo trees. Synthesis merge against upstream catalogs is a dev/release workflow; CI asserts **in-repo** manifests (`providers/*.yaml`), generators, `batches/`, and `executors-index.json` only. Use `tmp_path` / monkeypatch for `BASIS_SYNTHESIS_*` path logic, not a checkout on disk.
+
 ## Commands
 
 ```bash
 # All pytest layers
 uv run pytest -q
 
-# Optional external DB / GitHub (see `.env.test.example`)
+# Optional external DB / GitHub — see tests/test.yaml
 uv run pytest -q -m integration
 
 # Web unit tests
@@ -50,15 +52,16 @@ cd tests/e2e && CI=1 npm test
 
 ### Optional `@pytest.mark.integration`
 
-Requires env from `.env.test.example` (copy to `.env.test`). Typical local gate:
+Harness settings live in **`tests/test.yaml`** only (pytest, Playwright E2E, and CI). Override the file path with `BASIS_TEST_CONFIG`. **Secrets** (GitHub PAT, etc.): use shell `export` or CI secrets — env wins over YAML; keep tokens out of the committed file.
 
-| Env | Exercises |
-|-----|-----------|
-| `BASIS_TEST_POSTGRES_URL` | Same DB as `BASIS_DATABASE_URL` in `.env` if unset; see `tests/support/integration_env.py` |
-| (postgres integration files) | `test_postgres_integration.py`, `test_postgres_backup_restore.py`, `test_db_schema_migrations.py` |
-| `BASIS_TEST_GITHUB_*` | Connector REST invoke against real GitHub |
+| YAML key | Env override (optional) | Exercises |
+|----------|-------------------------|-----------|
+| `postgres.admin_url` | `BASIS_TEST_POSTGRES_URL` | Postgres integration + BOCP SQL connector tests |
+| `postgres.sql_target_url` | `BASIS_TEST_POSTGRES_EXTERNAL_URL` | Fixed writable DB for SQL connector tests |
+| `github.*` | `BASIS_TEST_GITHUB_*`, `BASIS_E2E_GITHUB_*` | Live GitHub (pytest + `connector-mapping-suggest.e2e.spec.ts`) |
+| `e2e` / `e2e_desktop` | `BASIS_E2E_*_PORT`, `BASIS_DEMO_WORKSPACE` | Playwright stack ports (`BASIS_E2E_DESKTOP=1` uses `e2e_desktop`) |
 
-SQLite `uv run pytest -q` is the default CI path; run `-m integration` before releases when Postgres is available.
+Default `uv run pytest -q` uses SQLite for app tests; `@pytest.mark.integration` Postgres tests **skip** when the configured server is unreachable (no Docker / no CI service).
 
 ## File naming (enforced)
 

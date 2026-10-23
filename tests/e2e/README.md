@@ -10,11 +10,13 @@ Config: `playwright.config.ts` (starts API + `web/` dev server). **Do not** use 
 
 ### Ports (parallel to daily dev)
 
+Defaults live in **`../test.yaml`** (`e2e` / `e2e_desktop` when `BASIS_E2E_DESKTOP=1`). Same file as pytest integration tests; see [tests/README.md](../README.md).
+
 | Role | Dev (typical) | E2E (default) | Override |
 |------|---------------|---------------|----------|
-| API | 8090 | **8091** | `BASIS_E2E_API_PORT` |
-| Web | 5173 | **5174** | `BASIS_E2E_WEB_PORT` |
-| Vite HMR | 24678 | **24679** | `BASIS_E2E_HMR_PORT` / `WEB_HMR_PORT` |
+| API | 8090 | **8091** | YAML `e2e.api_port` or `BASIS_E2E_API_PORT` |
+| Web | 5173 | **5174** | YAML `e2e.web_port` or `BASIS_E2E_WEB_PORT` |
+| Vite HMR | 24678 | **web+19505** | YAML `e2e.hmr_port` or `BASIS_E2E_HMR_PORT` |
 
 E2E does not use your running `uv run basis` or `5173` dev server; it starts its own stack on the E2E ports above.
 
@@ -165,11 +167,8 @@ Routes follow [`web/src/routes/index.tsx`](../../web/src/routes/index.tsx) (`App
 | `settings-graph-audit.e2e.spec.ts` | Workspace settings graph audit tab |
 | `shell.e2e.spec.ts` | Login form |
 
-## Optional env (live connector)
+## Optional live GitHub (connector E2E)
 
-| Variable | Spec | Purpose |
-|----------|------|---------|
-| `BASIS_E2E_GITHUB_TOKEN` | `connector-mapping-suggest.e2e.spec.ts` | Live GitHub PAT: auto-suggest, batch-create, mappings dialog (skipped when unset) |
-| `BASIS_E2E_GITHUB_RUN_SYNC` | `connector-mapping-suggest.e2e.spec.ts` | With token set to `1`, runs live inbound sync via batch-create (`run_sync: true`) |
+Set `BASIS_E2E_GITHUB_TOKEN` (or `BASIS_TEST_GITHUB_TOKEN`) in the environment. Optional `BASIS_E2E_GITHUB_RUN_SYNC=1` for live inbound sync in `connector-mapping-suggest.e2e.spec.ts`.
 
 When adding specs, extend this table and keep naming `*.e2e.spec.ts` (CI: `scripts/audit-test-naming.py`).

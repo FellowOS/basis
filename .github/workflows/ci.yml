@@ -22,8 +22,7 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-    env:
-      BASIS_TEST_POSTGRES_URL: postgresql://basis:basis@localhost:5432/postgres
+    # Postgres URL: tests/test.yaml (same as local pytest)
     steps:
       - uses: actions/checkout@v4
 
@@ -224,10 +223,6 @@ jobs:
       - name: Playwright smoke
         working-directory: tests/e2e
         run: CI=1 npm test
-        env:
-          BASIS_E2E_API_PORT: 8091
-          BASIS_E2E_WEB_PORT: 5174
-          BASIS_DEMO_WORKSPACE: "1"
 
   e2e-desktop:
     runs-on: ubuntu-latest
@@ -261,6 +256,3 @@ jobs:
       - name: Desktop product Playwright
         working-directory: tests/e2e
         run: CI=1 BASIS_E2E_DESKTOP=1 npm test desktop-product.e2e.spec.ts
-        env:
-          BASIS_E2E_API_PORT: 8092
-          BASIS_E2E_WEB_PORT: 5175

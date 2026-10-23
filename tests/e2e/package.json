@@ -7,6 +7,7 @@
     "test:ui": "node ./global-setup.mjs && playwright test --ui"
   },
   "devDependencies": {
-    "@playwright/test": "^1.55.0"
+    "@playwright/test": "^1.55.0",
+    "yaml": "^2.8.0"
   }
 }

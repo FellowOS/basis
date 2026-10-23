@@ -1,4 +1,4 @@
-"""PostgreSQL helpers for integration tests (BASIS_TEST_POSTGRES_URL)."""
+"""PostgreSQL helpers for integration tests (see ``tests/test.yaml``)."""
 
 from __future__ import annotations
 
@@ -7,6 +7,18 @@ import uuid
 import psycopg
 from psycopg import sql
 from sqlalchemy.engine import make_url
+
+
+def postgres_admin_reachable(admin_url: str, *, connect_timeout: int = 2) -> bool:
+    parsed = make_url(admin_url)
+    admin_dsn = parsed.set(database=parsed.database or "postgres").render_as_string(
+        hide_password=False
+    )
+    try:
+        with psycopg.connect(admin_dsn, connect_timeout=connect_timeout):
+            return True
+    except Exception:
+        return False
 
 
 def create_postgres_database(admin_url: str) -> str:

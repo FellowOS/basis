@@ -1,4 +1,4 @@
-"""BOCP primitive dispatch against real PostgreSQL and GitHub (see ``.env.test.example``)."""
+"""BOCP primitive dispatch against real PostgreSQL and GitHub (see ``tests/test.yaml``)."""
 
 from __future__ import annotations
 

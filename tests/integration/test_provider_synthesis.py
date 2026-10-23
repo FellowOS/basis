@@ -18,25 +18,6 @@ def _canonical_manifest(m: ConnectorManifest) -> dict:
     return payload
 
 
-def test_merge_registry_auth_reference_service() -> None:
-    from basis.domain.connector.synthesis.paths import providers_registry_yaml
-
-    if providers_registry_yaml() is None:
-        import pytest
-
-        pytest.skip("providers registry yaml not on disk")
-    m = merge_service(
-        "amplitude",
-        ship_tier="catalog",
-        catalog_procedures_only=True,
-        prefer_anyconnect_procedures=False,
-    )
-    assert m.service == "amplitude"
-    assert m.auth
-    assert m.auth[0].auth_mode == "basic"
-    assert m.procedure_actions() == []
-
-
 def test_merge_github_matches_generator() -> None:
     expected = github_manifest()
     merged = merge_service(
@@ -90,17 +71,3 @@ def test_executor_index_gitlab_jira_paths() -> None:
     assert jr is not None
     assert "cloudId" in jr["path"]
 
-
-def test_merge_gitlab_jira_entities_and_catalog_procedures() -> None:
-    from basis.domain.connector.synthesis.paths import anyconnect_catalog_dir
-
-    if anyconnect_catalog_dir() is None:
-        import pytest
-
-        pytest.skip("AnyConnect catalog not on disk")
-    gl = merge_service("gitlab", ship_tier="beta")
-    assert {a.id for a in gl.entity_actions()} == {"projects", "project_issues"}
-    assert len(gl.procedure_actions()) == 15
-    jr = merge_service("jira", ship_tier="beta")
-    assert {a.id for a in jr.entity_actions()} == {"issues"}
-    assert len(jr.procedure_actions()) == 7

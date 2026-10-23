@@ -1,11 +1,10 @@
 """BOCP SQL connector against real PostgreSQL (not SQLite stand-ins).
 
-Configure via ``.env.test`` (copy from ``.env.test.example``); pytest loads it via
-``tests.support.integration_env`` from ``tests/conftest.py``. Variables:
+Requires Postgres per ``tests/test.yaml``. Variables:
 
-  - ``BASIS_TEST_POSTGRES_URL`` — CI uses ephemeral DB per test; locally, CREATEDB may be
+  - ``postgres.admin_url`` / ``BASIS_TEST_POSTGRES_URL`` — CI uses ephemeral DB per test; locally, CREATEDB may be
     denied and tests reuse the URL database (unique table names).
-  - ``BASIS_TEST_POSTGRES_EXTERNAL_URL`` — optional fixed writable target.
+  - ``postgres.sql_target_url`` / ``BASIS_TEST_POSTGRES_EXTERNAL_URL`` — optional fixed writable target.
 """
 
 from __future__ import annotations

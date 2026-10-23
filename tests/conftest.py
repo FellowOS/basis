@@ -7,16 +7,17 @@ from sqlalchemy.engine import make_url
 
 from basis.domain.knowledge.schedulers.version_ingest_tasks import wait_for_background_ingest
 from basis.infra.runtime.database import reset_sqlite_database_pool
-from tests.support.integration_env import load_integration_test_env
+from tests.support.test_config import apply_test_config
 from tests.support.postgres import (
     create_postgres_database,
     drop_postgres_database,
+    postgres_admin_reachable,
     try_create_postgres_database,
 )
 
 
 def pytest_configure() -> None:
-    load_integration_test_env()
+    apply_test_config()
     os.environ.setdefault("BASIS_INGEST_INLINE", "1")
 
 
@@ -33,13 +34,13 @@ def github_integration() -> dict[str, str]:
     token = (os.environ.get("BASIS_TEST_GITHUB_TOKEN") or "").strip()
     if not token:
         pytest.skip(
-            "BASIS_TEST_GITHUB_TOKEN is not set; copy .env.test.example to .env.test"
+            "BASIS_TEST_GITHUB_TOKEN is not set; export it or set github.token via env"
         )
     owner = (os.environ.get("BASIS_TEST_GITHUB_OWNER") or "").strip()
     repo = (os.environ.get("BASIS_TEST_GITHUB_REPO") or "").strip()
     if not owner or not repo:
         pytest.skip(
-            "BASIS_TEST_GITHUB_OWNER and BASIS_TEST_GITHUB_REPO are required in .env.test"
+            "BASIS_TEST_GITHUB_OWNER and BASIS_TEST_GITHUB_REPO are required for live GitHub tests"
         )
     return {"token": token, "owner": owner, "repo": repo}
 
@@ -48,7 +49,14 @@ def github_integration() -> dict[str, str]:
 def postgres_admin_url() -> str:
     admin_url = os.environ.get("BASIS_TEST_POSTGRES_URL")
     if not admin_url:
-        pytest.skip("BASIS_TEST_POSTGRES_URL is not configured")
+        pytest.skip(
+            "BASIS_TEST_POSTGRES_URL is not configured (tests/test.yaml or env)"
+        )
+    if not postgres_admin_reachable(admin_url):
+        pytest.skip(
+            "PostgreSQL is not reachable for integration tests "
+            f"({admin_url!r}); start compose.postgres.yml or adjust tests/test.yaml"
+        )
     return admin_url
 
 
@@ -74,9 +82,9 @@ def _require_postgres_sql_connector_writable(database_url: str) -> None:
             "PostgreSQL is not writable for BOCP SQL connector tests "
             f"({exc}). Start Basis Postgres: "
             "docker compose -f compose.postgres.yml up -d, then "
-            f"export BASIS_TEST_POSTGRES_URL=postgresql://basis:basis@{host}:5432/basis "
-            f"(compose maps host port 5432; you used port {port}). "
-            "Or set BASIS_TEST_POSTGRES_EXTERNAL_URL to any database you can CREATE TABLE in."
+            f"Start Postgres (docker compose -f compose.postgres.yml up -d) or set "
+            "postgres.sql_target_url in tests/test.yaml "
+            f"(host {host}, port {port})."
         )
     finally:
         engine.dispose()
