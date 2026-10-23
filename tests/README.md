@@ -48,6 +48,7 @@ CI runs `uv run python scripts/audit-test-naming.py`. New files must match:
 ## Adding tests
 
 - New HTTP behavior: `integration/test_<domain>_<behavior>.py` — one assertion focus per test; use file-local `_client` / `_session_client` or `support/demo_workspace.py`.
+- Playwright-only HTTP routes (`/_e2e/*`, `data/e2e` gating): keep under `integration/` as `test_*_playwright_*_http.py` (pytest + `TestClient`). Browser specs live in `tests/e2e/` only — do not use `test_e2e_*.py` in `integration/`.
 - New product journey anchor: `use_cases/test_uc_<slug>.py` (keep tests short).
 - OpenAPI / MCP / web path parity: `contract/test_contract_<topic>.py`.
 - New primary route smoke: `tests/e2e/specs/<feature>.e2e.spec.ts` + update `tests/e2e/README.md`.

@@ -1,4 +1,4 @@
-"""E2E-only API helpers are gated on Playwright data/e2e dir."""
+"""HTTP integration: workspace `/_e2e/*` seed routes (gated on `data/e2e`)."""
 
 from pathlib import Path
 
@@ -13,7 +13,7 @@ from basis.infra.runtime.capabilities import graph_runtime_available
 from basis.infra.runtime.config import Settings
 
 
-def test_e2e_governance_trip_disabled_outside_data_e2e(tmp_path) -> None:
+def test_playwright_governance_trip_disabled_outside_data_dir(tmp_path) -> None:
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
     admin = client.post(
         "/api/v1/auth/register",
@@ -25,7 +25,7 @@ def test_e2e_governance_trip_disabled_outside_data_e2e(tmp_path) -> None:
     assert res.status_code == 404
 
 
-def test_e2e_governance_trip_records_alert_and_decision(tmp_path) -> None:
+def test_playwright_governance_trip_records_alert_and_decision(tmp_path) -> None:
     if not graph_runtime_available():
         pytest.skip("explorer extra not installed")
 
@@ -50,7 +50,7 @@ def test_e2e_governance_trip_records_alert_and_decision(tmp_path) -> None:
     assert tripped[0]["detail"].get("decision_id") == decision_id
 
 
-def test_e2e_statement_conflict_disabled_outside_data_e2e(tmp_path) -> None:
+def test_playwright_statement_conflict_disabled_outside_data_dir(tmp_path) -> None:
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
     admin = client.post(
         "/api/v1/auth/register",
@@ -62,7 +62,7 @@ def test_e2e_statement_conflict_disabled_outside_data_e2e(tmp_path) -> None:
     assert res.status_code == 404
 
 
-def test_e2e_statement_conflict_creates_review_and_alert(tmp_path) -> None:
+def test_playwright_statement_conflict_creates_review_and_alert(tmp_path) -> None:
     e2e_dir = tmp_path / "data" / "e2e"
     e2e_dir.mkdir(parents=True)
     client = TestClient(create_app(Settings(data_dir=e2e_dir)))
@@ -86,7 +86,7 @@ def test_e2e_statement_conflict_creates_review_and_alert(tmp_path) -> None:
     assert conflict_alerts[0]["detail"].get("item_id") == body["review_item_id"]
 
 
-def test_e2e_ontology_proposal_disabled_outside_data_e2e(tmp_path) -> None:
+def test_playwright_ontology_proposal_disabled_outside_data_dir(tmp_path) -> None:
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
     admin = client.post(
         "/api/v1/auth/register",
@@ -98,7 +98,7 @@ def test_e2e_ontology_proposal_disabled_outside_data_e2e(tmp_path) -> None:
     assert res.status_code == 404
 
 
-def test_e2e_ontology_proposal_seeds_proposed_change(tmp_path) -> None:
+def test_playwright_ontology_proposal_seeds_proposed_change(tmp_path) -> None:
     if not graph_runtime_available():
         pytest.skip("explorer extra not installed")
 

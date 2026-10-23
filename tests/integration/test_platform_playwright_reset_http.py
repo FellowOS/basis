@@ -1,4 +1,4 @@
-"""Playwright platform reset helper (data/e2e only)."""
+"""HTTP integration: `POST /api/v1/_e2e/playwright-reset` (Playwright data dir only)."""
 
 from pathlib import Path
 

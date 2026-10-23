@@ -1,4 +1,4 @@
-"""Playwright E2E OAuth exchange stub."""
+"""Unit/integration: OAuth HTTP client stub used when Playwright exchanges codes."""
 
 from __future__ import annotations
 

@@ -1,4 +1,4 @@
-"""Playwright BASIS_DATA_DIR gate."""
+"""Gate for Playwright-only API data dirs (`data/e2e`); not browser E2E tests."""
 
 from __future__ import annotations
 

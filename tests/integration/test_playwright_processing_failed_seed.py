@@ -1,4 +1,4 @@
-"""E2E-only processing.failed seed route."""
+"""HTTP integration: Playwright `/_e2e` processing.failed seed route."""
 
 from pathlib import Path
 
@@ -8,7 +8,7 @@ from basis.interface.http.app import create_app
 from basis.infra.runtime.config import Settings
 
 
-def test_e2e_processing_failed_helper(tmp_path: Path) -> None:
+def test_playwright_processing_failed_seed_route(tmp_path: Path) -> None:
     data_dir = tmp_path / "data" / "e2e"
     data_dir.mkdir(parents=True)
     client = TestClient(create_app(Settings(data_dir=data_dir, ingest_inline=True)))
