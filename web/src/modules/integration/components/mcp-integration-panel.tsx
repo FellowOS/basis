@@ -4,9 +4,26 @@ import { Input } from '@/components/ui/input.js';
 import { PublicIcon } from '@/components/app/shared/primitives/public-icon.js';
 import { useI18n } from '@/i18n/context.js';
 
+export type McpToolAccess = 'read' | 'write';
+
+export type McpToolEntry = {
+  name: string;
+  description: string;
+  access?: McpToolAccess;
+};
+
+export type HttpOperationEntry = {
+  name: string;
+  description: string;
+  access?: McpToolAccess;
+  path?: string;
+};
+
 export type McpIntegrationInfo = {
   mcp_url: string;
   tools: string[];
+  tool_entries?: McpToolEntry[];
+  http_operation_entries?: HttpOperationEntry[];
   cursor_example: { mcpServers: Record<string, { url: string; headers: Record<string, string> }> };
 };
 

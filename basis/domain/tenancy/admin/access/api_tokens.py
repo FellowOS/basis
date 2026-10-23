@@ -35,6 +35,8 @@ class ApiTokensAccess:
         workspace_ids: list[str],
         expires_at: str | None = None,
         allowed_operations: list[str] | None = None,
+        mcp_allowed_operations: list[str] | None = None,
+        http_allowed_operations: list[str] | None = None,
     ) -> tuple[ApiTokenRecord, str]:
         from basis.domain.tenancy.admin.admin_types import secrets_token
 
@@ -45,13 +47,26 @@ class ApiTokensAccess:
             raise AdminError(422, "bad_scope", "scope 必须是 read 或 write")
         if not workspace_ids:
             raise AdminError(422, "bad_workspace_ids", "至少选择一个工作区")
-        allowed_json: str | None = None
-        if allowed_operations is not None:
-            ops = sorted({str(op).strip() for op in allowed_operations if str(op).strip()})
-            if len(ops) > 256:
-                raise AdminError(422, "bad_allowed_operations", "操作列表过长（最多 256 项）")
-            if ops:
-                allowed_json = json.dumps(ops, ensure_ascii=False)
+        from basis.domain.tenancy.admin.api_token_grants import encode_operation_grants_json
+
+        if allowed_operations is not None and mcp_allowed_operations is None and http_allowed_operations is None:
+            mcp_allowed_operations = allowed_operations
+            http_allowed_operations = allowed_operations
+
+        def _normalize_ops(ops: list[str] | None, field: str) -> list[str] | None:
+            if ops is None:
+                return None
+            cleaned = sorted({str(op).strip() for op in ops if str(op).strip()})
+            if len(cleaned) > 256:
+                raise AdminError(422, "bad_allowed_operations", f"{field} 操作列表过长（最多 256 项）")
+            return cleaned or None
+
+        mcp_ops = _normalize_ops(mcp_allowed_operations, "MCP")
+        http_ops = _normalize_ops(http_allowed_operations, "OpenAPI")
+        allowed_json = encode_operation_grants_json(
+            mcp_allowed_operations=mcp_ops,
+            http_allowed_operations=http_ops,
+        )
         cleaned: list[str] = []
         for workspace_id in workspace_ids:
             self._store._workspaces.get_workspace_for(actor, workspace_id, "viewer")
@@ -85,7 +100,7 @@ class ApiTokensAccess:
                     "name": name,
                     "scope": scope,
                     "workspace_ids": cleaned,
-                    "allowed_operations": json.loads(allowed_json) if allowed_json else None,
+                    "operation_grants": json.loads(allowed_json) if allowed_json else None,
                 },
             )
             conn.commit()

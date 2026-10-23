@@ -21,6 +21,7 @@ import {
   GraphDiffPage,
   GraphPage,
   IntegrationPage,
+  IntegrationTokenNewPage,
   LibraryPage,
   LineagePage,
   MappingsPage,
@@ -234,6 +235,7 @@ export function AppRoutes() {
         <Route path="/workspaces/:id/lineage" element={<WorkspaceLazy><LineagePage /></WorkspaceLazy>} />
         <Route path="/workspaces/:id/mappings" element={<Lazy><MappingsPage /></Lazy>} />
         <Route path="/workspaces/:id/alerts" element={<Lazy><AlertsPage /></Lazy>} />
+        <Route path="/workspaces/:id/integration/tokens/new" element={<Lazy><IntegrationTokenNewPage /></Lazy>} />
         <Route path="/workspaces/:id/integration" element={<Lazy><IntegrationPage /></Lazy>} />
         <Route path="/workspaces/:id/mcp" element={<LegacyMcpRedirect />} />
         <Route path="/workspaces/:id/settings" element={<Lazy><WorkspaceSettingsPage /></Lazy>} />

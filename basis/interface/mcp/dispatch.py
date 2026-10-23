@@ -25,7 +25,7 @@ from basis.interface.contract.mcp.connector_tools import (
 )
 from basis.interface.contract.mcp.format import mcp_text_result
 from basis.application.tool_catalog.run import description_for_tool, input_schema_for_tool
-from basis.domain.tenancy.admin.api_token_grants import token_allows_operation
+from basis.domain.tenancy.admin.api_token_grants import token_allows_mcp_operation
 
 __all__ = [
     "TOOL_DEFINITIONS",
@@ -56,8 +56,8 @@ def get_tool_definitions(ctx: WorkspaceCoreContext | None = None) -> list[dict[s
     if ctx is not None:
         tools.extend(connector_tool_definitions_for_workspace(ctx))
     record = ctx.api_token if ctx is not None else None
-    if record is not None and record.allowed_operations is not None:
-        tools = [t for t in tools if token_allows_operation(record, str(t.get("name", "")))]
+    if record is not None and record.mcp_allowed_operations is not None:
+        tools = [t for t in tools if token_allows_mcp_operation(record, str(t.get("name", "")))]
     return tools
 
 
@@ -75,7 +75,7 @@ def _is_known_mcp_tool(name: str) -> bool:
 
 def run(ctx: WorkspaceCoreContext, name: str, arguments: dict[str, Any] | None) -> dict[str, Any]:
     """Run a static or manifest-derived connector MCP tool; plain JSON dict."""
-    if ctx.api_token is not None and not token_allows_operation(ctx.api_token, name):
+    if ctx.api_token is not None and not token_allows_mcp_operation(ctx.api_token, name):
         return {
             "error": "forbidden",
             "code": "forbidden",

@@ -25,15 +25,19 @@ def test_api_token_allowed_operations_mcp_and_http(tmp_path) -> None:
         json={
             "name": "search-only",
             "scope": "read",
-            "allowed_operations": ["search_chunks"],
+            "mcp_allowed_operations": ["search_chunks"],
+            "http_allowed_operations": ["graph_stats"],
         },
     )
     assert created.status_code == 200
     secret = created.json()["secret"]
     api_headers = {"Authorization": f"Bearer {secret}"}
 
-    denied = client.get(f"/api/v1/workspaces/{workspace_id}/graph/stats", headers=api_headers)
-    assert denied.status_code == 403
+    allowed_stats = client.get(f"/api/v1/workspaces/{workspace_id}/graph/stats", headers=api_headers)
+    assert allowed_stats.status_code == 200
+
+    denied_nodes = client.get(f"/api/v1/workspaces/{workspace_id}/graph/nodes", headers=api_headers)
+    assert denied_nodes.status_code == 403
 
     mcp_list = client.post(
         f"/api/v1/workspaces/{workspace_id}/mcp",

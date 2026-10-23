@@ -59,7 +59,8 @@ class ApiTokenRecord:
     last_used_at: str | None
     revoked_at: str | None
     token_secret: str | None
-    allowed_operations: frozenset[str] | None = None
+    mcp_allowed_operations: frozenset[str] | None = None
+    http_allowed_operations: frozenset[str] | None = None
 
     def public(self) -> dict[str, Any]:
         payload: dict[str, Any] = {
@@ -72,8 +73,10 @@ class ApiTokenRecord:
             "last_used_at": self.last_used_at,
             "revoked_at": self.revoked_at,
         }
-        if self.allowed_operations is not None:
-            payload["allowed_operations"] = sorted(self.allowed_operations)
+        if self.mcp_allowed_operations is not None:
+            payload["mcp_allowed_operations"] = sorted(self.mcp_allowed_operations)
+        if self.http_allowed_operations is not None:
+            payload["http_allowed_operations"] = sorted(self.http_allowed_operations)
         if self.revoked_at is None and self.token_secret:
             payload["secret"] = self.token_secret
         return payload
@@ -147,7 +150,7 @@ def workspace_from_row(row: sqlite3.Row | Any) -> Workspace:
 
 
 def api_token_from_row(row: sqlite3.Row | Any) -> ApiTokenRecord:
-    from basis.domain.tenancy.admin.api_token_grants import parse_allowed_operations_json
+    from basis.domain.tenancy.admin.api_token_grants import parse_operation_grants_json
 
     workspace_ids = json.loads(row["workspace_ids_json"] or "[]")
     if not isinstance(workspace_ids, list):
@@ -155,6 +158,7 @@ def api_token_from_row(row: sqlite3.Row | Any) -> ApiTokenRecord:
     keys = row.keys()
     secret = row["token_secret"] if "token_secret" in keys else None
     raw_allowed = row["allowed_operations_json"] if "allowed_operations_json" in keys else None
+    grants = parse_operation_grants_json(raw_allowed)
     return ApiTokenRecord(
         id=row["id"],
         user_id=row["user_id"],
@@ -166,7 +170,8 @@ def api_token_from_row(row: sqlite3.Row | Any) -> ApiTokenRecord:
         last_used_at=row["last_used_at"],
         revoked_at=row["revoked_at"],
         token_secret=secret,
-        allowed_operations=parse_allowed_operations_json(raw_allowed),
+        mcp_allowed_operations=grants.mcp,
+        http_allowed_operations=grants.http,
     )
 
 

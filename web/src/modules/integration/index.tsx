@@ -22,6 +22,8 @@ function parseIntegrationTab(raw: string | null): IntegrationTab {
   return 'mcp';
 }
 
+export { IntegrationTokenNewPage } from '@/modules/integration/pages/token-new.js';
+
 export function IntegrationPage() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -97,8 +99,7 @@ export function IntegrationPage() {
           <ApiTokensPanel
             apiTokens={integration.apiTokens}
             canManageTokens={canManageTokens}
-            availableToolNames={integration.mcpInfo?.tools ?? []}
-            onCreateToken={integration.createApiToken}
+            createTokenPath={`/workspaces/${id}/integration/tokens/new`}
             createdSecret={integration.createdSecret}
             onDismissCreatedSecret={integration.clearCreatedSecret}
             onCopy={integration.copyToClipboard}

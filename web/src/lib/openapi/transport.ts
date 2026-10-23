@@ -141,6 +141,13 @@ export type GraphSearchResponse = {
 export type McpIntegrationInfoResponse = {
   mcp_url: string;
   tools: string[];
+  tool_entries?: Array<{ name: string; description: string; access?: 'read' | 'write' }>;
+  http_operation_entries?: Array<{
+    name: string;
+    description: string;
+    access?: 'read' | 'write';
+    path?: string;
+  }>;
   cursor_example?: {
     mcpServers: Record<string, { url: string; headers: Record<string, string> }>;
   };

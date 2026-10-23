@@ -7,7 +7,7 @@ from typing import Any
 from pydantic import ValidationError
 
 from basis.application.kernel import WorkspaceCoreContext
-from basis.domain.tenancy.admin.api_token_grants import token_allows_operation
+from basis.domain.tenancy.admin.api_token_grants import token_allows_mcp_operation
 from basis.application.tool_catalog.catalog import OPERATIONS, mcp_exposed
 from basis.application.tool_catalog.mcp_metadata import MCP_TOOL_METADATA
 from basis.application.tool_catalog.validation import (
@@ -67,7 +67,7 @@ def input_schema_for_tool(tool_name: str) -> dict[str, Any]:
 
 def run(ctx: WorkspaceCoreContext, name: str, arguments: dict[str, Any] | None) -> dict[str, Any]:
     """Run a registered static operation; returns a plain JSON-serializable dict."""
-    if ctx.api_token is not None and not token_allows_operation(ctx.api_token, name):
+    if ctx.api_token is not None and not token_allows_mcp_operation(ctx.api_token, name):
         return {
             "error": "forbidden",
             "code": "forbidden",

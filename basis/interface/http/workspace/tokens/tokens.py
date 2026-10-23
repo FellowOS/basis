@@ -20,7 +20,15 @@ class CreateWorkspaceApiTokenRequest(BaseModel):
     expires_at: str | None = None
     allowed_operations: list[str] | None = Field(
         default=None,
-        description="Optional MCP tool / HTTP grant ids; omit for unrestricted access.",
+        description="Deprecated: sets both MCP and OpenAPI grants when the split fields are omitted.",
+    )
+    mcp_allowed_operations: list[str] | None = Field(
+        default=None,
+        description="MCP tool names this token may call; omit for unrestricted MCP.",
+    )
+    http_allowed_operations: list[str] | None = Field(
+        default=None,
+        description="Workspace REST route grant ids; omit for unrestricted OpenAPI.",
     )
 
 
@@ -62,6 +70,8 @@ Create workspace API token. Manage workspace API tokens (session + workspace adm
         workspace_ids=[workspace_id],
         expires_at=body.expires_at,
         allowed_operations=body.allowed_operations,
+        mcp_allowed_operations=body.mcp_allowed_operations,
+        http_allowed_operations=body.http_allowed_operations,
     )
     return {"token": record.public(), "secret": plaintext}
 

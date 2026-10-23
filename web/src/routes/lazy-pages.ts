@@ -83,6 +83,11 @@ export const IntegrationPage = lazy(() =>
     default: m.IntegrationPage,
   })),
 );
+export const IntegrationTokenNewPage = lazy(() =>
+  import('@/modules/integration/index.js').then((m) => ({
+    default: m.IntegrationTokenNewPage,
+  })),
+);
 export const LibraryPage = lazy(() =>
   import('@/modules/library/index.js').then((m) => ({ default: m.LibraryPage })),
 );

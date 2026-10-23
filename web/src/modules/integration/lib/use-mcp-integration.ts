@@ -50,23 +50,23 @@ export function useWorkspaceMcpIntegration(workspaceId: string | undefined, canM
     async (
       name: string,
       scope: 'read' | 'write',
-      allowedOperations?: string[] | null,
-    ) => {
+      grants?: { mcp: string[]; http: string[] } | null,
+    ): Promise<string | undefined> => {
       const trimmed = name.trim();
-      if (!workspaceId || !trimmed) return;
+      if (!workspaceId || !trimmed) return undefined;
       try {
         const body = await workspaceOpenApiPOST<{ secret: string }>(workspaceId, 'tokens', {
           body: {
             name: trimmed,
             scope,
-            ...(allowedOperations && allowedOperations.length > 0
-              ? { allowed_operations: allowedOperations }
-              : {}),
+            ...(grants?.mcp?.length ? { mcp_allowed_operations: grants.mcp } : {}),
+            ...(grants?.http?.length ? { http_allowed_operations: grants.http } : {}),
           },
         });
         setCreatedSecret(body.secret);
         await reloadTokens();
         toast.success(t.integration.mcp.secret_once);
+        return body.secret;
       } catch (err) {
         toast.error(apiError(err));
         throw err;

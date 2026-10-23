@@ -11,7 +11,9 @@ from basis.interface.http.shared.deps import get_store, resolve_bearer
 from basis.interface.http.shared.core_context import build_workspace_core_context
 from basis.interface.mcp.protocol import handle_batch
 from basis.application.tool_catalog import TOOL_NAMES
+from basis.application.tool_catalog.mcp_access import mcp_tool_access
 from basis.interface.mcp.dispatch import get_tool_definitions
+from basis.interface.http.shared.http_operation_catalog import workspace_http_operation_entries
 from basis.interface.mcp.tools import PROTOCOL_VERSION
 
 router = APIRouter(tags=["mcp"])
@@ -29,9 +31,20 @@ Mcp Integration Info. MCP JSON-RPC transport for agent integrations. Requires wo
     user, _auth_kind = resolve_bearer(request, authorization)
     store = get_store(request)
     ctx = build_workspace_core_context(request, workspace_id=workspace_id, user=user, store=store)
-    tool_names = [t["name"] for t in get_tool_definitions(ctx)]
+    tool_definitions = get_tool_definitions(ctx)
+    tool_names = [t["name"] for t in tool_definitions]
+    tool_entries = [
+        {
+            "name": name,
+            "description": str(t.get("description") or name or "").strip(),
+            "access": mcp_tool_access(name),
+        }
+        for t in tool_definitions
+        if (name := str(t.get("name") or "").strip())
+    ]
     base = str(request.base_url).rstrip("/")
     mcp_url = f"{base}/api/v1/workspaces/{workspace_id}/mcp"
+    http_operation_entries = workspace_http_operation_entries(request.app)
     return {
         "workspace_id": workspace_id,
         "workspace_name": ctx.workspace.name,
@@ -40,6 +53,8 @@ Mcp Integration Info. MCP JSON-RPC transport for agent integrations. Requires wo
         "protocol_version": PROTOCOL_VERSION,
         "auth": {"type": "bearer", "header": "Authorization", "prefix": "Bearer "},
         "tools": tool_names,
+        "tool_entries": tool_entries,
+        "http_operation_entries": http_operation_entries,
         "static_tools": list(TOOL_NAMES),
         "cursor_example": {
             "mcpServers": {

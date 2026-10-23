@@ -17,7 +17,36 @@ def _pick_connection_winner(rows: list[dict[str, Any]]) -> dict[str, Any]:
     return max(pool, key=lambda r: int(r.get("revision") or 0))
 
 
+def _table_exists(conn: Connection, table: str) -> bool:
+    dialect = conn.dialect.name
+    if dialect == "sqlite":
+        row = conn.execute(
+            text(
+                """
+                SELECT 1 FROM sqlite_master
+                WHERE type = 'table' AND name = :table
+                LIMIT 1
+                """
+            ),
+            {"table": table},
+        ).fetchone()
+        return row is not None
+    row = conn.execute(
+        text(
+            """
+            SELECT 1 FROM information_schema.tables
+            WHERE table_name = :table
+            LIMIT 1
+            """
+        ),
+        {"table": table},
+    ).fetchone()
+    return row is not None
+
+
 def _table_has_column(conn: Connection, table: str, column: str) -> bool:
+    if not _table_exists(conn, table):
+        return False
     dialect = conn.dialect.name
     if dialect == "sqlite":
         rows = conn.execute(text(f"PRAGMA table_info({table})")).fetchall()
@@ -179,17 +208,35 @@ def _drop_connector_runs_connection_name(conn: Connection) -> None:
 
 
 def _strip_connection_name_from_ingest_sources(conn: Connection) -> None:
+    if not _table_exists(conn, "ingest_sources"):
+        return
+    if not _table_has_column(conn, "ingest_sources", "config_json"):
+        return
+
+    has_workspace_id = _table_has_column(conn, "ingest_sources", "workspace_id")
+    has_kind = _table_has_column(conn, "ingest_sources", "kind")
+    has_deleted_at = _table_has_column(conn, "ingest_sources", "deleted_at")
+
+    select_cols = ["id", "config_json"]
+    if has_workspace_id:
+        select_cols = ["id", "workspace_id", "config_json"]
+
+    where_parts: list[str] = []
+    if has_kind:
+        where_parts.append("kind = 'connector'")
+    if has_deleted_at:
+        where_parts.append("deleted_at IS NULL")
+    where_sql = f" WHERE {' AND '.join(where_parts)}" if where_parts else ""
+
     rows = conn.execute(
-        text(
-            """
-            SELECT id, workspace_id, config_json
-            FROM ingest_sources
-            WHERE kind = 'connector' AND deleted_at IS NULL
-            """
-        )
+        text(f"SELECT {', '.join(select_cols)} FROM ingest_sources{where_sql}")
     ).fetchall()
     for row in rows:
-        source_id, workspace_id, config_raw = row[0], row[1], row[2]
+        if has_workspace_id:
+            source_id, workspace_id, config_raw = row[0], row[1], row[2]
+        else:
+            source_id, config_raw = row[0], row[1]
+            workspace_id = None
         try:
             cfg = json.loads(config_raw) if config_raw else {}
         except json.JSONDecodeError:
@@ -197,17 +244,29 @@ def _strip_connection_name_from_ingest_sources(conn: Connection) -> None:
         if not isinstance(cfg, dict) or "connection_name" not in cfg:
             continue
         cfg.pop("connection_name", None)
-        conn.execute(
-            text(
-                """
-                UPDATE ingest_sources
-                SET config_json = :config_json
-                WHERE workspace_id = :workspace_id AND id = :source_id
-                """
-            ),
-            {
-                "config_json": json.dumps(cfg, ensure_ascii=False),
-                "workspace_id": workspace_id,
-                "source_id": source_id,
-            },
-        )
+        payload = {
+            "config_json": json.dumps(cfg, ensure_ascii=False),
+            "source_id": source_id,
+        }
+        if has_workspace_id and workspace_id is not None:
+            conn.execute(
+                text(
+                    """
+                    UPDATE ingest_sources
+                    SET config_json = :config_json
+                    WHERE workspace_id = :workspace_id AND id = :source_id
+                    """
+                ),
+                {**payload, "workspace_id": workspace_id},
+            )
+        else:
+            conn.execute(
+                text(
+                    """
+                    UPDATE ingest_sources
+                    SET config_json = :config_json
+                    WHERE id = :source_id
+                    """
+                ),
+                payload,
+            )
