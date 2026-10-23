@@ -87,6 +87,7 @@ test('connector oauth callback exchanges code and returns to catalog', async ({ 
           connectionConfig: {},
           state: oauthState,
           redirectUri,
+          codeVerifier: 'e2e-pkce-verifier',
         }),
       );
     },
@@ -117,7 +118,9 @@ test('connector oauth callback exchanges code and returns to catalog', async ({ 
   await expect(page).toHaveURL(new RegExp(`/workspaces/${workspaceId}/connectors`), {
     timeout: 30_000,
   });
-  await expect(page.getByTestId('connectors-panel-catalog')).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByTestId('connectors-catalog-section-authorizations')).toBeVisible({
+    timeout: 30_000,
+  });
 });
 
 test('connector oauth callback exchanges via API playwright stub', async ({ page }) => {
@@ -134,7 +137,7 @@ test('connector oauth callback exchanges via API playwright stub', async ({ page
   );
   await putE2eGithubOAuthConfig(page, workspaceId, redirectUri);
   await page.evaluate(
-    ({ workspaceId: wid, state: oauthState, redirectUri: redir }) => {
+    ({ workspaceId: wid, state: oauthState, redirectUri: redir, codeVerifier }) => {
       sessionStorage.setItem(
         'basis_bocp_oauth_pending',
         JSON.stringify({
@@ -143,10 +146,11 @@ test('connector oauth callback exchanges via API playwright stub', async ({ page
           connectionConfig: {},
           state: oauthState,
           redirectUri: redir,
+          codeVerifier,
         }),
       );
     },
-    { workspaceId, state, redirectUri },
+    { workspaceId, state, redirectUri, codeVerifier: 'e2e-pkce-verifier' },
   );
 
   const exchangeRequest = page.waitForRequest(
@@ -162,7 +166,9 @@ test('connector oauth callback exchanges via API playwright stub', async ({ page
   await expect(page).toHaveURL(new RegExp(`/workspaces/${workspaceId}/connectors`), {
     timeout: 30_000,
   });
-  await expect(page.getByTestId('connectors-panel-catalog')).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByTestId('connectors-catalog-section-authorizations')).toBeVisible({
+    timeout: 30_000,
+  });
 });
 
 test('connector oauth callback without session shows error', async ({ page }) => {
@@ -177,6 +183,6 @@ test('connector oauth callback without session shows error', async ({ page }) =>
     page.getByText(/Missing authorization|缺少授权|session|会话/i).first(),
   ).toBeVisible();
   await expect(
-    page.getByRole('link', { name: /Back to connector catalog|返回连接器目录/i }),
+    page.getByRole('link', { name: /Back to Authorization|返回授权/i }),
   ).toBeVisible();
 });

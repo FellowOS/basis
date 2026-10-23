@@ -10,10 +10,13 @@ test('connectors workspace displays BOCP catalog, policy, and mappings tabs', as
   const workspaceId = await defaultWorkspaceId(page);
 
   await page.goto(`/workspaces/${workspaceId}/connectors`);
+  await expect(page.getByTestId('connectors-panel-catalog')).toBeVisible({ timeout: 30_000 });
 
-  // Verify catalog panel loads built-in stream-enabled connectors (postgres, github, …)
-  await expect(page.getByTestId('catalog-connector-card-postgres')).toBeVisible({ timeout: 30_000 });
-  await expect(page.getByTestId('catalog-connector-card-github')).toBeVisible();
+  await page.getByTestId('connectors-add-app-btn').click();
+  await expect(page.getByTestId('connectors-add-app-dialog')).toBeVisible();
+  await expect(page.getByTestId('add-app-pick-postgres')).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByTestId('add-app-pick-github')).toBeVisible();
+  await page.keyboard.press('Escape');
 
   await page.goto(`/workspaces/${workspaceId}/connectors/policy`);
   const policyInput = page.getByTestId('policy-allowed-providers-input');
@@ -52,9 +55,9 @@ test('connector writeback review item renders Before -> After field diff card in
   expect(putConn.ok()).toBeTruthy();
 
   await page.goto(
-    `/workspaces/${workspaceId}/connectors/mappings/new?service=postgres&connection=e2e_erp`,
+    `/workspaces/${workspaceId}/connectors/mappings/new?service=postgres&connection=postgres`,
   );
   await expect(page).toHaveURL(new RegExp(`/workspaces/${workspaceId}/connectors/mappings/new`));
   await expect(page.getByTestId('mapping-connection-select')).toBeVisible();
-  await expect(page.getByTestId('mapping-connection-select')).toContainText('e2e_erp');
+  await expect(page.getByTestId('mapping-connection-select')).toContainText('postgres');
 });

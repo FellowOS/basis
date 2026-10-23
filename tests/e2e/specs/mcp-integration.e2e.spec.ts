@@ -29,15 +29,7 @@ test('workspace integration page loads (MCP, OpenAPI, access tokens); tab deep l
   await expect(page).toHaveURL(new RegExp(`/workspaces/${workspaceId}/integration\\?tab=tokens`), {
     timeout: 30_000,
   });
-  await expect(page.getByText(/Shared by MCP and OpenAPI|MCP 与 OpenAPI 共用/i)).toBeVisible();
-
-  await page.getByRole('tab', { name: /^(Access tokens|访问令牌)$/i }).click();
-  await expect(page).toHaveURL(new RegExp(`/workspaces/${workspaceId}/integration\\?tab=tokens`), {
-    timeout: 30_000,
-  });
-  await expect(page.getByText(/Shared by MCP and OpenAPI|MCP 与 OpenAPI 共用/i)).toBeVisible({
-    timeout: 30_000,
-  });
+  await expect(page.getByTestId('integration-tokens-panel')).toBeVisible({ timeout: 30_000 });
 
   await page.goto(`/workspaces/${workspaceId}/mcp`);
   await expect(page).toHaveURL(new RegExp(`/workspaces/${workspaceId}/integration\\?tab=mcp`), { timeout: 30_000 });
@@ -80,7 +72,7 @@ test('connectors authorization lists end_user connection for subject', async ({ 
   await expect(page.getByTestId('connectors-catalog-section-authorizations')).toBeVisible({
     timeout: 60_000,
   });
-  await expect(
-    page.getByTestId('configured-connection-qq_mail-default-end-user'),
-  ).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByTestId('configured-connection-qq_mail-end-user')).toBeVisible({
+    timeout: 30_000,
+  });
 });

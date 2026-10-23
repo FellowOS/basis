@@ -1,11 +1,19 @@
 import type { IconType } from 'react-icons';
-import type { ReactNode } from 'react';
+import type { HTMLAttributes, ReactNode } from 'react';
 import { Card, CardSubtitle } from '@/components/app/shared/console/Card.js';
 import { getPublicIconComponent } from '@/lib/marketing/public-icon-map.js';
 import { cn } from '@/lib/utils.js';
 
-export function DataPanel({ className, children }: { className?: string; children: ReactNode }) {
-  return <div className={cn('flex flex-col gap-2', className)}>{children}</div>;
+export function DataPanel({
+  className,
+  children,
+  ...rest
+}: { className?: string; children: ReactNode } & HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div className={cn('flex flex-col gap-2', className)} {...rest}>
+      {children}
+    </div>
+  );
 }
 
 export function DataPanelHeader({
