@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from basis.domain.connector.canonical_db import LockedCanonicalConn
+from basis.domain.knowledge.connector_port import LockedCanonicalConn
 
 
 class ConnectorVaultPersistence:

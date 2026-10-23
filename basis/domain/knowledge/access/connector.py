@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any, TYPE_CHECKING
 
-from basis.domain.connector.canonical_db import LockedCanonicalConn
+from basis.domain.knowledge.connector_port import LockedCanonicalConn
 from basis.domain.knowledge.sql_connector_sync import ConnectorSyncPersistence
 from basis.domain.knowledge.sql_connector_vault import ConnectorVaultPersistence
 

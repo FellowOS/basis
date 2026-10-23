@@ -15,16 +15,7 @@ IMPORT_RE = re.compile(
     re.MULTILINE,
 )
 
-ALLOWED_FILES = frozenset(
-    {
-        KNOWLEDGE / "connector_port.py",
-        KNOWLEDGE / "sql_connector_vault.py",
-        KNOWLEDGE / "sql_connector_sync.py",
-        KNOWLEDGE / "sql_graph_staging.py",
-        KNOWLEDGE / "access" / "graph_staging.py",
-        KNOWLEDGE / "access" / "connector.py",
-    }
-)
+ALLOWED_FILES = frozenset({KNOWLEDGE / "connector_port.py"})
 
 
 def main() -> int:
@@ -42,7 +33,7 @@ def main() -> int:
         for line in errors:
             print(line, file=sys.stderr)
         return 1
-    print(f"OK: knowledge connector imports limited to {len(ALLOWED_FILES)} modules + port.")
+    print("OK: knowledge imports domain.connector only via connector_port.py.")
     return 0
 
 
