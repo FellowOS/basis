@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import os
 import threading
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import asynccontextmanager
@@ -100,6 +101,24 @@ async def _app_lifespan(app: FastAPI):
             executor.shutdown(wait=True, cancel_futures=False)
 
 
+def _cors_allow_origins() -> list[str]:
+    origins = [
+        "http://127.0.0.1:5173",
+        "http://localhost:5173",
+        "http://127.0.0.1:3001",
+        "http://localhost:3001",
+    ]
+    if os.environ.get("BASIS_E2E") == "1":
+        for port in (5174, 5175):
+            origins.extend(
+                (
+                    f"http://127.0.0.1:{port}",
+                    f"http://localhost:{port}",
+                )
+            )
+    return origins
+
+
 def create_app(app_settings: Settings | None = None) -> FastAPI:
     app_settings = app_settings or Settings.from_env()
     app_settings.validate_for_startup()
@@ -153,12 +172,7 @@ def create_app(app_settings: Settings | None = None) -> FastAPI:
 
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=[
-            "http://127.0.0.1:5173",
-            "http://localhost:5173",
-            "http://127.0.0.1:3001",
-            "http://localhost:3001",
-        ],
+        allow_origins=_cors_allow_origins(),
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["Authorization", "Content-Type", "X-Request-ID"],

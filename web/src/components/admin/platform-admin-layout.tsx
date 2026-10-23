@@ -2,7 +2,7 @@ import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { Spinner } from '@/components/ui/spinner.js';
 import { useI18n } from '@/i18n/context.js';
 import { useBasisSession } from '@/lib/session/basis-session.js';
-import { basisIsDesktopProduct } from '@/lib/runtime/basis-runtime.js';
+import { appAuthRequired, basisIsDesktopProduct } from '@/lib/runtime/basis-runtime.js';
 import { visiblePlatformNavItems } from '@/lib/nav/nav-config.js';
 import { useSettingsAccess } from '@/lib/shell/use-settings-access.js';
 
@@ -22,11 +22,13 @@ export function PlatformAdminLayout() {
   const { ready, user, isAdmin, homePath } = useBasisSession();
   const location = useLocation();
   const canSettings = useSettingsAccess();
-  const settingsReady = isAdmin || canSettings !== null;
   const desktopProduct = basisIsDesktopProduct();
+  const authRequired = appAuthRequired();
+  const settingsReady =
+    isAdmin || canSettings !== null || (desktopProduct && !authRequired);
   const items = visiblePlatformNavItems(isAdmin, canSettings === true, desktopProduct);
 
-  if (!ready || !user) {
+  if (!ready || (!user && authRequired)) {
     return (
       <div className="flex flex-1 items-center justify-center gap-2 text-sm text-muted-foreground">
         <Spinner className="size-4" />

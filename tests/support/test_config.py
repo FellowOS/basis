@@ -40,29 +40,11 @@ def _setenv_if_empty(key: str, value: str | None) -> None:
 
 
 def apply_test_config() -> Path | None:
-    """Merge YAML into ``os.environ`` for keys pytest and E2E fixtures expect."""
+    """Merge Postgres settings from YAML into ``os.environ`` for pytest fixtures."""
     path = test_config_path()
     cfg = load_test_config()
     pg = cfg.get("postgres") if isinstance(cfg.get("postgres"), dict) else {}
     if isinstance(pg, dict):
         _setenv_if_empty("BASIS_TEST_POSTGRES_URL", pg.get("admin_url"))
         _setenv_if_empty("BASIS_TEST_POSTGRES_EXTERNAL_URL", pg.get("sql_target_url"))
-    gh = cfg.get("github") if isinstance(cfg.get("github"), dict) else {}
-    if isinstance(gh, dict):
-        _setenv_if_empty("BASIS_TEST_GITHUB_TOKEN", gh.get("token"))
-        _setenv_if_empty("BASIS_TEST_GITHUB_OWNER", gh.get("owner"))
-        _setenv_if_empty("BASIS_TEST_GITHUB_REPO", gh.get("repo"))
-        token = gh.get("token")
-        if token:
-            _setenv_if_empty("BASIS_E2E_GITHUB_TOKEN", token)
-        if gh.get("e2e_run_sync") in (True, "1", 1):
-            _setenv_if_empty("BASIS_E2E_GITHUB_RUN_SYNC", "1")
-    e2e = cfg.get("e2e") if isinstance(cfg.get("e2e"), dict) else {}
-    if isinstance(e2e, dict):
-        if e2e.get("api_port") is not None:
-            _setenv_if_empty("BASIS_E2E_API_PORT", str(e2e.get("api_port")))
-        if e2e.get("web_port") is not None:
-            _setenv_if_empty("BASIS_E2E_WEB_PORT", str(e2e.get("web_port")))
-        if e2e.get("demo_workspace"):
-            _setenv_if_empty("BASIS_DEMO_WORKSPACE", "1")
     return path if path.is_file() else None

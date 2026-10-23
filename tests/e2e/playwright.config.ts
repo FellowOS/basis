@@ -26,7 +26,9 @@ function e2eApiEnv(): Record<string, string> {
   env.BASIS_HOST = '127.0.0.1';
   env.BASIS_PORT = String(apiPort);
   env.BASIS_INGEST_INLINE = '1';
-  env.BASIS_DEMO_WORKSPACE = '1';
+  if (e2eProfile.demo_workspace) {
+    env.BASIS_DEMO_WORKSPACE = '1';
+  }
   if (desktopE2e) {
     env.BASIS_DEPLOYMENT_PROFILE = 'desktop';
     env.BASIS_PROFILE = 'desktop';
@@ -40,15 +42,19 @@ const webServerCommand = desktopE2e
   ? `npx vite --mode desktop --host 127.0.0.1 --port ${webPort} --strictPort`
   : 'node --experimental-strip-types server/dev.ts';
 
+function desktopWebServerEnv(): Record<string, string> {
+  const env = { ...process.env } as Record<string, string>;
+  delete env.VITE_BASIS_API_URL;
+  env.BASIS_E2E = '1';
+  env.BASIS_E2E_API_PROXY = `http://127.0.0.1:${apiPort}`;
+  env.VITE_BASIS_AUTH_REQUIRED = 'false';
+  env.VITE_BASIS_DESKTOP = 'true';
+  env.WEB_HMR_PORT = String(hmrPort);
+  return env;
+}
+
 const webServerEnv: Record<string, string> = desktopE2e
-  ? {
-      ...process.env,
-      BASIS_E2E: '1',
-      VITE_BASIS_API_URL: `http://127.0.0.1:${apiPort}`,
-      VITE_BASIS_AUTH_REQUIRED: 'false',
-      VITE_BASIS_DESKTOP: 'true',
-      WEB_HMR_PORT: String(hmrPort),
-    }
+  ? desktopWebServerEnv()
   : {
       ...process.env,
       BASIS_E2E: '1',

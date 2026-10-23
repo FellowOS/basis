@@ -1,5 +1,5 @@
 # Test harness settings (pytest integration + Playwright E2E). See tests/README.md.
-# Shell or CI env overrides YAML (use for secrets; do not commit tokens here).
+# Shell or CI env overrides YAML (secrets: BASIS_TEST_GITHUB_* / BASIS_E2E_GITHUB_*).
 
 postgres:
   # Admin URL for CREATEDB / ephemeral test databases. Matches CI postgres service and
@@ -7,13 +7,6 @@ postgres:
   admin_url: postgresql://basis:basis@127.0.0.1:5432/postgres
   # Optional writable target for BOCP SQL connector tests when CREATEDB is denied.
   # sql_target_url: postgresql://basis:basis@127.0.0.1:5432/basis
-
-github:
-  # Live GitHub (pytest + E2E) — leave empty in repo; use BASIS_TEST_GITHUB_* / BASIS_E2E_GITHUB_* env.
-  token: ""
-  owner: ""
-  repo: ""
-  e2e_run_sync: false
 
 e2e:
   api_port: 8091

@@ -90,14 +90,5 @@ export function applyTestConfigEnv(desktop: boolean): E2eProfile {
   if (profile.demo_workspace) {
     setEnvIfEmpty('BASIS_DEMO_WORKSPACE', '1');
   }
-  const cfg = loadTestConfig();
-  const gh = asObject(cfg.github);
-  setEnvIfEmpty('BASIS_E2E_GITHUB_TOKEN', typeof gh.token === 'string' ? gh.token : undefined);
-  setEnvIfEmpty('BASIS_TEST_GITHUB_TOKEN', typeof gh.token === 'string' ? gh.token : undefined);
-  setEnvIfEmpty('BASIS_TEST_GITHUB_OWNER', typeof gh.owner === 'string' ? gh.owner : undefined);
-  setEnvIfEmpty('BASIS_TEST_GITHUB_REPO', typeof gh.repo === 'string' ? gh.repo : undefined);
-  if (gh.e2e_run_sync === true || gh.e2e_run_sync === '1') {
-    setEnvIfEmpty('BASIS_E2E_GITHUB_RUN_SYNC', '1');
-  }
   return profile;
 }

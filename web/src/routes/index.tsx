@@ -38,7 +38,7 @@ import {
   SwaggerPage,
   UsersPage,
 } from '@/routes/lazy-pages.js';
-import { basisAuthRequired, basisIsDesktopProduct } from '@/lib/runtime/basis-runtime.js';
+import { basisAuthRequired } from '@/lib/runtime/basis-runtime.js';
 import { useBasisSession } from '@/lib/session/basis-session.js';
 import { AnalyzeHubTabRedirect, OntologyHubTabRedirect } from '@/modules/analyze/lib/hub-route.js';
 import { AdminLandingRedirect } from '@/routes/admin-landing-redirect.js';
@@ -78,7 +78,6 @@ function OntologyVersionsLegacyRedirect() {
 export function AppRoutes() {
   const { ready, user, homePath, logout } = useBasisSession();
   const authRequired = basisAuthRequired();
-  const desktopProduct = basisIsDesktopProduct();
 
   return (
     <Routes>
@@ -132,13 +131,9 @@ export function AppRoutes() {
           <Route
             path="users"
             element={
-              desktopProduct ? (
-                <Navigate to={homePath} replace />
-              ) : (
-                <AdminOnly>
-                  <Lazy><UsersPage /></Lazy>
-                </AdminOnly>
-              )
+              <AdminOnly>
+                <Lazy><UsersPage /></Lazy>
+              </AdminOnly>
             }
           />
           <Route
@@ -168,13 +163,9 @@ export function AppRoutes() {
           <Route
             path="settings"
             element={
-              desktopProduct ? (
-                <Navigate to={homePath} replace />
-              ) : (
-                <SettingsAccess>
-                  <Lazy><SettingsPage /></Lazy>
-                </SettingsAccess>
-              )
+              <SettingsAccess>
+                <Lazy><SettingsPage /></Lazy>
+              </SettingsAccess>
             }
           />
         </Route>

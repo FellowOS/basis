@@ -58,8 +58,9 @@ Harness settings live in **`tests/test.yaml`** only (pytest, Playwright E2E, and
 |----------|-------------------------|-----------|
 | `postgres.admin_url` | `BASIS_TEST_POSTGRES_URL` | Postgres integration + BOCP SQL connector tests |
 | `postgres.sql_target_url` | `BASIS_TEST_POSTGRES_EXTERNAL_URL` | Fixed writable DB for SQL connector tests |
-| `github.*` | `BASIS_TEST_GITHUB_*`, `BASIS_E2E_GITHUB_*` | Live GitHub (pytest + `connector-mapping-suggest.e2e.spec.ts`) |
-| `e2e` / `e2e_desktop` | `BASIS_E2E_*_PORT`, `BASIS_DEMO_WORKSPACE` | Playwright stack ports (`BASIS_E2E_DESKTOP=1` uses `e2e_desktop`) |
+| `e2e` / `e2e_desktop` | `BASIS_E2E_*_PORT`, `BASIS_DEMO_WORKSPACE` | Playwright only (`BASIS_E2E_DESKTOP=1` → `e2e_desktop`) |
+
+Live GitHub (optional): `BASIS_TEST_GITHUB_*` (pytest), `BASIS_E2E_GITHUB_*` (E2E) — **env only**, not in `test.yaml`.
 
 Default `uv run pytest -q` uses SQLite for app tests; `@pytest.mark.integration` Postgres tests **skip** when the configured server is unreachable (no Docker / no CI service).
 

@@ -34,7 +34,7 @@ def github_integration() -> dict[str, str]:
     token = (os.environ.get("BASIS_TEST_GITHUB_TOKEN") or "").strip()
     if not token:
         pytest.skip(
-            "BASIS_TEST_GITHUB_TOKEN is not set; export it or set github.token via env"
+            "BASIS_TEST_GITHUB_TOKEN is not set; export BASIS_TEST_GITHUB_* for live GitHub tests"
         )
     owner = (os.environ.get("BASIS_TEST_GITHUB_OWNER") or "").strip()
     repo = (os.environ.get("BASIS_TEST_GITHUB_REPO") or "").strip()

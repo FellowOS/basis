@@ -8,7 +8,11 @@ import { defineConfig } from 'vite';
 const root = path.dirname(fileURLToPath(import.meta.url));
 
 function desktopApiProxyTarget(): string {
-  return (process.env.VITE_BASIS_API_URL ?? 'http://127.0.0.1:8090').replace(/\/$/, '');
+  const raw =
+    process.env.BASIS_E2E_API_PROXY ??
+    process.env.VITE_BASIS_API_URL ??
+    'http://127.0.0.1:8090';
+  return raw.replace(/\/$/, '');
 }
 
 function hmrFromEnv(): { port: number; clientPort: number } | undefined {
