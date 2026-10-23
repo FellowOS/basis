@@ -7,13 +7,11 @@ from dataclasses import dataclass
 from typing import Any, Callable
 
 from basis.domain.errors import AdminError
-from basis.domain.bridges.graph_session import (
-    GraphRuntime,
-    import_graph_file,
-    merge_nodes,
-    record_governance_decision_for_workspace,
-    require_graph_session,
-)
+from basis.domain.graph.governance.decision import record_governance_decision_for_workspace
+from basis.domain.graph.governance.enrich_write import merge_nodes
+from basis.domain.graph.reads.import_write import import_graph_file
+from basis.domain.graph.session.guard import require_graph_session
+from basis.domain.graph.session.registry import GraphRuntime
 from basis.domain.graph.projection.projection_lifecycle import GraphProjectionBindings
 from basis.domain.knowledge.blob_store import BlobStore
 from basis.domain.knowledge.ports.platform import WorkspaceAuditActor, WorkspaceAuditStore

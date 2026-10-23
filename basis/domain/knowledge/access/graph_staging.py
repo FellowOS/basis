@@ -5,9 +5,9 @@ from __future__ import annotations
 from typing import Any, TYPE_CHECKING
 
 from basis.domain.knowledge.connector_port import LockedCanonicalConn
-from basis.domain.bridges.graph_session import (
+from basis.domain.graph.reads.diff import diff_session_at
+from basis.domain.graph.reads.staging import (
     build_graph_staging_payload,
-    diff_session_at,
     staging_session_key,
 )
 from basis.domain.knowledge.persistence.sql_graph_staging import GraphStagingPersistence
