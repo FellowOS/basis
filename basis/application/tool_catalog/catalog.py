@@ -1,4 +1,8 @@
-"""Static tool name → handler registry."""
+"""Static tool name → handler registry.
+
+New MCP tools: BC ``operations.op_*``, entry here, ``mcp_metadata`` description, and
+``schemas.TOOL_INPUT_MODELS`` (see AGENTS.md). HTTP routes are registered separately.
+"""
 
 from __future__ import annotations
 

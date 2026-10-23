@@ -34,6 +34,14 @@ def _mcp_call(
     return json.loads(body["result"]["content"][0]["text"])
 
 
+def _http_manifest_auth_modes(row: dict) -> list[str]:
+    return [
+        entry["auth_mode"]
+        for entry in (row.get("auth") or [])
+        if isinstance(entry, dict) and entry.get("auth_mode")
+    ]
+
+
 def _auth_client(tmp_path: Path) -> tuple[TestClient, str, dict[str, str]]:
     client = TestClient(create_app(Settings(data_dir=tmp_path / "parity")))
     reg = client.post(
@@ -106,6 +114,12 @@ def test_list_catalog_services_http_matches_mcp(tmp_path: Path) -> None:
     http_services = {c["service"] for c in http_list.json()["connectors"]}
     assert mcp_services == http_services
     assert "postgres" in mcp_services
+    http_by_service = {c["service"]: c for c in http_list.json()["connectors"]}
+    for mcp_row in mcp_list["connectors"]:
+        http_row = http_by_service[mcp_row["service"]]
+        for key in ("service", "display_name", "description", "categories"):
+            assert mcp_row[key] == http_row[key]
+        assert mcp_row["auth_modes"] == _http_manifest_auth_modes(http_row)
 
 
 def test_describe_connector_service_http_matches_mcp(tmp_path: Path) -> None:
@@ -127,12 +141,7 @@ def test_describe_connector_service_http_matches_mcp(tmp_path: Path) -> None:
     mcp_conn = mcp_detail["connector"]
     for key in ("service", "display_name", "description", "categories"):
         assert mcp_conn[key] == http_conn[key]
-    http_auth_modes = [
-        entry["auth_mode"]
-        for entry in (http_conn.get("auth") or [])
-        if isinstance(entry, dict) and entry.get("auth_mode")
-    ]
-    assert mcp_conn["auth_modes"] == http_auth_modes
+    assert mcp_conn["auth_modes"] == _http_manifest_auth_modes(http_conn)
     assert mcp_conn["stream_count"] >= 1
     assert len(mcp_conn.get("streams") or []) >= 1
     # Full HTTP manifest may omit or reshape top-level streams[] while MCP exposes slices.
