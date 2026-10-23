@@ -13,7 +13,7 @@ HTTP = ROOT / "basis" / "interface" / "http"
 AGGREGATORS = (
     "documents.py",
     "graph.py",
-    "graph_session_routes.py",
+    "workspace/graph/graph_session_routes.py",
     "connectors.py",
     "ledger.py",
     "sources.py",

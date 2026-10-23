@@ -22,7 +22,7 @@ from basis.domain.tenancy.identity.saml_client import (
 )
 from basis.domain.tenancy.identity.state import new_nonce, sign_oauth_state, verify_oauth_state
 
-from basis.interface.http.platform_auth_support import auth_settings, redirect_with_token
+from basis.interface.http.platform.auth.auth_support import auth_settings, redirect_with_token
 
 router = APIRouter()
 

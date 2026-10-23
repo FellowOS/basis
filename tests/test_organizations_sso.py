@@ -113,7 +113,7 @@ def test_org_oidc_start_redirects_to_idp(tmp_path: Path) -> None:
         "token_endpoint": "https://idp.example.com/token",
     }
     with patch(
-        "basis.interface.http.platform_auth_oidc.fetch_oidc_metadata",
+        "basis.interface.http.platform.auth.auth_oidc.fetch_oidc_metadata",
         new_callable=AsyncMock,
         return_value=metadata,
     ):

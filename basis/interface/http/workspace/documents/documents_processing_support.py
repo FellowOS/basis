@@ -11,7 +11,7 @@ from basis.domain.errors import AdminError
 from basis.domain.tenancy.admin.store import AdminStore
 from basis.domain.knowledge.ledger_rows import StoreDocumentOutcome
 from basis.domain.knowledge.store import KnowledgeStore
-from basis.interface.http.ingest_helpers import ingest_accept_payload
+from basis.interface.http.workspace.documents.ingest_helpers import ingest_accept_payload
 from basis.domain.knowledge.pipeline.document import TextIngestOptions
 from basis.interface.http.workspace.documents.documents_models import StartProcessingRequest
 

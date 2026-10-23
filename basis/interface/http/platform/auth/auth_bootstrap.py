@@ -11,7 +11,7 @@ from basis.interface.http.deps import get_store
 from basis.domain.tenancy.identity.http_paths import auth_v1_path
 from basis.domain.tenancy.identity.saml_capabilities import saml_sp_available
 
-from basis.interface.http.platform_auth_support import auth_settings
+from basis.interface.http.platform.auth.auth_support import auth_settings
 
 router = APIRouter()
 

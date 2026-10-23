@@ -16,7 +16,7 @@ from basis.domain.tenancy.identity.oauth_client import (
 from basis.domain.tenancy.identity.http_paths import auth_v1_path
 from basis.domain.tenancy.identity.state import new_nonce, sign_oauth_state, verify_oauth_state
 
-from basis.interface.http.platform_auth_support import auth_settings, redirect_with_token
+from basis.interface.http.platform.auth.auth_support import auth_settings, redirect_with_token
 
 router = APIRouter()
 

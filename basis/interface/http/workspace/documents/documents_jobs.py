@@ -22,7 +22,7 @@ from basis.interface.http.core_context import build_workspace_core_context
 from basis.interface.http.operation_http import http_response_from_payload
 from basis.application.workspace.operations import op_list_processing_jobs
 from basis.domain.knowledge.store import KnowledgeStore
-from basis.interface.http.ingest_helpers import respond_ingest
+from basis.interface.http.workspace.documents.ingest_helpers import respond_ingest
 from basis.domain.knowledge.pipeline.file_ingest import FileParseError
 from basis.domain.knowledge.pipeline.extract_timeout import ExtractionTimeoutError
 from basis.domain.knowledge.pipeline.version_ingest import ExtractTextTooLargeError, TooManyChunksError

@@ -4,12 +4,12 @@ from __future__ import annotations
 
 from fastapi import APIRouter
 
-from basis.interface.http.platform_auth_bootstrap import router as bootstrap_router
-from basis.interface.http.platform_auth_magic_link import router as magic_link_router
-from basis.interface.http.platform_auth_oidc import router as oidc_router
-from basis.interface.http.platform_auth_saml import router as saml_router
-from basis.interface.http.platform_auth_session import router as session_router
-from basis.interface.http.platform_auth_social import router as social_router
+from basis.interface.http.platform.auth.auth_bootstrap import router as bootstrap_router
+from basis.interface.http.platform.auth.auth_magic_link import router as magic_link_router
+from basis.interface.http.platform.auth.auth_oidc import router as oidc_router
+from basis.interface.http.platform.auth.auth_saml import router as saml_router
+from basis.interface.http.platform.auth.auth_session import router as session_router
+from basis.interface.http.platform.auth.auth_social import router as social_router
 
 router = APIRouter(tags=["auth"])
 router.include_router(session_router)

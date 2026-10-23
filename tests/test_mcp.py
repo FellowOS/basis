@@ -323,7 +323,7 @@ def test_mcp_timeout(tmp_path) -> None:
         time.sleep(2)
         return {"jsonrpc": "2.0", "id": 1, "result": {}}
 
-    with patch("basis.interface.http.platform_mcp.handle_batch", side_effect=slow_batch):
+    with patch("basis.interface.http.platform.mcp.handle_batch", side_effect=slow_batch):
         resp = client.post(
             f"/api/v1/workspaces/{workspace_id}/mcp",
             headers=headers,
