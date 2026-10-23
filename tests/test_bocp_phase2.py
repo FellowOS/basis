@@ -83,7 +83,6 @@ def test_vault_encryption_and_connection_crud(tmp_path: Path) -> None:
         stored = vault.upsert_connection(
             "kb1",
             "airtable",
-            connection_name="prod",
             auth_type="api_key",
             connection_config={"base_id": "app123"},
             credentials={"api_key": "pat_xyz"},
@@ -98,7 +97,6 @@ def test_vault_encryption_and_connection_crud(tmp_path: Path) -> None:
         updated = vault.upsert_connection(
             "kb1",
             "airtable",
-            connection_name="prod",
             auth_type="api_key",
             account_profile={"account_id": "usr_99", "display_name": "ops@acme.com"},
         )
@@ -165,14 +163,13 @@ def test_sql_adapter_via_connector_runtime(tmp_path: Path) -> None:
         runtime.vault.upsert_connection(
             "kb1",
             "postgres",
-            connection_name="erp",
             auth_type="database_dsn",
             connection_config={"dsn": f"sqlite:///{ext_db_path}"},
             credentials={"username": "readonly", "password": "pw"},
         )
 
         # 1. CHECK
-        chk = runtime.check_connection("kb1", "postgres", connection_name="erp")
+        chk = runtime.check_connection("kb1", "postgres")
         assert chk["ok"] is True
         assert chk["dialect"] == "sqlite"
 
@@ -180,7 +177,6 @@ def test_sql_adapter_via_connector_runtime(tmp_path: Path) -> None:
         schema = runtime.discover_schema(
             "kb1",
             "postgres",
-            connection_name="erp",
             external_table="customers",
         )
         assert schema.primary_key == ["customer_id"]
@@ -192,7 +188,6 @@ def test_sql_adapter_via_connector_runtime(tmp_path: Path) -> None:
         read_res = runtime.read_stream(
             "kb1",
             "postgres",
-            connection_name="erp",
             external_table="customers",
             primary_key_column="customer_id",
             cursor_column="updated_at",
@@ -205,7 +200,6 @@ def test_sql_adapter_via_connector_runtime(tmp_path: Path) -> None:
         updated_row = runtime.mutate_stream(
             "kb1",
             "postgres",
-            connection_name="erp",
             external_table="customers",
             operation="update",
             primary_key_column="customer_id",
@@ -295,7 +289,6 @@ def test_rest_declarative_adapter_airtable_flow(tmp_path: Path) -> None:
         runtime.vault.upsert_connection(
             "kb1",
             "airtable",
-            connection_name="default",
             auth_type="api_key",
             credentials={"api_key": "pat_airtable_secret"},
         )
@@ -395,14 +388,11 @@ def test_oauth2_code_exchange_and_tool_execution(tmp_path: Path) -> None:
             "github",
             code="auth_code_abc",
             code_verifier="pkce_verifier_test",
-            connection_name="oauth_conn",
             http_client=mock_client,
         )
         assert stored.credentials["access_token"] == "gho_exchanged_token_999"
 
-        chk = runtime.check_connection(
-            "kb1", "github", connection_name="oauth_conn"
-        )
+        chk = runtime.check_connection("kb1", "github")
         assert chk.get("ok") is True
     finally:
         mock_client.close()

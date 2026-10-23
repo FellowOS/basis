@@ -36,9 +36,9 @@ export const ConnectorOAuthCallbackPage = lazy(() =>
     default: m.ConnectorOAuthCallbackPage,
   })),
 );
-export const ConnectorsRedirect = lazy(() =>
+export const ConnectorCatalogLegacyRedirect = lazy(() =>
   import('@/modules/connectors/index.js').then((m) => ({
-    default: m.ConnectorsRedirect,
+    default: m.ConnectorCatalogLegacyRedirect,
   })),
 );
 export const ConnectorMappingNewPage = lazy(() =>

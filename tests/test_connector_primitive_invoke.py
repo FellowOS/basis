@@ -35,7 +35,6 @@ def test_github_issues_list_and_create_via_primitive(
         vault.upsert_connection(
             "ws1",
             "github",
-            connection_name="default",
             auth_type="api_key",
             credentials={"personal_access_token": github_integration["token"]},
         )
@@ -97,7 +96,7 @@ def test_mcp_invoke_connector_primitive_sql_list(
         workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
 
         client.put(
-            f"/api/v1/workspaces/{workspace_id}/connectors/connections/postgres/prim",
+            f"/api/v1/workspaces/{workspace_id}/connectors/connections/postgres",
             headers=headers,
             json=postgres_connection_payload(postgres_sql_target_url),
         )
@@ -113,8 +112,7 @@ def test_mcp_invoke_connector_primitive_sql_list(
                     "name": "invoke_connector_primitive",
                     "arguments": {
                         "service": "postgres",
-                        "connection_name": "prim",
-                        "action_id": "table_records",
+                                                "action_id": "table_records",
                         "primitive": "list",
                         "external_table": table,
                         "limit": 50,
@@ -142,7 +140,6 @@ def test_github_get_authenticated_user_invoke(
         vault.upsert_connection(
             "ws1",
             "github",
-            connection_name="default",
             auth_type="api_key",
             credentials={"personal_access_token": github_integration["token"]},
         )
@@ -173,7 +170,6 @@ def test_list_reports_has_more_when_limit_truncates(
         vault.upsert_connection(
             "ws1",
             "github",
-            connection_name="default",
             auth_type="api_key",
             credentials={"personal_access_token": github_integration["token"]},
         )
@@ -213,12 +209,12 @@ def test_http_invoke_primitive_list(tmp_path: Path, postgres_sql_target_url: str
         headers = {"Authorization": f"Bearer {reg['token']}"}
         workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
         client.put(
-            f"/api/v1/workspaces/{workspace_id}/connectors/connections/postgres/h",
+            f"/api/v1/workspaces/{workspace_id}/connectors/connections/postgres",
             headers=headers,
             json=postgres_connection_payload(postgres_sql_target_url),
         )
         resp = client.post(
-            f"/api/v1/workspaces/{workspace_id}/connectors/connections/postgres/h/invoke-primitive",
+            f"/api/v1/workspaces/{workspace_id}/connectors/connections/postgres/invoke-primitive",
             headers=headers,
             json={
                 "action_id": "table_records",

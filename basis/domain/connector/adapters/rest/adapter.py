@@ -167,7 +167,7 @@ class RestDeclarativeStreamAdapter:
         """Execute declarative `CHECK` endpoint and extract account profile."""
         auth_spec = self._vault._match_auth_spec(manifest, connection.auth_type)
         if not auth_spec or not auth_spec.check:
-            return {"ok": True, "account_id": connection.connection_name}
+            return {"ok": True, "account_id": connection.service}
 
         base_url, headers, query_params = self._vault.build_request_auth(
             manifest, connection

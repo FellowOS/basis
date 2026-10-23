@@ -155,7 +155,7 @@ def test_mcp_dynamic_connector_tool_call_list(tmp_path: Path) -> None:
     workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
 
     client.put(
-        f"/api/v1/workspaces/{workspace_id}/connectors/connections/postgres/prim",
+        f"/api/v1/workspaces/{workspace_id}/connectors/connections/postgres",
         headers=headers,
         json={
             "auth_type": "database_dsn",
@@ -175,8 +175,7 @@ def test_mcp_dynamic_connector_tool_call_list(tmp_path: Path) -> None:
             "params": {
                 "name": tool_name,
                 "arguments": {
-                    "connection_name": "prim",
-                    "external_table": "items",
+                                        "external_table": "items",
                     "limit": 50,
                 },
             },
@@ -225,7 +224,7 @@ def test_mcp_connector_list_uses_end_user_connection(tmp_path: Path) -> None:
     workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
 
     client.put(
-        f"/api/v1/workspaces/{workspace_id}/connectors/connections/postgres/default",
+        f"/api/v1/workspaces/{workspace_id}/connectors/connections/postgres",
         headers=headers,
         json={
             "auth_type": "database_dsn",

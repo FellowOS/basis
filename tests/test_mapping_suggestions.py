@@ -62,7 +62,7 @@ def test_suggest_http_with_sql_table(tmp_path: Path) -> None:
     workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
 
     client.put(
-        f"/api/v1/workspaces/{workspace_id}/connectors/connections/postgres/erp",
+        f"/api/v1/workspaces/{workspace_id}/connectors/connections/postgres",
         headers=headers,
         json={
             "auth_type": "database_dsn",
@@ -78,8 +78,7 @@ def test_suggest_http_with_sql_table(tmp_path: Path) -> None:
             "sql_tables": [
                 {
                     "provider": "postgres",
-                    "connection_name": "erp",
-                    "stream_name": "table_records",
+                                        "stream_name": "table_records",
                     "external_table": "customers",
                 }
             ]
@@ -131,7 +130,7 @@ def test_suggest_http_auto_lists_sql_tables_without_sql_tables_body(tmp_path: Pa
     workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
 
     client.put(
-        f"/api/v1/workspaces/{workspace_id}/connectors/connections/postgres/erp",
+        f"/api/v1/workspaces/{workspace_id}/connectors/connections/postgres",
         headers=headers,
         json={
             "auth_type": "database_dsn",
@@ -181,7 +180,7 @@ def test_suggest_http_auto_expand_scoped_to_connection(tmp_path: Path) -> None:
     workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
 
     client.put(
-        f"/api/v1/workspaces/{workspace_id}/connectors/connections/postgres/erp",
+        f"/api/v1/workspaces/{workspace_id}/connectors/connections/postgres",
         headers=headers,
         json={
             "auth_type": "database_dsn",
@@ -193,7 +192,7 @@ def test_suggest_http_auto_expand_scoped_to_connection(tmp_path: Path) -> None:
     scoped = client.post(
         f"/api/v1/workspaces/{workspace_id}/connectors/table-mappings/suggest",
         headers=headers,
-        json={"connections": [{"provider": "postgres", "connection_name": "erp"}]},
+        json={"connections": [{"provider": "postgres"}]},
     )
     assert scoped.status_code == 200
     assert scoped.json()["groups"]
@@ -201,7 +200,7 @@ def test_suggest_http_auto_expand_scoped_to_connection(tmp_path: Path) -> None:
     missing = client.post(
         f"/api/v1/workspaces/{workspace_id}/connectors/table-mappings/suggest",
         headers=headers,
-        json={"connections": [{"provider": "postgres", "connection_name": "other"}]},
+        json={"connections": [{"provider": "github"}]},
     )
     assert missing.status_code == 200
     assert missing.json()["groups"] == []

@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { PlaygroundConnectAuthFields } from '@/modules/integration/components/playground-connect-auth-fields.js';
 import {
@@ -87,8 +88,7 @@ type IntegrationProvider = {
 
 type PlaygroundConnection = {
   service: string;
-  connection_name: string;
-  auth_type: string;
+    auth_type: string;
   connection_scope?: string;
   subject_id?: string;
   has_credentials?: boolean;
@@ -101,11 +101,18 @@ type ConnectorsPlaygroundPanelProps = {
 
 export function ConnectorsPlaygroundPanel({ workspaceId }: ConnectorsPlaygroundPanelProps) {
   const { t, locale } = useI18n();
+  const [searchParams] = useSearchParams();
   const p = t.integration.connectors_playground;
   const authModeLabels = t.connectors.page.catalog.auth_modes;
+  const serviceDeepLinkHandled = useRef(false);
 
-  const [subjectDraft, setSubjectDraft] = useState(() => readPlaygroundSubjectId(workspaceId));
-  const [subjectId, setSubjectId] = useState(() => readPlaygroundSubjectId(workspaceId));
+  const initialSubjectFromUrl = searchParams.get('subject_id')?.trim();
+  const [subjectDraft, setSubjectDraft] = useState(() =>
+    initialSubjectFromUrl || readPlaygroundSubjectId(workspaceId),
+  );
+  const [subjectId, setSubjectId] = useState(() =>
+    initialSubjectFromUrl || readPlaygroundSubjectId(workspaceId),
+  );
   const [providers, setProviders] = useState<IntegrationProvider[]>([]);
   const [connections, setConnections] = useState<PlaygroundConnection[]>([]);
   const [loading, setLoading] = useState(true);
@@ -189,6 +196,32 @@ export function ConnectorsPlaygroundPanel({ workspaceId }: ConnectorsPlaygroundP
   useEffect(() => {
     void loadData();
   }, [loadData]);
+
+  useEffect(() => {
+    const fromUrl = searchParams.get('subject_id')?.trim();
+    if (!fromUrl) {
+      return;
+    }
+    writePlaygroundSubjectId(workspaceId, fromUrl);
+    setSubjectId(fromUrl);
+    setSubjectDraft(fromUrl);
+  }, [workspaceId, searchParams]);
+
+  useEffect(() => {
+    if (serviceDeepLinkHandled.current || loading) {
+      return;
+    }
+    const service = searchParams.get('service')?.trim();
+    if (!service) {
+      return;
+    }
+    const provider = providers.find((item) => item.service === service);
+    if (!provider) {
+      return;
+    }
+    serviceDeepLinkHandled.current = true;
+    openConnect(provider);
+  }, [loading, providers, searchParams]);
 
   function applySubject() {
     const next = subjectDraft.trim() || defaultPlaygroundSubjectId(workspaceId);
@@ -281,8 +314,7 @@ export function ConnectorsPlaygroundPanel({ workspaceId }: ConnectorsPlaygroundP
       savePlaygroundPendingOAuth({
         workspaceId,
         service: selectedProvider.service,
-        connectionName: 'default',
-        connectionConfig: cfg,
+                connectionConfig: cfg,
         state: res.state,
         redirectUri,
         codeVerifier,
@@ -414,15 +446,24 @@ export function ConnectorsPlaygroundPanel({ workspaceId }: ConnectorsPlaygroundP
                         <Badge variant="secondary" className="text-[10px]">
                           {firstAuthLabel}
                         </Badge>
-                        <span className="text-[11px] text-muted-foreground">
-                          {fmt(catalog.streams_badge, {
-                            count: provider.streams?.length ?? 0,
-                          })}
-                          {' · '}
-                          {fmt(catalog.tools_badge, {
-                            count: provider.tools?.length ?? 0,
-                          })}
-                        </span>
+                        <Badge
+                          variant="outline"
+                          className={cn(
+                            'text-[10px]',
+                            (provider.streams?.length ?? 0) > 0 && 'badge-status-success',
+                          )}
+                        >
+                          {(provider.streams?.length ?? 0) > 0
+                            ? catalog.data_sync_supported
+                            : catalog.data_sync_not_supported}
+                        </Badge>
+                        {(provider.tools?.length ?? 0) > 0 ? (
+                          <span className="text-[11px] text-muted-foreground">
+                            {fmt(catalog.tools_badge, {
+                              count: provider.tools?.length ?? 0,
+                            })}
+                          </span>
+                        ) : null}
                       </div>
                     </div>
                     <div className="flex flex-wrap items-center gap-2 pt-1">

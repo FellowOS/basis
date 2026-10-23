@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { PublicIcon } from '@/components/app/shared/primitives/public-icon.js';
 import { Button } from '@/components/ui/button.js';
@@ -9,9 +10,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select.js';
-import { workspaceConnectorPanelPath } from '@/lib/nav/nav-config.js';
+import { workspaceConnectorsAuthorizationHref } from '@/modules/connectors/lib/playground-deep-link.js';
 import type { StoredConnection } from '@/modules/connectors/lib/connector-connections.js';
-import { workspaceConnectionOptionKey } from '@/modules/connectors/lib/connector-connections.js';
+import {
+  connectorConnectionOptionLabel,
+  connectorConnectionSelectKey,
+} from '@/modules/connectors/lib/connector-connections.js';
 
 type Copy = {
   connection_label: string;
@@ -30,6 +34,8 @@ type Props = {
   copy: Copy;
   selectTestId?: string;
   labelId?: string;
+  /** When false, omit label (e.g. parent FormField supplies FormLabel). */
+  showLabel?: boolean;
 };
 
 export function ConnectorConnectionPicker({
@@ -41,7 +47,14 @@ export function ConnectorConnectionPicker({
   copy,
   selectTestId = 'suggest-connection-select',
   labelId = 'connector-mapping-connection',
+  showLabel = true,
 }: Props) {
+  const optionKeys = useMemo(
+    () => connections.map((conn) => connectorConnectionSelectKey(conn)),
+    [connections],
+  );
+  const selectValue = optionKeys.includes(connectionKey) ? connectionKey : optionKeys[0];
+
   if (connectionsLoading) {
     return <p className="text-sm text-muted-foreground">{copy.loading_connections}</p>;
   }
@@ -50,7 +63,7 @@ export function ConnectorConnectionPicker({
       <div className="space-y-2">
         <p className="text-sm text-muted-foreground">{copy.no_connections_hint}</p>
         <Button asChild variant="outline" size="sm">
-          <Link to={workspaceConnectorPanelPath(workspaceId, 'catalog')}>
+          <Link to={workspaceConnectorsAuthorizationHref(workspaceId)}>
             <PublicIcon name="plug-01" size={14} className="mr-1" />
             {copy.open_catalog_button}
           </Link>
@@ -58,24 +71,20 @@ export function ConnectorConnectionPicker({
       </div>
     );
   }
+
   return (
     <div className="space-y-2">
-      <Label htmlFor={labelId}>{copy.connection_label}</Label>
-      <Select value={connectionKey} onValueChange={onConnectionKeyChange}>
-        <SelectTrigger id={labelId} data-testid={selectTestId} className="w-full">
+      {showLabel ? <Label htmlFor={labelId}>{copy.connection_label}</Label> : null}
+      <Select value={selectValue} onValueChange={onConnectionKeyChange}>
+        <SelectTrigger id={labelId} data-testid={selectTestId} className="w-full font-mono text-xs">
           <SelectValue placeholder={copy.connection_placeholder} />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent className="max-h-72">
           {connections.map((conn) => {
-            const key = workspaceConnectionOptionKey(conn);
+            const key = connectorConnectionSelectKey(conn);
             return (
-              <SelectItem key={key} value={key}>
-                <span className="font-mono text-xs">
-                  {conn.service}
-                  <span className="text-muted-foreground"> · </span>
-                  {conn.connection_name}
-                  <span className="text-muted-foreground"> ({conn.auth_type})</span>
-                </span>
+              <SelectItem key={key} value={key} className="font-mono text-xs">
+                {connectorConnectionOptionLabel(conn)}
               </SelectItem>
             );
           })}

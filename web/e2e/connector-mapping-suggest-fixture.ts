@@ -32,12 +32,11 @@ export function sqlalchemySqliteDsn(absoluteDbPath: string): string {
 export async function putE2ePostgresSqliteConnection(
   page: Page,
   workspaceId: string,
-  connectionName: string,
   dbPath: string,
 ): Promise<void> {
   const token = await bearerToken(page);
   const response = await page.request.put(
-    e2eWorkspaceApiPath(workspaceId, `connectors/connections/postgres/${connectionName}`),
+    e2eWorkspaceApiPath(workspaceId, 'connectors/connections/postgres'),
     {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -109,12 +108,11 @@ export async function putE2eGithubOAuthConfig(
 export async function putE2eGithubApiKeyConnection(
   page: Page,
   workspaceId: string,
-  connectionName: string,
   personalAccessToken: string,
 ): Promise<void> {
   const token = await bearerToken(page);
   const response = await page.request.put(
-    e2eWorkspaceApiPath(workspaceId, `connectors/connections/github/${connectionName}`),
+    e2eWorkspaceApiPath(workspaceId, 'connectors/connections/github'),
     {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -167,7 +165,7 @@ export async function batchCreateTableMappings(
 export async function suggestSqlTableMappings(
   page: Page,
   workspaceId: string,
-  sqlTables: Array<{ provider: string; connection_name: string; external_table: string }>,
+  sqlTables: Array<{ provider: string; external_table: string }>,
 ): Promise<{ groups: SuggestApiGroup[] }> {
   const token = await bearerToken(page);
   const response = await page.request.post(e2eWorkspaceApiPath(workspaceId, 'connectors/table-mappings/suggest'), {
@@ -190,11 +188,10 @@ export async function postE2eConnectionCheck(
   page: Page,
   workspaceId: string,
   service: string,
-  connectionName: string,
 ): Promise<void> {
   const token = await bearerToken(page);
   const response = await page.request.post(
-    e2eWorkspaceApiPath(workspaceId, `connectors/connections/${service}/${connectionName}/check`),
+    e2eWorkspaceApiPath(workspaceId, `connectors/connections/${service}/check`),
     { headers: { Authorization: `Bearer ${token}` } },
   );
   expect(response.ok(), `check failed: ${response.status()} ${await response.text()}`).toBeTruthy();
@@ -203,10 +200,9 @@ export async function postE2eConnectionCheck(
 export async function createCustomersTableMappingViaApi(
   page: Page,
   workspaceId: string,
-  connectionName: string,
 ): Promise<string> {
   const suggested = await suggestSqlTableMappings(page, workspaceId, [
-    { provider: 'postgres', connection_name: connectionName, external_table: 'customers' },
+    { provider: 'postgres', external_table: 'customers' },
   ]);
   const draft = suggested.groups[0]?.drafts[0]?.draft;
   if (!draft) {

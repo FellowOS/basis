@@ -10,10 +10,10 @@ import { useI18n } from '@/i18n/context.js';
 import type { Locale } from '@/i18n/locale.js';
 import { formatUserFacingApiError } from '@/lib/errors/api-error-message.js';
 import {
+  connectorConnectionSelectKey,
+  connectionIdentityFromOptionKey,
   defaultConnectorStreamName,
-  workspaceConnectionOptionKey,
   workspaceConnectorsMappingsTabPath,
-  parseWorkspaceConnectionOptionKey,
   type StoredConnection,
 } from '@/modules/connectors/lib/connector-connections.js';
 import {
@@ -85,13 +85,13 @@ export function ConnectorMappingNewPage() {
       ? connections.find(
           (conn) =>
             conn.service === prefillService &&
-            (!prefillConnection || conn.connection_name === prefillConnection),
+            (!prefillConnection || conn.service === prefillConnection),
         )
       : undefined;
     const conn = fromQuery ?? connections[0];
     form.reset({
       ...defaultConnectorTableMappingFormValues,
-      connectionKey: workspaceConnectionOptionKey(conn),
+      connectionKey: connectorConnectionSelectKey(conn),
       streamName: defaultConnectorStreamName(conn.service),
     });
   }, [connections, prefillService, prefillConnection, form]);
@@ -105,7 +105,10 @@ export function ConnectorMappingNewPage() {
 
   async function handleDiscoverSchema() {
     const values = form.getValues();
-    const { service, connection_name } = parseWorkspaceConnectionOptionKey(values.connectionKey);
+    const { service } = connectionIdentityFromOptionKey(
+      values.connectionKey,
+      connections,
+    );
     setDiscoveringSchema(true);
     try {
       const info = await workspaceOpenApiGET<{
@@ -114,7 +117,7 @@ export function ConnectorMappingNewPage() {
         fields: Array<{ name: string; writable?: boolean }>;
       }>(
         resolvedKbId,
-        `connectors/connections/${service}/${connection_name || 'default'}/discover`,
+        `connectors/connections/${service}/discover`,
         {
           params: {
             query: {
@@ -162,7 +165,7 @@ export function ConnectorMappingNewPage() {
     setSubmitting(true);
     try {
       await workspaceOpenApiPOST(resolvedKbId, 'connectors/table-mappings', {
-        body: mappingRequestBodyFromFormValues(values),
+        body: mappingRequestBodyFromFormValues(values, connections),
       });
       toast.success(c.mappings.created_toast);
       navigate(mappingsListPath);

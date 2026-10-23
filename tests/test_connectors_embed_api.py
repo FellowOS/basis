@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 
@@ -70,3 +71,41 @@ def test_embed_providers_and_qq_mail_connection(tmp_path: Path) -> None:
         params={"subject_id": "embed-subject-1"},
     )
     assert deleted.status_code == 200
+
+
+def test_invoke_primitive_http_uses_end_user_scope(tmp_path: Path) -> None:
+    """ROADMAP phase 1: invoke via workspace route + ``connection_scope`` / ``subject_id``."""
+    client, workspace_id, headers = _auth_client(tmp_path)
+    subject = "embed-subject-invoke"
+    put = client.put(
+        f"/api/v1/workspaces/{workspace_id}/connectors/embed/connections/qq_mail",
+        headers=headers,
+        json={
+            "subject_id": subject,
+            "auth_type": "custom",
+            "credentials": {
+                "email": "u@qq.com",
+                "authorizationCode": "abcdefghijklmnop",
+            },
+        },
+    )
+    assert put.status_code == 200
+
+    with patch(
+        "basis.interface.http.workspace.connectors.connections.op_invoke_connector_primitive",
+        return_value={"records": []},
+    ) as invoke:
+        resp = client.post(
+            f"/api/v1/workspaces/{workspace_id}/connectors/connections/qq_mail/invoke-primitive",
+            headers=headers,
+            json={
+                "action_id": "messages",
+                "primitive": "list",
+                "connection_scope": "end_user",
+                "subject_id": subject,
+            },
+        )
+    assert resp.status_code == 200
+    args = invoke.call_args[0][1]
+    assert args["connection_scope"] == "end_user"
+    assert args["subject_id"] == subject

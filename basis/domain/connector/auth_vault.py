@@ -24,7 +24,9 @@ from basis.domain.connector.allowlist import (
     provider_blocked_layer,
 )
 from basis.domain.connector.connection_scope import (
+    SCOPE_END_USER,
     SCOPE_WORKSPACE,
+    assert_end_user_allowed_for_service,
     WORKSPACE_SUBJECT_ID,
     ConnectionScope,
     normalize_connection_scope,
@@ -168,7 +170,6 @@ def extract_dot_path(data: Any, path: str | None) -> Any:
 class StoredConnection:
     workspace_id: str
     service: str
-    connection_name: str
     auth_type: str
     connection_config: dict[str, Any]
     credentials: dict[str, Any]
@@ -183,7 +184,6 @@ class StoredConnection:
         return {
             "workspace_id": self.workspace_id,
             "service": self.service,
-            "connection_name": self.connection_name,
             "connection_scope": self.connection_scope,
             "subject_id": self.subject_id if self.connection_scope != SCOPE_WORKSPACE else None,
             "auth_type": self.auth_type,
@@ -341,11 +341,19 @@ class ConnectorAuthVault:
         return self._db.get_platform_allowed_providers()
 
     def effective_allowed_providers(self, workspace_id: str) -> list[str] | str:
+        from basis.domain.connector.workspace_apps import effective_active_providers
+
         platform = self.get_platform_allowed_providers()
         workspace_policy = self.get_policy(workspace_id)
-        return effective_allowed_providers(platform, workspace_policy.allowed_providers)
+        return effective_active_providers(
+            platform,
+            workspace_policy.allowed_providers,
+            workspace_policy.action_policy,
+        )
 
     def assert_service_allowed(self, workspace_id: str, service: str) -> None:
+        from basis.domain.connector.workspace_apps import is_workspace_app_active
+
         platform = self.get_platform_allowed_providers()
         workspace_policy = self.get_policy(workspace_id)
         layer = provider_blocked_layer(service, platform, workspace_policy.allowed_providers)
@@ -356,6 +364,14 @@ class ConnectorAuthVault:
         if layer == "workspace":
             raise PermissionError(
                 f"Connector service '{service}' is blocked by workspace connector policy"
+            )
+        if not is_workspace_app_active(
+            service,
+            workspace_policy.allowed_providers,
+            workspace_policy.action_policy,
+        ):
+            raise PermissionError(
+                f"Connector service '{service}' is not installed or is disabled for this workspace"
             )
 
     # ── OAuth App Configs ────────────────────────────────────────────────────
@@ -412,7 +428,6 @@ class ConnectorAuthVault:
         workspace_id: str,
         service: str,
         *,
-        connection_name: str = "default",
         connection_scope: ConnectionScope | str = SCOPE_WORKSPACE,
         subject_id: str | None = None,
         auth_type: str,
@@ -424,11 +439,21 @@ class ConnectorAuthVault:
             connection_scope if isinstance(connection_scope, str) else connection_scope
         )
         sid = normalize_subject_id(subject_id, scope=scope)
+        if scope == SCOPE_END_USER:
+            workspace_rows = self.list_connections(
+                workspace_id,
+                service=service,
+                connection_scope=SCOPE_WORKSPACE,
+            )
+            assert_end_user_allowed_for_service(
+                scope=scope,
+                has_workspace_connection=bool(workspace_rows),
+                service=service,
+            )
         now = _now_iso()
         existing = self.get_connection(
             workspace_id,
             service,
-            connection_name=connection_name,
             connection_scope=scope,
             subject_id=sid,
         )
@@ -453,7 +478,6 @@ class ConnectorAuthVault:
         self._persist.upsert_connection(
             workspace_id=workspace_id,
             service=service,
-            connection_name=connection_name,
             connection_scope=scope,
             subject_id=sid,
             auth_type=auth_type,
@@ -466,7 +490,6 @@ class ConnectorAuthVault:
         res = self.get_connection(
             workspace_id,
             service,
-            connection_name=connection_name,
             connection_scope=scope,
             subject_id=sid,
         )
@@ -477,7 +500,6 @@ class ConnectorAuthVault:
     def _row_to_stored_connection(
         workspace_id: str,
         service: str,
-        connection_name: str,
         row: Any,
         *,
         vault_secret: str | None,
@@ -485,7 +507,6 @@ class ConnectorAuthVault:
         return StoredConnection(
             workspace_id=workspace_id,
             service=service,
-            connection_name=connection_name,
             auth_type=row[0],
             connection_config=json.loads(row[1]) if row[1] else {},
             credentials=decrypt_vault_payload(row[2], secret=vault_secret),
@@ -505,7 +526,6 @@ class ConnectorAuthVault:
         workspace_id: str,
         service: str,
         *,
-        connection_name: str = "default",
         connection_scope: ConnectionScope | str = SCOPE_WORKSPACE,
         subject_id: str | None = None,
     ) -> StoredConnection | None:
@@ -516,7 +536,6 @@ class ConnectorAuthVault:
         row = self._persist.fetch_connection_row(
             workspace_id,
             service,
-            connection_name,
             connection_scope=scope,
             subject_id=sid,
         )
@@ -525,7 +544,6 @@ class ConnectorAuthVault:
         return self._row_to_stored_connection(
             workspace_id,
             service,
-            connection_name,
             row,
             vault_secret=self._vault_secret,
         )
@@ -556,15 +574,14 @@ class ConnectorAuthVault:
             StoredConnection(
                 workspace_id=workspace_id,
                 service=r[0],
-                connection_name=r[1],
-                auth_type=r[2],
-                connection_config=json.loads(r[3]) if r[3] else {},
-                credentials=decrypt_vault_payload(r[4], secret=self._vault_secret),
-                account_profile=json.loads(r[5]) if r[5] else {},
-                revision=int(r[6]),
-                updated_at=r[7] or "",
-                connection_scope=normalize_connection_scope(r[8]),
-                subject_id=str(r[9]),
+                auth_type=r[1],
+                connection_config=json.loads(r[2]) if r[2] else {},
+                credentials=decrypt_vault_payload(r[3], secret=self._vault_secret),
+                account_profile=json.loads(r[4]) if r[4] else {},
+                revision=int(r[5]),
+                updated_at=r[6] or "",
+                connection_scope=normalize_connection_scope(r[7]),
+                subject_id=str(r[8]),
             )
             for r in rows
         ]
@@ -574,7 +591,6 @@ class ConnectorAuthVault:
         workspace_id: str,
         service: str,
         *,
-        connection_name: str = "default",
         connection_scope: ConnectionScope | str = SCOPE_WORKSPACE,
         subject_id: str | None = None,
     ) -> bool:
@@ -586,7 +602,6 @@ class ConnectorAuthVault:
             self._persist.delete_connection(
                 workspace_id,
                 service,
-                connection_name,
                 connection_scope=scope,
                 subject_id=sid,
             )
@@ -602,7 +617,6 @@ class ConnectorAuthVault:
         service: str,
         operation_kind: str,
         target_id: str,
-        connection_name: str = "default",
         started_at: str,
         completed_at: str | None = None,
         ok: bool = True,
@@ -616,7 +630,6 @@ class ConnectorAuthVault:
             service=service,
             operation_kind=operation_kind,
             target_id=target_id,
-            connection_name=connection_name,
             started_at=started_at,
             completed_at=done_at,
             ok=1 if ok else 0,
@@ -755,7 +768,6 @@ class ConnectorAuthVault:
         code: str,
         redirect_uri: str | None = None,
         code_verifier: str | None = None,
-        connection_name: str = "default",
         connection_scope: ConnectionScope | str = SCOPE_WORKSPACE,
         subject_id: str | None = None,
         connection_config: dict[str, Any] | None = None,
@@ -832,7 +844,6 @@ class ConnectorAuthVault:
         return self.upsert_connection(
             workspace_id,
             service,
-            connection_name=connection_name,
             connection_scope=connection_scope,
             subject_id=subject_id,
             auth_type="oauth2",

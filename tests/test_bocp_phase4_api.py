@@ -66,7 +66,7 @@ def test_connectors_http_endpoints_and_review_writeback_flow(tmp_path: Path) -> 
 
     # 4. Create Connection & Run CHECK + DISCOVER
     put_conn = client.put(
-        f"/api/v1/workspaces/{workspace_id}/connectors/connections/postgres/erp_main",
+        f"/api/v1/workspaces/{workspace_id}/connectors/connections/postgres",
         headers=headers,
         json={
             "auth_type": "database_dsn",
@@ -78,14 +78,14 @@ def test_connectors_http_endpoints_and_review_writeback_flow(tmp_path: Path) -> 
     assert put_conn.json()["connection"]["has_credentials"] is True
 
     chk_resp = client.post(
-        f"/api/v1/workspaces/{workspace_id}/connectors/connections/postgres/erp_main/check",
+        f"/api/v1/workspaces/{workspace_id}/connectors/connections/postgres/check",
         headers=headers,
     )
     assert chk_resp.status_code == 200
     assert chk_resp.json()["ok"] is True
 
     disc_resp = client.get(
-        f"/api/v1/workspaces/{workspace_id}/connectors/connections/postgres/erp_main/discover",
+        f"/api/v1/workspaces/{workspace_id}/connectors/connections/postgres/discover",
         headers=headers,
         params={"external_table": "accounts"},
     )
@@ -105,8 +105,7 @@ def test_connectors_http_endpoints_and_review_writeback_flow(tmp_path: Path) -> 
         headers=headers,
         json={
             "provider": "postgres",
-            "connection_name": "erp_main",
-            "stream_name": "table_records",
+                        "stream_name": "table_records",
             "external_table": "accounts",
             "primary_key_column": "account_id",
             "cursor_column": "updated_at",
@@ -227,7 +226,7 @@ def test_table_mapping_get_update_and_delete(tmp_path: Path) -> None:
     workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
 
     client.put(
-        f"/api/v1/workspaces/{workspace_id}/connectors/connections/postgres/default",
+        f"/api/v1/workspaces/{workspace_id}/connectors/connections/postgres",
         headers=headers,
         json={
             "auth_type": "database_dsn",
@@ -241,8 +240,7 @@ def test_table_mapping_get_update_and_delete(tmp_path: Path) -> None:
         headers=headers,
         json={
             "provider": "postgres",
-            "connection_name": "default",
-            "stream_name": "table_records",
+                        "stream_name": "table_records",
             "external_table": "demo_items",
             "primary_key_column": "id",
             "label_column": "name",
@@ -268,8 +266,7 @@ def test_table_mapping_get_update_and_delete(tmp_path: Path) -> None:
         headers=headers,
         json={
             "provider": "postgres",
-            "connection_name": "default",
-            "stream_name": "table_records",
+                        "stream_name": "table_records",
             "external_table": "demo_items_v2",
             "primary_key_column": "id",
             "label_column": "title",

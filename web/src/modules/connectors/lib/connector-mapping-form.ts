@@ -1,5 +1,8 @@
 import { z } from 'zod';
-import { parseWorkspaceConnectionOptionKey } from '@/modules/connectors/lib/connector-connections.js';
+import {
+  connectionIdentityFromOptionKey,
+  type StoredConnection,
+} from '@/modules/connectors/lib/connector-connections.js';
 import { streamParamsFromFieldMap } from '@/modules/connectors/lib/connector-stream-params.js';
 
 export type ConnectorColumnMappingInput = {
@@ -126,11 +129,13 @@ export function resolveStreamParamsFromFormValues(
   return streamParamsFromFieldMap(values.streamParamFields ?? {});
 }
 
-export function mappingRequestBodyFromFormValues(values: ConnectorTableMappingFormValues) {
-  const { service, connection_name } = parseWorkspaceConnectionOptionKey(values.connectionKey);
+export function mappingRequestBodyFromFormValues(
+  values: ConnectorTableMappingFormValues,
+  connections?: StoredConnection[],
+) {
+  const { service } = connectionIdentityFromOptionKey(values.connectionKey, connections);
   return {
     provider: service,
-    connection_name,
     stream_name: values.streamName.trim(),
     external_table: values.externalTable.trim(),
     stream_params: resolveStreamParamsFromFormValues(values),

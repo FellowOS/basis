@@ -30,9 +30,9 @@ from basis.domain.knowledge.services.mapping_suggestions import (
 )
 
 
-def _existing_mapping_fingerprints(ctx: WorkspaceCoreContext) -> set[tuple[str, str, str, str]]:
+def _existing_mapping_fingerprints(ctx: WorkspaceCoreContext) -> set[tuple[str, str, str]]:
     svc = connector_sync_service(ctx)
-    existing: set[tuple[str, str, str, str]] = set()
+    existing: set[tuple[str, str, str]] = set()
     for m_id in ctx.knowledge.list_source_table_mapping_ids(ctx.workspace.id):
         rec = svc.get_table_mapping(ctx.workspace.id, m_id)
         if not rec:
@@ -41,7 +41,6 @@ def _existing_mapping_fingerprints(ctx: WorkspaceCoreContext) -> set[tuple[str, 
         existing.add(
             (
                 binding.provider,
-                binding.connection_name,
                 rec.stream_name,
                 rec.external_table,
             )
@@ -63,7 +62,6 @@ def update_table_mapping(
     *,
     mapping_id: str,
     provider: str | None,
-    connection_name: str | None,
     stream_name: str,
     external_table: str,
     primary_key_column: str,
@@ -86,7 +84,6 @@ def update_table_mapping(
             ctx.workspace.id,
             mapping_id,
             provider=provider,
-            connection_name=connection_name,
             stream_name=stream_name,
             external_table=external_table,
             primary_key_column=primary_key_column,
@@ -128,7 +125,6 @@ def suggest_table_mappings(ctx: WorkspaceCoreContext, body: dict[str, Any]) -> d
         targets.append(
             SuggestStreamTarget(
                 provider=item["provider"],
-                connection_name=item.get("connection_name") or "default",
                 stream_name=item.get("stream_name"),
                 external_table=item.get("external_table"),
             )
@@ -137,18 +133,13 @@ def suggest_table_mappings(ctx: WorkspaceCoreContext, body: dict[str, Any]) -> d
         targets.append(
             SuggestStreamTarget(
                 provider=item["provider"],
-                connection_name=item.get("connection_name") or "default",
                 stream_name=item.get("stream_name") or "table_records",
                 external_table=item.get("external_table"),
             )
         )
     if not targets:
         connections = body.get("connections") or []
-        scopes = (
-            [(item["provider"], item.get("connection_name") or "default") for item in connections]
-            if connections
-            else None
-        )
+        scopes = [item["provider"] for item in connections] if connections else None
         targets = expand_auto_targets(
             rt,
             ctx.workspace.id,
@@ -164,7 +155,6 @@ def suggest_table_mappings(ctx: WorkspaceCoreContext, body: dict[str, Any]) -> d
         "skipped": [
             {
                 "provider": s.provider,
-                "connection_name": s.connection_name,
                 "stream_name": s.stream_name,
                 "external_table": s.external_table,
                 "reason": s.reason,
@@ -178,10 +168,7 @@ def _resolve_source_id(ctx: WorkspaceCoreContext, mapping_body: dict[str, Any]) 
     source_id = mapping_body.get("source_id")
     if source_id:
         return str(source_id)
-    src_cfg = ConnectorSourceConfig(
-        provider=mapping_body["provider"],
-        connection_name=mapping_body.get("connection_name") or "default",
-    )
+    src_cfg = ConnectorSourceConfig(provider=mapping_body["provider"])
     created_src, _ = ctx.knowledge.create_ingest_source(
         ctx.workspace.id,
         ctx.user.id,

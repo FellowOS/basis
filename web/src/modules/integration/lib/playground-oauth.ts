@@ -31,7 +31,6 @@ function writeOAuthStorageItem(key: string, value: string): void {
 export type PlaygroundPendingOAuth = {
   workspaceId: string;
   service: string;
-  connectionName: string;
   connectionConfig: Record<string, unknown>;
   state: string;
   redirectUri: string;

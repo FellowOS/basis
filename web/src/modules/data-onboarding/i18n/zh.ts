@@ -11,7 +11,7 @@ export default {
     connections_subtitle: "若列表为空，请先在目录中添加连接。",
     loading_connections: "正在加载连接…",
     no_connections: "尚无连接。请先连接数据库或 SaaS 数据源。",
-    open_catalog: "打开连接器目录",
+    open_catalog: "打开授权",
     sql_tables_label: "SQL 表（可选）",
     sql_tables_placeholder: "accounts\ncustomers\npostgres:orders",
     sql_tables_hint:

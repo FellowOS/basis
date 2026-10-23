@@ -56,7 +56,6 @@ def test_slack_post_message_invoke_uses_form_body(tmp_path: Path) -> None:
         vault.upsert_connection(
             "kb1",
             "slack",
-            connection_name="default",
             auth_type="api_key",
             credentials={"bot_token": "xoxb-test"},
         )

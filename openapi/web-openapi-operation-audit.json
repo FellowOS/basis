@@ -424,25 +424,25 @@
       "file": "web/src/lib/openapi/schema-workspaces.d.ts",
       "kind": "dynamic",
       "path": "/api/v1/workspaces/{workspace_id}/connectors/connections/{service}/{connection_name}",
-      "operationId": "upsert_connector_connection_api_v1_workspaces__workspace_id__connectors_connections__service___connection_name__put"
+      "operationId": null
     },
     {
       "file": "web/src/lib/openapi/schema-workspaces.d.ts",
       "kind": "dynamic",
       "path": "/api/v1/workspaces/{workspace_id}/connectors/connections/{service}/{connection_name}/check",
-      "operationId": "check_connector_connection_api_v1_workspaces__workspace_id__connectors_connections__service___connection_name__check_post"
+      "operationId": null
     },
     {
       "file": "web/src/lib/openapi/schema-workspaces.d.ts",
       "kind": "dynamic",
       "path": "/api/v1/workspaces/{workspace_id}/connectors/connections/{service}/{connection_name}/discover",
-      "operationId": "discover_connector_schema_api_v1_workspaces__workspace_id__connectors_connections__service___connection_name__discover_get"
+      "operationId": null
     },
     {
       "file": "web/src/lib/openapi/schema-workspaces.d.ts",
       "kind": "dynamic",
       "path": "/api/v1/workspaces/{workspace_id}/connectors/connections/{service}/{connection_name}/invoke-primitive",
-      "operationId": "invoke_connector_primitive_api_v1_workspaces__workspace_id__connectors_connections__service___connection_name__invoke_primitive_post"
+      "operationId": null
     },
     {
       "file": "web/src/lib/openapi/schema-workspaces.d.ts",
@@ -1618,25 +1618,25 @@
       "file": "web/src/lib/openapi/schema.d.ts",
       "kind": "dynamic",
       "path": "/api/v1/workspaces/{workspace_id}/connectors/connections/{service}/{connection_name}",
-      "operationId": "upsert_connector_connection_api_v1_workspaces__workspace_id__connectors_connections__service___connection_name__put"
+      "operationId": null
     },
     {
       "file": "web/src/lib/openapi/schema.d.ts",
       "kind": "dynamic",
       "path": "/api/v1/workspaces/{workspace_id}/connectors/connections/{service}/{connection_name}/check",
-      "operationId": "check_connector_connection_api_v1_workspaces__workspace_id__connectors_connections__service___connection_name__check_post"
+      "operationId": null
     },
     {
       "file": "web/src/lib/openapi/schema.d.ts",
       "kind": "dynamic",
       "path": "/api/v1/workspaces/{workspace_id}/connectors/connections/{service}/{connection_name}/discover",
-      "operationId": "discover_connector_schema_api_v1_workspaces__workspace_id__connectors_connections__service___connection_name__discover_get"
+      "operationId": null
     },
     {
       "file": "web/src/lib/openapi/schema.d.ts",
       "kind": "dynamic",
       "path": "/api/v1/workspaces/{workspace_id}/connectors/connections/{service}/{connection_name}/invoke-primitive",
-      "operationId": "invoke_connector_primitive_api_v1_workspaces__workspace_id__connectors_connections__service___connection_name__invoke_primitive_post"
+      "operationId": null
     },
     {
       "file": "web/src/lib/openapi/schema.d.ts",

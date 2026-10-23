@@ -67,7 +67,7 @@ def _setup_workspace_and_external_db(
             id, workspace_id, kind, name, config_json, enabled, created_by, created_at, updated_at
         ) VALUES (
             'src_crm', 'kb1', 'connector', 'CRM Postgres',
-            '{"provider":"postgres","connection_name":"crm_db"}',
+            '{"provider":"postgres"}',
             1, 'u1', '2026-01-01T00:00:00Z', '2026-01-01T00:00:00Z'
         )
         """
@@ -85,7 +85,6 @@ def test_inbound_4_way_diff_and_outbound_review_writeback_closed_loop(
         runtime.vault.upsert_connection(
             "kb1",
             "postgres",
-            connection_name="crm_db",
             auth_type="database_dsn",
             connection_config={"dsn": f"sqlite:///{ext_db_path}"},
             credentials={"username": "admin", "password": "pw"},

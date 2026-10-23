@@ -8,6 +8,8 @@ from basis.application.connectors import authz
 from basis.application.connectors._helpers import connector_summary, filter_manifests_for_workspace
 from basis.application.kernel import WorkspaceCoreContext
 from basis.domain.connector import get_connector_catalog
+from basis.domain.connector.allowlist import is_platform_provider_allowed
+from basis.domain.connector.workspace_apps import is_workspace_app_installed
 from basis.domain.errors import AdminError
 
 
@@ -80,13 +82,29 @@ def list_catalog_detailed(
         has_streams_only=has_streams_only,
         query=query,
     )
-    manifests = filter_manifests_for_workspace(ctx, manifests)
+    runtime = ctx.knowledge.connector_runtime()
+    platform_allowed = runtime.vault.get_platform_allowed_providers()
+    workspace_policy = runtime.vault.get_policy(ctx.workspace.id)
+
+    platform_manifests: list[Any] = []
+    workspace_apps: list[Any] = []
+    for manifest in manifests:
+        if not is_platform_provider_allowed(manifest.service, platform_allowed):
+            continue
+        platform_manifests.append(manifest)
+        if is_workspace_app_installed(manifest.service, workspace_policy.allowed_providers):
+            workspace_apps.append(manifest)
+
+    catalog_slice = platform_manifests[:limit]
+    apps_slice = workspace_apps[:limit]
     return {
         "stats": catalog.summary_stats(),
-        "total_matched": len(manifests),
-        "connectors": [
-            m.model_dump(mode="json", exclude_none=True) for m in manifests[:limit]
-        ],
+        "total_matched": len(platform_manifests),
+        "total_browse": len(platform_manifests),
+        "total_workspace_apps": len(workspace_apps),
+        "connectors": [m.model_dump(mode="json", exclude_none=True) for m in catalog_slice],
+        "browse_connectors": [m.model_dump(mode="json", exclude_none=True) for m in catalog_slice],
+        "workspace_apps": [m.model_dump(mode="json", exclude_none=True) for m in apps_slice],
     }
 
 

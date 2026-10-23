@@ -208,7 +208,6 @@ def test_canonical_row_hash_determinism_and_normalization() -> None:
 def test_structured_models_validation() -> None:
     src_cfg = ConnectorSourceConfig(
         provider="postgres",
-        connection_name="erp_prod",
         poll_interval_minutes=30,
     )
     assert src_cfg.provider == "postgres"
@@ -269,10 +268,10 @@ def test_0011_tables_foreign_keys_and_unique_constraints(tmp_path: Path) -> None
         conn.execute(
             """
             INSERT INTO connector_connections (
-                workspace_id, service, connection_name, auth_type,
+                workspace_id, service, connection_scope, subject_id, auth_type,
                 connection_config_json, value_encrypted, account_profile_json, revision, updated_at
             ) VALUES (
-                'kb1', 'postgres', 'default', 'database_dsn',
+                'kb1', 'postgres', 'workspace', '', 'database_dsn',
                 '{"host":"localhost"}', 'enc_secret', '{}', 1, '2026-01-01T00:00:00Z'
             )
             """
@@ -283,7 +282,7 @@ def test_0011_tables_foreign_keys_and_unique_constraints(tmp_path: Path) -> None
                 id, workspace_id, kind, name, config_json, enabled, created_by, created_at, updated_at
             ) VALUES (
                 'src1', 'kb1', 'connector', 'Customers DB',
-                '{"provider":"postgres","connection_name":"default"}',
+                '{"provider":"postgres"}',
                 1, 'u1', '2026-01-01T00:00:00Z', '2026-01-01T00:00:00Z'
             )
             """

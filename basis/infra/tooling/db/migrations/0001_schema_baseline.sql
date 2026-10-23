@@ -608,12 +608,11 @@ CREATE TABLE IF NOT EXISTS connector_policies (
     updated_at TEXT NOT NULL
 );
 
--- One row per (workspace, service, connection_name, scope, subject).
+-- One row per (workspace, service, scope, subject).
 -- workspace scope: subject_id ''. end_user scope: Integration / playground subject_id.
 CREATE TABLE IF NOT EXISTS connector_connections (
     workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
     service TEXT NOT NULL,
-    connection_name TEXT NOT NULL,
     connection_scope TEXT NOT NULL DEFAULT 'workspace',
     subject_id TEXT NOT NULL DEFAULT '',
     auth_type TEXT NOT NULL,
@@ -622,9 +621,7 @@ CREATE TABLE IF NOT EXISTS connector_connections (
     account_profile_json TEXT NOT NULL DEFAULT '{}',
     revision INTEGER NOT NULL DEFAULT 1,
     updated_at TEXT NOT NULL,
-    PRIMARY KEY (
-        workspace_id, service, connection_name, connection_scope, subject_id
-    )
+    PRIMARY KEY (workspace_id, service, connection_scope, subject_id)
 );
 
 CREATE TABLE IF NOT EXISTS connector_oauth_configs (
@@ -641,7 +638,6 @@ CREATE TABLE IF NOT EXISTS connector_runs (
     service TEXT NOT NULL,
     operation_kind TEXT NOT NULL,
     target_id TEXT NOT NULL,
-    connection_name TEXT NOT NULL DEFAULT 'default',
     started_at TEXT NOT NULL,
     completed_at TEXT NOT NULL,
     ok INTEGER NOT NULL,

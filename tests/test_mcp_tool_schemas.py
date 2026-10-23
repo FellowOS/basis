@@ -130,7 +130,7 @@ def test_invoke_connector_primitive_schema() -> None:
     assert schema is not None
     props = schema.get("properties") or {}
     assert "service" in props
-    assert "connection_name" in props
+    assert "connection_scope" in props
     assert "action_id" in props
     assert "primitive" in props
 

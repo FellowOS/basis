@@ -13,7 +13,6 @@ def invoke(ctx: WorkspaceCoreContext, args: dict[str, Any]) -> dict[str, Any]:
     service = str(args.get("service") or "").strip()
     action_id = str(args.get("action_id") or "").strip()
     primitive = str(args.get("primitive") or "").strip().lower()
-    connection_name = str(args.get("connection_name") or "default").strip() or "default"
     connection_scope = str(args.get("connection_scope") or "workspace").strip() or "workspace"
     subject_id_raw = args.get("subject_id")
     subject_id = (
@@ -55,7 +54,6 @@ def invoke(ctx: WorkspaceCoreContext, args: dict[str, Any]) -> dict[str, Any]:
             service,
             action_id=action_id,
             primitive=primitive,
-            connection_name=connection_name,
             connection_scope=connection_scope,
             subject_id=subject_id,
             operation=operation,

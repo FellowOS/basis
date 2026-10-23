@@ -8,7 +8,11 @@ from pathlib import Path
 import pytest
 
 from basis.domain.connector import ConnectorAuthVault
-from basis.domain.connector.connection_scope import SCOPE_END_USER, SCOPE_WORKSPACE
+from basis.domain.connector.connection_scope import (
+    SCOPE_END_USER,
+    SCOPE_WORKSPACE,
+    WorkspaceSharedBlocksEndUserError,
+)
 from basis.infra.tooling.db.sqlite_migrations import run_migrations
 
 
@@ -40,17 +44,36 @@ def test_workspace_and_end_user_connections_isolated(tmp_path: Path) -> None:
         ws = vault.upsert_connection(
             "kb1",
             "github",
-            connection_name="default",
             auth_type="oauth2",
             credentials={"access_token": "ws_token"},
         )
         assert ws.connection_scope == SCOPE_WORKSPACE
         assert ws.subject_id == ""
 
+        with pytest.raises(WorkspaceSharedBlocksEndUserError):
+            vault.upsert_connection(
+                "kb1",
+                "github",
+                connection_scope=SCOPE_END_USER,
+                subject_id="fellow-user-42",
+                auth_type="oauth2",
+                credentials={"access_token": "user_token"},
+            )
+
+        listed = vault.list_connections("kb1", service="github")
+        assert len(listed) == 1
+        assert listed[0].connection_scope == SCOPE_WORKSPACE
+    finally:
+        conn.close()
+
+
+def test_end_user_allowed_when_no_workspace_connection(tmp_path: Path) -> None:
+    conn = _workspace_db(tmp_path)
+    try:
+        vault = ConnectorAuthVault(conn, vault_secret="test-secret")
         end = vault.upsert_connection(
             "kb1",
             "github",
-            connection_name="default",
             connection_scope=SCOPE_END_USER,
             subject_id="fellow-user-42",
             auth_type="oauth2",
@@ -58,38 +81,6 @@ def test_workspace_and_end_user_connections_isolated(tmp_path: Path) -> None:
         )
         assert end.connection_scope == SCOPE_END_USER
         assert end.subject_id == "fellow-user-42"
-        assert end.credentials["access_token"] == "user_token"
-
-        listed = vault.list_connections("kb1", service="github")
-        assert len(listed) == 2
-
-        only_end = vault.list_connections(
-            "kb1",
-            service="github",
-            connection_scope=SCOPE_END_USER,
-            subject_id="fellow-user-42",
-        )
-        assert len(only_end) == 1
-        assert only_end[0].credentials["access_token"] == "user_token"
-
-        pub = only_end[0].to_public_dict()
-        assert pub["connection_scope"] == SCOPE_END_USER
-        assert pub["subject_id"] == "fellow-user-42"
-        assert "credentials" not in pub
-
-        assert vault.delete_connection(
-            "kb1",
-            "github",
-            connection_scope=SCOPE_END_USER,
-            subject_id="fellow-user-42",
-        )
-        assert vault.get_connection(
-            "kb1",
-            "github",
-            connection_scope=SCOPE_END_USER,
-            subject_id="fellow-user-42",
-        ) is None
-        assert vault.get_connection("kb1", "github") is not None
     finally:
         conn.close()
 

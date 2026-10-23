@@ -140,7 +140,6 @@ class ConnectorLedgerSyncService:
         mapping_id: str,
         *,
         provider: str | None = None,
-        connection_name: str | None = None,
         stream_name: str,
         external_table: str,
         primary_key_column: str,
@@ -160,14 +159,9 @@ class ConnectorLedgerSyncService:
         if not existing:
             raise LookupError(f"Table mapping '{mapping_id}' not found in workspace '{workspace_id}'")
 
-        if provider is not None or connection_name is not None:
+        if provider is not None:
             cfg = self._get_source_config(workspace_id, existing.source_id)
-            merged = cfg.model_copy(
-                update={
-                    "provider": provider or cfg.provider,
-                    "connection_name": connection_name or cfg.connection_name,
-                }
-            )
+            merged = cfg.model_copy(update={"provider": provider or cfg.provider})
             now = _now_iso()
             self._persist.update_ingest_source_config(
                 workspace_id,
@@ -275,7 +269,6 @@ class ConnectorLedgerSyncService:
         read_res: UnifiedReadResult = self.runtime.read_stream(
             workspace_id,
             src_cfg.provider,
-            connection_name=src_cfg.connection_name,
             stream_name=mapping.stream_name,
             external_table=mapping.external_table,
             primary_key_column=mapping.primary_key_column,
@@ -642,7 +635,6 @@ class ConnectorLedgerSyncService:
             remote_res = self.runtime.mutate_stream(
                 workspace_id,
                 src_cfg.provider,
-                connection_name=src_cfg.connection_name,
                 stream_name=patch.stream_name,
                 external_table=external_table,
                 operation=patch.mutation_operation,

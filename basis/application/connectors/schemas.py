@@ -42,11 +42,6 @@ class ListConnectorConnectionsInput(ExtraAllowedModel):
 
 class UpsertConnectorConnectionInput(ExtraAllowedModel):
     service: str = Field(min_length=1, description="Connector service key")
-    connection_name: str = Field(
-        default="default",
-        min_length=1,
-        description="Saved connection name (path segment on HTTP PUT)",
-    )
     auth_type: str = Field(min_length=1)
     connection_config: dict[str, Any] = Field(default_factory=dict)
     credentials: dict[str, Any] = Field(default_factory=dict)
@@ -56,21 +51,20 @@ class UpsertConnectorConnectionInput(ExtraAllowedModel):
 
 class DeleteConnectorConnectionInput(ExtraAllowedModel):
     service: str = Field(min_length=1)
-    connection_name: str = Field(default="default", min_length=1)
     connection_scope: Literal["workspace", "end_user"] = "workspace"
     subject_id: str | None = None
 
 
 class CheckConnectorConnectionInput(ExtraAllowedModel):
     service: str = Field(min_length=1)
-    connection_name: str = Field(default="default", min_length=1)
     connection_scope: Literal["workspace", "end_user"] = "workspace"
     subject_id: str | None = None
 
 
 class DiscoverConnectorSchemaInput(ExtraAllowedModel):
     service: str = Field(min_length=1)
-    connection_name: str = Field(default="default", min_length=1)
+    connection_scope: Literal["workspace", "end_user"] = "workspace"
+    subject_id: str | None = None
     stream_name: str | None = None
     external_table: str | None = None
 
@@ -99,10 +93,6 @@ class InvokeConnectorPrimitiveInput(ExtraAllowedModel):
         description="Entity or procedure action id from manifest actions[]",
     )
     primitive: Literal["discover", "list", "mutate", "invoke"]
-    connection_name: str | None = Field(
-        default=None,
-        description="Saved connection name (default: default)",
-    )
     connection_scope: Literal["workspace", "end_user"] | None = None
     subject_id: str | None = Field(
         default=None,
@@ -147,10 +137,6 @@ class InvokeConnectorPrimitiveInput(ExtraAllowedModel):
 class ExecuteConnectorToolInput(ExtraAllowedModel):
     service: str = Field(min_length=1, description="Connector service key")
     tool_id: str = Field(min_length=1, description="Tool id from manifest tools[]")
-    connection_name: str | None = Field(
-        default=None,
-        description="Saved connection name (default: default)",
-    )
     connection_scope: Literal["workspace", "end_user"] | None = None
     subject_id: str | None = None
     arguments: dict[str, Any] | None = Field(

@@ -15,11 +15,10 @@ test('connector runs panel lists run after connection check', async ({ page }) =
 
   await registerFreshUser(page);
   const workspaceId = await defaultWorkspaceId(page);
-  const connectionName = 'e2e_runs';
   const dbPath = seedE2eSqliteCustomersDb();
 
-  await putE2ePostgresSqliteConnection(page, workspaceId, connectionName, dbPath);
-  await postE2eConnectionCheck(page, workspaceId, 'postgres', connectionName);
+  await putE2ePostgresSqliteConnection(page, workspaceId, dbPath);
+  await postE2eConnectionCheck(page, workspaceId, 'postgres');
 
   await page.goto(`/workspaces/${workspaceId}/connectors/runs`);
   await expect(page.getByTestId('connectors-panel-runs')).toBeVisible({ timeout: 30_000 });
@@ -33,11 +32,10 @@ test('connector mapping edit saves label column and returns to list', async ({ p
 
   await registerFreshUser(page);
   const workspaceId = await defaultWorkspaceId(page);
-  const connectionName = 'e2e_edit';
   const dbPath = seedE2eSqliteCustomersDb();
 
-  await putE2ePostgresSqliteConnection(page, workspaceId, connectionName, dbPath);
-  const mappingId = await createCustomersTableMappingViaApi(page, workspaceId, connectionName);
+  await putE2ePostgresSqliteConnection(page, workspaceId, dbPath);
+  const mappingId = await createCustomersTableMappingViaApi(page, workspaceId);
 
   await page.goto(`/workspaces/${workspaceId}/connectors/mappings/${mappingId}/edit`);
   await expect(page.getByTestId('mapping-label-input')).toBeVisible({ timeout: 30_000 });
@@ -57,11 +55,10 @@ test('connector mappings list sync now runs inbound sync', async ({ page }) => {
 
   await registerFreshUser(page);
   const workspaceId = await defaultWorkspaceId(page);
-  const connectionName = 'e2e_sync_ui';
   const dbPath = seedE2eSqliteCustomersDb();
 
-  await putE2ePostgresSqliteConnection(page, workspaceId, connectionName, dbPath);
-  const mappingId = await createCustomersTableMappingViaApi(page, workspaceId, connectionName);
+  await putE2ePostgresSqliteConnection(page, workspaceId, dbPath);
+  const mappingId = await createCustomersTableMappingViaApi(page, workspaceId);
 
   await page.goto(`/workspaces/${workspaceId}/connectors/mappings`);
   const syncBtn = page.getByTestId(`sync-mapping-btn-${mappingId}`);
@@ -77,25 +74,23 @@ test('connector oauth callback exchanges code and returns to catalog', async ({ 
   await registerFreshUser(page);
   const workspaceId = await defaultWorkspaceId(page);
   const state = 'e2e-oauth-state-ok';
-  const connectionName = 'e2e_oauth_ok';
 
-  await page.goto(`/workspaces/${workspaceId}/connectors/catalog`);
+  await page.goto(`/workspaces/${workspaceId}/connectors`);
   await page.evaluate(
-    ({ workspaceId: kid, state: oauthState, connectionName: connName }) => {
+    ({ workspaceId: kid, state: oauthState }) => {
       const redirectUri = `${window.location.origin}/workspaces/${kid}/connectors/oauth/callback`;
       sessionStorage.setItem(
         'basis_bocp_oauth_pending',
         JSON.stringify({
           workspaceId: kid,
           service: 'github',
-          connectionName: connName,
           connectionConfig: {},
           state: oauthState,
           redirectUri,
         }),
       );
     },
-    { workspaceId, state, connectionName },
+    { workspaceId, state },
   );
 
   await page.route(`**/api/v1/workspaces/${workspaceId}/connectors/oauth/github/exchange`, async (route) => {
@@ -105,7 +100,6 @@ test('connector oauth callback exchanges code and returns to catalog', async ({ 
       body: JSON.stringify({
         connection: {
           service: 'github',
-          connection_name: connectionName,
           auth_type: 'oauth2',
         },
       }),
@@ -120,8 +114,7 @@ test('connector oauth callback exchanges code and returns to catalog', async ({ 
   await page.goto(`/workspaces/${workspaceId}/connectors/oauth/callback?code=e2e-fake-code&state=${state}`);
   const exchangeBody = (await exchangeRequest).postDataJSON() as Record<string, unknown>;
   expect(exchangeBody.code).toBe('e2e-fake-code');
-  expect(exchangeBody.connection_name).toBe(connectionName);
-  await expect(page).toHaveURL(new RegExp(`/workspaces/${workspaceId}/connectors/catalog`), {
+  await expect(page).toHaveURL(new RegExp(`/workspaces/${workspaceId}/connectors`), {
     timeout: 30_000,
   });
   await expect(page.getByTestId('connectors-panel-catalog')).toBeVisible({ timeout: 30_000 });
@@ -133,29 +126,27 @@ test('connector oauth callback exchanges via API playwright stub', async ({ page
   await registerFreshUser(page);
   const workspaceId = await defaultWorkspaceId(page);
   const state = 'e2e-oauth-state-stub';
-  const connectionName = 'e2e_oauth_api_stub';
 
-  await page.goto(`/workspaces/${workspaceId}/connectors/catalog`);
+  await page.goto(`/workspaces/${workspaceId}/connectors`);
   const redirectUri = await page.evaluate(
     (wid) => `${window.location.origin}/workspaces/${wid}/connectors/oauth/callback`,
     workspaceId,
   );
   await putE2eGithubOAuthConfig(page, workspaceId, redirectUri);
   await page.evaluate(
-    ({ workspaceId: wid, state: oauthState, connectionName: connName, redirectUri: redir }) => {
+    ({ workspaceId: wid, state: oauthState, redirectUri: redir }) => {
       sessionStorage.setItem(
         'basis_bocp_oauth_pending',
         JSON.stringify({
           workspaceId: wid,
           service: 'github',
-          connectionName: connName,
           connectionConfig: {},
           state: oauthState,
           redirectUri: redir,
         }),
       );
     },
-    { workspaceId, state, connectionName, redirectUri },
+    { workspaceId, state, redirectUri },
   );
 
   const exchangeRequest = page.waitForRequest(
@@ -168,8 +159,7 @@ test('connector oauth callback exchanges via API playwright stub', async ({ page
   );
   const exchangeBody = (await exchangeRequest).postDataJSON() as Record<string, unknown>;
   expect(exchangeBody.code).toBe(PLAYWRIGHT_E2E_OAUTH_CODE);
-  expect(exchangeBody.connection_name).toBe(connectionName);
-  await expect(page).toHaveURL(new RegExp(`/workspaces/${workspaceId}/connectors/catalog`), {
+  await expect(page).toHaveURL(new RegExp(`/workspaces/${workspaceId}/connectors`), {
     timeout: 30_000,
   });
   await expect(page.getByTestId('connectors-panel-catalog')).toBeVisible({ timeout: 30_000 });

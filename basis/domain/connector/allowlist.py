@@ -69,6 +69,16 @@ def count_platform_enabled(platform: AllowedProviders, services: list[str]) -> i
     return sum(1 for s in services if is_platform_provider_allowed(s, platform))
 
 
+def is_workspace_provider_enabled(service: str, workspace: AllowedProviders) -> bool:
+    """Whether a provider is enabled on the workspace allowlist (before platform intersection)."""
+    workspace_norm = normalize_allowed_providers(workspace)
+    if workspace_norm == "*":
+        return True
+    if isinstance(workspace_norm, list):
+        return service in workspace_norm
+    return False
+
+
 def is_provider_allowed(
     service: str,
     platform: AllowedProviders,

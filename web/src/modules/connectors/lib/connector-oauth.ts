@@ -42,15 +42,14 @@ function removeOAuthStorageItem(key: string): void {
 export type PendingConnectorOAuth = {
   workspaceId: string;
   service: string;
-  connectionName: string;
-  connectionConfig: Record<string, unknown>;
+    connectionConfig: Record<string, unknown>;
   state: string;
   redirectUri: string;
   codeVerifier?: string;
   /** When set, authorize/exchange use Integration API for end_user connections. */
   endUserSubjectId?: string;
   /** Post-success navigation (default: connectors catalog). */
-  returnTo?: 'connectors-catalog' | 'integration-connectors';
+  returnTo?: 'connectors-catalog' | 'connectors-authorization' | 'integration-connectors';
 };
 
 export function workspaceConnectorOAuthCallbackPath(workspaceId: string): string {
@@ -154,8 +153,7 @@ export function resolveOAuthCallbackPending(
   return {
     workspaceId,
     service: parsed.service,
-    connectionName: 'default',
-    connectionConfig: {},
+        connectionConfig: {},
     state,
     redirectUri: workspaceConnectorOAuthRedirectUri(workspaceId),
     codeVerifier: verifier,

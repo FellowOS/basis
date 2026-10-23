@@ -9,7 +9,7 @@ test('connectors workspace displays BOCP catalog, policy, and mappings tabs', as
   await registerFreshUser(page);
   const workspaceId = await defaultWorkspaceId(page);
 
-  await page.goto(`/workspaces/${workspaceId}/connectors/catalog`);
+  await page.goto(`/workspaces/${workspaceId}/connectors`);
 
   // Verify catalog panel loads built-in stream-enabled connectors (postgres, github, …)
   await expect(page.getByTestId('catalog-connector-card-postgres')).toBeVisible({ timeout: 30_000 });
@@ -36,7 +36,7 @@ test('connector writeback review item renders Before -> After field diff card in
 
   // Create a connection + table mapping via API so we can verify the UI tabs
   const putConn = await page.request.put(
-    e2eWorkspaceApiPath(workspaceId, 'connectors/connections/postgres/e2e_erp'),
+    e2eWorkspaceApiPath(workspaceId, 'connectors/connections/postgres'),
     {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -51,12 +51,9 @@ test('connector writeback review item renders Before -> After field diff card in
   );
   expect(putConn.ok()).toBeTruthy();
 
-  await page.goto(`/workspaces/${workspaceId}/connectors/catalog`);
-  await expect(page.getByTestId('configured-connection-postgres-e2e_erp')).toBeVisible({
-    timeout: 30_000,
-  });
-
-  await page.getByTestId('create-mapping-from-connection-postgres-e2e_erp').click();
+  await page.goto(
+    `/workspaces/${workspaceId}/connectors/mappings/new?service=postgres&connection=e2e_erp`,
+  );
   await expect(page).toHaveURL(new RegExp(`/workspaces/${workspaceId}/connectors/mappings/new`));
   await expect(page.getByTestId('mapping-connection-select')).toBeVisible();
   await expect(page.getByTestId('mapping-connection-select')).toContainText('e2e_erp');

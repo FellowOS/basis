@@ -9,8 +9,8 @@ from basis.application.connectors._helpers import mcp_connection_item
 from basis.application.kernel import WorkspaceCoreContext
 from basis.domain.connector import get_connector_catalog
 from basis.domain.connector.connection_scope import (
-    DEFAULT_END_USER_CONNECTION_NAME,
     SCOPE_END_USER,
+    WorkspaceSharedBlocksEndUserError,
 )
 from basis.domain.errors import AdminError
 
@@ -70,7 +70,6 @@ def upsert_connection(
     ctx: WorkspaceCoreContext,
     *,
     service: str,
-    connection_name: str,
     connection_scope: str,
     subject_id: str | None,
     auth_type: str,
@@ -82,16 +81,22 @@ def upsert_connection(
         raise AdminError(404, "connector_not_found", f"未知的连接器服务: {service}")
     if connection_scope == SCOPE_END_USER and not (subject_id or "").strip():
         raise AdminError(422, "subject_id_required", "end_user 连接需要 subject_id")
-    stored = _runtime(ctx).vault.upsert_connection(
-        ctx.workspace.id,
-        service,
-        connection_name=connection_name,
-        connection_scope=connection_scope,
-        subject_id=subject_id,
-        auth_type=auth_type,
-        connection_config=connection_config,
-        credentials=credentials,
-    )
+    try:
+        stored = _runtime(ctx).vault.upsert_connection(
+            ctx.workspace.id,
+            service,
+            connection_scope=connection_scope,
+            subject_id=subject_id,
+            auth_type=auth_type,
+            connection_config=connection_config,
+            credentials=credentials,
+        )
+    except WorkspaceSharedBlocksEndUserError as exc:
+        raise AdminError(
+            422,
+            "workspace_shared_blocks_end_user",
+            str(exc),
+        ) from exc
     return {"connection": stored.to_public_dict()}
 
 
@@ -107,7 +112,6 @@ def upsert_embed_connection(
     return upsert_connection(
         ctx,
         service=service,
-        connection_name=DEFAULT_END_USER_CONNECTION_NAME,
         connection_scope=SCOPE_END_USER,
         subject_id=subject_id.strip(),
         auth_type=auth_type,
@@ -120,7 +124,6 @@ def delete_connection(
     ctx: WorkspaceCoreContext,
     *,
     service: str,
-    connection_name: str,
     connection_scope: str,
     subject_id: str | None,
 ) -> dict[str, Any]:
@@ -128,7 +131,6 @@ def delete_connection(
     deleted = _runtime(ctx).vault.delete_connection(
         ctx.workspace.id,
         service,
-        connection_name=connection_name,
         connection_scope=connection_scope,
         subject_id=subject_id,
     )
@@ -146,7 +148,6 @@ def delete_embed_connection(
     return delete_connection(
         ctx,
         service=service,
-        connection_name=DEFAULT_END_USER_CONNECTION_NAME,
         connection_scope=SCOPE_END_USER,
         subject_id=subject_id.strip(),
     )
@@ -156,7 +157,6 @@ def check_connection(
     ctx: WorkspaceCoreContext,
     *,
     service: str,
-    connection_name: str,
     connection_scope: str,
     subject_id: str | None,
 ) -> dict[str, Any]:
@@ -165,7 +165,6 @@ def check_connection(
         profile = _runtime(ctx).check_connection(
             ctx.workspace.id,
             service,
-            connection_name=connection_name,
             connection_scope=connection_scope,
             subject_id=subject_id,
         )
@@ -187,7 +186,6 @@ def check_embed_connection(
     return check_connection(
         ctx,
         service=service,
-        connection_name=DEFAULT_END_USER_CONNECTION_NAME,
         connection_scope=SCOPE_END_USER,
         subject_id=subject_id.strip(),
     )
@@ -197,7 +195,8 @@ def discover_schema(
     ctx: WorkspaceCoreContext,
     *,
     service: str,
-    connection_name: str,
+    connection_scope: str = "workspace",
+    subject_id: str | None = None,
     stream_name: str | None = None,
     external_table: str | None = None,
 ) -> dict[str, Any]:
@@ -206,7 +205,8 @@ def discover_schema(
         info = _runtime(ctx).discover_schema(
             ctx.workspace.id,
             service,
-            connection_name=connection_name,
+            connection_scope=connection_scope,
+            subject_id=subject_id,
             stream_name=stream_name,
             external_table=external_table,
         )

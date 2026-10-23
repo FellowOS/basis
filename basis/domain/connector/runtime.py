@@ -72,7 +72,6 @@ class ConnectorRuntime:
         self,
         workspace_id: str,
         service: str,
-        connection_name: str = "default",
         *,
         connection_scope: ConnectionScope | str = SCOPE_WORKSPACE,
         subject_id: str | None = None,
@@ -88,13 +87,12 @@ class ConnectorRuntime:
         connection = self.vault.get_connection(
             workspace_id,
             service,
-            connection_name=connection_name,
             connection_scope=scope,
             subject_id=sid,
         )
         if not connection:
             raise LookupError(
-                f"Connection '{connection_name}' not found for service '{service}' in workspace '{workspace_id}'"
+                f"Connection not found for service '{service}' in workspace '{workspace_id}'"
             )
         return manifest, connection
 
@@ -113,7 +111,6 @@ class ConnectorRuntime:
         workspace_id: str,
         service: str,
         *,
-        connection_name: str = "default",
         connection_scope: ConnectionScope | str = SCOPE_WORKSPACE,
         subject_id: str | None = None,
     ) -> dict[str, Any]:
@@ -122,7 +119,6 @@ class ConnectorRuntime:
         manifest, connection = self._require_manifest_and_connection(
             workspace_id,
             service,
-            connection_name,
             connection_scope=connection_scope,
             subject_id=subject_id,
         )
@@ -148,7 +144,6 @@ class ConnectorRuntime:
             self.vault.upsert_connection(
                 workspace_id,
                 service,
-                connection_name=connection_name,
                 connection_scope=connection.connection_scope,
                 subject_id=connection.subject_id,
                 auth_type=connection.auth_type,
@@ -158,8 +153,7 @@ class ConnectorRuntime:
                 workspace_id,
                 service=service,
                 operation_kind="check",
-                target_id=connection_name,
-                connection_name=connection_name,
+                target_id=service,
                 started_at=started_at,
                 ok=True,
                 value=profile,
@@ -170,8 +164,7 @@ class ConnectorRuntime:
                 workspace_id,
                 service=service,
                 operation_kind="check",
-                target_id=connection_name,
-                connection_name=connection_name,
+                target_id=service,
                 started_at=started_at,
                 ok=False,
                 value={"error": str(exc)},
@@ -183,7 +176,6 @@ class ConnectorRuntime:
         workspace_id: str,
         service: str,
         *,
-        connection_name: str = "default",
         connection_scope: ConnectionScope | str = SCOPE_WORKSPACE,
         subject_id: str | None = None,
         stream_name: str | None = None,
@@ -194,7 +186,6 @@ class ConnectorRuntime:
         manifest, connection = self._require_manifest_and_connection(
             workspace_id,
             service,
-            connection_name,
             connection_scope=connection_scope,
             subject_id=subject_id,
         )
@@ -244,7 +235,6 @@ class ConnectorRuntime:
         workspace_id: str,
         service: str,
         *,
-        connection_name: str = "default",
         connection_scope: ConnectionScope | str = SCOPE_WORKSPACE,
         subject_id: str | None = None,
         stream_name: str | None = None,
@@ -260,7 +250,6 @@ class ConnectorRuntime:
         manifest, connection = self._require_manifest_and_connection(
             workspace_id,
             service,
-            connection_name,
             connection_scope=connection_scope,
             subject_id=subject_id,
         )
@@ -313,7 +302,6 @@ class ConnectorRuntime:
                 service=service,
                 operation_kind="read_stream",
                 target_id=target_label,
-                connection_name=connection_name,
                 started_at=started_at,
                 ok=True,
                 value={"records_count": len(res.records)},
@@ -325,7 +313,6 @@ class ConnectorRuntime:
                 service=service,
                 operation_kind="read_stream",
                 target_id=target_label,
-                connection_name=connection_name,
                 started_at=started_at,
                 ok=False,
                 value={"error": str(exc)},
@@ -337,7 +324,6 @@ class ConnectorRuntime:
         workspace_id: str,
         service: str,
         *,
-        connection_name: str = "default",
         connection_scope: ConnectionScope | str = SCOPE_WORKSPACE,
         subject_id: str | None = None,
         stream_name: str | None = None,
@@ -353,7 +339,6 @@ class ConnectorRuntime:
         manifest, connection = self._require_manifest_and_connection(
             workspace_id,
             service,
-            connection_name,
             connection_scope=connection_scope,
             subject_id=subject_id,
         )
@@ -397,7 +382,6 @@ class ConnectorRuntime:
                 service=service,
                 operation_kind=f"mutate_{operation}",
                 target_id=target_label,
-                connection_name=connection_name,
                 started_at=started_at,
                 ok=True,
                 value={"updated_fields": sorted(changes.keys())},
@@ -409,7 +393,6 @@ class ConnectorRuntime:
                 service=service,
                 operation_kind=f"mutate_{operation}",
                 target_id=target_label,
-                connection_name=connection_name,
                 started_at=started_at,
                 ok=False,
                 value={"error": str(exc)},
@@ -446,7 +429,6 @@ class ConnectorRuntime:
         service: str,
         tool_id: str,
         *,
-        connection_name: str = "default",
         connection_scope: ConnectionScope | str = SCOPE_WORKSPACE,
         subject_id: str | None = None,
         arguments: dict[str, Any] | None = None,
@@ -456,7 +438,6 @@ class ConnectorRuntime:
         manifest, connection = self._require_manifest_and_connection(
             workspace_id,
             service,
-            connection_name,
             connection_scope=connection_scope,
             subject_id=subject_id,
         )
@@ -497,7 +478,6 @@ class ConnectorRuntime:
                 service=service,
                 operation_kind="tool",
                 target_id=tool.id,
-                connection_name=connection_name,
                 started_at=started_at,
                 ok=True,
                 value={"tool_id": tool.id, "mode": mode},
@@ -509,7 +489,6 @@ class ConnectorRuntime:
                 service=service,
                 operation_kind="tool",
                 target_id=tool.id,
-                connection_name=connection_name,
                 started_at=started_at,
                 ok=False,
                 value={"error": str(exc)},

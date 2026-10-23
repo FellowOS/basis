@@ -2,8 +2,7 @@ import type { StoredConnection } from '@/modules/connectors/lib/connector-connec
 
 export type SqlSuggestTarget = {
   provider: string;
-  connection_name: string;
-  external_table: string;
+    external_table: string;
   stream_name?: string;
 };
 
@@ -37,8 +36,7 @@ export function buildSqlSuggestTargets(
     if (table) {
       targets.push({
         provider: conn.service,
-        connection_name: conn.connection_name,
-        external_table: table,
+                external_table: table,
       });
     }
   }

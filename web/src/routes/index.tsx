@@ -13,7 +13,7 @@ import {
   ConnectorMappingNewPage,
   ConnectorOAuthCallbackPage,
   ConnectorsPage,
-  ConnectorsRedirect,
+  ConnectorCatalogLegacyRedirect,
   DataOnboardingRedirect,
   DecisionsPage,
   EntitiesPage,
@@ -206,8 +206,12 @@ export function AppRoutes() {
           path="/workspaces/:id/connectors/oauth/callback"
           element={<Lazy><ConnectorOAuthCallbackPage /></Lazy>}
         />
+        <Route
+          path="/workspaces/:id/connectors/catalog"
+          element={<Lazy><ConnectorCatalogLegacyRedirect /></Lazy>}
+        />
         <Route path="/workspaces/:id/connectors/:panel" element={<Lazy><ConnectorsPage /></Lazy>} />
-        <Route path="/workspaces/:id/connectors" element={<Lazy><ConnectorsRedirect /></Lazy>} />
+        <Route path="/workspaces/:id/connectors" element={<Lazy><ConnectorsPage /></Lazy>} />
         <Route path="/workspaces/:id/processing" element={<Lazy><ProcessingPage /></Lazy>} />
         <Route path="/workspaces/:id/entities" element={<WorkspaceLazy><EntitiesPage /></WorkspaceLazy>} />
         <Route

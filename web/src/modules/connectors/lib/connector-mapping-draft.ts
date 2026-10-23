@@ -1,7 +1,6 @@
 export type ConnectorMappingDraft = {
   provider: string;
-  connection_name: string;
-  stream_name: string;
+    stream_name: string;
   external_table: string;
   primary_key_column: string;
   cursor_column?: string | null;

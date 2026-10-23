@@ -39,7 +39,7 @@ type SuggestResponse = {
 };
 
 function draftKey(draft: ConnectorMappingDraft): string {
-  return `${draft.provider}:${draft.connection_name}:${draft.stream_name}:${draft.external_table}`;
+  return `${draft.provider}:${draft.stream_name}:${draft.external_table}`;
 }
 
 const SQL_SERVICES = new Set(['postgres', 'mysql']);
@@ -78,7 +78,7 @@ export function ConnectorMappingSuggestPanel({
     setSkippedCount(0);
     setHasGenerated(false);
     setSqlTableInput('');
-  }, [active, selectedConnection?.service, selectedConnection?.connection_name]);
+  }, [active, selectedConnection?.service, selectedConnection?.service]);
 
   const fetchSuggestions = useCallback(async () => {
     if (!selectedConnection) {
@@ -92,15 +92,13 @@ export function ConnectorMappingSuggestPanel({
         connections: [
           {
             provider: selectedConnection.service,
-            connection_name: selectedConnection.connection_name,
-          },
+                      },
         ],
       };
       if (sqlTables.length) {
         body.sql_tables = sqlTables.map((row) => ({
           provider: row.provider,
-          connection_name: row.connection_name,
-          stream_name: row.stream_name ?? 'table_records',
+                    stream_name: row.stream_name ?? 'table_records',
           external_table: row.external_table,
         }));
       }

@@ -11,7 +11,6 @@ from basis.application.kernel import WorkspaceCoreContext
 def execute_tool(ctx: WorkspaceCoreContext, args: dict[str, Any]) -> dict[str, Any]:
     service = str(args.get("service") or "").strip()
     tool_id = str(args.get("tool_id") or "").strip()
-    connection_name = str(args.get("connection_name") or "default").strip() or "default"
     connection_scope = str(args.get("connection_scope") or "workspace").strip() or "workspace"
     subject_id_raw = args.get("subject_id")
     subject_id = (
@@ -31,7 +30,6 @@ def execute_tool(ctx: WorkspaceCoreContext, args: dict[str, Any]) -> dict[str, A
             ctx.workspace.id,
             service,
             tool_id,
-            connection_name=connection_name,
             connection_scope=connection_scope,
             subject_id=subject_id,
             arguments=arguments or {},

@@ -24,7 +24,6 @@ def table_mapping_api_dict(
         "workspace_id": rec.workspace_id,
         "source_id": rec.source_id,
         "provider": binding.provider,
-        "connection_name": binding.connection_name,
         "stream_name": rec.stream_name,
         "external_table": rec.external_table,
         "stream_params": rec.stream_params,
@@ -75,7 +74,6 @@ def list_table_mappings(ctx: WorkspaceCoreContext, args: dict[str, Any]) -> dict
             {
                 "id": rec.id,
                 "provider": binding.provider,
-                "connection_name": binding.connection_name,
                 "stream_name": rec.stream_name,
                 "external_table": rec.external_table,
                 "sync_direction": rec.sync_direction,

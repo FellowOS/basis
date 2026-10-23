@@ -66,8 +66,7 @@ describe('resolveOAuthCallbackPending', () => {
     savePendingConnectorOAuth({
       workspaceId: 'ws-1',
       service: 'github',
-      connectionName: 'default',
-      connectionConfig: {},
+            connectionConfig: {},
       state: PACKED_GITHUB_STATE,
       redirectUri: 'http://localhost/cb',
       codeVerifier: 'verifier-abc',

@@ -4394,12 +4394,6 @@
             "minLength": 1,
             "title": "Provider"
           },
-          "connection_name": {
-            "type": "string",
-            "minLength": 1,
-            "title": "Connection Name",
-            "default": "default"
-          },
           "stream_name": {
             "type": "string",
             "minLength": 1,
@@ -4943,12 +4937,6 @@
             ],
             "title": "State"
           },
-          "connection_name": {
-            "type": "string",
-            "minLength": 1,
-            "title": "Connection Name",
-            "default": "default"
-          },
           "connection_scope": {
             "type": "string",
             "enum": [
@@ -4993,11 +4981,25 @@
             "minLength": 1,
             "title": "Tool Id"
           },
-          "connection_name": {
+          "connection_scope": {
             "type": "string",
-            "minLength": 1,
-            "title": "Connection Name",
-            "default": "default"
+            "enum": [
+              "workspace",
+              "end_user"
+            ],
+            "title": "Connection Scope",
+            "default": "workspace"
+          },
+          "subject_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subject Id"
           },
           "arguments": {
             "additionalProperties": true,
@@ -6534,12 +6536,6 @@
             "type": "string",
             "minLength": 1,
             "title": "Provider"
-          },
-          "connection_name": {
-            "type": "string",
-            "minLength": 1,
-            "title": "Connection Name",
-            "default": "default"
           }
         },
         "type": "object",
@@ -6554,12 +6550,6 @@
             "type": "string",
             "minLength": 1,
             "title": "Provider"
-          },
-          "connection_name": {
-            "type": "string",
-            "minLength": 1,
-            "title": "Connection Name",
-            "default": "default"
           },
           "stream_name": {
             "anyOf": [
@@ -6620,7 +6610,7 @@
             },
             "type": "array",
             "title": "Connections",
-            "description": "When auto-expanding, limit to these saved connections (all workspace connections if empty)."
+            "description": "When auto-expanding, limit to these connector services (all if empty)."
           }
         },
         "type": "object",
@@ -6765,17 +6755,6 @@
               }
             ],
             "title": "Provider"
-          },
-          "connection_name": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Connection Name"
           },
           "stream_name": {
             "type": "string",

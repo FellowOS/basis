@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { ApiTokensPanel } from './components/api-tokens-panel.js';
 import { McpIntegrationPanel } from './components/mcp-integration-panel.js';
-import { ConnectorsPlaygroundPanel } from './components/connectors-playground-panel.js';
 import { OpenApiIntegrationPanel } from './components/openapi-integration-panel.js';
+import { workspaceConnectorsAuthorizationHref } from '@/modules/connectors/lib/playground-deep-link.js';
 import { ConsolePageLayout } from '@/components/app/shared/console/index.js';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs.js';
 import { useI18n } from '@/i18n/context.js';
@@ -13,10 +13,10 @@ import { workspaceOpenApiGET } from '@/lib/openapi/client.js';
 
 type WorkspaceRecord = { my_role: string };
 
-type IntegrationTab = 'mcp' | 'openapi' | 'tokens' | 'connectors';
+type IntegrationTab = 'mcp' | 'openapi' | 'tokens';
 
 function parseIntegrationTab(raw: string | null): IntegrationTab {
-  if (raw === 'mcp' || raw === 'openapi' || raw === 'tokens' || raw === 'connectors') {
+  if (raw === 'mcp' || raw === 'openapi' || raw === 'tokens') {
     return raw;
   }
   return 'mcp';
@@ -24,6 +24,7 @@ function parseIntegrationTab(raw: string | null): IntegrationTab {
 
 export function IntegrationPage() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { t } = useI18n();
   const { getWorkspace } = useWorkspaceCatalog();
@@ -44,6 +45,18 @@ export function IntegrationPage() {
       .catch(() => setMyRole(undefined));
   }, [id]);
 
+  useEffect(() => {
+    if (!id) return;
+    if (searchParams.get('tab') !== 'connectors') return;
+    navigate(
+      workspaceConnectorsAuthorizationHref(id, {
+        subjectId: searchParams.get('subject_id') ?? undefined,
+        service: searchParams.get('service') ?? undefined,
+      }),
+      { replace: true },
+    );
+  }, [id, navigate, searchParams]);
+
   if (!id) return null;
 
   return (
@@ -57,14 +70,17 @@ export function IntegrationPage() {
     >
       <Tabs
         value={tab}
-        onValueChange={(value) => setSearchParams({ tab: value }, { replace: true })}
+        onValueChange={(value) => {
+          const next = new URLSearchParams(searchParams);
+          next.set('tab', value);
+          setSearchParams(next, { replace: true });
+        }}
         className="flex min-h-0 flex-1 flex-col"
       >
         <TabsList>
           <TabsTrigger value="mcp">{t.integration.tabs.mcp}</TabsTrigger>
           <TabsTrigger value="openapi">{t.integration.tabs.openapi}</TabsTrigger>
           <TabsTrigger value="tokens">{t.integration.tabs.tokens}</TabsTrigger>
-          <TabsTrigger value="connectors">{t.integration.tabs.connectors}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="mcp" className="mt-4 flex min-h-0 flex-1 flex-col data-[state=inactive]:hidden">
@@ -75,13 +91,6 @@ export function IntegrationPage() {
 
         <TabsContent value="openapi" className="mt-4 flex min-h-0 flex-1 flex-col data-[state=inactive]:hidden">
           <OpenApiIntegrationPanel workspaceId={id} />
-        </TabsContent>
-
-        <TabsContent
-          value="connectors"
-          className="mt-4 min-h-0 flex-1 overflow-y-auto data-[state=inactive]:hidden"
-        >
-          <ConnectorsPlaygroundPanel workspaceId={id} />
         </TabsContent>
 
         <TabsContent value="tokens" className="mt-4 flex min-h-0 flex-1 flex-col data-[state=inactive]:hidden">

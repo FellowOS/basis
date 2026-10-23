@@ -1981,7 +1981,7 @@
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
-    "/api/v1/workspaces/{workspace_id}/connectors/connections/{service}/{connection_name}": {
+    "/api/v1/workspaces/{workspace_id}/connectors/connections/{service}": {
       "put": {
         "tags": [
           "workspaces",
@@ -1989,7 +1989,7 @@
         ],
         "summary": "Upsert Connector Connection",
         "description": "Create or update an encrypted BOCP connection for this workspace.",
-        "operationId": "upsert_connector_connection_api_v1_workspaces__workspace_id__connectors_connections__service___connection_name__put",
+        "operationId": "upsert_connector_connection_api_v1_workspaces__workspace_id__connectors_connections__service__put",
         "parameters": [
           {
             "name": "workspace_id",
@@ -2007,15 +2007,6 @@
             "schema": {
               "type": "string",
               "title": "Service"
-            }
-          },
-          {
-            "name": "connection_name",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Connection Name"
             }
           },
           {
@@ -2053,7 +2044,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": true,
-                  "title": "Response Upsert Connector Connection Api V1 Workspaces  Workspace Id  Connectors Connections  Service   Connection Name  Put"
+                  "title": "Response Upsert Connector Connection Api V1 Workspaces  Workspace Id  Connectors Connections  Service  Put"
                 }
               }
             }
@@ -2079,7 +2070,7 @@
         ],
         "summary": "Delete Connector Connection",
         "description": "Delete a configured BOCP connection from this workspace.",
-        "operationId": "delete_connector_connection_api_v1_workspaces__workspace_id__connectors_connections__service___connection_name__delete",
+        "operationId": "delete_connector_connection_api_v1_workspaces__workspace_id__connectors_connections__service__delete",
         "parameters": [
           {
             "name": "workspace_id",
@@ -2097,15 +2088,6 @@
             "schema": {
               "type": "string",
               "title": "Service"
-            }
-          },
-          {
-            "name": "connection_name",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Connection Name"
             }
           },
           {
@@ -2159,7 +2141,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": true,
-                  "title": "Response Delete Connector Connection Api V1 Workspaces  Workspace Id  Connectors Connections  Service   Connection Name  Delete"
+                  "title": "Response Delete Connector Connection Api V1 Workspaces  Workspace Id  Connectors Connections  Service  Delete"
                 }
               }
             }
@@ -2179,7 +2161,7 @@
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
-    "/api/v1/workspaces/{workspace_id}/connectors/connections/{service}/{connection_name}/check": {
+    "/api/v1/workspaces/{workspace_id}/connectors/connections/{service}/check": {
       "post": {
         "tags": [
           "workspaces",
@@ -2187,7 +2169,7 @@
         ],
         "summary": "Check Connector Connection",
         "description": "Run the BOCP `CHECK` health check against an upstream connection.",
-        "operationId": "check_connector_connection_api_v1_workspaces__workspace_id__connectors_connections__service___connection_name__check_post",
+        "operationId": "check_connector_connection_api_v1_workspaces__workspace_id__connectors_connections__service__check_post",
         "parameters": [
           {
             "name": "workspace_id",
@@ -2205,15 +2187,6 @@
             "schema": {
               "type": "string",
               "title": "Service"
-            }
-          },
-          {
-            "name": "connection_name",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Connection Name"
             }
           },
           {
@@ -2267,7 +2240,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": true,
-                  "title": "Response Check Connector Connection Api V1 Workspaces  Workspace Id  Connectors Connections  Service   Connection Name  Check Post"
+                  "title": "Response Check Connector Connection Api V1 Workspaces  Workspace Id  Connectors Connections  Service  Check Post"
                 }
               }
             }
@@ -2287,7 +2260,7 @@
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
-    "/api/v1/workspaces/{workspace_id}/connectors/connections/{service}/{connection_name}/discover": {
+    "/api/v1/workspaces/{workspace_id}/connectors/connections/{service}/discover": {
       "get": {
         "tags": [
           "workspaces",
@@ -2295,7 +2268,7 @@
         ],
         "summary": "Discover Connector Schema",
         "description": "Run the BOCP `DISCOVER` schema introspection for a SQL table or REST stream.",
-        "operationId": "discover_connector_schema_api_v1_workspaces__workspace_id__connectors_connections__service___connection_name__discover_get",
+        "operationId": "discover_connector_schema_api_v1_workspaces__workspace_id__connectors_connections__service__discover_get",
         "parameters": [
           {
             "name": "workspace_id",
@@ -2313,15 +2286,6 @@
             "schema": {
               "type": "string",
               "title": "Service"
-            }
-          },
-          {
-            "name": "connection_name",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Connection Name"
             }
           },
           {
@@ -2357,6 +2321,32 @@
             }
           },
           {
+            "name": "connection_scope",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "workspace",
+              "title": "Connection Scope"
+            }
+          },
+          {
+            "name": "subject_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Subject Id"
+            }
+          },
+          {
             "name": "authorization",
             "in": "header",
             "required": false,
@@ -2381,7 +2371,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": true,
-                  "title": "Response Discover Connector Schema Api V1 Workspaces  Workspace Id  Connectors Connections  Service   Connection Name  Discover Get"
+                  "title": "Response Discover Connector Schema Api V1 Workspaces  Workspace Id  Connectors Connections  Service  Discover Get"
                 }
               }
             }
@@ -2401,7 +2391,7 @@
         "x-basis-auth": "session-or-workspace-api-token"
       }
     },
-    "/api/v1/workspaces/{workspace_id}/connectors/connections/{service}/{connection_name}/invoke-primitive": {
+    "/api/v1/workspaces/{workspace_id}/connectors/connections/{service}/invoke-primitive": {
       "post": {
         "tags": [
           "workspaces",
@@ -2409,7 +2399,7 @@
         ],
         "summary": "Invoke Connector Primitive",
         "description": "Run a BOCP Section 10 primitive (discover, list, mutate, invoke) without a table mapping.",
-        "operationId": "invoke_connector_primitive_api_v1_workspaces__workspace_id__connectors_connections__service___connection_name__invoke_primitive_post",
+        "operationId": "invoke_connector_primitive_api_v1_workspaces__workspace_id__connectors_connections__service__invoke_primitive_post",
         "parameters": [
           {
             "name": "workspace_id",
@@ -2427,15 +2417,6 @@
             "schema": {
               "type": "string",
               "title": "Service"
-            }
-          },
-          {
-            "name": "connection_name",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Connection Name"
             }
           },
           {
@@ -2473,7 +2454,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": true,
-                  "title": "Response Invoke Connector Primitive Api V1 Workspaces  Workspace Id  Connectors Connections  Service   Connection Name  Invoke Primitive Post"
+                  "title": "Response Invoke Connector Primitive Api V1 Workspaces  Workspace Id  Connectors Connections  Service  Invoke Primitive Post"
                 }
               }
             }
@@ -3685,6 +3666,225 @@
                   "type": "object",
                   "additionalProperties": true,
                   "title": "Response Put Connector Policy Api V1 Workspaces  Workspace Id  Connectors Policy Put"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-basis-surface": "workspaces",
+        "x-basis-auth": "session-or-workspace-api-token"
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/connectors/policy/providers/{service}": {
+      "delete": {
+        "tags": [
+          "workspaces",
+          "workspaces"
+        ],
+        "summary": "Delete Workspace Connector Provider",
+        "description": "Remove a workspace app (vault config and connections are kept).",
+        "operationId": "delete_workspace_connector_provider_api_v1_workspaces__workspace_id__connectors_policy_providers__service__delete",
+        "parameters": [
+          {
+            "name": "workspace_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Workspace Id"
+            }
+          },
+          {
+            "name": "service",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Service"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Delete Workspace Connector Provider Api V1 Workspaces  Workspace Id  Connectors Policy Providers  Service  Delete"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-basis-surface": "workspaces",
+        "x-basis-auth": "session-or-workspace-api-token"
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/connectors/policy/providers/{service}/disable": {
+      "post": {
+        "tags": [
+          "workspaces",
+          "workspaces"
+        ],
+        "summary": "Disable Workspace Connector Provider",
+        "description": "Disable a BOCP provider on this workspace (remove from workspace allowlist).",
+        "operationId": "disable_workspace_connector_provider_api_v1_workspaces__workspace_id__connectors_policy_providers__service__disable_post",
+        "parameters": [
+          {
+            "name": "workspace_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Workspace Id"
+            }
+          },
+          {
+            "name": "service",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Service"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Disable Workspace Connector Provider Api V1 Workspaces  Workspace Id  Connectors Policy Providers  Service  Disable Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-basis-surface": "workspaces",
+        "x-basis-auth": "session-or-workspace-api-token"
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/connectors/policy/providers/{service}/enable": {
+      "post": {
+        "tags": [
+          "workspaces",
+          "workspaces"
+        ],
+        "summary": "Enable Workspace Connector Provider",
+        "description": "Enable a BOCP provider on this workspace (add to workspace allowlist).",
+        "operationId": "enable_workspace_connector_provider_api_v1_workspaces__workspace_id__connectors_policy_providers__service__enable_post",
+        "parameters": [
+          {
+            "name": "workspace_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Workspace Id"
+            }
+          },
+          {
+            "name": "service",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Service"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Enable Workspace Connector Provider Api V1 Workspaces  Workspace Id  Connectors Policy Providers  Service  Enable Post"
                 }
               }
             }
@@ -15278,12 +15478,6 @@
             "minLength": 1,
             "title": "Provider"
           },
-          "connection_name": {
-            "type": "string",
-            "minLength": 1,
-            "title": "Connection Name",
-            "default": "default"
-          },
           "stream_name": {
             "type": "string",
             "minLength": 1,
@@ -15827,12 +16021,6 @@
             ],
             "title": "State"
           },
-          "connection_name": {
-            "type": "string",
-            "minLength": 1,
-            "title": "Connection Name",
-            "default": "default"
-          },
           "connection_scope": {
             "type": "string",
             "enum": [
@@ -15877,11 +16065,25 @@
             "minLength": 1,
             "title": "Tool Id"
           },
-          "connection_name": {
+          "connection_scope": {
             "type": "string",
-            "minLength": 1,
-            "title": "Connection Name",
-            "default": "default"
+            "enum": [
+              "workspace",
+              "end_user"
+            ],
+            "title": "Connection Scope",
+            "default": "workspace"
+          },
+          "subject_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subject Id"
           },
           "arguments": {
             "additionalProperties": true,
@@ -17418,12 +17620,6 @@
             "type": "string",
             "minLength": 1,
             "title": "Provider"
-          },
-          "connection_name": {
-            "type": "string",
-            "minLength": 1,
-            "title": "Connection Name",
-            "default": "default"
           }
         },
         "type": "object",
@@ -17438,12 +17634,6 @@
             "type": "string",
             "minLength": 1,
             "title": "Provider"
-          },
-          "connection_name": {
-            "type": "string",
-            "minLength": 1,
-            "title": "Connection Name",
-            "default": "default"
           },
           "stream_name": {
             "anyOf": [
@@ -17504,7 +17694,7 @@
             },
             "type": "array",
             "title": "Connections",
-            "description": "When auto-expanding, limit to these saved connections (all workspace connections if empty)."
+            "description": "When auto-expanding, limit to these connector services (all if empty)."
           }
         },
         "type": "object",
@@ -17649,17 +17839,6 @@
               }
             ],
             "title": "Provider"
-          },
-          "connection_name": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Connection Name"
           },
           "stream_name": {
             "type": "string",

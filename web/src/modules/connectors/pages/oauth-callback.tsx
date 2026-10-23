@@ -12,7 +12,8 @@ import {
   resolveOAuthCallbackPending,
   runOAuthCodeExchangeOnce,
 } from '@/modules/connectors/lib/connector-oauth.js';
-import { workspaceConnectorPanelPath } from '@/lib/nav/nav-config.js';
+import { writeEndUserSubjectId } from '@/modules/connectors/lib/end-user-subject.js';
+import { workspaceConnectorsAuthorizationHref } from '@/modules/connectors/lib/playground-deep-link.js';
 import { workspaceOpenApiPOST } from '@/lib/openapi/client.js';
 
 type CallbackPhase = 'working' | 'success' | 'error';
@@ -71,8 +72,7 @@ export function ConnectorOAuthCallbackPage() {
                 state,
                 redirect_uri: redirectUri,
                 code_verifier: pending.codeVerifier ?? null,
-                connection_name: pending.connectionName,
-                connection_scope: 'end_user',
+                                connection_scope: 'end_user',
                 subject_id: pending.endUserSubjectId,
                 connection_config: pending.connectionConfig,
               },
@@ -84,19 +84,18 @@ export function ConnectorOAuthCallbackPage() {
               code,
               redirect_uri: redirectUri,
               code_verifier: pending.codeVerifier ?? null,
-              connection_name: pending.connectionName,
-              connection_config: pending.connectionConfig,
+                            connection_config: pending.connectionConfig,
             },
           });
         }
         clearPendingConnectorOAuth(state);
         setPhase('success');
         toast.success(c.oauth_callback_success);
-        const returnPath =
-          pending.returnTo === 'integration-connectors'
-            ? `/workspaces/${workspaceId}/integration?tab=connectors`
-            : workspaceConnectorPanelPath(workspaceId, 'catalog');
-        navigate(returnPath, { replace: true });
+        if (pending.endUserSubjectId?.trim()) {
+          writeEndUserSubjectId(workspaceId, pending.endUserSubjectId);
+        }
+        // Do not pass service/subject_id — authorization tab deep-link opens the connect dialog.
+        navigate(workspaceConnectorsAuthorizationHref(workspaceId), { replace: true });
       } catch (err) {
         clearPendingConnectorOAuth();
         setPhase('error');
@@ -111,7 +110,10 @@ export function ConnectorOAuthCallbackPage() {
 
   const crumbs = [
     { label: t.core.workspace_nav.platform.workspaces, to: '/workspaces' },
-    { label: t.core.workspace_nav.workspace_zones.connectors, to: workspaceConnectorPanelPath(workspaceId, 'catalog') },
+    {
+      label: t.core.workspace_nav.workspace_zones.connectors,
+      to: workspaceConnectorsAuthorizationHref(workspaceId),
+    },
     { label: c.oauth_callback_title },
   ];
 
@@ -132,9 +134,9 @@ export function ConnectorOAuthCallbackPage() {
             <p className="text-sm text-destructive">{errorMessage ?? c.oauth_callback_failed}</p>
             <Link
               className="text-sm text-primary hover:underline"
-              to={workspaceConnectorPanelPath(workspaceId, 'catalog')}
+              to={workspaceConnectorsAuthorizationHref(workspaceId)}
             >
-              {c.oauth_back_to_catalog}
+              {c.oauth_back_to_authorization}
             </Link>
           </>
         ) : null}

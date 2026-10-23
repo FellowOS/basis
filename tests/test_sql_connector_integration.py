@@ -138,20 +138,18 @@ def test_sql_connector_postgres_check_discover_read_mutate(
         runtime.vault.upsert_connection(
             "kb1",
             "postgres",
-            connection_name="erp",
             auth_type="database_dsn",
             connection_config=conn_cfg,
             credentials=creds,
         )
 
-        chk = runtime.check_connection("kb1", "postgres", connection_name="erp")
+        chk = runtime.check_connection("kb1", "postgres")
         assert chk["ok"] is True
         assert chk["dialect"] == "postgresql"
 
         schema = runtime.discover_schema(
             "kb1",
             "postgres",
-            connection_name="erp",
             external_table=table,
         )
         assert schema.primary_key == ["customer_id"]
@@ -162,7 +160,6 @@ def test_sql_connector_postgres_check_discover_read_mutate(
         read_res = runtime.read_stream(
             "kb1",
             "postgres",
-            connection_name="erp",
             external_table=table,
             primary_key_column="customer_id",
             cursor_column="updated_at",
@@ -174,7 +171,6 @@ def test_sql_connector_postgres_check_discover_read_mutate(
         updated = runtime.mutate_stream(
             "kb1",
             "postgres",
-            connection_name="erp",
             external_table=table,
             operation="update",
             primary_key_column="customer_id",
@@ -202,20 +198,18 @@ def test_sql_connector_mysql_check_discover_read_mutate(
         runtime.vault.upsert_connection(
             "kb1",
             "mysql",
-            connection_name="erp",
             auth_type="database_dsn",
             connection_config=conn_cfg,
             credentials=creds,
         )
 
-        chk = runtime.check_connection("kb1", "mysql", connection_name="erp")
+        chk = runtime.check_connection("kb1", "mysql")
         assert chk["ok"] is True
         assert chk["dialect"] == "mysql"
 
         schema = runtime.discover_schema(
             "kb1",
             "mysql",
-            connection_name="erp",
             external_table=table,
         )
         assert schema.primary_key == ["customer_id"]
@@ -223,7 +217,6 @@ def test_sql_connector_mysql_check_discover_read_mutate(
         read_res = runtime.read_stream(
             "kb1",
             "mysql",
-            connection_name="erp",
             external_table=table,
             primary_key_column="customer_id",
             cursor_column="updated_at",
@@ -234,7 +227,6 @@ def test_sql_connector_mysql_check_discover_read_mutate(
         updated = runtime.mutate_stream(
             "kb1",
             "mysql",
-            connection_name="erp",
             external_table=table,
             operation="update",
             primary_key_column="customer_id",

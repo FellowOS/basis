@@ -18,14 +18,11 @@ test('connector table-mapping suggest and batch-create API (SQL discover)', asyn
   const workspaceId = await defaultWorkspaceId(page);
   const token = await bearerToken(page);
   const dbPath = seedE2eSqliteCustomersDb();
-  const connectionName = 'e2e_suggest_api';
-
-  await putE2ePostgresSqliteConnection(page, workspaceId, connectionName, dbPath);
+  await putE2ePostgresSqliteConnection(page, workspaceId, dbPath);
 
   const suggested = await suggestSqlTableMappings(page, workspaceId, [
     {
       provider: 'postgres',
-      connection_name: connectionName,
       external_table: 'customers',
     },
   ]);
@@ -60,9 +57,7 @@ test('connector mappings suggest: SQL table input → save and sync', async ({ p
   await registerFreshUser(page);
   const workspaceId = await defaultWorkspaceId(page);
   const dbPath = seedE2eSqliteCustomersDb();
-  const connectionName = 'e2e_suggest_wizard';
-
-  await putE2ePostgresSqliteConnection(page, workspaceId, connectionName, dbPath);
+  await putE2ePostgresSqliteConnection(page, workspaceId, dbPath);
 
   await page.goto(`/workspaces/${workspaceId}/connectors/mappings?suggest=1`);
   const dialog = page.getByRole('dialog');
@@ -85,7 +80,7 @@ test('connector suggest auto-expand hits REST streams (skipped or grouped)', asy
 
   await registerFreshUser(page);
   const workspaceId = await defaultWorkspaceId(page);
-  await putE2eGithubApiKeyConnection(page, workspaceId, 'e2e_auto_rest', 'invalid-e2e-pat');
+  await putE2eGithubApiKeyConnection(page, workspaceId, 'invalid-e2e-pat');
 
   const { groups, skipped } = await suggestAutoTableMappings(page, workspaceId);
   expect(groups.length + skipped.length).toBeGreaterThan(0);
@@ -101,7 +96,7 @@ test('connector suggest auto-expand with live GitHub token', async ({ page }) =>
 
   await registerFreshUser(page);
   const workspaceId = await defaultWorkspaceId(page);
-  await putE2eGithubApiKeyConnection(page, workspaceId, 'e2e_live_github', livePat!);
+  await putE2eGithubApiKeyConnection(page, workspaceId, livePat!);
 
   const { groups } = await suggestAutoTableMappings(page, workspaceId);
   expect(groups.length).toBeGreaterThan(0);
@@ -140,7 +135,7 @@ test('connector live GitHub batch-create runs inbound sync', async ({ page }) =>
 
   await registerFreshUser(page);
   const workspaceId = await defaultWorkspaceId(page);
-  await putE2eGithubApiKeyConnection(page, workspaceId, 'e2e_live_sync', livePat!);
+  await putE2eGithubApiKeyConnection(page, workspaceId, livePat!);
 
   const { groups } = await suggestAutoTableMappings(page, workspaceId);
   const rawDraft = groups.find((g) =>
@@ -170,7 +165,7 @@ test('connector mappings panel live REST suggest shows drafts', async ({ page })
 
   await registerFreshUser(page);
   const workspaceId = await defaultWorkspaceId(page);
-  await putE2eGithubApiKeyConnection(page, workspaceId, 'e2e_live_ui', livePat!);
+  await putE2eGithubApiKeyConnection(page, workspaceId, livePat!);
 
   await page.goto(`/workspaces/${workspaceId}/connectors/mappings`);
   await page.getByTestId('create-table-mapping-btn').click();
@@ -190,7 +185,7 @@ test('connector mappings panel REST suggest loads drafts without SQL hints', asy
 
   await registerFreshUser(page);
   const workspaceId = await defaultWorkspaceId(page);
-  await putE2eGithubApiKeyConnection(page, workspaceId, 'e2e_rest', 'invalid-e2e-pat');
+  await putE2eGithubApiKeyConnection(page, workspaceId, 'invalid-e2e-pat');
 
   await page.route(`**/api/v1/workspaces/${workspaceId}/connectors/table-mappings/suggest`, async (route) => {
     if (route.request().method() !== 'POST') {
@@ -199,10 +194,10 @@ test('connector mappings panel REST suggest loads drafts without SQL hints', asy
     }
     const body = (route.request().postDataJSON() ?? {}) as {
       sql_tables?: unknown[];
-      connections?: Array<{ provider: string; connection_name: string }>;
+      connections?: Array<{ provider: string }>;
     };
     expect(body.sql_tables ?? []).toHaveLength(0);
-    expect(body.connections).toEqual([{ provider: 'github', connection_name: 'e2e_rest' }]);
+    expect(body.connections).toEqual([{ provider: 'github' }]);
 
     await route.fulfill({
       status: 200,
@@ -214,12 +209,11 @@ test('connector mappings panel REST suggest loads drafts without SQL hints', asy
             label: 'Issues',
             drafts: [
               {
-                source_label: 'github · e2e_rest',
+                source_label: 'github · issues',
                 confidence: 'high',
                 entity_group_label: 'Issues',
                 draft: {
                   provider: 'github',
-                  connection_name: 'e2e_rest',
                   stream_name: 'issues',
                   external_table: 'issues',
                   primary_key_column: 'id',

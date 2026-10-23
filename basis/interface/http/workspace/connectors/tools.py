@@ -44,7 +44,8 @@ async def execute_connector_tool(
             {
                 "service": body.service,
                 "tool_id": body.tool_id,
-                "connection_name": body.connection_name,
+                "connection_scope": body.connection_scope,
+                "subject_id": body.subject_id,
                 "arguments": body.arguments,
             },
         )

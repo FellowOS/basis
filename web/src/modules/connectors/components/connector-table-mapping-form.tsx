@@ -27,12 +27,9 @@ import {
   DataPanelHeader,
 } from '@/components/app/shared/console/index.js';
 import { useI18n } from '@/i18n/context.js';
-import {
-  workspaceConnectionOptionKey,
-  parseWorkspaceConnectionOptionKey,
-  type StoredConnection,
-} from '@/modules/connectors/lib/connector-connections.js';
+import { connectionIdentityFromOptionKey, type StoredConnection } from '@/modules/connectors/lib/connector-connections.js';
 import type { ConnectorTableMappingFormValues } from '@/modules/connectors/lib/connector-mapping-form.js';
+import { ConnectorConnectionPicker } from '@/modules/connectors/components/connector-connection-picker.js';
 import {
   parseStreamParamsJson,
   resolveStreamParamsFromFormValues,
@@ -77,12 +74,8 @@ export function ConnectorTableMappingForm({
     if (!connectionKey) {
       return '';
     }
-    try {
-      return parseWorkspaceConnectionOptionKey(connectionKey).service;
-    } catch {
-      return '';
-    }
-  }, [connectionKey]);
+    return connectionIdentityFromOptionKey(connectionKey, connections).service;
+  }, [connectionKey, connections]);
 
   useEffect(() => {
     const trimmedStream = streamName.trim();
@@ -126,7 +119,7 @@ export function ConnectorTableMappingForm({
   const sortedConnections = useMemo(
     () =>
       [...connections].sort((a, b) =>
-        `${a.service}:${a.connection_name}`.localeCompare(`${b.service}:${b.connection_name}`),
+        `${a.service}:${a.service}`.localeCompare(`${b.service}:${b.service}`),
       ),
     [connections],
   );
@@ -149,40 +142,25 @@ export function ConnectorTableMappingForm({
               name="connectionKey"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{c.configured_connection_label}</FormLabel>
-                  {loadingConnections ? (
-                    <p className="text-sm text-muted-foreground">{c.loading_connections}</p>
-                  ) : sortedConnections.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">
-                      {c.no_configured_connections_hint}
-                    </p>
-                  ) : (
-                    <Select
-                      value={field.value || workspaceConnectionOptionKey(sortedConnections[0])}
-                      onValueChange={field.onChange}
-                    >
-                      <FormControl>
-                        <SelectTrigger data-testid="mapping-connection-select" className="w-full">
-                          <SelectValue placeholder={c.configured_connection_placeholder} />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {sortedConnections.map((conn) => {
-                          const key = workspaceConnectionOptionKey(conn);
-                          return (
-                            <SelectItem key={key} value={key}>
-                              <span className="font-mono text-xs">
-                                {conn.service}
-                                <span className="text-muted-foreground"> · </span>
-                                {conn.connection_name}
-                                <span className="text-muted-foreground"> ({conn.auth_type})</span>
-                              </span>
-                            </SelectItem>
-                          );
-                        })}
-                      </SelectContent>
-                    </Select>
-                  )}
+                  <FormControl>
+                    <ConnectorConnectionPicker
+                      workspaceId={workspaceId}
+                      connections={sortedConnections}
+                      connectionsLoading={loadingConnections}
+                      connectionKey={field.value}
+                      onConnectionKeyChange={field.onChange}
+                      showLabel
+                      selectTestId="mapping-connection-select"
+                      labelId="connector-mapping-form-connection"
+                      copy={{
+                        connection_label: c.configured_connection_label,
+                        connection_placeholder: c.configured_connection_placeholder,
+                        loading_connections: c.loading_connections,
+                        no_connections_hint: c.no_configured_connections_hint,
+                        open_catalog_button: c.open_authorization_button,
+                      }}
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}

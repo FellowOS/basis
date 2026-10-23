@@ -58,14 +58,13 @@ def test_upsert_and_delete_connection_http_matches_mcp(tmp_path: Path) -> None:
     client, workspace_id, headers = _auth_client(tmp_path)
     payload = {
         "service": "postgres",
-        "connection_name": "mcp-parity",
-        "connection_scope": "workspace",
+                "connection_scope": "workspace",
         "auth_type": "custom",
         "connection_config": {"host": "localhost", "database": "db"},
         "credentials": {"password": "secret"},
     }
     http_put = client.put(
-        f"/api/v1/workspaces/{workspace_id}/connectors/connections/postgres/mcp-parity",
+        f"/api/v1/workspaces/{workspace_id}/connectors/connections/postgres",
         headers=headers,
         json={
             "connection_scope": payload["connection_scope"],
@@ -78,8 +77,7 @@ def test_upsert_and_delete_connection_http_matches_mcp(tmp_path: Path) -> None:
 
     mcp_put = _mcp_call(client, workspace_id, headers, "upsert_connector_connection", payload)
     assert mcp_put["connection"]["service"] == "postgres"
-    assert mcp_put["connection"]["connection_name"] == "mcp-parity"
-    assert http_put.json()["connection"]["connection_name"] == mcp_put["connection"]["connection_name"]
+    assert http_put.json()["connection"]["service"] == mcp_put["connection"]["service"]
 
     mcp_del = _mcp_call(
         client,
@@ -88,13 +86,12 @@ def test_upsert_and_delete_connection_http_matches_mcp(tmp_path: Path) -> None:
         "delete_connector_connection",
         {
             "service": "postgres",
-            "connection_name": "mcp-parity",
-            "connection_scope": "workspace",
+                        "connection_scope": "workspace",
         },
     )
     assert mcp_del == {"deleted": True}
     http_del = client.delete(
-        f"/api/v1/workspaces/{workspace_id}/connectors/connections/postgres/mcp-parity",
+        f"/api/v1/workspaces/{workspace_id}/connectors/connections/postgres",
         headers=headers,
     )
     assert http_del.status_code == 404
@@ -111,7 +108,7 @@ def test_check_connection_http_matches_mcp(tmp_path: Path) -> None:
     }
     assert (
         client.put(
-            f"/api/v1/workspaces/{workspace_id}/connectors/connections/postgres/check-parity",
+            f"/api/v1/workspaces/{workspace_id}/connectors/connections/postgres",
             headers=headers,
             json=body,
         ).status_code
@@ -124,12 +121,11 @@ def test_check_connection_http_matches_mcp(tmp_path: Path) -> None:
         "check_connector_connection",
         {
             "service": "postgres",
-            "connection_name": "check-parity",
-            "connection_scope": "workspace",
+                        "connection_scope": "workspace",
         },
     )
     http_check = client.post(
-        f"/api/v1/workspaces/{workspace_id}/connectors/connections/postgres/check-parity/check",
+        f"/api/v1/workspaces/{workspace_id}/connectors/connections/postgres/check",
         headers=headers,
     )
     assert http_check.status_code == 200
@@ -140,7 +136,7 @@ def test_check_connection_http_matches_mcp(tmp_path: Path) -> None:
 def test_list_connections_http_matches_mcp_op(tmp_path: Path) -> None:
     client, workspace_id, headers = _auth_client(tmp_path)
     put = client.put(
-        f"/api/v1/workspaces/{workspace_id}/connectors/connections/postgres/default",
+        f"/api/v1/workspaces/{workspace_id}/connectors/connections/postgres",
         headers=headers,
         json={
             "connection_scope": "workspace",
@@ -160,18 +156,14 @@ def test_list_connections_http_matches_mcp_op(tmp_path: Path) -> None:
     )
     assert http_list.status_code == 200
 
-    mcp_keys = {(c["service"], c["connection_name"]) for c in mcp_list["connections"]}
-    http_keys = {
-        (c["service"], c["connection_name"]) for c in http_list.json()["connections"]
-    }
+    mcp_keys = {c["service"] for c in mcp_list["connections"]}
+    http_keys = {c["service"] for c in http_list.json()["connections"]}
     assert mcp_keys == http_keys
-    assert ("postgres", "default") in mcp_keys
+    assert "postgres" in mcp_keys
 
-    http_by_key = {
-        (c["service"], c["connection_name"]): c for c in http_list.json()["connections"]
-    }
+    http_by_key = {c["service"]: c for c in http_list.json()["connections"]}
     for row in mcp_list["connections"]:
-        http_row = http_by_key[(row["service"], row["connection_name"])]
+        http_row = http_by_key[row["service"]]
         assert set(row.keys()) <= set(http_row.keys())
         for key, value in row.items():
             assert http_row[key] == value
@@ -234,7 +226,6 @@ def _mcp_mapping_slice(row: dict) -> tuple:
     return (
         row["id"],
         row["provider"],
-        row["connection_name"],
         row["stream_name"],
         row["external_table"],
         row["sync_direction"],
@@ -258,7 +249,7 @@ def test_list_table_mappings_http_matches_mcp(tmp_path: Path) -> None:
 
     ext_db = tmp_path / "parity-remote.db"
     put_conn = client.put(
-        f"/api/v1/workspaces/{workspace_id}/connectors/connections/postgres/parity",
+        f"/api/v1/workspaces/{workspace_id}/connectors/connections/postgres",
         headers=headers,
         json={
             "auth_type": "database_dsn",
@@ -272,8 +263,7 @@ def test_list_table_mappings_http_matches_mcp(tmp_path: Path) -> None:
         headers=headers,
         json={
             "provider": "postgres",
-            "connection_name": "parity",
-            "stream_name": "table_records",
+                        "stream_name": "table_records",
             "external_table": "parity_items",
             "primary_key_column": "id",
             "cursor_column": "updated_at",
@@ -305,8 +295,7 @@ def test_list_table_mappings_http_matches_mcp(tmp_path: Path) -> None:
             {
                 "id": row["id"],
                 "provider": row["provider"],
-                "connection_name": row["connection_name"],
-                "stream_name": row["stream_name"],
+                                "stream_name": row["stream_name"],
                 "external_table": row["external_table"],
                 "sync_direction": row["sync_direction"],
                 "writeback_mode": row["writeback_mode"],

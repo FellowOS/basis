@@ -51,11 +51,10 @@ async def list_connector_connections(
         raise http_exception_from_core(exc) from exc
 
 
-@router.put("/{workspace_id}/connectors/connections/{service}/{connection_name}")
+@router.put("/{workspace_id}/connectors/connections/{service}")
 async def upsert_connector_connection(
     workspace_id: str,
     service: str,
-    connection_name: str,
     body: UpsertConnectorConnectionRequest,
     request: Request,
     user: User = Depends(get_current_user),
@@ -73,7 +72,6 @@ async def upsert_connector_connection(
         return connections.upsert_connection(
             ctx,
             service=service,
-            connection_name=connection_name,
             connection_scope=body.connection_scope,
             subject_id=body.subject_id,
             auth_type=body.auth_type,
@@ -84,11 +82,10 @@ async def upsert_connector_connection(
         raise http_exception_from_core(exc) from exc
 
 
-@router.delete("/{workspace_id}/connectors/connections/{service}/{connection_name}")
+@router.delete("/{workspace_id}/connectors/connections/{service}")
 async def delete_connector_connection(
     workspace_id: str,
     service: str,
-    connection_name: str,
     request: Request,
     connection_scope: str = Query(default="workspace"),
     subject_id: str | None = Query(default=None),
@@ -107,7 +104,6 @@ async def delete_connector_connection(
         return connections.delete_connection(
             ctx,
             service=service,
-            connection_name=connection_name,
             connection_scope=connection_scope,
             subject_id=subject_id,
         )
@@ -115,11 +111,10 @@ async def delete_connector_connection(
         raise http_exception_from_core(exc) from exc
 
 
-@router.post("/{workspace_id}/connectors/connections/{service}/{connection_name}/check")
+@router.post("/{workspace_id}/connectors/connections/{service}/check")
 async def check_connector_connection(
     workspace_id: str,
     service: str,
-    connection_name: str,
     request: Request,
     connection_scope: str = Query(default="workspace"),
     subject_id: str | None = Query(default=None),
@@ -138,7 +133,6 @@ async def check_connector_connection(
         return connections.check_connection(
             ctx,
             service=service,
-            connection_name=connection_name,
             connection_scope=connection_scope,
             subject_id=subject_id,
         )
@@ -146,14 +140,15 @@ async def check_connector_connection(
         raise http_exception_from_core(exc) from exc
 
 
-@router.get("/{workspace_id}/connectors/connections/{service}/{connection_name}/discover")
+@router.get("/{workspace_id}/connectors/connections/{service}/discover")
 async def discover_connector_schema(
     workspace_id: str,
     service: str,
-    connection_name: str,
     request: Request,
     stream_name: str | None = Query(default=None),
     external_table: str | None = Query(default=None),
+    connection_scope: str = Query(default="workspace"),
+    subject_id: str | None = Query(default=None),
     user: User = Depends(get_current_user),
     store: AdminStore = Depends(get_store),
 ) -> dict[str, Any]:
@@ -165,7 +160,8 @@ async def discover_connector_schema(
         return connections.discover_schema(
             ctx,
             service=service,
-            connection_name=connection_name,
+            connection_scope=connection_scope,
+            subject_id=subject_id,
             stream_name=stream_name,
             external_table=external_table,
         )
@@ -174,12 +170,11 @@ async def discover_connector_schema(
 
 
 @router.post(
-    "/{workspace_id}/connectors/connections/{service}/{connection_name}/invoke-primitive",
+    "/{workspace_id}/connectors/connections/{service}/invoke-primitive",
 )
 async def invoke_connector_primitive(
     workspace_id: str,
     service: str,
-    connection_name: str,
     body: InvokeConnectorPrimitiveRequest,
     request: Request,
     user: User = Depends(get_current_user),
@@ -201,7 +196,6 @@ async def invoke_connector_primitive(
                 "service": service,
                 "action_id": body.action_id,
                 "primitive": body.primitive,
-                "connection_name": connection_name,
                 "connection_scope": body.connection_scope,
                 "subject_id": body.subject_id,
                 "operation": body.operation,

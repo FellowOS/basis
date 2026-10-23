@@ -10,9 +10,10 @@ import { useI18n } from '@/i18n/context.js';
 import type { Locale } from '@/i18n/locale.js';
 import { formatUserFacingApiError } from '@/lib/errors/api-error-message.js';
 import {
+  connectorConnectionSelectKey,
+  connectionIdentityFromOptionKey,
   workspaceConnectionOptionKey,
   workspaceConnectorsMappingsTabPath,
-  parseWorkspaceConnectionOptionKey,
   type StoredConnection,
 } from '@/modules/connectors/lib/connector-connections.js';
 import {
@@ -30,8 +31,7 @@ import { workspaceOpenApiGET, workspaceOpenApiPUT } from '@/lib/openapi/client.j
 type MappingDto = {
   id: string;
   provider: string;
-  connection_name: string;
-  stream_name: string;
+    stream_name: string;
   external_table: string;
   stream_params: Record<string, unknown>;
   primary_key_column: string;
@@ -80,13 +80,18 @@ export function ConnectorMappingEditPage() {
         workspaceOpenApiGET<{ connections: StoredConnection[] }>(workspaceId, 'connectors/connections'),
         workspaceOpenApiGET<{ mapping: MappingDto }>(workspaceId, `connectors/table-mappings/${mappingId}`),
       ]);
-      setConnections(connRes.connections ?? []);
+      const loadedConnections = connRes.connections ?? [];
+      setConnections(loadedConnections);
       const m = mapRes.mapping;
+      const matchedConnection = loadedConnections.find(
+        (conn) => conn.service === m.provider,
+      );
       form.reset({
-        connectionKey: workspaceConnectionOptionKey({
-          service: m.provider,
-          connection_name: m.connection_name,
-        }),
+        connectionKey: matchedConnection
+          ? connectorConnectionSelectKey(matchedConnection)
+          : workspaceConnectionOptionKey({
+              service: m.provider,
+                          }),
         streamName: m.stream_name,
         externalTable: m.external_table,
         streamParamsAdvanced: false,
@@ -125,7 +130,10 @@ export function ConnectorMappingEditPage() {
 
   async function handleDiscoverSchema() {
     const values = form.getValues();
-    const { service, connection_name } = parseWorkspaceConnectionOptionKey(values.connectionKey);
+    const { service } = connectionIdentityFromOptionKey(
+      values.connectionKey,
+      connections,
+    );
     setDiscoveringSchema(true);
     try {
       const info = await workspaceOpenApiGET<{
@@ -134,7 +142,7 @@ export function ConnectorMappingEditPage() {
         fields: Array<{ name: string; writable?: boolean }>;
       }>(
         resolvedKbId,
-        `connectors/connections/${service}/${connection_name || 'default'}/discover`,
+        `connectors/connections/${service}/discover`,
         {
           params: {
             query: {
@@ -178,7 +186,7 @@ export function ConnectorMappingEditPage() {
     setSubmitting(true);
     try {
       await workspaceOpenApiPUT(resolvedKbId, `connectors/table-mappings/${resolvedMappingId}`, {
-        body: mappingRequestBodyFromFormValues(values),
+        body: mappingRequestBodyFromFormValues(values, connections),
       });
       toast.success(c.mappings.updated_toast);
       navigate(mappingsListPath);

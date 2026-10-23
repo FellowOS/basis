@@ -121,7 +121,7 @@ def test_mcp_sync_connector_table_mapping_inbound(tmp_path: Path) -> None:
     workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
 
     put_conn = client.put(
-        f"/api/v1/workspaces/{workspace_id}/connectors/connections/postgres/mcp_sync",
+        f"/api/v1/workspaces/{workspace_id}/connectors/connections/postgres",
         headers=headers,
         json={
             "auth_type": "database_dsn",
@@ -136,8 +136,7 @@ def test_mcp_sync_connector_table_mapping_inbound(tmp_path: Path) -> None:
         headers=headers,
         json={
             "provider": "postgres",
-            "connection_name": "mcp_sync",
-            "stream_name": "table_records",
+                        "stream_name": "table_records",
             "external_table": "items",
             "primary_key_column": "id",
             "cursor_column": "updated_at",

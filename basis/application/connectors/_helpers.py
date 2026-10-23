@@ -46,7 +46,6 @@ def connector_summary(manifest: Any) -> dict[str, Any]:
 def mcp_connection_item(conn: StoredConnection) -> dict[str, Any]:
     return {
         "service": conn.service,
-        "connection_name": conn.connection_name,
         "connection_scope": conn.connection_scope,
         "subject_id": conn.subject_id if conn.connection_scope != SCOPE_WORKSPACE else None,
         "auth_type": conn.auth_type,

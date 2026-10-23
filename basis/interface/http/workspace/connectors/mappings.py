@@ -94,7 +94,6 @@ async def update_table_mapping(
             _ctx(request, workspace_id, user, store, require_editor=True),
             mapping_id=mapping_id,
             provider=body.provider,
-            connection_name=body.connection_name,
             stream_name=body.stream_name,
             external_table=body.external_table,
             primary_key_column=body.primary_key_column,

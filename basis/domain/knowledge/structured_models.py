@@ -8,7 +8,7 @@ import hashlib
 import json
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 class ConnectorSourceConfig(BaseModel):
@@ -17,8 +17,15 @@ class ConnectorSourceConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     provider: str = Field(min_length=1)
-    connection_name: str = Field(default="default", min_length=1)
     poll_interval_minutes: int | None = Field(default=60, ge=1)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _strip_legacy_connection_name(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            data = dict(data)
+            data.pop("connection_name", None)
+        return data
     last_sync_at: str | None = None
 
 

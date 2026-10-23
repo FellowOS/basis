@@ -24,7 +24,6 @@ class UpsertConnectorConnectionRequest(BaseModel):
 
 class UpdateTableMappingRequest(BaseModel):
     provider: str | None = None
-    connection_name: str | None = None
     stream_name: str = Field(min_length=1)
     external_table: str = Field(min_length=1)
     stream_params: dict[str, Any] = Field(default_factory=dict)
@@ -48,14 +47,12 @@ class UpdateTableMappingRequest(BaseModel):
 
 class SuggestStreamTargetRequest(BaseModel):
     provider: str = Field(min_length=1)
-    connection_name: str = Field(default="default", min_length=1)
     stream_name: str | None = None
     external_table: str | None = None
 
 
 class SuggestConnectionScope(BaseModel):
     provider: str = Field(min_length=1)
-    connection_name: str = Field(default="default", min_length=1)
 
 
 class SuggestTableMappingsRequest(BaseModel):
@@ -69,14 +66,13 @@ class SuggestTableMappingsRequest(BaseModel):
     )
     connections: list[SuggestConnectionScope] = Field(
         default_factory=list,
-        description="When auto-expanding, limit to these saved connections (all workspace connections if empty).",
+        description="When auto-expanding, limit to these connector services (all if empty).",
     )
 
 
 class CreateTableMappingRequest(BaseModel):
     source_id: str | None = None
     provider: str = Field(min_length=1)
-    connection_name: str = Field(default="default", min_length=1)
     stream_name: str = Field(min_length=1)
     external_table: str = Field(min_length=1)
     stream_params: dict[str, Any] = Field(default_factory=dict)
@@ -144,7 +140,6 @@ class ExchangeOAuthCodeRequest(BaseModel):
     redirect_uri: str | None = None
     code_verifier: str | None = None
     state: str | None = None
-    connection_name: str = Field(default="default", min_length=1)
     connection_scope: Literal["workspace", "end_user"] = "workspace"
     subject_id: str | None = None
     connection_config: dict[str, Any] = Field(default_factory=dict)
@@ -153,7 +148,8 @@ class ExchangeOAuthCodeRequest(BaseModel):
 class ExecuteConnectorToolRequest(BaseModel):
     service: str = Field(min_length=1)
     tool_id: str = Field(min_length=1)
-    connection_name: str = Field(default="default", min_length=1)
+    connection_scope: Literal["workspace", "end_user"] = "workspace"
+    subject_id: str | None = None
     arguments: dict[str, Any] = Field(default_factory=dict)
 
 

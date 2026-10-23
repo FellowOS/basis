@@ -85,6 +85,72 @@ async def get_connector_policy(
         raise http_exception_from_core(exc) from exc
 
 
+@router.post("/{workspace_id}/connectors/policy/providers/{service}/enable")
+async def enable_workspace_connector_provider(
+    workspace_id: str,
+    service: str,
+    request: Request,
+    user: User = Depends(get_current_user),
+    store: AdminStore = Depends(get_store),
+) -> dict[str, Any]:
+    """Enable a BOCP provider on this workspace (add to workspace allowlist)."""
+    try:
+        ctx = build_workspace_core_context(
+            request,
+            workspace_id=workspace_id,
+            user=user,
+            store=store,
+            require_editor=True,
+        )
+        return policy.enable_workspace_provider(ctx, service=service)
+    except CoreError as exc:
+        raise http_exception_from_core(exc) from exc
+
+
+@router.delete("/{workspace_id}/connectors/policy/providers/{service}")
+async def delete_workspace_connector_provider(
+    workspace_id: str,
+    service: str,
+    request: Request,
+    user: User = Depends(get_current_user),
+    store: AdminStore = Depends(get_store),
+) -> dict[str, Any]:
+    """Remove a workspace app (vault config and connections are kept)."""
+    try:
+        ctx = build_workspace_core_context(
+            request,
+            workspace_id=workspace_id,
+            user=user,
+            store=store,
+            require_editor=True,
+        )
+        return policy.delete_workspace_provider(ctx, service=service)
+    except CoreError as exc:
+        raise http_exception_from_core(exc) from exc
+
+
+@router.post("/{workspace_id}/connectors/policy/providers/{service}/disable")
+async def disable_workspace_connector_provider(
+    workspace_id: str,
+    service: str,
+    request: Request,
+    user: User = Depends(get_current_user),
+    store: AdminStore = Depends(get_store),
+) -> dict[str, Any]:
+    """Disable a BOCP provider on this workspace (remove from workspace allowlist)."""
+    try:
+        ctx = build_workspace_core_context(
+            request,
+            workspace_id=workspace_id,
+            user=user,
+            store=store,
+            require_editor=True,
+        )
+        return policy.disable_workspace_provider(ctx, service=service)
+    except CoreError as exc:
+        raise http_exception_from_core(exc) from exc
+
+
 @router.put("/{workspace_id}/connectors/policy")
 async def put_connector_policy(
     workspace_id: str,

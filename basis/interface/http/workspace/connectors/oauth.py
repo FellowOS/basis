@@ -134,7 +134,6 @@ async def exchange_connector_oauth_code(
             code=body.code,
             redirect_uri=body.redirect_uri,
             code_verifier=body.code_verifier,
-            connection_name=body.connection_name,
             connection_scope=body.connection_scope,
             subject_id=body.subject_id,
             connection_config=body.connection_config,

@@ -121,7 +121,6 @@ def column_mappings_from_fields(
 @dataclass
 class SuggestStreamTarget:
     provider: str
-    connection_name: str = "default"
     stream_name: str | None = None
     external_table: str | None = None
 
@@ -138,7 +137,6 @@ class MappingDraftSuggestion:
 @dataclass
 class SkippedSuggestTarget:
     provider: str
-    connection_name: str
     stream_name: str | None
     external_table: str | None
     reason: str
@@ -156,15 +154,15 @@ def expand_auto_targets(
     workspace_id: str,
     *,
     max_streams_per_connection: int = 8,
-    connection_scopes: list[tuple[str, str]] | None = None,
+    connection_scopes: list[str] | None = None,
 ) -> list[SuggestStreamTarget]:
     targets: list[SuggestStreamTarget] = []
     connections = runtime.vault.list_connections(workspace_id)
-    scope_set: set[tuple[str, str]] | None = None
+    scope_set: set[str] | None = None
     if connection_scopes:
-        scope_set = {(provider, name) for provider, name in connection_scopes}
+        scope_set = set(connection_scopes)
     for conn in connections:
-        if scope_set is not None and (conn.service, conn.connection_name) not in scope_set:
+        if scope_set is not None and conn.service not in scope_set:
             continue
         manifest = runtime.catalog.get(conn.service)
         if not manifest or not manifest.streams:
@@ -178,7 +176,6 @@ def expand_auto_targets(
                 _, connection = runtime._require_manifest_and_connection(
                     workspace_id,
                     conn.service,
-                    conn.connection_name,
                 )
                 adapter = SqlAlchemyStreamAdapter.from_connection(connection)
                 try:
@@ -189,7 +186,6 @@ def expand_auto_targets(
                     targets.append(
                         SuggestStreamTarget(
                             provider=conn.service,
-                            connection_name=conn.connection_name,
                             stream_name=sql_stream.name,
                             external_table=table,
                         )
@@ -204,7 +200,6 @@ def expand_auto_targets(
             targets.append(
                 SuggestStreamTarget(
                     provider=conn.service,
-                    connection_name=conn.connection_name,
                     stream_name=stream.name,
                     external_table=stream.name,
                 )
@@ -214,11 +209,10 @@ def expand_auto_targets(
 
 def _mapping_fingerprint(
     provider: str,
-    connection_name: str,
     stream_name: str,
     external_table: str,
-) -> tuple[str, str, str, str]:
-    return (provider, connection_name, stream_name, external_table)
+) -> tuple[str, str, str]:
+    return (provider, stream_name, external_table)
 
 
 def suggest_table_mapping_drafts(
@@ -226,7 +220,7 @@ def suggest_table_mapping_drafts(
     workspace_id: str,
     targets: list[SuggestStreamTarget],
     *,
-    existing_fingerprints: set[tuple[str, str, str, str]] | None = None,
+    existing_fingerprints: set[tuple[str, str, str]] | None = None,
 ) -> TableMappingSuggestResult:
     """Discover schemas and emit grouped mapping drafts for REST streams (SQL needs external_table)."""
     existing = existing_fingerprints or set()
@@ -239,7 +233,6 @@ def suggest_table_mapping_drafts(
             result.skipped.append(
                 SkippedSuggestTarget(
                     target.provider,
-                    target.connection_name,
                     target.stream_name,
                     target.external_table,
                     "unknown_provider",
@@ -253,7 +246,6 @@ def suggest_table_mapping_drafts(
             result.skipped.append(
                 SkippedSuggestTarget(
                     target.provider,
-                    target.connection_name,
                     None,
                     target.external_table,
                     "no_streams",
@@ -267,7 +259,6 @@ def suggest_table_mapping_drafts(
                 result.skipped.append(
                     SkippedSuggestTarget(
                         target.provider,
-                        target.connection_name,
                         stream_name,
                         None,
                         "sql_requires_external_table",
@@ -277,14 +268,11 @@ def suggest_table_mapping_drafts(
         else:
             external_table = external_table or stream_name
 
-        fp = _mapping_fingerprint(
-            target.provider, target.connection_name, stream_name, external_table
-        )
+        fp = _mapping_fingerprint(target.provider, stream_name, external_table)
         if fp in existing:
             result.skipped.append(
                 SkippedSuggestTarget(
                     target.provider,
-                    target.connection_name,
                     stream_name,
                     external_table,
                     "already_mapped",
@@ -296,7 +284,6 @@ def suggest_table_mapping_drafts(
             info = runtime.discover_schema(
                 workspace_id,
                 target.provider,
-                connection_name=target.connection_name,
                 stream_name=stream_name,
                 external_table=external_table if runtime._is_sql_stream(stream) else None,
             )
@@ -304,7 +291,6 @@ def suggest_table_mapping_drafts(
             result.skipped.append(
                 SkippedSuggestTarget(
                     target.provider,
-                    target.connection_name,
                     stream_name,
                     external_table,
                     str(exc)[:200],
@@ -324,7 +310,6 @@ def suggest_table_mapping_drafts(
 
         draft = {
             "provider": target.provider,
-            "connection_name": target.connection_name,
             "stream_name": stream_name,
             "external_table": info.external_table,
             "primary_key_column": pk,
@@ -345,7 +330,7 @@ def suggest_table_mapping_drafts(
         confidence: Confidence = (
             "high" if info.primary_key and len(field_names) >= 2 else "medium"
         )
-        source_label = f"{target.provider}/{target.connection_name} · {stream_name}"
+        source_label = f"{target.provider} · {stream_name}"
         suggestion = MappingDraftSuggestion(
             draft=draft,
             entity_group=group_key,

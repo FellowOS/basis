@@ -17,6 +17,7 @@ from basis.domain.connector.allowlist import (
     assert_workspace_allowlist_within_platform,
     effective_allowed_providers,
     is_provider_allowed,
+    is_workspace_provider_enabled,
     normalize_allowed_providers,
     provider_blocked_layer,
     unknown_catalog_providers,
@@ -39,6 +40,12 @@ def _fresh_db(tmp_path: Path):
     conn.row_factory = sqlite3.Row
     run_migrations(conn)
     return conn
+
+
+def test_is_workspace_provider_enabled() -> None:
+    assert is_workspace_provider_enabled("github", "*") is True
+    assert is_workspace_provider_enabled("github", ["postgres"]) is False
+    assert is_workspace_provider_enabled("postgres", ["postgres"]) is True
 
 
 def test_normalize_and_effective_allowlist() -> None:
@@ -165,3 +172,78 @@ def test_runtime_respects_platform_ceiling(tmp_path: Path) -> None:
             vault.upsert_policy("kb1", allowed_providers=["mysql"])
     finally:
         conn.close()
+
+
+def test_workspace_catalog_browse_and_enable_provider_http(tmp_path: Path) -> None:
+    client = TestClient(create_app(Settings(data_dir=tmp_path / "browse_data")))
+    reg = client.post(
+        "/api/v1/auth/register",
+        json={
+            "email": "admin@basis.local",
+            "password": "password123",
+            "display_name": "Admin",
+        },
+    )
+    assert reg.status_code == 200
+    headers = {"Authorization": f"Bearer {reg.json()['token']}"}
+    workspace_id = client.get("/api/v1/workspaces", headers=headers).json()["workspaces"][0]["id"]
+
+    narrow = client.put(
+        f"/api/v1/workspaces/{workspace_id}/connectors/policy",
+        headers=headers,
+        json={"allowed_providers": ["postgres"], "action_policy": {}},
+    )
+    assert narrow.status_code == 200
+
+    cat = client.get(
+        f"/api/v1/workspaces/{workspace_id}/connectors/catalog",
+        headers=headers,
+        params={"has_streams_only": False, "limit": 200},
+    )
+    assert cat.status_code == 200
+    body = cat.json()
+    catalog_services = {c["service"] for c in body["connectors"]}
+    app_services = {c["service"] for c in body["workspace_apps"]}
+    assert "postgres" in app_services
+    assert "postgres" in catalog_services
+    assert "github" in catalog_services
+    assert "github" not in app_services
+
+    enable = client.post(
+        f"/api/v1/workspaces/{workspace_id}/connectors/policy/providers/github/enable",
+        headers=headers,
+    )
+    assert enable.status_code == 200
+    assert "github" in enable.json()["effective_allowed_providers"]
+
+    cat2 = client.get(
+        f"/api/v1/workspaces/{workspace_id}/connectors/catalog",
+        headers=headers,
+        params={"has_streams_only": False, "limit": 200},
+    )
+    app_services2 = {c["service"] for c in cat2.json()["workspace_apps"]}
+    assert "github" in app_services2
+
+    soft_disable = client.post(
+        f"/api/v1/workspaces/{workspace_id}/connectors/policy/providers/github/disable",
+        headers=headers,
+    )
+    assert soft_disable.status_code == 200
+    assert "github" in soft_disable.json()["installed_providers"]
+    assert "github" in soft_disable.json()["disabled_providers"]
+    assert "github" not in soft_disable.json()["effective_allowed_providers"]
+
+    cat3 = client.get(
+        f"/api/v1/workspaces/{workspace_id}/connectors/catalog",
+        headers=headers,
+        params={"has_streams_only": False, "limit": 200},
+    )
+    assert "github" in {c["service"] for c in cat3.json()["workspace_apps"]}
+
+    re_enable = client.post(
+        f"/api/v1/workspaces/{workspace_id}/connectors/policy/providers/github/enable",
+        headers=headers,
+    )
+    assert re_enable.status_code == 200
+    assert "github" in re_enable.json()["effective_allowed_providers"]
+    assert "github" not in re_enable.json()["disabled_providers"]

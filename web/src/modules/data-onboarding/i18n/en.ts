@@ -11,7 +11,7 @@ export default {
     connections_subtitle: "Add connections in the catalog if this list is empty.",
     loading_connections: "Loading connections…",
     no_connections: "No connections yet. Connect a database or SaaS source first.",
-    open_catalog: "Open connector catalog",
+    open_catalog: "Open Authorization",
     sql_tables_label: "SQL tables (optional)",
     sql_tables_placeholder: "accounts\ncustomers\npostgres:orders",
     sql_tables_hint:

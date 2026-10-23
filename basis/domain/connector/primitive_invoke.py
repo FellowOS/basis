@@ -28,7 +28,6 @@ def execute_connector_primitive(
     *,
     action_id: str,
     primitive: str,
-    connection_name: str = "default",
     connection_scope: str = "workspace",
     subject_id: str | None = None,
     operation: str | None = None,
@@ -68,7 +67,6 @@ def execute_connector_primitive(
             workspace_id,
             service,
             action_id,
-            connection_name=connection_name,
             connection_scope=connection_scope,
             subject_id=subject_id,
             arguments=arguments or changes or params,
@@ -79,7 +77,6 @@ def execute_connector_primitive(
         info = runtime.discover_schema(
             workspace_id,
             service,
-            connection_name=connection_name,
             connection_scope=connection_scope,
             subject_id=subject_id,
             stream_name=action_id,
@@ -102,7 +99,6 @@ def execute_connector_primitive(
         read_res = runtime.read_stream(
             workspace_id,
             service,
-            connection_name=connection_name,
             connection_scope=connection_scope,
             subject_id=subject_id,
             stream_name=action_id,
@@ -135,7 +131,6 @@ def execute_connector_primitive(
         out = runtime.mutate_stream(
             workspace_id,
             service,
-            connection_name=connection_name,
             connection_scope=connection_scope,
             subject_id=subject_id,
             stream_name=action_id,

@@ -105,7 +105,7 @@ export const WORKSPACE_NAV_BY_ZONE = {
     { segment: 'entities', labelKey: 'entities', icon: 'atom' },
   ],
   connectors: [
-    { segment: 'connectors/catalog', labelKey: 'connectorCatalog', icon: 'database' },
+    { segment: 'connectors', labelKey: 'connectorCatalog', icon: 'database' },
     { segment: 'connectors/mappings', labelKey: 'connectorStreamMappings', icon: 'arrows-left-right' },
     { segment: 'connectors/policy', labelKey: 'connectorActionPolicy', icon: 'scales' },
     { segment: 'connectors/runs', labelKey: 'connectorRunLogs', icon: 'list-dashes-01' },
@@ -185,8 +185,12 @@ export function workspacePath(workspaceId: string, segment: string): string {
   return `/workspaces/${workspaceId}/${segment}`;
 }
 
-/** BOCP workspace panels (sidebar routes under `/connectors/…`). */
-export type ConnectorPanel = 'catalog' | 'mappings' | 'policy' | 'runs';
+/** BOCP workspace sub-panels (sidebar routes under `/connectors/…`). Home is `/connectors`. */
+export type ConnectorPanel = 'mappings' | 'policy' | 'runs';
+
+export function workspaceConnectorHomePath(workspaceId: string): string {
+  return workspacePath(workspaceId, 'connectors');
+}
 
 export function workspaceConnectorPanelPath(workspaceId: string, panel: ConnectorPanel): string {
   return workspacePath(workspaceId, `connectors/${panel}`);
@@ -240,7 +244,7 @@ export function menuIconForPath(pathname: string): string | undefined {
       const navSegment =
         panel === 'mappings' || panel === 'policy' || panel === 'runs'
           ? `connectors/${panel}`
-          : 'connectors/catalog';
+          : 'connectors';
       return WORKSPACE_NAV.find((item) => item.segment === navSegment)?.icon;
     }
     return WORKSPACE_NAV.find((item) => item.segment === segment)?.icon;

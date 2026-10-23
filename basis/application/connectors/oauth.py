@@ -7,10 +7,7 @@ from typing import Any
 
 from basis.application.connectors import authz
 from basis.application.kernel import WorkspaceCoreContext
-from basis.domain.connector.connection_scope import (
-    DEFAULT_END_USER_CONNECTION_NAME,
-    SCOPE_END_USER,
-)
+from basis.domain.connector.connection_scope import SCOPE_END_USER
 from basis.domain.connector.connector_oauth_state import (
     pack_connector_oauth_state,
     unpack_connector_oauth_state,
@@ -53,7 +50,6 @@ def exchange_oauth_code(
     redirect_uri: str | None,
     code_verifier: str | None,
     state: str | None,
-    connection_name: str,
     connection_scope: str,
     subject_id: str | None,
     connection_config: dict[str, Any],
@@ -80,7 +76,6 @@ def exchange_oauth_code(
             code=code,
             redirect_uri=redirect_uri,
             code_verifier=code_verifier,
-            connection_name=connection_name or DEFAULT_END_USER_CONNECTION_NAME,
             connection_scope=scope,
             subject_id=resolved_subject,
             connection_config=connection_config,
@@ -170,7 +165,6 @@ def exchange_workspace_oauth_code(
     code: str,
     redirect_uri: str | None,
     code_verifier: str | None,
-    connection_name: str,
     connection_scope: str,
     subject_id: str | None,
     connection_config: dict[str, Any],
@@ -185,7 +179,6 @@ def exchange_workspace_oauth_code(
             code=code,
             redirect_uri=redirect_uri,
             code_verifier=code_verifier,
-            connection_name=connection_name,
             connection_scope=connection_scope,
             subject_id=subject_id,
             connection_config=connection_config,

@@ -73,7 +73,6 @@ class ConnectorVaultPersistence:
         self,
         workspace_id: str,
         service: str,
-        connection_name: str,
         *,
         connection_scope: str = "workspace",
         subject_id: str = "",
@@ -84,10 +83,10 @@ class ConnectorVaultPersistence:
                    account_profile_json, revision, updated_at,
                    connection_scope, subject_id
             FROM connector_connections
-            WHERE workspace_id = ? AND service = ? AND connection_name = ?
+            WHERE workspace_id = ? AND service = ?
               AND connection_scope = ? AND subject_id = ?
             """,
-            (workspace_id, service, connection_name, connection_scope, subject_id),
+            (workspace_id, service, connection_scope, subject_id),
         ).fetchone()
 
     def list_connection_rows(
@@ -112,12 +111,12 @@ class ConnectorVaultPersistence:
         where = " AND ".join(clauses)
         return self._db.execute(
             f"""
-            SELECT service, connection_name, auth_type, connection_config_json,
+            SELECT service, auth_type, connection_config_json,
                    value_encrypted, account_profile_json, revision, updated_at,
                    connection_scope, subject_id
             FROM connector_connections
             WHERE {where}
-            ORDER BY service, connection_name, connection_scope, subject_id
+            ORDER BY service, connection_scope, subject_id
             """,
             tuple(params),
         ).fetchall()
@@ -127,7 +126,6 @@ class ConnectorVaultPersistence:
         *,
         workspace_id: str,
         service: str,
-        connection_name: str,
         connection_scope: str,
         subject_id: str,
         auth_type: str,
@@ -140,13 +138,11 @@ class ConnectorVaultPersistence:
         self._db.execute(
             """
             INSERT INTO connector_connections (
-                workspace_id, service, connection_name, connection_scope, subject_id,
+                workspace_id, service, connection_scope, subject_id,
                 auth_type, connection_config_json, value_encrypted, account_profile_json,
                 revision, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ON CONFLICT(
-                workspace_id, service, connection_name, connection_scope, subject_id
-            ) DO UPDATE SET
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(workspace_id, service, connection_scope, subject_id) DO UPDATE SET
                 auth_type = excluded.auth_type,
                 connection_config_json = excluded.connection_config_json,
                 value_encrypted = excluded.value_encrypted,
@@ -157,7 +153,6 @@ class ConnectorVaultPersistence:
             (
                 workspace_id,
                 service,
-                connection_name,
                 connection_scope,
                 subject_id,
                 auth_type,
@@ -174,7 +169,6 @@ class ConnectorVaultPersistence:
         self,
         workspace_id: str,
         service: str,
-        connection_name: str,
         *,
         connection_scope: str = "workspace",
         subject_id: str = "",
@@ -182,10 +176,10 @@ class ConnectorVaultPersistence:
         cur = self._db.execute(
             """
             DELETE FROM connector_connections
-            WHERE workspace_id = ? AND service = ? AND connection_name = ?
+            WHERE workspace_id = ? AND service = ?
               AND connection_scope = ? AND subject_id = ?
             """,
-            (workspace_id, service, connection_name, connection_scope, subject_id),
+            (workspace_id, service, connection_scope, subject_id),
         )
         self._db.commit()
         return int(cur.rowcount if cur.rowcount is not None and cur.rowcount >= 0 else 0)
@@ -198,7 +192,6 @@ class ConnectorVaultPersistence:
         service: str,
         operation_kind: str,
         target_id: str,
-        connection_name: str,
         started_at: str,
         completed_at: str,
         ok: int,
@@ -208,8 +201,8 @@ class ConnectorVaultPersistence:
             """
             INSERT INTO connector_runs (
                 id, workspace_id, service, operation_kind, target_id,
-                connection_name, started_at, completed_at, ok, value_json
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                started_at, completed_at, ok, value_json
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 run_id,
@@ -217,7 +210,6 @@ class ConnectorVaultPersistence:
                 service,
                 operation_kind,
                 target_id,
-                connection_name,
                 started_at,
                 completed_at,
                 ok,
@@ -236,7 +228,7 @@ class ConnectorVaultPersistence:
         if service:
             rows = self._db.execute(
                 """
-                SELECT id, service, operation_kind, target_id, connection_name,
+                SELECT id, service, operation_kind, target_id,
                        started_at, completed_at, ok, value_json
                 FROM connector_runs
                 WHERE workspace_id = ? AND service = ?
@@ -248,7 +240,7 @@ class ConnectorVaultPersistence:
         else:
             rows = self._db.execute(
                 """
-                SELECT id, service, operation_kind, target_id, connection_name,
+                SELECT id, service, operation_kind, target_id,
                        started_at, completed_at, ok, value_json
                 FROM connector_runs
                 WHERE workspace_id = ?
@@ -265,11 +257,10 @@ class ConnectorVaultPersistence:
                     "service": row[1],
                     "operation_kind": row[2],
                     "target_id": row[3],
-                    "connection_name": row[4],
-                    "started_at": row[5],
-                    "completed_at": row[6],
-                    "ok": bool(row[7]),
-                    "value": json.loads(row[8]) if row[8] else {},
+                    "started_at": row[4],
+                    "completed_at": row[5],
+                    "ok": bool(row[6]),
+                    "value": json.loads(row[7]) if row[7] else {},
                 }
             )
         return runs

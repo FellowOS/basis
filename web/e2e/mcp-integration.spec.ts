@@ -49,23 +49,13 @@ test('workspace integration page loads (MCP, OpenAPI, access tokens); tab deep l
   await expect(page).toHaveURL(new RegExp(`/workspaces/${workspaceId}/search$`), { timeout: 30_000 });
 });
 
-test('integration connectors playground lists providers and saves end_user connection', async ({
-  page,
-}) => {
+test('connectors authorization lists end_user connection for subject', async ({ page }) => {
   test.setTimeout(120_000);
 
   await registerFreshUser(page);
   const workspaceId = await defaultWorkspaceId(page);
   const token = await bearerToken(page);
   const subjectId = 'e2e-playground-subject';
-
-  await page.goto(`/workspaces/${workspaceId}/integration?tab=connectors`);
-  await expect(page.getByTestId('workspace-integration-connectors-playground')).toBeVisible({
-    timeout: 60_000,
-  });
-  await expect(page.getByTestId('playground-provider-card-qq_mail')).toBeVisible({
-    timeout: 30_000,
-  });
 
   const put = await page.request.put(
     e2eWorkspaceApiPath(workspaceId, 'connectors/embed/connections/qq_mail'),
@@ -86,9 +76,11 @@ test('integration connectors playground lists providers and saves end_user conne
   );
   expect(put.ok()).toBeTruthy();
 
-  await page.getByTestId('playground-subject-id').fill(subjectId);
-  await page.getByRole('button', { name: /Apply subject|应用 subject/i }).click();
+  await page.goto(`/workspaces/${workspaceId}/connectors?section=authorization`);
+  await expect(page.getByTestId('connectors-catalog-section-authorizations')).toBeVisible({
+    timeout: 60_000,
+  });
   await expect(
-    page.getByTestId('playground-connector-status-connected-qq_mail'),
+    page.getByTestId('configured-connection-qq_mail-default-end-user'),
   ).toBeVisible({ timeout: 30_000 });
 });
