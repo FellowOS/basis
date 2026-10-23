@@ -16,7 +16,7 @@ from basis.interface.http.deps import (
     get_store,
 )
 from basis.domain.ontology.hub.scoped_state import OntologyHubState
-from basis.interface.http.ontology_session import graph_session
+from basis.interface.http.workspace.ontology.ontology_session import graph_session
 
 router = APIRouter(tags=["workspaces"])
 

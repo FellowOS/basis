@@ -13,7 +13,7 @@ from basis.domain.knowledge.ledger_rows import StoreDocumentOutcome
 from basis.domain.knowledge.store import KnowledgeStore
 from basis.interface.http.ingest_helpers import ingest_accept_payload
 from basis.domain.knowledge.pipeline.document import TextIngestOptions
-from basis.interface.http.documents_models import StartProcessingRequest
+from basis.interface.http.workspace.documents.documents_models import StartProcessingRequest
 
 
 def document_store_payload(

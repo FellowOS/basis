@@ -21,7 +21,7 @@ from basis.domain.graph.session.guard import require_graph_session
 from basis.domain.ontology.legacy_graph_create import LegacyGraphOntologyService
 from basis.infra.runtime.capabilities import graph_runtime_available
 from basis.domain.knowledge.services.graph_audit import audit_graph
-from basis.interface.http.documents_models import CreateOntologyRequest
+from basis.interface.http.workspace.documents.documents_models import CreateOntologyRequest
 
 router = APIRouter(tags=["workspaces"])
 _ontology = LegacyGraphOntologyService()

@@ -5,10 +5,10 @@ from __future__ import annotations
 from fastapi import FastAPI
 
 from basis.interface.http import users
-from basis.interface.http.config_alerts import router as alerts_router
-from basis.interface.http.config_governance import router as workspace_governance_router
-from basis.interface.http.config_mappings import router as workspace_mappings_router
-from basis.interface.http.config_reasoning_rules import router as reasoning_rules_router
+from basis.interface.http.workspace.config.config_alerts import router as alerts_router
+from basis.interface.http.workspace.config.config_governance import router as workspace_governance_router
+from basis.interface.http.workspace.config.config_mappings import router as workspace_mappings_router
+from basis.interface.http.workspace.config.config_reasoning_rules import router as reasoning_rules_router
 from basis.interface.http.connectors import router as workspace_connectors_router
 from basis.interface.http.documents import router as workspace_documents_router
 from basis.interface.http.e2e_helpers import router as workspace_e2e_helpers_router

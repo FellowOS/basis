@@ -5024,7 +5024,7 @@ export interface components {
             model?: string | null;
         };
         /** CreateOntologyRequest */
-        basis__interface__http__documents_models__CreateOntologyRequest: {
+        basis__interface__http__workspace__documents__documents_models__CreateOntologyRequest: {
             /** Namespace */
             namespace: string;
             /** Name */
@@ -9391,7 +9391,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["basis__interface__http__documents_models__CreateOntologyRequest"];
+                "application/json": components["schemas"]["basis__interface__http__workspace__documents__documents_models__CreateOntologyRequest"];
             };
         };
         responses: {

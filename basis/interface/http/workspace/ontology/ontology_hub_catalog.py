@@ -54,7 +54,7 @@ from basis.domain.ontology.rdf_io import (
     fetch_ontology_url_bytes,
     parse_rdf_sync_for_basis,
 )
-from basis.interface.http.ontology_hub_support import (
+from basis.interface.http.workspace.ontology.ontology_hub_support import (
     audit_ontology_graph_write,
     min_role,
     ontology_session,

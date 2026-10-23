@@ -27,11 +27,11 @@ from basis.domain.knowledge.pipeline.file_ingest import FileParseError
 from basis.domain.knowledge.pipeline.extract_timeout import ExtractionTimeoutError
 from basis.domain.knowledge.pipeline.version_ingest import ExtractTextTooLargeError, TooManyChunksError
 from basis.infra.runtime.observability.request_context import current_request_id
-from basis.interface.http.documents_models import (
+from basis.interface.http.workspace.documents.documents_models import (
     RetryProcessingRequest,
     StartProcessingRequest,
 )
-from basis.interface.http.documents_processing_support import (
+from basis.interface.http.workspace.documents.documents_processing_support import (
     processing_options,
     respond_idempotent_processing_job,
 )

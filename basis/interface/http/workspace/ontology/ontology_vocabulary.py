@@ -16,7 +16,7 @@ from basis.interface.http.deps import (
     save_graph,
 )
 from basis.domain.knowledge.services.graph_audit import audit_graph
-from basis.interface.http.ontology_session import graph_session
+from basis.interface.http.workspace.ontology.ontology_session import graph_session
 
 router = APIRouter(tags=["workspaces"])
 

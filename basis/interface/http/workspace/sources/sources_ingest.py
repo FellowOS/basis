@@ -16,11 +16,11 @@ from basis.domain.knowledge.services.ingest_source_service import (
     record_ingest_source_event,
 )
 from basis.domain.knowledge.store import KnowledgeStore
-from basis.interface.http.sources_models import (
+from basis.interface.http.workspace.sources.sources_models import (
     SyncIngestSourceRequest,
     WebhookIngestRequest,
 )
-from basis.interface.http.sources_support import (
+from basis.interface.http.workspace.sources.sources_support import (
     bearer_token,
     doc_id_from_external_key,
     now_iso,

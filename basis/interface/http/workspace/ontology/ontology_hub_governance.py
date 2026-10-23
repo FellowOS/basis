@@ -41,7 +41,7 @@ from basis.domain.graph.governance.decision import (
 )
 from basis.domain.errors import AdminError
 from basis.domain.knowledge.services.alerts_emit import emit_governance_proposal_proposed_alert
-from basis.interface.http.ontology_hub_support import (
+from basis.interface.http.workspace.ontology.ontology_hub_support import (
     audit_ontology_graph_write,
     governance_alert_from_proposal_result,
     min_role,

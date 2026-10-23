@@ -8750,7 +8750,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/basis__interface__http__documents_models__CreateOntologyRequest"
+                "$ref": "#/components/schemas/basis__interface__http__workspace__documents__documents_models__CreateOntologyRequest"
               }
             }
           }
@@ -18109,7 +18109,7 @@
         ],
         "title": "CreateOntologyRequest"
       },
-      "basis__interface__http__documents_models__CreateOntologyRequest": {
+      "basis__interface__http__workspace__documents__documents_models__CreateOntologyRequest": {
         "properties": {
           "namespace": {
             "type": "string",

@@ -17,11 +17,11 @@ from basis.interface.http.deps import (
 )
 from basis.domain.knowledge.services.graph_audit import audit_graph
 from basis.domain.knowledge.store import KnowledgeStore
-from basis.interface.http.sources_models import (
+from basis.interface.http.workspace.sources.sources_models import (
     CreateIngestSourceRequest,
     UpdateIngestSourceRequest,
 )
-from basis.interface.http.sources_support import webhook_path
+from basis.interface.http.workspace.sources.sources_support import webhook_path
 
 router = APIRouter(tags=["workspaces"])
 

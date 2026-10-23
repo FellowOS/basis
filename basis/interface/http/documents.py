@@ -4,19 +4,19 @@ from __future__ import annotations
 
 from fastapi import APIRouter
 
-from basis.interface.http.documents_crud import router as crud_router
-from basis.interface.http.documents_jobs import (
+from basis.interface.http.workspace.documents.documents_crud import router as crud_router
+from basis.interface.http.workspace.documents.documents_jobs import (
     router as jobs_router,
     start_processing_job,
 )
-from basis.interface.http.documents_models import (
+from basis.interface.http.workspace.documents.documents_models import (
     AppendTextVersionRequest,
     CreateOntologyRequest,
     IngestTextRequest,
     RetryProcessingRequest,
     StartProcessingRequest,
 )
-from basis.interface.http.documents_ontology import router as ontology_router
+from basis.interface.http.workspace.documents.documents_ontology import router as ontology_router
 
 router = APIRouter(tags=["workspaces"])
 router.include_router(crud_router)

@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from fastapi import APIRouter
 
-from basis.interface.http.ontology_hub_catalog import register_ontology_hub_catalog_routes
-from basis.interface.http.ontology_hub_governance import register_ontology_hub_governance_routes
+from basis.interface.http.workspace.ontology.ontology_hub_catalog import register_ontology_hub_catalog_routes
+from basis.interface.http.workspace.ontology.ontology_hub_governance import register_ontology_hub_governance_routes
 
 
 def register_ontology_hub_routes(router: APIRouter) -> None:

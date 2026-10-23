@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from fastapi import APIRouter
 
-from basis.interface.http.sources_crud import router as crud_router
-from basis.interface.http.sources_ingest import router as ingest_router
-from basis.interface.http.sources_models import (
+from basis.interface.http.workspace.sources.sources_crud import router as crud_router
+from basis.interface.http.workspace.sources.sources_ingest import router as ingest_router
+from basis.interface.http.workspace.sources.sources_models import (
     CreateIngestSourceRequest,
     SyncIngestSourceRequest,
     UpdateIngestSourceRequest,

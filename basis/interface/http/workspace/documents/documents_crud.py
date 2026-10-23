@@ -28,13 +28,13 @@ from basis.infra.runtime.limits import RuntimeLimits
 from basis.domain.knowledge.store import KnowledgeStore
 from basis.domain.graph.projection.documents import list_documents as list_graph_documents
 from basis.interface.http.upload_bounds import ensure_payload_bytes, read_bounded_upload
-from basis.interface.http.documents_jobs import start_processing_job
-from basis.interface.http.documents_models import (
+from basis.interface.http.workspace.documents.documents_jobs import start_processing_job
+from basis.interface.http.workspace.documents.documents_models import (
     AppendTextVersionRequest,
     IngestTextRequest,
     StartProcessingRequest,
 )
-from basis.interface.http.documents_processing_support import (
+from basis.interface.http.workspace.documents.documents_processing_support import (
     document_store_payload,
 )
 
