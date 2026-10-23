@@ -7,7 +7,6 @@ from sqlalchemy.engine import make_url
 
 from basis.infra.runtime.database import reset_sqlite_database_pool
 from tests.support.integration_env import load_integration_test_env
-from tests.support.mysql import create_mysql_database, drop_mysql_database
 from tests.support.postgres import (
     create_postgres_database,
     drop_postgres_database,
@@ -95,22 +94,3 @@ def postgres_sql_target_url(postgres_admin_url: str) -> str:
     if created:
         drop_postgres_database(postgres_admin_url, test_url)
 
-
-@pytest.fixture
-def mysql_admin_url() -> str:
-    admin_url = os.environ.get("BASIS_TEST_MYSQL_URL")
-    if not admin_url:
-        pytest.skip("BASIS_TEST_MYSQL_URL is not configured")
-    try:
-        import pymysql  # noqa: F401
-    except ImportError:
-        pytest.skip("pymysql is not installed (uv sync --extra dev)")
-    return admin_url
-
-
-@pytest.fixture
-def mysql_url(mysql_admin_url: str) -> str:
-    test_url = create_mysql_database(mysql_admin_url)
-    yield test_url
-    reset_sqlite_database_pool()
-    drop_mysql_database(mysql_admin_url, test_url)

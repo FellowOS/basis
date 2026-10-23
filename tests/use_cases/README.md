@@ -6,5 +6,6 @@ Vertical-slice flows (API-only). Naming: `test_uc_<slug>.py`. Add a row here whe
 |------|------|--------|----------------|
 | `test_uc_release_gate.py` | `release_gate` | §9 release gate: ingest, graph, roles, backup/restore, idempotent rebuild | Partial overlap with processing/graph specs |
 | `test_uc_m6_vertical_smoke.py` | `m6_vertical_smoke` | M6 smoke: alerts, rules, sources, remember → review | `governance.e2e.spec.ts`, `processing-job.e2e.spec.ts` (partial) |
+| `test_uc_connector_inbound.py` | `connector_inbound` | BOCP: SQLite-as-postgres connection → mapping → inbound sync → graph | `connector-workspace.e2e.spec.ts` (partial) |
 
 **Integration** tests for the same domains live under `tests/integration/` (single-step behavior). **Contract** tests under `tests/contract/`.

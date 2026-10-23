@@ -25,6 +25,8 @@ def _alembic_config(sqlalchemy_url: str):
         cfg = Config()
         cfg.set_main_option("script_location", str(_ALEMBIC_SCRIPTS))
     cfg.set_main_option("sqlalchemy.url", sqlalchemy_url.replace("%", "%%"))
+    # Tells ``alembic/env.py`` not to replace this URL with ``BASIS_DATABASE_URL``.
+    cfg.attributes["basis_sqlalchemy_url_locked"] = True
     return cfg
 
 

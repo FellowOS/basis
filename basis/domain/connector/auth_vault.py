@@ -714,6 +714,7 @@ class ConnectorAuthVault:
         oauth_cfg = self.get_oauth_config(workspace_id, service)
         if not oauth_cfg:
             raise ValueError(f"OAuth2 client config not configured for {service}")
+        self.assert_service_allowed(workspace_id, service)
 
         oauth2 = auth_spec.oauth2
         auth_url = interpolate_placeholders(
@@ -783,6 +784,7 @@ class ConnectorAuthVault:
         oauth_cfg = self.get_oauth_config(workspace_id, service)
         if not oauth_cfg:
             raise ValueError(f"OAuth2 client config not configured for {service}")
+        self.assert_service_allowed(workspace_id, service)
 
         oauth2 = auth_spec.oauth2
         token_url = interpolate_placeholders(

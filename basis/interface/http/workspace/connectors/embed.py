@@ -11,6 +11,9 @@ from basis.domain.connector.connection_scope import SCOPE_END_USER
 from basis.application.kernel import CoreError
 from basis.interface.http.shared.operation_http import http_exception_from_core
 from basis.domain.tenancy.admin.store import AdminStore, User
+from basis.infra.runtime.config import Settings
+from basis.infra.tooling.test_support.playwright_e2e import is_playwright_e2e_data_dir
+from basis.infra.tooling.test_support.playwright_oauth_stub import playwright_e2e_oauth_http_client
 from basis.interface.http.workspace.connectors.models import (
     EmbedOAuthAuthorizeRequest,
     EmbedUpsertConnectionRequest,
@@ -195,6 +198,10 @@ async def embed_oauth_exchange(
             store=store,
             require_editor=True,
         )
+        settings: Settings = request.app.state.settings
+        http_client = None
+        if is_playwright_e2e_data_dir(settings.data_dir):
+            http_client = playwright_e2e_oauth_http_client(body.code)
         return oauth.exchange_oauth_code(
             ctx,
             service=service,
@@ -205,6 +212,7 @@ async def embed_oauth_exchange(
             connection_scope=body.connection_scope,
             subject_id=body.subject_id,
             connection_config=body.connection_config,
+            http_client=http_client,
         )
     except CoreError as exc:
         raise http_exception_from_core(exc) from exc

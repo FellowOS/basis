@@ -20,6 +20,7 @@ def _auth(token: str) -> dict[str, str]:
     return {"Authorization": f"Bearer {token}"}
 
 
+@pytest.mark.integration
 def test_postgres_backup_restore_scripts_preserve_ledger(
     tmp_path: Path,
     postgres_url: str,

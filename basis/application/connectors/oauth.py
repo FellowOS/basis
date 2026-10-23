@@ -53,6 +53,7 @@ def exchange_oauth_code(
     connection_scope: str,
     subject_id: str | None,
     connection_config: dict[str, Any],
+    http_client: Any = None,
 ) -> dict[str, Any]:
     authz.require_workspace_editor(ctx)
     scope = connection_scope
@@ -79,6 +80,7 @@ def exchange_oauth_code(
             connection_scope=scope,
             subject_id=resolved_subject,
             connection_config=connection_config,
+            http_client=http_client,
         )
     except Exception as exc:
         raise AdminError(422, "oauth_exchange_failed", str(exc)) from exc

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 from logging.config import fileConfig
+from pathlib import Path
 
 from alembic import context
 from sqlalchemy import engine_from_config, pool
@@ -10,8 +11,23 @@ config = context.config
 if config.config_file_name:
     fileConfig(config.config_file_name)
 
+
+def _load_project_dotenv() -> None:
+    """CLI migrations: pick up repo ``.env`` when ``BASIS_DATABASE_URL`` is not exported."""
+    try:
+        from dotenv import load_dotenv
+    except ImportError:
+        return
+    root = Path(__file__).resolve().parents[5]
+    dotenv_path = root / ".env"
+    if dotenv_path.is_file():
+        load_dotenv(dotenv_path, override=False)
+
+
+_load_project_dotenv()
+
 database_url = os.environ.get("BASIS_DATABASE_URL")
-if database_url:
+if database_url and not config.attributes.get("basis_sqlalchemy_url_locked"):
     config.set_main_option("sqlalchemy.url", database_url.replace("%", "%%"))
 
 # Imperative revisions (SQL baseline + PG helpers); no autogenerate metadata.

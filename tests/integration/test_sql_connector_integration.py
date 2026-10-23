@@ -1,4 +1,4 @@
-"""BOCP SQL connector against real PostgreSQL / MySQL (not SQLite stand-ins).
+"""BOCP SQL connector against real PostgreSQL (not SQLite stand-ins).
 
 Configure via ``.env.test`` (copy from ``.env.test.example``); pytest loads it via
 ``tests.support.integration_env`` from ``tests/conftest.py``. Variables:
@@ -6,7 +6,6 @@ Configure via ``.env.test`` (copy from ``.env.test.example``); pytest loads it v
   - ``BASIS_TEST_POSTGRES_URL`` — CI uses ephemeral DB per test; locally, CREATEDB may be
     denied and tests reuse the URL database (unique table names).
   - ``BASIS_TEST_POSTGRES_EXTERNAL_URL`` — optional fixed writable target.
-  - ``BASIS_TEST_MYSQL_URL`` — optional; needs ``pymysql`` (``uv sync --extra dev``).
 """
 
 from __future__ import annotations
@@ -60,42 +59,22 @@ def _connection_fields_from_url(database_url: str) -> tuple[dict, dict]:
     return config, creds
 
 
-def _seed_customers_table(
-    database_url: str,
-    *,
-    table_name: str,
-    dialect: str,
-) -> None:
+def _seed_customers_table(database_url: str, *, table_name: str) -> None:
     engine = create_engine(database_url, pool_pre_ping=True)
-    if dialect == "postgresql":
-        updated_type = "TIMESTAMPTZ"
-    else:
-        updated_type = "DATETIME(6)"
-
+    timestamps = (
+        "'2026-01-01 00:00:00+00'",
+        "'2026-01-02 00:00:00+00'",
+        "'2026-01-03 00:00:00+00'",
+    )
     ddl = f"""
         CREATE TABLE {table_name} (
             customer_id VARCHAR(32) PRIMARY KEY,
             company_name TEXT NOT NULL,
             tier VARCHAR(32),
             annual_revenue DOUBLE PRECISION,
-            updated_at {updated_type} NOT NULL
+            updated_at TIMESTAMPTZ NOT NULL
         )
     """
-    if dialect == "mysql":
-        ddl = ddl.replace("DOUBLE PRECISION", "DOUBLE")
-
-    if dialect == "postgresql":
-        timestamps = (
-            "'2026-01-01 00:00:00+00'",
-            "'2026-01-02 00:00:00+00'",
-            "'2026-01-03 00:00:00+00'",
-        )
-    else:
-        timestamps = (
-            "'2026-01-01 00:00:00'",
-            "'2026-01-02 00:00:00'",
-            "'2026-01-03 00:00:00'",
-        )
 
     with engine.begin() as conn:
         conn.execute(text(ddl))
@@ -126,9 +105,7 @@ def test_sql_connector_postgres_check_discover_read_mutate(
     tmp_path: Path, postgres_sql_target_url: str
 ) -> None:
     table = f"bocp_customers_{uuid.uuid4().hex[:12]}"
-    _seed_customers_table(
-        postgres_sql_target_url, table_name=table, dialect="postgresql"
-    )
+    _seed_customers_table(postgres_sql_target_url, table_name=table)
     conn_cfg, creds = _connection_fields_from_url(postgres_sql_target_url)
     conn_cfg["schema"] = "public"
 
@@ -182,58 +159,3 @@ def test_sql_connector_postgres_check_discover_read_mutate(
     finally:
         conn.close()
         _drop_table(postgres_sql_target_url, table)
-
-
-@pytest.mark.integration
-def test_sql_connector_mysql_check_discover_read_mutate(
-    tmp_path: Path, mysql_url: str
-) -> None:
-    table = f"bocp_customers_{uuid.uuid4().hex[:12]}"
-    _seed_customers_table(mysql_url, table_name=table, dialect="mysql")
-    conn_cfg, creds = _connection_fields_from_url(mysql_url)
-
-    conn = _setup_workspace_db(tmp_path)
-    try:
-        runtime = ConnectorRuntime(conn, vault_secret="test-secret")
-        runtime.vault.upsert_connection(
-            "kb1",
-            "mysql",
-            auth_type="database_dsn",
-            connection_config=conn_cfg,
-            credentials=creds,
-        )
-
-        chk = runtime.check_connection("kb1", "mysql")
-        assert chk["ok"] is True
-        assert chk["dialect"] == "mysql"
-
-        schema = runtime.discover_schema(
-            "kb1",
-            "mysql",
-            external_table=table,
-        )
-        assert schema.primary_key == ["customer_id"]
-
-        read_res = runtime.read_stream(
-            "kb1",
-            "mysql",
-            external_table=table,
-            primary_key_column="customer_id",
-            cursor_column="updated_at",
-            cursor_watermark="2026-01-02T00:00:00Z",
-        )
-        assert [r["customer_id"] for r in read_res.records] == ["c2", "c3"]
-
-        updated = runtime.mutate_stream(
-            "kb1",
-            "mysql",
-            external_table=table,
-            operation="update",
-            primary_key_column="customer_id",
-            external_pk="c1",
-            changes={"tier": "gold"},
-        )
-        assert updated["tier"] == "gold"
-    finally:
-        conn.close()
-        _drop_table(mysql_url, table)

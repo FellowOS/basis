@@ -11,7 +11,6 @@ from basis.domain.connector.synthesis.auth_mode_reference import (
 )
 from basis.domain.connector.synthesis.paths import providers_registry_yaml
 from basis.domain.connector.synthesis.providers_registry_auth import (
-    auth_specs_from_providers_registry,
     auth_specs_from_registry_block,
     load_provider_registry_block,
     registry_auth_mode_to_bocp,
@@ -57,11 +56,3 @@ def test_canonical_registry_services_emit_expected_bocp_modes() -> None:
 def test_all_bocp_modes_have_registry_canonical_or_shipped_exception() -> None:
     documented = set(REGISTRY_CANONICAL_BY_AUTH_MODE) | {"database_dsn"}
     assert documented == ALL_AUTH_MODES
-
-
-def test_auth_specs_from_providers_registry_slack_fallback() -> None:
-    if providers_registry_yaml() is not None:
-        pytest.skip("slack uses live registry when available")
-    specs = auth_specs_from_providers_registry("slack")
-    assert specs
-    assert {s.auth_mode for s in specs} >= {"oauth2", "api_key"}

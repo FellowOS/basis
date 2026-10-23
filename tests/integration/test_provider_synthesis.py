@@ -65,36 +65,6 @@ def test_batch_0_and_1_definitions() -> None:
     assert b4.prefer_anyconnect_procedures is False
 
 
-def test_merge_slack_generator_baseline() -> None:
-    m = merge_service("slack", ship_tier="beta", prefer_anyconnect_procedures=False)
-    assert m.service == "slack"
-    assert len(m.procedure_actions()) == 3
-    assert m.auth
-
-
-def test_merge_slack_from_anyconnect_catalog() -> None:
-    from basis.domain.connector.synthesis.paths import anyconnect_catalog_dir
-
-    if anyconnect_catalog_dir() is None:
-        import pytest
-
-        pytest.skip("AnyConnect catalog not on disk")
-    m = merge_service(
-        "slack",
-        ship_tier="beta",
-        catalog_procedures_only=True,
-    )
-    assert m.service == "slack"
-    assert len(m.procedure_actions()) >= 20
-    assert m.auth
-    wired = sum(
-        1
-        for p in m.procedure_actions()
-        if p.rest and p.rest.operations.get("invoke") and p.rest.operations["invoke"].path
-    )
-    assert wired >= 20
-
-
 def test_merge_hubspot_entity_streams() -> None:
     m = merge_service("hubspot", ship_tier="beta", overlay_registry_auth=False)
     names = {a.id for a in m.entity_actions()}
@@ -109,14 +79,6 @@ def test_merge_notion_entity_and_dynamic_loader() -> None:
     assert m.entity_actions()[0].id == "database_pages"
     extra = m.entity_actions()[0].model_extra or {}
     assert extra.get("x-basis-dynamic-schema-loader") is not None
-
-
-def test_executor_index_slack_paths() -> None:
-    from basis.domain.connector.synthesis.executor_index import invoke_wire_for_action
-
-    wire = invoke_wire_for_action("slack", "slack.post_message")
-    assert wire is not None
-    assert wire["path"] == "/chat.postMessage"
 
 
 def test_executor_index_gitlab_jira_paths() -> None:

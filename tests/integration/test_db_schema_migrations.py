@@ -1,6 +1,8 @@
 import sqlite3
 from pathlib import Path
 
+import pytest
+
 from basis.domain.tenancy.admin.store import AdminStore
 from basis.infra.tooling.db.alembic_upgrade import alembic_head_revision, upgrade_sqlite_file
 from basis.infra.tooling.db.sqlite_migrations import (
@@ -129,6 +131,7 @@ def test_bootstrap_sql_files_sorted() -> None:
     assert paths[0].name == "0001_schema_baseline.sql"
 
 
+@pytest.mark.integration
 def test_postgres_bootstrap_is_idempotent(postgres_url: str) -> None:
     from sqlalchemy import create_engine
 

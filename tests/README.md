@@ -17,6 +17,21 @@ Runtime E2E hooks used by the API (`is_playwright_e2e_data_dir`, OAuth stub) rem
 
 Structural audits (`scripts/audit-*.py`) stay in `scripts/`; CI runs them alongside pytest. Contract tests in `contract/` invoke the web/OpenAPI audits where applicable.
 
+## Test case planning
+
+Pick the **layer** first (not “one OpenAPI operation = one integration file”):
+
+| Layer | Plan tests when… | Granularity |
+|-------|------------------|-------------|
+| `contract/` | OpenAPI/MCP drift, snapshots, schemathesis, web `operationId` audits | Spec-wide or audit scripts |
+| `integration/` | A **bounded context** (BC) behavior, edge case, or short HTTP chain must hold in-process | One file ≈ one domain theme; one `test_*` ≈ one assertion focus |
+| `use_cases/` | A **product journey** crosses several APIs (release gate, vertical smoke) | One `test_uc_<slug>.py`; document in [use_cases/README.md](./use_cases/README.md) |
+| `e2e/` | Browser + real dev stack; route smoke / UX | `*.e2e.spec.ts`; matrix in [e2e/README.md](./e2e/README.md) |
+
+**Integration** files are grouped by **backend domain** (`workspace_*`, `graph_*`, `connector_*`, `ontology_*`, …), aligned loosely with `basis/application/` and `basis/domain/` — not by OpenAPI path or tag. Breadth of “every route exists” lives in **contract**; depth of “this rule is correct” lives in **integration**.
+
+Inside `integration/`, a file may use `TestClient`, domain helpers, stores, or MCP — whatever matches the behavior under test. Use `@pytest.mark.integration` when a real external DB or service is required (`uv run pytest -q -m integration`).
+
 ## Commands
 
 ```bash
@@ -30,8 +45,20 @@ uv run pytest -q -m integration
 cd web && npm test
 
 # Playwright E2E
-cd web && CI=1 npm run test:e2e
+cd tests/e2e && CI=1 npm test
 ```
+
+### Optional `@pytest.mark.integration`
+
+Requires env from `.env.test.example` (copy to `.env.test`). Typical local gate:
+
+| Env | Exercises |
+|-----|-----------|
+| `BASIS_TEST_POSTGRES_URL` | Same DB as `BASIS_DATABASE_URL` in `.env` if unset; see `tests/support/integration_env.py` |
+| (postgres integration files) | `test_postgres_integration.py`, `test_postgres_backup_restore.py`, `test_db_schema_migrations.py` |
+| `BASIS_TEST_GITHUB_*` | Connector REST invoke against real GitHub |
+
+SQLite `uv run pytest -q` is the default CI path; run `-m integration` before releases when Postgres is available.
 
 ## File naming (enforced)
 
@@ -47,8 +74,15 @@ CI runs `uv run python scripts/audit-test-naming.py`. New files must match:
 
 ## Adding tests
 
-- New HTTP behavior: `integration/test_<domain>_<behavior>.py` — one assertion focus per test; use file-local `_client` / `_session_client` or `support/demo_workspace.py`.
-- Playwright-only HTTP routes (`/_e2e/*`, `data/e2e` gating): keep under `integration/` as `test_*_playwright_*_http.py` (pytest + `TestClient`). Browser specs live in `tests/e2e/` only — do not use `test_e2e_*.py` in `integration/`.
-- New product journey anchor: `use_cases/test_uc_<slug>.py` (keep tests short).
-- OpenAPI / MCP / web path parity: `contract/test_contract_<topic>.py`.
-- New primary route smoke: `tests/e2e/specs/<feature>.e2e.spec.ts` + update `tests/e2e/README.md`.
+Checklist for a **new HTTP surface or behavior**:
+
+1. **Contract** — Does OpenAPI/MCP or a CI audit need updating? → `contract/` or `scripts/audit-*.py` / `openapi/*.json`.
+2. **Integration** — What BC/domain and behavior name? → new or existing `integration/test_<domain>_<behavior>.py`; prefer extending an existing domain file unless the theme is new.
+3. **Use case** — Does it close a named product journey? → `use_cases/test_uc_<slug>.py` + README row.
+4. **E2E** — Does the console need a primary-route smoke? → `tests/e2e/specs/<feature>.e2e.spec.ts` + e2e README matrix.
+
+Conventions:
+
+- Integration: one assertion focus per `test_*` function; fixtures from `conftest.py` / `support/demo_workspace.py` or file-local `_client`.
+- Playwright-only HTTP (`/_e2e/*`, `data/e2e` gating): `test_*_playwright_*_http.py` in `integration/` — not `test_e2e_*.py`; browser tests only under `tests/e2e/`.
+- Web UI logic: colocated `*.test.ts` next to source (see naming table above).
