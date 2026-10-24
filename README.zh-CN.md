@@ -57,9 +57,64 @@ Basis 是基于 [Semantica](https://github.com/semantica-agi/semantica) Python S
 - **智能体接口：** 工作区级 **OpenAPI v1** 与 **MCP**（`search_chunks`、`find_entities`、连接器工具、审核操作等）。
 - **平台：** 用户、组织 SSO（可选 OIDC/SAML）、工作区角色、API 令牌与审计。
 
-<p align="center">
-  <img src="assets/architecture.svg" alt="Basis 架构：证据账本、可重建的图与搜索投影、审核写入、OpenAPI 与 MCP" width="900" />
-</p>
+```mermaid
+flowchart TB
+  subgraph external["External sources"]
+    docs["Documents & files"]
+    systems["Databases & SaaS"]
+  end
+
+  subgraph clients["Clients"]
+    studio["Web studio"]
+    agents["Agents & automation"]
+  end
+
+  subgraph apiLayer["basis/interface/http · FastAPI"]
+    rest["OpenAPI v1 · REST"]
+    mcp["MCP · JSON-RPC over HTTP"]
+  end
+
+  ops["Application operations · same catalog for HTTP and MCP"]
+
+  subgraph platform["Platform"]
+    plat["Auth · orgs · SSO · API tokens · audit"]
+  end
+
+  subgraph workspace["Workspace"]
+    ingest["Ingest · sources & connectors BOCP"]
+    sem["Business semantics · ontology · mappings · SHACL · rules"]
+    ledger[("Evidence ledger · canonical facts & provenance")]
+    review["Review queue · governed writes"]
+    graphProj["Graph projection · rebuildable"]
+    searchProj["Search projection · lexical + embeddings"]
+  end
+
+  docs --> ingest
+  systems --> ingest
+  ingest --> ledger
+  sem -.->|"models & validates"| ledger
+  ledger --> graphProj
+  ledger --> searchProj
+
+  studio --> rest
+  agents --> rest
+  agents --> mcp
+  rest --> ops
+  mcp --> ops
+  ops --> plat
+  ops --> ingest
+  ops --> sem
+  ops --> ledger
+  ops --> graphProj
+  ops --> searchProj
+  ops --> review
+  review -->|"approved changes"| ledger
+
+  classDef canonical fill:#f4f4f5,stroke:#18181b,stroke-width:2px
+  classDef projection fill:#fafafa,stroke:#71717a,stroke-dasharray: 5 3
+  class ledger canonical
+  class graphProj,searchProj projection
+```
 
 ## 为什么选择 Basis
 

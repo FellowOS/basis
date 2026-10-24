@@ -1,5 +1,4 @@
-%% Basis workspace architecture (normative overview for README).
-%% Render: GitHub renders this in README; or `npx @mermaid-js/mermaid-cli -i assets/architecture.mmd -o assets/architecture.svg`
+%% Canonical diagram — keep in sync with README Features / 能力概览 mermaid blocks.
 
 flowchart TB
   subgraph external["External sources"]
@@ -9,10 +8,15 @@ flowchart TB
 
   subgraph clients["Clients"]
     studio["Web studio"]
-    agents["Agents · OpenAPI v1 & MCP"]
+    agents["Agents & automation"]
   end
 
-  api["FastAPI API · basis/interface/http"]
+  subgraph apiLayer["basis/interface/http · FastAPI"]
+    rest["OpenAPI v1 · REST"]
+    mcp["MCP · JSON-RPC over HTTP"]
+  end
+
+  ops["Application operations · same catalog for HTTP and MCP"]
 
   subgraph platform["Platform"]
     plat["Auth · orgs · SSO · API tokens · audit"]
@@ -34,15 +38,18 @@ flowchart TB
   ledger --> graphProj
   ledger --> searchProj
 
-  studio --> api
-  agents --> api
-  api --> platform
-  api --> ingest
-  api --> sem
-  api --> ledger
-  api --> graphProj
-  api --> searchProj
-  api --> review
+  studio --> rest
+  agents --> rest
+  agents --> mcp
+  rest --> ops
+  mcp --> ops
+  ops --> plat
+  ops --> ingest
+  ops --> sem
+  ops --> ledger
+  ops --> graphProj
+  ops --> searchProj
+  ops --> review
   review -->|"approved changes"| ledger
 
   classDef canonical fill:#f4f4f5,stroke:#18181b,stroke-width:2px

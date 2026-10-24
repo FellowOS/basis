@@ -57,9 +57,64 @@ Basis is an open-source stack built on the [Semantica](https://github.com/semant
 - **Agent APIs:** Workspace-scoped **OpenAPI v1** and **MCP** (`search_chunks`, `find_entities`, connector tools, review ops).
 - **Platform:** Users, org SSO (OIDC/SAML optional), workspace roles, API tokens, and audit.
 
-<p align="center">
-  <img src="assets/architecture.svg" alt="Basis architecture: evidence ledger, rebuildable graph and search projections, review-gated writes, OpenAPI and MCP" width="900" />
-</p>
+```mermaid
+flowchart TB
+  subgraph external["External sources"]
+    docs["Documents & files"]
+    systems["Databases & SaaS"]
+  end
+
+  subgraph clients["Clients"]
+    studio["Web studio"]
+    agents["Agents & automation"]
+  end
+
+  subgraph apiLayer["basis/interface/http · FastAPI"]
+    rest["OpenAPI v1 · REST"]
+    mcp["MCP · JSON-RPC over HTTP"]
+  end
+
+  ops["Application operations · same catalog for HTTP and MCP"]
+
+  subgraph platform["Platform"]
+    plat["Auth · orgs · SSO · API tokens · audit"]
+  end
+
+  subgraph workspace["Workspace"]
+    ingest["Ingest · sources & connectors BOCP"]
+    sem["Business semantics · ontology · mappings · SHACL · rules"]
+    ledger[("Evidence ledger · canonical facts & provenance")]
+    review["Review queue · governed writes"]
+    graphProj["Graph projection · rebuildable"]
+    searchProj["Search projection · lexical + embeddings"]
+  end
+
+  docs --> ingest
+  systems --> ingest
+  ingest --> ledger
+  sem -.->|"models & validates"| ledger
+  ledger --> graphProj
+  ledger --> searchProj
+
+  studio --> rest
+  agents --> rest
+  agents --> mcp
+  rest --> ops
+  mcp --> ops
+  ops --> plat
+  ops --> ingest
+  ops --> sem
+  ops --> ledger
+  ops --> graphProj
+  ops --> searchProj
+  ops --> review
+  review -->|"approved changes"| ledger
+
+  classDef canonical fill:#f4f4f5,stroke:#18181b,stroke-width:2px
+  classDef projection fill:#fafafa,stroke:#71717a,stroke-dasharray: 5 3
+  class ledger canonical
+  class graphProj,searchProj projection
+```
 
 ## Why Basis
 
