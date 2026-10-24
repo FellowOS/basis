@@ -58,4 +58,18 @@ Web Desktop 产品 e2e（CI `e2e-desktop`）：在 `web/` 下
 
 `profiles/profile.desktop.yaml` — API `server.port: 0`；数据 `~/.basis`；桌面 `auth.enabled: false`。
 
-**Not yet:** 签名 / notarize、Authenticode、Linux AppImage/deb、跨机 Python sidecar 矩阵 CI。
+## CI 发布（GitHub Release，与 Docker 分开）
+
+| 类型 | Tag | Workflow |
+|------|-----|----------|
+| 容器 | `v0.1.0` | [`.github/workflows/release-docker.yml`](../.github/workflows/release-docker.yml) |
+| 桌面 | `desktop-v0.1.0` | [`.github/workflows/release-desktop.yml`](../.github/workflows/release-desktop.yml) |
+
+```bash
+git tag desktop-v0.1.0
+git push origin desktop-v0.1.0
+```
+
+在 **macOS** / **Windows** runner 上各打一份 **未签名** 安装包（`.dmg`/`.zip`、NSIS/portable），上传到 GitHub Release **Basis desktop-v0.1.0 (Desktop)**。
+
+**Not yet:** 签名 / notarize、Authenticode、Linux AppImage/deb。

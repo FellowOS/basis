@@ -1,4 +1,4 @@
-# Production-style stack: nginx (SPA + /api reverse proxy) → Basis API → PostgreSQL.
+# Production stack: Basis (API + Hono web in one container) → PostgreSQL.
 # Usage: see docker/production/README.md
 
 services:
@@ -17,34 +17,24 @@ services:
       retries: 20
     restart: unless-stopped
 
-  api:
+  basis:
     build:
       context: ../..
-      dockerfile: docker/production/Dockerfile.api
+      dockerfile: docker/production/Dockerfile
+    ports:
+      - "${BASIS_HTTP_PORT:-8080}:8080"
     environment:
       BASIS_HOST: 0.0.0.0
       BASIS_PORT: 8090
       BASIS_DATA_DIR: /data
       BASIS_DATABASE_URL: postgresql://${POSTGRES_USER:-basis}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-basis}
+      WEB_PORT: "8080"
+      WEB_HOST: 0.0.0.0
     volumes:
       - basis_app_data:/data
     depends_on:
       postgres:
         condition: service_healthy
-    restart: unless-stopped
-
-  web:
-    build:
-      context: ../..
-      dockerfile: docker/production/Dockerfile.web
-    ports:
-      - "${BASIS_HTTP_PORT:-8080}:8080"
-    environment:
-      BASIS_API_URL: http://api:8090
-      WEB_PORT: "8080"
-      WEB_HOST: 0.0.0.0
-    depends_on:
-      - api
     restart: unless-stopped
 
 volumes:

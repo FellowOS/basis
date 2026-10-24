@@ -1,0 +1,125 @@
+name: Release Desktop
+
+on:
+  push:
+    tags:
+      - desktop-v*
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-desktop-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build-mac:
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            desktop/package-lock.json
+            web/package-lock.json
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install web dependencies
+        working-directory: web
+        run: npm ci
+
+      - name: Install desktop dependencies
+        working-directory: desktop
+        run: npm ci
+
+      - name: Build unsigned macOS artifacts
+        working-directory: desktop
+        run: npm run dist:mac:unsigned
+
+      - name: Upload macOS artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-macos
+          path: desktop/release/*
+          if-no-files-found: error
+
+  build-win:
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            desktop/package-lock.json
+            web/package-lock.json
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install web dependencies
+        working-directory: web
+        run: npm ci
+
+      - name: Install desktop dependencies
+        working-directory: desktop
+        run: npm ci
+
+      - name: Build unsigned Windows artifacts
+        working-directory: desktop
+        run: npm run dist:win:unsigned
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-windows
+          path: desktop/release/*
+          if-no-files-found: error
+
+  github-release:
+    if: startsWith(github.ref, 'refs/tags/desktop-v')
+    needs: [build-mac, build-win]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download macOS artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: desktop-macos
+          path: dist/desktop/macos
+
+      - name: Download Windows artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: desktop-windows
+          path: dist/desktop/windows
+
+      - name: Publish GitHub Release (desktop)
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Basis ${{ github.ref_name }} (Desktop)
+          generate_release_notes: true
+          files: |
+            dist/desktop/macos/*
+            dist/desktop/windows/*
+          body: |
+            Unsigned desktop builds for **${{ github.ref_name }}**.
+
+            Installers are not code-signed; macOS may require Gatekeeper override, Windows SmartScreen may warn.
+
+            Tag format: `desktop-v*` (separate from container releases `v*`).
