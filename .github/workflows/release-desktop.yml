@@ -94,7 +94,6 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/desktop-v')
     needs: [build-mac, build-win]
     runs-on: ubuntu-latest
-    environment: release
     steps:
       - uses: actions/checkout@v4
 
@@ -110,11 +109,12 @@ jobs:
           name: desktop-windows
           path: dist/desktop/windows
 
-      - name: Publish GitHub Release (desktop)
+      - name: Create or update draft GitHub Release (desktop)
         uses: softprops/action-gh-release@v2
         with:
           name: Basis ${{ github.ref_name }} (Desktop)
           draft: true
+          make_latest: false
           generate_release_notes: true
           files: |
             dist/desktop/macos/*
@@ -125,3 +125,8 @@ jobs:
             Installers are not code-signed; macOS may require Gatekeeper override, Windows SmartScreen may warn.
 
             Tag format: `desktop-v*` (separate from container releases `v*`).
+
+      - name: Keep release as draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release edit "${{ github.ref_name }}" --draft

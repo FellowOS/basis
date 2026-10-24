@@ -31,30 +31,30 @@ docker build -f docker/production/Dockerfile -t basis:local .
 
 与 **桌面版** 分开：容器用 **`v*`** tag，桌面用 **`desktop-v*`**（见 [`desktop/README.md`](../../desktop/README.md)）。
 
-推送 **`v*`** 时 [`.github/workflows/release-docker.yml`](../../.github/workflows/release-docker.yml) 流程：
+推送 **`v*`** 时 [`.github/workflows/release-docker.yml`](../../.github/workflows/release-docker.yml)：
 
-1. **`image`**（无需审批）：构建并推送到 GHCR，标签为 **`v0.1.0`**、`0.1.0`、`0.1`（**不含 `latest`**）
-2. **本地验证**：`docker pull ghcr.io/<owner>/basis:v0.1.0`，用 compose 或自有环境跑通
-3. **`github-release`**（**`release` environment** 审批，Settings → Environments）：把该 tag **提升为 `latest`**，并创建 **Draft** Release **Basis v0.1.0 (Docker)**
-4. 在 GitHub **Releases** 核对后点 **Publish release** 对外公布（会标记为 Latest）
+1. CI 构建并推送到 GHCR（**`v0.1.0`**、`0.1.0`、`0.1`；**不**自动改 `latest`）
+2. CI 创建或更新 **Draft** Release（**Basis v0.1.0 (Docker)**）——页面上仍是草稿，不会对外 Latest
+3. 本地验证：`docker pull ghcr.io/<owner>/basis:v0.1.0`，compose 跑通
+4. 满意后在 GitHub **Releases** 对该草稿点 **Publish release**（由你决定何时对外公布）
 
-若同一 git tag 曾发过**正式** Release，重打 tag 后 CI 会 **改回 Draft**（见 workflow 里 `gh release edit --draft`）。也可手动：`gh release edit v0.1.0 --draft`。
+重打同一 tag 时 workflow 会用 `gh release edit --draft` 把已发布的 Release 改回草稿。
 
 ```bash
 git tag v0.1.0
 git push origin v0.1.0
 ```
 
-验证用显式版本 tag（审批前 **`latest` 不会指向本次构建**）：
-
 ```bash
 docker pull ghcr.io/coldbuffer/basis:v0.1.0
 ```
 
-正式发布并跟 `latest` 后：
+若希望 **`latest`** 跟本次版本一致，在验证并 **Publish release** 后自行提升（CI 不做）：
 
 ```bash
-docker pull ghcr.io/coldbuffer/basis:latest
+docker buildx imagetools create \
+  -t ghcr.io/coldbuffer/basis:latest \
+  ghcr.io/coldbuffer/basis:v0.1.0
 ```
 
 仓库需开启 Actions 的 **packages: write**（默认 `GITHUB_TOKEN` 即可）。首次拉取私有包需在 GHCR 授权。

@@ -51,27 +51,10 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v')
     needs: image
     runs-on: ubuntu-latest
-    environment: release
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Log in to GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Promote verified image to latest
-        run: |
-          docker buildx imagetools create \
-            -t "ghcr.io/${{ github.repository }}:latest" \
-            "ghcr.io/${{ github.repository }}:${{ github.ref_name }}"
-
-      - name: Publish GitHub Release (container)
+      - name: Create or update draft GitHub Release (container)
         uses: softprops/action-gh-release@v2
         with:
           name: Basis ${{ github.ref_name }} (Docker)
@@ -83,7 +66,7 @@ jobs:
 
             See [docker/production/README.md](https://github.com/${{ github.repository }}/blob/main/docker/production/README.md) for compose deployment.
 
-      # Updating an already-published release ignores draft: true; force draft until Publish.
+      # Updating an already-published release ignores draft: true; force draft until you Publish.
       - name: Keep release as draft
         env:
           GH_TOKEN: ${{ github.token }}
