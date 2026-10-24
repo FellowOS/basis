@@ -55,7 +55,7 @@ basis = "basis.cli:main"
 include = ["basis*"]
 
 [tool.setuptools.package-data]
-"basis.infra.tooling.db" = ["migrations/*.sql"]
+"basis.infra.tooling.db" = ["migrations/*.sql", "alembic/**/*"]
 "basis.domain.connector" = ["providers/*.yaml", "providers/*.yml"]
 "basis.domain.connector.synthesis" = ["batches/*.yaml", "executors-index.json"]
 

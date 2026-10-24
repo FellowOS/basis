@@ -6,6 +6,8 @@ import pytest
 from basis.domain.tenancy.admin.store import AdminStore
 from basis.infra.tooling.db.alembic_upgrade import alembic_head_revision, upgrade_sqlite_file
 from basis.infra.tooling.db.sqlite_migrations import (
+    MigrationError,
+    assert_desktop_sqlite_compatible,
     ensure_sqlite_schema,
     load_migrations,
     run_migrations,
@@ -121,6 +123,24 @@ def test_partial_admin_database_gets_ledger(tmp_path: Path) -> None:
     assert row[0] == "true"
     assert sqlite_schema_is_initialized(store._conn)
     store.close()
+
+
+def test_desktop_rejects_legacy_knowledge_bases_schema(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    db_path = tmp_path / "basis.db"
+    conn = sqlite3.connect(db_path)
+    conn.executescript(
+        """
+        CREATE TABLE documents (id TEXT PRIMARY KEY);
+        CREATE TABLE knowledge_bases (id TEXT PRIMARY KEY);
+        """
+    )
+    conn.commit()
+    conn.close()
+    monkeypatch.setenv("BASIS_DEPLOYMENT_PROFILE", "desktop")
+    conn = sqlite3.connect(db_path)
+    with pytest.raises(MigrationError, match="knowledge_bases"):
+        assert_desktop_sqlite_compatible(conn)
+    conn.close()
 
 
 def test_bootstrap_sql_files_sorted() -> None:

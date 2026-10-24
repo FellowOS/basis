@@ -14,6 +14,8 @@ cd desktop && npm install && npm run dev
 
 已安装的 Basis 与 `npm run dev` **不要同时开**：两者共用 `~/.basis/basis.db`，第二个 API 可能起不来。开发时用 dev；测安装包前先退出 dev。
 
+若 Release 安装包启动失败并提示 **workspaces / knowledge_bases**：本机 `~/.basis/basis.db` 可能是旧版 schema。备份后删除 `~/.basis/basis.db`（或整个 `~/.basis`），再打开应用会重建空库。
+
 应用图标：`npm run icons` 用与 sidebar `AppLogo` 相同的 `thinking-orbs` 预设（`working`、20px、浅色主题、静态帧）渲染到 `build/icon.*`；打包脚本会自动跑。
 
 ## 打包（macOS）
@@ -73,3 +75,9 @@ git push origin desktop-v0.1.0
 在 **macOS** / **Windows** runner 上各打一份 **未签名** 安装包（`.dmg`/`.zip`、NSIS/portable），上传到 GitHub Release **Basis desktop-v0.1.0 (Desktop)**。
 
 **Not yet:** 签名 / notarize、Authenticode、Linux AppImage/deb。
+
+桌面壳启动后会查 GitHub `desktop-v*` Release；若有新版本，顶栏下出现提示条，点击在浏览器打开对应 Release 页（非自动下载安装）。
+
+**macOS 从浏览器安装：** 若提示 *damaged*，执行 `xattr -dr com.apple.quarantine "/Applications/Basis.app"` 或右键 **打开**。
+
+**`spawn …/sidecar/venv/bin/basis ENOENT`：** 旧 CI 包内嵌了 python.org 的 Python（指向 `/Library/Frameworks/...`），换机器后无法启动。请安装 **修复打包后的** 新 `desktop-v*` Release（sidecar 使用 uv managed Python + afterPack relocate）。

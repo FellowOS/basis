@@ -9,7 +9,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { stageSidecarPythonRuntime } from './relocate-packaged-venv.mjs';
+import {
+  assertBundledPythonIsPortable,
+  stageSidecarPythonRuntime,
+} from './relocate-packaged-venv.mjs';
 import { venvBasisBin } from './python-layout.mjs';
 import { apiStageDir, desktopRoot, repoRoot } from './paths.mjs';
 
@@ -35,10 +38,15 @@ export function bundleSidecarVenv({ repoRoot: root, packDir }) {
   console.log('[stage-api] Bundling Python sidecar (uv venv + sync)…');
   rmrf(sidecarRoot);
   fs.mkdirSync(sidecarRoot, { recursive: true });
-  execFileSync('uv', ['venv', venvDir], { cwd: root, stdio: 'inherit' });
+  const uvEnv = {
+    ...process.env,
+    UV_PYTHON_PREFERENCE: 'only-managed',
+    UV_PROJECT_ENVIRONMENT: venvDir,
+  };
+  execFileSync('uv', ['venv', venvDir, '--python', '3.12'], { cwd: root, env: uvEnv, stdio: 'inherit' });
   execFileSync('uv', ['sync', '--extra', 'dev', '--extra', 'explorer', '--directory', root], {
     cwd: root,
-    env: { ...process.env, UV_PROJECT_ENVIRONMENT: venvDir },
+    env: uvEnv,
     stdio: 'inherit',
   });
   const basisBin = venvBasisBin(venvDir);
@@ -46,6 +54,7 @@ export function bundleSidecarVenv({ repoRoot: root, packDir }) {
     throw new Error(`[stage-api] Missing ${basisBin} after uv sync`);
   }
   stageSidecarPythonRuntime(venvDir, sidecarRoot);
+  assertBundledPythonIsPortable(sidecarRoot);
 
   const smoke = spawnSync(basisBin, ['--help'], { encoding: 'utf8' });
   if (smoke.status !== 0) {

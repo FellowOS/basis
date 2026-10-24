@@ -1,4 +1,12 @@
+import { createRequire } from 'node:module';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
 import { contextBridge, ipcRenderer } from 'electron';
+
+const require = createRequire(import.meta.url);
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const { version: appVersion } = require(path.join(__dirname, '..', 'package.json'));
 
 function resolveApiBase() {
   const fromArg = process.argv
@@ -46,4 +54,6 @@ contextBridge.exposeInMainWorld('__BASIS_DESKTOP__', {
       ipcRenderer.removeListener('desktop:window-maximized', listener);
     };
   },
+  appVersion,
+  openExternal: (url) => ipcRenderer.invoke('desktop:open-external', url),
 });

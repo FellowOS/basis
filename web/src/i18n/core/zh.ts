@@ -170,6 +170,11 @@ export default {
       platform_admin: "平台管理",
       management: "管理",
       back_to_workspace_console: "返回工作区控制台"
+    },
+    desktop_update: {
+      message: "当前版本 {current}，已有新版本 {latest}。",
+      open_release: "查看更新",
+      dismiss: "关闭提示"
     }
   },
   workspace_nav: {

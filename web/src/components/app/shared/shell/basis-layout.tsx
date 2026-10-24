@@ -8,6 +8,7 @@ import {
   BasisDesktopAppTitlebar,
   DESKTOP_TITLEBAR_HEIGHT,
 } from '@/components/app/shared/shell/basis-desktop-titlebar.js';
+import { BasisDesktopUpdateBanner } from '@/components/app/shared/shell/basis-desktop-update-banner.js';
 import { WorkspaceCatalogProvider } from '@/lib/workspace/context.js';
 import { WorkspaceCapabilitiesProvider } from '@/lib/workspace/capabilities.js';
 import { appIsDesktopProduct } from '@/lib/runtime/app-runtime.js';
@@ -50,6 +51,7 @@ export function BasisLayout({ onLogout }: { onLogout: () => void }) {
       >
         <SidebarProvider className="flex min-h-0 flex-1 flex-col overflow-hidden bg-background">
           <BasisDesktopAppTitlebar />
+          {isDesktop ? <BasisDesktopUpdateBanner /> : null}
           <div className="relative flex min-h-0 min-w-0 flex-1 overflow-hidden bg-background">
             <BasisSidebar onLogout={onLogout} />
             <SidebarInset

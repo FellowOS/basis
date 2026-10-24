@@ -170,6 +170,11 @@ export default {
       platform_admin: "Platform",
       management: "Administration",
       back_to_workspace_console: "Workspace console"
+    },
+    desktop_update: {
+      message: "Basis {current} is installed. Version {latest} is available.",
+      open_release: "View release",
+      dismiss: "Dismiss update notice"
     }
   },
   workspace_nav: {

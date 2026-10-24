@@ -29,6 +29,9 @@ export interface BasisDesktopBridge {
   windowClose?: () => void;
   isWindowMaximized?: () => Promise<boolean>;
   onWindowMaximizedChange?: (handler: (maximized: boolean) => void) => () => void;
+  /** Semver from desktop/package.json (packaged app). */
+  appVersion?: string;
+  openExternal?: (url: string) => Promise<void>;
 }
 
 declare global {

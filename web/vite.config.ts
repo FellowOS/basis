@@ -1,3 +1,4 @@
+import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import tailwindcss from '@tailwindcss/vite';
@@ -6,6 +7,15 @@ import { fumadocsMdx } from 'fumadocs-mdx/vite';
 import { defineConfig } from 'vite';
 
 const root = path.dirname(fileURLToPath(import.meta.url));
+
+function readDesktopPackageVersion(): string {
+  try {
+    const raw = fs.readFileSync(path.resolve(root, '../desktop/package.json'), 'utf8');
+    return (JSON.parse(raw) as { version?: string }).version ?? '0.0.0';
+  } catch {
+    return '0.0.0';
+  }
+}
 
 /** Same as `web/server/config.ts` — API origin for dev-server `/api` proxy (not sent to the browser). */
 function desktopApiProxyTarget(): string {
@@ -23,6 +33,10 @@ export default defineConfig(({ mode }) => ({
   // Packaged desktop serves SPA over http://127.0.0.1 — use root-relative assets so
   // deep routes (/workspaces/...) still load /assets/* (relative `./` breaks after navigation).
   base: '/',
+  define:
+    mode === 'desktop'
+      ? { 'import.meta.env.VITE_BASIS_APP_VERSION': JSON.stringify(readDesktopPackageVersion()) }
+      : undefined,
   server:
     mode === 'desktop'
       ? {

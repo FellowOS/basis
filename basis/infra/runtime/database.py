@@ -13,7 +13,7 @@ from sqlalchemy.engine import Engine
 
 from basis.domain.errors import AdminError
 from basis.infra.tooling.db.alembic_upgrade import upgrade_postgres_engine, upgrade_sqlite_file
-from basis.infra.tooling.db.sqlite_migrations import MigrationError
+from basis.infra.tooling.db.sqlite_migrations import MigrationError, assert_desktop_sqlite_compatible
 from basis.infra.runtime.sqlite_connection import connect_sqlite
 
 _pool: dict[str, Database] = {}
@@ -198,6 +198,11 @@ class SqliteDatabase(Database):
         except Exception as exc:
             raise AdminError(500, "migration_failed", str(exc)) from exc
         self._conn = connect_sqlite(self.path)
+        try:
+            assert_desktop_sqlite_compatible(self._conn)
+        except MigrationError as exc:
+            self._conn.close()
+            raise AdminError(500, "migration_failed", exc.message) from exc
         self._refs = 0
 
     @property

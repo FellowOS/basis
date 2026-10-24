@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import re
 import sqlite3
 from pathlib import Path
@@ -45,6 +46,42 @@ def sqlite_schema_is_initialized(conn: sqlite3.Connection) -> bool:
         (_LEDGER_SENTINEL_TABLE,),
     ).fetchone()
     return row is not None
+
+
+def assert_desktop_sqlite_compatible(conn: sqlite3.Connection) -> None:
+    """Fail fast when ``~/.basis/basis.db`` predates the workspace storage model."""
+    profile = os.environ.get("BASIS_DEPLOYMENT_PROFILE", "").strip().lower()
+    if profile != "desktop":
+        return
+    if not sqlite_schema_is_initialized(conn):
+        return
+    has_workspaces = conn.execute(
+        """
+        SELECT 1 FROM sqlite_master
+        WHERE type = 'table' AND name = 'workspaces'
+        LIMIT 1
+        """,
+    ).fetchone()
+    if has_workspaces:
+        return
+    legacy_kb = conn.execute(
+        """
+        SELECT 1 FROM sqlite_master
+        WHERE type = 'table' AND name = 'knowledge_bases'
+        LIMIT 1
+        """,
+    ).fetchone()
+    if legacy_kb:
+        raise MigrationError(
+            "Desktop cannot open this database: it uses the old knowledge_bases schema. "
+            "Quit Basis, back up ~/.basis, remove basis.db (or move the folder aside), "
+            "then restart to create a fresh desktop database."
+        )
+    raise MigrationError(
+        "Desktop cannot open this database: the workspaces table is missing "
+        "(schema is incomplete or from an incompatible build). "
+        "Back up ~/.basis, remove basis.db, and restart."
+    )
 
 
 def ensure_sqlite_schema(conn: sqlite3.Connection) -> None:
