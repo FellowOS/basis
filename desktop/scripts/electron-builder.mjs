@@ -37,7 +37,8 @@ if (unsigned && wantMac) {
   builderArgs.push('-c.mac.identity=null', '-c.mac.sign.identity=null');
 }
 if (unsigned && wantWin) {
-  builderArgs.push('-c.win.signExecutable=false', '-c.win.sign=null', '-c.win.azureSignOptions=null');
+  // signExecutable=false + CSC_IDENTITY_AUTO_DISCOVERY=false; avoid -c.win.sign=null (invalid schema in eb 26)
+  builderArgs.push('-c.win.signExecutable=false');
 }
 
 const env = unsigned
