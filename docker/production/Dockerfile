@@ -9,6 +9,13 @@ COPY web ./web/
 WORKDIR /src/web
 RUN npm ci && npm run build
 
+FROM node:22-bookworm-slim AS web_runtime
+
+WORKDIR /app/web
+COPY web/package.json web/package-lock.json ./
+RUN npm ci --omit=dev
+COPY web/server ./server
+
 FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim
 
 RUN apt-get update \
@@ -24,12 +31,8 @@ COPY pyproject.toml uv.lock README.md ./
 COPY basis ./basis
 RUN uv sync --frozen --no-dev
 
-WORKDIR /app/web
-COPY web/package.json web/package-lock.json ./
-RUN npm ci --omit=dev
-
-COPY web/server ./server
-COPY --from=web_assets /src/dist/web ./dist/web
+COPY --from=web_runtime /app/web /app/web
+COPY --from=web_assets /src/dist/web /app/web/dist/web
 
 COPY docker/production/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
