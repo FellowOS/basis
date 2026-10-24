@@ -33,6 +33,60 @@ function copyDir(src, dest) {
 }
 
 /**
+ * Replace symlink entries with real files/dirs (7-Zip on Windows chokes on python3.exe links).
+ */
+export function materializeCopiedTree(root) {
+  if (!fs.existsSync(root)) return;
+  for (const name of fs.readdirSync(root)) {
+    const full = path.join(root, name);
+    const lst = fs.lstatSync(full);
+    if (!lst.isSymbolicLink()) {
+      if (lst.isDirectory()) materializeCopiedTree(full);
+      continue;
+    }
+    const target = fs.readlinkSync(full);
+    const resolved = path.resolve(path.dirname(full), target);
+    fs.rmSync(full, { recursive: true, force: true });
+    if (!fs.existsSync(resolved)) continue;
+    const rstat = fs.statSync(resolved);
+    if (rstat.isDirectory()) {
+      fs.cpSync(resolved, full, { recursive: true, dereference: true });
+      materializeCopiedTree(full);
+    } else {
+      fs.copyFileSync(resolved, full);
+    }
+  }
+}
+
+/** @param {string} dir Directory that may contain python.exe / python3.exe */
+export function normalizeWindowsPython3Launcher(dir) {
+  const py = path.join(dir, 'python.exe');
+  const py3 = path.join(dir, 'python3.exe');
+  if (!fs.existsSync(py3)) return;
+  const lst = fs.lstatSync(py3);
+  if (lst.isFile() && !lst.isSymbolicLink()) return;
+  fs.rmSync(py3, { recursive: true, force: true });
+  if (fs.existsSync(py)) {
+    fs.copyFileSync(py, py3);
+  }
+}
+
+/** Materialize uv CPython + venv Scripts so electron-builder 7z can pack the sidecar. */
+export function finalizeWindowsBundledSidecar(sidecarRoot) {
+  if (process.platform !== 'win32') return;
+  const cpython = path.join(sidecarRoot, 'runtime', 'cpython');
+  if (fs.existsSync(cpython)) {
+    materializeCopiedTree(cpython);
+    normalizeWindowsPython3Launcher(cpython);
+  }
+  const scripts = path.join(sidecarRoot, 'venv', 'Scripts');
+  if (fs.existsSync(scripts)) {
+    materializeCopiedTree(scripts);
+    normalizeWindowsPython3Launcher(scripts);
+  }
+}
+
+/**
  * Copy uv-managed CPython tree next to the venv (once, at stage time).
  */
 export function stageSidecarPythonRuntime(venvDir, sidecarRoot) {
@@ -42,6 +96,7 @@ export function stageSidecarPythonRuntime(venvDir, sidecarRoot) {
   if (fs.existsSync(destRoot)) return destRoot;
   console.log('[stage-api] Copying CPython runtime into sidecar…');
   copyDir(cpythonRoot, destRoot);
+  finalizeWindowsBundledSidecar(sidecarRoot);
   return destRoot;
 }
 
@@ -63,6 +118,7 @@ export function relocatePackagedVenv(venvDir) {
   writePyvenvHome(venvDir, runtimeHome);
 
   if (process.platform === 'win32') {
+    finalizeWindowsBundledSidecar(sidecarRoot);
     return;
   }
 
