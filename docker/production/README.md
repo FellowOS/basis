@@ -31,20 +31,25 @@ docker build -f docker/production/Dockerfile -t basis:local .
 
 与 **桌面版** 分开：容器用 **`v*`** tag，桌面用 **`desktop-v*`**（见 [`desktop/README.md`](../../desktop/README.md)）。
 
-推送 **`v*`** 时 [`.github/workflows/release-docker.yml`](../../.github/workflows/release-docker.yml) 会：
+推送 **`v*`** 时 [`.github/workflows/release-docker.yml`](../../.github/workflows/release-docker.yml) 流程：
 
-1. 构建并推送 **`ghcr.io/<owner>/basis`**（单镜像，含 API + Hono web）
-2. 镜像标签：`v0.1.0`、`0.1.0`、`0.1`、`latest`（semver 自 tag 解析）
-3. **`image` job** 在 **`release` environment** 审批通过后推送 GHCR；随后自动创建 **Draft** GitHub Release：**Basis v0.1.0 (Docker)**（审批人：Settings → Environments → `release`）
-
-Release 页为草稿；人工在 **Releases** 核对说明与镜像 tag 后点 **Publish release** 才对外显示为 Latest。
+1. **`image`**（无需审批）：构建并推送到 GHCR，标签为 **`v0.1.0`**、`0.1.0`、`0.1`（**不含 `latest`**）
+2. **本地验证**：`docker pull ghcr.io/<owner>/basis:v0.1.0`，用 compose 或自有环境跑通
+3. **`github-release`**（**`release` environment** 审批，Settings → Environments）：把该 tag **提升为 `latest`**，并创建 **Draft** Release **Basis v0.1.0 (Docker)**
+4. 在 GitHub **Releases** 核对后点 **Publish release** 对外公布
 
 ```bash
 git tag v0.1.0
 git push origin v0.1.0
 ```
 
-拉取运行（需自备 Postgres 与 `BASIS_DATABASE_URL`）：
+验证用显式版本 tag（审批前 **`latest` 不会指向本次构建**）：
+
+```bash
+docker pull ghcr.io/coldbuffer/basis:v0.1.0
+```
+
+正式发布并跟 `latest` 后：
 
 ```bash
 docker pull ghcr.io/coldbuffer/basis:latest
