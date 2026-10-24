@@ -6,8 +6,11 @@
  *   --dir-only             — mac: unpacked .app only (fast smoke; not for release)
  */
 import { execFileSync } from 'node:child_process';
+import path from 'node:path';
 
 import { desktopRoot } from './paths.mjs';
+
+const builderCli = path.join(desktopRoot, 'node_modules', 'electron-builder', 'cli.js');
 
 const argv = process.argv.slice(2);
 const wantDirOnly = argv.includes('--dir-only');
@@ -49,7 +52,7 @@ if (unsigned && wantWin) {
 }
 
 console.log('[electron-builder]', builderArgs.join(' '));
-execFileSync('npx', ['electron-builder', ...builderArgs], {
+execFileSync(process.execPath, [builderCli, ...builderArgs], {
   cwd: desktopRoot,
   stdio: 'inherit',
   env,
