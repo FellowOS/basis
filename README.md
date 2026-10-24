@@ -61,7 +61,7 @@ Basis is an open-source stack built on the [Semantica](https://github.com/semant
 flowchart TB
   subgraph external["External sources"]
     docs["Documents & files"]
-    systems["Databases & SaaS"]
+    systems["Databases & SaaS · app APIs"]
   end
 
   subgraph clients["Clients"]
@@ -83,7 +83,8 @@ flowchart TB
   subgraph workspace["Workspace"]
     subgraph integration["Application integration"]
       sources["Sources · ingest & processing jobs"]
-      conn["Connectors · BOCP sync & governed writeback"]
+      connSync["Connectors · inbound sync & mappings"]
+      connGw["Connectors · app service gateway"]
     end
 
     subgraph ontologySvc["Ontology service"]
@@ -99,22 +100,28 @@ flowchart TB
   end
 
   docs --> sources
-  systems --> conn
+  systems --> connSync
   sources --> ledger
-  conn --> ledger
+  connSync --> ledger
+  connSync -.->|"feeds semantics"| maps
   maps -.->|"aligns meaning"| ledger
   govern -.->|"validates"| ledger
   ledger --> graphProj
   ledger --> searchProj
 
+  agents --> mcp
+  mcp --> ops
+  ops --> connGw
+  connGw -->|"tools & governed calls"| systems
+  connGw --> review
+  review -->|"approved writeback"| ledger
+
   studio --> rest
   agents --> rest
-  agents --> mcp
   rest --> ops
-  mcp --> ops
   ops --> plat
   ops --> sources
-  ops --> conn
+  ops --> connSync
   ops --> hub
   ops --> govern
   ops --> maps
@@ -122,7 +129,6 @@ flowchart TB
   ops --> graphProj
   ops --> searchProj
   ops --> review
-  review -->|"approved changes"| ledger
 
   classDef canonical fill:#f4f4f5,stroke:#18181b,stroke-width:2px
   classDef projection fill:#fafafa,stroke:#71717a,stroke-dasharray: 5 3

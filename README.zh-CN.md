@@ -61,7 +61,7 @@ Basis 是基于 [Semantica](https://github.com/semantica-agi/semantica) Python S
 flowchart TB
   subgraph external["外部数据源"]
     docs["文档与文件"]
-    systems["数据库与 SaaS"]
+    systems["数据库、SaaS 与应用 API"]
   end
 
   subgraph clients["客户端"]
@@ -83,7 +83,8 @@ flowchart TB
   subgraph workspace["工作区"]
     subgraph integration["应用集成"]
       sources["来源 · 入库与处理任务"]
-      conn["连接器 · BOCP 同步与受控写回"]
+      connSync["连接器 · 入向同步与映射"]
+      connGw["连接器 · 应用服务网关"]
     end
 
     subgraph ontologySvc["本体服务"]
@@ -99,22 +100,28 @@ flowchart TB
   end
 
   docs --> sources
-  systems --> conn
+  systems --> connSync
   sources --> ledger
-  conn --> ledger
+  connSync --> ledger
+  connSync -.->|"汇入语义"| maps
   maps -.->|"对齐语义"| ledger
   govern -.->|"校验"| ledger
   ledger --> graphProj
   ledger --> searchProj
 
+  agents --> mcp
+  mcp --> ops
+  ops --> connGw
+  connGw -->|"工具调用与受治理访问"| systems
+  connGw --> review
+  review -->|"核准写回"| ledger
+
   studio --> rest
   agents --> rest
-  agents --> mcp
   rest --> ops
-  mcp --> ops
   ops --> plat
   ops --> sources
-  ops --> conn
+  ops --> connSync
   ops --> hub
   ops --> govern
   ops --> maps
@@ -122,7 +129,6 @@ flowchart TB
   ops --> graphProj
   ops --> searchProj
   ops --> review
-  review -->|"核准后的变更"| ledger
 
   classDef canonical fill:#f4f4f5,stroke:#18181b,stroke-width:2px
   classDef projection fill:#fafafa,stroke:#71717a,stroke-dasharray: 5 3
