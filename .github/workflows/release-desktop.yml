@@ -94,6 +94,7 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/desktop-v')
     needs: [build-mac, build-win]
     runs-on: ubuntu-latest
+    environment: release
     steps:
       - uses: actions/checkout@v4
 
@@ -113,6 +114,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           name: Basis ${{ github.ref_name }} (Desktop)
+          draft: true
           generate_release_notes: true
           files: |
             dist/desktop/macos/*

@@ -35,7 +35,9 @@ docker build -f docker/production/Dockerfile -t basis:local .
 
 1. 构建并推送 **`ghcr.io/<owner>/basis`**（单镜像，含 API + Hono web）
 2. 镜像标签：`v0.1.0`、`0.1.0`、`0.1`、`latest`（semver 自 tag 解析）
-3. 创建 GitHub Release：**Basis v0.1.0 (Docker)**
+3. 创建 **Draft** GitHub Release：**Basis v0.1.0 (Docker)**（`github-release` job 使用 `environment: release`，可在仓库 Settings → Environments 里配置审批人）
+
+推送 tag 后镜像会先进入 GHCR；Release 页为草稿，人工在 GitHub **Releases** 里核对说明与镜像 tag 后点 **Publish release** 才对外显示为 Latest。
 
 ```bash
 git tag v0.1.0

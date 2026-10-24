@@ -72,7 +72,7 @@ git tag desktop-v0.1.0
 git push origin desktop-v0.1.0
 ```
 
-在 **macOS** / **Windows** runner 上各打一份 **未签名** 安装包（`.dmg`/`.zip`、NSIS/portable），上传到 GitHub Release **Basis desktop-v0.1.0 (Desktop)**。
+在 **macOS** / **Windows** runner 上各打一份 **未签名** 安装包（`.dmg`/`.zip`、NSIS/portable）。构建完成后 **`github-release` job** 会等待 **`release` environment** 审批（可选，见仓库 Settings → Environments），再上传为 **Draft** Release **Basis desktop-v0.1.0 (Desktop)**；人工验证安装包后在 GitHub 点 **Publish release**。
 
 **Not yet:** 签名 / notarize、Authenticode、Linux AppImage/deb。
 
