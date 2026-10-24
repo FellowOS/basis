@@ -24,8 +24,10 @@
     "clean": "rm -rf .api-stage release"
   },
   "devDependencies": {
+    "@electron/get": "^4.0.2",
     "@napi-rs/canvas": "^0.1.80",
     "electron": "44.9.0",
+    "extract-zip": "^2.0.1",
     "electron-builder": "^26.0.12",
     "png-to-ico": "^2.1.8",
     "react": "^18.3.1",
