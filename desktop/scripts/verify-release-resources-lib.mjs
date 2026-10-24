@@ -1,6 +1,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
+import { bundledRuntimeMarker, venvBasisBin } from './python-layout.mjs';
+
 /**
  * @param {{ webDistDir: string; profilesDir: string; apiStageDir: string }} roots
  * @returns {string[]} error messages (empty = OK)
@@ -32,15 +34,9 @@ export function collectReleaseResourceErrors({ webDistDir, profilesDir, apiStage
   }
 
   if (manifest.kind === 'bundled-venv') {
-    const basisBin =
-      process.platform === 'win32'
-        ? path.join(apiStageDir, 'sidecar', 'venv', 'Scripts', 'basis.exe')
-        : path.join(apiStageDir, 'sidecar', 'venv', 'bin', 'basis');
-    missing('bundled basis CLI', basisBin);
-    missing(
-      'bundled CPython runtime',
-      path.join(apiStageDir, 'sidecar', 'runtime', 'cpython', 'bin'),
-    );
+    const sidecarRoot = path.join(apiStageDir, 'sidecar');
+    missing('bundled basis CLI', venvBasisBin(path.join(sidecarRoot, 'venv')));
+    missing('bundled CPython runtime', bundledRuntimeMarker(sidecarRoot));
   } else if (manifest.kind === 'uv-monorepo') {
     missing('monorepo-root.json', path.join(apiStageDir, 'monorepo-root.json'));
   } else {

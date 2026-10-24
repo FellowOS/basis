@@ -33,18 +33,27 @@ describe('collectReleaseResourceErrors', () => {
     fs.rmSync(root, { recursive: true, force: true });
   });
 
-  it('accepts bundled-venv manifest on unix', () => {
-    if (process.platform === 'win32') return;
+  it('accepts bundled-venv manifest', () => {
     const { root, webDistDir, profilesDir, apiStageDir } = mkFixture();
     fs.writeFileSync(
       path.join(apiStageDir, 'api-manifest.json'),
       JSON.stringify({ kind: 'bundled-venv' }),
     );
-    const basisBin = path.join(apiStageDir, 'sidecar', 'venv', 'bin', 'basis');
+    const isWin = process.platform === 'win32';
+    const basisBin = isWin
+      ? path.join(apiStageDir, 'sidecar', 'venv', 'Scripts', 'basis.exe')
+      : path.join(apiStageDir, 'sidecar', 'venv', 'bin', 'basis');
     fs.mkdirSync(path.dirname(basisBin), { recursive: true });
     fs.writeFileSync(basisBin, '');
-    const runtimeBin = path.join(apiStageDir, 'sidecar', 'runtime', 'cpython', 'bin');
-    fs.mkdirSync(runtimeBin, { recursive: true });
+    const runtimeMarker = isWin
+      ? path.join(apiStageDir, 'sidecar', 'runtime', 'cpython', 'python.exe')
+      : path.join(apiStageDir, 'sidecar', 'runtime', 'cpython', 'bin');
+    if (isWin) {
+      fs.mkdirSync(path.dirname(runtimeMarker), { recursive: true });
+      fs.writeFileSync(runtimeMarker, '');
+    } else {
+      fs.mkdirSync(runtimeMarker, { recursive: true });
+    }
 
     const errors = collectReleaseResourceErrors({ webDistDir, profilesDir, apiStageDir });
     assert.deepEqual(errors, []);

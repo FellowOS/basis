@@ -1,6 +1,14 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
+import {
+  bundledPyvenvHome,
+  bundledRuntimeMarker,
+  cpythonTreeFromPyvenvHome,
+  venvPythonBin,
+  venvScriptDir,
+} from './python-layout.mjs';
+
 function readPyvenvHomeBin(venvDir) {
   const cfgPath = path.join(venvDir, 'pyvenv.cfg');
   const cfg = fs.readFileSync(cfgPath, 'utf8');
@@ -28,8 +36,8 @@ function copyDir(src, dest) {
  * Copy uv-managed CPython tree next to the venv (once, at stage time).
  */
 export function stageSidecarPythonRuntime(venvDir, sidecarRoot) {
-  const homeBin = readPyvenvHomeBin(venvDir);
-  const cpythonRoot = path.dirname(homeBin);
+  const homeFromCfg = readPyvenvHomeBin(venvDir);
+  const cpythonRoot = cpythonTreeFromPyvenvHome(homeFromCfg);
   const destRoot = path.join(sidecarRoot, 'runtime', 'cpython');
   if (fs.existsSync(destRoot)) return destRoot;
   console.log('[stage-api] Copying CPython runtime into sidecar…');
@@ -42,18 +50,23 @@ export function stageSidecarPythonRuntime(venvDir, sidecarRoot) {
  */
 export function relocatePackagedVenv(venvDir) {
   const sidecarRoot = path.dirname(venvDir);
-  const runtimeBin = path.join(sidecarRoot, 'runtime', 'cpython', 'bin');
-  if (!fs.existsSync(runtimeBin)) {
-    throw new Error(`[relocate-venv] missing ${runtimeBin} — rebuild with --bundle-venv`);
+  const runtimeHome = bundledPyvenvHome(sidecarRoot);
+  const marker = bundledRuntimeMarker(sidecarRoot);
+  if (!fs.existsSync(marker)) {
+    throw new Error(`[relocate-venv] missing ${marker} — rebuild with --bundle-venv`);
   }
-  const venvPython = path.join(venvDir, 'bin', 'python3');
+  const venvPython = venvPythonBin(venvDir);
   if (!fs.existsSync(venvPython)) {
     throw new Error(`[relocate-venv] missing ${venvPython}`);
   }
 
-  writePyvenvHome(venvDir, runtimeBin);
+  writePyvenvHome(venvDir, runtimeHome);
 
-  const binDir = path.join(venvDir, 'bin');
+  if (process.platform === 'win32') {
+    return;
+  }
+
+  const binDir = venvScriptDir(venvDir);
   for (const name of fs.readdirSync(binDir)) {
     const file = path.join(binDir, name);
     if (!fs.statSync(file).isFile()) continue;

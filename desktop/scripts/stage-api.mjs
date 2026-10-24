@@ -10,6 +10,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { stageSidecarPythonRuntime } from './relocate-packaged-venv.mjs';
+import { venvBasisBin } from './python-layout.mjs';
 import { apiStageDir, desktopRoot, repoRoot } from './paths.mjs';
 
 const filePath = fileURLToPath(import.meta.url);
@@ -23,12 +24,6 @@ function commandVersion(cmd, args) {
 
 function rmrf(dir) {
   fs.rmSync(dir, { recursive: true, force: true });
-}
-
-function basisBinInVenv(venvDir) {
-  return process.platform === 'win32'
-    ? path.join(venvDir, 'Scripts', 'basis.exe')
-    : path.join(venvDir, 'bin', 'basis');
 }
 
 /**
@@ -46,7 +41,7 @@ export function bundleSidecarVenv({ repoRoot: root, packDir }) {
     env: { ...process.env, UV_PROJECT_ENVIRONMENT: venvDir },
     stdio: 'inherit',
   });
-  const basisBin = basisBinInVenv(venvDir);
+  const basisBin = venvBasisBin(venvDir);
   if (!fs.existsSync(basisBin)) {
     throw new Error(`[stage-api] Missing ${basisBin} after uv sync`);
   }
