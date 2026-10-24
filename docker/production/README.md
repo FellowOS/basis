@@ -37,6 +37,7 @@ docker build -f docker/production/Dockerfile -t basis:local .
 2. CI 创建或更新 **Draft** Release（**Basis v0.1.0 (Docker)**）——页面上仍是草稿，不会对外 Latest
 3. 本地验证：`docker pull ghcr.io/<owner>/basis:v0.1.0`，compose 跑通
 4. 满意后在 GitHub **Releases** 对该草稿点 **Publish release**（由你决定何时对外公布）
+5. **Publish** 后会触发 [`.github/workflows/release-docker-promote-latest.yml`](../../.github/workflows/release-docker-promote-latest.yml)，把 GHCR **`latest`** 指到该版本 tag（仅容器 `v*`，与 `desktop-v*` 无关）
 
 重打同一 tag 时 workflow 会用 `gh release edit --draft` 把已发布的 Release 改回草稿。
 
@@ -49,7 +50,7 @@ git push origin v0.1.0
 docker pull ghcr.io/coldbuffer/basis:v0.1.0
 ```
 
-若希望 **`latest`** 跟本次版本一致，在验证并 **Publish release** 后自行提升（CI 不做）：
+若未走 GitHub Publish（或需手动修复 `latest`）：
 
 ```bash
 docker buildx imagetools create \

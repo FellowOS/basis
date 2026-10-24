@@ -1,0 +1,33 @@
+name: Promote container image to latest
+
+# When you Publish a container Draft Release (tag v*), point GHCR :latest at that tag.
+on:
+  release:
+    types: [published]
+
+permissions:
+  packages: write
+
+jobs:
+  promote-latest:
+    if: >-
+      startsWith(github.event.release.tag_name, 'v') &&
+      !startsWith(github.event.release.tag_name, 'desktop-')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Promote published release tag to latest
+        run: |
+          TAG="${{ github.event.release.tag_name }}"
+          docker buildx imagetools create \
+            -t "ghcr.io/${{ github.repository }}:latest" \
+            "ghcr.io/${{ github.repository }}:${TAG}"
