@@ -57,6 +57,10 @@ Basis 是基于 [Semantica](https://github.com/semantica-agi/semantica) Python S
 - **智能体接口：** 工作区级 **OpenAPI v1** 与 **MCP**（`search_chunks`、`find_entities`、连接器工具、审核操作等）。
 - **平台：** 用户、组织 SSO（可选 OIDC/SAML）、工作区角色、API 令牌与审计。
 
+<p align="center">
+  <img src="assets/architecture.svg" alt="Basis 架构：证据账本、可重建的图与搜索投影、审核写入、OpenAPI 与 MCP" width="900" />
+</p>
+
 ## 为什么选择 Basis
 
 | | 典型「RAG + 裸工具」 | **Basis** |

@@ -57,6 +57,10 @@ Basis is an open-source stack built on the [Semantica](https://github.com/semant
 - **Agent APIs:** Workspace-scoped **OpenAPI v1** and **MCP** (`search_chunks`, `find_entities`, connector tools, review ops).
 - **Platform:** Users, org SSO (OIDC/SAML optional), workspace roles, API tokens, and audit.
 
+<p align="center">
+  <img src="assets/architecture.svg" alt="Basis architecture: evidence ledger, rebuildable graph and search projections, review-gated writes, OpenAPI and MCP" width="900" />
+</p>
+
 ## Why Basis
 
 | | Typical “RAG + raw tools” | **Basis** |
