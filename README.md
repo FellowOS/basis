@@ -74,25 +74,36 @@ flowchart TB
     mcp["MCP · JSON-RPC over HTTP"]
   end
 
-  ops["Application operations · same catalog for HTTP and MCP"]
+  ops["Application operations · shared catalog"]
 
   subgraph platform["Platform"]
     plat["Auth · orgs · SSO · API tokens · audit"]
   end
 
   subgraph workspace["Workspace"]
-    ingest["Ingest · sources & connectors BOCP"]
-    sem["Business semantics · ontology · mappings · SHACL · rules"]
+    subgraph integration["Application integration"]
+      sources["Sources · ingest & processing jobs"]
+      conn["Connectors · BOCP sync & governed writeback"]
+    end
+
+    subgraph ontologySvc["Ontology service"]
+      hub["Ontology Hub · registry & workflows"]
+      govern["SHACL · SPARQL · vocabulary"]
+      maps["Mappings · types · reasoning rules"]
+    end
+
     ledger[("Evidence ledger · canonical facts & provenance")]
     review["Review queue · governed writes"]
     graphProj["Graph projection · rebuildable"]
     searchProj["Search projection · lexical + embeddings"]
   end
 
-  docs --> ingest
-  systems --> ingest
-  ingest --> ledger
-  sem -.->|"models & validates"| ledger
+  docs --> sources
+  systems --> conn
+  sources --> ledger
+  conn --> ledger
+  maps -.->|"aligns meaning"| ledger
+  govern -.->|"validates"| ledger
   ledger --> graphProj
   ledger --> searchProj
 
@@ -102,8 +113,11 @@ flowchart TB
   rest --> ops
   mcp --> ops
   ops --> plat
-  ops --> ingest
-  ops --> sem
+  ops --> sources
+  ops --> conn
+  ops --> hub
+  ops --> govern
+  ops --> maps
   ops --> ledger
   ops --> graphProj
   ops --> searchProj

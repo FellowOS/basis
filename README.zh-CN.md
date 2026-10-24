@@ -59,14 +59,14 @@ Basis 是基于 [Semantica](https://github.com/semantica-agi/semantica) Python S
 
 ```mermaid
 flowchart TB
-  subgraph external["External sources"]
-    docs["Documents & files"]
-    systems["Databases & SaaS"]
+  subgraph external["外部数据源"]
+    docs["文档与文件"]
+    systems["数据库与 SaaS"]
   end
 
-  subgraph clients["Clients"]
-    studio["Web studio"]
-    agents["Agents & automation"]
+  subgraph clients["客户端"]
+    studio["Web 工作台"]
+    agents["智能体与自动化"]
   end
 
   subgraph apiLayer["basis/interface/http · FastAPI"]
@@ -74,25 +74,36 @@ flowchart TB
     mcp["MCP · JSON-RPC over HTTP"]
   end
 
-  ops["Application operations · same catalog for HTTP and MCP"]
+  ops["应用操作层 · 共用 catalog"]
 
-  subgraph platform["Platform"]
-    plat["Auth · orgs · SSO · API tokens · audit"]
+  subgraph platform["平台"]
+    plat["认证 · 组织 · SSO · API 令牌 · 审计"]
   end
 
-  subgraph workspace["Workspace"]
-    ingest["Ingest · sources & connectors BOCP"]
-    sem["Business semantics · ontology · mappings · SHACL · rules"]
-    ledger[("Evidence ledger · canonical facts & provenance")]
-    review["Review queue · governed writes"]
-    graphProj["Graph projection · rebuildable"]
-    searchProj["Search projection · lexical + embeddings"]
+  subgraph workspace["工作区"]
+    subgraph integration["应用集成"]
+      sources["来源 · 入库与处理任务"]
+      conn["连接器 · BOCP 同步与受控写回"]
+    end
+
+    subgraph ontologySvc["本体服务"]
+      hub["Ontology Hub · 注册与工作流"]
+      govern["SHACL · SPARQL · 词表"]
+      maps["映射 · 类型 · 推理规则"]
+    end
+
+    ledger[("证据账本 · 规范事实与溯源")]
+    review["审核队列 · 受治理写入"]
+    graphProj["图投影 · 可重建"]
+    searchProj["搜索投影 · 词法 + 向量"]
   end
 
-  docs --> ingest
-  systems --> ingest
-  ingest --> ledger
-  sem -.->|"models & validates"| ledger
+  docs --> sources
+  systems --> conn
+  sources --> ledger
+  conn --> ledger
+  maps -.->|"对齐语义"| ledger
+  govern -.->|"校验"| ledger
   ledger --> graphProj
   ledger --> searchProj
 
@@ -102,13 +113,16 @@ flowchart TB
   rest --> ops
   mcp --> ops
   ops --> plat
-  ops --> ingest
-  ops --> sem
+  ops --> sources
+  ops --> conn
+  ops --> hub
+  ops --> govern
+  ops --> maps
   ops --> ledger
   ops --> graphProj
   ops --> searchProj
   ops --> review
-  review -->|"approved changes"| ledger
+  review -->|"核准后的变更"| ledger
 
   classDef canonical fill:#f4f4f5,stroke:#18181b,stroke-width:2px
   classDef projection fill:#fafafa,stroke:#71717a,stroke-dasharray: 5 3
