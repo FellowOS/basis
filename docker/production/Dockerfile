@@ -29,7 +29,7 @@ COPY web/package.json web/package-lock.json ./
 RUN npm ci --omit=dev
 
 COPY web/server ./server
-COPY --from=web_assets /src/web/dist/web ./dist/web
+COPY --from=web_assets /src/dist/web ./dist/web
 
 COPY docker/production/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
