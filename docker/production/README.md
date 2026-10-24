@@ -36,7 +36,9 @@ docker build -f docker/production/Dockerfile -t basis:local .
 1. **`image`**（无需审批）：构建并推送到 GHCR，标签为 **`v0.1.0`**、`0.1.0`、`0.1`（**不含 `latest`**）
 2. **本地验证**：`docker pull ghcr.io/<owner>/basis:v0.1.0`，用 compose 或自有环境跑通
 3. **`github-release`**（**`release` environment** 审批，Settings → Environments）：把该 tag **提升为 `latest`**，并创建 **Draft** Release **Basis v0.1.0 (Docker)**
-4. 在 GitHub **Releases** 核对后点 **Publish release** 对外公布
+4. 在 GitHub **Releases** 核对后点 **Publish release** 对外公布（会标记为 Latest）
+
+若同一 git tag 曾发过**正式** Release，重打 tag 后 CI 会 **改回 Draft**（见 workflow 里 `gh release edit --draft`）。也可手动：`gh release edit v0.1.0 --draft`。
 
 ```bash
 git tag v0.1.0
